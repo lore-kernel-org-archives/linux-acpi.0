@@ -1,119 +1,114 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/34] ACPI: processor: change acpi_processor_set_pdc()
- interface
-Date: Thu, 24 Dec 2009 01:23:47 -0500
-Message-ID: <43bab25ced218385f7e6a076c2459ea008cfd2e1.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 22/34] sony-laptop: rfkill support for newer models
+Date: Thu, 24 Dec 2009 01:23:53 -0500
+Message-ID: <d5a664a311c1957a75bec1808cae0f10d606c378.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:37630 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755205AbZLXTbT (ORCPT
+	with ESMTP id S1755439AbZLXTbT (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 14:31:19 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KV600GDH8VGSH71@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:01 -0600 (CST)
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:00 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Mattia Dongili <malattia@linux.it>
 
-When calling _PDC, we really only need the handle to the processor
-to call the method; we don't look at any other parts of the
-struct acpi_processor * given to us.
+Vaio Type X and possibly other new models use F135 as the radio
+frequency controlling function attached to the SNC device. In the
+indexed table this corresponds to 0x0135 (surpise!).
 
-In the early path, when we walk the namespace, we are given the
-handle directly, so just pass it through to acpi_processor_set_pdc()
-without stuffing it into a wasteful struct acpi_processor allocated
-on the stack each time
-
-This saves 2834 bytes of stack.
-
-Update the interface accordingly.
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/processor_pdc.c  |   18 +++---------------
- include/acpi/processor.h      |    2 +-
- 3 files changed, 5 insertions(+), 17 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   22 ++++++++++++++--------
+ 1 files changed, 14 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index a19a4ff..9863c98 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -763,7 +763,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index 9710f70..1144686 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -131,6 +131,7 @@ enum sony_nc_rfkill {
+ 	N_SONY_RFKILL,
+ };
+ 
++static int sony_rfkill_handle;
+ static struct rfkill *sony_rfkill_devices[N_SONY_RFKILL];
+ static int sony_rfkill_address[N_SONY_RFKILL] = {0x300, 0x500, 0x700, 0x900};
+ static void sony_nc_rfkill_update(void);
+@@ -965,7 +966,7 @@ static void sony_nc_notify(struct acpi_device *device, u32 event)
+ 				else
+ 					sony_laptop_report_input_event(ev);
+ 			}
+-		} else if (sony_find_snc_handle(0x124) == ev) {
++		} else if (sony_find_snc_handle(sony_rfkill_handle) == ev) {
+ 			sony_nc_rfkill_update();
+ 			return;
+ 		}
+@@ -1071,7 +1072,7 @@ static int sony_nc_rfkill_set(void *data, bool blocked)
+ 	if (!blocked)
+ 		argument |= 0xff0000;
+ 
+-	return sony_call_snc_handle(0x124, argument, &result);
++	return sony_call_snc_handle(sony_rfkill_handle, argument, &result);
+ }
+ 
+ static const struct rfkill_ops sony_rfkill_ops = {
+@@ -1114,7 +1115,7 @@ static int sony_nc_setup_rfkill(struct acpi_device *device,
+ 	if (!rfk)
+ 		return -ENOMEM;
+ 
+-	sony_call_snc_handle(0x124, 0x200, &result);
++	sony_call_snc_handle(sony_rfkill_handle, 0x200, &result);
+ 	hwblock = !(result & 0x1);
+ 	rfkill_set_hw_state(rfk, hwblock);
+ 
+@@ -1133,7 +1134,7 @@ static void sony_nc_rfkill_update()
+ 	int result;
+ 	bool hwblock;
+ 
+-	sony_call_snc_handle(0x124, 0x200, &result);
++	sony_call_snc_handle(sony_rfkill_handle, 0x200, &result);
+ 	hwblock = !(result & 0x1);
+ 
+ 	for (i = 0; i < N_SONY_RFKILL; i++) {
+@@ -1149,7 +1150,7 @@ static void sony_nc_rfkill_update()
+ 			continue;
+ 		}
+ 
+-		sony_call_snc_handle(0x124, argument, &result);
++		sony_call_snc_handle(sony_rfkill_handle, argument, &result);
+ 		rfkill_set_states(sony_rfkill_devices[i],
+ 				  !(result & 0xf), false);
  	}
- 
- 	/* _PDC call should be done before doing anything else (if reqd.). */
--	acpi_processor_set_pdc(pr);
-+	acpi_processor_set_pdc(pr->handle);
- 
- #ifdef CONFIG_CPU_FREQ
- 	acpi_processor_ppc_has_changed(pr, 0);
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index deeba22..30e4dc0 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -125,7 +125,7 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- 	return status;
- }
- 
--void acpi_processor_set_pdc(struct acpi_processor *pr)
-+void acpi_processor_set_pdc(acpi_handle handle)
+@@ -1159,10 +1160,15 @@ static int sony_nc_rfkill_setup(struct acpi_device *device)
  {
- 	struct acpi_object_list *obj_list;
+ 	int result, ret;
  
-@@ -136,7 +136,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
- 	if (!obj_list)
- 		return;
+-	if (sony_find_snc_handle(0x124) == -1)
+-		return -1;
++	if (sony_find_snc_handle(0x124) == -1) {
++		if (sony_find_snc_handle(0x135) == -1)
++			return -1;
++		else
++			sony_rfkill_handle = 0x135;
++	} else
++		sony_rfkill_handle = 0x124;
  
--	acpi_processor_eval_pdc(pr->handle, obj_list);
-+	acpi_processor_eval_pdc(handle, obj_list);
- 
- 	kfree(obj_list->pointer->buffer.pointer);
- 	kfree(obj_list->pointer);
-@@ -147,19 +147,7 @@ EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
- static acpi_status
- early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
--	struct acpi_processor pr;
--
--	pr.handle = handle;
--
--	/* x86 implementation looks at pr.id to determine some
--	 * CPU capabilites. We can just hard code to 0 since we're
--	 * assuming the CPUs in the system are homogenous and all
--	 * have the same capabilities.
--	 */
--	pr.id = 0;
--
--	acpi_processor_set_pdc(&pr);
--
-+	acpi_processor_set_pdc(handle);
- 	return AE_OK;
- }
- 
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 0873cd5..7cc433d 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -323,7 +323,7 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
- #endif				/* CONFIG_CPU_FREQ */
- 
- /* in processor_pdc.c */
--void acpi_processor_set_pdc(struct acpi_processor *pr);
-+void acpi_processor_set_pdc(acpi_handle handle);
- 
- /* in processor_throttling.c */
- int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+-	ret = sony_call_snc_handle(0x124, 0xb00, &result);
++	ret = sony_call_snc_handle(sony_rfkill_handle, 0xb00, &result);
+ 	if (ret) {
+ 		printk(KERN_INFO DRV_PFX
+ 		       "Unable to enumerate rfkill devices: %x\n", ret);
 -- 
 1.6.0.6
 
