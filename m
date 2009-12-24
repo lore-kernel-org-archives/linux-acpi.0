@@ -1,146 +1,227 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/34] tc1100-wmi - add error handling for device registration
-Date: Thu, 24 Dec 2009 01:23:33 -0500
-Message-ID: <9634a627b330fcc7cdca25df4d7853ca9c7745de.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 09/34] ACPI: processor: unify arch_acpi_processor_init_pdc
+Date: Thu, 24 Dec 2009 01:23:40 -0500
+Message-ID: <407cd87c54e76c266245e8faef8dd4a84b7254fe.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:58976 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755423AbZLXGYX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 01:24:23 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173015.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV50089N8G9DVP7@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:10 -0600 (CST)
+Received: from vms173019pub.verizon.net ([206.46.173.19]:52417 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813AbZLXGY0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 01:24:26 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KV50091G8GGLT36@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:16 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: Alex Chiang <achiang@hp.com>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <len.brown@intel.com>
 
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Alex Chiang <achiang@hp.com>
 
-Any of the platform API functions can fail; driver should be prepared
-to handle such failures. Also:
+The x86 and ia64 implementations of arch_acpi_processor_init_pdc()
+are almost exactly the same. The only difference is in what bits
+they set in obj_list buffer.
 
- - changed to platform_driver_probe() since the device is created
-   right there with the driver;
- - added __devexit annotation to remove method;
- - fixed memory leak on module unload - named platform_device_del() is not
-   enough to free platform device, need platform_device_unregister().
+Combine the boilerplate memory management code, and leave the
+arch-specific bit twiddling in separate implementations.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/tc1100-wmi.c |   58 +++++++++++++++++++------------------
- 1 files changed, 30 insertions(+), 28 deletions(-)
+ arch/ia64/kernel/acpi-processor.c |   34 +---------------------------
+ arch/x86/kernel/acpi/processor.c  |   34 +---------------------------
+ drivers/acpi/processor_pdc.c      |   45 ++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 46 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/platform/x86/tc1100-wmi.c b/drivers/platform/x86/tc1100-wmi.c
-index 0d53d51..fa2995b 100644
---- a/drivers/platform/x86/tc1100-wmi.c
-+++ b/drivers/platform/x86/tc1100-wmi.c
-@@ -47,22 +47,6 @@ MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
+diff --git a/arch/ia64/kernel/acpi-processor.c b/arch/ia64/kernel/acpi-processor.c
+index dbda7bd..ab72d46 100644
+--- a/arch/ia64/kernel/acpi-processor.c
++++ b/arch/ia64/kernel/acpi-processor.c
+@@ -16,31 +16,7 @@
  
--static int tc1100_probe(struct platform_device *device);
--static int tc1100_remove(struct platform_device *device);
--static int tc1100_suspend(struct platform_device *device, pm_message_t state);
--static int tc1100_resume(struct platform_device *device);
--
--static struct platform_driver tc1100_driver = {
--	.driver = {
--		.name = "tc1100-wmi",
--		.owner = THIS_MODULE,
--	},
--	.probe = tc1100_probe,
--	.remove = tc1100_remove,
--	.suspend = tc1100_suspend,
--	.resume = tc1100_resume,
--};
--
- static struct platform_device *tc1100_device;
- 
- struct tc1100_data {
-@@ -197,13 +181,13 @@ static struct attribute_group tc1100_attribute_group = {
- 				Driver Model
-    -------------------------------------------------------------------------- */
- 
--static int tc1100_probe(struct platform_device *device)
-+static int __init tc1100_probe(struct platform_device *device)
+ static void init_intel_pdc(struct acpi_processor *pr)
  {
- 	return sysfs_create_group(&device->dev.kobj, &tc1100_attribute_group);
+-	struct acpi_object_list *obj_list;
+-	union acpi_object *obj;
+-	u32 *buf;
+-
+-	/* allocate and initialize pdc. It will be used later. */
+-	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
+-	if (!obj_list) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		return;
+-	}
+-
+-	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+-	if (!obj) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		kfree(obj_list);
+-		return;
+-	}
+-
+-	buf = kmalloc(12, GFP_KERNEL);
+-	if (!buf) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		kfree(obj);
+-		kfree(obj_list);
+-		return;
+-	}
++	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
+ 
+ 	buf[0] = ACPI_PDC_REVISION_ID;
+ 	buf[1] = 1;
+@@ -52,20 +28,12 @@ static void init_intel_pdc(struct acpi_processor *pr)
+ 	 */
+ 	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
+ 
+-	obj->type = ACPI_TYPE_BUFFER;
+-	obj->buffer.length = 12;
+-	obj->buffer.pointer = (u8 *) buf;
+-	obj_list->count = 1;
+-	obj_list->pointer = obj;
+-	pr->pdc = obj_list;
+-
+ 	return;
  }
  
- 
--static int tc1100_remove(struct platform_device *device)
-+static int __devexit tc1100_remove(struct platform_device *device)
+ /* Initialize _PDC data based on the CPU vendor */
+ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
  {
- 	sysfs_remove_group(&device->dev.kobj, &tc1100_attribute_group);
+-	pr->pdc = NULL;
+ 	init_intel_pdc(pr);
+ 	return;
+ }
+diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
+index bcb6efe..967860b 100644
+--- a/arch/x86/kernel/acpi/processor.c
++++ b/arch/x86/kernel/acpi/processor.c
+@@ -14,31 +14,7 @@
  
-@@ -240,31 +224,49 @@ static int tc1100_resume(struct platform_device *dev)
- 	return ret;
+ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
+ {
+-	struct acpi_object_list *obj_list;
+-	union acpi_object *obj;
+-	u32 *buf;
+-
+-	/* allocate and initialize pdc. It will be used later. */
+-	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
+-	if (!obj_list) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		return;
+-	}
+-
+-	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+-	if (!obj) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		kfree(obj_list);
+-		return;
+-	}
+-
+-	buf = kmalloc(12, GFP_KERNEL);
+-	if (!buf) {
+-		printk(KERN_ERR "Memory allocation error\n");
+-		kfree(obj);
+-		kfree(obj_list);
+-		return;
+-	}
++	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
+ 
+ 	buf[0] = ACPI_PDC_REVISION_ID;
+ 	buf[1] = 1;
+@@ -62,13 +38,6 @@ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
+ 	if (!cpu_has(c, X86_FEATURE_MWAIT))
+ 		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+ 
+-	obj->type = ACPI_TYPE_BUFFER;
+-	obj->buffer.length = 12;
+-	obj->buffer.pointer = (u8 *) buf;
+-	obj_list->count = 1;
+-	obj_list->pointer = obj;
+-	pr->pdc = obj_list;
+-
+ 	return;
  }
  
-+static struct platform_driver tc1100_driver = {
-+	.driver = {
-+		.name = "tc1100-wmi",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(tc1100_remove),
-+	.suspend = tc1100_suspend,
-+	.resume = tc1100_resume,
-+};
+@@ -78,7 +47,6 @@ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(pr->id);
+ 
+-	pr->pdc = NULL;
+ 	init_intel_pdc(pr, c);
+ 
+ 	return;
+diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
+index 931e735..87946b6 100644
+--- a/drivers/acpi/processor_pdc.c
++++ b/drivers/acpi/processor_pdc.c
+@@ -33,6 +33,49 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
+ 	{},
+ };
+ 
++static void acpi_processor_init_pdc(struct acpi_processor *pr)
++{
++	struct acpi_object_list *obj_list;
++	union acpi_object *obj;
++	u32 *buf;
 +
- static int __init tc1100_init(void)
- {
--	int result = 0;
-+	int error;
- 
- 	if (!wmi_has_guid(GUID))
- 		return -ENODEV;
- 
--	result = platform_driver_register(&tc1100_driver);
--	if (result)
--		return result;
--
- 	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
--	platform_device_add(tc1100_device);
-+	if (!tc1100_device)
-+		return -ENOMEM;
++	pr->pdc = NULL;
 +
-+	error = platform_device_add(tc1100_device);
-+	if (error)
-+		goto err_device_put;
++	/* allocate and initialize pdc. It will be used later. */
++	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
++	if (!obj_list) {
++		printk(KERN_ERR "Memory allocation error\n");
++		return;
++	}
 +
-+	error = platform_driver_probe(&tc1100_driver, tc1100_probe);
-+	if (error)
-+		goto err_device_del;
++	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
++	if (!obj) {
++		printk(KERN_ERR "Memory allocation error\n");
++		kfree(obj_list);
++		return;
++	}
++
++	buf = kmalloc(12, GFP_KERNEL);
++	if (!buf) {
++		printk(KERN_ERR "Memory allocation error\n");
++		kfree(obj);
++		kfree(obj_list);
++		return;
++	}
++
++	obj->type = ACPI_TYPE_BUFFER;
++	obj->buffer.length = 12;
++	obj->buffer.pointer = (u8 *) buf;
++	obj_list->count = 1;
++	obj_list->pointer = obj;
++	pr->pdc = obj_list;
++
++	/* Now let the arch do the bit-twiddling to buf[] */
++	arch_acpi_processor_init_pdc(pr);
++
++	return;
++}
++
+ /*
+  * _PDC is required for a BIOS-OS handshake for most of the newer
+  * ACPI processor features.
+@@ -72,7 +115,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
+ 	if (arch_has_acpi_pdc() == false)
+ 		return;
  
- 	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
-+	return 0;
- 
--	return result;
-+ err_device_del:
-+	platform_device_del(tc1100_device);
-+ err_device_put:
-+	platform_device_put(tc1100_device);
-+	return error;
+-	arch_acpi_processor_init_pdc(pr);
++	acpi_processor_init_pdc(pr);
+ 	acpi_processor_eval_pdc(pr);
+ 	arch_acpi_processor_cleanup_pdc(pr);
  }
- 
- static void __exit tc1100_exit(void)
- {
--	platform_device_del(tc1100_device);
-+	platform_device_unregister(tc1100_device);
- 	platform_driver_unregister(&tc1100_driver);
--
--	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
- }
- 
- module_init(tc1100_init);
 -- 
 1.6.0.6
 
