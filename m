@@ -1,25 +1,27 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 6/9] toshiba_acpi: convert to seq_file
-Date: Thu, 24 Dec 2009 00:20:15 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912240020130.6541@localhost.localdomain>
-References: <200912220020.nBM0K3Jl004755@imap1.linux-foundation.org>
+Subject: Re: [PATCH resend] wmi: Free the allocated acpi objects through
+ wmi_get_event_data
+Date: Thu, 24 Dec 2009 00:42:53 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912240042500.6541@localhost.localdomain>
+References: <20091215105024.3acad900@destiny.ordissimo>
+ <200912162238.25724.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:40291 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777AbZLXFUS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 00:20:18 -0500
+Received: from vms173015pub.verizon.net ([206.46.173.15]:43241 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbZLXFnI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 00:43:08 -0500
 Received: from localhost.localdomain ([74.104.151.18])
- by vms173011.mailsrvcs.net
+ by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV500BCU5HT83H4@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 23 Dec 2009 23:20:18 -0600 (CST)
-In-reply-to: <200912220020.nBM0K3Jl004755@imap1.linux-foundation.org>
+ with ESMTPA id <0KV5004IQ6JNZTU2@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 23 Dec 2009 23:43:00 -0600 (CST)
+In-reply-to: <200912162238.25724.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, adobriyan@gmail.com, johannes@sipsolutions.net, len.brown@intel.com, linville@tuxdriver.com
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Anisse Astier <anisse@astier.eu>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Randy Dunlap <randy.dunlap@oracle.com>, Frans Pop <elendil@planet.nl>
 
 applied
 
