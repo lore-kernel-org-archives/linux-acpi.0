@@ -1,199 +1,568 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/34] ACPI: processor: unify arch_acpi_processor_cleanup_pdc
-Date: Thu, 24 Dec 2009 01:23:43 -0500
-Message-ID: <47817254b8637b56730aec26eed2c337d3938bb5.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 25/34] asus_acpi: convert to seq_file
+Date: Thu, 24 Dec 2009 01:23:56 -0500
+Message-ID: <ff93be5dea548f16dcfe7b73ce5df7666efba92d.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:37630 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755809AbZLXTbb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 14:31:31 -0500
+	with ESMTP id S1755896AbZLXTba (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 14:31:30 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KV600GDH8VGSH71@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:12 -0600 (CST)
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:11 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <len.brown@intel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, Corentin Chary <corentincj@iksaif.net>, Karol Kozimor <sziwan@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The x86 and ia64 implementations of the function in $subject are
-exactly the same.
-
-Also, since the arch-specific implementations of setting _PDC have
-been completely hollowed out, remove the empty shells.
-
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/ia64/kernel/Makefile         |    4 ----
- arch/ia64/kernel/acpi-processor.c |   27 ---------------------------
- arch/x86/kernel/acpi/Makefile     |    2 +-
- arch/x86/kernel/acpi/processor.c  |   25 -------------------------
- drivers/acpi/processor_pdc.c      |   21 ++++++++++++++++++++-
- include/acpi/processor.h          |    2 --
- 6 files changed, 21 insertions(+), 60 deletions(-)
- delete mode 100644 arch/ia64/kernel/acpi-processor.c
- delete mode 100644 arch/x86/kernel/acpi/processor.c
+ drivers/platform/x86/asus_acpi.c |  321 +++++++++++++++++++++++---------------
+ 1 files changed, 194 insertions(+), 127 deletions(-)
 
-diff --git a/arch/ia64/kernel/Makefile b/arch/ia64/kernel/Makefile
-index 2a75e93..e123634 100644
---- a/arch/ia64/kernel/Makefile
-+++ b/arch/ia64/kernel/Makefile
-@@ -18,10 +18,6 @@ obj-$(CONFIG_IA64_GENERIC)	+= acpi-ext.o
- obj-$(CONFIG_IA64_HP_ZX1)	+= acpi-ext.o
- obj-$(CONFIG_IA64_HP_ZX1_SWIOTLB) += acpi-ext.o
- 
--ifneq ($(CONFIG_ACPI_PROCESSOR),)
--obj-y				+= acpi-processor.o
--endif
--
- obj-$(CONFIG_IA64_PALINFO)	+= palinfo.o
- obj-$(CONFIG_IOSAPIC)		+= iosapic.o
- obj-$(CONFIG_MODULES)		+= module.o
-diff --git a/arch/ia64/kernel/acpi-processor.c b/arch/ia64/kernel/acpi-processor.c
-deleted file mode 100644
-index 7ba5acc..0000000
---- a/arch/ia64/kernel/acpi-processor.c
-+++ /dev/null
-@@ -1,27 +0,0 @@
--/*
-- * arch/ia64/kernel/acpi-processor.c
-- *
-- * Copyright (C) 2005 Intel Corporation
-- * 	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-- * 	- Added _PDC for platforms with Intel CPUs
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/acpi.h>
--
--#include <acpi/processor.h>
--#include <asm/acpi.h>
--
--void arch_acpi_processor_cleanup_pdc(struct acpi_processor *pr)
--{
--	if (pr->pdc) {
--		kfree(pr->pdc->pointer->buffer.pointer);
--		kfree(pr->pdc->pointer);
--		kfree(pr->pdc);
--		pr->pdc = NULL;
--	}
--}
--
--EXPORT_SYMBOL(arch_acpi_processor_cleanup_pdc);
-diff --git a/arch/x86/kernel/acpi/Makefile b/arch/x86/kernel/acpi/Makefile
-index fd5ca97..6f35260 100644
---- a/arch/x86/kernel/acpi/Makefile
-+++ b/arch/x86/kernel/acpi/Makefile
-@@ -4,7 +4,7 @@ obj-$(CONFIG_ACPI)		+= boot.o
- obj-$(CONFIG_ACPI_SLEEP)	+= sleep.o wakeup_rm.o wakeup_$(BITS).o
- 
- ifneq ($(CONFIG_ACPI_PROCESSOR),)
--obj-y				+= cstate.o processor.o
-+obj-y				+= cstate.o
- endif
- 
- $(obj)/wakeup_rm.o:    $(obj)/realmode/wakeup.bin
-diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
-deleted file mode 100644
-index 0f57307..0000000
---- a/arch/x86/kernel/acpi/processor.c
-+++ /dev/null
-@@ -1,25 +0,0 @@
--/*
-- * Copyright (C) 2005 Intel Corporation
-- * 	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-- * 	- Added _PDC for platforms with Intel CPUs
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/acpi.h>
--
--#include <acpi/processor.h>
--#include <asm/acpi.h>
--
--void arch_acpi_processor_cleanup_pdc(struct acpi_processor *pr)
--{
--	if (pr->pdc) {
--		kfree(pr->pdc->pointer->buffer.pointer);
--		kfree(pr->pdc->pointer);
--		kfree(pr->pdc);
--		pr->pdc = NULL;
--	}
--}
--
--EXPORT_SYMBOL(arch_acpi_processor_cleanup_pdc);
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index 48df08e..e786e2c 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -1,3 +1,12 @@
-+/*
-+ * Copyright (C) 2005 Intel Corporation
-+ * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
-+ *
-+ *	Alex Chiang <achiang@hp.com>
-+ *	- Unified x86/ia64 implementations
-+ *	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *	- Added _PDC for platforms with Intel CPUs
-+ */
- #include <linux/dmi.h>
- 
+diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
+index 0c9c531..c1d2aee 100644
+--- a/drivers/platform/x86/asus_acpi.c
++++ b/drivers/platform/x86/asus_acpi.c
+@@ -35,6 +35,7 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/backlight.h>
  #include <acpi/acpi_drivers.h>
-@@ -121,6 +130,16 @@ static int acpi_processor_eval_pdc(struct acpi_processor *pr)
- 	return status;
+ #include <acpi/acpi_bus.h>
+@@ -513,26 +514,12 @@ static int read_acpi_int(acpi_handle handle, const char *method, int *val)
+ 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
  }
  
-+static void acpi_processor_cleanup_pdc(struct acpi_processor *pr)
-+{
-+	if (pr->pdc) {
-+		kfree(pr->pdc->pointer->buffer.pointer);
-+		kfree(pr->pdc->pointer);
-+		kfree(pr->pdc);
-+		pr->pdc = NULL;
-+	}
+-/*
+- * We write our info in page, we begin at offset off and cannot write more
+- * than count bytes. We set eof to 1 if we handle those 2 values. We return the
+- * number of bytes written in page
+- */
+-static int
+-proc_read_info(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int asus_info_proc_show(struct seq_file *m, void *v)
+ {
+-	int len = 0;
+ 	int temp;
+-	char buf[16];		/* enough for all info */
+-	/*
+-	 * We use the easy way, we don't care of off and count,
+-	 * so we don't set eof to 1
+-	 */
+ 
+-	len += sprintf(page, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
+-	len += sprintf(page + len, "Model reference    : %s\n",
+-		       hotk->methods->name);
++	seq_printf(m, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
++	seq_printf(m, "Model reference    : %s\n", hotk->methods->name);
+ 	/*
+ 	 * The SFUN method probably allows the original driver to get the list
+ 	 * of features supported by a given model. For now, 0x0100 or 0x0800
+@@ -540,8 +527,7 @@ proc_read_info(char *page, char **start, off_t off, int count, int *eof,
+ 	 * The significance of others is yet to be found.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "SFUN", &temp))
+-		len +=
+-		    sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
++		seq_printf(m, "SFUN value         : 0x%04x\n", temp);
+ 	/*
+ 	 * Another value for userspace: the ASYM method returns 0x02 for
+ 	 * battery low and 0x04 for battery critical, its readings tend to be
+@@ -550,30 +536,34 @@ proc_read_info(char *page, char **start, off_t off, int count, int *eof,
+ 	 * silently ignored.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "ASYM", &temp))
+-		len +=
+-		    sprintf(page + len, "ASYM value         : 0x%04x\n", temp);
++		seq_printf(m, "ASYM value         : 0x%04x\n", temp);
+ 	if (asus_info) {
+-		snprintf(buf, 16, "%d", asus_info->length);
+-		len += sprintf(page + len, "DSDT length        : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->checksum);
+-		len += sprintf(page + len, "DSDT checksum      : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->revision);
+-		len += sprintf(page + len, "DSDT revision      : %s\n", buf);
+-		snprintf(buf, 7, "%s", asus_info->oem_id);
+-		len += sprintf(page + len, "OEM id             : %s\n", buf);
+-		snprintf(buf, 9, "%s", asus_info->oem_table_id);
+-		len += sprintf(page + len, "OEM table id       : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->oem_revision);
+-		len += sprintf(page + len, "OEM revision       : 0x%s\n", buf);
+-		snprintf(buf, 5, "%s", asus_info->asl_compiler_id);
+-		len += sprintf(page + len, "ASL comp vendor id : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->asl_compiler_revision);
+-		len += sprintf(page + len, "ASL comp revision  : 0x%s\n", buf);
++		seq_printf(m, "DSDT length        : %d\n", asus_info->length);
++		seq_printf(m, "DSDT checksum      : %d\n", asus_info->checksum);
++		seq_printf(m, "DSDT revision      : %d\n", asus_info->revision);
++		seq_printf(m, "OEM id             : %.*s\n", ACPI_OEM_ID_SIZE, asus_info->oem_id);
++		seq_printf(m, "OEM table id       : %.*s\n", ACPI_OEM_TABLE_ID_SIZE, asus_info->oem_table_id);
++		seq_printf(m, "OEM revision       : 0x%x\n", asus_info->oem_revision);
++		seq_printf(m, "ASL comp vendor id : %.*s\n", ACPI_NAME_SIZE, asus_info->asl_compiler_id);
++		seq_printf(m, "ASL comp revision  : 0x%x\n", asus_info->asl_compiler_revision);
+ 	}
+ 
+-	return len;
++	return 0;
 +}
 +
- void acpi_processor_set_pdc(struct acpi_processor *pr)
- {
- 	if (arch_has_acpi_pdc() == false)
-@@ -128,7 +147,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
- 
- 	acpi_processor_init_pdc(pr);
- 	acpi_processor_eval_pdc(pr);
--	arch_acpi_processor_cleanup_pdc(pr);
-+	acpi_processor_cleanup_pdc(pr);
++static int asus_info_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, asus_info_proc_show, NULL);
  }
- EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
  
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 50edd73..0873cd5 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -257,8 +257,6 @@ int acpi_processor_notify_smm(struct module *calling_module);
- DECLARE_PER_CPU(struct acpi_processor *, processors);
- extern struct acpi_processor_errata errata;
++static const struct file_operations asus_info_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= asus_info_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ /*
+  * /proc handlers
+  * We write our info in page, we begin at offset off and cannot write more
+@@ -639,34 +629,48 @@ write_led(const char __user *buffer, unsigned long count,
+ /*
+  * Proc handlers for MLED
+  */
+-static int
+-proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int mled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->mled_status, MLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->mled_status, MLED_ON));
++	return 0;
+ }
  
--void arch_acpi_processor_cleanup_pdc(struct acpi_processor *pr);
--
- #ifdef ARCH_HAS_POWER_INIT
- void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
- 					unsigned int cpu);
+-static int
+-proc_write_mled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int mled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mled_proc_show, NULL);
++}
++
++static ssize_t mled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
+ }
+ 
++static const struct file_operations mled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= mled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= mled_proc_write,
++};
++
+ /*
+  * Proc handlers for LED display
+  */
+-static int
+-proc_read_ledd(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int ledd_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "0x%08x\n", hotk->ledd_status);
++	seq_printf(m, "0x%08x\n", hotk->ledd_status);
++	return 0;
+ }
+ 
+-static int
+-proc_write_ledd(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int ledd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ledd_proc_show, NULL);
++}
++
++static ssize_t ledd_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -682,61 +686,104 @@ proc_write_ledd(struct file *file, const char __user *buffer,
+ 	return rv;
+ }
+ 
++static const struct file_operations ledd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= ledd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= ledd_proc_write,
++};
++
+ /*
+  * Proc handlers for WLED
+  */
+-static int
+-proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int wled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->wled_status, WLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->wled_status, WLED_ON));
++	return 0;
+ }
+ 
+-static int
+-proc_write_wled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int wled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, wled_proc_show, NULL);
++}
++
++static ssize_t wled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
+ }
+ 
++static const struct file_operations wled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= wled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= wled_proc_write,
++};
++
+ /*
+  * Proc handlers for Bluetooth
+  */
+-static int
+-proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
+-		    void *data)
++static int bluetooth_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	return 0;
+ }
+ 
+-static int
+-proc_write_bluetooth(struct file *file, const char __user *buffer,
+-		     unsigned long count, void *data)
++static int bluetooth_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, bluetooth_proc_show, NULL);
++}
++
++static ssize_t bluetooth_proc_write(struct file *file,
++		const char __user *buffer, size_t count, loff_t *pos)
+ {
+ 	/* Note: mt_bt_switch controls both internal Bluetooth adapter's
+ 	   presence and its LED */
+ 	return write_led(buffer, count, hotk->methods->mt_bt_switch, BT_ON, 0);
+ }
+ 
++static const struct file_operations bluetooth_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= bluetooth_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= bluetooth_proc_write,
++};
++
+ /*
+  * Proc handlers for TLED
+  */
+-static int
+-proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int tled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->tled_status, TLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->tled_status, TLED_ON));
++	return 0;
+ }
+ 
+-static int
+-proc_write_tled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int tled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, tled_proc_show, NULL);
++}
++
++static ssize_t tled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
+ }
+ 
++static const struct file_operations tled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= tled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= tled_proc_write,
++};
++
+ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
+@@ -829,16 +876,19 @@ static int set_lcd_state(int value)
+ 
+ }
+ 
+-static int
+-proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int lcd_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", get_lcd_state());
++	seq_printf(m, "%d\n", get_lcd_state());
++	return 0;
+ }
+ 
+-static int
+-proc_write_lcd(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int lcd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, lcd_proc_show, NULL);
++}
++
++static ssize_t lcd_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -848,6 +898,15 @@ proc_write_lcd(struct file *file, const char __user *buffer,
+ 	return rv;
+ }
+ 
++static const struct file_operations lcd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= lcd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= lcd_proc_write,
++};
++
+ static int read_brightness(struct backlight_device *bd)
+ {
+ 	int value;
+@@ -907,16 +966,19 @@ static int set_brightness_status(struct backlight_device *bd)
+ 	return set_brightness(bd->props.brightness);
+ }
+ 
+-static int
+-proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int brn_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_brightness(NULL));
++	seq_printf(m, "%d\n", read_brightness(NULL));
++	return 0;
+ }
+ 
+-static int
+-proc_write_brn(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int brn_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, brn_proc_show, NULL);
++}
++
++static ssize_t brn_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -929,6 +991,15 @@ proc_write_brn(struct file *file, const char __user *buffer,
+ 	return rv;
+ }
+ 
++static const struct file_operations brn_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= brn_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= brn_proc_write,
++};
++
+ static void set_display(int value)
+ {
+ 	/* no sanity check needed for now */
+@@ -942,9 +1013,7 @@ static void set_display(int value)
+  * Now, *this* one could be more user-friendly, but so far, no-one has
+  * complained. The significance of bits is the same as in proc_write_disp()
+  */
+-static int
+-proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int disp_proc_show(struct seq_file *m, void *v)
+ {
+ 	int value = 0;
+ 
+@@ -952,7 +1021,13 @@ proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
+ 		printk(KERN_WARNING
+ 		       "Asus ACPI: Error reading display status\n");
+ 	value &= 0x07;	/* needed for some models, shouldn't hurt others */
+-	return sprintf(page, "%d\n", value);
++	seq_printf(m, "%d\n", value);
++	return 0;
++}
++
++static int disp_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, disp_proc_show, NULL);
+ }
+ 
+ /*
+@@ -961,9 +1036,8 @@ proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
+  * (bitwise) of these will suffice. I never actually tested 3 displays hooked
+  * up simultaneously, so be warned. See the acpi4asus README for more info.
+  */
+-static int
+-proc_write_disp(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static ssize_t disp_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -973,25 +1047,27 @@ proc_write_disp(struct file *file, const char __user *buffer,
+ 	return rv;
+ }
+ 
+-typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
+-			     int *eof, void *data);
+-typedef int (proc_writefunc) (struct file *file, const char __user *buffer,
+-			      unsigned long count, void *data);
++static const struct file_operations disp_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= disp_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= disp_proc_write,
++};
+ 
+ static int
+-asus_proc_add(char *name, proc_writefunc *writefunc,
+-		     proc_readfunc *readfunc, mode_t mode,
++asus_proc_add(char *name, const struct file_operations *proc_fops, mode_t mode,
+ 		     struct acpi_device *device)
+ {
+-	struct proc_dir_entry *proc =
+-	    create_proc_entry(name, mode, acpi_device_dir(device));
++	struct proc_dir_entry *proc;
++
++	proc = proc_create_data(name, mode, acpi_device_dir(device),
++				proc_fops, acpi_driver_data(device));
+ 	if (!proc) {
+ 		printk(KERN_WARNING "  Unable to create %s fs entry\n", name);
+ 		return -1;
+ 	}
+-	proc->write_proc = writefunc;
+-	proc->read_proc = readfunc;
+-	proc->data = acpi_driver_data(device);
+ 	proc->uid = asus_uid;
+ 	proc->gid = asus_gid;
+ 	return 0;
+@@ -1020,10 +1096,9 @@ static int asus_hotk_add_fs(struct acpi_device *device)
+ 	if (!acpi_device_dir(device))
+ 		return -ENODEV;
+ 
+-	proc = create_proc_entry(PROC_INFO, mode, acpi_device_dir(device));
++	proc = proc_create(PROC_INFO, mode, acpi_device_dir(device),
++			   &asus_info_proc_fops);
+ 	if (proc) {
+-		proc->read_proc = proc_read_info;
+-		proc->data = acpi_driver_data(device);
+ 		proc->uid = asus_uid;
+ 		proc->gid = asus_gid;
+ 	} else {
+@@ -1032,28 +1107,23 @@ static int asus_hotk_add_fs(struct acpi_device *device)
+ 	}
+ 
+ 	if (hotk->methods->mt_wled) {
+-		asus_proc_add(PROC_WLED, &proc_write_wled, &proc_read_wled,
+-			      mode, device);
++		asus_proc_add(PROC_WLED, &wled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_ledd) {
+-		asus_proc_add(PROC_LEDD, &proc_write_ledd, &proc_read_ledd,
+-			      mode, device);
++		asus_proc_add(PROC_LEDD, &ledd_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_mled) {
+-		asus_proc_add(PROC_MLED, &proc_write_mled, &proc_read_mled,
+-			      mode, device);
++		asus_proc_add(PROC_MLED, &mled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_tled) {
+-		asus_proc_add(PROC_TLED, &proc_write_tled, &proc_read_tled,
+-			      mode, device);
++		asus_proc_add(PROC_TLED, &tled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_bt_switch) {
+-		asus_proc_add(PROC_BT, &proc_write_bluetooth,
+-			      &proc_read_bluetooth, mode, device);
++		asus_proc_add(PROC_BT, &bluetooth_proc_fops, mode, device);
+ 	}
+ 
+ 	/*
+@@ -1061,19 +1131,16 @@ static int asus_hotk_add_fs(struct acpi_device *device)
+ 	 * accessible from the keyboard
+ 	 */
+ 	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
+-		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
+-			      device);
++		asus_proc_add(PROC_LCD, &lcd_proc_fops, mode, device);
+ 	}
+ 
+ 	if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
+ 	    (hotk->methods->brightness_get && hotk->methods->brightness_set)) {
+-		asus_proc_add(PROC_BRN, &proc_write_brn, &proc_read_brn, mode,
+-			      device);
++		asus_proc_add(PROC_BRN, &brn_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->display_set) {
+-		asus_proc_add(PROC_DISP, &proc_write_disp, &proc_read_disp,
+-			      mode, device);
++		asus_proc_add(PROC_DISP, &disp_proc_fops, mode, device);
+ 	}
+ 
+ 	return 0;
 -- 
 1.6.0.6
 
