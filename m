@@ -1,227 +1,93 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/34] ACPI: processor: unify arch_acpi_processor_init_pdc
-Date: Thu, 24 Dec 2009 01:23:40 -0500
-Message-ID: <407cd87c54e76c266245e8faef8dd4a84b7254fe.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 03/34] tc1100-wmi - switch to using dev_pm_ops
+Date: Thu, 24 Dec 2009 01:23:34 -0500
+Message-ID: <8e698a3c47887fe5aa5e2252c27bb6ff416a07e4.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:52417 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755813AbZLXGY0 (ORCPT
+	with ESMTP id S1755423AbZLXGY0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 01:24:26 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KV50091G8GGLT36@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:16 -0600 (CST)
+ with ESMTPA id <0KV500MZM8GATMF7@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:11 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <len.brown@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-The x86 and ia64 implementations of arch_acpi_processor_init_pdc()
-are almost exactly the same. The only difference is in what bits
-they set in obj_list buffer.
+Also guard PM operations with CONFIG_PM.
 
-Combine the boilerplate memory management code, and leave the
-arch-specific bit twiddling in separate implementations.
-
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/ia64/kernel/acpi-processor.c |   34 +---------------------------
- arch/x86/kernel/acpi/processor.c  |   34 +---------------------------
- drivers/acpi/processor_pdc.c      |   45 ++++++++++++++++++++++++++++++++++++-
- 3 files changed, 46 insertions(+), 67 deletions(-)
+ drivers/platform/x86/tc1100-wmi.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi-processor.c b/arch/ia64/kernel/acpi-processor.c
-index dbda7bd..ab72d46 100644
---- a/arch/ia64/kernel/acpi-processor.c
-+++ b/arch/ia64/kernel/acpi-processor.c
-@@ -16,31 +16,7 @@
- 
- static void init_intel_pdc(struct acpi_processor *pr)
- {
--	struct acpi_object_list *obj_list;
--	union acpi_object *obj;
--	u32 *buf;
--
--	/* allocate and initialize pdc. It will be used later. */
--	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
--	if (!obj_list) {
--		printk(KERN_ERR "Memory allocation error\n");
--		return;
--	}
--
--	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
--	if (!obj) {
--		printk(KERN_ERR "Memory allocation error\n");
--		kfree(obj_list);
--		return;
--	}
--
--	buf = kmalloc(12, GFP_KERNEL);
--	if (!buf) {
--		printk(KERN_ERR "Memory allocation error\n");
--		kfree(obj);
--		kfree(obj_list);
--		return;
--	}
-+	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
- 
- 	buf[0] = ACPI_PDC_REVISION_ID;
- 	buf[1] = 1;
-@@ -52,20 +28,12 @@ static void init_intel_pdc(struct acpi_processor *pr)
- 	 */
- 	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
- 
--	obj->type = ACPI_TYPE_BUFFER;
--	obj->buffer.length = 12;
--	obj->buffer.pointer = (u8 *) buf;
--	obj_list->count = 1;
--	obj_list->pointer = obj;
--	pr->pdc = obj_list;
--
- 	return;
+diff --git a/drivers/platform/x86/tc1100-wmi.c b/drivers/platform/x86/tc1100-wmi.c
+index fa2995b..dd33b51 100644
+--- a/drivers/platform/x86/tc1100-wmi.c
++++ b/drivers/platform/x86/tc1100-wmi.c
+@@ -194,7 +194,8 @@ static int __devexit tc1100_remove(struct platform_device *device)
+ 	return 0;
  }
  
- /* Initialize _PDC data based on the CPU vendor */
- void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+-static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
++#ifdef CONFIG_PM
++static int tc1100_suspend(struct device *dev)
  {
--	pr->pdc = NULL;
- 	init_intel_pdc(pr);
- 	return;
- }
-diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
-index bcb6efe..967860b 100644
---- a/arch/x86/kernel/acpi/processor.c
-+++ b/arch/x86/kernel/acpi/processor.c
-@@ -14,31 +14,7 @@
+ 	int ret;
  
- static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
- {
--	struct acpi_object_list *obj_list;
--	union acpi_object *obj;
--	u32 *buf;
--
--	/* allocate and initialize pdc. It will be used later. */
--	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
--	if (!obj_list) {
--		printk(KERN_ERR "Memory allocation error\n");
--		return;
--	}
--
--	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
--	if (!obj) {
--		printk(KERN_ERR "Memory allocation error\n");
--		kfree(obj_list);
--		return;
--	}
--
--	buf = kmalloc(12, GFP_KERNEL);
--	if (!buf) {
--		printk(KERN_ERR "Memory allocation error\n");
--		kfree(obj);
--		kfree(obj_list);
--		return;
--	}
-+	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
+@@ -206,10 +207,10 @@ static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
+ 	if (ret)
+ 		return ret;
  
- 	buf[0] = ACPI_PDC_REVISION_ID;
- 	buf[1] = 1;
-@@ -62,13 +38,6 @@ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
- 	if (!cpu_has(c, X86_FEATURE_MWAIT))
- 		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
- 
--	obj->type = ACPI_TYPE_BUFFER;
--	obj->buffer.length = 12;
--	obj->buffer.pointer = (u8 *) buf;
--	obj_list->count = 1;
--	obj_list->pointer = obj;
--	pr->pdc = obj_list;
--
- 	return;
+-	return ret;
++	return 0;
  }
  
-@@ -78,7 +47,6 @@ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+-static int tc1100_resume(struct platform_device *dev)
++static int tc1100_resume(struct device *dev)
  {
- 	struct cpuinfo_x86 *c = &cpu_data(pr->id);
+ 	int ret;
  
--	pr->pdc = NULL;
- 	init_intel_pdc(pr, c);
+@@ -221,17 +222,26 @@ static int tc1100_resume(struct platform_device *dev)
+ 	if (ret)
+ 		return ret;
  
- 	return;
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index 931e735..87946b6 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -33,6 +33,49 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
- 	{},
+-	return ret;
++	return 0;
+ }
+ 
++static const struct dev_pm_ops tc1100_pm_ops = {
++	.suspend	= tc1100_suspend,
++	.resume		= tc1100_resume,
++	.freeze		= tc1100_suspend,
++	.restore	= tc1100_resume,
++};
++#endif
++
+ static struct platform_driver tc1100_driver = {
+ 	.driver = {
+ 		.name = "tc1100-wmi",
+ 		.owner = THIS_MODULE,
++#ifdef CONFIG_PM
++		.pm = &tc1100_pm_ops,
++#endif
+ 	},
+ 	.remove = __devexit_p(tc1100_remove),
+-	.suspend = tc1100_suspend,
+-	.resume = tc1100_resume,
  };
  
-+static void acpi_processor_init_pdc(struct acpi_processor *pr)
-+{
-+	struct acpi_object_list *obj_list;
-+	union acpi_object *obj;
-+	u32 *buf;
-+
-+	pr->pdc = NULL;
-+
-+	/* allocate and initialize pdc. It will be used later. */
-+	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
-+	if (!obj_list) {
-+		printk(KERN_ERR "Memory allocation error\n");
-+		return;
-+	}
-+
-+	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
-+	if (!obj) {
-+		printk(KERN_ERR "Memory allocation error\n");
-+		kfree(obj_list);
-+		return;
-+	}
-+
-+	buf = kmalloc(12, GFP_KERNEL);
-+	if (!buf) {
-+		printk(KERN_ERR "Memory allocation error\n");
-+		kfree(obj);
-+		kfree(obj_list);
-+		return;
-+	}
-+
-+	obj->type = ACPI_TYPE_BUFFER;
-+	obj->buffer.length = 12;
-+	obj->buffer.pointer = (u8 *) buf;
-+	obj_list->count = 1;
-+	obj_list->pointer = obj;
-+	pr->pdc = obj_list;
-+
-+	/* Now let the arch do the bit-twiddling to buf[] */
-+	arch_acpi_processor_init_pdc(pr);
-+
-+	return;
-+}
-+
- /*
-  * _PDC is required for a BIOS-OS handshake for most of the newer
-  * ACPI processor features.
-@@ -72,7 +115,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
- 	if (arch_has_acpi_pdc() == false)
- 		return;
- 
--	arch_acpi_processor_init_pdc(pr);
-+	acpi_processor_init_pdc(pr);
- 	acpi_processor_eval_pdc(pr);
- 	arch_acpi_processor_cleanup_pdc(pr);
- }
+ static int __init tc1100_init(void)
 -- 
 1.6.0.6
 
