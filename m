@@ -1,102 +1,246 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH 3/3] sony-laptop - switch from workqueue to a timer
-Date: Thu, 24 Dec 2009 00:02:30 -0800
-Message-ID: <20091224080228.11511.52984.stgit@localhost.localdomain>
-References: <20091224080135.11511.18604.stgit@localhost.localdomain>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: EC: Accelerate query execution
+Date: Thu, 24 Dec 2009 11:34:16 +0300
+Message-ID: <20091224083416.4896.63269.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:63514 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753AbZLXICc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 03:02:32 -0500
-Received: by mail-pw0-f42.google.com with SMTP id 9so4830562pwj.21
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Dec 2009 00:02:32 -0800 (PST)
-In-Reply-To: <20091224080135.11511.18604.stgit@localhost.localdomain>
+Received: from nat.nue.novell.com ([195.135.221.3]:47270 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752462AbZLXIeU (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 03:34:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, =Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-The function that is executing in workqueue context does not need
-to sleep so let's switch to a timer which is more lightweight.
+Split EC query handling into acknowledge and execution phase.
+This allows much smaller pending query lattency and lowers chances
+of EC going "wild" and losing events.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=14858
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/platform/x86/sony-laptop.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/ec.c |  124 +++++++++++++++++++++++++++++++++--------------------
+ 1 files changed, 78 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index a6b7616..8f0455b 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -144,6 +144,7 @@ struct sony_laptop_input_s {
- 	struct input_dev	*key_dev;
- 	struct kfifo		fifo;
- 	spinlock_t		fifo_lock;
-+	struct timer_list	release_key_timer;
- };
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 75b147f..0568f25 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -27,7 +27,7 @@
+  */
  
- static struct sony_laptop_input_s sony_laptop_input = {
-@@ -295,10 +296,8 @@ static int sony_laptop_input_keycode_map[] = {
- };
+ /* Uncomment next line to get verbose printout */
+-/* #define DEBUG */
++#define DEBUG
  
- /* release buttons after a short delay if pressed */
--static void do_sony_laptop_release_key(struct work_struct *work)
-+static void do_sony_laptop_release_key(unsigned long unused)
- {
--	struct delayed_work *dwork =
--			container_of(work, struct delayed_work, work);
- 	struct sony_laptop_keypress kp;
- 	unsigned long flags;
- 
-@@ -312,14 +311,12 @@ static void do_sony_laptop_release_key(struct work_struct *work)
- 
- 	/* If there is something in the fifo schedule next release. */
- 	if (kfifo_len(&sony_laptop_input.fifo) != 0)
--		schedule_delayed_work(dwork, msecs_to_jiffies(10));
-+		mod_timer(&sony_laptop_input.release_key_timer,
-+			  jiffies + msecs_to_jiffies(10));
- 
- 	spin_unlock_irqrestore(&sony_laptop_input.fifo_lock, flags);
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -201,14 +201,13 @@ unlock:
+ 	spin_unlock_irqrestore(&ec->curr_lock, flags);
  }
  
--static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
--			    do_sony_laptop_release_key);
--
- /* forward event to the input subsystem */
- static void sony_laptop_report_input_event(u8 event)
+-static void acpi_ec_gpe_query(void *ec_cxt);
++static int acpi_ec_sync_query(struct acpi_ec *ec);
+ 
+-static int ec_check_sci(struct acpi_ec *ec, u8 state)
++static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
  {
-@@ -377,8 +374,8 @@ static void sony_laptop_report_input_event(u8 event)
- 		kfifo_in_locked(&sony_laptop_input.fifo,
- 				(unsigned char *)&kp, sizeof(kp),
- 				&sony_laptop_input.fifo_lock);
--		schedule_delayed_work(&sony_laptop_release_key_work,
--				      msecs_to_jiffies(10));
-+		mod_timer(&sony_laptop_input.release_key_timer,
-+			  jiffies + msecs_to_jiffies(10));
- 	} else
- 		dprintk("unknown input event %.2x\n", event);
- }
-@@ -403,6 +400,9 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 		goto err_dec_users;
+ 	if (state & ACPI_EC_FLAG_SCI) {
+ 		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+-			return acpi_os_execute(OSL_EC_BURST_HANDLER,
+-				acpi_ec_gpe_query, ec);
++			return acpi_ec_sync_query(ec);
  	}
+ 	return 0;
+ }
+@@ -249,11 +248,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ {
+ 	unsigned long tmp;
+ 	int ret = 0;
+-	pr_debug(PREFIX "transaction start\n");
+-	/* disable GPE during transaction if storm is detected */
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		acpi_disable_gpe(NULL, ec->gpe);
+-	}
+ 	if (EC_FLAGS_MSI)
+ 		udelay(ACPI_EC_MSI_UDELAY);
+ 	/* start transaction */
+@@ -269,16 +263,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	spin_lock_irqsave(&ec->curr_lock, tmp);
+ 	ec->curr = NULL;
+ 	spin_unlock_irqrestore(&ec->curr_lock, tmp);
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		/* check if we received SCI during transaction */
+-		ec_check_sci(ec, acpi_ec_read_status(ec));
+-		/* it is safe to enable GPE outside of transaction */
+-		acpi_enable_gpe(NULL, ec->gpe);
+-	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
+-		pr_info(PREFIX "GPE storm detected, "
+-			"transactions will use polling mode\n");
+-		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+-	}
+ 	return ret;
+ }
  
-+	setup_timer(&sony_laptop_input.release_key_timer,
-+		    do_sony_laptop_release_key, 0);
+@@ -321,7 +305,24 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 		status = -ETIME;
+ 		goto end;
+ 	}
++	pr_debug(PREFIX "transaction start\n");
++	/* disable GPE during transaction if storm is detected */
++	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++		acpi_disable_gpe(NULL, ec->gpe);
++	}
 +
- 	/* input keys */
- 	key_dev = input_allocate_device();
- 	if (!key_dev) {
-@@ -482,7 +482,7 @@ static void sony_laptop_remove_input(void)
- 	if (!atomic_dec_and_test(&sony_laptop_input.users))
- 		return;
+ 	status = acpi_ec_transaction_unlocked(ec, t);
++
++	/* check if we received SCI during transaction */
++	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
++	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++		/* it is safe to enable GPE outside of transaction */
++		acpi_enable_gpe(NULL, ec->gpe);
++	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
++		pr_info(PREFIX "GPE storm detected, "
++			"transactions will use polling mode\n");
++		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
++	}
+ end:
+ 	if (ec->global_lock)
+ 		acpi_release_global_lock(glk);
+@@ -443,7 +444,7 @@ int ec_transaction(u8 command,
  
--	cancel_delayed_work_sync(&sony_laptop_release_key_work);
-+	del_timer_sync(&sony_laptop_input.release_key_timer);
+ EXPORT_SYMBOL(ec_transaction);
  
+-static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
++static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
+ {
+ 	int result;
+ 	u8 d;
+@@ -452,20 +453,16 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
+ 				.wlen = 0, .rlen = 1};
+ 	if (!ec || !data)
+ 		return -EINVAL;
+-
  	/*
- 	 * Generate key-up events for remaining keys. Note that we don't
+ 	 * Query the EC to find out which _Qxx method we need to evaluate.
+ 	 * Note that successful completion of the query causes the ACPI_EC_SCI
+ 	 * bit to be cleared (and thus clearing the interrupt source).
+ 	 */
+-
+-	result = acpi_ec_transaction(ec, &t);
++	result = acpi_ec_transaction_unlocked(ec, &t);
+ 	if (result)
+ 		return result;
+-
+ 	if (!d)
+ 		return -ENODATA;
+-
+ 	*data = d;
+ 	return 0;
+ }
+@@ -509,43 +506,78 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+ 
+ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+ 
+-static void acpi_ec_gpe_query(void *ec_cxt)
++static void acpi_ec_run(void *cxt)
+ {
+-	struct acpi_ec *ec = ec_cxt;
+-	u8 value = 0;
+-	struct acpi_ec_query_handler *handler, copy;
+-
+-	if (!ec || acpi_ec_query(ec, &value))
++	struct acpi_ec_query_handler *handler = cxt;
++	if (!handler)
+ 		return;
+-	mutex_lock(&ec->lock);
++	pr_debug(PREFIX "start query execution\n");
++	if (handler->func)
++		handler->func(handler->data);
++	else if (handler->handle)
++		acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
++	pr_debug(PREFIX "stop query execution\n");
++	kfree(handler);
++}
++
++static int acpi_ec_sync_query(struct acpi_ec *ec)
++{
++	u8 value = 0;
++	int status;
++	struct acpi_ec_query_handler *handler, *copy;
++	if ((status = acpi_ec_query_unlocked(ec, &value)))
++		return status;
+ 	list_for_each_entry(handler, &ec->list, node) {
+ 		if (value == handler->query_bit) {
+ 			/* have custom handler for this bit */
+-			memcpy(&copy, handler, sizeof(copy));
+-			mutex_unlock(&ec->lock);
+-			if (copy.func) {
+-				copy.func(copy.data);
+-			} else if (copy.handle) {
+-				acpi_evaluate_object(copy.handle, NULL, NULL, NULL);
+-			}
+-			return;
++			copy = kmalloc(sizeof(*handler), GFP_KERNEL);
++			if (!copy)
++				return -ENOMEM;
++			memcpy(copy, handler, sizeof(*copy));
++			pr_debug(PREFIX "push query execution (0x%2x) on queue\n", value);
++			return acpi_os_execute(OSL_GPE_HANDLER,
++				acpi_ec_run, copy);
+ 		}
+ 	}
++	return 0;
++}
++
++static void acpi_ec_gpe_query(void *ec_cxt)
++{
++	struct acpi_ec *ec = ec_cxt;
++	if (!ec)
++		return;
++	mutex_lock(&ec->lock);
++	acpi_ec_sync_query(ec);
+ 	mutex_unlock(&ec->lock);
+ }
+ 
++static void acpi_ec_gpe_query(void *ec_cxt);
++
++static int ec_check_sci(struct acpi_ec *ec, u8 state)
++{
++	if (state & ACPI_EC_FLAG_SCI) {
++		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
++			pr_debug(PREFIX "push gpe query to the queue\n");
++			return acpi_os_execute(OSL_NOTIFY_HANDLER,
++				acpi_ec_gpe_query, ec);
++		}
++	}
++	return 0;
++}
++
+ static u32 acpi_ec_gpe_handler(void *data)
+ {
+ 	struct acpi_ec *ec = data;
+-	u8 status;
+ 
+ 	pr_debug(PREFIX "~~~> interrupt\n");
+-	status = acpi_ec_read_status(ec);
+ 
+-	advance_transaction(ec, status);
+-	if (ec_transaction_done(ec) && (status & ACPI_EC_FLAG_IBF) == 0)
++	advance_transaction(ec, acpi_ec_read_status(ec));
++	if (ec_transaction_done(ec) &&
++	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
+ 		wake_up(&ec->wait);
+-	ec_check_sci(ec, status);
++		ec_check_sci(ec, acpi_ec_read_status(ec));
++	}
+ 	return ACPI_INTERRUPT_HANDLED;
+ }
+ 
 
