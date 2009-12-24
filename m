@@ -1,332 +1,146 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/34] ACPI: processor: call _PDC early
-Date: Thu, 24 Dec 2009 01:23:38 -0500
-Message-ID: <78f1699659963fff97975df44db6d5dbe7218e55.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 02/34] tc1100-wmi - add error handling for device registration
+Date: Thu, 24 Dec 2009 01:23:33 -0500
+Message-ID: <9634a627b330fcc7cdca25df4d7853ca9c7745de.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:64290 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683AbZLXGYS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 01:24:18 -0500
+Received: from vms173015pub.verizon.net ([206.46.173.15]:58976 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755423AbZLXGYX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 01:24:23 -0500
 Received: from localhost.localdomain ([74.104.151.18])
- by vms173011.mailsrvcs.net
+ by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV500B2S8GC83A5@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:13 -0600 (CST)
+ with ESMTPA id <0KV50089N8G9DVP7@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 00:24:10 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, ming.m.lin@intel.com, Len Brown <len.brown@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-We discovered that at least one machine (HP Envy), methods in the DSDT
-attempt to call external methods defined in a dynamically loaded SSDT.
+Any of the platform API functions can fail; driver should be prepared
+to handle such failures. Also:
 
-Unfortunately, the DSDT methods we are trying to call are part of the
-EC initialization, which happens very early, and the the dynamic SSDT
-is only loaded when a processor _PDC method runs much later.
+ - changed to platform_driver_probe() since the device is created
+   right there with the driver;
+ - added __devexit annotation to remove method;
+ - fixed memory leak on module unload - named platform_device_del() is not
+   enough to free platform device, need platform_device_unregister().
 
-This results in namespace lookup errors for the (as of yet) undefined
-methods.
-
-Since Windows doesn't have any issues with this machine, we take it
-as a hint that they must be evaluating _PDC much earlier than we are.
-
-Thus, the proper thing for Linux to do should be to match the Windows
-implementation more closely.
-
-Provide a mechanism to call _PDC before we enable the EC. Doing so loads
-the dynamic tables, and allows the EC to be enabled correctly.
-
-The ACPI processor driver will still evaluate _PDC in its .add() method
-to cover the hotplug case.
-
-Resolves: http://bugzilla.kernel.org/show_bug.cgi?id=14824
-
-Cc: ming.m.lin@intel.com
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Makefile         |    1 +
- drivers/acpi/bus.c            |    2 +
- drivers/acpi/internal.h       |    1 +
- drivers/acpi/processor_core.c |   69 --------------------------
- drivers/acpi/processor_pdc.c  |  108 +++++++++++++++++++++++++++++++++++++++++
- include/acpi/processor.h      |    3 +
- 6 files changed, 115 insertions(+), 69 deletions(-)
- create mode 100644 drivers/acpi/processor_pdc.c
+ drivers/platform/x86/tc1100-wmi.c |   58 +++++++++++++++++++------------------
+ 1 files changed, 30 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index c7b10b4..66cc3f3 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -32,6 +32,7 @@ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- #
- acpi-y				+= bus.o glue.o
- acpi-y				+= scan.o
-+acpi-y				+= processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 65f7e33..0bdf24a 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -888,6 +888,8 @@ static int __init acpi_bus_init(void)
- 		goto error1;
- 	}
+diff --git a/drivers/platform/x86/tc1100-wmi.c b/drivers/platform/x86/tc1100-wmi.c
+index 0d53d51..fa2995b 100644
+--- a/drivers/platform/x86/tc1100-wmi.c
++++ b/drivers/platform/x86/tc1100-wmi.c
+@@ -47,22 +47,6 @@ MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
  
-+	acpi_early_processor_set_pdc();
-+
- 	/*
- 	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
- 	 * is necessary to enable it as early as possible.
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 074cf86..cb28e05 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -43,6 +43,7 @@ int acpi_power_transition(struct acpi_device *device, int state);
- extern int acpi_power_nocheck;
- 
- int acpi_wakeup_device_init(void);
-+void acpi_early_processor_set_pdc(void);
- 
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 4173123..a19a4ff 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -124,29 +124,6 @@ static const struct file_operations acpi_processor_info_fops = {
- 
- DEFINE_PER_CPU(struct acpi_processor *, processors);
- struct acpi_processor_errata errata __read_mostly;
--static int set_no_mwait(const struct dmi_system_id *id)
--{
--	printk(KERN_NOTICE PREFIX "%s detected - "
--		"disabling mwait for CPU C-states\n", id->ident);
--	idle_nomwait = 1;
--	return 0;
--}
+-static int tc1100_probe(struct platform_device *device);
+-static int tc1100_remove(struct platform_device *device);
+-static int tc1100_suspend(struct platform_device *device, pm_message_t state);
+-static int tc1100_resume(struct platform_device *device);
 -
--static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
--	{
--	set_no_mwait, "IFL91 board", {
--	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
--	DMI_MATCH(DMI_SYS_VENDOR, "ZEPTO"),
--	DMI_MATCH(DMI_PRODUCT_VERSION, "3215W"),
--	DMI_MATCH(DMI_BOARD_NAME, "IFL91") }, NULL},
--	{
--	set_no_mwait, "Extensa 5220", {
--	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
--	DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
--	DMI_MATCH(DMI_PRODUCT_VERSION, "0100"),
--	DMI_MATCH(DMI_BOARD_NAME, "Columbia") }, NULL},
--	{},
+-static struct platform_driver tc1100_driver = {
+-	.driver = {
+-		.name = "tc1100-wmi",
+-		.owner = THIS_MODULE,
+-	},
+-	.probe = tc1100_probe,
+-	.remove = tc1100_remove,
+-	.suspend = tc1100_suspend,
+-	.resume = tc1100_resume,
 -};
+-
+ static struct platform_device *tc1100_device;
  
- /* --------------------------------------------------------------------------
-                                 Errata Handling
-@@ -277,45 +254,6 @@ static int acpi_processor_errata(struct acpi_processor *pr)
- }
- 
- /* --------------------------------------------------------------------------
--                              Common ACPI processor functions
--   -------------------------------------------------------------------------- */
--
--/*
-- * _PDC is required for a BIOS-OS handshake for most of the newer
-- * ACPI processor features.
-- */
--static int acpi_processor_set_pdc(struct acpi_processor *pr)
--{
--	struct acpi_object_list *pdc_in = pr->pdc;
--	acpi_status status = AE_OK;
--
--
--	if (!pdc_in)
--		return status;
--	if (idle_nomwait) {
--		/*
--		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
--		 * mode will be disabled in the parameter of _PDC object.
--		 * Of course C1_FFH access mode will also be disabled.
--		 */
--		union acpi_object *obj;
--		u32 *buffer = NULL;
--
--		obj = pdc_in->pointer;
--		buffer = (u32 *)(obj->buffer.pointer);
--		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
--
--	}
--	status = acpi_evaluate_object(pr->handle, "_PDC", pdc_in, NULL);
--
--	if (ACPI_FAILURE(status))
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--		    "Could not evaluate _PDC, using legacy perf. control...\n"));
--
--	return status;
--}
--
--/* --------------------------------------------------------------------------
-                               FS Interface (/proc)
+ struct tc1100_data {
+@@ -197,13 +181,13 @@ static struct attribute_group tc1100_attribute_group = {
+ 				Driver Model
     -------------------------------------------------------------------------- */
  
-@@ -825,9 +763,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 	}
+-static int tc1100_probe(struct platform_device *device)
++static int __init tc1100_probe(struct platform_device *device)
+ {
+ 	return sysfs_create_group(&device->dev.kobj, &tc1100_attribute_group);
+ }
  
- 	/* _PDC call should be done before doing anything else (if reqd.). */
--	arch_acpi_processor_init_pdc(pr);
- 	acpi_processor_set_pdc(pr);
--	arch_acpi_processor_cleanup_pdc(pr);
  
- #ifdef CONFIG_CPU_FREQ
- 	acpi_processor_ppc_has_changed(pr, 0);
-@@ -1145,11 +1081,6 @@ static int __init acpi_processor_init(void)
- 	if (!acpi_processor_dir)
- 		return -ENOMEM;
- #endif
--	/*
--	 * Check whether the system is DMI table. If yes, OSPM
--	 * should not use mwait for CPU-states.
--	 */
--	dmi_check_system(processor_idle_dmi_table);
- 	result = cpuidle_register_driver(&acpi_idle_driver);
- 	if (result < 0)
- 		goto out_proc;
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-new file mode 100644
-index 0000000..b416c32
---- /dev/null
-+++ b/drivers/acpi/processor_pdc.c
-@@ -0,0 +1,108 @@
-+#include <linux/dmi.h>
-+
-+#include <acpi/acpi_drivers.h>
-+#include <acpi/processor.h>
-+
-+#include "internal.h"
-+
-+#define PREFIX			"ACPI: "
-+#define _COMPONENT		ACPI_PROCESSOR_COMPONENT
-+ACPI_MODULE_NAME("processor_pdc");
-+
-+static int set_no_mwait(const struct dmi_system_id *id)
-+{
-+	printk(KERN_NOTICE PREFIX "%s detected - "
-+		"disabling mwait for CPU C-states\n", id->ident);
-+	idle_nomwait = 1;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
-+	{
-+	set_no_mwait, "IFL91 board", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
-+	DMI_MATCH(DMI_SYS_VENDOR, "ZEPTO"),
-+	DMI_MATCH(DMI_PRODUCT_VERSION, "3215W"),
-+	DMI_MATCH(DMI_BOARD_NAME, "IFL91") }, NULL},
-+	{
-+	set_no_mwait, "Extensa 5220", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
-+	DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+	DMI_MATCH(DMI_PRODUCT_VERSION, "0100"),
-+	DMI_MATCH(DMI_BOARD_NAME, "Columbia") }, NULL},
-+	{},
+-static int tc1100_remove(struct platform_device *device)
++static int __devexit tc1100_remove(struct platform_device *device)
+ {
+ 	sysfs_remove_group(&device->dev.kobj, &tc1100_attribute_group);
+ 
+@@ -240,31 +224,49 @@ static int tc1100_resume(struct platform_device *dev)
+ 	return ret;
+ }
+ 
++static struct platform_driver tc1100_driver = {
++	.driver = {
++		.name = "tc1100-wmi",
++		.owner = THIS_MODULE,
++	},
++	.remove = __devexit_p(tc1100_remove),
++	.suspend = tc1100_suspend,
++	.resume = tc1100_resume,
 +};
 +
-+/*
-+ * _PDC is required for a BIOS-OS handshake for most of the newer
-+ * ACPI processor features.
-+ */
-+static int acpi_processor_eval_pdc(struct acpi_processor *pr)
-+{
-+	struct acpi_object_list *pdc_in = pr->pdc;
-+	acpi_status status = AE_OK;
-+
-+	if (!pdc_in)
-+		return status;
-+	if (idle_nomwait) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 * Of course C1_FFH access mode will also be disabled.
-+		 */
-+		union acpi_object *obj;
-+		u32 *buffer = NULL;
-+
-+		obj = pdc_in->pointer;
-+		buffer = (u32 *)(obj->buffer.pointer);
-+		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-+
-+	}
-+	status = acpi_evaluate_object(pr->handle, "_PDC", pdc_in, NULL);
-+
-+	if (ACPI_FAILURE(status))
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+		    "Could not evaluate _PDC, using legacy perf. control.\n"));
-+
-+	return status;
-+}
-+
-+void acpi_processor_set_pdc(struct acpi_processor *pr)
-+{
-+	arch_acpi_processor_init_pdc(pr);
-+	acpi_processor_eval_pdc(pr);
-+	arch_acpi_processor_cleanup_pdc(pr);
-+}
-+EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
-+
-+static acpi_status
-+early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	struct acpi_processor pr;
-+
-+	pr.handle = handle;
-+
-+	/* x86 implementation looks at pr.id to determine some
-+	 * CPU capabilites. We can just hard code to 0 since we're
-+	 * assuming the CPUs in the system are homogenous and all
-+	 * have the same capabilities.
-+	 */
-+	pr.id = 0;
-+
-+	acpi_processor_set_pdc(&pr);
-+
-+	return AE_OK;
-+}
-+
-+void acpi_early_processor_set_pdc(void)
-+{
-+	/*
-+	 * Check whether the system is DMI table. If yes, OSPM
-+	 * should not use mwait for CPU-states.
-+	 */
-+	dmi_check_system(processor_idle_dmi_table);
-+
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+			    ACPI_UINT32_MAX,
-+			    early_init_pdc, NULL, NULL, NULL);
-+}
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 29245c6..a1b748a 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -325,6 +325,9 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ static int __init tc1100_init(void)
+ {
+-	int result = 0;
++	int error;
  
- #endif				/* CONFIG_CPU_FREQ */
+ 	if (!wmi_has_guid(GUID))
+ 		return -ENODEV;
  
-+/* in processor_pdc.c */
-+void acpi_processor_set_pdc(struct acpi_processor *pr);
+-	result = platform_driver_register(&tc1100_driver);
+-	if (result)
+-		return result;
+-
+ 	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
+-	platform_device_add(tc1100_device);
++	if (!tc1100_device)
++		return -ENOMEM;
 +
- /* in processor_throttling.c */
- int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- int acpi_processor_get_throttling_info(struct acpi_processor *pr);
++	error = platform_device_add(tc1100_device);
++	if (error)
++		goto err_device_put;
++
++	error = platform_driver_probe(&tc1100_driver, tc1100_probe);
++	if (error)
++		goto err_device_del;
+ 
+ 	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
++	return 0;
+ 
+-	return result;
++ err_device_del:
++	platform_device_del(tc1100_device);
++ err_device_put:
++	platform_device_put(tc1100_device);
++	return error;
+ }
+ 
+ static void __exit tc1100_exit(void)
+ {
+-	platform_device_del(tc1100_device);
++	platform_device_unregister(tc1100_device);
+ 	platform_driver_unregister(&tc1100_driver);
+-
+-	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
+ }
+ 
+ module_init(tc1100_init);
 -- 
 1.6.0.6
 
