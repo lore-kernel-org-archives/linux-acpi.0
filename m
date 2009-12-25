@@ -1,49 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
-Date: Thu, 24 Dec 2009 23:10:42 +0100
-Message-ID: <200912242310.42615.rjw@sisk.pl>
-References: <200912210140.19713.rjw@sisk.pl> <200912232146.29339.rjw@sisk.pl> <4B32D2D6.3030707@crca.org.au>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 2/3] sony-laptop - simplify keymap initialization
+Date: Thu, 24 Dec 2009 23:01:38 -0800
+Message-ID: <20091225070138.GB19401@core.coreip.homeip.net>
+References: <20091224080135.11511.18604.stgit@localhost.localdomain> <20091224080222.11511.79737.stgit@localhost.localdomain> <20091224210146.GA2346@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55280 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755449AbZLXWK2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Dec 2009 17:10:28 -0500
-In-Reply-To: <4B32D2D6.3030707@crca.org.au>
+Received: from mail-px0-f189.google.com ([209.85.216.189]:34866 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057AbZLYHBo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 02:01:44 -0500
+Received: by pxi27 with SMTP id 27so4308386pxi.4
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Dec 2009 23:01:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20091224210146.GA2346@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@crca.org.au>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jiri Slaby <jslaby@suse.cz>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-On Thursday 24 December 2009, Nigel Cunningham wrote:
-> Hi.
+On Thu, Dec 24, 2009 at 07:01:46PM -0200, Henrique de Moraes Holschuh wrote:
+> On Thu, 24 Dec 2009, Dmitry Torokhov wrote:
+> > +	for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++)
+> > +		__set_bit(sony_laptop_input_keycode_map[i], key_dev->keybit);
+> > +	__clear_bit(KEY_RESERVED, key_dev->keybit);
+> 
+> Maybe:
+> 
+> for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++) {
+> 	if (sony_laptop_input_keycode_map[i] != KEY_RESERVED) {
+> 		input_set_capability(key_dev, EV_KEY,
+> 				sony_laptop_input_keycode_map[i]);
+> 	}
+> }
+> 
+> would be better, as it means the driver doesn't poke into the inputdev
+> struct innards directly?
+> 
 
-Hi, 
+Given that you have to still poke there to set up open, close, name,
+phys, id and so on and so forth I think the original is fine and that is
+what most of keyboard-like drivers do.
 
-> I built the async branch of your tree and tested it, also running
-> 2.6.33-rc1 + TuxOnIce for comparison. Dmesg for both are attached. Is
-> there anything I can/should be doing for you on top of this?
+The reason I came up with input_set_capability is because gpio-keys
+wanted to set up siwtches and keys based on platform data so doing;
 
-No, thanks a lot.
+	for(...)
+		input_set_capability(dev, pdata->type, pdata->code);
 
-> I'll try Dmitry's patch on top of this a little later - other things to do first.
+looked nice.
 
-No need for that, the patchset contains an equivalent of the Dmitry's patch.
-
-> I noticed that you were doing standard deviations in your stats - how
-> many runs were you basing them on?
-
-I usually run 10 iterations of suspend-resume for each configuration.
-The raw data are at http://www.sisk.pl/kernel/data/async-suspend-updated.pdf
-if you're interested.
-
-> Not sure that I can be bothered to do too many - too much else to do!
-
-Sure, thanks a lot anyway.  Your data confirn that there's a measurable gain
-from suspending and resuming devices asynchronously.
-
-Have a merry Christmas and happy new year,
-Rafael
+-- 
+Dmitry
