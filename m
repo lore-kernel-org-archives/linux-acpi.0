@@ -1,115 +1,45 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [2.6.33-rc2] ACPI problems on HP nc6400 notebook
-Date: Fri, 25 Dec 2009 16:28:54 +0100
-Message-ID: <8db1092f0912250728w2e97c92fp139837fdacbcf698@mail.gmail.com>
-References: <2d0a357f0912241711o97011od6c1750d7acf8b9e@mail.gmail.com>
-	 <4B3413C4.6070602@gmail.com>
-	 <2d0a357f0912250048h2bc987ccs4d4d253a4155becf@mail.gmail.com>
-	 <2d0a357f0912250315r1f3922e1ta731d03a313d69c6@mail.gmail.com>
-	 <2d0a357f0912250432l4c407696g5ff7c35d5721a2ae@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
+Date: Fri, 25 Dec 2009 18:09:44 +0100
+Message-ID: <20091225170943.GB1581@ucw.cz>
+References: <alpine.LFD.2.00.0912090728200.3560@localhost.localdomain> <Pine.LNX.4.44L0.0912091051450.4120-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:55022 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752886AbZLYP25 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 10:28:57 -0500
-In-Reply-To: <2d0a357f0912250432l4c407696g5ff7c35d5721a2ae@mail.gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42783 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756180AbZLYRJw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 12:09:52 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0912091051450.4120-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sedat Dilek <sedat.dilek@googlemail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, len.brown@intel.com, w.landgraf@ru.ru, "Justin P. Mattock" <justinmattock@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-2009/12/25 Sedat Dilek <sedat.dilek@googlemail.com>:
-> While dell-wmi and hp-wmi is concerned I only applied this patch (see
-> file attachment):
->
-> =C2=A0 =C2=A00001-Revert-wmi-Free-the-allocated-acpi-objects-through-=
-w.patch
->
-> This fixes ACPI/WMI problems onmy HP nc6400 notebook.
->
-> ----- Please REVERT the following commit in 2.6.33-rc2 -----
->
-> commit 3e9b988e4edf065d39c1343937f717319b1c1065
-> Refs: v2.6.33-rc1-10-g3e9b988
-> Author: =C2=A0 =C2=A0 Anisse Astier <anisse@astier.eu>
-> AuthorDate: Fri Dec 4 10:10:09 2009 +0100
-> Commit: =C2=A0 =C2=A0 Len Brown <len.brown@intel.com>
-> CommitDate: Thu Dec 24 00:42:00 2009 -0500
->
-> =C2=A0 =C2=A0wmi: Free the allocated acpi objects through wmi_get_eve=
-nt_data
->
-> =C2=A0 =C2=A0These function allocate an acpi object by calling wmi_ge=
-t_event_data, which
-> =C2=A0 =C2=A0then calls acpi_evaluate_object, and it is not freed aft=
-erwards.
->
-> =C2=A0 =C2=A0And kernel doc is fixed for parameters of wmi_get_event_=
-data.
->
-> =C2=A0 =C2=A0Signed-off-by: Anisse Astier <anisse@astier.eu>
-> =C2=A0 =C2=A0Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-> =C2=A0 =C2=A0Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> =C2=A0 =C2=A0Signed-off-by: Len Brown <len.brown@intel.com>
+Hi!
 
-Tested-by Maciej Rutecki <maciej.rutecki@gmail.com>
+> > That's partly why I realy did suggest that we do the async stuff purely in 
+> > the USB layer, rather than try to put it deeper in the device layer. And 
+> > if we do support it "natively" in the device layer like Rafael's latest 
+> > patch, I still think we should be very very nervous about making devices 
+> > async unless there is a measured - and very noticeable - advantage.
+> 
+> Agreed.  Arjan's measurements indicated that USB was one of the biggest
+> offenders; everything else other than the PS/2 mouse was much faster.  
+> Given these results there isn't much incentive to do anything else
+> asynchronously.
+> 
+> (However other devices not present on Arjan's machine may be a
+> different story.  Spinning up multiple external disks is a good example 
+> -- although here it may be necessary for the driver to take charge, 
+> because spinning up a disk requires a lot of power and doing too many 
+> of them at the same time could be bad.)
 
-> [...]
->
-> - Sedat -
->
-> On Fri, Dec 25, 2009 at 12:15 PM, Sedat Dilek
-> <sedat.dilek@googlemail.com> wrote:
->> [CCed linux-acpi ML, maciej.rutecki@gmail.com and landgraf@ru.ru]
->> (see [2] and [3])
->>
->> GOTCHA!
->>
->> I reverted patches introduced in:
->>
->> commit 2969cd482ebe9c5b82d55917b0cd41175eff042a:
->> "Merge branch 'misc-2.6.33' into release"
->>
->> ...and now I could boot into 2.6.33-rc2.
->>
->> Here the revert-acpi-patches:
->>
->> $ ls debian/patches/revert-acpi-patches/
->> 0001-Revert-hp-wmi-Fix-two-memleaks.patch
->> 0002-Revert-acer-wmi-msi-wmi-Remove-needless-DMI-MODULE_A.patch
->> 0003-Revert-dell-wmi-do-not-keep-driver-loaded-on-unsuppo.patch
->> 0004-Revert-wmi-Free-the-allocated-acpi-objects-through-w.patch
->> 0005-Revert-drivers-platform-x86-acerhdf.c-check-BIOS-inf.patch
->> 0006-Revert-acerhdf-add-new-BIOS-versions.patch
->> 0007-Revert-acerhdf-limit-modalias-matching-to-supported.patch
->> 0008-Revert-toshiba_acpi-convert-to-seq_file.patch
->> 0009-Revert-asus_acpi-convert-to-seq_file.patch
->> 0010-Revert-ACPI-do-not-select-ACPI_DOCK-from-ATA_ACPI.patch
->> 0011-Revert-MAINTAINERS-add-maintainer-for-msi-wmi-driver.patch
->> 0012-Revert-fujitu-laptop-fix-tests-of-acpi_evaluate_inte.patch
->> 0013-Revert-arch-x86-kernel-cpu-cpufreq-acpi-cpufreq.c-av.patch
->>
->> In [1] you can find revert-acpi-patchset, dmesg & lspci outputs of m=
-y
->> new kernel.
->>
->> Marciej and Werner can you please verify or dig deeper by partially
->> excluding the single reverts?
->> Thank you.
-
-
-Patch solves the problem.
-
-
-Thanks
---=20
-Maciej Rutecki
-http://www.maciek.unixy.pl
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, system would better be able to supply enough current... because
+usb disks auto-sleep on their own, and then something like async ls -l
+/*/* would kill your machine...
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
