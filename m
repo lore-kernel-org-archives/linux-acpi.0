@@ -1,54 +1,58 @@
-From: Nigel Cunningham <ncunningham@crca.org.au>
-Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
-Date: Sat, 26 Dec 2009 07:57:17 +1100
-Message-ID: <4B35272D.7040207@crca.org.au>
-References: <200912210140.19713.rjw@sisk.pl> <200912232146.29339.rjw@sisk.pl>	<4B32D2D6.3030707@crca.org.au> <200912242310.42615.rjw@sisk.pl>
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: Re: Regression in module wmi since 2.6.32 (bisected to commit 1caab3c)
+Date: Fri, 25 Dec 2009 15:35:49 -0600
+Message-ID: <4B353035.4050208@lwfinger.net>
+References: <4B352513.90302@lwfinger.net> <200912252056.08436.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.crca.org.au ([67.207.131.56]:43204 "EHLO crca.org.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756630AbZLYU5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Dec 2009 15:57:05 -0500
-In-Reply-To: <200912242310.42615.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757313AbZLYVfz@vger.kernel.org>
+In-Reply-To: <200912252056.08436.carlos@strangeworlds.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Rafael J. Wysocki wrote:
-> On Thursday 24 December 2009, Nigel Cunningham wrote:
->> Hi.
+On 12/25/2009 02:56 PM, Carlos Corbacho wrote:
+> On Friday 25 December 2009 20:48:19 Larry Finger wrote:
+>> If I modprobe wmi after the system is booted, the specific messages are as
+>>  follows:
+>>
+>> ------------[ cut here ]------------
+>> WARNING: at fs/sysfs/dir.c:477 sysfs_add_one+0xd6/0xee()
+>> Hardware name: System Product Name
+>> sysfs: cannot create duplicate filename
+>> '/devices/virtual/wmi/05901221-D566-11D1-B2F0-00A0C9062910'
 > 
-> Hi, 
-> 
->> I built the async branch of your tree and tested it, also running
->> 2.6.33-rc1 + TuxOnIce for comparison. Dmesg for both are attached. Is
->> there anything I can/should be doing for you on top of this?
-> 
-> No, thanks a lot.
-> 
->> I'll try Dmitry's patch on top of this a little later - other things to do first.
-> 
-> No need for that, the patchset contains an equivalent of the Dmitry's patch.
-> 
->> I noticed that you were doing standard deviations in your stats - how
->> many runs were you basing them on?
-> 
-> I usually run 10 iterations of suspend-resume for each configuration.
-> The raw data are at http://www.sisk.pl/kernel/data/async-suspend-updated.pdf
-> if you're interested.
-> 
->> Not sure that I can be bothered to do too many - too much else to do!
-> 
-> Sure, thanks a lot anyway.  Your data confirn that there's a measurable gain
-> from suspending and resuming devices asynchronously.
+> Interesting - what hardware is this? And can you post the DSDT?
 
-It did? I thought it showed no difference at all!
+The hardware is home-built with an ASUS M3N78-VM motherboard and an Athlon X2
+6000 3.1G CPU running an x86_64 OS.
 
-I'll see if I can find the time to do the other computers, then. We're
-going away for a couple of weeks on Monday, though, so I'm not sure that
-I'll get the time beforehand.
+I ran the following commands per the instructions at
+http://www.lesswatts.org/projects/acpi/overridingDSDT.php with the following
+results:
 
-Nigel
+=====================
+desktop:~ # cp /proc/acpi/dsdt DSDT
+desktop:~ # acpidump > acpidump.out
+Wrong checksum for OEMB!
+desktop:~ # acpixtract DSDT acpidump > DSDT.dat
+desktop:~ # iasl -d DSDT.dat
+
+Intel ACPI Component Architecture
+AML Disassembler version 20081031 [Dec  3 2008]
+Copyright (C) 2000 - 2008 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+Loading Acpi table from file DSDT.dat
+TableHeader length [0x62617420] greater than the input file size [0x35]
+Could not get table from the file
+==================
+
+Do the messages indicate a BIOS problem? I have not updated for some time, and
+would rather not do so unless necessary.
+
+Should I attach the files DSDT.dat, acpidump.out, or DSDT?
+
+Larry
