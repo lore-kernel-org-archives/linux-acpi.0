@@ -1,37 +1,77 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: WMI: Handle duplicate GUIDs
-Date: Sat, 26 Dec 2009 14:42:02 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912261440290.4089@localhost.localdomain>
-References: <4B352513.90302@lwfinger.net>
- <200912261836.41882.carlos@strangeworlds.co.uk>
- <4B365E56.9030302@lwfinger.net> <200912261914.59515.carlos@strangeworlds.co.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
+Date: Sat, 26 Dec 2009 22:33:45 +0100
+Message-ID: <200912262233.45626.rjw@sisk.pl>
+References: <200912210140.19713.rjw@sisk.pl> <200912242310.42615.rjw@sisk.pl> <4B35272D.7040207@crca.org.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:49667 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796AbZLZTmQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2009 14:42:16 -0500
-In-reply-to: <200912261914.59515.carlos@strangeworlds.co.uk>
+Received: from ogre.sisk.pl ([217.79.144.158]:58678 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751395AbZLZVdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Dec 2009 16:33:32 -0500
+In-Reply-To: <4B35272D.7040207@crca.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Nigel Cunningham <ncunningham@crca.org.au>
+Cc: Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-applied to acpi-test, after satisfying checkpatch's brace-foo below.
+On Friday 25 December 2009, Nigel Cunningham wrote:
+> Rafael J. Wysocki wrote:
+> > On Thursday 24 December 2009, Nigel Cunningham wrote:
+> >> Hi.
+> > 
+> > Hi, 
+> > 
+> >> I built the async branch of your tree and tested it, also running
+> >> 2.6.33-rc1 + TuxOnIce for comparison. Dmesg for both are attached. Is
+> >> there anything I can/should be doing for you on top of this?
+> > 
+> > No, thanks a lot.
+> > 
+> >> I'll try Dmitry's patch on top of this a little later - other things to do first.
+> > 
+> > No need for that, the patchset contains an equivalent of the Dmitry's patch.
+> > 
+> >> I noticed that you were doing standard deviations in your stats - how
+> >> many runs were you basing them on?
+> > 
+> > I usually run 10 iterations of suspend-resume for each configuration.
+> > The raw data are at http://www.sisk.pl/kernel/data/async-suspend-updated.pdf
+> > if you're interested.
+> > 
+> >> Not sure that I can be bothered to do too many - too much else to do!
+> > 
+> > Sure, thanks a lot anyway.  Your data confirn that there's a measurable gain
+> > from suspending and resuming devices asynchronously.
+> 
+> It did? I thought it showed no difference at all!
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Yes, it did.  Please compare these lines:
 
-ERROR: open brace '{' following function declarations go on the next line
-#34: FILE: drivers/platform/x86/wmi.c:719:
-+static bool guid_already_parsed(const char *guid_string) {
+(from the "sync" dmesg):
+[   31.640676] PM: freeze of devices complete after 709.277 msecs
+[   37.087548] PM: restore of devices complete after 4973.508 msecs
 
-WARNING: braces {} are not necessary for single statement blocks
-#43: FILE: drivers/platform/x86/wmi.c:728:
-+		if (strncmp(gblock->guid, guid_string, 16) == 0) {
-+			return true;
-+		}
+(from the "async" dmesg):
+[   25.600067] PM: freeze of devices complete after 620.429 msecs
+[   29.195366] PM: restore of devices complete after 3057.982 msecs
 
-total: 1 errors, 1 warnings, 48 lines checked
+So clearly, there's a difference. :-)
 
+Of course, in terms of total hibernate/restore time this is only a little
+improvement, but if that was suspend to RAM and resume, the reduction of
+the device resume time by almost 2 s would be a big deal.
+
+> I'll see if I can find the time to do the other computers, then.
+
+I'd appreciate that very much.
+
+> We're going away for a couple of weeks on Monday, though, so I'm not sure
+> that I'll get the time beforehand.
+
+OK
+
+Rafael
