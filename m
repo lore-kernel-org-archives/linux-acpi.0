@@ -1,37 +1,82 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [Devel] Regarding ACPI library
-Date: Fri, 25 Dec 2009 23:03:22 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912252301150.4046@localhost.localdomain>
-References: <6b4365880912231733v58fb8b84wf3bc896113328421@mail.gmail.com>
- <alpine.LFD.2.00.0912241507390.4159@localhost.localdomain>
- <6b4365880912241306y4769ad85mb8e6564587063d14@mail.gmail.com>
+Subject: Re: kernel problem 2.6.33-rc2
+Date: Fri, 25 Dec 2009 23:18:57 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912252318090.4046@localhost.localdomain>
+References: <web-122887026@zbackend1.aha.ru>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:55184 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbZLZEDZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 23:03:25 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV800DKCR9OLQB1@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 25 Dec 2009 22:03:24 -0600 (CST)
-In-reply-to: <6b4365880912241306y4769ad85mb8e6564587063d14@mail.gmail.com>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:35425 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856AbZLZETf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 23:19:35 -0500
+In-reply-to: <web-122887026@zbackend1.aha.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nisha jain <jain61@gmail.com>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org
+To: werner <w.landgraf@ru.ru>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-> Thanks, I have tried using the PowerTop application and modified to see it for dual core but i am not able to get the proper results (c
-> state information for second core is not proper) also I have found through the PowerTop developers that the application is not suitable
-> for full load power measurement. I am not quite sure what does the idle mode means though i think it means that no user level
-> applications are running. I am not able to further use the PowerTop as it doesn't provide mechanism for changing the processor state by
-> user and I guess there are only few utilities for doing frequency scaling like cpfreq-set utility, I need to develop customized
-> utility. I would like to know how I can develop my own utility using ACPI if it is feasible? Also if any specific development
-> environment is required to do so?
+> dell_wmi_init
 
-I don't understand what your goal is,
-and thus I'm unable to help you reach it.
+Please try this patch.
 
--Len
+>From d11e073ee3e3091d9190dace97ce480e960cca1b Mon Sep 17 00:00:00 2001
+From: Len Brown <len.brown@intel.com>
+Date: Fri, 25 Dec 2009 23:14:26 -0500
+Subject: [PATCH] Revert "wmi: Free the allocated acpi objects through wmi_get_event_data"
+X-Patchwork-Hint: ignore
+
+This reverts commit 3e9b988e4edf065d39c1343937f717319b1c1065.
+
+Reported-by: Sedat Dilek <sedat.dilek@googlemail.com>
+Tested-by Maciej Rutecki <maciej.rutecki@gmail.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/platform/x86/dell-wmi.c |    1 -
+ drivers/platform/x86/hp-wmi.c   |    2 --
+ drivers/platform/x86/wmi.c      |    4 ++--
+ 3 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+index 916ccb2..46244c6 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -238,7 +238,6 @@ static void dell_wmi_notify(u32 value, void *context)
+ 			input_sync(dell_wmi_input_dev);
+ 		}
+ 	}
+-	kfree(obj);
+ }
+ 
+ 
+diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+index 8781d8f..222ab57 100644
+--- a/drivers/platform/x86/hp-wmi.c
++++ b/drivers/platform/x86/hp-wmi.c
+@@ -388,8 +388,6 @@ static void hp_wmi_notify(u32 value, void *context)
+ 	} else
+ 		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+ 			eventcode);
+-
+-	kfree(obj);
+ }
+ 
+ static int __init hp_wmi_input_setup(void)
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 9f93d6c..e425a86 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -540,8 +540,8 @@ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+ /**
+  * wmi_get_event_data - Get WMI data associated with an event
+  *
+- * @event: Event to find
+- * @out: Buffer to hold event data. out->pointer should be freed with kfree()
++ * @event - Event to find
++ * &out - Buffer to hold event data
+  *
+  * Returns extra data associated with an event in WMI.
+  */
+-- 
+1.6.6.rc4.11.g129a5
+
