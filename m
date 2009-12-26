@@ -1,82 +1,67 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: kernel problem 2.6.33-rc2
-Date: Fri, 25 Dec 2009 23:18:57 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912252318090.4046@localhost.localdomain>
-References: <web-122887026@zbackend1.aha.ru>
+Subject: [PATCH 2.6.32.stable] ACPI: EC: Fix MSI DMI detection
+Date: Fri, 25 Dec 2009 23:42:43 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912252341330.4449@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:35425 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856AbZLZETf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 23:19:35 -0500
-In-reply-to: <web-122887026@zbackend1.aha.ru>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:37312 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbZLZEnA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 23:43:00 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KV800LQIT3815S7@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 25 Dec 2009 22:42:50 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: werner <w.landgraf@ru.ru>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-> dell_wmi_init
+upstream 55b313f249e11b815fd0be51869f166aaf368f44
 
-Please try this patch.
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
->From d11e073ee3e3091d9190dace97ce480e960cca1b Mon Sep 17 00:00:00 2001
-From: Len Brown <len.brown@intel.com>
-Date: Fri, 25 Dec 2009 23:14:26 -0500
-Subject: [PATCH] Revert "wmi: Free the allocated acpi objects through wmi_get_event_data"
-X-Patchwork-Hint: ignore
+MSI strings should be ORed, not ANDed.
 
-This reverts commit 3e9b988e4edf065d39c1343937f717319b1c1065.
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=14446
 
-Reported-by: Sedat Dilek <sedat.dilek@googlemail.com>
-Tested-by Maciej Rutecki <maciej.rutecki@gmail.com>
+cc: stable@kernel.org
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/dell-wmi.c |    1 -
- drivers/platform/x86/hp-wmi.c   |    2 --
- drivers/platform/x86/wmi.c      |    4 ++--
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/acpi/ec.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-index 916ccb2..46244c6 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -238,7 +238,6 @@ static void dell_wmi_notify(u32 value, void *context)
- 			input_sync(dell_wmi_input_dev);
- 		}
- 	}
--	kfree(obj);
- }
- 
- 
-diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-index 8781d8f..222ab57 100644
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -388,8 +388,6 @@ static void hp_wmi_notify(u32 value, void *context)
- 	} else
- 		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
- 			eventcode);
--
--	kfree(obj);
- }
- 
- static int __init hp_wmi_input_setup(void)
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 9f93d6c..e425a86 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -540,8 +540,8 @@ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
- /**
-  * wmi_get_event_data - Get WMI data associated with an event
-  *
-- * @event: Event to find
-- * @out: Buffer to hold event data. out->pointer should be freed with kfree()
-+ * @event - Event to find
-+ * &out - Buffer to hold event data
-  *
-  * Returns extra data associated with an event in WMI.
-  */
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index baef28c..7511029 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -916,6 +916,7 @@ static int ec_validate_ecdt(const struct dmi_system_id *id)
+ /* MSI EC needs special treatment, enable it */
+ static int ec_flag_msi(const struct dmi_system_id *id)
+ {
++	printk(KERN_DEBUG PREFIX "Detected MSI hardware, enabling workarounds.\n");
+ 	EC_FLAGS_MSI = 1;
+ 	EC_FLAGS_VALIDATE_ECDT = 1;
+ 	return 0;
+@@ -928,8 +929,13 @@ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	DMI_MATCH(DMI_BOARD_NAME, "JFL92") }, NULL},
+ 	{
+ 	ec_flag_msi, "MSI hardware", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star"),
+-	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star") }, NULL},
++	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star")}, NULL},
++	{
++	ec_flag_msi, "MSI hardware", {
++	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star")}, NULL},
++	{
++	ec_flag_msi, "MSI hardware", {
++	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star")}, NULL},
+ 	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
 -- 
 1.6.6.rc4.11.g129a5
 
