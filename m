@@ -1,43 +1,101 @@
-From: Larry Finger <Larry.Finger@lwfinger.net>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: Regression in module wmi since 2.6.32 (bisected to commit 1caab3c)
-Date: Sat, 26 Dec 2009 09:32:37 -0600
-Message-ID: <4B362C95.4040700@lwfinger.net>
-References: <4B352513.90302@lwfinger.net> <200912252158.31127.carlos@strangeworlds.co.uk> <4B353818.1020308@lwfinger.net> <200912260118.26391.carlos@strangeworlds.co.uk>
+Date: Sat, 26 Dec 2009 18:36:41 +0000
+Message-ID: <200912261836.41882.carlos@strangeworlds.co.uk>
+References: <4B352513.90302@lwfinger.net> <200912260118.26391.carlos@strangeworlds.co.uk> <4B362C95.4040700@lwfinger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f198.google.com ([209.85.222.198]:36996 "EHLO
-	mail-pz0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934AbZLZPkl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2009 10:40:41 -0500
-In-Reply-To: <200912260118.26391.carlos@strangeworlds.co.uk>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:58457 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbZLZSgr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2009 13:36:47 -0500
+In-Reply-To: <4B362C95.4040700@lwfinger.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: Larry Finger <Larry.Finger@lwfinger.net>
 Cc: Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On 12/25/2009 07:18 PM, Carlos Corbacho wrote:
-> On Friday 25 December 2009 22:09:28 Larry Finger wrote:
->> On 12/25/2009 03:58 PM, Carlos Corbacho wrote:
->>> On Friday 25 December 2009 21:35:49 Larry Finger wrote:
->>>> Should I attach the files DSDT.dat, acpidump.out, or DSDT?
->>>
->>> DSDT from /proc/acpi/dsdt will do fine for my purposes.
->>
->> Attached.
+On Saturday 26 December 2009 15:32:37 Larry Finger wrote:
+> > Initial patch below which takes the "ignore all duplicate GUIDs" approach.
 > 
-> This is the same as bugzilla #14846 - in both cases, the GUID 05901221-D566-11D1-B2F0-00A0C9062910 (a data block query) is duplicated in two different devices, although both look like they are nVidia related hooks.
-> 
-> Since we don't currently have any in kernel drivers that use that stuff, and the query in question just returns a binary MOF, the simplest solution (for now) seems to be to just ignore these duplicates - if and when someone wants to support these hooks, they can clean the mess up properly when they figure out how WMI is supposed to cope with conflicting GUID's. 
-> 
-> Matthew, you looked at NVIF for your sins, can you see a better solution? We could just blacklist the offending GUID, rather than trying to catch all duplicates? Although just ignoring all duplicates strikes me as a better solution to catch the next time that J Random BIOS Developer decides to duplicate GUIDs in WMI.
-> 
-> Initial patch below which takes the "ignore all duplicate GUIDs" approach.
+> The patch fixes my machine.
 
-The patch fixes my machine.
+Can you test this instead? It should actually do the right thing.
 
-Thanks,
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+---
+ACPI: WMI: Handle duplicate GUIDs
 
-Larry
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
+It would appear that in BIOS's with nVidia hooks, the GUID
+05901221-D566-11D1-B2F0-00A0C9062910 is duplicated. For now, the simplest
+solution is to just ignore any duplicate GUIDs. These particular hooks are not
+currently supported/ used in the kernel, so whoever does that can figure out
+what the 'right' solution should be (if there's a better one).
+---
+ drivers/platform/x86/wmi.c |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 9f93d6c..845aaf6 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -716,6 +716,22 @@ static int wmi_class_init(void)
+ 	return ret;
+ }
+ 
++static bool guid_already_parsed(const char *guid_string) {
++	struct guid_block *gblock;
++	struct wmi_block *wblock;
++	struct list_head *p;
++
++	list_for_each(p, &wmi_blocks.list) {
++		wblock = list_entry(p, struct wmi_block, list);
++		gblock = &wblock->gblock;
++
++		if (strncmp(gblock->guid, guid_string, 16) == 0) {
++			return true;
++		}
++	}
++	return false;
++}
++
+ /*
+  * Parse the _WDG method for the GUID data blocks
+  */
+@@ -725,6 +741,7 @@ static __init acpi_status parse_wdg(acpi_handle handle)
+ 	union acpi_object *obj;
+ 	struct guid_block *gblock;
+ 	struct wmi_block *wblock;
++	char guid_string[37];
+ 	acpi_status status;
+ 	u32 i, total;
+ 
+@@ -747,6 +764,19 @@ static __init acpi_status parse_wdg(acpi_handle handle)
+ 	memcpy(gblock, obj->buffer.pointer, obj->buffer.length);
+ 
+ 	for (i = 0; i < total; i++) {
++		/*
++		  Some WMI devices, like those for nVidia hooks, have a
++		  duplicate GUID. It's not clear what we should do in this
++		  case yet, so for now, we'll just ignore the duplicate.
++		  Anyone who wants to add support for that device can come
++		  up with a better workaround for the mess then.
++		*/
++		if (guid_already_parsed(gblock[i].guid) == true) {
++			wmi_gtoa(gblock[i].guid, guid_string);
++			printk(KERN_INFO PREFIX "Skipping duplicate GUID %s\n",
++				guid_string);
++			continue;
++		}
+ 		wblock = kzalloc(sizeof(struct wmi_block), GFP_KERNEL);
+ 		if (!wblock)
+ 			return AE_NO_MEMORY;
