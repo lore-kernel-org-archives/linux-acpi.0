@@ -1,46 +1,37 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Regression in module wmi since 2.6.32 (bisected to commit
-	1caab3c)
-Date: Fri, 25 Dec 2009 17:36:18 -0800
-Message-ID: <20091226013618.GB23802@core.coreip.homeip.net>
-References: <4B352513.90302@lwfinger.net> <200912252158.31127.carlos@strangeworlds.co.uk> <4B353818.1020308@lwfinger.net> <200912260118.26391.carlos@strangeworlds.co.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Devel] Regarding ACPI library
+Date: Fri, 25 Dec 2009 23:03:22 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912252301150.4046@localhost.localdomain>
+References: <6b4365880912231733v58fb8b84wf3bc896113328421@mail.gmail.com>
+ <alpine.LFD.2.00.0912241507390.4159@localhost.localdomain>
+ <6b4365880912241306y4769ad85mb8e6564587063d14@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:62281 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057AbZLZBgc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 20:36:32 -0500
-Content-Disposition: inline
-In-Reply-To: <200912260118.26391.carlos@strangeworlds.co.uk>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:55184 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbZLZEDZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2009 23:03:25 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KV800DKCR9OLQB1@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 25 Dec 2009 22:03:24 -0600 (CST)
+In-reply-to: <6b4365880912241306y4769ad85mb8e6564587063d14@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: nisha jain <jain61@gmail.com>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org
 
-Hi Carlos,
+> Thanks, I have tried using the PowerTop application and modified to see it for dual core but i am not able to get the proper results (c
+> state information for second core is not proper) also I have found through the PowerTop developers that the application is not suitable
+> for full load power measurement. I am not quite sure what does the idle mode means though i think it means that no user level
+> applications are running. I am not able to further use the PowerTop as it doesn't provide mechanism for changing the processor state by
+> user and I guess there are only few utilities for doing frequency scaling like cpfreq-set utility, I need to develop customized
+> utility. I would like to know how I can develop my own utility using ACPI if it is feasible? Also if any specific development
+> environment is required to do so?
 
-On Sat, Dec 26, 2009 at 01:18:26AM +0000, Carlos Corbacho wrote:
-> @@ -747,6 +763,16 @@ static __init acpi_status parse_wdg(acpi_handle handle)
->  	memcpy(gblock, obj->buffer.pointer, obj->buffer.length);
->  
->  	for (i = 0; i < total; i++) {
-> +		/*
-> +		  Some WMI devices, like those for nVidia hooks, have a
-> +		  duplicate GUID. It's not clear what we should do in this
-> +		  case yet, so for now, we'll just ignore the duplicate.
-> +		  Anyone who wants to add support for that device can come
-> +		  up with a better workaround for the mess then.
-> +		*/
-> +		if (guid_already_parsed(gblock[i].guid) == true) {
+I don't understand what your goal is,
+and thus I'm unable to help you reach it.
 
-A warning message is probably warranted here.
-
-> +			continue;
-> +		}
->  		wblock = kzalloc(sizeof(struct wmi_block), GFP_KERNEL);
->  		if (!wblock)
->  			return AE_NO_MEMORY;
-
--- 
-Dmitry
+-Len
