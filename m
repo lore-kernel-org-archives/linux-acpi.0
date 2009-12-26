@@ -1,52 +1,37 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: acer-wmi: Respect current backlight level when loading
-Date: Sat, 26 Dec 2009 19:24:31 +0000
-Message-ID: <200912261924.31527.carlos@strangeworlds.co.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: WMI: Handle duplicate GUIDs
+Date: Sat, 26 Dec 2009 14:42:02 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912261440290.4089@localhost.localdomain>
+References: <4B352513.90302@lwfinger.net>
+ <200912261836.41882.carlos@strangeworlds.co.uk>
+ <4B365E56.9030302@lwfinger.net> <200912261914.59515.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:6788 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831AbZLZTYe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2009 14:24:34 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so1035625eya.19
-        for <linux-acpi@vger.kernel.org>; Sat, 26 Dec 2009 11:24:33 -0800 (PST)
+Received: from vms173005pub.verizon.net ([206.46.173.5]:49667 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796AbZLZTmQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2009 14:42:16 -0500
+In-reply-to: <200912261914.59515.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: lenb@kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Set the backlight to use the current brightness when loaded, rather than
-always resetting the backlight to maximum brightness.
+applied to acpi-test, after satisfying checkpatch's brace-foo below.
 
-Fixes kernel bugzilla #14207
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Reported-by: Denis Mukhin <denis_mukhin@yahoo.com>
----
-Len,
+ERROR: open brace '{' following function declarations go on the next line
+#34: FILE: drivers/platform/x86/wmi.c:719:
++static bool guid_already_parsed(const char *guid_string) {
 
-This is one floating about locally that seems to have fallen down the
-back of the sofa.
+WARNING: braces {} are not necessary for single statement blocks
+#43: FILE: drivers/platform/x86/wmi.c:728:
++		if (strncmp(gblock->guid, guid_string, 16) == 0) {
++			return true;
++		}
 
-Should be safe to apply even in -rc3, as it's just a minor bug fix. If not, it can
-wait until 2.6.34
+total: 1 errors, 1 warnings, 48 lines checked
 
- drivers/platform/x86/acer-wmi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 07d14df..226b3e9 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -934,7 +934,7 @@ static int __devinit acer_backlight_init(struct device *dev)
- 	acer_backlight_device = bd;
- 
- 	bd->props.power = FB_BLANK_UNBLANK;
--	bd->props.brightness = max_brightness;
-+	bd->props.brightness = read_brightness(bd);
- 	bd->props.max_brightness = max_brightness;
- 	backlight_update_status(bd);
- 	return 0;
