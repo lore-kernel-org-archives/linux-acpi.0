@@ -1,102 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: BUG: (2.6.32.2) sleeping function called from invalid context at drivers/acpi/acpica/psloop.c:826
-Date: Sun, 27 Dec 2009 23:24:02 +0100
-Message-ID: <200912272324.02489.rjw@sisk.pl>
-References: <20091225231354.GA13330@rhlx01.hs-esslingen.de>
+From: Ian Molton <ian.molton@collabora.co.uk>
+Subject: Re: [PATCH 3/5] thinkpad-acpi: make volume subdriver optional
+Date: Sun, 27 Dec 2009 22:37:35 +0000
+Message-ID: <4B37E1AF.6030105@collabora.co.uk>
+References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br> <1261875137-27565-4-git-send-email-hmh@hmh.eng.br> <s5hr5qgvjsa.wl%tiwai@suse.de> <20091227183220.GB3027@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60877 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751127AbZL0WYA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Dec 2009 17:24:00 -0500
-In-Reply-To: <20091225231354.GA13330@rhlx01.hs-esslingen.de>
+Received: from bhuna.collabora.co.uk ([93.93.128.226]:42077 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298AbZL0WiY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Dec 2009 17:38:24 -0500
+In-Reply-To: <20091227183220.GB3027@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Takashi Iwai <tiwai@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Amerigo Wang <amwang@redhat.com>, Helight Xu <helight.xu@gmail.com>
 
-On Saturday 26 December 2009, Andreas Mohr wrote:
-> Hi,
-> 
-> got this after a lid close (ACPI S1, obviously).
-> Inspiron 8000 (P3/700).
-> 
-> Might be similar/same to
-> "Kernel BUG during suspend to disk with 2.6.32-rc8-git3",
-> http://www.gossamer-threads.com/lists/linux/kernel/1160868
-> 
-> Suspending type 'cpu':
->  cpu0
-> Back to C!
-> Resuming System Devices
-> Resuming type 'cpu':
->  cpu0
-> Resuming type 'i8259':
->  i82590
-> Resuming type 'i8237':
->  i82370
-> Resuming type 'machinecheck':
->  machinecheck0
-> Resuming type 'ioapic':
-> Resuming type 'timekeeping':
->  timekeeping0
-> Resuming type 'clocksource':
->  clocksource0
-> Resuming type 'irqrouter':
->  irqrouter0
-> BUG: sleeping function called from invalid context at drivers/acpi/acpica/psloop.c:826
-> in_atomic(): 0, irqs_disabled(): 1, pid: 12013, name: default.sh
-> 1 lock held by default.sh/12013:
->  #0:  (pm_mutex){......}, at: [<c1052c0b>] enter_state+0x29/0x121
-> Pid: 12013, comm: default.sh Not tainted 2.6.32.2 #1
-> Call Trace:
->  [<c1048bc7>] ? __debug_show_held_locks+0x1e/0x20
->  [<c10230a4>] __might_sleep+0xb6/0xbb
->  [<c114ed9c>] acpi_ps_complete_op+0x224/0x238
->  [<c114f20d>] ? acpi_ps_parse_loop+0x45d/0x8e8
->  [<c113ba0a>] ? acpi_ds_exec_end_op+0x419/0x47f
->  [<c114f548>] acpi_ps_parse_loop+0x798/0x8e8
->  [<c114e706>] acpi_ps_parse_aml+0xcf/0x31f
->  [<c114fcee>] acpi_ps_execute_method+0x1d5/0x2b7
->  [<c114b1ac>] acpi_ns_evaluate+0x13c/0x242
->  [<c1151105>] acpi_rs_set_srs_method_data+0xed/0x108
->  [<c1150bd4>] acpi_set_current_resources+0x2e/0x39
->  [<c11370cb>] acpi_pci_link_set+0x132/0x202
->  [<c11371c4>] irqrouter_resume+0x29/0x3e
->  [<c1184b6e>] __sysdev_resume+0x14/0xa3
->  [<c1184c77>] sysdev_resume+0x7a/0xb2
->  [<c1052b75>] suspend_devices_and_enter+0xf8/0x165
->  [<c1052cc2>] enter_state+0xe0/0x121
->  [<c1052d1c>] pm_suspend+0x19/0x1f
->  [<c1131f48>] acpi_suspend+0x3c/0x54
->  [<c11322cf>] acpi_system_write_sleep+0x60/0x75
->  [<c113226f>] ? acpi_system_write_sleep+0x0/0x75
->  [<c10c6827>] proc_reg_write+0x60/0x74
->  [<c10c67c7>] ? proc_reg_write+0x0/0x74
->  [<c10923bb>] vfs_write+0x8a/0x13b
->  [<c1092505>] sys_write+0x3b/0x60
->  [<c10029b0>] sysenter_do_call+0x12/0x31
-> Resuming type 'lapic_nmi':
->  lapic_nmi0
-> ACPI: Waking up from system sleep state S1
-> platform dock.0: EARLY resume
-> agpgart-intel 0000:00:00.0: EARLY resume
-> agpgart-intel 0000:00:00.0: calling quirk_cardbus_legacy+0x0/0x21
-> pci 0000:00:01.0: EARLY resume
-> pci 0000:00:01.0: calling quirk_cardbus_legacy+0x0/0x21
-> pci 0000:00:1e.0: EARLY resume
-> pci 0000:00:1e.0: calling quirk_cardbus_legacy+0x0/0x21
-> pci 0000:00:1f.0: EARLY resume
-> pci 0000:00:1f.0: calling quirk_cardbus_legacy+0x0/0x21
-> ata_piix 0000:00:1f.1: EARLY resume
-> ata_piix 0000:00:1f.1: restoring config space at offset 0x1 (was 0x2800001, writing 0x2800005)
-> ata_piix 0000:00:1f.1: calling quirk_cardbus_legacy+0x0/0x21
-> uhci_hcd 0000:00:1f.2: EARLY resume
-> uhci_hcd 0000:00:1f.2: calling quirk_cardbus_legacy+0x0/0x21
 
-I guess this is http://bugzilla.kernel.org/show_bug.cgi?id=14483
+Not directly related to your patch but I thought I'd mention...
 
-Rafael
+I've noticed issues with my X200 re: routing audio before / after docking.
+
+I'll investigate if I can provoke it and will let you know.
