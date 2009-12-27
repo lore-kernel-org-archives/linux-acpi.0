@@ -1,106 +1,72 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Lockdep spew with dock on resume
-Date: Sun, 27 Dec 2009 02:08:28 -0800
-Message-ID: <20091227100828.GC14655@core.coreip.homeip.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
+Date: Sun, 27 Dec 2009 15:20:08 +0100
+Message-ID: <200912271520.08521.rjw@sisk.pl>
+References: <200912210140.19713.rjw@sisk.pl> <200912262233.45626.rjw@sisk.pl> <4B36882D.5070002@crca.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:36534 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbZL0KIe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Dec 2009 05:08:34 -0500
-Received: by pxi27 with SMTP id 27so5081910pxi.4
-        for <linux-acpi@vger.kernel.org>; Sun, 27 Dec 2009 02:08:34 -0800 (PST)
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:59827 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752273AbZL0OTm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Dec 2009 09:19:42 -0500
+In-Reply-To: <4B36882D.5070002@crca.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>
+To: Nigel Cunningham <ncunningham@crca.org.au>
+Cc: Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Hi,
+On Saturday 26 December 2009, Nigel Cunningham wrote:
+> Hi.
+> 
+> Rafael J. Wysocki wrote:
+> > Yes, it did.  Please compare these lines:
+> > 
+> > (from the "sync" dmesg):
+> > [   31.640676] PM: freeze of devices complete after 709.277 msecs
+> > [   37.087548] PM: restore of devices complete after 4973.508 msecs
+> > 
+> > (from the "async" dmesg):
+> > [   25.600067] PM: freeze of devices complete after 620.429 msecs
+> > [   29.195366] PM: restore of devices complete after 3057.982 msecs
+> > 
+> > So clearly, there's a difference. :-)
+> 
+> Oh okay.
+> 
+> It still feels like a long time. How do I find out which device took the
+> longest? It looks to me like the patch is only recording when things
+> start their restore, not when they finish.
 
-I started getting the following complaints from lockdep when resuming
-plugged into a docking station (2.6.33-rc*):
+First, you need to boot with initcall_debug in the kernel command line.
 
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.441766] ACPI: Waking up from system sleep state S3
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464717]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464719] =======================================================
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464720] [ INFO: possible circular locking dependency detected ]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464723] 2.6.33-rc1 #145
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464724] -------------------------------------------------------
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464726] kacpi_hotplug/23 is trying to acquire lock:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464728]  (kacpid){+.+.+.}, at: [<ffffffff81067130>] flush_workqueue+0x0/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464736]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464737] but task is already holding lock:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464739]  ((&dpc->work)){+.+.+.}, at: [<ffffffff81066c7b>] run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464744]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464744] which lock already depends on the new lock.
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464745]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464747]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464747] the existing dependency chain (in reverse order) is:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464749]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464749] -> #1 ((&dpc->work)){+.+.+.}:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464753]        [<ffffffff81080b32>] check_prev_add+0x242/0x570
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464757]        [<ffffffff810814b9>] validate_chain+0x659/0x750
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464761]        [<ffffffff810818c7>] __lock_acquire+0x317/0x4b0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464764]        [<ffffffff81081af9>] lock_acquire+0x99/0x140
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464767]        [<ffffffff81066cc6>] run_workqueue+0x126/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464770]        [<ffffffff81066ed6>] worker_thread+0x96/0xf0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464773]        [<ffffffff8106b55e>] kthread+0x8e/0xa0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464777]        [<ffffffff81003d94>] kernel_thread_helper+0x4/0x10
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464781]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464782] -> #0 (kacpid){+.+.+.}:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464785]        [<ffffffff81080e2e>] check_prev_add+0x53e/0x570
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464788]        [<ffffffff810814b9>] validate_chain+0x659/0x750
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464791]        [<ffffffff810818c7>] __lock_acquire+0x317/0x4b0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464795]        [<ffffffff81081af9>] lock_acquire+0x99/0x140
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464798]        [<ffffffff8106718c>] flush_workqueue+0x5c/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464801]        [<ffffffff81261ea4>] acpi_os_wait_events_complete+0x10/0x1e
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464805]        [<ffffffff81261ecf>] acpi_os_execute_deferred+0x1d/0x31
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464808]        [<ffffffff81066ccc>] run_workqueue+0x12c/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464811]        [<ffffffff81066ed6>] worker_thread+0x96/0xf0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464814]        [<ffffffff8106b55e>] kthread+0x8e/0xa0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464818]        [<ffffffff81003d94>] kernel_thread_helper+0x4/0x10
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464821]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464821] other info that might help us debug this:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464822]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464824] 2 locks held by kacpi_hotplug/23:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464826]  #0:  (kacpi_hotplug){+.+...}, at: [<ffffffff81066c7b>] run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464831]  #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff81066c7b>] run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464836]
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464836] stack backtrace:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464839] Pid: 23, comm: kacpi_hotplug Tainted: P           2.6.33-rc1 #145
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464841] Call Trace:
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464845]  [<ffffffff8107f199>] print_circular_bug+0xe9/0xf0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464849]  [<ffffffff81080e2e>] check_prev_add+0x53e/0x570
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464852]  [<ffffffff8107dabf>] ? save_trace+0x3f/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464856]  [<ffffffff81066c7b>] ? run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464859]  [<ffffffff810814b9>] validate_chain+0x659/0x750
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464863]  [<ffffffff810818c7>] __lock_acquire+0x317/0x4b0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464866]  [<ffffffff81081269>] ? validate_chain+0x409/0x750
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464870]  [<ffffffff81081af9>] lock_acquire+0x99/0x140
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464873]  [<ffffffff81067130>] ? flush_workqueue+0x0/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464876]  [<ffffffff81261eb2>] ? acpi_os_execute_deferred+0x0/0x31
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464879]  [<ffffffff8106718c>] flush_workqueue+0x5c/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464882]  [<ffffffff81067130>] ? flush_workqueue+0x0/0xc0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464885]  [<ffffffff81066c7b>] ? run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464889]  [<ffffffff81261ea4>] acpi_os_wait_events_complete+0x10/0x1e
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464892]  [<ffffffff81261ecf>] acpi_os_execute_deferred+0x1d/0x31
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464895]  [<ffffffff81066ccc>] run_workqueue+0x12c/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464898]  [<ffffffff81066c7b>] ? run_workqueue+0xdb/0x2a0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464902]  [<ffffffff81066ed6>] worker_thread+0x96/0xf0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464905]  [<ffffffff8106ba70>] ? autoremove_wake_function+0x0/0x40
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464908]  [<ffffffff81066e40>] ? worker_thread+0x0/0xf0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464911]  [<ffffffff8106b55e>] kthread+0x8e/0xa0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464915]  [<ffffffff81003d94>] kernel_thread_helper+0x4/0x10
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464920]  [<ffffffff8143a9c0>] ? restore_args+0x0/0x30
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464923]  [<ffffffff8106b4d0>] ? kthread+0x0/0xa0
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464926]  [<ffffffff81003d90>] ? kernel_thread_helper+0x0/0x10
-Dec 21 08:50:29 dtor-d630 kernel: [ 8018.464932] ACPI: \_SB_.PCI0.PCIE.GDCK - docking
+Then, after a hibernate-resume cycle do something like this:
 
-They weren't here with 2.6.32.
+$ dmesg | grep "call .* returned " | awk '{print $8 "\t" $4;}' | sort -nr
 
-Thanks.
+That will give you both the suspend and resume times for all devices,
+sorted in the decreasing order.
 
--- 
-Dmitry
+If you want to separate suspend times from resume times, you generally need
+to save the dmesg output and cut everything except for the interesting part
+(eg. device suspend) from it.  Then you'll get the times by running the above
+command.
+ 
+> > Of course, in terms of total hibernate/restore time this is only a little
+> > improvement, but if that was suspend to RAM and resume, the reduction of
+> > the device resume time by almost 2 s would be a big deal.
+> > 
+> >> I'll see if I can find the time to do the other computers, then.
+> > 
+> > I'd appreciate that very much.
+> 
+> I'm not sure I'll find the time now - it's Sunday morning here and we
+> still have packing and so on to do after I take this morning's service.
+> 
+> Sorry!
+
+No problem at all. :-)
+
+Rafael
