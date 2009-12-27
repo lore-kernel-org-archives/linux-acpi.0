@@ -1,98 +1,45 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 2/5] thinkpad-acpi: don't fail to load the entire module due to ALSA problems
-Date: Sat, 26 Dec 2009 22:52:14 -0200
-Message-ID: <1261875137-27565-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/5] thinkpad-acpi: don't take the first ALSA slot by default
+Date: Sat, 26 Dec 2009 22:52:13 -0200
+Message-ID: <1261875137-27565-2-git-send-email-hmh@hmh.eng.br>
 References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53068 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33685 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbZL0AwW (ORCPT
+	by vger.kernel.org with ESMTP id S1751868AbZL0AwX (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Dec 2009 19:52:22 -0500
+	Sat, 26 Dec 2009 19:52:23 -0500
 In-Reply-To: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-If we cannot create the ALSA mixer, it is a good reason to fail to
-load the volume subdriver, and not to fail to load the entire module.
+We don't want to be the first soundcard.  We don't want to shift other
+soundcards out of the way either, even if they load much later.
 
-While at it, add more debugging messages, as the error paths are being
-used a lot more than I'd expect, and it is failing to set up the ALSA
-mixer on a number of ThinkPads.
+Ask ALSA to (by default) load us in one of the last three slots.  This
+can be overriden at will using the "index" parameter.
 
-Reported-by: Peter Jordan <usernetwork@gmx.info>
+Reported-by: Whoopie <whoopie79@gmx.net>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   31 ++++++++++++++++++-------------
- 1 files changed, 18 insertions(+), 13 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 3311b00..9b7da9c 100644
+index 448c8ae..3311b00 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -6705,10 +6705,11 @@ static int __init volume_create_alsa_mixer(void)
+@@ -6388,7 +6388,7 @@ static struct ibm_struct brightness_driver_data = {
+ #define TPACPI_ALSA_SHRTNAME "ThinkPad Console Audio Control"
+ #define TPACPI_ALSA_MIXERNAME TPACPI_ALSA_SHRTNAME
  
- 	rc = snd_card_create(alsa_index, alsa_id, THIS_MODULE,
- 			    sizeof(struct tpacpi_alsa_data), &card);
--	if (rc < 0)
--		return rc;
--	if (!card)
--		return -ENOMEM;
-+	if (rc < 0 || !card) {
-+		printk(TPACPI_ERR
-+			"Failed to create ALSA card structures: %d\n", rc);
-+		return 1;
-+	}
+-static int alsa_index = SNDRV_DEFAULT_IDX1;
++static int alsa_index = ~((1 << (SNDRV_CARDS - 3)) - 1); /* last three slots */
+ static char *alsa_id = "ThinkPadEC";
+ static int alsa_enable = SNDRV_DEFAULT_ENABLE1;
  
- 	BUG_ON(!card->private_data);
- 	data = card->private_data;
-@@ -6741,8 +6742,9 @@ static int __init volume_create_alsa_mixer(void)
- 		rc = snd_ctl_add(card, ctl_vol);
- 		if (rc < 0) {
- 			printk(TPACPI_ERR
--				"Failed to create ALSA volume control\n");
--			goto err_out;
-+				"Failed to create ALSA volume control: %d\n",
-+				rc);
-+			goto err_exit;
- 		}
- 		data->ctl_vol_id = &ctl_vol->id;
- 	}
-@@ -6750,22 +6752,25 @@ static int __init volume_create_alsa_mixer(void)
- 	ctl_mute = snd_ctl_new1(&volume_alsa_control_mute, NULL);
- 	rc = snd_ctl_add(card, ctl_mute);
- 	if (rc < 0) {
--		printk(TPACPI_ERR "Failed to create ALSA mute control\n");
--		goto err_out;
-+		printk(TPACPI_ERR "Failed to create ALSA mute control: %d\n",
-+			rc);
-+		goto err_exit;
- 	}
- 	data->ctl_mute_id = &ctl_mute->id;
- 
- 	snd_card_set_dev(card, &tpacpi_pdev->dev);
- 	rc = snd_card_register(card);
--
--err_out:
- 	if (rc < 0) {
--		snd_card_free(card);
--		card = NULL;
-+		printk(TPACPI_ERR "Failed to register ALSA card: %d\n", rc);
-+		goto err_exit;
- 	}
- 
- 	alsa_card = card;
--	return rc;
-+	return 0;
-+
-+err_exit:
-+	snd_card_free(card);
-+	return 1;
- }
- 
- #define TPACPI_VOL_Q_MUTEONLY	0x0001	/* Mute-only control available */
 -- 
 1.6.5.7
 
