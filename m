@@ -1,50 +1,37 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 3/5] thinkpad-acpi: make volume
-	subdriver optional
-Date: Sun, 27 Dec 2009 16:32:20 -0200
-Message-ID: <20091227183220.GB3027@khazad-dum.debian.net>
-References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br>
-	<1261875137-27565-4-git-send-email-hmh@hmh.eng.br>
-	<s5hr5qgvjsa.wl%tiwai@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 12/12] PM / r8169: Add simplified run-time PM support
+Date: Sun, 27 Dec 2009 20:48:37 +0100
+Message-ID: <200912272048.37332.rjw@sisk.pl>
+References: <200911160047.46299.rjw@sisk.pl> <200911291644.27288.rjw@sisk.pl> <20091215114956.GA1415@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <s5hr5qgvjsa.wl%tiwai-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-Cc: Amerigo Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Helight Xu <helight.xu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60339 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750762AbZL0TsK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Dec 2009 14:48:10 -0500
+In-Reply-To: <20091215114956.GA1415@ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
-On Sun, 27 Dec 2009, Takashi Iwai wrote:
-> > +config THINKPAD_ACPI_ALSA_SUPPORT
-> > +	bool "Console audio control ALSA interface"
-> > +	depends on THINKPAD_ACPI
-> > +	depends on SND
-> > +	depends on SND = y || THINKPAD_ACPI = SND
+On Tuesday 15 December 2009, Pavel Machek wrote:
+> Hi!
 > 
-> I think the first "depends on SND" is superfluous.
+> > Use the PCI run-time power management framework to add simplified
+> > run-time PM support to the r8169 driver.  Namely, make the driver
+> > suspend the device when the link is off and set it up for generating
+> > wake-up event after the link has been detected again.
+> 
+> Nice!
+> 
+> Do you have any idea how much power it saves?
 
-Yes, but I felt that it wouldn't get the idea across as nicely (to humans,
-Kconfig obviously could care less).
+No, but there should be a power meter somewhere here ...
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I'll let you know if I can find it.
 
-------------------------------------------------------------------------------
-This SF.Net email is sponsored by the Verizon Developer Community
-Take advantage of Verizon's best-in-class app development support
-A streamlined, 14 day to market process makes app distribution fast and easy
-Join now and get one step closer to millions of Verizon customers
-http://p.sf.net/sfu/verizon-dev2dev 
+Rafael
