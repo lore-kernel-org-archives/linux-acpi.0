@@ -1,58 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/12] PCI run-time PM support (rev. 2)
-Date: Sun, 27 Dec 2009 20:57:10 +0100
-Message-ID: <200912272057.10443.rjw@sisk.pl>
+Subject: [PATCH 2/12] PCI / PM: Propagate wake-up enable for PCIe devices too
+Date: Sun, 27 Dec 2009 21:00:33 +0100
+Message-ID: <200912272100.33117.rjw@sisk.pl>
+References: <200912272057.10443.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60424 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750980AbZL0ULf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Dec 2009 15:11:35 -0500
+In-Reply-To: <200912272057.10443.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The following (updated) series of patches provides preliminary run-time power
-management support for PCI devices through ACPI and/or the native PCIe PME.
+Having read the PM part of the PCIe 2.0 specification more carefully
+I think that it was a mistake to restrict the wake-up enable
+propagation to non-PCIe devices, because if we do not request
+control of the root ports' PME registers via OSC, PCIe PME is
+supposed to be handled by the platform, just like the non-PCIe PME.
+Even if we do that, the wake-up propagation is done to allow the
+devices to wake up the system from sleep states which involves the
+platform anyway, so it won't hurt.
 
-Some patches have been modified since the previous iteration, one patch has
-been merged and there's one more.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-I've tested this patchset with the native PCIe PME mechanism using the r8169
-driver on the MSI Wind U-100 (see the last patch for details) and with the ACPI
-mechanism using the e1000e driver on the Toshiba Portege R500 (the patch still
-requires some work to be shown in public ;-)).
-
-[1/12] - Add function for checking PME status of devices
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -112,11 +112,7 @@ static bool acpi_pci_can_wakeup(struct p
+ static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus, bool enable)
+ {
+ 	while (bus->parent) {
+-		struct pci_dev *bridge = bus->self;
+-		int ret;
+-
+-		ret = acpi_pm_device_sleep_wake(&bridge->dev, enable);
+-		if (!ret || pci_is_pcie(bridge))
++		if (!acpi_pm_device_sleep_wake(&bus->self->dev, enable))
+ 			return;
+ 		bus = bus->parent;
+ 	}
+@@ -131,9 +127,7 @@ static int acpi_pci_sleep_wake(struct pc
+ 	if (acpi_pci_can_wakeup(dev))
+ 		return acpi_pm_device_sleep_wake(&dev->dev, enable);
  
-[2/12] - Modify wake-up enable propagation so that it's done for PCIe devices
-         too (this one is in the Jesse's tree already, but it's reproduced here
-         for completness)
+-	if (!pci_is_pcie(dev))
+-		acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+-
++	acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+ 	return 0;
+ }
  
-[3/12] - PCIe PME root port service driver
 
-[4/12] - "Don't use MSIs for PME signaling" switch for PCIe
- 
-[5/12] - ACPI GPE refcounting, from Matthew
- 
-[6/12] - ACPI drivers support for GPE refcounting, from Matthew
- 
-[7/12] - ACPI removal of the old GPE API, from Matthew
- 
-[8/12] - ACPI add fields for handling run-wake devices
- 
-[9/12][New] - ACPI add helper function for enabling/disabling wake-up power
-
-[10/12] - PCI / ACPI platform support for run-time power management
-
-[11/12] - Runtime PM callbacks for the PCI bus type
-
-[12/12] - Runtime PM support for r8169 (experimental)
-
-If there are no objections, I think the patches [1-11/12] are ready for the
-upstream.
-
-Thanks,
-Rafael
