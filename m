@@ -1,72 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
-Date: Sun, 27 Dec 2009 15:20:08 +0100
-Message-ID: <200912271520.08521.rjw@sisk.pl>
-References: <200912210140.19713.rjw@sisk.pl> <200912262233.45626.rjw@sisk.pl> <4B36882D.5070002@crca.org.au>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [PATCH 3/5] thinkpad-acpi: make volume
+	subdriver optional
+Date: Sun, 27 Dec 2009 16:32:20 -0200
+Message-ID: <20091227183220.GB3027@khazad-dum.debian.net>
+References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br>
+	<1261875137-27565-4-git-send-email-hmh@hmh.eng.br>
+	<s5hr5qgvjsa.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59827 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752273AbZL0OTm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Dec 2009 09:19:42 -0500
-In-Reply-To: <4B36882D.5070002@crca.org.au>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <s5hr5qgvjsa.wl%tiwai-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
+Cc: Amerigo Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Helight Xu <helight.xu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@crca.org.au>
-Cc: Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Saturday 26 December 2009, Nigel Cunningham wrote:
-> Hi.
+On Sun, 27 Dec 2009, Takashi Iwai wrote:
+> > +config THINKPAD_ACPI_ALSA_SUPPORT
+> > +	bool "Console audio control ALSA interface"
+> > +	depends on THINKPAD_ACPI
+> > +	depends on SND
+> > +	depends on SND = y || THINKPAD_ACPI = SND
 > 
-> Rafael J. Wysocki wrote:
-> > Yes, it did.  Please compare these lines:
-> > 
-> > (from the "sync" dmesg):
-> > [   31.640676] PM: freeze of devices complete after 709.277 msecs
-> > [   37.087548] PM: restore of devices complete after 4973.508 msecs
-> > 
-> > (from the "async" dmesg):
-> > [   25.600067] PM: freeze of devices complete after 620.429 msecs
-> > [   29.195366] PM: restore of devices complete after 3057.982 msecs
-> > 
-> > So clearly, there's a difference. :-)
-> 
-> Oh okay.
-> 
-> It still feels like a long time. How do I find out which device took the
-> longest? It looks to me like the patch is only recording when things
-> start their restore, not when they finish.
+> I think the first "depends on SND" is superfluous.
 
-First, you need to boot with initcall_debug in the kernel command line.
+Yes, but I felt that it wouldn't get the idea across as nicely (to humans,
+Kconfig obviously could care less).
 
-Then, after a hibernate-resume cycle do something like this:
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
-$ dmesg | grep "call .* returned " | awk '{print $8 "\t" $4;}' | sort -nr
-
-That will give you both the suspend and resume times for all devices,
-sorted in the decreasing order.
-
-If you want to separate suspend times from resume times, you generally need
-to save the dmesg output and cut everything except for the interesting part
-(eg. device suspend) from it.  Then you'll get the times by running the above
-command.
- 
-> > Of course, in terms of total hibernate/restore time this is only a little
-> > improvement, but if that was suspend to RAM and resume, the reduction of
-> > the device resume time by almost 2 s would be a big deal.
-> > 
-> >> I'll see if I can find the time to do the other computers, then.
-> > 
-> > I'd appreciate that very much.
-> 
-> I'm not sure I'll find the time now - it's Sunday morning here and we
-> still have packing and so on to do after I take this morning's service.
-> 
-> Sorry!
-
-No problem at all. :-)
-
-Rafael
+------------------------------------------------------------------------------
+This SF.Net email is sponsored by the Verizon Developer Community
+Take advantage of Verizon's best-in-class app development support
+A streamlined, 14 day to market process makes app distribution fast and easy
+Join now and get one step closer to millions of Verizon customers
+http://p.sf.net/sfu/verizon-dev2dev 
