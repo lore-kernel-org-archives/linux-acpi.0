@@ -1,136 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 9/12] ACPI / PM: Introduce acpi_pm_wakeup_power()
-Date: Sun, 27 Dec 2009 21:06:26 +0100
-Message-ID: <200912272106.26569.rjw@sisk.pl>
+Subject: [PATCH 1/12] PCI PM: Add function for checking PME
+	status of devices
+Date: Sun, 27 Dec 2009 20:59:06 +0100
+Message-ID: <200912272059.06718.rjw@sisk.pl>
 References: <200912272057.10443.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60495 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751336AbZL0ULz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Dec 2009 15:11:55 -0500
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 In-Reply-To: <200912272057.10443.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Francois Romieu <romieu@fr.zoreil.com>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-PCI run-time power management generally requires us to set up wake-up
-power for devices that are supposed to generate wake-up events, but
-at the moment we only have acpi_pm_device_sleep_wake() allowing us
-only to do that during system-wide power transitions.  For this
-reason introduce another helper function, acpi_pm_wakeup_power(),
-allowing us to enable/disable wake-up power for a device at any time
-and rework acpi_pm_device_sleep_wake() to use it too.
+Add function pci_check_pme_status() that will check the PME status
+bit of given device and clear it along with the PME enable bit.  It
+will be necessary for PCI run-time power management.
+
+Based on a patch from Shaohua Li <shaohua.li@intel.com>
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep.c    |   22 ++++++++++++++++------
- include/acpi/acpi_bus.h |   11 ++++++++---
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ drivers/pci/pci.c |   35 +++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.h |    1 +
+ 2 files changed, 36 insertions(+)
 
-Index: linux-2.6/kernel/power/Kconfig
+Index: linux-2.6/drivers/pci/pci.h
 ===================================================================
---- linux-2.6.orig/kernel/power/Kconfig
-+++ linux-2.6/kernel/power/Kconfig
-@@ -236,3 +236,8 @@ config PM_RUNTIME
- 	  and the bus type drivers of the buses the devices are on are
- 	  responsible for the actual handling of the autosuspend requests and
- 	  wake-up events.
-+
-+config PM_WAKEUP
-+	bool
-+	depends on SUSPEND || HIBERNATION || PM_RUNTIME
-+	default y
-Index: linux-2.6/drivers/acpi/sleep.c
+--- linux-2.6.orig/drivers/pci/pci.h
++++ linux-2.6/drivers/pci/pci.h
+@@ -49,6 +49,7 @@ struct pci_platform_pm_ops {
+ extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+ extern void pci_update_current_state(struct pci_dev *dev, pci_power_t state);
+ extern void pci_disable_enabled_device(struct pci_dev *dev);
++extern bool pci_check_pme_status(struct pci_dev *dev);
+ extern void pci_pm_init(struct pci_dev *dev);
+ extern void platform_pci_wakeup_init(struct pci_dev *dev);
+ extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
+Index: linux-2.6/drivers/pci/pci.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -634,7 +634,7 @@ int acpi_suspend(u32 acpi_state)
- 	return -EINVAL;
- }
- 
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_WAKEUP
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-@@ -720,6 +720,18 @@ int acpi_pm_device_sleep_state(struct de
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1180,6 +1180,41 @@ int pci_set_pcie_reset_state(struct pci_
  }
  
  /**
-+ * acpi_pm_wakeup_power - Enable/disable device wake-up power.
-+ * @dev: ACPI device to handle.
-+ * @enable: Whether to enable or disable the wake-up power of the device.
++ * pci_check_pme_status - Check if given device has generated PME.
++ * @dev: Device to check.
++ *
++ * Check the PME status of the device and if set, clear it and clear PME enable
++ * (if set).  Return 'true' if PME status and PME enable were both set or
++ * 'false' otherwise.
 + */
-+int acpi_pm_wakeup_power(struct acpi_device *dev, bool enable)
++bool pci_check_pme_status(struct pci_dev *dev)
 +{
-+	return enable ?
-+		acpi_enable_wakeup_device_power(dev, acpi_target_sleep_state) :
-+		acpi_disable_wakeup_device_power(dev);
++	int pmcsr_pos;
++	u16 pmcsr;
++	bool ret = false;
++
++	if (!dev->pm_cap)
++		return false;
++
++	pmcsr_pos = dev->pm_cap + PCI_PM_CTRL;
++	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
++	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
++		return false;
++
++	/* Clear PME status. */
++	pmcsr |= PCI_PM_CTRL_PME_STATUS;
++	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
++		/* Disable PME to avoid interrupt flood. */
++		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
++		ret = true;
++	}
++
++	pci_write_config_word(dev, pmcsr_pos, pmcsr);
++
++	return ret;
 +}
 +
 +/**
-  *	acpi_pm_device_sleep_wake - enable or disable the system wake-up
-  *                                  capability of given device
-  *	@dev: device to handle
-@@ -740,16 +752,14 @@ int acpi_pm_device_sleep_wake(struct dev
- 		return -ENODEV;
- 	}
- 
--	error = enable ?
--		acpi_enable_wakeup_device_power(adev, acpi_target_sleep_state) :
--		acpi_disable_wakeup_device_power(adev);
-+	error = acpi_pm_wakeup_power(adev, enable);
- 	if (!error)
--		dev_info(dev, "wake-up capability %s by ACPI\n",
-+		dev_info(dev, "wake-up power %s by ACPI\n",
- 				enable ? "enabled" : "disabled");
- 
- 	return error;
- }
--#endif
-+#endif /* CONFIG_PM_WAKEUP */
- 
- static void acpi_power_off_prepare(void)
- {
-Index: linux-2.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -388,21 +388,26 @@ acpi_handle acpi_get_pci_rootbridge_hand
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
- 
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_WAKEUP
- int acpi_pm_device_sleep_state(struct device *, int *);
-+int acpi_pm_wakeup_power(struct acpi_device *, bool);
- int acpi_pm_device_sleep_wake(struct device *, bool);
--#else /* !CONFIG_PM_SLEEP */
-+#else /* !CONFIG_PM_WAKEUP */
- static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
- 	return ACPI_STATE_D3;
- }
-+static inline int acpi_pm_wakeup_power(struct acpi_device *dev, bool enable)
-+{
-+	return -ENODEV;
-+}
- static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
- }
--#endif /* !CONFIG_PM_SLEEP */
-+#endif /* !CONFIG_PM_WAKEUP */
- 
- #endif				/* CONFIG_ACPI */
- 
-
+  * pci_pme_capable - check the capability of PCI device to generate PME#
+  * @dev: PCI device to handle.
+  * @state: PCI state from which device will issue PME#.
