@@ -1,25 +1,63 @@
-From: Ian Molton <ian.molton@collabora.co.uk>
-Subject: Re: [PATCH 3/5] thinkpad-acpi: make volume subdriver optional
-Date: Sun, 27 Dec 2009 22:37:35 +0000
-Message-ID: <4B37E1AF.6030105@collabora.co.uk>
-References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br> <1261875137-27565-4-git-send-email-hmh@hmh.eng.br> <s5hr5qgvjsa.wl%tiwai@suse.de> <20091227183220.GB3027@khazad-dum.debian.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: kernel problem 2.6.33-rc2
+Date: Sun, 27 Dec 2009 20:16:23 -0800
+Message-ID: <20091227201623.07e71915.randy.dunlap@oracle.com>
+References: <web-122887026@zbackend1.aha.ru>
+	<alpine.LFD.2.00.0912252318090.4046@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.128.226]:42077 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751298AbZL0WiY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Dec 2009 17:38:24 -0500
-In-Reply-To: <20091227183220.GB3027@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751557AbZL1ESM@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0912252318090.4046@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: werner <w.landgraf@ru.ru>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Takashi Iwai <tiwai@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Amerigo Wang <amwang@redhat.com>, Helight Xu <helight.xu@gmail.com>
+
+On Fri, 25 Dec 2009 23:18:57 -0500 (EST) Len Brown wrote:
+
+> > dell_wmi_init
+> 
+> Please try this patch.
+> 
+> From d11e073ee3e3091d9190dace97ce480e960cca1b Mon Sep 17 00:00:00 2001
+> From: Len Brown <len.brown@intel.com>
+> Date: Fri, 25 Dec 2009 23:14:26 -0500
+> Subject: [PATCH] Revert "wmi: Free the allocated acpi objects through wmi_get_event_data"
+> X-Patchwork-Hint: ignore
+> 
+> This reverts commit 3e9b988e4edf065d39c1343937f717319b1c1065.
+> 
+> Reported-by: Sedat Dilek <sedat.dilek@googlemail.com>
+> Tested-by Maciej Rutecki <maciej.rutecki@gmail.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/platform/x86/dell-wmi.c |    1 -
+>  drivers/platform/x86/hp-wmi.c   |    2 --
+>  drivers/platform/x86/wmi.c      |    4 ++--
+>  3 files changed, 2 insertions(+), 5 deletions(-)
+
+> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+> index 9f93d6c..e425a86 100644
+> --- a/drivers/platform/x86/wmi.c
+> +++ b/drivers/platform/x86/wmi.c
+> @@ -540,8 +540,8 @@ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+>  /**
+>   * wmi_get_event_data - Get WMI data associated with an event
+>   *
+> - * @event: Event to find
+> - * @out: Buffer to hold event data. out->pointer should be freed with kfree()
+> + * @event - Event to find
+> + * &out - Buffer to hold event data
+
+The '+' kernel-doc formatting is incorrect.
+Needs to use ':'s and @out.
 
 
-Not directly related to your patch but I thought I'd mention...
+>   *
+>   * Returns extra data associated with an event in WMI.
+>   */
 
-I've noticed issues with my X200 re: routing audio before / after docking.
 
-I'll investigate if I can provoke it and will let you know.
+---
+~Randy
