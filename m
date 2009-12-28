@@ -1,53 +1,41 @@
-From: Xiaotian Feng <dfeng@redhat.com>
-Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
-Date: Mon, 28 Dec 2009 14:02:30 +0800
-Message-ID: <4B3849F6.1080403@redhat.com>
-References: <20091210100907.GA2446@ucw.cz> <1260446205-16868-1-git-send-email-dfeng@redhat.com> <4B20E7B2.1010208@suse.de> <1260510373.10543.17.camel@minggr.sh.intel.com> <4B223185.80202@suse.de> <20091211161549.GA15760@elf.ucw.cz> <4B227275.5010201@gmail.com> <20091211173424.GC15760@elf.ucw.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v3 0/5] ACPI, APEI, APEI basic support
+Date: Mon, 28 Dec 2009 14:12:19 +0800
+Message-ID: <1261980744-4450-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9025 "EHLO mx1.redhat.com"
+Received: from mga03.intel.com ([143.182.124.21]:7038 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbZL1GDR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Dec 2009 01:03:17 -0500
-In-Reply-To: <20091211173424.GC15760@elf.ucw.cz>
+	id S1750963AbZL1GMh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Dec 2009 01:12:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Lin Ming <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: lenb@kernel.org
+Cc: ak@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 12/12/2009 01:34 AM, Pavel Machek wrote:
->
->>>> If there are none, fine.
->>>>
->>>>> #ifdef CONFIG_PREEMPT
->>>>> # define preemptible()  (preempt_count() == 0&&  !irqs_disabled())
->>>>> # define IRQ_EXIT_OFFSET (HARDIRQ_OFFSET-1)
->>>>> #else
->>>>> # define preemptible()  0
->>>>> # define IRQ_EXIT_OFFSET HARDIRQ_OFFSET
->>>>> #endif
->>>>>
->>>
->>> Well, normally we want low latency even for !CONFIG_PREEMPT kernels.
->>>
->>> Actually, explicit preemption points are NOPs for CONFIG_PREEMPT
->>> kernels, right?
->
->> Right. Do you have code?
->
-> I'd prefer to spend my time with patches to areas that actually do
-> take cleanup patches.
 
-What's the status of this now? We can still see the sleeping function 
-call warning or enable irq at resume stage.
-If acpi wants low latency even for !CONFIG_PREEMPT kernels, what's wrong 
-with V2 patch?
+APEI stands for ACPI Platform Error Interface, which allows to report
+errors (for example from chipset) to the operating system. This
+improves NMI handling especially. In addition it supports error
+serialization and error injection.
 
-We should not set any preemption points in irq or atomic. Since we have 
-a simple fix, and it did fix bugs, why should
-we make things more complex?
+This patchset provides basic support for APEI, some important parts
+such as ERST, HEST generic error source and BEST are still missing
+because they are not finalized yet.
 
-> 									Pavel
+The HEST tabling parsing code will be used by PCIE AER intialization
+code to prevent touching PCIE root port in firmware first mode. EINJ
+can be used to test some RAS related code such as MCE and PCIE AER.
 
+
+v3:
+
+ - Use acpi_os_read/write_port.
+
+ - Fix error message for firmware bug.
+
+ - Remove hest_exit.
+
+v2:
+
+ - Separate pre-map + atomic read/write into atomicio.c from
+   apei-base.c and in separated patch.
