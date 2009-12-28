@@ -1,47 +1,33 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 3/5] thinkpad-acpi: make volume subdriver optional
-Date: Mon, 28 Dec 2009 11:17:45 -0200
-Message-ID: <20091228131744.GC19362@khazad-dum.debian.net>
+From: tytso@mit.edu
+Subject: Re: [PATCH 5/5] thinkpad-acpi: improve Kconfig help text
+Date: Mon, 28 Dec 2009 08:30:06 -0500
+Message-ID: <20091228133006.GD4429@thunk.org>
 References: <1261875137-27565-1-git-send-email-hmh@hmh.eng.br>
- <1261875137-27565-4-git-send-email-hmh@hmh.eng.br>
- <s5hr5qgvjsa.wl%tiwai@suse.de>
- <20091227183220.GB3027@khazad-dum.debian.net>
- <4B37E1AF.6030105@collabora.co.uk>
+ <1261875137-27565-6-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49256 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751061AbZL1NRs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Dec 2009 08:17:48 -0500
+Received: from thunk.org ([69.25.196.29]:59547 "EHLO thunker.thunk.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750794AbZL1NaP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Dec 2009 08:30:15 -0500
 Content-Disposition: inline
-In-Reply-To: <4B37E1AF.6030105@collabora.co.uk>
+In-Reply-To: <1261875137-27565-6-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ian Molton <ian.molton@collabora.co.uk>
-Cc: Takashi Iwai <tiwai@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Amerigo Wang <amwang@redhat.com>, Helight Xu <helight.xu@gmail.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sun, 27 Dec 2009, Ian Molton wrote:
-> Not directly related to your patch but I thought I'd mention...
-> 
-> I've noticed issues with my X200 re: routing audio before / after docking.
+On Sat, Dec 26, 2009 at 10:52:17PM -0200, Henrique de Moraes Holschuh wrote:
+> +	  Extra functionality will be available if the rfkill (CONFIG_RFKILL)
+> +	  and/or ALSA (CONFIG_SND) subsystems are available in the kernel.
+> +	  Note that if you want ThinkPad-ACPI to be built-in instead of
+> +	  modular, ALSA and rfkill will also have to be built-in.
 
-ThinkPads used to route line-out to the dock, with a fixed 1.1dB amplifier
-(0.1dB increase) in the audio path, and had the volume control for
-headphones and speakers done in a different audio path, extracted before the
-line-out amplifier.  The PeeCee beeper channel was routed to the headphones
-and speakers, only.
+By the way, just as a point of information, Ubuntu Karmic seems to
+have some kind of bug with their sound system (I suspect their
+Pulseaudio integration) which cases sound to be completely
+non-functional if ALSA is built in.  I had to build ALSA as modules in
+order for Ubuntu to work correctly.
 
-If Lenovo tried to reproduce that with the HDA mixer but without the "Laptop
-Apudio Controller" the IBM thinkpads had, I wouldn't be surprised if it
-causes massive ALSA disruption should the firmware screw with the HDA mixer
-registers behind ALSA's back.  Try asking the kernel to enable OSI(Linux) in
-ACPI...  I always forget the kernel command line parameter to do that, but
-it is documented in the usual place.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+						- Ted
