@@ -1,56 +1,147 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] dell-wmi - properly handle errors returned by
- wmi_install_notify_handler()
-Date: Tue, 29 Dec 2009 01:21:57 -0800
-Message-ID: <20091229092157.GB7805@core.coreip.homeip.net>
-References: <20091229083226.13097.22110.stgit@localhost.localdomain>
- <20091229095706.392debfb@tux.DEF.witbe.net>
+Subject: Re: [PATCH 2/2] dell-laptop: Update rfkill state on kill switch
+Date: Tue, 29 Dec 2009 02:01:42 -0800
+Message-ID: <20091229100142.GA22292@core.coreip.homeip.net>
+References: <20091209203939.GC10138@core.coreip.homeip.net>
+ <1260487533-4960-1-git-send-email-mjg@redhat.com>
+ <1260487533-4960-2-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:59149 "EHLO
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:63843 "EHLO
 	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbZL2JWE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2009 04:22:04 -0500
-Received: by pwj9 with SMTP id 9so6704941pwj.21
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Dec 2009 01:22:03 -0800 (PST)
+	with ESMTP id S1752671AbZL2KBu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2009 05:01:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20091229095706.392debfb@tux.DEF.witbe.net>
+In-Reply-To: <1260487533-4960-2-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Rolland <rol@as2917.net>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On Tue, Dec 29, 2009 at 09:57:06AM +0100, Paul Rolland wrote:
-> Hello,
+On Thu, Dec 10, 2009 at 06:25:33PM -0500, Matthew Garrett wrote:
+> The rfkill interface on Dells only sends a notification that the switch
+> has been changed via the keyboard controller. Add a filter so we can
+> pick these notifications up and update the rfkill state appropriately.
 > 
-> On Tue, 29 Dec 2009 00:34:14 -0800
-> Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
-> 
-> > wmi_install_notify_handler() retruns ACPI error codes instead of standard
-> > Exxxx error codes and they should not be propagated unchanged to the upper
-> > layers.
-> > 
-> > Reported-by: Paul Rolland <rol@as2917.net>
-> > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> Tested-by: Paul Rolland <rol@as2917.net>
-> 
-> This is causing :
-> [root@tux ~]# modprobe dell-wmi
-> FATAL: Error inserting dell_wmi (/lib/modules/2.6.33-rc2/kernel/drivers/platform/x86/dell-wmi.ko): Input/output error
-> 
-> and
-> 
-> Dec 29 09:54:54 tux kernel: ACPI: WMI: Mapper loaded
-> Dec 29 09:54:54 tux kernel: input: Dell WMI hotkeys as /devices/virtual/input/input13
-> Dec 29 09:54:54 tux kernel: dell-wmi: Unable to register notify handler - 6
-> 
-> which looks Ok as my machine doesn't seem to have the corresponding stuff.
-> 
-> Anyway, this still needs the changes I sent for wmi.c to avoid the Oops.
-> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Yes, Len already has similar patches lined up in acpi-test branch.
+Len,
+
+the i8042 changes are in Linus's tree now so this patch can now be
+applied.
+
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
+
+> ---
+>  drivers/platform/x86/Kconfig       |    1 +
+>  drivers/platform/x86/dell-laptop.c |   43 ++++++++++++++++++++++++++++++++++++
+>  2 files changed, 44 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 55ca39d..4d42e95 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -79,6 +79,7 @@ config DELL_LAPTOP
+>  	depends on BACKLIGHT_CLASS_DEVICE
+>  	depends on RFKILL || RFKILL = n
+>  	depends on POWER_SUPPLY
+> +	depends on SERIO_I8042
+>  	default n
+>  	---help---
+>  	This driver adds support for rfkill and backlight control to Dell
+> diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
+> index 9061111..0071b56 100644
+> --- a/drivers/platform/x86/dell-laptop.c
+> +++ b/drivers/platform/x86/dell-laptop.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/rfkill.h>
+>  #include <linux/power_supply.h>
+>  #include <linux/acpi.h>
+> +#include <linux/i8042.h>
+>  #include "../../firmware/dcdbas.h"
+>  
+>  #define BRIGHTNESS_TOKEN 0x7d
+> @@ -206,6 +207,16 @@ static const struct rfkill_ops dell_rfkill_ops = {
+>  	.query = dell_rfkill_query,
+>  };
+>  
+> +static void dell_rfkill_update(void)
+> +{
+> +	if (wifi_rfkill)
+> +		dell_rfkill_query(wifi_rfkill, (void *)1);
+> +	if (bluetooth_rfkill)
+> +		dell_rfkill_query(bluetooth_rfkill, (void *)2);
+> +	if (wwan_rfkill)
+> +		dell_rfkill_query(wwan_rfkill, (void *)3);
+> +}
+> +
+>  static int dell_setup_rfkill(void)
+>  {
+>  	struct calling_interface_buffer buffer;
+> @@ -310,6 +321,29 @@ static struct backlight_ops dell_ops = {
+>  	.update_status  = dell_send_intensity,
+>  };
+>  
+> +bool dell_laptop_i8042_filter(unsigned char data, unsigned char str,
+> +			      struct serio *port)
+> +{
+> +	static bool extended;
+> +
+> +	if (str & 0x20)
+> +		return false;
+> +
+> +	if (unlikely(data == 0xe0)) {
+> +		extended = true;
+> +		return false;
+> +	} else if (unlikely(extended)) {
+> +		switch (data) {
+> +		case 0x8:
+> +			dell_rfkill_update();
+> +			break;
+> +		}
+> +		extended = false;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  static int __init dell_init(void)
+>  {
+>  	struct calling_interface_buffer buffer;
+> @@ -333,6 +367,13 @@ static int __init dell_init(void)
+>  		goto out;
+>  	}
+>  
+> +	ret = i8042_install_filter(dell_laptop_i8042_filter);
+> +	if (ret) {
+> +		printk(KERN_WARNING
+> +		       "dell-laptop: Unable to install key filter\n");
+> +		goto out;
+> +	}
+> +
+>  #ifdef CONFIG_ACPI
+>  	/* In the event of an ACPI backlight being available, don't
+>  	 * register the platform controller.
+> @@ -369,6 +410,7 @@ static int __init dell_init(void)
+>  
+>  	return 0;
+>  out:
+> +	i8042_remove_filter(dell_laptop_i8042_filter);
+>  	if (wifi_rfkill)
+>  		rfkill_unregister(wifi_rfkill);
+>  	if (bluetooth_rfkill)
+> @@ -381,6 +423,7 @@ out:
+>  
+>  static void __exit dell_exit(void)
+>  {
+> +	i8042_remove_filter(dell_laptop_i8042_filter);
+>  	backlight_device_unregister(dell_backlight_device);
+>  	if (wifi_rfkill)
+>  		rfkill_unregister(wifi_rfkill);
+> -- 
+> 1.6.5.2
+> 
 
 -- 
 Dmitry
