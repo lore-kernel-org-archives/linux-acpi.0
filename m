@@ -1,114 +1,56 @@
 From: Albert Vilella <avilella@gmail.com>
-Subject: discrete ATI switch on/off for Acer Timeline 4810TG and 3810TG
-	laptops
-Date: Tue, 29 Dec 2009 22:16:13 +0000
-Message-ID: <358f4d650912291416j432137f0ua8971a3e5ca61a07@mail.gmail.com>
+Subject: another discrete nvidia switch on/off for an assortment of laptops
+Date: Tue, 29 Dec 2009 22:30:47 +0000
+Message-ID: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:33884 "EHLO
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:40692 "EHLO
 	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752158AbZL2WQO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2009 17:16:14 -0500
-Received: by ewy19 with SMTP id 19so3169115ewy.21
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Dec 2009 14:16:13 -0800 (PST)
+	with ESMTP id S1751924AbZL2Wat (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2009 17:30:49 -0500
+Received: by ewy19 with SMTP id 19so3180155ewy.21
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Dec 2009 14:30:47 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 Hi again,
 
-This time it's from a Linux user of the Acer Timeline 4810TG and the
-rearer 3810TG models,
-with an ATI discrete graphics card and an integrated intel GMA.
+In this occasion not providing a working module, but just a grep to
+show 5 different laptop
+models that use an almost identical ACPI call to report on the
+discrete nvidia graphics switch:
 
-Also derived from the lenovo_acpi.c by Sylvain Joyeux, but in this
-case, the ACPI
-methods are called _SB_.PCI0.OVGA.ATPX and _SB_.PCI0.OVGA.XTPX.
+All DSDT.dsl files are available here:
+https://bugs.launchpad.net/ubuntu/+source/xorg-server/+bug/312756
+grep -e NVIF *.dsl
 
-I am not aware of an acer-laptop module, so it's up to you guys to
-decide where this
-could fit, but you see the trend here :-p
+Acer_Aspire_7530G_nv.dsl:                Name (_UID, "NVIF")
+Acer_Aspire_7530G_nv.dsl:                        Return
+(\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+Acer_Aspire_7530G_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+Dell_Studio_XPS_13_nv.dsl:                Name (_UID, "NVIF")
+Dell_Studio_XPS_13_nv.dsl:                        Return
+(\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+Dell_Studio_XPS_13_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+Elitegroup_GF8100VM_nv.dsl:                            Name (_UID, "NVIF")
+Elitegroup_GF8100VM_nv.dsl:                                    Return
+(^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+Elitegroup_GF8100VM_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+MSI_EX630-034US.dsl:                            Name (_UID, "NVIF")
+MSI_EX630-034US.dsl:                                    Return
+(^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+MSI_EX630-034US.dsl:                    Method (NVIF, 3, NotSerialized)
+MSI_EX630_nv.dsl:                            Name (_UID, "NVIF")
+MSI_EX630_nv.dsl:                                    Return
+(^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+MSI_EX630_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+Toshiba_Qosmio_X305_nv.dsl:                Name (_UID, "NVIF")
+Toshiba_Qosmio_X305_nv.dsl:                        Return
+(\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+Toshiba_Qosmio_X305_nv.dsl:                    Method (NVIF, 3, NotSerialized)
 
 Cheers,
 
 Albert.
-
-########################################
-
-/* Linux kernel module that disables the discrete graphics board for Lenovo
- * U330. Other lenovo laptops could work, but I don't know.
- *
- * Copyright (c) 2009: Sylvain Joyeux <sylvain.joyeux@m4x.org>
- */
-#include <acpi/acpi.h>
-
-MODULE_LICENSE("GPL");
-
-static acpi_handle root_handle;
-
-static int __init kill_ati(void)
-{
-    int i;
-    acpi_status status;
-    // The device handle
-    acpi_handle handle;
-    // The package elements
-    union acpi_object package_elements[3];
-    // The arguments to ATPX
-    union acpi_object atpx_arg_elements[2];
-    struct acpi_object_list atpx_arg;
-    // For the return value of ATPX
-    struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-
-    status = acpi_get_handle(root_handle, "\\_SB_.PCI0.OVGA.ATPX", &handle);
-    if (ACPI_FAILURE(status))
-    {
-        status = acpi_get_handle(root_handle, "\\_SB_.PCI0.OVGA.XTPX", &handle);
-        if (ACPI_FAILURE(status))
-        {
-            printk("lenovo_acpi: cannot get ACPI handle: %s\n",
-acpi_format_exception(status));
-            return -ENOSYS;
-        }
-        printk("lenovo_acpi: in discrete graphics mode\n");
-        return 0;
-    }
-
-    for (i = 0; i < 3; ++i)
-    {
-        package_elements[i].type = ACPI_TYPE_INTEGER;
-        package_elements[i].integer.value = 0;
-    }
-
-    atpx_arg.count = 2;
-    atpx_arg.pointer = &atpx_arg_elements[0];
-
-    atpx_arg_elements[0].type = ACPI_TYPE_INTEGER;
-    atpx_arg_elements[0].integer.value = 2;
-
-    atpx_arg_elements[1].type = ACPI_TYPE_PACKAGE;
-    atpx_arg_elements[1].package.count = 3;
-    atpx_arg_elements[1].package.elements = &package_elements[0];
-
-    status = acpi_evaluate_object(handle, NULL, &atpx_arg, &buffer);
-    if (ACPI_FAILURE(status))
-    {
-        printk("lenovo_acpi: ATPX method call failed: %s\n",
-acpi_format_exception(status));
-        return -ENOSYS;
-    }
-    kfree(buffer.pointer);
-
-    printk("lenovo_acpi: disabled the discrete graphics card\n");
-    return 0;
-}
-
-static void dummy(void)
-{
-}
-
-module_init(kill_ati);
-module_exit(dummy);
-
-########################################
