@@ -1,56 +1,62 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 1/2] ACPI: SBS: Move SBS HC callback to faster Notify queue
-Date: Wed, 30 Dec 2009 15:53:03 +0300
-Message-ID: <20091230125303.11962.12105.stgit@thinkpad>
+Subject: [PATCH 2/2] ACPI: EC: Add wait for irq storm
+Date: Wed, 30 Dec 2009 15:53:10 +0300
+Message-ID: <20091230125310.11962.2661.stgit@thinkpad>
+References: <20091230125303.11962.12105.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:35580 "EHLO
+Received: from nat.nue.novell.com ([195.135.221.3]:36551 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752719AbZL3MxG (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 07:53:06 -0500
+	with ESMTP id S1752751AbZL3MxL (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 07:53:11 -0500
+In-Reply-To: <20091230125303.11962.12105.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-SBS transactions should happen in Notify work queue, to not create
-a dead lock with GPE execution accessing SBS devices.
+Merge of poll and irq modes accelerated EC transaction, so
+that keyboard starts to suffer again. Add msleep(1) into
+transaction path for the storm to allow keyboard controller
+to do its job.
+
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=14747
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/acpi/ec.c    |    3 ++-
- drivers/acpi/sbshc.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/ec.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 9cc3885..32517d4 100644
+index 32517d4..edfcbc7 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -535,7 +535,8 @@ static int acpi_ec_sync_query(struct acpi_ec *ec)
- 				return -ENOMEM;
- 			memcpy(copy, handler, sizeof(*copy));
- 			pr_debug(PREFIX "push query execution (0x%2x) on queue\n", value);
--			return acpi_os_execute(OSL_GPE_HANDLER,
-+			return acpi_os_execute((copy->func) ? 
-+				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
- 				acpi_ec_run, copy);
- 		}
+@@ -259,7 +259,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 	spin_unlock_irqrestore(&ec->curr_lock, tmp);
+ 	ret = ec_poll(ec);
+-	pr_debug(PREFIX "transaction end\n");
+ 	spin_lock_irqsave(&ec->curr_lock, tmp);
+ 	ec->curr = NULL;
+ 	spin_unlock_irqrestore(&ec->curr_lock, tmp);
+@@ -316,6 +315,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 	/* check if we received SCI during transaction */
+ 	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
+ 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++		msleep(1);
+ 		/* it is safe to enable GPE outside of transaction */
+ 		acpi_enable_gpe(NULL, ec->gpe);
+ 	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
+@@ -323,6 +323,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 			"transactions will use polling mode\n");
+ 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
  	}
-diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-index d933980..fd09229 100644
---- a/drivers/acpi/sbshc.c
-+++ b/drivers/acpi/sbshc.c
-@@ -242,7 +242,7 @@ static int smbus_alarm(void *context)
- 		case ACPI_SBS_CHARGER:
- 		case ACPI_SBS_MANAGER:
- 		case ACPI_SBS_BATTERY:
--			acpi_os_execute(OSL_GPE_HANDLER,
-+			acpi_os_execute(OSL_NOTIFY_HANDLER,
- 					acpi_smbus_callback, hc);
- 		default:;
- 	}
++	pr_debug(PREFIX "transaction end\n");
+ end:
+ 	if (ec->global_lock)
+ 		acpi_release_global_lock(glk);
 
