@@ -1,101 +1,54 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 9/9] drivers/acpi: correct error-handling code
-Date: Wed, 30 Dec 2009 01:51:18 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912300151120.15839@localhost.localdomain>
-References: <Pine.LNX.4.64.0907281756010.28189@ask.diku.dk>
- <1248828809.2670.144.camel@rzhang-dt>
+Subject: Re: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_set_sci_en
+Date: Wed, 30 Dec 2009 02:04:23 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912300202060.15839@localhost.localdomain>
+References: <1256610232.19142.77.camel@rzhang-dt>
+ <200910270921.42618.rjw@sisk.pl> <1256693810.19142.87.camel@rzhang-dt>
+ <200910281952.27856.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1632894692-1262155886=:15839"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:46478 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbZL3Gvh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 01:51:37 -0500
-In-reply-to: <1248828809.2670.144.camel@rzhang-dt>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:40508 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510AbZL3HE0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 02:04:26 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVG0072FEBDBWD9@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 01:04:26 -0600 (CST)
+In-reply-to: <200910281952.27856.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Julia Lawall <julia@diku.dk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> > > > Introduce kernel parameter acpi_sleep=s3_set_sci_en
+> > > > 
+> > > > some laptop requires SCI_EN being set directly on resume,
+> > > > or else they hung somewhere in the resume code path.
+> > > > 
+> > > > We already have a blacklist for these lattops but we still need
+> > > > this option, especially when debugging some suspend/resume problems,
+> > > > in case there are systems that need this workaround and are not yet
+> > > > in the blacklist.
+> > > > 
+> > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+...
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> 
+> This one looks better.
+> 
+> OK, Len, are you going to apply it or do you want me to handle it?
 
---8323328-1632894692-1262155886=:15839
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 
-applied
+As this isn't actually S3 specific, lets give this a better name, say
+
+acpi_sleep=sci_force_enable
+
+what you think?
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len Brown, Intel Open Source Technology Center
 
-On Wed, 29 Jul 2009, Zhang Rui wrote:
 
-> On Tue, 2009-07-28 at 23:56 +0800, Julia Lawall wrote:
-> > From: Julia Lawall <julia@diku.dk>
-> > 
-> > backlight_device_register may return an ERR_PTR value rather than a valid
-> > pointer.
-> > 
-> > A simplified version of the semantic match that finds this problem is as
-> > follows: (http://coccinelle.lip6.fr/)
-> 
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> > 
-> > ---
-> >  drivers/acpi/video.c                |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 8851315..29788db 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -982,6 +982,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
-> >  		sprintf(name, "acpi_video%d", count++);
-> >  		device->backlight = backlight_device_register(name,
-> >  			NULL, device, &acpi_backlight_ops);
-> > +		if (IS_ERR(device->backlight))
-> > +			return;
-> 
-> we should kfree(name) here.
-> 
-> >  		device->backlight->props.max_brightness = device->brightness->count-3;
-> >  		kfree(name);
-> 
-> how about this one?
-> 
-> ﻿backlight_device_register may return an ERR_PTR value rather than a valid
-> pointer.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -982,8 +982,10 @@ static void acpi_video_device_find_cap(s
->  		sprintf(name, "acpi_video%d", count++);
->  		device->backlight = backlight_device_register(name,
->  			NULL, device, &acpi_backlight_ops);
-> -		device->backlight->props.max_brightness = device->brightness->count-3;
->  		kfree(name);
-> +		if (IS_ERR(device->backlight))
-> +			return;
-> +		device->backlight->props.max_brightness = device->brightness->count-3;
->  
->  		result = sysfs_create_link(&device->backlight->dev.kobj,
->  					   &device->dev->dev.kobj, "device");
-> 
-> 
-> 
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---8323328-1632894692-1262155886=:15839--
