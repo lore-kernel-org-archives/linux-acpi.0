@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 4/6] sony-laptop - switch from workqueue to a timer
-Date: Wed, 30 Dec 2009 02:41:20 -0500
-Message-ID: <cffdde993a016bedbc2f5eb60d00c3a766ffb612.1262158615.git.len.brown@intel.com>
+Subject: [PATCH 6/6] ACPI: Disable explicit power state retrieval on fans
+Date: Wed, 30 Dec 2009 02:41:22 -0500
+Message-ID: <0c99c5288eb9b1bbc9684b0ec0fd7efc578749b3.1262158615.git.len.brown@intel.com>
 References: <1262158882-9713-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:58246 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbZL3Hl1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 02:41:27 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KVG007HKG12HQE1@vms173001.mailsrvcs.net> for
+Received: from vms173003pub.verizon.net ([206.46.173.3]:53076 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbZL3Hlg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 02:41:36 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVG0084LG13OMPH@vms173003.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 01:41:27 -0600 (CST)
 In-reply-to: <1262158882-9713-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4c291b9021e33aac046ee8abeb9ea8fe76086342.1262158615.git.len.brown@intel.com>
@@ -19,90 +19,55 @@ References: <4c291b9021e33aac046ee8abeb9ea8fe76086342.1262158615.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-The function that is executing in workqueue context does not need
-to sleep so let's switch to a timer which is more lightweight.
+If the ACPI power state can be got both directly and indirectly,
+we prefer to get it indirectly.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+https://bugzilla.redhat.com/show_bug.cgi?id=531916 describes a
+system with a _PSC method for the fan that always returns "on".
+There's no benefit in us always requesting the state of the fan
+when performing transitions - we want to do everything we can
+to ensure that the fan turns on when it should do, not risk
+hardware damage by believing the hardware when it tells us the
+fan is already on. Given that the Leading Other OS(tm) works fine
+on this machine, it seems likely that it behaves in much this way.
+
+inspired-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/bus.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index b7aa959..cc7172e 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -145,6 +145,7 @@ struct sony_laptop_input_s {
- 	struct input_dev	*key_dev;
- 	struct kfifo		fifo;
- 	spinlock_t		fifo_lock;
-+	struct timer_list	release_key_timer;
- };
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index cf761b9..ae9226d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -190,16 +190,16 @@ int acpi_bus_get_power(acpi_handle handle, int *state)
+ 		 * Get the device's power state either directly (via _PSC) or
+ 		 * indirectly (via power resources).
+ 		 */
+-		if (device->power.flags.explicit_get) {
++		if (device->power.flags.power_resources) {
++			result = acpi_power_get_inferred_state(device);
++			if (result)
++				return result;
++		} else if (device->power.flags.explicit_get) {
+ 			status = acpi_evaluate_integer(device->handle, "_PSC",
+ 						       NULL, &psc);
+ 			if (ACPI_FAILURE(status))
+ 				return -ENODEV;
+ 			device->power.state = (int)psc;
+-		} else if (device->power.flags.power_resources) {
+-			result = acpi_power_get_inferred_state(device);
+-			if (result)
+-				return result;
+ 		}
  
- static struct sony_laptop_input_s sony_laptop_input = {
-@@ -298,10 +299,8 @@ static int sony_laptop_input_keycode_map[] = {
- };
- 
- /* release buttons after a short delay if pressed */
--static void do_sony_laptop_release_key(struct work_struct *work)
-+static void do_sony_laptop_release_key(unsigned long unused)
- {
--	struct delayed_work *dwork =
--			container_of(work, struct delayed_work, work);
- 	struct sony_laptop_keypress kp;
- 	unsigned long flags;
- 
-@@ -315,14 +314,12 @@ static void do_sony_laptop_release_key(struct work_struct *work)
- 
- 	/* If there is something in the fifo schedule next release. */
- 	if (kfifo_len(&sony_laptop_input.fifo) != 0)
--		schedule_delayed_work(dwork, msecs_to_jiffies(10));
-+		mod_timer(&sony_laptop_input.release_key_timer,
-+			  jiffies + msecs_to_jiffies(10));
- 
- 	spin_unlock_irqrestore(&sony_laptop_input.fifo_lock, flags);
- }
- 
--static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
--			    do_sony_laptop_release_key);
--
- /* forward event to the input subsystem */
- static void sony_laptop_report_input_event(u8 event)
- {
-@@ -380,8 +377,8 @@ static void sony_laptop_report_input_event(u8 event)
- 		kfifo_in_locked(&sony_laptop_input.fifo,
- 				(unsigned char *)&kp, sizeof(kp),
- 				&sony_laptop_input.fifo_lock);
--		schedule_delayed_work(&sony_laptop_release_key_work,
--				      msecs_to_jiffies(10));
-+		mod_timer(&sony_laptop_input.release_key_timer,
-+			  jiffies + msecs_to_jiffies(10));
- 	} else
- 		dprintk("unknown input event %.2x\n", event);
- }
-@@ -406,6 +403,9 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 		goto err_dec_users;
- 	}
- 
-+	setup_timer(&sony_laptop_input.release_key_timer,
-+		    do_sony_laptop_release_key, 0);
-+
- 	/* input keys */
- 	key_dev = input_allocate_device();
- 	if (!key_dev) {
-@@ -485,7 +485,7 @@ static void sony_laptop_remove_input(void)
- 	if (!atomic_dec_and_test(&sony_laptop_input.users))
- 		return;
- 
--	cancel_delayed_work_sync(&sony_laptop_release_key_work);
-+	del_timer_sync(&sony_laptop_input.release_key_timer);
- 
- 	/*
- 	 * Generate key-up events for remaining keys. Note that we don't
+ 		*state = device->power.state;
 -- 
 1.6.0.6
 
