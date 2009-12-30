@@ -1,28 +1,57 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: introduce module parameter video.allow_duplicates
-Date: Wed, 30 Dec 2009 03:05:32 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912300304480.9199@localhost.localdomain>
-References: <1262159963.12263.1402.camel@rzhang1-desktop>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: another discrete nvidia switch on/off for an assortment of
+	laptops
+Date: Wed, 30 Dec 2009 10:32:58 +0100
+Message-ID: <20091230093258.GC3381@gamma.logic.tuwien.ac.at>
+References: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com> <alpine.LFD.2.00.0912300027270.15839@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:58172 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbZL3IGI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 03:06:08 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KVG00M56H595C3E@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 02:05:34 -0600 (CST)
-In-reply-to: <1262159963.12263.1402.camel@rzhang1-desktop>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:49183 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752450AbZL3JdA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 04:33:00 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0912300027270.15839@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, hector@marcansoft.com
+To: Len Brown <lenb@kernel.org>
+Cc: Albert Vilella <avilella@gmail.com>, linux-acpi@vger.kernel.org
 
-Thanks for the refreshed patch, Rui.
-Applied to acpi-test.
+On Mi, 30 Dez 2009, Len Brown wrote:
+> I happen to have a Sony VGN-Z540 with a stamina/speed switch.
+> It's BIOS does not supply a WMI device with this name.
 
-Len Brown, Intel Open Source Technology Center
+I assume you know of
+	http://global-social.net/tiki-view_blog.php?blogId=3
+which uses a slightly extended sony-laptop module (maintained by me,
+but I am in discussion with Mattia about pushing as much as possible
+upstream) and several other things to enable switching on linux.
 
+Best wishes
+
+Norbert
+------------------------------------------------------------------------
+Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
+JAIST, Japan            TU Wien, Austria           Debian TeX Task Force
+DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+------------------------------------------------------------------------
+GRIMSBY (n.)
+A lump of something gristly and foultasting concealed in a mouthful of
+stew or pie. Grimsbies are sometimes merely the result of careless
+cookery, but more often they are placed there deliberately by
+Freemasons. Grimbies can be purchased in bulk from any respectable
+Masonic butcher on giving him the secret Masonic handbag. One is then
+placed correct masonic method of dealing with it. If the guest is not
+a Mason, the host may find it entertaining to watch how he handles the
+obnoxious object. It may be (a) manfully swallowed, invariably
+bringing tears to the eyes. (b) chewed with resolution for up to
+twenty minutes before eventually resorting to method (a) (c) choked on
+fatally. The Masonic handshake is easily recognised by another Mason
+incidentally, for by it a used grimsby is passed from hand to
+hand. The secret Masonic method for dealing with a grimsby is as
+follows : remove it carefully with the silver tongs provided, using
+the left hand. Cross the room to your host, hopping on one leg, and
+ram the grimsby firmly up his nose, shouting, 'Take that, you smug
+Masonic bastard.'
+			--- Douglas Adams, The Meaning of Liff
