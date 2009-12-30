@@ -1,49 +1,56 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: ACPI warning from alloc_pages_nodemask on boot (2.6.33
- regression)
-Date: Wed, 30 Dec 2009 16:35:44 +0100
-Message-ID: <1262187344.7135.230.camel@laptop>
-References: <20091229094202.25818e9b@nehalam>
-	 <alpine.LFD.2.00.0912291435070.14938@localhost.localdomain>
-	 <2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: Re: 2.6.33-rc2: Reported regressions 2.6.31 -> 2.6.32
+Date: Wed, 30 Dec 2009 10:58:07 -0600
+Message-ID: <4B3B869F.8090003@lwfinger.net>
+References: <oBElxfTZdhL.A.bx.-vhOLB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:49013 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326AbZL3PgL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 10:36:11 -0500
-In-Reply-To: <2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:51678 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717AbZL3Q6M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 11:58:12 -0500
+In-Reply-To: <oBElxfTZdhL.A.bx.-vhOLB@chimera>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Stephen Hemminger <shemminger@vyatta.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Pekka Enberg <penberg@cs.helsinki.fi>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-On Wed, 2009-12-30 at 15:21 +0900, KOSAKI Motohiro wrote:
-> >> [    1.630020] ------------[ cut here ]------------
-> >> [    1.630026] WARNING: at mm/page_alloc.c:1812 __alloc_pages_nodemask+0x617/0x730()
-> >
-> >        if (order >= MAX_ORDER) {
-> >                WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
-> >                return NULL;
-> >        }
-> >
-> > I don't know what the mm alloc code is complaining about here.
+On 12/29/2009 09:26 AM, Rafael J. Wysocki wrote:
+> [NOTES:
+>  * I really hope that at least _some_ of the bugs below have been alr=
+eady
+>    fixed, but I didn't have the time to search through all of the his=
+tories.
+>    _Please_ let me know which of them can be closed.
+>  * If you close one of the bugs in this list, please do your best to =
+put the
+>    hash of the fix commit into the Bugzilla entry.]
+>=20
+> This message contains a list of some regressions introduced between 2=
+=2E6.31 and
+> 2.6.32, for which there are no fixes in the mainline I know of.  If a=
+ny of them
+> have been fixed already, please let me know.
 
-> >> [    1.630028] Hardware name: System Product Name
-> >> [    1.630029] Modules linked in:
-> >> [    1.630032] Pid: 1, comm: swapper Not tainted 2.6.33-rc2 #4
-> >> [    1.630034] Call Trace:
 
-> >> [    1.630064]  [<ffffffff812cae3e>] acpi_os_allocate+0x25/0x27 
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D14743
+> Subject		: New rtl8187 rfkill support prevents using wlan completely.
+> Submitter	: Antti Kaijanm=C3=A4ki <antti@kaijanmaki.net>
+> Date		: 2009-12-05 20:10 (25 days old)
 
-Right, so ACPI is trying to allocate something larger than 2^MAX_ORDER
-pages, which on x86 computes to 4K * 2^11 = 8M.
 
-That's not going to work.
+This bug is fixed in mainline with commit
+70d57139f932b9ca21026253d02af71cf53d764a. This patch has also been back=
+ported to
+2.6.32.2. The status of the Bugzilla entry has been changed to "CLOSED =
+with CODE
+=46IX".
 
-Did this machine properly boot before? I seem to remember people working
-on moving away from bootmem and getting th page/slab stuff up and
-running sooner, it might be fallout from that...
-
+Larry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
