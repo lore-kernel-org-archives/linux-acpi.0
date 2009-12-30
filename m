@@ -1,57 +1,56 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: another discrete nvidia switch on/off for an assortment of
-	laptops
-Date: Wed, 30 Dec 2009 10:32:58 +0100
-Message-ID: <20091230093258.GC3381@gamma.logic.tuwien.ac.at>
-References: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com> <alpine.LFD.2.00.0912300027270.15839@localhost.localdomain>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH 1/2] ACPI: SBS: Move SBS HC callback to faster Notify queue
+Date: Wed, 30 Dec 2009 15:53:03 +0300
+Message-ID: <20091230125303.11962.12105.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:49183 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752450AbZL3JdA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 04:33:00 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0912300027270.15839@localhost.localdomain>
+Received: from nat.nue.novell.com ([195.135.221.3]:35580 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752719AbZL3MxG (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 07:53:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Albert Vilella <avilella@gmail.com>, linux-acpi@vger.kernel.org
+Cc: Linux-acpi@vger.kernel.org
 
-On Mi, 30 Dez 2009, Len Brown wrote:
-> I happen to have a Sony VGN-Z540 with a stamina/speed switch.
-> It's BIOS does not supply a WMI device with this name.
+SBS transactions should happen in Notify work queue, to not create
+a dead lock with GPE execution accessing SBS devices.
 
-I assume you know of
-	http://global-social.net/tiki-view_blog.php?blogId=3
-which uses a slightly extended sony-laptop module (maintained by me,
-but I am in discussion with Mattia about pushing as much as possible
-upstream) and several other things to enable switching on linux.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Best wishes
+ drivers/acpi/ec.c    |    3 ++-
+ drivers/acpi/sbshc.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-Norbert
-------------------------------------------------------------------------
-Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-JAIST, Japan            TU Wien, Austria           Debian TeX Task Force
-DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-------------------------------------------------------------------------
-GRIMSBY (n.)
-A lump of something gristly and foultasting concealed in a mouthful of
-stew or pie. Grimsbies are sometimes merely the result of careless
-cookery, but more often they are placed there deliberately by
-Freemasons. Grimbies can be purchased in bulk from any respectable
-Masonic butcher on giving him the secret Masonic handbag. One is then
-placed correct masonic method of dealing with it. If the guest is not
-a Mason, the host may find it entertaining to watch how he handles the
-obnoxious object. It may be (a) manfully swallowed, invariably
-bringing tears to the eyes. (b) chewed with resolution for up to
-twenty minutes before eventually resorting to method (a) (c) choked on
-fatally. The Masonic handshake is easily recognised by another Mason
-incidentally, for by it a used grimsby is passed from hand to
-hand. The secret Masonic method for dealing with a grimsby is as
-follows : remove it carefully with the silver tongs provided, using
-the left hand. Cross the room to your host, hopping on one leg, and
-ram the grimsby firmly up his nose, shouting, 'Take that, you smug
-Masonic bastard.'
-			--- Douglas Adams, The Meaning of Liff
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 9cc3885..32517d4 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -535,7 +535,8 @@ static int acpi_ec_sync_query(struct acpi_ec *ec)
+ 				return -ENOMEM;
+ 			memcpy(copy, handler, sizeof(*copy));
+ 			pr_debug(PREFIX "push query execution (0x%2x) on queue\n", value);
+-			return acpi_os_execute(OSL_GPE_HANDLER,
++			return acpi_os_execute((copy->func) ? 
++				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
+ 				acpi_ec_run, copy);
+ 		}
+ 	}
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index d933980..fd09229 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -242,7 +242,7 @@ static int smbus_alarm(void *context)
+ 		case ACPI_SBS_CHARGER:
+ 		case ACPI_SBS_MANAGER:
+ 		case ACPI_SBS_BATTERY:
+-			acpi_os_execute(OSL_GPE_HANDLER,
++			acpi_os_execute(OSL_NOTIFY_HANDLER,
+ 					acpi_smbus_callback, hc);
+ 		default:;
+ 	}
+
