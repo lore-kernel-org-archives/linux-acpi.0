@@ -1,29 +1,104 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: introduce kernel parameter
- acpi_sleep=sci_force_enable
-Date: Wed, 30 Dec 2009 02:45:17 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912300245140.15839@localhost.localdomain>
-References: <1262158602.12263.1392.camel@rzhang1-desktop>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: introduce module parameter video.allow_duplicates
+Date: Wed, 30 Dec 2009 15:59:23 +0800
+Message-ID: <1262159963.12263.1402.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:35940 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbZL3Hp2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 02:45:28 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KVG00IIDG7JRX90@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 01:45:20 -0600 (CST)
-In-reply-to: <1262158602.12263.1392.camel@rzhang1-desktop>
+Received: from mga14.intel.com ([143.182.124.37]:53189 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751618AbZL3H6v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Dec 2009 02:58:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, hector@marcansoft.com, rui.zhang@intel.com
 
-applied
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Introduce module parameter video.allow_duplicates.
+
+Some buggy BIOS exports multiple ACPI video bus devices for the same
+VGA controller, and multiple backlight control methods as well.
+This messes up the ACPI video backlight control.
+http://bugzilla.kernel.org/show_bug.cgi?id=13577
+
+With this patch applied, only the FIRST ACPI video bus device
+under a PCI device node is bind to ACPI video driver by default.
+
+If the first ACPI video bus device doesn't work well, we can use
+video.allow_duplicates=1 to go back to the old behavior.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -78,6 +78,13 @@ MODULE_LICENSE("GPL");
+ static int brightness_switch_enabled = 1;
+ module_param(brightness_switch_enabled, bool, 0644);
+ 
++/*
++ * By default, we don't allow duplicate ACPI video bus devices
++ * under the same VGA controller
++ */
++static int allow_duplicates;
++module_param(allow_duplicates, bool, 0644);
++
+ static int register_count = 0;
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+@@ -2233,11 +2240,47 @@ static int acpi_video_resume(struct acpi
+ 	return AE_OK;
+ }
+ 
++static acpi_status
++acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
++			void **return_value)
++{
++	struct acpi_device *device = context;
++	struct acpi_device *sibling;
++	int result;
++
++	if (handle == device->handle)
++		return AE_CTRL_TERMINATE;
++
++	result = acpi_bus_get_device(handle, &sibling);
++	if (result)
++		return AE_OK;
++
++	if (!strcmp(acpi_device_name(sibling), ACPI_VIDEO_BUS_NAME))
++			return AE_ALREADY_EXISTS;
++
++	return AE_OK;
++}
++
+ static int acpi_video_bus_add(struct acpi_device *device)
+ {
+ 	struct acpi_video_bus *video;
+ 	struct input_dev *input;
+ 	int error;
++	acpi_status status;
++
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
++				device->parent->handle, 1,
++				acpi_video_bus_match, NULL,
++				device, NULL);
++	if (status == AE_ALREADY_EXISTS) {
++		printk(KERN_WARNING FW_BUG
++			"Duplicate ACPI video bus devices for the"
++			" same VGA controller, please try module "
++			"parameter \"video.allow_duplicates=1\""
++			"if the current driver doesn't work.\n");
++		if (!allow_duplicates)
++			return -ENODEV;
++	}
+ 
+ 	video = kzalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
+ 	if (!video)
+
 
