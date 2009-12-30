@@ -1,64 +1,29 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] dell-wmi: sys_init_module: 'dell_wmi'->init suspiciously
- returned 21, it should follow 0/-E convention
-Date: Wed, 30 Dec 2009 01:21:42 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912300119190.15839@localhost.localdomain>
-References: <alpine.LFD.2.00.0912241350510.11961@localhost.localdomain>
- <20091225102731.GA25513@elte.hu>
- <alpine.LFD.2.00.0912261504460.4089@localhost.localdomain>
- <alpine.LFD.2.00.0912262316530.14053@localhost.localdomain>
- <20091228094444.GG24690@elte.hu> <20091228120125.GA10911@elte.hu>
- <20091228160212.1f70d825@tux.DEF.witbe.net>
- <20091228175301.4e89aa65@tux.DEF.witbe.net>
+Subject: Re: [PATCH] ACPI video: no warning message if "acpi_backlight=vendor"
+ is used
+Date: Wed, 30 Dec 2009 01:46:23 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912300146200.15839@localhost.localdomain>
+References: <1247452404.15520.202.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752393AbZL3GVy@vger.kernel.org>
-In-reply-to: <20091228175301.4e89aa65@tux.DEF.witbe.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Rolland <rol@as2917.net>
-Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, rol@witbe.net, linux-acpi@vger.kernel.org, werner <w.landgraf@ru.ru>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:34751 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbZL3Gqa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 01:46:30 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVG006M3DHDEMJ9@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 00:46:28 -0600 (CST)
+In-reply-to: <1247452404.15520.202.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-From: Len Brown <len.brown@intel.com>
+applied
 
-wmi_install_notify_handler() returns an acpi_error,
-but dell_wmi_init() needs return a -errno style error.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/platform/x86/dell-wmi.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-index 916ccb2..4c7e702 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -323,6 +323,7 @@ static int __init dell_wmi_input_setup(void)
- static int __init dell_wmi_init(void)
- {
- 	int err;
-+	acpi_status status;
- 
- 	if (wmi_has_guid(DELL_EVENT_GUID)) {
- 		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
-@@ -336,14 +337,14 @@ static int __init dell_wmi_init(void)
- 	if (err)
- 		return err;
- 
--	err = wmi_install_notify_handler(DELL_EVENT_GUID,
-+	status = wmi_install_notify_handler(DELL_EVENT_GUID,
- 					 dell_wmi_notify, NULL);
--	if (err) {
-+	if (ACPI_FAILURE(status)) {
- 		input_unregister_device(dell_wmi_input_dev);
- 		printk(KERN_ERR
- 			"dell-wmi: Unable to register notify handler - %d\n",
--			err);
--		return err;
-+			status);
-+		return -ENODEV;
- 	}
- 
- 	return 0;
--- 
-1.6.6.rc4.11.g129a5
