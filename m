@@ -1,181 +1,83 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: discrete nvidia switch on/off for Asus UL30Vt, Asus UL50V and
- Asus UL80V laptops
-Date: Wed, 30 Dec 2009 13:50:15 +0900
-Message-ID: <20091230045015.GA16075@gandalf.dynalias.org>
-References: <358f4d650912291411t687d0398y4ebc80fb254a2ba3@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: another discrete nvidia switch on/off for an assortment of laptops
+Date: Wed, 30 Dec 2009 00:44:45 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912300027270.15839@localhost.localdomain>
+References: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="x+6KMIRAuhnl3hBn"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:36597 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbZL3FJs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 00:09:48 -0500
-Content-Disposition: inline
-In-Reply-To: <358f4d650912291411t687d0398y4ebc80fb254a2ba3@mail.gmail.com>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:42808 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752048AbZL3FpD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 00:45:03 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVG001LDAMNV1A0@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 29 Dec 2009 23:44:52 -0600 (CST)
+In-reply-to: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Albert Vilella <avilella@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
 On Tue, 29 Dec 2009, Albert Vilella wrote:
-> One of the Asus UL30Vt laptop Linux users has found a solution to
-> switch on/off the discrete nvidia card
 
-There is also a quick module written by Matthew Garrett to turn off
-the nvidia on sony laptops. I attach it here for completeness.
+> Hi again,
+> 
+> In this occasion not providing a working module, but just a grep to
+> show 5 different laptop
+> models that use an almost identical ACPI call to report on the
+> discrete nvidia graphics switch:
+> 
+> All DSDT.dsl files are available here:
+> https://bugs.launchpad.net/ubuntu/+source/xorg-server/+bug/312756
+> grep -e NVIF *.dsl
+> 
+> Acer_Aspire_7530G_nv.dsl:                Name (_UID, "NVIF")
+> Acer_Aspire_7530G_nv.dsl:                        Return
+> (\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> Acer_Aspire_7530G_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+> Dell_Studio_XPS_13_nv.dsl:                Name (_UID, "NVIF")
+> Dell_Studio_XPS_13_nv.dsl:                        Return
+> (\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> Dell_Studio_XPS_13_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+> Elitegroup_GF8100VM_nv.dsl:                            Name (_UID, "NVIF")
+> Elitegroup_GF8100VM_nv.dsl:                                    Return
+> (^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> Elitegroup_GF8100VM_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+> MSI_EX630-034US.dsl:                            Name (_UID, "NVIF")
+> MSI_EX630-034US.dsl:                                    Return
+> (^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> MSI_EX630-034US.dsl:                    Method (NVIF, 3, NotSerialized)
+> MSI_EX630_nv.dsl:                            Name (_UID, "NVIF")
+> MSI_EX630_nv.dsl:                                    Return
+> (^^IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> MSI_EX630_nv.dsl:                    Method (NVIF, 3, NotSerialized)
+> Toshiba_Qosmio_X305_nv.dsl:                Name (_UID, "NVIF")
+> Toshiba_Qosmio_X305_nv.dsl:                        Return
+> (\_SB.PCI0.IXVE.IGPU.NVIF (FUNC, SUBF, ARGS))
+> Toshiba_Qosmio_X305_nv.dsl:                    Method (NVIF, 3, NotSerialized)
 
-I think it would be a very good idea (in fact some days ago I was
-discussing with Mattia from sony-laptop about this) to have some module
-that allows switching on/off graphics cards... Currently that means
-mostly ATI or nVidia.
+There are about 50 DSDTs in that ubuntu feature request.
+A sub-set of them include a WMI device
+that calls itself "NVIF":
 
-Best wishes
+            Device (WMI0)
+            {
+                Name (_HID, "*pnp0c14")
+                Name (_UID, "NVIF")
+                Name (_WDG, Buffer (0xC8)
+                {
 
-Norbert
+Likely that name is the result of it appearing in some
+nvidia reference AML/WMI code someplace; for use with
+the associated Windows WMI driver.  Not immediately clear
+what the capabilities of that WMI device are...
 
-----------------------------------------------------------------------------
-Norbert Preining                preining@{jaist.ac.jp, logic.at, debian.org}
-JAIST, Japan               TU Wien, Austria            Debian TeX Task Force
-gpg DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-----------------------------------------------------------------------------
-WORMELOW TUMP (n.)
-Any seventeen-year-old who doesn't know about anything at all in the
-world other than bicycle gears.
-			--- Douglas Adams, The Meaning of Liff
+I happen to have a Sony VGN-Z540 with a stamina/speed switch.
+It's BIOS does not supply a WMI device with this name.
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/x-csrc; charset=us-ascii
-Content-Disposition: attachment; filename="nvidia-control.c"
+-Len Brown
+Intel Open Source Technology Center
 
-#include <linux/acpi.h>
-#include <acpi/acpi_drivers.h>
-#include <acpi/acpi_bus.h>
-#include <linux/pci.h>
-
-static int nvidia_dsm(struct pci_dev *dev, int func, int arg, int *result)
-{
-	static char muid[] = {
-		0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,
-		0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
-	};
-
-	struct acpi_handle *handle;
-	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
-	struct acpi_object_list input;
-	union acpi_object params[4];
-	union acpi_object *obj;
-	int err;
-
-	handle = DEVICE_ACPI_HANDLE(&dev->dev);
-
-	if (!handle)
-		return -ENODEV;
-
-	input.count = 4;
-	input.pointer = params;
-	params[0].type = ACPI_TYPE_BUFFER;
-	params[0].buffer.length = sizeof(muid);
-	params[0].buffer.pointer = (char *)muid;
-	params[1].type = ACPI_TYPE_INTEGER;
-	params[1].integer.value = 0x00000102;
-	params[2].type = ACPI_TYPE_INTEGER;
-	params[2].integer.value = func;
-	params[3].type = ACPI_TYPE_INTEGER;
-	params[3].integer.value = arg;
-
-	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
-	if (err) {
-		printk(KERN_ERR "nvidia-control: failed to evaluate _DSM: %d\n",
-		       err);
-		return err;
-	}
-
-	obj = (union acpi_object *)output.pointer;
-
-	if (obj->type == ACPI_TYPE_INTEGER)
-		if (obj->integer.value == 0x80000002)
-			return -ENODEV;
-
-	if (obj->type == ACPI_TYPE_BUFFER) {
-		if (obj->buffer.length == 4 && result) {
-			*result = 0;
-			*result |= obj->buffer.pointer[0];
-			*result |= (obj->buffer.pointer[1] << 8);
-			*result |= (obj->buffer.pointer[2] << 16);
-			*result |= (obj->buffer.pointer[3] << 24);
-		}
-	}
-
-	kfree(output.pointer);
-	return 0;
-}
-
-int nvidia_control_setup(struct pci_dev *dev)
-{
-	int result;
-
-	if (nvidia_dsm(dev, 1, 0, &result))
-		return -ENODEV;
-
-	printk(KERN_INFO "nvidia-control: hardware status gave 0x%x\n", result);
-
-	if (result &= 0x1) {	/* Stamina mode - disable the external GPU */
-		nvidia_dsm(dev, 0x2, 0x11, NULL);
-		nvidia_dsm(dev, 0x3, 0x02, NULL);
-	} else {		/* Ensure that the external GPU is enabled */
-		nvidia_dsm(dev, 0x2, 0x12, NULL);
-		nvidia_dsm(dev, 0x3, 0x01, NULL);
-	}
-
-	return 0;
-}
-
-int nvidia_control_probe(struct pci_dev *dev)
-{
-	int support = 0;
-	
-	if (nvidia_dsm(dev, 0, 0, &support))
-		 return -ENODEV;
-
-	if (!support)
-		return -ENODEV;
-
-	return 0;
-}
-
-static int __init nvidia_control_init(void)
-{
-	struct pci_dev *dev = NULL;
-	while ((dev = pci_get_device(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, dev))) {
-		if (dev->class == 0x30000)
-			if (!nvidia_control_probe(dev))
-				nvidia_control_setup(dev);
-	}
-	return 0;
-}
-
-static void __exit nvidia_control_exit(void)
-{
-	return;
-}
-
-static const struct pci_device_id pci_ids [] = {
-	{ PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
-	  (PCI_CLASS_DISPLAY_VGA << 8), 0xffff00},
-	{ },
-};
-
-MODULE_DEVICE_TABLE(pci, pci_ids);
-
-module_init(nvidia_control_init);
-module_exit(nvidia_control_exit);
-
-MODULE_LICENSE("GPL");
-
---x+6KMIRAuhnl3hBn--
