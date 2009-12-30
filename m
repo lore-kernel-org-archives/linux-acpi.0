@@ -1,57 +1,31 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: ACPI warning from alloc_pages_nodemask on boot (2.6.33
- regression)
-Date: Wed, 30 Dec 2009 10:05:19 -0800
-Message-ID: <20091230100519.5a72d82c@nehalam>
-References: <20091229094202.25818e9b@nehalam>
-	<alpine.LFD.2.00.0912291435070.14938@localhost.localdomain>
-	<2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
-	<1262187344.7135.230.camel@laptop>
+From: NewMaverick <sarthorks@gmail.com>
+Subject: Requested DMI info
+Date: Thu, 31 Dec 2009 00:43:37 +0530
+Message-ID: <7a6792140912301113o65ae7639xebb3316423f83afc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:58194 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752924AbZL3SFp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Dec 2009 13:05:45 -0500
-In-Reply-To: <1262187344.7135.230.camel@laptop>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:33225 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840AbZL3TN5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 14:13:57 -0500
+Received: by pwj9 with SMTP id 9so7498735pwj.21
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Dec 2009 11:13:57 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Pekka Enberg <penberg@cs.helsinki.fi>
+To: linux-acpi@vger.kernel.org
 
-On Wed, 30 Dec 2009 16:35:44 +0100
-Peter Zijlstra <peterz@infradead.org> wrote:
-
-> On Wed, 2009-12-30 at 15:21 +0900, KOSAKI Motohiro wrote:
-> > >> [    1.630020] ------------[ cut here ]------------
-> > >> [    1.630026] WARNING: at mm/page_alloc.c:1812 __alloc_pages_nodemask+0x617/0x730()
-> > >
-> > >        if (order >= MAX_ORDER) {
-> > >                WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
-> > >                return NULL;
-> > >        }
-> > >
-> > > I don't know what the mm alloc code is complaining about here.
-> 
-> > >> [    1.630028] Hardware name: System Product Name
-> > >> [    1.630029] Modules linked in:
-> > >> [    1.630032] Pid: 1, comm: swapper Not tainted 2.6.33-rc2 #4
-> > >> [    1.630034] Call Trace:
-> 
-> > >> [    1.630064]  [<ffffffff812cae3e>] acpi_os_allocate+0x25/0x27 
-> 
-> Right, so ACPI is trying to allocate something larger than 2^MAX_ORDER
-> pages, which on x86 computes to 4K * 2^11 = 8M.
-> 
-> That's not going to work.
-> 
-> Did this machine properly boot before? I seem to remember people working
-> on moving away from bootmem and getting th page/slab stuff up and
-> running sooner, it might be fallout from that...
-> 
-
-Yes, and it still boots now.
-
--- 
+Dec 30 23:37:52 sarthorks kernel: [   19.105077] Setting up standard
+PCI resources
+Dec 30 23:37:52 sarthorks kernel: [   19.107727] ACPI: EC: Look up EC in DSDT
+Dec 30 23:37:52 sarthorks kernel: [   19.119372] ACPI: BIOS
+_OSI(Linux) query ignored
+Dec 30 23:37:52 sarthorks kernel: [   19.119376] ACPI: DMI System Vendor: LENOVO
+Dec 30 23:37:52 sarthorks kernel: [   19.119378] ACPI: DMI Product Name: 0769AB2
+Dec 30 23:37:52 sarthorks kernel: [   19.119379] ACPI: DMI Product
+Version: 3000 N200
+Dec 30 23:37:52 sarthorks kernel: [   19.119381] ACPI: DMI Board Name: IEL10
+Dec 30 23:37:52 sarthorks kernel: [   19.119383] ACPI: DMI BIOS Vendor: LENOVO
+Dec 30 23:37:52 sarthorks kernel: [   19.119384] ACPI: DMI BIOS Date: 12/21/2007
+Dec 30 23:37:52 sarthorks kernel: [   19.119386] ACPI: Please send DMI
+info above to linux-acpi@vger.kernel.org
