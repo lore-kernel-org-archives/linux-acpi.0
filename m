@@ -1,43 +1,49 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/3] sony-laptop - simplify keymap initialization
-Date: Wed, 30 Dec 2009 13:28:11 -0200
-Message-ID: <20091230152811.GA18722@khazad-dum.debian.net>
-References: <20091224080135.11511.18604.stgit@localhost.localdomain>
- <20091224080222.11511.79737.stgit@localhost.localdomain>
- <20091224210146.GA2346@khazad-dum.debian.net>
- <20091225070138.GB19401@core.coreip.homeip.net>
- <20091225133812.GB5891@khazad-dum.debian.net>
- <20091230041227.GB2186@core.coreip.homeip.net>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: ACPI warning from alloc_pages_nodemask on boot (2.6.33
+ regression)
+Date: Wed, 30 Dec 2009 16:35:44 +0100
+Message-ID: <1262187344.7135.230.camel@laptop>
+References: <20091229094202.25818e9b@nehalam>
+	 <alpine.LFD.2.00.0912291435070.14938@localhost.localdomain>
+	 <2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56273 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbZL3P2S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Dec 2009 10:28:18 -0500
-Content-Disposition: inline
-In-Reply-To: <20091230041227.GB2186@core.coreip.homeip.net>
+Received: from casper.infradead.org ([85.118.1.10]:49013 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbZL3PgL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 10:36:11 -0500
+In-Reply-To: <2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
+To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Stephen Hemminger <shemminger@vyatta.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Pekka Enberg <penberg@cs.helsinki.fi>
 
-On Tue, 29 Dec 2009, Dmitry Torokhov wrote:
-> > That said, is KEY_RESERVED bit left set a common error?  If it is, maybe it
-> > make sense to __clear_bit it inside of input_register_device() just in case?
-> > 
-> 
-> Something like below?
+On Wed, 2009-12-30 at 15:21 +0900, KOSAKI Motohiro wrote:
+> >> [    1.630020] ------------[ cut here ]------------
+> >> [    1.630026] WARNING: at mm/page_alloc.c:1812 __alloc_pages_nodemask+0x617/0x730()
+> >
+> >        if (order >= MAX_ORDER) {
+> >                WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
+> >                return NULL;
+> >        }
+> >
+> > I don't know what the mm alloc code is complaining about here.
 
-Exactly.  Although it looks like you have some unrelated atomic versus
-non-atomic set/clear_bit cleanups in it that might be better off in a comit
-of their own?
+> >> [    1.630028] Hardware name: System Product Name
+> >> [    1.630029] Modules linked in:
+> >> [    1.630032] Pid: 1, comm: swapper Not tainted 2.6.33-rc2 #4
+> >> [    1.630034] Call Trace:
 
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> >> [    1.630064]  [<ffffffff812cae3e>] acpi_os_allocate+0x25/0x27 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Right, so ACPI is trying to allocate something larger than 2^MAX_ORDER
+pages, which on x86 computes to 4K * 2^11 = 8M.
+
+That's not going to work.
+
+Did this machine properly boot before? I seem to remember people working
+on moving away from bootmem and getting th page/slab stuff up and
+running sooner, it might be fallout from that...
+
