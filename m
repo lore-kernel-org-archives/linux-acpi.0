@@ -1,62 +1,43 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 2/2] ACPI: EC: Add wait for irq storm
-Date: Wed, 30 Dec 2009 15:53:10 +0300
-Message-ID: <20091230125310.11962.2661.stgit@thinkpad>
-References: <20091230125303.11962.12105.stgit@thinkpad>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 2/3] sony-laptop - simplify keymap initialization
+Date: Wed, 30 Dec 2009 13:28:11 -0200
+Message-ID: <20091230152811.GA18722@khazad-dum.debian.net>
+References: <20091224080135.11511.18604.stgit@localhost.localdomain>
+ <20091224080222.11511.79737.stgit@localhost.localdomain>
+ <20091224210146.GA2346@khazad-dum.debian.net>
+ <20091225070138.GB19401@core.coreip.homeip.net>
+ <20091225133812.GB5891@khazad-dum.debian.net>
+ <20091230041227.GB2186@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:36551 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752751AbZL3MxL (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 07:53:11 -0500
-In-Reply-To: <20091230125303.11962.12105.stgit@thinkpad>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56273 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752123AbZL3P2S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Dec 2009 10:28:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20091230041227.GB2186@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-Merge of poll and irq modes accelerated EC transaction, so
-that keyboard starts to suffer again. Add msleep(1) into
-transaction path for the storm to allow keyboard controller
-to do its job.
+On Tue, 29 Dec 2009, Dmitry Torokhov wrote:
+> > That said, is KEY_RESERVED bit left set a common error?  If it is, maybe it
+> > make sense to __clear_bit it inside of input_register_device() just in case?
+> > 
+> 
+> Something like below?
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=14747
+Exactly.  Although it looks like you have some unrelated atomic versus
+non-atomic set/clear_bit cleanups in it that might be better off in a comit
+of their own?
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
- drivers/acpi/ec.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 32517d4..edfcbc7 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -259,7 +259,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 	spin_unlock_irqrestore(&ec->curr_lock, tmp);
- 	ret = ec_poll(ec);
--	pr_debug(PREFIX "transaction end\n");
- 	spin_lock_irqsave(&ec->curr_lock, tmp);
- 	ec->curr = NULL;
- 	spin_unlock_irqrestore(&ec->curr_lock, tmp);
-@@ -316,6 +315,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 	/* check if we received SCI during transaction */
- 	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
-+		msleep(1);
- 		/* it is safe to enable GPE outside of transaction */
- 		acpi_enable_gpe(NULL, ec->gpe);
- 	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
-@@ -323,6 +323,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 			"transactions will use polling mode\n");
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
-+	pr_debug(PREFIX "transaction end\n");
- end:
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
