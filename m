@@ -1,63 +1,53 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI warning from alloc_pages_nodemask on boot (2.6.33
- regression)
-Date: Thu, 31 Dec 2009 08:47:37 +0800
-Message-ID: <1262220457.12263.1403.camel@rzhang1-desktop>
-References: <20091229094202.25818e9b@nehalam>
-	 <alpine.LFD.2.00.0912291435070.14938@localhost.localdomain>
-	 <2f11576a0912292221r7ba59e9dw431c7b43b578a04@mail.gmail.com>
-	 <1262187344.7135.230.camel@laptop>  <20091230100519.5a72d82c@nehalam>
+Subject: Re: "acpi_apic_instance=0" works better
+Date: Thu, 31 Dec 2009 08:50:17 +0800
+Message-ID: <1262220617.12263.1404.camel@rzhang1-desktop>
+References: <7a6792140912301241m189685fk4e5081a1e12674b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49758 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:63090 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751271AbZLaAq5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Dec 2009 19:46:57 -0500
-In-Reply-To: <20091230100519.5a72d82c@nehalam>
+	id S1751654AbZLaAth (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Dec 2009 19:49:37 -0500
+In-Reply-To: <7a6792140912301241m189685fk4e5081a1e12674b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Pekka Enberg <penberg@cs.helsinki.fi>
+To: NewMaverick <sarthorks@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2009-12-31 at 02:05 +0800, Stephen Hemminger wrote:
-> On Wed, 30 Dec 2009 16:35:44 +0100
-> Peter Zijlstra <peterz@infradead.org> wrote:
+On Thu, 2009-12-31 at 04:41 +0800, NewMaverick wrote:
+> Hello
 > 
-> > On Wed, 2009-12-30 at 15:21 +0900, KOSAKI Motohiro wrote:
-> > > >> [    1.630020] ------------[ cut here ]------------
-> > > >> [    1.630026] WARNING: at mm/page_alloc.c:1812 __alloc_pages_nodemask+0x617/0x730()
-> > > >
-> > > >        if (order >= MAX_ORDER) {
-> > > >                WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
-> > > >                return NULL;
-> > > >        }
-> > > >
-> > > > I don't know what the mm alloc code is complaining about here.
-> > 
-> > > >> [    1.630028] Hardware name: System Product Name
-> > > >> [    1.630029] Modules linked in:
-> > > >> [    1.630032] Pid: 1, comm: swapper Not tainted 2.6.33-rc2 #4
-> > > >> [    1.630034] Call Trace:
-> > 
-> > > >> [    1.630064]  [<ffffffff812cae3e>] acpi_os_allocate+0x25/0x27 
-> > 
-> > Right, so ACPI is trying to allocate something larger than 2^MAX_ORDER
-> > pages, which on x86 computes to 4K * 2^11 = 8M.
-> > 
-> > That's not going to work.
-> > 
-> > Did this machine properly boot before? I seem to remember people working
-> > on moving away from bootmem and getting th page/slab stuff up and
-> > running sooner, it might be fallout from that...
-> > 
+> Here is some DMI info from kernel log:
+> Dec 31 02:03:02 sarthorks kernel: [   16.717511] ACPI: DMI System Vendor: LENOVO
+> Dec 31 02:03:02 sarthorks kernel: [   16.717513] ACPI: DMI Product Name: 0769AB2
+> Dec 31 02:03:02 sarthorks kernel: [   16.717515] ACPI: DMI Product
+> Version: 3000 N200
+> Dec 31 02:03:02 sarthorks kernel: [   16.717517] ACPI: DMI Board Name: IEL10
+> Dec 31 02:03:02 sarthorks kernel: [   16.717518] ACPI: DMI BIOS Vendor: LENOVO
+> Dec 31 02:03:02 sarthorks kernel: [   16.717520] ACPI: DMI BIOS Date: 12/21/2007
 > 
-> Yes, and it still boots now.
+> After one and a half years (with regular updates), my hardy started
+> causing trouble at boot time, and "acpi=off" could fix the trouble.
 > 
-we have rootcaused the problem.
-please refer to http://bugzilla.kernel.org/show_bug.cgi?id=14954
+> However, after looking at the logs, i tried this
+> "acpi_apic_instance=0", and now acpi is on, and there's no problem.
+> Hope this helps.
+> 
+acpi_apic_instance is 0 by default.
+did you use acpi_apic_instance=1 before?
+If not, acpi_apic_instance=0 won't bring any difference.
+please attach the acpidump output.
 
 thanks,
 rui
+
+> Sarthak Parikh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
