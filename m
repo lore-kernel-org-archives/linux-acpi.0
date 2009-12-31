@@ -1,374 +1,314 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [git pull request] ACPI & driver patches for 2.6.33-rc2
-Date: Wed, 30 Dec 2009 18:57:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912301843470.17125@localhost.localdomain>
+Subject: dropped [PATCH] toshiba_acpi: add full hotkey support
+Date: Wed, 30 Dec 2009 19:08:09 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912301905050.17125@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_MXM2MBSg0RC9q0Y1ZL2MDg)"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752450AbZL3X50@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:43863 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbZLaAIm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 19:08:42 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVH00169PPMV115@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 30 Dec 2009 18:08:13 -0600 (CST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mjg@redhat.com
+Cc: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
---Boundary_(ID_MXM2MBSg0RC9q0Y1ZL2MDg)
-Content-type: TEXT/PLAIN; charset=ISO-8859-2
-Content-transfer-encoding: 8BIT
+Calling the ENAB method on Toshiba laptops results in notifications being
+sent when laptop hotkeys are pressed.  This patch simply calls that method
+and sets up an input device if it's successful.
 
-Hi Linus,
+[akpm@linux-foundation.org: fix some compile warnings]
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
 
-please pull from: 
+Hi Matthew,
+I has this patch on a branch in acpi-test at one point,
+but dropped it due to merge conflicts with other patches,
+and thus it did not make it upstream.  Feel free to refresh it.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-5 thinkpad sound tweaks
-4 needed error checks
-3 regression bug fixes
-2 debugging bootparams
-and a BIOS workaround in a pear tree.
-
-This will update the files shown below.
-
-thanks!
-
---
-Len Brown
-Intel Open Source Technology Center
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.33/acpi-release-20091214-2.6.33-rc2.diff.gz
+ drivers/platform/x86/toshiba_acpi.c |  206 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 199 insertions(+), 7 deletions(-)
 
- Documentation/kernel-parameters.txt     |    5 ++-
- Documentation/laptops/thinkpad-acpi.txt |   58 ++++++++++++++++++++++++++----
- arch/x86/kernel/acpi/sleep.c            |    2 +
- drivers/acpi/sleep.c                    |   29 +++++++++------
- drivers/acpi/video.c                    |    8 ++++-
- drivers/char/ipmi/ipmi_si_intf.c        |    4 +-
- drivers/platform/x86/Kconfig            |   28 ++++++++++++++
- drivers/platform/x86/dell-wmi.c         |   18 ++++++---
- drivers/platform/x86/hp-wmi.c           |    9 ++++-
- drivers/platform/x86/msi-wmi.c          |    9 ++++-
- drivers/platform/x86/thinkpad_acpi.c    |   59 +++++++++++++++++++++++-------
- drivers/platform/x86/wmi.c              |   36 +++++++++++++++++--
- include/linux/acpi.h                    |    1 +
- 13 files changed, 214 insertions(+), 52 deletions(-)
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 9f18726..0c6cd7c 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -46,6 +46,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/rfkill.h>
+ #include <linux/input-polldev.h>
++#include <linux/input.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -62,9 +63,10 @@ MODULE_LICENSE("GPL");
+ 
+ /* Toshiba ACPI method paths */
+ #define METHOD_LCD_BRIGHTNESS	"\\_SB_.PCI0.VGA_.LCD_._BCM"
+-#define METHOD_HCI_1		"\\_SB_.VALD.GHCI"
+-#define METHOD_HCI_2		"\\_SB_.VALZ.GHCI"
++#define TOSH_INTERFACE_1	"\\_SB_.VALD"
++#define TOSH_INTERFACE_2	"\\_SB_.VALZ"
+ #define METHOD_VIDEO_OUT	"\\_SB_.VALX.DSSX"
++#define GHCI_METHOD		".GHCI"
+ 
+ /* Toshiba HCI interface definitions
+  *
+@@ -116,6 +118,36 @@ static const struct acpi_device_id toshiba_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, toshiba_device_ids);
+ 
++struct key_entry {
++	char type;
++	u16 code;
++	u16 keycode;
++};
++
++enum {KE_KEY, KE_END};
++
++static struct key_entry toshiba_acpi_keymap[]  = {
++	{KE_KEY, 0x101, KEY_MUTE},
++	{KE_KEY, 0x13b, KEY_COFFEE},
++	{KE_KEY, 0x13c, KEY_BATTERY},
++	{KE_KEY, 0x13d, KEY_SLEEP},
++	{KE_KEY, 0x13e, KEY_SUSPEND},
++	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
++	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
++	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
++	{KE_KEY, 0x142, KEY_WLAN},
++	{KE_KEY, 0x143, KEY_PROG1},
++	{KE_KEY, 0xb05, KEY_PROG2},
++	{KE_KEY, 0xb06, KEY_WWW},
++	{KE_KEY, 0xb07, KEY_MAIL},
++	{KE_KEY, 0xb30, KEY_STOP},
++	{KE_KEY, 0xb31, KEY_PREVIOUSSONG},
++	{KE_KEY, 0xb32, KEY_NEXTSONG},
++	{KE_KEY, 0xb33, KEY_PLAYPAUSE},
++	{KE_KEY, 0xb5a, KEY_MEDIA},
++	{KE_END, 0, 0},
++};
++
+ /* utility
+  */
+ 
+@@ -252,6 +284,8 @@ struct toshiba_acpi_dev {
+ 	struct platform_device *p_dev;
+ 	struct rfkill *rfk_dev;
+ 	struct input_polled_dev *poll_dev;
++	struct input_dev *hotkey_dev;
++	acpi_handle handle;
+ 
+ 	const char *bt_name;
+ 	const char *rfk_name;
+@@ -700,6 +734,154 @@ static struct backlight_ops toshiba_backlight_data = {
+         .update_status  = set_lcd_status,
+ };
+ 
++static struct key_entry *toshiba_acpi_get_entry_by_scancode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->code)
++			return key;
++
++	return NULL;
++}
++
++static struct key_entry *toshiba_acpi_get_entry_by_keycode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->keycode && key->type == KE_KEY)
++			return key;
++
++	return NULL;
++}
++
++static int toshiba_acpi_getkeycode(struct input_dev *dev, int scancode,
++				   int *keycode)
++{
++	struct key_entry *key = toshiba_acpi_get_entry_by_scancode(scancode);
++
++	if (key && key->type == KE_KEY) {
++		*keycode = key->keycode;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int toshiba_acpi_setkeycode(struct input_dev *dev, int scancode,
++				   int keycode)
++{
++	struct key_entry *key;
++	int old_keycode;
++
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
++
++	key = toshiba_acpi_get_entry_by_scancode(scancode);
++	if (key && key->type == KE_KEY) {
++		old_keycode = key->keycode;
++		key->keycode = keycode;
++		set_bit(keycode, dev->keybit);
++		if (!toshiba_acpi_get_entry_by_keycode(old_keycode))
++			clear_bit(old_keycode, dev->keybit);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static void toshiba_acpi_notify(acpi_handle handle, u32 event, void *context)
++{
++	u32 hci_result, value;
++	struct key_entry *key;
++
++	if (event != 0x80)
++		return;
++	do {
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			if (value == 0x100)
++				continue;
++			else if (value & 0x80) {
++				key = toshiba_acpi_get_entry_by_scancode
++					(value & ~0x80);
++				if (!key) {
++					printk(MY_INFO "Unknown key %x\n",
++					       value & ~0x80);
++					continue;
++				}
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 1);
++				input_sync(toshiba_acpi.hotkey_dev);
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 0);
++				input_sync(toshiba_acpi.hotkey_dev);
++			}
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result != HCI_EMPTY);
++}
++
++static int toshiba_acpi_setup_keyboard(char *device)
++{
++	acpi_status status;
++	acpi_handle handle;
++	int result;
++	const struct key_entry *key;
++
++	status = acpi_get_handle(NULL, device, &handle);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to get notification device\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.handle = handle;
++
++	status = acpi_evaluate_object(handle, "ENAB", NULL, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to enable hotkeys\n");
++		return -ENODEV;
++	}
++
++	status = acpi_install_notify_handler(handle, ACPI_DEVICE_NOTIFY,
++					      toshiba_acpi_notify, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to install hotkey notification\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.hotkey_dev = input_allocate_device();
++	if (!toshiba_acpi.hotkey_dev) {
++		printk(MY_INFO "Unable to register input device\n");
++		return -ENOMEM;
++	}
++
++	toshiba_acpi.hotkey_dev->name = "Toshiba input device";
++	toshiba_acpi.hotkey_dev->phys = device;
++	toshiba_acpi.hotkey_dev->id.bustype = BUS_HOST;
++	toshiba_acpi.hotkey_dev->getkeycode = toshiba_acpi_getkeycode;
++	toshiba_acpi.hotkey_dev->setkeycode = toshiba_acpi_setkeycode;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++) {
++		set_bit(EV_KEY, toshiba_acpi.hotkey_dev->evbit);
++		set_bit(key->keycode, toshiba_acpi.hotkey_dev->keybit);
++	}
++
++	result = input_register_device(toshiba_acpi.hotkey_dev);
++	if (result) {
++		printk(MY_INFO "Unable to register input device\n");
++		return result;
++	}
++
++	return 0;
++}
++
+ static void toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_acpi.poll_dev) {
+@@ -707,12 +889,18 @@ static void toshiba_acpi_exit(void)
+ 		input_free_polled_device(toshiba_acpi.poll_dev);
+ 	}
+ 
++	if (toshiba_acpi.hotkey_dev)
++		input_unregister_device(toshiba_acpi.hotkey_dev);
++
+ 	if (toshiba_acpi.rfk_dev)
+ 		rfkill_unregister(toshiba_acpi.rfk_dev);
+ 
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
+ 
++	acpi_remove_notify_handler(toshiba_acpi.handle, ACPI_DEVICE_NOTIFY,
++				   toshiba_acpi_notify);
++
+ 	remove_device();
+ 
+ 	if (toshiba_proc_dir)
+@@ -736,11 +924,15 @@ static int __init toshiba_acpi_init(void)
+ 		return -ENODEV;
+ 
+ 	/* simple device detection: look for HCI method */
+-	if (is_valid_acpi_path(METHOD_HCI_1))
+-		method_hci = METHOD_HCI_1;
+-	else if (is_valid_acpi_path(METHOD_HCI_2))
+-		method_hci = METHOD_HCI_2;
+-	else
++	if (is_valid_acpi_path(TOSH_INTERFACE_1 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_1 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_1))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else if (is_valid_acpi_path(TOSH_INTERFACE_2 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_2 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_2))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else
+ 		return -ENODEV;
+ 
+ 	printk(MY_INFO "Toshiba Laptop ACPI Extras version %s\n",
+-- 
+1.6.6.rc4.11.g129a5
 
-through these commits:
-
-Carlos Corbacho (1):
-      ACPI: WMI: Survive BIOS with duplicate GUIDs
-
-Dmitry Torokhov (1):
-      dell-wmi - fix condition to abort driver loading
-
-Henrique de Moraes Holschuh (5):
-      thinkpad-acpi: don't take the first ALSA slot by default
-      thinkpad-acpi: don't fail to load the entire module due to ALSA problems
-      thinkpad-acpi: make volume subdriver optional
-      thinkpad-acpi: update volume subdriver documentation
-      thinkpad-acpi: improve Kconfig help text
-
-Ingo Molnar (1):
-      ACPI: fix ACPI=n allmodconfig build
-
-Len Brown (3):
-      dell-wmi: sys_init_module: 'dell_wmi'->init suspiciously returned 21, it should
-      ACPI: hp-wmi, msi-wmi: clarify that wmi_install_notify_handler() returns an acpi_status
-      dell-wmi, hp-wmi, msi-wmi: check wmi_get_event_data() return value
-
-Paul Rolland (1):
-      wmi: check find_guid() return value to prevent oops
-
-Zhang Rui (3):
-      ACPI video: no warning message if "acpi_backlight=vendor" is used
-      ACPI video: correct error-handling code
-      ACPI: introduce kernel parameter acpi_sleep=sci_force_enable
-
-with this log:
-
-commit 1201b2a9bec0413188ada1443ece1a52da6dbff4
-Merge: cccc67a d7f0eea
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Dec 30 18:32:32 2009 -0500
-
-    Merge branch 'resume-sci-force-bootparam' into release
-
-commit d7f0eea9e431e1b8b0742a74db1a9490730b2a25
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Wed Dec 30 15:36:42 2009 +0800
-
-    ACPI: introduce kernel parameter acpi_sleep=sci_force_enable
-    
-    Introduce kernel parameter acpi_sleep=sci_force_enable
-    
-    some laptop requires SCI_EN being set directly on resume,
-    or else they hung somewhere in the resume code path.
-    
-    We already have a blacklist for these laptops but we still need
-    this option, especially when debugging some suspend/resume problems,
-    in case there are systems that need this workaround and are not yet
-    in the blacklist.
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit cccc67a4cf52a952e6371ac75510994e0bddec96
-Merge: b943aa8 e01ce79
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Dec 30 02:51:38 2009 -0500
-
-    Merge branch 'video-error-case' into release
-
-commit b943aa83f8038959999a6b12e469a875ab245a36
-Merge: ea840aa 28c32e9
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Dec 30 02:51:31 2009 -0500
-
-    Merge branch 'bugzilla-13671' into release
-
-commit ea840aa2d01cf107b331d04ddea46efaee583a83
-Merge: 1ae22af 6e5b08e
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Dec 30 02:51:05 2009 -0500
-
-    Merge branch 'thinkpad' into release
-
-commit 1ae22af7d750fbf665b7651fcbd3c15cc2d3793b
-Merge: 27d0567 d1f9e49
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Dec 30 02:51:01 2009 -0500
-
-    Merge branch 'wmi' into release
-
-commit d1f9e4970742bb1e22d07b01bd44f9c357d25c42
-Author: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Date:   Sat Dec 26 19:14:59 2009 +0000
-
-    ACPI: WMI: Survive BIOS with duplicate GUIDs
-    
-    It would appear that in BIOS's with nVidia hooks, the GUID
-    05901221-D566-11D1-B2F0-00A0C9062910 is duplicated. For now, the simplest
-    solution is to just ignore any duplicate GUIDs. These particular hooks are not
-    currently supported/ used in the kernel, so whoever does that can figure out
-    what the 'right' solution should be (if there's a better one).
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=14846
-    
-    Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-    Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
-    Reported-by: Oldøich Jedlièka <oldium.pro@seznam.cz>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 7a9568f536754623738110a314ff33286cdbb17d
-Author: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date:   Fri Dec 25 11:49:35 2009 -0800
-
-    dell-wmi - fix condition to abort driver loading
-    
-    From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-    
-    The commit 1fdd407f4e3f2ecb453954cbebb6c22491c61853 incorrectly made driver
-    abort loading when known GUID is present when it should have done exactly
-    the opposite.
-    
-    Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit c03b26a5a5597a59b2e247d005d5901430109a8a
-Author: Paul Rolland <rol@as2917.net>
-Date:   Wed Dec 30 01:07:40 2009 -0500
-
-    wmi: check find_guid() return value to prevent oops
-    
-    Signed-off-by: Paul Rolland <rol@as2917.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit fda11e61ff8a4e3a8ebbd434e46560b67cc0ca9d
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Dec 26 23:02:24 2009 -0500
-
-    dell-wmi, hp-wmi, msi-wmi: check wmi_get_event_data() return value
-    
-    When acpi_evaluate_object() is passed ACPI_ALLOCATE_BUFFER,
-    the caller must kfree the returned buffer if AE_OK is returned.
-    
-    The callers of wmi_get_event_data() pass ACPI_ALLOCATE_BUFFER,
-    and thus must check its return value before accessing
-    or kfree() on the buffer.
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit f27725756be8a2c2dc65eaf70d0b52807aa2f113
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Dec 26 22:04:03 2009 -0500
-
-    ACPI: hp-wmi, msi-wmi: clarify that wmi_install_notify_handler() returns an acpi_status
-    
-    Emphasize that that wmi_install_notify_handler() returns an acpi_status
-    rather than -errno by by testing ACPI_SUCCESS(), ACPI_FAILURE().
-    
-    No functional change in this patch, but this confusion caused a bug in dell-wmi.
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit abb631bfe271a9102fb5b05419272b7aec37a974
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Dec 26 21:51:38 2009 -0500
-
-    dell-wmi: sys_init_module: 'dell_wmi'->init suspiciously returned 21, it should
-    follow 0/-E convention
-    
-    wmi_install_notify_handler() returns an acpi_error,
-    but dell_wmi_init() needs return a -errno style error.
-    
-    Tested-by: Paul Rolland <rol@as2917.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit e01ce79b7f6ebc5b57128ee058811aa8f9059319
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Wed Jul 29 08:53:29 2009 +0800
-
-    ACPI video: correct error-handling code
-    
-    backlight_device_register may return an ERR_PTR
-    value rather than a valid pointer.
-    
-    Problem found by Julia Lawall, properly fixed by Zhang Rui.
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Acked-by: Julia Lawall <julia@diku.dk>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 28c32e99bdf5ab838e7179c1aaca5a35a07f2a2b
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Mon Jul 13 10:33:24 2009 +0800
-
-    ACPI video: no warning message if "acpi_backlight=vendor" is used
-    
-    AML code always sends notifications to ACPI video device,
-    even if we disable the ACPI backlight control by using
-    boot option "acpi_backlight=vendor".
-    
-    In this case we should not print any warning message.
-    http://bugzilla.kernel.org/show_bug.cgi?id=13671#c14
-    
-    Sigend-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 27d0567ab635bc2af11be48f91c8d5a7a2dca2e4
-Author: Ingo Molnar <mingo@elte.hu>
-Date:   Thu Dec 17 08:50:25 2009 +0100
-
-    ACPI: fix ACPI=n allmodconfig build
-    
-    Today's -tip failed to build because commit
-    9e368fa011d4e0aa050db348d69514900520e40b ("ipmi: add PNP discovery (ACPI
-    namespace via PNPACPI)") from today's upstream kernel causes the following
-    build failure on x86, for CONFIG_ACPI=n && CONFIG_IPMI_SI=y:
-    
-     drivers/char/ipmi/ipmi_si_intf.c:3208: error: 'ipmi_pnp_driver' undeclared (first use in this function)
-     drivers/char/ipmi/ipmi_si_intf.c:3208: error: (Each undeclared identifier is reported only once
-     drivers/char/ipmi/ipmi_si_intf.c:3208: error: for each function it appears in.)
-     drivers/char/ipmi/ipmi_si_intf.c:3334: error: 'ipmi_pnp_driver' undeclared (first use in this function)
-    
-    The reason is that the ipmi_pnp_driver depends on ACPI facilities and is only
-    made available under ACPI - while the registration and unregistration is made
-    dependent on CONFIG_PNP:
-    
-     #ifdef CONFIG_PNP
-     	pnp_register_driver(&ipmi_pnp_driver);
-     #endif
-    
-    The solution is to only register this driver under ACPI. (Also, the CONFIG_PNP
-    dependency is not needed because pnp_register_driver() is stubbed out in the
-    !CONFIG_PNP case.)
-    
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-    Acked-by: Myron Stowe <myron.stowe@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 6e5b08ee941af38cfc6456158e7e04c1bc49306f
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Sat Dec 26 22:52:17 2009 -0200
-
-    thinkpad-acpi: improve Kconfig help text
-    
-    Document that rfkill and ALSA functionality exists, but requires the
-    subsystems to be available, and not modular if thinkpad-acpi is not
-    modular.
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 169220f88f0f26f4450ac0bc8ff0f807b453ec58
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Sat Dec 26 22:52:16 2009 -0200
-
-    thinkpad-acpi: update volume subdriver documentation
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit ff850c339a1a6a7724537160c73cdc09a483fc5d
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Sat Dec 26 22:52:15 2009 -0200
-
-    thinkpad-acpi: make volume subdriver optional
-    
-    Allow the user to choose through Kconfig if the Console Audio Control
-    interface (aka "volume subdriver") should be available or not.
-    
-    This not only saves some memory, but also allows the thinkpad-acpi
-    driver to be built-in even if ALSA is modular when the console audio
-    control interface is not wanted.
-    
-    This change fixes a build problem that is causing some annoyances, in
-    a way that doesn't disable the entire driver on kernels without ALSA
-    support.
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Cc: Ingo Molnar <mingo@elte.hu>
-    Cc: Amerigo Wang <amwang@redhat.com>
-    Cc: Helight Xu <helight.xu@gmail.com>
-    Cc: Takashi Iwai <tiwai@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 74c75c1848b618f6717c1be887ad539ffac2e96d
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Sat Dec 26 22:52:14 2009 -0200
-
-    thinkpad-acpi: don't fail to load the entire module due to ALSA problems
-    
-    If we cannot create the ALSA mixer, it is a good reason to fail to
-    load the volume subdriver, and not to fail to load the entire module.
-    
-    While at it, add more debugging messages, as the error paths are being
-    used a lot more than I'd expect, and it is failing to set up the ALSA
-    mixer on a number of ThinkPads.
-    
-    Reported-by: Peter Jordan <usernetwork@gmx.info>
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit ead510cebcdf41c92fce2a909f342255b028a33d
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Sat Dec 26 22:52:13 2009 -0200
-
-    thinkpad-acpi: don't take the first ALSA slot by default
-    
-    We don't want to be the first soundcard.  We don't want to shift other
-    soundcards out of the way either, even if they load much later.
-    
-    Ask ALSA to (by default) load us in one of the last three slots.  This
-    can be overriden at will using the "index" parameter.
-    
-    Reported-by: Whoopie <whoopie79@gmx.net>
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
---Boundary_(ID_MXM2MBSg0RC9q0Y1ZL2MDg)--
