@@ -1,53 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: "acpi_apic_instance=0" works better
-Date: Thu, 31 Dec 2009 08:50:17 +0800
-Message-ID: <1262220617.12263.1404.camel@rzhang1-desktop>
-References: <7a6792140912301241m189685fk4e5081a1e12674b@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: git-apply --whitespace (Re: [PATCH 2/5] ACPI, APEI,
+ APEI supporting infrastructure)
+Date: Wed, 30 Dec 2009 20:14:53 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912302006520.17125@localhost.localdomain>
+References: <1261980744-4450-1-git-send-email-ying.huang@intel.com>
+ <1261980744-4450-2-git-send-email-ying.huang@intel.com>
+ <1261980744-4450-3-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63090 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751654AbZLaAth (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Dec 2009 19:49:37 -0500
-In-Reply-To: <7a6792140912301241m189685fk4e5081a1e12674b@mail.gmail.com>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:48930 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640AbZLaBPA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2009 20:15:00 -0500
+In-reply-to: <1261980744-4450-3-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: NewMaverick <sarthorks@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: ak@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2009-12-31 at 04:41 +0800, NewMaverick wrote:
-> Hello
-> 
-> Here is some DMI info from kernel log:
-> Dec 31 02:03:02 sarthorks kernel: [   16.717511] ACPI: DMI System Vendor: LENOVO
-> Dec 31 02:03:02 sarthorks kernel: [   16.717513] ACPI: DMI Product Name: 0769AB2
-> Dec 31 02:03:02 sarthorks kernel: [   16.717515] ACPI: DMI Product
-> Version: 3000 N200
-> Dec 31 02:03:02 sarthorks kernel: [   16.717517] ACPI: DMI Board Name: IEL10
-> Dec 31 02:03:02 sarthorks kernel: [   16.717518] ACPI: DMI BIOS Vendor: LENOVO
-> Dec 31 02:03:02 sarthorks kernel: [   16.717520] ACPI: DMI BIOS Date: 12/21/2007
-> 
-> After one and a half years (with regular updates), my hardy started
-> causing trouble at boot time, and "acpi=off" could fix the trouble.
-> 
-> However, after looking at the logs, i tried this
-> "acpi_apic_instance=0", and now acpi is on, and there's no problem.
-> Hope this helps.
-> 
-acpi_apic_instance is 0 by default.
-did you use acpi_apic_instance=1 before?
-If not, acpi_apic_instance=0 won't bring any difference.
-please attach the acpidump output.
+> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+> new file mode 100644
+> index 0000000..4085bdd
+> --- /dev/null
+> +++ b/drivers/acpi/apei/Kconfig
+> @@ -0,0 +1,9 @@
+> +config ACPI_APEI
+> +	tristate "ACPI Platform Error Interface (APEI)"
+> +	depends on X86
+> +	help
+> +	  APEI allows to report errors (for example from the chipset)
+> +	  to the operating system. This improves NMI handling
+> +	  especially. In addition it supports error serialization and
+> +	  error injection.
+> +
+> diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
+
+FYI, git apply considers a trailing blank line,
+such as the one at the end of the hunk above,
+to be a "whitespace error".
+
+I use --whitespace=strip, which causes git to delete it
+upon checkin.  However, that causes the 4th patch in
+this series, which appents to this file, to not apply.
+
+Please don't send patches with trailing blank lines.
+In this case, the blank should come as a "preceeding"
+blank line in the 4th patch...
 
 thanks,
-rui
+-Len Brown, Intel Open Source Technology Center
 
-> Sarthak Parikh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
