@@ -1,105 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update] Re: [RFC] Asynchronous suspend/resume - test results
-Date: Sat, 2 Jan 2010 22:28:31 +0100
-Message-ID: <201001022228.31436.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912211200200.2979-100000@iolanthe.rowland.org> <200912212136.12665.rjw@sisk.pl> <200912232135.25041.rjw@sisk.pl>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] eeepc-laptop - switch to using sparse keymap library
+Date: Sun, 3 Jan 2010 16:03:38 +0100
+Message-ID: <71cd59b01001030703v1b0dfd4ey6469fc8156128f1d@mail.gmail.com>
+References: <20091218062454.GE21231@core.coreip.homeip.net>
+	 <9b2b86520912200425p48bd83fy40d7070d07d3e3b2@mail.gmail.com>
+	 <20091221052839.GA324@core.coreip.homeip.net>
+	 <9b2b86520912210203g4bcd08edkc40f4233b8b9744f@mail.gmail.com>
+	 <71cd59b00912210300t684ce249g67a8fb4e05caee91@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49416 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751894Ab0ABV2Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Jan 2010 16:28:16 -0500
-In-Reply-To: <200912232135.25041.rjw@sisk.pl>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:48256 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385Ab0ACPDj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2010 10:03:39 -0500
+Received: by fxm25 with SMTP id 25so8106497fxm.21
+        for <linux-acpi@vger.kernel.org>; Sun, 03 Jan 2010 07:03:38 -0800 (PST)
+In-Reply-To: <71cd59b00912210300t684ce249g67a8fb4e05caee91@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Wednesday 23 December 2009, Rafael J. Wysocki wrote:
-> On Monday 21 December 2009, Rafael J. Wysocki wrote:
-> > On Monday 21 December 2009, Alan Stern wrote:
-> > > On Mon, 21 Dec 2009, Rafael J. Wysocki wrote:
-> ...
-> > > You should also make SCSI targets and hosts async.  Hosts are added in
-> > > drivers/scsi/hosts.c:scsi_add_host_with_dma() (in 2.6.32 this was
-> > > named scsi_add_host()).  Targets are added in
-> > > drivers/scsi/scsi_sysfs.c:scsi_target_add().  And for thoroughness,
-> > > SCSI devices are added in scsi_sysfs_add_sdev() in the same file.
-> > 
-> > Thanks a lot for the pointers.
-> 
-> I put device_enable_async_suspend() in all of these places and that resulted in
-> major reduction of suspend time without starting the async threads upfront.
-> Now, however, starting them upfront helps only a little, within the standard
-> deviation from the "non-upfront" case.
-> 
-> In turn, resume _without_ starting the async threads upfront makes a little
-> sense on my test boxes.  In fact, it only helped on the nx6325 and made things
-> worse on the other two (I added the results from Toshiba Portege R500, but it
-> has the same chipset as the Wind U100, ie. ICH7).
-> 
-> The results are as follows:
-> 
-> 			HP nx6325	MSI Wind U100	Toshiba Portege R500
-> 
-> sync suspend		1357 (+/- 35)	 656 (+/- 50)	 889 (+/- 29)
-> sync resume		3027 (+/- 6)	3372 (+/- 30)	4552 (+/- 35)
-> 
-> async suspend		1053 (+/- 50)	 490 (+/- 42)	 620 (+/- 52)
-> async resume		2291 (+/- 7)	3406 (+/- 52)	4557 (+/- 26)
-> 
-> async "upfront" suspend	1040 (+/- 35)	 476 (+/- 9)	 585 (+/- 29)
-> async "upfront" resume	1787 (+/- 7)	1724 (+/- 48)	1990 (+/- 25)
-> 
-> The raw data are at
-> http://www.sisk.pl/kernel/data/async-suspend-updated.pdf
-> http://www.sisk.pl/kernel/data/r500/
-> http://www.sisk.pl/kernel/data/nx6325/
-> http://www.sisk.pl/kernel/data/wind/
-> 
-> and the previous results were moved into
-> http://www.sisk.pl/kernel/data/091220/
-> 
-> The patches used in the testing are in my async branch at
-> http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=shortlog;h=refs/heads/async
-> The patches in this branch are not for upstream, but it's on top of the 
-> linux-next branch containing patches for the 2.6.34 merge window.
+On Mon, Dec 21, 2009 at 12:00 PM, Corentin Chary
+<corentin.chary@gmail.com> wrote:
+> On Mon, Dec 21, 2009 at 11:03 AM, Alan Jenkins
+> <sourcejedi.lkml@googlemail.com> wrote:
+>> On 12/21/09, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+>>> On Sun, Dec 20, 2009 at 12:25:11PM +0000, Alan Jenkins wrote:
+>>
+>>>> Thanks! =A0Everything seems to work except for the "brightness up"=
+ key :-).
+>>>>
+>>>
+>>> Hmm, indeed, not sure what exactly I was thinking... How about this=
+ one?
+>>>
+>>> --
+>>> Dmitry
+>>>
+>>>
+>>> Input: eeepc-laptop - switch to using sparse keymap library
+>>>
+>>> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+>>> ---
+>>>
+>>> =A0drivers/platform/x86/Kconfig =A0 =A0 =A0 =A0| =A0 =A01
+>>> =A0drivers/platform/x86/eeepc-laptop.c | =A0186
+>>> ++++++++++-------------------------
+>>> =A02 files changed, 52 insertions(+), 135 deletions(-)
+>>
+>>
+>> Yes, that fixes it.
+>>
+>>
+>> Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+>>
+>>
+>> Thanks
+>> Alan
+>>
+>
+> Acked-by: Corentin Chary <corentincj@iksaif.net>
+>
+> --
+> Corentin Chary
+> http://xf.iksaif.net
+>
 
-Here's a small update to this I thought might be interesting to someone.
 
-Namely, I replaced the rotational disk in the Toshiba Portege R500 with an SSD
-and ran a few suspend/resume speed tests with the KMS on (the previous results
-for the R500 are with the userspace modesetting).  The results are here:
+Merged into acpi4asus, will be sent to Len soon (before the end of the
+week) for inclusion in 2.6.23-rc3 (or 4)
 
-http://www.sisk.pl/kernel/data/r500-ssd/
-
-As you can see here:
-
-http://www.sisk.pl/kernel/data/r500/times-r500-async-resume.txt
-http://www.sisk.pl/kernel/data/r500-ssd/times-r500-async-resume.txt
-
-the resume times changed quite a bit.  First, the device 0:0:0:0+ (the SSD) now
-takes about 0.33 s to resume (the rotational disk took about 1.7 s), pretty
-much as expected.  Second, the slowest resuming device is now the graphics
-(1.1 s), while without the KMS it resumed in no time.
-
-The device suspend times also changed:
-
-http://www.sisk.pl/kernel/data/r500/times-r500-async-suspend.txt
-http://www.sisk.pl/kernel/data/r500-ssd/times-r500-async-suspend.txt
-
-but 0:0:0:0+ is still the slowest suspending device, although it takes 200 ms
-less to suspend than the rotational disk.
-
-Overall, synchronous suspend of devices takes about 600 - 700 ms and
-synchronous resume takes about 4 s.  At the same time, asynchronous suspend of
-devices takes about 300 - 350 ms and asynchronous resume takes about
-1.1 - 1.2 s (that is with the async resume threads started upfront).  So, with
-the asynchronous suspend/resume the total times are roughly equal to the
-suspend/resume time of the slowest device and the resume speedup is
-more than 70%..
-
-Rafael
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
