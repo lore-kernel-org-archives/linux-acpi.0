@@ -1,83 +1,52 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] eeepc-laptop - switch to using sparse keymap library
-Date: Sun, 3 Jan 2010 16:03:38 +0100
-Message-ID: <71cd59b01001030703v1b0dfd4ey6469fc8156128f1d@mail.gmail.com>
-References: <20091218062454.GE21231@core.coreip.homeip.net>
-	 <9b2b86520912200425p48bd83fy40d7070d07d3e3b2@mail.gmail.com>
-	 <20091221052839.GA324@core.coreip.homeip.net>
-	 <9b2b86520912210203g4bcd08edkc40f4233b8b9744f@mail.gmail.com>
-	 <71cd59b00912210300t684ce249g67a8fb4e05caee91@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 12/12] PM / r8169: Add simplified run-time PM
+ support
+Date: Sun, 3 Jan 2010 20:55:45 +0100
+Message-ID: <20100103195544.GC11928@elf.ucw.cz>
+References: <200911160047.46299.rjw@sisk.pl>
+ <200912272048.37332.rjw@sisk.pl>
+ <20091227200147.GJ11737@elf.ucw.cz>
+ <201001022149.05553.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:48256 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385Ab0ACPDj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2010 10:03:39 -0500
-Received: by fxm25 with SMTP id 25so8106497fxm.21
-        for <linux-acpi@vger.kernel.org>; Sun, 03 Jan 2010 07:03:38 -0800 (PST)
-In-Reply-To: <71cd59b00912210300t684ce249g67a8fb4e05caee91@mail.gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57996 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751594Ab0ACTzx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2010 14:55:53 -0500
+Content-Disposition: inline
+In-Reply-To: <201001022149.05553.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
-
-On Mon, Dec 21, 2009 at 12:00 PM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Mon, Dec 21, 2009 at 11:03 AM, Alan Jenkins
-> <sourcejedi.lkml@googlemail.com> wrote:
->> On 12/21/09, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
->>> On Sun, Dec 20, 2009 at 12:25:11PM +0000, Alan Jenkins wrote:
->>
->>>> Thanks! =A0Everything seems to work except for the "brightness up"=
- key :-).
->>>>
->>>
->>> Hmm, indeed, not sure what exactly I was thinking... How about this=
- one?
->>>
->>> --
->>> Dmitry
->>>
->>>
->>> Input: eeepc-laptop - switch to using sparse keymap library
->>>
->>> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
->>> ---
->>>
->>> =A0drivers/platform/x86/Kconfig =A0 =A0 =A0 =A0| =A0 =A01
->>> =A0drivers/platform/x86/eeepc-laptop.c | =A0186
->>> ++++++++++-------------------------
->>> =A02 files changed, 52 insertions(+), 135 deletions(-)
->>
->>
->> Yes, that fixes it.
->>
->>
->> Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
->>
->>
->> Thanks
->> Alan
->>
->
-> Acked-by: Corentin Chary <corentincj@iksaif.net>
->
-> --
-> Corentin Chary
-> http://xf.iksaif.net
->
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
 
-Merged into acpi4asus, will be sent to Len soon (before the end of the
-week) for inclusion in 2.6.23-rc3 (or 4)
+> > On notebooks, you can often use
+> > 
+> > pavel@amd:/data/l/linux-msm/arch/arm/mach-msm$ cat
+> > /proc/acpi/battery/BAT0/state 
+> > present:                 yes
+> > capacity state:          ok
+> > charging state:          charged
+> > present rate:            0 mW
+> > remaining capacity:      71830 mWh
+> > present voltage:         16277 mV
+> > 
+> > ...present rate is often usable-enough.
+> 
+> Using /proc/acpi/battery/BAT1/state I measured the energy drawn in 10 minutes
+> both with the network adapter in D0 and D3hot.  The results were that with the
+> network adapter in D0 the box drew 2476 mWh, while with the network adapter in
+> D3hot it drew 2361 mWh.  The difference is 115 mWh, or about 5% on this
+> particular box.
+> 
+> This means about 0.1 Wh in 10 minutes, so we can save about 0.6 Wh per hour.
 
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Which means it saves 0.6W :-). Measuring power in Wh/h is
+"interesting". Ok, that's consistent with my experiments, ethernet
+transciever was around 1W... Thanks.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
