@@ -1,68 +1,91 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Mon, 04 Jan 2010 17:03:34 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001041632330.4012@localhost.localdomain>
-References: <20100104162114.GA30113@percival.namespace.at>
- <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain>
- <4B4225B3.8070705@zytor.com>
+Subject: Re: Shuttle K48 and speedstep.
+Date: Mon, 04 Jan 2010 17:37:04 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001041728091.4012@localhost.localdomain>
+References: <20100104223441.f72ee2fb.rasmus@wiman.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:58554 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab0ADWDy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 17:03:54 -0500
-In-reply-to: <4B4225B3.8070705@zytor.com>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:57186 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753649Ab0ADWhX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 17:37:23 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KVQ00B8UUTUKVH5@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 04 Jan 2010 16:37:12 -0600 (CST)
+In-reply-to: <20100104223441.f72ee2fb.rasmus@wiman.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrey Borzenkov <arvidjaar@mail.ru>
-
-> > I believe that Venki is sending a patch to make all recent
-> > motherboards use acpi reset by default; and I'd rather
-> > see that kind of patch than this one.
-> > 
-> > I've had the patch below patch in acpi-test, and thus linus-next,
-> > and -mm since Nov 2008 to change the default for
-> > all systems w/ no issues.
-> > 
-> 
-> Maybe I'm misremembering, but didn't we have to pull this patch after it
-> hit mainstream the last time?
+To: Rasmus Wiman <rasmus@wiman.org>
+Cc: linux-acpi@vger.kernel.org
 
 
-c7ffa6c26277b403920e2255d10df849bd613380
-"x86: default to reboot via ACPI"
-
-set ACPI as the default in 2.6.28-rc1
-
-8d00450d296dedec9ada38d43b83e79cca6fd5a3
-Revert "x86: default to reboot via ACPI"
-
-pulled it in v2.6.28-rc4
-
-The original patch was justified by VMX support,
-and the revert was in response to Andrey Borzenkov's
-DMI patch to usee BIOS reset on his Toshiba Porgege 4000:
-
-http://lkml.org/lkml/2008/10/31/242
-
-The Toshiba Portege 4000 shipped in early 2002.
-
-The patch to restore ACPI reset to default has been in Linux-next
-(with occasional drops) since the day it was dropped from 2.6.28-rc4.
-
-As we have an existence proof, I have no doubt that using
-ACPI reset by default will un-earth some regressions.  However,
-my guess is that the DMI list of old machines that will fail
-with ACPI reset will be smaller than by the DMI list of
-brand-new machines that will fail without ACPI reset.
-
-We couuld use a DMI year cut-off as we do with
-ACPI itself CONFIG_ACPI_BLACKLIST_YEAR, though that
-doesn't work on systems that don't have DMI...
-If I were to propose a year, I'd say 2006 and newer,
-since XP was "Windows 2006".
 
 thanks,
 Len Brown, Intel Open Source Technology Center
+
+On Mon, 4 Jan 2010, Rasmus Wiman wrote:
+
+> Hi everybody,
+> 
+> a few months ago I bought myself a Shuttle K48 to use with Vortexbox as
+> a media PC. I put in an old Intel Pentium dual-core E2140 that I had
+> lying around. However, even after getting a better fan I still found it
+> a bit on the noisy side, so I decided to try a 45ns cpu and got a dual
+> core E5300. Better, but now speedstep stopped working.
+> 
+> modprobe -v acpi_cpufreq
+> 
+> gives me:
+> 
+> FATAL: Error inserting acpi_cpufreq
+> (/lib/modules/2.6.30.10-105.fc11.i686.PAE/kernel/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.ko):
+> No such device
+> 
+> By googling a bit I found the thread "[Help] I can't get Intel
+> Speedstep working" on this list, started in march by Robert Szalai, who
+> uses a Core 2 duo E7200, which seems to be essentially the same cpu as
+> the 5300 but with faster bus speed etc.
+> 
+> Since I still had the E2140 (Speedstep actually works with that CPU), I
+> put it back in so I could do an acpidump with that cpu and compare the
+> outputs. It seems to me that an SSDT is there when the E2140 is
+> installed, and when I substitute the 5300 it goes away. Also, a few
+> bytes in the RSDT differ. The SSDT definitely looks like it contains
+> speedstep related stuff even though I know nothing about iasl.
+> 
+> Since speedstep with 45ns processors apparently works in windows, would
+> it be wrong to assume that windows (or whatever drivers Shuttle provide
+> for windows) keeps a bunch of extra SSDT:s around and kludges them in
+> if a 45ns CPU is present?
+> 
+> Both acpidumps are attached and if someone creates some kind of patch
+> I'll of course try it.
+
+Your observation is correct.
+When the e2140 is installed, the RSDT has an SSDT in it
+that is absent when the 5300 is present.  The tables
+are otherwise identical.  The SSDT contains the _OSC,
+_PDC; and based on what happens at run-time, they load
+a dynamic SSDT which presumably includes the cpufreq
+related methods.  You will likely find that table
+under /sys/firmware/acpi/tables/dynamic/
+
+(we should update acpidump to look there too).
+
+So it looks like the BIOS doesn't recognize one of the CPUs,
+so i recommend that you look for an update.
+
+Yes, I'm sure that Windows can handle speedstep on
+45nm processors, and I'm sure that Linux can to --
+but not using the BIOS on this box.  Did you run
+windows on this BIOS and speedstep worked?
+That would be puzzling.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+
+
