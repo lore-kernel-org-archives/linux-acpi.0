@@ -1,91 +1,75 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Shuttle K48 and speedstep.
-Date: Mon, 04 Jan 2010 17:37:04 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001041728091.4012@localhost.localdomain>
-References: <20100104223441.f72ee2fb.rasmus@wiman.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 2/12] PCI / PM: Propagate wake-up enable for PCIe
+ devices too
+Date: Mon, 4 Jan 2010 15:40:38 -0800
+Message-ID: <20100104154038.76a9eedf@jbarnes-piketon>
+References: <200912272057.10443.rjw@sisk.pl>
+	<200912272100.33117.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:57186 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab0ADWhX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 17:37:23 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173015.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KVQ00B8UUTUKVH5@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 04 Jan 2010 16:37:12 -0600 (CST)
-In-reply-to: <20100104223441.f72ee2fb.rasmus@wiman.org>
+Received: from outbound-mail-130.bluehost.com ([67.222.38.30]:59957 "HELO
+	outbound-mail-130.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753976Ab0ADXkn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 18:40:43 -0500
+In-Reply-To: <200912272100.33117.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rasmus Wiman <rasmus@wiman.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 
+On Sun, 27 Dec 2009 21:00:33 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-On Mon, 4 Jan 2010, Rasmus Wiman wrote:
-
-> Hi everybody,
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> a few months ago I bought myself a Shuttle K48 to use with Vortexbox as
-> a media PC. I put in an old Intel Pentium dual-core E2140 that I had
-> lying around. However, even after getting a better fan I still found it
-> a bit on the noisy side, so I decided to try a 45ns cpu and got a dual
-> core E5300. Better, but now speedstep stopped working.
+> Having read the PM part of the PCIe 2.0 specification more carefully
+> I think that it was a mistake to restrict the wake-up enable
+> propagation to non-PCIe devices, because if we do not request
+> control of the root ports' PME registers via OSC, PCIe PME is
+> supposed to be handled by the platform, just like the non-PCIe PME.
+> Even if we do that, the wake-up propagation is done to allow the
+> devices to wake up the system from sleep states which involves the
+> platform anyway, so it won't hurt.
 > 
-> modprobe -v acpi_cpufreq
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/pci/pci-acpi.c |   10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
 > 
-> gives me:
-> 
-> FATAL: Error inserting acpi_cpufreq
-> (/lib/modules/2.6.30.10-105.fc11.i686.PAE/kernel/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.ko):
-> No such device
-> 
-> By googling a bit I found the thread "[Help] I can't get Intel
-> Speedstep working" on this list, started in march by Robert Szalai, who
-> uses a Core 2 duo E7200, which seems to be essentially the same cpu as
-> the 5300 but with faster bus speed etc.
-> 
-> Since I still had the E2140 (Speedstep actually works with that CPU), I
-> put it back in so I could do an acpidump with that cpu and compare the
-> outputs. It seems to me that an SSDT is there when the E2140 is
-> installed, and when I substitute the 5300 it goes away. Also, a few
-> bytes in the RSDT differ. The SSDT definitely looks like it contains
-> speedstep related stuff even though I know nothing about iasl.
-> 
-> Since speedstep with 45ns processors apparently works in windows, would
-> it be wrong to assume that windows (or whatever drivers Shuttle provide
-> for windows) keeps a bunch of extra SSDT:s around and kludges them in
-> if a 45ns CPU is present?
-> 
-> Both acpidumps are attached and if someone creates some kind of patch
-> I'll of course try it.
+> Index: linux-2.6/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/pci/pci-acpi.c
+> +++ linux-2.6/drivers/pci/pci-acpi.c
+> @@ -112,11 +112,7 @@ static bool acpi_pci_can_wakeup(struct p
+>  static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus,
+> bool enable) {
+>  	while (bus->parent) {
+> -		struct pci_dev *bridge = bus->self;
+> -		int ret;
+> -
+> -		ret = acpi_pm_device_sleep_wake(&bridge->dev,
+> enable);
+> -		if (!ret || pci_is_pcie(bridge))
+> +		if (!acpi_pm_device_sleep_wake(&bus->self->dev,
+> enable)) return;
+>  		bus = bus->parent;
+>  	}
+> @@ -131,9 +127,7 @@ static int acpi_pci_sleep_wake(struct pc
+>  	if (acpi_pci_can_wakeup(dev))
+>  		return acpi_pm_device_sleep_wake(&dev->dev, enable);
+>  
+> -	if (!pci_is_pcie(dev))
+> -		acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+> -
+> +	acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+>  	return 0;
+>  }
 
-Your observation is correct.
-When the e2140 is installed, the RSDT has an SSDT in it
-that is absent when the 5300 is present.  The tables
-are otherwise identical.  The SSDT contains the _OSC,
-_PDC; and based on what happens at run-time, they load
-a dynamic SSDT which presumably includes the cpufreq
-related methods.  You will likely find that table
-under /sys/firmware/acpi/tables/dynamic/
+Seems ok to try it out, but as usual with this sort of thing, the real
+question is, "What does Windows do?", since wakeup enable ACPI support
+for PCIe devices is likely broken unless Windows uses it.
 
-(we should update acpidump to look there too).
-
-So it looks like the BIOS doesn't recognize one of the CPUs,
-so i recommend that you look for an update.
-
-Yes, I'm sure that Windows can handle speedstep on
-45nm processors, and I'm sure that Linux can to --
-but not using the BIOS on this box.  Did you run
-windows on this BIOS and speedstep worked?
-That would be puzzling.
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-
-
+-- 
+Jesse Barnes, Intel Open Source Technology Center
