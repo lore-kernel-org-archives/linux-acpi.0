@@ -1,39 +1,43 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Mon, 04 Jan 2010 09:30:27 -0800
-Message-ID: <4B4225B3.8070705@zytor.com>
-References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 12/12] PM / r8169: Add simplified run-time PM support
+Date: Mon, 4 Jan 2010 20:51:08 +0100
+Message-ID: <201001042051.08692.rjw@sisk.pl>
+References: <200911160047.46299.rjw@sisk.pl> <201001032201.14087.rjw@sisk.pl> <20100104083108.GD1372@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:39847 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336Ab0ADRfk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 12:35:40 -0500
-In-Reply-To: <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20100104083108.GD1372@ucw.cz>
+Sender: linux-pci-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On 01/04/2010 09:15 AM, Len Brown wrote:
+On Monday 04 January 2010, Pavel Machek wrote:
 > 
-> I believe that Venki is sending a patch to make all recent
-> motherboards use acpi reset by default; and I'd rather
-> see that kind of patch than this one.
+> > > > Using /proc/acpi/battery/BAT1/state I measured the energy drawn in 10 minutes
+> > > > both with the network adapter in D0 and D3hot.  The results were that with the
+> > > > network adapter in D0 the box drew 2476 mWh, while with the network adapter in
+> > > > D3hot it drew 2361 mWh.  The difference is 115 mWh, or about 5% on this
+> > > > particular box.
+> > > > 
+> > > > This means about 0.1 Wh in 10 minutes, so we can save about 0.6 Wh per hour.
+> > > 
+> > > Which means it saves 0.6W :-). Measuring power in Wh/h is "interesting".
+> > 
+> > You can't save power, you can only save energy.  Wh is just an energy unit.
 > 
-> I've had the patch below patch in acpi-test, and thus linus-next,
-> and -mm since Nov 2008 to change the default for
-> all systems w/ no issues.
+> Of course we can save power, you just did :-).
 > 
+> (And in some cases -- data centers, limited cooling -- you are limited
+> by power, not energy.
 
-Maybe I'm misremembering, but didn't we have to pull this patch after it
-hit mainstream the last time?
+But still energy is what you pay for, isn't it?
 
-	-hpa
+> You are right that on notebooks, energy is more important.)
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+You may require less power to run, so if that's what you mean by "saving", then
+I agree. :-)
 
+Rafael
