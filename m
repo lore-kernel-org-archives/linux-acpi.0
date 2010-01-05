@@ -1,35 +1,135 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Mon, 04 Jan 2010 19:37:33 -0800
-Message-ID: <4B42B3FD.7000608@zytor.com>
-References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <alpine.LFD.2.00.1001041632330.4012@localhost.localdomain> <4B42A0CC.2090907@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [RESEND PATCH v2 1/2] ACPI: Quirk to make SMBus objects work on
+   IBM machines with broken BIOSes
+Date: Tue, 5 Jan 2010 13:30:14 +0100
+Message-ID: <20100105133014.0d584b70@hyperion.delvare>
+References: <20091021173733.GN26149@tux1.beaverton.ibm.com>
+	<20091027183619.16b0b952@hyperion.delvare>
+	<20091204170621.GA10356@tux1.beaverton.ibm.com>
+	<200912041036.36686.bjorn.helgaas@hp.com>
+	<20091204181103.GN10295@tux1.beaverton.ibm.com>
+	<20091217150243.0d2749a2@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:53418 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753900Ab0AEDlz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 22:41:55 -0500
-In-Reply-To: <4B42A0CC.2090907@gmail.com>
+Received: from poutre.nerim.net ([62.4.16.124]:64934 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751179Ab0AEMaU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Jan 2010 07:30:20 -0500
+In-Reply-To: <20091217150243.0d2749a2@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrey Borzenkov <arvidjaar@mail.ru>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org
+Cc: djwong@us.ibm.com, Crane Cai <crane.cai@amd.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 01/04/2010 06:15 PM, Robert Hancock wrote:
+On Thu, 17 Dec 2009 15:02:43 +0100, Jean Delvare wrote:
+> On Fri, 4 Dec 2009 10:11:03 -0800, Darrick J. Wong wrote:
+> > On some old IBM workstations and desktop computers, the BIOS presents in the
+> > DSDT an SMBus object that is missing the HID identifier that the i2c-scmi
+> > driver looks for.  Modify the ACPI device scan code to insert the missing HID
+> > if it finds an IBM system with such an object.  This patch requires Crane Cai's
+> > update to i2c-scmi to work around incorrectly named methods within the SMBus
+> > control object.
+> > 
+> > Affected machines: ThinkCenter M52, IntelliStation Z20/Z30.  Note that the
+> > i2c-i801 driver no longer works on these machines because of ACPI resource
+> > conflicts.
+> > 
+> > Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> > ---
+> > 
+> >  drivers/acpi/scan.c         |   38 ++++++++++++++++++++++++++++++++++++++
+> >  include/acpi/acpi_drivers.h |    2 ++
+> >  2 files changed, 40 insertions(+), 0 deletions(-)
+> > 
+> > 
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index 14a7481..5a24429 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -8,6 +8,7 @@
+> >  #include <linux/acpi.h>
+> >  #include <linux/signal.h>
+> >  #include <linux/kthread.h>
+> > +#include <linux/dmi.h>
+> >  
+> >  #include <acpi/acpi_drivers.h>
+> >  
+> > @@ -1014,6 +1015,41 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
+> >  	list_add_tail(&id->list, &device->pnp.ids);
+> >  }
+> >  
+> > +/*
+> > + * Old IBM workstations have a DSDT bug wherein the SMBus object
+> > + * lacks the SMBUS01 HID and the methods do not have the necessary "_"
+> > + * prefix.  Work around this.
+> > + */
+> > +static int acpi_ibm_smbus_match(struct acpi_device *device)
+> > +{
+> > +	acpi_handle h_dummy;
+> > +	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+> > +	int result;
+> > +
+> > +	if (!dmi_name_in_vendors("IBM"))
+> > +		return -ENODEV;
+> > +
+> > +	/* Look for SMBS object */
+> > +	result = acpi_get_name(device->handle, ACPI_SINGLE_NAME, &path);
+> > +	if (result)
+> > +		return result;
+> > +
+> > +	if (strcmp("SMBS", path.pointer)) {
+> > +		result = -ENODEV;
+> > +		goto out;
+> > +	}
+> > +
+> > +	/* Does it have the necessary (but misnamed) methods? */
+> > +	result = -ENODEV;
+> > +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "SBI", &h_dummy)) &&
+> > +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBR", &h_dummy)) &&
+> > +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBW", &h_dummy)))
+> > +		result = 0;
+> > +out:
+> > +	kfree(path.pointer);
+> > +	return result;
+> > +}
+> > +
+> >  static void acpi_device_set_id(struct acpi_device *device)
+> >  {
+> >  	acpi_status status;
+> > @@ -1064,6 +1100,8 @@ static void acpi_device_set_id(struct acpi_device *device)
+> >  			acpi_add_id(device, ACPI_BAY_HID);
+> >  		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+> >  			acpi_add_id(device, ACPI_DOCK_HID);
+> > +		else if (!acpi_ibm_smbus_match(device))
+> > +			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+> >  
+> >  		break;
+> >  	case ACPI_BUS_TYPE_POWER:
+> > diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> > index f4906f6..83a2960 100644
+> > --- a/include/acpi/acpi_drivers.h
+> > +++ b/include/acpi/acpi_drivers.h
+> > @@ -65,6 +65,8 @@
+> >  #define ACPI_VIDEO_HID			"LNXVIDEO"
+> >  #define ACPI_BAY_HID			"LNXIOBAY"
+> >  #define ACPI_DOCK_HID			"LNXDOCK"
+> > +/* Quirk for broken IBM BIOSes */
+> > +#define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+> >  
+> >  /*
+> >   * For fixed hardware buttons, we fabricate acpi_devices with HID
 > 
-> Think you mean 2001, Vista was 2006..
-> 
-> I'm assuming that Windows is using ACPI reset these days, so presumably
-> that's what we should be doing by default, and blacklisting machines
-> where that doesn't work, rather than the reverse..
+> Bjorn, Len, can you please apply this quickly? The i2c-scmi side of the
+> changes is pending for weeks now, but I can't apply it as long as the
+> ACPI parts aren't in.
 
-Using a DMI cutoff year in the mid-2000's seems like it would make sense.
+Guys, I am sorry to insist but I still can't see this patch upstream
+while (I guess) rc3 is about to be released. Is there anything wrong
+with Darrick's patch? If not, please apply it and push it to Linus
+quickly.
 
-	-hpa
-
+Thanks,
 -- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
-
+Jean Delvare
