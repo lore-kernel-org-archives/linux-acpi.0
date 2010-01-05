@@ -1,67 +1,48 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Mon, 04 Jan 2010 20:15:40 -0600
-Message-ID: <4B42A0CC.2090907@gmail.com>
-References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <alpine.LFD.2.00.1001041632330.4012@localhost.localdomain>
+From: Neil Sikka <neilsikka@gmail.com>
+Subject: TV_out with toshiba acpi_extras
+Date: Mon, 4 Jan 2010 22:23:29 -0500
+Message-ID: <39648cc21001041923o5aea8cf8k2e723fd44477f031@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754544Ab0AECPv@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1001041632330.4012@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrey Borzenkov <arvidjaar@mail.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iw0-f194.google.com ([209.85.223.194]:63307 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754407Ab0AEDXa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2010 22:23:30 -0500
+Received: by iwn32 with SMTP id 32so554815iwn.33
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Jan 2010 19:23:29 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 01/04/2010 04:03 PM, Len Brown wrote:
->>> I believe that Venki is sending a patch to make all recent
->>> motherboards use acpi reset by default; and I'd rather
->>> see that kind of patch than this one.
->>>
->>> I've had the patch below patch in acpi-test, and thus linus-next,
->>> and -mm since Nov 2008 to change the default for
->>> all systems w/ no issues.
->>>
->>
->> Maybe I'm misremembering, but didn't we have to pull this patch after it
->> hit mainstream the last time?
->
->
-> c7ffa6c26277b403920e2255d10df849bd613380
-> "x86: default to reboot via ACPI"
->
-> set ACPI as the default in 2.6.28-rc1
->
-> 8d00450d296dedec9ada38d43b83e79cca6fd5a3
-> Revert "x86: default to reboot via ACPI"
->
-> pulled it in v2.6.28-rc4
->
-> The original patch was justified by VMX support,
-> and the revert was in response to Andrey Borzenkov's
-> DMI patch to usee BIOS reset on his Toshiba Porgege 4000:
->
-> http://lkml.org/lkml/2008/10/31/242
->
-> The Toshiba Portege 4000 shipped in early 2002.
->
-> The patch to restore ACPI reset to default has been in Linux-next
-> (with occasional drops) since the day it was dropped from 2.6.28-rc4.
->
-> As we have an existence proof, I have no doubt that using
-> ACPI reset by default will un-earth some regressions.  However,
-> my guess is that the DMI list of old machines that will fail
-> with ACPI reset will be smaller than by the DMI list of
-> brand-new machines that will fail without ACPI reset.
->
-> We couuld use a DMI year cut-off as we do with
-> ACPI itself CONFIG_ACPI_BLACKLIST_YEAR, though that
-> doesn't work on systems that don't have DMI...
-> If I were to propose a year, I'd say 2006 and newer,
-> since XP was "Windows 2006".
+Hello. I am trying to get the different display modes working with my
+portege M400 laptop. Im running 2.6.32 with the toshiba_acpi module.
+the problem is that when i do:
 
-Think you mean 2001, Vista was 2006..
+echo "lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video
+cat /proc/acpi/toshiba/video
 
-I'm assuming that Windows is using ACPI reset these days, so presumably 
-that's what we should be doing by default, and blacklisting machines 
-where that doesn't work, rather than the reverse..
+i get:
+lcd_out: 1
+crt_out: 0
+tv_out: 0
+
+I am following the guide at
+http://memebeam.org/toys/ToshibaAcpiDriver. Why does the state of the
+crt_out variable not change? the kernel file where this is handled is:
+kernel/drivers/portability/
+x86/toshiba_acpi.c. I have the same problem as these guys here:
+
+http://osdir.com/ml/linux.hardware.toshiba/2003-04/msg00216.html
+
+I tried doing what was suggested at that link, but that did not work
+either. Is there a known bug where the state of the driver (as seen by
+cat /proc/acpi/toshiba/video) is not updated by writing to it(echo
+"lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video)? It seems that the
+state written to this file is not persistant. I have posted my problem
+in full detail here
+(http://www.linuxquestions.org/questions/linux-laptop-and-netbook-25/tvout-from-toshiba-portege-m400-777822/).
+thanks.
+
+-- 
+Neil Sikka
