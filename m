@@ -1,39 +1,32 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: another discrete nvidia switch on/off for an assortment of
-	laptops
-Date: Wed, 6 Jan 2010 14:33:15 +0000
-Message-ID: <20100106143315.GA13984@srcf.ucam.org>
-References: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
+Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
+Date: Wed, 6 Jan 2010 14:36:40 +0000
+Message-ID: <20100106143640.GB13984@srcf.ucam.org>
+References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <20100104174558.158cd512@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46375 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:51112 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755767Ab0AFOdW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:33:22 -0500
+	with ESMTP id S932206Ab0AFOiu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:38:50 -0500
 Content-Disposition: inline
-In-Reply-To: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
+In-Reply-To: <20100104174558.158cd512@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Albert Vilella <avilella@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Tue, Dec 29, 2009 at 10:30:47PM +0000, Albert Vilella wrote:
-> Hi again,
-> 
-> In this occasion not providing a working module, but just a grep to
-> show 5 different laptop
-> models that use an almost identical ACPI call to report on the
-> discrete nvidia graphics switch:
+On Mon, Jan 04, 2010 at 05:45:58PM -0800, Arjan van de Ven wrote:
 
-The NVIF interface is not the correct one to use. There's a _DSM method 
-on the Nvidia PCI device that will call the appropriate methods. nouveau 
-should support this in the current kernels - right now it'll just set 
-the graphics to whatever state the BIOS has programmed. A module 
-parameter to change the default might be interesting.
+> can we do it based on the dmi/acpi year?
+> Eg for all 2008 and later machines or something, while leaving the
+> older ones as is
 
-If you want to do this with the nvidia binary driver, you'll need to get 
-nvidia to add support.
+I think a saner model would be to use a similar method to Windows - 
+that is, change behaviour based on the OSI calls that the firmware 
+makes. If the firmware supports Vista, it's probably safe to use the 
+ACPI reboot method.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
