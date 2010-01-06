@@ -1,288 +1,38 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 3/5] eeepc-laptop: switch to using sparse keymap library
-Date: Wed,  6 Jan 2010 22:07:39 +0100
-Message-ID: <1262812061-4119-4-git-send-email-corentincj@iksaif.net>
-References: <1262812061-4119-1-git-send-email-corentincj@iksaif.net>
- <1262812061-4119-2-git-send-email-corentincj@iksaif.net>
- <1262812061-4119-3-git-send-email-corentincj@iksaif.net>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
+Date: Wed, 06 Jan 2010 13:26:54 -0800
+Message-ID: <4B45001E.7000404@zytor.com>
+References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <20100104174558.158cd512@infradead.org> <20100106143640.GB13984@srcf.ucam.org> <alpine.LFD.2.00.1001061321260.4086@localhost.localdomain> <20100106193608.GA21447@srcf.ucam.org> <alpine.LFD.2.00.1001061504110.4086@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:34104 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932805Ab0AFVHs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jan 2010 16:07:48 -0500
-In-Reply-To: <1262812061-4119-3-git-send-email-corentincj@iksaif.net>
+Received: from terminus.zytor.com ([198.137.202.10]:37325 "EHLO
+	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932759Ab0AFVcX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 16:32:23 -0500
+In-Reply-To: <alpine.LFD.2.00.1001061504110.4086@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-From: Dmitry Torokhov <dtor@mail.ru>
+On 01/06/2010 12:22 PM, Len Brown wrote:
+>>
+>> It's effectively guaranteed if the system is validated with Windows.
+> 
+> today's common industry practice != future guarantee
+> 
+> We can't rely on blind use of _OSI to mean "new enough", since
+> it was supported back in W2K era.  That means we have to parse
+> the OSI strings.  But what happens when a BIOS writer decides to
+> evaluate _OSI("Windows Future") without evaluating any of the
+> old strings we know about?  We would disable ACPI reset on such
+> a future box?
+> 
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Acked-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/Kconfig        |    1 +
- drivers/platform/x86/eeepc-laptop.c |  186 ++++++++++-------------------------
- 2 files changed, 52 insertions(+), 135 deletions(-)
+What about using _OSI() with a *blacklist*, i.e. treat _OSI("Unknown
+String") as "new enough", whereas _OSI("Windows 2000") is ignored?
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index db32c25..f526e73 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -364,6 +364,7 @@ config EEEPC_LAPTOP
- 	select HWMON
- 	select LEDS_CLASS
- 	select NEW_LEDS
-+	select INPUT_SPARSEKMAP
- 	---help---
- 	  This driver supports the Fn-Fx keys on Eee PC laptops.
- 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 7fc944a..07d7978 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -31,6 +31,7 @@
- #include <acpi/acpi_bus.h>
- #include <linux/uaccess.h>
- #include <linux/input.h>
-+#include <linux/input/sparse-keymap.h>
- #include <linux/rfkill.h>
- #include <linux/pci.h>
- #include <linux/pci_hotplug.h>
-@@ -121,38 +122,28 @@ static const char *cm_setv[] = {
- 	NULL, NULL, "PBPS", "TPDS"
- };
- 
--struct key_entry {
--	char type;
--	u8 code;
--	u16 keycode;
--};
--
--enum { KE_KEY, KE_END };
--
- static const struct key_entry eeepc_keymap[] = {
--	/* Sleep already handled via generic ACPI code */
--	{KE_KEY, 0x10, KEY_WLAN },
--	{KE_KEY, 0x11, KEY_WLAN },
--	{KE_KEY, 0x12, KEY_PROG1 },
--	{KE_KEY, 0x13, KEY_MUTE },
--	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
--	{KE_KEY, 0x15, KEY_VOLUMEUP },
--	{KE_KEY, 0x16, KEY_DISPLAY_OFF },
--	{KE_KEY, 0x1a, KEY_COFFEE },
--	{KE_KEY, 0x1b, KEY_ZOOM },
--	{KE_KEY, 0x1c, KEY_PROG2 },
--	{KE_KEY, 0x1d, KEY_PROG3 },
--	{KE_KEY, NOTIFY_BRN_MIN, KEY_BRIGHTNESSDOWN },
--	{KE_KEY, NOTIFY_BRN_MAX, KEY_BRIGHTNESSUP },
--	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
--	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
--	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
--	{KE_KEY, 0x37, KEY_F13 }, /* Disable Touchpad */
--	{KE_KEY, 0x38, KEY_F14 },
--	{KE_END, 0},
-+	{ KE_KEY, 0x10, { KEY_WLAN } },
-+	{ KE_KEY, 0x11, { KEY_WLAN } },
-+	{ KE_KEY, 0x12, { KEY_PROG1 } },
-+	{ KE_KEY, 0x13, { KEY_MUTE } },
-+	{ KE_KEY, 0x14, { KEY_VOLUMEDOWN } },
-+	{ KE_KEY, 0x15, { KEY_VOLUMEUP } },
-+	{ KE_KEY, 0x16, { KEY_DISPLAY_OFF } },
-+	{ KE_KEY, 0x1a, { KEY_COFFEE } },
-+	{ KE_KEY, 0x1b, { KEY_ZOOM } },
-+	{ KE_KEY, 0x1c, { KEY_PROG2 } },
-+	{ KE_KEY, 0x1d, { KEY_PROG3 } },
-+	{ KE_KEY, NOTIFY_BRN_MIN, { KEY_BRIGHTNESSDOWN } },
-+	{ KE_KEY, NOTIFY_BRN_MAX, { KEY_BRIGHTNESSUP } },
-+	{ KE_KEY, 0x30, { KEY_SWITCHVIDEOMODE } },
-+	{ KE_KEY, 0x31, { KEY_SWITCHVIDEOMODE } },
-+	{ KE_KEY, 0x32, { KEY_SWITCHVIDEOMODE } },
-+	{ KE_KEY, 0x37, { KEY_F13 } }, /* Disable Touchpad */
-+	{ KE_KEY, 0x38, { KEY_F14 } },
-+	{ KE_END, 0 },
- };
- 
--
- /*
-  * This is the main structure, we can use it to store useful information
-  */
-@@ -1143,120 +1134,42 @@ static void eeepc_backlight_exit(struct eeepc_laptop *eeepc)
- /*
-  * Input device (i.e. hotkeys)
-  */
--static struct key_entry *eeepc_get_entry_by_scancode(
--	struct eeepc_laptop *eeepc,
--	int code)
-+static int eeepc_input_init(struct eeepc_laptop *eeepc)
- {
--	struct key_entry *key;
--
--	for (key = eeepc->keymap; key->type != KE_END; key++)
--		if (code == key->code)
--			return key;
-+	struct input_dev *input;
-+	int error;
- 
--	return NULL;
--}
--
--static void eeepc_input_notify(struct eeepc_laptop *eeepc, int event)
--{
--	static struct key_entry *key;
--
--	key = eeepc_get_entry_by_scancode(eeepc, event);
--	if (key) {
--		switch (key->type) {
--		case KE_KEY:
--			input_report_key(eeepc->inputdev, key->keycode,
--						1);
--			input_sync(eeepc->inputdev);
--			input_report_key(eeepc->inputdev, key->keycode,
--						0);
--			input_sync(eeepc->inputdev);
--			break;
--		}
-+	input = input_allocate_device();
-+	if (!input) {
-+		pr_info("Unable to allocate input device\n");
-+		return -ENOMEM;
- 	}
--}
--
--static struct key_entry *eeepc_get_entry_by_keycode(
--	struct eeepc_laptop *eeepc, int code)
--{
--	struct key_entry *key;
--
--	for (key = eeepc->keymap; key->type != KE_END; key++)
--		if (code == key->keycode && key->type == KE_KEY)
--			return key;
- 
--	return NULL;
--}
-+	input->name = "Asus EeePC extra buttons";
-+	input->phys = EEEPC_LAPTOP_FILE "/input0";
-+	input->id.bustype = BUS_HOST;
-+	input->dev.parent = &eeepc->platform_device->dev;
- 
--static int eeepc_getkeycode(struct input_dev *dev, int scancode, int *keycode)
--{
--	struct eeepc_laptop *eeepc = input_get_drvdata(dev);
--	struct key_entry *key = eeepc_get_entry_by_scancode(eeepc, scancode);
--
--	if (key && key->type == KE_KEY) {
--		*keycode = key->keycode;
--		return 0;
-+	error = sparse_keymap_setup(input, eeepc_keymap, NULL);
-+	if (error) {
-+		pr_err("Unable to setup input device keymap\n");
-+		goto err_free_dev;
- 	}
- 
--	return -EINVAL;
--}
--
--static int eeepc_setkeycode(struct input_dev *dev, int scancode, int keycode)
--{
--	struct eeepc_laptop *eeepc = input_get_drvdata(dev);
--	struct key_entry *key;
--	int old_keycode;
--
--	if (keycode < 0 || keycode > KEY_MAX)
--		return -EINVAL;
--
--	key = eeepc_get_entry_by_scancode(eeepc, scancode);
--	if (key && key->type == KE_KEY) {
--		old_keycode = key->keycode;
--		key->keycode = keycode;
--		set_bit(keycode, dev->keybit);
--		if (!eeepc_get_entry_by_keycode(eeepc, old_keycode))
--			clear_bit(old_keycode, dev->keybit);
--		return 0;
-+	error = input_register_device(input);
-+	if (error) {
-+		pr_err("Unable to register input device\n");
-+		goto err_free_keymap;
- 	}
- 
--	return -EINVAL;
--}
--
--static int eeepc_input_init(struct eeepc_laptop *eeepc)
--{
--	const struct key_entry *key;
--	int result;
--
--	eeepc->inputdev = input_allocate_device();
--	if (!eeepc->inputdev) {
--		pr_info("Unable to allocate input device\n");
--		return -ENOMEM;
--	}
--	eeepc->inputdev->name = "Asus EeePC extra buttons";
--	eeepc->inputdev->dev.parent = &eeepc->platform_device->dev;
--	eeepc->inputdev->phys = EEEPC_LAPTOP_FILE "/input0";
--	eeepc->inputdev->id.bustype = BUS_HOST;
--	eeepc->inputdev->getkeycode = eeepc_getkeycode;
--	eeepc->inputdev->setkeycode = eeepc_setkeycode;
--	input_set_drvdata(eeepc->inputdev, eeepc);
--
--	eeepc->keymap = kmemdup(eeepc_keymap, sizeof(eeepc_keymap),
--				GFP_KERNEL);
--	for (key = eeepc_keymap; key->type != KE_END; key++) {
--		switch (key->type) {
--		case KE_KEY:
--			set_bit(EV_KEY, eeepc->inputdev->evbit);
--			set_bit(key->keycode, eeepc->inputdev->keybit);
--			break;
--		}
--	}
--	result = input_register_device(eeepc->inputdev);
--	if (result) {
--		pr_info("Unable to register input device\n");
--		input_free_device(eeepc->inputdev);
--		return result;
--	}
-+	eeepc->inputdev = input;
- 	return 0;
-+
-+ err_free_keymap:
-+	sparse_keymap_free(input);
-+ err_free_dev:
-+	input_free_device(input);
-+	return error;
- }
- 
- static void eeepc_input_exit(struct eeepc_laptop *eeepc)
-@@ -1306,11 +1219,12 @@ static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
- 				* event will be desired value (or else ignored)
- 				*/
- 			}
--			eeepc_input_notify(eeepc, event);
-+			sparse_keymap_report_event(eeepc->inputdev, event,
-+						   1, true);
- 		}
- 	} else {
- 		/* Everything else is a bona-fide keypress event */
--		eeepc_input_notify(eeepc, event);
-+		sparse_keymap_report_event(eeepc->inputdev, event, 1, true);
- 	}
- }
- 
-@@ -1554,10 +1468,12 @@ static int __init eeepc_laptop_init(void)
- 	result = acpi_bus_register_driver(&eeepc_acpi_driver);
- 	if (result < 0)
- 		goto fail_acpi_driver;
-+
- 	if (!eeepc_device_present) {
- 		result = -ENODEV;
- 		goto fail_no_device;
- 	}
-+
- 	return 0;
- 
- fail_no_device:
--- 
-1.6.6
+	-hpa
 
