@@ -1,197 +1,288 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 1/5] eeepc-laptop: disable cpu speed control on EeePC 701
-Date: Wed,  6 Jan 2010 22:07:37 +0100
-Message-ID: <1262812061-4119-2-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 3/5] eeepc-laptop: switch to using sparse keymap library
+Date: Wed,  6 Jan 2010 22:07:39 +0100
+Message-ID: <1262812061-4119-4-git-send-email-corentincj@iksaif.net>
 References: <1262812061-4119-1-git-send-email-corentincj@iksaif.net>
+ <1262812061-4119-2-git-send-email-corentincj@iksaif.net>
+ <1262812061-4119-3-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:34099 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:34104 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932613Ab0AFVHr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jan 2010 16:07:47 -0500
-In-Reply-To: <1262812061-4119-1-git-send-email-corentincj@iksaif.net>
+	id S932805Ab0AFVHs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jan 2010 16:07:48 -0500
+In-Reply-To: <1262812061-4119-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Dmitry Torokhov <dtor@mail.ru>
 
-The EeePC 4G ("701") implements CFVS, but it is not supported by the
-pre-installed OS, and the original option to change it in the BIOS
-setup screen was removed in later versions.  Judging by the lack of
-"Super Hybrid Engine" on Asus product pages, this applies to all "701"
-models (4G/4G Surf/2G Surf).
-
-So Asus made a deliberate decision not to support it on this model.
-We have several reports that using it can cause the system to hang [1].
-That said, it does not happen all the time.  Some users do not
-experience it at all (and apparently wish to continue "right-clocking").
-
-Check for the EeePC 701 using DMI.  If met, then disable writes to the
-"cpufv" sysfs attribute and log an explanatory message.
-
-Add a "cpufv_disabled" attribute which allow users to override this
-policy.  Writing to this attribute will log a second message.
-
-The sysfs attribute is more useful than a module option, because it
-makes it easier for userspace scripts to provide consistent behaviour
-(according to user configuration), regardless of whether the kernel
-includes this change.
-
-[1] <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=559578>
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Acked-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   87 +++++++++++++++++++++++++++++++++++
- 1 files changed, 87 insertions(+), 0 deletions(-)
+ drivers/platform/x86/Kconfig        |    1 +
+ drivers/platform/x86/eeepc-laptop.c |  186 ++++++++++-------------------------
+ 2 files changed, 52 insertions(+), 135 deletions(-)
 
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index db32c25..f526e73 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -364,6 +364,7 @@ config EEEPC_LAPTOP
+ 	select HWMON
+ 	select LEDS_CLASS
+ 	select NEW_LEDS
++	select INPUT_SPARSEKMAP
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
+ 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 5838c69..e954f2a 100644
+index 7fc944a..07d7978 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -35,6 +35,7 @@
+@@ -31,6 +31,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <linux/uaccess.h>
+ #include <linux/input.h>
++#include <linux/input/sparse-keymap.h>
+ #include <linux/rfkill.h>
  #include <linux/pci.h>
  #include <linux/pci_hotplug.h>
- #include <linux/leds.h>
-+#include <linux/dmi.h>
+@@ -121,38 +122,28 @@ static const char *cm_setv[] = {
+ 	NULL, NULL, "PBPS", "TPDS"
+ };
  
- #define EEEPC_LAPTOP_VERSION	"0.1"
- #define EEEPC_LAPTOP_NAME	"Eee PC Hotkey Driver"
-@@ -159,6 +160,7 @@ struct eeepc_laptop {
- 	acpi_handle handle;		/* the handle of the acpi device */
- 	u32 cm_supported;		/* the control methods supported
- 					   by this BIOS */
-+	bool cpufv_disabled;
- 	u16 event_count[128];		/* count for each event */
+-struct key_entry {
+-	char type;
+-	u8 code;
+-	u16 keycode;
+-};
+-
+-enum { KE_KEY, KE_END };
+-
+ static const struct key_entry eeepc_keymap[] = {
+-	/* Sleep already handled via generic ACPI code */
+-	{KE_KEY, 0x10, KEY_WLAN },
+-	{KE_KEY, 0x11, KEY_WLAN },
+-	{KE_KEY, 0x12, KEY_PROG1 },
+-	{KE_KEY, 0x13, KEY_MUTE },
+-	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
+-	{KE_KEY, 0x15, KEY_VOLUMEUP },
+-	{KE_KEY, 0x16, KEY_DISPLAY_OFF },
+-	{KE_KEY, 0x1a, KEY_COFFEE },
+-	{KE_KEY, 0x1b, KEY_ZOOM },
+-	{KE_KEY, 0x1c, KEY_PROG2 },
+-	{KE_KEY, 0x1d, KEY_PROG3 },
+-	{KE_KEY, NOTIFY_BRN_MIN, KEY_BRIGHTNESSDOWN },
+-	{KE_KEY, NOTIFY_BRN_MAX, KEY_BRIGHTNESSUP },
+-	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
+-	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
+-	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
+-	{KE_KEY, 0x37, KEY_F13 }, /* Disable Touchpad */
+-	{KE_KEY, 0x38, KEY_F14 },
+-	{KE_END, 0},
++	{ KE_KEY, 0x10, { KEY_WLAN } },
++	{ KE_KEY, 0x11, { KEY_WLAN } },
++	{ KE_KEY, 0x12, { KEY_PROG1 } },
++	{ KE_KEY, 0x13, { KEY_MUTE } },
++	{ KE_KEY, 0x14, { KEY_VOLUMEDOWN } },
++	{ KE_KEY, 0x15, { KEY_VOLUMEUP } },
++	{ KE_KEY, 0x16, { KEY_DISPLAY_OFF } },
++	{ KE_KEY, 0x1a, { KEY_COFFEE } },
++	{ KE_KEY, 0x1b, { KEY_ZOOM } },
++	{ KE_KEY, 0x1c, { KEY_PROG2 } },
++	{ KE_KEY, 0x1d, { KEY_PROG3 } },
++	{ KE_KEY, NOTIFY_BRN_MIN, { KEY_BRIGHTNESSDOWN } },
++	{ KE_KEY, NOTIFY_BRN_MAX, { KEY_BRIGHTNESSUP } },
++	{ KE_KEY, 0x30, { KEY_SWITCHVIDEOMODE } },
++	{ KE_KEY, 0x31, { KEY_SWITCHVIDEOMODE } },
++	{ KE_KEY, 0x32, { KEY_SWITCHVIDEOMODE } },
++	{ KE_KEY, 0x37, { KEY_F13 } }, /* Disable Touchpad */
++	{ KE_KEY, 0x38, { KEY_F14 } },
++	{ KE_END, 0 },
+ };
  
- 	struct platform_device *platform_device;
-@@ -378,6 +380,8 @@ static ssize_t store_cpufv(struct device *dev,
- 	struct eeepc_cpufv c;
- 	int rv, value;
+-
+ /*
+  * This is the main structure, we can use it to store useful information
+  */
+@@ -1143,120 +1134,42 @@ static void eeepc_backlight_exit(struct eeepc_laptop *eeepc)
+ /*
+  * Input device (i.e. hotkeys)
+  */
+-static struct key_entry *eeepc_get_entry_by_scancode(
+-	struct eeepc_laptop *eeepc,
+-	int code)
++static int eeepc_input_init(struct eeepc_laptop *eeepc)
+ {
+-	struct key_entry *key;
+-
+-	for (key = eeepc->keymap; key->type != KE_END; key++)
+-		if (code == key->code)
+-			return key;
++	struct input_dev *input;
++	int error;
  
-+	if (eeepc->cpufv_disabled)
-+		return -EPERM;
- 	if (get_cpufv(eeepc, &c))
- 		return -ENODEV;
- 	rv = parse_arg(buf, count, &value);
-@@ -389,6 +393,41 @@ static ssize_t store_cpufv(struct device *dev,
- 	return rv;
+-	return NULL;
+-}
+-
+-static void eeepc_input_notify(struct eeepc_laptop *eeepc, int event)
+-{
+-	static struct key_entry *key;
+-
+-	key = eeepc_get_entry_by_scancode(eeepc, event);
+-	if (key) {
+-		switch (key->type) {
+-		case KE_KEY:
+-			input_report_key(eeepc->inputdev, key->keycode,
+-						1);
+-			input_sync(eeepc->inputdev);
+-			input_report_key(eeepc->inputdev, key->keycode,
+-						0);
+-			input_sync(eeepc->inputdev);
+-			break;
+-		}
++	input = input_allocate_device();
++	if (!input) {
++		pr_info("Unable to allocate input device\n");
++		return -ENOMEM;
+ 	}
+-}
+-
+-static struct key_entry *eeepc_get_entry_by_keycode(
+-	struct eeepc_laptop *eeepc, int code)
+-{
+-	struct key_entry *key;
+-
+-	for (key = eeepc->keymap; key->type != KE_END; key++)
+-		if (code == key->keycode && key->type == KE_KEY)
+-			return key;
+ 
+-	return NULL;
+-}
++	input->name = "Asus EeePC extra buttons";
++	input->phys = EEEPC_LAPTOP_FILE "/input0";
++	input->id.bustype = BUS_HOST;
++	input->dev.parent = &eeepc->platform_device->dev;
+ 
+-static int eeepc_getkeycode(struct input_dev *dev, int scancode, int *keycode)
+-{
+-	struct eeepc_laptop *eeepc = input_get_drvdata(dev);
+-	struct key_entry *key = eeepc_get_entry_by_scancode(eeepc, scancode);
+-
+-	if (key && key->type == KE_KEY) {
+-		*keycode = key->keycode;
+-		return 0;
++	error = sparse_keymap_setup(input, eeepc_keymap, NULL);
++	if (error) {
++		pr_err("Unable to setup input device keymap\n");
++		goto err_free_dev;
+ 	}
+ 
+-	return -EINVAL;
+-}
+-
+-static int eeepc_setkeycode(struct input_dev *dev, int scancode, int keycode)
+-{
+-	struct eeepc_laptop *eeepc = input_get_drvdata(dev);
+-	struct key_entry *key;
+-	int old_keycode;
+-
+-	if (keycode < 0 || keycode > KEY_MAX)
+-		return -EINVAL;
+-
+-	key = eeepc_get_entry_by_scancode(eeepc, scancode);
+-	if (key && key->type == KE_KEY) {
+-		old_keycode = key->keycode;
+-		key->keycode = keycode;
+-		set_bit(keycode, dev->keybit);
+-		if (!eeepc_get_entry_by_keycode(eeepc, old_keycode))
+-			clear_bit(old_keycode, dev->keybit);
+-		return 0;
++	error = input_register_device(input);
++	if (error) {
++		pr_err("Unable to register input device\n");
++		goto err_free_keymap;
+ 	}
+ 
+-	return -EINVAL;
+-}
+-
+-static int eeepc_input_init(struct eeepc_laptop *eeepc)
+-{
+-	const struct key_entry *key;
+-	int result;
+-
+-	eeepc->inputdev = input_allocate_device();
+-	if (!eeepc->inputdev) {
+-		pr_info("Unable to allocate input device\n");
+-		return -ENOMEM;
+-	}
+-	eeepc->inputdev->name = "Asus EeePC extra buttons";
+-	eeepc->inputdev->dev.parent = &eeepc->platform_device->dev;
+-	eeepc->inputdev->phys = EEEPC_LAPTOP_FILE "/input0";
+-	eeepc->inputdev->id.bustype = BUS_HOST;
+-	eeepc->inputdev->getkeycode = eeepc_getkeycode;
+-	eeepc->inputdev->setkeycode = eeepc_setkeycode;
+-	input_set_drvdata(eeepc->inputdev, eeepc);
+-
+-	eeepc->keymap = kmemdup(eeepc_keymap, sizeof(eeepc_keymap),
+-				GFP_KERNEL);
+-	for (key = eeepc_keymap; key->type != KE_END; key++) {
+-		switch (key->type) {
+-		case KE_KEY:
+-			set_bit(EV_KEY, eeepc->inputdev->evbit);
+-			set_bit(key->keycode, eeepc->inputdev->keybit);
+-			break;
+-		}
+-	}
+-	result = input_register_device(eeepc->inputdev);
+-	if (result) {
+-		pr_info("Unable to register input device\n");
+-		input_free_device(eeepc->inputdev);
+-		return result;
+-	}
++	eeepc->inputdev = input;
+ 	return 0;
++
++ err_free_keymap:
++	sparse_keymap_free(input);
++ err_free_dev:
++	input_free_device(input);
++	return error;
  }
  
-+static ssize_t show_cpufv_disabled(struct device *dev,
-+			  struct device_attribute *attr,
-+			  char *buf)
-+{
-+	struct eeepc_laptop *eeepc = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%d\n", eeepc->cpufv_disabled);
-+}
-+
-+static ssize_t store_cpufv_disabled(struct device *dev,
-+			   struct device_attribute *attr,
-+			   const char *buf, size_t count)
-+{
-+	struct eeepc_laptop *eeepc = dev_get_drvdata(dev);
-+	int rv, value;
-+
-+	rv = parse_arg(buf, count, &value);
-+	if (rv < 0)
-+		return rv;
-+
-+	switch (value) {
-+	case 0:
-+		if (eeepc->cpufv_disabled)
-+			pr_warning("cpufv enabled (not officially supported "
-+				"on this model)\n");
-+		eeepc->cpufv_disabled = false;
-+		return rv;
-+	case 1:
-+		return -EPERM;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+
- static struct device_attribute dev_attr_cpufv = {
- 	.attr = {
- 		.name = "cpufv",
-@@ -404,12 +443,22 @@ static struct device_attribute dev_attr_available_cpufv = {
- 	.show   = show_available_cpufv
- };
- 
-+static struct device_attribute dev_attr_cpufv_disabled = {
-+	.attr = {
-+		.name = "cpufv_disabled",
-+		.mode = 0644 },
-+	.show   = show_cpufv_disabled,
-+	.store  = store_cpufv_disabled
-+};
-+
-+
- static struct attribute *platform_attributes[] = {
- 	&dev_attr_camera.attr,
- 	&dev_attr_cardr.attr,
- 	&dev_attr_disp.attr,
- 	&dev_attr_cpufv.attr,
- 	&dev_attr_available_cpufv.attr,
-+	&dev_attr_cpufv_disabled.attr,
- 	NULL
- };
- 
-@@ -1261,6 +1310,42 @@ static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
+ static void eeepc_input_exit(struct eeepc_laptop *eeepc)
+@@ -1306,11 +1219,12 @@ static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
+ 				* event will be desired value (or else ignored)
+ 				*/
+ 			}
+-			eeepc_input_notify(eeepc, event);
++			sparse_keymap_report_event(eeepc->inputdev, event,
++						   1, true);
+ 		}
+ 	} else {
+ 		/* Everything else is a bona-fide keypress event */
+-		eeepc_input_notify(eeepc, event);
++		sparse_keymap_report_event(eeepc->inputdev, event, 1, true);
  	}
  }
  
-+static void eeepc_dmi_check(struct eeepc_laptop *eeepc)
-+{
-+	const char *model;
+@@ -1554,10 +1468,12 @@ static int __init eeepc_laptop_init(void)
+ 	result = acpi_bus_register_driver(&eeepc_acpi_driver);
+ 	if (result < 0)
+ 		goto fail_acpi_driver;
 +
-+	/*
-+	 * Blacklist for setting cpufv (cpu speed).
-+	 *
-+	 * EeePC 4G ("701") implements CFVS, but it is not supported
-+	 * by the pre-installed OS, and the original option to change it
-+	 * in the BIOS setup screen was removed in later versions.
-+	 *
-+	 * Judging by the lack of "Super Hybrid Engine" on Asus product pages,
-+	 * this applies to all "701" models (4G/4G Surf/2G Surf).
-+	 *
-+	 * So Asus made a deliberate decision not to support it on this model.
-+	 * We have several reports that using it can cause the system to hang
-+	 *
-+	 * The hang has also been reported on a "702" (Model name "8G"?).
-+	 *
-+	 * We avoid dmi_check_system() / dmi_match(), because they use
-+	 * substring matching.  We don't want to affect the "701SD"
-+	 * and "701SDX" models, because they do support S.H.E.
-+	 */
+ 	if (!eeepc_device_present) {
+ 		result = -ENODEV;
+ 		goto fail_no_device;
+ 	}
 +
-+	model = dmi_get_system_info(DMI_PRODUCT_NAME);
-+	if (!model)
-+		return;
-+
-+	if (strcmp(model, "701") == 0 || strcmp(model, "702") == 0) {
-+		eeepc->cpufv_disabled = true;
-+		pr_info("model %s does not officially support setting cpu "
-+			"speed\n", model);
-+		pr_info("cpufv disabled to avoid instability\n");
-+	}
-+}
-+
- static void cmsg_quirk(struct eeepc_laptop *eeepc, int cm, const char *name)
- {
- 	int dummy;
-@@ -1342,6 +1427,8 @@ static int __devinit eeepc_acpi_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), EEEPC_ACPI_CLASS);
- 	device->driver_data = eeepc;
+ 	return 0;
  
-+	eeepc_dmi_check(eeepc);
-+
- 	result = eeepc_acpi_init(eeepc, device);
- 	if (result)
- 		goto fail_platform;
+ fail_no_device:
 -- 
 1.6.6
 
