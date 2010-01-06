@@ -1,39 +1,32 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 11/12] PCI PM: Run-time callbacks for PCI bus type (rev.
- 2)
-Date: Wed, 6 Jan 2010 14:06:06 -0800
-Message-ID: <20100106140606.0bd3e4fd@jbarnes-piketon>
-References: <200912272057.10443.rjw@sisk.pl>
-	<200912272108.25145.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/12] PCI PM: Make it possible to force using INTx for PCIe PME signaling
+Date: Thu, 7 Jan 2010 00:00:41 +0100
+Message-ID: <201001070000.41807.rjw@sisk.pl>
+References: <200912272057.10443.rjw@sisk.pl> <20100106135625.14b37f10@jbarnes-piketon> <20100106220214.GA25366@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-29.bluehost.com ([69.89.17.211]:40945 "HELO
-	outbound-mail-29.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756286Ab0AFWGM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 17:06:12 -0500
-In-Reply-To: <200912272108.25145.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20100106220214.GA25366@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 
-On Sun, 27 Dec 2009 21:08:24 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Wednesday 06 January 2010, Matthew Garrett wrote:
+> On Wed, Jan 06, 2010 at 01:56:25PM -0800, Jesse Barnes wrote:
 > 
-> Introduce run-time PM callbacks for the PCI bus type.  Make the new
-> callbacks work in analogy with the existing system sleep PM
-> callbacks, so that the drivers already converted to struct dev_pm_ops
-> can use their suspend and resume routines for run-time PM without
-> modifications.
+> > This scares me a little... seems like we're not restoring some state on
+> > resume that's needed for MSIs to work?  Looks fine though.
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
+> Yeah, that was my concern. We debugged this a little on IRC and didn't 
+> get anywhere, though, so probably need to find someone who knows more 
+> about MSIs...
 
-Looks good.
+I'd rather say someone who knows more about ICH7. :-)
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+MSIs work just fine after resume for the other devices in the same box,
+so I'd say it's a chipset issue.
+
+Rafael
