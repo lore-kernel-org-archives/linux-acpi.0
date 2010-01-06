@@ -1,51 +1,41 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 5/5] ACPI, APEI, Document for APEI
-Date: Wed, 6 Jan 2010 08:16:09 +0100
-Message-ID: <20100106071609.GA1648@ucw.cz>
-References: <1261980744-4450-1-git-send-email-ying.huang@intel.com> <1261980744-4450-2-git-send-email-ying.huang@intel.com> <1261980744-4450-3-git-send-email-ying.huang@intel.com> <1261980744-4450-4-git-send-email-ying.huang@intel.com> <1261980744-4450-5-git-send-email-ying.huang@intel.com> <1261980744-4450-6-git-send-email-ying.huang@intel.com> <20100106071431.GB1494@ucw.cz>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 4/5] ACPI, APEI, EINJ support
+Date: Wed, 06 Jan 2010 15:16:26 +0800
+Message-ID: <1262762186.17852.7.camel@yhuang-dev.sh.intel.com>
+References: <1261980744-4450-1-git-send-email-ying.huang@intel.com>
+	 <1261980744-4450-2-git-send-email-ying.huang@intel.com>
+	 <1261980744-4450-3-git-send-email-ying.huang@intel.com>
+	 <1261980744-4450-4-git-send-email-ying.huang@intel.com>
+	 <1261980744-4450-5-git-send-email-ying.huang@intel.com>
+	 <20100106070807.GA1494@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55292 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485Ab0AFHQY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 02:16:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20100106071431.GB1494@ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932096Ab0AFHQg@vger.kernel.org>
+In-Reply-To: <20100106070807.GA1494@ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: lenb@kernel.org, ak@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+Hi, Pavel,
 
-> > +The user interface of EINJ is in debug file system, under the
-> > +directory apei/einj. The following files are provided.
-> > +
-> > +- available_error_type
-> > +  Read this file will return the error injection capability of the
-> > +  platform, that is, which error types are supported. The error type
-> > +  definition is as follow, the left field is the error type value, the
-> > +  right field is error description.
-> > +
-> > +    0x00000001	Processor Correctable
-> > +    0x00000002	Processor Uncorrectable non-fatal
-> > +    0x00000004	Processor Uncorrectable fatal
-> > +    0x00000008  Memory Correctable
-> > +    0x00000010  Memory Uncorrectable non-fatal
-> > +    0x00000020  Memory Uncorrectable fatal
-> > +    0x00000040	PCI Express Correctable
-> > +    0x00000080	PCI Express Uncorrectable fatal
-> > +    0x00000100	PCI Express Uncorrectable non-fatal
-> > +    0x00000200	Platform Correctable
-> > +    0x00000400	Platform Uncorrectable non-fatal
-> > +    0x00000800	Platform Uncorrectable fatal
-> > +
-> > +  The format of file contents are as above, except there are only the
-> > +  available error type lines.
+On Wed, 2010-01-06 at 15:08 +0800, Pavel Machek wrote:
+> On Mon 2009-12-28 14:12:23, Huang Ying wrote:
+> > EINJ provides a hardware error injection mechanism, this is useful for
+> > debugging and testing of other APEI and RAS features.
+> > 
+> > Signed-off-by: Huang Ying <ying.huang@intel.com>
+> > ---
+> >  drivers/acpi/apei/Kconfig  |    7 +
+> >  drivers/acpi/apei/Makefile |    1 +
+> >  drivers/acpi/apei/einj.c   |  471 ++++++++++++++++++++++++++++++++++++++++++++
+> 
+> 
+> Can we get more meaningfull name? err_inject.c?
 
-Strange interface. Why not simply pass single integer -- the bit mask?
-Bit meanings are not going to change, anyway.
+einj is the abbreviation used in ACPI specification. I think following
+specification can avoid some confusion. Do you think so?
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Best Regards,
+Huang Ying
