@@ -1,38 +1,104 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Wed, 06 Jan 2010 13:26:54 -0800
-Message-ID: <4B45001E.7000404@zytor.com>
-References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <20100104174558.158cd512@infradead.org> <20100106143640.GB13984@srcf.ucam.org> <alpine.LFD.2.00.1001061321260.4086@localhost.localdomain> <20100106193608.GA21447@srcf.ucam.org> <alpine.LFD.2.00.1001061504110.4086@localhost.localdomain>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 1/12] PCI PM: Add function for checking PME status of
+ devices
+Date: Wed, 6 Jan 2010 13:46:37 -0800
+Message-ID: <20100106134637.7d016215@jbarnes-piketon>
+References: <200912272057.10443.rjw@sisk.pl>
+	<200912272059.06718.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:37325 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932759Ab0AFVcX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 16:32:23 -0500
-In-Reply-To: <alpine.LFD.2.00.1001061504110.4086@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200912272059.06718.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On 01/06/2010 12:22 PM, Len Brown wrote:
->>
->> It's effectively guaranteed if the system is validated with Windows.
+On Sun, 27 Dec 2009 20:59:06 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> today's common industry practice != future guarantee
+> Add function pci_check_pme_status() that will check the PME status
+> bit of given device and clear it along with the PME enable bit.  It
+> will be necessary for PCI run-time power management.
 > 
-> We can't rely on blind use of _OSI to mean "new enough", since
-> it was supported back in W2K era.  That means we have to parse
-> the OSI strings.  But what happens when a BIOS writer decides to
-> evaluate _OSI("Windows Future") without evaluating any of the
-> old strings we know about?  We would disable ACPI reset on such
-> a future box?
+> Based on a patch from Shaohua Li <shaohua.li@intel.com>
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/pci/pci.c |   35 +++++++++++++++++++++++++++++++++++
+>  drivers/pci/pci.h |    1 +
+>  2 files changed, 36 insertions(+)
+> 
+> Index: linux-2.6/drivers/pci/pci.h
+> ===================================================================
+> --- linux-2.6.orig/drivers/pci/pci.h
+> +++ linux-2.6/drivers/pci/pci.h
+> @@ -49,6 +49,7 @@ struct pci_platform_pm_ops {
+>  extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+>  extern void pci_update_current_state(struct pci_dev *dev,
+> pci_power_t state); extern void pci_disable_enabled_device(struct
+> pci_dev *dev); +extern bool pci_check_pme_status(struct pci_dev *dev);
+>  extern void pci_pm_init(struct pci_dev *dev);
+>  extern void platform_pci_wakeup_init(struct pci_dev *dev);
+>  extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
+> Index: linux-2.6/drivers/pci/pci.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/pci/pci.c
+> +++ linux-2.6/drivers/pci/pci.c
+> @@ -1180,6 +1180,41 @@ int pci_set_pcie_reset_state(struct pci_
+>  }
+>  
+>  /**
+> + * pci_check_pme_status - Check if given device has generated PME.
+> + * @dev: Device to check.
+> + *
+> + * Check the PME status of the device and if set, clear it and clear
+> PME enable
+> + * (if set).  Return 'true' if PME status and PME enable were both
+> set or
+> + * 'false' otherwise.
+> + */
+> +bool pci_check_pme_status(struct pci_dev *dev)
+> +{
+> +	int pmcsr_pos;
+> +	u16 pmcsr;
+> +	bool ret = false;
+> +
+> +	if (!dev->pm_cap)
+> +		return false;
+> +
+> +	pmcsr_pos = dev->pm_cap + PCI_PM_CTRL;
+> +	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
+> +	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
+> +		return false;
+> +
+> +	/* Clear PME status. */
+> +	pmcsr |= PCI_PM_CTRL_PME_STATUS;
+> +	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
+> +		/* Disable PME to avoid interrupt flood. */
+> +		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
+> +		ret = true;
+> +	}
+> +
+> +	pci_write_config_word(dev, pmcsr_pos, pmcsr);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+>   * pci_pme_capable - check the capability of PCI device to generate
+> PME#
+>   * @dev: PCI device to handle.
+>   * @state: PCI state from which device will issue PME#.
+> 
 > 
 
-What about using _OSI() with a *blacklist*, i.e. treat _OSI("Unknown
-String") as "new enough", whereas _OSI("Windows 2000") is ignored?
+Looks fine to me; would be especially nice if we could somehow
+communicate that this function was ack'ing any outstanding PME event in
+the function name too.
 
-	-hpa
-
+-- 
+Jesse Barnes, Intel Open Source Technology Center
