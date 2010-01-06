@@ -1,32 +1,38 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
-Date: Wed, 6 Jan 2010 14:36:40 +0000
-Message-ID: <20100106143640.GB13984@srcf.ucam.org>
-References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain> <4B4225B3.8070705@zytor.com> <20100104174558.158cd512@infradead.org>
+Subject: Re: TV_out with toshiba acpi_extras
+Date: Wed, 6 Jan 2010 14:39:31 +0000
+Message-ID: <20100106143931.GC13984@srcf.ucam.org>
+References: <39648cc21001041923o5aea8cf8k2e723fd44477f031@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51112 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:51137 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932206Ab0AFOiu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:38:50 -0500
+	with ESMTP id S932235Ab0AFOji (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:39:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20100104174558.158cd512@infradead.org>
+In-Reply-To: <39648cc21001041923o5aea8cf8k2e723fd44477f031@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: Neil Sikka <neilsikka@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Jan 04, 2010 at 05:45:58PM -0800, Arjan van de Ven wrote:
+On Mon, Jan 04, 2010 at 10:23:29PM -0500, Neil Sikka wrote:
+> Hello. I am trying to get the different display modes working with my
+> portege M400 laptop. Im running 2.6.32 with the toshiba_acpi module.
+> the problem is that when i do:
+> 
+> echo "lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video
+> cat /proc/acpi/toshiba/video
+> 
+> i get:
+> lcd_out: 1
+> crt_out: 0
+> tv_out: 0
 
-> can we do it based on the dmi/acpi year?
-> Eg for all 2008 and later machines or something, while leaving the
-> older ones as is
-
-I think a saner model would be to use a similar method to Windows - 
-that is, change behaviour based on the OSI calls that the firmware 
-makes. If the firmware supports Vista, it's probably safe to use the 
-ACPI reboot method.
+Using the BIOS to control video outputs is unlikely to work well on any 
+hardware produced since 2000 or so. It should be controllable via 
+xrandr.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
