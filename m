@@ -1,61 +1,39 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 5/5] ACPI, APEI, Document for APEI
-Date: Wed, 06 Jan 2010 15:21:43 +0800
-Message-ID: <1262762503.17852.9.camel@yhuang-dev.sh.intel.com>
-References: <1261980744-4450-1-git-send-email-ying.huang@intel.com>
-	 <1261980744-4450-2-git-send-email-ying.huang@intel.com>
-	 <1261980744-4450-3-git-send-email-ying.huang@intel.com>
-	 <1261980744-4450-4-git-send-email-ying.huang@intel.com>
-	 <1261980744-4450-5-git-send-email-ying.huang@intel.com>
-	 <1261980744-4450-6-git-send-email-ying.huang@intel.com>
-	 <20100106071431.GB1494@ucw.cz>  <20100106071609.GA1648@ucw.cz>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: another discrete nvidia switch on/off for an assortment of
+	laptops
+Date: Wed, 6 Jan 2010 14:33:15 +0000
+Message-ID: <20100106143315.GA13984@srcf.ucam.org>
+References: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4459 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753324Ab0AFHVp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jan 2010 02:21:45 -0500
-In-Reply-To: <20100106071609.GA1648@ucw.cz>
+Received: from cavan.codon.org.uk ([93.93.128.6]:46375 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755767Ab0AFOdW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:33:22 -0500
+Content-Disposition: inline
+In-Reply-To: <358f4d650912291430u5e266764jd98a814621659c1@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Albert Vilella <avilella@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2010-01-06 at 15:16 +0800, Pavel Machek wrote:
-> > > +The user interface of EINJ is in debug file system, under the
-> > > +directory apei/einj. The following files are provided.
-> > > +
-> > > +- available_error_type
-> > > +  Read this file will return the error injection capability of the
-> > > +  platform, that is, which error types are supported. The error type
-> > > +  definition is as follow, the left field is the error type value, the
-> > > +  right field is error description.
-> > > +
-> > > +    0x00000001	Processor Correctable
-> > > +    0x00000002	Processor Uncorrectable non-fatal
-> > > +    0x00000004	Processor Uncorrectable fatal
-> > > +    0x00000008  Memory Correctable
-> > > +    0x00000010  Memory Uncorrectable non-fatal
-> > > +    0x00000020  Memory Uncorrectable fatal
-> > > +    0x00000040	PCI Express Correctable
-> > > +    0x00000080	PCI Express Uncorrectable fatal
-> > > +    0x00000100	PCI Express Uncorrectable non-fatal
-> > > +    0x00000200	Platform Correctable
-> > > +    0x00000400	Platform Uncorrectable non-fatal
-> > > +    0x00000800	Platform Uncorrectable fatal
-> > > +
-> > > +  The format of file contents are as above, except there are only the
-> > > +  available error type lines.
+On Tue, Dec 29, 2009 at 10:30:47PM +0000, Albert Vilella wrote:
+> Hi again,
 > 
-> Strange interface. Why not simply pass single integer -- the bit mask?
-> Bit meanings are not going to change, anyway.
+> In this occasion not providing a working module, but just a grep to
+> show 5 different laptop
+> models that use an almost identical ACPI call to report on the
+> discrete nvidia graphics switch:
 
-I have used bit mask in previous versions. But I think this version has
-better readability.
+The NVIF interface is not the correct one to use. There's a _DSM method 
+on the Nvidia PCI device that will call the appropriate methods. nouveau 
+should support this in the current kernels - right now it'll just set 
+the graphics to whatever state the BIOS has programmed. A module 
+parameter to change the default might be interesting.
 
-Best Regards,
-Huang Ying
+If you want to do this with the nvidia binary driver, you'll need to get 
+nvidia to add support.
 
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
