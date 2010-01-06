@@ -1,38 +1,51 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: TV_out with toshiba acpi_extras
-Date: Wed, 6 Jan 2010 14:39:31 +0000
-Message-ID: <20100106143931.GC13984@srcf.ucam.org>
-References: <39648cc21001041923o5aea8cf8k2e723fd44477f031@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] Add DMI quirk for Intel DP55KG mainboard
+Date: Wed, 6 Jan 2010 08:41:01 +0100
+Message-ID: <20100106074101.GE1392@ucw.cz>
+References: <20100104162114.GA30113@percival.namespace.at> <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51137 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235Ab0AFOji (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:39:38 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42733 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755871Ab0AFOnq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2010 09:43:46 -0500
 Content-Disposition: inline
-In-Reply-To: <39648cc21001041923o5aea8cf8k2e723fd44477f031@mail.gmail.com>
+In-Reply-To: <alpine.LFD.2.00.1001041209300.4012@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Neil Sikka <neilsikka@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Christian Hofstaedtler <ch@zeha.at>, x86@kernel.org, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, bruce.w.allan@intel.com, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com, Justin Piszcz <jpiszcz@lucidpixels.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Mon, Jan 04, 2010 at 10:23:29PM -0500, Neil Sikka wrote:
-> Hello. I am trying to get the different display modes working with my
-> portege M400 laptop. Im running 2.6.32 with the toshiba_acpi module.
-> the problem is that when i do:
+
+> commit 2cb758c617833c18c533e1c4c31167e59d092235
+> Author: Len Brown <len.brown@intel.com>
+> Date:   Thu Nov 6 22:43:21 2008 -0500
 > 
-> echo "lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video
-> cat /proc/acpi/toshiba/video
-> 
-> i get:
-> lcd_out: 1
-> crt_out: 0
-> tv_out: 0
+>     x86, ACPI: default to reboot via ACPI (again)
+>     
+>     We've run into systems which do not reboot properly
+>     without using the ACPI reset mechanism.  So lets
+>     try this in linux-next for a while and see
+>     how many existing machines stop rebooting
+>     because they can't handle ACPI reboot.
 
-Using the BIOS to control video outputs is unlikely to work well on any 
-hardware produced since 2000 or so. It should be controllable via 
-xrandr.
+>     Signed-off-by: Len Brown <len.brown@intel.com>
 
+Nak.
+
+> @@ -32,7 +32,7 @@ EXPORT_SYMBOL(pm_power_off);
+>  
+>  static const struct desc_ptr no_idt = {};
+>  static int reboot_mode;
+> -enum reboot_type reboot_type = BOOT_KBD;
+> +enum reboot_type reboot_type = BOOT_ACPI;
+>  int reboot_force;
+>  
+
+KBD is present on all PCs, not so with acpi. If machine can't handle
+kbd reboot, it is not IBM PC compatible.
+								Pavel
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
