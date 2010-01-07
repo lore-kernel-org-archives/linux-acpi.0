@@ -1,35 +1,56 @@
-From: Christian Hofstaedtler <ch@zeha.at>
-Subject: Re: [PATCH] Default to ACPI reboots on newish X86 hardware
-Date: Thu, 7 Jan 2010 21:05:09 +0100
-Message-ID: <201001072105.09665.ch@zeha.at>
-References: <alpine.LFD.2.00.1001061433260.4086@localhost.localdomain> <1262894593-25563-1-git-send-email-ch@zeha.at>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 9/12] ACPI / PM: Introduce acpi_pm_wakeup_power()
+Date: Thu, 7 Jan 2010 22:11:50 +0100
+Message-ID: <201001072211.50224.rjw@sisk.pl>
+References: <200912272057.10443.rjw@sisk.pl> <20100106140035.6f622acf@jbarnes-piketon> <201001070011.49755.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from percival.namespace.at ([77.244.242.130]:59335 "EHLO
-	percival.namespace.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782Ab0AGUFu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2010 15:05:50 -0500
-In-Reply-To: <1262894593-25563-1-git-send-email-ch@zeha.at>
+Received: from ogre.sisk.pl ([217.79.144.158]:47306 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753950Ab0AGVLe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jan 2010 16:11:34 -0500
+In-Reply-To: <201001070011.49755.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org
-Cc: hpa@zytor.com, lenb@kernel.org, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Oliver Neukum <oliver@neukum.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Francois Romieu <romieu@fr.zoreil.com>
 
-On Thursday 07 January 2010 21:03:13 Christian Hofstaedtler wrote:
-> Newer hardware is assumed to no longer reboot succesfully using the
-> keyboard controller, but needs to use ACPI instead.
-> To not cause problems with older hardware, only hardware with a BIOS
-> date 2006 or newer is considered for this choice. Broken BIOSes
-> reporting a BIOS date of 0 are not specially considered, and therefore
-> get the KBD reboot behaviour.
+On Thursday 07 January 2010, Rafael J. Wysocki wrote:
+> On Wednesday 06 January 2010, Jesse Barnes wrote:
+> > On Sun, 27 Dec 2009 21:06:26 +0100
+> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> > >  /**
+> > > + * acpi_pm_wakeup_power - Enable/disable device wake-up power.
+> > > + * @dev: ACPI device to handle.
+> > > + * @enable: Whether to enable or disable the wake-up power of the
+> > > device.
+> > > + */
+> > > +int acpi_pm_wakeup_power(struct acpi_device *dev, bool enable)
+> > > +{
+> > 
+> > I know we've got these all over now, but functions that just take a
+> > bool are generally hard to read when you just look at the call site.
+> > If it was called "acpi_pm_set_wakeup_power" and then took an on/off
+> > enum it would be really easy to see, from the callsite, what was going
+> > on.
+> > 
+> > It's a fairly minor complaint, but it's something that's always bugged
+> > me about the PCI PM code in particular.
 > 
-> Also unifiy reboot_type selection code.
+> Well, in this particular case acpi_pm_wakeup_power() uses a bool, because
+> acpi_pm_device_sleep_wake() (which is a caller of it) does.  IMO it won't
+> be logical to use something else just here.
+> 
+> Also, as you noticed above, this follows a convention used not only in the
+> PCI PM, but generally in the core PM code.  Although we could change this
+> convention, I'm not really sure that would be worth the effort.
 
-So this is probably the patch with all comments addressed, except for doing 
-some _OSI ACPI call detection. If someone wants to do something based on that 
-idea, please do - I know too little about this stuff to be useful here.
+That said, it looks like we can drop this (ie. [9/12]) patch altogether if the
+next one is changed slightly.
 
-  Christian
+I'll post the modified [10/12] shortly.
+
+Rafael
