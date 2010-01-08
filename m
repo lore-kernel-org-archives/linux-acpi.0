@@ -1,34 +1,65 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] Default to ACPI reboots on newish X86 hardware
-Date: Thu, 07 Jan 2010 15:05:42 -0800
-Message-ID: <4B4668C6.7000309@zytor.com>
-References: <alpine.LFD.2.00.1001061433260.4086@localhost.localdomain> <1262894593-25563-1-git-send-email-ch@zeha.at>
+From: Len Brown <lenb@kernel.org>
+Subject: [git pull request] ACPI/driver patch for Linux-2.6.33-rc3
+Date: Fri, 08 Jan 2010 00:59:28 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001080058020.4086@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:49450 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116Ab0AGXKu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2010 18:10:50 -0500
-In-Reply-To: <1262894593-25563-1-git-send-email-ch@zeha.at>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:38234 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751839Ab0AHF7h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2010 00:59:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Hofstaedtler <ch@zeha.at>
-Cc: x86@kernel.org, lenb@kernel.org, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On 01/07/2010 12:03 PM, Christian Hofstaedtler wrote:
-> Newer hardware is assumed to no longer reboot succesfully using the
-> keyboard controller, but needs to use ACPI instead.
-> To not cause problems with older hardware, only hardware with a BIOS
-> date 2006 or newer is considered for this choice. Broken BIOSes
-> reporting a BIOS date of 0 are not specially considered, and therefore
-> get the KBD reboot behaviour.
-> 
-> Also unifiy reboot_type selection code.
-> 
-> Signed-off-by: Christian Hofstaedtler <ch@zeha.at>
+Hi Linus,
 
-Looks good to me.  Len: do you want to take it or should I?
+please pull from: 
 
-	-hpa
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+for a regression fix that I neglected to push for -rc2.
+
+This will update the file shown below.
+
+thanks!
+
+--
+Len Brown
+Intel Open Source Technology Center
+
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.33/acpi-release-20091214-2.6.33-rc2.diff.gz
+
+ drivers/platform/x86/hp-wmi.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+through these commits:
+
+Anisse Astier (1):
+      hp-wmi: remove double free caused by merge conflict
+
+with this log:
+
+commit c9c041fcb1a4d69ed4791f00b57554eeb341d148
+Author: Anisse Astier <anisse@astier.eu>
+Date:   Thu Dec 31 16:41:33 2009 +0100
+
+    hp-wmi: remove double free caused by merge conflict
+    
+    Commit 3e9b988e4edf065d39c1343937f717319b1c1065
+    "wmi: Free the allocated acpi objects through wmi_get_event_data"
+    had the same purpose as commit
+    44ef00e6482e755f36629773abc2aee83a6f53e3
+    "hp-wmi: Fix two memleaks"
+    
+    This should solve this regression:
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=14890
+    
+    Signed-off-by: Anisse Astier <anisse@astier.eu>
+    Reported-by: Sedat Dilek <sedat.dilek@googlemail.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
