@@ -1,55 +1,44 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH] sony-laptop - fix using of uninitialized variable
-Date: Sun, 10 Jan 2010 00:15:44 -0800
-Message-ID: <20100110081544.GD16057@core.coreip.homeip.net>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [patch] hp-wmi: fix double free
+Date: Sun, 10 Jan 2010 10:38:37 +0000
+Message-ID: <9b2b86521001100238x5c373f7x856a255e940baa5d@mail.gmail.com>
+References: <20100110074529.GF7840@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:58737 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab0AJIPs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Jan 2010 03:15:48 -0500
-Received: by pxi4 with SMTP id 4so2998439pxi.33
-        for <linux-acpi@vger.kernel.org>; Sun, 10 Jan 2010 00:15:48 -0800 (PST)
-Content-Disposition: inline
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:52763 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab0AJKij (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Jan 2010 05:38:39 -0500
+In-Reply-To: <20100110074529.GF7840@bicker>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>, linux-kernel@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-CC [M]  drivers/platform/x86/sony-laptop.o
-drivers/platform/x86/sony-laptop.c: In function 'sony_nc_rfkill_setup':
-drivers/platform/x86/sony-laptop.c:1162: warning: 'i' may be used uninitialized in this function
+On 1/10/10, Dan Carpenter <error27@gmail.com> wrote:
+> kfree(obj) was called earlier.
+>
+> This was found by smatch and has only been compile tested.  :/
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+I don't see hp-wmi in MAINTAINERS, but in general platform drivers go
+via the ACPI tree.
 
-This is a real warning and without the fix we may be setting up
-non-existing rfkill devices so please consider for .33.
+It looks like several others have discovered this issue the hard way
+:-).  <http://www.pubbs.net/kernel/201001/14288/>.
 
- drivers/platform/x86/sony-laptop.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+Fortunately it has been fixed in the acpi tree and now submitted to
+Linus.  <http://linux.derkeiler.com/Mailing-Lists/Kernel/2010-01/msg02511.html>.
 
+Regards
+Alan
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 5af5334..3f71a60 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -1201,9 +1201,12 @@ static void sony_nc_rfkill_setup(struct acpi_device *device)
- 	/* the buffer is filled with magic numbers describing the devices
- 	 * available, 0xff terminates the enumeration
- 	 */
--	while ((dev_code = *(device_enum->buffer.pointer + i)) != 0xff &&
--			i < device_enum->buffer.length) {
--		i++;
-+	for (i = 0; i < device_enum->buffer.length; i++) {
-+
-+		dev_code = *(device_enum->buffer.pointer + i);
-+		if (dev_code == 0xff)
-+			break;
-+
- 		dprintk("Radio devices, looking at 0x%.2x\n", dev_code);
- 
- 		if (dev_code == 0 && !sony_rfkill_devices[SONY_WIFI])
--- 
-Dmitry
+> --- orig/drivers/platform/x86/hp-wmi.c	2010-01-09 21:43:13.000000000 +0300
+> +++ devel/drivers/platform/x86/hp-wmi.c	2010-01-09 21:43:28.000000000 +0300
+> @@ -388,8 +388,6 @@ static void hp_wmi_notify(u32 value, voi
+>  	} else
+>  		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+>  			eventcode);
+> -
+> -	kfree(obj);
+>  }
