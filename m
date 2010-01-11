@@ -1,33 +1,67 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.33-rc3-git3: Reported regressions 2.6.31 -> 2.6.32
-Date: Mon, 11 Jan 2010 20:56:18 +0100
-Message-ID: <201001112056.19042.rjw@sisk.pl>
-References: <nzLqtSp97aP.A.RGB.hglSLB@chimera> <b170af451001110449w134af1f9we804205a5febcaca@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Bug #14946] All kernels after 2.6.32-git10  show only 1 CPU
+Date: Mon, 11 Jan 2010 21:04:54 +0100
+Message-ID: <201001112104.54141.rjw@sisk.pl>
+References: <wnS54-l8PVO.A.TlF.oMlSLB@chimera> <omZ8aBZReyD.A.jbH.QNlSLB@chimera> <4B4A9D8F.9030300@blueyonder.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b170af451001110449w134af1f9we804205a5febcaca-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:35033 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753558Ab0AKUEm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Jan 2010 15:04:42 -0500
+In-Reply-To: <4B4A9D8F.9030300@blueyonder.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: sboyce@blueyonder.co.uk
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday 11 January 2010, Rafa=C5=82 Mi=C5=82ecki wrote:
-> 2010/1/10 Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>:
-> > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=3D1474=
-7
-> > Subject         : bisected 2.6.32 regression: synaptics touchpad do=
-esn't work
-> > Submitter       : Fran=C3=A7ois Valenduc <francois.valenduc@tvcable=
-net.be>
-> > Date            : 2009-12-06 11:16 (36 days old)
->=20
-> Not sure if this is hackish or not, but some patch exists.
+On Monday 11 January 2010, Sid Boyce wrote:
+> On 10/01/10 22:32, Rafael J. Wysocki wrote:
+> > This message has been generated automatically as a part of a report
+> > of recent regressions.
+> > 
+> > The following bug entry is on the current list of known regressions
+> > from 2.6.32.  Please verify if it still should be listed and let me know
+> > (either way).
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14946
+> > Subject		: All kernels after 2.6.32-git10  show only 1 CPU
+> > Submitter	: Sid Boyce <sboyce@blueyonder.co.uk>
+> > Date		: 2009-12-23 16:55 (19 days old)
+> > References	: http://marc.info/?l=linux-kernel&m=126158734326801&w=4
+> > 
+> > 
+> > 
+> > 
+> 
+> With 2.6.33-rc3-git3 I now see 2 CPU's every on a normal boot, but its
+> locking up solid at this part of the boot process as usual.
+> ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+> HDA Intel 0000:00:0e.1: PCI INT B -> Link[AAZA] -> GSI 22 (level, low)
+> -> IRQ 22.
+> With acpi=noirq (2 CPU's)
+> ================
+> kvm: Nested Virtualization enabled.
+> IT8716 Super IO detected
+> Parport_PC 00:0a: reported by plug and Play ACPI
+> Parport 0: PC-Style at 0x378, irq 7 [PCSPP, TRISTATE,EPP]
+> parport: irq 7 in use, resorting to polled operation
+> HDA Intel 0000:00:0e.1: PCI -> APIC IRQ transform: INT B -> IRQ 11
+> 
+> With acpi=ht (1 CPU)
+> =============
+> Hangs at:-
+> Loading drivees, configuring devices do_IRQ: 0.65 No irq handler for
+> vector (irq -1)
+> 
+> With acpi=off (2 CPU's)
+> ========================
+> Hangs at same point as with acpi=noirq.
 
-Thanks, updated.
-
-Well, I guess the hackish is rather inevitable in this particular case =
-=2E..
+Thanks for the update.
 
 Rafael
