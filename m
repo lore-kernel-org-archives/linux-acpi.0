@@ -1,67 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Bug #14946] All kernels after 2.6.32-git10  show only 1 CPU
-Date: Mon, 11 Jan 2010 21:04:54 +0100
-Message-ID: <201001112104.54141.rjw@sisk.pl>
-References: <wnS54-l8PVO.A.TlF.oMlSLB@chimera> <omZ8aBZReyD.A.jbH.QNlSLB@chimera> <4B4A9D8F.9030300@blueyonder.co.uk>
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Re: 2.6.33-rc3-git3: Reported regressions from 2.6.32
+Date: Mon, 11 Jan 2010 16:47:10 -0500
+Message-ID: <20100111214603.GA4335@emergent.ellipticsemi.com>
+References: <wnS54-l8PVO.A.TlF.oMlSLB@chimera>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35033 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753558Ab0AKUEm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:04:42 -0500
-In-Reply-To: <4B4A9D8F.9030300@blueyonder.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752562Ab0AKVsk@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <wnS54-l8PVO.A.TlF.oMlSLB@chimera>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: sboyce@blueyonder.co.uk
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday 11 January 2010, Sid Boyce wrote:
-> On 10/01/10 22:32, Rafael J. Wysocki wrote:
-> > This message has been generated automatically as a part of a report
-> > of recent regressions.
-> > 
-> > The following bug entry is on the current list of known regressions
-> > from 2.6.32.  Please verify if it still should be listed and let me know
-> > (either way).
-> > 
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14946
-> > Subject		: All kernels after 2.6.32-git10  show only 1 CPU
-> > Submitter	: Sid Boyce <sboyce@blueyonder.co.uk>
-> > Date		: 2009-12-23 16:55 (19 days old)
-> > References	: http://marc.info/?l=linux-kernel&m=126158734326801&w=4
-> > 
-> > 
-> > 
-> > 
+On 23:27 Sun 10 Jan     , Rafael J. Wysocki wrote:
+> This message contains a list of some regressions from 2.6.32, for which there
+> are no fixes in the mainline I know of.  If any of them have been fixed already,
+> please let me know.
 > 
-> With 2.6.33-rc3-git3 I now see 2 CPU's every on a normal boot, but its
-> locking up solid at this part of the boot process as usual.
-> ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
-> HDA Intel 0000:00:0e.1: PCI INT B -> Link[AAZA] -> GSI 22 (level, low)
-> -> IRQ 22.
-> With acpi=noirq (2 CPU's)
-> ================
-> kvm: Nested Virtualization enabled.
-> IT8716 Super IO detected
-> Parport_PC 00:0a: reported by plug and Play ACPI
-> Parport 0: PC-Style at 0x378, irq 7 [PCSPP, TRISTATE,EPP]
-> parport: irq 7 in use, resorting to polled operation
-> HDA Intel 0000:00:0e.1: PCI -> APIC IRQ transform: INT B -> IRQ 11
-> 
-> With acpi=ht (1 CPU)
-> =============
-> Hangs at:-
-> Loading drivees, configuring devices do_IRQ: 0.65 No irq handler for
-> vector (irq -1)
-> 
-> With acpi=off (2 CPU's)
-> ========================
-> Hangs at same point as with acpi=noirq.
+> If you know of any other unresolved regressions from 2.6.32, please let me know
+> either and I'll add them to the list.  Also, please let me know if any of the
+> entries below are invalid.
 
-Thanks for the update.
+Here are two that I don't see in the list:
 
-Rafael
+ * LVDS downclocking breaks on G45/thinkpad T500
+
+     LKML: http://lkml.org/lkml/2009/12/26/40
+     FDO:  http://bugs.freedesktop.org/show_bug.cgi?id=25809
+ 
+ * Receive failure in et131x (Alan Cox sent me a patch for this but
+                              it's not in mainline yet)
+
+     LKML: http://lkml.org/lkml/2009/12/29/210
+
+-- 
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
