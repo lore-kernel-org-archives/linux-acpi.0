@@ -1,46 +1,30 @@
-From: Darren Jenkins <darrenrjenkins@gmail.com>
-Subject: [PATCH] drivers/acpi/power_meter.c : remove double kfree()
-Date: Tue, 12 Jan 2010 23:37:07 +1100
-Message-ID: <1263299827.4571.11.camel@ICE-BOX>
+From: Johannes Engel <jcnengel@googlemail.com>
+Subject: Re: 2.6.33-rc3-git3: Reported regressions 2.6.31 -> 2.6.32
+Date: Tue, 12 Jan 2010 18:39:01 +0100
+Message-ID: <4B4CB3B5.3060900@googlemail.com>
+References: <nzLqtSp97aP.A.RGB.hglSLB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:38172 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752266Ab0ALMhQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2010 07:37:16 -0500
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:64601 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab0ALRjI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2010 12:39:08 -0500
+In-Reply-To: <nzLqtSp97aP.A.RGB.hglSLB@chimera>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: djwong@us.ibm.com, lenb@kernel.org, linux-acpi@vger.kernel.org, Kernel Janitors <kernel-janitors@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>, Natalie Protasevich <protasnb@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-resource->domain_devices can be double kfree()'d in a couple of places.
-Fix this by setting num_domain_devices = 0 after the kfree().
+On 10.01.2010 23:45, Rafael J. Wysocki wrote:
+> This message contains a list of some regressions introduced between 2.6.31 and
+> 2.6.32, for which there are no fixes in the mainline I know of.  If any of them
+> have been fixed already, please let me know.
+>
+> If you know of any other unresolved regressions introduced between 2.6.31
+> and 2.6.32, please let me know either and I'll add them to the list.
+>   
+How about #15004?
 
-Coverity CID: 13356, 13355, 13354
-
-Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com> 
-
-diff --git drivers/acpi/power_meter.c drivers/acpi/power_meter.c
-index 2ef7030..18ce00a 100644
---- drivers/acpi/power_meter.c
-+++ drivers/acpi/power_meter.c
-@@ -534,6 +534,7 @@ static void remove_domain_devices(struct acpi_power_meter_resource *resource)
- 
- 	kfree(resource->domain_devices);
- 	kobject_put(resource->holders_dir);
-+	resource->num_domain_devices = 0;
- }
- 
- static int read_domain_devices(struct acpi_power_meter_resource *resource)
-@@ -740,7 +741,6 @@ skip_unsafe_cap:
- 
- 	return res;
- error:
--	remove_domain_devices(resource);
- 	remove_attrs(resource);
- 	return res;
- }
-
-
+Cheers, Johannes
