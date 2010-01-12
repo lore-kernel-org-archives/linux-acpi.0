@@ -1,30 +1,48 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.33-rc3-git3: Reported regressions 2.6.31 -> 2.6.32
-Date: Tue, 12 Jan 2010 23:02:17 +0100
-Message-ID: <201001122302.17835.rjw@sisk.pl>
-References: <nzLqtSp97aP.A.RGB.hglSLB@chimera> <4B4CB3B5.3060900@googlemail.com>
+From: Ilia Mirkin <imirkin@alum.mit.edu>
+Subject: ACPI info has non-printable chars
+Date: Tue, 12 Jan 2010 17:15:17 -0500
+Message-ID: <87d699441001121415y6b37ed63v25b1913ccc959d46@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B4CB3B5.3060900-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Engel <jcnengel-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.26]:10667 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752921Ab0ALWXL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2010 17:23:11 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so3466861qwh.37
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Jan 2010 14:23:11 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tuesday 12 January 2010, Johannes Engel wrote:
-> On 10.01.2010 23:45, Rafael J. Wysocki wrote:
-> > This message contains a list of some regressions introduced between 2.6.31 and
-> > 2.6.32, for which there are no fixes in the mainline I know of.  If any of them
-> > have been fixed already, please let me know.
-> >
-> > If you know of any other unresolved regressions introduced between 2.6.31
-> > and 2.6.32, please let me know either and I'll add them to the list.
-> >   
-> How about #15004?
+Hi,
 
-Qualifies, but I need to know the last working kernel.
+I just got a new motherboard (GIGABYTE GA-EX58-UD3R) and I'm seeing
+the following in the kernel log (2.6.31-gentoo-r6, which I believe is
+basically 2.6.31.6)
 
-Rafael
+...
+[    0.000000] ACPI: TAMG 00000000cfee7330 00AE2 (v01 GBT    GBT   B0
+5455312E BG^A^A 53450101)
+...
+[    0.713697] ACPI Warning: Incorrect checksum in table [TAMG] - 9D,
+should be 9C 20090521 tbutils-246
+
+acpidump shows:
+
+TAMG @ 0xcfee7330
+  0000: 54 41 4d 47 e2 0a 00 00 01 9d 47 42 54 20 20 20  TAMG......GBT
+  0010: 47 42 54 20 20 20 42 30 2e 31 55 54 42 47 01 01  GBT   B0.1UTBG..
+  0020: 01 01 45 53 44 54 3d 20 ef 00 08 00 0f 00 2c 01  ..ESDT= ......,.
+
+So those ^A's are really in there, but it's a little annoying (and it
+causes less to go into binary viewing mode when it shows up in
+/var/log/messages). Would it be reasonable to add some kind of
+escaping code for such situations so that it might print like
+"BG\x01\x01"?
+
+Thanks,
+
+-- 
+Ilia Mirkin
+imirkin@alum.mit.edu
