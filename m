@@ -1,51 +1,57 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [PATCH] drivers/acpi/power_meter.c : remove double kfree()
-Date: Wed, 13 Jan 2010 11:29:47 -0800
-Message-ID: <20100113192947.GZ10295@tux1.beaverton.ibm.com>
-References: <1263299827.4571.11.camel@ICE-BOX>
-Reply-To: djwong@us.ibm.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] [RFC] firewire: Add ohci1394 PCI runtime power management support
+Date: Wed, 13 Jan 2010 22:29:57 +0100
+Message-ID: <201001132229.57231.rjw@sisk.pl>
+References: <1263336982-15424-1-git-send-email-mjg@redhat.com> <4B4D1A2F.4020103@s5r6.in-berlin.de> <20100113143312.GA21292@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752509Ab0AMT35@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1263299827.4571.11.camel@ICE-BOX>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Darren Jenkins <darrenrjenkins@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Kernel Janitors <kernel-janitors@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20100113143312.GA21292@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux1394-devel@lists.sourceforge.net, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 12, 2010 at 11:37:07PM +1100, Darren Jenkins wrote:
-> resource->domain_devices can be double kfree()'d in a couple of places.
-> Fix this by setting num_domain_devices = 0 after the kfree().
+On Wednesday 13 January 2010, Matthew Garrett wrote:
+> On Wed, Jan 13, 2010 at 01:56:15AM +0100, Stefan Richter wrote:
+> > Matthew Garrett wrote:
+> > > For sanity purposes, the code ensures that the phy is recent enough to
+> > > implement the required functionality. It also ensures that all ports have
+> > > the interrupt enabled - a VIA chip I've tested appears to only allow
+> > > int_enable to be set on one port at a time, which is inadequate for the
+> > > purposes of this code.
+> > 
+> > This adds more extensive use of the link--PHY interface than we ever
+> > had, and FireWire stacks in other popular OSs may not have used these
+> > features yet too.  We will most certainly discover further errata
+> > besides the one that you already found.
 > 
-> Coverity CID: 13356, 13355, 13354
+> I don't doubt it. There's almost certainly serious dragons here on some 
+> hardware.
 > 
-> Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com> 
+> > > This depends on the PCI runtime PM code, which is not yet upstream. I'm
+> > > sending this out now for sanity checking.
+> > 
+> > Is there a convenient source where I can get the infrastructure, so that
+> > I could start testing with the few cards that I have?
+> 
+> Rafael posted the latest set to linux-acpi on the 27th of December. I 
+> don't think there's a set online yet.
 
-Thanks for catching this.
+In fact, I posted an update last Sunday (Jan 10), that should be included into
+the PCI linux-next branch shortly.
 
-Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+The latest patches are here:
+http://patchwork.kernel.org/patch/72020/
+http://patchwork.kernel.org/patch/72026/
+http://patchwork.kernel.org/patch/72019/
+http://patchwork.kernel.org/patch/72015/
+http://patchwork.kernel.org/patch/72030/
+http://patchwork.kernel.org/patch/72021/
+http://patchwork.kernel.org/patch/72029/
+http://patchwork.kernel.org/patch/72028/
+http://patchwork.kernel.org/patch/72027/
 
-> 
-> diff --git drivers/acpi/power_meter.c drivers/acpi/power_meter.c
-> index 2ef7030..18ce00a 100644
-> --- drivers/acpi/power_meter.c
-> +++ drivers/acpi/power_meter.c
-> @@ -534,6 +534,7 @@ static void remove_domain_devices(struct acpi_power_meter_resource *resource)
-> 
->  	kfree(resource->domain_devices);
->  	kobject_put(resource->holders_dir);
-> +	resource->num_domain_devices = 0;
->  }
-> 
->  static int read_domain_devices(struct acpi_power_meter_resource *resource)
-> @@ -740,7 +741,6 @@ skip_unsafe_cap:
-> 
->  	return res;
->  error:
-> -	remove_domain_devices(resource);
->  	remove_attrs(resource);
->  	return res;
->  }
-> 
-> 
+Rafael
