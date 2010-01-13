@@ -1,108 +1,51 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH] [RFC] firewire: Add ohci1394 PCI runtime power	management
- support
-Date: Wed, 13 Jan 2010 19:45:43 +0100
-Message-ID: <4B4E14D7.5080801@s5r6.in-berlin.de>
-References: <1263336982-15424-1-git-send-email-mjg@redhat.com> <4B4D1A2F.4020103@s5r6.in-berlin.de> <20100113143312.GA21292@srcf.ucam.org>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH] drivers/acpi/power_meter.c : remove double kfree()
+Date: Wed, 13 Jan 2010 11:29:47 -0800
+Message-ID: <20100113192947.GZ10295@tux1.beaverton.ibm.com>
+References: <1263299827.4571.11.camel@ICE-BOX>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:55684 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269Ab0AMSqS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2010 13:46:18 -0500
-In-Reply-To: <20100113143312.GA21292@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752509Ab0AMT35@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1263299827.4571.11.camel@ICE-BOX>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Darren Jenkins <darrenrjenkins@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Kernel Janitors <kernel-janitors@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux1394-devel@lists.sourceforge.net
 
-Matthew Garrett wrote:
-> On Wed, Jan 13, 2010 at 01:56:15AM +0100, Stefan Richter wrote:
->> Matthew Garrett wrote:
->>> +	for (i = 0; i < OHCI_LOOP_COUNT; i++) {
->>> +		*val = reg_read(ohci, OHCI1394_PhyControl);
->>> +		if (*val & OHCI1394_PhyControl_ReadDone)
->>> +			break;
->>> +		mdelay(1);
->>> +	}
->> Gone is the msleep, here comes the mdelay.  I suspect all that can be
->> implemented in a non-atomic context, can't it?  I.e. tasklet ->
->> worklet...  May possibly require to convert the bus reset tasklet to a
->> worklet too, which may have a few benefits on its own right.
+On Tue, Jan 12, 2010 at 11:37:07PM +1100, Darren Jenkins wrote:
+> resource->domain_devices can be double kfree()'d in a couple of places.
+> Fix this by setting num_domain_devices = 0 after the kfree().
 > 
-> Yeah, that might well be a bonus. The phy accesses should only be at 
-> startup or in response to a bus reset or cable connection state change, 
-> so I wouldn't have thought that there'd be any noticable performance 
-> impact. I'll look at changing it in a followup patch.
-
-Bus resets may happen for various reasons.  Ongoing isochronous
-transmissions are supposed to continue after a bus reset and self
-identification phase as seamlessly as possible.  Especially with an eye
-on audio streams, new latency sources should be avoided.  (People who
-are into studio audio or live audio will avoid causes for bus resets
-during sessions though.)
-
->> Furthermore, these polling loops --- at least the ones after a
->> reg_write(..., OHCI1394_PhyControl_Read(..)) --- could then be replaced
->> by an interrupt driven mechanism.  (Except in those usages of
->> ohci_update_phy_reg() when we do not have interrupts enabled.)
+> Coverity CID: 13356, 13355, 13354
 > 
-> Oh, ok - I hadn't realised there was an interrupt to indicate that.
+> Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com> 
 
-Might turn out too awkward though due to the interrupts off situation in
-ohci_enable().
+Thanks for catching this.
 
-[...]
->>> +		  OHCI1394_PhyControl_Write(addr, r));
->>> +
->>> +	for (i = 0; i < OHCI_LOOP_COUNT; i++) {
->>> +		r = reg_read(ohci, OHCI1394_PhyControl);
->>> +		if (!(r & OHCI1394_PhyControl_WriteDone))
->>> +			break;
->>> +	}
->> Forgot an mdelay?
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+
 > 
-> I wondered about that, but there wasn't one in the ieee1394 code. 
-> Presumably the register reads take long enough that it settles within 
-> the loop count?
-
-Hmm, drivers/ieee1394/ohci1394.c::get_phy_reg and set_phy_reg both have
-an mdelay in their poll loops.  I don't see other OHCI1394_PhyControl
-accesses.
-
-[...]
->> [BTW, some cards may actually have a second PHY hardwired to the PHY
->> which is attached to the link.  For example, Mac Pro have a second PHY
->> for the front panel ports.  But your approach is unable to figure that
->> out either.  And it doesn't matter because battery powered devices do
->> not have more than one PHY per link.]
+> diff --git drivers/acpi/power_meter.c drivers/acpi/power_meter.c
+> index 2ef7030..18ce00a 100644
+> --- drivers/acpi/power_meter.c
+> +++ drivers/acpi/power_meter.c
+> @@ -534,6 +534,7 @@ static void remove_domain_devices(struct acpi_power_meter_resource *resource)
 > 
-> Hrm. That's potentially a problem. Will this always show up as a 
-> connection being present on the first PHY?
-
-Yes.  It is indistinguishable from an externally plugged-in hub or
-repeater, or some kinds of external node whose link is powered down.
-
-> If so it'll just effectively 
-> disable the power management, which isn't ideal but at least doesn't 
-> break anything.
-
-Yep.
-
->>> +
->>> +	if (ohci_read_phy_reg(card, 2, &val))
->>> +		return -EBUSY;
->> Since its caller does not check for error return,
->> ohci_configure_wakeup() can just return void.
+>  	kfree(resource->domain_devices);
+>  	kobject_put(resource->holders_dir);
+> +	resource->num_domain_devices = 0;
+>  }
 > 
-> Hm. Should probably actually check the return value instead.
-
-Should it?  I understood that this just enables or disables runtime PM
-capability for this ohci instance, without a need for further error
-handling.
--- 
-Stefan Richter
--=====-==-=- ---= -==-=
-http://arcgraph.de/sr/
+>  static int read_domain_devices(struct acpi_power_meter_resource *resource)
+> @@ -740,7 +741,6 @@ skip_unsafe_cap:
+> 
+>  	return res;
+>  error:
+> -	remove_domain_devices(resource);
+>  	remove_attrs(resource);
+>  	return res;
+>  }
+> 
+> 
