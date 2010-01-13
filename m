@@ -1,17 +1,17 @@
 From: Lin Ming <ming.m.lin@intel.com>
 Subject: Re: ACPI info has non-printable chars
-Date: Wed, 13 Jan 2010 09:02:10 +0800
-Message-ID: <1263344530.3598.54.camel@minggr.sh.intel.com>
+Date: Wed, 13 Jan 2010 09:19:43 +0800
+Message-ID: <1263345583.3598.58.camel@minggr.sh.intel.com>
 References: <87d699441001121415y6b37ed63v25b1913ccc959d46@mail.gmail.com>
 	 <1263344599.12263.2251.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28732 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:33151 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753662Ab0AMBSB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jan 2010 20:18:01 -0500
+	id S1751160Ab0AMBfe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jan 2010 20:35:34 -0500
 In-Reply-To: <1263344599.12263.2251.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -54,9 +54,29 @@ On Wed, 2010-01-13 at 09:03 +0800, Zhang, Rui wrote:
 > 
 > Ming, any comments on this?
 
-Ilia, would you please attach the acpidump output?
+Ilia, please try 2.6.32, that we support non-printable characters.
+See below commit.
 
-Lin Ming
+commit cf02cd47d4747abf8ff0617e15fc05a00202e6d5
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Wed Jun 24 11:38:46 2009 +0800
+
+    ACPICA: Dump table header - suppress output of non-printable characters
+    
+    Function acpi_tb_print_table_header. Some ACPI tables contain
+    non-printable characters in one of the string fields of the the
+    header - Signature, OemId, OemTableId, or CompilerId. Invalid
+    characters are replaced by '?'. ACPICA BZ 788.
+    
+    http://acpica.org/bugzilla/show_bug.cgi?id=788
+    
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
 
 
+> 
+> thanks,
+> rui
+> 
 
