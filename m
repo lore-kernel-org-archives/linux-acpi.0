@@ -1,80 +1,458 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.33-rc3: pci host bridge windows ignored (works with pci=use_crs)
-Date: Thu, 14 Jan 2010 11:08:02 -0700
-Message-ID: <201001141108.03129.bjorn.helgaas@hp.com>
-References: <20100113053736.GA6720@jgarrett.org> <20100113132407.GA11350@jgarrett.org> <4B4ECBCE.1010502@kernel.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH] ACPI: processor: only call _PDC on physically present
+	processors
+Date: Thu, 14 Jan 2010 13:12:14 -0700
+Message-ID: <20100114201214.GH4545@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:30353 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932197Ab0ANSIF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2010 13:08:05 -0500
-In-Reply-To: <4B4ECBCE.1010502@kernel.org>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:5455 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757257Ab0ANUMR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2010 15:12:17 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jeff Garrett <jeff@jgarrett.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, David Airlie <airlied@linux.ie>
+To: lenb@kernel.org
+Cc: shemminger@linux-foundation.org, ming.m.lin@intel.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thursday 14 January 2010 12:46:22 am Yinghai Lu wrote:
-> On 01/13/2010 05:24 AM, Jeff Garrett wrote:
-> > On Wed, Jan 13, 2010 at 12:45:17AM -0800, Yinghai Lu wrote:
-> >> On Wed, Jan 13, 2010 at 12:44 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> >>> On Tue, Jan 12, 2010 at 9:37 PM, Jeff Garrett <jeff@jgarrett.org> wrote:
-> >>>> Took a stab at getting the right emails.  If I missed anyone, sorry...
-> >>>>
-> >>>> I have a desktop machine with a radeon HD 4850, and on recent kernels
-> >>>> the radeon driver has failed with the message "No valid linear
-> >>>> framebuffer address".  lspci on the broken configuration showed the
-> >>>> first memory region at d0000000 of the radeon card to be ignored.  dmesg
-> >>>> showed there to be a host bridge window at that address which was also
-> >>>> ignored.
+Commit 78f1699 (ACPI: processor: call _PDC early) blindly walks
+the namespace and calls _PDC on every processor object it finds.
 
-> >>> it seems HW IOH only can use [e000000 - fdffffff] under that bridge...
-> >>>
-> >>> and _CRS said the peer root bus could use [c000000 - dfffffff]
-> >>>
-> >>> could be that we need to check other register to decide if we can use
-> >>> reading from ioh reg directly.
+Unfortunately, we've discovered at least one BIOS that declares
+bogus SSDTs on processors declared in the namespace but not
+physically present.
 
-> not sure why [0xc000000 - 0xcffffff] should work with 00:07.0
-> 
-> checked with intel doc, that is out of scope to LMMIOL register...
-> 
-> really don't know how it works with your platform.
+The bogus SSDTs have both an invalid address and invalid length,
+both set to something huge (0x80000000).
 
-I wonder about that [mem 0xc0000000-0xcfffffff] range, too.  But as
-far as I can tell, we don't actually try to use that anywhere yet.
-(We assign part of that range to the 00:1c.0 bridge to bus 03, but
-I don't see any devices actually using it.)
+When the ACPI interpreter executes the Load() op on the bogus
+SSDT, we attempt to allocate memory to copy the table; the amount
+we try to allocate is determined by the length.
 
-One problem I see is that _CRS includes the [mem 0xd0000000-0xdfffffff]
-range, but intel_bus.c didn't find it.  We DO need this range for the
-Radeon, and the Radeon works with "pci=use_crs", so the host bridge must
-be routing it.
+Of course, passing a huge number to the allocator results in
+fail, and we get a warning.
 
-I think this must be a detail of the Intel host bridge, not something
-specific to Jeff's Dell system.  This problem should affect all systems
-using that host bridge.
+The fix is to ensure each processor is physically present before
+attempting to call its _PDC method.
 
-  PCI: MMCONFIG for domain 0000 [bus 00-ff] at [mem 0xe0000000-0xefffffff] (base 0xe0000000)
+Fixes:
+	http://bugzilla.kernel.org/show_bug.cgi?id=14954
 
-  ACPI: PCI Root Bridge [PCI0] (0000:00)
-  pci_root PNP0A08:00: host bridge window [mem 0xc0000000-0xdfffffff]
-  pci_root PNP0A08:00: host bridge window [mem 0xf0000000-0xfed8ffff]
-
-  IOH bus: [00, fb]
-  IOH bus: 00 index 1 mmio: [e0000000, fdffffff]
-
-  pci 0000:00:07.0: PCI bridge to [bus 04-04]
-  pci 0000:00:07.0:   bridge window [mem 0xd0000000-0xdfffffff 64bit pref]
-  pci 0000:04:00.0: reg 10: [mem 0xd0000000-0xdfffffff 64bit pref]
-
-Another problem is that intel_bus.c didn't remove the MMCONFIG region
-[mem 0xe0000000-0xefffffff] from the window.  I think there's code there
-to do that, but there must be something wrong with it.
-
-Bjorn
+Reported-and-tested-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Ling Min <ming.m.lin@intel.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
+---
+ drivers/acpi/processor_core.c |  163 -------------------------------------
+ drivers/acpi/processor_pdc.c  |  183 ++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/processor.h      |    8 +
+ 3 files changed, 192 insertions(+), 162 deletions(-)
+---
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 9863c98..11a51cc 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -357,162 +357,6 @@ static inline int acpi_processor_remove_fs(struct acpi_device *device)
+ }
+ #endif
+ 
+-/* Use the acpiid in MADT to map cpus in case of SMP */
+-
+-#ifndef CONFIG_SMP
+-static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id) { return -1; }
+-#else
+-
+-static struct acpi_table_madt *madt;
+-
+-static int map_lapic_id(struct acpi_subtable_header *entry,
+-		 u32 acpi_id, int *apic_id)
+-{
+-	struct acpi_madt_local_apic *lapic =
+-		(struct acpi_madt_local_apic *)entry;
+-	if ((lapic->lapic_flags & ACPI_MADT_ENABLED) &&
+-	    lapic->processor_id == acpi_id) {
+-		*apic_id = lapic->id;
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+-static int map_x2apic_id(struct acpi_subtable_header *entry,
+-			 int device_declaration, u32 acpi_id, int *apic_id)
+-{
+-	struct acpi_madt_local_x2apic *apic =
+-		(struct acpi_madt_local_x2apic *)entry;
+-	u32 tmp = apic->local_apic_id;
+-
+-	/* Only check enabled APICs*/
+-	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
+-		return 0;
+-
+-	/* Device statement declaration type */
+-	if (device_declaration) {
+-		if (apic->uid == acpi_id)
+-			goto found;
+-	}
+-
+-	return 0;
+-found:
+-	*apic_id = tmp;
+-	return 1;
+-}
+-
+-static int map_lsapic_id(struct acpi_subtable_header *entry,
+-		int device_declaration, u32 acpi_id, int *apic_id)
+-{
+-	struct acpi_madt_local_sapic *lsapic =
+-		(struct acpi_madt_local_sapic *)entry;
+-	u32 tmp = (lsapic->id << 8) | lsapic->eid;
+-
+-	/* Only check enabled APICs*/
+-	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+-		return 0;
+-
+-	/* Device statement declaration type */
+-	if (device_declaration) {
+-		if (entry->length < 16)
+-			printk(KERN_ERR PREFIX
+-			    "Invalid LSAPIC with Device type processor (SAPIC ID %#x)\n",
+-			    tmp);
+-		else if (lsapic->uid == acpi_id)
+-			goto found;
+-	/* Processor statement declaration type */
+-	} else if (lsapic->processor_id == acpi_id)
+-		goto found;
+-
+-	return 0;
+-found:
+-	*apic_id = tmp;
+-	return 1;
+-}
+-
+-static int map_madt_entry(int type, u32 acpi_id)
+-{
+-	unsigned long madt_end, entry;
+-	int apic_id = -1;
+-
+-	if (!madt)
+-		return apic_id;
+-
+-	entry = (unsigned long)madt;
+-	madt_end = entry + madt->header.length;
+-
+-	/* Parse all entries looking for a match. */
+-
+-	entry += sizeof(struct acpi_table_madt);
+-	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+-		struct acpi_subtable_header *header =
+-			(struct acpi_subtable_header *)entry;
+-		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+-			if (map_lapic_id(header, acpi_id, &apic_id))
+-				break;
+-		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+-			if (map_x2apic_id(header, type, acpi_id, &apic_id))
+-				break;
+-		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+-			if (map_lsapic_id(header, type, acpi_id, &apic_id))
+-				break;
+-		}
+-		entry += header->length;
+-	}
+-	return apic_id;
+-}
+-
+-static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+-{
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	union acpi_object *obj;
+-	struct acpi_subtable_header *header;
+-	int apic_id = -1;
+-
+-	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+-		goto exit;
+-
+-	if (!buffer.length || !buffer.pointer)
+-		goto exit;
+-
+-	obj = buffer.pointer;
+-	if (obj->type != ACPI_TYPE_BUFFER ||
+-	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
+-		goto exit;
+-	}
+-
+-	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+-	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+-		map_lapic_id(header, acpi_id, &apic_id);
+-	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+-		map_lsapic_id(header, type, acpi_id, &apic_id);
+-	}
+-
+-exit:
+-	if (buffer.pointer)
+-		kfree(buffer.pointer);
+-	return apic_id;
+-}
+-
+-static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id)
+-{
+-	int i;
+-	int apic_id = -1;
+-
+-	apic_id = map_mat_entry(handle, type, acpi_id);
+-	if (apic_id == -1)
+-		apic_id = map_madt_entry(type, acpi_id);
+-	if (apic_id == -1)
+-		return apic_id;
+-
+-	for_each_possible_cpu(i) {
+-		if (cpu_physical_id(i) == apic_id)
+-			return i;
+-	}
+-	return -1;
+-}
+-#endif
+-
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -577,7 +421,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		device_declaration = 1;
+ 		pr->acpi_id = value;
+ 	}
+-	cpu_index = get_cpu_id(pr->handle, device_declaration, pr->acpi_id);
++	cpu_index = acpi_get_cpuid(pr->handle, device_declaration, pr->acpi_id);
+ 
+ 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+ 	if (!cpu0_initialized && (cpu_index == -1) &&
+@@ -1071,11 +915,6 @@ static int __init acpi_processor_init(void)
+ 
+ 	memset(&errata, 0, sizeof(errata));
+ 
+-#ifdef CONFIG_SMP
+-	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+-				(struct acpi_table_header **)&madt)))
+-		madt = NULL;
+-#endif
+ #ifdef CONFIG_ACPI_PROCFS
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
+index 30e4dc0..9da0635 100644
+--- a/drivers/acpi/processor_pdc.c
++++ b/drivers/acpi/processor_pdc.c
+@@ -42,6 +42,186 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
+ 	{},
+ };
+ 
++#ifdef CONFIG_SMP
++static int map_lapic_id(struct acpi_subtable_header *entry,
++		 u32 acpi_id, int *apic_id)
++{
++	struct acpi_madt_local_apic *lapic;
++
++	lapic = (struct acpi_madt_local_apic *)entry;
++	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
++		return 0;
++
++	if (lapic->processor_id != acpi_id)
++		return 0;
++
++	*apic_id = lapic->id;
++	return 1;
++}
++
++static int map_x2apic_id(struct acpi_subtable_header *entry,
++			 int device_declaration, u32 acpi_id, int *apic_id)
++{
++	struct acpi_madt_local_x2apic *lx2apic;
++
++	lx2apic = (struct acpi_madt_local_x2apic *)entry;
++	if (!(lx2apic->lapic_flags & ACPI_MADT_ENABLED))
++		return 0;
++
++	if (!device_declaration || (lx2apic->uid != acpi_id))
++		return 0;
++
++	*apic_id = lx2apic->local_apic_id;
++	return 1;
++}
++
++static int map_lsapic_id(struct acpi_subtable_header *entry,
++		int device_declaration, u32 acpi_id, int *apic_id)
++{
++	struct acpi_madt_local_sapic *lsapic;
++
++	lsapic = (struct acpi_madt_local_sapic *)entry;
++	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
++		return 0;
++
++	if (device_declaration) {
++		if ((entry->length < 16) || (lsapic->uid != acpi_id))
++			return 0;
++	} else if (lsapic->processor_id != acpi_id)
++			return 0;
++
++	*apic_id = (lsapic->id << 8) | lsapic->eid;
++	return 1;
++}
++
++static int map_madt_entry(int type, u32 acpi_id)
++{
++	unsigned long madt_end, entry;
++	struct acpi_subtable_header *header;
++	static struct acpi_table_madt *madt;
++	static int read_madt;
++	int apic_id = -1;
++
++	if (!read_madt) {
++		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
++					(struct acpi_table_header **)&madt)))
++			madt = NULL;
++		read_madt++;
++	}
++
++	if (!madt)
++		return apic_id;
++
++	entry = (unsigned long)madt;
++	madt_end = entry + madt->header.length;
++
++	entry += sizeof(struct acpi_table_madt);
++	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
++		header = (struct acpi_subtable_header *)entry;
++
++		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
++			if (map_lapic_id(header, acpi_id, &apic_id))
++				break;
++		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
++			if (map_x2apic_id(header, type, acpi_id, &apic_id))
++				break;
++		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
++			if (map_lsapic_id(header, type, acpi_id, &apic_id))
++				break;
++		}
++		entry += header->length;
++	}
++	return apic_id;
++}
++
++static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *obj;
++	struct acpi_subtable_header *header;
++	int apic_id = -1;
++
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
++		goto exit;
++
++	if (!buffer.length || !buffer.pointer)
++		goto exit;
++
++	obj = buffer.pointer;
++	if (obj->type != ACPI_TYPE_BUFFER ||
++	    obj->buffer.length < sizeof(struct acpi_subtable_header))
++		goto exit;
++
++	header = (struct acpi_subtable_header *)obj->buffer.pointer;
++	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
++		map_lapic_id(header, acpi_id, &apic_id);
++	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
++		map_lsapic_id(header, type, acpi_id, &apic_id);
++
++exit:
++	kfree(buffer.pointer);
++	return apic_id;
++}
++
++int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
++{
++	int i;
++	int apic_id = -1;
++
++	apic_id = map_mat_entry(handle, type, acpi_id);
++	if (apic_id == -1)
++		apic_id = map_madt_entry(type, acpi_id);
++	if (apic_id == -1)
++		return apic_id;
++
++	for_each_possible_cpu(i)
++		if (cpu_physical_id(i) == apic_id)
++			return i;
++	return -1;
++}
++EXPORT_SYMBOL_GPL(acpi_get_cpuid);
++#endif
++
++static bool processor_physically_present(acpi_handle handle)
++{
++	int cpuid, type;
++	u32 acpi_id;
++	acpi_status status;
++	acpi_object_type acpi_type;
++	unsigned long long tmp;
++	union acpi_object object = { 0 };
++	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
++
++	status = acpi_get_type(handle, &acpi_type);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = object.processor.proc_id;
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = tmp;
++		break;
++	default:
++		return false;
++	}
++
++	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++	cpuid = acpi_get_cpuid(handle, type, acpi_id);
++
++	if (cpuid == -1)
++		return false;
++
++	return true;
++}
++
+ static void acpi_set_pdc_bits(u32 *buf)
+ {
+ 	buf[0] = ACPI_PDC_REVISION_ID;
+@@ -147,6 +327,9 @@ EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
+ static acpi_status
+ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
++	if (processor_physically_present(handle) == false)
++		return AE_OK;
++
+ 	acpi_processor_set_pdc(handle);
+ 	return AE_OK;
+ }
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 0ea5ef4..71901a5 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -322,6 +322,14 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ 
+ /* in processor_pdc.c */
+ void acpi_processor_set_pdc(acpi_handle handle);
++#ifdef CONFIG_SMP
++int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
++#else
++static inline int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id)
++{
++	return -1;
++}
++#endif
+ 
+ /* in processor_throttling.c */
+ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
