@@ -1,183 +1,112 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] x86/pci: intel ioh need to subtract mmconf range
-Date: Fri, 15 Jan 2010 10:14:17 -0800
-Message-ID: <20100115101417.2dd32462@jbarnes-piketon>
-References: <20100113053736.GA6720@jgarrett.org>
-	<201001141609.19290.bjorn.helgaas@hp.com>
-	<4B4FAAE0.7080608@kernel.org>
-	<201001141649.08554.bjorn.helgaas@hp.com>
-	<4B4FB931.7020301@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/4] ACPI: Battery: Add bit flags
+Date: Fri, 15 Jan 2010 16:59:01 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001151658080.10250@localhost.localdomain>
+References: <20091015103122.3853.34760.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4B4FB931.7020301@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jeff Garrett <jeff@jgarrett.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, David Airlie <airlied@linux.ie>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:48030 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752025Ab0AOV7S (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 15 Jan 2010 16:59:18 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KWB00FN36EF4I13@vms173001.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Fri, 15 Jan 2010 15:59:15 -0600 (CST)
+In-reply-to: <20091015103122.3853.34760.stgit@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-On Thu, 14 Jan 2010 16:39:13 -0800
-Yinghai Lu <yinghai@kernel.org> wrote:
+applied to acpi-test as below -- with the checkpatch issues fixed...
 
-> On 01/14/2010 03:49 PM, Bjorn Helgaas wrote:
-> > On Thursday 14 January 2010 04:38:08 pm Yinghai Lu wrote:
-> >> On 01/14/2010 03:09 PM, Bjorn Helgaas wrote:
-> >>> On Thursday 14 January 2010 03:46:35 pm Yinghai Lu wrote:
-> >>>>
-> >>>> Bjorn pointed out we need to remove mmconf range
-> >>>>
-> >>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> >>>>
-> >>>> ---
-> >>>>  arch/x86/pci/intel_bus.c |   29 +++++++++++++++++++++++++++--
-> >>>>  1 file changed, 27 insertions(+), 2 deletions(-)
-> >>>>
-> >>>> Index: linux-2.6/arch/x86/pci/intel_bus.c
-> >>>> ===================================================================
-> >>>> --- linux-2.6.orig/arch/x86/pci/intel_bus.c
-> >>>> +++ linux-2.6/arch/x86/pci/intel_bus.c
-> >>>> @@ -46,6 +46,20 @@ static inline void print_ioh_resources(s
-> >>>>  
-> >>>>  #define RANGE_NUM 16
-> >>>>  
-> >>>> +static void __devinit subtract_mmconf(struct range *range, int
-> >>>> nr) +{
-> >>>> +#ifdef CONFIG_PCI_MMCONFIG
-> >>>> +	struct pci_mmcfg_region *cfg;
-> >>>> +
-> >>>> +	if (list_empty(&pci_mmcfg_list))
-> >>>> +		return;
-> >>>> +
-> >>>> +        list_for_each_entry(cfg, &pci_mmcfg_list, list)
-> >>>> +		subtract_range(range, nr, cfg->res.start,
-> >>>> +			 cfg->res.end + 1);
-> >>>> +#endif
-> >>>
-> >>> This can't be right, can it?  Let's say the kernel was built with
-> >>> CONFIG_PCI_MMCONFIG turned off, or the user used "pci=nommconf",
-> >>> or the kernel decides not to use MMCONFIG for some other reason.
-> >>>
-> >>> In that case, the hardware may still be configured to support
-> >>> MMCONFIG, but the pci_mmcfg_list will be empty, so your code will
-> >>> leave the window alone.  We might assign some of that MMCONFIG
-> >>> space to a device, but the hardware will route it to MMCONFIG,
-> >>> not to the device.
-> >>
-> >> so if there is mmconf specified, we just skip the whole function?
-> > 
-> > No, I'm saying that intel-bus.c must ALWAYS remove the MMCONFIG
-> > region from the host bridge apertures, even if Linux isn't using
-> > MMCONFIG.
-> > 
-> > That means intel-bus.c has to be smart enough to figure out on its
-> > own what the MMCONFIG area is.  It can't depend on mmconfig-shared.c
-> > to do it, because mmconfig-shared.c might not be there.
-> 
-> that seems go too far away...
-> 
-> Subject: [PATCH -v2] x86/pci: intel ioh need to subtrac mmconf range
-> 
-> Bjorn pointed out we need to remove mmconf range
-> 
-> -v2: if mmconf is not there, get out early.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  arch/x86/pci/Makefile    |    3 ++-
->  arch/x86/pci/intel_bus.c |   30 ++++++++++++++++++++++++++++--
->  2 files changed, 30 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/pci/intel_bus.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/pci/intel_bus.c
-> +++ linux-2.6/arch/x86/pci/intel_bus.c
-> @@ -46,6 +46,18 @@ static inline void print_ioh_resources(s
->  
->  #define RANGE_NUM 16
->  
-> +static void __devinit subtract_mmconf(struct range *range, int nr)
-> +{
-> +	struct pci_mmcfg_region *cfg;
-> +
-> +	if (list_empty(&pci_mmcfg_list))
-> +		return;
-> +
-> +        list_for_each_entry(cfg, &pci_mmcfg_list, list)
-> +		subtract_range(range, nr, cfg->res.start,
-> +			 cfg->res.end + 1);
-> +}
-> +
->  static void __devinit pci_root_bus_res(struct pci_dev *dev)
->  {
->  	u16 word;
-> @@ -58,6 +70,9 @@ static void __devinit pci_root_bus_res(s
->  	struct range range[RANGE_NUM];
->  	int i;
->  
-> +	if (list_empty(&pci_mmcfg_list))
-> +		return;
-> +
->  	/* some sys doesn't get mmconf enabled */
->  	if (dev->cfg_size < 0x200)
->  		return;
-> @@ -96,6 +111,7 @@ static void __devinit pci_root_bus_res(s
->  
->  		subtract_range(range, RANGE_NUM, vt_base, vt_end +
-> 1); }
-> +	subtract_mmconf(range, RANGE_NUM);
->  	for (i = 0; i < RANGE_NUM; i++) {
->  		if (!range[i].end)
->  			continue;
-> @@ -112,8 +128,18 @@ static void __devinit pci_root_bus_res(s
->  	mmioh_base |= ((u64)(dword & 0x7ffff)) << 32;
->  	pci_read_config_dword(dev, IOH_LMMIOH_LIMITU, &dword);
->  	mmioh_end |= ((u64)(dword & 0x7ffff)) << 32;
-> -	update_res(info, cap_resource(mmioh_base),
-> cap_resource(mmioh_end),
-> -			 IORESOURCE_MEM, 0);
-> +	memset(range, 0, sizeof(range));
-> +	add_range(range, RANGE_NUM, 0, mmioh_base, mmioh_end + 1);
-> +	/* mmconf could be above 4g */
-> +	subtract_mmconf(range, RANGE_NUM);
-> +	for (i = 0; i < RANGE_NUM; i++) {
-> +		if (!range[i].end)
-> +			continue;
-> +
-> +		update_res(info, cap_resource(range[i].start),
-> +			   cap_resource(range[i].end - 1),
-> +			   IORESOURCE_MEM, 0);
-> +	}
->  
->  	print_ioh_resources(info);
->  }
-> Index: linux-2.6/arch/x86/pci/Makefile
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/pci/Makefile
-> +++ linux-2.6/arch/x86/pci/Makefile
-> @@ -14,7 +14,8 @@ obj-$(CONFIG_X86_VISWS)		+= visws.o
->  obj-$(CONFIG_X86_NUMAQ)		+= numaq_32.o
->  
->  obj-y				+= common.o early.o
-> -obj-y				+= amd_bus.o bus_numa.o
-> intel_bus.o +obj-y				+= amd_bus.o
-> bus_numa.o +obj-$(CONFIG_PCI_MMCONFIG)	+= intel_bus.o
->  
->  ifeq ($(CONFIG_PCI_DEBUG),y)
->  EXTRA_CFLAGS += -DDEBUG
-> 
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-This goes against the real intent of intel_bus.c doesn't it?  When we
-first added it, the thought was that it would be a purely native way of
-getting at bridge window information and not rely on firmware.  If
-you're going to make it dependent on MMCONFIG now, why not trust other
-firmware tables as well, like _CRS?
+commit 7b3bcc4a1a7cd2d53b403ca29d06ceb5fa617eb7
+Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+Date:   Thu Oct 15 14:31:24 2009 +0400
 
-The MMCONFIG ranges are pretty easy to get at, the public docs have
-info about the registers that control the MMCONFIG decode ranges, so
-you should be able to read them out and add them to this file,
-preserving the original intent.
+    ACPI: Battery: Add bit flags
+    
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index cada73f..b2b48f8 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -88,10 +88,13 @@ static const struct acpi_device_id battery_device_ids[] = {
+ 
+ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+ 
+-/* For buggy DSDTs that report negative 16-bit values for either charging
+- * or discharging current and/or report 0 as 65536 due to bad math.
+- */
+-#define QUIRK_SIGNED16_CURRENT 0x0001
++enum {
++	ACPI_BATTERY_ALARM_PRESENT,
++	/* For buggy DSDTs that report negative 16-bit values for either charging
++	* or discharging current and/or report 0 as 65536 due to bad math.
++	*/
++	ACPI_BATTERY_QUIRK_SIGNED16_CURRENT,
++};
+ 
+ struct acpi_battery {
+ 	struct mutex lock;
+@@ -118,8 +121,7 @@ struct acpi_battery {
+ 	char oem_info[32];
+ 	int state;
+ 	int power_unit;
+-	u8 alarm_present;
+-	long quirks;
++	unsigned long flags;
+ };
+ 
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+@@ -399,7 +401,7 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 	battery->update_time = jiffies;
+ 	kfree(buffer.pointer);
+ 
+-	if ((battery->quirks & QUIRK_SIGNED16_CURRENT) &&
++	if (test_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags) &&
+ 	    battery->rate_now != -1)
+ 		battery->rate_now = abs((s16)battery->rate_now);
+ 
+@@ -412,7 +414,8 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
+ 	union acpi_object arg0 = { .type = ACPI_TYPE_INTEGER };
+ 	struct acpi_object_list arg_list = { 1, &arg0 };
+ 
+-	if (!acpi_battery_present(battery)|| !battery->alarm_present)
++	if (!acpi_battery_present(battery)||
++	    !test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
+ 		return -ENODEV;
+ 
+ 	arg0.integer.value = battery->alarm;
+@@ -437,10 +440,10 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
+ 	/* See if alarms are supported, and if so, set default */
+ 	status = acpi_get_handle(battery->device->handle, "_BTP", &handle);
+ 	if (ACPI_FAILURE(status)) {
+-		battery->alarm_present = 0;
++		clear_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags);
+ 		return 0;
+ 	}
+-	battery->alarm_present = 1;
++	set_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags);
+ 	if (!battery->alarm)
+ 		battery->alarm = battery->design_capacity_warning;
+ 	return acpi_battery_set_alarm(battery);
+@@ -510,9 +513,8 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 
+ static void acpi_battery_quirks(struct acpi_battery *battery)
+ {
+-	battery->quirks = 0;
+ 	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
+-		battery->quirks |= QUIRK_SIGNED16_CURRENT;
++		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+ 	}
+ }
+ 
