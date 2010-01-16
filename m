@@ -1,12 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/16] ACPI: don't cond_resched if irq is disabled
-Date: Sat, 16 Jan 2010 02:33:00 -0500
-Message-ID: <c084ca704a3661bf77690a05bc6bd2c305d87c34.1263627123.git.len.brown@intel.com>
+Subject: [PATCH 16/16] ACPI: Fix section mismatch error for
+ acpi_early_processor_set_pdc()
+Date: Sat, 16 Jan 2010 02:33:06 -0500
+Message-ID: <7a0b73a49ab56fb1e836675c00d6d0d2ba39a714.1263627123.git.len.brown@intel.com>
 References: <1263627186-21384-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173009pub.verizon.net ([206.46.173.9]:58800 "EHLO
 	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751922Ab0APHef (ORCPT
+	with ESMTP id S1751909Ab0APHef (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 02:34:35 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173009.mailsrvcs.net
@@ -19,42 +20,47 @@ References: <a62e8f1978f49e52f87a711ff6711b323d4b12ff.1263627123.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Xiaotian Feng <dfeng@redhat.com>, Len Brown <len.brown@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Xiaotian Feng <dfeng@redhat.com>
+From: Luck, Tony <tony.luck@intel.com>
 
-commit 8bd108d adds preemption point after each opcode parse, then
-a sleeping function called from invalid context bug was founded
-during suspend/resume stage. this was fixed in commit abe1dfa by
-don't cond_resched when irq_disabled. But recent commit 138d156 changes
-the behaviour to don't cond_resched when in_atomic. This makes the
-sleeping function called from invalid context bug happen again, which
-is reported in http://lkml.org/lkml/2009/12/1/371.
+Alex Chiang introduced acpi_early_processor_set_pdc() in commit:
+ ACPI: processor: call _PDC early
+ 78f1699659963fff97975df44db6d5dbe7218e55
 
-This patch also fixes http://bugzilla.kernel.org/show_bug.cgi?id=14483
+But this results in a section mismatch:
 
-Reported-and-bisected-by: Larry Finger <Larry.Finger@lwfinger.net>
-Reported-and-bisected-by: Justin P. Mattock <justinmattock@gmail.com>
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+WARNING: drivers/acpi/acpi.o(.text+0xa9c1): Section mismatch in reference from the
+function acpi_early_processor_set_pdc() to the variable .cpuinit.data:processor_idle_dmi_table
+The function acpi_early_processor_set_pdc() references
+the variable __cpuinitdata processor_idle_dmi_table.
+This is often because acpi_early_processor_set_pdc lacks a __cpuinitdata
+annotation or the annotation of processor_idle_dmi_table is wrong.
+
+The only caller of acpi_early_processor_set_pdc() is acpi_bus_init() which
+is an "__init" function. So the correct fix here is to mark
+acpi_early_processor_set_pdc() "__init" too.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/platform/aclinux.h |    2 +-
+ drivers/acpi/processor_pdc.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 9d7febd..0946997 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- #include <linux/hardirq.h>
- #define ACPI_PREEMPTION_POINT() \
- 	do { \
--		if (!in_atomic_preempt_off()) \
-+		if (!in_atomic_preempt_off() && !irqs_disabled()) \
- 			cond_resched(); \
- 	} while (0)
+diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
+index 30e4dc0..7d4ee39 100644
+--- a/drivers/acpi/processor_pdc.c
++++ b/drivers/acpi/processor_pdc.c
+@@ -151,7 +151,7 @@ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK;
+ }
  
+-void acpi_early_processor_set_pdc(void)
++void __init acpi_early_processor_set_pdc(void)
+ {
+ 	/*
+ 	 * Check whether the system is DMI table. If yes, OSPM
 -- 
 1.6.0.6
 
