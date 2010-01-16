@@ -1,23 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] drivers/acpi: Remove unnecessary cast
-Date: Fri, 15 Jan 2010 23:06:51 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001152306470.10250@localhost.localdomain>
-References: <201001081112.41469.hartleys@visionengravers.com>
+Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
+Date: Sat, 16 Jan 2010 01:44:44 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001160143400.10250@localhost.localdomain>
+References: <20091210100907.GA2446@ucw.cz>
+ <1260446205-16868-1-git-send-email-dfeng@redhat.com>
+ <4B20E7B2.1010208@suse.de> <1260510373.10543.17.camel@minggr.sh.intel.com>
+ <4B223185.80202@suse.de> <20091211161549.GA15760@elf.ucw.cz>
+ <4B227275.5010201@gmail.com> <20091211173424.GC15760@elf.ucw.cz>
+ <4B3849F6.1080403@redhat.com> <4B3892A1.9010303@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1255383802-1263624285=:10250"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:65238 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512Ab0APEG5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jan 2010 23:06:57 -0500
-In-reply-to: <201001081112.41469.hartleys@visionengravers.com>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:56930 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab0APGo6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 01:44:58 -0500
+In-reply-to: <4B3892A1.9010303@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, rui.zhang@intel.com
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Xiaotian Feng <dfeng@redhat.com>, Pavel Machek <pavel@ucw.cz>, Alexey Starikovskiy <aystarik@gmail.com>, Lin Ming <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-applied
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--8323328-1255383802-1263624285=:10250
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+
+On Mon, 28 Dec 2009, Alexey Starikovskiy wrote:
+
+> Xiaotian Feng пишет:
+
+> > What's the status of this now? We can still see the sleeping function
+> > call warning or enable irq at resume stage.
+> > If acpi wants low latency even for !CONFIG_PREEMPT kernels, what's wrong
+> > with V2 patch?
+> > 
+> > We should not set any preemption points in irq or atomic. Since we have
+> > a simple fix, and it did fix bugs, why should
+> > we make things more complex?
+
+> We should not do anything complex here, you are right.
+> Consider me ACK your patch.
+
+This patch has been in the acpi-test tree for a while
+and I'll push it upstream with the next batch.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
 
+--8323328-1255383802-1263624285=:10250--
