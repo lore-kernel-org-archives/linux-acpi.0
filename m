@@ -1,51 +1,78 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/16] ACPI: Remove unnecessary cast.
-Date: Sat, 16 Jan 2010 02:32:59 -0500
-Message-ID: <070a24f4d238612bede515023893b18f494774c4.1263627123.git.len.brown@intel.com>
-References: <1263627186-21384-1-git-send-email-lenb@kernel.org>
+Subject: [PATCH 2/8] sony-laptop - simplify keymap initialization
+Date: Sat, 16 Jan 2010 02:34:10 -0500
+Message-ID: <c45bc9d62c39202b401d1bf7bb2812abb88798a1.1263627201.git.len.brown@intel.com>
+References: <1263627256-21501-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:50147 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799Ab0APHd0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 02:33:26 -0500
+Received: from vms173011pub.verizon.net ([206.46.173.11]:33535 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288Ab0APHeT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 02:34:19 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173003.mailsrvcs.net
+ by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KWB0026HWZDKQ47@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 01:33:19 -0600 (CST)
-In-reply-to: <1263627186-21384-1-git-send-email-lenb@kernel.org>
-In-reply-to: <a62e8f1978f49e52f87a711ff6711b323d4b12ff.1263627123.git.len.brown@intel.com>
-References: <a62e8f1978f49e52f87a711ff6711b323d4b12ff.1263627123.git.len.brown@intel.com>
+ with ESMTPA id <0KWB00JD7X16MRX0@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 01:34:19 -0600 (CST)
+In-reply-to: <1263627256-21501-1-git-send-email-lenb@kernel.org>
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1263627201.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1263627201.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Len Brown <len.brown@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-The struct seq_file 'private' member is a void *, the cast is not needed.
-Also, remove an extra whitespace line.
+Also use input_set_capability() helper instead of manipulating
+bits directly.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_thermal.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 140c5c5..6deafb4 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -443,8 +443,7 @@ struct thermal_cooling_device_ops processor_cooling_ops = {
- #ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
- {
--	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
--
-+	struct acpi_processor *pr = seq->private;
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index c42d35b..b7aa959 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -419,18 +419,15 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 	key_dev->dev.parent = &acpi_device->dev;
  
- 	if (!pr)
- 		goto end;
+ 	/* Initialize the Input Drivers: special keys */
+-	set_bit(EV_KEY, key_dev->evbit);
+-	set_bit(EV_MSC, key_dev->evbit);
+-	set_bit(MSC_SCAN, key_dev->mscbit);
++	input_set_capability(key_dev, EV_MSC, MSC_SCAN);
++
++	__set_bit(EV_KEY, key_dev->evbit);
+ 	key_dev->keycodesize = sizeof(sony_laptop_input_keycode_map[0]);
+ 	key_dev->keycodemax = ARRAY_SIZE(sony_laptop_input_keycode_map);
+ 	key_dev->keycode = &sony_laptop_input_keycode_map;
+-	for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++) {
+-		if (sony_laptop_input_keycode_map[i] != KEY_RESERVED) {
+-			set_bit(sony_laptop_input_keycode_map[i],
+-				key_dev->keybit);
+-		}
+-	}
++	for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++)
++		__set_bit(sony_laptop_input_keycode_map[i], key_dev->keybit);
++	__clear_bit(KEY_RESERVED, key_dev->keybit);
+ 
+ 	error = input_register_device(key_dev);
+ 	if (error)
+@@ -450,9 +447,8 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
+ 	key_dev->dev.parent = &acpi_device->dev;
+ 
+-	jog_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
+-	jog_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_MIDDLE);
+-	jog_dev->relbit[0] = BIT_MASK(REL_WHEEL);
++	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
++	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
+ 
+ 	error = input_register_device(jog_dev);
+ 	if (error)
 -- 
 1.6.0.6
 
