@@ -1,35 +1,29 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: ACPI & driver patch candidates for 2.6.34
-Date: Sat, 16 Jan 2010 12:06:57 +0000
-Message-ID: <201001161206.57741.carlos@strangeworlds.co.uk>
-References: <1263627256-21501-1-git-send-email-lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] sony-laptop - fix using of uninitialized variable
+Date: Sat, 16 Jan 2010 15:55:49 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001161555460.7124@localhost.localdomain>
+References: <20100110081544.GD16057@core.coreip.homeip.net>
+ <20100110105220.GB2837@kamineko.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:57119 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365Ab0APMHI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 07:07:08 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so296022eyd.19
-        for <linux-acpi@vger.kernel.org>; Sat, 16 Jan 2010 04:07:07 -0800 (PST)
-In-Reply-To: <1263627256-21501-1-git-send-email-lenb@kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:63805 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750783Ab0APU4K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 15:56:10 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KWC00E67Y53R1D0@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 14:55:54 -0600 (CST)
+In-reply-to: <20100110105220.GB2837@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org
 
-On Saturday 16 January 2010 07:34:08 Len Brown wrote:
-> here is the current queue for 2.6.34
+applied
 
-"acer-wmi: Respect current backlight level when loading" [0] appears to have 
-fallen down the back of the sofa.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-[0] http://patchwork.kernel.org/patch/69797/
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
