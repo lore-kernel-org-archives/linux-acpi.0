@@ -1,33 +1,28 @@
 From: Len Brown <lenb@kernel.org>
-Subject: RE: [PATCH] ACPICA: don't cond_resched() when irq_disabled or in_atomic
-Date: Sat, 16 Jan 2010 01:46:27 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001160145090.10250@localhost.localdomain>
-References: <1259900760-6424-1-git-send-email-dfeng@redhat.com>
- <20091210100907.GA2446@ucw.cz> <4B2136D5.1030402@gmail.com>
- <20091210181800.GM19454@elf.ucw.cz> <4B214007.2080409@gmail.com>
- <4B217A2A.2040708@gmail.com>
- <4911F71203A09E4D9981D27F9D83085840F38881@orsmsx503.amr.corp.intel.com>
+Subject: Re: [PATCH 0/5] eeepc-laptop updates for 2.6.33-rc4
+Date: Sat, 16 Jan 2010 01:58:23 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001160157360.10250@localhost.localdomain>
+References: <1262812061-4119-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:54658 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab0APGqp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 01:46:45 -0500
-In-reply-to: <4911F71203A09E4D9981D27F9D83085840F38881@orsmsx503.amr.corp.intel.com>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:60740 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751237Ab0APG60 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 01:58:26 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KWB009H1VDCGNP1@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 00:58:25 -0600 (CST)
+In-reply-to: <1262812061-4119-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Justin P. Mattock" <justinmattock@gmail.com>, Alexey Starikovskiy <aystarik@gmail.com>, Pavel Machek <pavel@ucw.cz>, Xiaotian Feng <dfeng@redhat.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 10 Dec 2009, Moore, Robert wrote:
-
-> Let me know when you guys have finalized any changes to aclinux.h, and I will update this file in the base ACPICA code.
-
-I think the v2 patch will go upstream.
-Not super-critical to have ACPICA sync with Linux's aclinux.h,
-since Linux has it already, but good hygine, I guess.
+changes getting pretty large for -rc4,
+but as they are driver specific, forgivness granted:-)
 
 thanks,
--Len Brown, Intel Open Source Technology Center
-
+Len Brown, Intel Open Source Technology Center
