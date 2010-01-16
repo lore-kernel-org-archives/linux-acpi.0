@@ -1,179 +1,444 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 1/8] sony-laptop - remove private workqueue, use keventd instead
-Date: Sat, 16 Jan 2010 02:34:09 -0500
-Message-ID: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1263627201.git.len.brown@intel.com>
+Subject: [PATCH 4/8] ACPI, IO memory pre-mapping and atomic accessing
+Date: Sat, 16 Jan 2010 02:34:12 -0500
+Message-ID: <8ae942e0093543402805a66e6ba71c30da4bcdea.1263627201.git.len.brown@intel.com>
 References: <1263627256-21501-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:34016 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898Ab0APHe3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 02:34:29 -0500
+	with ESMTP id S1751874Ab0APHea (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 02:34:30 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KWB006U4X169JDB@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 01:34:19 -0600 (CST)
+ with ESMTPA id <0KWB00DMZX17WRG0@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 Jan 2010 01:34:20 -0600 (CST)
 In-reply-to: <1263627256-21501-1-git-send-email-lenb@kernel.org>
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1263627201.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1263627201.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Huang Ying <ying.huang@intel.com>
 
-If we reschedule work instead of having work function sleep for 10 msecs
-between reads from kfifo we can safely use the main workqueue (keventd)
-and not bother with creating driver-private one.
+Some ACPI IO accessing need to be done in atomic context. For example,
+APEI ERST operations may be used for permanent storage in hardware
+error handler. That is, it may be called in atomic contexts such as
+IRQ or NMI, etc. And, ERST/EINJ implement their operations via IO
+memory/port accessing.  But the IO memory accessing method provided by
+ACPI (acpi_read/acpi_write) maps the IO memory during it is accessed,
+so it can not be used in atomic context. To solve the issue, the IO
+memory should be pre-mapped during EINJ/ERST initializing. A linked
+list is used to record which memory area has been mapped, when memory
+is accessed in hardware error handler, search the linked list for the
+mapped virtual address from the given physical address.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |   71 ++++++++++++++++++++----------------
- 1 files changed, 39 insertions(+), 32 deletions(-)
+ drivers/acpi/Makefile   |    1 +
+ drivers/acpi/atomicio.c |  360 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/atomicio.h |   10 ++
+ 3 files changed, 371 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/acpi/atomicio.c
+ create mode 100644 include/acpi/atomicio.h
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 5af5334..c42d35b 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -145,7 +145,6 @@ struct sony_laptop_input_s {
- 	struct input_dev	*key_dev;
- 	struct kfifo		fifo;
- 	spinlock_t		fifo_lock;
--	struct workqueue_struct	*wq;
- };
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 66cc3f3..3b53767 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -19,6 +19,7 @@ obj-y				+= acpi.o \
  
- static struct sony_laptop_input_s sony_laptop_input = {
-@@ -301,18 +300,28 @@ static int sony_laptop_input_keycode_map[] = {
- /* release buttons after a short delay if pressed */
- static void do_sony_laptop_release_key(struct work_struct *work)
- {
-+	struct delayed_work *dwork =
-+			container_of(work, struct delayed_work, work);
- 	struct sony_laptop_keypress kp;
-+	unsigned long flags;
+ # All the builtin files are in the "acpi." module_param namespace.
+ acpi-y				+= osl.o utils.o reboot.o
++acpi-y				+= atomicio.o
+ acpi-y				+= hest.o
+ 
+ # sleep related files
+diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+new file mode 100644
+index 0000000..4ed1385
+--- /dev/null
++++ b/drivers/acpi/atomicio.c
+@@ -0,0 +1,360 @@
++/*
++ * atomicio.c - ACPI IO memory pre-mapping/post-unmapping, then
++ * accessing in atomic context.
++ *
++ * This is used for NMI handler to access IO memory area, because
++ * ioremap/iounmap can not be used in NMI handler. The IO memory area
++ * is pre-mapped in process context and accessed in NMI handler.
++ *
++ * Copyright (C) 2009, Intel Corp.
++ *	Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
-+	spin_lock_irqsave(&sony_laptop_input.fifo_lock, flags);
- 
--	while (kfifo_out_locked(&sony_laptop_input.fifo, (unsigned char *)&kp,
--			sizeof(kp), &sony_laptop_input.fifo_lock)
--			== sizeof(kp)) {
--		msleep(10);
-+	if (kfifo_out(&sony_laptop_input.fifo,
-+		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
- 		input_report_key(kp.dev, kp.key, 0);
- 		input_sync(kp.dev);
- 	}
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/io.h>
++#include <linux/kref.h>
++#include <linux/rculist.h>
++#include <linux/interrupt.h>
++#include <acpi/atomicio.h>
 +
-+	/* If there is something in the fifo schedule next release. */
-+	if (kfifo_len(&sony_laptop_input.fifo) != 0)
-+		schedule_delayed_work(dwork, msecs_to_jiffies(10));
++#define ACPI_PFX "ACPI: "
 +
-+	spin_unlock_irqrestore(&sony_laptop_input.fifo_lock, flags);
- }
--static DECLARE_WORK(sony_laptop_release_key_work,
--		do_sony_laptop_release_key);
++static LIST_HEAD(acpi_iomaps);
++/*
++ * Used for mutual exclusion between writers of acpi_iomaps list, for
++ * synchronization between readers and writer, RCU is used.
++ */
++static DEFINE_SPINLOCK(acpi_iomaps_lock);
 +
-+static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
-+			    do_sony_laptop_release_key);
- 
- /* forward event to the input subsystem */
- static void sony_laptop_report_input_event(u8 event)
-@@ -366,13 +375,13 @@ static void sony_laptop_report_input_event(u8 event)
- 		/* we emit the scancode so we can always remap the key */
- 		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
- 		input_sync(kp.dev);
--		kfifo_in_locked(&sony_laptop_input.fifo,
--			  (unsigned char *)&kp, sizeof(kp),
--			  &sony_laptop_input.fifo_lock);
- 
--		if (!work_pending(&sony_laptop_release_key_work))
--			queue_work(sony_laptop_input.wq,
--					&sony_laptop_release_key_work);
-+		/* schedule key release */
-+		kfifo_in_locked(&sony_laptop_input.fifo,
-+				(unsigned char *)&kp, sizeof(kp),
-+				&sony_laptop_input.fifo_lock);
-+		schedule_delayed_work(&sony_laptop_release_key_work,
-+				      msecs_to_jiffies(10));
- 	} else
- 		dprintk("unknown input event %.2x\n", event);
- }
-@@ -390,27 +399,18 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 
- 	/* kfifo */
- 	spin_lock_init(&sony_laptop_input.fifo_lock);
--	error =
--	 kfifo_alloc(&sony_laptop_input.fifo, SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
-+	error = kfifo_alloc(&sony_laptop_input.fifo,
-+			    SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
- 	if (error) {
- 		printk(KERN_ERR DRV_PFX "kfifo_alloc failed\n");
- 		goto err_dec_users;
- 	}
- 
--	/* init workqueue */
--	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
--	if (!sony_laptop_input.wq) {
--		printk(KERN_ERR DRV_PFX
--				"Unable to create workqueue.\n");
--		error = -ENXIO;
--		goto err_free_kfifo;
--	}
--
- 	/* input keys */
- 	key_dev = input_allocate_device();
- 	if (!key_dev) {
- 		error = -ENOMEM;
--		goto err_destroy_wq;
-+		goto err_free_kfifo;
- 	}
- 
- 	key_dev->name = "Sony Vaio Keys";
-@@ -473,9 +473,6 @@ err_unregister_keydev:
- err_free_keydev:
- 	input_free_device(key_dev);
- 
--err_destroy_wq:
--	destroy_workqueue(sony_laptop_input.wq);
--
- err_free_kfifo:
- 	kfifo_free(&sony_laptop_input.fifo);
- 
-@@ -486,12 +483,23 @@ err_dec_users:
- 
- static void sony_laptop_remove_input(void)
- {
--	/* cleanup only after the last user has gone */
-+	struct sony_laptop_keypress kp = { NULL };
++struct acpi_iomap {
++	struct list_head list;
++	void __iomem *vaddr;
++	unsigned long size;
++	phys_addr_t paddr;
++	struct kref ref;
++};
 +
-+	/* Cleanup only after the last user has gone */
- 	if (!atomic_dec_and_test(&sony_laptop_input.users))
- 		return;
- 
--	/* flush workqueue first */
--	flush_workqueue(sony_laptop_input.wq);
-+	cancel_delayed_work_sync(&sony_laptop_release_key_work);
++/* acpi_iomaps_lock or RCU read lock must be held before calling */
++static struct acpi_iomap *__acpi_find_iomap(phys_addr_t paddr,
++					    unsigned long size)
++{
++	struct acpi_iomap *map;
 +
-+	/*
-+	 * Generate key-up events for remaining keys. Note that we don't
-+	 * need locking since nobody is adding new events to the kfifo.
-+	 */
-+	while (kfifo_out(&sony_laptop_input.fifo,
-+			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
-+		input_report_key(kp.dev, kp.key, 0);
-+		input_sync(kp.dev);
++	list_for_each_entry_rcu(map, &acpi_iomaps, list) {
++		if (map->paddr + map->size >= paddr + size &&
++		    map->paddr <= paddr)
++			return map;
 +	}
- 
- 	/* destroy input devs */
- 	input_unregister_device(sony_laptop_input.key_dev);
-@@ -502,7 +510,6 @@ static void sony_laptop_remove_input(void)
- 		sony_laptop_input.jog_dev = NULL;
- 	}
- 
--	destroy_workqueue(sony_laptop_input.wq);
- 	kfifo_free(&sony_laptop_input.fifo);
- }
- 
++	return NULL;
++}
++
++/*
++ * Atomic "ioremap" used by NMI handler, if the specified IO memory
++ * area is not pre-mapped, NULL will be returned.
++ *
++ * acpi_iomaps_lock or RCU read lock must be held before calling
++ */
++static void __iomem *__acpi_ioremap_fast(phys_addr_t paddr,
++					 unsigned long size)
++{
++	struct acpi_iomap *map;
++
++	map = __acpi_find_iomap(paddr, size);
++	if (map)
++		return map->vaddr + (paddr - map->paddr);
++	else
++		return NULL;
++}
++
++/* acpi_iomaps_lock must be held before calling */
++static void __iomem *__acpi_try_ioremap(phys_addr_t paddr,
++					unsigned long size)
++{
++	struct acpi_iomap *map;
++
++	map = __acpi_find_iomap(paddr, size);
++	if (map) {
++		kref_get(&map->ref);
++		return map->vaddr + (paddr - map->paddr);
++	} else
++		return NULL;
++}
++
++/*
++ * Used to pre-map the specified IO memory area. First try to find
++ * whether the area is already pre-mapped, if it is, increase the
++ * reference count (in __acpi_try_ioremap) and return; otherwise, do
++ * the real ioremap, and add the mapping into acpi_iomaps list.
++ */
++static void __iomem *acpi_pre_map(phys_addr_t paddr,
++				  unsigned long size)
++{
++	void __iomem *vaddr;
++	struct acpi_iomap *map;
++	unsigned long pg_sz, flags;
++	phys_addr_t pg_off;
++
++	spin_lock_irqsave(&acpi_iomaps_lock, flags);
++	vaddr = __acpi_try_ioremap(paddr, size);
++	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
++	if (vaddr)
++		return vaddr;
++
++	pg_off = paddr & PAGE_MASK;
++	pg_sz = ((paddr + size + PAGE_SIZE - 1) & PAGE_MASK) - pg_off;
++	vaddr = ioremap(pg_off, pg_sz);
++	if (!vaddr)
++		return NULL;
++	map = kmalloc(sizeof(*map), GFP_KERNEL);
++	if (!map)
++		goto err_unmap;
++	INIT_LIST_HEAD(&map->list);
++	map->paddr = pg_off;
++	map->size = pg_sz;
++	map->vaddr = vaddr;
++	kref_init(&map->ref);
++
++	spin_lock_irqsave(&acpi_iomaps_lock, flags);
++	vaddr = __acpi_try_ioremap(paddr, size);
++	if (vaddr) {
++		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
++		iounmap(map->vaddr);
++		kfree(map);
++		return vaddr;
++	}
++	list_add_tail_rcu(&map->list, &acpi_iomaps);
++	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
++
++	return vaddr + (paddr - pg_off);
++err_unmap:
++	iounmap(vaddr);
++	return NULL;
++}
++
++/* acpi_iomaps_lock must be held before calling */
++static void __acpi_kref_del_iomap(struct kref *ref)
++{
++	struct acpi_iomap *map;
++
++	map = container_of(ref, struct acpi_iomap, ref);
++	list_del_rcu(&map->list);
++}
++
++/*
++ * Used to post-unmap the specified IO memory area. The iounmap is
++ * done only if the reference count goes zero.
++ */
++static void acpi_post_unmap(phys_addr_t paddr, unsigned long size)
++{
++	struct acpi_iomap *map;
++	unsigned long flags;
++	int del;
++
++	spin_lock_irqsave(&acpi_iomaps_lock, flags);
++	map = __acpi_find_iomap(paddr, size);
++	BUG_ON(!map);
++	del = kref_put(&map->ref, __acpi_kref_del_iomap);
++	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
++
++	if (!del)
++		return;
++
++	synchronize_rcu();
++	iounmap(map->vaddr);
++	kfree(map);
++}
++
++/* In NMI handler, should set silent = 1 */
++static int acpi_check_gar(struct acpi_generic_address *reg,
++			  u64 *paddr, int silent)
++{
++	u32 width, space_id;
++
++	width = reg->bit_width;
++	space_id = reg->space_id;
++	/* Handle possible alignment issues */
++	memcpy(paddr, &reg->address, sizeof(*paddr));
++	if (!*paddr) {
++		if (!silent)
++			pr_info(ACPI_PFX FW_BUG
++			"Invalid physical address in GAR [0x%llx/%u/%u]\n",
++				*paddr, width, space_id);
++		return -EINVAL;
++	}
++
++	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
++		if (!silent)
++			pr_info(ACPI_PFX FW_BUG
++				"Invalid bit width in GAR [0x%llx/%u/%u]\n",
++				*paddr, width, space_id);
++		return -EINVAL;
++	}
++
++	if (space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
++	    space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
++		if (!silent)
++			pr_info(ACPI_PFX FW_BUG
++			"Invalid address space type in GAR [0x%llx/%u/%u]\n",
++				*paddr, width, space_id);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/* Pre-map, working on GAR */
++int acpi_pre_map_gar(struct acpi_generic_address *reg)
++{
++	u64 paddr;
++	void __iomem *vaddr;
++	int rc;
++
++	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		return 0;
++
++	rc = acpi_check_gar(reg, &paddr, 0);
++	if (rc)
++		return rc;
++
++	vaddr = acpi_pre_map(paddr, reg->bit_width / 8);
++	if (!vaddr)
++		return -EIO;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_pre_map_gar);
++
++/* Post-unmap, working on GAR */
++int acpi_post_unmap_gar(struct acpi_generic_address *reg)
++{
++	u64 paddr;
++	int rc;
++
++	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		return 0;
++
++	rc = acpi_check_gar(reg, &paddr, 0);
++	if (rc)
++		return rc;
++
++	acpi_post_unmap(paddr, reg->bit_width / 8);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_post_unmap_gar);
++
++/*
++ * Can be used in atomic (including NMI) or process context. RCU read
++ * lock can only be released after the IO memory area accessing.
++ */
++static int acpi_atomic_read_mem(u64 paddr, u64 *val, u32 width)
++{
++	void __iomem *addr;
++
++	rcu_read_lock();
++	addr = __acpi_ioremap_fast(paddr, width);
++	switch (width) {
++	case 8:
++		*val = readb(addr);
++		break;
++	case 16:
++		*val = readw(addr);
++		break;
++	case 32:
++		*val = readl(addr);
++		break;
++	case 64:
++		*val = readq(addr);
++		break;
++	default:
++		return -EINVAL;
++	}
++	rcu_read_unlock();
++
++	return 0;
++}
++
++static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
++{
++	void __iomem *addr;
++
++	rcu_read_lock();
++	addr = __acpi_ioremap_fast(paddr, width);
++	switch (width) {
++	case 8:
++		writeb(val, addr);
++		break;
++	case 16:
++		writew(val, addr);
++		break;
++	case 32:
++		writel(val, addr);
++		break;
++	case 64:
++		writeq(val, addr);
++		break;
++	default:
++		return -EINVAL;
++	}
++	rcu_read_unlock();
++
++	return 0;
++}
++
++/* GAR accessing in atomic (including NMI) or process context */
++int acpi_atomic_read(u64 *val, struct acpi_generic_address *reg)
++{
++	u64 paddr;
++	int rc;
++
++	rc = acpi_check_gar(reg, &paddr, 1);
++	if (rc)
++		return rc;
++
++	*val = 0;
++	switch (reg->space_id) {
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++		return acpi_atomic_read_mem(paddr, val, reg->bit_width);
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		return acpi_os_read_port(paddr, (u32 *)val, reg->bit_width);
++	default:
++		return -EINVAL;
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_atomic_read);
++
++int acpi_atomic_write(u64 val, struct acpi_generic_address *reg)
++{
++	u64 paddr;
++	int rc;
++
++	rc = acpi_check_gar(reg, &paddr, 1);
++	if (rc)
++		return rc;
++
++	switch (reg->space_id) {
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++		return acpi_atomic_write_mem(paddr, val, reg->bit_width);
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		return acpi_os_write_port(paddr, val, reg->bit_width);
++	default:
++		return -EINVAL;
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_atomic_write);
+diff --git a/include/acpi/atomicio.h b/include/acpi/atomicio.h
+new file mode 100644
+index 0000000..8b9fb4b
+--- /dev/null
++++ b/include/acpi/atomicio.h
+@@ -0,0 +1,10 @@
++#ifndef ACPI_ATOMIC_IO_H
++#define ACPI_ATOMIC_IO_H
++
++int acpi_pre_map_gar(struct acpi_generic_address *reg);
++int acpi_post_unmap_gar(struct acpi_generic_address *reg);
++
++int acpi_atomic_read(u64 *val, struct acpi_generic_address *reg);
++int acpi_atomic_write(u64 val, struct acpi_generic_address *reg);
++
++#endif
 -- 
 1.6.0.6
 
