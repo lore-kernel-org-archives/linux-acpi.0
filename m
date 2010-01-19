@@ -1,39 +1,110 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Boston Linux Power Management Mini-summit - August 9th, 2010
-Date: Tue, 19 Jan 2010 22:13:39 +0100
-Message-ID: <201001192213.39747.rjw@sisk.pl>
-References: <alpine.LFD.2.00.1001181311040.4030@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] x86/pci: intel ioh need to subtract mmconf range
+Date: Tue, 19 Jan 2010 15:52:02 -0700
+Message-ID: <201001191552.03274.bjorn.helgaas@hp.com>
+References: <20100113053736.GA6720@jgarrett.org> <20100119194228.GA13570@jgarrett.org> <4B560EB3.4090604@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57830 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755737Ab0ASVNZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jan 2010 16:13:25 -0500
-In-Reply-To: <alpine.LFD.2.00.1001181311040.4030@localhost.localdomain>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:17791 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab0ASWwJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2010 17:52:09 -0500
+In-Reply-To: <4B560EB3.4090604@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jeff Garrett <jeff@jgarrett.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, David Airlie <airlied@linux.ie>
 
-On Tuesday 19 January 2010, Len Brown wrote:
-> We will hold a Linux Power Management Mini-Summit in Boston
-> on Monday, August 9th, 2010 -- the day before sessions
-> at the Linux Foundation's "LinuxCon Boston 2010".
+On Tuesday 19 January 2010 12:57:39 pm Yinghai Lu wrote:
+> On 01/19/2010 11:42 AM, Jeff Garrett wrote:
+> > On Fri, Jan 15, 2010 at 10:14:17AM -0800, Jesse Barnes wrote:
+> >> On Thu, 14 Jan 2010 16:39:13 -0800
+> >> Yinghai Lu <yinghai@kernel.org> wrote:
+> >>
+> >>> On 01/14/2010 03:49 PM, Bjorn Helgaas wrote:
+> >>>> On Thursday 14 January 2010 04:38:08 pm Yinghai Lu wrote:
+> >>>>> On 01/14/2010 03:09 PM, Bjorn Helgaas wrote:
+> >>>>>> On Thursday 14 January 2010 03:46:35 pm Yinghai Lu wrote:
+> >>>>>>>
+> >>>>>>> Bjorn pointed out we need to remove mmconf range
+> >>>>>>>
+> >>>>>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> >>>>>>>
+> >>>>>>> ---
+> > ...
+> >>>>>>
+> >>>>>> This can't be right, can it?  Let's say the kernel was built with
+> >>>>>> CONFIG_PCI_MMCONFIG turned off, or the user used "pci=nommconf",
+> >>>>>> or the kernel decides not to use MMCONFIG for some other reason.
+> >>>>>>
+> >>>>>> In that case, the hardware may still be configured to support
+> >>>>>> MMCONFIG, but the pci_mmcfg_list will be empty, so your code will
+> >>>>>> leave the window alone.  We might assign some of that MMCONFIG
+> >>>>>> space to a device, but the hardware will route it to MMCONFIG,
+> >>>>>> not to the device.
+> >>>>>
+> >>>>> so if there is mmconf specified, we just skip the whole function?
+> >>>>
+> >>>> No, I'm saying that intel-bus.c must ALWAYS remove the MMCONFIG
+> >>>> region from the host bridge apertures, even if Linux isn't using
+> >>>> MMCONFIG.
+> >>>>
+> >>>> That means intel-bus.c has to be smart enough to figure out on its
+> >>>> own what the MMCONFIG area is.  It can't depend on mmconfig-shared.c
+> >>>> to do it, because mmconfig-shared.c might not be there.
+> >>>
+> >>> that seems go too far away...
+> >>>
+> >>> Subject: [PATCH -v2] x86/pci: intel ioh need to subtrac mmconf range
+> >>>
+> >>> Bjorn pointed out we need to remove mmconf range
+> >>>
+> >>> -v2: if mmconf is not there, get out early.
+> >>>
+> >>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> >>>
+> >>> ---
+> > ...
+> >>
+> >> This goes against the real intent of intel_bus.c doesn't it?  When we
+> >> first added it, the thought was that it would be a purely native way of
+> >> getting at bridge window information and not rely on firmware.  If
+> >> you're going to make it dependent on MMCONFIG now, why not trust other
+> >> firmware tables as well, like _CRS?
+> >>
+> >> The MMCONFIG ranges are pretty easy to get at, the public docs have
+> >> info about the registers that control the MMCONFIG decode ranges, so
+> >> you should be able to read them out and add them to this file,
+> >> preserving the original intent.
+> > 
+> > I did attempt a bisection last week, but my pared down config kept
+> > hitting a sysfs_create_file panic.  I didn't succeed.
+
+I don't think there's any need to bisect this; sorry I didn't
+mention this earlier.
+
+2.6.32 didn't include intel-bus.c, so the kernel just assumed that
+all non-RAM addresses got routed to the PCI bus.  This would have
+included the [mem 0xd0000000-0xdfffffff] used by your Radeon device,
+which explains why it would work there.
+
+After 2.6.32, we added intel-bus.c, which reads some of the host
+bridge aperture information from the chipset.  This is apparently
+missing something, because intel-bus.c didn't find that region,
+so Linux thought the Radeon resource was wrong and disabled it,
+which broke it.
+
+> > Should I try the v2 patch above?  What tree is it against?
 > 
-> http://events.linuxfoundation.org/
-> 
-> This is an opportunity for members of the Linux Power Management
-> development community to meet face-to-face to discuss the future.
-> 
-> Suggestions for agenda topics should be sent to: 
-> linux-pm@lists.linux-foundation.org
+> maybe later with -tip tree + pci/linux-next.
 
-I'd like to discuss all PM-related things done since the last year's PM
-mini-summit, like we did last year.  I think it was a good idea to do that.
+Yinghai, did you figure out how to discover the [mem 0xd0000000-0xdfffffff]
+region in intel-bus.c?  Jeff's video isn't going to work without that.
 
-Apart from this, I'd like to talk about run-time PM, in the PCI context.
+I don't think we have anything that's worth testing yet.
 
-Rafael
+Bjorn
