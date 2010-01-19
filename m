@@ -1,23 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: make ACPI device id constant
-Date: Sat, 16 Jan 2010 15:56:54 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001161556510.7124@localhost.localdomain>
-References: <4B49FD28.6080800@freemail.hu>
+Subject: Boston Linux Power Management Mini-summit - August 9th, 2010
+Date: Tue, 19 Jan 2010 01:01:36 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001181311040.4030@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:41334 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab0APU45 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2010 15:56:57 -0500
-In-reply-to: <4B49FD28.6080800@freemail.hu>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:48905 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090Ab0ASGCH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2010 01:02:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, cocci@diku.dk
+To: Linux Power Management List <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-applied
+We will hold a Linux Power Management Mini-Summit in Boston
+on Monday, August 9th, 2010 -- the day before sessions
+at the Linux Foundation's "LinuxCon Boston 2010".
+
+http://events.linuxfoundation.org/
+
+This is an opportunity for members of the Linux Power Management
+development community to meet face-to-face to discuss the future.
+
+Suggestions for agenda topics should be sent to: 
+linux-pm@lists.linux-foundation.org
+
+The final agenda will be formed by consensus of the attendees.
+
+We try to cap attendance at about 20 to support a single 
+discussion, though depending on the room, we may be able to
+accomodate additional attendees.
+
+Requests to attend should be sent to: lenb@kernel.org
+cc: linux-pm@lists.linux-foundation.org -- please summarize
+what you'll bring to the meeting, and what you'd like to discuss.
+
+Presentations are allowed to guide discussion, but not required.
+There will be no recording or audio bridge, however written minutes will 
+be published as in previous years:
+
+2009: http://lwn.net/Articles/345007/
+2008: http://lwn.net/Articles/292447
+2007: http://lwn.net/Articles/249019
+
+If you have feedback on last year's meeting that
+we can use to improve this year's, please let me know.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
-
