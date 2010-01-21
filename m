@@ -1,115 +1,133 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: About Bug 14753 ACPI Errors: Index beyond end of object,
- 	parse/execution failed, _BCM failed ...
-Date: Thu, 21 Jan 2010 11:38:54 +0800
-Message-ID: <8B81FACE836F9248894A7844CC0BA8141C9C54303A@shzsmsx501.ccr.corp.intel.com>
-References: <16a2bfdb1001201845j6524345dwb13766def182a62@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Christian Hofstaedtler <ch@zeha.at>
+Subject: [PATCH 1/2] x86: Unify reboot_type selection
+Date: Thu, 21 Jan 2010 18:18:42 +0100
+Message-ID: <1264094323-7187-1-git-send-email-ch@zeha.at>
+References: <alpine.LFD.2.00.1001200007560.4265@localhost.localdomain>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55724 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab0AUDkD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2010 22:40:03 -0500
-In-Reply-To: <16a2bfdb1001201845j6524345dwb13766def182a62@mail.gmail.com>
-Content-Language: en-US
+Received: from percival.namespace.at ([77.244.242.130]:52024 "EHLO
+	percival.namespace.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932118Ab0AURUm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jan 2010 12:20:42 -0500
+In-Reply-To: <alpine.LFD.2.00.1001200007560.4265@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bin Guo <slashbin@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: x86@kernel.org
+Cc: hpa@zytor.com, lenb@kernel.org, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com, linux-kernel@vger.kernel.org, Christian Hofstaedtler <ch@zeha.at>
 
-Yes, this is a duplicate of bug 14753.
-It seems that a lot of Asus laptops have this problem.
+Unify x86_32-only and x86_32+x86_64 reboot quirks selection functions,
+so the code path is a bit easier to understand and gets a predefined
+execution order.
 
-Len,
-I think we should ping Asus to get the problem fixed in BIOS,
-rather than adding a lot of DMI quirks in Linux kernel.
-What do you think?
+Signed-off-by: Christian Hofstaedtler <ch@zeha.at>
+---
+ arch/x86/include/asm/emergency-restart.h |    1 +
+ arch/x86/kernel/reboot.c                 |   43 +++++++++++++++++++++---------
+ 2 files changed, 31 insertions(+), 13 deletions(-)
 
-Thanks,
-Rui
+diff --git a/arch/x86/include/asm/emergency-restart.h b/arch/x86/include/asm/emergency-restart.h
+index cc70c1c..72ee23a 100644
+--- a/arch/x86/include/asm/emergency-restart.h
++++ b/arch/x86/include/asm/emergency-restart.h
+@@ -2,6 +2,7 @@
+ #define _ASM_X86_EMERGENCY_RESTART_H
+ 
+ enum reboot_type {
++	BOOT_UNDECIDED = '?',
+ 	BOOT_TRIPLE = 't',
+ 	BOOT_KBD = 'k',
+ #ifdef CONFIG_X86_32
+diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+index 1545bc0..36f0c86 100644
+--- a/arch/x86/kernel/reboot.c
++++ b/arch/x86/kernel/reboot.c
+@@ -34,7 +34,7 @@ EXPORT_SYMBOL(pm_power_off);
+ 
+ static const struct desc_ptr no_idt = {};
+ static int reboot_mode;
+-enum reboot_type reboot_type = BOOT_KBD;
++enum reboot_type reboot_type = BOOT_UNDECIDED;
+ int reboot_force;
+ 
+ #if defined(CONFIG_X86_32) && defined(CONFIG_SMP)
+@@ -134,7 +134,11 @@ static int __init set_bios_reboot(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata reboot_dmi_table[] = {
++/*
++ * This table only gets used on x86_32, so only use with
++ * set_bios_reboot.
++ */
++static struct dmi_system_id __initdata reboot_dmi_table_x86_32[] = {
+ 	{	/* Handle problems with rebooting on Dell E520's */
+ 		.callback = set_bios_reboot,
+ 		.ident = "Dell E520",
+@@ -270,13 +274,6 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
+ 	{ }
+ };
+ 
+-static int __init reboot_init(void)
+-{
+-	dmi_check_system(reboot_dmi_table);
+-	return 0;
+-}
+-core_initcall(reboot_init);
+-
+ /* The following code and data reboots the machine by switching to real
+    mode and jumping to the BIOS reset entry point, as if the CPU has
+    really been reset.  The previous version asked the keyboard
+@@ -427,7 +424,8 @@ static int __init set_pci_reboot(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata pci_reboot_dmi_table[] = {
++/* This table gets used on x86_32 AND x86_64. */
++static struct dmi_system_id __initdata reboot_dmi_table_all[] = {
+ 	{	/* Handle problems with rebooting on Apple MacBook5 */
+ 		.callback = set_pci_reboot,
+ 		.ident = "Apple MacBook5",
+@@ -455,12 +453,30 @@ static struct dmi_system_id __initdata pci_reboot_dmi_table[] = {
+ 	{ }
+ };
+ 
+-static int __init pci_reboot_init(void)
++/* Decide how we will reboot:
++ * - Check the X86_32-only quirks table.
++ * - Check the generic quirks table.
++ * - Default to old-style Keyboard Controller reboot.
++ */
++static int __init reboot_init(void)
+ {
+-	dmi_check_system(pci_reboot_dmi_table);
++	/* don't override user decisions (reboot=...) */
++	if (reboot_type != BOOT_UNDECIDED)
++		return 0;
++
++#ifdef CONFIG_X86_32
++	dmi_check_system(reboot_dmi_table_x86_32);
++#endif /* CONFIG_X86_32 */
++	dmi_check_system(reboot_dmi_table_all);
++
++	if (reboot_type != BOOT_UNDECIDED)
++		return 0;
++
++	reboot_type = BOOT_KBD;
++
+ 	return 0;
+ }
+-core_initcall(pci_reboot_init);
++core_initcall(reboot_init);
+ 
+ static inline void kb_wait(void)
+ {
+@@ -534,6 +550,7 @@ static void native_machine_emergency_restart(void)
+ 	for (;;) {
+ 		/* Could also try the reset bit in the Hammer NB */
+ 		switch (reboot_type) {
++		case BOOT_UNDECIDED:
+ 		case BOOT_KBD:
+ 			mach_reboot_fixups(); /* for board specific fixups */
+ 
+-- 
+1.6.4.4
 
-> -----Original Message-----
-> From: Bin Guo [mailto:slashbin@gmail.com]
-> Sent: Thursday, January 21, 2010 10:45 AM
-> To: Zhang, Rui
-> Subject: About Bug 14753 ACPI Errors: Index beyond end of object,
-> parse/execution failed, _BCM failed ...
->=20
-> Hi,
->=20
-> =A0 I recently bought an Asus U50A laptop that's having the same prob=
-lem
-> as bug 14753 at http://bugzilla.kernel.org/show_bug.cgi?id=3D14753 bu=
-t
-> the product name is definitely different. I suspect several other
-> models (like UL50VT) would have similar problems.
->=20
->=20
->  I'm attaching the acpidump and deassembly of DSDT plus dmidecode.
-> Following are the common errors seen from dmesg (the only problem see=
-ms
-> to be lcd turning bright once in a while):
->=20
-> [   59.814547] ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000010)
-> is beyond end of object (20090903/exoparg2-445)
-> [   59.814563] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node ffff88013fa46140),
-> AE_AML_BUFFER_LIMIT
-> [   59.814633] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node ffff88013fa40380),
-> AE_AML_BUFFER_LIMIT
-> [   59.814705] ACPI Error: Evaluating _BCM failed (20090903/video-528=
-)
-> [   59.820650] ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000015)
-> is beyond end of object (20090903/exoparg2-445)
-> [   59.820664] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node ffff88013fa46140),
-> AE_AML_BUFFER_LIMIT
-> [   59.820734] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node ffff88013fa40380),
-> AE_AML_BUFFER_LIMIT
-> [   59.820806] ACPI Error: Evaluating _BCM failed (20090903/video-528=
-)
-> [   59.826937] ACPI Exception: AE_AML_BUFFER_LIMIT, Index (00000001B)
-> is beyond end of object (20090903/exoparg2-445)
-> [   59.826953] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node ffff88013fa46140),
-> AE_AML_BUFFER_LIMIT
-> [   59.827025] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node ffff88013fa40380),
-> AE_AML_BUFFER_LIMIT
-> [   59.827098] ACPI Error: Evaluating _BCM failed (20090903/video-528=
-)
-> [   61.954710] ACPI Exception: AE_AML_BUFFER_LIMIT, Index (00000001B)
-> is beyond end of object (20090903/exoparg2-445)
-> [   61.954725] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node ffff88013fa46140),
-> AE_AML_BUFFER_LIMIT
-> [   61.954794] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node ffff88013fa40380),
-> AE_AML_BUFFER_LIMIT
-> [   61.954867] ACPI Error: Evaluating _BCM failed (20090903/video-528=
-)
->=20
-> [ 5340.144703] ACPI Warning: _BQC returned an invalid level
-> (20090903/video-631) [ 9890.028659] ACPI Exception: AE_AML_BUFFER_LIM=
-IT,
-> Index (00000001B) is beyond end of object (20090903/exoparg2-445)
-> [ 9890.028675] ACPI Error (psparse-0537): Method parse/execution fail=
-ed
-> [\_SB_.PCI0.SBRG.EC0_.STBR] (Node ffff88013fa46140),
-> AE_AML_BUFFER_LIMIT [ 9890.028746] ACPI Error (psparse-0537): Method
-> parse/execution failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node
-> ffff88013fa40380), AE_AML_BUFFER_LIMIT [ 9890.028820] ACPI Error:
-> Evaluating _BCM failed (20090903/video-528)
->=20
-> Thanks,
-> --
-> Bin
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
