@@ -1,127 +1,48 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v4 1/2] IPMI/ACPI: use ACPI
-	detection mechanism firstly to detect IPMI system interface
-Date: Thu, 21 Jan 2010 10:54:04 -0700
-Message-ID: <201001211054.04684.bjorn.helgaas@hp.com>
-References: <1262051060-23245-1-git-send-email-yakui.zhao@intel.com>
-	<201001200951.49462.bjorn.helgaas@hp.com>
-	<1264036825.15793.14.camel@localhost.localdomain>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 1/2] x86: Unify reboot_type selection
+Date: Thu, 21 Jan 2010 10:29:34 -0800
+Message-ID: <4B589D0E.2010601@zytor.com>
+References: <alpine.LFD.2.00.1001200007560.4265@localhost.localdomain> <1264094323-7187-1-git-send-email-ch@zeha.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <1264036825.15793.14.camel@localhost.localdomain>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from terminus.zytor.com ([198.137.202.10]:60412 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752273Ab0AUSdo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jan 2010 13:33:44 -0500
+In-Reply-To: <1264094323-7187-1-git-send-email-ch@zeha.at>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christian Hofstaedtler <ch@zeha.at>
+Cc: x86@kernel.org, lenb@kernel.org, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com, linux-kernel@vger.kernel.org
 
-On Wednesday 20 January 2010 06:20:25 pm ykzhao wrote:
-> On Wed, 2010-01-20 at 09:51 -0700, Bjorn Helgaas wrote:
-> > On Monday 28 December 2009 06:44:19 pm yakui.zhao@intel.com wrote:
-> > > From: Zhao Yakui <yakui.zhao@intel.com>
-> > > 
-> > > Sometimes one IPMI system interface will be detected by several methods.
-> > > For example: ACPI mechanism, SPMI table, DMI or hardcode mechanism.
-> > > In such case when one IPMI system interface can be detected in two mechanism,
-> > > the second mechanism will fail in the detection and can't record which IPMI
-> > > system interface is detected by it.
-> > > 
-> > > Use the ACPI detection mechanism firstly to detect the IPMI system interface
-> > > so that we can know which IPMI system interface is detected in ACPI namespace.
-> > > 
-> > > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> > > ---
-> > >  drivers/char/ipmi/ipmi_si_intf.c |    8 +++++---
-> > >  1 files changed, 5 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> > > index 176f175..3f6ca11 100644
-> > > --- a/drivers/char/ipmi/ipmi_si_intf.c
-> > > +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> > > @@ -3195,6 +3195,10 @@ static __devinit int init_ipmi_si(void)
-> > >  
-> > >  	printk(KERN_INFO "IPMI System Interface driver.\n");
-> > >  
-> > > +#ifdef CONFIG_ACPI
-> > > +	pnp_register_driver(&ipmi_pnp_driver);
-> > > +#endif
-> > > +
-> > >  	hardcode_find_bmc();
-> > 
-> > The usual practice is to handle devices explicitly specified by
-> > module parameters first.  That way, the driver should work with
-> > no module parameters in most cases, but the user can specify the
-> > device location manually if necessary to work around a firmware
-> > bug.
-> 
-> The reason I change the order of detecting IPMI device is that maybe one
-> IPMI device can be registered by several different mechanisms. When we
-> register one IPMI device by using try_smi_init, it will firstly check
-> whether the IPMI device is already registered by comparing the address.
-> 
-> If the IPMI device is already registered by another mechanism,  we can't
-> enable ACPI to access the IPMI device as we can't create the user
-> interface between ACPI and IPMI device.
-> 
-> If we add the module option to use the hardcode mechanism,  maybe we
-> will fail in detecting IPMI device by using ACPI mechanism. 
-> 
-> > For that reason, I would use this order instead:
-> > 
-> > 	hardcode_find_bmc();
-> > 	pnp_register_driver();
-> > 	...
+On 01/21/2010 09:18 AM, Christian Hofstaedtler wrote:
+> Unify x86_32-only and x86_32+x86_64 reboot quirks selection functions,
+> so the code path is a bit easier to understand and gets a predefined
+> execution order.
 
-I agree that pnp_register_driver() should be before spmi_find_bmc().
+>  
+> -static struct dmi_system_id __initdata reboot_dmi_table[] = {
+> +/*
+> + * This table only gets used on x86_32, so only use with
+> + * set_bios_reboot.
+> + */
+> +static struct dmi_system_id __initdata reboot_dmi_table_x86_32[] = {
+>  	{	/* Handle problems with rebooting on Dell E520's */
+>  		.callback = set_bios_reboot,
+>  		.ident = "Dell E520",
+> @@ -270,13 +274,6 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
+>  	{ }
+>  };
+>  
 
-I agree that if we find an IPMI device based on module parameters,
-we likely won't be able to set up the IPMI opregion.  We shouldn't
-be using module parameters in the first place.  If we *are* using
-the module parameters, it's because the firmware is buggy.  I think
-it's perfectly fine if buggy firmware can't use the IPMI opregion.
+I think it would make more sense to just #ifdef off a section of a
+single table, instead of having an #ifdef for a separate table and an
+#ifdef for a table entry.
 
-Is that your concern, or did I miss the meaning of your email?
+I don't know how big these tables are -- this is initdata after all, so
+unless the tables are really small, we could just make set_bios_reboot a
+noop on x86-64.
 
-Bjorn
-
-> > >  #ifdef CONFIG_DMI
-> > > @@ -3204,9 +3208,6 @@ static __devinit int init_ipmi_si(void)
-> > >  #ifdef CONFIG_ACPI
-> > >  	spmi_find_bmc();
-> > >  #endif
-> > > -#ifdef CONFIG_ACPI
-> > > -	pnp_register_driver(&ipmi_pnp_driver);
-> > > -#endif
-> > >  
-> > >  #ifdef CONFIG_PCI
-> > >  	rv = pci_register_driver(&ipmi_pci_driver);
-> > > @@ -3330,6 +3331,7 @@ static __exit void cleanup_ipmi_si(void)
-> > >  #ifdef CONFIG_PCI
-> > >  	pci_unregister_driver(&ipmi_pci_driver);
-> > >  #endif
-> > > +
-> > >  #ifdef CONFIG_ACPI
-> > >  	pnp_unregister_driver(&ipmi_pnp_driver);
-> > >  #endif
-> > 
-> > 
-> 
-> 
-
-
-
-------------------------------------------------------------------------------
-Throughout its 18-year history, RSA Conference consistently attracts the
-world's best and brightest in the field, creating opportunities for Conference
-attendees to learn about information security's most important issues through
-interactions with peers, luminaries and emerging and established companies.
-http://p.sf.net/sfu/rsaconf-dev2dev
+	-hpa
