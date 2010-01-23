@@ -1,53 +1,37 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] Default to ACPI reboots on newish X86 hardware
-Date: Sat, 23 Jan 2010 14:57:28 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001231455440.5156@localhost.localdomain>
-References: <alpine.LFD.2.00.1001200007560.4265@localhost.localdomain>
- <1264094323-7187-1-git-send-email-ch@zeha.at>
- <1264094323-7187-2-git-send-email-ch@zeha.at>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: High pitch noise when ACPI processor module is loaded.
+Date: Sat, 23 Jan 2010 21:12:57 +0100
+Message-ID: <201001232112.57601.rjw@sisk.pl>
+References: <alpine.DEB.2.00.1001231046080.1064@p34.internal.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:54634 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888Ab0AWT5p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2010 14:57:45 -0500
-In-reply-to: <1264094323-7187-2-git-send-email-ch@zeha.at>
+Received: from ogre.sisk.pl ([217.79.144.158]:43127 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752636Ab0AWUMI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jan 2010 15:12:08 -0500
+In-Reply-To: <alpine.DEB.2.00.1001231046080.1064@p34.internal.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Hofstaedtler <ch@zeha.at>
-Cc: x86@kernel.org, hpa@zytor.com, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com, linux-kernel@vger.kernel.org
+To: Justin Piszcz <jpiszcz@lucidpixels.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Christian,
-I've replaced your previous patch in the acpi-test tree with this 
-refreshed pair.
+Messages about ACPI should be CCed to linux-acpi@vger.kernel.org (added).
 
-Note that the 2nd patch had some checkpatch issues.
-Perhaps you can run checkpatch before sending future patches.
-
-WARNING: braces {} are not necessary for single statement blocks
-#35: FILE: arch/x86/kernel/reboot.c:464:
-+	if (!dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL)) {
-+		return 1;
-+	}
-
-WARNING: braces {} are not necessary for single statement blocks
-#38: FILE: arch/x86/kernel/reboot.c:467:
-+	if (year == 0) {
-+		return 1;
-+	}
-
-WARNING: braces {} are not necessary for single statement blocks
-#43: FILE: arch/x86/kernel/reboot.c:472:
-+	if (year < 2003) {
-+		return 0;
-+	}
-
-ERROR: Missing Signed-off-by: line(s)
-
-total: 1 errors, 3 warnings, 47 lines checked
-
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+On Saturday 23 January 2010, Justin Piszcz wrote:
+> Hi,
+> 
+> Linux:
+> When I do not load the ACPI processor module, there is no high pitch 
+> noise.  When I load the ACPI processor module (so I can utilize Turbo 
+> Boost), Linux makes the system emit a high pitch noise.
+> 
+> Windows:
+> The same system, running Windows 7 does not emit any noise.
+> 
+> Is there something wrong with the ACPI processor module or its 
+> implementation on i5/i7 CPUs?
+> 
+> Justin.
