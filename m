@@ -1,63 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.32.stable] ACPI: Advertise to BIOS in _OSC: _OST on _PPC
- changes
-Date: Sat, 23 Jan 2010 14:51:04 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001231449040.5156@localhost.localdomain>
+Subject: Re: [PATCH 2/2] Default to ACPI reboots on newish X86 hardware
+Date: Sat, 23 Jan 2010 14:57:28 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001231455440.5156@localhost.localdomain>
+References: <alpine.LFD.2.00.1001200007560.4265@localhost.localdomain>
+ <1264094323-7187-1-git-send-email-ch@zeha.at>
+ <1264094323-7187-2-git-send-email-ch@zeha.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:59588 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255Ab0AWTvV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2010 14:51:21 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KWP00LARTT5W0E3@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 23 Jan 2010 13:51:20 -0600 (CST)
+Received: from vms173009pub.verizon.net ([206.46.173.9]:54634 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750888Ab0AWT5p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2010 14:57:45 -0500
+In-reply-to: <1264094323-7187-2-git-send-email-ch@zeha.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
+To: Christian Hofstaedtler <ch@zeha.at>
+Cc: x86@kernel.org, hpa@zytor.com, tglx@linutronix.de, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, bruce.w.allan@intel.com, linux-kernel@vger.kernel.org
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+Hi Christian,
+I've replaced your previous patch in the acpi-test tree with this 
+refreshed pair.
 
-upstream 6a4e2b7503d1f630bface040cf0f5a7aac1fabdb
+Note that the 2nd patch had some checkpatch issues.
+Perhaps you can run checkpatch before sending future patches.
 
-If the BIOS pokes the system-wide OSC bits to see if Linux
-supports evaluating _OST after a _PPC change notification,
-answer yes.
+WARNING: braces {} are not necessary for single statement blocks
+#35: FILE: arch/x86/kernel/reboot.c:464:
++	if (!dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL)) {
++		return 1;
++	}
 
-Also, fix an oversight where we neglected to set the OSC
-bit advertising processor aggregator device support
-when acpi-pad is compiled as a module.
+WARNING: braces {} are not necessary for single statement blocks
+#38: FILE: arch/x86/kernel/reboot.c:467:
++	if (year == 0) {
++		return 1;
++	}
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/bus.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+WARNING: braces {} are not necessary for single statement blocks
+#43: FILE: arch/x86/kernel/reboot.c:472:
++	if (year < 2003) {
++		return 0;
++	}
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index cf761b9..a52126e 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -490,9 +490,14 @@ static void acpi_bus_osc_support(void)
- 
- 	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
- 	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
--#ifdef CONFIG_ACPI_PROCESSOR_AGGREGATOR
-+#if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
-+			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
- 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
- #endif
-+
-+#if defined(CONFIG_ACPI_PROCESSOR) || defined(CONFIG_ACPI_PROCESSOR_MODULE)
-+	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
-+#endif
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
- 		return;
- 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context)))
--- 
-1.6.6.1.383.g5a9f
+ERROR: Missing Signed-off-by: line(s)
+
+total: 1 errors, 3 warnings, 47 lines checked
+
+
+thanks,
+Len Brown, Intel Open Source Technology Center
 
