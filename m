@@ -1,42 +1,78 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: High pitch noise when ACPI processor module is loaded.
-Date: Sat, 23 Jan 2010 14:42:10 -0600
-Message-ID: <4B5B5F22.50503@gmail.com>
-References: <alpine.DEB.2.00.1001231046080.1064@p34.internal.lan> <201001232112.57601.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 7/8] PM: Allow USB devices to suspend/resume asynchronously
+Date: Sun, 24 Jan 2010 00:40:25 +0100
+Message-ID: <201001240040.25931.rjw@sisk.pl>
+References: <201001240033.34253.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f186.google.com ([209.85.223.186]:51271 "EHLO
-	mail-iw0-f186.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415Ab0AWUmP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2010 15:42:15 -0500
-In-Reply-To: <201001232112.57601.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:43513 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752878Ab0AWXmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jan 2010 18:42:01 -0500
+In-Reply-To: <201001240033.34253.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Justin Piszcz <jpiszcz@lucidpixels.com>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, linux-usb@vger.kernel.org, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, James Bottomley <James.Bottomley@suse.de>, Linux SCSI <linux-scsi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Nigel Cunningham <ncunningham@crca.org.au>
 
-On 01/23/2010 02:12 PM, Rafael J. Wysocki wrote:
-> Messages about ACPI should be CCed to linux-acpi@vger.kernel.org (added).
->
-> On Saturday 23 January 2010, Justin Piszcz wrote:
->> Hi,
->>
->> Linux:
->> When I do not load the ACPI processor module, there is no high pitch
->> noise.  When I load the ACPI processor module (so I can utilize Turbo
->> Boost), Linux makes the system emit a high pitch noise.
->>
->> Windows:
->> The same system, running Windows 7 does not emit any noise.
->>
->> Is there something wrong with the ACPI processor module or its
->> implementation on i5/i7 CPUs?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-May not be anything "wrong", but some systems do have an issue with the 
-voltage regulator circuitry where it can make noise with certain 
-combinations of power draw and wakeup rates (causing rapid current draw 
-fluctuations) where some of the components can resonate and make noise.
+Set power.async_suspend for USB devices, endpoints and interfaces,
+allowing them to be suspended and resumed asynchronously during
+system sleep transitions.
 
-What does powertop report for this system? It might show some useful info.
+The power.async_suspend flag is also set for devices that don't have
+suspend or resume callbacks, because otherwise they would make the
+main suspend/resume thread wait for their "asynchronous" children
+(during suspend) or parents (during resume), effectively negating the
+possible gains from executing these devices' suspend and resume
+callbacks asynchronously.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/usb/core/endpoint.c |    1 +
+ drivers/usb/core/hcd-pci.c  |    1 +
+ drivers/usb/core/hub.c      |    1 +
+ drivers/usb/core/message.c  |    1 +
+ 4 files changed, 4 insertions(+)
+
+Index: linux-2.6/drivers/usb/core/hub.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/core/hub.c
++++ linux-2.6/drivers/usb/core/hub.c
+@@ -1817,6 +1817,7 @@ int usb_new_device(struct usb_device *ud
+ 	/* Tell the world! */
+ 	announce_device(udev);
+ 
++	device_enable_async_suspend(&udev->dev);
+ 	/* Register the device.  The device driver is responsible
+ 	 * for configuring the device and invoking the add-device
+ 	 * notifier chain (used by usbfs and possibly others).
+Index: linux-2.6/drivers/usb/core/message.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/core/message.c
++++ linux-2.6/drivers/usb/core/message.c
+@@ -1867,6 +1867,7 @@ free_interfaces:
+ 			"adding %s (config #%d, interface %d)\n",
+ 			dev_name(&intf->dev), configuration,
+ 			intf->cur_altsetting->desc.bInterfaceNumber);
++		device_enable_async_suspend(&intf->dev);
+ 		ret = device_add(&intf->dev);
+ 		if (ret != 0) {
+ 			dev_err(&dev->dev, "device_add(%s) --> %d\n",
+Index: linux-2.6/drivers/usb/core/endpoint.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/core/endpoint.c
++++ linux-2.6/drivers/usb/core/endpoint.c
+@@ -186,6 +186,7 @@ int usb_create_ep_devs(struct device *pa
+ 	ep_dev->dev.parent = parent;
+ 	ep_dev->dev.release = ep_device_release;
+ 	dev_set_name(&ep_dev->dev, "ep_%02x", endpoint->desc.bEndpointAddress);
++	device_enable_async_suspend(&ep_dev->dev);
+ 
+ 	retval = device_register(&ep_dev->dev);
+ 	if (retval)
+
