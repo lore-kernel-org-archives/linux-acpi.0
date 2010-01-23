@@ -1,50 +1,63 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.32.stable] ACPI: don't cond_resched if irq is disabled
-Date: Sat, 23 Jan 2010 14:14:11 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1001231411540.5156@localhost.localdomain>
+Subject: [PATCH 2.6.32.stable] ACPI: Advertise to BIOS in _OSC: _OST on _PPC
+ changes
+Date: Sat, 23 Jan 2010 14:51:04 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001231449040.5156@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932156Ab0AWTOe@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: stable@kernel.org
-Cc: Larry Finger <Larry.Finger@lwfinger.net>, "Justin P. Mattock" <justinmattock@gmail.com>, Xiaotian Feng <dfeng@redhat.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:59588 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255Ab0AWTvV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2010 14:51:21 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KWP00LARTT5W0E3@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 23 Jan 2010 13:51:20 -0600 (CST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
-From: Xiaotian Feng <dfeng@redhat.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-upstream c084ca704a3661bf77690a05bc6bd2c305d87c34
+upstream 6a4e2b7503d1f630bface040cf0f5a7aac1fabdb
 
-commit 8bd108d adds preemption point after each opcode parse, then
-a sleeping function called from invalid context bug was founded
-during suspend/resume stage. this was fixed in commit abe1dfa by
-don't cond_resched when irq_disabled. But recent commit 138d156 changes
-the behaviour to don't cond_resched when in_atomic. This makes the
-sleeping function called from invalid context bug happen again, which
-is reported in http://lkml.org/lkml/2009/12/1/371.
+If the BIOS pokes the system-wide OSC bits to see if Linux
+supports evaluating _OST after a _PPC change notification,
+answer yes.
 
-This patch also fixes http://bugzilla.kernel.org/show_bug.cgi?id=14483
+Also, fix an oversight where we neglected to set the OSC
+bit advertising processor aggregator device support
+when acpi-pad is compiled as a module.
 
-Reported-and-bisected-by: Larry Finger <Larry.Finger@lwfinger.net>
-Reported-and-bisected-by: Justin P. Mattock <justinmattock@gmail.com>
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/platform/aclinux.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/bus.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 9d7febd..0946997 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- #include <linux/hardirq.h>
- #define ACPI_PREEMPTION_POINT() \
- 	do { \
--		if (!in_atomic_preempt_off()) \
-+		if (!in_atomic_preempt_off() && !irqs_disabled()) \
- 			cond_resched(); \
- 	} while (0)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index cf761b9..a52126e 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -490,9 +490,14 @@ static void acpi_bus_osc_support(void)
  
+ 	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
+ 	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
+-#ifdef CONFIG_ACPI_PROCESSOR_AGGREGATOR
++#if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
++			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
+ 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
+ #endif
++
++#if defined(CONFIG_ACPI_PROCESSOR) || defined(CONFIG_ACPI_PROCESSOR_MODULE)
++	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
++#endif
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ 		return;
+ 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context)))
 -- 
 1.6.6.1.383.g5a9f
+
