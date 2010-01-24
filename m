@@ -1,71 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/8] PM: Allow PCI devices to suspend/resume asynchronously
-Date: Sun, 24 Jan 2010 00:39:40 +0100
-Message-ID: <201001240039.40419.rjw@sisk.pl>
-References: <201001240033.34253.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 2/8] PM: Asynchronous suspend and resume of devices
+Date: Sun, 24 Jan 2010 11:37:14 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1001241128250.28594-100000@netrider.rowland.org>
+References: <201001240035.37550.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753624Ab0AWXml@vger.kernel.org>
-In-Reply-To: <201001240033.34253.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, linux-usb@vger.kernel.org, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, James Bottomley <James.Bottomley@suse.de>, Linux SCSI <linux-scsi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Nigel Cunningham <ncunningham@crca.org.au>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201001240035.37550.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, linux-usb@vger.kernel.org, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, James Bottomley <James.Bottomley@suse.de>, Linux SCSI <linux-scsi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Nigel Cunningham <ncunningham@crca.org.au>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Sun, 24 Jan 2010, Rafael J. Wysocki wrote:
 
-Set power.async_suspend for all PCI devices and PCIe port services,
-so that they can be suspended and resumed in parallel with other
-devices they don't depend on in a known way (i.e. devices which are
-not their parents or children).
+> The async threads started for different devices as a result of
+> calling async_schedule() are synchronized with each other and with
+> the main suspend/resume thread with the help of completions, in the
+> following way:
+> (1) There is a completion, power.completion, for each device object.
+> (2) Each device's completion is reset before calling async_schedule()
+>     for the device or, in the case of devices with the
+>     power.async_suspend flags unset, before executing the device's
+>     suspend and resume callbacks.
+> (3) During suspend, right before running the bus type, device type
+>     and device class suspend callbacks for the device, the PM core
+>     waits for the completions of all the device's children to be
+>     completed.
+> (4) During resume, right before running the bus type, device type and
+>     device class resume callbacks for the device, the PM core waits
+>     for the completion of the device's parent to be completed.
+> (5) The PM core completes power.completion for each device right
+>     after the bus type, device type and device class suspend (or
+>     resume) callbacks executed for the device have returned.
 
-This only affects the "regular" suspend and resume stages, which
-means in particular that the restoration of the PCI devices' standard
-configuration registers during resume will still be carried out
-synchronously (at the "early" resume stage).
+...
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/pci/pci.c               |    1 +
- drivers/pci/pcie/portdrv_core.c |    1 +
- drivers/pci/probe.c             |    1 +
- 3 files changed, 3 insertions(+)
+>  /**
+> + * dpm_wait - Wait for a PM operation to complete.
+> + * @dev: Device to wait for.
+> + * @async: If unset, wait only if the device's power.async_suspend flag is set.
+> + */
+> +static void dpm_wait(struct device *dev, bool async)
+> +{
+> +	if (!dev)
+> +		return;
+> +
+> +	if (async || dev->power.async_suspend)
+> +		wait_for_completion(&dev->power.completion);
+> +}
 
-Index: linux-2.6/drivers/pci/pci.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pci.c
-+++ linux-2.6/drivers/pci/pci.c
-@@ -1541,6 +1541,7 @@ void pci_pm_init(struct pci_dev *dev)
- 	int pm;
- 	u16 pmc;
- 
-+	device_enable_async_suspend(&dev->dev);
- 	dev->wakeup_prepared = false;
- 	dev->pm_cap = 0;
- 
-Index: linux-2.6/drivers/pci/pcie/portdrv_core.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pcie/portdrv_core.c
-+++ linux-2.6/drivers/pci/pcie/portdrv_core.c
-@@ -285,6 +285,7 @@ static int pcie_device_init(struct pci_d
- 		     pci_name(pdev),
- 		     get_descriptor_id(pdev->pcie_type, service));
- 	device->parent = &pdev->dev;
-+	device_enable_async_suspend(device);
- 
- 	retval = device_register(device);
- 	if (retval)
-Index: linux-2.6/drivers/pci/probe.c
-===================================================================
---- linux-2.6.orig/drivers/pci/probe.c
-+++ linux-2.6/drivers/pci/probe.c
-@@ -1200,6 +1200,7 @@ struct pci_bus * pci_create_bus(struct d
- 	if (error)
- 		goto dev_reg_err;
- 	b->bridge = get_device(dev);
-+	device_enable_async_suspend(b->bridge);
- 
- 	if (!parent)
- 		set_dev_node(b->bridge, pcibus_to_node(b));
+There needs to be a public interface to this function available for 
+drivers that have non-tree constraints.  The arguments should be the 
+device to wait for and the device doing the waiting (needed only to 
+determine whether the caller is running synchronously or not).
+
+This will be necessary for USB.  In fact, your current code (with patch 
+7/8 applied) is subject to a race that will sometimes cause a 
+non-high-speed USB device to fail to resume from hibernation.
+
+Alan Stern
