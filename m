@@ -1,54 +1,120 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 09/12] ACPI: processor: refactor internal map_x2apic_id()
-Date: Mon, 25 Jan 2010 14:41:24 -0700
-Message-ID: <20100125214124.28510.81186.stgit@bob.kio>
+Subject: [PATCH 07/12] ACPI: processor: driver doesn't need to evaluate _PDC
+Date: Mon, 25 Jan 2010 14:41:14 -0700
+Message-ID: <20100125214113.28510.72436.stgit@bob.kio>
 References: <20100125213221.28510.74078.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753775Ab0AYVlk@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753706Ab0AYVla@vger.kernel.org>
 In-Reply-To: <20100125213221.28510.74078.stgit@bob.kio>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Untangle the nested if conditions to make this function look
-more similar to the other map_*apic_id() functions.
+Now that the early _PDC evaluation path knows how to correctly
+evaluate _PDC on only physically present processors, there's no
+need for the processor driver to evaluate it later when it loads.
 
+To cover the hotplug case, push _PDC evaluation down into the
+hotplug paths.
+
+Cc: x86@kernel.org
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_core.c |   12 +++---------
- 1 files changed, 3 insertions(+), 9 deletions(-)
+ arch/ia64/kernel/acpi.c         |    3 +++
+ arch/x86/kernel/acpi/boot.c     |    3 +++
+ drivers/acpi/processor_core.c   |    7 -------
+ drivers/acpi/processor_driver.c |    3 ---
+ 4 files changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index bebd411..9213f95 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -66,22 +66,16 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 40574ae..394742a 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -44,6 +44,7 @@
+ #include <linux/efi.h>
+ #include <linux/mmzone.h>
+ #include <linux/nodemask.h>
++#include <acpi/processor.h>
+ #include <asm/io.h>
+ #include <asm/iosapic.h>
+ #include <asm/machvec.h>
+@@ -936,6 +937,8 @@ int acpi_map_lsapic(acpi_handle handle, int *pcpu)
+ 	cpu_set(cpu, cpu_present_map);
+ 	ia64_cpu_to_sapicid[cpu] = physid;
+ 
++	acpi_processor_set_pdc(handle);
++
+ 	*pcpu = cpu;
+ 	return (0);
+ }
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index fb1035c..baa2280 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -481,6 +481,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+  *  ACPI based hotplug support for CPU
+  */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
++#include <acpi/processor.h>
+ 
+ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
  {
- 	struct acpi_madt_local_x2apic *apic =
- 		(struct acpi_madt_local_x2apic *)entry;
--	u32 tmp = apic->local_apic_id;
- 
--	/* Only check enabled APICs*/
- 	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
- 		return 0;
- 
--	/* Device statement declaration type */
--	if (device_declaration) {
--		if (apic->uid == acpi_id)
--			goto found;
-+	if (device_declaration && (apic->uid == acpi_id)) {
-+		*apic_id = apic->local_apic_id;
-+		return 1;
+@@ -539,6 +540,8 @@ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
+ 		goto free_new_map;
  	}
  
- 	return 0;
--found:
--	*apic_id = tmp;
--	return 1;
++	acpi_processor_set_pdc(handle);
++
+ 	cpu = cpumask_first(new_map);
+ 
+ 	*pcpu = cpu;
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 05874ba..1fc06c6 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -317,8 +317,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+ 	return status;
  }
  
- static int map_lsapic_id(struct acpi_subtable_header *entry,
+-static int early_pdc_done;
+-
+ void acpi_processor_set_pdc(acpi_handle handle)
+ {
+ 	struct acpi_object_list *obj_list;
+@@ -326,9 +324,6 @@ void acpi_processor_set_pdc(acpi_handle handle)
+ 	if (arch_has_acpi_pdc() == false)
+ 		return;
+ 
+-	if (early_pdc_done)
+-		return;
+-
+ 	obj_list = acpi_processor_alloc_pdc();
+ 	if (!obj_list)
+ 		return;
+@@ -369,6 +364,4 @@ void acpi_early_processor_set_pdc(void)
+ 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX,
+ 			    early_init_pdc, NULL, NULL, NULL);
+-
+-	early_pdc_done = 1;
+ }
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 777d046..7e8e1ba 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -606,9 +606,6 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		goto err_remove_fs;
+ 	}
+ 
+-	/* _PDC call should be done before doing anything else (if reqd.). */
+-	acpi_processor_set_pdc(pr->handle);
+-
+ #ifdef CONFIG_CPU_FREQ
+ 	acpi_processor_ppc_has_changed(pr, 0);
+ #endif
