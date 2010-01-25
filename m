@@ -1,120 +1,90 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 07/12] ACPI: processor: driver doesn't need to evaluate _PDC
-Date: Mon, 25 Jan 2010 14:41:14 -0700
-Message-ID: <20100125214113.28510.72436.stgit@bob.kio>
+Subject: [PATCH 05/12] ACPI: processor: add internal
+	processor_physically_present()
+Date: Mon, 25 Jan 2010 14:41:03 -0700
+Message-ID: <20100125214103.28510.69941.stgit@bob.kio>
 References: <20100125213221.28510.74078.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753706Ab0AYVla@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753572Ab0AYVlQ@vger.kernel.org>
 In-Reply-To: <20100125213221.28510.74078.stgit@bob.kio>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now that the early _PDC evaluation path knows how to correctly
-evaluate _PDC on only physically present processors, there's no
-need for the processor driver to evaluate it later when it loads.
+Detect if a processor is physically present before evaluating _PDC.
 
-To cover the hotplug case, push _PDC evaluation down into the
-hotplug paths.
+We want this because some BIOS will provide a _PDC even for processors
+that are not present. These bogus _PDC methods then attempt to load
+non-existent tables, which causes problems.
 
-Cc: x86@kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Avoid those bogus landmines.
+
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- arch/ia64/kernel/acpi.c         |    3 +++
- arch/x86/kernel/acpi/boot.c     |    3 +++
- drivers/acpi/processor_core.c   |    7 -------
- drivers/acpi/processor_driver.c |    3 ---
- 4 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/acpi/processor_core.c |   42 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 40574ae..394742a 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -44,6 +44,7 @@
- #include <linux/efi.h>
- #include <linux/mmzone.h>
- #include <linux/nodemask.h>
-+#include <acpi/processor.h>
- #include <asm/io.h>
- #include <asm/iosapic.h>
- #include <asm/machvec.h>
-@@ -936,6 +937,8 @@ int acpi_map_lsapic(acpi_handle handle, int *pcpu)
- 	cpu_set(cpu, cpu_present_map);
- 	ia64_cpu_to_sapicid[cpu] = physid;
- 
-+	acpi_processor_set_pdc(handle);
-+
- 	*pcpu = cpu;
- 	return (0);
- }
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index fb1035c..baa2280 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -481,6 +481,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
-  *  ACPI based hotplug support for CPU
-  */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
-+#include <acpi/processor.h>
- 
- static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
- {
-@@ -539,6 +540,8 @@ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
- 		goto free_new_map;
- 	}
- 
-+	acpi_processor_set_pdc(handle);
-+
- 	cpu = cpumask_first(new_map);
- 
- 	*pcpu = cpu;
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 05874ba..1fc06c6 100644
+index ca12d70..e8b1246 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -317,8 +317,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- 	return status;
- }
- 
--static int early_pdc_done;
--
- void acpi_processor_set_pdc(acpi_handle handle)
- {
- 	struct acpi_object_list *obj_list;
-@@ -326,9 +324,6 @@ void acpi_processor_set_pdc(acpi_handle handle)
- 	if (arch_has_acpi_pdc() == false)
- 		return;
- 
--	if (early_pdc_done)
--		return;
--
- 	obj_list = acpi_processor_alloc_pdc();
- 	if (!obj_list)
- 		return;
-@@ -369,6 +364,4 @@ void acpi_early_processor_set_pdc(void)
- 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
- 			    ACPI_UINT32_MAX,
- 			    early_init_pdc, NULL, NULL, NULL);
--
--	early_pdc_done = 1;
- }
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 777d046..7e8e1ba 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -606,9 +606,6 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 		goto err_remove_fs;
- 	}
- 
--	/* _PDC call should be done before doing anything else (if reqd.). */
--	acpi_processor_set_pdc(pr->handle);
--
- #ifdef CONFIG_CPU_FREQ
- 	acpi_processor_ppc_has_changed(pr, 0);
+@@ -194,6 +194,45 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
  #endif
+ 
++static bool processor_physically_present(acpi_handle handle)
++{
++	int cpuid, type;
++	u32 acpi_id;
++	acpi_status status;
++	acpi_object_type acpi_type;
++	unsigned long long tmp;
++	union acpi_object object = { 0 };
++	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
++
++	status = acpi_get_type(handle, &acpi_type);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = object.processor.proc_id;
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = tmp;
++		break;
++	default:
++		return false;
++	}
++
++	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++	cpuid = acpi_get_cpuid(handle, type, acpi_id);
++
++	if (cpuid == -1)
++		return false;
++
++	return true;
++}
+ 
+ static void acpi_set_pdc_bits(u32 *buf)
+ {
+@@ -335,6 +374,9 @@ static struct dmi_system_id __cpuinitdata early_pdc_optin_table[] = {
+ static acpi_status
+ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
++	if (processor_physically_present(handle) == false)
++		return AE_OK;
++
+ 	acpi_processor_set_pdc(handle);
+ 	return AE_OK;
+ }
