@@ -1,64 +1,97 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 10/12] ACPI: processor: refactor internal map_lsapic_id()
-Date: Mon, 25 Jan 2010 14:41:29 -0700
-Message-ID: <20100125214129.28510.72412.stgit@bob.kio>
+Subject: [PATCH 06/12] ACPI: processor: remove early _PDC optin quirks
+Date: Mon, 25 Jan 2010 14:41:08 -0700
+Message-ID: <20100125214108.28510.57323.stgit@bob.kio>
 References: <20100125213221.28510.74078.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751637Ab0AYVlh@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751969Ab0AYVnS@vger.kernel.org>
 In-Reply-To: <20100125213221.28510.74078.stgit@bob.kio>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Un-nest the if statements for readability.
+Now that we check for physically present processors before blindly
+evaluating _PDC, we no longer need to maintain a DMI opt-in table
+nor a kernel param.
 
-Remove comments that re-state the obvious.
-
-Change the control flow so that we no longer need a temp variable.
-
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_core.c |   20 +++++---------------
- 1 files changed, 5 insertions(+), 15 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ----
+ drivers/acpi/processor_core.c       |   37 -----------------------------------
+ 2 files changed, 0 insertions(+), 41 deletions(-)
 
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 826b6e1..736d456 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -199,10 +199,6 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			acpi_display_output=video
+ 			See above.
+ 
+-	acpi_early_pdc_eval	[HW,ACPI] Evaluate processor _PDC methods
+-				early. Needed on some platforms to properly
+-				initialize the EC.
+-
+ 	acpi_irq_balance [HW,ACPI]
+ 			ACPI will balance active IRQs
+ 			default in APIC mode
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 9213f95..ec5989c 100644
+index e8b1246..05874ba 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -83,27 +83,17 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- {
- 	struct acpi_madt_local_sapic *lsapic =
- 		(struct acpi_madt_local_sapic *)entry;
--	u32 tmp = (lsapic->id << 8) | lsapic->eid;
- 
--	/* Only check enabled APICs*/
- 	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
- 		return 0;
- 
--	/* Device statement declaration type */
- 	if (device_declaration) {
--		if (entry->length < 16)
--			printk(KERN_ERR PREFIX
--			    "Invalid LSAPIC with Device type processor (SAPIC ID %#x)\n",
--			    tmp);
--		else if (lsapic->uid == acpi_id)
--			goto found;
--	/* Processor statement declaration type */
--	} else if (lsapic->processor_id == acpi_id)
--		goto found;
-+		if ((entry->length < 16) || (lsapic->uid != acpi_id))
-+			return 0;
-+	} else if (lsapic->processor_id != acpi_id)
-+		return 0;
- 
--	return 0;
--found:
--	*apic_id = tmp;
-+	*apic_id = (lsapic->id << 8) | lsapic->eid;
- 	return 1;
+@@ -341,36 +341,6 @@ void acpi_processor_set_pdc(acpi_handle handle)
  }
+ EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
  
+-static int early_pdc_optin;
+-static int set_early_pdc_optin(const struct dmi_system_id *id)
+-{
+-	early_pdc_optin = 1;
+-	return 0;
+-}
+-
+-static int param_early_pdc_optin(char *s)
+-{
+-	early_pdc_optin = 1;
+-	return 1;
+-}
+-__setup("acpi_early_pdc_eval", param_early_pdc_optin);
+-
+-static struct dmi_system_id __cpuinitdata early_pdc_optin_table[] = {
+-	{
+-	set_early_pdc_optin, "HP Envy", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Hewlett-Packard"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "HP Envy") }, NULL},
+-	{
+-	set_early_pdc_optin, "HP Pavilion dv6", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Hewlett-Packard"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6") }, NULL},
+-	{
+-	set_early_pdc_optin, "HP Pavilion dv7", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Hewlett-Packard"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv7") }, NULL},
+-	{},
+-};
+-
+ static acpi_status
+ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+@@ -396,13 +366,6 @@ void acpi_early_processor_set_pdc(void)
+ 	 */
+ 	dmi_check_system(processor_idle_dmi_table);
+ 
+-	/*
+-	 * Allow systems to opt-in to early _PDC evaluation.
+-	 */
+-	dmi_check_system(early_pdc_optin_table);
+-	if (!early_pdc_optin)
+-		return;
+-
+ 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX,
+ 			    early_init_pdc, NULL, NULL, NULL);
