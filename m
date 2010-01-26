@@ -1,67 +1,58 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 10/12] ACPI: processor: refactor internal
-	map_lsapic_id()
-Date: Mon, 25 Jan 2010 15:46:28 -0700
-Message-ID: <20100125224628.GB2828@grease.ALLEYCAT>
-References: <20100125213221.28510.74078.stgit@bob.kio> <20100125214129.28510.72412.stgit@bob.kio> <alpine.DEB.2.00.1001251421440.27862@chino.kir.corp.google.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Question about ACPI Video
+Date: Tue, 26 Jan 2010 08:58:04 +0800
+Message-ID: <1264467484.22448.310.camel@rzhang1-desktop>
+References: <d292941c1001250145o43dc2785p6cdc7d2ff6d47e76@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:19484 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750734Ab0AYXBw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2010 18:01:52 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1001251421440.27862@chino.kir.corp.google.com>
+Received: from mga01.intel.com ([192.55.52.88]:39327 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752632Ab0AZA73 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jan 2010 19:59:29 -0500
+In-Reply-To: <d292941c1001250145o43dc2785p6cdc7d2ff6d47e76@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: luke lin <luke.lin1105@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Luke lin <luke1105@gmail.com>
 
-Hi David,
-
-* David Rientjes <rientjes@google.com>:
-> On Mon, 25 Jan 2010, Alex Chiang wrote:
+On Mon, 2010-01-25 at 17:45 +0800, luke lin wrote:
+> Hi all,
 > 
-> > diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> > index 9213f95..ec5989c 100644
-> > --- a/drivers/acpi/processor_core.c
-> > +++ b/drivers/acpi/processor_core.c
-> > @@ -83,27 +83,17 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
-> >  {
-> >  	struct acpi_madt_local_sapic *lsapic =
-> >  		(struct acpi_madt_local_sapic *)entry;
-> > -	u32 tmp = (lsapic->id << 8) | lsapic->eid;
-> >  
-> > -	/* Only check enabled APICs*/
-> >  	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
-> >  		return 0;
-> >  
-> > -	/* Device statement declaration type */
-> >  	if (device_declaration) {
-> > -		if (entry->length < 16)
-> > -			printk(KERN_ERR PREFIX
-> > -			    "Invalid LSAPIC with Device type processor (SAPIC ID %#x)\n",
-> > -			    tmp);
+> I read the drivers/acpi/video.c:
 > 
-> Why drop this error message?
+> 895         result = acpi_video_device_lcd_set_level(device, max_level);
+> 896         if (result)
+> 897                 goto out_free_levels;
+> 898
+> 899         result = acpi_video_device_lcd_get_level_current(device, &level);
+> 900         if (result)
+> 901                 goto out_free_levels;
+> 902
+> 903         br->flags._BQC_use_index = (level == max_level ? 0 : 1);
+> 904
+> 905         if (!br->flags._BQC_use_index) {
+> 912                 for (i = 2; i < br->count; i++)
+> 913                         if (level_old == br->levels[i])
+> 914                                 level = level_old;
+> 915                 goto set_level;
+> 916         }
+> why after level == max_level, it will still need set_level again?
+> is this a bug, or it is necessary.
+> 
+Because setting the backlight to max_level is just to check if _BQC uses
+indexed value. We need to set the backlight back after this is done.
 
-It didn't seem to add any value.
+thanks,
+rui
 
-If BIOS declares a processor with the Device statement in ACPI
-and it has an invalid length, there's nothing that a user can do
-about it.
 
-Arguably, the message might be useful during internal platform
-bringup (or new firmware validation), but even that's a hard sell
-to me, since one of the first things a bringup engineer would
-notice would be missing CPUs, and it wouldn't take that long to
-realize that firmware was broken; why make upstream carry around
-extra baggage for internal firmware debugging?
+> thx
+> luke
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-But I don't have a strong opinion here. If folks think that
-message is useful, I can respin leaving it in.
-
-Thanks,
-/ac
 
