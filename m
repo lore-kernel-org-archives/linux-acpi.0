@@ -1,309 +1,92 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Status of 'toshiba-acpi: Add support for hotkey notifications' patch?
-Date: Tue, 26 Jan 2010 17:59:00 +0100
-Message-ID: <201001261759.01081.elendil@planet.nl>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 2.6.{29-32}.stable]  ACPI: enable C2 and Turbo-mode on Nehalem
+ notebooks on A/C
+Date: Tue, 26 Jan 2010 16:15:28 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1001261554510.4493@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Cpsmtpm-eml109.kpnxchange.com ([195.121.3.13]:49845 "EHLO
-	CPSMTPM-EML109.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107Ab0AZQ7F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jan 2010 11:59:05 -0500
-Content-Disposition: inline
+Received: from vms173015pub.verizon.net ([206.46.173.15]:59936 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752881Ab0AZVPc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2010 16:15:32 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KWV009QLHPTHH20@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 26 Jan 2010 15:15:32 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Hi Matthew,
+From: Len Brown <len.brown@intel.com>
 
-What's the status of the patch below [1]? IIRC you were waiting for feedback
-from a particular user?
+upstream in 2.6.33-rc:  5d76b6f6c17572e662f5c99c2023adae92100855
 
-The patch works fine for me on my Satellite A40 and I'd like to see
-it included.
+Refreshed here for 2.6.32.y, applies w/ offset back to 2.6.29.y.
 
-Cheers,
-FJP
+Linux has always ignored ACPI BIOS C2 with exit latency > 100 usec,
+and the ACPI spec is clear that is correct FADT-supplied C2.
 
-[1] Patch has been rebased for current mainline.
+However, the ACPI spec explicitly states that _CST-supplied C-states
+have no latency limits.
 
-Author: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: toshiba-acpi: Add support for hotkey notifications
+So move the 100usec C2 test out of the code shared
+by FADT and _CST code-paths, and into the FADT-specific path.
 
-Calling the ENAB method on Toshiba laptops results in notifications being
-sent when laptop hotkeys are pressed. This patch simply calls that method
-and sets up an input device if it's successful.
+This bug has not been visible until Nehalem, which advertises
+a CPU-C2 worst case exit latency on servers of 205usec.
+That (incorrect) figure is being used by BIOS writers
+on mobile Nehalem systems for the AC configuration.
+Thus, Linux ignores C2 leaving just C1, which is
+saves less power, and also impacts performance
+by preventing the use of turbo mode.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+http://bugzilla.kernel.org/show_bug.cgi?id=15064
 
-diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-index 77bf5d8..13344b1 100644
---- a/drivers/platform/x86/toshiba_acpi.c
-+++ b/drivers/platform/x86/toshiba_acpi.c
-@@ -46,6 +46,8 @@
- #include <linux/backlight.h>
- #include <linux/platform_device.h>
- #include <linux/rfkill.h>
-+#include <linux/input-polldev.h>
-+#include <linux/input.h>
+Tested-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
+
+Index: linux-2.6.32.y/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.32.y.orig/drivers/acpi/processor_idle.c
++++ linux-2.6.32.y/drivers/acpi/processor_idle.c
+@@ -299,6 +299,17 @@ static int acpi_processor_get_power_info
+ 	pr->power.states[ACPI_STATE_C2].latency = acpi_gbl_FADT.C2latency;
+ 	pr->power.states[ACPI_STATE_C3].latency = acpi_gbl_FADT.C3latency;
  
- #include <asm/uaccess.h>
- 
-@@ -62,9 +64,10 @@ MODULE_LICENSE("GPL");
- 
- /* Toshiba ACPI method paths */
- #define METHOD_LCD_BRIGHTNESS	"\\_SB_.PCI0.VGA_.LCD_._BCM"
--#define METHOD_HCI_1		"\\_SB_.VALD.GHCI"
--#define METHOD_HCI_2		"\\_SB_.VALZ.GHCI"
-+#define TOSH_INTERFACE_1	"\\_SB_.VALD"
-+#define TOSH_INTERFACE_2	"\\_SB_.VALZ"
- #define METHOD_VIDEO_OUT	"\\_SB_.VALX.DSSX"
-+#define GHCI_METHOD		".GHCI"
- 
- /* Toshiba HCI interface definitions
-  *
-@@ -116,6 +119,37 @@ static const struct acpi_device_id toshiba_device_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, toshiba_device_ids);
- 
-+struct key_entry {
-+	char type;
-+	u16 code;
-+	u16 keycode;
-+};
-+
-+enum {KE_KEY, KE_END};
-+
-+static struct key_entry toshiba_acpi_keymap[]  = {
-+	{KE_KEY, 0x101, KEY_MUTE},
-+	{KE_KEY, 0x13b, KEY_COFFEE},
-+	{KE_KEY, 0x13c, KEY_BATTERY},
-+	{KE_KEY, 0x13d, KEY_SLEEP},
-+	{KE_KEY, 0x13e, KEY_SUSPEND},
-+	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
-+	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
-+	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
-+	{KE_KEY, 0x142, KEY_WLAN},
-+	{KE_KEY, 0x143, KEY_PROG1},
-+	{KE_KEY, 0x17f, KEY_BRIGHTNESSDOWN},
-+	{KE_KEY, 0xb05, KEY_PROG2},
-+	{KE_KEY, 0xb06, KEY_WWW},
-+	{KE_KEY, 0xb07, KEY_MAIL},
-+	{KE_KEY, 0xb30, KEY_STOP},
-+	{KE_KEY, 0xb31, KEY_PREVIOUSSONG},
-+	{KE_KEY, 0xb32, KEY_NEXTSONG},
-+	{KE_KEY, 0xb33, KEY_PLAYPAUSE},
-+	{KE_KEY, 0xb5a, KEY_MEDIA},
-+	{KE_END, 0, 0},
-+};
-+
- /* utility
-  */
- 
-@@ -251,6 +285,9 @@ static acpi_status hci_read2(u32 reg, u32 *out1, u32 *out2, u32 
-*result)
- struct toshiba_acpi_dev {
- 	struct platform_device *p_dev;
- 	struct rfkill *bt_rfk;
-+	struct input_polled_dev *poll_dev;
-+	struct input_dev *hotkey_dev;
-+	acpi_handle handle;
- 
- 	const char *bt_name;
- 
-@@ -711,6 +748,154 @@ static struct backlight_ops toshiba_backlight_data = {
-         .update_status  = set_lcd_status,
- };
- 
-+static struct key_entry *toshiba_acpi_get_entry_by_scancode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
-+		if (code == key->code)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static struct key_entry *toshiba_acpi_get_entry_by_keycode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
-+		if (code == key->keycode && key->type == KE_KEY)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static int toshiba_acpi_getkeycode(struct input_dev *dev, int scancode,
-+				   int *keycode)
-+{
-+	struct key_entry *key = toshiba_acpi_get_entry_by_scancode(scancode);
-+
-+	if (key && key->type == KE_KEY) {
-+		*keycode = key->keycode;
-+		return 0;
++	/*
++	 * FADT specified C2 latency must be less than or equal to
++	 * 100 microseconds.
++	 */
++	if (acpi_gbl_FADT.C2latency > ACPI_PROCESSOR_MAX_C2_LATENCY) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			"C2 latency too large [%d]\n", acpi_gbl_FADT.C2latency));
++		/* invalidate C2 */
++		pr->power.states[ACPI_STATE_C2].address = 0;
 +	}
 +
-+	return -EINVAL;
-+}
-+
-+static int toshiba_acpi_setkeycode(struct input_dev *dev, int scancode,
-+				   int keycode)
-+{
-+	struct key_entry *key;
-+	int old_keycode;
-+
-+	if (keycode < 0 || keycode > KEY_MAX)
-+		return -EINVAL;
-+
-+	key = toshiba_acpi_get_entry_by_scancode(scancode);
-+	if (key && key->type == KE_KEY) {
-+		old_keycode = key->keycode;
-+		key->keycode = keycode;
-+		set_bit(keycode, dev->keybit);
-+		if (!toshiba_acpi_get_entry_by_keycode(old_keycode))
-+			clear_bit(old_keycode, dev->keybit);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
-+{
-+	u32 hci_result, value;
-+	struct key_entry *key;
-+
-+	if (event != 0x80)
-+		return;
-+	do {
-+		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
-+		if (hci_result == HCI_SUCCESS) {
-+			if (value == 0x100)
-+				continue;
-+			else if (!(value & 0x80)) {
-+				key = toshiba_acpi_get_entry_by_scancode
-+					(value);
-+				if (!key) {
-+					printk(MY_INFO "Unknown key %x\n",
-+					       value);
-+					continue;
-+				}
-+				input_report_key(toshiba_acpi.hotkey_dev,
-+						 key->keycode, 1);
-+				input_sync(toshiba_acpi.hotkey_dev);
-+				input_report_key(toshiba_acpi.hotkey_dev,
-+						 key->keycode, 0);
-+				input_sync(toshiba_acpi.hotkey_dev);
-+			}
-+		} else if (hci_result == HCI_NOT_SUPPORTED) {
-+			/* This is a workaround for an unresolved issue on
-+			 * some machines where system events sporadically
-+			 * become disabled. */
-+			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
-+			printk(MY_NOTICE "Re-enabled hotkeys\n");
-+		}
-+	} while (hci_result != HCI_EMPTY);
-+}
-+
-+static int toshiba_acpi_setup_keyboard(char *device)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+	int result;
-+	const struct key_entry *key;
-+
-+	status = acpi_get_handle(NULL, device, &handle);
-+	if (ACPI_FAILURE(status)) {
-+		printk(MY_INFO "Unable to get notification device\n");
-+		return -ENODEV;
-+	}
-+
-+	toshiba_acpi.handle = handle;
-+
-+	status = acpi_evaluate_object(handle, "ENAB", NULL, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(MY_INFO "Unable to enable hotkeys\n");
-+		return -ENODEV;
-+	}
-+
-+	status = acpi_install_notify_handler (handle, ACPI_DEVICE_NOTIFY,
-+					      toshiba_acpi_notify, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(MY_INFO "Unable to install hotkey notification\n");
-+		return -ENODEV;
-+	}
-+
-+	toshiba_acpi.hotkey_dev = input_allocate_device();
-+	if (!toshiba_acpi.hotkey_dev) {
-+		printk(MY_INFO "Unable to register input device\n");
-+		return -ENOMEM;
-+	}
-+
-+	toshiba_acpi.hotkey_dev->name = "Toshiba input device";
-+	toshiba_acpi.hotkey_dev->phys = device;
-+	toshiba_acpi.hotkey_dev->id.bustype = BUS_HOST;
-+	toshiba_acpi.hotkey_dev->getkeycode = toshiba_acpi_getkeycode;
-+	toshiba_acpi.hotkey_dev->setkeycode = toshiba_acpi_setkeycode;
-+
-+	for (key = toshiba_acpi_keymap; key->type != KE_END; key++) {
-+		set_bit(EV_KEY, toshiba_acpi.hotkey_dev->evbit);
-+		set_bit(key->keycode, toshiba_acpi.hotkey_dev->keybit);
-+	}
-+
-+	result = input_register_device(toshiba_acpi.hotkey_dev);
-+	if (result) {
-+		printk(MY_INFO "Unable to register input device\n");
-+		return result;
-+	}
-+
-+	return 0;
-+}
-+
- static void toshiba_acpi_exit(void)
- {
- 	if (toshiba_acpi.bt_rfk) {
-@@ -718,9 +903,15 @@ static void toshiba_acpi_exit(void)
- 		rfkill_destroy(toshiba_acpi.bt_rfk);
- 	}
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "lvl2[0x%08x] lvl3[0x%08x]\n",
+ 			  pr->power.states[ACPI_STATE_C2].address,
+@@ -495,16 +506,6 @@ static void acpi_processor_power_verify_
+ 		return;
  
-+	if (toshiba_acpi.hotkey_dev)
-+		input_unregister_device(toshiba_acpi.hotkey_dev);
-+
- 	if (toshiba_backlight_device)
- 		backlight_device_unregister(toshiba_backlight_device);
- 
-+	acpi_remove_notify_handler(toshiba_acpi.handle, ACPI_DEVICE_NOTIFY,
-+				   toshiba_acpi_notify);
-+
- 	remove_device();
- 
- 	if (toshiba_proc_dir)
-@@ -742,11 +933,15 @@ static int __init toshiba_acpi_init(void)
- 		return -ENODEV;
- 
- 	/* simple device detection: look for HCI method */
--	if (is_valid_acpi_path(METHOD_HCI_1))
--		method_hci = METHOD_HCI_1;
--	else if (is_valid_acpi_path(METHOD_HCI_2))
--		method_hci = METHOD_HCI_2;
--	else
-+	if (is_valid_acpi_path(TOSH_INTERFACE_1 GHCI_METHOD)) {
-+		method_hci = TOSH_INTERFACE_1 GHCI_METHOD;
-+		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_1))
-+			printk(MY_INFO "Unable to activate hotkeys\n");
-+	} else if (is_valid_acpi_path(TOSH_INTERFACE_2 GHCI_METHOD)) {
-+		method_hci = TOSH_INTERFACE_2 GHCI_METHOD;
-+		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_2))
-+			printk(MY_INFO "Unable to activate hotkeys\n");
-+	} else
- 		return -ENODEV;
- 
- 	printk(MY_INFO "Toshiba Laptop ACPI Extras version %s\n",
+ 	/*
+-	 * C2 latency must be less than or equal to 100
+-	 * microseconds.
+-	 */
+-	else if (cx->latency > ACPI_PROCESSOR_MAX_C2_LATENCY) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "latency too large [%d]\n", cx->latency));
+-		return;
+-	}
+-
+-	/*
+ 	 * Otherwise we've met all of our C2 requirements.
+ 	 * Normalize the C2 latency to expidite policy
+ 	 */
