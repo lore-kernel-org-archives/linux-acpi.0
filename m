@@ -1,191 +1,309 @@
-From: jeff@jgarrett.org (Jeff Garrett)
-Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
-Date: Tue, 26 Jan 2010 08:59:51 -0600
-Message-ID: <20100126145951.GA4987@jgarrett.org>
-References: <20100126084740.GA5265@jgarrett.org>
- <1264509660.29891.7.camel@huang-laptop>
+From: Frans Pop <elendil@planet.nl>
+Subject: Status of 'toshiba-acpi: Add support for hotkey notifications' patch?
+Date: Tue, 26 Jan 2010 17:59:00 +0100
+Message-ID: <201001261759.01081.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from jgarrett.org ([64.5.53.252]:56224 "EHLO jgarrett.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752189Ab0AZPAf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2010 10:00:35 -0500
+Received: from Cpsmtpm-eml109.kpnxchange.com ([195.121.3.13]:49845 "EHLO
+	CPSMTPM-EML109.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752107Ab0AZQ7F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jan 2010 11:59:05 -0500
 Content-Disposition: inline
-In-Reply-To: <1264509660.29891.7.camel@huang-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: peng huang <huangpeng.linux@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jan 26, 2010 at 09:41:00PM +0900, peng huang wrote:
-> Hi,
-> can you show me the file /proc/acpi/processor/CPU*/power.
-> and are you sure your cpu usage is 0 or nearly zero.
+Hi Matthew,
 
-Yea, I'm pretty sure my cpu usage is nearly zero.  powertop shows fewer
-than 20 wakeups per second, shows 99% C2 residency, top shows 100% idle=
-,
-perf top shows acpi_idle_enter_simple as the most common function
-(~50%).  Very little is running on the box, and I've compiled out the
-heavier parts of the kernel (such as USB)...
+What's the status of the patch below [1]? IIRC you were waiting for feedback
+from a particular user?
 
-(It still has ordinary userspace running, e.g. udev & hal, and still ha=
-s
-sshd and network traffic, as examples.)
+The patch works fine for me on my Satellite A40 and I'd like to see
+it included.
 
-This is all consistent with a very idle machine, I think.
+Cheers,
+FJP
 
-> this is the info of my laptop(using core 2 processors):
-> powertop's output:
-> Cn                Avg residency       P-states (frequencies)
-> C0 (cpu running)        (10.6%)         2.00 Ghz     1.9%
-> C0                0.0ms ( 0.0%)         1.67 Ghz     0.1%
-> C1 mwait          0.0ms ( 0.0%)         1333 Mhz     0.0%
-> C2 mwait          0.0ms ( 0.0%)         1000 Mhz    98.0%
-> C3 mwait          1.1ms (89.4%)
+[1] Patch has been rebased for current mainline.
 
-Yea, my laptop also (also core 2) has 700-1000 wakeups/sec and spends
-greater than 80% of its time in C3...  That's partly why I'm curious
-about what my core i7 desktop is doing.
+Author: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: toshiba-acpi: Add support for hotkey notifications
 
-> and power things:
-> huang@huang-laptop:~$ cat /proc/acpi/processor/CPU0/power=20
-> active state:            C0
-> max_cstate:              C8
-> maximum allowed latency: 2000000000 usec
-> states:
->     C1:                  type[C1] promotion[--] demotion[--]
-> latency[001] usage[00002364] duration[00000000000000000000]
->     C2:                  type[C2] promotion[--] demotion[--]
-> latency[001] usage[00070662] duration[00000000000006013816]
->     C3:                  type[C3] promotion[--] demotion[--]
-> latency[017] usage[04774185] duration[00000000010838418152]
->=20
-> you can see C3 with powertop,so i think your BIOS has enabled Deep=20
-> C-state.
+Calling the ENAB method on Toshiba laptops results in notifications being
+sent when laptop hotkeys are pressed. This patch simply calls that method
+and sets up an input device if it's successful.
 
-Here's my power files...
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-/proc/acpi/processor/CPU0/power:
-active state:            C0
-max_cstate:              C8
-maximum allowed latency: 2000000000 usec
-states:
-    C1:                  type[C1] promotion[--] demotion[--] latency[00=
-1] usage[00001470] duration[00000000000000000000]
-    C2:                  type[C2] promotion[--] demotion[--] latency[01=
-7] usage[00234416] duration[00000000017165798539]
-    C3:                  type[C3] promotion[--] demotion[--] latency[01=
-7] usage[00000000] duration[00000000000000000000]
-/proc/acpi/processor/CPU1/power:
-active state:            C0
-max_cstate:              C8
-maximum allowed latency: 2000000000 usec
-states:
-    C1:                  type[C1] promotion[--] demotion[--] latency[00=
-1] usage[00000481] duration[00000000000000000000]
-    C2:                  type[C2] promotion[--] demotion[--] latency[01=
-7] usage[00090169] duration[00000000017188463157]
-    C3:                  type[C3] promotion[--] demotion[--] latency[01=
-7] usage[00000000] duration[00000000000000000000]
-/proc/acpi/processor/CPU2/power:
-active state:            C0
-max_cstate:              C8
-maximum allowed latency: 2000000000 usec
-states:
-    C1:                  type[C1] promotion[--] demotion[--] latency[00=
-1] usage[00000418] duration[00000000000000000000]
-    C2:                  type[C2] promotion[--] demotion[--] latency[01=
-7] usage[00068874] duration[00000000017193805291]
-    C3:                  type[C3] promotion[--] demotion[--] latency[01=
-7] usage[00000000] duration[00000000000000000000]
-/proc/acpi/processor/CPU3/power:
-active state:            C0
-max_cstate:              C8
-maximum allowed latency: 2000000000 usec
-states:
-    C1:                  type[C1] promotion[--] demotion[--] latency[00=
-1] usage[00001356] duration[00000000000000000000]
-    C2:                  type[C2] promotion[--] demotion[--] latency[01=
-7] usage[00362752] duration[00000000017156707397]
-    C3:                  type[C3] promotion[--] demotion[--] latency[01=
-7] usage[00000000] duration[00000000000000000000]
-
->=20
-> -huang
->=20
-> 2010-01-26 (=E7=81=AB) =E3=81=AE 02:47 -0600 =E3=81=AB Jeff Garrett =E3=
-=81=95=E3=82=93=E3=81=AF=E6=9B=B8=E3=81=8D=E3=81=BE=E3=81=97=E3=81=9F:
-> > Hi,
-> >=20
-> > I was trying to chase down a theory that my desktop machine (a core=
- i7)
-> > is running warm (the fan sounds like it's at full speed all the tim=
-e,
-> > and I think it's not always acted this way -- hence the theory).
-> >=20
-> > powertop is never showing it spending any time in C3...
-> >=20
-> > I compiled a kernel without USB/sound/radeon, and ran without X.  I=
- was
-> > able to get the wakeups/sec down below 20, but no time is spent in =
-C3.
-> >=20
-> > sysfs looks to agree with powertop here (time =3D 0 on C3):
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/desc: CPUIDLE CORE POLL=
- IDLE
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/latency: 0
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/name: C0
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/power: 4294967295
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/time: 457
-> > /sys/devices/system/cpu/cpu0/cpuidle/state0/usage: 59
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/desc: ACPI FFH INTEL MW=
-AIT 0x0
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/latency: 1
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/name: C1
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/power: 1000
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/time: 308177
-> > /sys/devices/system/cpu/cpu0/cpuidle/state1/usage: 3975
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/desc: ACPI FFH INTEL MW=
-AIT 0x10
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/latency: 17
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/name: C2
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/power: 500
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/time: 873440787
-> > /sys/devices/system/cpu/cpu0/cpuidle/state2/usage: 239038
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/desc: ACPI FFH INTEL MW=
-AIT 0x20
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/latency: 17
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/name: C3
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/power: 350
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/time: 0
-> > /sys/devices/system/cpu/cpu0/cpuidle/state3/usage: 0
-> >=20
-> > This may be a complete red herring, but I added some printk logic t=
-o
-> > acpi_idle_bm_check(), and it is getting called often, but bm_status=
- is
-> > always 1.  [I infer from this that the idle logic is trying to go i=
-nto
-> > C3, but this check is stopping it...  Unless I misread something.]
-> >=20
-> > Is this expected behavior or is this a legitimate problem?
-> >=20
-> > How might I investigate this further?
-> >=20
-> > Attaching dmesg, /proc/cpuinfo, powertop -d output.
-> >=20
-> > Thanks,
-> > Jeff Garrett
->=20
->=20
-> --=20
-> peng huang <huangpeng.linux@gmail.com>
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 77bf5d8..13344b1 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -46,6 +46,8 @@
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+ #include <linux/rfkill.h>
++#include <linux/input-polldev.h>
++#include <linux/input.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -62,9 +64,10 @@ MODULE_LICENSE("GPL");
+ 
+ /* Toshiba ACPI method paths */
+ #define METHOD_LCD_BRIGHTNESS	"\\_SB_.PCI0.VGA_.LCD_._BCM"
+-#define METHOD_HCI_1		"\\_SB_.VALD.GHCI"
+-#define METHOD_HCI_2		"\\_SB_.VALZ.GHCI"
++#define TOSH_INTERFACE_1	"\\_SB_.VALD"
++#define TOSH_INTERFACE_2	"\\_SB_.VALZ"
+ #define METHOD_VIDEO_OUT	"\\_SB_.VALX.DSSX"
++#define GHCI_METHOD		".GHCI"
+ 
+ /* Toshiba HCI interface definitions
+  *
+@@ -116,6 +119,37 @@ static const struct acpi_device_id toshiba_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, toshiba_device_ids);
+ 
++struct key_entry {
++	char type;
++	u16 code;
++	u16 keycode;
++};
++
++enum {KE_KEY, KE_END};
++
++static struct key_entry toshiba_acpi_keymap[]  = {
++	{KE_KEY, 0x101, KEY_MUTE},
++	{KE_KEY, 0x13b, KEY_COFFEE},
++	{KE_KEY, 0x13c, KEY_BATTERY},
++	{KE_KEY, 0x13d, KEY_SLEEP},
++	{KE_KEY, 0x13e, KEY_SUSPEND},
++	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
++	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
++	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
++	{KE_KEY, 0x142, KEY_WLAN},
++	{KE_KEY, 0x143, KEY_PROG1},
++	{KE_KEY, 0x17f, KEY_BRIGHTNESSDOWN},
++	{KE_KEY, 0xb05, KEY_PROG2},
++	{KE_KEY, 0xb06, KEY_WWW},
++	{KE_KEY, 0xb07, KEY_MAIL},
++	{KE_KEY, 0xb30, KEY_STOP},
++	{KE_KEY, 0xb31, KEY_PREVIOUSSONG},
++	{KE_KEY, 0xb32, KEY_NEXTSONG},
++	{KE_KEY, 0xb33, KEY_PLAYPAUSE},
++	{KE_KEY, 0xb5a, KEY_MEDIA},
++	{KE_END, 0, 0},
++};
++
+ /* utility
+  */
+ 
+@@ -251,6 +285,9 @@ static acpi_status hci_read2(u32 reg, u32 *out1, u32 *out2, u32 
+*result)
+ struct toshiba_acpi_dev {
+ 	struct platform_device *p_dev;
+ 	struct rfkill *bt_rfk;
++	struct input_polled_dev *poll_dev;
++	struct input_dev *hotkey_dev;
++	acpi_handle handle;
+ 
+ 	const char *bt_name;
+ 
+@@ -711,6 +748,154 @@ static struct backlight_ops toshiba_backlight_data = {
+         .update_status  = set_lcd_status,
+ };
+ 
++static struct key_entry *toshiba_acpi_get_entry_by_scancode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->code)
++			return key;
++
++	return NULL;
++}
++
++static struct key_entry *toshiba_acpi_get_entry_by_keycode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->keycode && key->type == KE_KEY)
++			return key;
++
++	return NULL;
++}
++
++static int toshiba_acpi_getkeycode(struct input_dev *dev, int scancode,
++				   int *keycode)
++{
++	struct key_entry *key = toshiba_acpi_get_entry_by_scancode(scancode);
++
++	if (key && key->type == KE_KEY) {
++		*keycode = key->keycode;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int toshiba_acpi_setkeycode(struct input_dev *dev, int scancode,
++				   int keycode)
++{
++	struct key_entry *key;
++	int old_keycode;
++
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
++
++	key = toshiba_acpi_get_entry_by_scancode(scancode);
++	if (key && key->type == KE_KEY) {
++		old_keycode = key->keycode;
++		key->keycode = keycode;
++		set_bit(keycode, dev->keybit);
++		if (!toshiba_acpi_get_entry_by_keycode(old_keycode))
++			clear_bit(old_keycode, dev->keybit);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
++{
++	u32 hci_result, value;
++	struct key_entry *key;
++
++	if (event != 0x80)
++		return;
++	do {
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			if (value == 0x100)
++				continue;
++			else if (!(value & 0x80)) {
++				key = toshiba_acpi_get_entry_by_scancode
++					(value);
++				if (!key) {
++					printk(MY_INFO "Unknown key %x\n",
++					       value);
++					continue;
++				}
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 1);
++				input_sync(toshiba_acpi.hotkey_dev);
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 0);
++				input_sync(toshiba_acpi.hotkey_dev);
++			}
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result != HCI_EMPTY);
++}
++
++static int toshiba_acpi_setup_keyboard(char *device)
++{
++	acpi_status status;
++	acpi_handle handle;
++	int result;
++	const struct key_entry *key;
++
++	status = acpi_get_handle(NULL, device, &handle);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to get notification device\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.handle = handle;
++
++	status = acpi_evaluate_object(handle, "ENAB", NULL, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to enable hotkeys\n");
++		return -ENODEV;
++	}
++
++	status = acpi_install_notify_handler (handle, ACPI_DEVICE_NOTIFY,
++					      toshiba_acpi_notify, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to install hotkey notification\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.hotkey_dev = input_allocate_device();
++	if (!toshiba_acpi.hotkey_dev) {
++		printk(MY_INFO "Unable to register input device\n");
++		return -ENOMEM;
++	}
++
++	toshiba_acpi.hotkey_dev->name = "Toshiba input device";
++	toshiba_acpi.hotkey_dev->phys = device;
++	toshiba_acpi.hotkey_dev->id.bustype = BUS_HOST;
++	toshiba_acpi.hotkey_dev->getkeycode = toshiba_acpi_getkeycode;
++	toshiba_acpi.hotkey_dev->setkeycode = toshiba_acpi_setkeycode;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++) {
++		set_bit(EV_KEY, toshiba_acpi.hotkey_dev->evbit);
++		set_bit(key->keycode, toshiba_acpi.hotkey_dev->keybit);
++	}
++
++	result = input_register_device(toshiba_acpi.hotkey_dev);
++	if (result) {
++		printk(MY_INFO "Unable to register input device\n");
++		return result;
++	}
++
++	return 0;
++}
++
+ static void toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_acpi.bt_rfk) {
+@@ -718,9 +903,15 @@ static void toshiba_acpi_exit(void)
+ 		rfkill_destroy(toshiba_acpi.bt_rfk);
+ 	}
+ 
++	if (toshiba_acpi.hotkey_dev)
++		input_unregister_device(toshiba_acpi.hotkey_dev);
++
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
+ 
++	acpi_remove_notify_handler(toshiba_acpi.handle, ACPI_DEVICE_NOTIFY,
++				   toshiba_acpi_notify);
++
+ 	remove_device();
+ 
+ 	if (toshiba_proc_dir)
+@@ -742,11 +933,15 @@ static int __init toshiba_acpi_init(void)
+ 		return -ENODEV;
+ 
+ 	/* simple device detection: look for HCI method */
+-	if (is_valid_acpi_path(METHOD_HCI_1))
+-		method_hci = METHOD_HCI_1;
+-	else if (is_valid_acpi_path(METHOD_HCI_2))
+-		method_hci = METHOD_HCI_2;
+-	else
++	if (is_valid_acpi_path(TOSH_INTERFACE_1 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_1 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_1))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else if (is_valid_acpi_path(TOSH_INTERFACE_2 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_2 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_2))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else
+ 		return -ENODEV;
+ 
+ 	printk(MY_INFO "Toshiba Laptop ACPI Extras version %s\n",
