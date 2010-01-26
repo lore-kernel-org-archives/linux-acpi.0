@@ -1,52 +1,93 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
-Date: Tue, 26 Jan 2010 22:45:20 +0100
-Message-ID: <87y6jkee1b.fsf@basil.nowhere.org>
-References: <20100126084740.GA5265@jgarrett.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Greg KH <gregkh@suse.de>
+Subject: [97/98] ACPI: enable C2 and Turbo-mode on Nehalem notebooks on A/C
+Date: Tue, 26 Jan 2010 15:35:03 -0800
+Message-ID: <20100126233933.720024657@mini.kroah.org>
+References: <20100126233950.GA5372@kroah.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:56826 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754546Ab0AZVpW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2010 16:45:22 -0500
-In-Reply-To: <20100126084740.GA5265@jgarrett.org> (Jeff Garrett's message of "Tue, 26 Jan 2010 02:47:40 -0600")
+Received: from kroah.org ([198.145.64.141]:35568 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755004Ab0AZXoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jan 2010 18:44:30 -0500
+In-Reply-To: <20100126233950.GA5372@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Garrett <jeff@jgarrett.org>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: stable-review@kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-jeff@jgarrett.org (Jeff Garrett) writes:
+2.6.32-stable review patch.  If anyone has any objections, please let us know.
 
-> Hi,
->
-> I was trying to chase down a theory that my desktop machine (a core i7)
-> is running warm (the fan sounds like it's at full speed all the time,
-> and I think it's not always acted this way -- hence the theory).
->
-> powertop is never showing it spending any time in C3...
->
-> I compiled a kernel without USB/sound/radeon, and ran without X.  I was
-> able to get the wakeups/sec down below 20, but no time is spent in C3.
-
-[...]
-> This may be a complete red herring, but I added some printk logic to
-> acpi_idle_bm_check(), and it is getting called often, but bm_status is
-> always 1.  [I infer from this that the idle logic is trying to go into
-> C3, but this check is stopping it...  Unless I misread something.]
-
-Normally a Core i7 (or any modern Intel systems) should not use
-bm_check at all. That's only for older systems that didn't support
-MWAIT with c-state hint, but relied on the old port based interface. 
-
-So something is already confused there.
-
-I think it should still work though.
-Of course if you really have a lot of bus mastering in the background
-then yes there will be no C3.
-
--Andi
+------------------
 
 
--- 
-ak@linux.intel.com -- Speaking for myself only.
+From: Len Brown <len.brown@intel.com>
+
+upstream in 2.6.33-rc:  5d76b6f6c17572e662f5c99c2023adae92100855
+
+Refreshed here for 2.6.32.y, applies w/ offset back to 2.6.29.y.
+
+Linux has always ignored ACPI BIOS C2 with exit latency > 100 usec,
+and the ACPI spec is clear that is correct FADT-supplied C2.
+
+However, the ACPI spec explicitly states that _CST-supplied C-states
+have no latency limits.
+
+So move the 100usec C2 test out of the code shared
+by FADT and _CST code-paths, and into the FADT-specific path.
+
+This bug has not been visible until Nehalem, which advertises
+a CPU-C2 worst case exit latency on servers of 205usec.
+That (incorrect) figure is being used by BIOS writers
+on mobile Nehalem systems for the AC configuration.
+Thus, Linux ignores C2 leaving just C1, which is
+saves less power, and also impacts performance
+by preventing the use of turbo mode.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=15064
+
+Tested-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/acpi/processor_idle.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -299,6 +299,17 @@ static int acpi_processor_get_power_info
+ 	pr->power.states[ACPI_STATE_C2].latency = acpi_gbl_FADT.C2latency;
+ 	pr->power.states[ACPI_STATE_C3].latency = acpi_gbl_FADT.C3latency;
+ 
++	/*
++	 * FADT specified C2 latency must be less than or equal to
++	 * 100 microseconds.
++	 */
++	if (acpi_gbl_FADT.C2latency > ACPI_PROCESSOR_MAX_C2_LATENCY) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			"C2 latency too large [%d]\n", acpi_gbl_FADT.C2latency));
++		/* invalidate C2 */
++		pr->power.states[ACPI_STATE_C2].address = 0;
++	}
++
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "lvl2[0x%08x] lvl3[0x%08x]\n",
+ 			  pr->power.states[ACPI_STATE_C2].address,
+@@ -495,16 +506,6 @@ static void acpi_processor_power_verify_
+ 		return;
+ 
+ 	/*
+-	 * C2 latency must be less than or equal to 100
+-	 * microseconds.
+-	 */
+-	else if (cx->latency > ACPI_PROCESSOR_MAX_C2_LATENCY) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "latency too large [%d]\n", cx->latency));
+-		return;
+-	}
+-
+-	/*
+ 	 * Otherwise we've met all of our C2 requirements.
+ 	 * Normalize the C2 latency to expidite policy
+ 	 */
+
+
