@@ -1,75 +1,76 @@
-From: Edward Shao <laface.tw@gmail.com>
-Subject: Re: Question about ACPI Video
-Date: Thu, 28 Jan 2010 02:02:40 +0800
-Message-ID: <ff05f3d01001271002o19135ab7g10b7118be8d85976@mail.gmail.com>
-References: <d292941c1001250145o43dc2785p6cdc7d2ff6d47e76@mail.gmail.com>
-	 <1264467484.22448.310.camel@rzhang1-desktop>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: kernel error : 'find /proc/ -type f | xargs -n 1 head -c 10
+ >/dev/null'
+Date: Thu, 28 Jan 2010 09:39:27 +0800
+Message-ID: <1264642767.22448.633.camel@rzhang1-desktop>
+References: <201001212017.00160.toralf.foerster@gmx.de>
+	 <20100121203535.GA5133@x200> <201001212219.03718.toralf.foerster@gmx.de>
+	 <alpine.LRH.2.00.1001261416430.15694@twin.jikos.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f186.google.com ([209.85.223.186]:40163 "EHLO
-	mail-iw0-f186.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926Ab0A0SCm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2010 13:02:42 -0500
-Received: by iwn16 with SMTP id 16so353355iwn.5
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2010 10:02:41 -0800 (PST)
-In-Reply-To: <1264467484.22448.310.camel@rzhang1-desktop>
+Received: from mga03.intel.com ([143.182.124.21]:27422 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752291Ab0A1BlO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Jan 2010 20:41:14 -0500
+In-Reply-To: <alpine.LRH.2.00.1001261416430.15694@twin.jikos.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Luke lin <luke1105@gmail.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, Alexey Dobriyan <adobriyan@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Jan 26, 2010 at 8:58 AM, Zhang Rui <rui.zhang@intel.com> wrote:
-> On Mon, 2010-01-25 at 17:45 +0800, luke lin wrote:
->> Hi all,
->>
->> I read the drivers/acpi/video.c:
->>
->> 895 =A0 =A0 =A0 =A0 result =3D acpi_video_device_lcd_set_level(devic=
-e, max_level);
->> 896 =A0 =A0 =A0 =A0 if (result)
->> 897 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_levels;
->> 898
->> 899 =A0 =A0 =A0 =A0 result =3D acpi_video_device_lcd_get_level_curre=
-nt(device, &level);
->> 900 =A0 =A0 =A0 =A0 if (result)
->> 901 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_levels;
->> 902
->> 903 =A0 =A0 =A0 =A0 br->flags._BQC_use_index =3D (level =3D=3D max_l=
-evel ? 0 : 1);
->> 904
->> 905 =A0 =A0 =A0 =A0 if (!br->flags._BQC_use_index) {
->> 912 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 2; i < br->count; i++=
-)
->> 913 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (level_old =3D=
-=3D br->levels[i])
->> 914 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-level =3D level_old;
->> 915 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto set_level;
->> 916 =A0 =A0 =A0 =A0 }
->> why after level =3D=3D max_level, it will still need set_level again=
-?
->> is this a bug, or it is necessary.
->>
-> Because setting the backlight to max_level is just to check if _BQC u=
-ses
-> indexed value. We need to set the backlight back after this is done.
->
-> thanks,
-> rui
+On Tue, 2010-01-26 at 21:17 +0800, Jiri Kosina wrote:
+> [ adding relevant CCs ]
+>=20
+> On Thu, 21 Jan 2010, Toralf F=C3=B6rster wrote:
+>=20
+> > Alexey Dobriyan wrote at 21:35:35
+> > > On Thu, Jan 21, 2010 at 08:16:59PM +0100, Toralf F=C3=B6rster wro=
+te:
+> > > > I was inspired by http://article.gmane.org/gmane.linux.kernel/9=
+41115 .
+> > > >
+> > > > Running the command (se subject) as a normal user at a 2.6.32.4=
+ kernel
+> > > > gives this in /var/log/messages:
+> > > >
+> > > > head: page allocation failure. order:9, mode:0xd0
+> > > > Pid: 2324, comm: head Not tainted 2.6.32.4 #1
+> > > > Call Trace:
+> > > > [<c106e2cc>] ? __alloc_pages_nodemask+0x4bc/0x5a0
+> > > > [<c108cf5a>] ? cache_alloc_refill+0x2ba/0x510
+> > > > [<c108d299>] ? __kmalloc+0xe9/0xf0
+> > > > [<c10aa755>] ? seq_read+0x195/0x370
+> > >=20
+> > > Please, find out which file is causing this, if it's reproducible=
+=2E
+> > >=20
+> > I reproduced the msg :
+> > "ACPI: Please implement acpi_video_bus_ROM_seq_show" by :
+> > by
+> > $> head -c 10 /proc/acpi/video/VID/info
+> >=20
+this is just a KERN_INFO message that suggests the
+acpi_video_bus_ROM_seq_show method is not actually implemented right
+now.
 
-Hi~
+I don't think it has anything to do with the trace. :)
 
-I'm wondering why check (level =3D=3D max_level) can make sure if _BQC
-uses indexed value?
-Is it possible that both level and max_level is indexed value?
+thanks,
+rui
 
-Thank you very much.
+> > After suspend to disk and wakeup however the file /proc/acpi/video/=
+VID/ROM was=20
+> > the culprit.
+> >=20
+> > The trace however I can't reproduce until now.
+> >=20
+> >=20
+> >=20
+>=20
 
---=20
-Best Regards,
-Edward
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
