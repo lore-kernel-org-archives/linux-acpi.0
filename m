@@ -1,53 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] ACPI Lid Issue
-Date: Thu, 28 Jan 2010 21:11:25 +0100
-Message-ID: <201001282111.25276.rjw@sisk.pl>
-References: <36d20d7f1001280848taf92485g53bb3f6061ea414e@mail.gmail.com>
+Subject: Re: [Bug #15124] PCI host bridge windows ignored (works with pci=use_crs)
+Date: Thu, 28 Jan 2010 21:28:33 +0100
+Message-ID: <201001282128.33389.rjw@sisk.pl>
+References: <md-TZL3UUvL.A.FiE.xJMXLB@chimera> <4B61D554.9000003@kernel.org> <20100128110331.61455a15@jbarnes-piketon>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39398 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:39513 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751433Ab0A1UKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jan 2010 15:10:49 -0500
-In-Reply-To: <36d20d7f1001280848taf92485g53bb3f6061ea414e@mail.gmail.com>
+	id S1752871Ab0A1U15 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jan 2010 15:27:57 -0500
+In-Reply-To: <20100128110331.61455a15@jbarnes-piketon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin <diilbert.atlantis@gmail.com>
-Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thursday 28 January 2010, Robin wrote:
-> The lid/suspend event works on my Toshiba Satellite A205-S4607 50% of
-> the time.  I think it is possible it is an ACPI driver clitch.
+On Thursday 28 January 2010, Jesse Barnes wrote:
+> On Thu, 28 Jan 2010 10:20:04 -0800
+> Yinghai Lu <yinghai@kernel.org> wrote:
 > 
-> After doing a little research I found out that the current lid state
-> is stored at:
-> /proc/acpi/button/lid/*/state.
+> > On 01/28/2010 08:09 AM, Bjorn Helgaas wrote:
+> > > On Wednesday 27 January 2010 10:53:51 pm Yinghai Lu wrote:
+> > >> On 01/27/2010 08:26 PM, Bjorn Helgaas wrote:
+> > >>> On Wed, 2010-01-27 at 15:34 -0800, Yinghai Lu wrote:
+> > > 
+> > >>>> 2. how about when apci is disabled?
+> > >>>
+> > >>> When ACPI is disabled, I think we just have to accept that we
+> > >>> lose some functionality.  I don't see the need for alternate ways
+> > >>> to accomplish everything that ACPI does.  It's becoming less and
+> > >>> less useful to disable ACPI; I think it's only interesting as a
+> > >>> debugging tool, and even then it's a sledgehammer.
+> > >>
+> > >> some systems when acpi is enabled could have interrupt storm. 
+> > >> and have to disable acpi.
+> > > 
+> > > We should fix that problem rather than just covering it up by
+> > > disabling ACPI.  Can you provide any details?
+> > that is not covering problem. acpi just cause too many problems.
+> > 
+> > systems using acpi hotplug support, and use acpi aml code to monitor
+> > the hotplug status instead of HW and after one or two days will have
+> > interrupt storm with sci/acpi interrupt aka 9.
 > 
-> So I ran some simple tests:
 > 
-> 1)  After a fresh boot:
-> cat /proc/acpi/button/lid/*/state gives me:
-> State: open
-> 
-> 2) Close (successful suspend) and Reopen the lid:
-> cat /proc/acpi/button/lid/*/state gives me:
-> State: closed
-> 
-> 3) Close the lid (failure to suspend the laptop) and reopen
-> cat /proc/acpi/button/lid/*/state gives me:
-> State: open
-> 
-> 4) Close (successful suspend) and Reopen the lid:
-> cat /proc/acpi/button/lid/*/state gives me:
-> State: closed
-> 
-> I repeated this several times to make sure the pattern is consistent.
-> 
-> Any thoughts?
+> But disabling it gets us into trouble too.  When platforms are designed
+> for Linux, they may be designed to have ACPI disabled (though this is
+> probably rare for general purpose PCs and servers).
 
-It's better to ask on the linux-acpi list (CC added).
+Well, not quite.  On recent SMP systems it's next to impossible to get all of
+the necessary system configuration information without ACPI, since it only is
+provided by the ACPI tables (the configuration of APICs, interrupt routing,
+CPU C states, other stuff).
+
+[BTW, I think it's better to CC linux-acpi and Len at this point.]
+
+> However when they're designed for Windows, they're generally designed to use
+> ACPI, so if we disable it we run the risk of hitting all sorts of bugs since
+> we're running in an untested configuration.
+
+I guess without ACPI we're guaranteed to run into troubles on many modern
+hardware configurations.
+
+> So fixing the issues with ACPI enabled seems like a better idea; after
+> all, presumably Windows works on this platform with ACPI enabled, why
+> shouldn't we?
+> 
+> But I'm speaking in general here; we'd have to dig into the details of
+> the particular problem you mention to figure out the best course of
+> action (but I'm still pretty sure it's not "disable ACPI").
+
+Agreed.
 
 Rafael
