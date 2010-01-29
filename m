@@ -1,110 +1,40 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/2] ACPI: acpi_bus_{scan,bus,add}: return -ENODEV if no device was found
-Date: Fri, 29 Jan 2010 17:48:52 +0100
-Message-ID: <201001291748.52980.trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/2] ACPI: Avoid NULL derefernce when hotplugging
+Date: Fri, 29 Jan 2010 10:29:53 -0700
+Message-ID: <201001291029.54155.bjorn.helgaas@hp.com>
+References: <201001291748.49780.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34235 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751479Ab0A2Qsy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Jan 2010 11:48:54 -0500
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:37425 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932169Ab0A2R35 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jan 2010 12:29:57 -0500
+In-Reply-To: <201001291748.49780.trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com, kristen.c.accardi@intel.com
+To: Thomas Renninger <trenn@suse.de>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
 
-ACPI: acpi_bus_{scan,bus,add}: return -ENODEV if no device was found
+On Friday 29 January 2010 09:48:49 am Thomas Renninger wrote:
+> these are against 2.6.32, but patch fine against latest
+> acpi release tree with a small offset.
+> 
+> Would be great to see them mainline soon.
+> The first is IMO a must for stable, eventually both should
+> end up there.
 
-Callers (acpi_memhotplug.c, dock.c and others) check for the return
-value of acpi_bus_add() and assume a valid device was returned in
-case zero was returned.
+I guess I don't object to these.
 
-Thus return -ENODEV if no device was found in acpi_bus_scan and
-propagate this through acpi_bus_add and acpi_bus_start.
+I still hope that we can someday get rid of these external calls
+to acpi_bus_add(), acpi_bus_start(), etc., and instead have the
+Linux/ACPI code handle hotplug itself and call the driver .add()
+and .remove() methods like normal subsystems do.
 
-Also remove a confusing comment in acpiphp_glue.c, acpi_bus_scan
-will and cannot invoke if acpi_bus_add returns no valid device.
+But until we can do that, I guess we have to patch up the
+current code so it at least doesn't crash.
 
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: bjorn.helgaas@hp.com
-CC: lenb@kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: kristen.c.accardi@intel.com
-
----
- drivers/acpi/scan.c                |   24 +++++++++++++++++++-----
- drivers/pci/hotplug/acpiphp_glue.c |    6 ------
- 2 files changed, 19 insertions(+), 11 deletions(-)
-
-Index: linux-2.6.32-SLE11-SP1/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.32-SLE11-SP1.orig/drivers/acpi/scan.c
-+++ linux-2.6.32-SLE11-SP1/drivers/acpi/scan.c
-@@ -1361,9 +1361,25 @@ static int acpi_bus_scan(acpi_handle han
- 
- 	if (child)
- 		*child = device;
--	return 0;
-+
-+	if (device)
-+		return 0;
-+	else
-+		return -ENODEV;
- }
- 
-+/*
-+ * acpi_bus_add and acpi_bus_start
-+ *
-+ * scan a given ACPI tree and (probably recently hot-plugged)
-+ * create and add or starts found devices.
-+ *
-+ * If no devices were found -ENODEV is returned which does not
-+ * mean that this is a real error, there just have been no suitable
-+ * ACPI objects in the table trunk from which the kernel could create
-+ * a device and add/start an appropriate driver.
-+ */
-+
- int
- acpi_bus_add(struct acpi_device **child,
- 	     struct acpi_device *parent, acpi_handle handle, int type)
-@@ -1373,8 +1389,7 @@ acpi_bus_add(struct acpi_device **child,
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_add = 1;
- 
--	acpi_bus_scan(handle, &ops, child);
--	return 0;
-+	return acpi_bus_scan(handle, &ops, child);
- }
- EXPORT_SYMBOL(acpi_bus_add);
- 
-@@ -1388,8 +1403,7 @@ int acpi_bus_start(struct acpi_device *d
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_start = 1;
- 
--	acpi_bus_scan(device->handle, &ops, NULL);
--	return 0;
-+	return acpi_bus_scan(device->handle, &ops, NULL);
- }
- EXPORT_SYMBOL(acpi_bus_start);
- 
-Index: linux-2.6.32-SLE11-SP1/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-2.6.32-SLE11-SP1.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-2.6.32-SLE11-SP1/drivers/pci/hotplug/acpiphp_glue.c
-@@ -920,12 +920,6 @@ static int acpiphp_bus_add(struct acpiph
- 			-ret_val);
- 		goto acpiphp_bus_add_out;
- 	}
--	/*
--	 * try to start anyway.  We could have failed to add
--	 * simply because this bus had previously been added
--	 * on another add.  Don't bother with the return value
--	 * we just keep going.
--	 */
- 	ret_val = acpi_bus_start(device);
- 
- acpiphp_bus_add_out:
+Bjorn
