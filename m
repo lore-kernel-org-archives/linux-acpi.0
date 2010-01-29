@@ -1,44 +1,67 @@
-From: Jesse Barnes <jbarnes-Y1mF5jBUw70BENJcbMCuUQ@public.gmane.org>
-Subject: Re: [Bug #15124] PCI host bridge windows ignored (works with
- pci=use_crs)
-Date: Thu, 28 Jan 2010 12:35:07 -0800
-Message-ID: <20100128123507.2d6a3b33@jbarnes-piketon>
-References: <md-TZL3UUvL.A.FiE.xJMXLB@chimera>
-	<4B61D554.9000003@kernel.org>
-	<20100128110331.61455a15@jbarnes-piketon>
-	<201001282128.33389.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [linux-pm] ACPI Lid Issue
+Date: Fri, 29 Jan 2010 08:48:31 +0800
+Message-ID: <1264726111.9599.35.camel@rzhang1-desktop>
+References: <36d20d7f1001280848taf92485g53bb3f6061ea414e@mail.gmail.com>
+	 <201001282111.25276.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201001282128.33389.rjw-KKrjLPT3xs0@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Jeff Garrett <jeff-184d8XiO+QJg9hUCZPvPmw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Myron Stowe <myron.stowe-VXdhtT5mjnY@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:58445 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752325Ab0A2AuS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jan 2010 19:50:18 -0500
+In-Reply-To: <201001282111.25276.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Robin <diilbert.atlantis@gmail.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thu, 28 Jan 2010 21:28:33 +0100
-"Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
-> > But disabling it gets us into trouble too.  When platforms are
-> > designed for Linux, they may be designed to have ACPI disabled
-> > (though this is probably rare for general purpose PCs and servers).
+On Fri, 2010-01-29 at 04:11 +0800, Rafael J. Wysocki wrote:
+> On Thursday 28 January 2010, Robin wrote:
+> > The lid/suspend event works on my Toshiba Satellite A205-S4607 50% of
+> > the time.  I think it is possible it is an ACPI driver clitch.
+> > 
+> > After doing a little research I found out that the current lid state
+> > is stored at:
+> > /proc/acpi/button/lid/*/state.
+> > 
+> > So I ran some simple tests:
+> > 
+> > 1)  After a fresh boot:
+> > cat /proc/acpi/button/lid/*/state gives me:
+> > State: open
+> > 
+> > 2) Close (successful suspend) and Reopen the lid:
+> > cat /proc/acpi/button/lid/*/state gives me:
+> > State: closed
+> > 
+> > 3) Close the lid (failure to suspend the laptop) and reopen
+> > cat /proc/acpi/button/lid/*/state gives me:
+> > State: open
+> > 
+> > 4) Close (successful suspend) and Reopen the lid:
+> > cat /proc/acpi/button/lid/*/state gives me:
+> > State: closed
+> > 
+> > I repeated this several times to make sure the pattern is consistent.
+> > 
+> > Any thoughts?
 > 
-> Well, not quite.  On recent SMP systems it's next to impossible to
-> get all of the necessary system configuration information without
-> ACPI, since it only is provided by the ACPI tables (the configuration
-> of APICs, interrupt routing, CPU C states, other stuff).
+please file a new bug at
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the acpidump output of your laptop there.
+
+thanks,
+rui
+
+> It's better to ask on the linux-acpi list (CC added).
 > 
-> [BTW, I think it's better to CC linux-acpi and Len at this point.]
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I was thinking more of custom designed low power servers or something,
-possibly running LinuxBIOS or some other custom BIOS.  For a general
-purpose machine though I'm 100% agreed.  ACPI is required these days
-for PCs.
 
-I was trying to make a point that we shouldn't disable ACPI on
-platforms that support it.  Rather, we should fix any bugs we discover
-in handling ACPI correctly, rather than working around it by turning it
-off.
-
--- 
-Jesse Barnes, Intel Open Source Technology Center
