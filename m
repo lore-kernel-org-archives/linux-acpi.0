@@ -1,42 +1,59 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: kernel error : 'find /proc/ -type f | xargs -n 1 head -c 10
-	>/dev/null'
-Date: Fri, 29 Jan 2010 13:45:51 +0000
-Message-ID: <20100129134551.GR19799@ZenIV.linux.org.uk>
-References: <201001212017.00160.toralf.foerster@gmx.de> <20100121203535.GA5133@x200> <201001212219.03718.toralf.foerster@gmx.de> <alpine.LRH.2.00.1001261416430.15694@twin.jikos.cz>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/2] ACPI: Add NULL pointer check in acpi_bus_start
+Date: Fri, 29 Jan 2010 17:48:51 +0100
+Message-ID: <201001291748.51320.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:33493 "EHLO
-	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755279Ab0A2Npz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jan 2010 08:45:55 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.00.1001261416430.15694@twin.jikos.cz>
+Received: from cantor2.suse.de ([195.135.220.15]:34230 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751479Ab0A2Qsw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jan 2010 11:48:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Toralf F?rster <toralf.foerster@gmx.de>, Alexey Dobriyan <adobriyan@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
 
-On Tue, Jan 26, 2010 at 02:17:32PM +0100, Jiri Kosina wrote:
-> > > Please, find out which file is causing this, if it's reproducible.
-> > > 
-> > I reproduced the msg :
-> > "ACPI: Please implement acpi_video_bus_ROM_seq_show" by :
-> > by
-> > $> head -c 10 /proc/acpi/video/VID/info
-> > 
-> > After suspend to disk and wakeup however the file /proc/acpi/video/VID/ROM was 
-> > the culprit.
-> > 
-> > The trace however I can't reproduce until now.
+If acpi_bus_add does not return a device and it's passed
+to acpi_bus_start, bad things will happen:
 
-*snort*
-The message is caused by
-        printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
-        seq_printf(seq, "<TODO>\n");
-in acpi_video_bus_ROM_seq_show(), so it's not surprising.  Shouldn't spew
-to syslog, but other than that it's a non-issue.  Stack trace, OTOH, is
-something very different; something is trying to generate 2Mb of contents
-in a single ->show().  Which is definitely not that one - "<TODO>\n" is
-not going to eat that much ;-)
+
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+IP: [<ffffffff8128402d>] acpi_bus_start+0x14/0x24
+...
+[<ffffffffa008977a>] acpiphp_bus_add+0xba/0x130 [acpiphp]
+[<ffffffffa008aa72>] enable_device+0x132/0x2ff [acpiphp]
+[<ffffffffa0089b68>] acpiphp_enable_slot+0xb8/0x130 [acpiphp]
+[<ffffffffa0089df7>] handle_hotplug_event_func+0x87/0x190 [acpiphp]
+
+
+Next patch would make this NULL pointer check obsolete, but
+better having one more than one missing...
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: bjorn.helgaas@hp.com
+CC: lenb@kernel.org
+CC: linux-acpi@vger.kernel.org
+CC: kristen.c.accardi@intel.com
+CC: stable@kernel.org
+
+---
+ drivers/acpi/scan.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: linux-2.6.32-SLE11-SP1/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.32-SLE11-SP1.orig/drivers/acpi/scan.c
++++ linux-2.6.32-SLE11-SP1/drivers/acpi/scan.c
+@@ -1382,6 +1382,9 @@ int acpi_bus_start(struct acpi_device *d
+ {
+ 	struct acpi_bus_ops ops;
+ 
++	if (!device)
++		return -EINVAL;
++
+ 	memset(&ops, 0, sizeof(ops));
+ 	ops.acpi_op_start = 1;
+ 
