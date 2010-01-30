@@ -1,48 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Uppgrade from OpenSuse 11.1 to 11.2 causes Acer laptop to overheating...
-Date: Sat, 30 Jan 2010 20:56:44 +0100
-Message-ID: <201001302056.44162.rjw@sisk.pl>
-References: <4B6488A6.7000705@tlen.pl>
+Subject: [RFC][RFT][PATCH] ACPI: Protection from suspending in the middle of EC transaction
+Date: Sun, 31 Jan 2010 00:29:48 +0100
+Message-ID: <201001310029.48717.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47222 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754157Ab0A3T4H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 Jan 2010 14:56:07 -0500
-In-Reply-To: <4B6488A6.7000705@tlen.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752263Ab0A3X3W@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Maxim Levitsky <maximlevitsky@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian <beyonder7@tlen.pl>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>
 
-On Saturday 30 January 2010, Sebastian wrote:
-> Hello,
-> I desperately seeks help or any advice from kernel experts.
-> I have Acer Aspire 5315 laptop and when I updated my OpenSuse 11.1 to 
-> 11.2 the laptop started to shut down to prevent overheat.
-> I noticed that no fan is running and trying and playing with sensors, 
-> sometimes I get information from one sensor that always says 40C, and 
-> sometimes also
-> from coretemp sensor that shows rapidly increasing temperature from 50C 
-> to 85-89C.
-> 
-> I have this problem with base and pae kernel that was attached to 
-> opensuse installation dvd, and later upgraded it for 2.6.33-r5 from 
-> OpenSuse Factory repo - results the same.
-> Does any expert have some suggestions?
-> 
-> On several message boards there are advice that flashin BIOS should 
-> solve the problem, but IMO it can be the only solution - Linux shouldn't 
-> work that way.
-> On the same machine i have XP and everything is OK, stable temperature 
-> is maintained, I also recently clean the vents from dust and other stuff.
+Hi,
 
-First off, this seems to be ACPI-related, so added some CCs in that direction.
+While Maxim is testing if the patch below helps with
+http://bugzilla.kernel.org/show_bug.cgi?id=14668
+I think it's necessary anyway.
 
-Second, since you decided to report the bug directly to the kernel developers,
-would you be able to test non-distro kernels on your machine?
+The problem is that currently there's nothing to prevent us from suspending in
+the middle of an EC transaction in progress, at least as far as I can see.
+As a result, we can suspend with the ACPI global lock held or something like
+this, which leads to problems especially for hibernation (if the resume kernel
+passes control to the image kernel in the middle of an EC transaction, things
+aren't nice).  For this reason I think we should wait until there are no EC
+transactions in progress before we suspend and we should prevent any new
+EC transactions from starting after that point.  The patch below does that.
 
+However, it does that in the EC's suspend callback, which may be too early,
+because there still is _PTS to run, so it might be necessary to do that later.
+On the other hand, the mechanics behind the ACPI global lock, which is
+acquired in acpi_ec_transaction(), requires that interrupts work, because
+otherwise there may be a problem if the global lock is not actually acquired
+after ACPI_ACQUIRE_GLOBAL_LOCK(), so the last place in which to
+wait for EC transactions to complete seems to be the platform suspend
+.prepare() callback.  Unfortunately, it's not implemented at the moment for
+ACPI and it doesn't have a hibernate counterpart and that's why I'd rather use
+the patch below, unless it's known to break things for someone.  So, if you
+can, please test it and tell me if you have any problems with it.
+
+Of course, comments are welcome as well.
+
+Thanks,
 Rafael
+
+---
+ drivers/acpi/ec.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ec.c
++++ linux-2.6/drivers/acpi/ec.c
+@@ -76,8 +76,9 @@ enum ec_command {
+ enum {
+ 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
+ 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+-	EC_FLAGS_HANDLERS_INSTALLED	/* Handlers for GPE and
++	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+ 					 * OpReg are installed */
++	EC_FLAGS_SUSPENDED,		/* Driver is suspended */
+ };
+ 
+ /* If we find an EC via the ECDT, we need to keep a ptr to its context */
+@@ -291,6 +292,10 @@ static int acpi_ec_transaction(struct ac
+ 	if (t->rdata)
+ 		memset(t->rdata, 0, t->rlen);
+ 	mutex_lock(&ec->lock);
++	if (test_bit(EC_FLAGS_SUSPENDED, &ec->flags)) {
++		status = -EBUSY;
++		goto unlock;
++	}
+ 	if (ec->global_lock) {
+ 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+ 		if (ACPI_FAILURE(status)) {
+@@ -1059,16 +1064,26 @@ error:
+ static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
+ {
+ 	struct acpi_ec *ec = acpi_driver_data(device);
++
++	mutex_lock(&ec->lock);
++	/* Prevent transactions from happening while suspended */
++	set_bit(EC_FLAGS_SUSPENDED, &ec->flags);
+ 	/* Stop using GPE */
+ 	acpi_disable_gpe(NULL, ec->gpe);
++	mutex_unlock(&ec->lock);
+ 	return 0;
+ }
+ 
+ static int acpi_ec_resume(struct acpi_device *device)
+ {
+ 	struct acpi_ec *ec = acpi_driver_data(device);
++
++	mutex_lock(&ec->lock);
+ 	/* Enable use of GPE back */
+ 	acpi_enable_gpe(NULL, ec->gpe);
++	/* Allow transactions to happen again */
++	set_bit(EC_FLAGS_SUSPENDED, &ec->flags);
++	mutex_unlock(&ec->lock);
+ 	return 0;
+ }
+ 
