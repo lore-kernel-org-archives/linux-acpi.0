@@ -1,78 +1,71 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: Recent GPE patches - some questions.
-Date: Fri, 29 Jan 2010 12:30:25 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D83085855AF782E@orsmsx503.amr.corp.intel.com>
+From: Andreas Mohr <andi@lisas.de>
+Subject: Unhelpful "ACPI handle has no context!" warning
+Date: Sat, 30 Jan 2010 20:17:38 +0100
+Message-ID: <20100130191738.GA30028@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58107 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab0A2Ua1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jan 2010 15:30:27 -0500
-Content-Language: en-US
+Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:47687 "EHLO
+	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753637Ab0A3TRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jan 2010 14:17:39 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+
+Hi all,
+
+I'm having [subject] message regularly, on several different machines
+even.
+
+The current machine (2.6.33-rc4) shows:
+
+serial 00:0d: disabled
+pnp 00:0c: legacy suspend
+pnp 00:0b: legacy suspend
+pnp 00:0a: legacy suspend
+system 00:09: legacy suspend
+pnp 00:08: legacy suspend
+rtc_cmos 00:07: legacy suspend, may wakeup
+i8042 kbd 00:06: legacy suspend
+i8042 aux 00:05: legacy suspend
+system 00:04: legacy suspend
+system 00:03: legacy suspend
+system 00:02: legacy suspend
+pnp 00:01: legacy suspend
+system 00:00: legacy suspend
+ohci1394 0000:02:0f.2: suspend
+ACPI handle has no context!
+yenta_cardbus 0000:02:0f.1: suspend
+yenta_cardbus 0000:02:0f.0: suspend
+pci 0000:02:06.0: suspend
+Maestro3 0000:02:03.0: suspend
+Maestro3 0000:02:03.0: PCI INT A disabled
+ACPI handle has no context!
+pci 0000:01:00.0: suspend
+pci 0000:01:00.0: PCI INT A disabled
+uhci_hcd 0000:00:1f.2: suspend
+uhci_hcd 0000:00:1f.2: uhci_pci_suspend
+uhci_hcd 0000:00:1f.2: PCI INT D disabled
+ata_piix 0000:00:1f.1: suspend
+pci 0000:00:1f.0: suspend
+pci 0000:00:1e.0: suspend
+pci 0000:00:01.0: suspend
+pci 0000:00:00.0: suspend
+platform dock.0: suspend
 
 
-Matthew,
+I don't know what the hell one could inquire easily, to rectify some
+thing or another that seems broken here.
 
-I've looked at the new GPE code and I have some comments and questions. I'm still looking at Patch 3/3, "Remove old GPE API and transition code entirely to new one", but here are the questions I have so far.
+Could this rather weird message (it's both "scary" _and_
+very non-informational) be made a bit more user-friendly?
+Print out acpi handle %p and dev_name(dev) at least?
+Given this dump, one does not know any whereabouts of this message
+and would have to actively hack stuff to get most basic info about which
+device is being processed unsuccessfully at that particular instant.
 
 Thanks,
-Bob
 
-
-
-
-[PATCH 0/3] acpica: Rewrite GPE handling
-
-Overall, can we say that this change to the GPE code is primarily intended to add better support for shared GPEs?
-
-I see that the execution of _PRW methods is no longer removed. This was a big question I had about the original patch.
-
-
-
-[PATCH 1/3] ACPI: Add infrastructure for refcounting GPE consumers:
-
->Add an API to allow devices to indicate whether or not
->they want their device's GPE to be enabled for both runtime
->and wakeup events.
-
-I'm not sure which interface you are referring to, please explain
-
-
-
-[PATCH 2/3] ACPI: Add support for new refcounted GPE API to drivers:
-
-Reference count mechanism is meant to:
-    1) Enable GPE only on the first added reference
-    2) Disable GPE only on the last removed reference
-
-Then I don't understand why the code below needs to call acpi_enable_gpe:
-
-		acpi_enable_gpe(dev->wakeup.gpe_device,
- 				dev->wakeup.gpe_number);
-+		acpi_ref_wakeup_gpe(dev->wakeup.gpe_device,
-+				    dev->wakeup.gpe_number);
-
-Because the GPE will be "enabled" (mask bit set for wakeup GPE) by acpi_ref_wakeup_gpe. There are several examples of this type of code. If it is true that the call to acpi_enable_gpe is unnecessary, then is acpi_enable_gpe interface needed at all? (same with disable_gpe).
-
-
-
-[PATCH 2/3] acpica: Add support for unregistering ACPI GPE methods:
-
-acpi_remove_gpe_method: Ok, this makes sense. Sad, but makes sense.
-
-
-
-[PATCH 1/3] acpi: Provide default GPE handler if the firmware doesn't
-
->Firmware may support using GPEs for system wakeup without
->providing any runtime GPE handlers.
-
-Do you mean by "runtime GPE handlers" to mean the _Lxx/_Exx GPE methods? If so, this should be clarified in the comments.
-
-
-
+Andreas Mohr
