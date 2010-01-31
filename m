@@ -1,65 +1,120 @@
-From: Ash Milsted <ashmilsted@gmail.com>
-Subject: BenQ Joybook S53W with SRS Wow! hardware: second Embedded Controller?
-Date: Sun, 31 Jan 2010 21:34:13 +0100
-Message-ID: <3e7b9f4b1001311234jb0b61f5t97db2d90bac15932@mail.gmail.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [RFC][RFT][PATCH] ACPI: Protection from suspending in the
+ middle of EC transaction
+Date: Sun, 31 Jan 2010 22:41:40 +0200
+Message-ID: <1264970500.5544.0.camel@maxim-laptop>
+References: <201001310029.48717.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:26288 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751207Ab0AaUeP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Jan 2010 15:34:15 -0500
-Received: by fg-out-1718.google.com with SMTP id l26so1562440fgb.1
-        for <linux-acpi@vger.kernel.org>; Sun, 31 Jan 2010 12:34:14 -0800 (PST)
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:47109 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab0AaUlq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Jan 2010 15:41:46 -0500
+In-Reply-To: <201001310029.48717.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi.
+On Sun, 2010-01-31 at 00:29 +0100, Rafael J. Wysocki wrote: 
+> Hi,
+> 
+> While Maxim is testing if the patch below helps with
+> http://bugzilla.kernel.org/show_bug.cgi?id=14668
+> I think it's necessary anyway.
+> 
+> The problem is that currently there's nothing to prevent us from suspending in
+> the middle of an EC transaction in progress, at least as far as I can see.
+> As a result, we can suspend with the ACPI global lock held or something like
+> this, which leads to problems especially for hibernation (if the resume kernel
+> passes control to the image kernel in the middle of an EC transaction, things
+> aren't nice).  For this reason I think we should wait until there are no EC
+> transactions in progress before we suspend and we should prevent any new
+> EC transactions from starting after that point.  The patch below does that.
+> 
+> However, it does that in the EC's suspend callback, which may be too early,
+> because there still is _PTS to run, so it might be necessary to do that later.
+> On the other hand, the mechanics behind the ACPI global lock, which is
+> acquired in acpi_ec_transaction(), requires that interrupts work, because
+> otherwise there may be a problem if the global lock is not actually acquired
+> after ACPI_ACQUIRE_GLOBAL_LOCK(), so the last place in which to
+> wait for EC transactions to complete seems to be the platform suspend
+> .prepare() callback.  Unfortunately, it's not implemented at the moment for
+> ACPI and it doesn't have a hibernate counterpart and that's why I'd rather use
+> the patch below, unless it's known to break things for someone.  So, if you
+> can, please test it and tell me if you have any problems with it.
+> 
+> Of course, comments are welcome as well.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/acpi/ec.c |   17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+> 
+> Index: linux-2.6/drivers/acpi/ec.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/ec.c
+> +++ linux-2.6/drivers/acpi/ec.c
+> @@ -76,8 +76,9 @@ enum ec_command {
+>  enum {
+>  	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
+>  	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+> -	EC_FLAGS_HANDLERS_INSTALLED	/* Handlers for GPE and
+> +	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+>  					 * OpReg are installed */
+> +	EC_FLAGS_SUSPENDED,		/* Driver is suspended */
+>  };
+>  
+>  /* If we find an EC via the ECDT, we need to keep a ptr to its context */
+> @@ -291,6 +292,10 @@ static int acpi_ec_transaction(struct ac
+>  	if (t->rdata)
+>  		memset(t->rdata, 0, t->rlen);
+>  	mutex_lock(&ec->lock);
+> +	if (test_bit(EC_FLAGS_SUSPENDED, &ec->flags)) {
+> +		status = -EBUSY;
+> +		goto unlock;
+> +	}
+>  	if (ec->global_lock) {
+>  		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+>  		if (ACPI_FAILURE(status)) {
+> @@ -1059,16 +1064,26 @@ error:
+>  static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
+>  {
+>  	struct acpi_ec *ec = acpi_driver_data(device);
+> +
+> +	mutex_lock(&ec->lock);
+> +	/* Prevent transactions from happening while suspended */
+> +	set_bit(EC_FLAGS_SUSPENDED, &ec->flags);
+>  	/* Stop using GPE */
+>  	acpi_disable_gpe(NULL, ec->gpe);
+> +	mutex_unlock(&ec->lock);
+>  	return 0;
+>  }
+>  
+>  static int acpi_ec_resume(struct acpi_device *device)
+>  {
+>  	struct acpi_ec *ec = acpi_driver_data(device);
+> +
+> +	mutex_lock(&ec->lock);
+>  	/* Enable use of GPE back */
+>  	acpi_enable_gpe(NULL, ec->gpe);
+> +	/* Allow transactions to happen again */
+> +	set_bit(EC_FLAGS_SUSPENDED, &ec->flags);
+          ^^^^^^^^^^^^
+Thats why it doesn't work here....
+Will retest now.
 
-I am an owner of a BenQ Joybook S53W laptop which unfortunately
-includes a hardware SRS Wow! sound-butchering feature. It is on by
-default, and BenQ supplies a windows app to turn it on or off. Having
-examined this app/driver, it looks like it accesses an embedded
-controller with command/status port 0x6c and data port 0x68. Linux
-detects EC0 on 0x62 and 0x66 and there appears to be no info on this
-second controller in the DSDT (there is no ECDT). I have tried to
-replicate what the windows app/driver does in linux, which involves
-disabling interrupts and then waiting for bits 1 and 2 of the status
-port to be set before writing a command like 0x53 to the command port,
-waiting again, then writing to the data port. When I do this under
-linux, the status bits are never set - the status register just has a
-value of 0x04. If I boot with acpi=off bits 1 and 2 do seem to be set
-when needed, so the commands appear to succeed (although they are not
-having the desired effect, AFAICT). So, my questions are:
+> +	mutex_unlock(&ec->lock);
+>  	return 0;
+>  }
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Is linux acpi initialising this second EC in some way? Or is Windows
-perhaps initialising it in a way linux isn't?
-Is it likely that I need to enable the chip by writing to some other register?
-Does anyone have any ideas how I could proceed?
 
-Please CC me on reply.
-
-Thanks!
-
-Ashley Milsted
-
-PS: The Windows app does essentially this:
-
-spin_lock;
-cli;
-while !(inb 0x6c & 1); //with max-loops 65535
-while !(inb 0x6c & 2); //with max-loops 65535
-
-outb 0x6c, 0x53 //turn SRS effect off
-
-while !(inb 0x6c & 2); //with max-loops 65535
-while !(inb 0x6c & 1); //with max-loops 65535
-while !(inb 0x6c & 2); //with max-loops 65535
-
-outb 0x68, 0x00 //turn SRS Effect off
-
-while !(inb 0x6c & 2); //with max-loops 65535
-
-sti;
-spin_unlock;
