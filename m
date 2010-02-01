@@ -1,60 +1,117 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [RFC][RFT][PATCH] ACPI: Protection from suspending in the middle
-  of EC transaction
-Date: Mon, 01 Feb 2010 13:22:55 +0300
-Message-ID: <4B66AB7F.7050908@suse.de>
-References: <201001310029.48717.rjw@sisk.pl> <9b2b86521001310611m339862afw73410dc7eb5692c8@mail.gmail.com> <1264957760.7264.3.camel@maxim-laptop> <20100201094643.GB8740@khazad-dum.debian.net>
+From: andrej.gelenberg-KJIyc1CJxjQ@public.gmane.org
+Subject: Re: ACPI device for ASUS EEEPC 1101HA not added
+Date: Mon, 01 Feb 2010 12:06:40 +0100
+Message-ID: <cone.1265022400.369355.2380.1000@eeekiste>
+References: <20100201032554.GZ28972@buzzloop.caiaq.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:48416 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751011Ab0BAKWv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2010 05:22:51 -0500
-In-Reply-To: <20100201094643.GB8740@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniel Mack <daniel-rDUAYElUppE@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>
 
-Henrique de Moraes Holschuh =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> On Sun, 31 Jan 2010, Maxim Levitsky wrote:
->> Unfortunately, this patch even causes regressions on my notebook (it
->> survive 63 hibernate cycles), but now I battery driver reports 'batt=
-ery
->> absent', backlight driver reports 0 brightness, but reload helped.
->=20
-> ...
->=20
->> I think that not only _PTS ans _WAK are problematic. What about othe=
-r
->> ACPI drivers that start accessing the EC before it is resumed?
->> I think that these cause the problems I observe.
->=20
-> ACPI drivers might access the EC (even indirectly, through the DSDT).=
-  And
-> platform drivers do often access the EC both at suspend and resume ti=
-me.
-Actually, only SBS and thinkpad-acpi access EC directly. All others go =
-through
-DSDT for access. Still, stopping EC in .suspend is too early, IMHO...
->=20
-> This needs some sort of strong ordering, the EC must suspend last, an=
-d
-> resume first (as seen by any ACPI and ACPI-aware drivers such as liba=
-ta,
-> some platform drivers, etc).  If EC interrupts are a problem, maybe i=
-t can
-> be kicked to poll mode for the suspend/resume transition?
-It's this way already for about a year now... The problem is that EC dr=
-iver might be=20
-stopped in middle of the transaction, thus leaving EC in unknown state =
-for BIOS or=20
-switch-over kernel.
+Hi,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+you need to whitelist your eee pc for OSI(Linux) in drivers/acpi/blacklist.c
+like this:
+
++        /*
++        * On newer Eeepc, the interface used by eeepc-laptop (ASUS010)
++        * is disabled without _OSI(Linux)
++        */
++       {
++       .callback = dmi_enable_osi_linux,
++       .ident = "Asus Eeepc-1101HA",
++       .matches = {
++                    DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer INC."),
++                    DMI_MATCH(DMI_PRODUCT_NAME, "1101HA"),
++               },
++       },
+
+Regards,
+Andrej
+
+Daniel Mack writes:
+
+> On my new 1101HA Eeepc, the special function keys do not work. This is
+> because the asus-laptop driver fails to match the ACPI device named
+> "ASUS010". However, acpidump tells me a device with that name does
+> actually exist - the (simplified) disassembly of the DSDT is below.
+> 
+> It looks like the gigantic parser state machine fails to add that
+> device for whatever reason. Any ideas how to fix that?
+> 
+> 
+> Thanks,
+> Daniel
+> 
+> 
+> /*
+>  * Intel ACPI Component Architecture
+>  * AML Disassembler version 20090521
+>  */
+> DefinitionBlock ("out/DSDT-0x3f660430-0.aml", "DSDT", 2, "A1359", "A1359000", 0x00000000)
+> {
+> 
+>     [...]
+> 
+>     Scope (_SB)
+>     {
+> 
+>         [...]
+> 
+>         Device (PCI0)
+>         {
+>             Name (_HID, EisaId ("PNP0A08"))
+>             Name (_ADR, Zero)
+> 
+>             [...]
+> 
+>             Device (SBRG)
+>             {
+> 
+>                 [...]
+> 
+>                 Scope (\_SB)
+>                 {
+>                     Name (ATKP, Zero)
+>                     Device (ATKD)
+>                     {
+>                         Name (_HID, "ASUS010")
+>                         Name (_UID, 0x01010100)
+> 
+>                         [...]
+> 
+> 
+> The full version of the dump is here:
+> 
+>   http://caiaq.de/download/tmp/DSDT-0x3f660430-0.dsl
+> 
+> 
+> ------------------------------------------------------------------------------
+> The Planet: dedicated and managed hosting, cloud storage, colocation
+> Stay online with enterprise data centers and the best network in the business
+> Choose flexible plans and management services without long-term contracts
+> Personal 24x7 support from experience hosting pros just a phone call away.
+> http://p.sf.net/sfu/theplanet-com
+> _______________________________________________
+> Acpi4asus-user mailing list
+> Acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi4asus-user
+
+------------------------------------------------------------------------------
+The Planet: dedicated and managed hosting, cloud storage, colocation
+Stay online with enterprise data centers and the best network in the business
+Choose flexible plans and management services without long-term contracts
+Personal 24x7 support from experience hosting pros just a phone call away.
+http://p.sf.net/sfu/theplanet-com
