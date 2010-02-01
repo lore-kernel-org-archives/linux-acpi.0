@@ -1,226 +1,285 @@
 From: "Matthew W. S. Bell" <matthew@bells23.org.uk>
-Subject: [PATCH 2/2] Whitespace cleanups in ACPI modules.
-Date: Mon, 01 Feb 2010 21:16:29 +0000
-Message-ID: <1265058989.3824.11.camel@ibis.bells>
+Subject: [PATCH 1/2] Gracefully handle disabled ACPI and a lack of procfs.
+Date: Mon, 01 Feb 2010 21:16:09 +0000
+Message-ID: <1265058969.3824.10.camel@ibis.bells>
 Reply-To: matthew@bells23.org.uk, linux-acpi@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-+ZnqFMLiA/qXzD92pEle"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-rNdbH6yD6IO9aKaVCIGi"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from garuda.bells23.org.uk ([85.13.250.28]:59523 "EHLO
+Received: from garuda.bells23.org.uk ([85.13.250.28]:59524 "EHLO
 	garuda.bells23.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab0BAVyV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2010 16:54:21 -0500
+	with ESMTP id S1752293Ab0BAVyX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2010 16:54:23 -0500
 Received: from localhost ([127.0.0.1] helo=garuda.bells23.org.uk)
 	by garuda.bells23.org.uk with esmtp (Exim 4.69)
 	(envelope-from <matthew@bells23.org.uk>)
-	id 1Nc3fV-0003UX-Jw
-	for linux-acpi@vger.kernel.org; Mon, 01 Feb 2010 21:18:49 +0000
-Received: from [80.65.240.47] (port=56941 helo=[192.168.1.230])
+	id 1Nc3fB-0003UP-B7
+	for linux-acpi@vger.kernel.org; Mon, 01 Feb 2010 21:18:29 +0000
+Received: from [80.65.240.47] (port=56938 helo=[192.168.1.230])
 	by garuda.bells23.org.uk with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
 	(Exim 4.69)
 	(envelope-from <matthew@bells23.org.uk>)
-	id 1Nc3fU-0003UT-4s
-	for linux-acpi@vger.kernel.org; Mon, 01 Feb 2010 21:18:49 +0000
+	id 1Nc3fA-0003UL-6Y
+	for linux-acpi@vger.kernel.org; Mon, 01 Feb 2010 21:18:29 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 
---=-+ZnqFMLiA/qXzD92pEle
+--=-rNdbH6yD6IO9aKaVCIGi
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
+For every ACPI module, explicitly check acpi_disabled on load and
+print an
+appropriate error message if set.
+
+Also, add conditional macros around procfs code in init functions.
 ---
- drivers/acpi/acpi_memhotplug.c |    2 +-
- drivers/acpi/pci_slot.c        |    4 ++--
- drivers/acpi/processor_core.c  |    2 +-
- drivers/acpi/video.c           |   30 +++++++++++++++---------------
- 4 files changed, 19 insertions(+), 19 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    6 ++++--
+ drivers/acpi/acpi_pad.c        |    5 +++++
+ drivers/acpi/button.c          |    9 +++++++++
+ drivers/acpi/container.c       |    5 +++++
+ drivers/acpi/fan.c             |    6 ++++++
+ drivers/acpi/pci_slot.c        |    7 ++++++-
+ drivers/acpi/sbshc.c           |    5 +++++
+ drivers/acpi/thermal.c         |   10 ++++++++++
+ drivers/acpi/video.c           |    9 +++++++++
+ 9 files changed, 59 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpi_memhotplug.c
 b/drivers/acpi/acpi_memhotplug.c
-index 1477243..7fbaa50 100644
+index 28ccdbc..1477243 100644
 --- a/drivers/acpi/acpi_memhotplug.c
 +++ b/drivers/acpi/acpi_memhotplug.c
-@@ -39,7 +39,7 @@
- #define _COMPONENT		ACPI_MEMORY_DEVICE_COMPONENT
+@@ -529,9 +529,12 @@ static int __init acpi_memory_device_init(void)
+ 	int result;
+ 	acpi_status status;
 =20
- #undef PREFIX
--#define 	PREFIX		"ACPI:memory_hp:"
-+#define		PREFIX		"ACPI:memory_hp:"
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
 =20
- ACPI_MODULE_NAME("acpi_memhotplug");
- MODULE_AUTHOR("Naveen B S <naveen.b.s@intel.com>");
+ 	result =3D acpi_bus_register_driver(&acpi_memory_device_driver);
+-
+ 	if (result < 0)
+ 		return -ENODEV;
+=20
+@@ -539,7 +542,6 @@ static int __init acpi_memory_device_init(void)
+ 				     ACPI_UINT32_MAX,
+ 				     acpi_memory_register_notify_handler,
+ 				     NULL, NULL);
+-
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "walk_namespace failed"));
+ 		acpi_bus_unregister_driver(&acpi_memory_device_driver);
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 0d2cdb8..e53cb6b 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -495,6 +495,11 @@ static struct acpi_driver acpi_pad_driver =3D {
+=20
+ static int __init acpi_pad_init(void)
+ {
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	power_saving_mwait_init();
+ 	if (power_saving_mwait_eax =3D=3D 0)
+ 		return -EINVAL;
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 8a95e83..a5a6f84 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -456,13 +456,22 @@ static int __init acpi_button_init(void)
+ {
+ 	int result;
+=20
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_button_dir =3D proc_mkdir(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 	if (!acpi_button_dir)
+ 		return -ENODEV;
++#endif
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_button_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+=20
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 642bb30..46ae7df 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -249,6 +249,11 @@ static int __init acpi_container_init(void)
+ 	int result =3D 0;
+ 	int action =3D INSTALL_NOTIFY_HANDLER;
+=20
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	result =3D acpi_bus_register_driver(&acpi_container_driver);
+ 	if (result < 0) {
+ 		return (result);
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index f419849..52f6419 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -347,6 +347,10 @@ static int __init acpi_fan_init(void)
+ {
+ 	int result =3D 0;
+=20
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
+=20
+ #ifdef CONFIG_ACPI_PROCFS
+ 	acpi_fan_dir =3D proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
+@@ -356,7 +360,9 @@ static int __init acpi_fan_init(void)
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_fan_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+=20
 diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
-index 91de70f..2bfba7b 100644
+index 45da2ba..91de70f 100644
 --- a/drivers/acpi/pci_slot.c
 +++ b/drivers/acpi/pci_slot.c
-@@ -7,7 +7,7 @@
-  *  review and fixes.
-  *
-  *  Copyright (C) 2007-2008 Hewlett-Packard Development Company, L.P.
-- *  	Alex Chiang <achiang@hp.com>
-+ *	Alex Chiang <achiang@hp.com>
-  *
-  *  This program is free software; you can redistribute it and/or
-modify it
-  *  under the terms and conditions of the GNU General Public License,
-@@ -36,7 +36,7 @@
- static int debug;
- static int check_sta_before_sun;
+@@ -355,7 +355,12 @@ static struct dmi_system_id
+acpi_pci_slot_dmi_table[] __initdata =3D {
 =20
--#define DRIVER_VERSION 	"0.1"
-+#define DRIVER_VERSION	"0.1"
- #define DRIVER_AUTHOR	"Alex Chiang <achiang@hp.com>"
- #define DRIVER_DESC	"ACPI PCI Slot Detection Driver"
- MODULE_AUTHOR(DRIVER_AUTHOR);
-diff --git a/drivers/acpi/processor_core.c
-b/drivers/acpi/processor_core.c
-index ec742a4..b657307 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -922,7 +922,7 @@ free:
+ static int __init
+ acpi_pci_slot_init(void)
+-{
++{ =20
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	dmi_check_system(acpi_pci_slot_dmi_table);
+ 	acpi_pci_register_driver(&acpi_pci_slot_driver);
+ 	return 0;
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index d933980..f00780e 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -312,6 +312,11 @@ static int __init acpi_smb_hc_init(void)
+ {
+ 	int result;
 =20
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
-
-/*********************************************************************
-*******
-- * 	Acpi processor hotplug support 				       	    *
-+ *	Acpi processor hotplug support					    *
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	result =3D acpi_bus_register_driver(&acpi_smb_hc_driver);
+ 	if (result < 0)
+ 		return -ENODEV;
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 65f6781..cdbb827 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -1534,19 +1534,29 @@ static int __init acpi_thermal_init(void)
+ {
+ 	int result =3D 0;
 =20
-**********************************************************************
-******/
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	dmi_check_system(thermal_dmi_table);
 =20
- static int is_processor_present(acpi_handle handle)
+ 	if (off) {
+ 		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+ 		return -ENODEV;
+ 	}
++
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_thermal_dir =3D proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
+ 	if (!acpi_thermal_dir)
+ 		return -ENODEV;
++#endif
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_thermal_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+=20
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 045e634..dd7845a 100644
+index 05dff63..045e634 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -730,7 +730,7 @@ acpi_video_bus_POST_options(struct acpi_video_bus
-*video,
+@@ -2379,13 +2379,17 @@ int acpi_video_register(void)
+ 		return 0;
+ 	}
 =20
- /*
-  *  Arg:
-- *  	video		: video bus device pointer
-+ *	video		: video bus device pointer
-  *	bios_flag	:=20
-  *		0.	The system BIOS should NOT automatically switch(toggle)
-  *			the active display output.
-@@ -743,10 +743,10 @@ acpi_video_bus_POST_options(struct
-acpi_video_bus *video,
-  *	lcd_flag	:
-  *		0.	The system BIOS should automatically control the brightness
-level
-  *			of the LCD when the power changes from AC to DC
-- *		1. 	The system BIOS should NOT automatically control the
-brightness=20
-+ *		1.	The system BIOS should NOT automatically control the
-brightness=20
-  *			level of the LCD when the power changes from AC to DC.
-  * Return Value:
-- * 		-1	wrong arg.
-+ *		-1	wrong arg.
-  */
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_video_dir =3D proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+ 	if (!acpi_video_dir)
+ 		return -ENODEV;
++#endif
 =20
- static int
-@@ -781,7 +781,7 @@ acpi_video_cmp_level(const void *a, const void *b)
+ 	result =3D acpi_bus_register_driver(&acpi_video_bus);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
++#endif
+ 		return -ENODEV;
+ 	}
 =20
- /*
-  *  Arg:=09
-- *  	device	: video output device (LCD, CRT, ..)
-+ *	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-  *	Maximum brightness level
-@@ -944,7 +944,7 @@ out:
-  *	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-- *  	None
-+ *	None
-  *
-  *  Find out all required AML methods defined under the output
-  *  device.
-@@ -1054,10 +1054,10 @@ static void acpi_video_device_find_cap(struct
-acpi_video_device *device)
+@@ -2427,6 +2431,11 @@ EXPORT_SYMBOL(acpi_video_unregister);
 =20
- /*
-  *  Arg:=09
-- *  	device	: video output device (VGA)
-+ *	device	: video output device (VGA)
-  *
-  *  Return Value:
-- *  	None
-+ *	None
-  *
-  *  Find out all required AML methods defined under the video bus
-device.
-  */
-@@ -1805,10 +1805,10 @@ acpi_video_bus_get_one_device(struct
-acpi_device *device,
+ static int __init acpi_video_init(void)
+ {
++	if (acpi_disabled) {
++		printk(KERN_ERR AE_INFO ": ACPI is disabled.\n");
++		return -ENODEV;
++	}
++
+ 	dmi_check_system(video_dmi_table);
 =20
- /*
-  *  Arg:
-- *  	video	: video bus device=20
-+ *	video	: video bus device=20
-  *
-  *  Return:
-- *  	none
-+ *	none
-  * =20
-  *  Enumerate the video device list of the video bus,=20
-  *  bind the ids with the corresponding video devices
-@@ -1829,12 +1829,12 @@ static void acpi_video_device_rebind(struct
-acpi_video_bus *video)
-=20
- /*
-  *  Arg:
-- *  	video	: video bus device=20
-- *  	device	: video output device under the video=20
-- *  		bus
-+ *	video	: video bus device=20
-+ *	device	: video output device under the video=20
-+ *		bus
-  *
-  *  Return:
-- *  	none
-+ *	none
-  * =20
-  *  Bind the ids with the corresponding video devices
-  *  under the video bus.
-@@ -1858,10 +1858,10 @@ acpi_video_device_bind(struct acpi_video_bus
-*video,
-=20
- /*
-  *  Arg:
-- *  	video	: video bus device=20
-+ *	video	: video bus device=20
-  *
-  *  Return:
-- *  	< 0	: error
-+ *	< 0	: error
-  * =20
-  *  Call _DOD to enumerate all devices attached to display adapter
-  *
+ 	if (intel_opregion_present())
 --=20
 1.6.5
 
 
---=-+ZnqFMLiA/qXzD92pEle
+--=-rNdbH6yD6IO9aKaVCIGi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iQEcBAABAgAGBQJLZ0SqAAoJEDyn+gO8EoIoNp0H/2+JdMC+Y3pATP5O1H3bzpmu
-HtMCmF19566TyKV3iQFOzH0HyVib21wIjDKKg9fbd+mG98ht99e1ndPNpg6IX9LB
-YaYlxFQVHTj+3MkP6gLZWulrKKqbHhabhp/WQSh9FgVzEPwpe8bQOYjALRGU0pP4
-8wOWUR6zbPYIwCE0d7NOqjPqsxVuzWBwWJNb6zY6mGp7NEVWkjikN//BXPuyV1s9
-oWNIFalvhXTKvNM54IHb5ZYYuQcjH2/kYZYuYYFiQZcZQuHsYu8+HuBblVGIj9zm
-KiQE3Fz0bGdS7BY0IVBaML0RFg0Q1ivKsAR0ADHHc3L98B0BtYk69nO0zNGKlIE=
-=QU3g
+iQEcBAABAgAGBQJLZ0SPAAoJEDyn+gO8EoIo6wMIALZSNihM9phsCU2BB8xuDQSV
+mfdL5UYXdowMa8t/lHRhoskUUGyKI/TCBCGWCh6PZg2idXEiuN/U89OoFZi6IPYA
+Otf8XY1elOs+0lnk4H2kSvbsJu3REc2rCXiXRwMarhBsCHhbAnp96kDlEarIJ7dl
+Orb5qujeupMLdSrogAf6K7XKksXCoKkQ4f+5zw58GgOzlGERRY4lQU1llF9X2cjc
+jgzQt3S/dFBh8isc3HmUTLcVyqY3Cw+2iR1ZUIWRQQV8DnPiPAX5WWoLKaB67up8
+D4SyuUBACwXk4uigX1AOxmY0sLk9cl2oUd0MAO97JxvQDdyTCd1LISdgDx9g1qU=
+=J1QV
 -----END PGP SIGNATURE-----
 
---=-+ZnqFMLiA/qXzD92pEle--
+--=-rNdbH6yD6IO9aKaVCIGi--
 
