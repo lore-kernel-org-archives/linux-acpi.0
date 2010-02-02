@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 26/28] asus-laptop: clean led code
-Date: Tue,  2 Feb 2010 08:39:09 +0100
-Message-ID: <1265096351-15239-27-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 28/28] asus-laptop: fix style problems reported by checkpath.pl
+Date: Tue,  2 Feb 2010 08:39:11 +0100
+Message-ID: <1265096351-15239-29-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -28,334 +28,192 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-25-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-26-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-27-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-28-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57694 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57699 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755746Ab0BBHld (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755761Ab0BBHld (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 2 Feb 2010 02:41:33 -0500
-In-Reply-To: <1265096351-15239-26-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1265096351-15239-28-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-Remove all "templates" and add a generic struct asus_led instead.
-
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |  235 ++++++++++++++++++------------------
- 1 files changed, 115 insertions(+), 120 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   94 ++++++++++++++++++------------------
+ 1 files changed, 47 insertions(+), 47 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index e1df92a..ae53026 100644
+index d0d117b..791fcf3 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -193,29 +193,12 @@ ASUS_HANDLE(display_get,
+@@ -45,12 +45,12 @@
+ #include <linux/fb.h>
+ #include <linux/leds.h>
+ #include <linux/platform_device.h>
+-#include <acpi/acpi_drivers.h>
+-#include <acpi/acpi_bus.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/input.h>
+ #include <linux/input/sparse-keymap.h>
+ #include <linux/rfkill.h>
++#include <acpi/acpi_drivers.h>
++#include <acpi/acpi_bus.h>
+ 
+ #define ASUS_LAPTOP_VERSION	"0.42"
+ 
+@@ -94,10 +94,10 @@ MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
  /*
-  * Define a specific led structure to keep the main structure clean
+  * Some events we use, same for all Asus
   */
--#define ASUS_DEFINE_LED(object)					\
--	int object##_wk;					\
--	struct work_struct object##_work;			\
--	struct led_classdev object;
+-#define ATKD_BR_UP	0x10	// (event & ~ATKD_BR_UP) = brightness level
+-#define ATKD_BR_DOWN	0x20	// (event & ~ATKD_BR_DOWN) = britghness level
++#define ATKD_BR_UP	0x10	/* (event & ~ATKD_BR_UP) = brightness level */
++#define ATKD_BR_DOWN	0x20	/* (event & ~ATKD_BR_DOWN) = britghness level */
+ #define ATKD_BR_MIN	ATKD_BR_UP
+-#define ATKD_BR_MAX	(ATKD_BR_DOWN | 0xF)	// 0x2f
++#define ATKD_BR_MAX	(ATKD_BR_DOWN | 0xF)	/* 0x2f */
+ #define ATKD_LCD_ON	0x33
+ #define ATKD_LCD_OFF	0x34
+ 
+@@ -114,10 +114,6 @@ MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
+ #define WL_RSTS		0x01	/* internal Wifi */
+ #define BT_RSTS		0x02	/* internal Bluetooth */
+ 
+-#define ASUS_HANDLE(object, paths...)					\
+-	static acpi_handle  object##_handle = NULL;			\
+-	static char *object##_paths[] = { paths }
 -
--
--#define led_to_asus(led_cdev, led)					\
--	container_of(container_of(led_cdev, struct asus_laptop_leds,	\
--				  led),					\
--		     struct asus_laptop, leds)
--#define work_to_asus(work, led)						\
--	container_of(container_of(work, struct asus_laptop_leds,	\
--				  led##_work),				\
--		     struct asus_laptop, leds)
--
--struct asus_laptop_leds {
--	ASUS_DEFINE_LED(mled)
--	ASUS_DEFINE_LED(tled)
--	ASUS_DEFINE_LED(rled)
--	ASUS_DEFINE_LED(pled)
--	ASUS_DEFINE_LED(gled)
--	ASUS_DEFINE_LED(kled)
--	struct workqueue_struct *workqueue;
-+struct asus_led {
-+	int wk;
-+	struct work_struct work;
-+	struct led_classdev led;
-+	struct asus_laptop *asus;
-+	const char *method;
- };
+ /* LED */
+ #define METHOD_MLED		"MLED"
+ #define METHOD_TLED		"TLED"
+@@ -142,40 +138,44 @@ MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
+ #define METHOD_BRIGHTNESS_GET	"GPLV"
  
- /*
-@@ -233,7 +216,13 @@ struct asus_laptop {
- 	struct input_dev *inputdev;
- 	struct key_entry *keymap;
+ /* Backlight */
+-ASUS_HANDLE(lcd_switch, "\\_SB.PCI0.SBRG.EC0._Q10",	/* All new models */
+-	    "\\_SB.PCI0.ISA.EC0._Q10",	/* A1x */
+-	    "\\_SB.PCI0.PX40.ECD0._Q10",	/* L3C */
+-	    "\\_SB.PCI0.PX40.EC0.Q10",	/* M1A */
+-	    "\\_SB.PCI0.LPCB.EC0._Q10",	/* P30 */
+-	    "\\_SB.PCI0.LPCB.EC0._Q0E", /* P30/P35 */
+-	    "\\_SB.PCI0.PX40.Q10",	/* S1x */
+-	    "\\Q10");		/* A2x, L2D, L3D, M2E */
++static acpi_handle lcd_switch_handle;
++static const char *lcd_switch_paths[] = {
++  "\\_SB.PCI0.SBRG.EC0._Q10",	/* All new models */
++  "\\_SB.PCI0.ISA.EC0._Q10",	/* A1x */
++  "\\_SB.PCI0.PX40.ECD0._Q10",	/* L3C */
++  "\\_SB.PCI0.PX40.EC0.Q10",	/* M1A */
++  "\\_SB.PCI0.LPCB.EC0._Q10",	/* P30 */
++  "\\_SB.PCI0.LPCB.EC0._Q0E", /* P30/P35 */
++  "\\_SB.PCI0.PX40.Q10",	/* S1x */
++  "\\Q10"};		/* A2x, L2D, L3D, M2E */
  
--	struct asus_laptop_leds leds;
-+	struct asus_led mled;
-+	struct asus_led tled;
-+	struct asus_led rled;
-+	struct asus_led pled;
-+	struct asus_led gled;
-+	struct asus_led kled;
-+	struct workqueue_struct *led_workqueue;
+ /* Display */
+ #define METHOD_SWITCH_DISPLAY	"SDSP"
+-ASUS_HANDLE(display_get,
+-	    /* A6B, A6K A6R A7D F3JM L4R M6R A3G M6A M6V VX-1 V6J V6V W3Z */
+-	    "\\_SB.PCI0.P0P1.VGA.GETD",
+-	    /* A3E A4K, A4D A4L A6J A7J A8J Z71V M9V S5A M5A z33A W1Jc W2V G1 */
+-	    "\\_SB.PCI0.P0P2.VGA.GETD",
+-	    /* A6V A6Q */
+-	    "\\_SB.PCI0.P0P3.VGA.GETD",
+-	    /* A6T, A6M */
+-	    "\\_SB.PCI0.P0PA.VGA.GETD",
+-	    /* L3C */
+-	    "\\_SB.PCI0.PCI1.VGAC.NMAP",
+-	    /* Z96F */
+-	    "\\_SB.PCI0.VGA.GETD",
+-	    /* A2D */
+-	    "\\ACTD",
+-	    /* A4G Z71A W1N W5A W5F M2N M3N M5N M6N S1N S5N */
+-	    "\\ADVG",
+-	    /* P30 */
+-	    "\\DNXT",
+-	    /* A2H D1 L2D L3D L3H L2E L5D L5C M1A M2E L4L W3V */
+-	    "\\INFB",
+-	    /* A3F A6F A3N A3L M6N W3N W6A */
+-	    "\\SSTE");
++
++static acpi_handle display_get_handle;
++static const char *display_get_paths[] = {
++  /* A6B, A6K A6R A7D F3JM L4R M6R A3G M6A M6V VX-1 V6J V6V W3Z */
++  "\\_SB.PCI0.P0P1.VGA.GETD",
++  /* A3E A4K, A4D A4L A6J A7J A8J Z71V M9V S5A M5A z33A W1Jc W2V G1 */
++  "\\_SB.PCI0.P0P2.VGA.GETD",
++  /* A6V A6Q */
++  "\\_SB.PCI0.P0P3.VGA.GETD",
++  /* A6T, A6M */
++  "\\_SB.PCI0.P0PA.VGA.GETD",
++  /* L3C */
++  "\\_SB.PCI0.PCI1.VGAC.NMAP",
++  /* Z96F */
++  "\\_SB.PCI0.VGA.GETD",
++  /* A2D */
++  "\\ACTD",
++  /* A4G Z71A W1N W5A W5F M2N M3N M5N M6N S1N S5N */
++  "\\ADVG",
++  /* P30 */
++  "\\DNXT",
++  /* A2H D1 L2D L3D L3H L2E L5D L5C M1A M2E L4L W3V */
++  "\\INFB",
++  /* A3F A6F A3N A3L M6N W3N W6A */
++  "\\SSTE"};
  
- 	int wireless_status;
- 	bool have_rsts;
-@@ -353,7 +342,7 @@ static int acpi_check_handle(acpi_handle handle, const char *method,
+ #define METHOD_ALS_CONTROL	"ALSC" /* Z71A Z71V */
+ #define METHOD_ALS_LEVEL	"ALSL" /* Z71A Z71V */
+@@ -426,7 +426,7 @@ static void asus_kled_cdev_set(struct led_classdev *led_cdev,
+ 	struct asus_led *led = container_of(led_cdev, struct asus_led, led);
+ 	struct asus_laptop *asus = led->asus;
+ 
+-        led->wk = value;
++	led->wk = value;
+ 	queue_work(asus->led_workqueue, &led->work);
  }
  
- /* Generic LED function */
--static int asus_led_set(struct asus_laptop *asus, char *method,
-+static int asus_led_set(struct asus_laptop *asus, const char *method,
- 			 int value)
- {
- 	if (!strcmp(method, METHOD_MLED))
-@@ -369,50 +358,29 @@ static int asus_led_set(struct asus_laptop *asus, char *method,
- /*
-  * LEDs
-  */
--#define ASUS_LED(object, ledname, max)					\
--	static void object##_led_set(struct led_classdev *led_cdev,	\
--				     enum led_brightness value);	\
--	static enum led_brightness object##_led_get(			\
--		struct led_classdev *led_cdev);				\
--	static void object##_led_update(struct work_struct *ignored);
--
--ASUS_LED(mled, "mail", 1);
--ASUS_LED(tled, "touchpad", 1);
--ASUS_LED(rled, "record", 1);
--ASUS_LED(pled, "phone", 1);
--ASUS_LED(gled, "gaming", 1);
--ASUS_LED(kled, "kbd_backlight", 3);
--
- /* /sys/class/led handlers */
--#define ASUS_LED_HANDLER(object, method)				\
--	static void object##_led_set(struct led_classdev *led_cdev,	\
--				     enum led_brightness value)		\
--	{								\
--		struct asus_laptop *asus =				\
--			led_to_asus(led_cdev, object);			\
--									\
--		asus->leds.object##_wk = (value > 0) ? 1 : 0;		\
--		queue_work(asus->leds.workqueue,			\
--			   &asus->leds.object##_work);			\
--	}								\
--	static void object##_led_update(struct work_struct *work)	\
--	{								\
--		struct asus_laptop *asus = work_to_asus(work, object);	\
--									\
--		int value = asus->leds.object##_wk;			\
--		asus_led_set(asus, method, value);			\
--	}								\
--	static enum led_brightness object##_led_get(			\
--		struct led_classdev *led_cdev)				\
--	{								\
--		return led_cdev->brightness;				\
--	}
-+static void asus_led_cdev_set(struct led_classdev *led_cdev,
-+			 enum led_brightness value)
-+{
-+	struct asus_led *led = container_of(led_cdev, struct asus_led, led);
-+	struct asus_laptop *asus = led->asus;
-+
-+	led->wk = !!value;
-+	queue_work(asus->led_workqueue, &led->work);
-+}
-+
-+static void asus_led_cdev_update(struct work_struct *work)
-+{
-+	struct asus_led *led = container_of(work, struct asus_led, work);
-+	struct asus_laptop *asus = led->asus;
+@@ -474,7 +474,7 @@ static int asus_led_register(struct asus_laptop *asus,
+ 	struct led_classdev *led_cdev = &led->led;
  
--ASUS_LED_HANDLER(mled, METHOD_MLED);
--ASUS_LED_HANDLER(pled, METHOD_PLED);
--ASUS_LED_HANDLER(rled, METHOD_RLED);
--ASUS_LED_HANDLER(tled, METHOD_TLED);
--ASUS_LED_HANDLER(gled, METHOD_GLED);
-+	asus_led_set(asus, led->method, led->wk);
-+}
-+
-+static enum led_brightness asus_led_cdev_get(struct led_classdev *led_cdev)
-+{
-+	return led_cdev->brightness;
-+}
+ 	if (!method || acpi_check_handle(asus->handle, method, NULL))
+-	    return 0; /* Led not present */
++		return 0; /* Led not present */
  
- /*
-  * Keyboard backlight (also a LED)
-@@ -452,70 +420,76 @@ static int asus_kled_set(struct asus_laptop *asus, int kblv)
- 	return 0;
- }
- 
--static void kled_led_set(struct led_classdev *led_cdev,
--			 enum led_brightness value)
-+static void asus_kled_cdev_set(struct led_classdev *led_cdev,
-+			      enum led_brightness value)
- {
--	struct asus_laptop *asus = led_to_asus(led_cdev, kled);
-+	struct asus_led *led = container_of(led_cdev, struct asus_led, led);
-+	struct asus_laptop *asus = led->asus;
- 
--	asus->leds.kled_wk = value;
--	queue_work(asus->leds.workqueue, &asus->leds.kled_work);
-+        led->wk = value;
-+	queue_work(asus->led_workqueue, &led->work);
- }
- 
--static void kled_led_update(struct work_struct *work)
-+static void asus_kled_cdev_update(struct work_struct *work)
- {
--	struct asus_laptop *asus = work_to_asus(work, kled);
-+	struct asus_led *led = container_of(work, struct asus_led, work);
-+	struct asus_laptop *asus = led->asus;
- 
--	asus_kled_set(asus, asus->leds.kled_wk);
-+	asus_kled_set(asus, led->wk);
- }
- 
--static enum led_brightness kled_led_get(struct led_classdev *led_cdev)
-+static enum led_brightness asus_kled_cdev_get(struct led_classdev *led_cdev)
- {
--	struct asus_laptop *asus = led_to_asus(led_cdev, kled);
-+	struct asus_led *led = container_of(led_cdev, struct asus_led, led);
-+	struct asus_laptop *asus = led->asus;
- 
- 	return asus_kled_lvl(asus);
- }
- 
- static void asus_led_exit(struct asus_laptop *asus)
- {
--	if (asus->leds.mled.dev)
--		led_classdev_unregister(&asus->leds.mled);
--	if (asus->leds.tled.dev)
--		led_classdev_unregister(&asus->leds.tled);
--	if (asus->leds.pled.dev)
--		led_classdev_unregister(&asus->leds.pled);
--	if (asus->leds.rled.dev)
--		led_classdev_unregister(&asus->leds.rled);
--	if (asus->leds.gled.dev)
--		led_classdev_unregister(&asus->leds.gled);
--	if (asus->leds.kled.dev)
--		led_classdev_unregister(&asus->leds.kled);
--	if (asus->leds.workqueue) {
--		destroy_workqueue(asus->leds.workqueue);
--		asus->leds.workqueue = NULL;
-+	if (asus->mled.led.dev)
-+		led_classdev_unregister(&asus->mled.led);
-+	if (asus->tled.led.dev)
-+		led_classdev_unregister(&asus->tled.led);
-+	if (asus->pled.led.dev)
-+		led_classdev_unregister(&asus->pled.led);
-+	if (asus->rled.led.dev)
-+		led_classdev_unregister(&asus->rled.led);
-+	if (asus->gled.led.dev)
-+		led_classdev_unregister(&asus->gled.led);
-+	if (asus->kled.led.dev)
-+		led_classdev_unregister(&asus->kled.led);
-+	if (asus->led_workqueue) {
-+		destroy_workqueue(asus->led_workqueue);
-+		asus->led_workqueue = NULL;
- 	}
- }
- 
- /*  Ugly macro, need to fix that later */
--#define ASUS_LED_REGISTER(asus, object, _name, max, method)		\
--	do {								\
--		struct led_classdev *ldev = &asus->leds.object;		\
--									\
--		if (method && acpi_check_handle(asus->handle, method, NULL)) \
--			break ;						\
--									\
--		INIT_WORK(&asus->leds.object##_work, object##_led_update); \
--		ldev->name = "asus::" _name;				\
--		ldev->brightness_set = object##_led_set;		\
--		ldev->brightness_get = object##_led_get;		\
--		ldev->max_brightness = max;				\
--		rv = led_classdev_register(&asus->platform_device->dev, ldev); \
--		if (rv)							\
--			goto error;					\
--	} while (0)
-+static int asus_led_register(struct asus_laptop *asus,
-+			     struct asus_led *led,
-+			     const char *name, const char *method)
-+{
-+	struct led_classdev *led_cdev = &led->led;
-+
-+	if (!method || acpi_check_handle(asus->handle, method, NULL))
-+	    return 0; /* Led not present */
-+
-+	led->asus = asus;
-+	led->method = method;
-+
-+	INIT_WORK(&led->work, asus_led_cdev_update);
-+	led_cdev->name = name;
-+	led_cdev->brightness_set = asus_led_cdev_set;
-+	led_cdev->brightness_get = asus_led_cdev_get;
-+	led_cdev->max_brightness = 1;
-+	return led_classdev_register(&asus->platform_device->dev, led_cdev);
-+}
- 
- static int asus_led_init(struct asus_laptop *asus)
- {
--	int rv;
-+	int r;
+ 	led->asus = asus;
+ 	led->method = method;
+@@ -687,8 +687,8 @@ static ssize_t show_infos(struct device *dev,
+ 	acpi_status rv = AE_OK;
  
  	/*
- 	 * Functions that actually update the LED's are called from a
-@@ -523,22 +497,43 @@ static int asus_led_init(struct asus_laptop *asus)
- 	 * subsystem asks, we avoid messing with the Asus ACPI stuff during a
- 	 * potentially bad time, such as a timer interrupt.
+-	 * We use the easy way, we don't care of off and count, so we don't set eof
+-	 * to 1
++	 * We use the easy way, we don't care of off and count,
++	 * so we don't set eof to 1
  	 */
--	asus->leds.workqueue = create_singlethread_workqueue("led_workqueue");
--	if (!asus->leds.workqueue)
-+	asus->led_workqueue = create_singlethread_workqueue("led_workqueue");
-+	if (!asus->led_workqueue)
- 		return -ENOMEM;
  
--	ASUS_LED_REGISTER(asus, mled, "mail", 1, METHOD_MLED);
--	ASUS_LED_REGISTER(asus, tled, "touchpad", 1, METHOD_TLED);
--	ASUS_LED_REGISTER(asus, rled, "record", 1, METHOD_RLED);
--	ASUS_LED_REGISTER(asus, pled, "phone", 1, METHOD_PLED);
--	ASUS_LED_REGISTER(asus, gled, "gaming", 1, METHOD_GLED);
-+	r = asus_led_register(asus, &asus->mled, "asus::mail", METHOD_MLED);
-+	if (r)
-+		goto error;
-+	r = asus_led_register(asus, &asus->tled, "asus::touchpad", METHOD_TLED);
-+	if (r)
-+		goto error;
-+	r = asus_led_register(asus, &asus->rled, "asus::record", METHOD_RLED);
-+	if (r)
-+		goto error;
-+	r = asus_led_register(asus, &asus->pled, "asus::phone", METHOD_PLED);
-+	if (r)
-+		goto error;
-+	r = asus_led_register(asus, &asus->gled, "asus::gaming", METHOD_GLED);
-+	if (r)
-+		goto error;
- 	if (!acpi_check_handle(asus->handle, METHOD_KBD_LIGHT_SET, NULL) &&
--	    !acpi_check_handle(asus->handle, METHOD_KBD_LIGHT_GET, NULL))
--		ASUS_LED_REGISTER(asus, kled, "kbd_backlight", 3, NULL);
-+	    !acpi_check_handle(asus->handle, METHOD_KBD_LIGHT_GET, NULL)) {
-+		struct asus_led *led = &asus->kled;
-+		struct led_classdev *cdev = &led->led;
-+
-+		led->asus = asus;
-+
-+		INIT_WORK(&led->work, asus_kled_cdev_update);
-+		cdev->name = "asus::kbd_backlight";
-+		cdev->brightness_set = asus_kled_cdev_set;
-+		cdev->brightness_get = asus_kled_cdev_get;
-+		cdev->max_brightness = 3;
-+		r = led_classdev_register(&asus->platform_device->dev, cdev);
-+	}
- error:
--	if (rv)
-+	if (r)
- 		asus_led_exit(asus);
--	return rv;
-+	return r;
+ 	len += sprintf(page, ASUS_LAPTOP_NAME " " ASUS_LAPTOP_VERSION "\n");
+@@ -904,7 +904,7 @@ static int read_display(struct asus_laptop *asus)
+ 			pr_warning("Error reading display status\n");
+ 	}
+ 
+-	value &= 0x0F;		/* needed for some models, shouldn't hurt others */
++	value &= 0x0F; /* needed for some models, shouldn't hurt others */
+ 
+ 	return value;
  }
+@@ -1041,7 +1041,7 @@ static ssize_t show_gps(struct device *dev,
+ static ssize_t store_gps(struct device *dev, struct device_attribute *attr,
+ 			 const char *buf, size_t count)
+ {
+- 	struct asus_laptop *asus = dev_get_drvdata(dev);
++	struct asus_laptop *asus = dev_get_drvdata(dev);
+ 	int rv, value;
+ 	int ret;
  
- /*
 -- 
 1.6.6.1
 
