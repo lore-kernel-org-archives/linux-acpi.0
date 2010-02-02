@@ -1,19 +1,18 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 06/28] asus-laptop: remove unecessary hotk != NULL check
-Date: Tue,  2 Feb 2010 08:38:49 +0100
-Message-ID: <1265096351-15239-7-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 05/28] asus-laptop: use tabs to indent macros and remove unused ones
+Date: Tue,  2 Feb 2010 08:38:48 +0100
+Message-ID: <1265096351-15239-6-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-4-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-5-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-6-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57611 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57612 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755580Ab0BBHj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755556Ab0BBHj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 2 Feb 2010 02:39:56 -0500
-In-Reply-To: <1265096351-15239-6-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1265096351-15239-5-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -21,32 +20,86 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kern
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   51 +++++++++++++++--------------------
+ 1 files changed, 22 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 5889bda..74463a0 100644
+index 7058cb5..5889bda 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -941,10 +941,6 @@ static void asus_hotk_notify(struct acpi_device *device, u32 event)
- 	static struct key_entry *key;
- 	u16 count;
+@@ -50,50 +50,43 @@
+ #include <asm/uaccess.h>
+ #include <linux/input.h>
  
--	/* TODO Find a better way to handle events count. */
--	if (!hotk)
--		return;
+-#define ASUS_LAPTOP_VERSION "0.42"
++#define ASUS_LAPTOP_VERSION	"0.42"
+ 
+-#define ASUS_HOTK_NAME          "Asus Laptop Support"
+-#define ASUS_HOTK_CLASS         "hotkey"
+-#define ASUS_HOTK_DEVICE_NAME   "Hotkey"
+-#define ASUS_HOTK_FILE          KBUILD_MODNAME
+-#define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
++#define ASUS_HOTK_NAME		"Asus Laptop Support"
++#define ASUS_HOTK_CLASS		"hotkey"
++#define ASUS_HOTK_DEVICE_NAME	"Hotkey"
++#define ASUS_HOTK_FILE		KBUILD_MODNAME
++#define ASUS_HOTK_PREFIX	"\\_SB.ATKD."
+ 
+ 
+ /*
+  * Some events we use, same for all Asus
+  */
+-#define ATKD_BR_UP       0x10
+-#define ATKD_BR_DOWN     0x20
+-#define ATKD_LCD_ON      0x33
+-#define ATKD_LCD_OFF     0x34
++#define ATKD_BR_UP	0x10
++#define ATKD_BR_DOWN	0x20
++#define ATKD_LCD_ON	0x33
++#define ATKD_LCD_OFF	0x34
+ 
+ /*
+  * Known bits returned by \_SB.ATKD.HWRS
+  */
+-#define WL_HWRS     0x80
+-#define BT_HWRS     0x100
++#define WL_HWRS		0x80
++#define BT_HWRS		0x100
+ 
+ /*
+  * Flags for hotk status
+  * WL_ON and BT_ON are also used for wireless_status()
+  */
+-#define WL_ON       0x01	/* internal Wifi */
+-#define BT_ON       0x02	/* internal Bluetooth */
+-#define MLED_ON     0x04	/* mail LED */
+-#define TLED_ON     0x08	/* touchpad LED */
+-#define RLED_ON     0x10	/* Record LED */
+-#define PLED_ON     0x20	/* Phone LED */
+-#define GLED_ON     0x40	/* Gaming LED */
+-#define LCD_ON      0x80	/* LCD backlight */
+-#define GPS_ON      0x100	/* GPS */
+-#define KEY_ON      0x200	/* Keyboard backlight */
 -
- 	/*
- 	 * We need to tell the backlight device when the backlight power is
- 	 * switched
-@@ -957,6 +953,7 @@ static void asus_hotk_notify(struct acpi_device *device, u32 event)
- 		lcd_blank(FB_BLANK_POWERDOWN);
- 	}
+-#define ASUS_LOG    ASUS_HOTK_FILE ": "
+-#define ASUS_ERR    KERN_ERR    ASUS_LOG
+-#define ASUS_WARNING    KERN_WARNING    ASUS_LOG
+-#define ASUS_NOTICE KERN_NOTICE ASUS_LOG
+-#define ASUS_INFO   KERN_INFO   ASUS_LOG
+-#define ASUS_DEBUG  KERN_DEBUG  ASUS_LOG
++#define WL_ON		0x01	/* internal Wifi */
++#define BT_ON		0x02	/* internal Bluetooth */
++#define MLED_ON		0x04	/* mail LED */
++#define TLED_ON		0x08	/* touchpad LED */
++#define RLED_ON		0x10	/* Record LED */
++#define PLED_ON		0x20	/* Phone LED */
++#define GLED_ON		0x40	/* Gaming LED */
++#define LCD_ON		0x80	/* LCD backlight */
++#define GPS_ON		0x100	/* GPS */
++#define KEY_ON		0x200	/* Keyboard backlight */
  
-+	/* TODO Find a better way to handle events count. */
- 	count = hotk->event_count[event % 128]++;
- 	acpi_bus_generate_proc_event(hotk->device, event, count);
- 	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
+ MODULE_AUTHOR("Julien Lerouge, Karol Kozimor, Corentin Chary");
+ MODULE_DESCRIPTION(ASUS_HOTK_NAME);
 -- 
 1.6.6.1
 
