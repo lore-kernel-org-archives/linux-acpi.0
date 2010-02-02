@@ -1,40 +1,143 @@
-From: Daniel Mack <daniel@caiaq.de>
-Subject: Re: ACPI device for ASUS EEEPC 1101HA not added
-Date: Tue, 2 Feb 2010 03:31:43 +0100
-Message-ID: <20100202023142.GI9007@buzzloop.caiaq.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Acpi4asus-user] ACPI device for ASUS EEEPC 1101HA not added
+Date: Tue, 02 Feb 2010 01:02:10 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1002020048110.12989@localhost.localdomain>
 References: <20100201032554.GZ28972@buzzloop.caiaq.de>
- <1265073562.10648.12.camel@rzhang1-desktop>
- <20100202020938.GH9007@buzzloop.caiaq.de>
- <8B81FACE836F9248894A7844CC0BA814250B6A0EAF@shzsmsx501.ccr.corp.intel.com>
+ <cone.1265022400.369355.2380.1000@eeekiste>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from buzzloop.caiaq.de ([212.112.241.133]:40085 "EHLO
-	buzzloop.caiaq.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973Ab0BBCb7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2010 21:31:59 -0500
-Content-Disposition: inline
-In-Reply-To: <8B81FACE836F9248894A7844CC0BA814250B6A0EAF@shzsmsx501.ccr.corp.intel.com>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:35155 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012Ab0BBGCd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 01:02:33 -0500
+In-reply-to: <cone.1265022400.369355.2380.1000@eeekiste>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "acpi4asus-user@lists.sourceforge.net" <acpi4asus-user@lists.sourceforge.net>
+To: andrej.gelenberg@udo.edu
+Cc: Daniel Mack <daniel@caiaq.de>, linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Feb 02, 2010 at 10:17:17AM +0800, Zhang, Rui wrote:
-> > On Tue, Feb 02, 2010 at 09:19:22AM +0800, Zhang Rui wrote:
-> > > eeepc is handled in eeepci-laptop driver.
-> > >
-> > > ~/src/linux-2.6$ grep ASUS010 drivers/platform/*/*
-> > > drivers/platform/x86/eeepc-laptop.c:#define EEEPC_ACPI_HID
-> > 	"ASUS010"
-> > 
-> > Yes, that I know. The driver was just unable to match the device
-> > because
-> > it was not detected by the ACPI core. Works now with the patch Andrej
-> > sent. I would still like to make sure it's getting merged mainline
-> > sooner or later.
-> >
-> Oh, can you give a link to this patch please?
+On Mon, 1 Feb 2010, andrej.gelenberg@udo.edu wrote:
 
-http://permalink.gmane.org/gmane.linux.acpi.acpi4asus.user/3781
+> Hi,
+> 
+> you need to whitelist your eee pc for OSI(Linux) in drivers/acpi/blacklist.c
+> like this:
+> 
+> +        /*
+> +        * On newer Eeepc, the interface used by eeepc-laptop (ASUS010)
+> +        * is disabled without _OSI(Linux)
+> +        */
+> +       {
+> +       .callback = dmi_enable_osi_linux,
+> +       .ident = "Asus Eeepc-1101HA",
+> +       .matches = {
+> +                    DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer INC."),
+> +                    DMI_MATCH(DMI_PRODUCT_NAME, "1101HA"),
+> +               },
+> +       },
+
+Not necessarily the right fix.  We have gone to a lot of trouble
+to discourage BIOS vendors from depending on the ill-defined OSI(Linux),
+so I hesitate to invoke it -- even for a workaround.
+
+The problem at hand is that ASUS010 is not enabled for an OS
+that claims compatibility with Win7 (MSOS() == MSW7) below.
+
+                Scope (\_SB)
+                {
+                    Name (ATKP, Zero)
+                    Device (ATKD)
+                    {
+                        Name (_HID, "ASUS010")
+                        Name (_UID, 0x01010100)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            If (LEqual (MSOS (), MSW7))
+                            {
+                                Return (Zero)
+                            }
+                            Else
+                            {
+                                Return (0x0F)
+                            }
+
+                            Return (Zero)
+                            Return (0x0F)
+                        }
+
+(heh, see any indication of lack of quality in this code?:-)
+
+MSOS() does this:
+
+                    Scope (\)
+                    {
+                        Name (OSLX, 0x10)
+                        Name (OSMS, 0x20)
+                        Name (MS98, 0x21)
+                        Name (MSME, 0x22)
+                        Name (MS2K, 0x23)
+                        Name (MSXP, 0x24)
+                        Name (MSVT, 0x25)
+                        Name (MSW7, 0x26)
+                        Name (OSFG, Ones)
+                        Method (MSOS, 0, NotSerialized)
+                        {
+                            If (LNotEqual (OSFG, Ones))
+                            {
+                                Return (OSFG)
+                            }
+
+                            Store (Zero, OSFG)
+                            If (CondRefOf (_OSI, Local0))
+                            {
+                                If (_OSI ("Windows 2001"))
+                                {
+                                    Store (MSXP, OSFG)
+                                }
+
+                                If (_OSI ("Windows 2001 SP1"))
+                                {
+                                    Store (MSXP, OSFG)
+                                }
+
+                                If (_OSI ("Windows 2001 SP2"))
+                                {
+                                    Store (MSXP, OSFG)
+                                }
+
+                                If (_OSI ("Windows 2006"))
+                                {
+                                    Store (MSVT, OSFG)
+                                }
+
+                                If (_OSI ("Windows 2009"))
+                                {
+                                    Store (MSW7, OSFG)
+                                }
+
+                                If (_OSI ("Linux"))
+                                {
+                                    Store (OSLX, OSFG)
+                                }
+
+                                Return (OSFG)
+                            }
+                            Else
+
+
+So I expect if you apply no patch, but boot with 'acpi_osi="!Windows 2009"'
+then that would also work properly, as OSFG above will be set
+to "MSVT" instead of "OSLX".
+
+Looking through the DSDT, there are no references to OSLX or MSVT,
+or MSXP, for that matter.  However, there is an additional reference
+to MSV7 in the temperature reading part of thermal zone TZ00,
+that looks like some sort of OS-specific initialization, perhaps
+a workaround.  So also check that /proc/acpi/thermal_zone/*/temperature
+still work before and after.
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
+ 
 
