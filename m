@@ -1,44 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [patch 6/7] thinkpad-acpi: wrong thermal attribute_group removed in thermal_exit()
-Date: Tue, 02 Feb 2010 14:37:58 -0800
-Message-ID: <201002022237.o12Mbwo6018696@imap1.linux-foundation.org>
+Subject: [patch 7/7] acpi: remove old blacklist entries
+Date: Tue, 02 Feb 2010 14:37:59 -0800
+Message-ID: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932103Ab0BBWjL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 17:39:11 -0500
+	by vger.kernel.org with ESMTP id S1757039Ab0BBWjh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 17:39:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, roel.kluin@gmail.com, ibm-acpi@hmh.eng.br
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl
 
-From: Roel Kluin <roel.kluin@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-sysfs_remove_group() removed the wrong attribute_group for
-thermal_read_mode TPEC_8, ACPI_TMP07 and ACPI_UPDT
+The kernel has a set of blacklist entries that disable ACPI functionality
+on various machines.  These all seem to date from pre-git days and most
+have no indication of what they were meant to fix.  Let's work on the
+assumption that we've fixed whatever it was that was broken before and so
+remove most of the entries.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Dmitry Artamonow <mad_soft@inbox.ru>
+Cc: <flinco@libero.it>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/acpi/boot.c |  147 ----------------------------------
+ 1 file changed, 147 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -5771,7 +5771,7 @@ static void thermal_exit(void)
- 	case TPACPI_THERMAL_ACPI_TMP07:
- 	case TPACPI_THERMAL_ACPI_UPDT:
- 		sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj,
--				   &thermal_temp_input16_group);
-+				   &thermal_temp_input8_group);
- 		break;
- 	case TPACPI_THERMAL_NONE:
- 	default:
+diff -puN arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -1256,35 +1256,6 @@ static int __init disable_acpi_pci(const
+ 	return 0;
+ }
+ 
+-static int __init dmi_disable_acpi(const struct dmi_system_id *d)
+-{
+-	if (!acpi_force) {
+-		printk(KERN_NOTICE "%s detected: acpi off\n", d->ident);
+-		disable_acpi();
+-	} else {
+-		printk(KERN_NOTICE
+-		       "Warning: DMI blacklist says broken, but acpi forced\n");
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Limit ACPI to CPU enumeration for HT
+- */
+-static int __init force_acpi_ht(const struct dmi_system_id *d)
+-{
+-	if (!acpi_force) {
+-		printk(KERN_NOTICE "%s detected: force use of acpi=ht\n",
+-		       d->ident);
+-		disable_acpi();
+-		acpi_ht = 1;
+-	} else {
+-		printk(KERN_NOTICE
+-		       "Warning: acpi=force overrules DMI blacklist: acpi=ht\n");
+-	}
+-	return 0;
+-}
+-
+ /*
+  * Force ignoring BIOS IRQ0 pin2 override
+  */
+@@ -1308,116 +1279,6 @@ static int __init dmi_ignore_irq0_timer_
+  * works for you, please contact linux-acpi@vger.kernel.org
+  */
+ static struct dmi_system_id __initdata acpi_dmi_table[] = {
+-	/*
+-	 * Boxes that need ACPI disabled
+-	 */
+-	{
+-	 .callback = dmi_disable_acpi,
+-	 .ident = "IBM Thinkpad",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "2629H1G"),
+-		     },
+-	 },
+-
+-	/*
+-	 * Boxes that need acpi=ht
+-	 */
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "FSC Primergy T850",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "PRIMERGY T850"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "HP VISUALIZE NT Workstation",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP VISUALIZE NT Workstation"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "Compaq Workstation W8000",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Compaq"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "Workstation W8000"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ASUS P2B-DS",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		     DMI_MATCH(DMI_BOARD_NAME, "P2B-DS"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ASUS CUR-DLS",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		     DMI_MATCH(DMI_BOARD_NAME, "CUR-DLS"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ABIT i440BX-W83977",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ABIT <http://www.abit.com>"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "i440BX-W83977 (BP6)"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM Bladecenter",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "IBM eServer BladeCenter HS20"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eServer xSeries 360",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "eServer xSeries 360"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eserver xSeries 330",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "eserver xSeries 330"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eserver xSeries 440",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "eserver xSeries 440"),
+-		     },
+-	 },
+-
+-	/*
+-	 * Boxes that need ACPI PCI IRQ routing disabled
+-	 */
+-	{
+-	 .callback = disable_acpi_irq,
+-	 .ident = "ASUS A7V",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "<A7V>"),
+-		     /* newer BIOS, Revision 1011, does work */
+-		     DMI_MATCH(DMI_BIOS_VERSION,
+-			       "ASUS A7V ACPI BIOS Revision 1007"),
+-		     },
+-	 },
+ 	{
+ 		/*
+ 		 * Latest BIOS for IBM 600E (1.16) has bad pcinum
+@@ -1454,14 +1315,6 @@ static struct dmi_system_id __initdata a
+ 		     DMI_MATCH(DMI_BIOS_DATE, "03/21/2003")
+ 		     },
+ 	 },
+-	{
+-	 .callback = disable_acpi_pci,
+-	 .ident = "Acer TravelMate 36x Laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+-		     },
+-	 },
+ 	{}
+ };
+ 
 _
