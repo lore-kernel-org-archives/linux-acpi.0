@@ -1,50 +1,54 @@
-From: Thomas Backlund <tmb@mandriva.org>
-Subject: WARNING: at arch/x86/kernel/hpet.c:404 hpet_next_event+0x7d/0x90()
-Date: Tue, 02 Feb 2010 17:35:11 +0200
-Message-ID: <4B68462F.7050203@mandriva.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [PATCH] drivers/acpi/ec.c fix a small memory leak
+Date: Tue, 02 Feb 2010 18:35:44 +0300
+Message-ID: <4B684650.9070807@suse.de>
+References: <1265112730.4804.8.camel@ICE-BOX>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1265112730.4804.8.camel@ICE-BOX>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Darren Jenkins <darrenrjenkins@gmail.com>
+Cc: Kernel Janitors <kernel-janitors@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is still happening on 2.6.33-rc6-git1 running x86_64 kernel
+NAK
 
-HW is a Core i7-860 on an ASUS P7P55D Deluxe m/b
+saved_ec is allocated if flag EC_FLAGS_VALIDATE_ECDT is true.
+EC_FLAGS_SKIP_DSDT_SCAN have no sense in such case, thus this new code =
+path
+is never executed.
+On the other hand, unconditionally freeing pointer, which is might be N=
+ULL, is not
+right either.
+So, this patch introduced more problems as it tries to solve...
 
-I've seen this since atleast 2.6.31 series kernels...
+Regards,
+Alex.
 
-I seem to have seen other reports about this, and some errata fix & 
-patch for this, but I cant find it right now...
-
-> [   11.668507] ------------[ cut here ]------------
-> [   11.668514] WARNING: at arch/x86/kernel/hpet.c:404 hpet_next_event+0x7d/0x90()
-> [   11.668516] Hardware name: System Product Name
-> [   11.668517] hpet: compare register read back failed.
-> [   11.668518] Modules linked in: processor(+) iTCO_vendor_support button pata_jmicron dm_snapshot dm_zero dm_mirror dm_region_hash dm_log dm_mod ata_piix ahci libata sd_mod scsi_mod crc_t10dif ext4 jbd2 crc16 uhci_hcd ohci_hcd ehci_hcd usbhid hid usbcore
-> [   11.668530] Pid: 0, comm: swapper Not tainted 2.6.33-tmb-desktop-0.rc6.1.2mdv #1
-> [   11.668532] Call Trace:
-> [   11.668536]  [<ffffffff810400a8>] warn_slowpath_common+0x78/0xb0
-> [   11.668538]  [<ffffffff8104013c>] warn_slowpath_fmt+0x3c/0x40
-> [   11.668541]  [<ffffffff81022b5d>] hpet_next_event+0x7d/0x90
-> [   11.668543]  [<ffffffff81022b8b>] hpet_legacy_next_event+0xb/0x10
-> [   11.668547]  [<ffffffff810642d9>] clockevents_program_event+0x59/0xa0
-> [   11.668549]  [<ffffffff81065740>] tick_dev_program_event+0x40/0xd0
-> [   11.668553]  [<ffffffff810650c6>] tick_broadcast_oneshot_control+0x116/0x120
-> [   11.668556]  [<ffffffff810648f5>] tick_notify+0x315/0x450
-> [   11.668560]  [<ffffffff811d537c>] ? acpi_hw_read+0x51/0x58
-> [   11.668563]  [<ffffffff8105ce57>] notifier_call_chain+0x47/0x90
-> [   11.668566]  [<ffffffff8105cf41>] raw_notifier_call_chain+0x11/0x20
-> [   11.668569]  [<ffffffff810640e2>] clockevents_notify+0x32/0x170
-> [   11.668575]  [<ffffffffa0196f28>] lapic_timer_state_broadcast+0x41/0x43 [processor]
-> [   11.668580]  [<ffffffffa0197436>] acpi_idle_enter_bm+0x15c/0x28a [processor]
-> [   11.668585]  [<ffffffff8125bccb>] cpuidle_idle_call+0x9b/0x100
-> [   11.668589]  [<ffffffff81001933>] cpu_idle+0x63/0xc0
-> [   11.668592]  [<ffffffff8130a47d>] start_secondary+0x18b/0x18f
-> [   11.668595] ---[ end trace 34f793092b044afa ]---
-
---
-Thomas
+Darren Jenkins =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> Plug a very small leak in acpi_ec_ecdt_probe()
+>=20
+> Coverity CID: 13319
+>=20
+> Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>=20
+>=20
+> diff --git drivers/acpi/ec.c drivers/acpi/ec.c
+> index d6471bb..13061dc 100644
+> --- drivers/acpi/ec.c
+> +++ drivers/acpi/ec.c
+> @@ -1009,8 +1009,10 @@ int __init acpi_ec_ecdt_probe(void)
+>  	/* fall through */
+>  	}
+> =20
+> -	if (EC_FLAGS_SKIP_DSDT_SCAN)
+> +	if (EC_FLAGS_SKIP_DSDT_SCAN) {
+> +		kfree(saved_ec);
+>  		return -ENODEV;
+> +	}
+> =20
+>  	/* This workaround is needed only on some broken machines,
+>  	 * which require early EC, but fail to provide ECDT */
+>=20
+>=20
