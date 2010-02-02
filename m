@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 13/28] asus-laptop: stop using read_status and store_status for GPS
-Date: Tue,  2 Feb 2010 08:38:56 +0100
-Message-ID: <1265096351-15239-14-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 14/28] asus-laptop: stop using read_status for lcd
+Date: Tue,  2 Feb 2010 08:38:57 +0100
+Message-ID: <1265096351-15239-15-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -15,118 +15,116 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-11-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-12-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-13-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-14-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57659 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57658 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755640Ab0BBHki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755643Ab0BBHki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 2 Feb 2010 02:40:38 -0500
-In-Reply-To: <1265096351-15239-13-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1265096351-15239-14-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
+(anyway lcd code is scheduled for removal)
+
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |   56 ++++++++++++++++++++++-------------
- 1 files changed, 35 insertions(+), 21 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   37 +++++++++++++++++++----------------
+ 1 files changed, 20 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index cee751e..ea51d7e 100644
+index ea51d7e..d726db3 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -331,26 +331,9 @@ static int write_acpi_int(acpi_handle handle, const char *method, int val)
- 	return write_acpi_int_ret(handle, method, val, NULL);
- }
+@@ -241,6 +241,7 @@ struct asus_laptop {
  
--static int read_gps_status(struct asus_laptop *asus)
--{
--	unsigned long long status;
--	acpi_status rv = AE_OK;
--
--	rv = acpi_evaluate_integer(gps_status_handle, NULL, NULL, &status);
--	if (ACPI_FAILURE(rv))
--		pr_warning("Error reading GPS status\n");
--	else
--		return status ? 1 : 0;
--
--	return (asus->status & GPS_ON) ? 1 : 0;
--}
--
- /* Generic LED functions */
- static int read_status(struct asus_laptop *asus, int mask)
- {
--	if (mask == GPS_ON)
--		return read_gps_status(asus);
--
- 	return (asus->status & mask) ? 1 : 0;
- }
+ 	int wireless_status;
+ 	bool have_rsts;
++	int lcd_state;
  
-@@ -979,21 +962,52 @@ static ssize_t store_lslvl(struct device *dev, struct device_attribute *attr,
- 
+ 	acpi_handle handle;	/* the handle of the hotk device */
+ 	char status;		/* status of the hotk, for LEDs, ... */
+@@ -538,30 +539,33 @@ error:
  /*
-  * GPS
-+ * TODO: use rfkill
+  * Backlight device
   */
-+static int asus_gps_status(struct asus_laptop *asus)
-+{
-+	unsigned long long status;
-+	acpi_status rv = AE_OK;
-+
-+	rv = acpi_evaluate_integer(gps_status_handle, NULL, NULL, &status);
-+	if (ACPI_FAILURE(rv)) {
-+		pr_warning("Error reading GPS status\n");
-+		return -ENODEV;
-+	}
-+	return !!status;
-+}
-+
-+static int asus_gps_switch(struct asus_laptop *asus, int status)
-+{
-+	acpi_handle handle = status ? gps_on_handle : gps_off_handle;
-+
-+	if (write_acpi_int(handle, NULL, 0x02))
-+		return -ENODEV;
-+	return 0;
-+}
-+
- static ssize_t show_gps(struct device *dev,
- 			struct device_attribute *attr, char *buf)
+-static int get_lcd_state(struct asus_laptop *asus)
++static int asus_lcd_status(struct asus_laptop *asus)
  {
- 	struct asus_laptop *asus = dev_get_drvdata(dev);
- 
--	return sprintf(buf, "%d\n", read_status(asus, GPS_ON));
-+	return sprintf(buf, "%d\n", asus_gps_status(asus));
+-	return read_status(asus, LCD_ON);
++	return asus->lcd_state;
  }
  
- static ssize_t store_gps(struct device *dev, struct device_attribute *attr,
- 			 const char *buf, size_t count)
+-static int set_lcd_state(struct asus_laptop *asus, int value)
++static int asus_lcd_set(struct asus_laptop *asus, int value)
  {
--	struct asus_laptop *asus = dev_get_drvdata(dev);
-+ 	struct asus_laptop *asus = dev_get_drvdata(dev);
-+	int rv, value;
-+	int ret;
+ 	int lcd = 0;
+ 	acpi_status status = 0;
  
--	return store_status(asus, buf, count, NULL, GPS_ON);
-+	rv = parse_arg(buf, count, &value);
-+	if (rv <= 0)
-+		return -EINVAL;
-+	ret = asus_gps_switch(asus, !!value);
-+	if (ret)
-+		return ret;
-+	return rv;
+-	lcd = value ? 1 : 0;
++	lcd = !!value;
+ 
+-	if (lcd == get_lcd_state(asus))
++	if (lcd == asus_lcd_status(asus))
+ 		return 0;
+ 
+-	if (lcd_switch_handle) {
+-		status = acpi_evaluate_object(lcd_switch_handle,
+-					      NULL, NULL, NULL);
++	if (!lcd_switch_handle)
++		return -ENODEV;
++
++	status = acpi_evaluate_object(lcd_switch_handle,
++				      NULL, NULL, NULL);
+ 
+-		if (ACPI_FAILURE(status))
+-			pr_warning("Error switching LCD\n");
++	if (ACPI_FAILURE(status)) {
++		pr_warning("Error switching LCD\n");
++		return -ENODEV;
+ 	}
+ 
+-	write_status(asus, NULL, lcd, LCD_ON);
++	asus->lcd_state = lcd;
+ 	return 0;
  }
  
- /*
-@@ -1451,7 +1465,7 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
- 		set_light_sens_level(asus, asus->light_level);
+@@ -569,6 +573,8 @@ static void lcd_blank(struct asus_laptop *asus, int blank)
+ {
+ 	struct backlight_device *bd = asus->backlight_device;
  
- 	/* GPS is on by default */
--	write_status(asus, NULL, 1, GPS_ON);
-+	asus_gps_switch(asus, 1);
- 	return result;
++	asus->lcd_state = (blank == FB_BLANK_UNBLANK);
++
+ 	if (bd) {
+ 		bd->props.power = blank;
+ 		backlight_update_status(bd);
+@@ -607,7 +613,7 @@ static int update_bl_status(struct backlight_device *bd)
+ 		return rv;
+ 
+ 	value = (bd->props.power == FB_BLANK_UNBLANK) ? 1 : 0;
+-	return set_lcd_state(asus, value);
++	return asus_lcd_set(asus, value);
  }
  
+ static struct backlight_ops asusbl_ops = {
+@@ -1144,13 +1150,10 @@ static void asus_acpi_notify(struct acpi_device *device, u32 event)
+ 	 * We need to tell the backlight device when the backlight power is
+ 	 * switched
+ 	 */
+-	if (event == ATKD_LCD_ON) {
+-		write_status(asus, NULL, 1, LCD_ON);
++	if (event == ATKD_LCD_ON)
+ 		lcd_blank(asus, FB_BLANK_UNBLANK);
+-	} else if (event == ATKD_LCD_OFF) {
+-		write_status(asus, NULL, 0, LCD_ON);
++	else if (event == ATKD_LCD_OFF)
+ 		lcd_blank(asus, FB_BLANK_POWERDOWN);
+-	}
+ 
+ 	/* TODO Find a better way to handle events count. */
+ 	count = asus->event_count[event % 128]++;
 -- 
 1.6.6.1
 
