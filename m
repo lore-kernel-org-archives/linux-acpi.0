@@ -1,143 +1,111 @@
-From: Len Brown <lenb@kernel.org>
+From: Corentin Chary <corentin.chary@gmail.com>
 Subject: Re: [Acpi4asus-user] ACPI device for ASUS EEEPC 1101HA not added
-Date: Tue, 02 Feb 2010 01:02:10 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002020048110.12989@localhost.localdomain>
+Date: Tue, 2 Feb 2010 08:22:40 +0100
+Message-ID: <71cd59b01002012322s7658dc8evc6ce46b2406f4d3f@mail.gmail.com>
 References: <20100201032554.GZ28972@buzzloop.caiaq.de>
- <cone.1265022400.369355.2380.1000@eeekiste>
+	 <cone.1265022400.369355.2380.1000@eeekiste>
+	 <alpine.LFD.2.00.1002020048110.12989@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:35155 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab0BBGCd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 01:02:33 -0500
-In-reply-to: <cone.1265022400.369355.2380.1000@eeekiste>
+Received: from fg-out-1718.google.com ([72.14.220.153]:41817 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755698Ab0BBHWm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 02:22:42 -0500
+In-Reply-To: <alpine.LFD.2.00.1002020048110.12989@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andrej.gelenberg@udo.edu
-Cc: Daniel Mack <daniel@caiaq.de>, linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: andrej.gelenberg@udo.edu, Daniel Mack <daniel@caiaq.de>, linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Mon, 1 Feb 2010, andrej.gelenberg@udo.edu wrote:
-
-> Hi,
-> 
-> you need to whitelist your eee pc for OSI(Linux) in drivers/acpi/blacklist.c
-> like this:
-> 
-> +        /*
-> +        * On newer Eeepc, the interface used by eeepc-laptop (ASUS010)
-> +        * is disabled without _OSI(Linux)
-> +        */
-> +       {
-> +       .callback = dmi_enable_osi_linux,
-> +       .ident = "Asus Eeepc-1101HA",
-> +       .matches = {
-> +                    DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer INC."),
-> +                    DMI_MATCH(DMI_PRODUCT_NAME, "1101HA"),
-> +               },
-> +       },
-
-Not necessarily the right fix.  We have gone to a lot of trouble
-to discourage BIOS vendors from depending on the ill-defined OSI(Linux),
-so I hesitate to invoke it -- even for a workaround.
-
-The problem at hand is that ASUS010 is not enabled for an OS
-that claims compatibility with Win7 (MSOS() == MSW7) below.
-
-                Scope (\_SB)
-                {
-                    Name (ATKP, Zero)
-                    Device (ATKD)
-                    {
-                        Name (_HID, "ASUS010")
-                        Name (_UID, 0x01010100)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            If (LEqual (MSOS (), MSW7))
-                            {
-                                Return (Zero)
-                            }
-                            Else
-                            {
-                                Return (0x0F)
-                            }
-
-                            Return (Zero)
-                            Return (0x0F)
-                        }
-
-(heh, see any indication of lack of quality in this code?:-)
-
-MSOS() does this:
-
-                    Scope (\)
-                    {
-                        Name (OSLX, 0x10)
-                        Name (OSMS, 0x20)
-                        Name (MS98, 0x21)
-                        Name (MSME, 0x22)
-                        Name (MS2K, 0x23)
-                        Name (MSXP, 0x24)
-                        Name (MSVT, 0x25)
-                        Name (MSW7, 0x26)
-                        Name (OSFG, Ones)
-                        Method (MSOS, 0, NotSerialized)
-                        {
-                            If (LNotEqual (OSFG, Ones))
-                            {
-                                Return (OSFG)
-                            }
-
-                            Store (Zero, OSFG)
-                            If (CondRefOf (_OSI, Local0))
-                            {
-                                If (_OSI ("Windows 2001"))
-                                {
-                                    Store (MSXP, OSFG)
-                                }
-
-                                If (_OSI ("Windows 2001 SP1"))
-                                {
-                                    Store (MSXP, OSFG)
-                                }
-
-                                If (_OSI ("Windows 2001 SP2"))
-                                {
-                                    Store (MSXP, OSFG)
-                                }
-
-                                If (_OSI ("Windows 2006"))
-                                {
-                                    Store (MSVT, OSFG)
-                                }
-
-                                If (_OSI ("Windows 2009"))
-                                {
-                                    Store (MSW7, OSFG)
-                                }
-
-                                If (_OSI ("Linux"))
-                                {
-                                    Store (OSLX, OSFG)
-                                }
-
-                                Return (OSFG)
-                            }
-                            Else
-
-
-So I expect if you apply no patch, but boot with 'acpi_osi="!Windows 2009"'
-then that would also work properly, as OSFG above will be set
-to "MSVT" instead of "OSLX".
-
-Looking through the DSDT, there are no references to OSLX or MSVT,
-or MSXP, for that matter.  However, there is an additional reference
-to MSV7 in the temperature reading part of thermal zone TZ00,
-that looks like some sort of OS-specific initialization, perhaps
-a workaround.  So also check that /proc/acpi/thermal_zone/*/temperature
-still work before and after.
-
-thanks,
--Len Brown, Intel Open Source Technology Center
- 
-
+T24gVHVlLCBGZWIgMiwgMjAxMCBhdCA3OjAyIEFNLCBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9y
+Zz4gd3JvdGU6Cj4gT24gTW9uLCAxIEZlYiAyMDEwLCBhbmRyZWouZ2VsZW5iZXJnQHVkby5lZHUg
+d3JvdGU6Cj4KPj4gSGksCj4+Cj4+IHlvdSBuZWVkIHRvIHdoaXRlbGlzdCB5b3VyIGVlZSBwYyBm
+b3IgT1NJKExpbnV4KSBpbiBkcml2ZXJzL2FjcGkvYmxhY2tsaXN0LmMKPj4gbGlrZSB0aGlzOgo+
+Pgo+PiArIKAgoCCgIKAvKgo+PiArIKAgoCCgIKAqIE9uIG5ld2VyIEVlZXBjLCB0aGUgaW50ZXJm
+YWNlIHVzZWQgYnkgZWVlcGMtbGFwdG9wIChBU1VTMDEwKQo+PiArIKAgoCCgIKAqIGlzIGRpc2Fi
+bGVkIHdpdGhvdXQgX09TSShMaW51eCkKPj4gKyCgIKAgoCCgKi8KPj4gKyCgIKAgoCB7Cj4+ICsg
+oCCgIKAgLmNhbGxiYWNrID0gZG1pX2VuYWJsZV9vc2lfbGludXgsCj4+ICsgoCCgIKAgLmlkZW50
+ID0gIkFzdXMgRWVlcGMtMTEwMUhBIiwKPj4gKyCgIKAgoCAubWF0Y2hlcyA9IHsKPj4gKyCgIKAg
+oCCgIKAgoCCgIKAgoCCgRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiQVNVU1RlSyBDb21wdXRl
+ciBJTkMuIiksCj4+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoERNSV9NQVRDSChETUlfUFJPRFVDVF9O
+QU1FLCAiMTEwMUhBIiksCj4+ICsgoCCgIKAgoCCgIKAgoCB9LAo+PiArIKAgoCCgIH0sCj4KPiBO
+b3QgbmVjZXNzYXJpbHkgdGhlIHJpZ2h0IGZpeC4goFdlIGhhdmUgZ29uZSB0byBhIGxvdCBvZiB0
+cm91YmxlCj4gdG8gZGlzY291cmFnZSBCSU9TIHZlbmRvcnMgZnJvbSBkZXBlbmRpbmcgb24gdGhl
+IGlsbC1kZWZpbmVkIE9TSShMaW51eCksCj4gc28gSSBoZXNpdGF0ZSB0byBpbnZva2UgaXQgLS0g
+ZXZlbiBmb3IgYSB3b3JrYXJvdW5kLgo+Cj4gVGhlIHByb2JsZW0gYXQgaGFuZCBpcyB0aGF0IEFT
+VVMwMTAgaXMgbm90IGVuYWJsZWQgZm9yIGFuIE9TCj4gdGhhdCBjbGFpbXMgY29tcGF0aWJpbGl0
+eSB3aXRoIFdpbjcgKE1TT1MoKSA9PSBNU1c3KSBiZWxvdy4KPgo+IKAgoCCgIKAgoCCgIKAgoFNj
+b3BlIChcX1NCKQo+IKAgoCCgIKAgoCCgIKAgoHsKPiCgIKAgoCCgIKAgoCCgIKAgoCCgTmFtZSAo
+QVRLUCwgWmVybykKPiCgIKAgoCCgIKAgoCCgIKAgoCCgRGV2aWNlIChBVEtEKQo+IKAgoCCgIKAg
+oCCgIKAgoCCgIKB7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBOYW1lIChfSElELCAiQVNVUzAx
+MCIpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBOYW1lIChfVUlELCAweDAxMDEwMTAwKQo+IKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgTWV0aG9kIChfU1RBLCAwLCBOb3RTZXJpYWxpemVkKQo+IKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgewo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoElmIChM
+RXF1YWwgKE1TT1MgKCksIE1TVzcpKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoHsKPiCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgUmV0dXJuIChaZXJvKQo+IKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoH0KPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBFbHNlCj4goCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgewo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKBSZXR1cm4gKDB4MEYpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+Cj4goCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgUmV0dXJuIChaZXJvKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoFJldHVybiAoMHgwRikKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPgo+IChoZWgs
+IHNlZSBhbnkgaW5kaWNhdGlvbiBvZiBsYWNrIG9mIHF1YWxpdHkgaW4gdGhpcyBjb2RlPzotKQo+
+Cj4gTVNPUygpIGRvZXMgdGhpczoKPgo+IKAgoCCgIKAgoCCgIKAgoCCgIKBTY29wZSAoXCkKPiCg
+IKAgoCCgIKAgoCCgIKAgoCCgewo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgTmFtZSAoT1NMWCwg
+MHgxMCkKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoE5hbWUgKE9TTVMsIDB4MjApCj4goCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKBOYW1lIChNUzk4LCAweDIxKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgTmFtZSAoTVNNRSwgMHgyMikKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoE5hbWUgKE1TMkss
+IDB4MjMpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBOYW1lIChNU1hQLCAweDI0KQo+IKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgTmFtZSAoTVNWVCwgMHgyNSkKPiCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoE5hbWUgKE1TVzcsIDB4MjYpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBOYW1lIChPU0ZH
+LCBPbmVzKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgTWV0aG9kIChNU09TLCAwLCBOb3RTZXJp
+YWxpemVkKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgewo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoElmIChMTm90RXF1YWwgKE9TRkcsIE9uZXMpKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoHsKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgUmV0dXJuIChPU0ZHKQo+
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPgo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoFN0b3JlIChaZXJvLCBPU0ZHKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoElmIChD
+b25kUmVmT2YgKF9PU0ksIExvY2FsMCkpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgewo+
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBJZiAoX09TSSAoIldpbmRvd3MgMjAwMSIp
+KQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB7Cj4goCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKBTdG9yZSAoTVNYUCwgT1NGRykKPiCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgfQo+Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoElmIChfT1NJ
+ICgiV2luZG93cyAyMDAxIFNQMSIpKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB7
+Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBTdG9yZSAoTVNYUCwgT1NGRykK
+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+Cj4goCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoElmIChfT1NJICgiV2luZG93cyAyMDAxIFNQMiIpKQo+IKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKB7Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKBTdG9yZSAoTVNYUCwgT1NGRykKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+
+Cj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoElmIChfT1NJICgiV2luZG93cyAyMDA2
+IikpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoHsKPiCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoFN0b3JlIChNU1ZULCBPU0ZHKQo+IKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKB9Cj4KPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgSWYgKF9P
+U0kgKCJXaW5kb3dzIDIwMDkiKSkKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgewo+
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgU3RvcmUgKE1TVzcsIE9TRkcpCj4g
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPgo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKBJZiAoX09TSSAoIkxpbnV4IikpCj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoHsKPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoFN0b3JlIChPU0xY
+LCBPU0ZHKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4KPiCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgUmV0dXJuIChPU0ZHKQo+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoH0KPiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBFbHNlCj4KPgo+IFNvIEkgZXhw
+ZWN0IGlmIHlvdSBhcHBseSBubyBwYXRjaCwgYnV0IGJvb3Qgd2l0aCAnYWNwaV9vc2k9IiFXaW5k
+b3dzIDIwMDkiJwo+IHRoZW4gdGhhdCB3b3VsZCBhbHNvIHdvcmsgcHJvcGVybHksIGFzIE9TRkcg
+YWJvdmUgd2lsbCBiZSBzZXQKPiB0byAiTVNWVCIgaW5zdGVhZCBvZiAiT1NMWCIuCj4KPiBMb29r
+aW5nIHRocm91Z2ggdGhlIERTRFQsIHRoZXJlIGFyZSBubyByZWZlcmVuY2VzIHRvIE9TTFggb3Ig
+TVNWVCwKPiBvciBNU1hQLCBmb3IgdGhhdCBtYXR0ZXIuIKBIb3dldmVyLCB0aGVyZSBpcyBhbiBh
+ZGRpdGlvbmFsIHJlZmVyZW5jZQo+IHRvIE1TVjcgaW4gdGhlIHRlbXBlcmF0dXJlIHJlYWRpbmcg
+cGFydCBvZiB0aGVybWFsIHpvbmUgVFowMCwKPiB0aGF0IGxvb2tzIGxpa2Ugc29tZSBzb3J0IG9m
+IE9TLXNwZWNpZmljIGluaXRpYWxpemF0aW9uLCBwZXJoYXBzCj4gYSB3b3JrYXJvdW5kLiCgU28g
+YWxzbyBjaGVjayB0aGF0IC9wcm9jL2FjcGkvdGhlcm1hbF96b25lLyovdGVtcGVyYXR1cmUKPiBz
+dGlsbCB3b3JrIGJlZm9yZSBhbmQgYWZ0ZXIuCj4KPiB0aGFua3MsCj4gLUxlbiBCcm93biwgSW50
+ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIKPgoKVGhpcyBraW5kIG9mIHRoaW5ncyBp
+cyBwcmVzZW50IG9uIGFsbCBuZXdlciBlZWVwYy4KSSB0cmllZCB0byBjb250YWN0IGFzdXMgYWJv
+dXQgdGhhdCwgd2l0aG91dCByZWFsIHN1Y2Nlc3MgYW5kIGl0IGlzCmxpa2VseSB0aGF0IHRoZSB4
+YW5kcm9zIGRpc3RyaWJyaWJ1dGlvbgpzaGlwcGVkIHdpdGggc29tZSBlZWVwYyBpbmNsdWRlIGFu
+IGFjcGkgYmxhY2tsaXNpdGluZyBwYXRjaC4KClRoZSB0aGluZyBpcyB0aGF0IG9uIHdpbjcgQVNV
+UzAxMCBpcyBkaXNhYmxlZCwgYnV0IGFuIGVxdWl2YWxlbnQgd21pCmludGVyZmFjZSBpcyBlbmFi
+bGUsIGFuZCBpdCBjb3VsZApiZSBwb3NzaWJsZSB0byB3cml0ZSBhIGRyaXZlciBmb3IgaXQuIE5v
+dywgc29tZW9uZSBuZWVkIHRvIHdyaXRlIGl0LApvciBzZW5kIG1lIGEgZnJlZSAxMDA1SEEgc28g
+SSBjYW4gZG8gaXQgOikuCgpJZiBub3RoaW5nIGlzIGRvbmUgZm9yIDIuNi4zNCwgd2UgbWF5IG5l
+ZWQgdG8gZW52aXNhZ2Ugc29tZSBibGFja2xpc3RpbmcgOi8uClRoYW5rcwotLSAKQ29yZW50aW4g
+Q2hhcnkKaHR0cDovL3hmLmlrc2FpZi5uZXQK
