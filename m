@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 27/28] asus-laptop: use device_create_file() instead of platform_group
-Date: Tue,  2 Feb 2010 08:39:10 +0100
-Message-ID: <1265096351-15239-28-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 25/28] asus-laptop: add gps rfkill
+Date: Tue,  2 Feb 2010 08:39:08 +0100
+Message-ID: <1265096351-15239-26-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -27,251 +27,162 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-23-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-25-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-26-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-27-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57700 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57693 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755763Ab0BBHld (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 02:41:33 -0500
-In-Reply-To: <1265096351-15239-27-git-send-email-corentincj@iksaif.net>
+	id S1755738Ab0BBHlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Feb 2010 02:41:32 -0500
+In-Reply-To: <1265096351-15239-25-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-There is two reason to do that:
-- we don't want a "gps" file if the model doesn't have a gps
-- we don't want to use global variables anymore
+The rfkill subsystem will enable gps by default.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |  166 ++++++++++++++++++------------------
- 1 files changed, 84 insertions(+), 82 deletions(-)
+ drivers/platform/x86/Kconfig       |    1 +
+ drivers/platform/x86/asus-laptop.c |   65 ++++++++++++++++++++++++++++++++----
+ 2 files changed, 59 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 7f5a222..527abf1 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -59,6 +59,7 @@ config ASUS_LAPTOP
+ 	select NEW_LEDS
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	depends on INPUT
++	depends on RFKILL || RFKILL = n
+ 	select INPUT_SPARSEKMAP
+ 	---help---
+ 	  This is the new Linux driver for Asus laptops. It may also support some
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index ae53026..d0d117b 100644
+index 1d61094..e1df92a 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -918,6 +918,8 @@ static ssize_t show_disp(struct device *dev,
+@@ -50,6 +50,7 @@
+ #include <asm/uaccess.h>
+ #include <linux/input.h>
+ #include <linux/input/sparse-keymap.h>
++#include <linux/rfkill.h>
+ 
+ #define ASUS_LAPTOP_VERSION	"0.42"
+ 
+@@ -238,6 +239,8 @@ struct asus_laptop {
+ 	bool have_rsts;
+ 	int lcd_state;
+ 
++	struct rfkill *gps_rfkill;
++
+ 	acpi_handle handle;	/* the handle of the hotk device */
+ 	u32 ledd_status;	/* status of the LED display */
+ 	u8 light_level;		/* light sensor level */
+@@ -1006,7 +1009,6 @@ static ssize_t store_lslvl(struct device *dev, struct device_attribute *attr,
+ 
+ /*
+  * GPS
+- * TODO: use rfkill
+  */
+ static int asus_gps_status(struct asus_laptop *asus)
  {
- 	struct asus_laptop *asus = dev_get_drvdata(dev);
- 
-+	if (!display_get_handle)
-+		return -ENODEV;
- 	return sprintf(buf, "%d\n", read_display(asus));
+@@ -1052,10 +1054,58 @@ static ssize_t store_gps(struct device *dev, struct device_attribute *attr,
+ 	ret = asus_gps_switch(asus, !!value);
+ 	if (ret)
+ 		return ret;
++	rfkill_set_sw_state(asus->gps_rfkill, !value);
+ 	return rv;
  }
  
-@@ -1191,77 +1193,113 @@ static void asus_acpi_notify(struct acpi_device *device, u32 event)
- 	asus_input_notify(asus, event);
- }
- 
--#define ASUS_CREATE_DEVICE_ATTR(_name)					\
--	struct device_attribute dev_attr_##_name = {			\
--		.attr = {						\
--			.name = __stringify(_name),			\
--			.mode = 0 },					\
--		.show   = NULL,						\
--		.store  = NULL,						\
-+static DEVICE_ATTR(infos, S_IRUGO, show_infos, NULL);
-+static DEVICE_ATTR(wlan, S_IRUGO | S_IWUSR, show_wlan, store_wlan);
-+static DEVICE_ATTR(bluetooth, S_IRUGO | S_IWUSR, show_bluetooth,
-+		   store_bluetooth);
-+static DEVICE_ATTR(display, S_IRUGO | S_IWUSR, show_disp, store_disp);
-+static DEVICE_ATTR(ledd, S_IRUGO | S_IWUSR, show_ledd, store_ledd);
-+static DEVICE_ATTR(ls_level, S_IRUGO | S_IWUSR, show_lslvl, store_lslvl);
-+static DEVICE_ATTR(ls_switch, S_IRUGO | S_IWUSR, show_lssw, store_lssw);
-+static DEVICE_ATTR(gps, S_IRUGO | S_IWUSR, show_gps, store_gps);
-+
-+static void asus_sysfs_exit(struct asus_laptop *asus)
+ /*
++ * rfkill
++ */
++static int asus_gps_rfkill_set(void *data, bool blocked)
 +{
-+	struct platform_device *device = asus->platform_device;
++	acpi_handle handle = data;
 +
-+	device_remove_file(&device->dev, &dev_attr_infos);
-+	device_remove_file(&device->dev, &dev_attr_wlan);
-+	device_remove_file(&device->dev, &dev_attr_bluetooth);
-+	device_remove_file(&device->dev, &dev_attr_display);
-+	device_remove_file(&device->dev, &dev_attr_ledd);
-+	device_remove_file(&device->dev, &dev_attr_ls_switch);
-+	device_remove_file(&device->dev, &dev_attr_ls_level);
-+	device_remove_file(&device->dev, &dev_attr_gps);
++	return asus_gps_switch(handle, !blocked);
 +}
 +
-+static int asus_sysfs_init(struct asus_laptop *asus)
++static const struct rfkill_ops asus_gps_rfkill_ops = {
++	.set_block = asus_gps_rfkill_set,
++};
++
++static void asus_rfkill_exit(struct asus_laptop *asus)
 +{
-+	struct platform_device *device = asus->platform_device;
-+	int err;
-+
-+	err = device_create_file(&device->dev, &dev_attr_infos);
-+	if (err)
-+		return err;
-+
-+	if (!acpi_check_handle(asus->handle, METHOD_WLAN, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_wlan);
-+		if (err)
-+			return err;
- 	}
- 
--#define ASUS_SET_DEVICE_ATTR(_name, _mode, _show, _store)		\
--	do {								\
--		dev_attr_##_name.attr.mode = _mode;			\
--		dev_attr_##_name.show = _show;				\
--		dev_attr_##_name.store = _store;			\
--	} while(0)
--
--static ASUS_CREATE_DEVICE_ATTR(infos);
--static ASUS_CREATE_DEVICE_ATTR(wlan);
--static ASUS_CREATE_DEVICE_ATTR(bluetooth);
--static ASUS_CREATE_DEVICE_ATTR(display);
--static ASUS_CREATE_DEVICE_ATTR(ledd);
--static ASUS_CREATE_DEVICE_ATTR(ls_switch);
--static ASUS_CREATE_DEVICE_ATTR(ls_level);
--static ASUS_CREATE_DEVICE_ATTR(gps);
--
--static struct attribute *asuspf_attributes[] = {
--	&dev_attr_infos.attr,
--	&dev_attr_wlan.attr,
--	&dev_attr_bluetooth.attr,
--	&dev_attr_display.attr,
--	&dev_attr_ledd.attr,
--	&dev_attr_ls_switch.attr,
--	&dev_attr_ls_level.attr,
--	&dev_attr_gps.attr,
--	NULL
--};
-+	if (!acpi_check_handle(asus->handle, METHOD_BLUETOOTH, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_bluetooth);
-+		if (err)
-+			return err;
++	if (asus->gps_rfkill) {
++		rfkill_unregister(asus->gps_rfkill);
++		rfkill_destroy(asus->gps_rfkill);
++		asus->gps_rfkill = NULL;
 +	}
- 
--static struct attribute_group platform_attribute_group = {
--	.attrs = asuspf_attributes
--};
-+	if (!acpi_check_handle(asus->handle, METHOD_SWITCH_DISPLAY, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_display);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (!acpi_check_handle(asus->handle, METHOD_LEDD, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_ledd);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (!acpi_check_handle(asus->handle, METHOD_ALS_CONTROL, NULL) &&
-+	    !acpi_check_handle(asus->handle, METHOD_ALS_LEVEL, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_ls_switch);
-+		if (err)
-+			return err;
-+		err = device_create_file(&device->dev, &dev_attr_ls_level);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (!acpi_check_handle(asus->handle, METHOD_GPS_ON, NULL) &&
-+	    !acpi_check_handle(asus->handle, METHOD_GPS_OFF, NULL) &&
-+	    !acpi_check_handle(asus->handle, METHOD_GPS_STATUS, NULL)) {
-+		err = device_create_file(&device->dev, &dev_attr_gps);
-+		if (err)
-+			return err;
-+	}
-+
-+	return err;
 +}
- 
- static int asus_platform_init(struct asus_laptop *asus)
- {
--	int result;
-+	int err;
- 
- 	asus->platform_device = platform_device_alloc(ASUS_LAPTOP_FILE, -1);
- 	if (!asus->platform_device)
- 		return -ENOMEM;
- 	platform_set_drvdata(asus->platform_device, asus);
- 
--	result = platform_device_add(asus->platform_device);
--	if (result)
-+	err = platform_device_add(asus->platform_device);
-+	if (err)
- 		goto fail_platform_device;
- 
--	result = sysfs_create_group(&asus->platform_device->dev.kobj,
--				    &platform_attribute_group);
--	if (result)
-+	err = asus_sysfs_init(asus);
-+	if (err)
- 		goto fail_sysfs;
- 	return 0;
- 
- fail_sysfs:
-+	asus_sysfs_exit(asus);
- 	platform_device_del(asus->platform_device);
- fail_platform_device:
- 	platform_device_put(asus->platform_device);
--	return result;
-+	return err;
- }
- 
- static void asus_platform_exit(struct asus_laptop *asus)
- {
--	sysfs_remove_group(&asus->platform_device->dev.kobj,
--			   &platform_attribute_group);
-+	asus_sysfs_exit(asus);
- 	platform_device_unregister(asus->platform_device);
- }
- 
-@@ -1272,40 +1310,6 @@ static struct platform_driver platform_driver = {
++
++static int asus_rfkill_init(struct asus_laptop *asus)
++{
++	int result;
++
++	if (acpi_check_handle(asus->handle, METHOD_GPS_ON, NULL) ||
++	    acpi_check_handle(asus->handle, METHOD_GPS_OFF, NULL) ||
++	    acpi_check_handle(asus->handle, METHOD_GPS_STATUS, NULL))
++		return 0;
++
++	asus->gps_rfkill = rfkill_alloc("asus-gps", &asus->platform_device->dev,
++					RFKILL_TYPE_GPS,
++					&asus_gps_rfkill_ops, NULL);
++	if (!asus->gps_rfkill)
++		return -EINVAL;
++
++	result = rfkill_register(asus->gps_rfkill);
++	if (result) {
++		rfkill_destroy(asus->gps_rfkill);
++		asus->gps_rfkill = NULL;
++	}
++
++	return result;
++}
++
++/*
+  * Input device (i.e. hotkeys)
+  */
+ static void asus_input_notify(struct asus_laptop *asus, int event)
+@@ -1416,12 +1466,6 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
+ 		asus_als_level(asus, asus->light_level);
  	}
- };
  
--static void asus_laptop_add_fs(struct asus_laptop *asus)
--{
--	ASUS_SET_DEVICE_ATTR(infos, 0444, show_infos, NULL);
--
--	if (!acpi_check_handle(asus->handle, METHOD_WLAN, NULL))
--		ASUS_SET_DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan);
--
--	if (!acpi_check_handle(asus->handle, METHOD_BLUETOOTH, NULL))
--		ASUS_SET_DEVICE_ATTR(bluetooth, 0644,
--				     show_bluetooth, store_bluetooth);
--
--	if (!acpi_check_handle(asus->handle, METHOD_SWITCH_DISPLAY, NULL)) {
--		if (display_get_handle)
--			ASUS_SET_DEVICE_ATTR(display, 0644, show_disp,
--					     store_disp);
--		else
--			ASUS_SET_DEVICE_ATTR(display, 0200, NULL, store_disp);
--	}
--
--	if (!acpi_check_handle(asus->handle, METHOD_LEDD, NULL))
--		ASUS_SET_DEVICE_ATTR(ledd, 0644, show_ledd, store_ledd);
--
--	if (!acpi_check_handle(asus->handle, METHOD_ALS_CONTROL, NULL) &&
--	    !acpi_check_handle(asus->handle, METHOD_ALS_LEVEL, NULL)) {
--		ASUS_SET_DEVICE_ATTR(ls_level, 0644, show_lslvl, store_lslvl);
--		ASUS_SET_DEVICE_ATTR(ls_switch, 0644, show_lssw, store_lssw);
--	}
--
+-	/* GPS is on by default */
 -	if (!acpi_check_handle(asus->handle, METHOD_GPS_ON, NULL) &&
 -	    !acpi_check_handle(asus->handle, METHOD_GPS_OFF, NULL) &&
 -	    !acpi_check_handle(asus->handle, METHOD_GPS_STATUS, NULL))
--		ASUS_SET_DEVICE_ATTR(gps, 0644, show_gps, store_gps);
--}
+-		asus_gps_switch(asus, 1);
 -
- static int asus_handle_init(char *name, acpi_handle * handle,
- 			    char **paths, int num_paths)
- {
-@@ -1435,8 +1439,6 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
+ 	asus->lcd_state = 1; /* LCD should be on when the module load */
+ 	return result;
+ }
+@@ -1469,9 +1513,15 @@ static int __devinit asus_acpi_add(struct acpi_device *device)
  	if (result)
- 		return result;
+ 		goto fail_led;
  
--	asus_laptop_add_fs(asus);
--
- 	/* WLED and BLED are on by default */
- 	if (bluetooth_status >= 0)
- 		asus_bluetooth_set(asus, !!bluetooth_status);
++	result = asus_rfkill_init(asus);
++	if (result)
++		goto fail_rfkill;
++
+ 	asus_device_present = true;
+ 	return 0;
+ 
++fail_rfkill:
++	asus_led_exit(asus);
+ fail_led:
+ 	asus_input_exit(asus);
+ fail_input:
+@@ -1490,6 +1540,7 @@ static int asus_acpi_remove(struct acpi_device *device, int type)
+ 	struct asus_laptop *asus = acpi_driver_data(device);
+ 
+ 	asus_backlight_exit(asus);
++	asus_rfkill_exit(asus);
+ 	asus_led_exit(asus);
+ 	asus_input_exit(asus);
+ 	asus_platform_exit(asus);
 -- 
 1.6.6.1
 
