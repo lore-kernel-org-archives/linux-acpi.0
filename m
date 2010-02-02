@@ -1,70 +1,66 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 00/28] acpi4asus: asus-laptop rewrite for 2.6.33
-Date: Tue,  2 Feb 2010 08:38:43 +0100
-Message-ID: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 01/28] asus-laptop: add wireless and bluetooth status parameter
+Date: Tue,  2 Feb 2010 08:38:44 +0100
+Message-ID: <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
+References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:51567 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:51570 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755345Ab0BBHjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 02:39:15 -0500
+	id S1755366Ab0BBHjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Feb 2010 02:39:16 -0500
+In-Reply-To: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-Hi Len,
-Here is a big series of patchs, only for asus-laptop.
+These to parameter allow to set the status of wlan and bluetooth
+device when the module load. On some models, the device will
+always be down on boot, so the default behavior is to always
+enable these devices.
 
-It cleans asus-laptop like Alan Jenkins did for eeepc-laptop: no
-more global context, and the driver *could* support multiple
-acpi device (that will never happen, but it's not a reason to do
-ugly code).
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/asus-laptop.c |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
-This has some side effects: bugs where the device path was \SB.HOTK
-instead of \SB.ATKD are fixed, because a static path is no more used :).
-
-It also adds some features like an rfkill handler for the gps, rewrite
-the input code to use sparse_keymap library and add new backlight notifications.
-
-The last patch is a checkpatch-cleanup.
-
-Thanks,
-
-Corentin Chary (28):
-  asus-laptop: add wireless and bluetooth status parameter
-  asus-laptop: set the right paths in the documentation
-  asus-laptop: no need to check argument of set_brightness()
-  asus-laptop: simplify write_acpi_int
-  asus-laptop: use tabs to indent macros and remove unused ones
-  asus-laptop: remove unecessary hotk != NULL check
-  asus-laptop: change initialization order
-  asus-laptop: revise names
-  asus-laptop: move backlight and dsdt info inside asus_laptop struct
-  asus-laptop: callbacks should use "driver data" parameter or field
-  asus-laptop: code movement
-  asus-laptop: stop using read_status for bluetooth and wlan
-  asus-laptop: stop using read_status and store_status for GPS
-  asus-laptop: stop using read_status for lcd
-  asus-laptop: removing read_status/store_status/write_status and
-    asus->status
-  asus-laptop: rename function talking directly to acpi with asus_xxx
-    scheme
-  asus-laptop: stop using ASUS_HANDLE and use relative methods instead
-  asus-laptop: add error check for write_acpi_int calls
-  asus-laptop: rename wireless_status to wlan_status to avoid confusion
-  asus-laptop: switch to sparse keymap library
-  asus-laptop: add bluetooth keys found on M9V
-  asus-laptop: add backlight changes notifications
-  asus-laptop: leds, remove dead code and fix
-    asus_led_exit()/asus_led_init()
-  asus-laptop: set initial lcd state
-  asus-laptop: add gps rfkill
-  asus-laptop: clean led code
-  asus-laptop: use device_create_file() instead of platform_group
-  asus-laptop: fix style problems reported by checkpath.pl
-
- .../ABI/testing/sysfs-platform-asus-laptop         |   12 +-
- drivers/platform/x86/Kconfig                       |    2 +
- drivers/platform/x86/asus-laptop.c                 | 1741 ++++++++++----------
- 3 files changed, 914 insertions(+), 841 deletions(-)
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 61a1c75..1d799b3 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -113,6 +113,19 @@ static uint wapf = 1;
+ module_param(wapf, uint, 0644);
+ MODULE_PARM_DESC(wapf, "WAPF value");
+ 
++static uint wireless_status = 1;
++static uint bluetooth_status = 1;
++
++module_param(wireless_status, uint, 0644);
++MODULE_PARM_DESC(wireless_status, "Set the wireless status on boot "
++		 "(0 = disabled, 1 = enabled, -1 = don't do anything). "
++		 "default is 1");
++
++module_param(bluetooth_status, uint, 0644);
++MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
++		 "(0 = disabled, 1 = enabled, -1 = don't do anything). "
++		 "default is 1");
++
+ #define ASUS_HANDLE(object, paths...)					\
+ 	static acpi_handle  object##_handle = NULL;			\
+ 	static char *object##_paths[] = { paths }
+@@ -1272,8 +1285,10 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	asus_hotk_found = 1;
+ 
+ 	/* WLED and BLED are on by default */
+-	write_status(bt_switch_handle, 1, BT_ON);
+-	write_status(wl_switch_handle, 1, WL_ON);
++	if (bluetooth_status != -1)
++		write_status(bt_switch_handle, !!bluetooth_status, BT_ON);
++	if (wireless_status != -1)
++		write_status(wl_switch_handle, !!wireless_status, WL_ON);
+ 
+ 	/* If the h/w switch is off, we need to check the real status */
+ 	write_status(NULL, read_status(BT_ON), BT_ON);
+-- 
+1.6.6.1
 
