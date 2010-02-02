@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 16/28] asus-laptop: rename function talking directly to acpi with asus_xxx scheme
-Date: Tue,  2 Feb 2010 08:38:59 +0100
-Message-ID: <1265096351-15239-17-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 15/28] asus-laptop: removing read_status/store_status/write_status and asus->status
+Date: Tue,  2 Feb 2010 08:38:58 +0100
+Message-ID: <1265096351-15239-16-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -17,13 +17,12 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-13-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-14-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-15-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-16-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57658 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57659 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755669Ab0BBHkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755680Ab0BBHkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 2 Feb 2010 02:40:41 -0500
-In-Reply-To: <1265096351-15239-16-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1265096351-15239-15-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -31,169 +30,174 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kern
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |   38 ++++++++++++++++++------------------
- 1 files changed, 19 insertions(+), 19 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   81 +++++++++++-------------------------
+ 1 files changed, 24 insertions(+), 57 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 2349e88..ae4f808 100644
+index d726db3..2349e88 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -394,7 +394,7 @@ ASUS_LED_HANDLER(gled, GLED_ON);
- /*
-  * Keyboard backlight (also a LED)
+@@ -107,16 +107,8 @@ MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
+  * Flags for hotk status
+  * WL_ON and BT_ON are also used for wireless_status()
   */
--static int get_kled_lvl(void)
-+static int asus_kled_lvl(void)
+-#define WL_ON		0x01	/* internal Wifi */
+-#define BT_ON		0x02	/* internal Bluetooth */
+-#define MLED_ON		0x04	/* mail LED */
+-#define TLED_ON		0x08	/* touchpad LED */
+-#define RLED_ON		0x10	/* Record LED */
+-#define PLED_ON		0x20	/* Phone LED */
+-#define GLED_ON		0x40	/* Gaming LED */
+-#define LCD_ON		0x80	/* LCD backlight */
+-#define GPS_ON		0x100	/* GPS */
+-#define KEY_ON		0x200	/* Keyboard backlight */
++#define WL_RSTS		0x01	/* internal Wifi */
++#define BT_RSTS		0x02	/* internal Bluetooth */
+ 
+ #define ASUS_HANDLE(object, paths...)					\
+ 	static acpi_handle  object##_handle = NULL;			\
+@@ -244,7 +236,6 @@ struct asus_laptop {
+ 	int lcd_state;
+ 
+ 	acpi_handle handle;	/* the handle of the hotk device */
+-	char status;		/* status of the hotk, for LEDs, ... */
+ 	u32 ledd_status;	/* status of the LED display */
+ 	u8 light_level;		/* light sensor level */
+ 	u8 light_switch;	/* light sensor switch value */
+@@ -332,35 +323,18 @@ static int write_acpi_int(acpi_handle handle, const char *method, int val)
+ 	return write_acpi_int_ret(handle, method, val, NULL);
+ }
+ 
+-/* Generic LED functions */
+-static int read_status(struct asus_laptop *asus, int mask)
++/* Generic LED function */
++static void asus_led_set(struct asus_laptop *asus, acpi_handle handle,
++			 int value)
  {
- 	unsigned long long kblv;
- 	struct acpi_object_list params;
-@@ -409,12 +409,12 @@ static int get_kled_lvl(void)
- 	rv = acpi_evaluate_integer(kled_get_handle, NULL, &params, &kblv);
- 	if (ACPI_FAILURE(rv)) {
- 		pr_warning("Error reading kled level\n");
--		return 0;
+-	return (asus->status & mask) ? 1 : 0;
+-}
+-
+-static void write_status(struct asus_laptop *asus, acpi_handle handle,
+-			 int out, int mask)
+-{
+-	asus->status = (out) ? (asus->status | mask) : (asus->status & ~mask);
+-
+-	switch (mask) {
+-	case MLED_ON:
+-		out = !(out & 0x1);
+-		break;
+-	case GLED_ON:
+-		out = (out & 0x1) + 1;
+-		break;
+-	case GPS_ON:
+-		handle = (out) ? gps_on_handle : gps_off_handle;
+-		out = 0x02;
+-		break;
+-	default:
+-		out &= 0x1;
+-		break;
+-	}
++	if (handle == mled_set_handle)
++		value = !value;
++	else if (handle == gled_set_handle)
++		value = !value + 1;
++	else
++		value = !!value;
+ 
+-	if (write_acpi_int(handle, NULL, out))
+-		pr_warning(" write failed %x\n", mask);
++	write_acpi_int(handle, NULL, value);
+ }
+ 
+ /*
+@@ -403,7 +377,7 @@ ASUS_LED(kled, "kbd_backlight", 3);
+ 		struct asus_laptop *asus = work_to_asus(work, object);	\
+ 									\
+ 		int value = asus->leds.object##_wk;			\
+-		write_status(asus, object##_set_handle, value, (mask));	\
++		asus_led_set(asus, object##_set_handle, value);		\
+ 	}								\
+ 	static enum led_brightness object##_led_get(			\
+ 		struct led_classdev *led_cdev)				\
+@@ -740,9 +714,9 @@ static int parse_arg(const char *buf, unsigned long count, int *val)
+ 	return count;
+ }
+ 
+-static ssize_t store_status(struct asus_laptop *asus,
+-			    const char *buf, size_t count,
+-			    acpi_handle handle, int mask)
++static ssize_t sysfs_acpi_set(struct asus_laptop *asus,
++			      const char *buf, size_t count,
++			      acpi_handle handle)
+ {
+ 	int rv, value;
+ 	int out = 0;
+@@ -751,8 +725,8 @@ static ssize_t store_status(struct asus_laptop *asus,
+ 	if (rv > 0)
+ 		out = value ? 1 : 0;
+ 
+-	write_status(asus, handle, out, mask);
+-
++	if (write_acpi_int(handle, NULL, value))
 +		return -ENODEV;
- 	}
- 	return kblv;
- }
- 
--static int set_kled_lvl(struct asus_laptop *asus, int kblv)
-+static int asus_kled_set(struct asus_laptop *asus, int kblv)
- {
- 	if (kblv > 0)
- 		kblv = (1 << 7) | (kblv & 0x7F);
-@@ -441,12 +441,12 @@ static void kled_led_update(struct work_struct *work)
- {
- 	struct asus_laptop *asus = work_to_asus(work, kled);
- 
--	set_kled_lvl(asus, asus->leds.kled_wk);
-+	asus_kled_set(asus, asus->leds.kled_wk);
- }
- 
- static enum led_brightness kled_led_get(struct led_classdev *led_cdev)
- {
--	return get_kled_lvl();
-+	return asus_kled_lvl();
- }
- 
- #define ASUS_LED_UNREGISTER(object)				\
-@@ -555,7 +555,7 @@ static void lcd_blank(struct asus_laptop *asus, int blank)
- 	}
- }
- 
--static int read_brightness(struct backlight_device *bd)
-+static int asus_read_brightness(struct backlight_device *bd)
- {
- 	unsigned long long value;
- 	acpi_status rv = AE_OK;
-@@ -567,7 +567,7 @@ static int read_brightness(struct backlight_device *bd)
- 	return value;
- }
- 
--static int set_brightness(struct backlight_device *bd, int value)
-+static int asus_set_brightness(struct backlight_device *bd, int value)
- {
- 	if (write_acpi_int(brightness_set_handle, NULL, value)) {
- 		pr_warning("Error changing brightness\n");
-@@ -582,7 +582,7 @@ static int update_bl_status(struct backlight_device *bd)
- 	int rv;
- 	int value = bd->props.brightness;
- 
--	rv = set_brightness(bd, value);
-+	rv = asus_set_brightness(bd, value);
- 	if (rv)
- 		return rv;
- 
-@@ -591,7 +591,7 @@ static int update_bl_status(struct backlight_device *bd)
- }
- 
- static struct backlight_ops asusbl_ops = {
--	.get_brightness = read_brightness,
-+	.get_brightness = asus_read_brightness,
- 	.update_status = update_bl_status,
- };
- 
-@@ -612,7 +612,7 @@ static int asus_backlight_init(struct asus_laptop *asus)
- 		asus->backlight_device = bd;
- 
- 		bd->props.max_brightness = 15;
--		bd->props.brightness = read_brightness(NULL);
-+		bd->props.brightness = asus_read_brightness(NULL);
- 		bd->props.power = FB_BLANK_UNBLANK;
- 		backlight_update_status(bd);
- 	}
-@@ -818,7 +818,7 @@ static ssize_t store_bluetooth(struct device *dev,
- /*
-  * Display
-  */
--static void set_display(struct asus_laptop *asus, int value)
-+static void asus_set_display(struct asus_laptop *asus, int value)
- {
- 	/* no sanity check needed for now */
- 	if (write_acpi_int(display_set_handle, NULL, value))
-@@ -874,14 +874,14 @@ static ssize_t store_disp(struct device *dev, struct device_attribute *attr,
- 
- 	rv = parse_arg(buf, count, &value);
- 	if (rv > 0)
--		set_display(asus, value);
-+		asus_set_display(asus, value);
  	return rv;
+ }
+ 
+@@ -810,7 +784,7 @@ static ssize_t show_wlan(struct device *dev,
+ {
+ 	struct asus_laptop *asus = dev_get_drvdata(dev);
+ 
+-	return sprintf(buf, "%d\n", asus_wireless_status(asus, WL_ON));
++	return sprintf(buf, "%d\n", asus_wireless_status(asus, WL_RSTS));
+ }
+ 
+ static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
+@@ -818,7 +792,7 @@ static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct asus_laptop *asus = dev_get_drvdata(dev);
+ 
+-	return store_status(asus, buf, count, wl_switch_handle, WL_ON);
++	return sysfs_acpi_set(asus, buf, count, wl_switch_handle);
  }
  
  /*
-  * Light Sens
-  */
--static void set_light_sens_switch(struct asus_laptop *asus, int value)
-+static void asus_als_switch(struct asus_laptop *asus, int value)
+@@ -829,7 +803,7 @@ static ssize_t show_bluetooth(struct device *dev,
  {
- 	if (write_acpi_int(ls_switch_handle, NULL, value))
- 		pr_warning("Error setting light sensor switch\n");
-@@ -904,12 +904,12 @@ static ssize_t store_lssw(struct device *dev, struct device_attribute *attr,
+ 	struct asus_laptop *asus = dev_get_drvdata(dev);
  
- 	rv = parse_arg(buf, count, &value);
- 	if (rv > 0)
--		set_light_sens_switch(asus, value ? 1 : 0);
-+		asus_als_switch(asus, value ? 1 : 0);
- 
- 	return rv;
+-	return sprintf(buf, "%d\n", asus_wireless_status(asus, BT_ON));
++	return sprintf(buf, "%d\n", asus_wireless_status(asus, BT_RSTS));
  }
  
--static void set_light_sens_level(struct asus_laptop *asus, int value)
-+static void asus_als_level(struct asus_laptop *asus, int value)
+ static ssize_t store_bluetooth(struct device *dev,
+@@ -838,7 +812,7 @@ static ssize_t store_bluetooth(struct device *dev,
  {
- 	if (write_acpi_int(ls_level_handle, NULL, value))
- 		pr_warning("Error setting light sensor level\n");
-@@ -934,7 +934,7 @@ static ssize_t store_lslvl(struct device *dev, struct device_attribute *attr,
- 	if (rv > 0) {
- 		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
- 		/* 0 <= value <= 15 */
--		set_light_sens_level(asus, value);
-+		asus_als_level(asus, value);
- 	}
+ 	struct asus_laptop *asus = dev_get_drvdata(dev);
  
- 	return rv;
-@@ -1419,7 +1419,7 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
+-	return store_status(asus, buf, count, bt_switch_handle, BT_ON);
++	return sysfs_acpi_set(asus, buf, count, bt_switch_handle);
+ }
+ 
+ /*
+@@ -1439,16 +1413,9 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
+ 
+ 	/* WLED and BLED are on by default */
+ 	if (bluetooth_status >= 0)
+-		write_status(asus, bt_switch_handle, !!bluetooth_status, BT_ON);
++		write_acpi_int(bt_switch_handle, NULL, !!bluetooth_status);
+ 	if (wireless_status >= 0)
+-		write_status(asus, wl_switch_handle, !!wireless_status, WL_ON);
+-
+-	/* If the h/w switch is off, we need to check the real status */
+-	write_status(asus, NULL, asus_wireless_status(asus, BT_ON), BT_ON);
+-	write_status(asus, NULL, asus_wireless_status(asus, WL_ON), WL_ON);
+-
+-	/* LCD Backlight is on by default */
+-	write_status(asus, NULL, 1, LCD_ON);
++		write_acpi_int(wl_switch_handle, NULL, !!wireless_status);
  
  	/* Keyboard Backlight is on by default */
  	if (kled_set_handle)
--		set_kled_lvl(asus, 1);
-+		asus_kled_set(asus, 1);
- 
- 	/* LED display is off by default */
- 	asus->ledd_status = 0xFFF;
-@@ -1429,10 +1429,10 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
- 	asus->light_level = 5;	/* level 5 for sensor sensitivity */
- 
- 	if (ls_switch_handle)
--		set_light_sens_switch(asus, asus->light_switch);
-+		asus_als_switch(asus, asus->light_switch);
- 
- 	if (ls_level_handle)
--		set_light_sens_level(asus, asus->light_level);
-+		asus_als_level(asus, asus->light_level);
- 
- 	/* GPS is on by default */
- 	asus_gps_switch(asus, 1);
 -- 
 1.6.6.1
 
