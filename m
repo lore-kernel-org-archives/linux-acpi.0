@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 18/28] asus-laptop: add error check for write_acpi_int calls
-Date: Tue,  2 Feb 2010 08:39:01 +0100
-Message-ID: <1265096351-15239-19-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 19/28] asus-laptop: rename wireless_status to wlan_status to avoid confusion
+Date: Tue,  2 Feb 2010 08:39:02 +0100
+Message-ID: <1265096351-15239-20-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -20,101 +20,50 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-16-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-17-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-18-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-19-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57659 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57685 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755704Ab0BBHkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 02:40:43 -0500
-In-Reply-To: <1265096351-15239-18-git-send-email-corentincj@iksaif.net>
+	id S1755732Ab0BBHlb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Feb 2010 02:41:31 -0500
+In-Reply-To: <1265096351-15239-19-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-Also add to helpers for bluetooth and wlan.
-
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |   33 +++++++++++++++++++++++++--------
- 1 files changed, 25 insertions(+), 8 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 671fad9..aad6b93 100644
+index aad6b93..bb8fb45 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -350,7 +350,7 @@ static int acpi_check_handle(acpi_handle handle, const char *method,
- }
+@@ -76,11 +76,11 @@ static uint wapf = 1;
+ module_param(wapf, uint, 0644);
+ MODULE_PARM_DESC(wapf, "WAPF value");
  
- /* Generic LED function */
--static void asus_led_set(struct asus_laptop *asus, char *method,
-+static int asus_led_set(struct asus_laptop *asus, char *method,
- 			 int value)
- {
- 	if (!strcmp(method, METHOD_MLED))
-@@ -360,7 +360,7 @@ static void asus_led_set(struct asus_laptop *asus, char *method,
- 	else
- 		value = !!value;
+-static uint wireless_status = 1;
++static uint wlan_status = 1;
+ static uint bluetooth_status = 1;
  
--	write_acpi_int(asus->handle, method, value);
-+	return write_acpi_int(asus->handle, method, value);
- }
+-module_param(wireless_status, uint, 0644);
+-MODULE_PARM_DESC(wireless_status, "Set the wireless status on boot "
++module_param(wlan_status, uint, 0644);
++MODULE_PARM_DESC(wlan_status, "Set the wireless status on boot "
+ 		 "(0 = disabled, 1 = enabled, -1 = don't do anything). "
+ 		 "default is 1");
  
- /*
-@@ -817,6 +817,15 @@ static int asus_wireless_status(struct asus_laptop *asus, int mask)
- /*
-  * WLAN
-  */
-+static int asus_wlan_set(struct asus_laptop *asus, int status)
-+{
-+	if (write_acpi_int(asus->handle, METHOD_WLAN, !!status)) {
-+		pr_warning("Error setting wlan status to %d", status);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
- static ssize_t show_wlan(struct device *dev,
- 			 struct device_attribute *attr, char *buf)
- {
-@@ -836,6 +845,15 @@ static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
- /*
-  * Bluetooth
-  */
-+static int asus_bluetooth_set(struct asus_laptop *asus, int status)
-+{
-+	if (write_acpi_int(asus->handle, METHOD_BLUETOOTH, !!status)) {
-+		pr_warning("Error setting bluetooth status to %d", status);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
- static ssize_t show_bluetooth(struct device *dev,
- 			      struct device_attribute *attr, char *buf)
- {
-@@ -1353,8 +1371,8 @@ static int asus_laptop_get_info(struct asus_laptop *asus)
- 		       (uint) bsts_result);
- 
- 	/* This too ... */
--	write_acpi_int(asus->handle, "CWAP", wapf);
--
-+	if (write_acpi_int(asus->handle, "CWAP", wapf))
-+		pr_err("Error calling CWAP(%d)\n", wapf);
- 	/*
- 	 * Try to match the object returned by INIT to the specific model.
- 	 * Handle every possible object (or the lack of thereof) the DSDT
-@@ -1426,11 +1444,10 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
- 
- 	/* WLED and BLED are on by default */
+@@ -1446,8 +1446,8 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
  	if (bluetooth_status >= 0)
--		write_acpi_int(asus->handle, METHOD_BLUETOOTH,
--			       !!bluetooth_status);
-+		asus_bluetooth_set(asus, !!bluetooth_status);
-+
- 	if (wireless_status >= 0)
--		write_acpi_int(asus->handle, METHOD_WLAN,
--			       !!wireless_status);
-+		asus_wlan_set(asus, !!wireless_status);
+ 		asus_bluetooth_set(asus, !!bluetooth_status);
+ 
+-	if (wireless_status >= 0)
+-		asus_wlan_set(asus, !!wireless_status);
++	if (wlan_status >= 0)
++		asus_wlan_set(asus, !!wlan_status);
  
  	/* Keyboard Backlight is on by default */
  	if (!acpi_check_handle(asus->handle, METHOD_KBD_LIGHT_SET, NULL))
