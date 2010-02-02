@@ -1,65 +1,41 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 24/28] asus-laptop: set initial lcd state
-Date: Tue,  2 Feb 2010 08:39:07 +0100
-Message-ID: <1265096351-15239-25-git-send-email-corentincj@iksaif.net>
-References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-4-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-5-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-6-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-7-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-8-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-9-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-10-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-11-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-12-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-13-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-14-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-15-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-16-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-17-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-18-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-19-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-20-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-21-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-22-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-23-git-send-email-corentincj@iksaif.net>
- <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
+From: Darren Jenkins <darrenrjenkins@gmail.com>
+Subject: [PATCH] drivers/acpi/ec.c fix a small memory leak
+Date: Tue, 02 Feb 2010 23:12:10 +1100
+Message-ID: <1265112730.4804.8.camel@ICE-BOX>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57692 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755735Ab0BBHlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 02:41:32 -0500
-In-Reply-To: <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:56447 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977Ab0BBMMP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 07:12:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentin.chary@gmail.com>
+To: Kernel Janitors <kernel-janitors@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, astarikovskiy@suse.de
 
-From: Corentin Chary <corentin.chary@gmail.com>
+Plug a very small leak in acpi_ec_ecdt_probe()
 
-There is no way to find the initial lcd state. A quick workaround
-is to set it "on" by default. Anyway this feature is scheduled for removal.
+Coverity CID: 13319
 
-Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
----
- drivers/platform/x86/asus-laptop.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com> 
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index ca144d2..1d61094 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -1421,6 +1421,8 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
- 	    !acpi_check_handle(asus->handle, METHOD_GPS_OFF, NULL) &&
- 	    !acpi_check_handle(asus->handle, METHOD_GPS_STATUS, NULL))
- 		asus_gps_switch(asus, 1);
-+
-+	asus->lcd_state = 1; /* LCD should be on when the module load */
- 	return result;
- }
+diff --git drivers/acpi/ec.c drivers/acpi/ec.c
+index d6471bb..13061dc 100644
+--- drivers/acpi/ec.c
++++ drivers/acpi/ec.c
+@@ -1009,8 +1009,10 @@ int __init acpi_ec_ecdt_probe(void)
+ 	/* fall through */
+ 	}
  
--- 
-1.6.6.1
+-	if (EC_FLAGS_SKIP_DSDT_SCAN)
++	if (EC_FLAGS_SKIP_DSDT_SCAN) {
++		kfree(saved_ec);
+ 		return -ENODEV;
++	}
+ 
+ 	/* This workaround is needed only on some broken machines,
+ 	 * which require early EC, but fail to provide ECDT */
+
 
