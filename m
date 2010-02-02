@@ -1,88 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][RFT][PATCH] ACPI: Protection from suspending in the middle of EC transaction
-Date: Mon, 1 Feb 2010 23:42:49 +0100
-Message-ID: <201002012342.50074.rjw@sisk.pl>
-References: <201001310029.48717.rjw@sisk.pl> <20100201094643.GB8740@khazad-dum.debian.net> <4B66AB7F.7050908@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI device for ASUS EEEPC 1101HA not added
+Date: Tue, 02 Feb 2010 09:19:22 +0800
+Message-ID: <1265073562.10648.12.camel@rzhang1-desktop>
+References: <20100201032554.GZ28972@buzzloop.caiaq.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56219 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:40563 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753767Ab0BAWmM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2010 17:42:12 -0500
-In-Reply-To: <4B66AB7F.7050908@suse.de>
+	id S1751560Ab0BBBVj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Feb 2010 20:21:39 -0500
+In-Reply-To: <20100201032554.GZ28972@buzzloop.caiaq.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Maxim Levitsky <maximlevitsky@gmail.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>
+To: Daniel Mack <daniel@caiaq.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "acpi4asus-user@lists.sourceforge.net" <acpi4asus-user@lists.sourceforge.net>
 
-On Monday 01 February 2010, Alexey Starikovskiy wrote:
-> Henrique de Moraes Holschuh =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> > On Sun, 31 Jan 2010, Maxim Levitsky wrote:
-> >> Unfortunately, this patch even causes regressions on my notebook (=
-it
-> >> survive 63 hibernate cycles), but now I battery driver reports 'ba=
-ttery
-> >> absent', backlight driver reports 0 brightness, but reload helped.
-> >=20
-> > ...
-> >=20
-> >> I think that not only _PTS ans _WAK are problematic. What about ot=
-her
-> >> ACPI drivers that start accessing the EC before it is resumed?
-> >> I think that these cause the problems I observe.
-> >=20
-> > ACPI drivers might access the EC (even indirectly, through the DSDT=
-).  And
-> > platform drivers do often access the EC both at suspend and resume =
-time.
-> Actually, only SBS and thinkpad-acpi access EC directly. All others g=
-o through
-> DSDT for access. Still, stopping EC in .suspend is too early, IMHO...
+On Mon, 2010-02-01 at 11:25 +0800, Daniel Mack wrote:
+> On my new 1101HA Eeepc, the special function keys do not work. This is
+> because the asus-laptop driver fails to match the ACPI device named
+> "ASUS010". However, acpidump tells me a device with that name does
+> actually exist - the (simplified) disassembly of the DSDT is below.
+> 
+> It looks like the gigantic parser state machine fails to add that
+> device for whatever reason. Any ideas how to fix that?
+> 
+eeepc is handled in eeepci-laptop driver.
 
-That's very likely the case, although that's kind of the latest we can =
-do that
-without major modifications.
+~/src/linux-2.6$ grep ASUS010 drivers/platform/*/*
+drivers/platform/x86/eeepc-laptop.c:#define EEEPC_ACPI_HID		"ASUS010"
 
-Is there a possibility to have more than one EC in a system in practice=
-?
+thanks,
+rui
 
-> > This needs some sort of strong ordering, the EC must suspend last, =
-and
-> > resume first (as seen by any ACPI and ACPI-aware drivers such as li=
-bata,
-> > some platform drivers, etc).  If EC interrupts are a problem, maybe=
- it can
-> > be kicked to poll mode for the suspend/resume transition?
-> It's this way already for about a year now... The problem is that EC =
-driver might be=20
-> stopped in middle of the transaction, thus leaving EC in unknown stat=
-e for BIOS or=20
-> switch-over kernel.
+> 
+> Thanks,
+> Daniel
+> 
+> 
+> /*
+>  * Intel ACPI Component Architecture
+>  * AML Disassembler version 20090521
+>  */
+> DefinitionBlock ("out/DSDT-0x3f660430-0.aml", "DSDT", 2, "A1359", "A1359000", 0x00000000)
+> {
+> 
+>     [...]
+> 
+>     Scope (_SB)
+>     {
+> 
+>         [...]
+> 
+>         Device (PCI0)
+>         {
+>             Name (_HID, EisaId ("PNP0A08"))
+>             Name (_ADR, Zero)
+> 
+>             [...]
+> 
+>             Device (SBRG)
+>             {
+> 
+>                 [...]
+> 
+>                 Scope (\_SB)
+>                 {
+>                     Name (ATKP, Zero)
+>                     Device (ATKD)
+>                     {
+>                         Name (_HID, "ASUS010")
+>                         Name (_UID, 0x01010100)
+> 
+>                         [...]
+> 
+> 
+> The full version of the dump is here:
+> 
+>   http://caiaq.de/download/tmp/DSDT-0x3f660430-0.dsl
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Exactly.
 
-In theory I can try to disable EC transactions from the ACPI platform
-suspend/resume callbacks, but then there still is a problem with the gl=
-obal
-lock, since we shouldn't try to acquire it after disabling device inter=
-rupts,
-because an SCI is waited for in case we don't acquire it immediately.
-
-So, perhaps instead we should disable the GPEs and call _PTS before the=
- late
-suspend phase (and analogously, execute _WAK after the early resume pha=
-se)
-and disable the EC transacations right after that?
-
-This leaves the problem with PCI devices that may require ACPI support =
-during
-late suspend/early resume, but well.
-
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
