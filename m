@@ -1,66 +1,53 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 01/28] asus-laptop: add wireless and bluetooth status parameter
-Date: Tue,  2 Feb 2010 08:38:44 +0100
-Message-ID: <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 03/28] asus-laptop: no need to check argument of set_brightness()
+Date: Tue,  2 Feb 2010 08:38:46 +0100
+Message-ID: <1265096351-15239-4-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:51570 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:51576 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755366Ab0BBHjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755380Ab0BBHjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 2 Feb 2010 02:39:16 -0500
-In-Reply-To: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-These to parameter allow to set the status of wlan and bluetooth
-device when the module load. On some models, the device will
-always be down on boot, so the default behavior is to always
-enable these devices.
+We already tell the backlight class our maximum brightness value; it
+will validate the user requested values for us.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/platform/x86/asus-laptop.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 61a1c75..1d799b3 100644
+index 1d799b3..013ab86 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -113,6 +113,19 @@ static uint wapf = 1;
- module_param(wapf, uint, 0644);
- MODULE_PARM_DESC(wapf, "WAPF value");
+@@ -571,17 +571,11 @@ static int read_brightness(struct backlight_device *bd)
  
-+static uint wireless_status = 1;
-+static uint bluetooth_status = 1;
-+
-+module_param(wireless_status, uint, 0644);
-+MODULE_PARM_DESC(wireless_status, "Set the wireless status on boot "
-+		 "(0 = disabled, 1 = enabled, -1 = don't do anything). "
-+		 "default is 1");
-+
-+module_param(bluetooth_status, uint, 0644);
-+MODULE_PARM_DESC(bluetooth_status, "Set the wireless status on boot "
-+		 "(0 = disabled, 1 = enabled, -1 = don't do anything). "
-+		 "default is 1");
-+
- #define ASUS_HANDLE(object, paths...)					\
- 	static acpi_handle  object##_handle = NULL;			\
- 	static char *object##_paths[] = { paths }
-@@ -1272,8 +1285,10 @@ static int asus_hotk_add(struct acpi_device *device)
- 	asus_hotk_found = 1;
+ static int set_brightness(struct backlight_device *bd, int value)
+ {
+-	int ret = 0;
+-
+-	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
+-	/* 0 <= value <= 15 */
+-
+ 	if (write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
+ 		pr_warning("Error changing brightness\n");
+-		ret = -EIO;
++		return -EIO;
+ 	}
+-
+-	return ret;
++	return 0;
+ }
  
- 	/* WLED and BLED are on by default */
--	write_status(bt_switch_handle, 1, BT_ON);
--	write_status(wl_switch_handle, 1, WL_ON);
-+	if (bluetooth_status != -1)
-+		write_status(bt_switch_handle, !!bluetooth_status, BT_ON);
-+	if (wireless_status != -1)
-+		write_status(wl_switch_handle, !!wireless_status, WL_ON);
- 
- 	/* If the h/w switch is off, we need to check the real status */
- 	write_status(NULL, read_status(BT_ON), BT_ON);
+ static int update_bl_status(struct backlight_device *bd)
 -- 
 1.6.6.1
 
