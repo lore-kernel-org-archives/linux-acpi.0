@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 23/28] asus-laptop: leds, remove dead code and fix asus_led_exit()/asus_led_init()
-Date: Tue,  2 Feb 2010 08:39:06 +0100
-Message-ID: <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 24/28] asus-laptop: set initial lcd state
+Date: Tue,  2 Feb 2010 08:39:07 +0100
+Message-ID: <1265096351-15239-25-git-send-email-corentincj@iksaif.net>
 References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-2-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-3-git-send-email-corentincj@iksaif.net>
@@ -25,12 +25,13 @@ References: <1265096351-15239-1-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-21-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-22-git-send-email-corentincj@iksaif.net>
  <1265096351-15239-23-git-send-email-corentincj@iksaif.net>
+ <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:57691 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:57692 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755755Ab0BBHld (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 02:41:33 -0500
-In-Reply-To: <1265096351-15239-23-git-send-email-corentincj@iksaif.net>
+	id S1755735Ab0BBHlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Feb 2010 02:41:32 -0500
+In-Reply-To: <1265096351-15239-24-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -38,71 +39,27 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Linux Kern
 
 From: Corentin Chary <corentin.chary@gmail.com>
 
-These bug where introduced in "asus-laptop: code movement".
+There is no way to find the initial lcd state. A quick workaround
+is to set it "on" by default. Anyway this feature is scheduled for removal.
 
 Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
 ---
- drivers/platform/x86/asus-laptop.c |   31 ++++++++++++++-----------------
- 1 files changed, 14 insertions(+), 17 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 516add3..ca144d2 100644
+index ca144d2..1d61094 100644
 --- a/drivers/platform/x86/asus-laptop.c
 +++ b/drivers/platform/x86/asus-laptop.c
-@@ -371,13 +371,7 @@ static int asus_led_set(struct asus_laptop *asus, char *method,
- 				     enum led_brightness value);	\
- 	static enum led_brightness object##_led_get(			\
- 		struct led_classdev *led_cdev);				\
--	static void object##_led_update(struct work_struct *ignored);	\
--	static struct led_classdev object##_led = {			\
--		.name           = "asus::" ledname,			\
--		.brightness_set = object##_led_set,			\
--		.brightness_get = object##_led_get,			\
--		.max_brightness = max					\
--	}
-+	static void object##_led_update(struct work_struct *ignored);
- 
- ASUS_LED(mled, "mail", 1);
- ASUS_LED(tled, "touchpad", 1);
-@@ -478,18 +472,20 @@ static enum led_brightness kled_led_get(struct led_classdev *led_cdev)
- 	return asus_kled_lvl(asus);
+@@ -1421,6 +1421,8 @@ static int __devinit asus_acpi_init(struct asus_laptop *asus)
+ 	    !acpi_check_handle(asus->handle, METHOD_GPS_OFF, NULL) &&
+ 	    !acpi_check_handle(asus->handle, METHOD_GPS_STATUS, NULL))
+ 		asus_gps_switch(asus, 1);
++
++	asus->lcd_state = 1; /* LCD should be on when the module load */
+ 	return result;
  }
  
--#define ASUS_LED_UNREGISTER(object)				\
--	if (object##_led.dev)					\
--		led_classdev_unregister(&object##_led)
--
- static void asus_led_exit(struct asus_laptop *asus)
- {
--	ASUS_LED_UNREGISTER(mled);
--	ASUS_LED_UNREGISTER(tled);
--	ASUS_LED_UNREGISTER(pled);
--	ASUS_LED_UNREGISTER(rled);
--	ASUS_LED_UNREGISTER(gled);
--	ASUS_LED_UNREGISTER(kled);
-+	if (asus->leds.mled.dev)
-+		led_classdev_unregister(&asus->leds.mled);
-+	if (asus->leds.tled.dev)
-+		led_classdev_unregister(&asus->leds.tled);
-+	if (asus->leds.pled.dev)
-+		led_classdev_unregister(&asus->leds.pled);
-+	if (asus->leds.rled.dev)
-+		led_classdev_unregister(&asus->leds.rled);
-+	if (asus->leds.gled.dev)
-+		led_classdev_unregister(&asus->leds.gled);
-+	if (asus->leds.kled.dev)
-+		led_classdev_unregister(&asus->leds.kled);
- 	if (asus->leds.workqueue) {
- 		destroy_workqueue(asus->leds.workqueue);
- 		asus->leds.workqueue = NULL;
-@@ -507,6 +503,7 @@ static void asus_led_exit(struct asus_laptop *asus)
- 		INIT_WORK(&asus->leds.object##_work, object##_led_update); \
- 		ldev->name = "asus::" _name;				\
- 		ldev->brightness_set = object##_led_set;		\
-+		ldev->brightness_get = object##_led_get;		\
- 		ldev->max_brightness = max;				\
- 		rv = led_classdev_register(&asus->platform_device->dev, ldev); \
- 		if (rv)							\
 -- 
 1.6.6.1
 
