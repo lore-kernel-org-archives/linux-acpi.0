@@ -1,50 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/7] dell_laptop: when the "hardware" switch is disabled, don't actually allow changing the softblock status.
-Date: Tue, 02 Feb 2010 14:37:54 -0800
-Message-ID: <201002022237.o12MbstN018680@imap1.linux-foundation.org>
+Subject: [patch 3/7] acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
+Date: Tue, 02 Feb 2010 14:37:55 -0800
+Message-ID: <201002022237.o12MbuTg018687@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932136Ab0BBWjQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 17:39:16 -0500
+	by vger.kernel.org with ESMTP id S932103Ab0BBWjO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2010 17:39:14 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, Mario_Limonciello@Dell.com, mjg@redhat.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, bzolnier@gmail.com, corbet@lwn.net, error27@gmail.com, eteo@redhat.com, ming.m.lin@intel.com, robert.moore@intel.com
 
-From: Mario Limonciello <Mario_Limonciello@Dell.com>
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-The "hardware" switch is tied directly to a BIOS interface that will
-connect and disconnect the hardware from the bus.
+Dan's list contains:
 
-If you use the software interface to request the BIOS to make these
-changes, the HW switch will be in an inconsistent state and LEDs may not
-reflect the state of the HW.
+drivers/acpi/processor_throttling.c +1139 acpi_processor_get_throttling_info(11) warning: variable derefenced before check 'pr'
 
-Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
-Cc: Matthew Garrett <mjg@redhat.com>
+acpi_processor_get_throttling_info() is never called with pr == NULL.
+
+[ bart: the potential NULL pointer dereference was finally fixed in
+  (much later than mine) commit 5cfa245 but my patch is still valid ]
+
+Reported-by: Dan Carpenter <error27@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Eugene Teo <eteo@redhat.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/dell-laptop.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/processor_throttling.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status drivers/platform/x86/dell-laptop.c
---- a/drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status
-+++ a/drivers/platform/x86/dell-laptop.c
-@@ -189,6 +189,10 @@ static int dell_rfkill_set(void *data, b
- 	unsigned long radio = (unsigned long)data;
+diff -puN drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info
++++ a/drivers/acpi/processor_throttling.c
+@@ -1133,9 +1133,6 @@ int acpi_processor_get_throttling_info(s
+ 	int result = 0;
+ 	struct acpi_processor_throttling *pthrottling;
  
- 	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	dell_send_request(&buffer, 17, 11);
-+	if (!(buffer.output[1] & BIT(16)))
-+		return -EINVAL;
-+
- 	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
- 	dell_send_request(&buffer, 17, 11);
- 
+-	if (!pr)
+-		return -EINVAL;
+-
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
+ 			  pr->throttling.address,
 _
