@@ -1,101 +1,89 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: Re: [PATCH 00/12] ACPI: processor driver vs. core
-Date: Tue, 02 Feb 2010 17:51:27 -0800
-Message-ID: <1265161887.16916.569.camel@localhost.localdomain>
-References: <20100125213221.28510.74078.stgit@bob.kio>
-	 <20100202231710.GA24718@ldl.fc.hp.com>
+From: Dan Carpenter <error27@gmail.com>
+Subject: Re: [PATCH] drivers/acpi/ec.c fix a small memory leak
+Date: Wed, 3 Feb 2010 09:12:26 +0300
+Message-ID: <20100203061225.GB32535@bicker>
+References: <1265112730.4804.8.camel@ICE-BOX> <4B684650.9070807@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44418 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932149Ab0BCBv2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2010 20:51:28 -0500
-In-Reply-To: <20100202231710.GA24718@ldl.fc.hp.com>
+Received: from fg-out-1718.google.com ([72.14.220.153]:11625 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732Ab0BCGMl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2010 01:12:41 -0500
+Content-Disposition: inline
+In-Reply-To: <4B684650.9070807@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Darren Jenkins <darrenrjenkins@gmail.com>, Kernel Janitors <kernel-janitors@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Tue, Feb 02, 2010 at 06:35:44PM +0300, Alexey Starikovskiy wrote:
+> NAK
+>=20
+> saved_ec is allocated if flag EC_FLAGS_VALIDATE_ECDT is true.
+> EC_FLAGS_SKIP_DSDT_SCAN have no sense in such case, thus this new cod=
+e path
+> is never executed.
+> On the other hand, unconditionally freeing pointer, which is might be=
+ NULL, is not
+> right either.
 
-Hi Alex,
+As near as I can tell you are right that the code cannot leak memory.  =
+But Darren=20
+is right to think that it's calling kfree() on a NULL pointer is OK.  H=
+is patch does=20
+not introduce any errors.
 
-Sorry for not responding on this one. Just finished up looking through
-all the patches in the series. It makes things very clean and patches
-are neatly split up. Thanks for doing this.
+The logic here is basically spaghetti.  Every person who looks at it is=
+ going to=20
+think it's a leak.  Lots of people are going to look at it, because the=
+ static
+checkers all think it's a leak too.  Someone could send a cleanup patch=
+ that makes it
+readable.
 
-Only thing I wanted to mention was, it would have been a bit cleaner to
-keep _pdc stuff in a separate file. But, it is OK as you have done it as
-well.
+regards,
+dan carpenter
 
-
-Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-
-
-On Tue, 2010-02-02 at 15:17 -0800, Alex Chiang wrote:
-> Hi Venki,
-> 
-> Do you have any opinions on this patchset? If so, I'd like to
-> address them.
-> 
-> Thanks,
-> /ac
-> 
-> * Alex Chiang <achiang@hp.com>:
-> > This series cleans up some of the mess I made when introducing
-> > early _PDC.
-> > 
-> > The major change is renaming processor_core.c to processor_driver.c,
-> > and then renaming processor_pdc.c to processor_core.c.
-> > 
-> > The idea is that the code in processor_core.c will always be built
-> > statically into the kernel (as long as ACPI is configured), while
-> > allowing the ACPI processor driver to remain modular (if so desired).
-> > 
-> > We do this because part of the cleanups involves teaching the
-> > early _PDC evaluation code how to determine if a processor is
-> > physically present or not -- aka enumeration -- and that sort
-> > of code doesn't really belong in a file named processor_pdc.
-> > 
-> > There are quite a few checkpatch errors in the first rename patch,
-> > and I'll look at cleaning those up in a later series.
-> > 
-> > /ac
-> > 
-> > ---
-> > 
-> > Alex Chiang (12):
-> >       ACPI: processor: mv processor_core.c processor_driver.c
-> >       ACPI: processor: mv processor_pdc.c processor_core.c
-> >       ACPI: processor: export acpi_get_cpuid()
-> >       ACPI: processor: move acpi_get_cpuid into processor_core.c
-> >       ACPI: processor: add internal processor_physically_present()
-> >       ACPI: processor: remove early _PDC optin quirks
-> >       ACPI: processor: driver doesn't need to evaluate _PDC
-> >       ACPI: processor: refactor internal map_lapic_id()
-> >       ACPI: processor: refactor internal map_x2apic_id()
-> >       ACPI: processor: refactor internal map_lsapic_id()
-> >       ACPI: processor: push file static MADT pointer into internal map_madt_entry()
-> >       ACPI: processor core: style and sparse cleanups
-> > 
-> > 
-> >  Documentation/kernel-parameters.txt |    4 
-> >  arch/ia64/kernel/acpi.c             |    3 
-> >  arch/x86/kernel/acpi/boot.c         |    3 
-> >  drivers/acpi/Makefile               |    4 
-> >  drivers/acpi/processor_core.c       | 1149 +++++------------------------------
-> >  drivers/acpi/processor_driver.c     |  976 ++++++++++++++++++++++++++++++
-> >  drivers/acpi/processor_pdc.c        |  209 ------
-> >  include/acpi/processor.h            |   10 
-> >  8 files changed, 1172 insertions(+), 1186 deletions(-)
-> >  create mode 100644 drivers/acpi/processor_driver.c
-> >  delete mode 100644 drivers/acpi/processor_pdc.c
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+> So, this patch introduced more problems as it tries to solve...
+>=20
+> Regards,
+> Alex.
+>=20
+> Darren Jenkins =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> > Plug a very small leak in acpi_ec_ecdt_probe()
+> >=20
+> > Coverity CID: 13319
+> >=20
+> > Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>=20
+> >=20
+> > diff --git drivers/acpi/ec.c drivers/acpi/ec.c
+> > index d6471bb..13061dc 100644
+> > --- drivers/acpi/ec.c
+> > +++ drivers/acpi/ec.c
+> > @@ -1009,8 +1009,10 @@ int __init acpi_ec_ecdt_probe(void)
+> >  	/* fall through */
+> >  	}
+> > =20
+> > -	if (EC_FLAGS_SKIP_DSDT_SCAN)
+> > +	if (EC_FLAGS_SKIP_DSDT_SCAN) {
+> > +		kfree(saved_ec);
+> >  		return -ENODEV;
+> > +	}
+> > =20
+> >  	/* This workaround is needed only on some broken machines,
+> >  	 * which require early EC, but fail to provide ECDT */
+> >=20
+> >=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-jani=
+tors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
