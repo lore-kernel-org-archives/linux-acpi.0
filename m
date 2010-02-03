@@ -1,86 +1,46 @@
-From: Thomas Backlund <tmb@mandriva.org>
-Subject: Re: WARNING: at arch/x86/kernel/hpet.c:404 hpet_next_event+0x7d/0x90()
-Date: Wed, 03 Feb 2010 15:47:54 +0200
-Message-ID: <4B697E8A.9000806@mandriva.org>
-References: <4B68462F.7050203@mandriva.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [patch 7/7] acpi: remove old blacklist entries
+Date: Wed, 3 Feb 2010 21:04:09 -0200
+Message-ID: <20100203230409.GC2832@khazad-dum.debian.net>
+References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mbox2.netikka.net ([213.250.81.203]:36969 "EHLO
-	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757283Ab0BCNr6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2010 08:47:58 -0500
-In-Reply-To: <4B68462F.7050203@mandriva.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:59897 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756553Ab0BCXEN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2010 18:04:13 -0500
+Content-Disposition: inline
+In-Reply-To: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl
 
-02.02.2010 17:35, Thomas Backlund skrev:
-> This is still happening on 2.6.33-rc6-git1 running x86_64 kernel
->
-> HW is a Core i7-860 on an ASUS P7P55D Deluxe m/b
->
-> I've seen this since atleast 2.6.31 series kernels...
->
-> I seem to have seen other reports about this, and some errata fix &
-> patch for this, but I cant find it right now...
->
+On Tue, 02 Feb 2010, akpm@linux-foundation.org wrote:
+> -	/*
+> -	 * Boxes that need ACPI disabled
+> -	 */
+> -	{
+> -	 .callback = dmi_disable_acpi,
+> -	 .ident = "IBM Thinkpad",
+> -	 .matches = {
+> -		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+> -		     DMI_MATCH(DMI_BOARD_NAME, "2629H1G"),
+> -		     },
+> -	 },
 
-Hi Venki,
+The 2629H1G is just one of various models of the ThinkPad A21p, if one
+wanted to blacklist the 2629H1G, he should have blacklisted bios_version
+KY??HT*, instead, which would get all models with that BIOS (includes the
+A22p models as well).
 
-Since this issue is the same as reported here:
-http://marc.info/?l=linux-kernel&m=125769096017449&w=2
-[2.6.31.4: WARNING: at arch/x86/kernel/hpet.c:390]
+Those thinkpads had Win98 support, and probably worked better in Linux using
+APM than ACPI.  That might still be true, but we'd need to find someone with
+an A21p or A22p to ask.
 
-and you stated here:
-http://marc.info/?l=linux-kernel&m=125849385330302&w=2
-
-that you didn't have a ETA for the errata to be published...
-
-Now, it's about 2.5 months later, and the warning is still there,
-so... Is there any updates to this, or should I just silence the
-warning with the patch you posted for test...
-
---
-Thomas
-
->> [ 11.668507] ------------[ cut here ]------------
->> [ 11.668514] WARNING: at arch/x86/kernel/hpet.c:404
->> hpet_next_event+0x7d/0x90()
->> [ 11.668516] Hardware name: System Product Name
->> [ 11.668517] hpet: compare register read back failed.
->> [ 11.668518] Modules linked in: processor(+) iTCO_vendor_support
->> button pata_jmicron dm_snapshot dm_zero dm_mirror dm_region_hash
->> dm_log dm_mod ata_piix ahci libata sd_mod scsi_mod crc_t10dif ext4
->> jbd2 crc16 uhci_hcd ohci_hcd ehci_hcd usbhid hid usbcore
->> [ 11.668530] Pid: 0, comm: swapper Not tainted
->> 2.6.33-tmb-desktop-0.rc6.1.2mdv #1
->> [ 11.668532] Call Trace:
->> [ 11.668536] [<ffffffff810400a8>] warn_slowpath_common+0x78/0xb0
->> [ 11.668538] [<ffffffff8104013c>] warn_slowpath_fmt+0x3c/0x40
->> [ 11.668541] [<ffffffff81022b5d>] hpet_next_event+0x7d/0x90
->> [ 11.668543] [<ffffffff81022b8b>] hpet_legacy_next_event+0xb/0x10
->> [ 11.668547] [<ffffffff810642d9>] clockevents_program_event+0x59/0xa0
->> [ 11.668549] [<ffffffff81065740>] tick_dev_program_event+0x40/0xd0
->> [ 11.668553] [<ffffffff810650c6>]
->> tick_broadcast_oneshot_control+0x116/0x120
->> [ 11.668556] [<ffffffff810648f5>] tick_notify+0x315/0x450
->> [ 11.668560] [<ffffffff811d537c>] ? acpi_hw_read+0x51/0x58
->> [ 11.668563] [<ffffffff8105ce57>] notifier_call_chain+0x47/0x90
->> [ 11.668566] [<ffffffff8105cf41>] raw_notifier_call_chain+0x11/0x20
->> [ 11.668569] [<ffffffff810640e2>] clockevents_notify+0x32/0x170
->> [ 11.668575] [<ffffffffa0196f28>]
->> lapic_timer_state_broadcast+0x41/0x43 [processor]
->> [ 11.668580] [<ffffffffa0197436>] acpi_idle_enter_bm+0x15c/0x28a
->> [processor]
->> [ 11.668585] [<ffffffff8125bccb>] cpuidle_idle_call+0x9b/0x100
->> [ 11.668589] [<ffffffff81001933>] cpu_idle+0x63/0xc0
->> [ 11.668592] [<ffffffff8130a47d>] start_secondary+0x18b/0x18f
->> [ 11.668595] ---[ end trace 34f793092b044afa ]---
->
-> --
-> Thomas
->
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
