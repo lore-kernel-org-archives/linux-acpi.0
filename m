@@ -1,8 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v1 2/7] PCI: break out primary/secondary/subordinate for
-	readability
-Date: Wed, 03 Feb 2010 16:39:05 -0700
-Message-ID: <20100203233905.10803.44272.stgit@bob.kio>
+Subject: [PATCH v1 1/7] x86/PCI: remove IOH range fetching
+Date: Wed, 03 Feb 2010 16:39:00 -0700
+Message-ID: <20100203233900.10803.76562.stgit@bob.kio>
 References: <20100203233617.10803.92102.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,78 +14,127 @@ Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linu
 List-Id: linux-acpi@vger.kernel.org
 
 
-No functional change; just add names for the primary/secondary/subordinate
-bus numbers read from config space rather than repeatedly masking/shifting.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+This is Jeff Garrett's patch to remove intel_bus.c.  It's already in
+Linus' tree (e8e06eae4ffd), but not yet in Jesse's tree.  It's only
+here so the subsequent patches don't have to update intel_bus.c.
 ---
 
- drivers/pci/probe.c |   24 ++++++++++++++----------
- 1 files changed, 14 insertions(+), 10 deletions(-)
+ arch/x86/pci/Makefile    |    2 -
+ arch/x86/pci/intel_bus.c |   94 ----------------------------------------------
+ 2 files changed, 1 insertions(+), 95 deletions(-)
+ delete mode 100644 arch/x86/pci/intel_bus.c
 
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 11824d7..7264ad4 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -623,16 +623,20 @@ int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev *dev, int max,
- 	int is_cardbus = (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS);
- 	u32 buses, i, j = 0;
- 	u16 bctl;
-+	u8 primary, secondary, subordinate;
- 	int broken = 0;
+diff --git a/arch/x86/pci/Makefile b/arch/x86/pci/Makefile
+index 564b008..39fba37 100644
+--- a/arch/x86/pci/Makefile
++++ b/arch/x86/pci/Makefile
+@@ -15,7 +15,7 @@ obj-$(CONFIG_X86_NUMAQ)		+= numaq_32.o
  
- 	pci_read_config_dword(dev, PCI_PRIMARY_BUS, &buses);
-+	primary = buses & 0xFF;
-+	secondary = (buses >> 8) & 0xFF;
-+	subordinate = (buses >> 16) & 0xFF;
+ obj-y				+= common.o early.o
+ obj-y				+= amd_bus.o
+-obj-$(CONFIG_X86_64)		+= bus_numa.o intel_bus.o
++obj-$(CONFIG_X86_64)		+= bus_numa.o
  
--	dev_dbg(&dev->dev, "scanning behind bridge, config %06x, pass %d\n",
--		buses & 0xffffff, pass);
-+	dev_dbg(&dev->dev, "scanning [bus %02x-%02x] behind bridge, pass %d\n",
-+		secondary, subordinate, pass);
- 
- 	/* Check if setup is sensible at all */
- 	if (!pass &&
--	    ((buses & 0xff) != bus->number || ((buses >> 8) & 0xff) <= bus->number)) {
-+	    (primary != bus->number || secondary <= bus->number)) {
- 		dev_dbg(&dev->dev, "bus configuration invalid, reconfiguring\n");
- 		broken = 1;
- 	}
-@@ -643,15 +647,15 @@ int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev *dev, int max,
- 	pci_write_config_word(dev, PCI_BRIDGE_CONTROL,
- 			      bctl & ~PCI_BRIDGE_CTL_MASTER_ABORT);
- 
--	if ((buses & 0xffff00) && !pcibios_assign_all_busses() && !is_cardbus && !broken) {
--		unsigned int cmax, busnr;
-+	if ((secondary || subordinate) && !pcibios_assign_all_busses() &&
-+	    !is_cardbus && !broken) {
-+		unsigned int cmax;
- 		/*
- 		 * Bus already configured by firmware, process it in the first
- 		 * pass and just note the configuration.
- 		 */
- 		if (pass)
- 			goto out;
--		busnr = (buses >> 8) & 0xFF;
- 
- 		/*
- 		 * If we already got to this bus through a different bridge,
-@@ -660,13 +664,13 @@ int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev *dev, int max,
- 		 * However, we continue to descend down the hierarchy and
- 		 * scan remaining child buses.
- 		 */
--		child = pci_find_bus(pci_domain_nr(bus), busnr);
-+		child = pci_find_bus(pci_domain_nr(bus), secondary);
- 		if (!child) {
--			child = pci_add_new_bus(bus, dev, busnr);
-+			child = pci_add_new_bus(bus, dev, secondary);
- 			if (!child)
- 				goto out;
--			child->primary = buses & 0xFF;
--			child->subordinate = (buses >> 16) & 0xFF;
-+			child->primary = primary;
-+			child->subordinate = subordinate;
- 			child->bridge_ctl = bctl;
- 		}
- 
+ ifeq ($(CONFIG_PCI_DEBUG),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff --git a/arch/x86/pci/intel_bus.c b/arch/x86/pci/intel_bus.c
+deleted file mode 100644
+index f81a2fa..0000000
+--- a/arch/x86/pci/intel_bus.c
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/*
+- * to read io range from IOH pci conf, need to do it after mmconfig is there
+- */
+-
+-#include <linux/delay.h>
+-#include <linux/dmi.h>
+-#include <linux/pci.h>
+-#include <linux/init.h>
+-#include <asm/pci_x86.h>
+-
+-#include "bus_numa.h"
+-
+-static inline void print_ioh_resources(struct pci_root_info *info)
+-{
+-	int res_num;
+-	int busnum;
+-	int i;
+-
+-	printk(KERN_DEBUG "IOH bus: [%02x, %02x]\n",
+-			info->bus_min, info->bus_max);
+-	res_num = info->res_num;
+-	busnum = info->bus_min;
+-	for (i = 0; i < res_num; i++) {
+-		struct resource *res;
+-
+-		res = &info->res[i];
+-		printk(KERN_DEBUG "IOH bus: %02x index %x %s: [%llx, %llx]\n",
+-			busnum, i,
+-			(res->flags & IORESOURCE_IO) ? "io port" :
+-							"mmio",
+-			res->start, res->end);
+-	}
+-}
+-
+-#define IOH_LIO			0x108
+-#define IOH_LMMIOL		0x10c
+-#define IOH_LMMIOH		0x110
+-#define IOH_LMMIOH_BASEU	0x114
+-#define IOH_LMMIOH_LIMITU	0x118
+-#define IOH_LCFGBUS		0x11c
+-
+-static void __devinit pci_root_bus_res(struct pci_dev *dev)
+-{
+-	u16 word;
+-	u32 dword;
+-	struct pci_root_info *info;
+-	u16 io_base, io_end;
+-	u32 mmiol_base, mmiol_end;
+-	u64 mmioh_base, mmioh_end;
+-	int bus_base, bus_end;
+-
+-	/* some sys doesn't get mmconf enabled */
+-	if (dev->cfg_size < 0x120)
+-		return;
+-
+-	if (pci_root_num >= PCI_ROOT_NR) {
+-		printk(KERN_DEBUG "intel_bus.c: PCI_ROOT_NR is too small\n");
+-		return;
+-	}
+-
+-	info = &pci_root_info[pci_root_num];
+-	pci_root_num++;
+-
+-	pci_read_config_word(dev, IOH_LCFGBUS, &word);
+-	bus_base = (word & 0xff);
+-	bus_end = (word & 0xff00) >> 8;
+-	sprintf(info->name, "PCI Bus #%02x", bus_base);
+-	info->bus_min = bus_base;
+-	info->bus_max = bus_end;
+-
+-	pci_read_config_word(dev, IOH_LIO, &word);
+-	io_base = (word & 0xf0) << (12 - 4);
+-	io_end = (word & 0xf000) | 0xfff;
+-	update_res(info, io_base, io_end, IORESOURCE_IO, 0);
+-
+-	pci_read_config_dword(dev, IOH_LMMIOL, &dword);
+-	mmiol_base = (dword & 0xff00) << (24 - 8);
+-	mmiol_end = (dword & 0xff000000) | 0xffffff;
+-	update_res(info, mmiol_base, mmiol_end, IORESOURCE_MEM, 0);
+-
+-	pci_read_config_dword(dev, IOH_LMMIOH, &dword);
+-	mmioh_base = ((u64)(dword & 0xfc00)) << (26 - 10);
+-	mmioh_end = ((u64)(dword & 0xfc000000) | 0x3ffffff);
+-	pci_read_config_dword(dev, IOH_LMMIOH_BASEU, &dword);
+-	mmioh_base |= ((u64)(dword & 0x7ffff)) << 32;
+-	pci_read_config_dword(dev, IOH_LMMIOH_LIMITU, &dword);
+-	mmioh_end |= ((u64)(dword & 0x7ffff)) << 32;
+-	update_res(info, mmioh_base, mmioh_end, IORESOURCE_MEM, 0);
+-
+-	print_ioh_resources(info);
+-}
+-
+-/* intel IOH */
+-DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x342e, pci_root_bus_res);
