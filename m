@@ -1,58 +1,53 @@
-From: Larry Finger <Larry.Finger@lwfinger.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Subject: Re: [PATCH v1 0/7] PCI: try enabling "pci=use_crs" again
-Date: Thu, 04 Feb 2010 16:36:34 -0600
-Message-ID: <4B6B4BF2.6080309@lwfinger.net>
+Date: Thu, 4 Feb 2010 15:55:26 -0700
+Message-ID: <201002041555.28365.bjorn.helgaas@hp.com>
 References: <20100203233617.10803.92102.stgit@bob.kio> <4B6A4F17.2080806@lwfinger.net> <201002041055.58953.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f224.google.com ([209.85.217.224]:57682 "EHLO
-	mail-gx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758479Ab0BDWgk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2010 17:36:40 -0500
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:8080 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757590Ab0BDWzc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2010 17:55:32 -0500
 In-Reply-To: <201002041055.58953.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Larry Finger <Larry.Finger@lwfinger.net>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On 02/04/2010 11:55 AM, Bjorn Helgaas wrote:
+On Thursday 04 February 2010 10:55:57 am Bjorn Helgaas wrote:
 > On Wednesday 03 February 2010 09:37:43 pm Larry Finger wrote:
->> On 02/03/2010 05:38 PM, Bjorn Helgaas wrote:
->>> Larry, you reported the problem the last time I tried to turn on "pci=use_crs"
->>> by default.  This series shouldn't affect your machine because it's not in the
->>> whitelist, but I expect that if you boot the current kernel with "pci=use_crs",
->>> it should still fail, and if you boot with these patches and "pci=use_crs", it
->>> *should* work.  I know it's a lot to ask, but it'd be great if you had a chance
->>> to try that.
->>
->> On my system, "git describe" returns v2.6.33-rc6-146-gc80d292. Patch 1 does not
->> apply and can be reverted. That is not a problem, but beginning with patch 5,
->> these do not apply.
-> 
-> Looks like you're using Linus' tree.  My patches go on top of Jesse's
-> PCI linux-next tree.  Here's how you can do this (assuming you have
-> stgit as well as git):
-> 
->   Save all the patches in files "/tmp/use-crs.1" through "/tmp/use-crs.7".
->   These can be plain email; you don't have to remove headers or
->   anything.
-> 
->   $ cd <git repo>
->   $ git branch
->   $ git fetch git://git.kernel.org/pub/scm/linux/kernel/git/jbarnes/pci-2.6.git linux-next
->   $ stg branch -c use-crs 0148b041be4e7
->   $ for F in `seq 7`; do stg import -m /tmp/use-crs.$F; done
-> 
-> Now you should have a tree with all the patches applied.
 
-That worked. I actually used quilt to apply the patches as I am more familiar
-with it. Patch #2 was already applied, but the rest applied cleanly.
+> > In addition to the above, my system now boots with "pci=use_crs", unlike when I
+> > filed the Bugzilla.
+> 
+> Huh.  From http://lkml.org/lkml/2009/6/24/11, I had assumed the main
+> problem was that we overflowed the 16-entry bus resource table, but
+> there must be more to it.
+> 
+> If you can build and boot the linux-next branch with my patches and
+> collect the dmesg log, maybe it will have a clue.  You can boot without
+> "pci=use_crs"; I don't think that will make any difference on your box.
 
-The patched version of the linux-next kernel booted fine. I put the dmesg output
-as "Attachment #24914  to bug 14183".
+Thanks for testing these and collecting the dmesg log
+(http://bugzilla.kernel.org/attachment.cgi?id=24914).  That
+log is from the PCI linux-next branch plus my patches, without
+using "pci=use_crs".
 
-Thanks for the help,
+On the current upstream (e.g., the c80d292 kernel you started with),
+we have PCI_BUS_NUM_RESOURCES == 16.  Your _CRS returns 17 windows
+(the "pci_root PNP0A08:00 host bridge window" lines), so when you
+boot with "pci=use_crs", we should be discarding the last window,
+which is an important one:
 
-Larry
+  pci_root PNP0A08:00: host bridge window [mem 0xc0000000-0xfebfffff]
+
+Can you collect the dmesg log from the c80d292 kernel with "pci=use_crs"?
+I'm sorry to trouble you for this, but it still looks to me like that
+should fail, so I'd really like to understand why it's working.
+
+Bjorn
