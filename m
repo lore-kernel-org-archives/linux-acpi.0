@@ -1,53 +1,222 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v1 0/7] PCI: try enabling "pci=use_crs" again
-Date: Thu, 4 Feb 2010 15:55:26 -0700
-Message-ID: <201002041555.28365.bjorn.helgaas@hp.com>
-References: <20100203233617.10803.92102.stgit@bob.kio> <4B6A4F17.2080806@lwfinger.net> <201002041055.58953.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] dell-laptop: Use buffer with 32-bit physical address
+Date: Thu,  4 Feb 2010 17:56:54 -0500
+Message-ID: <1265324214-7812-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:8080 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590Ab0BDWzc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2010 17:55:32 -0500
-In-Reply-To: <201002041055.58953.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from cavan.codon.org.uk ([93.93.128.6]:40107 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755091Ab0BDW6S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2010 17:58:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, stuart_hayes@dell.com
 
-On Thursday 04 February 2010 10:55:57 am Bjorn Helgaas wrote:
-> On Wednesday 03 February 2010 09:37:43 pm Larry Finger wrote:
+From: Stuart Hayes <stuart_hayes@dell.com>
 
-> > In addition to the above, my system now boots with "pci=use_crs", unlike when I
-> > filed the Bugzilla.
-> 
-> Huh.  From http://lkml.org/lkml/2009/6/24/11, I had assumed the main
-> problem was that we overflowed the 16-entry bus resource table, but
-> there must be more to it.
-> 
-> If you can build and boot the linux-next branch with my patches and
-> collect the dmesg log, maybe it will have a clue.  You can boot without
-> "pci=use_crs"; I don't think that will make any difference on your box.
+Calls to communicate with system firmware via a SMI (using dcdbas)
+need to use a buffer that has a physical address of 4GB or less.
+Currently the dell-laptop driver does not guarantee this, and when the
+buffer address is higher than 4GB, the address is truncated to 32 bits
+and the SMI handler writes to the wrong memory address.
 
-Thanks for testing these and collecting the dmesg log
-(http://bugzilla.kernel.org/attachment.cgi?id=24914).  That
-log is from the PCI linux-next branch plus my patches, without
-using "pci=use_crs".
+Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
+Acked-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/platform/x86/dell-laptop.c |   89 ++++++++++++++++++++++++-----------
+ 1 files changed, 61 insertions(+), 28 deletions(-)
 
-On the current upstream (e.g., the c80d292 kernel you started with),
-we have PCI_BUS_NUM_RESOURCES == 16.  Your _CRS returns 17 windows
-(the "pci_root PNP0A08:00 host bridge window" lines), so when you
-boot with "pci=use_crs", we should be discarding the last window,
-which is an important one:
+diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
+index 3780994..08d62c9 100644
+--- a/drivers/platform/x86/dell-laptop.c
++++ b/drivers/platform/x86/dell-laptop.c
+@@ -22,6 +22,7 @@
+ #include <linux/rfkill.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
++#include <linux/mm.h>
+ #include "../../firmware/dcdbas.h"
+ 
+ #define BRIGHTNESS_TOKEN 0x7d
+@@ -82,6 +83,20 @@ static const struct dmi_system_id __initdata dell_device_table[] = {
+ 	{ }
+ };
+ 
++static struct calling_interface_buffer *buffer;
++DEFINE_MUTEX(buffer_mutex);
++
++static void get_buffer(void)
++{
++	mutex_lock(&buffer_mutex);
++	memset(buffer, 0, sizeof(struct calling_interface_buffer));
++}
++
++static void release_buffer(void)
++{
++	mutex_unlock(&buffer_mutex);
++}
++
+ static void __init parse_da_table(const struct dmi_header *dm)
+ {
+ 	/* Final token is a terminator, so we don't want to copy it */
+@@ -184,26 +199,26 @@ dell_send_request(struct calling_interface_buffer *buffer, int class,
+ 
+ static int dell_rfkill_set(void *data, bool blocked)
+ {
+-	struct calling_interface_buffer buffer;
+ 	int disable = blocked ? 1 : 0;
+ 	unsigned long radio = (unsigned long)data;
+ 
+-	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+-	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
+-	dell_send_request(&buffer, 17, 11);
++	get_buffer();
++	buffer->input[0] = (1 | (radio<<8) | (disable << 16));
++	dell_send_request(buffer, 17, 11);
++	release_buffer();
+ 
+ 	return 0;
+ }
+ 
+ static void dell_rfkill_query(struct rfkill *rfkill, void *data)
+ {
+-	struct calling_interface_buffer buffer;
+ 	int status;
+ 	int bit = (unsigned long)data + 16;
+ 
+-	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+-	dell_send_request(&buffer, 17, 11);
+-	status = buffer.output[1];
++	get_buffer();
++	dell_send_request(buffer, 17, 11);
++	status = buffer->output[1];
++	release_buffer();
+ 
+ 	rfkill_set_sw_state(rfkill, !!(status & BIT(bit)));
+ 	rfkill_set_hw_state(rfkill, !(status & BIT(16)));
+@@ -298,39 +313,45 @@ static void dell_cleanup_rfkill(void)
+ 
+ static int dell_send_intensity(struct backlight_device *bd)
+ {
+-	struct calling_interface_buffer buffer;
+ 
+-	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+-	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
+-	buffer.input[1] = bd->props.brightness;
++	get_buffer();
++	buffer->input[0] = find_token_location(BRIGHTNESS_TOKEN);
++	buffer->input[1] = bd->props.brightness;
+ 
+-	if (buffer.input[0] == -1)
++	if (buffer->input[0] == -1) {
++		release_buffer();
+ 		return -ENODEV;
++	}
+ 
+ 	if (power_supply_is_system_supplied() > 0)
+-		dell_send_request(&buffer, 1, 2);
++		dell_send_request(buffer, 1, 2);
+ 	else
+-		dell_send_request(&buffer, 1, 1);
++		dell_send_request(buffer, 1, 1);
+ 
++	release_buffer();
+ 	return 0;
+ }
+ 
+ static int dell_get_intensity(struct backlight_device *bd)
+ {
+-	struct calling_interface_buffer buffer;
++	int ret;
+ 
+-	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+-	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
++	get_buffer();
++	buffer->input[0] = find_token_location(BRIGHTNESS_TOKEN);
+ 
+-	if (buffer.input[0] == -1)
++	if (buffer->input[0] == -1) {
++		release_buffer();
+ 		return -ENODEV;
++	}
+ 
+ 	if (power_supply_is_system_supplied() > 0)
+-		dell_send_request(&buffer, 0, 2);
++		dell_send_request(buffer, 0, 2);
+ 	else
+-		dell_send_request(&buffer, 0, 1);
++		dell_send_request(buffer, 0, 1);
+ 
+-	return buffer.output[1];
++	ret = buffer->output[1];
++	release_buffer();
++	return ret;
+ }
+ 
+ static struct backlight_ops dell_ops = {
+@@ -340,9 +361,9 @@ static struct backlight_ops dell_ops = {
+ 
+ static int __init dell_init(void)
+ {
+-	struct calling_interface_buffer buffer;
+ 	int max_intensity = 0;
+ 	int ret;
++	struct page *bufferpage;
+ 
+ 	if (!dmi_check_system(dell_device_table))
+ 		return -ENODEV;
+@@ -366,6 +387,15 @@ static int __init dell_init(void)
+ 	if (ret)
+ 		goto fail_platform_device2;
+ 
++	/*
++	 * Allocate buffer below 4GB for SMI data--only 32-bit physical addr
++	 * is passed to SMI handler.
++	 */
++	if (!(bufferpage = alloc_page(GFP_KERNEL | GFP_DMA32)))
++		return -ENOMEM;
++	buffer = page_address(bufferpage);
++	mutex_init(&buffer_mutex);
++
+ 	ret = dell_setup_rfkill();
+ 
+ 	if (ret) {
+@@ -381,13 +411,14 @@ static int __init dell_init(void)
+ 		return 0;
+ #endif
+ 
+-	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+-	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
++	get_buffer();
++	buffer->input[0] = find_token_location(BRIGHTNESS_TOKEN);
+ 
+-	if (buffer.input[0] != -1) {
+-		dell_send_request(&buffer, 0, 2);
+-		max_intensity = buffer.output[3];
++	if (buffer->input[0] != -1) {
++		dell_send_request(buffer, 0, 2);
++		max_intensity = buffer->output[3];
+ 	}
++	release_buffer();
+ 
+ 	if (max_intensity) {
+ 		dell_backlight_device = backlight_device_register(
+@@ -419,6 +450,7 @@ fail_platform_device1:
+ 	platform_driver_unregister(&platform_driver);
+ fail_platform_driver:
+ 	kfree(da_tokens);
++	free_page(buffer);
+ 	return ret;
+ }
+ 
+@@ -426,6 +458,7 @@ static void __exit dell_exit(void)
+ {
+ 	backlight_device_unregister(dell_backlight_device);
+ 	dell_cleanup_rfkill();
++	free_page(buffer);
+ }
+ 
+ module_init(dell_init);
+-- 
+1.6.6
 
-  pci_root PNP0A08:00: host bridge window [mem 0xc0000000-0xfebfffff]
-
-Can you collect the dmesg log from the c80d292 kernel with "pci=use_crs"?
-I'm sorry to trouble you for this, but it still looks to me like that
-should fail, so I'd really like to understand why it's working.
-
-Bjorn
