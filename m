@@ -1,61 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC] Possible suspend/resume problems with ACPI
-Date: Fri, 5 Feb 2010 00:02:30 +0100
-Message-ID: <201002050002.30647.rjw@sisk.pl>
+From: Jeff Garrett <jeff@jgarrett.org>
+Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
+Date: Fri, 5 Feb 2010 10:09:00 -0600
+Message-ID: <20100205160900.GA2736@jgarrett.org>
+References: <20100126084740.GA5265@jgarrett.org> <87y6jkee1b.fsf@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from jgarrett.org ([64.5.53.252]:55259 "EHLO jgarrett.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751252Ab0BEQJO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Feb 2010 11:09:14 -0500
+Content-Disposition: inline
+In-Reply-To: <87y6jkee1b.fsf@basil.nowhere.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi,
+On Tue, Jan 26, 2010 at 10:45:20PM +0100, Andi Kleen wrote:
+> jeff@jgarrett.org (Jeff Garrett) writes:
+> 
+> > Hi,
+> >
+> > I was trying to chase down a theory that my desktop machine (a core i7)
+> > is running warm (the fan sounds like it's at full speed all the time,
+> > and I think it's not always acted this way -- hence the theory).
+> >
+> > powertop is never showing it spending any time in C3...
+> >
+> > I compiled a kernel without USB/sound/radeon, and ran without X.  I was
+> > able to get the wakeups/sec down below 20, but no time is spent in C3.
+> 
+> [...]
+> > This may be a complete red herring, but I added some printk logic to
+> > acpi_idle_bm_check(), and it is getting called often, but bm_status is
+> > always 1.  [I infer from this that the idle logic is trying to go into
+> > C3, but this check is stopping it...  Unless I misread something.]
+> 
+> Normally a Core i7 (or any modern Intel systems) should not use
+> bm_check at all. That's only for older systems that didn't support
+> MWAIT with c-state hint, but relied on the old port based interface. 
 
-After I'd noticed the race between EC transactions and the suspend thread that
-the patch at http://patchwork.kernel.org/patch/76871/ is supposed to fix, I
-started to think about what ACPI does in the platform suspend/resume callbacks
-and I found a few potential issues.
+bm_check = 1, bm_control = 0
 
-First off, there's the issue addressed by http://patchwork.kernel.org/patch/76871/.
-I must admit I was afraid that CPU hotunplug might cause an EC transaction to
-happen on some systems, but I don't think that's the case any more.  At least,
-I didn't find any reason for that in the code, so I think the patch is correct.
-If you know of anything related to the CPU hotunplug that might result in
-triggering an EC transaction, please let me know.
+I don't know what any of this means.  :)
 
-Second, in the resume code path we execute _WAK after enabling the nonboot
-CPUs (we can't do that earlier, because the CPU hotplug uses _INI on some
-platforms and that crashes systems if executed after _WAK).  However, before
-executing _WAK we enable runtime GPEs, apparently because they might be needed
-to handle things possibly triggered by _WAK.  At lease there's a comment in
-acpi_leave_sleep_state() suggesting that.  The problem is, though, that at the
-point we execute _WAK the SCI is effectively inactive due to
-disable_device_irqs() called during suspend.
+I tried changing processor_idle.c.  It reads (for C3):
+1106                         state->enter = pr->flags.bm_check ?
+1107                                         acpi_idle_enter_bm :
+1108                                         acpi_idle_enter_simple;
 
-Now, that wouldn't be a problem if the interrupt was disabled at the hardware
-level, but it's not.  It only is marked as disabled, so if it triggers, we lose
-it.  Thus, although we enable the GPEs before executing _WAK, we won't get
-any notification from them because the SCI is not functional at this point.
-This seems to be wrong and IMO it should be addressed somehow.
+So it always calls acpi_idle_enter_bm in my case.  I tried modifying it
+to call acpi_idle_enter_simple for entering C3 instead.  When I did
+this, it did make it into C3 according to powertop, but the wakeups per
+second grew by at least 10x.  I couldn't get that below ~400-800/s, and
+the residency in C3 was limited to about ~50%, as reported by powertop.
 
-One possible solution may be to move the enabling of runtime GPEs and the
-execution of _WAK to the point where interrupts have been enabled by
-resume_device_irqs().  In that case, however, the powering off of PCI devices
-and the restoration of their standard config registers would happen before
-executing _WAK.  That doesn't seem to break my test boxes, but I'm not sure if
-it's going to work universally.
+> So something is already confused there.
 
-Similarly, it looks like during suspend we should disable runtime GPEs before
-suspend_device_irqs() is called, because it doesn't really make sense to keep
-them enabled after that point.  This, of course, would mean putting PCI devices
-into low power states with runtime GPEs disabled, but I don't think it would
-be a problem.  Still, though, I'm not sure if it makes sense to execute _PTS
-while runtime GPEs are disabled, so perhaps we'd also need to execute _PTS
-before suspend_device_irqs().
+Might just be me.  :)
 
-Please tell me what you think.
+> I think it should still work though.
+> Of course if you really have a lot of bus mastering in the background
+> then yes there will be no C3.
+> 
+> -Andi
 
-Rafael
+I have no idea what counts as bus mastering (is it just DMA transfers to
+PCI devices?)...  But with a fairly idle system, with things like USB
+configured out, what could be doing it if it exists?  Would there be
+some nice function I could instrument with a few printk's to, to see?  I
+compiled with PCI_DEBUG=y, and "bus master" doesn't show up in the
+dmesg.
+
+-Jeff
