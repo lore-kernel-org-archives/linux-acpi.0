@@ -1,60 +1,40 @@
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Subject: [PATCH] thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
-Date: Sun,  7 Feb 2010 16:32:07 -0200
-Message-ID: <1265567528-1180-1-git-send-email-cascardo@holoscopio.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Rotating tablet screen updates lid state but doesn't generate
+	an event
+Date: Sun, 7 Feb 2010 19:15:24 +0000
+Message-ID: <20100207191524.GA19835@srcf.ucam.org>
+References: <478B660B.3030706@cantab.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from liberdade.minaslivre.org ([72.232.254.139]:44291 "EHLO
-	liberdade.minaslivre.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab0BGShL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Feb 2010 13:37:11 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:40094 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932960Ab0BGTP3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Feb 2010 14:15:29 -0500
+Content-Disposition: inline
+In-Reply-To: <478B660B.3030706@cantab.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+To: Toby Cubitt <t.s.cubitt.98-dated-1200750052.7226bb@cantab.net>
+Cc: linux-acpi@vger.kernel.org
 
-Brightness notification does not work until the user writes to
-hotkey_mask attribute. That's because the polling thread will only run
-if hotkey_user_mask is set and someone is reading the input device or if
-hotkey_driver_mask is set. In this second case, this condition is not
-tested after the mask is changed, because the brightness and volume
-drivers are started after the hotkey drivers.
+On Mon, Jan 14, 2008 at 01:39:23PM +0000, Toby Cubitt wrote:
 
-This fix test for the polling condition that ends up starting the
-polling thread after hotkey_driver_mask is set in brightness and volume
-init functions.
+> So it seems as though acpi is correctly identifying closing the lid and
+> rotating the screen into tablet mode as two different types of events,
+> but isn't writing anything to /proc/acpi/event for the latter. On the
+> other hand, it is generating identical events for both opening the lid
+> and rotating the screen back to laptop mode.
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
----
- drivers/platform/x86/thinkpad_acpi.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+It's likely that your firmware sends some other sort of event for this. 
+There's nothing in the ACPI spec for handing tablet state changes, so it 
+tends to vary by vendor.
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index e67e4fe..d69749d 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -6272,6 +6272,11 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
- 				| TP_ACPI_HKEY_BRGHTUP_MASK
- 				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
-+
-+#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-+	hotkey_poll_setup(true);
-+#endif
-+
- 	return 0;
- }
- 
-@@ -6903,6 +6908,10 @@ static int __init volume_init(struct ibm_init_struct *iibm)
- 			| TP_ACPI_HKEY_VOLDWN_MASK
- 			| TP_ACPI_HKEY_MUTE_MASK);
- 
-+#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-+	hotkey_poll_setup(true);
-+#endif
-+
- 	return 0;
- }
- 
+> I'm happy to provide more information if it would be helpful, but I have
+> no experience at all in helping debug kernel code, so I'm not sure what
+> I should be telling you.
+
+Can you send a copy of the output of the acpidump command?
+
 -- 
-1.6.6.1
-
+Matthew Garrett | mjg59@srcf.ucam.org
