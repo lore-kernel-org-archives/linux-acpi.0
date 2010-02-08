@@ -1,118 +1,27 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 3/7] PCI: split up pci_read_bridge_bases()
-Date: Mon, 08 Feb 2010 15:44:33 -0700
-Message-ID: <20100208224433.27954.26233.stgit@bob.kio>
-References: <20100208224236.27954.4358.stgit@bob.kio>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 15242] New: Kernel won't boot with acpi in virtualbox
+Date: Mon, 8 Feb 2010 23:59:09 +0100
+Message-ID: <201002082359.09133.rjw@sisk.pl>
+References: <bug-15242-10286@http.bugzilla.kernel.org/> <20100208145148.f8d26c65.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100208224236.27954.4358.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100208145148.f8d26c65.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday 08 February 2010, Andrew Morton wrote:
+> On Sat, 6 Feb 2010 23:02:37 GMT
+> bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
+> 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=15242
+> 
+> 2.6.32.2 -> 2.6.32.4 acpi regression.
+> 
+> I guess.  It's in virtualbox, but it'd be sad to break that.
 
-No functional change; this breaks up pci_read_bridge_bases() into separate
-pieces for the I/O, memory, and prefetchable memory windows, similar to how
-Yinghai recently split up pci_setup_bridge() in 68e84ff3bdc.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
-
- drivers/pci/probe.c |   54 +++++++++++++++++++++++++++++++++++++--------------
- 1 files changed, 39 insertions(+), 15 deletions(-)
-
-
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 8d3df71..8c94650 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -281,26 +281,12 @@ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- 	}
- }
- 
--void __devinit pci_read_bridge_bases(struct pci_bus *child)
-+static void __devinit pci_read_bridge_io(struct pci_bus *child)
- {
- 	struct pci_dev *dev = child->self;
- 	u8 io_base_lo, io_limit_lo;
--	u16 mem_base_lo, mem_limit_lo;
- 	unsigned long base, limit;
- 	struct resource *res;
--	int i;
--
--	if (pci_is_root_bus(child))	/* It's a host bus, nothing to read */
--		return;
--
--	dev_info(&dev->dev, "PCI bridge to [bus %02x-%02x]%s\n",
--		 child->secondary, child->subordinate,
--		 dev->transparent ? " (subtractive decode)": "");
--
--	if (dev->transparent) {
--		for(i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
--			child->resource[i] = child->parent->resource[i - 3];
--	}
- 
- 	res = child->resource[0];
- 	pci_read_config_byte(dev, PCI_IO_BASE, &io_base_lo);
-@@ -328,6 +314,14 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
- 			 "  bridge window [io  %#06lx-%#06lx] (disabled)\n",
- 				 base, limit);
- 	}
-+}
-+
-+static void __devinit pci_read_bridge_mmio(struct pci_bus *child)
-+{
-+	struct pci_dev *dev = child->self;
-+	u16 mem_base_lo, mem_limit_lo;
-+	unsigned long base, limit;
-+	struct resource *res;
- 
- 	res = child->resource[1];
- 	pci_read_config_word(dev, PCI_MEMORY_BASE, &mem_base_lo);
-@@ -344,6 +338,14 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
- 			"  bridge window [mem %#010lx-%#010lx] (disabled)\n",
- 					 base, limit + 0xfffff);
- 	}
-+}
-+
-+static void __devinit pci_read_bridge_mmio_pref(struct pci_bus *child)
-+{
-+	struct pci_dev *dev = child->self;
-+	u16 mem_base_lo, mem_limit_lo;
-+	unsigned long base, limit;
-+	struct resource *res;
- 
- 	res = child->resource[2];
- 	pci_read_config_word(dev, PCI_PREF_MEMORY_BASE, &mem_base_lo);
-@@ -389,6 +391,28 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
- 	}
- }
- 
-+void __devinit pci_read_bridge_bases(struct pci_bus *child)
-+{
-+	struct pci_dev *dev = child->self;
-+	int i;
-+
-+	if (pci_is_root_bus(child))	/* It's a host bus, nothing to read */
-+		return;
-+
-+	dev_info(&dev->dev, "PCI bridge to [bus %02x-%02x]%s\n",
-+		 child->secondary, child->subordinate,
-+		 dev->transparent ? " (subtractive decode)": "");
-+
-+	if (dev->transparent) {
-+		for(i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
-+			child->resource[i] = child->parent->resource[i - 3];
-+	}
-+
-+	pci_read_bridge_io(child);
-+	pci_read_bridge_mmio(child);
-+	pci_read_bridge_mmio_pref(child);
-+}
-+
- static struct pci_bus * pci_alloc_bus(void)
- {
- 	struct pci_bus *b;
+I guess linux-acpi would like to know about that too.
