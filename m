@@ -1,35 +1,70 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH v1 3/7] PCI: split up pci_read_bridge_bases()
-Date: Mon, 8 Feb 2010 11:59:24 -0800
-Message-ID: <20100208115924.5a817027@jbarnes-piketon>
-References: <20100203233617.10803.92102.stgit@bob.kio>
-	<20100203233910.10803.74241.stgit@bob.kio>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v2 0/7] PCI: try "pci=use_crs" again
+Date: Mon, 08 Feb 2010 15:44:18 -0700
+Message-ID: <20100208224236.27954.4358.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100203233910.10803.74241.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 03 Feb 2010 16:39:11 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+Historically, Linux has assumed a single PCI host bridge, with that bridge
+claiming all the address space left after RAM and legacy devices are taken out.
 
-> 
-> No functional change; this breaks up pci_read_bridge_bases() into
-> separate pieces for the I/O, memory, and prefetchable memory windows,
-> similar to how Yinghai recently split up pci_setup_bridge() in
-> 68e84ff3bdc.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
+If the system contains multiple host bridges, we can no longer operate under
+that assumption.  We have to know what parts of the address space are claimed
+by each bridge so that when we assign resources to a PCI device, we take them
+from a range claimed by the upstream host bridge.
 
-This one conflicts a bit with Yinghai's recent stuff.  Can you respin
-against my linux-next branch?  May as well do the whole series, then
-I'll just apply it in one go.
+We use ACPI to enumerate all the PCI host bridges in the system, and part of
+the host bridge description is the "_CRS" (current resource settings" property,
+which lists the address space used by the bridge.  On x86, we currently ignore
+most of the _CRS information.  This patch series changes this, so we will use
+_CRS to learn about the host bridge windows.
 
-Thanks,
--- 
-Jesse Barnes, Intel Open Source Technology Center
+Since most x86 machines with multiple host bridges are relatively new, this
+series only turns this on for machines with BIOS dates of 2010 or newer and for
+a few machines we know to require it.
+
+These apply on be6e9f7853e.  I added an initial patch to clean up the
+formatting of the disabled window printk.
+
+Changes since v1:
+    - rebase to be6e9f7853e
+    - add patch to clean up "disabled window" printk
+    - add bugzilla reference comment in use_crs DMI quirk
+
+---
+
+Bjorn Helgaas (7):
+      PCI: make disabled window printk style match the enabled ones
+      PCI: break out primary/secondary/subordinate for readability
+      PCI: split up pci_read_bridge_bases()
+      PCI: read bridge windows before filling in subtractive decode resources
+      PCI: replace bus resource table with a list
+      x86/PCI: use host bridge _CRS info by default on 2010 and newer machines
+      PCI: reference bridge window resources explicitly
+
+
+ Documentation/kernel-parameters.txt |    8 +-
+ arch/ia64/include/asm/acpi.h        |    1 
+ arch/ia64/pci/pci.c                 |   20 ++--
+ arch/x86/include/asm/pci_x86.h      |    1 
+ arch/x86/pci/acpi.c                 |  105 +++++++++++++++-------
+ arch/x86/pci/bus_numa.c             |    9 +-
+ arch/x86/pci/common.c               |    3 +
+ drivers/acpi/pci_root.c             |    1 
+ drivers/pci/bus.c                   |   50 ++++++++++
+ drivers/pci/hotplug/shpchp_sysfs.c  |   15 ++-
+ drivers/pci/pci.c                   |    6 +
+ drivers/pci/probe.c                 |  108 +++++++++++++++--------
+ drivers/pci/quirks.c                |    4 -
+ drivers/pci/setup-bus.c             |  168 ++++++++++++++++++-----------------
+ drivers/pcmcia/rsrc_nonstatic.c     |    7 +
+ drivers/pcmcia/yenta_socket.c       |   46 ++++++----
+ include/acpi/acpi_drivers.h         |    1 
+ include/linux/pci.h                 |   27 ++++--
+ 18 files changed, 370 insertions(+), 210 deletions(-)
