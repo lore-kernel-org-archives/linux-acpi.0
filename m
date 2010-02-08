@@ -1,53 +1,109 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH v2 0/7] PCI: try "pci=use_crs" again
-Date: Mon, 8 Feb 2010 15:08:34 -0800
-Message-ID: <20100208150834.17756314@jbarnes-piketon>
-References: <20100208224236.27954.4358.stgit@bob.kio>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] thinkpad-acpi: setup hotkey polling after changing
+ hotkey_driver_mask
+Date: Mon, 8 Feb 2010 15:50:59 -0800
+Message-ID: <20100208155059.eed393a6.akpm@linux-foundation.org>
+References: <1265567528-1180-1-git-send-email-cascardo@holoscopio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100208224236.27954.4358.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47319 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752897Ab0BHXvW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2010 18:51:22 -0500
+In-Reply-To: <1265567528-1180-1-git-send-email-cascardo@holoscopio.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-On Mon, 08 Feb 2010 15:44:18 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+On Sun,  7 Feb 2010 16:32:07 -0200
+Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com> wrote:
 
-> Historically, Linux has assumed a single PCI host bridge, with that
-> bridge claiming all the address space left after RAM and legacy
-> devices are taken out.
+> Brightness notification does not work until the user writes to
+> hotkey_mask attribute. That's because the polling thread will only run
+> if hotkey_user_mask is set and someone is reading the input device or if
+> hotkey_driver_mask is set. In this second case, this condition is not
+> tested after the mask is changed, because the brightness and volume
+> drivers are started after the hotkey drivers.
 > 
-> If the system contains multiple host bridges, we can no longer
-> operate under that assumption.  We have to know what parts of the
-> address space are claimed by each bridge so that when we assign
-> resources to a PCI device, we take them from a range claimed by the
-> upstream host bridge.
+> This fix test for the polling condition that ends up starting the
+> polling thread after hotkey_driver_mask is set in brightness and volume
+> init functions.
 > 
-> We use ACPI to enumerate all the PCI host bridges in the system, and
-> part of the host bridge description is the "_CRS" (current resource
-> settings" property, which lists the address space used by the
-> bridge.  On x86, we currently ignore most of the _CRS information.
-> This patch series changes this, so we will use _CRS to learn about
-> the host bridge windows.
+> Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+> ---
+>  drivers/platform/x86/thinkpad_acpi.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
 > 
-> Since most x86 machines with multiple host bridges are relatively
-> new, this series only turns this on for machines with BIOS dates of
-> 2010 or newer and for a few machines we know to require it.
-> 
-> These apply on be6e9f7853e.  I added an initial patch to clean up the
-> formatting of the disabled window printk.
-> 
-> Changes since v1:
->     - rebase to be6e9f7853e
->     - add patch to clean up "disabled window" printk
->     - add bugzilla reference comment in use_crs DMI quirk
+> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> index e67e4fe..d69749d 100644
+> --- a/drivers/platform/x86/thinkpad_acpi.c
+> +++ b/drivers/platform/x86/thinkpad_acpi.c
+> @@ -6272,6 +6272,11 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+>  	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
+>  				| TP_ACPI_HKEY_BRGHTUP_MASK
+>  				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
+> +
+> +#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+> +	hotkey_poll_setup(true);
+> +#endif
+> +
+>  	return 0;
+>  }
+>  
+> @@ -6903,6 +6908,10 @@ static int __init volume_init(struct ibm_init_struct *iibm)
+>  			| TP_ACPI_HKEY_VOLDWN_MASK
+>  			| TP_ACPI_HKEY_MUTE_MASK);
+>  
+> +#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+> +	hotkey_poll_setup(true);
+> +#endif
+> +
+>  	return 0;
+>  }
 
-A 2010 default is probably too conservative, but we can always add a
-whitelist or change the default later.  Applied the series to my
-linux-next branch, thanks.
+Something like this is needed, methinks:
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+- Avoid ifdefs
+
+- Make sure that hotkey_mutex is held when calling hotkey_poll_setup:
+  use hotkey_poll_setup_safe.  Doesn't matter much in __init code.
+
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -2597,6 +2597,10 @@ static void hotkey_poll_set_freq(unsigne
+ 
+ #else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
+ 
++static void hotkey_poll_setup(bool __unused)
++{
++}
++
+ static void hotkey_poll_setup_safe(bool __unused)
+ {
+ }
+@@ -2694,9 +2698,7 @@ static ssize_t hotkey_mask_store(struct 
+ 
+ 	res = hotkey_user_mask_set(t);
+ 
+-#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+ 	hotkey_poll_setup(true);
+-#endif
+ 
+ 	mutex_unlock(&hotkey_mutex);
+ 
+@@ -6273,9 +6275,7 @@ static int __init brightness_init(struct
+ 				| TP_ACPI_HKEY_BRGHTUP_MASK
+ 				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
+ 
+-#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+-	hotkey_poll_setup(true);
+-#endif
++	hotkey_poll_setup_safe(true);
+ 
+ 	return 0;
+ }
+_
+
