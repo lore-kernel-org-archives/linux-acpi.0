@@ -1,46 +1,89 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: setup hotkey polling after changing
- hotkey_driver_mask
-Date: Tue, 9 Feb 2010 23:28:22 -0200
-Message-ID: <20100210012821.GA7710@khazad-dum.debian.net>
-References: <1265567528-1180-1-git-send-email-cascardo@holoscopio.com>
- <20100209003706.GC21680@khazad-dum.debian.net>
- <20100209013736.GE21680@khazad-dum.debian.net>
- <20100210001651.GA1422@holoscopio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] thinkpad-acpi: make driver events work in NVRAM poll mode
+Date: Wed, 10 Feb 2010 00:28:58 -0200
+Message-ID: <1265768938-12260-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:50159 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:58517 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944Ab0BJB20 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2010 20:28:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20100210001651.GA1422@holoscopio.com>
+	by vger.kernel.org with ESMTP id S1754982Ab0BJC3R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2010 21:29:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andrew Morton <akpm@linux-foundation.org>
 
-On Tue, 09 Feb 2010, Thadeu Lima de Souza Cascardo wrote:
-> Sorry for the delay. Takes a while to build a kernel in my old notebook
-> with a not-so-large config.
+Thadeu Lima de Souza Cascardo reports this:
 
-Heh, I know how you feel.  Maybe you can use distcc to offload the worst of
-the work to a more powerful box?
+Brightness notification does not work until the user writes to
+hotkey_mask attribute.  That's because the polling thread will only run
+if hotkey_user_mask is set and someone is reading the input device or
+if hotkey_driver_mask is set.  In this second case, this condition is
+not tested after the mask is changed, because the brightness and
+volume drivers are started after the hotkey drivers.
 
-> It works nice for me. This was a fix that has crossed my mind, but since
-> other init was doing the other way (hotkey_init), I did prefer that too.
-> Anyway, your way is cleaner and the right way.  :-)
+Fix tpacpi_hotkey_driver_mask_set() to call hotkey_poll_setup(), so
+that the poller kthread will be started when needed.
 
-hotkey_* kinda "owns" the event interface, so it is allowed some liberties I
-try to avoid in the other parts of the driver :)
+Reported-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Tested-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+---
+ drivers/platform/x86/thinkpad_acpi.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
 
-> Tested-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-
-Thank you.  I will forward it to Len.
-
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 933bcc4..5f45083 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -2082,6 +2082,7 @@ static struct attribute_set *hotkey_dev_attributes;
+ 
+ static void tpacpi_driver_event(const unsigned int hkey_event);
+ static void hotkey_driver_event(const unsigned int scancode);
++static void hotkey_poll_setup(const bool may_warn);
+ 
+ /* HKEY.MHKG() return bits */
+ #define TP_HOTKEY_TABLET_MASK (1 << 3)
+@@ -2264,6 +2265,8 @@ static int tpacpi_hotkey_driver_mask_set(const u32 mask)
+ 
+ 	rc = hotkey_mask_set((hotkey_acpi_mask | hotkey_driver_mask) &
+ 							~hotkey_source_mask);
++	hotkey_poll_setup(true);
++
+ 	mutex_unlock(&hotkey_mutex);
+ 
+ 	return rc;
+@@ -2548,7 +2551,7 @@ static void hotkey_poll_stop_sync(void)
+ }
+ 
+ /* call with hotkey_mutex held */
+-static void hotkey_poll_setup(bool may_warn)
++static void hotkey_poll_setup(const bool may_warn)
+ {
+ 	const u32 poll_driver_mask = hotkey_driver_mask & hotkey_source_mask;
+ 	const u32 poll_user_mask = hotkey_user_mask & hotkey_source_mask;
+@@ -2579,7 +2582,7 @@ static void hotkey_poll_setup(bool may_warn)
+ 	}
+ }
+ 
+-static void hotkey_poll_setup_safe(bool may_warn)
++static void hotkey_poll_setup_safe(const bool may_warn)
+ {
+ 	mutex_lock(&hotkey_mutex);
+ 	hotkey_poll_setup(may_warn);
+@@ -2597,7 +2600,11 @@ static void hotkey_poll_set_freq(unsigned int freq)
+ 
+ #else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
+ 
+-static void hotkey_poll_setup_safe(bool __unused)
++static void hotkey_poll_setup(const bool __unused)
++{
++}
++
++static void hotkey_poll_setup_safe(const bool __unused)
+ {
+ }
+ 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.6.5.7
+
