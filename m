@@ -1,54 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] drivers/acpi/processor_thermal.c
-Date: Thu, 11 Feb 2010 12:04:50 +0100
-Message-ID: <201002111204.50843.trenn@suse.de>
-References: <1265882211.27789.1.camel@ICE-BOX> <201002111124.51070.trenn@suse.de> <Pine.LNX.4.64.1002111150510.2412@ask.diku.dk>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: hp-wmi and hp dv9000
+Date: Thu, 11 Feb 2010 11:22:10 +0000
+Message-ID: <9b2b86521002110322j5b3e4fc4mbf3fa02a19c791c6@mail.gmail.com>
+References: <87wrylwizo.wl%peterc@chubb.wattle.id.au>
+	 <4B72A784.2020004@tuffmail.co.uk>
+	 <876364ycyl.wl%peterc@chubb.wattle.id.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56878 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306Ab0BKLEx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Feb 2010 06:04:53 -0500
-In-Reply-To: <Pine.LNX.4.64.1002111150510.2412@ask.diku.dk>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:58749 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428Ab0BKLWM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Feb 2010 06:22:12 -0500
+Received: by bwz19 with SMTP id 19so230222bwz.28
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Feb 2010 03:22:10 -0800 (PST)
+In-Reply-To: <876364ycyl.wl%peterc@chubb.wattle.id.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: Darren Jenkins <darrenrjenkins@gmail.com>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Andrew Morton <akpm@linux-foundation.org>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Janitors <kernel-janitors@vger.kernel.org>
+To: Peter Chubb <peter.chubb@nicta.com.au>
+Cc: Matthew Garrett <mjg@redhat.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thursday 11 February 2010 11:52:20 Julia Lawall wrote:
-> On Thu, 11 Feb 2010, Thomas Renninger wrote:
-> 
-> > Eh, 
-> > 
-> > what is this for?:
-> > static inline void *acpi_driver_data(struct acpi_device *d)
-> > {
-> >         return d->driver_data;
-> > }
-...
-> 
-> A potential patch that gets rid of the uses is below.  I don't have time 
-> to look at this in more detail at the moment, but perhaps someone else 
-> would like to do so.  The semantic patch (http://coccinelle.lip6.fr) 
-> involved is:
-> 
-> @@
-> struct acpi_device *d;
-> @@
-> 
-> - acpi_driver_data(d)
-> + d->driver_data
-Len, do you mind adding this to your test branch, please.
-I can grep over it afterwards (somewhen...) and void out
-acpi_driver_data(..)
-declaration in acpi_bus.h.
+On 2/10/10, Peter Chubb <peter.chubb@nicta.com.au> wrote:
+>>>>>> "Alan" == Alan Jenkins <alan-jenkins@tuffmail.co.uk> writes:
+>
+> Alan> Peter Chubb wrote:
+>>> Hi Alan.  I noticed you were last working on hp-wmi.  I'm finding
+>>> that if I load hp-wmi then the wireless network does not work ---
+>>> dmesg output always says `iwlagn 0000:02:00: Radio disabled by HW
+>>> RF Kill switch' regardless of the position of the switch.
+>
+> I've discovered that if I load the rfkill module *before* hp-wmi then
+> everything works properly.
 
-I expect also Darren has to rebase his fixes on top of this
-one then.
+Can you show me what "udevadm monitor -ke" reports in both cases?  Use
+one of the 2.6.33-rc kernels, and show me your kernel config.
 
-Thanks,
+> Maybe there's a missing dependency?
 
-     Thomas
+If you've built the rfkill module, "modprobe hp-wmi" should load it
+automatically.  If it didn't, then hp-wmi would fail to load.  So it
+sounds more like a race condition.
+
+> I
+> hadn't even been building the rfkill input module before --- it
+> doesn't get automatically selected.
+
+Um.  rfkill-input is no longer a separate module.  You can disable it
+individually, *if* you have CONFIG_EMBEDDED enabled.  If that causes
+problems, we need to fix that as well (because rfkill-input is
+theoretically going away).
+
+Or perhaps you have rfkill as a whole disabled?  In that case, we'd
+expect that hp-wmi wouldn't have any effect on the wireless.  If it
+does, that's also a bug (albeit a more obscure one with an easy
+workaround).
+
+Regards
+Alan
