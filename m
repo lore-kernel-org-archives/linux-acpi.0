@@ -1,90 +1,99 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: mmotm 2010-02-10 - lockdep whinge in ACPI code
-Date: Thu, 11 Feb 2010 07:01:00 -0800
-Message-ID: <20100211150100.GA23984@kroah.com>
-References: <201002110043.o1B0hKxW008835@imap1.linux-foundation.org> <5114.1265865104@localhost> <20100210212655.7784dc5b.akpm@linux-foundation.org>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [RFC][PATCH 0/3] Introduce GPE refcounting (was: Re: Recent
+ GPE patches - some questions.)
+Date: Thu, 11 Feb 2010 19:36:13 +0200
+Message-ID: <1265909773.9788.12.camel@maxim-laptop>
+References: <4911F71203A09E4D9981D27F9D83085855AF782E@orsmsx503.amr.corp.intel.com>
+	 <201002070317.47029.rjw@sisk.pl> <1265837393.8599.2.camel@maxim-laptop>
+	 <201002102236.34881.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:51472 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755837Ab0BKPBs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Feb 2010 10:01:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20100210212655.7784dc5b.akpm@linux-foundation.org>
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:33409 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801Ab0BKRg3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Feb 2010 12:36:29 -0500
+Received: by fxm7 with SMTP id 7so1494912fxm.28
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Feb 2010 09:36:28 -0800 (PST)
+In-Reply-To: <201002102236.34881.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Valdis.Kletnieks@vt.edu, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Kay Sievers <kay.sievers@vrfy.org>, Thomas Gleixner <tglx@linutronix.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Wed, Feb 10, 2010 at 09:26:55PM -0800, Andrew Morton wrote:
-> On Thu, 11 Feb 2010 00:11:44 -0500 Valdis.Kletnieks@vt.edu wrote:
+On Wed, 2010-02-10 at 22:36 +0100, Rafael J. Wysocki wrote: 
+> On Wednesday 10 February 2010, Maxim Levitsky wrote:
+> > On Sun, 2010-02-07 at 03:17 +0100, Rafael J. Wysocki wrote: 
+> > > On Sunday 07 February 2010, Rafael J. Wysocki wrote:
+> > > > Hi,
+> > > > 
+> > > > On Wednesday 03 February 2010, Moore, Robert wrote:
+> > > > > Matthew, 
+> > > > > 
+> > > > > Thanks for your response to my questions.
+> > > > > 
+> > > > > I've been thinking about these interfaces:
+> > > > > 
+> > > > > acpi_ref_runtime_gpe
+> > > > > acpi_ref_wakeup_gpe
+> > > > > acpi_unref_runtime_gpe
+> > > > > acpi_unref_wakeup_gpe
+> > > > > 
+> > 
+> > One minor, mostly off-topic question.
+> > Currently to enable static wakeup one has to write /proc/acpi/wakeup.
 > 
-> > On Wed, 10 Feb 2010 16:17:41 PST, akpm@linux-foundation.org said:
-> > > The mm-of-the-moment snapshot 2010-02-10-16-17 has been uploaded to
-> > > 
-> > >    http://userweb.kernel.org/~akpm/mmotm/
-> > 
-> > Seen at boot:
-> > 
-> > [    0.207242] ACPI: (supports S0 S5)
-> > [    0.207257] ACPI: Using IOAPIC for interrupt routing
-> > [    0.335315] 
-> > [    0.335316] =============================================
-> > [    0.335483] [ INFO: possible recursive locking detected ]
-> > [    0.335572] 2.6.33-rc7-mmotm0210 #1
-> > [    0.335658] ---------------------------------------------
-> > [    0.335746] swapper/1 is trying to acquire lock:
-> > [    0.335834]  (&dev->mutex){+.+...}, at: [<ffffffff812eb521>] __driver_attach+0x47/0x80
-> > [    0.335999] 
-> > [    0.335999] but task is already holding lock:
-> > [    0.335999]  (&dev->mutex){+.+...}, at: [<ffffffff812eb513>] __driver_attach+0x39/0x80
-> > [    0.335999] 
-> > [    0.335999] other info that might help us debug this:
-> > [    0.335999] 1 lock held by swapper/1:
-> > [    0.335999]  #0:  (&dev->mutex){+.+...}, at: [<ffffffff812eb513>] __driver_attach+0x39/0x80
-> > [    0.335999] 
-> > [    0.335999] stack backtrace:
-> > [    0.335999] Pid: 1, comm: swapper Not tainted 2.6.33-rc7-mmotm0210 #1
-> > [    0.335999] Call Trace:
-> > [    0.335999]  [<ffffffff81063b47>] __lock_acquire+0xc77/0xcee
-> > [    0.335999]  [<ffffffff81061fad>] ? mark_lock+0x2d/0x22c
-> > [    0.335999]  [<ffffffff812eb521>] ? __driver_attach+0x47/0x80
-> > [    0.335999]  [<ffffffff81063c89>] lock_acquire+0xcb/0xe8
-> > [    0.335999]  [<ffffffff812eb521>] ? __driver_attach+0x47/0x80
-> > [    0.335999]  [<ffffffff810621fe>] ? mark_held_locks+0x52/0x70
-> > [    0.335999]  [<ffffffff81568c9d>] __mutex_lock_common+0x5c/0x5aa
-> > [    0.335999]  [<ffffffff812eb521>] ? __driver_attach+0x47/0x80
-> > [    0.335999]  [<ffffffff815583f8>] ? klist_next+0x24/0xd7
-> > [    0.335999]  [<ffffffff812eb521>] ? __driver_attach+0x47/0x80
-> > [    0.335999]  [<ffffffff812eb4da>] ? __driver_attach+0x0/0x80
-> > [    0.335999]  [<ffffffff81569291>] mutex_lock_nested+0x34/0x39
-> > [    0.335999]  [<ffffffff812eb521>] __driver_attach+0x47/0x80
-> > [    0.335999]  [<ffffffff812eb4da>] ? __driver_attach+0x0/0x80
-> > [    0.335999]  [<ffffffff812eb4da>] ? __driver_attach+0x0/0x80
-> > [    0.335999]  [<ffffffff812eaa43>] bus_for_each_dev+0x54/0x89
-> > [    0.335999]  [<ffffffff812eb28a>] driver_attach+0x19/0x1b
-> > [    0.335999]  [<ffffffff812eaed5>] bus_add_driver+0xb4/0x203
-> > [    0.335999]  [<ffffffff812eb833>] driver_register+0xb8/0x129
-> > [    0.335999]  [<ffffffff81231604>] acpi_bus_register_driver+0x3e/0x40
-> > [    0.335999]  [<ffffffff81b45094>] acpi_ec_init+0x37/0x55
-> > [    0.335999]  [<ffffffff81b44ef1>] acpi_init+0x115/0x12a
-> > [    0.335999]  [<ffffffff81b44ddc>] ? acpi_init+0x0/0x12a
-> > [    0.335999]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
-> > [    0.335999]  [<ffffffff81b26655>] kernel_init+0x14d/0x1a3
-> > [    0.335999]  [<ffffffff81003354>] kernel_thread_helper+0x4/0x10
-> > [    0.335999]  [<ffffffff8156b0c0>] ? restore_args+0x0/0x30
-> > [    0.335999]  [<ffffffff81b26508>] ? kernel_init+0x0/0x1a3
-> > [    0.335999]  [<ffffffff81003350>] ? kernel_thread_helper+0x0/0x10
-> > [    0.340036] ACPI: EC: GPE = 0x11, I/O: command/status = 0x934, data = 0x930
-> > 
+> That depends on the device.  For PCI devices there's another interface for
+> that, which is /sys/devices/.../power/wakeup .
 > 
-> driver_attach() got converted from sem to mutex in linux-next.  So this
-> is probably an old bug which just got exposed.
+> > Do you consider propagating device wakeup settings to acpi,
+> > so /proc/acpi/wakeup could finally be deprecated?
+> 
+> We already do that for PCI devices.
 
-Odds are it is not a bug, I need to revert that patch as it does not
-work well (i.e. at all) with lockdep.
+Not in 2.6.33-rc6
 
-thanks,
+maxim@maxim-laptop:~$ cat /proc/acpi/wakeup 
+Device S-state   Status   Sysfs node
+UHC1   S3 disabled  pci:0000:00:1d.0
+UHC2   S3 disabled  pci:0000:00:1d.1
+UHC3   S3 disabled  pci:0000:00:1d.2
+UHC4   S3 disabled  pci:0000:00:1a.0
+UHC5   S3 disabled  pci:0000:00:1a.1
+EHC1   S3 disabled  pci:0000:00:1d.7
+EHC2   S3 disabled  pci:0000:00:1a.7
+EXP3   S4 disabled  pci:0000:00:1c.2
+EXP5   S4 disabled  
+EXP6   S4 disabled  
+AZAL   S4 disabled  pci:0000:00:1b.0
+MODM   S4 disabled  
 
-greg k-h
+maxim@maxim-laptop:~$ echo enabled | sudo tee  /sys/devices/pci0000
+\:00/0000\:00\:1d.0/power/wakeup 
+enabled
+
+cat /sys/devices/pci0000\:00/0000\:00\:1d.0/power/wakeup enabled
+
+
+maxim@maxim-laptop:~$ cat /proc/acpi/wakeup 
+Device S-state   Status   Sysfs node
+UHC1   S3 disabled  pci:0000:00:1d.0
+UHC2   S3 disabled  pci:0000:00:1d.1
+UHC3   S3 disabled  pci:0000:00:1d.2
+UHC4   S3 disabled  pci:0000:00:1a.0
+UHC5   S3 disabled  pci:0000:00:1a.1
+EHC1   S3 disabled  pci:0000:00:1d.7
+EHC2   S3 disabled  pci:0000:00:1a.7
+EXP3   S4 disabled  pci:0000:00:1c.2
+EXP5   S4 disabled  
+EXP6   S4 disabled  
+AZAL   S4 disabled  pci:0000:00:1b.0
+MODM   S4 disabled  
+
+
+Or am I mistaken somehow?
+
+Best regards,
+Maxim Levitsky
+
