@@ -1,60 +1,67 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 5/7] PCI: make disabled window printk style match the
-	enabled ones
-Date: Fri, 12 Feb 2010 10:00:12 -0700
-Message-ID: <20100212170012.19522.29589.stgit@bob.kio>
-References: <20100212165532.19522.47240.stgit@bob.kio>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [lm-sensors] Core i3 support?
+Date: Fri, 12 Feb 2010 10:52:41 -0800
+Message-ID: <20100212185241.GJ29604@tux1.beaverton.ibm.com>
+References: <20100210154404.45e8afd6@hyperion.delvare> <d35bed621002100703s52296ad0v53fe375f777e55ee@mail.gmail.com> <20100210180116.GG29604@tux1.beaverton.ibm.com> <d35bed621002101007y639fd3c7k736ef53ff400f79@mail.gmail.com> <20100210204057.2ca95b0d@hyperion.delvare> <d35bed621002101223ida7758fp5ccbedfe25bd3148@mail.gmail.com> <20100211012105.GH29604@tux1.beaverton.ibm.com> <d35bed621002102333i701a212re957efb600cbda5f@mail.gmail.com> <20100211091743.287030b0@hyperion.delvare> <d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-alpha-owner@vger.kernel.org>
-In-Reply-To: <20100212165532.19522.47240.stgit@bob.kio>
-Sender: linux-alpha-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, linux-alpha@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e39.co.us.ibm.com ([32.97.110.160]:34834 "EHLO
+	e39.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756259Ab0BLSxA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2010 13:53:00 -0500
+Received: from d03relay03.boulder.ibm.com (d03relay03.boulder.ibm.com [9.17.195.228])
+	by e39.co.us.ibm.com (8.14.3/8.13.1) with ESMTP id o1CIjOoB011367
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2010 11:45:24 -0700
+Received: from d03av02.boulder.ibm.com (d03av02.boulder.ibm.com [9.17.195.168])
+	by d03relay03.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id o1CIqiha100564
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2010 11:52:46 -0700
+Received: from d03av02.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av02.boulder.ibm.com (8.14.3/8.13.1/NCO v10.0 AVout) with ESMTP id o1CIqfsp015368
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2010 11:52:44 -0700
+Content-Disposition: inline
+In-Reply-To: <d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "D. Can Celasun" <dcelasun@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
+On Thu, Feb 11, 2010 at 06:42:28PM +0200, D. Can Celasun wrote:
+> On 11 February 2010 10:17, Jean Delvare <khali@linux-fr.org> wrote:
+> 
+> > > On 11 February 2010 03:21, Darrick J. Wong <djwong@us.ibm.com> wrote:
+> > > > Does sensors-detect/i2cdetect find anything on either i2c controller?
+> >
+> > On Thu, 11 Feb 2010 09:33:06 +0200, D. Can Celasun wrote:
+> > > Relevant sensors-detect output:
+> > >
+> > > Do you want to probe the I2C/SMBus adapters now? (YES/no):
+> > > Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3.
+> > > Sorry, no supported PCI bus adapters found.
+> > > Module i2c-dev loaded successfully.
+> >
+> > At that time, the i2c-i801 driver was loaded but not the i2c-scmi
+> > driver. The i2c-i801 driver is hopeless (can't bind to the device). You
+> > could try loading the i2c-scmi driver manually and running
+> > sensors-detect again.
+> >
+> > Tried that, doesn't make any difference.
+> 
+> 
+> > Darrick, any chance we could get the i2c-scmi driver to load
+> > automatically on systems which need it?
 
-No functional change; this just tweaks the changes from 349e1823a405
-so the new printks for disabled PCI-to-PCI bridge windows match the
-ones for the enabled windows.
+I think all we need to do is add:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
+MODULE_DEVICE_TABLE(acpi, fan_device_ids);
 
- drivers/pci/probe.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+to i2c-scmi.c, which will add the appropriate aliases to the module info.
 
+That reminds me, I don't think that patch to add ACPI_SMBUS_IBM_HID to the ACPI
+header files ever went in, did it?  It doesn't seem to be in 2.6.33-rc7, but
+maybe it's queued in someone else's ACPI tree for .34?  If it's not, then I'd
+imagine it's still blocking the patchset to i2c-scmi that works around broken
+IBM BIOSes, so I'm hoping someone from the ACPI part of the world can comment?
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index c5ecd3c..dacdeae 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -313,7 +313,7 @@ static void __devinit pci_read_bridge_io(struct pci_bus *child)
- 		dev_printk(KERN_DEBUG, &dev->dev, "  bridge window %pR\n", res);
- 	} else {
- 		dev_printk(KERN_DEBUG, &dev->dev,
--			 "  bridge window [io  %04lx - %04lx] reg reading\n",
-+			 "  bridge window [io  %#06lx-%#06lx] (disabled)\n",
- 				 base, limit);
- 	}
- }
-@@ -338,7 +338,7 @@ static void __devinit pci_read_bridge_mmio(struct pci_bus *child)
- 		dev_printk(KERN_DEBUG, &dev->dev, "  bridge window %pR\n", res);
- 	} else {
- 		dev_printk(KERN_DEBUG, &dev->dev,
--			"  bridge window [mem 0x%08lx - 0x%08lx] reg reading\n",
-+			"  bridge window [mem %#010lx-%#010lx] (disabled)\n",
- 					 base, limit + 0xfffff);
- 	}
- }
-@@ -390,7 +390,7 @@ static void __devinit pci_read_bridge_mmio_pref(struct pci_bus *child)
- 		dev_printk(KERN_DEBUG, &dev->dev, "  bridge window %pR\n", res);
- 	} else {
- 		dev_printk(KERN_DEBUG, &dev->dev,
--		     "  bridge window [mem 0x%08lx - %08lx pref] reg reading\n",
-+		     "  bridge window [mem %#010lx-%#010lx pref] (disabled)\n",
- 					 base, limit + 0xfffff);
- 	}
- }
-
+--D
