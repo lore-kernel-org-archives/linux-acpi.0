@@ -1,64 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Core i3 support?
-Date: Fri, 12 Feb 2010 20:09:55 +0100
-Message-ID: <20100212200955.05730d69@hyperion.delvare>
-References: <20100210154404.45e8afd6@hyperion.delvare>
-	<d35bed621002100703s52296ad0v53fe375f777e55ee@mail.gmail.com>
-	<20100210180116.GG29604@tux1.beaverton.ibm.com>
-	<d35bed621002101007y639fd3c7k736ef53ff400f79@mail.gmail.com>
-	<20100210204057.2ca95b0d@hyperion.delvare>
-	<d35bed621002101223ida7758fp5ccbedfe25bd3148@mail.gmail.com>
-	<20100211012105.GH29604@tux1.beaverton.ibm.com>
-	<d35bed621002102333i701a212re957efb600cbda5f@mail.gmail.com>
-	<20100211091743.287030b0@hyperion.delvare>
-	<d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com>
-	<20100212185241.GJ29604@tux1.beaverton.ibm.com>
+From: Chris Mason <chris.mason@oracle.com>
+Subject: Re: [PATCH] set dock_station->flags to zero during dock_add
+Date: Fri, 12 Feb 2010 15:45:48 -0500
+Message-ID: <20100212204548.GS3524@think>
+References: <20100201163043.GA3240@think>
+ <20100201173518.GA28002@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:50280 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756948Ab0BLTJ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:09:58 -0500
-In-Reply-To: <20100212185241.GJ29604@tux1.beaverton.ibm.com>
+Received: from rcsinet11.oracle.com ([148.87.113.123]:31726 "EHLO
+	rcsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753905Ab0BLUqk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2010 15:46:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20100201173518.GA28002@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: djwong@us.ibm.com
-Cc: "D. Can Celasun" <dcelasun@gmail.com>, Huaxu Wan <huaxu.wan@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org
 
-On Fri, 12 Feb 2010 10:52:41 -0800, Darrick J. Wong wrote:
-> On Thu, Feb 11, 2010 at 06:42:28PM +0200, D. Can Celasun wrote:
-> > On 11 February 2010 10:17, Jean Delvare <khali@linux-fr.org> wrote:
-> > > Darrick, any chance we could get the i2c-scmi driver to load
-> > > automatically on systems which need it?
+On Mon, Feb 01, 2010 at 10:35:18AM -0700, Alex Chiang wrote:
+> Hi Chris,
 > 
-> I think all we need to do is add:
+> Thanks for catching this. Seems better to just memset the stack
+> variable before we kmemdup it in platform_deivce_register_data().
 > 
-> MODULE_DEVICE_TABLE(acpi, fan_device_ids);
 
-I guess you mean:
+I don't see either patch in rc8, I think we want to do something for
+docking in 2.6.33...Len are you interested in picking up either of these
+fixes?
 
-MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+[ full quote below ]
 
+-chris
+
+> How about this instead?
 > 
-> to i2c-scmi.c, which will add the appropriate aliases to the module info.
-
-OK. Care to send a patch?
-
-> That reminds me, I don't think that patch to add ACPI_SMBUS_IBM_HID to the ACPI
-> header files ever went in, did it?  It doesn't seem to be in 2.6.33-rc7, but
-> maybe it's queued in someone else's ACPI tree for .34?
-
-I have pinged Bjorn and Len twice already (December 17th, January 5th)
-but never heard back.
-
-> If it's not, then I'd
-> imagine it's still blocking the patchset to i2c-scmi that works around broken
-> IBM BIOSes, so I'm hoping someone from the ACPI part of the world can comment?
-
-Yes it is blocking the i2c-scmi patch. And yes, please ACPI people take
-care of it ASAP.
-
--- 
-Jean Delvare
+> ---
+> From: Alex Chiang <achiang@hp.com>
+> 
+> ACPI: dock: properly initialize local struct dock_station in dock_add()
+> 
+> Commit fe06fba2 (ACPI: dock: add struct dock_station * directly
+> to platform device data) changed dock_add() to use the
+> platform_device_register_data() API.
+> 
+> We passed that interface a stack variable, which is kmemdup'ed
+> and assigned to the device's platform_data pointer.
+> 
+> Unfortunately, whatever random garbage is in the stack variable
+> gets coped during the kmemdup, and that leads to broken behavior.
+> 
+> Explicitly zero out the structure before passing it to the API.
+> 
+> Cc: stable@kernel.org
+> Reported-by: Chris Mason <chris.mason@oracle.com>
+> Signed-off-by: Alex Chiang <achiang@hp.com>
+> ---
+> Commit fe06fba2 was introduced in 2.6.32-rc5, so we need this fix
+> for the .32 stable series only.
+> 
+> ---
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index bbc2c13..b2586f5 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -935,6 +935,7 @@ static int dock_add(acpi_handle handle)
+>  	struct platform_device *dd;
+>  
+>  	id = dock_station_count;
+> +	memset(&ds, 0, sizeof(ds));
+>  	dd = platform_device_register_data(NULL, "dock", id, &ds, sizeof(ds));
+>  	if (IS_ERR(dd))
+>  		return PTR_ERR(dd);
