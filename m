@@ -1,28 +1,62 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Re: 2.6.33-rc8: Reported regressions from 2.6.32
-Date: Mon, 15 Feb 2010 10:52:02 +0100
-Message-ID: <b170af451002150152r43d7d916kd3d2013b8990627d@mail.gmail.com>
-References: <Z5cmiqDComP.A.gyF.OiIeLB@chimera>
+From: Xavier Chantry <chantry.xavier@gmail.com>
+Subject: Re: Suspend to RAM freeze with kernel modesetting (thinkpad r50e /
+	855gm)
+Date: Mon, 15 Feb 2010 11:29:00 +0100
+Message-ID: <b67489df1002150229m22abafg86f665e826beb7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Z5cmiqDComP.A.gyF.OiIeLB@chimera>
-Sender: netdev-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpmuinux-foundation.org@ogre.sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:35077 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751957Ab0BOK3E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2010 05:29:04 -0500
+Received: by fxm7 with SMTP id 7so5498709fxm.28
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Feb 2010 02:29:00 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ykzhao <yakui.zhao@intel.com>, Wagner Ferenc <wferi@niif.hu>
 
-2010/2/15 Rafael J. Wysocki <rjw@sisk.pl>:
-> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
-cgi?id=3D15287
-> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : RadeonKMS segfaults kdm on mobi=
-lity radeon x700 pcie
-> Submitter =C2=A0 =C2=A0 =C2=A0 : Jan Kreuzer <kontrollator@gmx.de>
-> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-02-12 17:58 (3 d=
-ays old)
+From: Wagner Ferenc <wferi <at> niif.hu>
+Subject: Re: Suspend to RAM freeze with kernel modesetting
+Newsgroups: gmane.linux.acpi.devel
+Date: 2009-10-09 21:20:12 GMT (18 weeks, 2 days and 13 hours ago)
 
-Can you reassign this according to last comments, please?
+On Fri, 9 Oct 2009, ykzhao wrote:
 
---=20
-Rafa=C5=82
+> On Thu, 2009-10-08 at 09:40 +0800, wferi wrote:
+>
+>> I'd like to solicit your opinion on the
+>> https://bugs.freedesktop.org/show_bug.cgi?id=22126 issue.
+>> In short, if I load the Intel graphics driver with kernel
+>> modesetting enabled, my ThinkPad R50e won't suspend to RAM
+>> anymore, it freezes instead (ie. does not enter S3).
+>> Tracing seems to show that the freeze happens in a
+>> particular line of drivers/acpi/acpica/hwsleep.c:
+>> /* Run the _PTS method */
+>> status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
+>>
+>> in acpi_enter_sleep_state_prep, as described in the bug
+>> report. Can anybody provide a clue why this happens?
+>> Suspend to disk works invariably, just like suspend to RAM
+>> until I enable the kernel modesetting by a module option.
+>
+> Will you please attach the output of acpidump on your box?
+
+Sure, please find it attached (or ask Bugzilla for
+https://bugs.freedesktop.org/attachment.cgi?id=30231).
+-- 
+Regards,
+Feri.
+
+
+Hello list,
+
+I am hit by the same issue as Feri.
+Is there any more information we can provide, anything else we can do
+to help resolving this problem ?
+
+cheers,
+Xavier
+
+PS : please keep me in CC
