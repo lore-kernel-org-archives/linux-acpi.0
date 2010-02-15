@@ -1,30 +1,76 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.33-rc8: Reported regressions from 2.6.32
-Date: Mon, 15 Feb 2010 21:59:03 +0100
-Message-ID: <201002152159.03458.rjw@sisk.pl>
-References: <Z5cmiqDComP.A.gyF.OiIeLB@chimera> <b170af451002150152r43d7d916kd3d2013b8990627d@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 8/9] PCI / ACPI / PM: Platform support for PCI PME wake-up (rev. 7)
+Date: Mon, 15 Feb 2010 22:42:48 +0100
+Message-ID: <201002152242.48303.rjw@sisk.pl>
+References: <201001101431.38630.rjw@sisk.pl> <201002141451.17888.rjw@sisk.pl> <20100215192252.GA11074@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b170af451002150152r43d7d916kd3d2013b8990627d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:36636 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932184Ab0BOVmN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Feb 2010 16:42:13 -0500
+In-Reply-To: <20100215192252.GA11074@us.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: linux-pm@lists.linux-foundation.org, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg@redhat.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday 15 February 2010, Rafa=C5=82 Mi=C5=82ecki wrote:
-> 2010/2/15 Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>:
-> > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=3D1528=
-7
-> > Subject         : RadeonKMS segfaults kdm on mobility radeon x700 p=
-cie
-> > Submitter       : Jan Kreuzer <kontrollator-Mmb7MZpHnFY@public.gmane.org>
-> > Date            : 2010-02-12 17:58 (3 days old)
->=20
-> Can you reassign this according to last comments, please?
+On Monday 15 February 2010, Gary Hade wrote:
+> On Sun, Feb 14, 2010 at 02:51:17PM +0100, Rafael J. Wysocki wrote:
+> > On Saturday 13 February 2010, Gary Hade wrote:
+> > > On Sat, Feb 13, 2010 at 01:20:29AM +0100, Rafael J. Wysocki wrote:
+> > > > On Friday 12 February 2010, Rafael J. Wysocki wrote:
+> > > > > On Friday 12 February 2010, Gary Hade wrote:
+> > ...
+> > > > In fact there are two problems in there.  First, the bridge event notification
+> > > > calls handle_bridge_insertion() which attempts to install a PM notifier for
+> > > > the bridge and that deadlocks, because it tries to acquire the mutex
+> > > > recursively.  Second, apparently, init_bridge_misc() may be called in the
+> > > > notification code path and it attempts to unregister the notifier and register
+> > > > it again, which can't be done with pci_acpi_notify_mtx held.
+> > > > 
+> > > > I guess there are similar problems on the hot remove notification path.
+> > > > 
+> > > > Anyway, I have a new version of the patch and I'm going to test it a bit
+> > > > over the weekend.  Unfortunately, I don't have hardware with PCI hotplug
+> > > > capability, so I'll send you the new patch for testing on Monday, if you don't
+> > > > mind.
+> > > 
+> > > I don't mind.
+> > 
+> > Thanks!
+> > 
+> > > Although I am concerned that my acpiphp only
+> > > testing on our IBM System x boxes may not be sufficient to
+> > > assure that PCI hotplug will work well on other PCI hotplug
+> > > capable systems.  I hope that others will also do some early
+> > > testing of this code.
+> > 
+> > The code that you've been testing is not very hardware-dependent.  It only
+> > matters whether or not the hardware is capable of PCI hotplugging
+> > (ACPI-based), so your testing should be sufficient.
+> 
+> Perhaps the tester-dependent aspect should also be considered. :)
+> 
+> > 
+> > In fact I have two patches to test.  The first one is an ACPI CA patch that
+> > allows us to use more than one system notify handler per device (below).
+> > Please test it on top of [1-3/9] with the replacement for [4-6/9] I sent
+> > you earlier (http://patchwork.kernel.org/patch/78814/) and (updated) [7/9].
+> 
+> This seemed to work OK.  I did not see any of the previously
+> reported issues during hot-remove and hot-add.
+> 
+> > 
+> > If this works, please apply the patch from
+> > http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=patch;h=d42c8b334bafe3a15f2dd43e395dafefe58dc588
+> > on top of the appended one and see if things still work correctly.
+> 
+> Results still looked good after adding this patch.
 
-Reassigned to PCI.
+Thanks a lot for testing, it looks like the issues have been resolved, then.
 
-Thanks,
 Rafael
