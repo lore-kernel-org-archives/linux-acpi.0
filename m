@@ -1,35 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [patch 7/7] acpi: remove old blacklist entries
-Date: Tue, 16 Feb 2010 15:40:53 +0000
-Message-ID: <20100216154053.GA31195@srcf.ucam.org>
-References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org> <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain> <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 10/10] ACPI, i915: blacklist Clevo M5x0N bad_lid state
+Date: Tue, 16 Feb 2010 04:46:10 -0500
+Message-ID: <1379d2fef0ec07c7027a5e89036025ce761470c8.1266313501.git.len.brown@intel.com>
+References: <1266313570-6490-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53349 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932400Ab0BPPl1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 10:41:27 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:64369 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933229Ab0BPUtd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 15:49:33 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KXY00875CHM7KT4@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 16 Feb 2010 14:49:13 -0600 (CST)
+In-reply-to: <1266313570-6490-1-git-send-email-lenb@kernel.org>
+In-reply-to: <0406ad336c066190770cbf350b552d608e43ed09.1266313501.git.len.brown@intel.com>
+References: <0406ad336c066190770cbf350b552d608e43ed09.1266313501.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-On Tue, Feb 16, 2010 at 03:19:43AM -0500, Len Brown wrote:
-> > applied to acpi-test
-> 
-> un-applied.
-> 
-> Even if deleting the blacklist entries were correct,
-> which it more or less may be, the bug at hand is that
-> "acpi=ht" is now broken -- whether invoked via DMI
-> or cmdline; and this patch doesn't fix that.
+From: Zhang Rui <rui.zhang@intel.com>
 
-Indeed it doesn't. But the report also noted that the system worked fine 
-with acpi=force, so this is something that we should clean up regardless 
-of the original bug.
+Wrong Lid state reported.
+Need to blacklist this machine for LVDS detection.
 
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/gpu/drm/i915/intel_lvds.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index b1d0acb..c2e8a45 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -636,6 +636,13 @@ static const struct dmi_system_id bad_lid_status[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "PC-81005"),
+ 		},
+ 	},
++	{
++		.ident = "Clevo M5x0N",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "CLEVO Co."),
++			DMI_MATCH(DMI_BOARD_NAME, "M5x0N"),
++		},
++	},
+ 	{ }
+ };
+ 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.0.6
+
