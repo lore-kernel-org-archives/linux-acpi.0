@@ -1,29 +1,35 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 6/7] thinkpad-acpi: wrong thermal attribute_group removed
- in thermal_exit()
-Date: Tue, 16 Feb 2010 03:10:19 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002160310160.21595@localhost.localdomain>
-References: <201002022237.o12Mbwo6018696@imap1.linux-foundation.org>
+Subject: Re: [patch 7/7] acpi: remove old blacklist entries
+Date: Tue, 16 Feb 2010 03:19:43 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain>
+References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
+ <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:58587 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932719Ab0BPIKX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 03:10:23 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:62878 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971Ab0BPITx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 03:19:53 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173011.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KXX006G4DD8Y9J5@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 16 Feb 2010 02:10:23 -0600 (CST)
-In-reply-to: <201002022237.o12Mbwo6018696@imap1.linux-foundation.org>
+ with ESMTPA id <0KXX008YWDSZS014@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 16 Feb 2010 02:19:52 -0600 (CST)
+In-reply-to: <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, roel.kluin@gmail.com, ibm-acpi@hmh.eng.br
+Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl
 
-applied
+> applied to acpi-test
 
-thanks,
+un-applied.
+
+Even if deleting the blacklist entries were correct,
+which it more or less may be, the bug at hand is that
+"acpi=ht" is now broken -- whether invoked via DMI
+or cmdline; and this patch doesn't fix that.
+
 Len Brown, Intel Open Source Technology Center
 
