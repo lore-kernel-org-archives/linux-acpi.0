@@ -1,35 +1,70 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 7/7] acpi: remove old blacklist entries
-Date: Tue, 16 Feb 2010 03:19:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain>
-References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
- <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 01/10] ACPI: processor: add kernel command line support for
+ early _PDC eval
+Date: Tue, 16 Feb 2010 04:46:01 -0500
+Message-ID: <0406ad336c066190770cbf350b552d608e43ed09.1266313501.git.len.brown@intel.com>
+References: <1266313570-6490-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:62878 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971Ab0BPITx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 03:19:53 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:57026 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754868Ab0BPJqO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2010 04:46:14 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173005.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KXX008YWDSZS014@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 16 Feb 2010 02:19:52 -0600 (CST)
-In-reply-to: <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain>
+ with ESMTPA id <0KXX00H6DHT164G0@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 16 Feb 2010 03:46:14 -0600 (CST)
+In-reply-to: <1266313570-6490-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
 
-> applied to acpi-test
+From: Alex Chiang <achiang@hp.com>
 
-un-applied.
+Allow platforms not listed in DMI table
+to opt-in and evaluate _PDC early.
 
-Even if deleting the blacklist entries were correct,
-which it more or less may be, the bug at hand is that
-"acpi=ht" is now broken -- whether invoked via DMI
-or cmdline; and this patch doesn't fix that.
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ Documentation/kernel-parameters.txt |    4 ++++
+ drivers/acpi/processor_pdc.c        |    7 +++++++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-Len Brown, Intel Open Source Technology Center
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 736d456..826b6e1 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -199,6 +199,10 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			acpi_display_output=video
+ 			See above.
+ 
++	acpi_early_pdc_eval	[HW,ACPI] Evaluate processor _PDC methods
++				early. Needed on some platforms to properly
++				initialize the EC.
++
+ 	acpi_irq_balance [HW,ACPI]
+ 			ACPI will balance active IRQs
+ 			default in APIC mode
+diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
+index 7247819..3bbafe9 100644
+--- a/drivers/acpi/processor_pdc.c
++++ b/drivers/acpi/processor_pdc.c
+@@ -151,6 +151,13 @@ static int set_early_pdc_optin(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++static int param_early_pdc_optin(char *s)
++{
++	early_pdc_optin = 1;
++	return 1;
++}
++__setup("acpi_early_pdc_eval", param_early_pdc_optin);
++
+ static struct dmi_system_id __cpuinitdata early_pdc_optin_table[] = {
+ 	{
+ 	set_early_pdc_optin, "HP Envy", {
+-- 
+1.6.0.6
 
