@@ -1,58 +1,126 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v4 2/5] PCI: read bridge windows before filling in subtractive
-	decode resources
-Date: Wed, 17 Feb 2010 13:19:58 -0700
-Message-ID: <20100217201958.4013.87131.stgit@bob.kio>
+Subject: [PATCH v4 1/5] PCI: split up pci_read_bridge_bases()
+Date: Wed, 17 Feb 2010 13:19:52 -0700
+Message-ID: <20100217201952.4013.62534.stgit@bob.kio>
 References: <20100217201654.4013.70201.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
 In-Reply-To: <20100217201654.4013.70201.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linuxppc-dev@ozlabs.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-am33-list@redhat.com, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Yinghai Lu <yinghai@kernel.org>, Larry Finger <Larry.Finger@lwfinger.net>
 List-Id: linux-acpi@vger.kernel.org
 
 
-No functional change; this fills in the bus subtractive decode resources
-after reading the bridge window information rather than before.  Also,
-print out the subtractive decode resources as we already do for the
-positive decode windows.
+No functional change; this breaks up pci_read_bridge_bases() into separate
+pieces for the I/O, memory, and prefetchable memory windows, similar to how
+Yinghai recently split up pci_setup_bridge() in 68e84ff3bdc.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- drivers/pci/probe.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/pci/probe.c |   54 +++++++++++++++++++++++++++++++++++++--------------
+ 1 files changed, 39 insertions(+), 15 deletions(-)
 
 
 diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 4b47b4b..70c4ed2 100644
+index d300943..4b47b4b 100644
 --- a/drivers/pci/probe.c
 +++ b/drivers/pci/probe.c
-@@ -403,14 +403,19 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
- 		 child->secondary, child->subordinate,
- 		 dev->transparent ? " (subtractive decode)" : "");
- 
--	if (dev->transparent) {
--		for (i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
--			child->resource[i] = child->parent->resource[i - 3];
--	}
--
- 	pci_read_bridge_io(child);
- 	pci_read_bridge_mmio(child);
- 	pci_read_bridge_mmio_pref(child);
-+
-+	if (dev->transparent) {
-+		for (i = 3; i < PCI_BUS_NUM_RESOURCES; i++) {
-+			child->resource[i] = child->parent->resource[i - 3];
-+			if (child->resource[i])
-+				dev_printk(KERN_DEBUG, &dev->dev,
-+					   "  bridge window %pR (subtractive decode)\n",
-+					   child->resource[i]);
-+		}
-+	}
+@@ -281,26 +281,12 @@ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
+ 	}
  }
  
+-void __devinit pci_read_bridge_bases(struct pci_bus *child)
++static void __devinit pci_read_bridge_io(struct pci_bus *child)
+ {
+ 	struct pci_dev *dev = child->self;
+ 	u8 io_base_lo, io_limit_lo;
+-	u16 mem_base_lo, mem_limit_lo;
+ 	unsigned long base, limit;
+ 	struct resource *res;
+-	int i;
+-
+-	if (pci_is_root_bus(child))	/* It's a host bus, nothing to read */
+-		return;
+-
+-	dev_info(&dev->dev, "PCI bridge to [bus %02x-%02x]%s\n",
+-		 child->secondary, child->subordinate,
+-		 dev->transparent ? " (subtractive decode)": "");
+-
+-	if (dev->transparent) {
+-		for(i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
+-			child->resource[i] = child->parent->resource[i - 3];
+-	}
+ 
+ 	res = child->resource[0];
+ 	pci_read_config_byte(dev, PCI_IO_BASE, &io_base_lo);
+@@ -328,6 +314,14 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
+ 			 "  bridge window [io  %04lx - %04lx] reg reading\n",
+ 				 base, limit);
+ 	}
++}
++
++static void __devinit pci_read_bridge_mmio(struct pci_bus *child)
++{
++	struct pci_dev *dev = child->self;
++	u16 mem_base_lo, mem_limit_lo;
++	unsigned long base, limit;
++	struct resource *res;
+ 
+ 	res = child->resource[1];
+ 	pci_read_config_word(dev, PCI_MEMORY_BASE, &mem_base_lo);
+@@ -344,6 +338,14 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
+ 			"  bridge window [mem 0x%08lx - 0x%08lx] reg reading\n",
+ 					 base, limit + 0xfffff);
+ 	}
++}
++
++static void __devinit pci_read_bridge_mmio_pref(struct pci_bus *child)
++{
++	struct pci_dev *dev = child->self;
++	u16 mem_base_lo, mem_limit_lo;
++	unsigned long base, limit;
++	struct resource *res;
+ 
+ 	res = child->resource[2];
+ 	pci_read_config_word(dev, PCI_PREF_MEMORY_BASE, &mem_base_lo);
+@@ -389,6 +391,28 @@ void __devinit pci_read_bridge_bases(struct pci_bus *child)
+ 	}
+ }
+ 
++void __devinit pci_read_bridge_bases(struct pci_bus *child)
++{
++	struct pci_dev *dev = child->self;
++	int i;
++
++	if (pci_is_root_bus(child))	/* It's a host bus, nothing to read */
++		return;
++
++	dev_info(&dev->dev, "PCI bridge to [bus %02x-%02x]%s\n",
++		 child->secondary, child->subordinate,
++		 dev->transparent ? " (subtractive decode)" : "");
++
++	if (dev->transparent) {
++		for (i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
++			child->resource[i] = child->parent->resource[i - 3];
++	}
++
++	pci_read_bridge_io(child);
++	pci_read_bridge_mmio(child);
++	pci_read_bridge_mmio_pref(child);
++}
++
  static struct pci_bus * pci_alloc_bus(void)
+ {
+ 	struct pci_bus *b;
