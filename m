@@ -1,72 +1,87 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [patch 7/7] acpi: remove old blacklist entries
-Date: Wed, 17 Feb 2010 17:43:50 -0200
-Message-ID: <20100217194350.GA24180@khazad-dum.debian.net>
-References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
- <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain>
- <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain>
- <20100216154053.GA31195@srcf.ucam.org>
- <alpine.LFD.2.00.1002161553420.3995@localhost.localdomain>
- <20100217143245.GA18411@srcf.ucam.org>
- <alpine.LFD.2.00.1002171122140.4135@localhost.localdomain>
- <20100217183108.GA23189@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v4 0/5] PCI: try "pci=use_crs" again
+Date: Wed, 17 Feb 2010 13:19:47 -0700
+Message-ID: <20100217201654.4013.70201.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:48307 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851Ab0BQTny (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Feb 2010 14:43:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20100217183108.GA23189@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, rjw@sisk.pl
 
-On Wed, 17 Feb 2010, Matthew Garrett wrote:
-> On Wed, Feb 17, 2010 at 01:24:58PM -0500, Len Brown wrote:
-> > On Wed, 17 Feb 2010, Matthew Garrett wrote:
-> > > We seem to have no good history of where these blacklist entries came 
-> > > from, and we know that at least one of them is actively harmful. Perhaps 
-> > > replace them with a debug statement on affected machines telling people 
-> > > what they need to pass to restore the blacklist behaviour, and to let us 
-> > > know if it's necessary?
-> > 
-> > Actually, it wasn't actively harmful until we broke "acpi=ht".
-> > Indeed, it was actively helpful in pointing out that regression:-)
-> 
-> The machines in question are falling back to apm, so probably losing 
-> some level of powersaving support. I'd say that's harmful :)
+Historically, Linux has assumed a single PCI host bridge, with that bridge
+claiming all the address space left after RAM and legacy devices are taken out.
 
-Well, on ThinkPads you probably want APM on the older models, for better
-power savings and less surprise when trying to suspend to RAM or to disk.
+If the system contains multiple host bridges, we can no longer operate under
+that assumption.  We have to know what parts of the address space are claimed
+by each bridge so that when we assign resources to a PCI device, we take them
+from a range claimed by the upstream host bridge.
 
-> > The other entries in today's acpi_dmi_table[] are less clear
-> > and should probably be modified only with some care...
-> 
-> At least one of them covers a single submodel in a range, despite them 
-> all running the same BIOS. I'd really lean towards them being bogus at 
-> this stage of the game.
+On x86 and ia64, we use ACPI to enumerate all the PCI host bridges in the
+system, and part of the host bridge description is the "_CRS" (current resource
+settings" property, which lists the address space used by the bridge.  On x86,
+we currently ignore most of the _CRS information.  This patch series changes
+this, so we will use _CRS to learn about the host bridge windows.
 
-On that, we do agree.  That ThinkPad entry is completely bogus, I vote that
-we remove it if we're not going to fix it to apply to every ThinkPad with
-that BIOS.
+Since most x86 machines with multiple host bridges are relatively new, this
+series only turns this on for machines with BIOS dates of 2008 or newer.
 
-OTOH, every mention of the A22 I find in the network is coupled with
-"acpi=off", which matches what I know about the ThinkPads before the A31p,
-X31 and R40e/T40: they tend to work a lot better in APM mode.
+Changes from v3 to v4:
+    - Keep the bus->resource[] table to avoid having to change all arches
+      at once, but reduce it to size 4 (minimum required for P2P & CardBus
+      bridges).
+    - Store additional host bridge or subtractive decode windows in a list.
+    - Add pci_bus_for_each_resource() iterator to hide PCI_BUS_NUM_RESOURCES
+      and the table/list split.  This reduces the size of the main patch.
+    - Remove tidy-up patches completely; they feel like distractions to this
+      series.
 
-There are reports of some bizarre stuff, such as A22m laptops powering up by
-themselves some time after shutdown if ACPI is used, etc.  I would suggest
-an ACPI cut-off date of 2005 (disable ACPI on anything older than 2005) for
-IBM ThinkPads, but this is going to shut down ACPI from people that never
-updated their firmware on some models that might be able to do ACPI
-properly.
+Changes from v2 to v3:
+    - Fix alpha, powerpc, and mn10300 references to pci_bus resource table
+    - Turn on "pci=use_crs" for 2008 and newer, not 2010 and newer
+    - Remove Toshiba A355 quirk (BIOS date is 2009, so automatically included)
+    - Remove IBM x3850 and x3950 quirks (BIOS dates in 2008, so automatically
+      included)
+    - Leave IBM x3800 quirk (pre-2008 BIOS)
+    - Use "bool" for pci_use_crs (new to me, but I see akpm suggesting it)
+    - Reorder so the important patches are first
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Changes from v1 to v2:
+    - Rebase to be6e9f7853e
+    - Add patch to clean up "disabled window" printk
+    - Add bugzilla reference comment in use_crs DMI quirk
+
+---
+
+Bjorn Helgaas (5):
+      PCI: split up pci_read_bridge_bases()
+      PCI: read bridge windows before filling in subtractive decode resources
+      PCI: add pci_bus_for_each_resource(), remove direct bus->resource[] refs
+      PCI: augment bus resource table with a list
+      x86/PCI: use host bridge _CRS info by default on 2008 and newer machines
+
+
+ Documentation/kernel-parameters.txt  |    8 ++-
+ arch/ia64/include/asm/acpi.h         |    1 
+ arch/ia64/pci/pci.c                  |   17 ++-----
+ arch/mn10300/unit-asb2305/pci.c      |    6 +-
+ arch/powerpc/kernel/pci-common.c     |   11 ++---
+ arch/powerpc/platforms/fsl_uli1575.c |   12 ++---
+ arch/x86/include/asm/pci_x86.h       |    1 
+ arch/x86/pci/acpi.c                  |   82 ++++++++++++++++++++--------------
+ arch/x86/pci/bus_numa.c              |    3 +
+ arch/x86/pci/bus_numa.h              |    3 -
+ arch/x86/pci/common.c                |    3 +
+ drivers/acpi/pci_root.c              |    1 
+ drivers/pci/bus.c                    |   49 +++++++++++++++++++-
+ drivers/pci/hotplug/shpchp_sysfs.c   |    9 +---
+ drivers/pci/pci.c                    |    5 +-
+ drivers/pci/probe.c                  |   68 ++++++++++++++++++++++------
+ drivers/pci/setup-bus.c              |   10 ++--
+ drivers/pcmcia/rsrc_nonstatic.c      |    3 -
+ drivers/pcmcia/yenta_socket.c        |    5 +-
+ include/acpi/acpi_drivers.h          |    1 
+ include/linux/pci.h                  |   36 +++++++++++++--
+ 21 files changed, 226 insertions(+), 108 deletions(-)
