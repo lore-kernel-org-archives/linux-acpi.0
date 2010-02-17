@@ -1,52 +1,45 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [patch 7/7] acpi: remove old blacklist entries
-Date: Wed, 17 Feb 2010 21:28:51 +0000
-Message-ID: <20100217212851.GA27092@srcf.ucam.org>
-References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org> <alpine.LFD.2.00.1002160253470.21595@localhost.localdomain> <alpine.LFD.2.00.1002160317570.21595@localhost.localdomain> <20100216154053.GA31195@srcf.ucam.org> <alpine.LFD.2.00.1002161553420.3995@localhost.localdomain> <20100217143245.GA18411@srcf.ucam.org> <alpine.LFD.2.00.1002171122140.4135@localhost.localdomain> <20100217183108.GA23189@srcf.ucam.org> <alpine.LFD.2.00.1002171618210.4135@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/8] PCI run-time PM support (rev. 4)
+Date: Wed, 17 Feb 2010 23:35:47 +0100
+Message-ID: <201002172335.47703.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42752 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756526Ab0BQV3A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2010 16:29:00 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1002171618210.4135@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Gary Hade <garyhade@us.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, rjw@sisk.pl
 
-On Wed, Feb 17, 2010 at 04:23:12PM -0500, Len Brown wrote:
-> On Wed, 17 Feb 2010, Matthew Garrett wrote:
-> > The machines in question are falling back to apm, so probably losing 
-> > some level of powersaving support. I'd say that's harmful :)
-> 
-> The system at hand is the Asus P2B-DS, a Dual Pentium III.
-> APM is not SMP safe, and was not deployed on SMP motherboards.
-> My expectation is that it is perfectly fine running in MPS
-> mode rather than ACPI mode, as it has been running that way
-> since 2003.  My expectation is that when running in ACPI mode,
-> the only thing the user will notice is that the power button
-> is software controlled.
+Hi,
 
-So the APM idle loop won't have been used? I was under the impression 
-that C1 was preferable to just calling hlt, but I'll admit to having no 
-idea if that's true for the PIII. I'd also have expected there to be at 
-least S1, so ACPI would be a functional improvement.
+The following (updated) series of patches provides basic run-time power
+management support for PCI devices through ACPI and/or the native PCIe
+PME.
 
-> > At least one of them covers a single submodel in a range, despite them 
-> > all running the same BIOS. I'd really lean towards them being bogus at 
-> > this stage of the game.
-> 
-> While I too vote for consistency and less cruft is better,
-> I'd like to keep the acpi_ht issue at hand apart from the
-> inconsistency in old thinkpad BIOS DMI list issue; as they
-> are logically independent.
+Patches [1/8] and [3/8] are unchanged, the other patches have been modified to
+address the reviewers' comments and/or to fix reported bugs.
 
-They're similar in that we have absolutely no idea why these entries are 
-present, potentially resulting in us reducing the functionality of 
-machines that would otherwise work happily.
+[1/8] - Add function for checking PME status of devices
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+[2/8][Updated] - PCIe PME root port service driver
+
+[3/8] - "Don't use MSIs for PME signaling" switch for PCIe
+ 
+[4/8][New] - ACPI GPE refcounting, based on 3 patches from Matthew Garrett
+ 
+[5/8][Updated] - ACPI, add fields for handling run-wake devices
+
+[6/8][New] - ACPI, make it possible to use more than 1 notify handler per node
+
+[7/8][Updated] - PCI / ACPI platform support for run-time power management
+
+[8/8] - Runtime PM callbacks for the PCI bus type
+
+Bob, Len, patches [4/8] and [6/8] are vitally important for this feature, but
+they cannot be merged without your approval.  Please let me know if you have
+any objections to these patches.
+
+Thanks,
+Rafael
