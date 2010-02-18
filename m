@@ -1,44 +1,67 @@
-From: Pedro Ribeiro <pedrib@gmail.com>
-Subject: T400 does not enter C4/C6 sleep state with USB devices connected
-Date: Thu, 18 Feb 2010 13:39:42 +0000
-Message-ID: <74fd948d1002180539xc1ff413mb3c8a600e6d85d50@mail.gmail.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
+	even when ignore_ppc=0
+Date: Thu, 18 Feb 2010 10:28:20 -0800
+Message-ID: <20100218182820.GQ29569@tux1.beaverton.ibm.com>
+References: <20090430095414.GA19462@srcf.ucam.org> <20090430111042.GA12809@elte.hu> <20090430111338.GA21297@srcf.ucam.org> <20090515191219.GH6968@plum> <20090602232108.GG7917@plum> <20090607100541.GJ31286@elte.hu> <20090715003207.GA5111@plum> <20100216220707.GA5966@srcf.ucam.org> <20100216222611.GP29569@tux1.beaverton.ibm.com> <alpine.LFD.2.00.1002180401360.4135@localhost.localdomain>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:50423 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753546Ab0BRNjo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2010 08:39:44 -0500
-Received: by ewy19 with SMTP id 19so6846456ewy.21
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Feb 2010 05:39:42 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1002180401360.4135@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg@redhat.com>, Ingo Molnar <mingo@elte.hu>, davej@redhat.com, Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
+On Thu, Feb 18, 2010 at 04:02:39AM -0500, Len Brown wrote:
+> > On Tue, Feb 16, 2010 at 10:07:07PM +0000, Matthew Garrett wrote:
+> > > Did this ever get picked up?
+> > 
+> > Nope.  I vaguely recall asking a few times if there were any objections left,
+> > but there weren't any, and I think Len or someone said it looked good back at
+> > LPC last summer.  Does not appear in 2.6.33-rc8 though.
+> 
+> does it have a bugzilla entry? (as regressions tend to, thanks to rafael)
+> I don't see this in my mailbox anymore.
 
-I spent lots of hours trying to figure out why my T400 would not enter
-C4 and C6 sleep states.
+Nope, no bugzilla entry.  Do I need to create one now?  A patch resend follows.
 
-Here are my findings:
+--D
 
-- When a USB device is connected, even if it supports USB autosuspend,
-the cpu will never go down more than C3 (apparently the mode is
-disabled by the BIOS).
+---
+Earlier, Ingo Molnar posted a patch to make it so that the kernel would avoid
+reading _PPC on his broken T60.  Unfortunately, it seems that with Thomas
+Renninger's patch last July to eliminate _PPC evaluations when the processor
+driver loads, the kernel never actually reads _PPC at all!  This is problematic
+if you happen to boot your non-T60 computer in a state where the BIOS _wants_
+_PPC to be something other than zero.
 
-- After removing all the USB devices, in AC it enters C4 and in
-battery it enters C6.
-The BIOS apparently replaces C3 with C4 and C6, respectively, because
-/sys/devices/system/cpu/cpu0/cpuidle/
+So, put the _PPC evaluation back into acpi_processor_get_performance_info if
+ignore_ppc isn't 1.
 
-always shows 4 states, whatever the situation.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-So one more reason not to use USB devices while on battery...
+ drivers/acpi/processor_perflib.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Is this normal behaviour or I have a retarded BIOS? And if so, is
-there a workaround?
 
-(please mail directly to me as in not in the linux-acpi list)
-
-Regards,
-Pedro
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 2cabadc..a959f6a 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -413,7 +413,11 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 	if (result)
+ 		goto update_bios;
+ 
+-	return 0;
++	/* We need to call _PPC once when cpufreq starts */
++	if (ignore_ppc != 1)
++		result = acpi_processor_get_platform_limit(pr);
++
++	return result;
+ 
+ 	/*
+ 	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
