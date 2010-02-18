@@ -1,67 +1,51 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
-	even when ignore_ppc=0
-Date: Thu, 18 Feb 2010 10:28:20 -0800
-Message-ID: <20100218182820.GQ29569@tux1.beaverton.ibm.com>
-References: <20090430095414.GA19462@srcf.ucam.org> <20090430111042.GA12809@elte.hu> <20090430111338.GA21297@srcf.ucam.org> <20090515191219.GH6968@plum> <20090602232108.GG7917@plum> <20090607100541.GJ31286@elte.hu> <20090715003207.GA5111@plum> <20100216220707.GA5966@srcf.ucam.org> <20100216222611.GP29569@tux1.beaverton.ibm.com> <alpine.LFD.2.00.1002180401360.4135@localhost.localdomain>
-Reply-To: djwong@us.ibm.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/8] PCI PM: PCIe PME root port service driver (rev. 5)
+Date: Thu, 18 Feb 2010 20:57:52 +0100
+Message-ID: <201002182057.53002.rjw@sisk.pl>
+References: <201002172335.47703.rjw@sisk.pl> <201002172339.08865.rjw@sisk.pl> <4B7CBD37.9000706@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1002180401360.4135@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>, Ingo Molnar <mingo@elte.hu>, davej@redhat.com, Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:50168 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758025Ab0BRT5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Feb 2010 14:57:13 -0500
+In-Reply-To: <4B7CBD37.9000706@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Gary Hade <garyhade@us.ibm.com>
 
-On Thu, Feb 18, 2010 at 04:02:39AM -0500, Len Brown wrote:
-> > On Tue, Feb 16, 2010 at 10:07:07PM +0000, Matthew Garrett wrote:
-> > > Did this ever get picked up?
-> > 
-> > Nope.  I vaguely recall asking a few times if there were any objections left,
-> > but there weren't any, and I think Len or someone said it looked good back at
-> > LPC last summer.  Does not appear in 2.6.33-rc8 though.
+On Thursday 18 February 2010, Kenji Kaneshige wrote:
+> Hi,
 > 
-> does it have a bugzilla entry? (as regressions tend to, thanks to rafael)
-> I don't see this in my mailbox anymore.
+> I'm sorry for the delayed comments.
+> 
+> > +
+> > +/**
+> > + * pcie_pme_interrupt_enable - Enable/disable PCIe PME interrupt generation.
+> > + * @dev: PCIe root port or event collector.
+> > + * @enable: Enable or disable the interrupt.
+> > + */
+> > +static void pcie_pme_interrupt_enable(struct pci_dev *dev, bool enable)
+> > +{
+> > +	int rtctl_pos;
+> > +	u16 rtctl;
+> > +
+> > +	rtctl_pos = pci_find_capability(dev, PCI_CAP_ID_EXP) + PCI_EXP_RTCTL;
+> 
+> How about
+> 
+> 	rtctl_pos = pci_pcie_cap(dev) + PCI_EXP_RTCTL;
+> 
+> ?
+> 
+> The pci_pcie_cap() returns PCIe capability offset saved in struct pci_dev.
+> By using this, we can avoid redundant search in PCI configuration space.
 
-Nope, no bugzilla entry.  Do I need to create one now?  A patch resend follows.
+While I agree with the comment, I'd prefer to change this with a separate
+patch, unless the entire patchset misses the merge window.
 
---D
-
----
-Earlier, Ingo Molnar posted a patch to make it so that the kernel would avoid
-reading _PPC on his broken T60.  Unfortunately, it seems that with Thomas
-Renninger's patch last July to eliminate _PPC evaluations when the processor
-driver loads, the kernel never actually reads _PPC at all!  This is problematic
-if you happen to boot your non-T60 computer in a state where the BIOS _wants_
-_PPC to be something other than zero.
-
-So, put the _PPC evaluation back into acpi_processor_get_performance_info if
-ignore_ppc isn't 1.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
-
- drivers/acpi/processor_perflib.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 2cabadc..a959f6a 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -413,7 +413,11 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
- 	if (result)
- 		goto update_bios;
- 
--	return 0;
-+	/* We need to call _PPC once when cpufreq starts */
-+	if (ignore_ppc != 1)
-+		result = acpi_processor_get_platform_limit(pr);
-+
-+	return result;
- 
- 	/*
- 	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
+Rafael
