@@ -1,91 +1,91 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
-	message (fwd)
-Date: Thu, 18 Feb 2010 23:48:43 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308585995823D@orsmsx503.amr.corp.intel.com>
-References: <alpine.LFD.2.00.1002190141280.24628@localhost.localdomain>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] drivers: acpi: fan.c move a dereference below the NULL test
+Date: Fri, 19 Feb 2010 12:02:28 +0100
+Message-ID: <201002191202.28792.trenn@suse.de>
+References: <1265882202.27789.0.camel@ICE-BOX> <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38072 "EHLO mga02.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:40721 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754699Ab0BSHsp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 02:48:45 -0500
-In-Reply-To: <alpine.LFD.2.00.1002190141280.24628@localhost.localdomain>
-Content-Language: en-US
+	id S1754034Ab0BSLCb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Feb 2010 06:02:31 -0500
+In-Reply-To: <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Darren Jenkins <darrenrjenkins@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Janitors <kernel-janitors@vger.kernel.org>
 
-Yes.
+On Friday 19 February 2010 06:27:46 Len Brown wrote:
+> I think think this is a run-time check for a programming error,
+> and the current fashion is to delete the check and take a fault
+> if this happens so the caller can be fixed.
+> 
+> There are a couple of checks like this in fan.c --
+> perhaps Rui can clean them up when he comes back next week.
+Please let us clean this up first and remove:
+static inline void *acpi_driver_data(struct acpi_device *d)
+{
+        return d->driver_data;
+}
+This has nothing to do with acpica code, it's in kernel code only.
+Is there a reason for above abstraction?
+If not, it's error prone and really should get eliminated.
 
-One nit:
-+				    "length %d, found length %d",
+    Thomas
 
-We usually use %u on these:
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> On Thu, 11 Feb 2010, Darren Jenkins wrote:
+> 
+> > In acpi_fan_remove() device is being dereferenced before the NULL 
+test.
+> > This reorders the code to ensure it is checked for NULL first.
+> > 
+> > Coverity CID: 2758
+> > 
+> > Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+> > ---
+> >  drivers/acpi/fan.c |    9 +++++++--
+> >  1 files changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> > index acf2ab2..dc39640 100644
+> > --- a/drivers/acpi/fan.c
+> > +++ b/drivers/acpi/fan.c
+> > @@ -298,9 +298,14 @@ static int acpi_fan_add(struct acpi_device 
+*device)
+> >  
+> >  static int acpi_fan_remove(struct acpi_device *device, int type)
+> >  {
+> > -	struct thermal_cooling_device *cdev = acpi_driver_data(device);
+> > +	struct thermal_cooling_device *cdev;
+> > +
+> > +	if (!device)
+> > +		return -EINVAL;
+> > +
+> > +	cdev = acpi_driver_data(device);
+> >  
+> > -	if (!device || !cdev)
+> > +	if (!cdev)
+> >  		return -EINVAL;
+> >  
+> >  	acpi_fan_remove_fs(device);
+> > -- 
+> > 1.6.3.3
+> > 
+> > 
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> > 
+> 
 
-+				    "length %u, found length %u",
-
->-----Original Message-----
->From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
->Of Len Brown
->Sent: Thursday, February 18, 2010 10:43 PM
->To: devel@acpica.org
->Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
->Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->message (fwd)
->
->Bob,
->one for you.
->
->thanks,
->Len Brown, Intel Open Source Technology Center
->
->---------- Forwarded message ----------
->Date: Wed, 17 Feb 2010 03:13:27 +0000 (UTC)
->From: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
->To: len.brown@intel.com
->Cc: linux-acpi@vger.kernel.org, Naga Chumbalkar
-><nagananda.chumbalkar@hp.com>
->Subject: [PATCH] ACPICA: exfield: minor format change in error message
->
->Found this while debugging a problem.  Trivial, but useful, format change.
->
->Before:
->ACPI Error: SMBus or IPMI write requires Buffer of length 42, found length
->20
->(20091214/exfield-285)
->
->After:
->ACPI Error: SMBus or IPMI write requires Buffer of length 66, found length
->32
->(20091214/exfield-286)
->
->Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
->
->diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
->index 1588a2d..be2b03a 100644
->--- a/drivers/acpi/acpica/exfield.c
->+++ b/drivers/acpi/acpica/exfield.c
->@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
->*source_desc,
->
-> 		if (source_desc->buffer.length < length) {
-> 			ACPI_ERROR((AE_INFO,
->-				    "SMBus or IPMI write requires Buffer of length
->%X, found length %X",
->+				    "SMBus or IPMI write requires Buffer of "
->+				    "length %d, found length %d",
-> 				    length, source_desc->buffer.length));
->
-> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->_______________________________________________
->Devel mailing list
->Devel@acpica.org
->http://lists.acpica.org/listinfo/devel
