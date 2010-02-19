@@ -1,53 +1,63 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.32.stable] ACPI, i915: blacklist Clevo M5x0N bad_lid state
-Date: Thu, 18 Feb 2010 23:27:53 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002182325300.17638@localhost.localdomain>
+Subject: [PATCH 2.6.32.stable] ACPI: Add NULL pointer check in acpi_bus_start
+Date: Thu, 18 Feb 2010 23:35:33 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1002182330140.17638@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:17171 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751183Ab0BSE2K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2010 23:28:10 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:36665 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717Ab0BSEfq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2010 23:35:46 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173007.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KY200KN9N2IU7C2@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 18 Feb 2010 22:28:00 -0600 (CST)
+ with ESMTPA id <0KY2006T2NFAH8K2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 18 Feb 2010 22:35:37 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-upstgream 1379d2fef0ec07c7027a5e89036025ce761470c8
-From: Zhang Rui <rui.zhang@intel.com>
+upstream d2f6650a950dadd20667a04a9dc785f240d43695
+From: Thomas Renninger <trenn@suse.de>
 
-Wrong Lid state reported.
-Need to blacklist this machine for LVDS detection.
+If acpi_bus_add does not return a device and it's passed
+to acpi_bus_start, bad things will happen:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=15108
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+IP: [<ffffffff8128402d>] acpi_bus_start+0x14/0x24
+...
+[<ffffffffa008977a>] acpiphp_bus_add+0xba/0x130 [acpiphp]
+[<ffffffffa008aa72>] enable_device+0x132/0x2ff [acpiphp]
+[<ffffffffa0089b68>] acpiphp_enable_slot+0xb8/0x130 [acpiphp]
+[<ffffffffa0089df7>] handle_hotplug_event_func+0x87/0x190 [acpiphp]
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Next patch would make this NULL pointer check obsolete, but
+better having one more than one missing...
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: stable@kernel.org
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/gpu/drm/i915/intel_lvds.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/acpi/scan.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Index: linux-2.6.32.y/drivers/gpu/drm/i915/intel_lvds.c
-===================================================================
---- linux-2.6.32.y.orig/drivers/gpu/drm/i915/intel_lvds.c
-+++ linux-2.6.32.y/drivers/gpu/drm/i915/intel_lvds.c
-@@ -608,6 +608,13 @@ static const struct dmi_system_id bad_li
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire one"),
- 		},
- 	},
-+	{
-+		.ident = "Clevo M5x0N",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "CLEVO Co."),
-+			DMI_MATCH(DMI_BOARD_NAME, "M5x0N"),
-+		},
-+	},
- 	{ }
- };
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index ff9f622..8044583 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1357,6 +1357,9 @@ int acpi_bus_start(struct acpi_device *device)
+ {
+ 	struct acpi_bus_ops ops;
  
++	if (!device)
++		return -EINVAL;
++
+ 	memset(&ops, 0, sizeof(ops));
+ 	ops.acpi_op_start = 1;
+ 
+-- 
+1.7.0.17.g7e5eb
+
