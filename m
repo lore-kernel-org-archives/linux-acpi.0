@@ -1,36 +1,91 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI thermal: Don't invalidate thermal zone if
- critical trip point is bad
-Date: Fri, 19 Feb 2010 02:34:29 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002190234100.24628@localhost.localdomain>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de>
- <alpine.LFD.2.00.1002190132430.24628@localhost.localdomain>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+	message (fwd)
+Date: Thu, 18 Feb 2010 23:48:43 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D8308585995823D@orsmsx503.amr.corp.intel.com>
+References: <alpine.LFD.2.00.1002190141280.24628@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1197219120-1266564870=:24628"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:51611 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754662Ab0BSHed (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 02:34:33 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KY200523VPIVNV5@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Feb 2010 01:34:33 -0600 (CST)
-In-reply-to: <alpine.LFD.2.00.1002190132430.24628@localhost.localdomain>
+Received: from mga02.intel.com ([134.134.136.20]:38072 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754699Ab0BSHsp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 02:48:45 -0500
+In-Reply-To: <alpine.LFD.2.00.1002190141280.24628@localhost.localdomain>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Naga Chumbalkar <nagananda.chumbalkar@hp.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Yes.
 
---8323328-1197219120-1266564870=:24628
-Content-Type: TEXT/PLAIN; charset=ISO-8859-7
-Content-Transfer-Encoding: 8BIT
+One nit:
++				    "length %d, found length %d",
 
-drivers/acpi/thermal.c:388: warning: unknown conversion type character ¡)¢ in format
-drivers/acpi/thermal.c:388: warning: too many arguments for format
+We usually use %u on these:
 
---8323328-1197219120-1266564870=:24628--
++				    "length %u, found length %u",
+
+>-----Original Message-----
+>From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
+>Of Len Brown
+>Sent: Thursday, February 18, 2010 10:43 PM
+>To: devel@acpica.org
+>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
+>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>message (fwd)
+>
+>Bob,
+>one for you.
+>
+>thanks,
+>Len Brown, Intel Open Source Technology Center
+>
+>---------- Forwarded message ----------
+>Date: Wed, 17 Feb 2010 03:13:27 +0000 (UTC)
+>From: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+>To: len.brown@intel.com
+>Cc: linux-acpi@vger.kernel.org, Naga Chumbalkar
+><nagananda.chumbalkar@hp.com>
+>Subject: [PATCH] ACPICA: exfield: minor format change in error message
+>
+>Found this while debugging a problem.  Trivial, but useful, format change.
+>
+>Before:
+>ACPI Error: SMBus or IPMI write requires Buffer of length 42, found length
+>20
+>(20091214/exfield-285)
+>
+>After:
+>ACPI Error: SMBus or IPMI write requires Buffer of length 66, found length
+>32
+>(20091214/exfield-286)
+>
+>Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+>
+>diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+>index 1588a2d..be2b03a 100644
+>--- a/drivers/acpi/acpica/exfield.c
+>+++ b/drivers/acpi/acpica/exfield.c
+>@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
+>*source_desc,
+>
+> 		if (source_desc->buffer.length < length) {
+> 			ACPI_ERROR((AE_INFO,
+>-				    "SMBus or IPMI write requires Buffer of length
+>%X, found length %X",
+>+				    "SMBus or IPMI write requires Buffer of "
+>+				    "length %d, found length %d",
+> 				    length, source_desc->buffer.length));
+>
+> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>_______________________________________________
+>Devel mailing list
+>Devel@acpica.org
+>http://lists.acpica.org/listinfo/devel
