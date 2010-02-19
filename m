@@ -1,79 +1,138 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI thermal: Check for thermal zone requiremen
-Date: Fri, 19 Feb 2010 01:39:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002190138310.24628@localhost.localdomain>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de>
- <1266357351-20224-2-git-send-email-trenn@suse.de>
+Subject: Re: [PATCH] ACPI video: Be more liberal in validating _BQC behaviour
+Date: Fri, 19 Feb 2010 01:40:47 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1002190140230.24628@localhost.localdomain>
+References: <1266357230-10602-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:34189 "EHLO
+Received: from vms173001pub.verizon.net ([206.46.173.1]:34478 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622Ab0BSGjt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 01:39:49 -0500
+	with ESMTP id S1752930Ab0BSGkt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 01:40:49 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KY200BW8T679V54@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Feb 2010 00:39:44 -0600 (CST)
-In-reply-to: <1266357351-20224-2-git-send-email-trenn@suse.de>
+ with ESMTPA id <0KY200E1VT80MAW1@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 19 Feb 2010 00:40:49 -0600 (CST)
+In-reply-to: <1266357230-10602-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com
 
-Thomas,
+Matthew,
 
-What good things happen after this patch that didn't happen before it?
+Is there a life failure someplace (eg. bugzilla) that works after this 
+patch?
 
 thanks,
 Len Brown, Intel Open Source Technology Center
 
-On Tue, 16 Feb 2010, Thomas Renninger wrote:
+On Tue, 16 Feb 2010, Matthew Garrett wrote:
 
-> ACPI spec says (11.5 Thermal Zone Interface Requirements):
->    A thermal zone must contain at least one trip point
->    (critical, near critical, active, or passive)
+> Right now, if _BQC returns a value we don't understand we immediately
+> invalidate it. Change this behaviour so we only invalidate it if it
+> continues to give an invalid answer after we've already set a brightness.
 > 
-> Check this once at init time.
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> Tested-by: clarkt@cnsp.com
-> CC: Len Brown <lenb@kernel.org>
-> CC: linux-acpi@vger.kernel.org
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > ---
->  drivers/acpi/thermal.c |   18 +++++++++++++++++-
->  1 files changed, 17 insertions(+), 1 deletions(-)
+>  drivers/acpi/video.c |   28 +++++++++++++++++-----------
+>  1 files changed, 17 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 8fa71b8..09b757a 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -577,7 +577,23 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index b765790..ea314a2 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -327,7 +327,7 @@ static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
+>  			int level);
+>  static int acpi_video_device_lcd_get_level_current(
+>  			struct acpi_video_device *device,
+> -			unsigned long long *level);
+> +			unsigned long long *level, int init);
+>  static int acpi_video_get_next_level(struct acpi_video_device *device,
+>  				     u32 level_current, u32 event);
+>  static int acpi_video_switch_brightness(struct acpi_video_device *device,
+> @@ -345,7 +345,7 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
+>  	struct acpi_video_device *vd =
+>  		(struct acpi_video_device *)bl_get_data(bd);
 >  
->  static int acpi_thermal_get_trip_points(struct acpi_thermal *tz)
+> -	if (acpi_video_device_lcd_get_level_current(vd, &cur_level))
+> +	if (acpi_video_device_lcd_get_level_current(vd, &cur_level, 0))
+>  		return -EINVAL;
+>  	for (i = 2; i < vd->brightness->count; i++) {
+>  		if (vd->brightness->levels[i] == cur_level)
+> @@ -414,7 +414,7 @@ static int video_get_cur_state(struct thermal_cooling_device *cooling_dev, unsig
+>  	unsigned long long level;
+>  	int offset;
+>  
+> -	if (acpi_video_device_lcd_get_level_current(video, &level))
+> +	if (acpi_video_device_lcd_get_level_current(video, &level, 0))
+>  		return -EINVAL;
+>  	for (offset = 2; offset < video->brightness->count; offset++)
+>  		if (level == video->brightness->levels[offset]) {
+> @@ -609,7 +609,7 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  
+>  static int
+>  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+> -					unsigned long long *level)
+> +					unsigned long long *level, int init)
 >  {
-> -	return acpi_thermal_trips_update(tz, ACPI_TRIPS_INIT);
-> +	int i, valid, ret = acpi_thermal_trips_update(tz, ACPI_TRIPS_INIT);
-> +
-> +	if (ret)
-> +		return ret;
-> +
-> +	valid = tz->trips.critical.flags.valid |
-> +		tz->trips.hot.flags.valid |
-> +		tz->trips.passive.flags.valid;
-> +
-> +	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
-> +		valid |= tz->trips.active[i].flags.valid;
-> +
-> +	if (!valid) {
-> +		printk(KERN_WARNING FW_BUG "No valid trip found\n");
-> +		return -ENODEV;
-> +	}
-> +	return 0;
->  }
+>  	acpi_status status = AE_OK;
+>  	int i;
+> @@ -633,10 +633,16 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  					device->brightness->curr = *level;
+>  					return 0;
+>  			}
+> -			/* BQC returned an invalid level. Stop using it.  */
+> -			ACPI_WARNING((AE_INFO, "%s returned an invalid level",
+> -						buf));
+> -			device->cap._BQC = device->cap._BCQ = 0;
+> +			if (!init) {
+> +				/*
+> +				 * BQC returned an invalid level.
+> +				 * Stop using it.
+> +				 */
+> +				ACPI_WARNING((AE_INFO,
+> +					      "%s returned an invalid level",
+> +					      buf));
+> +				device->cap._BQC = device->cap._BCQ = 0;
+> +			}
+>  		} else {
+>  			/* Fixme:
+>  			 * should we return an error or ignore this failure?
+> @@ -892,7 +898,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+>  	if (!device->cap._BQC)
+>  		goto set_level;
 >  
->  static void acpi_thermal_check(void *data)
+> -	result = acpi_video_device_lcd_get_level_current(device, &level_old);
+> +	result = acpi_video_device_lcd_get_level_current(device, &level_old, 1);
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> @@ -903,7 +909,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> -	result = acpi_video_device_lcd_get_level_current(device, &level);
+> +	result = acpi_video_device_lcd_get_level_current(device, &level, 0);
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> @@ -1996,7 +2002,7 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
+>  		goto out;
+>  
+>  	result = acpi_video_device_lcd_get_level_current(device,
+> -							 &level_current);
+> +							 &level_current, 0);
+>  	if (result)
+>  		goto out;
+>  
 > -- 
-> 1.6.3
+> 1.6.6.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
