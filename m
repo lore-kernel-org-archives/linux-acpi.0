@@ -1,54 +1,77 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/2] ACPI thermal: Check for thermal zone requiremen
-Date: Fri, 19 Feb 2010 17:37:49 +0100
-Message-ID: <201002191737.49957.trenn@suse.de>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de> <201002191220.56517.trenn@suse.de> <alpine.LFD.2.00.1002191108590.4030@localhost.localdomain>
+From: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
+Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+	message (fwd)
+Date: Fri, 19 Feb 2010 16:37:35 +0000
+Message-ID: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53211 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752863Ab0BSQhv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Feb 2010 11:37:51 -0500
-In-Reply-To: <alpine.LFD.2.00.1002191108590.4030@localhost.localdomain>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:47512 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab0BSQiQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 11:38:16 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday 19 February 2010 17:20:51 Len Brown wrote:
-> > > What good things happen after this patch that didn't happen before it?
-> > 
-> > The guy sees a valid temperature, in /proc-/sys and also in the
-> > corresponding X-apps (which his original complaints were).
-> >
-> > The thermal zone has a valid passive trip point (95 C), which now is 
-> > active again.
-> 
-> I understand the 1st patch to not disqualify a TZ if it has
-> a bogus _CRT.  That would make a TZ show up rather than
-> get discarded.  If that patch compiled cleanly, I'd apply it...
-> 
-> I don't understand this patch to scan a TZ for trip points
-> and print out a kernel warning about a firmware bug
-> for TZ's which have none, and disqualify those TZ's.
-> That isn't going to make temperature available when it
-> was not already available.  That is going to add an additional
-> kernel message about a firmware bug we can't fix,
-Hmm, Firmware bugs which we can't fix and can't even work around always
-should at least end up in a firmware bug/warning message.
+[PATCH v2] ACPICA: exfield: minor format change in error message
 
-> and could actually delete a thermal zone with a working temperature
-> that used to be present, no?
-Not really. At least not worse than before.
-Before my previous patch every thermal zone without a valid critical
-trip point was discarded with an error message.
-Now you need at least one.
+Change %X to %u.
 
-My patch sticks to the spec and only discards the thermal zone if there
-is no trip point at all. In this case you want to throw a (firmware bug)
-message as something is obviously wrong.
+V1->V2:
+%d to %u
 
-     Thomas
+Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 1588a2d..b9400e7 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 
+ 		if (source_desc->buffer.length < length) {
+ 			ACPI_ERROR((AE_INFO,
+-				    "SMBus or IPMI write requires Buffer of length %X, found length %X",
++				    "SMBus or IPMI write requires Buffer of "
++				    "length %u, found length %u",
+ 				    length, source_desc->buffer.length));
+ 
+ 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
+
+
+-----Original Message-----
+From: Moore, Robert [mailto:robert.moore@intel.com] 
+Sent: Friday, February 19, 2010 1:49 AM
+To: Len Brown; devel@acpica.org
+Cc: linux-acpi@vger.kernel.org; Chumbalkar, Nagananda
+Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format 
+change in error message (fwd)
+
+Yes.
+
+One nit:
++				    "length %d, found length %d",
+
+We usually use %u on these:
+
++				    "length %u, found length %u",
+
+>-----Original Message-----
+>From: devel-bounces@acpica.org 
+[mailto:devel-bounces@acpica.org] On Behalf
+>Of Len Brown
+>Sent: Thursday, February 18, 2010 10:43 PM
+>To: devel@acpica.org
+>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
+>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>message (fwd)
+>
+>Bob,
+>one for you.
+>
+>thanks,
+>Len Brown, Intel Open Source Technology Center
+>
