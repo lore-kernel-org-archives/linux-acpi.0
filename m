@@ -1,116 +1,45 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in	error
-	message (fwd)
-Date: Fri, 19 Feb 2010 12:18:29 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858599586A7@orsmsx503.amr.corp.intel.com>
-References: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
- <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/8] ACPI: Use GPE reference counting to support shared GPEs
+Date: Fri, 19 Feb 2010 22:08:24 +0100
+Message-ID: <201002192208.24378.rjw@sisk.pl>
+References: <201002172335.47703.rjw@sisk.pl> <201002182101.44171.rjw@sisk.pl> <4B7E3CC5.9040901@np.css.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54823 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753597Ab0BSUSb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 15:18:31 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4B7E3CC5.9040901@np.css.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Gary Hade <garyhade@us.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-I've discovered that this is a far bigger issue than one change in one file.
+On Friday 19 February 2010, Jin Dongming wrote:
+> Hi, Rafael J. Wysocki
+> 
+> Rafael J. Wysocki wrote:
+> > On Thursday 18 February 2010, Jin Dongming wrote:
+> >> Hi, Rafael J. Wysocki
+> >>> -	/* Update enable mask, but don't enable the HW GPE as of yet */
+> >>> -
+> >>> -	status = acpi_ev_enable_gpe(gpe_event_info, FALSE);
+> > 
+> > You could preserve some more context.
+> > 
+> >> I think the above line code should be remained. If it is deleted, the exception 
+> >> event will be raised on some machine.
+> > 
+> > Why would it?  The GPE is still disabled at the hardware level at this point.
+> > 
+> > Rafael
+> > 
+> > 
+> I am very sorry for my wrong comment. The GPE is still disabled as you wrote.
+> 
+> The error message what I got was not caused by GPE event, it was caused by the "status"
+> variable which had not been deleted on x86-next tree. And it is also deleted at this
+> file. So I don't there is problem here.
 
-Most all of the invocations of ACPI_ERROR use %X to format an integer value. Most of these invocations were originally debug statements where all output was assumed to be in hex. In today's environment, we should follow standard conventions for such output -- meaning prefix all of the %X formats with 0x, or convert all %X to %u.
+Great, thanks for the review.
 
-So, I'm going to open a bugzilla on this issue so we can address all invocations of ACPI_ERROR (and ACPI_WARNING) at the same time. There are over 300 invocations of these macros across ACPICA.
-
-Bob
-
-
->-----Original Message-----
->From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
->Of Moore, Robert
->Sent: Friday, February 19, 2010 9:09 AM
->To: Chumbalkar, Nagananda; Len Brown; devel@acpica.org
->Cc: linux-acpi@vger.kernel.org
->Subject: Re: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->message (fwd)
->
->Thanks for your help, I'll roll this change into ACPICA today.
->
->
->>-----Original Message-----
->>From: Chumbalkar, Nagananda [mailto:Nagananda.Chumbalkar@hp.com]
->>Sent: Friday, February 19, 2010 8:38 AM
->>To: Moore, Robert; Len Brown; devel@acpica.org
->>Cc: linux-acpi@vger.kernel.org
->>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->>message (fwd)
->>
->>[PATCH v2] ACPICA: exfield: minor format change in error message
->>
->>Change %X to %u.
->>
->>V1->V2:
->>%d to %u
->>
->>Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
->>
->>diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
->>index 1588a2d..b9400e7 100644
->>--- a/drivers/acpi/acpica/exfield.c
->>+++ b/drivers/acpi/acpica/exfield.c
->>@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
->>*source_desc,
->>
->> 		if (source_desc->buffer.length < length) {
->> 			ACPI_ERROR((AE_INFO,
->>-				    "SMBus or IPMI write requires Buffer of length
->>%X, found length %X",
->>+				    "SMBus or IPMI write requires Buffer of "
->>+				    "length %u, found length %u",
->> 				    length, source_desc->buffer.length));
->>
->> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
->>
->>
->>-----Original Message-----
->>From: Moore, Robert [mailto:robert.moore@intel.com]
->>Sent: Friday, February 19, 2010 1:49 AM
->>To: Len Brown; devel@acpica.org
->>Cc: linux-acpi@vger.kernel.org; Chumbalkar, Nagananda
->>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format
->>change in error message (fwd)
->>
->>Yes.
->>
->>One nit:
->>+				    "length %d, found length %d",
->>
->>We usually use %u on these:
->>
->>+				    "length %u, found length %u",
->>
->>>-----Original Message-----
->>>From: devel-bounces@acpica.org
->>[mailto:devel-bounces@acpica.org] On Behalf
->>>Of Len Brown
->>>Sent: Thursday, February 18, 2010 10:43 PM
->>>To: devel@acpica.org
->>>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
->>>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->>>message (fwd)
->>>
->>>Bob,
->>>one for you.
->>>
->>>thanks,
->>>Len Brown, Intel Open Source Technology Center
->>>
->
->_______________________________________________
->Devel mailing list
->Devel@acpica.org
->http://lists.acpica.org/listinfo/devel
+Rafael
