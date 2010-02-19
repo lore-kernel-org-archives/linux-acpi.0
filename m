@@ -1,22 +1,20 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 4/8] ACPI: Use GPE reference counting to support shared GPEs
-Date: Sat, 20 Feb 2010 00:14:04 +0100
-Message-ID: <201002200014.04936.rjw@sisk.pl>
+Date: Sat, 20 Feb 2010 00:18:02 +0100
+Message-ID: <201002200018.02700.rjw@sisk.pl>
 References: <4911F71203A09E4D9981D27F9D83085859958760@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54360 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755993Ab0BSXNo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Feb 2010 18:13:44 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <4911F71203A09E4D9981D27F9D83085859958760@orsmsx503.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Brown, Len" <len.brown@intel.com>
+
+[Sorry for resending, tried to restore the CC list.]
 
 On Friday 19 February 2010, Moore, Robert wrote:
 > 
