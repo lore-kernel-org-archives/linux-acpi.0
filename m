@@ -1,58 +1,57 @@
-From: "D. Can Celasun" <dcelasun@gmail.com>
-Subject: Re: Core i3 support?
-Date: Fri, 19 Feb 2010 23:56:32 +0200
-Message-ID: <d35bed621002191356l1d17029bkcdbd71e530b287b7@mail.gmail.com>
-References: <20100210154404.45e8afd6@hyperion.delvare>
-	<d35bed621002101007y639fd3c7k736ef53ff400f79@mail.gmail.com>
-	<20100210204057.2ca95b0d@hyperion.delvare>
-	<d35bed621002101223ida7758fp5ccbedfe25bd3148@mail.gmail.com>
-	<20100211012105.GH29604@tux1.beaverton.ibm.com>
-	<d35bed621002102333i701a212re957efb600cbda5f@mail.gmail.com>
-	<20100211091743.287030b0@hyperion.delvare>
-	<d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com>
-	<20100212185241.GJ29604@tux1.beaverton.ibm.com>
-	<20100212200955.05730d69@hyperion.delvare>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [Debian-eeepc-devel] Debian on the ASUS EeePC 1005PE
+Date: Fri, 19 Feb 2010 14:14:44 -0800
+Message-ID: <201002191414.45156.dmitry.torokhov@gmail.com>
+References: <87y6iqy58p.fsf@marvin.43-1.org> <9b2b86521002190810if166725ob21c005f250bf152@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============9165733921098311755=="
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-In-Reply-To: <20100212200955.05730d69@hyperion.delvare>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Huaxu Wan <huaxu.wan@intel.com>, lenb@kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---===============9165733921098311755==
-Content-Type: multipart/alternative; boundary=00c09f82cb173d6bb4047ffb29e3
-
---00c09f82cb173d6bb4047ffb29e3
-Content-Type: text/plain; charset=ISO-8859-1
-
-Any news on this?
-
---00c09f82cb173d6bb4047ffb29e3
-Content-Type: text/html; charset=ISO-8859-1
-
-Any news on this?<br>
-
---00c09f82cb173d6bb4047ffb29e3--
-
-
---===============9165733921098311755==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:56242 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab0BSWO4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 17:14:56 -0500
+Received: by vws11 with SMTP id 11so203591vws.19
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Feb 2010 14:14:55 -0800 (PST)
+In-Reply-To: <9b2b86521002190810if166725ob21c005f250bf152@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: Ansgar Burchardt <ansgar@43-1.org>, Corentin Chary <corentincj@iksaif.net>, debian-eeepc-devel@lists.alioth.debian.org, debian-users@lists.debian.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9165733921098311755==--
+On Friday 19 February 2010 08:10:39 am Alan Jenkins wrote:
+> On 2/18/10, Ansgar Burchardt <ansgar@43-1.org> wrote:
+> > Hi,
+> >
+> > I got an ASUS EeePC 1005PE a few days ago and am trying to install
+> > Debian testing on it.
+> >
+> > There have been several problems so far:
+> 
+> <snip>
+> 
+> > 2. The Ethernet card disappeared completely.  It did no longer show up
+> > in the output from lspci, nor was it accessible in Windows.  This
+> > problem persisted over shutdowns as well.  Removing the battery and
+> > disconnecting the power supply luckily made the card show up again.
+> >
+> > A patch was available for this issue on a different EeePC model [3].
+> > This one was not so easy to backport, so I just changed it to disable
+> > hot-plug always (patch attached).  This solved this issue for me: the
+> > Ethernet card does no longer disappear.
+> >
+> > [3] http://bugzilla.kernel.org/show_bug.cgi?id=14570
+> 
+> My suggestion for this problem would be to contact the eeepc-laptop
+> maintainer :-).
+> 
+> I guess we're too late to add a blacklist entry for 2.6.33, but we
+> should be able to get a fix into 2.6.33.1.
+
+I think blacklist addition should be fine even for .33.
+
+Thanks.
+
+-- 
+Dmitry
