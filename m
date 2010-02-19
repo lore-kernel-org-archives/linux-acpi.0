@@ -1,56 +1,56 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH v4 0/5] PCI: try "pci=use_crs" again
-Date: Thu, 18 Feb 2010 16:58:36 -0800
-Message-ID: <20100219005836.GA26564@us.ibm.com>
-References: <20100217201654.4013.70201.stgit@bob.kio>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 2/8] PCI PM: PCIe PME root port service driver (rev. 5)
+Date: Fri, 19 Feb 2010 11:07:34 +0900
+Message-ID: <4B7DF266.6050201@jp.fujitsu.com>
+References: <201002172335.47703.rjw@sisk.pl> <201002172339.08865.rjw@sisk.pl> <4B7CBD37.9000706@jp.fujitsu.com> <201002182057.53002.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e37.co.us.ibm.com ([32.97.110.158]:53151 "EHLO
-	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717Ab0BSA6s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2010 19:58:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20100217201654.4013.70201.stgit@bob.kio>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:36347 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753122Ab0BSCOV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2010 21:14:21 -0500
+In-Reply-To: <201002182057.53002.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Gary Hade <garyhade@us.ibm.com>
 
-On Wed, Feb 17, 2010 at 01:19:47PM -0700, Bjorn Helgaas wrote:
-> Historically, Linux has assumed a single PCI host bridge, with that bridge
-> claiming all the address space left after RAM and legacy devices are taken out.
+Rafael J. Wysocki wrote:
+> On Thursday 18 February 2010, Kenji Kaneshige wrote:
+>> Hi,
+>>
+>> I'm sorry for the delayed comments.
+>>
+>>> +
+>>> +/**
+>>> + * pcie_pme_interrupt_enable - Enable/disable PCIe PME interrupt generation.
+>>> + * @dev: PCIe root port or event collector.
+>>> + * @enable: Enable or disable the interrupt.
+>>> + */
+>>> +static void pcie_pme_interrupt_enable(struct pci_dev *dev, bool enable)
+>>> +{
+>>> +	int rtctl_pos;
+>>> +	u16 rtctl;
+>>> +
+>>> +	rtctl_pos = pci_find_capability(dev, PCI_CAP_ID_EXP) + PCI_EXP_RTCTL;
+>> How about
+>>
+>> 	rtctl_pos = pci_pcie_cap(dev) + PCI_EXP_RTCTL;
+>>
+>> ?
+>>
+>> The pci_pcie_cap() returns PCIe capability offset saved in struct pci_dev.
+>> By using this, we can avoid redundant search in PCI configuration space.
 > 
-> If the system contains multiple host bridges, we can no longer operate under
-> that assumption.  We have to know what parts of the address space are claimed
-> by each bridge so that when we assign resources to a PCI device, we take them
-> from a range claimed by the upstream host bridge.
+> While I agree with the comment, I'd prefer to change this with a separate
+> patch, unless the entire patchset misses the merge window.
 > 
-> On x86 and ia64, we use ACPI to enumerate all the PCI host bridges in the
-> system, and part of the host bridge description is the "_CRS" (current resource
-> settings" property, which lists the address space used by the bridge.  On x86,
-> we currently ignore most of the _CRS information.  This patch series changes
-> this, so we will use _CRS to learn about the host bridge windows.
-> 
-> Since most x86 machines with multiple host bridges are relatively new, this
-> series only turns this on for machines with BIOS dates of 2008 or newer.
 
-I just tried your changes on an IBM x3850 with a 12/01/2008 BIOS
-date.  After booting without pci=use_crs I observed the expected
-  PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
-message.  I then loaded 'acpiphp' and was able to successfully 
-hot-remove and hot-add PCI-X and PCIe cards.  Without pci=use_crs
-a hot-add operation would have previously caused a machine check.
+Ok. Actually, I didn't realize your set of patches was already in
+linux-next, sorry. I'll send a patch as a separate one.
 
-   Tested-by: Gary Hade <garyhade@us.ibm.com>
-
-Gary
-
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+Thanks,
+Kenji Kaneshige
 
