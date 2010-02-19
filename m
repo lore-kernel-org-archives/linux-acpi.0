@@ -1,54 +1,116 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH v1 2/7] vsprintf: clarify comments for printf_spec flags
-Date: Fri, 19 Feb 2010 10:06:44 -0800
-Message-ID: <4B7ED334.5000603@xenotime.net>
-References: <20100219175655.9199.30691.stgit@bob.kio> <20100219175828.9199.12642.stgit@bob.kio>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in	error
+	message (fwd)
+Date: Fri, 19 Feb 2010 12:18:29 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858599586A7@orsmsx503.amr.corp.intel.com>
+References: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
+ <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:50305 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751526Ab0BSSGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Feb 2010 13:06:47 -0500
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-acpi@vger.kernel.org>; Fri, 19 Feb 2010 10:06:44 -0800
-In-Reply-To: <20100219175828.9199.12642.stgit@bob.kio>
+Received: from mga01.intel.com ([192.55.52.88]:54823 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753597Ab0BSUSb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 15:18:31 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>
+To: "Moore, Robert" <robert.moore@intel.com>, "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 02/19/10 09:58, Bjorn Helgaas wrote:
-> 
-> Add clues about what the SMALL and SPECIAL flags do.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
-> 
->  lib/vsprintf.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> 
-> diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-> index 3b8aeec..212d047 100644
-> --- a/lib/vsprintf.c
-> +++ b/lib/vsprintf.c
-> @@ -381,8 +381,8 @@ static noinline char *put_dec(char *buf, unsigned long long num)
->  #define PLUS	4		/* show plus */
->  #define SPACE	8		/* space if plus */
->  #define LEFT	16		/* left justified */
-> -#define SMALL	32		/* Must be 32 == 0x20 */
-> -#define SPECIAL	64		/* 0x */
-> +#define SMALL	32		/* use lowercase in hex (must be 32 == 0x20) */
-> +#define SPECIAL	64		/* prefix hex with "0x", octal with "0 */
+I've discovered that this is a far bigger issue than one change in one file.
 
-might as well do:						octal with "0" */
+Most all of the invocations of ACPI_ERROR use %X to format an integer value. Most of these invocations were originally debug statements where all output was assumed to be in hex. In today's environment, we should follow standard conventions for such output -- meaning prefix all of the %X formats with 0x, or convert all %X to %u.
+
+So, I'm going to open a bugzilla on this issue so we can address all invocations of ACPI_ERROR (and ACPI_WARNING) at the same time. There are over 300 invocations of these macros across ACPICA.
+
+Bob
 
 
->  
->  enum format_type {
->  	FORMAT_TYPE_NONE, /* Just a string part */
-
-
--- 
-~Randy
+>-----Original Message-----
+>From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
+>Of Moore, Robert
+>Sent: Friday, February 19, 2010 9:09 AM
+>To: Chumbalkar, Nagananda; Len Brown; devel@acpica.org
+>Cc: linux-acpi@vger.kernel.org
+>Subject: Re: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>message (fwd)
+>
+>Thanks for your help, I'll roll this change into ACPICA today.
+>
+>
+>>-----Original Message-----
+>>From: Chumbalkar, Nagananda [mailto:Nagananda.Chumbalkar@hp.com]
+>>Sent: Friday, February 19, 2010 8:38 AM
+>>To: Moore, Robert; Len Brown; devel@acpica.org
+>>Cc: linux-acpi@vger.kernel.org
+>>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>>message (fwd)
+>>
+>>[PATCH v2] ACPICA: exfield: minor format change in error message
+>>
+>>Change %X to %u.
+>>
+>>V1->V2:
+>>%d to %u
+>>
+>>Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+>>
+>>diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+>>index 1588a2d..b9400e7 100644
+>>--- a/drivers/acpi/acpica/exfield.c
+>>+++ b/drivers/acpi/acpica/exfield.c
+>>@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
+>>*source_desc,
+>>
+>> 		if (source_desc->buffer.length < length) {
+>> 			ACPI_ERROR((AE_INFO,
+>>-				    "SMBus or IPMI write requires Buffer of length
+>>%X, found length %X",
+>>+				    "SMBus or IPMI write requires Buffer of "
+>>+				    "length %u, found length %u",
+>> 				    length, source_desc->buffer.length));
+>>
+>> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
+>>
+>>
+>>-----Original Message-----
+>>From: Moore, Robert [mailto:robert.moore@intel.com]
+>>Sent: Friday, February 19, 2010 1:49 AM
+>>To: Len Brown; devel@acpica.org
+>>Cc: linux-acpi@vger.kernel.org; Chumbalkar, Nagananda
+>>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format
+>>change in error message (fwd)
+>>
+>>Yes.
+>>
+>>One nit:
+>>+				    "length %d, found length %d",
+>>
+>>We usually use %u on these:
+>>
+>>+				    "length %u, found length %u",
+>>
+>>>-----Original Message-----
+>>>From: devel-bounces@acpica.org
+>>[mailto:devel-bounces@acpica.org] On Behalf
+>>>Of Len Brown
+>>>Sent: Thursday, February 18, 2010 10:43 PM
+>>>To: devel@acpica.org
+>>>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
+>>>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>>>message (fwd)
+>>>
+>>>Bob,
+>>>one for you.
+>>>
+>>>thanks,
+>>>Len Brown, Intel Open Source Technology Center
+>>>
+>
+>_______________________________________________
+>Devel mailing list
+>Devel@acpica.org
+>http://lists.acpica.org/listinfo/devel
