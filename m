@@ -1,93 +1,70 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
-	message (fwd)
-Date: Fri, 19 Feb 2010 09:08:47 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
-References: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v1 0/7] resource, PNPACPI: add bus number and window support
+Date: Fri, 19 Feb 2010 10:58:17 -0700
+Message-ID: <20100219175655.9199.30691.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43231 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754949Ab0BSRIu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 12:08:50 -0500
-In-Reply-To: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
-Content-Language: en-US
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:9873 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754631Ab0BSR6T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2010 12:58:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>
 
-Thanks for your help, I'll roll this change into ACPICA today.
+These patches add a new resource type, IORESOURCE_BUS, and a new resource flag,
+IORESOURCE_WINDOW, and PNPACPI support that uses them.
+
+IORESOURCE_BUS is for PCI bus number ranges.  For bridge devices, ACPI reports
+secondary bus number ranges in _CRS descriptors, but we currently ignore them.
+Adding this resource type will allow us to handle those descriptors in PNPACPI.
+
+IORESOURCE_WINDOW is also for bridges: ACPI reports the regions that the bridge
+forwards to its secondary bus.  We have _CRS parsing code in pci_root.c that
+handles these window descriptors, but PNPACPI currently ignores them.  Adding
+this flag bit will allow PNPACPI to deal with the windows correctly.
+
+No drivers use PNP bus or window resources yet, but ultimately, I would like to
+drop the _CRS parsing code from pci_root.c and rely on PNPACPI to do it for us.
+The current effect of this series is to change /sys/bus/pnp/.../resources (and
+"lspnp -v" output) from this:
+
+    00:00 PNP0a03 PCI bus
+	state = active
+
+to this:
+
+    00:00 PNP0a03 PCI bus
+	state = active
+	    bus 0x0-0x0
+	    io 0x0-0xcff window
+	    io 0x0-0x2cfe window
+	    io 0x3b0-0x3bb window
+	    io 0x3c0-0x3df window
+	    mem 0xf5d00000-0xf6ffffff window
+	    mem disabled
+	    mem 0xa0000-0xbffff window
+
+---
+
+Bjorn Helgaas (7):
+      resource: expand IORESOURCE_TYPE_BITS to make room for bus resource type
+      vsprintf: clarify comments for printf_spec flags
+      vsprintf: move %pR resource printf_specs off the stack
+      resource: add bus number support
+      resource: add window support
+      PNPACPI: add window support
+      PNPACPI: add bus number support
 
 
->-----Original Message-----
->From: Chumbalkar, Nagananda [mailto:Nagananda.Chumbalkar@hp.com]
->Sent: Friday, February 19, 2010 8:38 AM
->To: Moore, Robert; Len Brown; devel@acpica.org
->Cc: linux-acpi@vger.kernel.org
->Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->message (fwd)
->
->[PATCH v2] ACPICA: exfield: minor format change in error message
->
->Change %X to %u.
->
->V1->V2:
->%d to %u
->
->Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
->
->diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
->index 1588a2d..b9400e7 100644
->--- a/drivers/acpi/acpica/exfield.c
->+++ b/drivers/acpi/acpica/exfield.c
->@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
->*source_desc,
->
-> 		if (source_desc->buffer.length < length) {
-> 			ACPI_ERROR((AE_INFO,
->-				    "SMBus or IPMI write requires Buffer of length
->%X, found length %X",
->+				    "SMBus or IPMI write requires Buffer of "
->+				    "length %u, found length %u",
-> 				    length, source_desc->buffer.length));
->
-> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
->
->
->-----Original Message-----
->From: Moore, Robert [mailto:robert.moore@intel.com]
->Sent: Friday, February 19, 2010 1:49 AM
->To: Len Brown; devel@acpica.org
->Cc: linux-acpi@vger.kernel.org; Chumbalkar, Nagananda
->Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format
->change in error message (fwd)
->
->Yes.
->
->One nit:
->+				    "length %d, found length %d",
->
->We usually use %u on these:
->
->+				    "length %u, found length %u",
->
->>-----Original Message-----
->>From: devel-bounces@acpica.org
->[mailto:devel-bounces@acpica.org] On Behalf
->>Of Len Brown
->>Sent: Thursday, February 18, 2010 10:43 PM
->>To: devel@acpica.org
->>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
->>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
->>message (fwd)
->>
->>Bob,
->>one for you.
->>
->>thanks,
->>Len Brown, Intel Open Source Technology Center
->>
-
+ drivers/pnp/base.h             |    3 ++
+ drivers/pnp/interface.c        |    7 +++--
+ drivers/pnp/pnpacpi/rsparser.c |   49 ++++++++++++++++++++++----------
+ drivers/pnp/resource.c         |   27 +++++++++++++++++
+ drivers/pnp/support.c          |    4 ++-
+ include/linux/ioport.h         |   18 ++++++------
+ lib/vsprintf.c                 |   62 +++++++++++++++++++++++++---------------
+ 7 files changed, 119 insertions(+), 51 deletions(-)
