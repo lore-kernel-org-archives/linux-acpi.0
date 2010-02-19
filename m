@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v1 2/7] vsprintf: clarify comments for printf_spec flags
-Date: Fri, 19 Feb 2010 10:58:28 -0700
-Message-ID: <20100219175828.9199.12642.stgit@bob.kio>
+Subject: [PATCH v1 6/7] PNPACPI: add window support
+Date: Fri, 19 Feb 2010 10:58:48 -0700
+Message-ID: <20100219175848.9199.19126.stgit@bob.kio>
 References: <20100219175655.9199.30691.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,27 +14,171 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay
 List-Id: linux-acpi@vger.kernel.org
 
 
-Add clues about what the SMALL and SPECIAL flags do.
+Add support for resource windows.  This is for bridge resources, i.e.,
+regions where a bridge forwards transactions from the primary to the
+secondary side.  This does not add support for *setting* windows via
+the /proc interface.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- lib/vsprintf.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/pnp/interface.c        |    6 ++++--
+ drivers/pnp/pnpacpi/rsparser.c |   35 ++++++++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 17 deletions(-)
 
 
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index 3b8aeec..212d047 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -381,8 +381,8 @@ static noinline char *put_dec(char *buf, unsigned long long num)
- #define PLUS	4		/* show plus */
- #define SPACE	8		/* space if plus */
- #define LEFT	16		/* left justified */
--#define SMALL	32		/* Must be 32 == 0x20 */
--#define SPECIAL	64		/* 0x */
-+#define SMALL	32		/* use lowercase in hex (must be 32 == 0x20) */
-+#define SPECIAL	64		/* prefix hex with "0x", octal with "0 */
+diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
+index 68b0c04..ba437b7 100644
+--- a/drivers/pnp/interface.c
++++ b/drivers/pnp/interface.c
+@@ -278,9 +278,11 @@ static ssize_t pnp_show_current_resources(struct device *dmdev,
+ 		switch (pnp_resource_type(res)) {
+ 		case IORESOURCE_IO:
+ 		case IORESOURCE_MEM:
+-			pnp_printf(buffer, " %#llx-%#llx\n",
++			pnp_printf(buffer, " %#llx-%#llx%s\n",
+ 				   (unsigned long long) res->start,
+-				   (unsigned long long) res->end);
++				   (unsigned long long) res->end,
++				   res->flags & IORESOURCE_WINDOW ?
++					" window" : "");
+ 			break;
+ 		case IORESOURCE_IRQ:
+ 		case IORESOURCE_DMA:
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 5702b2c..0d7d61d 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -177,7 +177,8 @@ static int dma_flags(struct pnp_dev *dev, int type, int bus_master,
+ }
  
- enum format_type {
- 	FORMAT_TYPE_NONE, /* Just a string part */
+ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
+-					       u64 len, int io_decode)
++					       u64 len, int io_decode,
++					       int window)
+ {
+ 	int flags = 0;
+ 	u64 end = start + len - 1;
+@@ -186,6 +187,8 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
+ 		flags |= IORESOURCE_IO_16BIT_ADDR;
+ 	if (len == 0 || end >= 0x10003)
+ 		flags |= IORESOURCE_DISABLED;
++	if (window)
++		flags |= IORESOURCE_WINDOW;
+ 
+ 	pnp_add_io_resource(dev, start, end, flags);
+ }
+@@ -247,7 +250,7 @@ static void pnpacpi_parse_allocated_vendor(struct pnp_dev *dev,
+ 
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+ 						u64 start, u64 len,
+-						int write_protect)
++						int write_protect, int window)
+ {
+ 	int flags = 0;
+ 	u64 end = start + len - 1;
+@@ -256,6 +259,8 @@ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+ 		flags |= IORESOURCE_DISABLED;
+ 	if (write_protect == ACPI_READ_WRITE_MEMORY)
+ 		flags |= IORESOURCE_MEM_WRITEABLE;
++	if (window)
++		flags |= IORESOURCE_WINDOW;
+ 
+ 	pnp_add_mem_resource(dev, start, end, flags);
+ }
+@@ -265,6 +270,7 @@ static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
+ {
+ 	struct acpi_resource_address64 addr, *p = &addr;
+ 	acpi_status status;
++	int window;
+ 
+ 	status = acpi_resource_to_address64(res, p);
+ 	if (!ACPI_SUCCESS(status)) {
+@@ -273,37 +279,36 @@ static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
+ 		return;
+ 	}
+ 
+-	if (p->producer_consumer == ACPI_PRODUCER)
+-		return;
++	window = (p->producer_consumer == ACPI_PRODUCER) ? 1 : 0;
+ 
+ 	if (p->resource_type == ACPI_MEMORY_RANGE)
+ 		pnpacpi_parse_allocated_memresource(dev,
+ 			p->minimum, p->address_length,
+-			p->info.mem.write_protect);
++			p->info.mem.write_protect, window);
+ 	else if (p->resource_type == ACPI_IO_RANGE)
+ 		pnpacpi_parse_allocated_ioresource(dev,
+ 			p->minimum, p->address_length,
+ 			p->granularity == 0xfff ? ACPI_DECODE_10 :
+-				ACPI_DECODE_16);
++				ACPI_DECODE_16, window);
+ }
+ 
+ static void pnpacpi_parse_allocated_ext_address_space(struct pnp_dev *dev,
+ 						      struct acpi_resource *res)
+ {
+ 	struct acpi_resource_extended_address64 *p = &res->data.ext_address64;
++	int window;
+ 
+-	if (p->producer_consumer == ACPI_PRODUCER)
+-		return;
++	window = (p->producer_consumer == ACPI_PRODUCER) ? 1 : 0;
+ 
+ 	if (p->resource_type == ACPI_MEMORY_RANGE)
+ 		pnpacpi_parse_allocated_memresource(dev,
+ 			p->minimum, p->address_length,
+-			p->info.mem.write_protect);
++			p->info.mem.write_protect, window);
+ 	else if (p->resource_type == ACPI_IO_RANGE)
+ 		pnpacpi_parse_allocated_ioresource(dev,
+ 			p->minimum, p->address_length,
+ 			p->granularity == 0xfff ? ACPI_DECODE_10 :
+-				ACPI_DECODE_16);
++				ACPI_DECODE_16, window);
+ }
+ 
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+@@ -368,7 +373,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 		pnpacpi_parse_allocated_ioresource(dev,
+ 			io->minimum,
+ 			io->address_length,
+-			io->io_decode);
++			io->io_decode, 0);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+@@ -380,7 +385,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 		pnpacpi_parse_allocated_ioresource(dev,
+ 			fixed_io->address,
+ 			fixed_io->address_length,
+-			ACPI_DECODE_10);
++			ACPI_DECODE_10, 0);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_VENDOR:
+@@ -396,21 +401,21 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 		pnpacpi_parse_allocated_memresource(dev,
+ 			memory24->minimum,
+ 			memory24->address_length,
+-			memory24->write_protect);
++			memory24->write_protect, 0);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
+ 		memory32 = &res->data.memory32;
+ 		pnpacpi_parse_allocated_memresource(dev,
+ 			memory32->minimum,
+ 			memory32->address_length,
+-			memory32->write_protect);
++			memory32->write_protect, 0);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+ 		fixed_memory32 = &res->data.fixed_memory32;
+ 		pnpacpi_parse_allocated_memresource(dev,
+ 			fixed_memory32->address,
+ 			fixed_memory32->address_length,
+-			fixed_memory32->write_protect);
++			fixed_memory32->write_protect, 0);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
