@@ -1,94 +1,51 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI thermal: Don't invalidate thermal zone if
- critical trip point is bad
-Date: Sun, 21 Feb 2010 10:51:22 +0800
-Message-ID: <1266720682.2608.38.camel@rzhang1-desktop>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de>
-	 <1266662667-3013-1-git-send-email-trenn@suse.de>
+From: "Microsoft Promotions Department" <info@microsoft.com>
+Subject: Congratulations: You Have Won!
+Date: Sat, 20 Feb 2010 14:46:55 -0000 (UTC)
+Message-ID: <ae54de015cb9ca409cdb52a7f6ac43c9.squirrel@mail.bausate.edu.pe>
+Reply-To: ivan_nickerson00@yahoo.com.hk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:53293 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754646Ab0BUCvq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Feb 2010 21:51:46 -0500
-In-Reply-To: <1266662667-3013-1-git-send-email-trenn@suse.de>
+Received: from mail.bausate.edu.pe ([200.48.249.125]:35484 "EHLO
+	mail.bausate.edu.pe" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757224Ab0BUD5p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Feb 2010 22:57:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "clarkt@cnsp.com" <clarkt@cnsp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-On Sat, 2010-02-20 at 18:44 +0800, Thomas Renninger wrote:
-> V2: Corrected integer/long conversion.
-> 
-> Some BIOSes return a negative value for the critical trip point.
-> Especially since Windows 2006...
-> We currently invalidate the whole thermal zone in this case.
-> But it may still be needed for cooling, also without critical
-> trip point.
-> 
-> This patch invalidates the critical trip point if no _CRT
-> function is found or if it returns negative values, but does
-> not invalidate the whole thermal zone in this case.
-> 
-> Reference: http://bugzilla.novell.com/show_bug.cgi?id=531547
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> Tested-by: clarkt@cnsp.com
-> CC: clarkt@cnsp.com
-> CC: Len Brown <lenb@kernel.org>
-> CC: linux-acpi@vger.kernel.org
-> ---
->  drivers/acpi/thermal.c |   18 ++++++++++--------
->  1 files changed, 10 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 9073ada..77b8e1e 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -368,7 +368,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  	int valid = 0;
->  	int i;
->  
-> -	/* Critical Shutdown (required) */
-> +	/* Critical Shutdown */
->  	if (flag & ACPI_TRIPS_CRITICAL) {
->  		status = acpi_evaluate_integer(tz->device->handle,
->  				"_CRT", NULL, &tmp);
-> @@ -379,17 +379,19 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  		 * Below zero (Celsius) values clearly aren't right for sure..
->  		 * ... so lets discard those as invalid.
->  		 */
-> -		if (ACPI_FAILURE(status) ||
-> -				tz->trips.critical.temperature <= 2732) {
-> +		if (ACPI_FAILURE(status)) {
-> +			tz->trips.critical.flags.valid = 0;
-> +			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +					  "No critical threshold\n"));
-
-No critical threshold is also a violation of ACPI spec.
-what about using FW_BUG here as well?
-
-thanks,
-rui
-
-> +		} else if (tmp <= 2732) {
-> +			printk(KERN_WARNING FW_BUG "Invalid critical threshold "
-> +			       "(%llu)\n", tmp);
->  			tz->trips.critical.flags.valid = 0;
-> -			ACPI_EXCEPTION((AE_INFO, status,
-> -					"No or invalid critical threshold"));
-> -			return -ENODEV;
->  		} else {
->  			tz->trips.critical.flags.valid = 1;
->  			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> -					"Found critical threshold [%lu]\n",
-> -					tz->trips.critical.temperature));
-> +					  "Found critical threshold [%lu]\n",
-> +					  tz->trips.critical.temperature));
->  		}
->  		if (tz->trips.critical.flags.valid == 1) {
->  			if (crt == -1) {
 
 
+The MICROSOFT EMAIL PROMO TEAM is glad to announce that
+after a successful completion of the PROMO DRAWS held on the
+19th February 2010,your e-mail address,attached to winning
+numbers:(11) (80) (12)(96) (09) (43) won in the Tenth
+lottery category.
+
+You have therefore been approved to claim a total sum of
+=A3250,000,00 Pounds Sterling in cash credited to REF NO:MICRO-L/2009-E=
+ND10.
+
+All participants were selected through our Microsoft computer
+ballot system drawn from 167,000 Names,as part of our
+International  "E-MAIL" Promotion Program for our prominent
+MS-WORD users all over the world and for the continuous use
+of the internet. You are advised to contact the claims
+processor with the details below via his e-mail address :
+
+NAME:  Ivan Nickerson
+EMAIL: ivan.nickerson@yahoo.com.hk
+
+PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO CLAIM YOUR PRI=
+ZE:
+1.Full Name:... 2.Address:... 3.Phone:... 4.Country:... 5.Sex/Gender:..=
+=2E
+
+
+YOURS SINCERELY,
+HILDA CREIGHTON.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
