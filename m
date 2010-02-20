@@ -1,79 +1,79 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/2] ACPI thermal: Check for thermal zone requiremen
-Date: Sat, 20 Feb 2010 11:15:21 +0100
-Message-ID: <201002201115.21988.trenn@suse.de>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de> <201002191220.56517.trenn@suse.de> <alpine.LFD.2.00.1002191108590.4030@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] ACPI thermal: Don't invalidate thermal zone if critical trip point is bad
+Date: Sat, 20 Feb 2010 11:20:41 +0100
+Message-ID: <1266661241-12344-1-git-send-email-trenn@suse.de>
+References: <alpine.LFD.2.00.1002190234100.24628@localhost.localdomain>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48673 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:48801 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752442Ab0BTKO1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Feb 2010 05:14:27 -0500
-In-Reply-To: <alpine.LFD.2.00.1002191108590.4030@localhost.localdomain>
-Content-Disposition: inline
+	id S1752318Ab0BTKUr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 20 Feb 2010 05:20:47 -0500
+In-Reply-To: <alpine.LFD.2.00.1002190234100.24628@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-Hi,
+Some BIOSes return a negative value for the critical trip point.
+We currently invalidate the whole thermal zone in this case.
+But it may still be needed for cooling, also without critical
+trip point:
 
-I haven't seen your post at then end of the mail...
 
-On Friday 19 February 2010 05:20:51 pm Len Brown wrote:
-> >
-> > Related ASL output:
-> >
-> >
-> > If (_OSI ("Linux"))
-> >                 {
-> >                     Store (One, LINX)
-> >                     Store (0x80, OSTB)
-> >                     Store (0x80, TPOS)
-> >                 }
-> > If (_OSI ("Windows 2006"))
-> >                 {
-> >                     Store (0x40, OSTB)
-> >                     Store (0x40, TPOS)
-> >                 }
-> >
-> > ...
-> > Name (TPC, 0x64)
-> > Method (_HOT, 0, Serialized)
-> > {
-> >     If (LEqual (TPOS, 0x40))
-> >     {
-> >         Return (Add (0x0AAC, Multiply (TPC, 0x0A)))
-> >     }
-> > }
-> >
-> > Method (_CRT, 0, Serialized)
-> > {
-> >     If (LNotEqual (TPOS, 0x40))
-> >     {
-> >         Return (Add (0x0AAC, Multiply (TPC, 0x0A)))
-> >     }
-> > }
->
-> It appears that if acpi_osi=Linux were set (or TPOS were
-> anything other than Windows 2006), then you
-> would not get a _HOT or _CRT in this TZ.
-> I don't understand how that is related to this issue,
-> as acpi_osi=Linux is not set, right?
->
-> acpi_osi="Windows 2006", on the other hand, should be set.
-> In that case the AML will return a valid trip point for
-> both _HOT and _CRT, yes?  So what is the problem?
-The problem is that in:
-      - _HOT it's a LEqual (TPOS, 0x40)
-      - _CRT it's a LNotEqual (TPOS, 0x40)
+Same if there is no critical trip point, but ACPI spec says
+there must at least be one trip point, it need not to be a
+critical (see next patch).
 
-You will get a valid hot tp on Windows 2006 (or newer) and an invalid critical 
-one.
-On all others you get an invalid hot, but a valid critical tp (which is also 
-the case with osi=Linux).
+Reference: http://bugzilla.novell.com/show_bug.cgi?id=531547
 
-      Thomas
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Tested-by: clarkt@cnsp.com
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/thermal.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 9073ada..8fa71b8 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -368,7 +368,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 	int valid = 0;
+ 	int i;
+ 
+-	/* Critical Shutdown (required) */
++	/* Critical Shutdown */
+ 	if (flag & ACPI_TRIPS_CRITICAL) {
+ 		status = acpi_evaluate_integer(tz->device->handle,
+ 				"_CRT", NULL, &tmp);
+@@ -379,17 +379,19 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 		 * Below zero (Celsius) values clearly aren't right for sure..
+ 		 * ... so lets discard those as invalid.
+ 		 */
+-		if (ACPI_FAILURE(status) ||
+-				tz->trips.critical.temperature <= 2732) {
++		if (ACPI_FAILURE(status)) {
++			tz->trips.critical.flags.valid = 0;
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					  "No critical threshold\n"));
++		} else if (tmp <= 2732) {
++			printk(KERN_WARNING FW_BUG "Invalid critical threshold "
++			       "(_CRT:%)\n", tmp);
+ 			tz->trips.critical.flags.valid = 0;
+-			ACPI_EXCEPTION((AE_INFO, status,
+-					"No or invalid critical threshold"));
+-			return -ENODEV;
+ 		} else {
+ 			tz->trips.critical.flags.valid = 1;
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-					"Found critical threshold [%lu]\n",
+-					tz->trips.critical.temperature));
++					  "Found critical threshold [%lu]\n",
++					  tz->trips.critical.temperature));
+ 		}
+ 		if (tz->trips.critical.flags.valid == 1) {
+ 			if (crt == -1) {
+-- 
+1.6.3
+
