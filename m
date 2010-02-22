@@ -1,65 +1,86 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI thermal: Don't invalidate thermal zone if
- critical trip point is bad
-Date: Mon, 22 Feb 2010 09:33:37 +0800
-Message-ID: <1266802417.2608.1463.camel@rzhang1-desktop>
-References: <1266357351-20224-1-git-send-email-trenn@suse.de>
-	 <1266662667-3013-1-git-send-email-trenn@suse.de>
-	 <1266720682.2608.38.camel@rzhang1-desktop>
-	 <201002220002.49341.trenn@suse.de>
+Subject: Re: [PATCH] drivers: acpi: fan.c move a dereference below the NULL
+ test
+Date: Mon, 22 Feb 2010 09:37:03 +0800
+Message-ID: <1266802623.2608.1471.camel@rzhang1-desktop>
+References: <1265882202.27789.0.camel@ICE-BOX>
+	 <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44721 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:32906 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754119Ab0BVBeJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Feb 2010 20:34:09 -0500
-In-Reply-To: <201002220002.49341.trenn@suse.de>
+	id S1754066Ab0BVBhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Feb 2010 20:37:33 -0500
+In-Reply-To: <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "clarkt@cnsp.com" <clarkt@cnsp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Darren Jenkins <darrenrjenkins@gmail.com>, Thomas Renninger <trenn@suse.de>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Janitors <kernel-janitors@vger.kernel.org>
 
-On Mon, 2010-02-22 at 07:02 +0800, Thomas Renninger wrote:
-> On Sunday 21 February 2010 03:51:22 am Zhang Rui wrote:
-> ...
-> > > @@ -379,17 +379,19 @@ static int acpi_thermal_trips_update(struct
-> > > acpi_thermal *tz, int flag) * Below zero (Celsius) values clearly aren't
-> > > right for sure.. * ... so lets discard those as invalid.
-> > >  		 */
-> > > -		if (ACPI_FAILURE(status) ||
-> > > -				tz->trips.critical.temperature <= 2732) {
-> > > +		if (ACPI_FAILURE(status)) {
-> > > +			tz->trips.critical.flags.valid = 0;
-> > > +			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> > > +					  "No critical threshold\n"));
-> >
-> > No critical threshold is also a violation of ACPI spec.
-> > what about using FW_BUG here as well?
+On Fri, 2010-02-19 at 13:27 +0800, Len Brown wrote:
+> I think think this is a run-time check for a programming error,
+> and the current fashion is to delete the check and take a fault
+> if this happens so the caller can be fixed.
 > 
-> Could you point me to where this is stated, please.
-> I only found Chapter 11.5 (ver. 3.0b):
->  Thermal Zone Interface Requirements:
->    A thermal zone must contain at least one trip point
->    (critical, near critical, active, or passive)
-> 
-> If at another place they state that a critical trip point is
-> required, this would contradict with each other.
-> 
-you're right.
-I thought I saw such statements somewhere in the ACPI spec but
-apparently I'm wrong. Sorry for the noise.
+I agree.
 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-
-> Thanks,
+> There are a couple of checks like this in fan.c --
+> perhaps Rui can clean them up when he comes back next week.
 > 
->     Thomas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll send the cleanup patch later.
+
+thanks,
+rui
+
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> On Thu, 11 Feb 2010, Darren Jenkins wrote:
+> 
+> > In acpi_fan_remove() device is being dereferenced before the NULL test.
+> > This reorders the code to ensure it is checked for NULL first.
+> > 
+> > Coverity CID: 2758
+> > 
+> > Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+> > ---
+> >  drivers/acpi/fan.c |    9 +++++++--
+> >  1 files changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> > index acf2ab2..dc39640 100644
+> > --- a/drivers/acpi/fan.c
+> > +++ b/drivers/acpi/fan.c
+> > @@ -298,9 +298,14 @@ static int acpi_fan_add(struct acpi_device *device)
+> >  
+> >  static int acpi_fan_remove(struct acpi_device *device, int type)
+> >  {
+> > -	struct thermal_cooling_device *cdev = acpi_driver_data(device);
+> > +	struct thermal_cooling_device *cdev;
+> > +
+> > +	if (!device)
+> > +		return -EINVAL;
+> > +
+> > +	cdev = acpi_driver_data(device);
+> >  
+> > -	if (!device || !cdev)
+> > +	if (!cdev)
+> >  		return -EINVAL;
+> >  
+> >  	acpi_fan_remove_fs(device);
+> > -- 
+> > 1.6.3.3
+> > 
+> > 
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> > 
 
 
