@@ -1,22 +1,53 @@
-From: "royaldshell@gmail.com" <bshive@bellnet.ca>
-Subject: 2010 Royal Dutch Shell Award Winner
-Date: Sat, 20 Feb 2010 11:45:29 -0500
-Message-ID: <20100220114529.K04O3.26285.root__42819.175104569$1266804551$gmane$org@toroondcbfep02>
-Reply-To: royaldshell@gmail.com
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI video: Be more liberal in validating _BQC
+	behaviour
+Date: Mon, 22 Feb 2010 09:51:19 +0800
+Message-ID: <1266803479.2608.1484.camel@rzhang1-desktop>
+References: <1266357230-10602-1-git-send-email-mjg@redhat.com>
+	 <alpine.LFD.2.00.1002190140230.24628@localhost.localdomain>
+	 <20100219135431.GA29434@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from toroondcbmts07.bellnexxia.net ([207.236.237.41]:57898 "EHLO
-	toroondcbmts07-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755401Ab0BTQql (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Feb 2010 11:46:41 -0500
+Received: from mga11.intel.com ([192.55.52.93]:33543 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754217Ab0BVBvt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Feb 2010 20:51:49 -0500
+In-Reply-To: <20100219135431.GA29434@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This is my second time of contacting you concerning our end of year grant award from the RDS PLC, you have been chosen as one of the grant winner of $2,000,000.00 USD, for details contact the Remittance officer Mr. Janick Delarche; royal14@btinternet.com
+On Fri, 2010-02-19 at 21:54 +0800, Matthew Garrett wrote:
+> On Fri, Feb 19, 2010 at 01:40:47AM -0500, Len Brown wrote:
+> > Matthew,
+> > 
+> > Is there a life failure someplace (eg. bugzilla) that works after this 
+> > patch?
+> 
+> My system statically initialises the variable containing the current 
+> brightness to 100, but doesn't include 100 in the list of valid 
+> brightnesses.
 
-Regards,
+sorry, I don't understand.
+does the video driver set the backlight to 100, which is not a valid
+value in the _BCL package?
 
-Monica D.
+>  Right now this causes us to stop believing _BQC. However, 
+> the enxt thing we do is set the brightness to maximum anyway - at this 
+> point _BQC will now return a correct value.
+
+hmmm, could you attach the acpidump please?
+
+thanks,
+rui
+
+>  So it makes sense to ignore 
+> _BQC failures until we've set a valid value. If it continues to give 
+> invalid results then we can invalidate it and just use our internal 
+> state.
+>  
+
+
