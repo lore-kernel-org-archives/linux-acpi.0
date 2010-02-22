@@ -1,70 +1,78 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 10/12] ACPI: processor: refactor internal map_lsapic_id()
-Date: Mon, 22 Feb 2010 12:11:55 -0700
-Message-ID: <20100222191155.19752.95091.stgit@bob.kio>
+Subject: [PATCH v2 11/12] ACPI: processor: push file static MADT pointer into
+	internal map_madt_entry()
+Date: Mon, 22 Feb 2010 12:12:00 -0700
+Message-ID: <20100222191200.19752.90558.stgit@bob.kio>
 References: <20100222190145.19752.20978.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:6790 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754492Ab0BVTLz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 14:11:55 -0500
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:36190 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754147Ab0BVTMB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 14:12:01 -0500
 In-Reply-To: <20100222190145.19752.20978.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Un-nest the if statements for readability.
+There's no real need for a pointer to the MADT to be global. The only
+function who uses it is map_madt_entry.
 
-Remove comments that re-state the obvious.
-
-Change the control flow so that we no longer need a temp variable.
+This allows us to remove some more ugly #ifdefs.
 
 Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_core.c |   20 +++++---------------
- 1 files changed, 5 insertions(+), 15 deletions(-)
+ drivers/acpi/processor_core.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 18fa633..ee9bce1 100644
+index ee9bce1..791ac7b 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -83,27 +83,17 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+@@ -43,8 +43,6 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
+ };
+ 
+ #ifdef CONFIG_SMP
+-static struct acpi_table_madt *madt;
+-
+ static int map_lapic_id(struct acpi_subtable_header *entry,
+ 		 u32 acpi_id, int *apic_id)
  {
- 	struct acpi_madt_local_sapic *lsapic =
- 		(struct acpi_madt_local_sapic *)entry;
--	u32 tmp = (lsapic->id << 8) | lsapic->eid;
+@@ -100,8 +98,17 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+ static int map_madt_entry(int type, u32 acpi_id)
+ {
+ 	unsigned long madt_end, entry;
++	static struct acpi_table_madt *madt;
++	static int read_madt;
+ 	int apic_id = -1;
  
--	/* Only check enabled APICs*/
- 	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
- 		return 0;
++	if (!read_madt) {
++		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
++					(struct acpi_table_header **)&madt)))
++			madt = NULL;
++		read_madt++;
++	}
++
+ 	if (!madt)
+ 		return apic_id;
  
--	/* Device statement declaration type */
- 	if (device_declaration) {
--		if (entry->length < 16)
--			printk(KERN_ERR PREFIX
--			    "Invalid LSAPIC with Device type processor (SAPIC ID %#x)\n",
--			    tmp);
--		else if (lsapic->uid == acpi_id)
--			goto found;
--	/* Processor statement declaration type */
--	} else if (lsapic->processor_id == acpi_id)
--		goto found;
-+		if ((entry->length < 16) || (lsapic->uid != acpi_id))
-+			return 0;
-+	} else if (lsapic->processor_id != acpi_id)
-+		return 0;
+@@ -335,13 +342,6 @@ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
  
--	return 0;
--found:
--	*apic_id = tmp;
-+	*apic_id = (lsapic->id << 8) | lsapic->eid;
- 	return 1;
- }
- 
+ void __init acpi_early_processor_set_pdc(void)
+ {
+-
+-#ifdef CONFIG_SMP
+-	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+-				(struct acpi_table_header **)&madt)))
+-		madt = NULL;
+-#endif
+-
+ 	/*
+ 	 * Check whether the system is DMI table. If yes, OSPM
+ 	 * should not use mwait for CPU-states.
 
