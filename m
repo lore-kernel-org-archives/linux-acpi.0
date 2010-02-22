@@ -1,96 +1,140 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 05/12] ACPI: processor: add internal
-	processor_physically_present()
-Date: Mon, 22 Feb 2010 12:11:29 -0700
-Message-ID: <20100222191129.19752.51057.stgit@bob.kio>
+Subject: [PATCH v2 12/12] ACPI: processor core: style and sparse cleanups
+Date: Mon, 22 Feb 2010 12:12:05 -0700
+Message-ID: <20100222191205.19752.68325.stgit@bob.kio>
 References: <20100222190145.19752.20978.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:30996 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147Ab0BVTLu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 14:11:50 -0500
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:6823 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754549Ab0BVTMG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 14:12:06 -0500
 In-Reply-To: <20100222190145.19752.20978.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Detect if a processor is physically present before evaluating _PDC.
-
-We want this because some BIOS will provide a _PDC even for processors
-that are not present. These bogus _PDC methods then attempt to load
-non-existent tables, which causes problems.
-
-Avoid those bogus landmines.
+Remove useless comments
+Remove useless braces
+Cleanup local variable declarations
+Remove shadow declarations
 
 Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_core.c |   42 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_core.c |   39 +++++++++++++++++----------------------
+ 1 files changed, 17 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 9ae5cc2..f0c68c1 100644
+index 791ac7b..1b0ca97 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -194,6 +194,45 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- #endif
- 
-+static bool processor_physically_present(acpi_handle handle)
-+{
-+	int cpuid, type;
-+	u32 acpi_id;
-+	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long tmp;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_get_type(handle, &acpi_type);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = object.processor.proc_id;
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = tmp;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
-+	cpuid = acpi_get_cpuid(handle, type, acpi_id);
-+
-+	if (cpuid == -1)
-+		return false;
-+
-+	return true;
-+}
- 
- static void acpi_set_pdc_bits(u32 *buf)
+@@ -46,9 +46,9 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
+ static int map_lapic_id(struct acpi_subtable_header *entry,
+ 		 u32 acpi_id, int *apic_id)
  {
-@@ -335,6 +374,9 @@ static struct dmi_system_id __cpuinitdata early_pdc_optin_table[] = {
- static acpi_status
- early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+-	struct acpi_madt_local_apic *lapic =
+-		(struct acpi_madt_local_apic *)entry;
++	struct acpi_madt_local_apic *lapic;
+ 
++	lapic = (struct acpi_madt_local_apic *)entry;
+ 	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return 0;
+ 
+@@ -62,14 +62,14 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
+ static int map_x2apic_id(struct acpi_subtable_header *entry,
+ 			 int device_declaration, u32 acpi_id, int *apic_id)
  {
-+	if (processor_physically_present(handle) == false)
-+		return AE_OK;
+-	struct acpi_madt_local_x2apic *apic =
+-		(struct acpi_madt_local_x2apic *)entry;
++	struct acpi_madt_local_x2apic *lx2apic;
+ 
+-	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
++	lx2apic = (struct acpi_madt_local_x2apic *)entry;
++	if (!(lx2apic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return 0;
+ 
+-	if (device_declaration && (apic->uid == acpi_id)) {
+-		*apic_id = apic->local_apic_id;
++	if (device_declaration && (lx2apic->uid == acpi_id)) {
++		*apic_id = lx2apic->local_apic_id;
+ 		return 1;
+ 	}
+ 
+@@ -79,9 +79,9 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
+ static int map_lsapic_id(struct acpi_subtable_header *entry,
+ 		int device_declaration, u32 acpi_id, int *apic_id)
+ {
+-	struct acpi_madt_local_sapic *lsapic =
+-		(struct acpi_madt_local_sapic *)entry;
++	struct acpi_madt_local_sapic *lsapic;
+ 
++	lsapic = (struct acpi_madt_local_sapic *)entry;
+ 	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return 0;
+ 
+@@ -98,6 +98,7 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+ static int map_madt_entry(int type, u32 acpi_id)
+ {
+ 	unsigned long madt_end, entry;
++	struct acpi_subtable_header *header;
+ 	static struct acpi_table_madt *madt;
+ 	static int read_madt;
+ 	int apic_id = -1;
+@@ -115,12 +116,10 @@ static int map_madt_entry(int type, u32 acpi_id)
+ 	entry = (unsigned long)madt;
+ 	madt_end = entry + madt->header.length;
+ 
+-	/* Parse all entries looking for a match. */
+-
+ 	entry += sizeof(struct acpi_table_madt);
+ 	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+-		struct acpi_subtable_header *header =
+-			(struct acpi_subtable_header *)entry;
++		header = (struct acpi_subtable_header *)entry;
 +
- 	acpi_processor_set_pdc(handle);
- 	return AE_OK;
+ 		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+ 			if (map_lapic_id(header, acpi_id, &apic_id))
+ 				break;
+@@ -151,20 +150,17 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+ 
+ 	obj = buffer.pointer;
+ 	if (obj->type != ACPI_TYPE_BUFFER ||
+-	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
++	    obj->buffer.length < sizeof(struct acpi_subtable_header))
+ 		goto exit;
+-	}
+ 
+ 	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+-	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
++	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
+ 		map_lapic_id(header, acpi_id, &apic_id);
+-	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
++	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
+ 		map_lsapic_id(header, type, acpi_id, &apic_id);
+-	}
+ 
+ exit:
+-	if (buffer.pointer)
+-		kfree(buffer.pointer);
++	kfree(buffer.pointer);
+ 	return apic_id;
  }
+ 
+@@ -179,10 +175,9 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ 	if (apic_id == -1)
+ 		return apic_id;
+ 
+-	for_each_possible_cpu(i) {
++	for_each_possible_cpu(i)
+ 		if (cpu_physical_id(i) == apic_id)
+ 			return i;
+-	}
+ 	return -1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
 
