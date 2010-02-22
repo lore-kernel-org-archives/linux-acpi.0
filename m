@@ -1,19 +1,59 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: Be in TS_POLLING state during mwait based C-state
- entry
-Date: Mon, 22 Feb 2010 13:10:29 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002221310250.3999@localhost.localdomain>
-References: <20100210183530.GA5426@linux-os.sc.intel.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v2 00/12] ACPI: processor driver vs. core
+Date: Mon, 22 Feb 2010 12:11:03 -0700
+Message-ID: <20100222190145.19752.20978.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20100210183530.GA5426@linux-os.sc.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, alex.shi@intel.com, ming.m.lin@intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:25767 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753122Ab0BVTLH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 14:11:07 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-applied
+Original thread:
+	http://thread.gmane.org/gmane.linux.kernel/942423
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Refreshed against lenb/test (a0eb5a84da383539f11e777bdde5e69a31ed25c7)
+
+Added Venki's Acked-by.
+
+The first patch has lots of legacy checkpatch warnings/errors, and
+I have another series to clean those up after this series is applied.
+
+Thanks,
+/ac
+
+---
+
+Alex Chiang (12):
+      ACPI: processor: mv processor_core.c processor_driver.c
+      ACPI: processor: mv processor_pdc.c processor_core.c
+      ACPI: processor: export acpi_get_cpuid()
+      ACPI: processor: move acpi_get_cpuid into processor_core.c
+      ACPI: processor: add internal processor_physically_present()
+      ACPI: processor: remove early _PDC optin quirks
+      ACPI: processor: driver doesn't need to evaluate _PDC
+      ACPI: processor: refactor internal map_lapic_id()
+      ACPI: processor: refactor internal map_x2apic_id()
+      ACPI: processor: refactor internal map_lsapic_id()
+      ACPI: processor: push file static MADT pointer into internal map_madt_entry()
+      ACPI: processor core: style and sparse cleanups
+
+
+ Documentation/kernel-parameters.txt |    4 
+ arch/ia64/kernel/acpi.c             |    3 
+ arch/x86/kernel/acpi/boot.c         |    3 
+ drivers/acpi/Makefile               |    4 
+ drivers/acpi/processor_core.c       | 1149 +++++------------------------------
+ drivers/acpi/processor_driver.c     |  976 ++++++++++++++++++++++++++++++
+ drivers/acpi/processor_pdc.c        |  209 ------
+ include/acpi/processor.h            |   10 
+ 8 files changed, 1172 insertions(+), 1186 deletions(-)
+ create mode 100644 drivers/acpi/processor_driver.c
+ delete mode 100644 drivers/acpi/processor_pdc.c
+
