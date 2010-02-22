@@ -1,86 +1,56 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] drivers: acpi: fan.c move a dereference below the NULL
- test
-Date: Mon, 22 Feb 2010 09:37:03 +0800
-Message-ID: <1266802623.2608.1471.camel@rzhang1-desktop>
-References: <1265882202.27789.0.camel@ICE-BOX>
-	 <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI video: Be more liberal in validating _BQC
+	behaviour
+Date: Mon, 22 Feb 2010 02:06:47 +0000
+Message-ID: <20100222020647.GA30278@srcf.ucam.org>
+References: <1266357230-10602-1-git-send-email-mjg@redhat.com> <alpine.LFD.2.00.1002190140230.24628@localhost.localdomain> <20100219135431.GA29434@srcf.ucam.org> <1266803479.2608.1484.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:32906 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754066Ab0BVBhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Feb 2010 20:37:33 -0500
-In-Reply-To: <alpine.LFD.2.00.1002190026070.17638@localhost.localdomain>
+Received: from cavan.codon.org.uk ([93.93.128.6]:56776 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754119Ab0BVCG6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Feb 2010 21:06:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1266803479.2608.1484.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Darren Jenkins <darrenrjenkins@gmail.com>, Thomas Renninger <trenn@suse.de>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Janitors <kernel-janitors@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 2010-02-19 at 13:27 +0800, Len Brown wrote:
-> I think think this is a run-time check for a programming error,
-> and the current fashion is to delete the check and take a fault
-> if this happens so the caller can be fixed.
+On Mon, Feb 22, 2010 at 09:51:19AM +0800, Zhang Rui wrote:
+> On Fri, 2010-02-19 at 21:54 +0800, Matthew Garrett wrote:
+> > My system statically initialises the variable containing the current 
+> > brightness to 100, but doesn't include 100 in the list of valid 
+> > brightnesses.
 > 
-I agree.
+> sorry, I don't understand.
+> does the video driver set the backlight to 100, which is not a valid
+> value in the _BCL package?
 
-> There are a couple of checks like this in fan.c --
-> perhaps Rui can clean them up when he comes back next week.
+No, the firmware does.
+
+> >  Right now this causes us to stop believing _BQC. However, 
+> > the enxt thing we do is set the brightness to maximum anyway - at this 
+> > point _BQC will now return a correct value.
 > 
-I'll send the cleanup patch later.
+> hmmm, could you attach the acpidump please?
 
-thanks,
-rui
+The relevant bits are:
 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
-> On Thu, 11 Feb 2010, Darren Jenkins wrote:
-> 
-> > In acpi_fan_remove() device is being dereferenced before the NULL test.
-> > This reorders the code to ensure it is checked for NULL first.
-> > 
-> > Coverity CID: 2758
-> > 
-> > Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
-> > ---
-> >  drivers/acpi/fan.c |    9 +++++++--
-> >  1 files changed, 7 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> > index acf2ab2..dc39640 100644
-> > --- a/drivers/acpi/fan.c
-> > +++ b/drivers/acpi/fan.c
-> > @@ -298,9 +298,14 @@ static int acpi_fan_add(struct acpi_device *device)
-> >  
-> >  static int acpi_fan_remove(struct acpi_device *device, int type)
-> >  {
-> > -	struct thermal_cooling_device *cdev = acpi_driver_data(device);
-> > +	struct thermal_cooling_device *cdev;
-> > +
-> > +	if (!device)
-> > +		return -EINVAL;
-> > +
-> > +	cdev = acpi_driver_data(device);
-> >  
-> > -	if (!device || !cdev)
-> > +	if (!cdev)
-> >  		return -EINVAL;
-> >  
-> >  	acpi_fan_remove_fs(device);
-> > -- 
-> > 1.6.3.3
-> > 
-> > 
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> > 
+                    Name (BRIG, 0x64)
+                    Method (_BQC, 0, Serialized)
+                    {
+                        Store (BRIG, Local0)
+                        Return (Local0)
+                    }
+                    Method (_BCM, 1, Serialized)
+                    {
+			...
+                        Store (Arg0, BRIG)
 
+0x64 is an invalid value as far as _BCL goes. So, _BQC will give an 
+invalid response until we set a value - after that, it'll be correct.
 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
