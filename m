@@ -1,34 +1,23 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Touchpad led inversed ?
-Date: Sun, 21 Feb 2010 11:49:50 +0100
-Message-ID: <71cd59b01002210249y5dc3d93aubc79741df7da34f1@mail.gmail.com>
+From: "Stefano Z." <mie.iscrizioni@gmail.com>
+Subject: [kernel26] Very high power consumption and cpu usage on laptop with
+	any kernel26-2.6.32.*
+Date: Mon, 22 Feb 2010 12:07:49 +0100
+Message-ID: <2c242de41002220307s52b6e7ak9640ff5cbe34ee6__7336.17343144051$1266843413$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <debian-eeepc-devel-bounces+gldde-debian-eeepc-devel=m.gmane.org@lists.alioth.debian.org>
-List-Unsubscribe: <http://lists.alioth.debian.org/mailman/options/debian-eeepc-devel>,
-	<mailto:debian-eeepc-devel-request@lists.alioth.debian.org?subject=unsubscribe>
-List-Archive: <http://lists.alioth.debian.org/pipermail/debian-eeepc-devel>
-List-Post: <mailto:debian-eeepc-devel@lists.alioth.debian.org>
-List-Help: <mailto:debian-eeepc-devel-request@lists.alioth.debian.org?subject=help>
-List-Subscribe: <http://lists.alioth.debian.org/mailman/listinfo/debian-eeepc-devel>,
-	<mailto:debian-eeepc-devel-request@lists.alioth.debian.org?subject=subscribe>
-Sender: debian-eeepc-devel-bounces+gldde-debian-eeepc-devel=m.gmane.org@lists.alioth.debian.org
-Errors-To: debian-eeepc-devel-bounces+gldde-debian-eeepc-devel=m.gmane.org@lists.alioth.debian.org
-To: acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, linux acpi <linux-acpi@vger.kernel.org>, debian-eeepc-devel@lists.alioth.debian.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:38937 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab0BVLIL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 06:08:11 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mie.iscrizioni@gmail.com
 
-Hi,
-It seems that touchpad led is inverted on Eee1001HAG
-(http://bugzilla.kernel.org/show_bug.cgi?id=14865).
-If you get a touchpad led on your eeepc , could you test if it is
-working as expected and report the results ?
-Thanks,
+hello,
 
-Ps: not really related, but if you have to boot with acpi_osi="Linux"
-to be able to use eeepc-laptop,
-please read http://dev.iksaif.net/projects/acpi4asus/wiki/Eeepc-wmi .
+please take a look to this problem:
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+http://bugs.archlinux.org/task/17771
+
+thanks !
