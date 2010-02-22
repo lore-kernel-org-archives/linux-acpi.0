@@ -1,70 +1,45 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH] eeepc-laptop: check wireless hotplug events
-Date: Mon, 22 Feb 2010 16:03:58 +0000
-Message-ID: <4B82AAEE.9060805@tuffmail.co.uk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI video: Be more liberal in validating _BQC behaviour
+Date: Mon, 22 Feb 2010 18:24:16 +0100
+Message-ID: <201002221824.16920.trenn@suse.de>
+References: <1266357230-10602-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:47335 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab0BVQEC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2010 11:04:02 -0500
+Received: from cantor.suse.de ([195.135.220.2]:44294 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752199Ab0BVRYT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Feb 2010 12:24:19 -0500
+In-Reply-To: <1266357230-10602-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
-Cc: Corentin Chary <corentin.chary@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com
 
-Before we mark the wireless device as unplugged, check PCI config space
-to see whether the wireless device is really disabled (and vice versa).
-This works around newer models which don't want the hotplug code, where
-we end up disabling the wired network device.
+On Tuesday 16 February 2010 22:53:50 Matthew Garrett wrote:
+> Right now, if _BQC returns a value we don't understand we immediately
+> invalidate it. Change this behaviour so we only invalidate it if it
+> continues to give an invalid answer after we've already set a brightness.
+> 
+> +			if (!init) {
+> +				/*
+> +				 * BQC returned an invalid level.
+> +				 * Stop using it.
+> +				 */
+> +				ACPI_WARNING((AE_INFO,
+> +					      "%s returned an invalid level",
+> +					      buf));
+Can you use:
+printk(KERN_WARNING FW_WARN "%s returned an invalid level", buf);
+instead please.
+It would be great if major kernel contributors, especially those working
+near the BIOS do make use of the FW_* strings more often!
 
-My old 701 still works correctly with this.  I can also simulate an
-afflicted model by changing the hardcoded PCI bus/slot number in the
-driver, and it seems to work nicely (although it is a bit noisy).
+Cleaning up existing messages is one (work intensive) thing, but please
+use it to identify new BIOS issues.
 
-In future this type of hotplug support will be implemented by the PCI
-core.  The existing blacklist and the new warning message will be
-removed at that point.
+Thanks,
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 6a47bb7..9a844ca 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -578,6 +578,8 @@ static void eeepc_rfkill_hotplug(struct eeepc_laptop *eeepc)
- 	struct pci_dev *dev;
- 	struct pci_bus *bus;
- 	bool blocked = eeepc_wlan_rfkill_blocked(eeepc);
-+	bool absent;
-+	u32 l;
- 
- 	if (eeepc->wlan_rfkill)
- 		rfkill_set_sw_state(eeepc->wlan_rfkill, blocked);
-@@ -591,6 +593,22 @@ static void eeepc_rfkill_hotplug(struct eeepc_laptop *eeepc)
- 			goto out_unlock;
- 		}
- 
-+		if (pci_bus_read_config_dword(bus, 0, PCI_VENDOR_ID, &l)) {
-+			pr_err("Unable to read PCI config space?\n");
-+			goto out_unlock;
-+		}
-+		absent = (l == 0xffffffff);
-+
-+		if (blocked != absent) {
-+			pr_warning("BIOS says wireless lan is %s, "
-+					"but the pci device is %s\n",
-+				blocked ? "blocked" : "unblocked",
-+				absent ? "absent" : "present");
-+			pr_warning("skipped wireless hotplug as probably "
-+					"inappropriate for this model\n");
-+			goto out_unlock;
-+		}
-+
- 		if (!blocked) {
- 			dev = pci_get_slot(bus, 0);
- 			if (dev) {
-
-
+   Thomas
