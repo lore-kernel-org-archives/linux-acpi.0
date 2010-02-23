@@ -1,51 +1,38 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH v5 0/5] PCI: try "pci=use_crs" again
-Date: Tue, 23 Feb 2010 10:06:26 -0800
-Message-ID: <20100223100626.693b50b6@jbarnes-piketon>
-References: <20100223172355.17242.55927.stgit@bob.kio>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/8] PCI PM: Add function for checking PME status of devices
+Date: Tue, 23 Feb 2010 20:56:35 +0100
+Message-ID: <201002232056.35526.rjw@sisk.pl>
+References: <201002172335.47703.rjw@sisk.pl> <201002172336.58766.rjw@sisk.pl> <20100222162142.06095230@jbarnes-piketon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-313.bluehost.com ([67.222.54.6]:52200 "HELO
-	outboundproxy6.bluehost.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with SMTP id S1752332Ab0BWSGb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Feb 2010 13:06:31 -0500
-In-Reply-To: <20100223172355.17242.55927.stgit@bob.kio>
+Received: from ogre.sisk.pl ([217.79.144.158]:40124 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753174Ab0BWT4D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Feb 2010 14:56:03 -0500
+In-Reply-To: <20100222162142.06095230@jbarnes-piketon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Gary Hade <garyhade@us.ibm.com>
 
-On Tue, 23 Feb 2010 10:24:15 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+On Tuesday 23 February 2010, Jesse Barnes wrote:
+> On Wed, 17 Feb 2010 23:36:58 +0100
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Add function pci_check_pme_status() that will check the PME status
+> > bit of given device and clear it along with the PME enable bit.  It
+> > will be necessary for PCI run-time power management.
+> > 
+> > Based on a patch from Shaohua Li <shaohua.li@intel.com>
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> 
+> Applied this series and dropped the old patches, thanks Rafael.
 
-> Historically, Linux has assumed a single PCI host bridge, with that
-> bridge claiming all the address space left after RAM and legacy
-> devices are taken out.
-> 
-> If the system contains multiple host bridges, we can no longer
-> operate under that assumption.  We have to know what parts of the
-> address space are claimed by each bridge so that when we assign
-> resources to a PCI device, we take them from a range claimed by the
-> upstream host bridge.
-> 
-> On x86 and ia64, we use ACPI to enumerate all the PCI host bridges in
-> the system, and part of the host bridge description is the
-> "_CRS" (current resource settings" property, which lists the address
-> space used by the bridge.  On x86, we currently ignore most of the
-> _CRS information.  This patch series changes this, so we will use
-> _CRS to learn about the host bridge windows.
-> 
-> Since most x86 machines with multiple host bridges are relatively
-> new, this series only turns this on for machines with BIOS dates of
-> 2008 or newer.
-> 
-> Changes from v4 to v5:
->     - Add EXPORT_SYMBOL_GPL(pci_bus_resource_n) for module builds.
-
-Thanks, it built this time.  Pushed to my linux-next branch.
-
--- 
-Jesse Barnes, Intel Open Source Technology Center
+Great, thanks Jesse.
