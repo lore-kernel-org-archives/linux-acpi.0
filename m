@@ -1,32 +1,35 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH v4 1/5] PCI: split up pci_read_bridge_bases()
-Date: Mon, 22 Feb 2010 16:23:56 -0800
-Message-ID: <20100222162356.2e4b3a19@jbarnes-piketon>
-References: <20100217201654.4013.70201.stgit@bob.kio>
-	<20100217201952.4013.62534.stgit@bob.kio>
+Subject: Re: [PATCH 4/8] ACPI: Use GPE reference counting to support shared
+ GPEs
+Date: Mon, 22 Feb 2010 16:26:22 -0800
+Message-ID: <20100222162622.3d9c684a@jbarnes-piketon>
+References: <4911F71203A09E4D9981D27F9D83085859958760@orsmsx503.amr.corp.intel.com>
+	<201002200018.02700.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100217201952.4013.62534.stgit@bob.kio>
+In-Reply-To: <201002200018.02700.rjw@sisk.pl>
 Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Peter Haight <peterh@sapros.com>, Gary Hade <garyhade@us.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-am33-list@redhat.com, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Larry Finger <Larry.Finger@lwfinger.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Matthew Garrett <mjg@redhat.com>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 17 Feb 2010 13:19:52 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+On Sat, 20 Feb 2010 00:18:02 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
+> [Sorry for resending, tried to restore the CC list.]
 > 
-> No functional change; this breaks up pci_read_bridge_bases() into separate
-> pieces for the I/O, memory, and prefetchable memory windows, similar to how
-> Yinghai recently split up pci_setup_bridge() in 68e84ff3bdc.
+> On Friday 19 February 2010, Moore, Robert wrote:
+> > 
+> > Here's some comments and questions on the GPE changes in ACPICA.
+> > Overall, looks good.
 > 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
+> First of all, thanks a lot for the review.
 
-Applied this series, thanks Bjorn.  Hopefully this one will
-successfully run the linux-next gauntlet too. :)
+I missed this one when applying the series, can you resend as an
+incremental patch on top of linux-next?
 
+Thanks,
 -- 
 Jesse Barnes, Intel Open Source Technology Center
