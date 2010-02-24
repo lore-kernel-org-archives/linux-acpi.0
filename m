@@ -1,78 +1,63 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RFC][PATCH] ACPI: Eliminate race conditions related to
- removing event handlers
-Date: Wed, 24 Feb 2010 10:58:29 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D83085859B327F4@orsmsx503.amr.corp.intel.com>
-References: <201002210151.01159.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH] ACPI: Eliminate race conditions related to removing event handlers
+Date: Wed, 24 Feb 2010 21:22:20 +0100
+Message-ID: <201002242122.20435.rjw@sisk.pl>
+References: <201002210151.01159.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D83085859B327F4@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54682 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:44392 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757442Ab0BXS6b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2010 13:58:31 -0500
-In-Reply-To: <201002210151.01159.rjw@sisk.pl>
-Content-Language: en-US
+	id S1758018Ab0BXUV6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Feb 2010 15:21:58 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085859B327F4@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
+On Wednesday 24 February 2010, Moore, Robert wrote:
+> 
+> Rafael,
+> 
+> I've got some issues with this design.
+> 
+> First of all, are the two interfaces, acpi_remove_notify_handler() and
+> acpi_remove_gpe_handler(), really being used in such a way to require such
+> synchronization?
 
-Rafael,
+I had a problem with that when I was trying to implement adding more than one
+system notify handler per device at the PCI level.  Specifically, I was trying
+to create an extra layer of notify objects to be used by the PCI layer for
+installing ACPI system notify handlers such that every PCI device had one
+handler that might handle wakeup notifications as well as hotplug
+notifications.  That didn't work, because I needed to remove a notify object
+from memory after calling acpi_remove_notify_handler() for the handler
+associated with it and I was unable to tell whether that was safe.
 
-I've got some issues with this design.
+The patch at http://patchwork.kernel.org/patch/80104/ solved this issue for me
+(BTW, you told me you'd have a look at this one :-)), but I think it generally
+is good to know a handler is not being executed after
+acpi_remove_notify_handler() or acpi_remove_gpe_handler() has been called
+for it.
 
-First of all, are the two interfaces, acpi_remove_notify_handler() and acpi_remove_gpe_handler(), really being used in such a way to require such synchronization? Is there any way to limit their use to times where it is known that no handlers will be executing?
+> Is there any way to limit their use to times where it is known that no
+> handlers will be executing?
 
-In addition, I'm afraid that this whole "events" mechanism, with an interface to wait for event completion, and now the concept of adding "barriers" to the event queue, is much too OS-specific for the core ACPICA code. In the first place, the acpi_os_wait_events_complete is not part of the ACPICA code (it is not called by ACPICA in the code base, only in the Linux version). Such a mechanism has not been requested by any of the other users of ACPICA, so we have not attempted to add it. This is not to say that such a mechanism will not be required by other users in the future however.
+I don't think this is generally possible.  Since the event handlers are called
+from a workqueue, we can't really guarantee any synchronization between them
+and the other threads unless we use a mechanism that will enforce it.
+ 
+> In addition, I'm afraid that this whole "events" mechanism, with an interface
+> to wait for event completion, and now the concept of adding "barriers" to the
+> event queue, is much too OS-specific for the core ACPICA code.
 
-Bob
+OK, I'm not going to insist.  However, I think that
+acpi_os_wait_events_complete() should be called before we try to acquire
+ACPI_MTX_EVENTS for the first time, because dropping it "temporarily" just in
+order to call acpi_os_wait_events_complete() really defeats the purpose of the
+locking.
 
-
->-----Original Message-----
->From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
->Sent: Saturday, February 20, 2010 4:51 PM
->To: ACPI Devel Maling List
->Cc: Len Brown; Moore, Robert; LKML; Matthew Garrett
->Subject: [RFC][PATCH] ACPI: Eliminate race conditions related to removing
->event handlers
->
->From: Rafael J. Wysocki <rjw@sisk.pl>
->
->The current ACPI events handling code has two design issues that
->need fixing.  First, there is a race condition between the event
->queues and the removal of GPE handlers and notify handlers that may
->cause a handler to be removed while it's being executed, which in
->turn may lead to udefined behavior.  Second, the GPE handler removal
->routine, acpi_remove_gpe_handler(), releases ACPI_MTX_EVENTS in the
->middle of the operation, which effectively renders the locking
->useless.  It turns out that the both of them can be fixed at the same
->time.
->
->To fix the first issue use the observation that all of the ACPI
->workqueues are singlethread, so it is possible to flush the
->execution of queued work by inserting a cleverly crafted work item
->into the appropriate workqueue.  For this purpose use a barrier work
->structure containing two completion objects, 'run' and 'exit', and a
->pair of interface functions, acpi_os_add_events_barrier() and
->acpi_os_remove_events_barrier(), the first of which puts a barrier
->work into the workqueue indicated by its argument and waits for the
->'run' completion to be completed, and the second of which completes
->the 'exit' completion (the first one returns a pointer to the barrier
->work object to be passed as an argument to the second one).  The work
->function inserted into the workqueue by acpi_os_add_events_barrier()
->completes the 'run' completion and waits for the 'exit' completion.
->Thus, by executing acpi_os_add_events_barrier() with an appropriate
->type argument the caller ensures that all events of this type queued
->up earlier will be handled before it is allowed to continue running
->and all events of this type queued up later will be handled until
->acpi_os_remove_events_barrier() is called.
->
->Modify acpi_remove_notify_handler() and acpi_remove_gpe_handler() to
->use this interface, which also fixes the second issue, because the
->new interface replaces acpi_os_wait_events_complete() that was the
->reason for the releasing of ACPI_MTX_EVENTS in the middle of the
->operation by acpi_remove_gpe_handler().
->
+Rafael
