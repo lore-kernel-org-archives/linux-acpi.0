@@ -1,97 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.30-32.stable] ACPI: Be in TS_POLLING state during mwait
- based C-state entry
-Date: Tue, 23 Feb 2010 22:35:10 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002232229320.4087@localhost.localdomain>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: closing lid on laptop suspends it
+Date: Wed, 24 Feb 2010 07:17:13 -0500
+Message-ID: <1267013831.21643.199.camel@pc.interlinx.bc.ca>
+References: <1265718787.2459.56.camel@pc.interlinx.bc.ca>
+	 <4B76EFF8.6000108@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-FZEf1+mBnzsI5Ps8RAFQ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:24821 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549Ab0BXDf2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Feb 2010 22:35:28 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KYB0045QTYN6JX0@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 23 Feb 2010 21:35:17 -0600 (CST)
+Received: from lo.gmane.org ([80.91.229.12]:52177 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756449Ab0BXMRc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Feb 2010 07:17:32 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1NkGBF-0000M3-8v
+	for linux-acpi@vger.kernel.org; Wed, 24 Feb 2010 13:17:29 +0100
+Received: from d67-193-197-208.home3.cgocable.net ([67.193.197.208])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Feb 2010 13:17:29 +0100
+Received: from brian by d67-193-197-208.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Feb 2010 13:17:29 +0100
+In-Reply-To: <4B76EFF8.6000108@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-From: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
 
-upstream d306ebc28649b89877a22158fe0076f06cc46f60
+--=-FZEf1+mBnzsI5Ps8RAFQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ACPI deep C-state entry had a long standing bug/missing feature, wherein we were sending
-resched IPIs when an idle CPU is in mwait based deep C-state. Only mwait based C1 was using
-the write to the monitored address to wake up mwait'ing CPU.
+On Sat, 2010-02-13 at 12:31 -0600, Robert Hancock wrote:=20
+>=20
+> I suspect there's some power management task running even before login=20
+> that's using some default preferences. The kernel doesn't trigger a=20
+> suspend by itself.
 
-This patch changes the code to retain TS_POLLING bit if we are entering an mwait based
-deep C-state.
+Just to tie up loose ends, yes, indeed, it was a power manager,
+gnome-power-manager, started by gdm that was at fault here.  The problem
+is that the default policy for g-p-m is to suspend on lid close, even
+when plugged into AC.  One has to jump through a hoop or two to change
+the gdm user's policy so that it overrides the default policy.
 
-The patch has been verified to reduce the number of resched IPIs in general and also
-improves the performance/power on workloads with low system utilization (i.e., when mwait based
-deep C-states are being used).
+Thanx for the help!
 
-Fixes "netperf ~50% regression with 2.6.33-rc1, bisect to 1b9508f"
-http://marc.info/?l=linux-kernel&m=126441481427331&w=4
+b.
 
-Reported-by: Lin Ming <ming.m.lin@intel.com>
-Tested-by: Alex Shi <alex.shi@intel.com>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_idle.c |   28 ++++++++++++++++------------
- 1 files changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index e88e8ae..cc978a8 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -880,12 +880,14 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 		return(acpi_idle_enter_c1(dev, state));
- 
- 	local_irq_disable();
--	current_thread_info()->status &= ~TS_POLLING;
--	/*
--	 * TS_POLLING-cleared state must be visible before we test
--	 * NEED_RESCHED:
--	 */
--	smp_mb();
-+	if (cx->entry_method != ACPI_CSTATE_FFH) {
-+		current_thread_info()->status &= ~TS_POLLING;
-+		/*
-+		 * TS_POLLING-cleared state must be visible before we test
-+		 * NEED_RESCHED:
-+		 */
-+		smp_mb();
-+	}
- 
- 	if (unlikely(need_resched())) {
- 		current_thread_info()->status |= TS_POLLING;
-@@ -965,12 +967,14 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	}
- 
- 	local_irq_disable();
--	current_thread_info()->status &= ~TS_POLLING;
--	/*
--	 * TS_POLLING-cleared state must be visible before we test
--	 * NEED_RESCHED:
--	 */
--	smp_mb();
-+	if (cx->entry_method != ACPI_CSTATE_FFH) {
-+		current_thread_info()->status &= ~TS_POLLING;
-+		/*
-+		 * TS_POLLING-cleared state must be visible before we test
-+		 * NEED_RESCHED:
-+		 */
-+		smp_mb();
-+	}
- 
- 	if (unlikely(need_resched())) {
- 		current_thread_info()->status |= TS_POLLING;
--- 
-1.7.0.83.g241b9
+--=-FZEf1+mBnzsI5Ps8RAFQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkuFGMYACgkQl3EQlGLyuXB1OACffnKv3S3OOH5qOJJQJ1y80PWx
+bdsAoMC8AkIfzAD9gaVmDgAXf/UcI5ek
+=ZKuf
+-----END PGP SIGNATURE-----
+
+--=-FZEf1+mBnzsI5Ps8RAFQ--
+
 
