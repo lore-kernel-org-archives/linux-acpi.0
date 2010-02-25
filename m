@@ -1,131 +1,45 @@
-From: Henning Heinold <h.heinold@tarent.de>
-Subject: Problem with uart and acpi
-Date: Thu, 25 Feb 2010 10:13:29 +0100
-Message-ID: <20100225091328.GB22799@ugs.tarent.de>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 4/8] ACPI: Use GPE reference counting to support shared
+ GPEs
+Date: Thu, 25 Feb 2010 18:14:08 +0300
+Message-ID: <4B8693C0.4020701@gmail.com>
+References: <4911F71203A09E4D9981D27F9D83085859958760@orsmsx503.amr.corp.intel.com> <201002200014.04936.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ZGiS0Q5IWpPtfppv"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gate.tarent.de ([212.79.178.249]:52334 "EHLO ugs.tarent.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753920Ab0BYJn7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Feb 2010 04:43:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by ugs.tarent.de (Postfix) with ESMTP id 3D0834000C4A9
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2010 10:15:08 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by ugs.tarent.de (Postfix) with ESMTP id 2BFC6400203F5
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2010 10:15:08 +0100 (CET)
-Received: from ugs.tarent.de ([127.0.0.1])
-	by localhost (ugs.tarent.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 9p8GAsk3pzcr for <linux-acpi@vger.kernel.org>;
-	Thu, 25 Feb 2010 10:15:08 +0100 (CET)
-Received: from entw1 (lui.tarent.buero [192.168.4.41])
-	by ugs.tarent.de (Postfix) with ESMTP id 0AA5C4000C4A9
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2010 10:15:08 +0100 (CET)
-Received: from henning by entw1 with local (Exim 4.69)
-	(envelope-from <h.heinold@tarent.de>)
-	id 1NkZmj-0006BX-4T
-	for linux-acpi@vger.kernel.org; Thu, 25 Feb 2010 10:13:29 +0100
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.152]:45804 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932370Ab0BYPOK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2010 10:14:10 -0500
+Received: by fg-out-1718.google.com with SMTP id e12so206530fga.1
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2010 07:14:09 -0800 (PST)
+In-Reply-To: <201002200014.04936.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Brown, Len" <len.brown@intel.com>
 
+Rafael J. Wysocki =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> --- linux-2.6.orig/drivers/acpi/ec.c
+> +++ linux-2.6/drivers/acpi/ec.c
+> @@ -307,7 +307,11 @@ static int acpi_ec_transaction(struct ac
+>  	pr_debug(PREFIX "transaction start\n");
+>  	/* disable GPE during transaction if storm is detected */
+>  	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+> -		acpi_disable_gpe(NULL, ec->gpe);
+> +		/*
+> +		 * It has to be disabled at the hardware level regardless of the
+> +		 * GPE reference counting, so that it doesn't trigger.
+> +		 */
+> +		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
+>  	}
+>  =20
+EC should have non-shared GPE, according to spec. Thus, refcounting is
+not needed here anyway.
 
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hello,
-
-we got some viliv x70 ez, atom based netbooks with wifi, bt, gsm, gps and touchscreen.
-
-I got all running now under ubuntu with latest stable kernel 2.6.32.8 except the gps. Viliv claims
-it is a sirf3 chip. It is connect to on irq 3(verified it under windows, where of course the
-gps works), the 8250 modul run fine
-and show me the that the uart is connected to ttyS1. Unfornatly when the 8250_pnp
-is loaded the following occurs:
-
-[    3.368311] serial 00:0c: activated
-[    3.376287] serial 00:0c: disabled
- 
-So it seems something(acpi maybee) is disabling it and of course there is no output when I connect
-to the uart and run gpsd.
-
-So any help which got me further is appreciate. 
-
-Here some more info's:
-
-/sys/devices/pnp0/00\:0c/firmware_node/hid -> PNP0501
- 
-/sys/devices/pnp0/00\:0c/firmware_node/path -> \_SB_.PCI0.SBRG.UAR2
-
-In the attachment is the code I found in the DSDT.dsl for UAR2.
-
-Bye Henning.
-
-
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="dsdt.txt"
-
-                Device (UAR2)
-                {
-                    Name (_UID, 0x02)
-                    Name (_HID, EisaId ("PNP0501"))
-                    Name (CRS, ResourceTemplate ()
-                    {
-                        StartDependentFn (0x00, 0x00)
-                        {
-                            FixedIO (
-                                0x02F8,             // Address
-                                0x08,               // Length
-                                )
-                            IRQNoFlags ()
-                                {3}
-                        }
-                        EndDependentFn ()
-                    })
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (ESTS, 0x04))
-                        {
-                            If (And (ESTS, 0x40))
-                            {
-                                Return (0x0F)
-                            }
-                            Else
-                            {
-                                Return (0x0D)
-                            }
-                        }
-                        Else
-                        {
-                            Return (Zero)
-                        }
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        Return (CRS)
-                    }
-
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        If (And (ESTS, 0x20))
-                        {
-                            Store (EDAT, DBG8)
-                            Sleep (One)
-                            Store (0xBF, ESTS)
-                            Store (0xBF, DBG8)
-                        }
-
-                        Sleep (One)
-                        Store (D2FD, DBG8)
-                        Sleep (One)
-                        Store (D2FD, DBG8)
-                        Store (0xCD, DBG8)
-                    }
-
-
---ZGiS0Q5IWpPtfppv--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
