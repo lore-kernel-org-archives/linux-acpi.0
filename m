@@ -1,53 +1,65 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 4/8] ACPI: Use GPE reference counting to support shared
- GPEs
-Date: Wed, 24 Feb 2010 14:26:12 -0800
-Message-ID: <20100224142612.772e4bcc@jbarnes-piketon>
-References: <4911F71203A09E4D9981D27F9D83085859958760@orsmsx503.amr.corp.intel.com>
-	<201002200018.02700.rjw@sisk.pl>
-	<20100222162622.3d9c684a@jbarnes-piketon>
-	<201002240052.08098.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH] acpiphp: Execute ACPI _REG method for hotadded devices
+Date: Thu, 25 Feb 2010 10:59:34 +0800
+Message-ID: <1267066774-27764-1-git-send-email-shaohua.li@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-158.bluehost.com ([67.222.39.38]:46451 "HELO
-	outbound-mail-158.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758401Ab0BXW0G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:26:06 -0500
-In-Reply-To: <201002240052.08098.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:40580 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758841Ab0BYC7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Feb 2010 21:59:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Matthew Garrett <mjg@redhat.com>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, akpm@linux-foundation.org, pm@debian.org, Shaohua Li <shaohua.li@intel.com>
 
-On Wed, 24 Feb 2010 00:52:08 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+Per ACPI spec, _ERG method should be executed before device driver
+gets control for hotpluged device. Firmware might do some configuration
+there. See http://bugzilla.kernel.org/show_bug.cgi?id=10805. In this
+machine, _REG method of docked device will configure cardbus bridge.
 
-> On Tuesday 23 February 2010, Jesse Barnes wrote:
-> > On Sat, 20 Feb 2010 00:18:02 +0100
-> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > 
-> > > [Sorry for resending, tried to restore the CC list.]
-> > > 
-> > > On Friday 19 February 2010, Moore, Robert wrote:
-> > > > 
-> > > > Here's some comments and questions on the GPE changes in ACPICA.
-> > > > Overall, looks good.
-> > > 
-> > > First of all, thanks a lot for the review.
-> > 
-> > I missed this one when applying the series, can you resend as an
-> > incremental patch on top of linux-next?
-> 
-> Sure, appended.
-> 
-> Please note that it also fixes a bug I found earlier today.
-> 
-> I added a changelog in case you want to apply it as a separate patch.
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Tested-by: Paul Martin <pm@debian.org>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
 
-Applied, thanks.
-
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index cb2fd01..b5dad9f 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -749,6 +749,24 @@ static int acpiphp_bus_trim(acpi_handle handle)
+ 	return retval;
+ }
+ 
++static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
++{
++	struct acpiphp_func *func;
++	union acpi_object params[2];
++	struct acpi_object_list arg_list;
++
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		arg_list.count = 2;
++		arg_list.pointer = params;
++		params[0].type = ACPI_TYPE_INTEGER;
++		params[0].integer.value = ACPI_ADR_SPACE_PCI_CONFIG;
++		params[1].type = ACPI_TYPE_INTEGER;
++		params[1].integer.value = 1;
++		/* _REG is optional, we don't care about if there is failure */
++		acpi_evaluate_object(func->handle, "_REG", &arg_list, NULL);
++	}
++}
++
+ /**
+  * enable_device - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -805,6 +823,7 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+ 	pci_bus_assign_resources(bus);
+ 	acpiphp_sanitize_bus(bus);
+ 	acpiphp_set_hpp_values(bus);
++	acpiphp_set_acpi_region(slot);
+ 	pci_enable_bridges(bus);
+ 	pci_bus_add_devices(bus);
+ 
 -- 
-Jesse Barnes, Intel Open Source Technology Center
+1.6.3.3
+
