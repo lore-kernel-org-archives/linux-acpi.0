@@ -1,7 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 1/6] thinkpad-acpi: document HKEY event 3006
-Date: Fri, 26 Feb 2010 01:11:19 -0300
-Message-ID: <1267157484-23925-2-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 6/6] thinkpad-acpi: lock down video output
+	state access
+Date: Fri, 26 Feb 2010 01:11:24 -0300
+Message-ID: <1267157484-23925-7-git-send-email-hmh@hmh.eng.br>
 References: <1267157484-23925-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,54 +21,119 @@ To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Event 0x3006 is used to help power management of the ODD in the
-UltraBay.  The EC generates this event when the ODD eject button is
-pressed (even if the bay is powered down).
+Given the right combination of ThinkPad and X.org, just reading the
+video output control state is enough to hard-crash X.org.
 
-Normally, Linux doesn't need this as we keep the SATA link powered
-up (which wastes power).  The EC powers up the bay by itself when the
-ODD eject button is pressed, and the SATA PHY reports the hotplug.
+Until the day I somehow find out a model or BIOS cut date to not
+provide this feature to ThinkPads that can do video switching through
+X RandR, change permissions so that only processes with CAP_SYS_ADMIN
+can access any sort of video output control state.
 
-However, we could also power that SATA link down (and for that matter,
-also power down the Ultrabay) if the ODD is left idle for a while with
-no disk inside, and use event 0x3006 to know when we need that SATA link
-powered back up.
+This bug could be considered a local DoS I suppose, as it allows any
+non-privledged local user to cause some versions of X.org to
+hard-crash some ThinkPads.
 
-For now, just stop asking for more information when event 0x3006 is
-seen, there is no point in pestering users about it anymore.
-
+Reported-by: Jidanni <jidanni-8D0D3YcSAvhAfugRpC6u6w@public.gmane.org>
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    4 ++++
+ drivers/platform/x86/Kconfig            |   10 ++++++++--
+ drivers/platform/x86/thinkpad_acpi.c    |   15 +++++++++++++--
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 75afa12..39c0a09 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -650,6 +650,10 @@ LCD, CRT or DVI (if available). The following commands are available:
+ 	echo expand_toggle > /proc/acpi/ibm/video
+ 	echo video_switch > /proc/acpi/ibm/video
+ 
++NOTE: Access to this feature is restricted to processes owning the
++CAP_SYS_ADMIN capability for safety reasons, as it can interact badly
++enough with some versions of X.org to crash it.
++
+ Each video output device can be enabled or disabled individually.
+ Reading /proc/acpi/ibm/video shows the status of each device.
+ 
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index f526e73..11fce79 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -319,9 +319,15 @@ config THINKPAD_ACPI_VIDEO
+ 	  server running, phase of the moon, and the current mood of
+ 	  Schroedinger's cat.  If you can use X.org's RandR to control
+ 	  your ThinkPad's video output ports instead of this feature,
+-	  don't think twice: do it and say N here to save some memory.
++	  don't think twice: do it and say N here to save memory and avoid
++	  bad interactions with X.org.
+ 
+-	  If you are not sure, say Y here.
++	  NOTE: access to this feature is limited to processes with the
++	  CAP_SYS_ADMIN capability, to avoid local DoS issues in platforms
++	  where it interacts badly with X.org.
++
++	  If you are not sure, say Y here but do try to check if you could
++	  be using X.org RandR instead.
+ 
+ config THINKPAD_ACPI_HOTKEY_POLL
+ 	bool "Support NVRAM polling for hot keys"
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index eb603f1..049041a 100644
+index 3af4628..5d02cc0 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3655,13 +3655,19 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			break;
- 		case 3:
- 			/* 0x3000-0x3FFF: bay-related wakeups */
--			if (hkey == TP_HKEY_EV_BAYEJ_ACK) {
-+			switch (hkey) {
-+			case TP_HKEY_EV_BAYEJ_ACK:
- 				hotkey_autosleep_ack = 1;
- 				printk(TPACPI_INFO
- 				       "bay ejected\n");
- 				hotkey_wakeup_hotunplug_complete_notify_change();
- 				known_ev = true;
--			} else {
-+				break;
-+			case TP_HKEY_EV_OPTDRV_EJ:
-+				/* FIXME: kick libata if SATA link offline */
-+				known_ev = true;
-+				break;
-+			default:
- 				known_ev = false;
- 			}
- 			break;
+@@ -286,6 +286,7 @@ struct ibm_init_struct {
+ 	char param[32];
+ 
+ 	int (*init) (struct ibm_init_struct *);
++	mode_t base_procfs_mode;
+ 	struct ibm_struct *data;
+ };
+ 
+@@ -4629,6 +4630,10 @@ static int video_read(struct seq_file *m)
+ 		return 0;
+ 	}
+ 
++	/* Even reads can crash X.org, so... */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
+ 	status = video_outputsw_get();
+ 	if (status < 0)
+ 		return status;
+@@ -4662,6 +4667,10 @@ static int video_write(char *buf)
+ 	if (video_supported == TPACPI_VIDEO_NONE)
+ 		return -ENODEV;
+ 
++	/* Even reads can crash X.org, let alone writes... */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
+ 	enable = 0;
+ 	disable = 0;
+ 
+@@ -8487,9 +8496,10 @@ static int __init ibm_init(struct ibm_init_struct *iibm)
+ 		"%s installed\n", ibm->name);
+ 
+ 	if (ibm->read) {
+-		mode_t mode;
++		mode_t mode = iibm->base_procfs_mode;
+ 
+-		mode = S_IRUGO;
++		if (!mode)
++			mode = S_IRUGO;
+ 		if (ibm->write)
+ 			mode |= S_IWUSR;
+ 		entry = proc_create_data(ibm->name, mode, proc_dir,
+@@ -8680,6 +8690,7 @@ static struct ibm_init_struct ibms_init[] __initdata = {
+ #ifdef CONFIG_THINKPAD_ACPI_VIDEO
+ 	{
+ 		.init = video_init,
++		.base_procfs_mode = S_IRUSR,
+ 		.data = &video_driver_data,
+ 	},
+ #endif
 -- 
 1.6.5.2
 
