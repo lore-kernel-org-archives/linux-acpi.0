@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 5/6] thinkpad-acpi: fix bluetooth/wwan
-	resume
-Date: Fri, 26 Feb 2010 01:11:23 -0300
-Message-ID: <1267157484-23925-6-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 4/6] thinkpad-acpi: make driver events work
+	in NVRAM poll mode
+Date: Fri, 26 Feb 2010 01:11:22 -0300
+Message-ID: <1267157484-23925-5-git-send-email-hmh@hmh.eng.br>
 References: <1267157484-23925-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,84 +18,82 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Studying the DSDTs of various thinkpads, it looks like bit 3 of the
-argument to SBDC and SWAN is not "set radio to last state on resume".
-Rather, it seems to be "if this bit is set, enable radio on resume,
-otherwise disable it on resume".
+Thadeu Lima de Souza Cascardo reports this:
 
-So, the proper way to prepare the radios for S3 suspend is: disable
-radio and clear bit 3 on the SBDC/SWAN call to to resume with radio
-disabled, and enable radio and set bit 3 on the SBDC/SWAN call to
-resume with the radio enabled.
+Brightness notification does not work until the user writes to
+hotkey_mask attribute.  That's because the polling thread will only run
+if hotkey_user_mask is set and someone is reading the input device or
+if hotkey_driver_mask is set.  In this second case, this condition is
+not tested after the mask is changed, because the brightness and
+volume drivers are started after the hotkey drivers.
 
-Also, for persistent devices, the rfkill core does not restore state,
-so we really need to get the firmware to do the right thing.
+Fix tpacpi_hotkey_driver_mask_set() to call hotkey_poll_setup(), so
+that the poller kthread will be started when needed.
 
-We don't sync the radio state on suspend, instead we trust the BIOS to
-not do anything weird if we never touched the radio state since boot.
-Time will tell if that's a wise way of doing things...
-
+Reported-by: Thadeu Lima de Souza Cascardo <cascardo-DmMZpsCg3uxeGPcbtGPokg@public.gmane.org>
+Tested-by: Thadeu Lima de Souza Cascardo <cascardo-DmMZpsCg3uxeGPcbtGPokg@public.gmane.org>
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |   18 ++++++++++--------
- 1 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 5f45083..3af4628 100644
+index 933bcc4..5f45083 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3878,7 +3878,7 @@ enum {
- 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
- 	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
- 	TP_ACPI_BLUETOOTH_RESUMECTRL	= 0x04,	/* Bluetooth state at resume:
--						   off / last state */
-+						   0 = disable, 1 = enable */
- };
+@@ -2082,6 +2082,7 @@ static struct attribute_set *hotkey_dev_attributes;
  
- enum {
-@@ -3924,10 +3924,11 @@ static int bluetooth_set_status(enum tpacpi_rfkill_state state)
+ static void tpacpi_driver_event(const unsigned int hkey_event);
+ static void hotkey_driver_event(const unsigned int scancode);
++static void hotkey_poll_setup(const bool may_warn);
+ 
+ /* HKEY.MHKG() return bits */
+ #define TP_HOTKEY_TABLET_MASK (1 << 3)
+@@ -2264,6 +2265,8 @@ static int tpacpi_hotkey_driver_mask_set(const u32 mask)
+ 
+ 	rc = hotkey_mask_set((hotkey_acpi_mask | hotkey_driver_mask) &
+ 							~hotkey_source_mask);
++	hotkey_poll_setup(true);
++
+ 	mutex_unlock(&hotkey_mutex);
+ 
+ 	return rc;
+@@ -2548,7 +2551,7 @@ static void hotkey_poll_stop_sync(void)
+ }
+ 
+ /* call with hotkey_mutex held */
+-static void hotkey_poll_setup(bool may_warn)
++static void hotkey_poll_setup(const bool may_warn)
+ {
+ 	const u32 poll_driver_mask = hotkey_driver_mask & hotkey_source_mask;
+ 	const u32 poll_user_mask = hotkey_user_mask & hotkey_source_mask;
+@@ -2579,7 +2582,7 @@ static void hotkey_poll_setup(bool may_warn)
  	}
- #endif
+ }
  
--	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
--	status = TP_ACPI_BLUETOOTH_RESUMECTRL;
- 	if (state == TPACPI_RFK_RADIO_ON)
--		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+		status = TP_ACPI_BLUETOOTH_RADIOSSW
-+			  | TP_ACPI_BLUETOOTH_RESUMECTRL;
-+	else
-+		status = 0;
+-static void hotkey_poll_setup_safe(bool may_warn)
++static void hotkey_poll_setup_safe(const bool may_warn)
+ {
+ 	mutex_lock(&hotkey_mutex);
+ 	hotkey_poll_setup(may_warn);
+@@ -2597,7 +2600,11 @@ static void hotkey_poll_set_freq(unsigned int freq)
  
- 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
- 		return -EIO;
-@@ -4078,7 +4079,7 @@ enum {
- 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
- 	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
- 	TP_ACPI_WANCARD_RESUMECTRL	= 0x04,	/* Wan state at resume:
--						   off / last state */
-+						   0 = disable, 1 = enable */
- };
+ #else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
  
- #define TPACPI_RFK_WWAN_SW_NAME		"tpacpi_wwan_sw"
-@@ -4115,10 +4116,11 @@ static int wan_set_status(enum tpacpi_rfkill_state state)
- 	}
- #endif
+-static void hotkey_poll_setup_safe(bool __unused)
++static void hotkey_poll_setup(const bool __unused)
++{
++}
++
++static void hotkey_poll_setup_safe(const bool __unused)
+ {
+ }
  
--	/* We make sure to set TP_ACPI_WANCARD_RESUMECTRL */
--	status = TP_ACPI_WANCARD_RESUMECTRL;
- 	if (state == TPACPI_RFK_RADIO_ON)
--		status |= TP_ACPI_WANCARD_RADIOSSW;
-+		status = TP_ACPI_WANCARD_RADIOSSW
-+			 | TP_ACPI_WANCARD_RESUMECTRL;
-+	else
-+		status = 0;
- 
- 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
- 		return -EIO;
 -- 
 1.6.5.2
 
