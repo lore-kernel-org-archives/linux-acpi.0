@@ -1,657 +1,467 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 9/9] ACPI: replace acpi_integer by u64
-Date: Mon, 01 Mar 2010 01:56:18 -0500
-Message-ID: <439913fffd39374c3737186b22d2d56c3a0ae526.1267426486.git.len.brown@intel.com>
+Subject: [PATCH 4/9] ACPICA: Predefined name repair: fix NULL package elements
+Date: Mon, 01 Mar 2010 01:56:13 -0500
+Message-ID: <091f4d718620a79698e1c8ca3e9acbf78eb62da3.1267426486.git.len.brown@intel.com>
 References: <1267426578-4406-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:56497 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110Ab0CAG4X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2010 01:56:23 -0500
+Received: from vms173013pub.verizon.net ([206.46.173.13]:64815 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab0CAG4Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2010 01:56:25 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173007.mailsrvcs.net
+ by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KYL00F0DCLY9254@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 01 Mar 2010 00:56:23 -0600 (CST)
+ with ESMTPA id <0KYL000EYCNTX3B3@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 01 Mar 2010 00:57:29 -0600 (CST)
 In-reply-to: <1267426578-4406-1-git-send-email-lenb@kernel.org>
 In-reply-to: <2147d3f00f85c9e993786863d8138694672da01b.1267426486.git.len.brown@intel.com>
 References: <2147d3f00f85c9e993786863d8138694672da01b.1267426486.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-acpi_integer is now obsolete and removed from the ACPICA code base,
-replaced by u64.
+For the predefined methods that return fixed-length packages
+(or subpackages), attempt repair for a NULL element. Create an
+Integer of value 0, a NULL String, or a zero-length buffer as
+appropriate.
 
+http://www.acpica.org/bugzilla/show_bug.cgi?id=818
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/ia64/hp/common/aml_nfw.c             |    6 ++--
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    6 ++--
- drivers/acpi/battery.c                    |    4 +-
- drivers/acpi/ec.c                         |    4 +-
- drivers/acpi/glue.c                       |    4 +-
- drivers/acpi/osl.c                        |    4 +-
- drivers/acpi/power_meter.c                |   30 ++++++++++----------
- drivers/acpi/processor_idle.c             |    2 +-
- drivers/acpi/processor_throttling.c       |   24 ++++++++--------
- drivers/acpi/utils.c                      |   16 +++++-----
- drivers/acpi/video.c                      |    2 +-
- drivers/ata/libata-acpi.c                 |    4 +-
- drivers/ide/ide-acpi.c                    |    8 +++---
- drivers/input/misc/atlas_btns.c           |    2 +-
- drivers/pci/pci-acpi.c                    |    2 +-
- drivers/platform/x86/toshiba_bluetooth.c  |    4 +-
- drivers/platform/x86/wmi.c                |    4 +-
- include/acpi/acpi_bus.h                   |    6 ++--
- include/acpi/processor.h                  |   42 ++++++++++++++--------------
- 19 files changed, 87 insertions(+), 87 deletions(-)
+ drivers/acpi/acpica/aclocal.h   |    1 +
+ drivers/acpi/acpica/acnamesp.h  |   16 +++-
+ drivers/acpi/acpica/nspredef.c  |   27 ++++++-
+ drivers/acpi/acpica/nsrepair.c  |  173 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/nsrepair2.c |   84 -------------------
+ 5 files changed, 209 insertions(+), 92 deletions(-)
 
-diff --git a/arch/ia64/hp/common/aml_nfw.c b/arch/ia64/hp/common/aml_nfw.c
-index 4abd2c7..2207848 100644
---- a/arch/ia64/hp/common/aml_nfw.c
-+++ b/arch/ia64/hp/common/aml_nfw.c
-@@ -77,7 +77,7 @@ static void aml_nfw_execute(struct ia64_nfw_context *c)
- 		     c->arg[4], c->arg[5], c->arg[6], c->arg[7]);
- }
- 
--static void aml_nfw_read_arg(u8 *offset, u32 bit_width, acpi_integer *value)
-+static void aml_nfw_read_arg(u8 *offset, u32 bit_width, u64 *value)
- {
- 	switch (bit_width) {
- 	case 8:
-@@ -95,7 +95,7 @@ static void aml_nfw_read_arg(u8 *offset, u32 bit_width, acpi_integer *value)
- 	}
- }
- 
--static void aml_nfw_write_arg(u8 *offset, u32 bit_width, acpi_integer *value)
-+static void aml_nfw_write_arg(u8 *offset, u32 bit_width, u64 *value)
- {
- 	switch (bit_width) {
- 	case 8:
-@@ -114,7 +114,7 @@ static void aml_nfw_write_arg(u8 *offset, u32 bit_width, acpi_integer *value)
- }
- 
- static acpi_status aml_nfw_handler(u32 function, acpi_physical_address address,
--	u32 bit_width, acpi_integer *value, void *handler_context,
-+	u32 bit_width, u64 *value, void *handler_context,
- 	void *region_context)
- {
- 	struct ia64_nfw_context *context = handler_context;
-diff --git a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c b/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-index f125e5c..55d42bc 100644
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-+++ b/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -806,7 +806,7 @@ static int find_psb_table(struct powernow_k8_data *data)
- static void powernow_k8_acpi_pst_values(struct powernow_k8_data *data,
- 		unsigned int index)
- {
--	acpi_integer control;
-+	u64 control;
- 
- 	if (!data->acpi_data.state_count || (cpu_family == CPU_HW_PSTATE))
- 		return;
-@@ -824,7 +824,7 @@ static int powernow_k8_cpu_init_acpi(struct powernow_k8_data *data)
- {
- 	struct cpufreq_frequency_table *powernow_table;
- 	int ret_val = -ENODEV;
--	acpi_integer control, status;
-+	u64 control, status;
- 
- 	if (acpi_processor_register_performance(&data->acpi_data, data->cpu)) {
- 		dprintk("register performance failed: bad ACPI data\n");
-@@ -948,7 +948,7 @@ static int fill_powernow_table_fidvid(struct powernow_k8_data *data,
- 		u32 fid;
- 		u32 vid;
- 		u32 freq, index;
--		acpi_integer status, control;
-+		u64 status, control;
- 
- 		if (data->exttype) {
- 			status =  data->acpi_data.states[i].status;
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index cada73f..58d2c91 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -324,8 +324,8 @@ static int extract_package(struct acpi_battery *battery,
- 				strncpy(ptr, element->string.pointer, 32);
- 			else if (element->type == ACPI_TYPE_INTEGER) {
- 				strncpy(ptr, (u8 *)&element->integer.value,
--					sizeof(acpi_integer));
--				ptr[sizeof(acpi_integer)] = 0;
-+					sizeof(u64));
-+				ptr[sizeof(u64)] = 0;
- 			} else
- 				*ptr = 0; /* don't have value */
- 		} else {
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index d6471bb..748ced8 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -589,7 +589,7 @@ static u32 acpi_ec_gpe_handler(void *data)
- 
- static acpi_status
- acpi_ec_space_handler(u32 function, acpi_physical_address address,
--		      u32 bits, acpi_integer *value,
-+		      u32 bits, u64 *value,
- 		      void *handler_context, void *region_context)
- {
- 	struct acpi_ec *ec = handler_context;
-@@ -620,7 +620,7 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 		++address;
- 		if (function == ACPI_READ) {
- 			result = acpi_ec_read(ec, address, &temp);
--			(*value) |= ((acpi_integer)temp) << i;
-+			(*value) |= ((u64)temp) << i;
- 		} else {
- 			temp = 0xff & ((*value) >> i);
- 			result = acpi_ec_write(ec, address, temp);
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 4c8fcff..6d5b64b 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -87,7 +87,7 @@ static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
- /* Get device's handler per its address under its parent */
- struct acpi_find_child {
- 	acpi_handle handle;
--	acpi_integer address;
-+	u64 address;
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 2caf141..681205c 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -374,6 +374,7 @@ union acpi_predefined_info {
+ struct acpi_predefined_data {
+ 	char *pathname;
+ 	const union acpi_predefined_info *predefined;
++	union acpi_operand_object *parent_package;
+ 	u32 flags;
+ 	u8 node_flags;
  };
+diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
+index 73f9b0c..258159c 100644
+--- a/drivers/acpi/acpica/acnamesp.h
++++ b/drivers/acpi/acpica/acnamesp.h
+@@ -286,6 +286,17 @@ acpi_status
+ acpi_ns_repair_package_list(struct acpi_predefined_data *data,
+ 			    union acpi_operand_object **obj_desc_ptr);
  
- static acpi_status
-@@ -106,7 +106,7 @@ do_acpi_find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK;
- }
++acpi_status
++acpi_ns_repair_null_element(struct acpi_predefined_data *data,
++			    u32 expected_btypes,
++			    u32 package_index,
++			    union acpi_operand_object **return_object_ptr);
++
++void
++acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
++			     u8 package_type,
++			     union acpi_operand_object *obj_desc);
++
+ /*
+  * nsrepair2 - Return object repair for specific
+  * predefined methods/objects
+@@ -296,11 +307,6 @@ acpi_ns_complex_repairs(struct acpi_predefined_data *data,
+ 			acpi_status validate_status,
+ 			union acpi_operand_object **return_object_ptr);
  
--acpi_handle acpi_get_child(acpi_handle parent, acpi_integer address)
-+acpi_handle acpi_get_child(acpi_handle parent, u64 address)
- {
- 	struct acpi_find_child find = { NULL, address };
- 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 02e8464..8e6d866 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -436,7 +436,7 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
-  * Running in interpreter thread context, safe to sleep
+-void
+-acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
+-			     u8 package_type,
+-			     union acpi_operand_object *obj_desc);
+-
+ /*
+  * nssearch - Namespace searching and entry
   */
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index ba1072f..7096bcd 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -231,6 +231,7 @@ acpi_ns_check_predefined_names(struct acpi_namespace_node *node,
+ 	 * Note: Package may have been newly created by call above.
+ 	 */
+ 	if ((*return_object_ptr)->common.type == ACPI_TYPE_PACKAGE) {
++		data->parent_package = *return_object_ptr;
+ 		status = acpi_ns_check_package(data, return_object_ptr);
+ 		if (ACPI_FAILURE(status)) {
+ 			goto exit;
+@@ -710,6 +711,7 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
+ 	for (i = 0; i < count; i++) {
+ 		sub_package = *elements;
+ 		sub_elements = sub_package->package.elements;
++		data->parent_package = sub_package;
  
--void acpi_os_sleep(acpi_integer ms)
-+void acpi_os_sleep(u64 ms)
- {
- 	schedule_timeout_interruptible(msecs_to_jiffies(ms));
- }
-@@ -603,7 +603,7 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 		/* Each sub-object must be of type Package */
  
- acpi_status
- acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
--				acpi_integer value, u32 width)
-+				u64 value, u32 width)
- {
- 	int result, size;
+@@ -721,6 +723,7 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
  
-diff --git a/drivers/acpi/power_meter.c b/drivers/acpi/power_meter.c
-index dc4ffad..834c5af 100644
---- a/drivers/acpi/power_meter.c
-+++ b/drivers/acpi/power_meter.c
-@@ -71,17 +71,17 @@ static const struct acpi_device_id power_meter_ids[] = {
- MODULE_DEVICE_TABLE(acpi, power_meter_ids);
+ 		/* Examine the different types of expected sub-packages */
  
- struct acpi_power_meter_capabilities {
--	acpi_integer		flags;
--	acpi_integer		units;
--	acpi_integer		type;
--	acpi_integer		accuracy;
--	acpi_integer		sampling_time;
--	acpi_integer		min_avg_interval;
--	acpi_integer		max_avg_interval;
--	acpi_integer		hysteresis;
--	acpi_integer		configurable_cap;
--	acpi_integer		min_cap;
--	acpi_integer		max_cap;
-+	u64		flags;
-+	u64		units;
-+	u64		type;
-+	u64		accuracy;
-+	u64		sampling_time;
-+	u64		min_avg_interval;
-+	u64		max_avg_interval;
-+	u64		hysteresis;
-+	u64		configurable_cap;
-+	u64		min_cap;
-+	u64		max_cap;
- };
++		data->parent_package = sub_package;
+ 		switch (package->ret_info.type) {
+ 		case ACPI_PTYPE2:
+ 		case ACPI_PTYPE2_PKG_COUNT:
+@@ -800,7 +803,7 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
  
- struct acpi_power_meter_resource {
-@@ -93,9 +93,9 @@ struct acpi_power_meter_resource {
- 	acpi_string		model_number;
- 	acpi_string		serial_number;
- 	acpi_string		oem_info;
--	acpi_integer		power;
--	acpi_integer		cap;
--	acpi_integer		avg_interval;
-+	u64		power;
-+	u64		cap;
-+	u64		avg_interval;
- 	int			sensors_valid;
- 	unsigned long		sensors_last_updated;
- 	struct sensor_device_attribute	sensors[NUM_SENSORS];
-@@ -402,7 +402,7 @@ static ssize_t show_val(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
--	acpi_integer val = 0;
-+	u64 val = 0;
+ 			/*
+ 			 * First element is the (Integer) count of elements, including
+-			 * the count field.
++			 * the count field (the ACPI name is num_elements)
+ 			 */
+ 			status = acpi_ns_check_object_type(data, sub_elements,
+ 							   ACPI_RTYPE_INTEGER,
+@@ -822,6 +825,16 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
+ 				expected_count = package->ret_info.count1;
+ 				goto package_too_small;
+ 			}
++			if (expected_count == 0) {
++				/*
++				 * Either the num_entries element was originally zero or it was
++				 * a NULL element and repaired to an Integer of value zero.
++				 * In either case, repair it by setting num_entries to be the
++				 * actual size of the subpackage.
++				 */
++				expected_count = sub_package->package.count;
++				(*sub_elements)->integer.value = expected_count;
++			}
  
- 	switch (attr->index) {
- 	case 0:
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 7c0441f..3455d7a 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -352,7 +352,7 @@ static int acpi_processor_get_power_info_default(struct acpi_processor *pr)
- static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- {
- 	acpi_status status = 0;
--	acpi_integer count;
-+	u64 count;
- 	int current_count;
- 	int i;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 1c5d7a8..7ded754 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -660,7 +660,7 @@ static int acpi_processor_get_throttling_fadt(struct acpi_processor *pr)
+ 			/* Check the type of each sub-package element */
  
- #ifdef CONFIG_X86
- static int acpi_throttling_rdmsr(struct acpi_processor *pr,
--					acpi_integer * value)
-+					u64 *value)
- {
- 	struct cpuinfo_x86 *c;
- 	u64 msr_high, msr_low;
-@@ -681,13 +681,13 @@ static int acpi_throttling_rdmsr(struct acpi_processor *pr,
- 		rdmsr_safe(MSR_IA32_THERM_CONTROL,
- 			(u32 *)&msr_low , (u32 *) &msr_high);
- 		msr = (msr_high << 32) | msr_low;
--		*value = (acpi_integer) msr;
-+		*value = (u64) msr;
- 		ret = 0;
- 	}
- 	return ret;
- }
- 
--static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
-+static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
- {
- 	struct cpuinfo_x86 *c;
- 	unsigned int cpu;
-@@ -711,14 +711,14 @@ static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
- }
- #else
- static int acpi_throttling_rdmsr(struct acpi_processor *pr,
--				acpi_integer * value)
-+				u64 *value)
- {
- 	printk(KERN_ERR PREFIX
- 		"HARDWARE addr space,NOT supported yet\n");
- 	return -1;
- }
- 
--static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
-+static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
- {
- 	printk(KERN_ERR PREFIX
- 		"HARDWARE addr space,NOT supported yet\n");
-@@ -727,7 +727,7 @@ static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
- #endif
- 
- static int acpi_read_throttling_status(struct acpi_processor *pr,
--					acpi_integer *value)
-+					u64 *value)
- {
- 	u32 bit_width, bit_offset;
- 	u64 ptc_value;
-@@ -746,7 +746,7 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
- 				  address, (u32 *) &ptc_value,
- 				  (u32) (bit_width + bit_offset));
- 		ptc_mask = (1 << bit_width) - 1;
--		*value = (acpi_integer) ((ptc_value >> bit_offset) & ptc_mask);
-+		*value = (u64) ((ptc_value >> bit_offset) & ptc_mask);
- 		ret = 0;
- 		break;
- 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-@@ -760,7 +760,7 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
- }
- 
- static int acpi_write_throttling_state(struct acpi_processor *pr,
--				acpi_integer value)
-+				u64 value)
- {
- 	u32 bit_width, bit_offset;
- 	u64 ptc_value;
-@@ -793,7 +793,7 @@ static int acpi_write_throttling_state(struct acpi_processor *pr,
- }
- 
- static int acpi_get_throttling_state(struct acpi_processor *pr,
--				acpi_integer value)
-+				u64 value)
- {
- 	int i;
- 
-@@ -808,7 +808,7 @@ static int acpi_get_throttling_state(struct acpi_processor *pr,
- }
- 
- static int acpi_get_throttling_value(struct acpi_processor *pr,
--			int state, acpi_integer *value)
-+			int state, u64 *value)
- {
- 	int ret = -1;
- 
-@@ -826,7 +826,7 @@ static int acpi_processor_get_throttling_ptc(struct acpi_processor *pr)
- {
- 	int state = 0;
- 	int ret;
--	acpi_integer value;
-+	u64 value;
- 
- 	if (!pr)
- 		return -EINVAL;
-@@ -993,7 +993,7 @@ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
- 					     int state, bool force)
- {
- 	int ret;
--	acpi_integer value;
-+	u64 value;
- 
- 	if (!pr)
- 		return -EINVAL;
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 811fec1..11882db 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -107,12 +107,12 @@ acpi_extract_package(union acpi_object *package,
- 		case ACPI_TYPE_INTEGER:
- 			switch (format_string[i]) {
- 			case 'N':
--				size_required += sizeof(acpi_integer);
--				tail_offset += sizeof(acpi_integer);
-+				size_required += sizeof(u64);
-+				tail_offset += sizeof(u64);
- 				break;
- 			case 'S':
- 				size_required +=
--				    sizeof(char *) + sizeof(acpi_integer) +
-+				    sizeof(char *) + sizeof(u64) +
- 				    sizeof(char);
- 				tail_offset += sizeof(char *);
- 				break;
-@@ -193,17 +193,17 @@ acpi_extract_package(union acpi_object *package,
- 		case ACPI_TYPE_INTEGER:
- 			switch (format_string[i]) {
- 			case 'N':
--				*((acpi_integer *) head) =
-+				*((u64 *) head) =
- 				    element->integer.value;
--				head += sizeof(acpi_integer);
-+				head += sizeof(u64);
- 				break;
- 			case 'S':
- 				pointer = (u8 **) head;
- 				*pointer = tail;
--				*((acpi_integer *) tail) =
-+				*((u64 *) tail) =
- 				    element->integer.value;
--				head += sizeof(acpi_integer *);
--				tail += sizeof(acpi_integer);
-+				head += sizeof(u64 *);
-+				tail += sizeof(u64);
- 				/* NULL terminate string */
- 				*tail = (char)0;
- 				tail += sizeof(char);
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index b765790..6e9b491 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -759,7 +759,7 @@ acpi_video_bus_POST_options(struct acpi_video_bus *video,
- static int
- acpi_video_bus_DOS(struct acpi_video_bus *video, int bios_flag, int lcd_flag)
- {
--	acpi_integer status = 0;
-+	u64 status = 0;
- 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
- 	struct acpi_object_list args = { 1, &arg0 };
- 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index 1245838..292fdbc 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -64,7 +64,7 @@ void ata_acpi_associate_sata_port(struct ata_port *ap)
- 	WARN_ON(!(ap->flags & ATA_FLAG_ACPI_SATA));
- 
- 	if (!sata_pmp_attached(ap)) {
--		acpi_integer adr = SATA_ADR(ap->port_no, NO_PORT_MULT);
-+		u64 adr = SATA_ADR(ap->port_no, NO_PORT_MULT);
- 
- 		ap->link.device->acpi_handle =
- 			acpi_get_child(ap->host->acpi_handle, adr);
-@@ -74,7 +74,7 @@ void ata_acpi_associate_sata_port(struct ata_port *ap)
- 		ap->link.device->acpi_handle = NULL;
- 
- 		ata_for_each_link(link, ap, EDGE) {
--			acpi_integer adr = SATA_ADR(ap->port_no, link->pmp);
-+			u64 adr = SATA_ADR(ap->port_no, link->pmp);
- 
- 			link->device->acpi_handle =
- 				acpi_get_child(ap->host->acpi_handle, adr);
-diff --git a/drivers/ide/ide-acpi.c b/drivers/ide/ide-acpi.c
-index c0cf45a..5cb01e5 100644
---- a/drivers/ide/ide-acpi.c
-+++ b/drivers/ide/ide-acpi.c
-@@ -108,11 +108,11 @@ bool ide_port_acpi(ide_hwif_t *hwif)
-  * Returns 0 on success, <0 on error.
-  */
- static int ide_get_dev_handle(struct device *dev, acpi_handle *handle,
--			       acpi_integer *pcidevfn)
-+			       u64 *pcidevfn)
- {
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	unsigned int bus, devnum, func;
--	acpi_integer addr;
-+	u64 addr;
- 	acpi_handle dev_handle;
- 	acpi_status status;
- 	struct acpi_device_info	*dinfo = NULL;
-@@ -122,7 +122,7 @@ static int ide_get_dev_handle(struct device *dev, acpi_handle *handle,
- 	devnum = PCI_SLOT(pdev->devfn);
- 	func = PCI_FUNC(pdev->devfn);
- 	/* ACPI _ADR encoding for PCI bus: */
--	addr = (acpi_integer)(devnum << 16 | func);
-+	addr = (u64)(devnum << 16 | func);
- 
- 	DEBPRINT("ENTER: pci %02x:%02x.%01x\n", bus, devnum, func);
- 
-@@ -169,7 +169,7 @@ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
- {
- 	struct device		*dev = hwif->gendev.parent;
- 	acpi_handle		uninitialized_var(dev_handle);
--	acpi_integer		pcidevfn;
-+	u64			pcidevfn;
- 	acpi_handle		chan_handle;
- 	int			err;
- 
-diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
-index 1b87191..dfaa9a0 100644
---- a/drivers/input/misc/atlas_btns.c
-+++ b/drivers/input/misc/atlas_btns.c
-@@ -47,7 +47,7 @@ static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
- 
- static acpi_status acpi_atlas_button_handler(u32 function,
- 		      acpi_physical_address address,
--		      u32 bit_width, acpi_integer *value,
-+		      u32 bit_width, u64 *value,
- 		      void *handler_context, void *region_context)
- {
- 	acpi_status status;
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 7e28295..441326c 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -143,7 +143,7 @@ static struct pci_platform_pm_ops acpi_pci_platform_pm = {
- static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct pci_dev * pci_dev;
--	acpi_integer	addr;
-+	u64	addr;
- 
- 	pci_dev = to_pci_dev(dev);
- 	/* Please ref to ACPI spec for the syntax of _ADR */
-diff --git a/drivers/platform/x86/toshiba_bluetooth.c b/drivers/platform/x86/toshiba_bluetooth.c
-index a350418..9440686 100644
---- a/drivers/platform/x86/toshiba_bluetooth.c
-+++ b/drivers/platform/x86/toshiba_bluetooth.c
-@@ -57,7 +57,7 @@ static struct acpi_driver toshiba_bt_rfkill_driver = {
- static int toshiba_bluetooth_enable(acpi_handle handle)
- {
- 	acpi_status res1, res2;
--	acpi_integer result;
-+	u64 result;
+@@ -945,10 +958,18 @@ acpi_ns_check_object_type(struct acpi_predefined_data *data,
+ 	char type_buffer[48];	/* Room for 5 types */
  
  	/*
- 	 * Query ACPI to verify RFKill switch is set to 'on'.
-@@ -95,7 +95,7 @@ static int toshiba_bt_resume(struct acpi_device *device)
- static int toshiba_bt_rfkill_add(struct acpi_device *device)
- {
- 	acpi_status status;
--	acpi_integer bt_present;
-+	u64 bt_present;
- 	int result = -ENODEV;
+-	 * If we get a NULL return_object here, it is a NULL package element,
+-	 * and this is always an error.
++	 * If we get a NULL return_object here, it is a NULL package element.
++	 * Since all extraneous NULL package elements were removed earlier by a
++	 * call to acpi_ns_remove_null_elements, this is an unexpected NULL element.
++	 * We will attempt to repair it.
+ 	 */
+ 	if (!return_object) {
++		status = acpi_ns_repair_null_element(data, expected_btypes,
++						     package_index,
++						     return_object_ptr);
++		if (ACPI_SUCCESS(status)) {
++			return (AE_OK);	/* Repair was successful */
++		}
+ 		goto type_error_exit;
+ 	}
  
- 	/*
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index b104302..09e9918 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -796,7 +796,7 @@ static __init acpi_status parse_wdg(acpi_handle handle)
-  */
+diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
+index c82060f..d4be377 100644
+--- a/drivers/acpi/acpica/nsrepair.c
++++ b/drivers/acpi/acpica/nsrepair.c
+@@ -45,6 +45,7 @@
+ #include "accommon.h"
+ #include "acnamesp.h"
+ #include "acinterp.h"
++#include "acpredef.h"
+ 
+ #define _COMPONENT          ACPI_NAMESPACE
+ ACPI_MODULE_NAME("nsrepair")
+@@ -71,6 +72,12 @@ ACPI_MODULE_NAME("nsrepair")
+  * Buffer  -> Package of Integers
+  * Package -> Package of one Package
+  *
++ * Additional possible repairs:
++ *
++ * Optional/unnecessary NULL package elements removed
++ * Required package elements that are NULL replaced by Integer/String/Buffer
++ * Incorrect standalone package wrapped with required outer package
++ *
+  ******************************************************************************/
+ /* Local prototypes */
  static acpi_status
- acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
--		      u32 bits, acpi_integer * value,
-+		      u32 bits, u64 *value,
- 		      void *handler_context, void *region_context)
- {
- 	int result = 0, i = 0;
-@@ -813,7 +813,7 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+@@ -506,6 +513,172 @@ acpi_ns_convert_to_package(union acpi_operand_object *original_object,
  
- 	if (function == ACPI_READ) {
- 		result = ec_read(address, &temp);
--		(*value) |= ((acpi_integer)temp) << i;
-+		(*value) |= ((u64)temp) << i;
- 	} else {
- 		temp = 0xff & ((*value) >> i);
- 		result = ec_write(address, temp);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 3cd9ccd..71c105c 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -250,8 +250,8 @@ struct acpi_device_wakeup_state {
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ns_repair_null_element
++ *
++ * PARAMETERS:  Data                - Pointer to validation data structure
++ *              expected_btypes     - Object types expected
++ *              package_index       - Index of object within parent package (if
++ *                                    applicable - ACPI_NOT_PACKAGE_ELEMENT
++ *                                    otherwise)
++ *              return_object_ptr   - Pointer to the object returned from the
++ *                                    evaluation of a method or object
++ *
++ * RETURN:      Status. AE_OK if repair was successful.
++ *
++ * DESCRIPTION: Attempt to repair a NULL element of a returned Package object.
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ns_repair_null_element(struct acpi_predefined_data *data,
++			    u32 expected_btypes,
++			    u32 package_index,
++			    union acpi_operand_object **return_object_ptr)
++{
++	union acpi_operand_object *return_object = *return_object_ptr;
++	union acpi_operand_object *new_object;
++
++	ACPI_FUNCTION_NAME(ns_repair_null_element);
++
++	/* No repair needed if return object is non-NULL */
++
++	if (return_object) {
++		return (AE_OK);
++	}
++
++	/*
++	 * Attempt to repair a NULL element of a Package object. This applies to
++	 * predefined names that return a fixed-length package and each element
++	 * is required. It does not apply to variable-length packages where NULL
++	 * elements are allowed, especially at the end of the package.
++	 */
++	if (expected_btypes & ACPI_RTYPE_INTEGER) {
++
++		/* Need an Integer - create a zero-value integer */
++
++		new_object = acpi_ut_create_integer_object(0);
++	} else if (expected_btypes & ACPI_RTYPE_STRING) {
++
++		/* Need a String - create a NULL string */
++
++		new_object = acpi_ut_create_string_object(0);
++	} else if (expected_btypes & ACPI_RTYPE_BUFFER) {
++
++		/* Need a Buffer - create a zero-length buffer */
++
++		new_object = acpi_ut_create_buffer_object(0);
++	} else {
++		/* Error for all other expected types */
++
++		return (AE_AML_OPERAND_TYPE);
++	}
++
++	if (!new_object) {
++		return (AE_NO_MEMORY);
++	}
++
++	/* Set the reference count according to the parent Package object */
++
++	new_object->common.reference_count =
++	    data->parent_package->common.reference_count;
++
++	ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
++			  "%s: Converted NULL package element to expected %s at index %u\n",
++			  data->pathname,
++			  acpi_ut_get_object_type_name(new_object),
++			  package_index));
++
++	*return_object_ptr = new_object;
++	data->flags |= ACPI_OBJECT_REPAIRED;
++	return (AE_OK);
++}
++
++/******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_remove_null_elements
++ *
++ * PARAMETERS:  Data                - Pointer to validation data structure
++ *              package_type        - An acpi_return_package_types value
++ *              obj_desc            - A Package object
++ *
++ * RETURN:      None.
++ *
++ * DESCRIPTION: Remove all NULL package elements from packages that contain
++ *              a variable number of sub-packages. For these types of
++ *              packages, NULL elements can be safely removed.
++ *
++ *****************************************************************************/
++
++void
++acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
++			     u8 package_type,
++			     union acpi_operand_object *obj_desc)
++{
++	union acpi_operand_object **source;
++	union acpi_operand_object **dest;
++	u32 count;
++	u32 new_count;
++	u32 i;
++
++	ACPI_FUNCTION_NAME(ns_remove_null_elements);
++
++	/*
++	 * PTYPE1 packages contain no subpackages.
++	 * PTYPE2 packages contain a variable number of sub-packages. We can
++	 * safely remove all NULL elements from the PTYPE2 packages.
++	 */
++	switch (package_type) {
++	case ACPI_PTYPE1_FIXED:
++	case ACPI_PTYPE1_VAR:
++	case ACPI_PTYPE1_OPTION:
++		return;
++
++	case ACPI_PTYPE2:
++	case ACPI_PTYPE2_COUNT:
++	case ACPI_PTYPE2_PKG_COUNT:
++	case ACPI_PTYPE2_FIXED:
++	case ACPI_PTYPE2_MIN:
++	case ACPI_PTYPE2_REV_FIXED:
++		break;
++
++	default:
++		return;
++	}
++
++	count = obj_desc->package.count;
++	new_count = count;
++
++	source = obj_desc->package.elements;
++	dest = source;
++
++	/* Examine all elements of the package object, remove nulls */
++
++	for (i = 0; i < count; i++) {
++		if (!*source) {
++			new_count--;
++		} else {
++			*dest = *source;
++			dest++;
++		}
++		source++;
++	}
++
++	/* Update parent package if any null elements were removed */
++
++	if (new_count < count) {
++		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
++				  "%s: Found and removed %u NULL elements\n",
++				  data->pathname, (count - new_count)));
++
++		/* NULL terminate list and update the package count */
++
++		*dest = NULL;
++		obj_desc->package.count = new_count;
++	}
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ns_repair_package_list
+  *
+  * PARAMETERS:  Data                - Pointer to validation data structure
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 29ff5d1..61bd0f6 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -45,7 +45,6 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include "acnamesp.h"
+-#include "acpredef.h"
  
- struct acpi_device_wakeup {
- 	acpi_handle gpe_device;
--	acpi_integer gpe_number;
--	acpi_integer sleep_state;
-+	u64 gpe_number;
-+	u64 sleep_state;
- 	struct acpi_handle_list resources;
- 	struct acpi_device_wakeup_state state;
- 	struct acpi_device_wakeup_flags flags;
-@@ -380,7 +380,7 @@ struct acpi_pci_root {
- };
+ #define _COMPONENT          ACPI_NAMESPACE
+ ACPI_MODULE_NAME("nsrepair2")
+@@ -520,89 +519,6 @@ acpi_ns_check_sorted_list(struct acpi_predefined_data *data,
  
- /* helper */
--acpi_handle acpi_get_child(acpi_handle, acpi_integer);
-+acpi_handle acpi_get_child(acpi_handle, u64);
- int acpi_is_root_bridge(acpi_handle);
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 0ea5ef4..2983176 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -92,11 +92,11 @@ struct acpi_processor_power {
- /* Performance Management */
- 
- struct acpi_psd_package {
--	acpi_integer num_entries;
--	acpi_integer revision;
--	acpi_integer domain;
--	acpi_integer coord_type;
--	acpi_integer num_processors;
-+	u64 num_entries;
-+	u64 revision;
-+	u64 domain;
-+	u64 coord_type;
-+	u64 num_processors;
- } __attribute__ ((packed));
- 
- struct acpi_pct_register {
-@@ -110,12 +110,12 @@ struct acpi_pct_register {
- } __attribute__ ((packed));
- 
- struct acpi_processor_px {
--	acpi_integer core_frequency;	/* megahertz */
--	acpi_integer power;	/* milliWatts */
--	acpi_integer transition_latency;	/* microseconds */
--	acpi_integer bus_master_latency;	/* microseconds */
--	acpi_integer control;	/* control value */
--	acpi_integer status;	/* success indicator */
-+	u64 core_frequency;	/* megahertz */
-+	u64 power;	/* milliWatts */
-+	u64 transition_latency;	/* microseconds */
-+	u64 bus_master_latency;	/* microseconds */
-+	u64 control;	/* control value */
-+	u64 status;	/* success indicator */
- };
- 
- struct acpi_processor_performance {
-@@ -133,11 +133,11 @@ struct acpi_processor_performance {
- /* Throttling Control */
- 
- struct acpi_tsd_package {
--	acpi_integer num_entries;
--	acpi_integer revision;
--	acpi_integer domain;
--	acpi_integer coord_type;
--	acpi_integer num_processors;
-+	u64 num_entries;
-+	u64 revision;
-+	u64 domain;
-+	u64 coord_type;
-+	u64 num_processors;
- } __attribute__ ((packed));
- 
- struct acpi_ptc_register {
-@@ -151,11 +151,11 @@ struct acpi_ptc_register {
- } __attribute__ ((packed));
- 
- struct acpi_processor_tx_tss {
--	acpi_integer freqpercentage;	/* */
--	acpi_integer power;	/* milliWatts */
--	acpi_integer transition_latency;	/* microseconds */
--	acpi_integer control;	/* control value */
--	acpi_integer status;	/* success indicator */
-+	u64 freqpercentage;	/* */
-+	u64 power;	/* milliWatts */
-+	u64 transition_latency;	/* microseconds */
-+	u64 control;	/* control value */
-+	u64 status;	/* success indicator */
- };
- struct acpi_processor_tx {
- 	u16 power;
+ /******************************************************************************
+  *
+- * FUNCTION:    acpi_ns_remove_null_elements
+- *
+- * PARAMETERS:  Data                - Pointer to validation data structure
+- *              package_type        - An acpi_return_package_types value
+- *              obj_desc            - A Package object
+- *
+- * RETURN:      None.
+- *
+- * DESCRIPTION: Remove all NULL package elements from packages that contain
+- *              a variable number of sub-packages.
+- *
+- *****************************************************************************/
+-
+-void
+-acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
+-			     u8 package_type,
+-			     union acpi_operand_object *obj_desc)
+-{
+-	union acpi_operand_object **source;
+-	union acpi_operand_object **dest;
+-	u32 count;
+-	u32 new_count;
+-	u32 i;
+-
+-	ACPI_FUNCTION_NAME(ns_remove_null_elements);
+-
+-	/*
+-	 * PTYPE1 packages contain no subpackages.
+-	 * PTYPE2 packages contain a variable number of sub-packages. We can
+-	 * safely remove all NULL elements from the PTYPE2 packages.
+-	 */
+-	switch (package_type) {
+-	case ACPI_PTYPE1_FIXED:
+-	case ACPI_PTYPE1_VAR:
+-	case ACPI_PTYPE1_OPTION:
+-		return;
+-
+-	case ACPI_PTYPE2:
+-	case ACPI_PTYPE2_COUNT:
+-	case ACPI_PTYPE2_PKG_COUNT:
+-	case ACPI_PTYPE2_FIXED:
+-	case ACPI_PTYPE2_MIN:
+-	case ACPI_PTYPE2_REV_FIXED:
+-		break;
+-
+-	default:
+-		return;
+-	}
+-
+-	count = obj_desc->package.count;
+-	new_count = count;
+-
+-	source = obj_desc->package.elements;
+-	dest = source;
+-
+-	/* Examine all elements of the package object, remove nulls */
+-
+-	for (i = 0; i < count; i++) {
+-		if (!*source) {
+-			new_count--;
+-		} else {
+-			*dest = *source;
+-			dest++;
+-		}
+-		source++;
+-	}
+-
+-	/* Update parent package if any null elements were removed */
+-
+-	if (new_count < count) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
+-				  "%s: Found and removed %u NULL elements\n",
+-				  data->pathname, (count - new_count)));
+-
+-		/* NULL terminate list and update the package count */
+-
+-		*dest = NULL;
+-		obj_desc->package.count = new_count;
+-	}
+-}
+-
+-/******************************************************************************
+- *
+  * FUNCTION:    acpi_ns_sort_list
+  *
+  * PARAMETERS:  Elements            - Package object element list
 -- 
 1.6.0.6
 
