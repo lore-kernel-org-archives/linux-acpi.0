@@ -1,17 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 8/9] ACPICA: Update version to 20100121.
-Date: Mon, 01 Mar 2010 01:56:17 -0500
-Message-ID: <aea9c04bcc257caad9841c283b90ec1b28267fae.1267426486.git.len.brown@intel.com>
+Subject: [PATCH 6/9] ACPICA: Disassembler: Remove obsolete "Integer64" field in
+ parse object
+Date: Mon, 01 Mar 2010 01:56:15 -0500
+Message-ID: <758d49313d0bdea1c41aa1d91ab204ca47177aae.1267426486.git.len.brown@intel.com>
 References: <1267426578-4406-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:42835 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab0CAG4Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2010 01:56:25 -0500
+Received: from vms173019pub.verizon.net ([206.46.173.19]:61519 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315Ab0CAG43 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2010 01:56:29 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173011.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KYL003FJCLXH8I1@vms173011.mailsrvcs.net> for
+ with ESMTPA id <0KYL00E82CLXHE21@vms173019.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Mon, 01 Mar 2010 00:56:24 -0600 (CST)
 In-reply-to: <1267426578-4406-1-git-send-email-lenb@kernel.org>
 In-reply-to: <2147d3f00f85c9e993786863d8138694672da01b.1267426486.git.len.brown@intel.com>
@@ -23,28 +24,28 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Version 20100121.
+This field is no longer needed. The "Integer" field is 64 bit
+and is sufficient.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/aclocal.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 2bf965a..06adbac 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -47,7 +47,7 @@
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 4894dec..c6d9f6d 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -651,7 +651,6 @@ struct acpi_opcode_info {
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20091214
-+#define ACPI_CA_VERSION                 0x20100121
- 
- #include "actypes.h"
- #include "actbl.h"
+ union acpi_parse_value {
+ 	u64 integer;		/* Integer constant (Up to 64 bits) */
+-	struct uint64_struct integer64;	/* Structure overlay for 2 32-bit Dwords */
+ 	u32 size;		/* bytelist or field size */
+ 	char *string;		/* NULL terminated string */
+ 	u8 *buffer;		/* buffer or string */
 -- 
 1.6.0.6
 
