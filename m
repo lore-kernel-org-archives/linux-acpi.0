@@ -1,63 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Quirking acpi_enforce_resources
-Date: Mon, 1 Mar 2010 22:45:26 +0000
-Message-ID: <20100301224526.GA25501@srcf.ucam.org>
-References: <1267477297.15581.152.camel@cndougla-ubuntu> <20100301220418.GA24957@srcf.ucam.org> <1267481726.22999.13.camel@cndougla-ubuntu> <20100301222202.GA25116@srcf.ucam.org> <1267482931.22999.43.camel@cndougla-ubuntu>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: pci card in thinkpad dock is not detected.
+Date: Tue, 2 Mar 2010 12:53:20 -0700
+Message-ID: <201003021253.21066.bjorn.helgaas@hp.com>
+References: <117843.66339.qm@web111810.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39663 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747Ab0CAWp1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Mar 2010 17:45:27 -0500
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <117843.66339.qm@web111810.mail.gq1.yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <1267482931.22999.43.camel@cndougla-ubuntu>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Lara Michaels <laramichaels1978@yahoo.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chase Douglas <chase.douglas@canonical.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Mon, Mar 01, 2010 at 05:35:31PM -0500, Chase Douglas wrote:
-> On Mon, 2010-03-01 at 22:22 +0000, Matthew Garrett wrote:
-> > How are you defining "known-working"? You've verified that the system 
-> > management code on the hardware in question makes no accesses to the 
-> > smbus?
+On Sunday 28 February 2010 07:35:23 pm Lara Michaels wrote:
+> On my system running 2.6.31, a video card inserted into the PCI slot in a Thinkpad Dock II is not detected by the system. This might be the same problem as reported here:
 > 
-> I'm defining "known-working" to refer to the amount of bugs opened
-> related to the fact that their drivers used to work fine, but now they
-> don't.
+> http://markmail.org/message/xzi7pkbudkeorzjs#query:thinkpad%20dock%20linux%20pci+page:1+mid:5of2pjjpyw6jzrqk+state:results
+> 
+> But, unlike that lucky poster, the issue did not magically go away on my system after experimenting with the kernel boot options. I know the PCI card itself works, since I have inserted it into an old desktop system and it was detected correctly.
 
-You're defining "known-working" as "hasn't bricked any hardware yet, as 
-far as we know, even though examining the code reveals that it's a 
-possibility"? I'm not enthusiastic.
+I think this is more likely an ACPI or dock driver problem than a
+PCI problem, but I know very little about docks.
 
-> As are many things, this is a risk-reward tradeoff. If there was even
-> one single instance of anyone being harmed by native hwmon drivers, I
-> wouldn't have attempted to bring this up. However, I am bringing this up
-> not necessarily because I believe this is the best way, but because I
-> think we should at least get a discussion out in the open so that others
-> can contemplate the issue.
+I think it's different from the problem you found on the mailing
+list, so can you please open a kernel bugzilla report at
 
-We've had several cases of people having critical thermal shutdowns and 
-suffering data loss that were traced back to this issue.
+  http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
 
-> If consensus is that the risk is not worth it, then I can go back to end
-> users and say "The gurus say this is too risky and could harm your
-> hardware, please wait for proper ACPI drivers." If the consensus is that
-> it will be too hard to determine a proper whitelist of working devices,
-> then I can go back with that as well. Right now though, there's no
-> stance that's been taken by anyone, so we just have users who are upset
-> that their hardware/software isn't working "right".
+and attach your dmesg, lspci, and acpidump?  Please respond to this
+thread with the new bugzilla URL.
 
-The stance was made clear by the changing of the default value - if your 
-system firmware says that the OS shouldn't touch these resources, the OS 
-will not touch those resources.
+Thanks,
+  Bjorn
 
-> P.S. I also don't want to drown out a discussion on the log level of the
-> message produced. Please see the first message of this thread for
-> details.
-
-I agree that that should probably be KERN_INFO.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> I have set the Thinkpad's BIOS to its default settings and then tried booting with
+> 
+> - acpi=off
+> - pci=noacpi
+> - pci=nobios
+> - pci=assign-busses
+> - pci=routeirq
+> 
+> None of these worked. The video card in the PCI slot (not to be confused with the ATI Radeon Mobility that shows up in lspci's output; that is the laptop's built-in video controller) never becomes visible in the output of lspci.
+> 
+> I have paste-binned output that might be helpful (both after booting with pci=assign-busses, since that seems to be the most often prescribed solution for similar problems):
+> 
+> - dmesg: http://pastebin.com/HFhhFnYX
+> - lspci -vvv: http://pastebin.com/ehDZ0Twk
+> 
+> I also saved the dmesg/lspci -vvv output for all other boot options I tried; if that could be helpful, just let me know. 
+> 
+> thank you for any help on getting this working
+> 
+> lara
