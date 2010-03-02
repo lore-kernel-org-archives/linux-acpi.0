@@ -1,57 +1,84 @@
-From: Chase Douglas <chase.douglas@ubuntu.com>
-Subject: [PATCH] Reduce ACPI resource conflict message to KERN_INFO
-Date: Tue,  2 Mar 2010 16:09:12 -0500
-Message-ID: <1267564152-11048-1-git-send-email-chase.douglas@ubuntu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ISAPNP: don't unlock isapnp_cfg_mutex unless we've locked it
+	first
+Date: Tue, 02 Mar 2010 15:36:48 -0700
+Message-ID: <20100302223648.7178.17333.stgit@bob.kio>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:40526 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453Ab0CBVJP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Mar 2010 16:09:15 -0500
-Received: from hutte.canonical.com ([91.189.90.181])
-	by adelie.canonical.com with esmtp (Exim 4.69 #1 (Debian))
-	id 1NmZL8-0004fC-Cy
-	for <linux-acpi@vger.kernel.org>; Tue, 02 Mar 2010 21:09:14 +0000
-Received: from cpe-98-31-46-159.woh.res.rr.com ([98.31.46.159] helo=canonical.com)
-	by hutte.canonical.com with esmtpsa (TLS-1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <chase.douglas@canonical.com>)
-	id 1NmZL8-00007c-4x
-	for linux-acpi@vger.kernel.org; Tue, 02 Mar 2010 21:09:14 +0000
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:43583 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab0CBWgu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Mar 2010 17:36:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Alexander Strakh <strakh@ispras.ru>, Adam Belay <abelay@mit.edu>, Jaroslav Kysela <perex@perex.cz>
 
-From: Chase Douglas <chase.douglas@canonical.com>
 
-By default, ACPI resource conflict messages are logged at level
-KERN_ERR. This is a rather high level for a message that is more a
-warning than an indication of a real kernel error. Also, KERN_ERR level
-messages can appear over some boot splash screens, and this message is
-not serious enough to warrant such treatment. Thus, the log level has
-been reduced to KERN_INFO.
+If isapnp_cfg_begin() fails, it returns without locking isapnp_cfg_mutex.
+Previously, we always unlocked the mutex, even if we haven't locked it
+first.
 
-Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+This patch checks the isapnp_cfg_begin() return value so we can just
+exit and avoid this locking error.
+
+Found by the Linux Device Drivers Verification Project and reported by
+Alexander Strakh <strakh@ispras.ru>.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/osl.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 02e8464..9689b68 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1151,11 +1151,9 @@ int acpi_check_resource_conflict(const struct resource *res)
+ drivers/pnp/isapnp/core.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
+
+
+diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
+index e851160..93e95ad 100644
+--- a/drivers/pnp/isapnp/core.c
++++ b/drivers/pnp/isapnp/core.c
+@@ -903,7 +903,10 @@ static int isapnp_get_resources(struct pnp_dev *dev)
  
- 	if (clash) {
- 		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
--			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
-+			printk(KERN_INFO "ACPI: %s resource %s [0x%llx-0x%llx]"
- 			       " conflicts with ACPI region %s"
- 			       " [0x%llx-0x%llx]\n",
--			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
--			       ? KERN_WARNING : KERN_ERR,
- 			       ioport ? "I/O" : "Memory", res->name,
- 			       (long long) res->start, (long long) res->end,
- 			       res_list_elem->name,
--- 
-1.6.3.3
+ 	pnp_dbg(&dev->dev, "get resources\n");
+ 	pnp_init_resources(dev);
+-	isapnp_cfg_begin(dev->card->number, dev->number);
++	ret = isapnp_cfg_begin(dev->card->number, dev->number);
++	if (ret)
++		return ret;
++
+ 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
+ 	if (!dev->active)
+ 		goto __end;
+@@ -937,10 +940,13 @@ __end:
+ static int isapnp_set_resources(struct pnp_dev *dev)
+ {
+ 	struct resource *res;
+-	int tmp;
++	int tmp, ret;
+ 
+ 	pnp_dbg(&dev->dev, "set resources\n");
+-	isapnp_cfg_begin(dev->card->number, dev->number);
++	ret = isapnp_cfg_begin(dev->card->number, dev->number);
++	if (ret)
++		return ret;
++
+ 	dev->active = 1;
+ 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IO, tmp);
+@@ -986,9 +992,13 @@ static int isapnp_set_resources(struct pnp_dev *dev)
+ 
+ static int isapnp_disable_resources(struct pnp_dev *dev)
+ {
++	int ret;
++
+ 	if (!dev->active)
+ 		return -EINVAL;
+-	isapnp_cfg_begin(dev->card->number, dev->number);
++	ret = isapnp_cfg_begin(dev->card->number, dev->number);
++	if (ret)
++		return ret;
+ 	isapnp_deactivate(dev->number);
+ 	dev->active = 0;
+ 	isapnp_cfg_end();
 
