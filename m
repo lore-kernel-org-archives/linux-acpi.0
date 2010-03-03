@@ -1,43 +1,47 @@
-From: Jaroslav Kysela <perex@perex.cz>
-Subject: Re: [PATCH] ISAPNP: don't unlock isapnp_cfg_mutex unless we've locked
- it first
-Date: Wed, 3 Mar 2010 07:48:18 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1003030747330.28127@eeebox2.perex-int.cz>
-References: <20100302223648.7178.17333.stgit@bob.kio>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] Reduce ACPI resource conflict message to KERN_INFO
+Date: Wed, 3 Mar 2010 08:40:27 -0700
+Message-ID: <201003030840.27952.bjorn.helgaas@hp.com>
+References: <1267564152-11048-1-git-send-email-chase.douglas@ubuntu.com> <201003021614.34026.bjorn.helgaas@hp.com> <1267573501.12051.25.camel@cndougla-ubuntu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.perex.cz ([212.20.107.53]:50870 "EHLO mail1.perex.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754774Ab0CCHH6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Mar 2010 02:07:58 -0500
-In-Reply-To: <20100302223648.7178.17333.stgit@bob.kio>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:20614 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab0CCPk3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 10:40:29 -0500
+In-Reply-To: <1267573501.12051.25.camel@cndougla-ubuntu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Alexander Strakh <strakh@ispras.ru>, Adam Belay <abelay@mit.edu>
+To: Chase Douglas <chase.douglas@ubuntu.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2 Mar 2010, Bjorn Helgaas wrote:
+On Tuesday 02 March 2010 04:45:01 pm Chase Douglas wrote:
+> On Tue, 2010-03-02 at 16:14 -0700, Bjorn Helgaas wrote:
+> > On Tuesday 02 March 2010 02:09:12 pm Chase Douglas wrote:
+> > > -			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+> > > +			printk(KERN_INFO "ACPI: %s resource %s [0x%llx-0x%llx]"
+> > >  			       " conflicts with ACPI region %s"
+> > >  			       " [0x%llx-0x%llx]\n",
+> > > -			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
+> > > -			       ? KERN_WARNING : KERN_ERR,
+> > >  			       ioport ? "I/O" : "Memory", res->name,
+> > >  			       (long long) res->start, (long long) res->end,
+> > >  			       res_list_elem->name,
+> > 
+> > Since you're touching this anyway, can you convert this to use %pR?
+> 
+> I see the potential usage of %p, but is the 'R' a typo? I haven't found
+> it in man 3 fprintf nor in a google search.
 
->
-> If isapnp_cfg_begin() fails, it returns without locking isapnp_cfg_mutex.
-> Previously, we always unlocked the mutex, even if we haven't locked it
-> first.
->
-> This patch checks the isapnp_cfg_begin() return value so we can just
-> exit and avoid this locking error.
->
-> Found by the Linux Device Drivers Verification Project and reported by
-> Alexander Strakh <strakh@ispras.ru>.
->
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Nope, see this description of the %p<x> kernel extensions:
 
-Acked-by: Jaroslav Kysela <perex@perex.cz>
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=lib/vsprintf.c;hb=51c24aaacaea90c8e87f1dec75a2ac7622b593f8#l915
 
- 					Jaroslav
+There are several examples already in the tree, including
+drivers/pci/setup-bus.c.
 
------
-Jaroslav Kysela <perex@perex.cz>
-Linux Kernel Sound Maintainer
-ALSA Project, Red Hat, Inc.
-
+Bjorn
