@@ -1,40 +1,76 @@
-From: Chase Douglas <chase.douglas@ubuntu.com>
-Subject: Re: [PATCH] Reduce ACPI resource conflict message to KERN_INFO
-Date: Tue, 02 Mar 2010 18:45:01 -0500
-Message-ID: <1267573501.12051.25.camel@cndougla-ubuntu>
-References: <1267564152-11048-1-git-send-email-chase.douglas@ubuntu.com>
-	 <201003021614.34026.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: venkatesh.pallipadi@intel.com
+Subject: [patch 1/2] x86: Look for IA32_ENERGY_PERF_BIAS support
+Date: Tue, 02 Mar 2010 16:06:50 -0800
+Message-ID: <20100303000849.141285000@intel.com>
+References: <20100303000649.757684000@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:50791 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757566Ab0CBXpH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Mar 2010 18:45:07 -0500
-In-Reply-To: <201003021614.34026.bjorn.helgaas@hp.com>
+Received: from mga01.intel.com ([192.55.52.88]:1908 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753476Ab0CCAQj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Mar 2010 19:16:39 -0500
+Content-Disposition: inline; filename=0001-x86-Look-for-IA32_ENERGY_PERF_BIAS-support.patch
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Tue, 2010-03-02 at 16:14 -0700, Bjorn Helgaas wrote:
-> On Tuesday 02 March 2010 02:09:12 pm Chase Douglas wrote:
-> > -			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
-> > +			printk(KERN_INFO "ACPI: %s resource %s [0x%llx-0x%llx]"
-> >  			       " conflicts with ACPI region %s"
-> >  			       " [0x%llx-0x%llx]\n",
-> > -			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
-> > -			       ? KERN_WARNING : KERN_ERR,
-> >  			       ioport ? "I/O" : "Memory", res->name,
-> >  			       (long long) res->start, (long long) res->end,
-> >  			       res_list_elem->name,
-> 
-> Since you're touching this anyway, can you convert this to use %pR?
+There is a new hardware feature, which lets system software to set
+Energy Performance Preference. This is a opaque knob in the form of
+IA32_ENERGY_PERF_BIAS MSR, which has a 4 bit Energy Performance
+Preference Hint. When supported, hardware can use this hint to resolve
+energy-performance tradeoffs. The support for this feature is indicated
+by CPUID.06H.ECX.bit3. Refer to Intel Architectures Software Developer's
+Manual for more info.
 
-I see the potential usage of %p, but is the 'R' a typo? I haven't found
-it in man 3 fprintf nor in a google search.
+This patch, looks up for the support of this feature. It shows up as
+"epb" in /proc/cpuinfo flags, when supported.
 
-Thanks,
-Chase
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+---
+ arch/x86/include/asm/cpufeature.h          |    1 +
+ arch/x86/include/asm/msr-index.h           |    2 ++
+ arch/x86/kernel/cpu/addon_cpuid_features.c |    1 +
+ 3 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/include/asm/cpufeature.h b/arch/x86/include/asm/cpufeature.h
+index 0cd82d0..0e1d52c 100644
+--- a/arch/x86/include/asm/cpufeature.h
++++ b/arch/x86/include/asm/cpufeature.h
+@@ -161,6 +161,7 @@
+  */
+ #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
+ #define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
++#define X86_FEATURE_EPB		(7*32+ 2) /* IA32_ENERGY_PERF_BIAS support */
+ 
+ /* Virtualization flags: Linux defined */
+ #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
+diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
+index 1cd58cd..feeb918 100644
+--- a/arch/x86/include/asm/msr-index.h
++++ b/arch/x86/include/asm/msr-index.h
+@@ -230,6 +230,8 @@
+ 
+ #define MSR_IA32_MISC_ENABLE		0x000001a0
+ 
++#define MSR_IA32_ENERGY_PERF_BIAS	0x000001b0
++
+ /* MISC_ENABLE bits: architectural */
+ #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
+ #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
+diff --git a/arch/x86/kernel/cpu/addon_cpuid_features.c b/arch/x86/kernel/cpu/addon_cpuid_features.c
+index 97ad79c..3bc5eda 100644
+--- a/arch/x86/kernel/cpu/addon_cpuid_features.c
++++ b/arch/x86/kernel/cpu/addon_cpuid_features.c
+@@ -32,6 +32,7 @@ void __cpuinit init_scattered_cpuid_features(struct cpuinfo_x86 *c)
+ 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
+ 		{ X86_FEATURE_IDA, CR_EAX, 1, 0x00000006 },
+ 		{ X86_FEATURE_ARAT, CR_EAX, 2, 0x00000006 },
++		{ X86_FEATURE_EPB, CR_ECX, 3, 0x00000006 },
+ 		{ X86_FEATURE_NPT,   CR_EDX, 0, 0x8000000a },
+ 		{ X86_FEATURE_LBRV,  CR_EDX, 1, 0x8000000a },
+ 		{ X86_FEATURE_SVML,  CR_EDX, 2, 0x8000000a },
+-- 
+1.6.0.6
+
+-- 
 
