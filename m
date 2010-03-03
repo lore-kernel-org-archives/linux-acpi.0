@@ -1,35 +1,38 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
- governor
-Date: Wed, 03 Mar 2010 09:55:38 -0800
-Message-ID: <1267638938.16916.957.camel@localhost.localdomain>
-References: <20100303000649.757684000@intel.com>
-	 <20100303000849.278509000@intel.com> <20100303164007.GA31365@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: Problem with uart and acpi
+Date: Wed, 3 Mar 2010 13:30:52 -0700
+Message-ID: <201003031330.52498.bjorn.helgaas@hp.com>
+References: <20100225091328.GB22799@ugs.tarent.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:58104 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755406Ab0CCRzk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Mar 2010 12:55:40 -0500
-In-Reply-To: <20100303164007.GA31365@srcf.ucam.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:1628 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756580Ab0CCUaz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 15:30:55 -0500
+In-Reply-To: <20100225091328.GB22799@ugs.tarent.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Henning Heinold <h.heinold@tarent.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2010-03-03 at 08:40 -0800, Matthew Garrett wrote:
-> Have you done any measurements with this bit being set dynamically by 
-> ondemand depending on the target frequency?
+On Thursday 25 February 2010 02:13:29 am Henning Heinold wrote:
+> we got some viliv x70 ez, atom based netbooks with wifi, bt, gsm, gps and touchscreen.
 > 
+> I got all running now under ubuntu with latest stable kernel 2.6.32.8 except the gps. Viliv claims
+> it is a sirf3 chip. It is connect to on irq 3(verified it under windows, where of course the
+> gps works), the 8250 modul run fine
+> and show me the that the uart is connected to ttyS1. Unfornatly when the 8250_pnp
+> is loaded the following occurs:
+> 
+> [    3.368311] serial 00:0c: activatedq
+> [    3.376287] serial 00:0c: disabled
 
-The not so good part about this feature is that its setting is opaque.
-Different CPUs can use this value for different optimizations. So, in
-future we may have to change the value of this MSR based on frequency or
-other metrics. But, for CPUs which support this MSR today, changing the
-value with frequency do not make any difference.
+Could you set CONFIG_PNP_DEBUG_MESSAGES=y, boot with "pnp.debug", and
+attach the complete dmesg log, please?
 
 Thanks,
-Venki
-
+  Bjorn
