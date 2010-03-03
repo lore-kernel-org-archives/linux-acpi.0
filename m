@@ -1,47 +1,67 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] Reduce ACPI resource conflict message to KERN_INFO
-Date: Wed, 3 Mar 2010 08:40:27 -0700
-Message-ID: <201003030840.27952.bjorn.helgaas@hp.com>
-References: <1267564152-11048-1-git-send-email-chase.douglas@ubuntu.com> <201003021614.34026.bjorn.helgaas@hp.com> <1267573501.12051.25.camel@cndougla-ubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Chase Douglas <chase.douglas@ubuntu.com>
+Subject: [PATCH] Reduce ACPI resource conflict message to KERN_INFO, printf cleanup
+Date: Wed,  3 Mar 2010 11:21:34 -0500
+Message-ID: <1267633294-21815-1-git-send-email-chase.douglas@ubuntu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:20614 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573Ab0CCPk3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 10:40:29 -0500
-In-Reply-To: <1267573501.12051.25.camel@cndougla-ubuntu>
-Content-Disposition: inline
+Received: from adelie.canonical.com ([91.189.90.139]:47541 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502Ab0CCQVk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 11:21:40 -0500
+Received: from hutte.canonical.com ([91.189.90.181])
+	by adelie.canonical.com with esmtp (Exim 4.69 #1 (Debian))
+	id 1NmrKN-0003YN-65
+	for <linux-acpi@vger.kernel.org>; Wed, 03 Mar 2010 16:21:39 +0000
+Received: from cpe-98-31-46-159.woh.res.rr.com ([98.31.46.159] helo=canonical.com)
+	by hutte.canonical.com with esmtpsa (TLS-1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.69)
+	(envelope-from <chase.douglas@canonical.com>)
+	id 1NmrKM-0003pM-TG
+	for linux-acpi@vger.kernel.org; Wed, 03 Mar 2010 16:21:39 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chase Douglas <chase.douglas@ubuntu.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tuesday 02 March 2010 04:45:01 pm Chase Douglas wrote:
-> On Tue, 2010-03-02 at 16:14 -0700, Bjorn Helgaas wrote:
-> > On Tuesday 02 March 2010 02:09:12 pm Chase Douglas wrote:
-> > > -			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
-> > > +			printk(KERN_INFO "ACPI: %s resource %s [0x%llx-0x%llx]"
-> > >  			       " conflicts with ACPI region %s"
-> > >  			       " [0x%llx-0x%llx]\n",
-> > > -			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
-> > > -			       ? KERN_WARNING : KERN_ERR,
-> > >  			       ioport ? "I/O" : "Memory", res->name,
-> > >  			       (long long) res->start, (long long) res->end,
-> > >  			       res_list_elem->name,
-> > 
-> > Since you're touching this anyway, can you convert this to use %pR?
-> 
-> I see the potential usage of %p, but is the 'R' a typo? I haven't found
-> it in man 3 fprintf nor in a google search.
+From: Chase Douglas <chase.douglas@canonical.com>
 
-Nope, see this description of the %p<x> kernel extensions:
+By default, ACPI resource conflict messages are logged at level
+KERN_ERR. This is a rather high level for a message that is more a
+warning than an indication of a real kernel error. Also, KERN_ERR level
+messages can appear over some boot splash screens, and this message is
+not serious enough to warrant such treatment. Thus, the log level has
+been reduced to KERN_INFO.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=lib/vsprintf.c;hb=51c24aaacaea90c8e87f1dec75a2ac7622b593f8#l915
+Also, cleanup message to use %pR resource printing format.
 
-There are several examples already in the tree, including
-drivers/pci/setup-bus.c.
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ drivers/acpi/osl.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-Bjorn
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 02e8464..33a01cb 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1151,16 +1151,10 @@ int acpi_check_resource_conflict(const struct resource *res)
+ 
+ 	if (clash) {
+ 		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
+-			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+-			       " conflicts with ACPI region %s"
+-			       " [0x%llx-0x%llx]\n",
+-			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
+-			       ? KERN_WARNING : KERN_ERR,
+-			       ioport ? "I/O" : "Memory", res->name,
+-			       (long long) res->start, (long long) res->end,
+-			       res_list_elem->name,
+-			       (long long) res_list_elem->start,
+-			       (long long) res_list_elem->end);
++			printk(KERN_INFO "ACPI: resource %s %pR"
++			       " conflicts with ACPI region %s %pR\n",
++			       res->name, res, res_list_elem->name,
++			       res_list_elem);
+ 			if (acpi_enforce_resources == ENFORCE_RESOURCES_LAX)
+ 				printk(KERN_NOTICE "ACPI: This conflict may"
+ 				       " cause random problems and system"
+-- 
+1.6.3.3
+
