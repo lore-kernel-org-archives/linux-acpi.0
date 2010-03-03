@@ -1,38 +1,31 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Problem with uart and acpi
-Date: Wed, 3 Mar 2010 13:30:52 -0700
-Message-ID: <201003031330.52498.bjorn.helgaas@hp.com>
-References: <20100225091328.GB22799@ugs.tarent.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Resend][PATCH] ACPI / EC: Remove race between EC driver and
+ suspend process (rev. 3)
+Date: Wed, 03 Mar 2010 16:49:01 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1003031644410.1044@localhost.localdomain>
+References: <201002272140.36891.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:1628 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756580Ab0CCUaz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 15:30:55 -0500
-In-Reply-To: <20100225091328.GB22799@ugs.tarent.de>
-Content-Disposition: inline
+Received: from vms173019pub.verizon.net ([206.46.173.19]:43900 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756723Ab0CCVta (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 16:49:30 -0500
+In-reply-to: <201002272140.36891.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henning Heinold <h.heinold@tarent.de>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thursday 25 February 2010 02:13:29 am Henning Heinold wrote:
-> we got some viliv x70 ez, atom based netbooks with wifi, bt, gsm, gps and touchscreen.
-> 
-> I got all running now under ubuntu with latest stable kernel 2.6.32.8 except the gps. Viliv claims
-> it is a sirf3 chip. It is connect to on irq 3(verified it under windows, where of course the
-> gps works), the 8250 modul run fine
-> and show me the that the uart is connected to ttyS1. Unfornatly when the 8250_pnp
-> is loaded the following occurs:
-> 
-> [    3.368311] serial 00:0c: activatedq
-> [    3.376287] serial 00:0c: disabled
+For the record, Rafael, Alexey and I discusseed this a bit further...
 
-Could you set CONFIG_PNP_DEBUG_MESSAGES=y, boot with "pnp.debug", and
-attach the complete dmesg log, please?
+We reasoned that this failure is impossible during the Suspend-to-RAM 
+path, and the failure is specific to the hibernate reboot kernel handoff
+to the resume image.
 
-Thanks,
-  Bjorn
+On a related note, we had trouble justifying the existence
+of the current EC .suspend and .resume routines.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
