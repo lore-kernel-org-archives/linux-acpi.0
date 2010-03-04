@@ -1,58 +1,131 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
-	governor
-Date: Wed, 3 Mar 2010 22:57:41 +0100
-Message-ID: <20100303215453.GG2579@ucw.cz>
-References: <20100303000649.757684000@intel.com> <20100303000849.278509000@intel.com> <4B8DADB9.1040302@xenotime.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
+Date: Thu, 4 Mar 2010 01:25:30 +0100
+Message-ID: <201003040125.30091.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ksp.mff.cuni.cz ([195.113.26.206]:57918 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756825Ab0CCV5v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 16:57:51 -0500
-Content-Disposition: inline
-In-Reply-To: <4B8DADB9.1040302@xenotime.net>
+Received: from ogre.sisk.pl ([217.79.144.158]:44898 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753529Ab0CDAWf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Mar 2010 19:22:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: venkatesh.pallipadi@intel.com, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi!
+There is a problem with the ACPI video resume routine that it's
+executed before the GPU that may be accessed by it.  To fix this
+issue, move the ACPI video resume to a power management notifier,
+so that it's executed after resuming all devices, including the GPU.
 
-> index 8c666d8..4945add 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -749,6 +749,10 @@ and is between 256 and 4096 characters. It is defined in the file
->  			Default value is 0.
->  			Value can be changed at runtime via /selinux/enforce.
->  
-> +	epb		[X86] Control IA32_ENERGY_PERF_BIAS setting
-> +			"disable" - Kernel will not modify this MSR
-> +			<0..15> - Kernel will set this MSR to i/p static value
-> +
-> 
-> 
-> Should be more like:
-> 
-> 	epb=		[X86] Control IA32_ENERGY_PERF_BIAS setting
-> 			Format: { disable | <0...15> }
-> 			"disable" - Kernel will not modify this MSR
-> 			<0..15> - Kernel will set this MSR to i/p static value
-> 
-> 
-> But what is "i/p"?  Use whatever word it should be, please.
-> What do the values mean?
-> And what does IA32 have to do with this?  does it not apply to x86_64?
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/video.c |   31 +++++++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 8 deletions(-)
 
-Exactly. This is end user documentation, it should not even talk about
-MSRs. Tell us what the setting does...
-
-Also... does it make change to tweak the setting during runtime? Maybe
-different settings for AC and battery power?
-
-								Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -43,6 +43,7 @@
+ #include <linux/dmi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <linux/suspend.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -88,7 +89,6 @@ module_param(allow_duplicates, bool, 064
+ static int register_count = 0;
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+-static int acpi_video_resume(struct acpi_device *device);
+ static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id video_device_ids[] = {
+@@ -104,7 +104,6 @@ static struct acpi_driver acpi_video_bus
+ 	.ops = {
+ 		.add = acpi_video_bus_add,
+ 		.remove = acpi_video_bus_remove,
+-		.resume = acpi_video_resume,
+ 		.notify = acpi_video_bus_notify,
+ 		},
+ };
+@@ -159,6 +158,7 @@ struct acpi_video_bus {
+ 	struct proc_dir_entry *dir;
+ 	struct input_dev *input;
+ 	char phys[32];	/* for input device */
++	struct notifier_block pm_nb;
+ };
+ 
+ struct acpi_video_device_flags {
+@@ -2226,24 +2226,31 @@ static void acpi_video_device_notify(acp
+ 	return;
+ }
+ 
+-static int instance;
+-static int acpi_video_resume(struct acpi_device *device)
++static int acpi_video_resume(struct notifier_block *nb,
++				unsigned long val, void *ign)
+ {
+ 	struct acpi_video_bus *video;
+ 	struct acpi_video_device *video_device;
+ 	int i;
+ 
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
++	switch (val) {
++	case PM_HIBERNATION_PREPARE:
++	case PM_SUSPEND_PREPARE:
++	case PM_RESTORE_PREPARE:
++		return NOTIFY_DONE;
++	}
+ 
+-	video = acpi_driver_data(device);
++	video = container_of(nb, struct acpi_video_bus, pm_nb);
++
++	dev_info(&video->device->dev, "Restoring backlight state\n");
+ 
+ 	for (i = 0; i < video->attached_count; i++) {
+ 		video_device = video->attached_array[i].bind_info;
+ 		if (video_device && video_device->backlight)
+ 			acpi_video_set_brightness(video_device->backlight);
+ 	}
+-	return AE_OK;
++
++	return NOTIFY_OK;
+ }
+ 
+ static acpi_status
+@@ -2267,6 +2274,8 @@ acpi_video_bus_match(acpi_handle handle,
+ 	return AE_OK;
+ }
+ 
++static int instance;
++
+ static int acpi_video_bus_add(struct acpi_device *device)
+ {
+ 	struct acpi_video_bus *video;
+@@ -2360,6 +2369,10 @@ static int acpi_video_bus_add(struct acp
+ 	       video->flags.rom ? "yes" : "no",
+ 	       video->flags.post ? "yes" : "no");
+ 
++	video->pm_nb.notifier_call = acpi_video_resume;
++	video->pm_nb.priority = 0;
++	register_pm_notifier(&video->pm_nb);
++
+ 	return 0;
+ 
+  err_free_input_dev:
+@@ -2386,6 +2399,8 @@ static int acpi_video_bus_remove(struct 
+ 
+ 	video = acpi_driver_data(device);
+ 
++	unregister_pm_notifier(&video->pm_nb);
++
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+ 	acpi_video_bus_remove_fs(device);
