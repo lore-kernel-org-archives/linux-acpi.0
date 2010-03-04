@@ -1,29 +1,40 @@
-From: venkatesh.pallipadi@intel.com
-Subject: [patch 0/2] Support for IA32_ENERGY_PERF_BIAS MSR - v2
-Date: Thu, 04 Mar 2010 15:14:54 -0800
-Message-ID: <20100304231454.247805000@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:13137 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756558Ab0CDXVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Mar 2010 18:21:08 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
+ governor - v2
+Date: Thu, 4 Mar 2010 18:27:56 -0500
+Message-ID: <20100304232756.GA13895@redhat.com>
+References: <20100304231454.247805000@intel.com>
+ <20100304231547.798303000@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100304231547.798303000@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: venkatesh.pallipadi@intel.com
+Cc: Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@gmail.com>
 
-There is a new hardware feature, which lets system software to set
-Energy Performance Preference. This is a opaque knob in the form of
-IA32_ENERGY_PERF_BIAS MSR, which has a 4 bit Energy Performance
-Preference Hint.
+On Thu, Mar 04, 2010 at 03:14:56PM -0800, Venki Pallipadi wrote:
+ 
+ > +	if (!strncmp(gov->name, "performance", strlen("performance")))
+ > +		epb_val = ENERGY_PERF_BIAS_PERF;
+ > +	else if (!strncmp(gov->name, "powersave", strlen("powersave")))
+ > +		epb_val = ENERGY_PERF_BIAS_POWER;
+ > +	else
+ > +		epb_val = ENERGY_PERF_BIAS_ONDEMAND;
+ > +
+ > +	set_epb_on_cpu(epb_val, cpu);
+ > +	return 0;
 
-The support for this feature is indicated by CPUID.06H.ECX.bit3. Refer to
-Intel Architectures Software Developer's Manual for more info.
+hardcoding a list of cpufreq governors is kinda icky, but I don't have
+a better solution.  We'll just have to be mindful of it if we ever
+get around to finally making performance/powersave personalities
+of ondemand as was discussed years ago.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+What if the governor is set to 'userspace' ?
+powernowd/cpufreqd are sort of ondemand-done-in-userspace, but there
+may also be other userspace governors we don't know about.
+I suppose it's not catastrophic..
 
----
-Modification from first version - Revised kernel parameter documentation.
-
--- 
-
+	Dave
