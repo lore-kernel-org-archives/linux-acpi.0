@@ -1,96 +1,56 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: RE: [Openipmi-developer] [PATCH 2/4] ipmi: Remove SPMI table based
- device discovery method
-Date: Thu, 04 Mar 2010 11:47:00 -0700
-Message-ID: <1267728420.2437.162.camel@zim>
-References: <20100304033146.30205.68689.stgit@bob.kio>
-	 <20100304034415.30205.59685.stgit@bob.kio>
-	 <E0AA796A7E3F4C4E8F1065D15FE478610176ABB89F@EXCH-MBX-4.vmware.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
+Date: Thu, 4 Mar 2010 20:12:36 +0100
+Message-ID: <201003042012.36416.rjw@sisk.pl>
+References: <201003040125.30091.rjw@sisk.pl> <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:16960 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753854Ab0CDSrB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 13:47:01 -0500
-In-Reply-To: <E0AA796A7E3F4C4E8F1065D15FE478610176ABB89F@EXCH-MBX-4.vmware.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:48973 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755274Ab0CDTJ5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 14:09:57 -0500
+In-Reply-To: <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bela Lubkin <blubkin@vmware.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 2010-03-03 at 23:56 -0800, Bela Lubkin wrote:
-> Myron Stowe wrote:
-> 
-> > Remove optional ACPI static Service Processor Management Interface
-> > (SPMI) table based IPMI device discovery mechanism.
-> 
-> Myron,
-> 
-> The other patches look reasonable.  This one, I'm not so sure.
-> 
-> My concern is based on these thoughts:
-> 
-> During early hardware bring-up, both ACPI and IPMI subsystems
-> of a new system design tend to be a total mess.  The static
-> table parts of ACPI are likely to be usable much earlier than
-> the parts that require a fully functional ACPI subsystem.
+On Thursday 04 March 2010, Rafa=C5=82 Mi=C5=82ecki wrote:
+> 2010/3/4 Rafael J. Wysocki <rjw@sisk.pl>:
+> > There is a problem with the ACPI video resume routine that it's
+> > executed before the GPU that may be accessed by it.  To fix this
+> > issue, move the ACPI video resume to a power management notifier,
+> > so that it's executed after resuming all devices, including the GPU=
+=2E
+> >
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+>=20
+> Tested-by: Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
 
-Hi Bela:
+Thanks!
 
-ACPI in new systems does tend to present a lot of challenges.  My job is
-new platform enablement focused which more often than not translates to
-"helping discover and fix BIOS/ACPI issues" so I definitely understand.
+> It partially fixes bugzilla bug #15096 and it first needed step to fi=
+x
+> it completely.
 
-You also astutely point out that ACPI's static tables are available for
-use by an OS - or OSPM in ACPI speak - much earlier than its namespace.
-This is true but it is also our belief that no one uses it except HP.
+To fix that completely we'd need to avoid calling acpi_video_resume() i=
+n the
+non-KMS case, but it's not clear how to tell the ACPI driver which case=
+ we're
+in.  It's not certain how to reliably distinguish the KMS and non-KMS c=
+ases at
+this level in the first place.
 
-> 
-> For the people developing and testing the new system's IPMI
-> subsystem, losing the SPMI discovery method could be a
-> significant pain point.
-> 
-> A new IPMI subsystem may also be "bolted on" to an existing
-> system for early development before the new system is mature
-> enough to even power on.  In such a situation it may be easier
-> to supply a fake table than fake live ACPI information.  The
-> hardware at that point may not be in PCI space, yet may also
-> not be at static addresses that would be easy to supply as
-> module load parameters.
+> Can we send this to stable for .32 and .33?
 
-The point that in such a situation providing static addresses as module
-load parameters is not a tenable approach seems to be a stretch but that
-is tangential to the main discussion so lets not muddy the discussion
-with such unless you feel there is more to say.
+That depends on Len.
 
-I see how one's life could be easier relying on the BIOS setting up
-static tables such as either the SMBIOS or SPMI.  That way the BIOS is
-taking the dynamic aspects into account relieving the OS, or OS/platform
-bring up engineer, from such.  In such a case, what benefits does the
-SPMI table provide as opposed to the SMBIOS table?
-> 
-> I would be more comfortable if you kept this code, perhaps
-> suppressed under a "CONFIG_IPMI_SPMI" config option.
-
-I just don't see enough remaining value in keeping the SPMI table
-capability.  It seems to be redundant, and if truly so, just adds
-unnecessary code, complexity, and maintenance aspects to the driver.  We
-typically don't keep code in the kernel just for bring up efforts.
-
-
-Thanks very much for expressing your concerns here.  I fully expected,
-and still expect, the SPMI removal patch to be the contentious component
-of this series.  Fostering a healthy discussion in these regards should
-eventually help us understand that removing such is in fact tenable or,
-that there really are valid technical reasons why it is not.
-
-Myron
-> 
-> >Bela<
-
-
--- 
-Myron Stowe                             HP Open Source Linux Lab (OSLL)
-
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
