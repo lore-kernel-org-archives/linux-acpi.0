@@ -1,42 +1,47 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Re: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
-Date: Thu, 4 Mar 2010 12:11:06 +0100
-Message-ID: <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
-References: <201003040125.30091.rjw@sisk.pl>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: [PATCH 0/4] ipmi: remove SPMI and update core driver with
+ dev_printk
+Date: Thu, 04 Mar 2010 08:07:11 -0600
+Message-ID: <4B8FBE8F.3030203@acm.org>
+References: <20100304033146.30205.68689.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:44625 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375Ab0CDLLI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 06:11:08 -0500
-In-Reply-To: <201003040125.30091.rjw@sisk.pl>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:60459 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202Ab0CDOHT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 09:07:19 -0500
+Received: from wf-rch.minyard.local ([unknown] [173.57.145.237])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KYR00HEJGK027N5@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 04 Mar 2010 08:07:12 -0600 (CST)
+In-reply-to: <20100304033146.30205.68689.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: Myron Stowe <myron.stowe@hp.com>
+Cc: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-2010/3/4 Rafael J. Wysocki <rjw@sisk.pl>:
-> There is a problem with the ACPI video resume routine that it's
-> executed before the GPU that may be accessed by it. =C2=A0To fix this
-> issue, move the ACPI video resume to a power management notifier,
-> so that it's executed after resuming all devices, including the GPU.
+Myron Stowe wrote:
+> These patches remove the SPMI based IPMI device discovery mechanism and
+> update the driver's core to use dev_printk() and its constructs.
 >
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
+> As part of this patch series I wanted to remove the 'PFX' argument from
+> ipmi_of_probe()'s dev_printk constructs as I believe it produces redundant
+> output but I do not have a PPC platform to test against.
+>   
+I like the dev_printk() stuff.  The order of discovery change is 
+correct, too, I believe.  I don't have a PPC platform (with OF, anyway) 
+with IPMI, so I can't test that, either.
 
-Tested-by: Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
+> Ultimately, I would like to see if it is possible to also remove IPMI's
+> SMBIOS based device discovery mechanism.
+>   
+Maybe in an ideal world, but I don't know where an ideal world is, so I 
+have to live in the one I'm in.  There's plenty of systems that only 
+document this in SMBIOS tables, there's plenty of systems with broken 
+ACPI, etc.  So SMBIOS and SPMI are going to have to stay.
 
-It partially fixes bugzilla bug #15096 and it first needed step to fix
-it completely.
 
-Can we send this to stable for .32 and .33?
-
---=20
-Rafa=C5=82
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-corey
