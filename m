@@ -1,56 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
-Date: Thu, 4 Mar 2010 20:12:36 +0100
-Message-ID: <201003042012.36416.rjw@sisk.pl>
-References: <201003040125.30091.rjw@sisk.pl> <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
+Subject: Re: [Resend][PATCH] ACPI / EC: Remove race between EC driver and suspend process (rev. 3)
+Date: Thu, 4 Mar 2010 20:20:54 +0100
+Message-ID: <201003042020.54715.rjw@sisk.pl>
+References: <201002272140.36891.rjw@sisk.pl> <alpine.LFD.2.00.1003040047310.1741@localhost.localdomain> <9b2b86521003040132v168399ct9241f3ad9ff8c4c7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48973 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:49029 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755274Ab0CDTJ5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 14:09:57 -0500
-In-Reply-To: <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
+	id S1756134Ab0CDTR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Mar 2010 14:17:59 -0500
+In-Reply-To: <9b2b86521003040132v168399ct9241f3ad9ff8c4c7@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Maxim Levitsky <maximlevitsky@gmail.com>
 
-On Thursday 04 March 2010, Rafa=C5=82 Mi=C5=82ecki wrote:
-> 2010/3/4 Rafael J. Wysocki <rjw@sisk.pl>:
-> > There is a problem with the ACPI video resume routine that it's
-> > executed before the GPU that may be accessed by it.  To fix this
-> > issue, move the ACPI video resume to a power management notifier,
-> > so that it's executed after resuming all devices, including the GPU=
-=2E
+On Thursday 04 March 2010, Alan Jenkins wrote:
+> On 3/4/10, Len Brown <lenb@kernel.org> wrote:
+> > Isn't the problem at hand that the boot-kernel stops
+> > in mid-transaction, and the resumed hibernate image
+> > then blunders forward with its first transaction
+> > only to find the EC in an intermediate state?
 > >
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
->=20
-> Tested-by: Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
+> > If yes, I then making the transaction atomic WRT
+> > the boot kernel stopping should fix the problem.
+> >
+> > The patch sets a FROZEN bit, and subsequent
+> > requests for EC transactions simply fail.
+> > How do we know that we set the bit at the right time?
 
-Thanks!
+Well, setting it later simply doesn't make sense and setting it earlier might
+disturb things.
 
-> It partially fixes bugzilla bug #15096 and it first needed step to fi=
-x
-> it completely.
+> > What transactions or parts of transactions will fail,
+> > and what are the consequences of those failures?
+> 
+> The problem transactions on my machine were probably started by
+> ec_check_sci().  I.e. QUERY transactions which read the value of an
+> event raised by the EC.  (I triggered the problem by pressing ACPI
+> hotkeys, although I haven't been able to reproduce it since).
+> 
+> That might explain why the transactions can be asynchronous with the
+> s2disk task - because these transactions are run in the ACPI
+> workqueue.  Perhaps the workqueue needs to be flushed after the EC GPE
+> is disabled?
 
-To fix that completely we'd need to avoid calling acpi_video_resume() i=
-n the
-non-KMS case, but it's not clear how to tell the ACPI driver which case=
- we're
-in.  It's not certain how to reliably distinguish the KMS and non-KMS c=
-ases at
-this level in the first place.
+Yes, and that's what the patch does.  It calls acpi_os_wait_events_complete()
+to flush the workqueue (actually, two of them) and _then_ sets the FROZEN
+bit.
 
-> Can we send this to stable for .32 and .33?
-
-That depends on Len.
+Dropping stuff on the floor after the FROZEN bit has been set doesn't change
+things too much, because we're going to turn interrupts off shortly after that.
+However, the FROZEN bit is set under the EC mutex, which automatically makes
+us wait if any transaction is in progress while we're trying to set the FROZEN
+bit.
 
 Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
