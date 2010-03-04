@@ -1,38 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [Resend][PATCH] ACPI / EC: Remove race between EC driver and
- suspend process (rev. 3)
-Date: Thu, 04 Mar 2010 00:55:53 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1003040047310.1741@localhost.localdomain>
-References: <201002272140.36891.rjw@sisk.pl>
- <alpine.LFD.2.00.1003031644410.1044@localhost.localdomain>
- <201003040152.58437.rjw@sisk.pl>
+From: Bela Lubkin <blubkin@vmware.com>
+Subject: RE: [Openipmi-developer] [PATCH 2/4] ipmi: Remove SPMI table based
+	device discovery method
+Date: Wed, 3 Mar 2010 23:56:10 -0800
+Message-ID: <E0AA796A7E3F4C4E8F1065D15FE478610176ABB89F@EXCH-MBX-4.vmware.com>
+References: <20100304033146.30205.68689.stgit@bob.kio>
+ <20100304034415.30205.59685.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:53289 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909Ab0CDF4M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 00:56:12 -0500
-In-reply-to: <201003040152.58437.rjw@sisk.pl>
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:41366 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753651Ab0CDH4M convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Mar 2010 02:56:12 -0500
+In-Reply-To: <20100304034415.30205.59685.stgit@bob.kio>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Maxim Levitsky <maximlevitsky@gmail.com>
+To: 'Myron Stowe' <myron.stowe@hp.com>, "minyard@acm.org" <minyard@acm.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
 
-Isn't the problem at hand that the boot-kernel stops
-in mid-transaction, and the resumed hibernate image
-then blunders forward with its first transaction
-only to find the EC in an intermediate state?
+Myron Stowe wrote:
 
-If yes, I then making the transaction atomic WRT
-the boot kernel stopping should fix the problem.
+> Remove optional ACPI static Service Processor Management Interface
+> (SPMI) table based IPMI device discovery mechanism.
 
-The patch sets a FROZEN bit, and subsequent
-requests for EC transactions simply fail.
-How do we know that we set the bit at the right time?
-What transactions or parts of transactions will fail,
-and what are the consequences of those failures?
+Myron,
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+The other patches look reasonable.  This one, I'm not so sure.
 
+My concern is based on these thoughts:
+
+During early hardware bring-up, both ACPI and IPMI subsystems
+of a new system design tend to be a total mess.  The static
+table parts of ACPI are likely to be usable much earlier than
+the parts that require a fully functional ACPI subsystem.
+
+For the people developing and testing the new system's IPMI
+subsystem, losing the SPMI discovery method could be a
+significant pain point.
+
+A new IPMI subsystem may also be "bolted on" to an existing
+system for early development before the new system is mature
+enough to even power on.  In such a situation it may be easier
+to supply a fake table than fake live ACPI information.  The
+hardware at that point may not be in PCI space, yet may also
+not be at static addresses that would be easy to supply as
+module load parameters.
+
+I would be more comfortable if you kept this code, perhaps
+suppressed under a "CONFIG_IPMI_SPMI" config option.
+
+>Bela<
