@@ -1,271 +1,342 @@
 From: Myron Stowe <myron.stowe@hp.com>
-Subject: [PATCH 2/4] ipmi: Remove SPMI table based device discovery method
-Date: Wed, 03 Mar 2010 20:44:15 -0700
-Message-ID: <20100304034415.30205.59685.stgit@bob.kio>
+Subject: [PATCH 4/4] ipmi: Update driver to use 'dev_printk()' and its
+	constructs
+Date: Wed, 03 Mar 2010 20:44:25 -0700
+Message-ID: <20100304034425.30205.7738.stgit@bob.kio>
 References: <20100304033146.30205.68689.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:26525 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754666Ab0CDDoQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 22:44:16 -0500
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:40887 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754728Ab0CDDo0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Mar 2010 22:44:26 -0500
 In-Reply-To: <20100304033146.30205.68689.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: minyard@acm.org
 Cc: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-Remove optional ACPI static Service Processor Management Interface
-(SPMI) table based IPMI device discovery mechanism.
+Update core IPMI driver printk()'s with dev_printk(), and its constructs,
+to provide additional device topology information.
 
-The SPMI table is available for use as an early boot process device
-description mechanism (i.e. prior to the availability of the OS to
-utilize ACPI, namespace based [IPI001], control methods) however,
-=E2=80=98Plug-and-Play=E2=80=99 enumeration mechanisms such as PCI and =
-ACPI should
-be used when possible [1].
 
-Windows relies solely on ACPI/IPI0001 or PCI device based enumeration
-for IPMI.  HP added the SPMI table for HP-UX to use before ACPI
-namespace is available but Linux doesn't need such as its driver's
-discovery processing takes place after both ACPI and PCI subsystems
-have been set up.
+An example of the additional device topology for a PNP device -
+  ipmi_si 00:02: probing via ACPI
+  ipmi_si 00:02: [io  0x0ca2-0x0ca3] regsize 1 spacing 1 irq 0
+  ipmi_si 00:02: Found new BMC (man_id: 0x00000b, prod_id: 0x0000, ...
+  ipmi_si 00:02: IPMI kcs interface initialized
 
-[1] From Appendix C1 of the afore mentioned IPMI specification -
-    "... this structure (referring to SPMI) should be used only
-    when the interface cannot be discovered via 'Plug-and-Play'
-    discovery mechanisms incorporated in interfaces such as PCI
-    and ACPI."
+and for a PCI device -
+  ipmi_si 0000:01:04.6: probing via PCI
+  ipmi_si 0000:01:04.6: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+  ipmi_si 0000:01:04.6: [mem 0xf1ef0000-0xf1ef00ff] regsize 1 spaci...
+  ipmi_si 0000:01:04.6: IPMI kcs interface initialized
+
 
 Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 ---
 
- drivers/char/ipmi/ipmi_bt_sm.c   |    2=20
- drivers/char/ipmi/ipmi_si_intf.c |  165 ------------------------------=
---------
- 2 files changed, 2 insertions(+), 165 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |   11 ++--
+ drivers/char/ipmi/ipmi_si_intf.c    |  103 ++++++++++++++++-------------------
+ 2 files changed, 53 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/char/ipmi/ipmi_bt_sm.c b/drivers/char/ipmi/ipmi_bt=
-_sm.c
-index 7b98c06..d0e868e 100644
---- a/drivers/char/ipmi/ipmi_bt_sm.c
-+++ b/drivers/char/ipmi/ipmi_bt_sm.c
-@@ -204,7 +204,7 @@ static unsigned int bt_init_data(struct si_sm_data =
-*bt, struct si_sm_io *io)
- 	bt->BT_CAP_req2rsp =3D BT_NORMAL_TIMEOUT * 1000000;
- 	bt->BT_CAP_retries =3D BT_NORMAL_RETRY_LIMIT;
- 	/* BT_CAP_outreqs =3D=3D zero is a flag to read BT Capabilities */
--	return 3; /* We claim 3 bytes of space; ought to check SPMI table */
-+	return 3; /* We claim 3 bytes of space */
- }
-=20
- /* Jam a completion code (probably an error) into a response */
-diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_=
-si_intf.c
-index 86a7dd7..806ae83 100644
+diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+index ec5e3f8..0e30114 100644
+--- a/drivers/char/ipmi/ipmi_msghandler.c
++++ b/drivers/char/ipmi/ipmi_msghandler.c
+@@ -2495,12 +2495,11 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
+ 			return rv;
+ 		}
+ 
+-		printk(KERN_INFO
+-		       "ipmi: Found new BMC (man_id: 0x%6.6x, "
+-		       " prod_id: 0x%4.4x, dev_id: 0x%2.2x)\n",
+-		       bmc->id.manufacturer_id,
+-		       bmc->id.product_id,
+-		       bmc->id.device_id);
++		dev_info(intf->si_dev, "Found new BMC (man_id: 0x%6.6x, "
++			 "prod_id: 0x%4.4x, dev_id: 0x%2.2x)\n",
++			 bmc->id.manufacturer_id,
++			 bmc->id.product_id,
++			 bmc->id.device_id);
+ 	}
+ 
+ 	/*
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 37c6912..e0966d2 100644
 --- a/drivers/char/ipmi/ipmi_si_intf.c
 +++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1118,7 +1118,7 @@ static struct ipmi_smi_handlers handlers =3D {
-=20
- /*
-  * There can be 4 IO ports passed in (with or without IRQs), 4 address=
-es,
-- * a default IO port, and 1 ACPI/SPMI address.  That sets SI_MAX_DRIVE=
-RS.
-+ * a default IO port, and 1 ACPI address.  That sets SI_MAX_DRIVERS.
-  */
-=20
- static LIST_HEAD(smi_infos);
-@@ -1808,13 +1808,6 @@ static __devinit void hardcode_find_bmc(void)
-=20
- #include <linux/acpi.h>
-=20
--/*
-- * Once we get an ACPI failure, we don't try any more, because we go
-- * through the tables sequentially.  Once we don't find a table, there
-- * are no more.
-- */
--static int acpi_failure;
--
- /* For GPE-type interrupts. */
- static u32 ipmi_acpi_gpe(void *context)
+@@ -573,9 +573,8 @@ static void handle_transaction_done(struct smi_info *smi_info)
+ 		smi_info->handlers->get_result(smi_info->si_sm, msg, 3);
+ 		if (msg[2] != 0) {
+ 			/* Error clearing flags */
+-			printk(KERN_WARNING
+-			       "ipmi_si: Error clearing flags: %2.2x\n",
+-			       msg[2]);
++			dev_warn(smi_info->dev,
++				 "Error clearing flags: %2.2x\n", msg[2]);
+ 		}
+ 		if (smi_info->si_state == SI_CLEARING_FLAGS_THEN_SET_IRQ)
+ 			start_enable_irq(smi_info);
+@@ -667,9 +666,8 @@ static void handle_transaction_done(struct smi_info *smi_info)
+ 		/* We got the flags from the SMI, now handle them. */
+ 		smi_info->handlers->get_result(smi_info->si_sm, msg, 4);
+ 		if (msg[2] != 0) {
+-			printk(KERN_WARNING
+-			       "ipmi_si: Could not enable interrupts"
+-			       ", failed get, using polled mode.\n");
++			dev_warn(smi_info->dev, "Could not enable interrupts"
++				 ", failed get, using polled mode.\n");
+ 			smi_info->si_state = SI_NORMAL;
+ 		} else {
+ 			msg[0] = (IPMI_NETFN_APP_REQUEST << 2);
+@@ -691,9 +689,8 @@ static void handle_transaction_done(struct smi_info *smi_info)
+ 		/* We got the flags from the SMI, now handle them. */
+ 		smi_info->handlers->get_result(smi_info->si_sm, msg, 4);
+ 		if (msg[2] != 0) {
+-			printk(KERN_WARNING
+-			       "ipmi_si: Could not enable interrupts"
+-			       ", failed set, using polled mode.\n");
++			dev_warn(smi_info->dev, "Could not enable interrupts"
++				 ", failed set, using polled mode.\n");
+ 		}
+ 		smi_info->si_state = SI_NORMAL;
+ 		break;
+@@ -706,9 +703,8 @@ static void handle_transaction_done(struct smi_info *smi_info)
+ 		/* We got the flags from the SMI, now handle them. */
+ 		smi_info->handlers->get_result(smi_info->si_sm, msg, 4);
+ 		if (msg[2] != 0) {
+-			printk(KERN_WARNING
+-			       "ipmi_si: Could not disable interrupts"
+-			       ", failed get.\n");
++			dev_warn(smi_info->dev, "Could not disable interrupts"
++				 ", failed get.\n");
+ 			smi_info->si_state = SI_NORMAL;
+ 		} else {
+ 			msg[0] = (IPMI_NETFN_APP_REQUEST << 2);
+@@ -730,9 +726,8 @@ static void handle_transaction_done(struct smi_info *smi_info)
+ 		/* We got the flags from the SMI, now handle them. */
+ 		smi_info->handlers->get_result(smi_info->si_sm, msg, 4);
+ 		if (msg[2] != 0) {
+-			printk(KERN_WARNING
+-			       "ipmi_si: Could not disable interrupts"
+-			       ", failed set.\n");
++			dev_warn(smi_info->dev, "Could not disable interrupts"
++				 ", failed set.\n");
+ 		}
+ 		smi_info->si_state = SI_NORMAL;
+ 		break;
+@@ -1087,9 +1082,9 @@ static int smi_start_processing(void       *send_info,
+ 		new_smi->thread = kthread_run(ipmi_thread, new_smi,
+ 					      "kipmi%d", new_smi->intf_num);
+ 		if (IS_ERR(new_smi->thread)) {
+-			printk(KERN_NOTICE "ipmi_si_intf: Could not start"
+-			       " kernel thread due to error %ld, only using"
+-			       " timers to drive the interface\n",
++			dev_notice(new_smi->dev, "Could not start"
++				   " kernel thread due to error %ld, only using"
++				   " timers to drive the interface\n",
+ 			       PTR_ERR(new_smi->thread));
+ 			new_smi->thread = NULL;
+ 		}
+@@ -1752,6 +1747,8 @@ static __devinit void hardcode_find_bmc(void)
+ 			return;
+ 
+ 		info->addr_source = "hardcoded";
++		printk(KERN_INFO "ipmi_si: probing via %s\n",
++		       info->addr_source);
+ 
+ 		if (!si_type[i] || strcmp(si_type[i], "kcs") == 0) {
+ 			info->si_type = SI_KCS;
+@@ -1871,6 +1868,7 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
  {
-@@ -1873,158 +1866,6 @@ static int acpi_gpe_irq_setup(struct smi_info *=
-info)
+ 	struct acpi_device *acpi_dev;
+ 	struct smi_info *info;
++	struct resource *res;
+ 	acpi_handle handle;
+ 	acpi_status status;
+ 	unsigned long long tmp;
+@@ -1884,6 +1882,7 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+ 		return -ENOMEM;
+ 
+ 	info->addr_source = "ACPI";
++	dev_info(&dev->dev, "probing via %s\n", info->addr_source);
+ 
+ 	handle = acpi_dev->handle;
+ 
+@@ -1903,22 +1902,26 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+ 		info->si_type = SI_BT;
+ 		break;
+ 	default:
+-		dev_info(&dev->dev, "unknown interface type %lld\n", tmp);
++		dev_info(&dev->dev, "unknown IPMI type %lld\n", tmp);
+ 		goto err_free;
  	}
+ 
+-	if (pnp_port_valid(dev, 0)) {
++	res = pnp_get_resource(dev, IORESOURCE_IO, 0);
++	if (res) {
+ 		info->io_setup = port_setup;
+ 		info->io.addr_type = IPMI_IO_ADDR_SPACE;
+-		info->io.addr_data = pnp_port_start(dev, 0);
+-	} else if (pnp_mem_valid(dev, 0)) {
+-		info->io_setup = mem_setup;
+-		info->io.addr_type = IPMI_MEM_ADDR_SPACE;
+-		info->io.addr_data = pnp_mem_start(dev, 0);
+ 	} else {
++		res = pnp_get_resource(dev, IORESOURCE_MEM, 0);
++		if (res) {
++			info->io_setup = mem_setup;
++			info->io.addr_type = IPMI_MEM_ADDR_SPACE;
++		}
++	}
++	if (!res) {
+ 		dev_err(&dev->dev, "no I/O or memory address\n");
+ 		goto err_free;
+ 	}
++	info->io.addr_data = res->start;
+ 
+ 	info->io.regspacing = DEFAULT_REGSPACING;
+ 	info->io.regsize = DEFAULT_REGSPACING;
+@@ -1937,6 +1940,10 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+ 	info->dev = &dev->dev;
+ 	pnp_set_drvdata(dev, info);
+ 
++	dev_info(info->dev, "%pR regsize %d spacing %d irq %d\n",
++		res, info->io.regsize, info->io.regspacing,
++		info->irq);
++
+ 	return try_smi_init(info);
+ 
+ err_free:
+@@ -2048,6 +2055,7 @@ static __devinit void try_init_dmi(struct dmi_ipmi_data *ipmi_data)
+ 	}
+ 
+ 	info->addr_source = "SMBIOS";
++	printk(KERN_INFO "ipmi_si: probing via %s\n", info->addr_source);
+ 
+ 	switch (ipmi_data->type) {
+ 	case 0x01: /* KCS */
+@@ -2147,6 +2155,7 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+ 		return -ENOMEM;
+ 
+ 	info->addr_source = "PCI";
++	dev_info(&pdev->dev, "probing via %s\n", info->addr_source);
+ 
+ 	switch (class_type) {
+ 	case PCI_ERMC_CLASSCODE_TYPE_SMIC:
+@@ -2163,15 +2172,13 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+ 
+ 	default:
+ 		kfree(info);
+-		printk(KERN_INFO "ipmi_si: %s: Unknown IPMI type: %d\n",
+-		       pci_name(pdev), class_type);
++		dev_info(&pdev->dev, "Unknown IPMI type: %d\n", class_type);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	rv = pci_enable_device(pdev);
+ 	if (rv) {
+-		printk(KERN_ERR "ipmi_si: %s: couldn't enable PCI device\n",
+-		       pci_name(pdev));
++		dev_err(&pdev->dev, "couldn't enable PCI device\n");
+ 		kfree(info);
+ 		return rv;
+ 	}
+@@ -2199,6 +2206,10 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+ 	info->dev = &pdev->dev;
+ 	pci_set_drvdata(pdev, info);
+ 
++	dev_info(&pdev->dev, "%pR regsize %d spacing %d irq %d\n",
++		&pdev->resource[0], info->io.regsize, info->io.regspacing,
++		info->irq);
++
+ 	return try_smi_init(info);
  }
-=20
--/*
-- * Defined at
-- * http://h21007.www2.hp.com/dspp/files/unprotected/devresource/
-- * Docs/TechPapers/IA64/hpspmi.pdf
-- */
--struct SPMITable {
--	s8	Signature[4];
--	u32	Length;
--	u8	Revision;
--	u8	Checksum;
--	s8	OEMID[6];
--	s8	OEMTableID[8];
--	s8	OEMRevision[4];
--	s8	CreatorID[4];
--	s8	CreatorRevision[4];
--	u8	InterfaceType;
--	u8	IPMIlegacy;
--	s16	SpecificationRevision;
--
--	/*
--	 * Bit 0 - SCI interrupt supported
--	 * Bit 1 - I/O APIC/SAPIC
--	 */
--	u8	InterruptType;
--
--	/*
--	 * If bit 0 of InterruptType is set, then this is the SCI
--	 * interrupt in the GPEx_STS register.
--	 */
--	u8	GPE;
--
--	s16	Reserved;
--
--	/*
--	 * If bit 1 of InterruptType is set, then this is the I/O
--	 * APIC/SAPIC interrupt.
--	 */
--	u32	GlobalSystemInterrupt;
--
--	/* The actual register address. */
--	struct acpi_generic_address addr;
--
--	u8	UID[4];
--
--	s8      spmi_id[1]; /* A '\0' terminated array starts here. */
--};
--
--static __devinit int try_init_spmi(struct SPMITable *spmi)
--{
--	struct smi_info  *info;
--	u8 		 addr_space;
--
--	if (spmi->IPMIlegacy !=3D 1) {
--	    printk(KERN_INFO "IPMI: Bad SPMI legacy %d\n", spmi->IPMIlegacy);
--	    return -ENODEV;
+ 
+@@ -2306,7 +2317,7 @@ static int __devinit ipmi_of_probe(struct of_device *dev,
+ 	info->irq		= irq_of_parse_and_map(dev->node, 0);
+ 	info->dev		= &dev->dev;
+ 
+-	dev_dbg(&dev->dev, "addr 0x%lx regsize %d spacing %d irq %x\n",
++	dev_dbg(&dev->dev, "addr 0x%lx regsize %d spacing %d irq %d\n",
+ 		info->io.addr_data, info->io.regsize, info->io.regspacing,
+ 		info->irq);
+ 
+@@ -2769,17 +2780,6 @@ static int try_smi_init(struct smi_info *new_smi)
+ 	int rv;
+ 	int i;
+ 
+-	if (new_smi->addr_source) {
+-		printk(KERN_INFO "ipmi_si: Trying %s-specified %s state"
+-		       " machine at %s address 0x%lx, slave address 0x%x,"
+-		       " irq %d\n",
+-		       new_smi->addr_source,
+-		       si_to_str[new_smi->si_type],
+-		       addr_space_to_str[new_smi->io.addr_type],
+-		       new_smi->io.addr_data,
+-		       new_smi->slave_addr, new_smi->irq);
 -	}
 -
--	if (spmi->addr.space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_MEMORY)
--		addr_space =3D IPMI_MEM_ADDR_SPACE;
--	else
--		addr_space =3D IPMI_IO_ADDR_SPACE;
--
--	info =3D kzalloc(sizeof(*info), GFP_KERNEL);
--	if (!info) {
--		printk(KERN_ERR "ipmi_si: Could not allocate SI data (3)\n");
--		return -ENOMEM;
--	}
--
--	info->addr_source =3D "SPMI";
--
--	/* Figure out the interface type. */
--	switch (spmi->InterfaceType) {
--	case 1:	/* KCS */
--		info->si_type =3D SI_KCS;
--		break;
--	case 2:	/* SMIC */
--		info->si_type =3D SI_SMIC;
--		break;
--	case 3:	/* BT */
--		info->si_type =3D SI_BT;
--		break;
--	default:
--		printk(KERN_INFO "ipmi_si: Unknown ACPI/SPMI SI type %d\n",
--			spmi->InterfaceType);
--		kfree(info);
--		return -EIO;
--	}
--
--	if (spmi->InterruptType & 1) {
--		/* We've got a GPE interrupt. */
--		info->irq =3D spmi->GPE;
--		info->irq_setup =3D acpi_gpe_irq_setup;
--	} else if (spmi->InterruptType & 2) {
--		/* We've got an APIC/SAPIC interrupt. */
--		info->irq =3D spmi->GlobalSystemInterrupt;
--		info->irq_setup =3D std_irq_setup;
--	} else {
--		/* Use the default interrupt setting. */
--		info->irq =3D 0;
--		info->irq_setup =3D NULL;
--	}
--
--	if (spmi->addr.bit_width) {
--		/* A (hopefully) properly formed register bit width. */
--		info->io.regspacing =3D spmi->addr.bit_width / 8;
--	} else {
--		info->io.regspacing =3D DEFAULT_REGSPACING;
--	}
--	info->io.regsize =3D info->io.regspacing;
--	info->io.regshift =3D spmi->addr.bit_offset;
--
--	if (spmi->addr.space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_MEMORY) {
--		info->io_setup =3D mem_setup;
--		info->io.addr_type =3D IPMI_MEM_ADDR_SPACE;
--	} else if (spmi->addr.space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_IO) {
--		info->io_setup =3D port_setup;
--		info->io.addr_type =3D IPMI_IO_ADDR_SPACE;
--	} else {
--		kfree(info);
--		printk(KERN_WARNING
--		       "ipmi_si: Unknown ACPI I/O Address type\n");
--		return -EIO;
--	}
--	info->io.addr_data =3D spmi->addr.address;
--
--	try_smi_init(info);
--
--	return 0;
--}
--
--static __devinit void spmi_find_bmc(void)
--{
--	acpi_status      status;
--	struct SPMITable *spmi;
--	int              i;
--
--	if (acpi_disabled)
--		return;
--
--	if (acpi_failure)
--		return;
--
--	for (i =3D 0; ; i++) {
--		status =3D acpi_get_table(ACPI_SIG_SPMI, i+1,
--					(struct acpi_table_header **)&spmi);
--		if (status !=3D AE_OK)
--			return;
--
--		try_init_spmi(spmi);
--	}
--}
--
- static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
- 				    const struct pnp_device_id *dev_id)
- {
-@@ -3217,10 +3058,6 @@ static __devinit int init_ipmi_si(void)
- 	dmi_find_bmc();
- #endif
-=20
--#ifdef CONFIG_ACPI
--	spmi_find_bmc();
--#endif
--
- 	if (si_trydefaults) {
- 		mutex_lock(&smi_infos_lock);
- 		if (list_empty(&smi_infos)) {
+ 	mutex_lock(&smi_infos_lock);
+ 	if (!is_new_interface(new_smi)) {
+ 		printk(KERN_WARNING "ipmi_si: duplicate interface\n");
+@@ -2916,9 +2916,8 @@ static int try_smi_init(struct smi_info *new_smi)
+ 			       "bmc",
+ 			       new_smi->slave_addr);
+ 	if (rv) {
+-		printk(KERN_ERR
+-		       "ipmi_si: Unable to register device: error %d\n",
+-		       rv);
++		dev_err(new_smi->dev, "Unable to register device: error %d\n",
++			rv);
+ 		goto out_err_stop_timer;
+ 	}
+ 
+@@ -2926,9 +2925,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 				     type_file_read_proc,
+ 				     new_smi);
+ 	if (rv) {
+-		printk(KERN_ERR
+-		       "ipmi_si: Unable to create proc entry: %d\n",
+-		       rv);
++		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+ 		goto out_err_stop_timer;
+ 	}
+ 
+@@ -2936,9 +2933,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 				     stat_file_read_proc,
+ 				     new_smi);
+ 	if (rv) {
+-		printk(KERN_ERR
+-		       "ipmi_si: Unable to create proc entry: %d\n",
+-		       rv);
++		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+ 		goto out_err_stop_timer;
+ 	}
+ 
+@@ -2946,9 +2941,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 				     param_read_proc,
+ 				     new_smi);
+ 	if (rv) {
+-		printk(KERN_ERR
+-		       "ipmi_si: Unable to create proc entry: %d\n",
+-		       rv);
++		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+ 		goto out_err_stop_timer;
+ 	}
+ 
+@@ -2956,8 +2949,8 @@ static int try_smi_init(struct smi_info *new_smi)
+ 
+ 	mutex_unlock(&smi_infos_lock);
+ 
+-	printk(KERN_INFO "IPMI %s interface initialized\n",
+-	       si_to_str[new_smi->si_type]);
++	dev_info(new_smi->dev, "IPMI %s interface initialized\n",
++		 si_to_str[new_smi->si_type]);
+ 
+ 	return 0;
+ 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
