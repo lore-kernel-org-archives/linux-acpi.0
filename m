@@ -1,117 +1,144 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: Re: [PATCH 3/4] ipmi: Convert tracking of the ACPI device pointer
- to a PNP device
-Date: Thu, 04 Mar 2010 13:48:21 -0700
-Message-ID: <1267735701.2437.212.camel@zim>
-References: <20100304033146.30205.68689.stgit@bob.kio>
-	 <20100304034420.30205.7749.stgit@bob.kio>
-	 <1267694410.3613.96.camel@localhost.localdomain>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+ message (fwd)
+Date: Thu, 4 Mar 2010 12:46:19 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D83085859DCCF35@orsmsx503.amr.corp.intel.com>
+References: <66D9D2F0CDB5C9428E6166B01EC85EE161E3A2E496@GVW0676EXC.americas.hpqcorp.net>
+ <4911F71203A09E4D9981D27F9D830858599583B5@orsmsx503.amr.corp.intel.com>
+ <4911F71203A09E4D9981D27F9D830858599586A7@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:20427 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756461Ab0CDUsW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 15:48:22 -0500
-In-Reply-To: <1267694410.3613.96.camel@localhost.localdomain>
+Received: from mga11.intel.com ([192.55.52.93]:27535 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932079Ab0CDUqU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 15:46:20 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858599586A7@orsmsx503.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2010-03-04 at 17:20 +0800, ykzhao wrote:
-> On Thu, 2010-03-04 at 11:44 +0800, Myron Stowe wrote:
-> > Convert PNP patch (git 9e368fa011d4e0aa050db348d69514900520e40b) to
-> > maintain a pointer to a PNP device, 'pnp_dev', instead of the ACPI
-> > device, 'acpi_dev', that is currently being tracked with PNP based
-> > IPMI device discovery.
-> 
-> Hi, Myron
-> 	Now the IPMI interface defined in ACPI namespace is detected by using
-> PNP device driver. But it seems that this still belongs to ACPI
-> detection mechanism.
-
-Hi Yakui:
-
-The ACPI namespace enumerated IPMI interface is indeed detected via PNP.
-This definitely can be a little confusing, especially in light of the
-fact that ACPI detection mechanisms exist.  The reasoning for using PNP
-is based on the fact that within Linux, PNP subsumes ACPI (and ISA,
-EIAS, and also PNP BIOS).  Using a Venn diagram to model the situation
-produces something like:
-  --------------------
-  | PNP              |
-  |     -----------  |
-  |     | ACPI    |  |
-  |     -----------  |
-  |                  |
-  --------------------
-I left ISA, EISA, and PNP BIOS out of the Venn diagram since ascii based
-diagrams are so horrific already but each would also be a distinct,
-non-overlapping, component within PNP.
-
->  At the same time IPMI device defined in ACPI
-> namespace is also used to enable the communication between ACPI and
-> IPMI device. In such case it will be better to know whether the IPMI
-> interface is discovered by using ACPI detection mechanism , which can
-> be realized by comparing the info->dev with acpi_dev->dev.
-
-I'm thinking your concern here is related to the IPMI op-region patch
-you have produced that Corey has not yet taken in.
-
-One can still obtain an 'acpi_device' handle from the 'pnp_dev' handle
-that 'ipmi_pnp_probe()' is given.  The 'opregion_setup()' routine
-provides such.  I was going to provide an example but looking at
-'ipmi_pnp_probe()' it is already being used at the very top of the
-routine so you should be able to use 'acpi_dev'; it is already provided
-and setup.  More so, one will not make it into the body of
-'ipmi_pnp_probe()' unless the device was enumerated via ACPI namespace
-due to the check against the just mentioned 'acpi_dev' setup (in other
-words, if there were an IPMI device that was enumerated via PNP BIOS the
-check would have detected such and already bailed out).  This seems to
-provide the means for detection type checking that you are alluding to.
-
-> 	Can we still use the acpi_dev->dev to track the IPMI device
-> discovery?
-
-The existing 'acpi_dev' provides both a means for detection type
-checking and, seems much simpler than carrying forward and maintaining
-some type of info->dev acpi_dev->dev based comparison.
-
-Myron
-> 
-> thanks.
->      Yakui
->         
-> > 
-> > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-> > ---
-> > 
-> >  drivers/char/ipmi/ipmi_si_intf.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> > index 806ae83..37c6912 100644
-> > --- a/drivers/char/ipmi/ipmi_si_intf.c
-> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> > @@ -1934,7 +1934,7 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
-> >  		info->irq_setup = std_irq_setup;
-> >  	}
-> >  
-> > -	info->dev = &acpi_dev->dev;
-> > +	info->dev = &dev->dev;
-> >  	pnp_set_drvdata(dev, info);
-> >  
-> >  	return try_smi_init(info);
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+This change and dozens of other were made and released for ACPICA version 20100304, with the following description:
 
 
--- 
-Myron Stowe                             HP Open Source Linux Lab (OSLL)
+Standardized output of integer values for ACPICA warnings/errors. Always use 0x prefix for hex output, always use %u for unsigned integer decimal output. Affects ACPI_INFO, ACPI_ERROR, ACPI_EXCEPTION, and ACPI_WARNING (about 400 invocations.) These invocations were converted from the original ACPI_DEBUG_PRINT invocations and were not consistent. ACPICA BZ 835.
 
+
+Thanks for the help,
+Bob
+
+
+>-----Original Message-----
+>From: Moore, Robert
+>Sent: Friday, February 19, 2010 12:18 PM
+>To: Moore, Robert; Chumbalkar, Nagananda; Len Brown; devel@acpica.org
+>Cc: linux-acpi@vger.kernel.org
+>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>message (fwd)
+>
+>I've discovered that this is a far bigger issue than one change in one
+>file.
+>
+>Most all of the invocations of ACPI_ERROR use %X to format an integer
+>value. Most of these invocations were originally debug statements where all
+>output was assumed to be in hex. In today's environment, we should follow
+>standard conventions for such output -- meaning prefix all of the %X
+>formats with 0x, or convert all %X to %u.
+>
+>So, I'm going to open a bugzilla on this issue so we can address all
+>invocations of ACPI_ERROR (and ACPI_WARNING) at the same time. There are
+>over 300 invocations of these macros across ACPICA.
+>
+>Bob
+>
+>
+>>-----Original Message-----
+>>From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
+>>Of Moore, Robert
+>>Sent: Friday, February 19, 2010 9:09 AM
+>>To: Chumbalkar, Nagananda; Len Brown; devel@acpica.org
+>>Cc: linux-acpi@vger.kernel.org
+>>Subject: Re: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>>message (fwd)
+>>
+>>Thanks for your help, I'll roll this change into ACPICA today.
+>>
+>>
+>>>-----Original Message-----
+>>>From: Chumbalkar, Nagananda [mailto:Nagananda.Chumbalkar@hp.com]
+>>>Sent: Friday, February 19, 2010 8:38 AM
+>>>To: Moore, Robert; Len Brown; devel@acpica.org
+>>>Cc: linux-acpi@vger.kernel.org
+>>>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format change in
+>error
+>>>message (fwd)
+>>>
+>>>[PATCH v2] ACPICA: exfield: minor format change in error message
+>>>
+>>>Change %X to %u.
+>>>
+>>>V1->V2:
+>>>%d to %u
+>>>
+>>>Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+>>>
+>>>diff --git a/drivers/acpi/acpica/exfield.c
+>b/drivers/acpi/acpica/exfield.c
+>>>index 1588a2d..b9400e7 100644
+>>>--- a/drivers/acpi/acpica/exfield.c
+>>>+++ b/drivers/acpi/acpica/exfield.c
+>>>@@ -281,7 +281,8 @@ acpi_ex_write_data_to_field(union acpi_operand_object
+>>>*source_desc,
+>>>
+>>> 		if (source_desc->buffer.length < length) {
+>>> 			ACPI_ERROR((AE_INFO,
+>>>-				    "SMBus or IPMI write requires Buffer of length
+>>>%X, found length %X",
+>>>+				    "SMBus or IPMI write requires Buffer of "
+>>>+				    "length %u, found length %u",
+>>> 				    length, source_desc->buffer.length));
+>>>
+>>> 			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
+>>>
+>>>
+>>>-----Original Message-----
+>>>From: Moore, Robert [mailto:robert.moore@intel.com]
+>>>Sent: Friday, February 19, 2010 1:49 AM
+>>>To: Len Brown; devel@acpica.org
+>>>Cc: linux-acpi@vger.kernel.org; Chumbalkar, Nagananda
+>>>Subject: RE: [Devel] [PATCH] ACPICA: exfield: minor format
+>>>change in error message (fwd)
+>>>
+>>>Yes.
+>>>
+>>>One nit:
+>>>+				    "length %d, found length %d",
+>>>
+>>>We usually use %u on these:
+>>>
+>>>+				    "length %u, found length %u",
+>>>
+>>>>-----Original Message-----
+>>>>From: devel-bounces@acpica.org
+>>>[mailto:devel-bounces@acpica.org] On Behalf
+>>>>Of Len Brown
+>>>>Sent: Thursday, February 18, 2010 10:43 PM
+>>>>To: devel@acpica.org
+>>>>Cc: linux-acpi@vger.kernel.org; Naga Chumbalkar
+>>>>Subject: [Devel] [PATCH] ACPICA: exfield: minor format change in error
+>>>>message (fwd)
+>>>>
+>>>>Bob,
+>>>>one for you.
+>>>>
+>>>>thanks,
+>>>>Len Brown, Intel Open Source Technology Center
+>>>>
+>>
+>>_______________________________________________
+>>Devel mailing list
+>>Devel@acpica.org
+>>http://lists.acpica.org/listinfo/devel
