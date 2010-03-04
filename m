@@ -1,47 +1,60 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH 0/4] ipmi: remove SPMI and update core driver with
- dev_printk
-Date: Thu, 04 Mar 2010 08:07:11 -0600
-Message-ID: <4B8FBE8F.3030203@acm.org>
-References: <20100304033146.30205.68689.stgit@bob.kio>
+From: JT Croteau <jt.n1ese@gmail.com>
+Subject: ASUS Z8NA + E5530's = No Turboboost
+Date: Thu, 4 Mar 2010 10:17:19 -0500
+Message-ID: <574165611003040717x4c37443bie188341e1f4f6a4e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:60459 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753202Ab0CDOHT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 09:07:19 -0500
-Received: from wf-rch.minyard.local ([unknown] [173.57.145.237])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KYR00HEJGK027N5@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 04 Mar 2010 08:07:12 -0600 (CST)
-In-reply-to: <20100304033146.30205.68689.stgit@bob.kio>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:63160 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300Ab0CDPRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Mar 2010 10:17:39 -0500
+Received: by pwj8 with SMTP id 8so1691874pwj.19
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Mar 2010 07:17:39 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@hp.com>
-Cc: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
+To: linux-acpi@vger.kernel.org
 
-Myron Stowe wrote:
-> These patches remove the SPMI based IPMI device discovery mechanism and
-> update the driver's core to use dev_printk() and its constructs.
->
-> As part of this patch series I wanted to remove the 'PFX' argument from
-> ipmi_of_probe()'s dev_printk constructs as I believe it produces redundant
-> output but I do not have a PPC platform to test against.
->   
-I like the dev_printk() stuff.  The order of discovery change is 
-correct, too, I believe.  I don't have a PPC platform (with OF, anyway) 
-with IPMI, so I can't test that, either.
+Hi folks.  I have a client with a workstation using the Asus Z8NA
+motherboard and two Xeon E5530s but it is unable to ever trigger
+turboboost on any of the cores.  Len's turbostat tool shows that turbo
+should be available but it never triggers.  I do not show any ACPI
+errors in dmesg.  I have tried booting the kernel both with and
+without acpi_osi=Linux and I have also tried the old
+"processor.nocst=1" trick as well.  Could someone possibly help me
+debug this problem on Linux?  The BIOS is configured properly for
+turbo and turbo triggers under Windows.  I am able to run the same
+kernel on a Core i7 rig and turbo engages under Linux so I am
+beginning to suspect there might be something buggy with the BIOS on
+this Asus board.  Below is the output of turbostat when all cores are
+loaded to 100%.  When idle, the cores downclock just fine to 1.8 GHz
+and all C-states are entered.
 
-> Ultimately, I would like to see if it is possible to also remove IPMI's
-> SMBIOS based device discovery mechanism.
->   
-Maybe in an ideal world, but I don't know where an ideal world is, so I 
-have to live in the one I'm in.  There's plenty of systems that only 
-document this in SMBIOS tables, there's plenty of systems with broken 
-ACPI, etc.  So SMBIOS and SPMI are going to have to stay.
+Thanks
+
+- JT
 
 
--corey
+CPUID GenuineIntel 11 levels family:model:stepping 6:26:5
+Nehalem multiplier 18, TSC frequency 2400 MHz
+Nehalem 4 cores active: 19 mult, max turbo frequency = 2533 MHz
+Nehalem 3 cores active: 19 mult, max turbo frequency = 2533 MHz
+Nehalem 2 cores active: 20 mult, max turbo frequency = 2667 MHz
+Nehalem 1 core active: 20 mult, max turbo frequency = 2667 MHz
+ CPU   GHz    TSC    %c0    %c1    %c3    %c6   %pc3   %pc6   %pc7
+  0   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  1   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  2   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  3   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  4   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  5   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  6   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  7   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  8   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+  9   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 10   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 11   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 12   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 13   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 14   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
+ 15   2.40   2.40 100.00   0.00   0.00   0.00   0.00   0.00   0.00
