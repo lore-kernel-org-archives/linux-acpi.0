@@ -1,69 +1,120 @@
-From: Bela Lubkin <blubkin@vmware.com>
-Subject: RE: [Openipmi-developer] [PATCH 2/4] ipmi: Remove SPMI table based
- device discovery method
-Date: Fri, 5 Mar 2010 04:58:12 -0800
-Message-ID: <E0AA796A7E3F4C4E8F1065D15FE478610176ABB8AD@EXCH-MBX-4.vmware.com>
-References: <20100304033146.30205.68689.stgit@bob.kio>
-	 <20100304034415.30205.59685.stgit@bob.kio>
-	 <E0AA796A7E3F4C4E8F1065D15FE478610176ABB89F@EXCH-MBX-4.vmware.com>
- <1267728420.2437.162.camel@zim>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
+	governor
+Date: Fri, 5 Mar 2010 06:36:10 -0800
+Message-ID: <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com>
+References: <20100303000649.757684000@intel.com>
+ <20100303000849.278509000@intel.com> <4B8DADB9.1040302@xenotime.net>
+ <20100303215453.GG2579@ucw.cz>
+ <1267662469.16916.1020.camel@localhost.localdomain>
+ <20100305091949.GA31554@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:49154 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771Ab0CEM6N convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Mar 2010 07:58:13 -0500
-In-Reply-To: <1267728420.2437.162.camel@zim>
+Received: from mga09.intel.com ([134.134.136.24]:12389 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750874Ab0CEOf7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Mar 2010 09:35:59 -0500
+In-Reply-To: <20100305091949.GA31554@atrey.karlin.mff.cuni.cz>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Myron Stowe' <myron.stowe@hp.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Myron Stowe wrote:
+ 
 
-> ACPI in new systems does tend to present a lot of challenges. 
->  My job is
-> new platform enablement focused which more often than not 
-> translates to
-> "helping discover and fix BIOS/ACPI issues" so I definitely 
-> understand.
-> 
-> You also astutely point out that ACPI's static tables are 
-> available for
-> use by an OS - or OSPM in ACPI speak - much earlier than its 
-> namespace.
-> This is true but it is also our belief that no one uses it except HP.
+>-----Original Message-----
+>From: Pavel Machek [mailto:pavel@ucw.cz] 
+>Sent: Friday, March 05, 2010 1:20 AM
+>To: Pallipadi, Venkatesh
+>Cc: Randy Dunlap; Ingo Molnar; H Peter Anvin; Thomas Gleixner; 
+>Len Brown; Dave Jones; linux-kernel@vger.kernel.org; 
+>linux-acpi@vger.kernel.org
+>Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on 
+>cpufreq governor
+>
+>> On Wed, 2010-03-03 at 13:57 -0800, Pavel Machek wrote:
+>> > Hi!
+>> > 
+>> > > index 8c666d8..4945add 100644
+>> > > --- a/Documentation/kernel-parameters.txt
+>> > > +++ b/Documentation/kernel-parameters.txt
+>> > > @@ -749,6 +749,10 @@ and is between 256 and 4096 
+>characters. It is defined in the file
+>> > >  			Default value is 0.
+>> > >  			Value can be changed at runtime 
+>via /selinux/enforce.
+>> > >  
+>> > > +	epb		[X86] Control 
+>IA32_ENERGY_PERF_BIAS setting
+>> > > +			"disable" - Kernel will not 
+>modify this MSR
+>> > > +			<0..15> - Kernel will set this 
+>MSR to i/p static value
+>> > > +
+>> > > 
+>> > > 
+>> > > Should be more like:
+>> > > 
+>> > > 	epb=		[X86] Control IA32_ENERGY_PERF_BIAS setting
+>> > > 			Format: { disable | <0...15> }
+>> > > 			"disable" - Kernel will not modify this MSR
+>> > > 			<0..15> - Kernel will set this MSR to 
+>i/p static value
+>> > > 
+>> > > 
+>> > > But what is "i/p"?  Use whatever word it should be, please.
+>> > > What do the values mean?
+>> > > And what does IA32 have to do with this?  does it not 
+>apply to x86_64?
+>> > 
+>> > Exactly. This is end user documentation, it should not 
+>even talk about
+>> > MSRs. Tell us what the setting does...
+>> 
+>> The not so good part of this feature is that the setting 
+>here is opaque.
+>> Software can set this based on its preference, for example 0 for
+>> performance 15 for power and 7 for balanced. Different CPUs 
+>can use this
+>> information to do different optimizations or 
+>power-performance tradeoffs
+>> in the hardware. The only thing that user knows here is that there is
+>> this dial with 16 possible values. I can remove the MSR name 
+>here. But,
+>> I think that will end up confusing the end user on what this thing is
+>> and how it is related to all the other tunables we have in 
+>the kernel.
+>> Having the MSR name gives a hint.
+>
+>You should say what the setting does; you can mention below what MSR
+>it corresponds to, but "Control IA32_ENERGY_PERF_BIAS setting" is not
+>suitable user documentation.
+>
+>> Also, the expectation here is that kernel will do the right thing by
+>> default. The option here is to the user who_knows_what_he_is_doing to
+>> override the kernel default.
+>
+>You did not give user enough information to do anything intelligent...
 
-Are you watching what goes on in embedded systems or only
-the PC / server marketplace?
+I have rephrased it in the newer version sent yday with more info.
 
-> I see how one's life could be easier relying on the BIOS setting up
-> static tables such as either the SMBIOS or SPMI.  That way the BIOS is
-> taking the dynamic aspects into account relieving the OS, or 
-> OS/platform
-> bring up engineer, from such.  In such a case, what benefits does the
-> SPMI table provide as opposed to the SMBIOS table?
+>> > Also... does it make change to tweak the setting during 
+>runtime? Maybe
+>> > different settings for AC and battery power?
+>> 
+>> Yes. Matthew mentioned in other response aboue setting this based on
+>> freq. For the CPUs that support this feature currently, we don't see
+>> advantage in setting this feature at run time.
+>
+>If the feature is useless, then why set it at all?
 
-It gives you twice as many chances to find a sufficiently
-non-buggy table to get on with your work ;-}
+I just said changing it at run time doesn't give us benefits. Not that
+the feature is useless. Having the default value for the tunable in
+mid-range does increase energy-efficiency than the tunable being
+at performance level.
 
-> > I would be more comfortable if you kept this code, perhaps
-> > suppressed under a "CONFIG_IPMI_SPMI" config option.
-> 
-> I just don't see enough remaining value in keeping the SPMI table
-> capability.  It seems to be redundant, and if truly so, just adds
-> unnecessary code, complexity, and maintenance aspects to the 
-> driver.  We
-> typically don't keep code in the kernel just for bring up efforts.
-
-Well, I'm not doing any such bring-up work so I will
-step out of the discussion here.  But I'll leave you
-with a bit of a curse: if you remove this code, I
-predict that the person it will come back to bite is
-you...
-
->Bela<
+Thanks,
+Venki
