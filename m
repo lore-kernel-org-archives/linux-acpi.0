@@ -1,64 +1,25 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
- governor
-Date: Fri, 5 Mar 2010 21:40:29 +0100
-Message-ID: <20100305204029.GB20554@elf.ucw.cz>
-References: <20100303000649.757684000@intel.com>
- <20100303000849.278509000@intel.com>
- <4B8DADB9.1040302@xenotime.net>
- <20100303215453.GG2579@ucw.cz>
- <1267662469.16916.1020.camel@localhost.localdomain>
- <20100305091949.GA31554@atrey.karlin.mff.cuni.cz>
- <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com>
+	governor
+Date: Fri, 5 Mar 2010 20:55:22 +0000
+Message-ID: <20100305205522.GA15489@srcf.ucam.org>
+References: <20100303000649.757684000@intel.com> <20100303000849.278509000@intel.com> <4B8DADB9.1040302@xenotime.net> <20100303215453.GG2579@ucw.cz> <1267662469.16916.1020.camel@localhost.localdomain> <20100305091949.GA31554@atrey.karlin.mff.cuni.cz> <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com> <20100305204029.GB20554@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com>
+In-Reply-To: <20100305204029.GB20554@elf.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Randy Dunlap <rdunlap@xenotime.net>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, Mar 05, 2010 at 09:40:29PM +0100, Pavel Machek wrote:
 
-> >You should say what the setting does; you can mention below what MSR
-> >it corresponds to, but "Control IA32_ENERGY_PERF_BIAS setting" is not
-> >suitable user documentation.
-> >
-> >> Also, the expectation here is that kernel will do the right thing by
-> >> default. The option here is to the user who_knows_what_he_is_doing to
-> >> override the kernel default.
-> >
-> >You did not give user enough information to do anything intelligent...
-> 
-> I have rephrased it in the newer version sent yday with more info.
+> That can be only true if it does not give benefits period... AC and
+> battery power are quite different scenarios.
 
-Good.
+No, they're not.
 
-> >> > Also... does it make change to tweak the setting during 
-> >runtime? Maybe
-> >> > different settings for AC and battery power?
-> >> 
-> >> Yes. Matthew mentioned in other response aboue setting this based on
-> >> freq. For the CPUs that support this feature currently, we don't see
-> >> advantage in setting this feature at run time.
-> >
-> >If the feature is useless, then why set it at all?
-> 
-> I just said changing it at run time doesn't give us benefits. Not
->that
-
-That can be only true if it does not give benefits period... AC and
-battery power are quite different scenarios.
-
-> the feature is useless. Having the default value for the tunable in
-> mid-range does increase energy-efficiency than the tunable being
-> at performance level.
-
-So... what does it really do? What is the difference in power
-consumption, and what is the difference in performance?
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
