@@ -1,90 +1,73 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: RE: [Openipmi-developer] [PATCH 2/4] ipmi: Remove SPMI table based
- device discovery method
-Date: Fri, 05 Mar 2010 10:13:50 -0700
-Message-ID: <1267809230.2411.114.camel@zim>
-References: <20100304033146.30205.68689.stgit@bob.kio>
-	 <20100304034415.30205.59685.stgit@bob.kio>
-	 <E0AA796A7E3F4C4E8F1065D15FE478610176ABB89F@EXCH-MBX-4.vmware.com>
-	 <1267728420.2437.162.camel@zim>
-	 <E0AA796A7E3F4C4E8F1065D15FE478610176ABB8AD@EXCH-MBX-4.vmware.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v2 0/7] resource, PNPACPI: add bus number and window support
+Date: Fri, 05 Mar 2010 10:47:21 -0700
+Message-ID: <20100305174656.21946.93874.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:11841 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999Ab0CERNw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Mar 2010 12:13:52 -0500
-In-Reply-To: <E0AA796A7E3F4C4E8F1065D15FE478610176ABB8AD@EXCH-MBX-4.vmware.com>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:6994 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755039Ab0CERrX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Mar 2010 12:47:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bela Lubkin <blubkin@vmware.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>
 
-On Fri, 2010-03-05 at 04:58 -0800, Bela Lubkin wrote:
-> Myron Stowe wrote:
-> 
-> > ACPI in new systems does tend to present a lot of challenges. 
-> >  My job is
-> > new platform enablement focused which more often than not 
-> > translates to
-> > "helping discover and fix BIOS/ACPI issues" so I definitely 
-> > understand.
-> > 
-> > You also astutely point out that ACPI's static tables are 
-> > available for
-> > use by an OS - or OSPM in ACPI speak - much earlier than its 
-> > namespace.
-> > This is true but it is also our belief that no one uses it except HP.
-> 
-> Are you watching what goes on in embedded systems or only
-> the PC / server marketplace?
+These patches add a new resource type, IORESOURCE_BUS, a new resource flag,
+IORESOURCE_WINDOW, and PNPACPI support that uses them.
 
-No, I do not watch the embedded system space.  Would such folks tend to
-track openipmi-developer@lists.sourceforge.net (at least with respect to
-IPMI)?  If not, are you aware of a specific mail reflector that I should
-be including in this discussion?
+IORESOURCE_BUS is for PCI bus number ranges.  For bridge devices, ACPI reports
+secondary bus number ranges in _CRS descriptors, but we currently ignore them.
+Adding this resource type will allow us to handle those descriptors in PNPACPI.
 
-> 
-> > I see how one's life could be easier relying on the BIOS setting up
-> > static tables such as either the SMBIOS or SPMI.  That way the BIOS is
-> > taking the dynamic aspects into account relieving the OS, or 
-> > OS/platform
-> > bring up engineer, from such.  In such a case, what benefits does the
-> > SPMI table provide as opposed to the SMBIOS table?
-> 
-> It gives you twice as many chances to find a sufficiently
-> non-buggy table to get on with your work ;-}
-> 
-> > > I would be more comfortable if you kept this code, perhaps
-> > > suppressed under a "CONFIG_IPMI_SPMI" config option.
-> > 
-> > I just don't see enough remaining value in keeping the SPMI table
-> > capability.  It seems to be redundant, and if truly so, just adds
-> > unnecessary code, complexity, and maintenance aspects to the 
-> > driver.  We
-> > typically don't keep code in the kernel just for bring up efforts.
-> 
-> Well, I'm not doing any such bring-up work so I will
-> step out of the discussion here.  But I'll leave you
-> with a bit of a curse: if you remove this code, I
-> predict that the person it will come back to bite is
-> you...
+IORESOURCE_WINDOW is also for bridges: ACPI reports the regions that the bridge
+forwards to its secondary bus.  We have _CRS parsing code in pci_root.c that
+handles these window descriptors, but PNPACPI currently ignores them.  Adding
+this flag bit will allow PNPACPI to deal with the windows correctly.
 
-I hope I'm not coming off as closed minded and causing you to disengage
-as most every concern you have raised has been valid and needful of
-consideration.  As mean as putting a jinx on me was (I'm mostly kidding
-there), you are correct there too: it will be me that it comes back to
-bite.  I still feel that this is worth pursuing as no progress is ever
-made without some risk but I do want discussions to occur so that I can
-learn, preferably beforehand, if I am wrong.
+No drivers use bus or window resources yet, but ultimately, I would like to
+drop the _CRS parsing code from pci_root.c and rely on PNPACPI to do it for us.
+The current effect of this series is to change /sys/bus/pnp/.../resources (and
+"lspnp -v" output) from this:
 
-Myron
-> 
-> >Bela<
+    00:00 PNP0a03 PCI bus
+	state = active
+
+to something like this:
+
+    00:00 PNP0a03 PCI bus
+	state = active
+	    bus 0x0-0x0
+	    io 0x0-0xcff window
+	    io 0x0-0x2cfe window
+	    io 0x3b0-0x3bb window
+	    io 0x3c0-0x3df window
+	    mem 0xf5d00000-0xf6ffffff window
+	    mem disabled
+	    mem 0xa0000-0xbffff window
+
+Changes from v1 to v2:
+    - Add close quote in vsprintf SPECIAL comment (Randy Dunlap).
+
+---
+
+Bjorn Helgaas (7):
+      resource: expand IORESOURCE_TYPE_BITS to make room for bus resource type
+      vsprintf: clarify comments for printf_spec flags
+      vsprintf: move %pR resource printf_specs off the stack
+      resource: add bus number support
+      resource: add window support
+      PNPACPI: add window support
+      PNPACPI: add bus number support
 
 
--- 
-Myron Stowe                             HP Open Source Linux Lab (OSLL)
-
+ drivers/pnp/base.h             |    3 ++
+ drivers/pnp/interface.c        |    7 +++--
+ drivers/pnp/pnpacpi/rsparser.c |   49 ++++++++++++++++++++++----------
+ drivers/pnp/resource.c         |   27 +++++++++++++++++
+ drivers/pnp/support.c          |    4 ++-
+ include/linux/ioport.h         |   18 ++++++------
+ lib/vsprintf.c                 |   62 +++++++++++++++++++++++++---------------
+ 7 files changed, 119 insertions(+), 51 deletions(-)
