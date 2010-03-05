@@ -1,43 +1,55 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 3/4] ipmi: Convert tracking of the ACPI device pointer to a PNP device
-Date: Fri, 5 Mar 2010 12:34:39 -0700
-Message-ID: <201003051234.40610.bjorn.helgaas@hp.com>
-References: <20100304033146.30205.68689.stgit@bob.kio> <1267753600.3613.128.camel@localhost.localdomain> <1267807265.2411.81.camel@zim>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -mmotm] acpi/sbs: fix build for ACPI_SYSFS_POWER=n
+Date: Fri, 05 Mar 2010 11:54:17 -0800
+Message-ID: <4B916169.5040303@oracle.com>
+References: <201003050232.o252WD4K011798@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:1429 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752635Ab0CETem (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Mar 2010 14:34:42 -0500
-In-Reply-To: <1267807265.2411.81.camel@zim>
-Content-Disposition: inline
+Received: from acsinet12.oracle.com ([141.146.126.234]:38748 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755802Ab0CET40 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Mar 2010 14:56:26 -0500
+In-Reply-To: <201003050232.o252WD4K011798@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@hp.com>
-Cc: ykzhao <yakui.zhao@intel.com>, "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday 05 March 2010 09:41:05 am Myron Stowe wrote:
-> By the way, if there are conflicts between our two patch series I'll =
-be
-> more than willing to help resolve such. =C2=A0If it ends up being eas=
-ier for
-> Corey to take in your series first I'll rework my series and resubmit
-> it.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-BTW, Corey, what's happening as far as merging Yakaui's IPMI opregion
-patches?  I checked linux-next, and I don't see them there.  Are you
-planning to push them upstream during this (soon-to-close) merge
-window?
+When CONFIG_ACPI_SYSFS_POWER is not enabled:
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/next/linux-next.git;a=3Dhis=
-tory;f=3Ddrivers/char/ipmi/ipmi_si_intf.c;h=3D176f1751237f57807f3023d94=
-27972dcb6614392;hb=3DHEAD
+drivers/acpi/sbs.c:640: error: implicit declaration of function 'acpi_battery_get_alarm'
+drivers/acpi/sbs.c:679: error: implicit declaration of function 'acpi_battery_set_alarm'
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+so move those functions outside of the ifdef/endif block for that
+config option.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/acpi/sbs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- mmotm-2010-0304-1805.orig/drivers/acpi/sbs.c
++++ mmotm-2010-0304-1805/drivers/acpi/sbs.c
+@@ -412,8 +412,6 @@ static int acpi_ac_get_present(struct ac
+ 	return result;
+ }
+ 
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+-
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+ 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+@@ -450,6 +448,8 @@ static int acpi_battery_set_alarm(struct
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_ACPI_SYSFS_POWER
++
+ static ssize_t acpi_battery_alarm_show(struct device *dev,
+ 					struct device_attribute *attr,
+ 					char *buf)
