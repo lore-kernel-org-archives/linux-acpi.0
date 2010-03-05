@@ -1,56 +1,64 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH -mmotm] acpi/sbs: fix build for ACPI_SYSFS_POWER=n
-Date: Fri, 05 Mar 2010 23:37:19 +0300
-Message-ID: <4B916B7F.4000204@suse.de>
-References: <201003050232.o252WD4K011798@imap1.linux-foundation.org> <4B916169.5040303@oracle.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 2/2] x86: Manage ENERGY_PERF_BIAS based on cpufreq
+ governor
+Date: Fri, 5 Mar 2010 21:40:29 +0100
+Message-ID: <20100305204029.GB20554@elf.ucw.cz>
+References: <20100303000649.757684000@intel.com>
+ <20100303000849.278509000@intel.com>
+ <4B8DADB9.1040302@xenotime.net>
+ <20100303215453.GG2579@ucw.cz>
+ <1267662469.16916.1020.camel@localhost.localdomain>
+ <20100305091949.GA31554@atrey.karlin.mff.cuni.cz>
+ <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4B916169.5040303@oracle.com>
+Content-Disposition: inline
+In-Reply-To: <7C53B33EE871F14797C999838AA8B5A914ACD58C@orsmsx505.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Dave Jones <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
-Randy Dunlap =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
->=20
-> When CONFIG_ACPI_SYSFS_POWER is not enabled:
->=20
-> drivers/acpi/sbs.c:640: error: implicit declaration of function 'acpi=
-_battery_get_alarm'
-> drivers/acpi/sbs.c:679: error: implicit declaration of function 'acpi=
-_battery_set_alarm'
->=20
->=20
-> so move those functions outside of the ifdef/endif block for that
-> config option.
->=20
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
->  drivers/acpi/sbs.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> --- mmotm-2010-0304-1805.orig/drivers/acpi/sbs.c
-> +++ mmotm-2010-0304-1805/drivers/acpi/sbs.c
-> @@ -412,8 +412,6 @@ static int acpi_ac_get_present(struct ac
->  	return result;
->  }
-> =20
-> -#ifdef CONFIG_ACPI_SYSFS_POWER
-> -
->  static int acpi_battery_get_alarm(struct acpi_battery *battery)
->  {
->  	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
-> @@ -450,6 +448,8 @@ static int acpi_battery_set_alarm(struct
->  	return ret;
->  }
-> =20
-> +#ifdef CONFIG_ACPI_SYSFS_POWER
-> +
->  static ssize_t acpi_battery_alarm_show(struct device *dev,
->  					struct device_attribute *attr,
->  					char *buf)
+> >You should say what the setting does; you can mention below what MSR
+> >it corresponds to, but "Control IA32_ENERGY_PERF_BIAS setting" is not
+> >suitable user documentation.
+> >
+> >> Also, the expectation here is that kernel will do the right thing by
+> >> default. The option here is to the user who_knows_what_he_is_doing to
+> >> override the kernel default.
+> >
+> >You did not give user enough information to do anything intelligent...
+> 
+> I have rephrased it in the newer version sent yday with more info.
+
+Good.
+
+> >> > Also... does it make change to tweak the setting during 
+> >runtime? Maybe
+> >> > different settings for AC and battery power?
+> >> 
+> >> Yes. Matthew mentioned in other response aboue setting this based on
+> >> freq. For the CPUs that support this feature currently, we don't see
+> >> advantage in setting this feature at run time.
+> >
+> >If the feature is useless, then why set it at all?
+> 
+> I just said changing it at run time doesn't give us benefits. Not
+>that
+
+That can be only true if it does not give benefits period... AC and
+battery power are quite different scenarios.
+
+> the feature is useless. Having the default value for the tunable in
+> mid-range does increase energy-efficiency than the tunable being
+> at performance level.
+
+So... what does it really do? What is the difference in power
+consumption, and what is the difference in performance?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
