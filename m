@@ -1,46 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Q] How to tell we're using the KMS (during suspend/resume) outside
-	the graphics driver
-Date: Sat, 6 Mar 2010 22:36:09 +0100
-Message-ID: <201003062236.09801.rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH v2 0/7] resource, PNPACPI: add bus number and window
+ support
+Date: Sat, 6 Mar 2010 11:50:37 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.1003061145260.31447@localhost.localdomain>
+References: <20100305174656.21946.93874.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.sourceforge.net>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
-List-Post: <mailto:dri-devel@lists.sourceforge.net>
-List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.sourceforge.net
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100305174656.21946.93874.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-For at least two reasons it would be beneficial for some code outisde the
-graphics driver(s) to know if the KMS are used.
 
-First, in the non-KMS (ie. UMS) case we probably wouldn't want to call
-acpi_video_resume(), because that has a potential to mess up with the GPU
-(it actually is known to do that on at least one system).
+I have nothing against this patch-series, but I'm not really much of a 
+pnp person, so I'd like to see this at a minimum being acked by people who 
+are, and who would use this. 
 
-Second, in the KMS case, we'd be able to skip the kernel VT switch, because
-the KMS driver uses its own framebuffer anyway.
+In fact, since the primary _reason_ for this seems to be to improve on the 
+_CRS parsing code for PCI, I'd have expected that the people involved 
+with previous _CRS issues be involved, and perhaps this whole thing could 
+go through the PCI tree? But Yinghai Lu and Jesse Barnes weren't even 
+cc'd. 
 
-So, is there any reasonable way to check that from the outside of the graphics
-driver?  It should be general enough to cover the cases when there are two
-graphics adapters with different drivers in the system and so forth.
+But maybe this really is more of an ACPI issue. I dunno. I get the feeling 
+that ACPI doesn't really care, though - the subsystem that actually gets 
+_affected_ by all this in the end is PCI.
 
-Rafael
+Anyway, more acks, please. And preferably involve the PCI people too.
 
-------------------------------------------------------------------------------
-Download Intel&#174; Parallel Studio Eval
-Try the new software tools for yourself. Speed compiling, find bugs
-proactively, and fine-tune applications for parallel performance.
-See why Intel Parallel Studio got high marks during beta.
-http://p.sf.net/sfu/intel-sw-dev
---
+			Linus
