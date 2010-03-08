@@ -1,117 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 3/3] ACPI / ACPICA: Reduce code duplication in acpi_ev_get_gpe_event_info()
-Date: Mon, 8 Mar 2010 00:37:13 +0100
-Message-ID: <201003080037.13241.rjw@sisk.pl>
-References: <201003080034.11053.rjw@sisk.pl>
+From: d binderman <dcb314@hotmail.com>
+Subject: linux kernel bug report
+Date: Mon, 8 Mar 2010 10:29:26 +0000
+Message-ID: <BLU108-W25C2EFF190E96A11245BBB9C350@phx.gbl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_16528b22-6e3b-4405-915d-432cdf3a9b79_"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58356 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750959Ab0CGXfF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Mar 2010 18:35:05 -0500
-In-Reply-To: <201003080034.11053.rjw@sisk.pl>
+Received: from blu0-omc4-s35.blu0.hotmail.com ([65.55.111.174]:13149 "EHLO
+	blu0-omc4-s35.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753355Ab0CHKfh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Mar 2010 05:35:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Move duplicated code from acpi_ev_get_gpe_event_info(), which is also
-quite difficult to read, to a separate static function.
+--_16528b22-6e3b-4405-915d-432cdf3a9b79_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/acpica/evgpe.c |   56 +++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 23 deletions(-)
 
-Index: linux-2.6/drivers/acpi/acpica/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpe.c
-+++ linux-2.6/drivers/acpi/acpica/evgpe.c
-@@ -168,6 +168,33 @@ acpi_status acpi_ev_disable_gpe(struct a
- 	return_ACPI_STATUS(status);
- }
- 
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ev_get_info
-+ *
-+ * PARAMETERS:  gpe_block           - GPE block to search
-+ *              gpe_number          - Raw GPE number
-+ *
-+ * RETURN:      A GPE event_info struct if found. NULL if not found
-+ *
-+ ******************************************************************************/
-+
-+static struct acpi_gpe_event_info *acpi_ev_get_info(
-+					struct acpi_gpe_block_info *gpe_block,
-+					u32 gpe_number)
-+{
-+	u32 gpe_index, gpe_count;
-+
-+	if (!gpe_block || gpe_number < gpe_block->block_base_number)
-+		return (NULL);
-+
-+	gpe_index = gpe_number - gpe_block->block_base_number;
-+	gpe_count = gpe_block->register_count * ACPI_GPE_REGISTER_WIDTH;
-+	return gpe_index < gpe_count ?
-+		(&gpe_block->event_info[gpe_index]) : (NULL);
-+}
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ev_get_gpe_event_info
-@@ -189,7 +216,7 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 						       u32 gpe_number)
- {
- 	union acpi_operand_object *obj_desc;
--	struct acpi_gpe_block_info *gpe_block;
-+	struct acpi_gpe_event_info *gpe_info;
- 	u32 i;
- 
- 	ACPI_FUNCTION_ENTRY();
-@@ -201,18 +228,10 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 		/* Examine GPE Block 0 and 1 (These blocks are permanent) */
- 
- 		for (i = 0; i < ACPI_MAX_GPE_BLOCKS; i++) {
--			gpe_block = acpi_gbl_gpe_fadt_blocks[i];
--			if (gpe_block) {
--				if ((gpe_number >= gpe_block->block_base_number)
--				    && (gpe_number <
--					gpe_block->block_base_number +
--					(gpe_block->register_count * 8))) {
--					return (&gpe_block->
--						event_info[gpe_number -
--							   gpe_block->
--							   block_base_number]);
--				}
--			}
-+			gpe_info = acpi_ev_get_info(acpi_gbl_gpe_fadt_blocks[i],
-+						    gpe_number);
-+			if (gpe_info)
-+				return (gpe_info);
- 		}
- 
- 		/* The gpe_number was not in the range of either FADT GPE block */
-@@ -228,16 +247,7 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 		return (NULL);
- 	}
- 
--	gpe_block = obj_desc->device.gpe_block;
--
--	if ((gpe_number >= gpe_block->block_base_number) &&
--	    (gpe_number <
--	     gpe_block->block_base_number + (gpe_block->register_count * 8))) {
--		return (&gpe_block->
--			event_info[gpe_number - gpe_block->block_base_number]);
--	}
--
--	return (NULL);
-+	return acpi_ev_get_info(obj_desc->device.gpe_block, gpe_number);
- }
- 
- /*******************************************************************************
 
+Hello there=2C
+
+I just ran the sourceforge tool cppcheck over the source code of the
+new Linux kernel 2.6.33
+
+It said
+
+Checking ./drivers/acpi/osl.c...
+[./drivers/acpi/osl.c:1039]: (style) After a strncpy() the buffer should be=
+ zero-terminated
+
+The source code is
+
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 strncpy(osi_additional_string=2C=
+ str=2C OSI_STRING_LENGTH_MAX)=3B
+
+I checked the source code and I agree with cppcheck.
+Proposed patch file attached.
+
+
+Regards
+
+David Binderman
+ 		 	   		 =20
+_________________________________________________________________
+We want to hear all your funny=2C exciting and crazy Hotmail stories. Tell =
+us now
+http://clk.atdmt.com/UKM/go/195013117/direct/01/=
+
+--_16528b22-6e3b-4405-915d-432cdf3a9b79_
+Content-Type: text/x-patch
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="bug36.patch"
+
+ClNpZ25lZC1vZmYtYnk6IERhdmlkIEJpbmRlcm1hbiA8ZGNiMzE0QGhvdG1haWwuY29tPgoKLS0t
+IGRyaXZlcnMvYWNwaS9vc2wuYy5zYXYJMjAxMC0wMy0wOCAxMDoyNDowMi4wMDAwMDAwMDAgKzAw
+MDAKKysrIGRyaXZlcnMvYWNwaS9vc2wuYwkyMDEwLTAzLTA4IDEwOjI0OjIyLjAwMDAwMDAwMCAr
+MDAwMApAQCAtMTAzNyw2ICsxMDM3LDcgQEAgaW50IF9faW5pdCBhY3BpX29zaV9zZXR1cChjaGFy
+ICpzdHIpCiAJCWFjcGlfY21kbGluZV9vc2lfbGludXgoMSk7CS8qIGVuYWJsZSAqLwogCX0gZWxz
+ZSBpZiAoKm9zaV9hZGRpdGlvbmFsX3N0cmluZyA9PSAnXDAnKSB7CiAJCXN0cm5jcHkob3NpX2Fk
+ZGl0aW9uYWxfc3RyaW5nLCBzdHIsIE9TSV9TVFJJTkdfTEVOR1RIX01BWCk7CisJCXN0cltPU0lf
+U1RSSU5HX0xFTkdUSF9NQVggLSAxXSA9IDA7CiAJCXByaW50ayhLRVJOX0lORk8gUFJFRklYICJB
+ZGRlZCBfT1NJKCVzKVxuIiwgc3RyKTsKIAl9CiAK
+
+--_16528b22-6e3b-4405-915d-432cdf3a9b79_--
