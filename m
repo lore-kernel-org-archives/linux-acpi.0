@@ -1,172 +1,119 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Resend][PATCH] ACPI / EC: Remove race between EC driver and suspend process (rev. 3)
-Date: Mon, 8 Mar 2010 22:10:56 +0100
-Message-ID: <201003082210.56660.rjw@sisk.pl>
-References: <201002272140.36891.rjw@sisk.pl> <alpine.LFD.2.00.1003031644410.1044@localhost.localdomain> <201003040152.58437.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] PNPACPI: add support for remote wakeup
+Date: Mon, 8 Mar 2010 15:21:59 -0700
+Message-ID: <201003081521.59985.bjorn.helgaas@hp.com>
+References: <Pine.LNX.4.44L0.1003081648510.1297-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37388 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755410Ab0CHVIV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Mar 2010 16:08:21 -0500
-In-Reply-To: <201003040152.58437.rjw@sisk.pl>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:5469 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755786Ab0CHWWE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Mar 2010 17:22:04 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1003081648510.1297-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Maxim Levitsky <maximlevitsky@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thursday 04 March 2010, Rafael J. Wysocki wrote:
-> On Wednesday 03 March 2010, Len Brown wrote:
-> > For the record, Rafael, Alexey and I discusseed this a bit further...
-> > 
-> > We reasoned that this failure is impossible during the Suspend-to-RAM 
-> > path, and the failure is specific to the hibernate reboot kernel handoff
-> > to the resume image.
+On Monday 08 March 2010 02:50:50 pm Alan Stern wrote:
+> This patch (as1354) adds remote-wakeup support to the pnpacpi driver.
+> The new can_wakeup method also allows other PNP protocol drivers
+> (pnpbios or iaspnp) to add wakeup support, but I don't know enough
+> about how they work to actually do it.
 > 
-> Below is a simplified version of the patch that also should fix the problem.
+> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 
-Appended is updated version with the names changed as discussed on IRC.
+We usually send PNP patches through the ACPI tree, so I added a CC
+to linux-acpi.
 
-Rafael
+> --- usb-2.6.orig/drivers/pnp/core.c
+> +++ usb-2.6/drivers/pnp/core.c
+> @@ -164,6 +164,9 @@ int __pnp_add_device(struct pnp_dev *dev
+>  	list_add_tail(&dev->global_list, &pnp_global);
+>  	list_add_tail(&dev->protocol_list, &dev->protocol->devices);
+>  	spin_unlock(&pnp_lock);
+> +	if (dev->protocol->can_wakeup)
+> +		device_set_wakeup_capable(&dev->dev,
+> +				dev->protocol->can_wakeup(dev));
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / EC / PM: Close race between EC and resume from hibernation (rev. 2)
+I also added Rafael because he added code in acpi_bind_one() that
+does the same thing.  I think the struct dev there will be the same
+one as &dev->dev here: we build both an acpi_device and a pnp_dev,
+and they refer to the same struct device.
 
-There is a race between resume from hibernation and the EC driver
-that may result in restoring the hibernation image in the middle of
-an EC transaction in progress, which in turn may lead to
-unpredictable behavior of the platform.
+However, I think we still need your patch because acpi_bind_one()
+is only used for PCI devices, so it looks like there's currently
+no way to use acpi_pm_device_sleep_wake() for non-PCI devices.
 
-To remove that race condition, add a helpers for suspending and
-resuming EC transactions in a safe way to be executed by the ACPI
-platform hibernate pre-restore and restore cleanup callbacks.
+Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/acpi/ec.c       |   33 ++++++++++++++++++++++++++++++++-
- drivers/acpi/internal.h |    2 ++
- drivers/acpi/sleep.c    |   19 ++++++++++++++-----
- 3 files changed, 48 insertions(+), 6 deletions(-)
+>  	return device_register(&dev->dev);
+>  }
+>  
+> Index: usb-2.6/drivers/pnp/pnpacpi/core.c
+> ===================================================================
+> --- usb-2.6.orig/drivers/pnp/pnpacpi/core.c
+> +++ usb-2.6/drivers/pnp/pnpacpi/core.c
+> @@ -121,17 +121,37 @@ static int pnpacpi_disable_resources(str
+>  }
+>  
+>  #ifdef CONFIG_ACPI_SLEEP
+> +static bool pnpacpi_can_wakeup(struct pnp_dev *dev)
+> +{
+> +	struct acpi_device *acpi_dev = dev->data;
+> +	acpi_handle handle = acpi_dev->handle;
+> +
+> +	return acpi_bus_can_wakeup(handle);
+> +}
+> +
+>  static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
+>  {
+>  	struct acpi_device *acpi_dev = dev->data;
+>  	acpi_handle handle = acpi_dev->handle;
+>  	int power_state;
+>  
+> +	if (device_can_wakeup(&dev->dev)) {
+> +		int rc = acpi_pm_device_sleep_wake(&dev->dev,
+> +				device_may_wakeup(&dev->dev));
+> +
+> +		if (rc)
+> +			return rc;
+> +	}
+>  	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+>  	if (power_state < 0)
+>  		power_state = (state.event == PM_EVENT_ON) ?
+>  				ACPI_STATE_D0 : ACPI_STATE_D3;
+>  
+> +	/* acpi_bus_set_power() often fails (keyboard port can't be
+> +	 * powered-down?), and in any case, our return value is ignored
+> +	 * by pnp_bus_suspend().  Hence we don't revert the wakeup
+> +	 * setting if the set_power fails.
+> +	 */
+>  	return acpi_bus_set_power(handle, power_state);
+>  }
+>  
+> @@ -140,6 +160,8 @@ static int pnpacpi_resume(struct pnp_dev
+>  	struct acpi_device *acpi_dev = dev->data;
+>  	acpi_handle handle = acpi_dev->handle;
+>  
+> +	if (device_may_wakeup(&dev->dev))
+> +		acpi_pm_device_sleep_wake(&dev->dev, false);
+>  	return acpi_bus_set_power(handle, ACPI_STATE_D0);
+>  }
+>  #endif
+> @@ -150,6 +172,7 @@ struct pnp_protocol pnpacpi_protocol = {
+>  	.set	 = pnpacpi_set_resources,
+>  	.disable = pnpacpi_disable_resources,
+>  #ifdef CONFIG_ACPI_SLEEP
+> +	.can_wakeup = pnpacpi_can_wakeup,
+>  	.suspend = pnpacpi_suspend,
+>  	.resume = pnpacpi_resume,
+>  #endif
+> 
+> 
 
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -76,8 +76,9 @@ enum ec_command {
- enum {
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
- 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
--	EC_FLAGS_HANDLERS_INSTALLED	/* Handlers for GPE and
-+	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
- 					 * OpReg are installed */
-+	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
- };
- 
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
-@@ -291,6 +292,10 @@ static int acpi_ec_transaction(struct ac
- 	if (t->rdata)
- 		memset(t->rdata, 0, t->rlen);
- 	mutex_lock(&ec->lock);
-+	if (test_bit(EC_FLAGS_BLOCKED, &ec->flags)) {
-+		status = -EINVAL;
-+		goto unlock;
-+	}
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status)) {
-@@ -453,6 +458,32 @@ int ec_transaction(u8 command,
- 
- EXPORT_SYMBOL(ec_transaction);
- 
-+void acpi_ec_block_transactions(void)
-+{
-+	struct acpi_ec *ec = first_ec;
-+
-+	if (!ec)
-+		return;
-+
-+	mutex_lock(&ec->lock);
-+	/* Prevent transactions from being carried out */
-+	set_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	mutex_unlock(&ec->lock);
-+}
-+
-+void acpi_ec_unblock_transactions(void)
-+{
-+	struct acpi_ec *ec = first_ec;
-+
-+	if (!ec)
-+		return;
-+
-+	mutex_lock(&ec->lock);
-+	/* Allow transactions to be carried out again */
-+	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	mutex_unlock(&ec->lock);
-+}
-+
- static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
- {
- 	int result;
-Index: linux-2.6/drivers/acpi/internal.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/internal.h
-+++ linux-2.6/drivers/acpi/internal.h
-@@ -49,6 +49,8 @@ void acpi_early_processor_set_pdc(void);
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
- int acpi_boot_ec_enable(void);
-+void acpi_ec_block_transactions(void);
-+void acpi_ec_unblock_transactions(void);
- 
- /*--------------------------------------------------------------------------
-                                   Suspend/Resume
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -552,8 +552,17 @@ static void acpi_hibernation_leave(void)
- 	hibernate_nvs_restore();
- }
- 
--static void acpi_pm_enable_gpes(void)
-+static int acpi_pm_pre_restore(void)
- {
-+	acpi_disable_all_gpes();
-+	acpi_os_wait_events_complete(NULL);
-+	acpi_ec_block_transactions();
-+	return 0;
-+}
-+
-+static void acpi_pm_restore_cleanup(void)
-+{
-+	acpi_ec_unblock_transactions();
- 	acpi_enable_all_runtime_gpes();
- }
- 
-@@ -565,8 +574,8 @@ static struct platform_hibernation_ops a
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
--	.pre_restore = acpi_pm_disable_gpes,
--	.restore_cleanup = acpi_pm_enable_gpes,
-+	.pre_restore = acpi_pm_pre_restore,
-+	.restore_cleanup = acpi_pm_restore_cleanup,
- };
- 
- /**
-@@ -618,8 +627,8 @@ static struct platform_hibernation_ops a
- 	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
--	.pre_restore = acpi_pm_disable_gpes,
--	.restore_cleanup = acpi_pm_enable_gpes,
-+	.pre_restore = acpi_pm_pre_restore,
-+	.restore_cleanup = acpi_pm_restore_cleanup,
- 	.recover = acpi_pm_finish,
- };
- #endif /* CONFIG_HIBERNATION */
+
