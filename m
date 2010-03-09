@@ -1,41 +1,43 @@
-From: James Simmons <jsimmons@infradead.org>
-Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume)
- outside the graphics driver
-Date: Tue, 9 Mar 2010 16:16:24 +0000 (GMT)
-Message-ID: <alpine.LFD.2.00.1003091613390.30952@casper.infradead.org>
-References: <201003062236.09801.rjw@sisk.pl> <68676e01003090301s5bb40d4hac1224a9658339ac@mail.gmail.com> <201003091234.59598.rjw@sisk.pl>
+From: "Henning Heinold" <h.heinold@tarent.de>
+Subject: Re: Problem with uart and acpi
+Date: Tue, 09 Mar 2010 18:11:49 +0100
+Message-ID: <20100309181149.19432qlf530v24b9@ugs.tarent.de>
+References: <20100225091328.GB22799@ugs.tarent.de>
+	<201003031330.52498.bjorn.helgaas@hp.com>
+	<201003081121.07109.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52577 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754595Ab0CIQQ3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Mar 2010 11:16:29 -0500
-In-Reply-To: <201003091234.59598.rjw@sisk.pl>
+Received: from gate.tarent.de ([212.79.178.249]:60295 "EHLO ugs.tarent.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751352Ab0CIRLv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Mar 2010 12:11:51 -0500
+In-Reply-To: <201003081121.07109.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
+Quoting "Bjorn Helgaas" <bjorn.helgaas@hp.com>:
 
-> > > Second, in the KMS case, we'd be able to skip the kernel VT switch, because
-> > > the KMS driver uses its own framebuffer anyway.
-> > >
-> > > So, is there any reasonable way to check that from the outside of the graphics
-> > > driver?  It should be general enough to cover the cases when there are two
-> > > graphics adapters with different drivers in the system and so forth.
-> > 
-> > Inside the kernel? If you have a struct pci_dev you can get the
-> > associated struct drm_device with pci_get_drvdata and then check the
-> > KMS feature: drm_core_check_feature(dev, DRIVER_MODESET).
-> 
-> Yeah, I know that.
-> 
-> > I'm note sure how to check that a device is graphic card though :|
-> 
-> Well, that's the "outside of the graphics driver" part of my question. :-)
+>> Could you set CONFIG_PNP_DEBUG_MESSAGES=y, boot with "pnp.debug", and
+>> attach the complete dmesg log, please?
+>
+> Ping, did you make any progress on this?  I'd like to help
+> resolve it if it's still a problem.
+>
+> Bjorn
 
-if ((pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
-	....
+Oh Hi Bjorn,
 
+somehow I overseen your e-mail. Unfornatly we don't have the viliv anymore.
+Maybe we have a slightly chance to get one again and then I will send
+the dmesg with debug.
+
+Bye Henning
 
