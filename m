@@ -1,97 +1,36 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 2/2] ACPI: pci_root: pass acpi_pci_root to arch-specific
-	scan
-Date: Tue, 09 Mar 2010 15:53:30 -0700
-Message-ID: <20100309225330.27167.20633.stgit@bob.kio>
-References: <20100309225211.27167.54296.stgit@bob.kio>
+From: Fabio Comolli <fabio.comolli@gmail.com>
+Subject: Possible bug in eeepc-laptop.c - EeePC 900
+Date: Tue, 9 Mar 2010 23:58:47 +0100
+Message-ID: <b637ec0b1003091458j67efc62cg2c975e9e286f4b0b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100309225211.27167.54296.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:42647 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785Ab0CIW6u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Mar 2010 17:58:50 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Corentin Chary <corentin.chary@gmail.com>
 
+Hi.
+I have an EeePC 900 running 2.6.34-rc1.
 
-The acpi_pci_root structure contains all the individual items (acpi_device,
-domain, bus number) we pass to pci_acpi_scan_root(), so just pass the
-single acpi_pci_root pointer directly.
+If I boot it on AC the cpu runs at full speed, 900MHz; if I boot it on
+battery it runs only at 630Mhz. Plugging / unplugging the AC does not
+change the cpu frequency. Only a reboot can change the situation.
 
-This will make it easier to add _CBA support later.  For _CBA, we need the
-entire downstream bus range, not just the base bus number.  We have that in
-the acpi_pci_root structure, so passing the pointer makes it available to
-the arch-specific code.
+I already tried to echo 0 or 1 to the
+/sys/devices/platform/eeepc/cpufv file; no effects, even if the file
+changes its value.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
+This is not a regression from 2.6.33: this behavior is also present in
+that version.
 
- arch/ia64/pci/pci.c         |    5 ++++-
- arch/x86/pci/acpi.c         |    5 ++++-
- drivers/acpi/pci_root.c     |    2 +-
- include/acpi/acpi_drivers.h |    3 +--
- 4 files changed, 10 insertions(+), 5 deletions(-)
+Does this ring any bells? This is really annoying, especially when
+trying to watch a movie on battery. Also 3D apps show a 30%
+performance drop, as expected.
 
-
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 64aff52..aa2533a 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -335,8 +335,11 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
- }
- 
- struct pci_bus * __devinit
--pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
-+pci_acpi_scan_root(struct acpi_pci_root *root)
- {
-+	struct acpi_device *device = root->device;
-+	int domain = root->segment;
-+	int bus = root->secondary.start;
- 	struct pci_controller *controller;
- 	unsigned int windows = 0;
- 	struct pci_bus *pbus;
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 5f11ff6..0c36ad5 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -215,8 +215,11 @@ res_alloc_fail:
- 	return;
- }
- 
--struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
-+struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
- {
-+	struct acpi_device *device = root->device;
-+	int domain = root->segment;
-+	int busnum = root->secondary.start;
- 	struct pci_bus *bus;
- 	struct pci_sysdata *sd;
- 	int node;
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index e309f56..7f554a4 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -498,7 +498,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	 * PCI namespace does not get created until this call is made (and 
- 	 * thus the root bridge's pci_dev does not exist).
- 	 */
--	root->bus = pci_acpi_scan_root(device, segment, root->secondary.start);
-+	root->bus = pci_acpi_scan_root(root);
- 	if (!root->bus) {
- 		printk(KERN_ERR PREFIX
- 			    "Bus %04x:%02x not present in PCI namespace\n",
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 3a4767c..16903b3 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -102,8 +102,7 @@ int acpi_pci_bind_root(struct acpi_device *device);
- 
- /* Arch-defined function to add a bus to the system */
- 
--struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
--				   int bus);
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
- void pci_acpi_crs_quirks(void);
- 
- /* --------------------------------------------------------------------------
+Regards,
+Fabio
