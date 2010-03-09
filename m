@@ -1,16 +1,14 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
 Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume)
 	outside the graphics driver
-Date: Tue, 9 Mar 2010 12:38:50 +0100
-Message-ID: <b170af451003090338o69225e3ye6beb4b304dcdc8c@mail.gmail.com>
+Date: Tue, 9 Mar 2010 12:01:18 +0100
+Message-ID: <68676e01003090301s5bb40d4hac1224a9658339ac@mail.gmail.com>
 References: <201003062236.09801.rjw@sisk.pl>
-	<68676e01003090301s5bb40d4hac1224a9658339ac@mail.gmail.com>
-	<201003091234.59598.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <201003091234.59598.rjw@sisk.pl>
+In-Reply-To: <201003062236.09801.rjw@sisk.pl>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
 	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
@@ -20,21 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
 	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.sourceforge.net
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Luca Tettamanti <kronos.it@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-MjAxMC8zLzkgUmFmYWVsIEouIFd5c29ja2kgPHJqd0BzaXNrLnBsPjoKPiBPbiBUdWVzZGF5IDA5
-IE1hcmNoIDIwMTAsIEx1Y2EgVGV0dGFtYW50aSB3cm90ZToKPj4gSSdtIG5vdGUgc3VyZSBob3cg
-dG8gY2hlY2sgdGhhdCBhIGRldmljZSBpcyBncmFwaGljIGNhcmQgdGhvdWdoIDp8Cj4KPiBXZWxs
-LCB0aGF0J3MgdGhlICJvdXRzaWRlIG9mIHRoZSBncmFwaGljcyBkcml2ZXIiIHBhcnQgb2YgbXkg
-cXVlc3Rpb24uIDotKQoKQ2FuIHdlIHVzZSB0aGUgc2FtZSB3YXkgdXNlcnNwYWNlIChERFgpIHVz
-ZXMgdG8gY2hlY2sgZm9yIEtNUz8gU29tZQpJT0NUTCBJIGd1ZXNzPwoKLS0gClJhZmHFggoKLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tCkRvd25sb2FkIEludGVsJiMxNzQ7IFBhcmFsbGVsIFN0dWRpbyBF
-dmFsClRyeSB0aGUgbmV3IHNvZnR3YXJlIHRvb2xzIGZvciB5b3Vyc2VsZi4gU3BlZWQgY29tcGls
-aW5nLCBmaW5kIGJ1Z3MKcHJvYWN0aXZlbHksIGFuZCBmaW5lLXR1bmUgYXBwbGljYXRpb25zIGZv
-ciBwYXJhbGxlbCBwZXJmb3JtYW5jZS4KU2VlIHdoeSBJbnRlbCBQYXJhbGxlbCBTdHVkaW8gZ290
-IGhpZ2ggbWFya3MgZHVyaW5nIGJldGEuCmh0dHA6Ly9wLnNmLm5ldC9zZnUvaW50ZWwtc3ctZGV2
-Ci0tCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKRHJpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczov
-L2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9kcmktZGV2ZWwK
+T24gU2F0LCBNYXIgNiwgMjAxMCBhdCAxMDozNiBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Bz
+aXNrLnBsPiB3cm90ZToKPiBIaSwKPgo+IEZvciBhdCBsZWFzdCB0d28gcmVhc29ucyBpdCB3b3Vs
+ZCBiZSBiZW5lZmljaWFsIGZvciBzb21lIGNvZGUgb3V0aXNkZSB0aGUKPiBncmFwaGljcyBkcml2
+ZXIocykgdG8ga25vdyBpZiB0aGUgS01TIGFyZSB1c2VkLgo+Cj4gRmlyc3QsIGluIHRoZSBub24t
+S01TIChpZS4gVU1TKSBjYXNlIHdlIHByb2JhYmx5IHdvdWxkbid0IHdhbnQgdG8gY2FsbAo+IGFj
+cGlfdmlkZW9fcmVzdW1lKCksIGJlY2F1c2UgdGhhdCBoYXMgYSBwb3RlbnRpYWwgdG8gbWVzcyB1
+cCB3aXRoIHRoZSBHUFUKPiAoaXQgYWN0dWFsbHkgaXMga25vd24gdG8gZG8gdGhhdCBvbiBhdCBs
+ZWFzdCBvbmUgc3lzdGVtKS4KPgo+IFNlY29uZCwgaW4gdGhlIEtNUyBjYXNlLCB3ZSdkIGJlIGFi
+bGUgdG8gc2tpcCB0aGUga2VybmVsIFZUIHN3aXRjaCwgYmVjYXVzZQo+IHRoZSBLTVMgZHJpdmVy
+IHVzZXMgaXRzIG93biBmcmFtZWJ1ZmZlciBhbnl3YXkuCj4KPiBTbywgaXMgdGhlcmUgYW55IHJl
+YXNvbmFibGUgd2F5IHRvIGNoZWNrIHRoYXQgZnJvbSB0aGUgb3V0c2lkZSBvZiB0aGUgZ3JhcGhp
+Y3MKPiBkcml2ZXI/IMKgSXQgc2hvdWxkIGJlIGdlbmVyYWwgZW5vdWdoIHRvIGNvdmVyIHRoZSBj
+YXNlcyB3aGVuIHRoZXJlIGFyZSB0d28KPiBncmFwaGljcyBhZGFwdGVycyB3aXRoIGRpZmZlcmVu
+dCBkcml2ZXJzIGluIHRoZSBzeXN0ZW0gYW5kIHNvIGZvcnRoLgoKSW5zaWRlIHRoZSBrZXJuZWw/
+IElmIHlvdSBoYXZlIGEgc3RydWN0IHBjaV9kZXYgeW91IGNhbiBnZXQgdGhlCmFzc29jaWF0ZWQg
+c3RydWN0IGRybV9kZXZpY2Ugd2l0aCBwY2lfZ2V0X2RydmRhdGEgYW5kIHRoZW4gY2hlY2sgdGhl
+CktNUyBmZWF0dXJlOiBkcm1fY29yZV9jaGVja19mZWF0dXJlKGRldiwgRFJJVkVSX01PREVTRVQp
+LgpJJ20gbm90ZSBzdXJlIGhvdyB0byBjaGVjayB0aGF0IGEgZGV2aWNlIGlzIGdyYXBoaWMgY2Fy
+ZCB0aG91Z2ggOnwKCkx1Y2EKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEb3dubG9hZCBJbnRlbCYj
+MTc0OyBQYXJhbGxlbCBTdHVkaW8gRXZhbApUcnkgdGhlIG5ldyBzb2Z0d2FyZSB0b29scyBmb3Ig
+eW91cnNlbGYuIFNwZWVkIGNvbXBpbGluZywgZmluZCBidWdzCnByb2FjdGl2ZWx5LCBhbmQgZmlu
+ZS10dW5lIGFwcGxpY2F0aW9ucyBmb3IgcGFyYWxsZWwgcGVyZm9ybWFuY2UuClNlZSB3aHkgSW50
+ZWwgUGFyYWxsZWwgU3R1ZGlvIGdvdCBoaWdoIG1hcmtzIGR1cmluZyBiZXRhLgpodHRwOi8vcC5z
+Zi5uZXQvc2Z1L2ludGVsLXN3LWRldgotLQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpEcmktZGV2ZWwgbWFpbGluZyBsaXN0CkRyaS1kZXZlbEBsaXN0cy5z
+b3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGlu
+Zm8vZHJpLWRldmVsCg==
