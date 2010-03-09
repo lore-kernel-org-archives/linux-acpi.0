@@ -1,51 +1,89 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume)
-	outside the graphics driver
-Date: Tue, 9 Mar 2010 12:01:18 +0100
-Message-ID: <68676e01003090301s5bb40d4hac1224a9658339ac@mail.gmail.com>
-References: <201003062236.09801.rjw@sisk.pl>
+From: Valdis.Kletnieks@vt.edu
+Subject: 2.6.33-mmotm0304 - lockdep warning in ACPI code
+Date: Tue, 09 Mar 2010 03:46:10 -0500
+Message-ID: <5057.1268124370@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <201003062236.09801.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
-List-Post: <mailto:dri-devel@lists.sourceforge.net>
-List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+Content-Type: multipart/signed; boundary="==_Exmh_1268124370_4014P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:60598 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753622Ab0CIIqp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Mar 2010 03:46:45 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-T24gU2F0LCBNYXIgNiwgMjAxMCBhdCAxMDozNiBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Bz
-aXNrLnBsPiB3cm90ZToKPiBIaSwKPgo+IEZvciBhdCBsZWFzdCB0d28gcmVhc29ucyBpdCB3b3Vs
-ZCBiZSBiZW5lZmljaWFsIGZvciBzb21lIGNvZGUgb3V0aXNkZSB0aGUKPiBncmFwaGljcyBkcml2
-ZXIocykgdG8ga25vdyBpZiB0aGUgS01TIGFyZSB1c2VkLgo+Cj4gRmlyc3QsIGluIHRoZSBub24t
-S01TIChpZS4gVU1TKSBjYXNlIHdlIHByb2JhYmx5IHdvdWxkbid0IHdhbnQgdG8gY2FsbAo+IGFj
-cGlfdmlkZW9fcmVzdW1lKCksIGJlY2F1c2UgdGhhdCBoYXMgYSBwb3RlbnRpYWwgdG8gbWVzcyB1
-cCB3aXRoIHRoZSBHUFUKPiAoaXQgYWN0dWFsbHkgaXMga25vd24gdG8gZG8gdGhhdCBvbiBhdCBs
-ZWFzdCBvbmUgc3lzdGVtKS4KPgo+IFNlY29uZCwgaW4gdGhlIEtNUyBjYXNlLCB3ZSdkIGJlIGFi
-bGUgdG8gc2tpcCB0aGUga2VybmVsIFZUIHN3aXRjaCwgYmVjYXVzZQo+IHRoZSBLTVMgZHJpdmVy
-IHVzZXMgaXRzIG93biBmcmFtZWJ1ZmZlciBhbnl3YXkuCj4KPiBTbywgaXMgdGhlcmUgYW55IHJl
-YXNvbmFibGUgd2F5IHRvIGNoZWNrIHRoYXQgZnJvbSB0aGUgb3V0c2lkZSBvZiB0aGUgZ3JhcGhp
-Y3MKPiBkcml2ZXI/IMKgSXQgc2hvdWxkIGJlIGdlbmVyYWwgZW5vdWdoIHRvIGNvdmVyIHRoZSBj
-YXNlcyB3aGVuIHRoZXJlIGFyZSB0d28KPiBncmFwaGljcyBhZGFwdGVycyB3aXRoIGRpZmZlcmVu
-dCBkcml2ZXJzIGluIHRoZSBzeXN0ZW0gYW5kIHNvIGZvcnRoLgoKSW5zaWRlIHRoZSBrZXJuZWw/
-IElmIHlvdSBoYXZlIGEgc3RydWN0IHBjaV9kZXYgeW91IGNhbiBnZXQgdGhlCmFzc29jaWF0ZWQg
-c3RydWN0IGRybV9kZXZpY2Ugd2l0aCBwY2lfZ2V0X2RydmRhdGEgYW5kIHRoZW4gY2hlY2sgdGhl
-CktNUyBmZWF0dXJlOiBkcm1fY29yZV9jaGVja19mZWF0dXJlKGRldiwgRFJJVkVSX01PREVTRVQp
-LgpJJ20gbm90ZSBzdXJlIGhvdyB0byBjaGVjayB0aGF0IGEgZGV2aWNlIGlzIGdyYXBoaWMgY2Fy
-ZCB0aG91Z2ggOnwKCkx1Y2EKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEb3dubG9hZCBJbnRlbCYj
-MTc0OyBQYXJhbGxlbCBTdHVkaW8gRXZhbApUcnkgdGhlIG5ldyBzb2Z0d2FyZSB0b29scyBmb3Ig
-eW91cnNlbGYuIFNwZWVkIGNvbXBpbGluZywgZmluZCBidWdzCnByb2FjdGl2ZWx5LCBhbmQgZmlu
-ZS10dW5lIGFwcGxpY2F0aW9ucyBmb3IgcGFyYWxsZWwgcGVyZm9ybWFuY2UuClNlZSB3aHkgSW50
-ZWwgUGFyYWxsZWwgU3R1ZGlvIGdvdCBoaWdoIG1hcmtzIGR1cmluZyBiZXRhLgpodHRwOi8vcC5z
-Zi5uZXQvc2Z1L2ludGVsLXN3LWRldgotLQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpEcmktZGV2ZWwgbWFpbGluZyBsaXN0CkRyaS1kZXZlbEBsaXN0cy5z
-b3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGlu
-Zm8vZHJpLWRldmVsCg==
+--==_Exmh_1268124370_4014P
+Content-Type: text/plain; charset=us-ascii
+
+Seen in my dmesg.  Appears to have started in 2.6.33-rc7-mmotm0210, I can't
+remember if I reported it before or not...
+
+[    0.212297] ACPI: Using IOAPIC for interrupt routing
+[    0.340075] 
+[    0.340076] =============================================
+[    0.340241] [ INFO: possible recursive locking detected ]
+[    0.340330] 2.6.33-mmotm0304 #5
+[    0.340415] ---------------------------------------------
+[    0.340504] swapper/1 is trying to acquire lock:
+[    0.340591]  (&dev->mutex){+.+...}, at: [<ffffffff812fddfd>] __driver_attach+0x47/0x80
+[    0.340926] 
+[    0.340927] but task is already holding lock:
+[    0.340999]  (&dev->mutex){+.+...}, at: [<ffffffff812fddef>] __driver_attach+0x39/0x80
+[    0.340999] 
+[    0.340999] other info that might help us debug this:
+[    0.340999] 1 lock held by swapper/1:
+[    0.340999]  #0:  (&dev->mutex){+.+...}, at: [<ffffffff812fddef>] __driver_attach+0x39/0x80
+[    0.340999] 
+[    0.340999] stack backtrace:
+[    0.340999] Pid: 1, comm: swapper Not tainted 2.6.33-mmotm0304 #5
+[    0.340999] Call Trace:
+[    0.340999]  [<ffffffff810645e7>] __lock_acquire+0xc74/0xceb
+[    0.340999]  [<ffffffff81062a4f>] ? mark_lock+0x2d/0x22c
+[    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+[    0.340999]  [<ffffffff81064753>] lock_acquire+0xf5/0x112
+[    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+[    0.340999]  [<ffffffff81062ca0>] ? mark_held_locks+0x52/0x70
+[    0.340999]  [<ffffffff81581bb5>] __mutex_lock_common+0x5c/0x5aa
+[    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+[    0.340999]  [<ffffffff81571004>] ? klist_next+0x24/0xd7
+[    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+[    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+[    0.340999]  [<ffffffff815821a9>] mutex_lock_nested+0x34/0x39
+[    0.340999]  [<ffffffff812fddfd>] __driver_attach+0x47/0x80
+[    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+[    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+[    0.340999]  [<ffffffff812fd31f>] bus_for_each_dev+0x54/0x89
+[    0.340999]  [<ffffffff812fdb66>] driver_attach+0x19/0x1b
+[    0.340999]  [<ffffffff812fd7b1>] bus_add_driver+0xb4/0x203
+[    0.340999]  [<ffffffff812fe10f>] driver_register+0xb8/0x129
+[    0.340999]  [<ffffffff8123af12>] acpi_bus_register_driver+0x3e/0x40
+[    0.340999]  [<ffffffff81b4aaa4>] acpi_ec_init+0x37/0x55
+[    0.340999]  [<ffffffff81b4a920>] acpi_init+0x101/0x116
+[    0.340999]  [<ffffffff81b4a81f>] ? acpi_init+0x0/0x116
+[    0.340999]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
+[    0.340999]  [<ffffffff81b2c687>] kernel_init+0x14d/0x1d7
+[    0.340999]  [<ffffffff810033d4>] kernel_thread_helper+0x4/0x10
+[    0.340999]  [<ffffffff81584040>] ? restore_args+0x0/0x30
+[    0.340999]  [<ffffffff81b2c53a>] ? kernel_init+0x0/0x1d7
+[    0.340999]  [<ffffffff810033d0>] ? kernel_thread_helper+0x0/0x10
+[    0.341046] ACPI: EC: GPE = 0x11, I/O: command/status = 0x934, data = 0x930
+
+
+--==_Exmh_1268124370_4014P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFLlgrScC3lWbTT17ARAv2xAJ4o03w8LMPUtwT6dXar/ubrrDCQ4wCbBmrw
+LjONQy/NhE39wgDxLVjrdc4=
+=nFps
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1268124370_4014P--
+
