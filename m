@@ -1,43 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume) outside the graphics driver
-Date: Tue, 9 Mar 2010 22:08:28 +0100
-Message-ID: <201003092208.28175.rjw@sisk.pl>
-References: <201003062236.09801.rjw@sisk.pl> <201003091234.59598.rjw@sisk.pl> <alpine.LFD.2.00.1003091613390.30952@casper.infradead.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH v2 0/3] pci_root: track downstream bus range for _CBA
+Date: Tue, 9 Mar 2010 14:42:35 -0700
+Message-ID: <201003091442.36544.bjorn.helgaas@hp.com>
+References: <20091110170802.10645.91272.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1003091613390.30952@casper.infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Simmons <jsimmons@infradead.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20091110170802.10645.91272.stgit@bob.kio>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 09 March 2010, James Simmons wrote:
+On Tuesday 10 November 2009 10:11:28 am Bjorn Helgaas wrote:
+> The PCI Firmware Spec requires BIOS to use _CBA, not MCFG, to report
+> MMCONFIG regions of hot-pluggable host bridges.  Therefore, if the
+> hardware and firmware support host bridge hotplug, we will encounter
+> _CBA even if Linux itself doesn't support hotplug.
 > 
-> > > > Second, in the KMS case, we'd be able to skip the kernel VT switch, because
-> > > > the KMS driver uses its own framebuffer anyway.
-> > > >
-> > > > So, is there any reasonable way to check that from the outside of the graphics
-> > > > driver?  It should be general enough to cover the cases when there are two
-> > > > graphics adapters with different drivers in the system and so forth.
-> > > 
-> > > Inside the kernel? If you have a struct pci_dev you can get the
-> > > associated struct drm_device with pci_get_drvdata and then check the
-> > > KMS feature: drm_core_check_feature(dev, DRIVER_MODESET).
-> > 
-> > Yeah, I know that.
-> > 
-> > > I'm note sure how to check that a device is graphic card though :|
-> > 
-> > Well, that's the "outside of the graphics driver" part of my question. :-)
+> These patches make the pci_root driver keep track of the downstream
+> bus range and make it available so arch-specific code can register
+> MMCONFIG regions if necessary.
 > 
-> if ((pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
-> 	....
+> The first patch merely *prints* the downstream range, without saving it.
+> I posted that patch alone previously, before I realized that we actually
+> need to save the range for _CBA.
 
-I'm not sure if searching through all PCI devices really is an option.
+Len,
 
-Thanks anyway.
+Since you put the IORESOURCE_BUS patches in acpi-test, let me rework
+this series to use that instead of faking it.
 
-Rafael
+Bjorn
