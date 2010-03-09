@@ -1,33 +1,97 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 0/2] pci_root: track downstream bus range
-Date: Tue, 09 Mar 2010 15:53:20 -0700
-Message-ID: <20100309225211.27167.54296.stgit@bob.kio>
+Subject: [PATCH v3 2/2] ACPI: pci_root: pass acpi_pci_root to arch-specific
+	scan
+Date: Tue, 09 Mar 2010 15:53:30 -0700
+Message-ID: <20100309225330.27167.20633.stgit@bob.kio>
+References: <20100309225211.27167.54296.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20100309225211.27167.54296.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-These patches keep track of both the beginning and end of the bus number
-range under a PCI host bridge (previously we only kept the beginning) and
-make that range available to the arch code, which will need it to support
-the _CBA mechanism for reporting MMCONFIG regions.
 
-These apply on the acpi-test tree.
+The acpi_pci_root structure contains all the individual items (acpi_device,
+domain, bus number) we pass to pci_acpi_scan_root(), so just pass the
+single acpi_pci_root pointer directly.
 
+This will make it easier to add _CBA support later.  For _CBA, we need the
+entire downstream bus range, not just the base bus number.  We have that in
+the acpi_pci_root structure, so passing the pointer makes it available to
+the arch-specific code.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
-Bjorn Helgaas (2):
-      ACPI: pci_root: save downstream bus range
-      ACPI: pci_root: pass acpi_pci_root to arch-specific scan
+ arch/ia64/pci/pci.c         |    5 ++++-
+ arch/x86/pci/acpi.c         |    5 ++++-
+ drivers/acpi/pci_root.c     |    2 +-
+ include/acpi/acpi_drivers.h |    3 +--
+ 4 files changed, 10 insertions(+), 5 deletions(-)
 
 
- arch/ia64/pci/pci.c         |    5 +++
- arch/x86/pci/acpi.c         |    5 +++
- drivers/acpi/pci_root.c     |   67 ++++++++++++++++++++++++++-----------------
- include/acpi/acpi_bus.h     |    2 +
- include/acpi/acpi_drivers.h |    3 +-
- 5 files changed, 50 insertions(+), 32 deletions(-)
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 64aff52..aa2533a 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -335,8 +335,11 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
+ }
+ 
+ struct pci_bus * __devinit
+-pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
++pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
++	struct acpi_device *device = root->device;
++	int domain = root->segment;
++	int bus = root->secondary.start;
+ 	struct pci_controller *controller;
+ 	unsigned int windows = 0;
+ 	struct pci_bus *pbus;
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 5f11ff6..0c36ad5 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -215,8 +215,11 @@ res_alloc_fail:
+ 	return;
+ }
+ 
+-struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
++struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
++	struct acpi_device *device = root->device;
++	int domain = root->segment;
++	int busnum = root->secondary.start;
+ 	struct pci_bus *bus;
+ 	struct pci_sysdata *sd;
+ 	int node;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index e309f56..7f554a4 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -498,7 +498,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	 * PCI namespace does not get created until this call is made (and 
+ 	 * thus the root bridge's pci_dev does not exist).
+ 	 */
+-	root->bus = pci_acpi_scan_root(device, segment, root->secondary.start);
++	root->bus = pci_acpi_scan_root(root);
+ 	if (!root->bus) {
+ 		printk(KERN_ERR PREFIX
+ 			    "Bus %04x:%02x not present in PCI namespace\n",
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index 3a4767c..16903b3 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -102,8 +102,7 @@ int acpi_pci_bind_root(struct acpi_device *device);
+ 
+ /* Arch-defined function to add a bus to the system */
+ 
+-struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
+-				   int bus);
++struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
+ void pci_acpi_crs_quirks(void);
+ 
+ /* --------------------------------------------------------------------------
