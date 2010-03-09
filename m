@@ -1,43 +1,82 @@
-From: "Henning Heinold" <h.heinold@tarent.de>
-Subject: Re: Problem with uart and acpi
-Date: Tue, 09 Mar 2010 18:11:49 +0100
-Message-ID: <20100309181149.19432qlf530v24b9@ugs.tarent.de>
-References: <20100225091328.GB22799@ugs.tarent.de>
-	<201003031330.52498.bjorn.helgaas@hp.com>
-	<201003081121.07109.bjorn.helgaas@hp.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
+Date: Tue, 09 Mar 2010 13:27:17 -0500
+Message-ID: <4B969305.9070103@redhat.com>
+References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com> <20100309154243.GA26520@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gate.tarent.de ([212.79.178.249]:60295 "EHLO ugs.tarent.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751352Ab0CIRLv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Mar 2010 12:11:51 -0500
-In-Reply-To: <201003081121.07109.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:13985 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752825Ab0CIS1S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Mar 2010 13:27:18 -0500
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o29IRHIY006102
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Tue, 9 Mar 2010 13:27:18 -0500
+In-Reply-To: <20100309154243.GA26520@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Matthew Garrett <mjg@redhat.com>
 Cc: linux-acpi@vger.kernel.org
 
-Quoting "Bjorn Helgaas" <bjorn.helgaas@hp.com>:
 
->> Could you set CONFIG_PNP_DEBUG_MESSAGES=y, boot with "pnp.debug", and
->> attach the complete dmesg log, please?
+
+Matthew Garrett wrote:
+> On Tue, Mar 09, 2010 at 09:12:03AM -0500, Prarit Bhargava wrote:
+>   
+>> New sockets have on-die memory controllers.  This means that in certain
+>> HW configurations the memory behind the socket comes and goes as the socket
+>> is physically enabled and disabled.
+>>
+>> Since the cpu bringup code does on node memory allocations, the memory on the
+>> added socket must be onlined first.
+>>
+>> Add a .config option to automatically online hot added memory, and enable it
+>> in the acpi memory add path.
+>>     
 >
-> Ping, did you make any progress on this?  I'd like to help
-> resolve it if it's still a problem.
+> This seems like the right thing to do.
 >
-> Bjorn
+>   
+>> +config ACPI_HOTPLUG_MEMORY_AUTO_ONLINE
+>> +	bool "Automatically online hotplugged memory"
+>> +	depends on ACPI_HOTPLUG_MEMORY
+>> +	default n
+>>     
+>
+> default !S390? default x86?
+>   
 
-Oh Hi Bjorn,
+I've been inquiring about this.  It seems that some vendors want the 
+capability to manually bring memory online.  I'm trying to get more 
+details as this doesn't seem intuitive.  It seems to me that if you add 
+memory you want to online it right now.
 
-somehow I overseen your e-mail. Unfornatly we don't have the viliv anymore.
-Maybe we have a slightly chance to get one again and then I will send
-the dmesg with debug.
+>   
+>> +		result = online_pages(info->start_addr >> PAGE_SHIFT,
+>> +				      info->length >> PAGE_SHIFT);
+>> +		if (!result)
+>> +			set_memory_state(info->start_addr, MEM_ONLINE);
+>> +		else
+>> +			printk("Memory online failed.\n");
+>>     
+>
+> That probably wants to be more descriptive and have a loglevel. 
 
-Bye Henning
+Oops.  I'm very bad about setting the loglevel's on my printk's ;) ... 
+I'll fix that in the next patch.
+
+> What 
+> happens if this fails? The CPU presumably can't be brought up?
+>   
+
+That's a good question...  After thinking about it I think that 
+acpi_processor_add() must check the node to see if it has memory before 
+bringing the cpu online.
+
+I'll code that up, test, and repost.
+
+P.
 
