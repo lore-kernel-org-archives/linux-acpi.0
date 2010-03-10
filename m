@@ -1,64 +1,173 @@
-From: Fabio Comolli <fabio.comolli@gmail.com>
-Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
-Date: Wed, 10 Mar 2010 14:46:19 +0100
-Message-ID: <b637ec0b1003100546l121f3a54o311aba94c8cabc5e@mail.gmail.com>
-References: <b637ec0b1003091458j67efc62cg2c975e9e286f4b0b@mail.gmail.com>
-	 <71cd59b01003100507q79878fdan98e53cb4e705d2c2@mail.gmail.com>
+From: "Andy Cress" <andy.cress@us.kontron.com>
+Subject: Re: [SPAM] - Re: [PATCH 0/4] ipmi: remove SPMI
+	and update core driver with dev_printk - Email found in subject
+Date: Wed, 10 Mar 2010 06:55:08 -0800
+Message-ID: <87AED897FD94E641A438368C41CE08A9448FFB@ka-exchange-1.kontronamerica.local>
+References: <20100304033146.30205.68689.stgit@bob.kio><4B8FBE8F.3030203@acm.org>
+	<1268176582.2462.1.camel@zim>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:45694 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932218Ab0CJNqV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Mar 2010 08:46:21 -0500
-In-Reply-To: <71cd59b01003100507q79878fdan98e53cb4e705d2c2@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+Content-class: urn:content-classes:message
+In-Reply-To: <1268176582.2462.1.camel@zim>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: Myron Stowe <myron.stowe@hp.com>, Corey Minyard <minyard@acm.org>
+Cc: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Hi.
+Myron,
 
-On Wed, Mar 10, 2010 at 2:07 PM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Tue, Mar 9, 2010 at 11:58 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
->> Hi.
->> I have an EeePC 900 running 2.6.34-rc1.
->>
->> If I boot it on AC the cpu runs at full speed, 900MHz; if I boot it on
->> battery it runs only at 630Mhz. Plugging / unplugging the AC does not
->> change the cpu frequency. Only a reboot can change the situation.
->>
->> I already tried to echo 0 or 1 to the
->> /sys/devices/platform/eeepc/cpufv file; no effects, even if the file
->> changes its value.
->>
->> This is not a regression from 2.6.33: this behavior is also present in
->> that version.
->>
->> Does this ring any bells? This is really annoying, especially when
->> trying to watch a movie on battery. Also 3D apps show a 30%
->> performance drop, as expected.
->
-> Can you change the frequency with cpufreq ?
+How about this for an approach with SPMI:
+Rather than remove it entirely, use '#ifdef SPMI_DEPRECATED' around that
+code, so that it can still be enabled at compile time by those that
+later find that they need it. 
+And add a comment with instructions to notify this list if someone finds
+that they need to enable it.   
 
-No, I can't. Which cpufreq driver am I supposed to use? With only
-cpufreq compiled in, the directory
-/sys/drivers/system/cpu/cpu0/cpufreq is empty.
+That should prove conclusively whether it is used/needed or not.
 
-> Did you try all cpufv values (see cpufv_available file) ?
+Andy
 
-Yes, it only shows 0 and 1. I tried both, without success.
+-----Original Message-----
+From: Myron Stowe [mailto:myron.stowe@hp.com] 
+Sent: Tuesday, March 09, 2010 6:16 PM
+To: Corey Minyard
+Cc: linux-acpi@vger.kernel.org;
+openipmi-developer@lists.sourceforge.net; lenb@kernel.org
+Subject: [SPAM] - Re: [Openipmi-developer] [PATCH 0/4] ipmi: remove SPMI
+and update core driver with dev_printk - Email found in subject
 
-> Is you bios up-to-date ?
+On Thu, 2010-03-04 at 08:07 -0600, Corey Minyard wrote: 
+> Myron Stowe wrote:
+> > These patches remove the SPMI based IPMI device discovery mechanism
+and
+> > update the driver's core to use dev_printk() and its constructs.
+> >
+snip 
+> 
+> > Ultimately, I would like to see if it is possible to also remove
+IPMI's
+> > SMBIOS based device discovery mechanism.
+> >   
+> Maybe in an ideal world, but I don't know where an ideal world is, so
+I 
+> have to live in the one I'm in.  There's plenty of systems that only 
+> document this in SMBIOS tables, there's plenty of systems with broken 
+> ACPI, etc.  So SMBIOS and SPMI are going to have to stay.
+> 
+Discussions concerning this patch series seem to have ceased and I have
+not heard back from anyone that can definitively state that the SPMI
+table is actively being used in the field.
 
-Yes it is, it's 1006.
+At this point, it seems that the most logical ways to proceed are: 
+      * Take the patch series as it is with the possible risk that we
+        will encounter a system in the field that relies on SPMI.
+        
+      * Or, I can rework the patch series, basically splitting it into
+        two.  The first series would include 
+                ipmi: Raise precedence of PNP based discovery mechanisms
+(ACPI, PCI),
+                ipmi: Convert tracking of the ACPI device pointer to a
+PNP device,
+                ipmi: Update driver to use 'dev_printk()' and its
+constructs,
+        with the second series including 
+                ipmi: Remove SPMI table based device discovery method,
+                ipmi: Further 'dev_printk()' conversion that is
+dependent on SPMI removal.
+The idea being that the more contentious second series, now isolated,
+could be easily retracted if necessary.
+        
 
->
-> --
-> Corentin Chary
-> http://xf.iksaif.net
->
+I do understand that it is possible that we will encounter a system that
+relies on SPMI.  The most likely scenario would seem to be with respect
+to embedded systems.  However, I think it is unlikely for the following
+reasons (as always, please respond to any and all concerns as it is this
+community that are the subject matter experts) and would still like to
+consider removing such:
 
-Thanks.
-Fabio
+        The IPMI related SMBIOS and SPMI tables are static, the idea
+        being that such tables can be referenced by the OS very early in
+        its boot related processing; well before the OS has progressed
+        to the point of ACPI namespace based control method
+        availability.  A couple of points concerning such are: they seem
+        relatively redundant with respect to each other, and, the
+        current IPMI driver is not truly capable of taking advantage of
+        such "static" capability[1].
+        
+        IPMI's SPMI table discovery mechanism was championed by HP.
+        This was mainly for HP's proprietary HP-UX OS as it did want to
+        take advantage of the early reference capability that static
+        tables provide (I do not know if SMBIOS was considered, or if
+        so, why it was not considered viable - perhaps someone on this
+        list has that history).  As such, we seriously question whether
+        other vendors have even included SPMI into their BIOS'.
+        
+        Modern systems rely on ACPI namespace and/or PCI as preferred
+        enumeration techniques.  Windows only looks at these, and not
+        SMBIOS or SPMI, which has bearing since x86 Linux typically runs
+        on platforms also capable of running Windows.  Yes, embedded
+        systems are the biggest exception here.
+
+        Bjorn Helgaas also covered many of these points, and a few
+        others, in his reply to Bela Lubkin concerning [Patch 2/4] which
+        is worth re-reading.
+        
+I'm looking forward to any feedback or responses of any kind, even
+rebuttals.
+
+Thanks,
+
+Myron
+        
+
+[1] I was not able to express this point as well as I would have liked.
+The point I'm attempting to make is that the IPMI driver, as it
+currently exists, is not capable of probing and attaching to a device
+during early boot processing to really take advantage of "static"
+tables.  The fact that it is capable of being built and run/installed as
+a module is a big hint towards such but is not, in itself, definitive.
+However, its PCI and ACPI probing mechanisms are definitive in that they
+rely on their respective subsystems having already been setup which is
+well after early boot processing.
+
+> 
+> -corey
+> 
+
+
+-- 
+Myron Stowe                             HP Open Source Linux Lab (OSLL)
+
+
+
+
+------------------------------------------------------------------------
+------
+Download Intel&#174; Parallel Studio Eval
+Try the new software tools for yourself. Speed compiling, find bugs
+proactively, and fine-tune applications for parallel performance.
+See why Intel Parallel Studio got high marks during beta.
+http://p.sf.net/sfu/intel-sw-dev
+_______________________________________________
+Openipmi-developer mailing list
+Openipmi-developer@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/openipmi-developer
+sts.sourceforge.net/lists/listinfo/openipmi-developer
+
+
+
+------------------------------------------------------------------------------
+Download Intel&#174; Parallel Studio Eval
+Try the new software tools for yourself. Speed compiling, find bugs
+proactively, and fine-tune applications for parallel performance.
+See why Intel Parallel Studio got high marks during beta.
+http://p.sf.net/sfu/intel-sw-dev
