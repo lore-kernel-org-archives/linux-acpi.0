@@ -1,113 +1,25 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH v3 2/2] ACPI: pci_root: pass acpi_pci_root to arch-specific
- scan
-Date: Wed, 10 Mar 2010 18:51:41 +0900
-Message-ID: <4B976BAD.6070906@jp.fujitsu.com>
-References: <20100309225211.27167.54296.stgit@bob.kio> <20100309225330.27167.20633.stgit@bob.kio>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100309225330.27167.20633.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
+From: "Bacon U Jeannie" <fourteenthirty1430@gmail.com>
+Subject: Many good quality lists such as Lawyers, Doctors, New Businesses, Consumers and many more
+Date: Wed, 10 Mar 2010 10:31:54 +0530
+Message-ID: <auto-000009931936@mgrm.com>
+Reply-To: fivehundred500@gmail.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ABTS-North-Static-249.77.160.122.airtelbroadband.in ([122.160.77.249]:2503
+	"EHLO mgrm.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755012Ab0CJIhc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Mar 2010 03:37:32 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Looks good to me.
-
-Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-
-Thanks,
-Kenji Kaneshige
+To: linux-acpi@vger.kernel.org, jwilliams@alcoholdrugsos.com, lindsey@mckenzieross.com, links@carehomestandards.co.uk
 
 
 
-Bjorn Helgaas wrote:
-> The acpi_pci_root structure contains all the individual items (acpi_device,
-> domain, bus number) we pass to pci_acpi_scan_root(), so just pass the
-> single acpi_pci_root pointer directly.
-> 
-> This will make it easier to add _CBA support later.  For _CBA, we need the
-> entire downstream bus range, not just the base bus number.  We have that in
-> the acpi_pci_root structure, so passing the pointer makes it available to
-> the arch-specific code.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
-> 
->  arch/ia64/pci/pci.c         |    5 ++++-
->  arch/x86/pci/acpi.c         |    5 ++++-
->  drivers/acpi/pci_root.c     |    2 +-
->  include/acpi/acpi_drivers.h |    3 +--
->  4 files changed, 10 insertions(+), 5 deletions(-)
-> 
-> 
-> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-> index 64aff52..aa2533a 100644
-> --- a/arch/ia64/pci/pci.c
-> +++ b/arch/ia64/pci/pci.c
-> @@ -335,8 +335,11 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
->  }
->  
->  struct pci_bus * __devinit
-> -pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
-> +pci_acpi_scan_root(struct acpi_pci_root *root)
->  {
-> +	struct acpi_device *device = root->device;
-> +	int domain = root->segment;
-> +	int bus = root->secondary.start;
->  	struct pci_controller *controller;
->  	unsigned int windows = 0;
->  	struct pci_bus *pbus;
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 5f11ff6..0c36ad5 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -215,8 +215,11 @@ res_alloc_fail:
->  	return;
->  }
->  
-> -struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
-> +struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
->  {
-> +	struct acpi_device *device = root->device;
-> +	int domain = root->segment;
-> +	int busnum = root->secondary.start;
->  	struct pci_bus *bus;
->  	struct pci_sysdata *sd;
->  	int node;
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index e309f56..7f554a4 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -498,7 +498,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	 * PCI namespace does not get created until this call is made (and 
->  	 * thus the root bridge's pci_dev does not exist).
->  	 */
-> -	root->bus = pci_acpi_scan_root(device, segment, root->secondary.start);
-> +	root->bus = pci_acpi_scan_root(root);
->  	if (!root->bus) {
->  		printk(KERN_ERR PREFIX
->  			    "Bus %04x:%02x not present in PCI namespace\n",
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index 3a4767c..16903b3 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -102,8 +102,7 @@ int acpi_pci_bind_root(struct acpi_device *device);
->  
->  /* Arch-defined function to add a bus to the system */
->  
-> -struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
-> -				   int bus);
-> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
->  void pci_acpi_crs_quirks(void);
->  
->  /* --------------------------------------------------------------------------
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Email me at this address for a catalog of all our US lists: Kaitlin.Waters@superlistmarket.net
+
+Also, ask about our sale pricing for more than one list.  
+  
+
+
+
+
+to terminate please send a blank message to rembox@superlistmarket.net
