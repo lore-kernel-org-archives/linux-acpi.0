@@ -1,227 +1,97 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH v3 1/2] ACPI: pci_root: save downstream bus range
-Date: Wed, 10 Mar 2010 18:50:01 +0900
-Message-ID: <4B976B49.9090502@jp.fujitsu.com>
-References: <20100309225211.27167.54296.stgit@bob.kio> <20100309225325.27167.60539.stgit@bob.kio>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
+Date: Wed, 10 Mar 2010 09:57:05 +0800
+Message-ID: <1268186225.3606.25.camel@localhost.localdomain>
+References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com>
+	 <20100309154243.GA26520@srcf.ucam.org>  <4B969305.9070103@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100309225325.27167.60539.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:59906 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753969Ab0CJB6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Mar 2010 20:58:53 -0500
+In-Reply-To: <4B969305.9070103@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Looks good to me. But one nitpicking.
-
-> +	root->secondary.flags = IORESOURCE_BUS;
-> +	root->secondary.start = 0;
-> +	root->secondary.end = 0xFF;
-> +	status = try_get_root_bridge_busnr(device->handle, &root->secondary);
->  	if (ACPI_FAILURE(status)) {
-
-I feel a little strange about initializing 'start' and 'end' fields
-here because those are changed in try_get_root_bridge_busnr().
-What about the below?
-
-	root->secondary.flags = IORESOURCE_BUS;
-	status = try_get_root_bridge_busnr(device->handle, &root->secondary);
-	if (ACPI_FAILURE(status)) {
-		root->secondary = 0xFF;
-		...
-
-Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-
-Thanks,
-Kenji Kaneshige
-
-
-Bjorn Helgaas wrote:
-> Previously, we only saved the root bus number, i.e., the beginning of the
-> downstream bus range.  We now support IORESOURCE_BUS resources, so this
-> patch uses that to keep track of both the beginning and the end of the
-> downstream bus range.
+On Wed, 2010-03-10 at 02:27 +0800, Prarit Bhargava wrote:
 > 
-> It's important to know both the beginning and the end for supporting _CBA
-> (see PCI Firmware spec, rev 3.0, sec 4.1.3) and so we know the limits for
-> any possible PCI bus renumbering (we can't renumber downstream buses to be
-> outside the bus number range claimed by the host bridge).
+> Matthew Garrett wrote:
+> > On Tue, Mar 09, 2010 at 09:12:03AM -0500, Prarit Bhargava wrote:
+> >   
+> >> New sockets have on-die memory controllers.  This means that in certain
+> >> HW configurations the memory behind the socket comes and goes as the socket
+> >> is physically enabled and disabled.
+> >>
+> >> Since the cpu bringup code does on node memory allocations, the memory on the
+> >> added socket must be onlined first.
+> >>
+> >> Add a .config option to automatically online hot added memory, and enable it
+> >> in the acpi memory add path.
+> >>     
+> >
+> > This seems like the right thing to do.
+> >
+> >   
+> >> +config ACPI_HOTPLUG_MEMORY_AUTO_ONLINE
+> >> +	bool "Automatically online hotplugged memory"
+> >> +	depends on ACPI_HOTPLUG_MEMORY
+> >> +	default n
+> >>     
+> >
+> > default !S390? default x86?
+> >   
 > 
-> It's clear from the spec that the bus range is supposed to be in _CRS, but
-> if we don't find it there, we'll assume [_BBN - 0xFF].
+> I've been inquiring about this.  It seems that some vendors want the 
+> capability to manually bring memory online.  I'm trying to get more 
+> details as this doesn't seem intuitive.  It seems to me that if you add 
+> memory you want to online it right now.
 > 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
+> >   
+> >> +		result = online_pages(info->start_addr >> PAGE_SHIFT,
+> >> +				      info->length >> PAGE_SHIFT);
+> >> +		if (!result)
+> >> +			set_memory_state(info->start_addr, MEM_ONLINE);
+> >> +		else
+> >> +			printk("Memory online failed.\n");
+> >>     
+> >
+> > That probably wants to be more descriptive and have a loglevel. 
 > 
->  drivers/acpi/pci_root.c |   67 ++++++++++++++++++++++++++++-------------------
->  include/acpi/acpi_bus.h |    2 +
->  2 files changed, 41 insertions(+), 28 deletions(-)
+> Oops.  I'm very bad about setting the loglevel's on my printk's ;) ... 
+> I'll fix that in the next patch.
+
+One note is that the hot-added memory will be automatically onlined. And
+we had better add an interface so that the user-space can quiry whether
+the hot-added memory is automatically onlined. Otherwise the user-space
+will receive the corresponding event and online hot-added memory again.
+In such case it will get some error messages.
+
 > 
+> > What 
+> > happens if this fails? The CPU presumably can't be brought up?
+> >   
 > 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index d724736..e309f56 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -119,7 +119,8 @@ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
->  	struct acpi_pci_root *root;
->  	
->  	list_for_each_entry(root, &acpi_pci_roots, node)
-> -		if ((root->segment == (u16) seg) && (root->bus_nr == (u16) bus))
-> +		if ((root->segment == (u16) seg) &&
-> +		    (root->secondary.start == (u16) bus))
->  			return root->device->handle;
->  	return NULL;		
->  }
-> @@ -153,7 +154,7 @@ EXPORT_SYMBOL_GPL(acpi_is_root_bridge);
->  static acpi_status
->  get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
->  {
-> -	int *busnr = data;
-> +	struct resource *res = data;
->  	struct acpi_resource_address64 address;
->  
->  	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
-> @@ -163,28 +164,27 @@ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
->  
->  	acpi_resource_to_address64(resource, &address);
->  	if ((address.address_length > 0) &&
-> -	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
-> -		*busnr = address.minimum;
-> +	    (address.resource_type == ACPI_BUS_NUMBER_RANGE)) {
-> +		res->start = address.minimum;
-> +		res->end = address.minimum + address.address_length - 1;
-> +	}
->  
->  	return AE_OK;
->  }
->  
->  static acpi_status try_get_root_bridge_busnr(acpi_handle handle,
-> -					     unsigned long long *bus)
-> +					     struct resource *res)
->  {
->  	acpi_status status;
-> -	int busnum;
->  
-> -	busnum = -1;
-> +	res->start = -1;
->  	status =
->  	    acpi_walk_resources(handle, METHOD_NAME__CRS,
-> -				get_root_bridge_busnr_callback, &busnum);
-> +				get_root_bridge_busnr_callback, res);
->  	if (ACPI_FAILURE(status))
->  		return status;
-> -	/* Check if we really get a bus number from _CRS */
-> -	if (busnum == -1)
-> +	if (res->start == -1)
->  		return AE_ERROR;
-> -	*bus = busnum;
->  	return AE_OK;
->  }
->  
-> @@ -428,34 +428,47 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	struct acpi_device *child;
->  	u32 flags, base_flags;
->  
-> +	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-> +	if (!root)
-> +		return -ENOMEM;
-> +
->  	segment = 0;
->  	status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
->  				       &segment);
->  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
->  		printk(KERN_ERR PREFIX "can't evaluate _SEG\n");
-> -		return -ENODEV;
-> +		result = -ENODEV;
-> +		goto end;
->  	}
->  
->  	/* Check _CRS first, then _BBN.  If no _BBN, default to zero. */
-> -	bus = 0;
-> -	status = try_get_root_bridge_busnr(device->handle, &bus);
-> +	root->secondary.flags = IORESOURCE_BUS;
-> +	root->secondary.start = 0;
-> +	root->secondary.end = 0xFF;
-> +	status = try_get_root_bridge_busnr(device->handle, &root->secondary);
->  	if (ACPI_FAILURE(status)) {
-> +		/*
-> +		 * We need both the start and end of the downstream bus range
-> +		 * to interpret _CBA (MMCONFIG base address), so it really is
-> +		 * supposed to be in _CRS.
-> +		 */
-> +		printk(KERN_WARNING FW_BUG PREFIX
-> +		       "no secondary bus range in _CRS\n");
->  		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,					       NULL, &bus);
-> -		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-> -			printk(KERN_ERR PREFIX
-> -			     "no bus number in _CRS and can't evaluate _BBN\n");
-> -			return -ENODEV;
-> +		if (ACPI_SUCCESS(status))
-> +			root->secondary.start = bus;
-> +		else if (status == AE_NOT_FOUND)
-> +			root->secondary.start = 0;
-> +		else {
-> +			printk(KERN_ERR PREFIX "can't evaluate _BBN\n");
-> +			result = -ENODEV;
-> +			goto end;
->  		}
->  	}
->  
-> -	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-> -	if (!root)
-> -		return -ENOMEM;
-> -
->  	INIT_LIST_HEAD(&root->node);
->  	root->device = device;
->  	root->segment = segment & 0xFFFF;
-> -	root->bus_nr = bus & 0xFF;
->  	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
->  	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
->  	device->driver_data = root;
-> @@ -474,9 +487,9 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	/* TBD: Locking */
->  	list_add_tail(&root->node, &acpi_pci_roots);
->  
-> -	printk(KERN_INFO PREFIX "%s [%s] (%04x:%02x)\n",
-> +	printk(KERN_INFO PREFIX "%s [%s] (domain %04x %pR)\n",
->  	       acpi_device_name(device), acpi_device_bid(device),
-> -	       root->segment, root->bus_nr);
-> +	       root->segment, &root->secondary);
->  
->  	/*
->  	 * Scan the Root Bridge
-> @@ -485,11 +498,11 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	 * PCI namespace does not get created until this call is made (and 
->  	 * thus the root bridge's pci_dev does not exist).
->  	 */
-> -	root->bus = pci_acpi_scan_root(device, segment, bus);
-> +	root->bus = pci_acpi_scan_root(device, segment, root->secondary.start);
->  	if (!root->bus) {
->  		printk(KERN_ERR PREFIX
->  			    "Bus %04x:%02x not present in PCI namespace\n",
-> -			    root->segment, root->bus_nr);
-> +			    root->segment, (unsigned int)root->secondary.start);
->  		result = -ENODEV;
->  		goto end;
->  	}
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 7bf83dd..baacd98 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -373,7 +373,7 @@ struct acpi_pci_root {
->  	struct acpi_pci_id id;
->  	struct pci_bus *bus;
->  	u16 segment;
-> -	u8 bus_nr;
-> +	struct resource secondary;	/* downstream bus range */
->  
->  	u32 osc_support_set;	/* _OSC state of support bits */
->  	u32 osc_control_set;	/* _OSC state of control bits */
+> That's a good question...  After thinking about it I think that 
+> acpi_processor_add() must check the node to see if it has memory before 
+> bringing the cpu online.
+
+Why do we need to see whether the memory is onlined before bringing cpu
+to online state? It seems that there is no dependency between cpu online
+and memory online.
+
+Thanks.
+> 
+> I'll code that up, test, and repost.
+> 
+> P.
 > 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+
