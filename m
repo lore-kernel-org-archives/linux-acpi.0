@@ -1,33 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume) outside the graphics driver
-Date: Wed, 10 Mar 2010 22:15:26 +0100
-Message-ID: <201003102215.26232.rjw@sisk.pl>
-References: <201003062236.09801.rjw@sisk.pl> <548cdfc21003100254t5c94aca5u5cf1e9eb29215325@mail.gmail.com> <20100310205618.GA28628@srcf.ucam.org>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 4/6] drivers/acpi: Use kasprintf
+Date: Wed, 10 Mar 2010 22:16:51 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1003102216290.1672@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100310205618.GA28628@srcf.ucam.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pauli Nieminen <suokkos@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Luca Tettamanti <kronos.it@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 10 March 2010, Matthew Garrett wrote:
-> As far as the ACPI video driver goes, acpi_get_physical_pci_device() 
-> will give you something to work with.
+From: Julia Lawall <julia@diku.dk>
 
-Hmm.  Did you mean acpi_get_physical_device()?
+kasprintf combines kmalloc and sprintf, and takes care of the size
+calculation itself.
 
-Which acpi_device should I call that for?
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-> For the console-switching case, I think the most reasonable plan is probably
-> to add a flag to the console drivers to indicate whether or not they support
-> reprogramming the hardware themselves, and then walk all active console
-> drivers. There'd need to be a way for fb drivers to tell fbcon that they can
-> handle it.
+// <smpl>
+@@
+expression a,flag;
+expression list args;
+statement S;
+@@
 
-Yes, that sounds reasonable.
+  a =
+-  \(kmalloc\|kzalloc\)(...,flag)
++  kasprintf(flag,args)
+  <... when != a
+  if (a == NULL || ...) S
+  ...>
+- sprintf(a,args);
+// </smpl>
 
-Rafael
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/acpi/video.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff -u -p a/drivers/acpi/video.c b/drivers/acpi/video.c
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1005,11 +1005,10 @@ static void acpi_video_device_find_cap(s
+ 		result = acpi_video_init_brightness(device);
+ 		if (result)
+ 			return;
+-		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
+ 		if (!name)
+ 			return;
+ 
+-		sprintf(name, "acpi_video%d", count++);
+ 		device->backlight = backlight_device_register(name,
+ 			NULL, device, &acpi_backlight_ops);
+ 		kfree(name);
+@@ -1056,10 +1055,9 @@ static void acpi_video_device_find_cap(s
+ 		if (device->cap._DCS && device->cap._DSS) {
+ 			static int count;
+ 			char *name;
+-			name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
+ 			if (!name)
+ 				return;
+-			sprintf(name, "acpi_video%d", count++);
+ 			device->output_dev = video_output_register(name,
+ 					NULL, device, &acpi_output_properties);
+ 			kfree(name);
