@@ -1,69 +1,36 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 4/6] drivers/acpi: Use kasprintf
-Date: Wed, 10 Mar 2010 22:16:51 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1003102216290.1672@ask.diku.dk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Q] How to tell we're using the KMS (during suspend/resume)
+	outside the graphics driver
+Date: Wed, 10 Mar 2010 21:17:04 +0000
+Message-ID: <20100310211704.GA29201@srcf.ucam.org>
+References: <201003062236.09801.rjw@sisk.pl> <548cdfc21003100254t5c94aca5u5cf1e9eb29215325@mail.gmail.com> <20100310205618.GA28628@srcf.ucam.org> <201003102215.26232.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:52874 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753581Ab0CJVRI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Mar 2010 16:17:08 -0500
+Content-Disposition: inline
+In-Reply-To: <201003102215.26232.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pauli Nieminen <suokkos@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Luca Tettamanti <kronos.it@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dri-devel@lists.sourceforge.net
 
-From: Julia Lawall <julia@diku.dk>
+On Wed, Mar 10, 2010 at 10:15:26PM +0100, Rafael J. Wysocki wrote:
+> On Wednesday 10 March 2010, Matthew Garrett wrote:
+> > As far as the ACPI video driver goes, acpi_get_physical_pci_device() 
+> > will give you something to work with.
+> 
+> Hmm.  Did you mean acpi_get_physical_device()?
 
-kasprintf combines kmalloc and sprintf, and takes care of the size
-calculation itself.
+Ah, no, acpi_get_pci_dev.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+> Which acpi_device should I call that for?
 
-// <smpl>
-@@
-expression a,flag;
-expression list args;
-statement S;
-@@
+The video one. acpi_video_bus_check does something very similar to check 
+whether the device actually exists.
 
-  a =
--  \(kmalloc\|kzalloc\)(...,flag)
-+  kasprintf(flag,args)
-  <... when != a
-  if (a == NULL || ...) S
-  ...>
-- sprintf(a,args);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/acpi/video.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff -u -p a/drivers/acpi/video.c b/drivers/acpi/video.c
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1005,11 +1005,10 @@ static void acpi_video_device_find_cap(s
- 		result = acpi_video_init_brightness(device);
- 		if (result)
- 			return;
--		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
- 		if (!name)
- 			return;
- 
--		sprintf(name, "acpi_video%d", count++);
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
- 		kfree(name);
-@@ -1056,10 +1055,9 @@ static void acpi_video_device_find_cap(s
- 		if (device->cap._DCS && device->cap._DSS) {
- 			static int count;
- 			char *name;
--			name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
- 			if (!name)
- 				return;
--			sprintf(name, "acpi_video%d", count++);
- 			device->output_dev = video_output_register(name,
- 					NULL, device, &acpi_output_properties);
- 			kfree(name);
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
