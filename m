@@ -1,99 +1,49 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v4 2/2] ACPI: pci_root: pass acpi_pci_root to arch-specific
-	scan
-Date: Thu, 11 Mar 2010 12:20:11 -0700
-Message-ID: <20100311192011.17859.33830.stgit@bob.kio>
-References: <20100311191936.17859.3619.stgit@bob.kio>
+Subject: [Bug 15346] pci card in thinkpad dock is not detected.
+Date: Thu, 11 Mar 2010 12:47:37 -0700
+Message-ID: <201003111247.39161.bjorn.helgaas@hp.com>
+References: <117843.66339.qm@web111810.mail.gq1.yahoo.com> <201003021253.21066.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20100311191936.17859.3619.stgit@bob.kio>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201003021253.21066.bjorn.helgaas@hp.com>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: Lara Michaels <laramichaels1978@yahoo.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+[Updating this thread with the bugzilla pointer and my current theory]
 
-The acpi_pci_root structure contains all the individual items (acpi_device,
-domain, bus number) we pass to pci_acpi_scan_root(), so just pass the
-single acpi_pci_root pointer directly.
+http://bugzilla.kernel.org/show_bug.cgi?id=15436
 
-This will make it easier to add _CBA support later.  For _CBA, we need the
-entire downstream bus range, not just the base bus number.  We have that in
-the acpi_pci_root structure, so passing the pointer makes it available to
-the arch-specific code.
+I first thought this was an ACPI or dock problem, but I now think
+this is a PCI issue after all, since the machine was booted in the
+dock and no dock/undock events are involved.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
----
+>From this lspci output:
 
- arch/ia64/pci/pci.c         |    5 ++++-
- arch/x86/pci/acpi.c         |    5 ++++-
- drivers/acpi/pci_root.c     |    2 +-
- include/acpi/acpi_drivers.h |    3 +--
- 4 files changed, 10 insertions(+), 5 deletions(-)
+  00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 81)
+	Bus: primary=00, secondary=02, subordinate=13, sec-latency=64
+	I/O behind bridge: 00004000-00009fff
+	Memory behind bridge: c0200000-cfffffff
+	Prefetchable memory behind bridge: e8000000-efffffff
 
+  02:03.0 PCI bridge: Texas Instruments PCI2032 PCI Docking Bridge (prog-if 01)
+	Bus: primary=02, secondary=0b, subordinate=13, sec-latency=68
+	I/O behind bridge: 00004000-00004fff
+	Memory behind bridge: 84000000-8bffffff
+	Prefetchable memory behind bridge: 8c000000-93ffffff
 
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 64aff52..aa2533a 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -335,8 +335,11 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
- }
- 
- struct pci_bus * __devinit
--pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
-+pci_acpi_scan_root(struct acpi_pci_root *root)
- {
-+	struct acpi_device *device = root->device;
-+	int domain = root->segment;
-+	int bus = root->secondary.start;
- 	struct pci_controller *controller;
- 	unsigned int windows = 0;
- 	struct pci_bus *pbus;
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 5f11ff6..0c36ad5 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -215,8 +215,11 @@ res_alloc_fail:
- 	return;
- }
- 
--struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
-+struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
- {
-+	struct acpi_device *device = root->device;
-+	int domain = root->segment;
-+	int busnum = root->secondary.start;
- 	struct pci_bus *bus;
- 	struct pci_sysdata *sd;
- 	int node;
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index bf476fe..680450c 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -498,7 +498,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	 * PCI namespace does not get created until this call is made (and 
- 	 * thus the root bridge's pci_dev does not exist).
- 	 */
--	root->bus = pci_acpi_scan_root(device, segment, root->secondary.start);
-+	root->bus = pci_acpi_scan_root(root);
- 	if (!root->bus) {
- 		printk(KERN_ERR PREFIX
- 			    "Bus %04x:%02x not present in PCI namespace\n",
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 3a4767c..16903b3 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -102,8 +102,7 @@ int acpi_pci_bind_root(struct acpi_device *device);
- 
- /* Arch-defined function to add a bus to the system */
- 
--struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
--				   int bus);
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
- void pci_acpi_crs_quirks(void);
- 
- /* --------------------------------------------------------------------------
+  0b:02.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+	Bus: primary=0b, secondary=0c, subordinate=0f, sec-latency=176
 
+  0b:02.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
+	Bus: primary=0b, secondary=10, subordinate=13, sec-latency=176
+
+It looks like the dock PCI slot should appear as 0b:00 (as it does in the
+report at http://lkml.indiana.edu/hypermail/linux/kernel/0607.0/1409.html).
+We do see the CardBus bridges in the dock.  The fact that we don't see the
+video card, which should be on the same bus, makes me suspect that the
+dock's PCI slot is bad.
