@@ -1,177 +1,77 @@
-From: Fabio Comolli <fabio.comolli@gmail.com>
-Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
-Date: Wed, 10 Mar 2010 23:19:06 +0100
-Message-ID: <b637ec0b1003101419i81391fchd99410530915b1a3@mail.gmail.com>
-References: <b637ec0b1003091458j67efc62cg2c975e9e286f4b0b@mail.gmail.com>
-	 <71cd59b01003100507q79878fdan98e53cb4e705d2c2@mail.gmail.com>
-	 <b637ec0b1003100546l121f3a54o311aba94c8cabc5e@mail.gmail.com>
-	 <b637ec0b1003101409j6b03e219m5ac587b96bf5e26b@mail.gmail.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
+Date: Thu, 11 Mar 2010 08:55:15 +0800
+Message-ID: <1268268915.3606.101.camel@localhost.localdomain>
+References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com>
+	 <20100309154243.GA26520@srcf.ucam.org>  <4B969305.9070103@redhat.com>
+	 <1268186225.3606.25.camel@localhost.localdomain>
+	 <4B979E63.1070806@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:34111 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756164Ab0CJWTJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Mar 2010 17:19:09 -0500
-In-Reply-To: <b637ec0b1003101409j6b03e219m5ac587b96bf5e26b@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:41149 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932973Ab0CKA4r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Mar 2010 19:56:47 -0500
+In-Reply-To: <4B979E63.1070806@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>, ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Well, I'm sorry but I have some more detils to add.
+On Wed, 2010-03-10 at 21:28 +0800, Prarit Bhargava wrote:
+> >
+> > Why do we need to see whether the memory is onlined before bringing=
+ cpu
+> > to online state? It seems that there is no dependency between cpu o=
+nline
+> > and memory online.
+> >
+> >  =20
+>=20
+> Yakui,
+>=20
 
-On Wed, Mar 10, 2010 at 11:09 PM, Fabio Comolli <fabio.comolli@gmail.co=
-m> wrote:
-> HI again.
->
-> On Wed, Mar 10, 2010 at 2:46 PM, Fabio Comolli <fabio.comolli@gmail.c=
-om> wrote:
->> Hi.
->>
->> On Wed, Mar 10, 2010 at 2:07 PM, Corentin Chary
->> <corentin.chary@gmail.com> wrote:
->>> On Tue, Mar 9, 2010 at 11:58 PM, Fabio Comolli <fabio.comolli@gmail=
-=2Ecom> wrote:
->>>> Hi.
->>>> I have an EeePC 900 running 2.6.34-rc1.
->>>>
->>>> If I boot it on AC the cpu runs at full speed, 900MHz; if I boot i=
-t on
->>>> battery it runs only at 630Mhz. Plugging / unplugging the AC does =
-not
->>>> change the cpu frequency. Only a reboot can change the situation.
->>>>
->>>> I already tried to echo 0 or 1 to the
->>>> /sys/devices/platform/eeepc/cpufv file; no effects, even if the fi=
-le
->>>> changes its value.
->>>>
->>>> This is not a regression from 2.6.33: this behavior is also presen=
-t in
->>>> that version.
->>>>
->>>> Does this ring any bells? This is really annoying, especially when
->>>> trying to watch a movie on battery. Also 3D apps show a 30%
->>>> performance drop, as expected.
->>>
->>> Can you change the frequency with cpufreq ?
->>
->> No, I can't. Which cpufreq driver am I supposed to use? With only
->> cpufreq compiled in, the directory
->> /sys/drivers/system/cpu/cpu0/cpufreq is empty.
->
-> OK, there's something really wrong here.
-> I tried every possible cpufreq driver and the only one that loads is
-> p4-clockmod (the others say "no such device"). But...
->
-> The result is really unexpected, at least to me. The system switches
-> immediately to full speed, 900MHz (while running on battery). The
-> motivation is probably this:
->
-> [ =C2=A0 =C2=A03.698307] conservative governor failed, too long trans=
-ition
-> latency of HW, fallback to performance governor
-> [ =C2=A0 =C2=A03.698334] p4-clockmod: P4/Xeon(TM) CPU On-Demand Clock=
- Modulation available
->
-> The cause of this is probably that this driver thinks that my eeepc i=
+=EF=BB=BFThanks for the explanation.
+
+> Here's a deeper look into the issue.  New Intel processors have an=20
+> on-die memory controller and this means that as the socket comes and=20
+> goes, so does the memory "behind" the socket.
+
+Yes. The nehalem processor has the integrated memory controller. But it
+is not required that the hot-added memory should be onlined before
+bringing up CPU.
+    I do the following memory-hotplug test on one Machine.
+    a. Before hot plugging memory, four CPUs socket are installed and
+all the logical CPU are brought up. (Only one node has the memory)
+    b. The memory is hot-plugged and then the memory is onlined so that
+it can be accessed by the system.
+
+In the above testing case the CPU is brought up before onlining the
+hot-added memory. And the test shows that it can work well.
+
+>=20
+> ie) with new processors it is possible that an entire node which=20
+> consists of memory and cpus comes and goes with the socket enable and=
+=20
+> disable.
+>=20
+> The cpu bringup code does local node allocations for the cpu.  If the=
+=20
+> memory connected to the node (which is "behind" the socket) isn't=20
+> online, then these allocations fail, and then the cpu bringup fails.
+
+If the CPU can't allocate the memory from its own node, it can turn to
+other node and see whether the memory can be allocated. And this depend=
 s
-> capable of many intermediate cpu frequency values:
->
-> cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencie=
-s
-> 112500 225000 337500 450000 562500 675000 787500 900000
->
-> but the machine is only capable of 630 and 900MHz.
->
-> So, for me this is a really useful workaround: I compiled p4-clockmod
-> statically and so just a few seconds after boot I have my system
-> running at full speed :-)
+on the NUMA allocation policy.
 
-Unfortunately this is not true. /proc/cpuinfo says:
+  =20
+>=20
+> P.
+>=20
 
-processor	: 0
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 13
-model name	: Intel(R) Celeron(R) M processor          900MHz
-stepping	: 8
-cpu MHz		: 900.000
-cache size	: 512 KB
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 2
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov
-clflush dts acpi mmx fxsr sse sse2 ss tm pbe nx up bts
-bogomips	: 1260.35
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 32 bits physical, 32 bits virtual
-
-As you can see, 900MHz with only 1260.35 bogomips (the value
-correspondent to 630MHz).
-
-A quick performance test confirms that the cpu is running at 630MHz
-and that the value reported by /proc/cpuinfo is totally fake.
-
->
-> To summarize:
->
-> -----Without p4-clockmod
-> * the eeepc-laptop cpufv interface doesn't work at all on my eeepc900
-> * this happens at least with 2.6.33 and 2.6.34-rc1
-> * if the system boots on AC power it stays forever at 900MHz
-> * if it boots on battery it stays forever at 630MHz
->
-> ---With p4-clockmod
-> * the system boots at 630MHz if on battery
-> * as soon that p4-clockmod is loaded it switches to 900MHz
-> * p4-clockmod has a frequency table which is totally meaningless on t=
-he eeepc900
-
-* p4-clockmod does not work at all on the eeepc900 too!
-
->
-> What a mess....
->
-
-Indeed.
-
-> Regards,
-> Fabio
->
-
-=46abio
-
-
-
-
->>
->>> Did you try all cpufv values (see cpufv_available file) ?
->>
->> Yes, it only shows 0 and 1. I tried both, without success.
->>
->>> Is you bios up-to-date ?
->>
->> Yes it is, it's 1006.
->>
->>>
->>> --
->>> Corentin Chary
->>> http://xf.iksaif.net
->>>
->>
->> Thanks.
->> Fabio
->>
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
