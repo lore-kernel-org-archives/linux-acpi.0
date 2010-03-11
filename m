@@ -1,19 +1,21 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [Bug 15346] pci card in thinkpad dock is not detected.
-Date: Thu, 11 Mar 2010 12:47:37 -0700
-Message-ID: <201003111247.39161.bjorn.helgaas@hp.com>
-References: <117843.66339.qm@web111810.mail.gq1.yahoo.com> <201003021253.21066.bjorn.helgaas@hp.com>
+Subject: Re: [Bug 15436] pci card in thinkpad dock is not detected.
+Date: Thu, 11 Mar 2010 12:56:15 -0700
+Message-ID: <201003111256.16408.bjorn.helgaas@hp.com>
+References: <117843.66339.qm@web111810.mail.gq1.yahoo.com> <201003021253.21066.bjorn.helgaas@hp.com> <201003111247.39161.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201003021253.21066.bjorn.helgaas@hp.com>
+In-Reply-To: <201003111247.39161.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
 To: Lara Michaels <laramichaels1978@yahoo.com>
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+[[Ugh, I fat-fingered the [Bug 15436] in the subject, so the last one
+went to the wrong bugzilla.]]
 [Updating this thread with the bugzilla pointer and my current theory]
 
 http://bugzilla.kernel.org/show_bug.cgi?id=15436
