@@ -1,51 +1,62 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Bug 15436] pci card in thinkpad dock is not detected.
-Date: Thu, 11 Mar 2010 12:56:15 -0700
-Message-ID: <201003111256.16408.bjorn.helgaas@hp.com>
-References: <117843.66339.qm@web111810.mail.gq1.yahoo.com> <201003021253.21066.bjorn.helgaas@hp.com> <201003111247.39161.bjorn.helgaas@hp.com>
+From: Fabio Comolli <fabio.comolli@gmail.com>
+Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
+Date: Thu, 11 Mar 2010 22:28:50 +0100
+Message-ID: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201003111247.39161.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: Lara Michaels <laramichaels1978@yahoo.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:53417 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795Ab0CKV2w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Mar 2010 16:28:52 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 
-[[Ugh, I fat-fingered the [Bug 15436] in the subject, so the last one
-went to the wrong bugzilla.]]
-[Updating this thread with the bugzilla pointer and my current theory]
+Hi.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=15436
+On Tue, Mar 9, 2010 at 11:58 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
+> Hi.
+> I have an EeePC 900 running 2.6.34-rc1.
+>
+> If I boot it on AC the cpu runs at full speed, 900MHz; if I boot it on
+> battery it runs only at 630Mhz. Plugging / unplugging the AC does not
+> change the cpu frequency. Only a reboot can change the situation.
+>
+> I already tried to echo 0 or 1 to the
+> /sys/devices/platform/eeepc/cpufv file; no effects, even if the file
+> changes its value.
+>
+> This is not a regression from 2.6.33: this behavior is also present in
+> that version.
+>
+> Does this ring any bells? This is really annoying, especially when
+> trying to watch a movie on battery. Also 3D apps show a 30%
+> performance drop, as expected.
+>
+> Regards,
+> Fabio
 
-I first thought this was an ACPI or dock problem, but I now think
-this is a PCI issue after all, since the machine was booted in the
-dock and no dock/undock events are involved.
+Well, it turns out that this is indeed a regression, but I don't know
+from which kernel version.
+I reverted (not cleanly) this patch:
 
->From this lspci output:
+        http://patchwork.kernel.org/patch/28591
 
-  00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 81)
-	Bus: primary=00, secondary=02, subordinate=13, sec-latency=64
-	I/O behind bridge: 00004000-00009fff
-	Memory behind bridge: c0200000-cfffffff
-	Prefetchable memory behind bridge: e8000000-efffffff
+and now
 
-  02:03.0 PCI bridge: Texas Instruments PCI2032 PCI Docking Bridge (prog-if 01)
-	Bus: primary=02, secondary=0b, subordinate=13, sec-latency=68
-	I/O behind bridge: 00004000-00004fff
-	Memory behind bridge: 84000000-8bffffff
-	Prefetchable memory behind bridge: 8c000000-93ffffff
+        echo 1 > /sys/devices/platform/eeepc/cpufv
 
-  0b:02.0 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-	Bus: primary=0b, secondary=0c, subordinate=0f, sec-latency=176
+enables the powersave mode and
 
-  0b:02.1 CardBus bridge: Texas Instruments PCI1420 PC card Cardbus Controller
-	Bus: primary=0b, secondary=10, subordinate=13, sec-latency=176
+        echo 0 > /sys/devices/platform/eeepc/cpufv
 
-It looks like the dock PCI slot should appear as 0b:00 (as it does in the
-report at http://lkml.indiana.edu/hypermail/linux/kernel/0607.0/1409.html).
-We do see the CardBus bridges in the dock.  The fact that we don't see the
-video card, which should be on the same bus, makes me suspect that the
-dock's PCI slot is bad.
+enables the performance mode.
+
+Tested with the non-benchmark glxgears (275 frames/sec in powersave
+mode and 405 in performance mode) and stellarium (14 frames and 20
+frames).
+
+Regards,
+Fabio
