@@ -1,64 +1,36 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 1/2] acpica: fix acpi_ex_release_mutex() comment
-Date: Fri, 12 Mar 2010 12:19:37 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D83085859FF960C@orsmsx503.amr.corp.intel.com>
-References: <201003112159.o2BLx3MG012830@imap1.linux-foundation.org>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Re: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
+Date: Fri, 12 Mar 2010 22:25:17 +0100
+Message-ID: <b170af451003121325h388ba4e5rcb73d1929ffedd1d@mail.gmail.com>
+References: <201003040125.30091.rjw@sisk.pl>
+	 <b170af451003040311g3cea44caj1cd0e23e55814696@mail.gmail.com>
+	 <201003042012.36416.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:64330 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932176Ab0CLUTj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Mar 2010 15:19:39 -0500
-In-Reply-To: <201003112159.o2BLx3MG012830@imap1.linux-foundation.org>
-Content-Language: en-US
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:32804 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934626Ab0CLVZU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Mar 2010 16:25:20 -0500
+In-Reply-To: <201003042012.36416.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bzolnier@gmail.com" <bzolnier@gmail.com>, "error27@gmail.com" <error27@gmail.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-I just added this to the base ACPICA code, no need for this patch
-Bob
+W dniu 4 marca 2010 20:12 u=C5=BCytkownik Rafael J. Wysocki <rjw@sisk.p=
+l> napisa=C5=82:
+>> Can we send this to stable for .32 and .33?
+>
+> That depends on Len.
 
+Len?
 
->-----Original Message-----
->From: akpm@linux-foundation.org [mailto:akpm@linux-foundation.org]
->Sent: Thursday, March 11, 2010 1:59 PM
->To: lenb@kernel.org
->Cc: linux-acpi@vger.kernel.org; akpm@linux-foundation.org;
->bzolnier@gmail.com; error27@gmail.com; Lin, Ming M; Moore, Robert
->Subject: [patch 1/2] acpica: fix acpi_ex_release_mutex() comment
->
->From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
->
->trivial, leftover from my NULL pointer dereference patch which got
->'superseded' by commit fbc3be2
->
->Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
->Cc: Len Brown <lenb@kernel.org>
->Cc: Lin Ming <ming.m.lin@intel.com>
->Cc: Bob Moore <robert.moore@intel.com>
->Cc: Dan Carpenter <error27@gmail.com>
->Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->---
->
-> drivers/acpi/acpica/exmutex.c |    3 +--
-> 1 file changed, 1 insertion(+), 2 deletions(-)
->
->diff -puN drivers/acpi/acpica/exmutex.c~acpica-fix-acpi_ex_release_mutex-
->comment drivers/acpi/acpica/exmutex.c
->--- a/drivers/acpi/acpica/exmutex.c~acpica-fix-acpi_ex_release_mutex-
->comment
->+++ a/drivers/acpi/acpica/exmutex.c
->@@ -234,8 +234,7 @@ acpi_ex_acquire_mutex(union acpi_operand
-> 		return_ACPI_STATUS(AE_BAD_PARAMETER);
-> 	}
->
->-	/* Must have a valid thread ID */
->-
->+	/* Must have a valid thread. */
-> 	if (!walk_state->thread) {
-> 		ACPI_ERROR((AE_INFO,
-> 			    "Cannot acquire Mutex [%4.4s], null thread info",
->_
+--=20
+Rafa=C5=82
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
