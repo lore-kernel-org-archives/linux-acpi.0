@@ -1,86 +1,111 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
-Date: Fri, 12 Mar 2010 09:49:55 +0100
-Message-ID: <71cd59b01003120049n1a9fbbf3qfd37f14f241a7f64@mail.gmail.com>
-References: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
+Date: Fri, 12 Mar 2010 14:01:54 +0100
+Message-ID: <201003121401.54675.trenn@suse.de>
+References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com> <4B979E63.1070806@redhat.com> <1268268915.3606.101.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:62162 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756678Ab0CLIt5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Mar 2010 03:49:57 -0500
-In-Reply-To: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
+Received: from cantor.suse.de ([195.135.220.2]:40625 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932689Ab0CLNB5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Mar 2010 08:01:57 -0500
+In-Reply-To: <1268268915.3606.101.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabio Comolli <fabio.comolli@gmail.com>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: ykzhao <yakui.zhao@intel.com>
+Cc: Prarit Bhargava <prarit@redhat.com>, Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Mar 11, 2010 at 10:28 PM, Fabio Comolli <fabio.comolli@gmail.co=
-m> wrote:
-> Hi.
->
-> On Tue, Mar 9, 2010 at 11:58 PM, Fabio Comolli <fabio.comolli@gmail.c=
-om> wrote:
->> Hi.
->> I have an EeePC 900 running 2.6.34-rc1.
->>
->> If I boot it on AC the cpu runs at full speed, 900MHz; if I boot it =
-on
->> battery it runs only at 630Mhz. Plugging / unplugging the AC does no=
-t
->> change the cpu frequency. Only a reboot can change the situation.
->>
->> I already tried to echo 0 or 1 to the
->> /sys/devices/platform/eeepc/cpufv file; no effects, even if the file
->> changes its value.
->>
->> This is not a regression from 2.6.33: this behavior is also present =
-in
->> that version.
->>
->> Does this ring any bells? This is really annoying, especially when
->> trying to watch a movie on battery. Also 3D apps show a 30%
->> performance drop, as expected.
->>
->> Regards,
->> Fabio
->
-> Well, it turns out that this is indeed a regression, but I don't know
-> from which kernel version.
-> I reverted (not cleanly) this patch:
->
-> =A0 =A0 =A0 =A0http://patchwork.kernel.org/patch/28591
->
-> and now
->
-> =A0 =A0 =A0 =A0echo 1 > /sys/devices/platform/eeepc/cpufv
->
-> enables the powersave mode and
->
-> =A0 =A0 =A0 =A0echo 0 > /sys/devices/platform/eeepc/cpufv
->
-> enables the performance mode.
->
-> Tested with the non-benchmark glxgears (275 frames/sec in powersave
-> mode and 405 in performance mode) and stellarium (14 frames and 20
-> frames).
->
-> Regards,
-> Fabio
->
+On Thursday 11 March 2010 01:55:15 ykzhao wrote:
+> On Wed, 2010-03-10 at 21:28 +0800, Prarit Bhargava wrote:
+> > >
+> > > Why do we need to see whether the memory is onlined before bringi=
+ng cpu
+> > > to online state? It seems that there is no dependency between cpu=
+ online
+> > > and memory online.
+> > >
+> > >  =20
+> >=20
+> > Yakui,
+> >=20
+>=20
+> =EF=BB=BFThanks for the explanation.
+>=20
+> > Here's a deeper look into the issue.  New Intel processors have an=20
+> > on-die memory controller and this means that as the socket comes an=
+d=20
+> > goes, so does the memory "behind" the socket.
+>=20
+> Yes. The nehalem processor has the integrated memory controller. But =
+it
+> is not required that the hot-added memory should be onlined before
+> bringing up CPU.
+>     I do the following memory-hotplug test on one Machine.
+>     a. Before hot plugging memory, four CPUs socket are installed and
+> all the logical CPU are brought up. (Only one node has the memory)
+>     b. The memory is hot-plugged and then the memory is onlined so th=
+at
+> it can be accessed by the system.
+>=20
+> In the above testing case the CPU is brought up before onlining the
+> hot-added memory. And the test shows that it can work well.
+>=20
+> >=20
+> > ie) with new processors it is possible that an entire node which=20
+> > consists of memory and cpus comes and goes with the socket enable a=
+nd=20
+> > disable.
+> >=20
+> > The cpu bringup code does local node allocations for the cpu.  If t=
+he=20
+> > memory connected to the node (which is "behind" the socket) isn't=20
+> > online, then these allocations fail, and then the cpu bringup fails=
+=2E
+>=20
+> If the CPU can't allocate the memory from its own node, it can turn t=
+o
+> other node and see whether the memory can be allocated. And this depe=
+nds
+> on the NUMA allocation policy.
+Yes and this is broken and needs fixing.
+Yakui, I expect you miss this patch and wrongly online the cpus to exis=
+ting
+nodes, therefore you do not run into "out of memory" conditions:
+0271f91003d3703675be13b8865618359a6caa1f
 
-Thanks for the report,
-Could you try to add a quick printk to show the value stored in
-set_acpi(CM_ASL_CPUFV, value); ?
-And also, could you send the result of acpidump ?
-Thanks,
+I know for sure that slab is broken.
+slub behaves different, but I am not sure whether this is due to wrong =
+CPU
+hotadd code (processor_core.c is also broken and you get wrong C-state =
+info
+from BIOS tables on hotadded CPUs)
 
+Prarit: Can you retest with slub and processor.max_cstate=3D1, this cou=
+ld/should
+work.
 
---=20
-Corentin Chary
-http://xf.iksaif.net
+AFAIK vmware injects memory in the same way into clients, so you may ha=
+ve
+different behavior of virtualized Linux clients.
+
+This is a work around for current memory management not being able
+to allocate from foreign nodes. That should not mean that I generally
+vote against this to get added. If it works reliably why not add a work
+around until the more complicated stuff works.
+
+One question: You also want to automatically add the CPUs, once a CPU h=
+otplug
+event got fired, right?
+The fact that the memory hotplug driver adds the memory immediately onc=
+e notified,
+does not ensure that the HW/BIOS fires this event first.
+Theoretically you need a logic to not add CPUs to memoryless nodes, pol=
+l/wait
+until memory got added, etc.
+
+   Thomas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
