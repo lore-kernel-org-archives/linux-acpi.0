@@ -1,153 +1,45 @@
-From: Fabio Comolli <fabio.comolli@gmail.com>
-Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
-Date: Sat, 13 Mar 2010 13:50:35 +0100
-Message-ID: <b637ec0b1003130450n3293ee78wc58e08a9bbcefe17@mail.gmail.com>
-References: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
-	 <71cd59b01003120049n1a9fbbf3qfd37f14f241a7f64@mail.gmail.com>
-	 <b637ec0b1003121207g5d29ddb4k338f1768ed1c2759@mail.gmail.com>
-	 <71cd59b01003130116h4265769v9e1dae95361629ce@mail.gmail.com>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: [PATCH v2 0/3] ipmi: discovery precedence and update core driver with
+	dev_printk
+Date: Sat, 13 Mar 2010 11:13:37 -0700
+Message-ID: <20100313180121.20614.92547.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:53891 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753690Ab0CMMuh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Mar 2010 07:50:37 -0500
-In-Reply-To: <71cd59b01003130116h4265769v9e1dae95361629ce@mail.gmail.com>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:4931 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932953Ab0CMSNi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Mar 2010 13:13:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: minyard@acm.org
+Cc: yakui.zhao@intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-Well, I'm confused.
+These patches change the precedence of PNP based discovery mechanisms
+and update the driver's core to use dev_printk() and its constructs.
 
-I rebooted with the "vanilla" eeepc-laptop.c and I'm sorry to say that
-the situation it's not like the one I described in the post I wrote 2
-days ago. Actually the situation with the patch reverted is the same I
-have with the patch applied.
-
-What I mean is that if I boot on AC power /proc/cpuinfo always reports
-900MHz and 1800 bogomips. It I boot on battery /proc/cpuinfo always
-reports 630MHz and 1260 bogomips. Plugging / unplugging the AC does
-not change the situation. Only reboot does.
-
-But the cpufv interface does indeed seem to work, as glxgears and
-stellarium show the frame rate change accordingly to the powersave /
-performance selection.
-
-So my question is: what does really the cpufv interface do? Is it
-supposed to change the processor frequency? Or does it change
-something else?
-
-And if the answer to the latest question is affirmative, why
-/proc/cpuinfo seems to ignore it?
-
-Sorry for the confusion.
-Regards,
-=46abio
+As part of this patch series I wanted to remove the 'PFX' argument from
+ipmi_of_probe()'s dev_printk constructs as I believe it produces redundant
+output but I do not have a PPC platform to test against.
 
 
+---
+
+v2 - I dropped the contentious attempt to remove the ACPI SPMI static
+     table as a discovery mechanism.
+
+Myron Stowe (3):
+      ipmi: Raise precedence of PNP based discovery mechanisms (ACPI, PCI)
+      ipmi: Convert tracking of the ACPI device pointer to a PNP device
+      ipmi: Update driver to use 'dev_printk()' and its constructs
 
 
+Corey: If you encounter any issues applying this series let me know,
+       including your current basis, and I'll re-work the series.
 
-On Sat, Mar 13, 2010 at 10:16 AM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Fri, Mar 12, 2010 at 9:07 PM, Fabio Comolli <fabio.comolli@gmail.c=
-om> wrote:
->> Hi
->>
->> On Fri, Mar 12, 2010 at 9:49 AM, Corentin Chary
->> <corentin.chary@gmail.com> wrote:
->>> On Thu, Mar 11, 2010 at 10:28 PM, Fabio Comolli <fabio.comolli@gmai=
-l.com> wrote:
->>>> Hi.
->>>>
->>>> On Tue, Mar 9, 2010 at 11:58 PM, Fabio Comolli <fabio.comolli@gmai=
-l.com> wrote:
->>>>> Hi.
->>>>> I have an EeePC 900 running 2.6.34-rc1.
->>>>>
->>>>> If I boot it on AC the cpu runs at full speed, 900MHz; if I boot =
-it on
->>>>> battery it runs only at 630Mhz. Plugging / unplugging the AC does=
- not
->>>>> change the cpu frequency. Only a reboot can change the situation.
->>>>>
->>>>> I already tried to echo 0 or 1 to the
->>>>> /sys/devices/platform/eeepc/cpufv file; no effects, even if the f=
-ile
->>>>> changes its value.
->>>>>
->>>>> This is not a regression from 2.6.33: this behavior is also prese=
-nt in
->>>>> that version.
->>>>>
->>>>> Does this ring any bells? This is really annoying, especially whe=
-n
->>>>> trying to watch a movie on battery. Also 3D apps show a 30%
->>>>> performance drop, as expected.
->>>>>
->>>>> Regards,
->>>>> Fabio
->>>>
->>>> Well, it turns out that this is indeed a regression, but I don't k=
-now
->>>> from which kernel version.
->>>> I reverted (not cleanly) this patch:
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0http://patchwork.kernel.org/patch/28591
->>>>
->>>> and now
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0echo 1 > /sys/devices/platform/eeepc/cp=
-ufv
->>>>
->>>> enables the powersave mode and
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0echo 0 > /sys/devices/platform/eeepc/cp=
-ufv
->>>>
->>>> enables the performance mode.
->>>>
->>>> Tested with the non-benchmark glxgears (275 frames/sec in powersav=
-e
->>>> mode and 405 in performance mode) and stellarium (14 frames and 20
->>>> frames).
->>>>
->>>> Regards,
->>>> Fabio
->>>>
->>>
->>> Thanks for the report,
->>> Could you try to add a quick printk to show the value stored in
->>> set_acpi(CM_ASL_CPUFV, value); ?
->>> And also, could you send the result of acpidump ?
->>> Thanks,
->>
->> After the revert there is no set_acpi(CM_ASL_CPUFV, value) anymore.
->> Please find the acpidump in attachment.
->>
->> Regards,
->> Fabio
->
-> Yep, I know, but un-revert the patch, and add a printk :p
-> Could you also send the result of:
-> /* clean boot */
-> cat cpufv
-> echo 0 > cpufv
-> cat cpufv
-> echo 1 > cpufv
-> cat cpufv
->
-> Thanks,
->
-> --
-> Corentin Chary
-> http://xf.iksaif.net
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+ drivers/char/ipmi/ipmi_msghandler.c |   11 +-
+ drivers/char/ipmi/ipmi_si_intf.c    |  205 ++++++++++++++++-------------------
+ 2 files changed, 96 insertions(+), 120 deletions(-)
+
