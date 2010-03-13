@@ -1,58 +1,31 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Fri, 12 Mar 2010 19:09:41 -0800
-Message-ID: <4B9B01F5.3000807@linux.intel.com>
-References: <1268446032.13691.69.camel@ank32>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: 2.6.34-rc1: ACPI: BUG: key f71f0168 not in .data!
+Date: Fri, 12 Mar 2010 19:36:22 -0800
+Message-ID: <4B9B0836.7080508@kernel.org>
+References: <a4423d671003081547v5c955d58t248db945c06d2a7f@mail.gmail.com>	<86802c441003081612r2f44efd6n9664b4b7c98a636a@mail.gmail.com>	<m1d3zel4b4.fsf@fess.ebiederm.org> <4B95F37E.6060309@kernel.org> <m14okqnczd.fsf@fess.ebiederm.org> <4B99A6F0.4080203@kernel.org> <4B99A7B9.3000802@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:21365 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757945Ab0CMDJn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Mar 2010 22:09:43 -0500
-In-Reply-To: <1268446032.13691.69.camel@ank32>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4B99A7B9.3000802@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>, Roland Dreier <rdreier@cisco.com>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>, Greg KH <gregkh@suse.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: akataria@vmware.com
-Cc: Len Brown <lenb@kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
 
-, Alok Kataria wrote:
+---
+ drivers/net/mlx4/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Hi Alok,
-
-> Hi,
->
-> Looking at the current code swiotlb is initialized for 64bit kernels
-> only when the max_pfn value is greater than 4G (MAX_DMA32_PFN value).
-> So in cases when the initial memory is less than 4GB the kernel boots
-> without enabling swiotlb, when we hotadd memory to such a kernel and go
-> beyond the 4G limit, swiotlb is still disabled. As a result when any
-> 32bit devices start using this newly added memory beyond 4G, the kernel
-> starts spitting error messages like below or in some cases it causes
-> kernel panics.
-
-Yes seems like a real problem.
-
->
-> 1. Enable swiotlb for all 64bit kernels which have memory hot-add
-> support.
-
-I don't think that's a good idea. It would enable it everywhere on
-distributions which compile with hotadd. Need (2)
-
-> 2. Instead of checking the max_pfn value in pci_swiotlb_detect, check
-> for max_hotpluggable_pfn (or some such) value. Though I don't see such a
-> value readily available. I could parse the SRAT and get hotplug memory
-> information but that will make swiotlb detection logic a little too
-> complex. A quick look around srat_xx.c files and the acpi_memhotplug
-> module didn't find any useful API that could be used directly either.
-> So was wondering if any of you are aware of an easy way to get such
-> information ?
-
-I have a patchkit to revamp the SRAT parsing to store the hotadd information
-more efficiently (the current way is pretty dumb)  I need to repost that.
-
-With that it would be relatively easy to do I think.
-
--Andi
+Index: linux-2.6/drivers/net/mlx4/main.c
+===================================================================
+--- linux-2.6.orig/drivers/net/mlx4/main.c
++++ linux-2.6/drivers/net/mlx4/main.c
+@@ -1023,6 +1023,7 @@ static int mlx4_init_port_info(struct ml
+ 	info->port_attr.attr.mode = S_IRUGO | S_IWUSR;
+ 	info->port_attr.show      = show_port_type;
+ 	info->port_attr.store     = set_port_type;
++	sysfs_attr_init(&info->port_attr.attr);
+ 
+ 	err = device_create_file(&dev->pdev->dev, &info->port_attr);
+ 	if (err) {
