@@ -1,174 +1,152 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][RFC][PATCH 3/3] ACPI / ACPICA: Reduce code duplication related to GPE lookup
-Date: Sat, 13 Mar 2010 00:14:39 +0100
-Message-ID: <201003130014.39568.rjw@sisk.pl>
-References: <201003080034.11053.rjw@sisk.pl> <201003080037.13241.rjw@sisk.pl>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH -v2 2/2] ACPI, APEI, PCIE AER, use general HEST table
+ parsing in AER firmware_first setup
+Date: Fri, 12 Mar 2010 17:23:32 -0800
+Message-ID: <20100312172332.302fb00d@jbarnes-piketon>
+References: <1268273698-21940-1-git-send-email-ying.huang@intel.com>
+	<1268273698-21940-2-git-send-email-ying.huang@intel.com>
+	<1268273698-21940-3-git-send-email-ying.huang@intel.com>
+	<4B99B845.70600@jp.fujitsu.com>
+	<1268380780.1640.510.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57903 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933445Ab0CLXMJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Mar 2010 18:12:09 -0500
-In-Reply-To: <201003080037.13241.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1268380780.1640.510.camel@yhuang-dev.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Fri, 12 Mar 2010 15:59:40 +0800
+Huang Ying <ying.huang@intel.com> wrote:
 
-There is some code duplication related to the looking up a GPE in a
-GPE block.  Namely, the same code construct, which is quite difficult
-to read and inefficient, is used in three different places (two times
-in acpi_ev_get_gpe_event_info() and once in
-acpi_ev_match_prw_and_gpe()).  To reduce the code duplication move it
-to a separate function and clean it up.
+> On Fri, 2010-03-12 at 11:43 +0800, Hidetoshi Seto wrote:
+> > (2010/03/11 11:14), Huang Ying wrote:
+> > > -EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
+> > > --- a/drivers/pci/pcie/aer/aerdrv.h
+> > > +++ b/drivers/pci/pcie/aer/aerdrv.h
+> > > @@ -134,4 +134,13 @@ static inline int aer_osc_setup(struct p
+> > >  }
+> > >  #endif
+> > >  
+> > > +#ifdef CONFIG_ACPI_APEI
+> > > +extern void aer_set_firmware_first(struct pci_dev *pci_dev);
+> > > +#else
+> > > +static inline void aer_set_firmware_first(struct pci_dev *pci_dev)
+> > > +{
+> > > +	pci_dev->__aer_firmware_first_valid = 1;
+> > > +}
+> > > +#endif
+> > > +
+> > >  #endif /* _AERDRV_H_ */
+> > 
+> > How about having aer_get_firmware_first() in this header too?
+> > 
+> > > --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
+> > > +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> >  :
+> > > +#ifdef CONFIG_ACPI_APEI
+> >  :
+> > > +void aer_set_firmware_first(struct pci_dev *pci_dev)
+> > > +{
+> >  :
+> > > +}
+> > > +#endif
+> > > --- a/drivers/pci/pcie/aer/aerdrv_core.c
+> > > +++ b/drivers/pci/pcie/aer/aerdrv_core.c
+> > > @@ -30,12 +30,19 @@ static int nosourceid;
+> > >  module_param(forceload, bool, 0);
+> > >  module_param(nosourceid, bool, 0);
+> > >  
+> > > +static int pcie_aer_get_firmware_first(struct pci_dev *dev)
+> > > +{
+> > > +	if (!dev->__aer_firmware_first_valid)
+> > > +		aer_set_firmware_first(dev);
+> > > +	return dev->__aer_firmware_first;
+> > > +}
+> > > +
+> > 
+> > Then you can put pcie_aer_get_firmware_first() to next to
+> > pcie_aer_set_firmware_first() in aerdrv_acpi.c, which is
+> > the best file for these functions I think.
+> > 
+> > > @@ -872,7 +879,7 @@ out:
+> > >  	if (forceload) {
+> > >  		dev_printk(KERN_DEBUG, &dev->device,
+> > >  			   "aerdrv forceload requested.\n");
+> > > -		dev->port->aer_firmware_first = 0;
+> > > +		dev->port->__aer_firmware_first = 0;
+> > >  		return 0;
+> > >  	}
+> > >  	return -ENXIO;
+> > 
+> > I'd like to see a purpose-oriented method here, something like
+> > pcie_aer_force_firmware_first_to(dev, forcedvalue).
+> > 
+> > Or, it would be more better, change pcie_aer_set_firmware_first()
+> > (= currently used by APEI only) to static with better name.
+> > 
+> > E.g. 
+> >   Before:		After:
+> > 
+> >   # get a flag that tells @dev is firmware first or not
+> >     pcie_aer_get_firmware_first(dev)
+> > 			=> pcie_aer_get_firmware_first(dev) # no change
+> > 
+> >   # set a flag that tells @dev is firmware first or not
+> >     dev->port->__aer_firmware_first = X
+> > 			=> pcie_aer_set_firmware_first(dev, X)
+> > 
+> >   # parse hest to know @dev is firmware first or not
+> >     pcie_aer_set_firmware_first(dev)
+> > 			=> aer_parse_hest_for(dev)
+> 
+> Sounds reasonable. After putting current pcie_aer_set_firmware_first
+> implementation into aerdrv_core.c, we can make it static. And we can add
+> pcie_aer_force_firmware_first for forced setting.
+> 
+> > > --- a/include/linux/pci.h
+> > > +++ b/include/linux/pci.h
+> > > @@ -311,7 +311,8 @@ struct pci_dev {
+> > >  	unsigned int	is_virtfn:1;
+> > >  	unsigned int	reset_fn:1;
+> > >  	unsigned int    is_hotplug_bridge:1;
+> > > -	unsigned int    aer_firmware_first:1;
+> > > +	unsigned int    __aer_firmware_first_valid:1;
+> > > +	unsigned int	__aer_firmware_first:1;
+> > >  	pci_dev_flags_t dev_flags;
+> > >  	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+> > 
+> > BTW, what the prefix "__" for?
+> 
+> I want to warn users that this is a internal interface, don't use it
+> directly.
+> 
+> > I recommend you to separate this 2/2 patch into 2 pieces,
+> > one for PCI addressed to Jesse, and another is for ACPI.
+> > i.e.:
+> > 
+> >  [PATCH] PCIE, AER: arrange pcie_aer_{get,set}_firmware_first
+> >  [PATCH 1/2] ACPI, APEI: Make APEI core configurable built-in
+> >  [PATCH 2/2] ACPI, APEI: use general HEST table parsing in AER
+> > 
+> > You can make 3rd patch to contain only *acpi* changes, remove of
+> > acpi/hest.c and modify of pcie/aer/aerdrv_acpi.c.
+> > Then it will be easy-to-pull for Len, right?
+> 
+> Cross maintainers merging is painful after all. Even I split the patches
+> as you proposed, I may need to wait another 2 merge windows to merge the
+> code. To make it goes more smoothly, I suggest to merge all the code in
+> Len's tree after getting ack from Jesse.
+> 
+> Hi, Len and Jesse, how about my suggestion?
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
-As you noticed, the same piece of code is actually used in one more place,
-so it's possible to reduce the code duplication even more.
-
-Appended is updated patch doing that.
+Yeah, it seems like the bulk of it is ACPI related, so going through
+Len's tree is fine with me.  The PCI portion seems reasonable assuming
+you include Hidetoshi-san's suggestions, you can add my Ack for now
+(I'll yell if I find something I don't like in your next post).
 
 Thanks,
-Rafael
----
- drivers/acpi/acpica/acevents.h |    4 ++
- drivers/acpi/acpica/evgpe.c    |   58 ++++++++++++++++++++++++-----------------
- drivers/acpi/acpica/evgpeblk.c |   14 +++------
- 3 files changed, 44 insertions(+), 32 deletions(-)
-
-Index: linux-2.6/drivers/acpi/acpica/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpe.c
-+++ linux-2.6/drivers/acpi/acpica/evgpe.c
-@@ -168,6 +168,33 @@ acpi_status acpi_ev_disable_gpe(struct a
- 	return_ACPI_STATUS(status);
- }
- 
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ev_gpeblk_event_info
-+ *
-+ * PARAMETERS:  gpe_block           - GPE block to search
-+ *              gpe_number          - Raw GPE number
-+ *
-+ * RETURN:      A GPE event_info struct if found. NULL if not found
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_gpe_event_info *acpi_ev_gpeblk_event_info(
-+					struct acpi_gpe_block_info *gpe_block,
-+					u32 gpe_number)
-+{
-+	u32 gpe_index, gpe_count;
-+
-+	if (!gpe_block || gpe_number < gpe_block->block_base_number)
-+		return (NULL);
-+
-+	gpe_index = gpe_number - gpe_block->block_base_number;
-+	gpe_count = gpe_block->register_count * ACPI_GPE_REGISTER_WIDTH;
-+	return gpe_index < gpe_count ?
-+		(&gpe_block->event_info[gpe_index]) : (NULL);
-+}
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ev_get_gpe_event_info
-@@ -189,7 +216,7 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 						       u32 gpe_number)
- {
- 	union acpi_operand_object *obj_desc;
--	struct acpi_gpe_block_info *gpe_block;
-+	struct acpi_gpe_event_info *gpe_info;
- 	u32 i;
- 
- 	ACPI_FUNCTION_ENTRY();
-@@ -201,18 +228,11 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 		/* Examine GPE Block 0 and 1 (These blocks are permanent) */
- 
- 		for (i = 0; i < ACPI_MAX_GPE_BLOCKS; i++) {
--			gpe_block = acpi_gbl_gpe_fadt_blocks[i];
--			if (gpe_block) {
--				if ((gpe_number >= gpe_block->block_base_number)
--				    && (gpe_number <
--					gpe_block->block_base_number +
--					(gpe_block->register_count * 8))) {
--					return (&gpe_block->
--						event_info[gpe_number -
--							   gpe_block->
--							   block_base_number]);
--				}
--			}
-+			gpe_info = acpi_ev_gpeblk_event_info(
-+						acpi_gbl_gpe_fadt_blocks[i],
-+						gpe_number);
-+			if (gpe_info)
-+				return (gpe_info);
- 		}
- 
- 		/* The gpe_number was not in the range of either FADT GPE block */
-@@ -228,16 +248,8 @@ struct acpi_gpe_event_info *acpi_ev_get_
- 		return (NULL);
- 	}
- 
--	gpe_block = obj_desc->device.gpe_block;
--
--	if ((gpe_number >= gpe_block->block_base_number) &&
--	    (gpe_number <
--	     gpe_block->block_base_number + (gpe_block->register_count * 8))) {
--		return (&gpe_block->
--			event_info[gpe_number - gpe_block->block_base_number]);
--	}
--
--	return (NULL);
-+	return acpi_ev_gpeblk_event_info(obj_desc->device.gpe_block,
-+					  gpe_number);
- }
- 
- /*******************************************************************************
-Index: linux-2.6/drivers/acpi/acpica/acevents.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/acevents.h
-+++ linux-2.6/drivers/acpi/acpica/acevents.h
-@@ -82,6 +82,10 @@ acpi_status acpi_ev_enable_gpe(struct ac
- 
- acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info);
- 
-+struct acpi_gpe_event_info *acpi_ev_gpeblk_event_info(
-+					struct acpi_gpe_block_info *gpe_block,
-+					u32 gpe_number);
-+
- struct acpi_gpe_event_info *acpi_ev_get_gpe_event_info(acpi_handle gpe_device,
- 						       u32 gpe_number);
- 
-Index: linux-2.6/drivers/acpi/acpica/evgpeblk.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpeblk.c
-+++ linux-2.6/drivers/acpi/acpica/evgpeblk.c
-@@ -439,15 +439,11 @@ acpi_ev_match_prw_and_gpe(acpi_handle ob
- 	 *     2) The GPE index(number) is within the range of the Gpe Block
- 	 *          associated with the GPE device.
- 	 */
--	if ((gpe_device == target_gpe_device) &&
--	    (gpe_number >= gpe_block->block_base_number) &&
--	    (gpe_number < gpe_block->block_base_number +
--	     (gpe_block->register_count * 8))) {
--		gpe_event_info = &gpe_block->event_info[gpe_number -
--							gpe_block->
--							block_base_number];
--
--		gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
-+	if (gpe_device == target_gpe_device) {
-+		gpe_event_info = acpi_ev_gpeblk_event_info(gpe_block,
-+							   gpe_number);
-+		if (gpe_event_info)
-+			gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
- 	}
- 
-       cleanup:
+-- 
+Jesse Barnes, Intel Open Source Technology Center
