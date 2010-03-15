@@ -1,47 +1,177 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 7/7] acpi: remove old blacklist entries
-Date: Sun, 14 Mar 2010 16:35:24 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1003141610020.18869@sony>
-References: <201002022238.o12Mbx54018702@imap1.linux-foundation.org>
- <201002231211.54403.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 01/34] sony-laptop - remove private workqueue,
+ use keventd instead
+Date: Sun, 14 Mar 2010 21:40:40 -0400
+Message-ID: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40161 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934983Ab0COBPi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:15:38 -0400
-Received: from sony ([unknown] [192.102.209.1]) by vms173003.mailsrvcs.net
+Received: from vms173019pub.verizon.net ([206.46.173.19]:61656 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068Ab0COBmc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:42:32 -0400
+Received: from sony ([unknown] [192.102.209.1]) by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KZA00CPEU5XUYW6@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:15:37 -0500 (CDT)
-In-reply-to: <201002231211.54403.trenn@suse.de>
+ with ESMTPA id <0KZA0092ZVEHA2E0@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:42:23 -0500 (CDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-On Tue, 23 Feb 2010, Thomas Renninger wrote:
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-> > -	{
-> > -	 .callback = force_acpi_ht,
-> > -	 .ident = "IBM eserver xSeries 330",
-> > -	 .matches = {
-> > -		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
-> > -		     DMI_MATCH(DMI_BOARD_NAME, "eserver xSeries 330"),
-> > -		     },
-> > -	 },
+If we reschedule work instead of having work function sleep for 10 msecs
+between reads from kfifo we can safely use the main workqueue (keventd)
+and not bother with creating driver-private one.
 
-> For this one I can confirm that the blacklist is not needed with latest
-> kernel and the BIOS I use.
-...
-> I'd also vote to remove the blacklist for ACPI test
-> (does this branch get synced into linux-next)?
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/platform/x86/sony-laptop.c |   71 ++++++++++++++++++++----------------
+ 1 files changed, 39 insertions(+), 32 deletions(-)
 
-Thanks for the verification, Thomas.
-Yes, this one is gone, with all the other force_acpi_ht entries.
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index 5af5334..c42d35b 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -145,7 +145,6 @@ struct sony_laptop_input_s {
+ 	struct input_dev	*key_dev;
+ 	struct kfifo		fifo;
+ 	spinlock_t		fifo_lock;
+-	struct workqueue_struct	*wq;
+ };
+ 
+ static struct sony_laptop_input_s sony_laptop_input = {
+@@ -301,18 +300,28 @@ static int sony_laptop_input_keycode_map[] = {
+ /* release buttons after a short delay if pressed */
+ static void do_sony_laptop_release_key(struct work_struct *work)
+ {
++	struct delayed_work *dwork =
++			container_of(work, struct delayed_work, work);
+ 	struct sony_laptop_keypress kp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sony_laptop_input.fifo_lock, flags);
+ 
+-	while (kfifo_out_locked(&sony_laptop_input.fifo, (unsigned char *)&kp,
+-			sizeof(kp), &sony_laptop_input.fifo_lock)
+-			== sizeof(kp)) {
+-		msleep(10);
++	if (kfifo_out(&sony_laptop_input.fifo,
++		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
+ 		input_report_key(kp.dev, kp.key, 0);
+ 		input_sync(kp.dev);
+ 	}
++
++	/* If there is something in the fifo schedule next release. */
++	if (kfifo_len(&sony_laptop_input.fifo) != 0)
++		schedule_delayed_work(dwork, msecs_to_jiffies(10));
++
++	spin_unlock_irqrestore(&sony_laptop_input.fifo_lock, flags);
+ }
+-static DECLARE_WORK(sony_laptop_release_key_work,
+-		do_sony_laptop_release_key);
++
++static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
++			    do_sony_laptop_release_key);
+ 
+ /* forward event to the input subsystem */
+ static void sony_laptop_report_input_event(u8 event)
+@@ -366,13 +375,13 @@ static void sony_laptop_report_input_event(u8 event)
+ 		/* we emit the scancode so we can always remap the key */
+ 		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
+ 		input_sync(kp.dev);
+-		kfifo_in_locked(&sony_laptop_input.fifo,
+-			  (unsigned char *)&kp, sizeof(kp),
+-			  &sony_laptop_input.fifo_lock);
+ 
+-		if (!work_pending(&sony_laptop_release_key_work))
+-			queue_work(sony_laptop_input.wq,
+-					&sony_laptop_release_key_work);
++		/* schedule key release */
++		kfifo_in_locked(&sony_laptop_input.fifo,
++				(unsigned char *)&kp, sizeof(kp),
++				&sony_laptop_input.fifo_lock);
++		schedule_delayed_work(&sony_laptop_release_key_work,
++				      msecs_to_jiffies(10));
+ 	} else
+ 		dprintk("unknown input event %.2x\n", event);
+ }
+@@ -390,27 +399,18 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 
+ 	/* kfifo */
+ 	spin_lock_init(&sony_laptop_input.fifo_lock);
+-	error =
+-	 kfifo_alloc(&sony_laptop_input.fifo, SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
++	error = kfifo_alloc(&sony_laptop_input.fifo,
++			    SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
+ 	if (error) {
+ 		printk(KERN_ERR DRV_PFX "kfifo_alloc failed\n");
+ 		goto err_dec_users;
+ 	}
+ 
+-	/* init workqueue */
+-	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
+-	if (!sony_laptop_input.wq) {
+-		printk(KERN_ERR DRV_PFX
+-				"Unable to create workqueue.\n");
+-		error = -ENXIO;
+-		goto err_free_kfifo;
+-	}
+-
+ 	/* input keys */
+ 	key_dev = input_allocate_device();
+ 	if (!key_dev) {
+ 		error = -ENOMEM;
+-		goto err_destroy_wq;
++		goto err_free_kfifo;
+ 	}
+ 
+ 	key_dev->name = "Sony Vaio Keys";
+@@ -473,9 +473,6 @@ err_unregister_keydev:
+ err_free_keydev:
+ 	input_free_device(key_dev);
+ 
+-err_destroy_wq:
+-	destroy_workqueue(sony_laptop_input.wq);
+-
+ err_free_kfifo:
+ 	kfifo_free(&sony_laptop_input.fifo);
+ 
+@@ -486,12 +483,23 @@ err_dec_users:
+ 
+ static void sony_laptop_remove_input(void)
+ {
+-	/* cleanup only after the last user has gone */
++	struct sony_laptop_keypress kp = { NULL };
++
++	/* Cleanup only after the last user has gone */
+ 	if (!atomic_dec_and_test(&sony_laptop_input.users))
+ 		return;
+ 
+-	/* flush workqueue first */
+-	flush_workqueue(sony_laptop_input.wq);
++	cancel_delayed_work_sync(&sony_laptop_release_key_work);
++
++	/*
++	 * Generate key-up events for remaining keys. Note that we don't
++	 * need locking since nobody is adding new events to the kfifo.
++	 */
++	while (kfifo_out(&sony_laptop_input.fifo,
++			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
++		input_report_key(kp.dev, kp.key, 0);
++		input_sync(kp.dev);
++	}
+ 
+ 	/* destroy input devs */
+ 	input_unregister_device(sony_laptop_input.key_dev);
+@@ -502,7 +510,6 @@ static void sony_laptop_remove_input(void)
+ 		sony_laptop_input.jog_dev = NULL;
+ 	}
+ 
+-	destroy_workqueue(sony_laptop_input.wq);
+ 	kfifo_free(&sony_laptop_input.fifo);
+ }
+ 
+-- 
+1.7.0.2.201.g80978
 
-Yes, the acpi test branch is included in linux-next.
-
-cheers,
-Len Brown, Intel Open Source Technology Center
