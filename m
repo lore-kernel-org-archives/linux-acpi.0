@@ -1,92 +1,96 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH v2 1/3] ipmi: Raise precedence of PNP based discovery
-	mechanisms (ACPI, PCI)
-Date: Mon, 15 Mar 2010 09:48:39 +0800
-Message-ID: <1268617719.3617.9.camel@localhost.localdomain>
-References: <20100313180121.20614.92547.stgit@bob.kio>
-	 <20100313181342.20614.72981.stgit@bob.kio>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 09/34] ACPI: delete unused acpi_evaluate_string()
+Date: Sun, 14 Mar 2010 21:40:48 -0400
+Message-ID: <0e026445fb36852d3102cb8bb24868765fe5816a.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:29077 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753290Ab0COBut (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Mar 2010 21:50:49 -0400
-In-Reply-To: <20100313181342.20614.72981.stgit@bob.kio>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:57930 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290Ab0COBuw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:50:52 -0400
+Received: from sony ([unknown] [192.102.209.1]) by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KZA00CQ3VS33361@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:50:33 -0500 (CDT)
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@hp.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
-On Sun, 2010-03-14 at 02:13 +0800, Myron Stowe wrote:
-> This raises the precedence of PNP discovery mechanisms, ACPI and  PCI,
-> above SMBIOS and SPMI as indicated by Appendix C1 of the IPMI
-> specification.
-> 
-> Reference: IPMI - Intelligent Platform Management Interface Specification
->            v2.0, Document Revision 1.0, 05.05.2005 Markup
-> 
->   Appendix C1 - Locating IPMI System Interfaces via SMBIOS Tables
->       "Note that the settings that this structure reports may be over-
->       ridden by `Plug-and-Play' reassignment by the OS.  Therefore, this
->       structure should be used only when the interface cannot be
->       discovered via `Plug-and-Play' discovery mechanisms incorporated
->       in interfaces such as PCI and ACPI."
+From: Len Brown <len.brown@intel.com>
 
-Hi,
-    The SPMI detection mechanism belongs to one of two ACPI detection
-mechanisms.
-    Can we put it before DMI detection mechanism?
-    
-    Anyway, it is right that the pnp discovery mechanism has higher
-priority than PCI/SPMI/SMBIOS.
+Roel found a logic issue in the #if 0 acpi_evaluate_string():
 
-Thanks.
-   Yakui
-> 
-> Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-> ---
-> 
->  drivers/char/ipmi/ipmi_si_intf.c |   15 ++++++++-------
->  1 files changed, 8 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> index 176f175..86a7dd7 100644
-> --- a/drivers/char/ipmi/ipmi_si_intf.c
-> +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> @@ -3197,13 +3197,6 @@ static __devinit int init_ipmi_si(void)
->  
->  	hardcode_find_bmc();
->  
-> -#ifdef CONFIG_DMI
-> -	dmi_find_bmc();
-> -#endif
-> -
-> -#ifdef CONFIG_ACPI
-> -	spmi_find_bmc();
-> -#endif
->  #ifdef CONFIG_ACPI
->  	pnp_register_driver(&ipmi_pnp_driver);
->  #endif
-> @@ -3220,6 +3213,14 @@ static __devinit int init_ipmi_si(void)
->  	of_register_platform_driver(&ipmi_of_platform_driver);
->  #endif
->  
-> +#ifdef CONFIG_DMI
-> +	dmi_find_bmc();
-> +#endif
-> +
-> +#ifdef CONFIG_ACPI
-> +	spmi_find_bmc();
-> +#endif
-> +
->  	if (si_trydefaults) {
->  		mutex_lock(&smi_infos_lock);
->  		if (list_empty(&smi_infos)) {
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-           || (element->type != ACPI_TYPE_BUFFER)
++           && (element->type != ACPI_TYPE_BUFFER)
+
+delete the dead code.
+
+pointed-out-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/utils.c |   45 ---------------------------------------------
+ 1 files changed, 0 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 811fec1..592dffb 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -289,51 +289,6 @@ acpi_evaluate_integer(acpi_handle handle,
+ 
+ EXPORT_SYMBOL(acpi_evaluate_integer);
+ 
+-#if 0
+-acpi_status
+-acpi_evaluate_string(acpi_handle handle,
+-		     acpi_string pathname,
+-		     acpi_object_list * arguments, acpi_string * data)
+-{
+-	acpi_status status = AE_OK;
+-	acpi_object *element = NULL;
+-	acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-
+-
+-	if (!data)
+-		return AE_BAD_PARAMETER;
+-
+-	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
+-	if (ACPI_FAILURE(status)) {
+-		acpi_util_eval_error(handle, pathname, status);
+-		return status;
+-	}
+-
+-	element = (acpi_object *) buffer.pointer;
+-
+-	if ((element->type != ACPI_TYPE_STRING)
+-	    || (element->type != ACPI_TYPE_BUFFER)
+-	    || !element->string.length) {
+-		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
+-		return AE_BAD_DATA;
+-	}
+-
+-	*data = kzalloc(element->string.length + 1, GFP_KERNEL);
+-	if (!data) {
+-		printk(KERN_ERR PREFIX "Memory allocation\n");
+-		return -ENOMEM;
+-	}
+-
+-	memcpy(*data, element->string.pointer, element->string.length);
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%s]\n", *data));
+-
+-	kfree(buffer.pointer);
+-
+-	return AE_OK;
+-}
+-#endif
+-
+ acpi_status
+ acpi_evaluate_reference(acpi_handle handle,
+ 			acpi_string pathname,
+-- 
+1.7.0.2.201.g80978
 
