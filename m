@@ -1,391 +1,144 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v3 2/2] ACPI, APEI, PCIE AER, use general HEST table parsing in AER firmware_first setup
-Date: Mon, 15 Mar 2010 14:57:41 +0800
-Message-ID: <1268636261-31554-3-git-send-email-ying.huang@intel.com>
-References: <1268636261-31554-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1268636261-31554-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, ying.huang@intel.com
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [Devel] Reserved method has too many arguments (_OSC requires 4)
+Date: Mon, 15 Mar 2010 10:30:38 +0100
+Message-ID: <201003151030.38752.trenn@suse.de>
+References: <201003121500.53220.trenn@suse.de> <4911F71203A09E4D9981D27F9D83085859F8A2C7@orsmsx503.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:39109 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756491Ab0COJal (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Mar 2010 05:30:41 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085859F8A2C7@orsmsx503.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Now, a dedicated HEST tabling parsing code is used for PCIE AER
-firmware_first setup. It is rebased on general HEST tabling parsing
-code of APEI. The firmware_first setup code is moved from PCI core to
-AER driver too, because it is only AER related.
+On Friday 12 March 2010 16:58:41 Moore, Robert wrote:
+> 
+> >My other concern/question is: what exactly happens in such a case?
+> >Will _OSC get invoked at all?
+> >If yes, what will be the last argument, zero, -1?
+> 
+> The method will be invoked with the 4 arguments, the correct number.
+> What will happen then is one of three things:
+> 
+> 1) The method attempts to access the phantom fifth argument and it
+> will then be aborted with an AE_AML_UNINITIALIZED_ARG exception.
+> 
+> 2) The method has some other confusion about the first four arguments
+> (given that it is already confused about the number of arguments in
+> the first place), and does something unpredictable.
+> 
+> 3) The method does not attempt to access the fifth argument, understands
+> the first four arguments correctly and runs to completion correctly.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
----
- drivers/acpi/Makefile              |    1 
- drivers/acpi/hest.c                |  135 -------------------------------------
- drivers/pci/pcie/aer/aerdrv.h      |   17 ++++
- drivers/pci/pcie/aer/aerdrv_acpi.c |   77 +++++++++++++++++++++
- drivers/pci/pcie/aer/aerdrv_core.c |    8 +-
- drivers/pci/probe.c                |    8 --
- include/acpi/acpi_hest.h           |   12 ---
- include/linux/pci.h                |    3 
- 8 files changed, 100 insertions(+), 161 deletions(-)
- delete mode 100644 drivers/acpi/hest.c
- delete mode 100644 include/acpi/acpi_hest.h
+I expect I have the first with acpiexec I get:
+execute \_SB_.PCI0._OSC 1 1 1 1
+Executing \_SB_.PCI0._OSC
+ACPI Error: Uninitialized Arg[4] at node 0x6c9648 (20100304/dsmthdat-544)
+ACPI Exception: AE_AML_UNINITIALIZED_ARG, While resolving operands for [Store] (20100304/dswexec-554)
+[AcpiExec] Exception AE_AML_UNINITIALIZED_ARG during execution of method [_OSC] Opcode [Store] @12
 
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -20,7 +20,6 @@ obj-y				+= acpi.o \
- # All the builtin files are in the "acpi." module_param namespace.
- acpi-y				+= osl.o utils.o reboot.o
- acpi-y				+= atomicio.o
--acpi-y				+= hest.o
+**** Exception AE_AML_UNINITIALIZED_ARG during execution of method [\_SB_.PCI0._OSC] (Node 0x67b7c0)
+
+Thanks!
+
+> >This is not the first time I see this message.
+> >It would be great to get (from include/linux/kernel.h):
+> 
+> I've seen this suggestion before, I'll add it as something to look at
+> -- since it goes far beyond one or two error messages.
+Great, would be the possibilty/interface, first for now.
+This would help with most important/upcoming messages and newly written code.
+No need to go through all files and adjust every potential message.
+
+> In the meantime, the existing error message could use some improvement
+> to clarify it, any suggestions?
+Hm, not sure if this is necessary or possible.
+More important would be to find out what the fifth argument is for and how
+to solve this if Linux has to be able to differ _OSC 4 vs 5 arguments?
+As this is the 2nd OEM (maybe only one BIOS devel company?) making use of this...
+It's always the PCI root bridge _OSC method with 5 arguments, there are
+other _OSC methods (e.g. processor capabilities) which still have 4 args.
+This should be the first kind of such differentiation and probably is really
+ugly to implement?
+
+With the one vendor we are a bit in touch, I try to find out more.
+
+Thanks,
+
+     Thomas
  
- # sleep related files
- acpi-y				+= wakeup.o
---- a/drivers/acpi/hest.c
-+++ /dev/null
-@@ -1,135 +0,0 @@
--#include <linux/acpi.h>
--#include <linux/pci.h>
--
--#define PREFIX "ACPI: "
--
--static inline unsigned long parse_acpi_hest_ia_machine_check(struct acpi_hest_ia_machine_check *p)
--{
--	return sizeof(*p) +
--		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
--}
--
--static inline unsigned long parse_acpi_hest_ia_corrected(struct acpi_hest_ia_corrected *p)
--{
--	return sizeof(*p) +
--		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
--}
--
--static inline unsigned long parse_acpi_hest_ia_nmi(struct acpi_hest_ia_nmi *p)
--{
--	return sizeof(*p);
--}
--
--static inline unsigned long parse_acpi_hest_generic(struct acpi_hest_generic *p)
--{
--	return sizeof(*p);
--}
--
--static inline unsigned int hest_match_pci(struct acpi_hest_aer_common *p, struct pci_dev *pci)
--{
--	return	(0           == pci_domain_nr(pci->bus) &&
--		 p->bus      == pci->bus->number &&
--		 p->device   == PCI_SLOT(pci->devfn) &&
--		 p->function == PCI_FUNC(pci->devfn));
--}
--
--static unsigned long parse_acpi_hest_aer(void *hdr, int type, struct pci_dev *pci, int *firmware_first)
--{
--	struct acpi_hest_aer_common *p = hdr + sizeof(struct acpi_hest_header);
--	unsigned long rc=0;
--	u8 pcie_type = 0;
--	u8 bridge = 0;
--	switch (type) {
--	case ACPI_HEST_TYPE_AER_ROOT_PORT:
--		rc = sizeof(struct acpi_hest_aer_root);
--		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
--		break;
--	case ACPI_HEST_TYPE_AER_ENDPOINT:
--		rc = sizeof(struct acpi_hest_aer);
--		pcie_type = PCI_EXP_TYPE_ENDPOINT;
--		break;
--	case ACPI_HEST_TYPE_AER_BRIDGE:
--		rc = sizeof(struct acpi_hest_aer_bridge);
--		if ((pci->class >> 16) == PCI_BASE_CLASS_BRIDGE)
--			bridge = 1;
--		break;
--	}
--
--	if (p->flags & ACPI_HEST_GLOBAL) {
--		if ((pci->is_pcie && (pci->pcie_type == pcie_type)) || bridge)
--			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	}
--	else
--		if (hest_match_pci(p, pci))
--			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	return rc;
--}
--
--static int acpi_hest_firmware_first(struct acpi_table_header *stdheader, struct pci_dev *pci)
--{
--	struct acpi_table_hest *hest = (struct acpi_table_hest *)stdheader;
--	void *p = (void *)hest + sizeof(*hest); /* defined by the ACPI 4.0 spec */
--	struct acpi_hest_header *hdr = p;
--
--	int i;
--	int firmware_first = 0;
--	static unsigned char printed_unused = 0;
--	static unsigned char printed_reserved = 0;
--
--	for (i=0, hdr=p; p < (((void *)hest) + hest->header.length) && i < hest->error_source_count; i++) {
--		switch (hdr->type) {
--		case ACPI_HEST_TYPE_IA32_CHECK:
--			p += parse_acpi_hest_ia_machine_check(p);
--			break;
--		case ACPI_HEST_TYPE_IA32_CORRECTED_CHECK:
--			p += parse_acpi_hest_ia_corrected(p);
--			break;
--		case ACPI_HEST_TYPE_IA32_NMI:
--			p += parse_acpi_hest_ia_nmi(p);
--			break;
--		/* These three should never appear */
--		case ACPI_HEST_TYPE_NOT_USED3:
--		case ACPI_HEST_TYPE_NOT_USED4:
--		case ACPI_HEST_TYPE_NOT_USED5:
--			if (!printed_unused) {
--				printk(KERN_DEBUG PREFIX
--				       "HEST Error Source list contains an obsolete type (%d).\n", hdr->type);
--				printed_unused = 1;
--			}
--			break;
--		case ACPI_HEST_TYPE_AER_ROOT_PORT:
--		case ACPI_HEST_TYPE_AER_ENDPOINT:
--		case ACPI_HEST_TYPE_AER_BRIDGE:
--			p += parse_acpi_hest_aer(p, hdr->type, pci, &firmware_first);
--			break;
--		case ACPI_HEST_TYPE_GENERIC_ERROR:
--			p += parse_acpi_hest_generic(p);
--			break;
--		/* These should never appear either */
--		case ACPI_HEST_TYPE_RESERVED:
--		default:
--			if (!printed_reserved) {
--				printk(KERN_DEBUG PREFIX
--				       "HEST Error Source list contains a reserved type (%d).\n", hdr->type);
--				printed_reserved = 1;
--			}
--			break;
--		}
--	}
--	return firmware_first;
--}
--
--int acpi_hest_firmware_first_pci(struct pci_dev *pci)
--{
--	acpi_status status = AE_NOT_FOUND;
--	struct acpi_table_header *hest = NULL;
--	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
--
--	if (ACPI_SUCCESS(status)) {
--		if (acpi_hest_firmware_first(hest, pci)) {
--			return 1;
--		}
--	}
--	return 0;
--}
--EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
---- a/drivers/pci/pcie/aer/aerdrv.h
-+++ b/drivers/pci/pcie/aer/aerdrv.h
-@@ -134,4 +134,21 @@ static inline int aer_osc_setup(struct p
- }
- #endif
- 
-+#ifdef CONFIG_ACPI_APEI
-+extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
-+#else
-+static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_dev)
-+{
-+	if (pci_dev->__aer_firmware_first_valid)
-+		return pci_dev->__aer_firmware_first;
-+	return 0;
-+}
-+#endif
-+
-+static inline void pcie_aer_force_firmware_first(struct pci_dev *pci_dev,
-+						 int enable)
-+{
-+	pci_dev->__aer_firmware_first = !!enable;
-+	pci_dev->__aer_firmware_first_valid = 1;
-+}
- #endif /* _AERDRV_H_ */
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -16,6 +16,7 @@
- #include <linux/acpi.h>
- #include <linux/pci-acpi.h>
- #include <linux/delay.h>
-+#include <acpi/apei.h>
- #include "aerdrv.h"
- 
- /**
-@@ -53,3 +54,79 @@ int aer_osc_setup(struct pcie_device *pc
- 
- 	return 0;
- }
-+
-+#ifdef CONFIG_ACPI_APEI
-+static inline int hest_match_pci(struct acpi_hest_aer_common *p,
-+				 struct pci_dev *pci)
-+{
-+	return	(0           == pci_domain_nr(pci->bus) &&
-+		 p->bus      == pci->bus->number &&
-+		 p->device   == PCI_SLOT(pci->devfn) &&
-+		 p->function == PCI_FUNC(pci->devfn));
-+}
-+
-+struct aer_hest_parse_info {
-+	struct pci_dev *pci_dev;
-+	int firmware_first;
-+};
-+
-+static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+	struct aer_hest_parse_info *info = data;
-+	struct acpi_hest_aer_common *p;
-+	u8 pcie_type = 0;
-+	u8 bridge = 0;
-+	int ff = 0;
-+
-+	switch (hest_hdr->type) {
-+	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
-+		break;
-+	case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		pcie_type = PCI_EXP_TYPE_ENDPOINT;
-+		break;
-+	case ACPI_HEST_TYPE_AER_BRIDGE:
-+		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
-+			bridge = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
-+	if (p->flags & ACPI_HEST_GLOBAL) {
-+		if ((info->pci_dev->is_pcie &&
-+		     info->pci_dev->pcie_type == pcie_type) || bridge)
-+			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	} else
-+		if (hest_match_pci(p, info->pci_dev))
-+			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	info->firmware_first = ff;
-+
-+	return 0;
-+}
-+
-+static void aer_set_firmware_first(struct pci_dev *pci_dev)
-+{
-+	int rc;
-+	struct aer_hest_parse_info info = {
-+		.pci_dev	= pci_dev,
-+		.firmware_first	= 0,
-+	};
-+
-+	rc = apei_hest_parse(aer_hest_parse, &info);
-+
-+	if (rc)
-+		pci_dev->__aer_firmware_first = 0;
-+	else
-+		pci_dev->__aer_firmware_first = info.firmware_first;
-+	pci_dev->__aer_firmware_first_valid = 1;
-+}
-+
-+int pcie_aer_get_firmware_first(struct pci_dev *dev)
-+{
-+	if (!dev->__aer_firmware_first_valid)
-+		aer_set_firmware_first(dev);
-+	return dev->__aer_firmware_first;
-+}
-+#endif
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -35,7 +35,7 @@ int pci_enable_pcie_error_reporting(stru
- 	u16 reg16 = 0;
- 	int pos;
- 
--	if (dev->aer_firmware_first)
-+	if (pcie_aer_get_firmware_first(dev))
- 		return -EIO;
- 
- 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
-@@ -63,7 +63,7 @@ int pci_disable_pcie_error_reporting(str
- 	u16 reg16 = 0;
- 	int pos;
- 
--	if (dev->aer_firmware_first)
-+	if (pcie_aer_get_firmware_first(dev))
- 		return -EIO;
- 
- 	pos = pci_pcie_cap(dev);
-@@ -858,7 +858,7 @@ void aer_delete_rootport(struct aer_rpc
-  */
- int aer_init(struct pcie_device *dev)
- {
--	if (dev->port->aer_firmware_first) {
-+	if (pcie_aer_get_firmware_first(dev->port)) {
- 		dev_printk(KERN_DEBUG, &dev->device,
- 			   "PCIe errors handled by platform firmware.\n");
- 		goto out;
-@@ -872,7 +872,7 @@ out:
- 	if (forceload) {
- 		dev_printk(KERN_DEBUG, &dev->device,
- 			   "aerdrv forceload requested.\n");
--		dev->port->aer_firmware_first = 0;
-+		pcie_aer_force_firmware_first(dev->port, 0);
- 		return 0;
- 	}
- 	return -ENXIO;
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -10,7 +10,6 @@
- #include <linux/module.h>
- #include <linux/cpumask.h>
- #include <linux/pci-aspm.h>
--#include <acpi/acpi_hest.h>
- #include "pci.h"
- 
- #define CARDBUS_LATENCY_TIMER	176	/* secondary latency timer */
-@@ -900,12 +899,6 @@ void set_pcie_hotplug_bridge(struct pci_
- 		pdev->is_hotplug_bridge = 1;
- }
- 
--static void set_pci_aer_firmware_first(struct pci_dev *pdev)
--{
--	if (acpi_hest_firmware_first_pci(pdev))
--		pdev->aer_firmware_first = 1;
--}
--
- #define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
- 
- /**
-@@ -935,7 +928,6 @@ int pci_setup_device(struct pci_dev *dev
- 	dev->multifunction = !!(hdr_type & 0x80);
- 	dev->error_state = pci_channel_io_normal;
- 	set_pcie_port_type(dev);
--	set_pci_aer_firmware_first(dev);
- 
- 	list_for_each_entry(slot, &dev->bus->slots, list)
- 		if (PCI_SLOT(dev->devfn) == slot->number)
---- a/include/acpi/acpi_hest.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#ifndef __ACPI_HEST_H
--#define __ACPI_HEST_H
--
--#include <linux/pci.h>
--
--#ifdef CONFIG_ACPI
--extern int acpi_hest_firmware_first_pci(struct pci_dev *pci);
--#else
--static inline int acpi_hest_firmware_first_pci(struct pci_dev *pci) { return 0; }
--#endif
--
--#endif
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -311,7 +311,8 @@ struct pci_dev {
- 	unsigned int	is_virtfn:1;
- 	unsigned int	reset_fn:1;
- 	unsigned int    is_hotplug_bridge:1;
--	unsigned int    aer_firmware_first:1;
-+	unsigned int    __aer_firmware_first_valid:1;
-+	unsigned int	__aer_firmware_first:1;
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
+> >-----Original Message-----
+> >From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
+> >Of Thomas Renninger
+> >Sent: Friday, March 12, 2010 6:01 AM
+> >To: linux-acpi@vger.kernel.org
+> >Cc: devel@acpica.org
+> >Subject: [Devel] Reserved method has too many arguments (_OSC requires 4)
+> >
+> >Hi,
+> >
+> >I have a laptop freezing early, acpi=off and noapic helps.
+> >I wonder whether this could have to do with the broken _OSC method.
+> >
+> >I cannot access the machine myself, eventually I can get more info
+> >if needed, but the machine is freezing really early (after ACPI
+> >initialization, somewhere around bringing up CPUs (possibly when
+> >starting PCI init already?).
+> >
+> >This is not the first time I see this message.
+> >It would be great to get (from include/linux/kernel.h):
+> >#define FW_BUG          "[Firmware Bug]: "
+> >#define FW_WARN         "[Firmware Warn]: "
+> >#define FW_INFO         "[Firmware Info]: "
+> >marked messages into ACPICA and blame the guys who are responsible
+> >for that.
+> >
+> >My other concern/question is: what exactly happens in such a case?
+> >Will _OSC get invoked at all?
+> >If yes, what will be the last argument, zero, -1?
+> >
+> >Hmm, I doubt it has to do with the freeze, but it would still be
+> >great if someone knowing these parts could comment what people
+> >with such a BIOS could expect to happen.
+> >
+> >Thanks,
+> >
+> >  Thomas
+> >
+> >Method (_OSC, 5, NotSerialized)
+> >{
+> >   Store (Arg3, Local0)
+> >   Multiply (Local0, 0x04, Local1)
+> >   Name (BUF1, Buffer (Local1) {})
+> >   Store (Arg4, BUF1)
+> >   Store (Zero, Local1)
+> >   Store (Zero, Local2)
+> >   While (Local0)
+> >   {
+> >       Multiply (Local1, 0x04, Local2)
+> >       CreateDWordField (BUF1, Local2, CAPB)
+> >       If (Arg2)
+> >       {
+> >           If (LEqual (Local1, Zero))
+> >           {
+> >               And (CAPB, 0xFFFFFFFC)
+> >           }
+> >       }
+> >       Increment (Local1)
+> >       Decrement (Local0)
+> >   }
+> >   Return (BUF1)
+> >}
+> >_______________________________________________
+> >Devel mailing list
+> >Devel@acpica.org
+> >http://lists.acpica.org/listinfo/devel
+> 
+
