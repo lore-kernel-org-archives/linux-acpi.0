@@ -1,43 +1,24 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Re: ACPI patches for Linux-2.6.34-rc1
-Date: Mon, 15 Mar 2010 07:10:06 +0100
-Message-ID: <b170af451003142310i3fe61282pb6536f6d2000c9c8@mail.gmail.com>
-References: <alpine.LFD.2.00.1003142155470.19244@sony>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:41649 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932680Ab0COGKI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Mar 2010 02:10:08 -0400
-In-Reply-To: <alpine.LFD.2.00.1003142155470.19244@sony>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v3 0/2] ACPI, APEI, use general HEST tabling parsing in AER firmware_first setup
+Date: Mon, 15 Mar 2010 14:57:39 +0800
+Message-ID: <1268636261-31554-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, ying.huang@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-2010/3/15 Len Brown <lenb@kernel.org>:
-> Hi Linus,
->
-> please pull from:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git=
- release
->
-> Here is why three things included in this request
-> look somewhat "merge-windo-ish".
 
-Len, you seem to hardly ignore
-[PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
+Changelog:
 
-AFAIK this didn't hit rc1, is not included in this patchset and we
-couldn't get any response from you in this thread.
+v3:
 
---=20
-Rafa=C5=82
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Move pcie_aer_get_firmware_first into aerdrv_acpi.c, and make
+  aer_set_firmware_first static in aerdrv_acpi.c. This makes external
+  interface simple and clear.
+
+v2:
+
+- Setup firmware_first for every PCIE end point instead of just root point.
+
+- Wrap firmware_first accessing in a function, because HEST parsing involved.
