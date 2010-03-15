@@ -1,96 +1,59 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/34] ACPI: delete unused acpi_evaluate_string()
-Date: Sun, 14 Mar 2010 21:40:48 -0400
-Message-ID: <0e026445fb36852d3102cb8bb24868765fe5816a.1268617225.git.len.brown@intel.com>
+Subject: [PATCH 10/34] ACPI: remove superfluous NULL pointer check from
+ acpi_processor_get_throttling_info()
+Date: Sun, 14 Mar 2010 21:40:49 -0400
+Message-ID: <ded180e7ebfc324b36a94931f99d0705dcd8da29.1268617225.git.len.brown@intel.com>
 References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:57930 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753290Ab0COBuw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:50:52 -0400
-Received: from sony ([unknown] [192.102.209.1]) by vms173011.mailsrvcs.net
+Received: from vms173015pub.verizon.net ([206.46.173.15]:51051 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290Ab0COBvg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:51:36 -0400
+Received: from sony ([unknown] [192.102.209.1]) by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KZA00CQ3VS33361@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:50:33 -0500 (CDT)
+ with ESMTPA id <0KZA008D9VTSTMB7@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:51:29 -0500 (CDT)
 In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-Roel found a logic issue in the #if 0 acpi_evaluate_string():
+Dan's list contains:
 
--           || (element->type != ACPI_TYPE_BUFFER)
-+           && (element->type != ACPI_TYPE_BUFFER)
+drivers/acpi/processor_throttling.c +1139 acpi_processor_get_throttling_info(11) warning: variable derefenced before check 'pr'
 
-delete the dead code.
+acpi_processor_get_throttling_info() is never called with pr == NULL.
 
-pointed-out-by: Roel Kluin <roel.kluin@gmail.com>
+[ bart: the potential NULL pointer dereference was finally fixed in
+  (much later than mine) commit 5cfa245 but my patch is still valid ]
+
+Reported-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utils.c |   45 ---------------------------------------------
- 1 files changed, 0 insertions(+), 45 deletions(-)
+ drivers/acpi/processor_throttling.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 811fec1..592dffb 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -289,51 +289,6 @@ acpi_evaluate_integer(acpi_handle handle,
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 1c5d7a8..649b2b9 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -1133,9 +1133,6 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ 	int result = 0;
+ 	struct acpi_processor_throttling *pthrottling;
  
- EXPORT_SYMBOL(acpi_evaluate_integer);
- 
--#if 0
--acpi_status
--acpi_evaluate_string(acpi_handle handle,
--		     acpi_string pathname,
--		     acpi_object_list * arguments, acpi_string * data)
--{
--	acpi_status status = AE_OK;
--	acpi_object *element = NULL;
--	acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	if (!pr)
+-		return -EINVAL;
 -
--
--	if (!data)
--		return AE_BAD_PARAMETER;
--
--	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
--	if (ACPI_FAILURE(status)) {
--		acpi_util_eval_error(handle, pathname, status);
--		return status;
--	}
--
--	element = (acpi_object *) buffer.pointer;
--
--	if ((element->type != ACPI_TYPE_STRING)
--	    || (element->type != ACPI_TYPE_BUFFER)
--	    || !element->string.length) {
--		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
--		return AE_BAD_DATA;
--	}
--
--	*data = kzalloc(element->string.length + 1, GFP_KERNEL);
--	if (!data) {
--		printk(KERN_ERR PREFIX "Memory allocation\n");
--		return -ENOMEM;
--	}
--
--	memcpy(*data, element->string.pointer, element->string.length);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%s]\n", *data));
--
--	kfree(buffer.pointer);
--
--	return AE_OK;
--}
--#endif
--
- acpi_status
- acpi_evaluate_reference(acpi_handle handle,
- 			acpi_string pathname,
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
+ 			  pr->throttling.address,
 -- 
 1.7.0.2.201.g80978
 
