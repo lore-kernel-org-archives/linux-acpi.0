@@ -1,48 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI patches for Linux-2.6.34-rc1
-Date: Mon, 15 Mar 2010 20:38:47 +0100
-Message-ID: <201003152038.47124.rjw@sisk.pl>
-References: <alpine.LFD.2.00.1003142155470.19244@sony> <b170af451003142310i3fe61282pb6536f6d2000c9c8@mail.gmail.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [PATCH 4/4] ACPI: Battery: Add support for _BIX extended info
+ method
+Date: Mon, 15 Mar 2010 23:17:47 +0300
+Message-ID: <4B9E95EB.8000604@suse.de>
+References: <20091015103122.3853.34760.stgit@thinkpad> <20091015103144.3853.9717.stgit@thinkpad> <9b2b86520910160208l5bc6e20dkca79ae54505428ed@mail.gmail.com> <20091017154124.GA31182@khazad-dum.debian.net> <4B9D601A.3050708@gmail.com> <20100315113837.GA8296@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37662 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444Ab0COTfm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Mar 2010 15:35:42 -0400
-In-Reply-To: <b170af451003142310i3fe61282pb6536f6d2000c9c8@mail.gmail.com>
+Received: from nat.nue.novell.com ([195.135.221.3]:50806 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S936641Ab0COURt (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 15 Mar 2010 16:17:49 -0400
+In-Reply-To: <20100315113837.GA8296@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>, Len Brown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-On Monday 15 March 2010, Rafa=C5=82 Mi=C5=82ecki wrote:
-> 2010/3/15 Len Brown <lenb@kernel.org>:
-> > Hi Linus,
-> >
-> > please pull from:
-> >
-> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.g=
-it release
-> >
-> > Here is why three things included in this request
-> > look somewhat "merge-windo-ish".
->=20
-> Len, you seem to hardly ignore
-> [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
->=20
-> AFAIK this didn't hit rc1, is not included in this patchset and we
-> couldn't get any response from you in this thread.
-
-I wanted to mention that too.  Here's the patchwork link:
-
-http://patchwork.kernel.org/patch/83479/
-
-Len, if you want me to push it myself, I can do that.
+Henrique de Moraes Holschuh =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> That just means the ACPI sysfs conversion on that area was not as goo=
+d as it
+> should have been.  It is hardly the only place where the sysfs ABI is=
+ not
+> well implemented, but that doesn't mean the breakage should remain, o=
+r that
+> it should be made worse.
+> What is the technical case to returning invalid values for something =
+that is
+> not supported when you could return a proper error on open() instead =
+(since
+Power Class interface does not give me control over open() as far as I =
+know.
+> you're not going to do the Right Thing and not register that attribut=
+e it in
+> the first place)?  Not only the "-1" way wastes more system resources=
+ (all
+> clients have to do open+read+close), it also needs userspace to speci=
+al case
+> something, and that is always a Bad Idea for *many* reasons.
+If you know how this could be done, please show the patch...
 
 Thanks,
-Rafael
+Alex.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
