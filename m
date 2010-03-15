@@ -1,17 +1,20 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/34] sony-laptop - remove private workqueue,
- use keventd instead
-Date: Sun, 14 Mar 2010 21:40:40 -0400
-Message-ID: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+Subject: [PATCH 02/34] sony-laptop - simplify keymap initialization
+Date: Sun, 14 Mar 2010 21:40:41 -0400
+Message-ID: <c45bc9d62c39202b401d1bf7bb2812abb88798a1.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:61656 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068Ab0COBmc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:42:32 -0400
-Received: from sony ([unknown] [192.102.209.1]) by vms173019.mailsrvcs.net
+Received: from vms173015pub.verizon.net ([206.46.173.15]:46560 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883Ab0COBnX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:43:23 -0400
+Received: from sony ([unknown] [192.102.209.1]) by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KZA0092ZVEHA2E0@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:42:23 -0500 (CDT)
+ with ESMTPA id <0KZA00D9GVG61X00@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:43:20 -0500 (CDT)
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -19,159 +22,56 @@ Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>,
 
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-If we reschedule work instead of having work function sleep for 10 msecs
-between reads from kfifo we can safely use the main workqueue (keventd)
-and not bother with creating driver-private one.
+Also use input_set_capability() helper instead of manipulating
+bits directly.
 
 Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |   71 ++++++++++++++++++++----------------
- 1 files changed, 39 insertions(+), 32 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 5af5334..c42d35b 100644
+index c42d35b..b7aa959 100644
 --- a/drivers/platform/x86/sony-laptop.c
 +++ b/drivers/platform/x86/sony-laptop.c
-@@ -145,7 +145,6 @@ struct sony_laptop_input_s {
- 	struct input_dev	*key_dev;
- 	struct kfifo		fifo;
- 	spinlock_t		fifo_lock;
--	struct workqueue_struct	*wq;
- };
+@@ -419,18 +419,15 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 	key_dev->dev.parent = &acpi_device->dev;
  
- static struct sony_laptop_input_s sony_laptop_input = {
-@@ -301,18 +300,28 @@ static int sony_laptop_input_keycode_map[] = {
- /* release buttons after a short delay if pressed */
- static void do_sony_laptop_release_key(struct work_struct *work)
- {
-+	struct delayed_work *dwork =
-+			container_of(work, struct delayed_work, work);
- 	struct sony_laptop_keypress kp;
-+	unsigned long flags;
+ 	/* Initialize the Input Drivers: special keys */
+-	set_bit(EV_KEY, key_dev->evbit);
+-	set_bit(EV_MSC, key_dev->evbit);
+-	set_bit(MSC_SCAN, key_dev->mscbit);
++	input_set_capability(key_dev, EV_MSC, MSC_SCAN);
 +
-+	spin_lock_irqsave(&sony_laptop_input.fifo_lock, flags);
- 
--	while (kfifo_out_locked(&sony_laptop_input.fifo, (unsigned char *)&kp,
--			sizeof(kp), &sony_laptop_input.fifo_lock)
--			== sizeof(kp)) {
--		msleep(10);
-+	if (kfifo_out(&sony_laptop_input.fifo,
-+		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
- 		input_report_key(kp.dev, kp.key, 0);
- 		input_sync(kp.dev);
- 	}
-+
-+	/* If there is something in the fifo schedule next release. */
-+	if (kfifo_len(&sony_laptop_input.fifo) != 0)
-+		schedule_delayed_work(dwork, msecs_to_jiffies(10));
-+
-+	spin_unlock_irqrestore(&sony_laptop_input.fifo_lock, flags);
- }
--static DECLARE_WORK(sony_laptop_release_key_work,
--		do_sony_laptop_release_key);
-+
-+static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
-+			    do_sony_laptop_release_key);
- 
- /* forward event to the input subsystem */
- static void sony_laptop_report_input_event(u8 event)
-@@ -366,13 +375,13 @@ static void sony_laptop_report_input_event(u8 event)
- 		/* we emit the scancode so we can always remap the key */
- 		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
- 		input_sync(kp.dev);
--		kfifo_in_locked(&sony_laptop_input.fifo,
--			  (unsigned char *)&kp, sizeof(kp),
--			  &sony_laptop_input.fifo_lock);
- 
--		if (!work_pending(&sony_laptop_release_key_work))
--			queue_work(sony_laptop_input.wq,
--					&sony_laptop_release_key_work);
-+		/* schedule key release */
-+		kfifo_in_locked(&sony_laptop_input.fifo,
-+				(unsigned char *)&kp, sizeof(kp),
-+				&sony_laptop_input.fifo_lock);
-+		schedule_delayed_work(&sony_laptop_release_key_work,
-+				      msecs_to_jiffies(10));
- 	} else
- 		dprintk("unknown input event %.2x\n", event);
- }
-@@ -390,27 +399,18 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 
- 	/* kfifo */
- 	spin_lock_init(&sony_laptop_input.fifo_lock);
--	error =
--	 kfifo_alloc(&sony_laptop_input.fifo, SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
-+	error = kfifo_alloc(&sony_laptop_input.fifo,
-+			    SONY_LAPTOP_BUF_SIZE, GFP_KERNEL);
- 	if (error) {
- 		printk(KERN_ERR DRV_PFX "kfifo_alloc failed\n");
- 		goto err_dec_users;
- 	}
- 
--	/* init workqueue */
--	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
--	if (!sony_laptop_input.wq) {
--		printk(KERN_ERR DRV_PFX
--				"Unable to create workqueue.\n");
--		error = -ENXIO;
--		goto err_free_kfifo;
++	__set_bit(EV_KEY, key_dev->evbit);
+ 	key_dev->keycodesize = sizeof(sony_laptop_input_keycode_map[0]);
+ 	key_dev->keycodemax = ARRAY_SIZE(sony_laptop_input_keycode_map);
+ 	key_dev->keycode = &sony_laptop_input_keycode_map;
+-	for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++) {
+-		if (sony_laptop_input_keycode_map[i] != KEY_RESERVED) {
+-			set_bit(sony_laptop_input_keycode_map[i],
+-				key_dev->keybit);
+-		}
 -	}
--
- 	/* input keys */
- 	key_dev = input_allocate_device();
- 	if (!key_dev) {
- 		error = -ENOMEM;
--		goto err_destroy_wq;
-+		goto err_free_kfifo;
- 	}
++	for (i = 0; i < ARRAY_SIZE(sony_laptop_input_keycode_map); i++)
++		__set_bit(sony_laptop_input_keycode_map[i], key_dev->keybit);
++	__clear_bit(KEY_RESERVED, key_dev->keybit);
  
- 	key_dev->name = "Sony Vaio Keys";
-@@ -473,9 +473,6 @@ err_unregister_keydev:
- err_free_keydev:
- 	input_free_device(key_dev);
+ 	error = input_register_device(key_dev);
+ 	if (error)
+@@ -450,9 +447,8 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
+ 	key_dev->dev.parent = &acpi_device->dev;
  
--err_destroy_wq:
--	destroy_workqueue(sony_laptop_input.wq);
--
- err_free_kfifo:
- 	kfifo_free(&sony_laptop_input.fifo);
+-	jog_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
+-	jog_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_MIDDLE);
+-	jog_dev->relbit[0] = BIT_MASK(REL_WHEEL);
++	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
++	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
  
-@@ -486,12 +483,23 @@ err_dec_users:
- 
- static void sony_laptop_remove_input(void)
- {
--	/* cleanup only after the last user has gone */
-+	struct sony_laptop_keypress kp = { NULL };
-+
-+	/* Cleanup only after the last user has gone */
- 	if (!atomic_dec_and_test(&sony_laptop_input.users))
- 		return;
- 
--	/* flush workqueue first */
--	flush_workqueue(sony_laptop_input.wq);
-+	cancel_delayed_work_sync(&sony_laptop_release_key_work);
-+
-+	/*
-+	 * Generate key-up events for remaining keys. Note that we don't
-+	 * need locking since nobody is adding new events to the kfifo.
-+	 */
-+	while (kfifo_out(&sony_laptop_input.fifo,
-+			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
-+		input_report_key(kp.dev, kp.key, 0);
-+		input_sync(kp.dev);
-+	}
- 
- 	/* destroy input devs */
- 	input_unregister_device(sony_laptop_input.key_dev);
-@@ -502,7 +510,6 @@ static void sony_laptop_remove_input(void)
- 		sony_laptop_input.jog_dev = NULL;
- 	}
- 
--	destroy_workqueue(sony_laptop_input.wq);
- 	kfifo_free(&sony_laptop_input.fifo);
- }
- 
+ 	error = input_register_device(jog_dev);
+ 	if (error)
 -- 
 1.7.0.2.201.g80978
 
