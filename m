@@ -1,51 +1,69 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH v2 2/3] ipmi: Convert tracking of the ACPI device
-	pointer to a	PNP device
-Date: Mon, 15 Mar 2010 09:50:34 +0800
-Message-ID: <1268617834.3617.12.camel@localhost.localdomain>
-References: <20100313180121.20614.92547.stgit@bob.kio>
-	 <20100313181347.20614.7897.stgit@bob.kio>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 12/34] ACPI thermal: Check for thermal zone requirement
+Date: Sun, 14 Mar 2010 21:40:51 -0400
+Message-ID: <8b7ef6d8f16274da42344cd50746ddb1c93c25ea.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:9776 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756464Ab0COBwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Mar 2010 21:52:44 -0400
-In-Reply-To: <20100313181347.20614.7897.stgit@bob.kio>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:41630 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756464Ab0COBxc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Mar 2010 21:53:32 -0400
+Received: from sony ([unknown] [192.102.209.1]) by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KZA005SZVX7IRG2@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 14 Mar 2010 20:53:32 -0500 (CDT)
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+In-reply-to: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
+References: <9593bd07ec8eaaa30aba4281b2b3273282fc344f.1268617225.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@hp.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
 
-On Sun, 2010-03-14 at 02:13 +0800, Myron Stowe wrote:
-> Convert PNP patch (git 9e368fa011d4e0aa050db348d69514900520e40b) to
-> maintain a pointer to a PNP device, 'pnp_dev', instead of the ACPI
-> device, 'acpi_dev', that is currently being tracked with PNP based
-> IPMI device discovery.
-> 
-> Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-> Cc: Zhao Yakui <yakui.zhao@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-Acked-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
-> 
->  drivers/char/ipmi/ipmi_si_intf.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> index 86a7dd7..0e31aa9 100644
-> --- a/drivers/char/ipmi/ipmi_si_intf.c
-> +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> @@ -2093,7 +2093,7 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
->  		info->irq_setup = std_irq_setup;
->  	}
->  
-> -	info->dev = &acpi_dev->dev;
-> +	info->dev = &dev->dev;
->  	pnp_set_drvdata(dev, info);
->  
->  	return try_smi_init(info);
-> 
+ACPI spec says (11.5 Thermal Zone Interface Requirements):
+   A thermal zone must contain at least one trip point
+   (critical, near critical, active, or passive)
+
+Check this once at init time.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Tested-by: clarkt@cnsp.com
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/thermal.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 9073ada..e9f28e0 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -575,7 +575,23 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 
+ static int acpi_thermal_get_trip_points(struct acpi_thermal *tz)
+ {
+-	return acpi_thermal_trips_update(tz, ACPI_TRIPS_INIT);
++	int i, valid, ret = acpi_thermal_trips_update(tz, ACPI_TRIPS_INIT);
++
++	if (ret)
++		return ret;
++
++	valid = tz->trips.critical.flags.valid |
++		tz->trips.hot.flags.valid |
++		tz->trips.passive.flags.valid;
++
++	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
++		valid |= tz->trips.active[i].flags.valid;
++
++	if (!valid) {
++		printk(KERN_WARNING FW_BUG "No valid trip found\n");
++		return -ENODEV;
++	}
++	return 0;
+ }
+ 
+ static void acpi_thermal_check(void *data)
+-- 
+1.7.0.2.201.g80978
 
