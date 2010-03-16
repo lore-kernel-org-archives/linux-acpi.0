@@ -1,80 +1,137 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [LKML] Re: [LKML] Re: swiotlb detection should be memory
-	hotplug aware ?
-Date: Tue, 16 Mar 2010 08:45:56 -0400
-Message-ID: <20100316124556.GA25340@phenom.dumpdata.com>
-References: <1268446032.13691.69.camel@ank32> <4B9B01F5.3000807@linux.intel.com> <20100316005140.GB7622@phenom.dumpdata.com> <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] x86/PCI: ignore Consumer/Producer bit and parse additional
+	_CRS resources
+Date: Tue, 16 Mar 2010 14:11:34 -0600
+Message-ID: <20100316201134.24527.87006.stgit@bob.kio>
+References: <20100316201046.24527.79634.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:28210 "EHLO
-	rcsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933095Ab0CPPkH (ORCPT
-	<rfc822;<linux-acpi@vger.kernel.org>>);
-	Tue, 16 Mar 2010 11:40:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20100316201046.24527.79634.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Pete Zaitcev <zaitcev@redhat.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: ak@linux.intel.com, akataria@vmware.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
 
-On Tue, Mar 16, 2010 at 10:33:20AM +0900, FUJITA Tomonori wrote:
-> On Mon, 15 Mar 2010 20:51:40 -0400
-> Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-> 
-> > On Fri, Mar 12, 2010 at 07:09:41PM -0800, Andi Kleen wrote:
-> > > , Alok Kataria wrote:
-> > >
-> > > Hi Alok,
-> > >
-> > >> Hi,
-> > >>
-> > >> Looking at the current code swiotlb is initialized for 64bit kernels
-> > >> only when the max_pfn value is greater than 4G (MAX_DMA32_PFN value).
-> > >> So in cases when the initial memory is less than 4GB the kernel boots
-> > >> without enabling swiotlb, when we hotadd memory to such a kernel and go
-> > >> beyond the 4G limit, swiotlb is still disabled. As a result when any
-> > >> 32bit devices start using this newly added memory beyond 4G, the kernel
-> > >> starts spitting error messages like below or in some cases it causes
-> > >> kernel panics.
-> > >
-> > > Yes seems like a real problem.
-> > >
-> > >>
-> > >> 1. Enable swiotlb for all 64bit kernels which have memory hot-add
-> > >> support.
-> > >
-> > > I don't think that's a good idea. It would enable it everywhere on
-> > > distributions which compile with hotadd. Need (2)
-> > >
-> > >> 2. Instead of checking the max_pfn value in pci_swiotlb_detect, check
-> > >> for max_hotpluggable_pfn (or some such) value. Though I don't see such a
-> > >> value readily available. I could parse the SRAT and get hotplug memory
-> > >> information but that will make swiotlb detection logic a little too
-> > >> complex. A quick look around srat_xx.c files and the acpi_memhotplug
-> > >> module didn't find any useful API that could be used directly either.
-> > >> So was wondering if any of you are aware of an easy way to get such
-> > >> information ?
-> > >
-> > > I have a patchkit to revamp the SRAT parsing to store the hotadd information
-> > 
-> > There is a late mechanism to do kickoff the SWIOTLB. Perhaps the hot-add
-> > could use swiotlb_init_late and start up the SWIOTLB?
-> 
-> I guess that you are talking about
-> swiotlb_late_init_with_default_size(), which IA64 uses. However, you
-> can use swiotlb_late_init_with_default_size() only before we
-> initialize devices. Making it work after initializing devices is not
-> so easy, I think (that is, we need to change dma_ops).
 
-That is a good point. Especially if we have some outstanding DMA pages
-allocated via dma_alloc_coherent.
+We previously used only resources marked "Producer," i.e., those the bridge
+forwards downstream.  But BIOSes haven't used that bit consistently, so it's
+useless.  For bridge devices, we have to assume *all* ACPI resources are
+forwarded downstream.  Non-Producer bridge resources typically appear in
+PCI config space and are not described in ACPI.
 
-I thought that the machines that have hot-add memory they have their
-own fancy IOMMU. For example the IBM x3955 (and its family) utilize the
-Calgary IOMMU. The HP boxes utilize the Intel VT-D (or the AMD
-equivalant).
+In addition to ACPI_RESOURCE_TYPE_ADDRESS{16,32,64}, parse these types:
 
-So is this mostly specialized in the areas of virtualized guests? (Xen
-PV guests with PCI passthrough suffer the same problem, btw).
+    ACPI_RESOURCE_TYPE_IO
+    ACPI_RESOURCE_TYPE_FIXED_IO
+    ACPI_RESOURCE_TYPE_MEMORY24
+    ACPI_RESOURCE_TYPE_MEMORY32
+    ACPI_RESOURCE_TYPE_FIXED_MEMORY32
+    ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64
+
+This basically reimplements what drivers/pnp/pnpacpi/rsparser.c already
+does, and I plan to take advantage of that, but we're not quite ready to
+do it yet because it will require converting pci_root.c from an ACPI
+driver to a PNP driver.
+
+This is a possible fix for http://bugzilla.kernel.org/show_bug.cgi?id=15533
+reported by Pete Zaitcev <zaitcev@redhat.com>.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+
+ arch/x86/pci/acpi.c |   77 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 71 insertions(+), 6 deletions(-)
+
+
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index d255ce8..e0f45c2 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -65,14 +65,79 @@ resource_to_addr(struct acpi_resource *resource,
+ 			struct acpi_resource_address64 *addr)
+ {
+ 	acpi_status status;
++	struct acpi_resource_io *io;
++	struct acpi_resource_fixed_io *fixed_io;
++	struct acpi_resource_memory24 *memory24;
++	struct acpi_resource_memory32 *memory32;
++	struct acpi_resource_fixed_memory32 *fixed_memory32;
++	struct acpi_resource_extended_address64 *ext_addr64;
++
++	memset(addr, 0, sizeof(*addr));
++
++	switch (resource->type) {
++	case ACPI_RESOURCE_TYPE_IO:
++		io = &resource->data.io;
++		addr->resource_type = ACPI_IO_RANGE;
++		addr->minimum = io->minimum;
++		addr->address_length = io->address_length;
++		return AE_OK;
++
++	case ACPI_RESOURCE_TYPE_FIXED_IO:
++		fixed_io = &resource->data.fixed_io;
++		addr->resource_type = ACPI_IO_RANGE;
++		addr->minimum = fixed_io->address;
++		addr->address_length = fixed_io->address_length;
++		return AE_OK;
++
++	case ACPI_RESOURCE_TYPE_MEMORY24:
++		memory24 = &resource->data.memory24;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = memory24->minimum;
++		addr->address_length = memory24->address_length;
++		return AE_OK;
++
++	case ACPI_RESOURCE_TYPE_MEMORY32:
++		memory32 = &resource->data.memory32;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = memory32->minimum;
++		addr->address_length = memory32->address_length;
++		return AE_OK;
+ 
+-	status = acpi_resource_to_address64(resource, addr);
+-	if (ACPI_SUCCESS(status) &&
+-	    (addr->resource_type == ACPI_MEMORY_RANGE ||
+-	    addr->resource_type == ACPI_IO_RANGE) &&
+-	    addr->address_length > 0 &&
+-	    addr->producer_consumer == ACPI_PRODUCER) {
++	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
++		fixed_memory32 = &resource->data.fixed_memory32;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = fixed_memory32->address;
++		addr->address_length = fixed_memory32->address_length;
+ 		return AE_OK;
++
++	case ACPI_RESOURCE_TYPE_ADDRESS16:
++	case ACPI_RESOURCE_TYPE_ADDRESS32:
++	case ACPI_RESOURCE_TYPE_ADDRESS64:
++		status = acpi_resource_to_address64(resource, addr);
++		if (ACPI_SUCCESS(status) &&
++		    (addr->resource_type == ACPI_MEMORY_RANGE ||
++		     addr->resource_type == ACPI_IO_RANGE) &&
++		    addr->address_length > 0) {
++			return AE_OK;
++		}
++		break;
++
++	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
++		ext_addr64 = &resource->data.ext_address64;
++		if ((ext_addr64->resource_type == ACPI_MEMORY_RANGE ||
++		     ext_addr64->resource_type == ACPI_IO_RANGE) &&
++		    ext_addr64->address_length > 0) {
++			addr->resource_type = ext_addr64->resource_type;
++			addr->minimum = ext_addr64->minimum;
++			addr->address_length = ext_addr64->address_length;
++			addr->translation_offset =
++					ext_addr64->translation_offset;
++			if (ext_addr64->resource_type == ACPI_MEMORY_RANGE)
++				addr->info.mem.caching =
++						ext_addr64->info.mem.caching;
++			return AE_OK;
++		}
++		break;
+ 	}
+ 	return AE_ERROR;
+ }
