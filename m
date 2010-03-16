@@ -1,34 +1,101 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v1] PNPACPI: ignore Consumer/Producer bit; all bridge resources are windows
-Date: Tue, 16 Mar 2010 13:29:24 -0700
-Message-ID: <201003161429.24933.bjorn.helgaas@hp.com>
-References: <20100316202627.25544.28033.stgit@bob.kio>
+From: Fabio Comolli <fabio.comolli@gmail.com>
+Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
+Date: Tue, 16 Mar 2010 21:31:14 +0100
+Message-ID: <b637ec0b1003161331y680418e0p6549504165a45701@mail.gmail.com>
+References: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
+	 <71cd59b01003120049n1a9fbbf3qfd37f14f241a7f64@mail.gmail.com>
+	 <b637ec0b1003121207g5d29ddb4k338f1768ed1c2759@mail.gmail.com>
+	 <71cd59b01003130116h4265769v9e1dae95361629ce@mail.gmail.com>
+	 <b637ec0b1003130450n3293ee78wc58e08a9bbcefe17@mail.gmail.com>
+	 <71cd59b01003152354h64d18c0fq2083f60e399313c8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:37421 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757559Ab0CPU3e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Mar 2010 16:29:34 -0400
-In-Reply-To: <20100316202627.25544.28033.stgit@bob.kio>
-Content-Disposition: inline
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:53678 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757635Ab0CPUbj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Mar 2010 16:31:39 -0400
+In-Reply-To: <71cd59b01003152354h64d18c0fq2083f60e399313c8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tuesday 16 March 2010 02:26:27 pm Bjorn Helgaas wrote:
-> 
-> The Consumer/Producer bit in Address Space Descriptors is useless because
-> BIOS vendors don't use it consistently.  We have to assume that all
-> resources of bridges are really Producers, i.e., windows to the secondary
-> bus.
+Hi.
 
-This modifies some code that recently went into 2.6.34, but this
-doesn't necessarily have to go in .34 because I don't think anybody
-uses PNP window resources yet (they just show up in lspnp output and
-/sys/bus/pnp/.../resources).
+On Tue, Mar 16, 2010 at 7:54 AM, Corentin Chary
+<corentin.chary@gmail.com> wrote:
+> On Sat, Mar 13, 2010 at 1:50 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
+>> Well, I'm confused.
+>>
+>> I rebooted with the "vanilla" eeepc-laptop.c and I'm sorry to say that
+>> the situation it's not like the one I described in the post I wrote 2
+>> days ago. Actually the situation with the patch reverted is the same I
+>> have with the patch applied.
+>>
+>> What I mean is that if I boot on AC power /proc/cpuinfo always reports
+>> 900MHz and 1800 bogomips. It I boot on battery /proc/cpuinfo always
+>> reports 630MHz and 1260 bogomips. Plugging / unplugging the AC does
+>> not change the situation. Only reboot does.
+>>
+>> But the cpufv interface does indeed seem to work, as glxgears and
+>> stellarium show the frame rate change accordingly to the powersave /
+>> performance selection.
+>>
+>> So my question is: what does really the cpufv interface do? Is it
+>> supposed to change the processor frequency? Or does it change
+>> something else?
+>>
+>> And if the answer to the latest question is affirmative, why
+>> /proc/cpuinfo seems to ignore it?
+>>
+>> Sorry for the confusion.
+>> Regards,
+>> Fabio
+>>
+>
+> Here is what I can read in your DSDT:
+>
+> When INIT or _Q31 is called, the bios check the the battery is
+> present, and call FSBA(0) or FSBA(1).
+> _Q31 seems to be called by an hotkey, could you run "acpi_listen" and
+> search the hotkey that generate 0x50 or 0x51 ?
 
-Bjorn
+This is the output requested.
+
+hotkey ATKD 0000002e 00000000
+hotkey ATKD 0000002f 00000000
+hotkey ATKD 00000030 00000000
+hotkey ATKD 00000012 00000000
+hotkey ATKD 00000013 00000000
+hotkey ATKD 00000014 00000000
+hotkey ATKD 00000015 00000000
+hotkey ATKD 00000010 00000000
+button/sleep SLPB 00000080 00000001
+hotkey ATKD 00000010 00000001
+
+>
+> FSBA is the method called by CFVS. When you do "echo 1 > cpufv" it
+> calls CFVS(1), then FSBA(1).
+> FSBA got 2 presets on 900.
+>
+> Using these presets, is write some bytes to the EC and to something
+> wich sounds like clock (RCLK, WCKB, WLCK)
+> By the name it seems that it set the FSB, it may also surely change
+> the CPU Clock.
+>
+> Now, I don't know why cpuinfo always show the same value, maybe
+> because the cpu clock is not changed
+> by a cpufreq driver.
+
+Well, the cpuinfo frequency value seems to be set only at boot: 630 if
+booting from battery, 900 from AC.
+
+>
+> --
+> Corentin Chary
+> http://xf.iksaif.net
+>
+
+Thanks,
+Fabio
