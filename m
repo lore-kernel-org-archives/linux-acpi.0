@@ -1,47 +1,106 @@
-From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] Some typo fixing
-Date: Tue, 16 Mar 2010 11:32:24 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1003161127340.18642@pobox.suse.cz>
-References: <1268686558-28171-1-git-send-email-swirl@gmx.li>
-	<4B9EA214.7010203@xenotime.net>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: Re: [PATCH v2 1/3] ipmi: Raise precedence of PNP based discovery
+ mechanisms (ACPI, PCI)
+Date: Tue, 16 Mar 2010 09:03:20 -0600
+Message-ID: <1268751800.2671.16.camel@zim>
+References: <20100313180121.20614.92547.stgit@bob.kio>
+	 <20100313181342.20614.72981.stgit@bob.kio>
+	 <1268617719.3617.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <4B9EA214.7010203-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
-	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/containers>
-List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
-	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc: Karsten Keil <isdn-iHCpqvpFUx0uJkBD2foKsQ@public.gmane.org>, Lin Ming <ming.m.lin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, KOSAKI Motohiro <kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Steve Conklin <sconklin-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Ralph Campbell <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, cbe-oss-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, Anthony Liguori <aliguori-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Andrew Morton <akpm>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1268617719.3617.9.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 15 Mar 2010, Randy Dunlap wrote:
-
-> > I have fixed some typos.
+On Mon, 2010-03-15 at 09:48 +0800, ykzhao wrote:
+> On Sun, 2010-03-14 at 02:13 +0800, Myron Stowe wrote:
+> > This raises the precedence of PNP discovery mechanisms, ACPI and  PCI,
+> > above SMBIOS and SPMI as indicated by Appendix C1 of the IPMI
+> > specification.
+> > 
+> > Reference: IPMI - Intelligent Platform Management Interface Specification
+> >            v2.0, Document Revision 1.0, 05.05.2005 Markup
+> > 
+> >   Appendix C1 - Locating IPMI System Interfaces via SMBIOS Tables
+> >       "Note that the settings that this structure reports may be over-
+> >       ridden by `Plug-and-Play' reassignment by the OS.  Therefore, this
+> >       structure should be used only when the interface cannot be
+> >       discovered via `Plug-and-Play' discovery mechanisms incorporated
+> >       in interfaces such as PCI and ACPI."
 > 
-> Acked-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+> Hi,
+>     The SPMI detection mechanism belongs to one of two ACPI detection
+> mechanisms.  Can we put it before DMI detection mechanism?
+
+The SPMI detection method is similar to the DMI (SMBIOS) in that they
+are both static tables and thus should be after methods capable of
+changes from OS reassignment.
+
+The order between these two probably does not make a great deal of
+difference.  The logic I used was to maintain the original order, just
+copy and paste, which kept SPMI after SMBIOS which also seemed natural
+since SMBIOS is older, a possible indication that it is the more widely
+used method of the two.
+
+Myron
+
+>     
+>     Anyway, it is right that the pnp discovery mechanism has higher
+> priority than PCI/SPMI/SMBIOS.
 > 
-> Jiri, can you merge these, please, unless someone objects (?).
+> Thanks.
+>    Yakui
+> > 
+> > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> > ---
+> > 
+> >  drivers/char/ipmi/ipmi_si_intf.c |   15 ++++++++-------
+> >  1 files changed, 8 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+> > index 176f175..86a7dd7 100644
+> > --- a/drivers/char/ipmi/ipmi_si_intf.c
+> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> > @@ -3197,13 +3197,6 @@ static __devinit int init_ipmi_si(void)
+> >  
+> >  	hardcode_find_bmc();
+> >  
+> > -#ifdef CONFIG_DMI
+> > -	dmi_find_bmc();
+> > -#endif
+> > -
+> > -#ifdef CONFIG_ACPI
+> > -	spmi_find_bmc();
+> > -#endif
+> >  #ifdef CONFIG_ACPI
+> >  	pnp_register_driver(&ipmi_pnp_driver);
+> >  #endif
+> > @@ -3220,6 +3213,14 @@ static __devinit int init_ipmi_si(void)
+> >  	of_register_platform_driver(&ipmi_of_platform_driver);
+> >  #endif
+> >  
+> > +#ifdef CONFIG_DMI
+> > +	dmi_find_bmc();
+> > +#endif
+> > +
+> > +#ifdef CONFIG_ACPI
+> > +	spmi_find_bmc();
+> > +#endif
+> > +
+> >  	if (si_trydefaults) {
+> >  		mutex_lock(&smi_infos_lock);
+> >  		if (list_empty(&smi_infos)) {
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Yes, I will take it, thanks. A couple comments though:
-
-- [important!] Thomas, it's not necessary to CC zillions of people on such 
-  patches. Just submit them to trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org (and eventually CC 
-  lkml), and that's it. I believe many people might get annoyed by this.
-- I will not be applying the drivers/staging hunks. Staging patches are 
-  moving target, the code is changing quickly (including complete 
-  drops/rewrites) so we'll likely be getting conflicts there. I will 
-  reroute them to Greg.
-- I will fold all the patches into one. We don't need one commit per one 
-  specific typo.
 
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Myron Stowe                             HP Open Source Linux Lab (OSLL)
