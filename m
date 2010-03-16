@@ -1,101 +1,44 @@
-From: Fabio Comolli <fabio.comolli@gmail.com>
-Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
-Date: Tue, 16 Mar 2010 21:31:14 +0100
-Message-ID: <b637ec0b1003161331y680418e0p6549504165a45701@mail.gmail.com>
-References: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
-	 <71cd59b01003120049n1a9fbbf3qfd37f14f241a7f64@mail.gmail.com>
-	 <b637ec0b1003121207g5d29ddb4k338f1768ed1c2759@mail.gmail.com>
-	 <71cd59b01003130116h4265769v9e1dae95361629ce@mail.gmail.com>
-	 <b637ec0b1003130450n3293ee78wc58e08a9bbcefe17@mail.gmail.com>
-	 <71cd59b01003152354h64d18c0fq2083f60e399313c8@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI spam
+Date: Tue, 16 Mar 2010 22:48:53 +0100
+Message-ID: <201003162248.53820.rjw@sisk.pl>
+References: <a36005b51003160819p21871af4t48a08a502afb67b5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:53678 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635Ab0CPUbj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Mar 2010 16:31:39 -0400
-In-Reply-To: <71cd59b01003152354h64d18c0fq2083f60e399313c8@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:42141 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027Ab0CPVp5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Mar 2010 17:45:57 -0400
+In-Reply-To: <a36005b51003160819p21871af4t48a08a502afb67b5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Ulrich Drepper <drepper@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi.
+[CCing linux-acpi]
 
-On Tue, Mar 16, 2010 at 7:54 AM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Sat, Mar 13, 2010 at 1:50 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
->> Well, I'm confused.
->>
->> I rebooted with the "vanilla" eeepc-laptop.c and I'm sorry to say that
->> the situation it's not like the one I described in the post I wrote 2
->> days ago. Actually the situation with the patch reverted is the same I
->> have with the patch applied.
->>
->> What I mean is that if I boot on AC power /proc/cpuinfo always reports
->> 900MHz and 1800 bogomips. It I boot on battery /proc/cpuinfo always
->> reports 630MHz and 1260 bogomips. Plugging / unplugging the AC does
->> not change the situation. Only reboot does.
->>
->> But the cpufv interface does indeed seem to work, as glxgears and
->> stellarium show the frame rate change accordingly to the powersave /
->> performance selection.
->>
->> So my question is: what does really the cpufv interface do? Is it
->> supposed to change the processor frequency? Or does it change
->> something else?
->>
->> And if the answer to the latest question is affirmative, why
->> /proc/cpuinfo seems to ignore it?
->>
->> Sorry for the confusion.
->> Regards,
->> Fabio
->>
->
-> Here is what I can read in your DSDT:
->
-> When INIT or _Q31 is called, the bios check the the battery is
-> present, and call FSBA(0) or FSBA(1).
-> _Q31 seems to be called by an hotkey, could you run "acpi_listen" and
-> search the hotkey that generate 0x50 or 0x51 ?
-
-This is the output requested.
-
-hotkey ATKD 0000002e 00000000
-hotkey ATKD 0000002f 00000000
-hotkey ATKD 00000030 00000000
-hotkey ATKD 00000012 00000000
-hotkey ATKD 00000013 00000000
-hotkey ATKD 00000014 00000000
-hotkey ATKD 00000015 00000000
-hotkey ATKD 00000010 00000000
-button/sleep SLPB 00000080 00000001
-hotkey ATKD 00000010 00000001
-
->
-> FSBA is the method called by CFVS. When you do "echo 1 > cpufv" it
-> calls CFVS(1), then FSBA(1).
-> FSBA got 2 presets on 900.
->
-> Using these presets, is write some bytes to the EC and to something
-> wich sounds like clock (RCLK, WCKB, WLCK)
-> By the name it seems that it set the FSB, it may also surely change
-> the CPU Clock.
->
-> Now, I don't know why cpuinfo always show the same value, maybe
-> because the cpu clock is not changed
-> by a cpufreq driver.
-
-Well, the cpuinfo frequency value seems to be set only at boot: 630 if
-booting from battery, 900 from AC.
-
->
+On Tuesday 16 March 2010, Ulrich Drepper wrote:
+> On one machine I've used using a recent kernel I see tons of messages like
+> 
+> Mar 16 10:54:52 intel-d3cf1-01 kernel: ACPI Exception: AE_NOT_EXIST,
+> while evaluating GPE method [_L01] (20090903/evgpe-568)
+> Mar 16 10:54:53 intel-d3cf1-01 kernel: ACPI Error: No handler for
+> Region [ECF2] (ffff88013b69c978) [EmbeddedControl]
+> (20090903/evregion-319)
+> Mar 16 10:54:53 intel-d3cf1-01 kernel: ACPI Error: Region
+> EmbeddedControl(3) has no handler (20090903/exfldio-295)
+> 
+> This is reported hundreds of times.
+> 
+> Shouldn't these messages be rate-limited?  Aside from the reason being fixed.
 > --
-> Corentin Chary
-> http://xf.iksaif.net
->
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> 
 
-Thanks,
-Fabio
