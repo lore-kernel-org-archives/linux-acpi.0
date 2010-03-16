@@ -1,68 +1,70 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [LKML] Re: swiotlb detection should be memory hotplug aware ?
-Date: Tue, 16 Mar 2010 10:33:20 +0900
-Message-ID: <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
-References: <1268446032.13691.69.camel@ank32>
-	<4B9B01F5.3000807@linux.intel.com>
-	<20100316005140.GB7622@phenom.dumpdata.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: Possible bug in eeepc-laptop.c - EeePC 900
+Date: Tue, 16 Mar 2010 07:54:17 +0100
+Message-ID: <71cd59b01003152354h64d18c0fq2083f60e399313c8@mail.gmail.com>
+References: <b637ec0b1003111328u5c1d7d7fw6c76c409740827c7@mail.gmail.com>
+	 <71cd59b01003120049n1a9fbbf3qfd37f14f241a7f64@mail.gmail.com>
+	 <b637ec0b1003121207g5d29ddb4k338f1768ed1c2759@mail.gmail.com>
+	 <71cd59b01003130116h4265769v9e1dae95361629ce@mail.gmail.com>
+	 <b637ec0b1003130450n3293ee78wc58e08a9bbcefe17@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:56802 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932833Ab0CPBh6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Mar 2010 21:37:58 -0400
-In-Reply-To: <20100316005140.GB7622@phenom.dumpdata.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b637ec0b1003130450n3293ee78wc58e08a9bbcefe17@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fabio Comolli <fabio.comolli@gmail.com>
+Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: konrad.wilk@oracle.com
-Cc: ak@linux.intel.com, akataria@vmware.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
 
-On Mon, 15 Mar 2010 20:51:40 -0400
-Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+On Sat, Mar 13, 2010 at 1:50 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
+> Well, I'm confused.
+>
+> I rebooted with the "vanilla" eeepc-laptop.c and I'm sorry to say that
+> the situation it's not like the one I described in the post I wrote 2
+> days ago. Actually the situation with the patch reverted is the same I
+> have with the patch applied.
+>
+> What I mean is that if I boot on AC power /proc/cpuinfo always reports
+> 900MHz and 1800 bogomips. It I boot on battery /proc/cpuinfo always
+> reports 630MHz and 1260 bogomips. Plugging / unplugging the AC does
+> not change the situation. Only reboot does.
+>
+> But the cpufv interface does indeed seem to work, as glxgears and
+> stellarium show the frame rate change accordingly to the powersave /
+> performance selection.
+>
+> So my question is: what does really the cpufv interface do? Is it
+> supposed to change the processor frequency? Or does it change
+> something else?
+>
+> And if the answer to the latest question is affirmative, why
+> /proc/cpuinfo seems to ignore it?
+>
+> Sorry for the confusion.
+> Regards,
+> Fabio
+>
 
-> On Fri, Mar 12, 2010 at 07:09:41PM -0800, Andi Kleen wrote:
-> > , Alok Kataria wrote:
-> >
-> > Hi Alok,
-> >
-> >> Hi,
-> >>
-> >> Looking at the current code swiotlb is initialized for 64bit kernels
-> >> only when the max_pfn value is greater than 4G (MAX_DMA32_PFN value).
-> >> So in cases when the initial memory is less than 4GB the kernel boots
-> >> without enabling swiotlb, when we hotadd memory to such a kernel and go
-> >> beyond the 4G limit, swiotlb is still disabled. As a result when any
-> >> 32bit devices start using this newly added memory beyond 4G, the kernel
-> >> starts spitting error messages like below or in some cases it causes
-> >> kernel panics.
-> >
-> > Yes seems like a real problem.
-> >
-> >>
-> >> 1. Enable swiotlb for all 64bit kernels which have memory hot-add
-> >> support.
-> >
-> > I don't think that's a good idea. It would enable it everywhere on
-> > distributions which compile with hotadd. Need (2)
-> >
-> >> 2. Instead of checking the max_pfn value in pci_swiotlb_detect, check
-> >> for max_hotpluggable_pfn (or some such) value. Though I don't see such a
-> >> value readily available. I could parse the SRAT and get hotplug memory
-> >> information but that will make swiotlb detection logic a little too
-> >> complex. A quick look around srat_xx.c files and the acpi_memhotplug
-> >> module didn't find any useful API that could be used directly either.
-> >> So was wondering if any of you are aware of an easy way to get such
-> >> information ?
-> >
-> > I have a patchkit to revamp the SRAT parsing to store the hotadd information
-> 
-> There is a late mechanism to do kickoff the SWIOTLB. Perhaps the hot-add
-> could use swiotlb_init_late and start up the SWIOTLB?
+Here is what I can read in your DSDT:
 
-I guess that you are talking about
-swiotlb_late_init_with_default_size(), which IA64 uses. However, you
-can use swiotlb_late_init_with_default_size() only before we
-initialize devices. Making it work after initializing devices is not
-so easy, I think (that is, we need to change dma_ops).
+When INIT or _Q31 is called, the bios check the the battery is
+present, and call FSBA(0) or FSBA(1).
+_Q31 seems to be called by an hotkey, could you run "acpi_listen" and
+search the hotkey that generate 0x50 or 0x51 ?
+
+FSBA is the method called by CFVS. When you do "echo 1 > cpufv" it
+calls CFVS(1), then FSBA(1).
+FSBA got 2 presets on 900.
+
+Using these presets, is write some bytes to the EC and to something
+wich sounds like clock (RCLK, WCKB, WLCK)
+By the name it seems that it set the FSB, it may also surely change
+the CPU Clock.
+
+Now, I don't know why cpuinfo always show the same value, maybe
+because the cpu clock is not changed
+by a cpufreq driver.
+
+-- 
+Corentin Chary
+http://xf.iksaif.net
