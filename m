@@ -1,106 +1,80 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: Re: [PATCH v2 1/3] ipmi: Raise precedence of PNP based discovery
- mechanisms (ACPI, PCI)
-Date: Tue, 16 Mar 2010 09:03:20 -0600
-Message-ID: <1268751800.2671.16.camel@zim>
-References: <20100313180121.20614.92547.stgit@bob.kio>
-	 <20100313181342.20614.72981.stgit@bob.kio>
-	 <1268617719.3617.9.camel@localhost.localdomain>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [LKML] Re: [LKML] Re: swiotlb detection should be memory
+	hotplug aware ?
+Date: Tue, 16 Mar 2010 08:45:56 -0400
+Message-ID: <20100316124556.GA25340@phenom.dumpdata.com>
+References: <1268446032.13691.69.camel@ank32> <4B9B01F5.3000807@linux.intel.com> <20100316005140.GB7622@phenom.dumpdata.com> <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1268617719.3617.9.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet11.oracle.com ([148.87.113.123]:28210 "EHLO
+	rcsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933095Ab0CPPkH (ORCPT
+	<rfc822;<linux-acpi@vger.kernel.org>>);
+	Tue, 16 Mar 2010 11:40:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: ak@linux.intel.com, akataria@vmware.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
 
-On Mon, 2010-03-15 at 09:48 +0800, ykzhao wrote:
-> On Sun, 2010-03-14 at 02:13 +0800, Myron Stowe wrote:
-> > This raises the precedence of PNP discovery mechanisms, ACPI and  PCI,
-> > above SMBIOS and SPMI as indicated by Appendix C1 of the IPMI
-> > specification.
-> > 
-> > Reference: IPMI - Intelligent Platform Management Interface Specification
-> >            v2.0, Document Revision 1.0, 05.05.2005 Markup
-> > 
-> >   Appendix C1 - Locating IPMI System Interfaces via SMBIOS Tables
-> >       "Note that the settings that this structure reports may be over-
-> >       ridden by `Plug-and-Play' reassignment by the OS.  Therefore, this
-> >       structure should be used only when the interface cannot be
-> >       discovered via `Plug-and-Play' discovery mechanisms incorporated
-> >       in interfaces such as PCI and ACPI."
+On Tue, Mar 16, 2010 at 10:33:20AM +0900, FUJITA Tomonori wrote:
+> On Mon, 15 Mar 2010 20:51:40 -0400
+> Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
 > 
-> Hi,
->     The SPMI detection mechanism belongs to one of two ACPI detection
-> mechanisms.  Can we put it before DMI detection mechanism?
-
-The SPMI detection method is similar to the DMI (SMBIOS) in that they
-are both static tables and thus should be after methods capable of
-changes from OS reassignment.
-
-The order between these two probably does not make a great deal of
-difference.  The logic I used was to maintain the original order, just
-copy and paste, which kept SPMI after SMBIOS which also seemed natural
-since SMBIOS is older, a possible indication that it is the more widely
-used method of the two.
-
-Myron
-
->     
->     Anyway, it is right that the pnp discovery mechanism has higher
-> priority than PCI/SPMI/SMBIOS.
+> > On Fri, Mar 12, 2010 at 07:09:41PM -0800, Andi Kleen wrote:
+> > > , Alok Kataria wrote:
+> > >
+> > > Hi Alok,
+> > >
+> > >> Hi,
+> > >>
+> > >> Looking at the current code swiotlb is initialized for 64bit kernels
+> > >> only when the max_pfn value is greater than 4G (MAX_DMA32_PFN value).
+> > >> So in cases when the initial memory is less than 4GB the kernel boots
+> > >> without enabling swiotlb, when we hotadd memory to such a kernel and go
+> > >> beyond the 4G limit, swiotlb is still disabled. As a result when any
+> > >> 32bit devices start using this newly added memory beyond 4G, the kernel
+> > >> starts spitting error messages like below or in some cases it causes
+> > >> kernel panics.
+> > >
+> > > Yes seems like a real problem.
+> > >
+> > >>
+> > >> 1. Enable swiotlb for all 64bit kernels which have memory hot-add
+> > >> support.
+> > >
+> > > I don't think that's a good idea. It would enable it everywhere on
+> > > distributions which compile with hotadd. Need (2)
+> > >
+> > >> 2. Instead of checking the max_pfn value in pci_swiotlb_detect, check
+> > >> for max_hotpluggable_pfn (or some such) value. Though I don't see such a
+> > >> value readily available. I could parse the SRAT and get hotplug memory
+> > >> information but that will make swiotlb detection logic a little too
+> > >> complex. A quick look around srat_xx.c files and the acpi_memhotplug
+> > >> module didn't find any useful API that could be used directly either.
+> > >> So was wondering if any of you are aware of an easy way to get such
+> > >> information ?
+> > >
+> > > I have a patchkit to revamp the SRAT parsing to store the hotadd information
+> > 
+> > There is a late mechanism to do kickoff the SWIOTLB. Perhaps the hot-add
+> > could use swiotlb_init_late and start up the SWIOTLB?
 > 
-> Thanks.
->    Yakui
-> > 
-> > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-> > ---
-> > 
-> >  drivers/char/ipmi/ipmi_si_intf.c |   15 ++++++++-------
-> >  1 files changed, 8 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> > index 176f175..86a7dd7 100644
-> > --- a/drivers/char/ipmi/ipmi_si_intf.c
-> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> > @@ -3197,13 +3197,6 @@ static __devinit int init_ipmi_si(void)
-> >  
-> >  	hardcode_find_bmc();
-> >  
-> > -#ifdef CONFIG_DMI
-> > -	dmi_find_bmc();
-> > -#endif
-> > -
-> > -#ifdef CONFIG_ACPI
-> > -	spmi_find_bmc();
-> > -#endif
-> >  #ifdef CONFIG_ACPI
-> >  	pnp_register_driver(&ipmi_pnp_driver);
-> >  #endif
-> > @@ -3220,6 +3213,14 @@ static __devinit int init_ipmi_si(void)
-> >  	of_register_platform_driver(&ipmi_of_platform_driver);
-> >  #endif
-> >  
-> > +#ifdef CONFIG_DMI
-> > +	dmi_find_bmc();
-> > +#endif
-> > +
-> > +#ifdef CONFIG_ACPI
-> > +	spmi_find_bmc();
-> > +#endif
-> > +
-> >  	if (si_trydefaults) {
-> >  		mutex_lock(&smi_infos_lock);
-> >  		if (list_empty(&smi_infos)) {
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> I guess that you are talking about
+> swiotlb_late_init_with_default_size(), which IA64 uses. However, you
+> can use swiotlb_late_init_with_default_size() only before we
+> initialize devices. Making it work after initializing devices is not
+> so easy, I think (that is, we need to change dma_ops).
 
+That is a good point. Especially if we have some outstanding DMA pages
+allocated via dma_alloc_coherent.
 
--- 
-Myron Stowe                             HP Open Source Linux Lab (OSLL)
+I thought that the machines that have hot-add memory they have their
+own fancy IOMMU. For example the IBM x3955 (and its family) utilize the
+Calgary IOMMU. The HP boxes utilize the Intel VT-D (or the AMD
+equivalant).
+
+So is this mostly specialized in the areas of virtualized guests? (Xen
+PV guests with PCI passthrough suffer the same problem, btw).
