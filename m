@@ -1,37 +1,39 @@
-From: =?utf-8?B?VGVyamUgSMO4eWxhbmQ=?= <terje@hoyland.no>
-Subject: Please send DMI info above
-Date: Wed, 17 Mar 2010 09:15:59 +0100
-Message-ID: <0a61afe28a37d7bfcfc6fa10dbbbb2de.squirrel@www.hoyland.no>
+From: Chase Douglas <chase.douglas@ubuntu.com>
+Subject: Re: [PATCH] Reduce ACPI resource conflict message to KERN_INFO,
+	printf cleanup
+Date: Wed, 17 Mar 2010 10:15:20 -0400
+Message-ID: <40ec3ea41003170715o250e6457hbc0a0025ea6da3bc@mail.gmail.com>
+References: <1267633294-21815-1-git-send-email-chase.douglas@ubuntu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static100.banetele-cust.com ([195.18.206.100]:40714 "EHLO
-	Server1.hoyland.no" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753599Ab0CQIXl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Mar 2010 04:23:41 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by Server1.hoyland.no (Postfix) with ESMTP id 4CF7528238
-	for <linux-acpi@vger.kernel.org>; Wed, 17 Mar 2010 09:16:06 +0100 (CET)
-Received: from Server1.hoyland.no ([127.0.0.1])
-	by localhost (Server1.hoyland.no [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id MNiSG8LN4qhz for <linux-acpi@vger.kernel.org>;
-	Wed, 17 Mar 2010 09:15:59 +0100 (CET)
-Received: from www.hoyland.no (localhost.localdomain [127.0.0.1])
-	by Server1.hoyland.no (Postfix) with ESMTP id CF59A27F19
-	for <linux-acpi@vger.kernel.org>; Wed, 17 Mar 2010 09:15:59 +0100 (CET)
+Received: from mail-px0-f198.google.com ([209.85.216.198]:51183 "EHLO
+	mail-px0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548Ab0CQOPV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Mar 2010 10:15:21 -0400
+Received: by pxi36 with SMTP id 36so544769pxi.21
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Mar 2010 07:15:21 -0700 (PDT)
+In-Reply-To: <1267633294-21815-1-git-send-email-chase.douglas@ubuntu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
- 1 Time(s): [    7.718627] ACPI: DMI System Vendor: VMware, Inc.
- 1 Time(s): [    7.718652] ACPI: DMI Product Name: VMware Virtual Platform
- 1 Time(s): [    7.718667] ACPI: DMI Product Version: None
- 1 Time(s): [    7.718681] ACPI: DMI Board Name: 440BX Desktop Reference
-Platform
- 1 Time(s): [    7.718696] ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
- 1 Time(s): [    7.718710] ACPI: DMI BIOS Date: 09/22/2009
- 1 Time(s): [    7.718729] ACPI: Please send DMI info above to
-linux-acpi@vger.kernel.org
+On Wed, Mar 3, 2010 at 12:21 PM, Chase Douglas <chase.douglas@ubuntu.com> wrote:
+> From: Chase Douglas <chase.douglas@canonical.com>
+>
+> By default, ACPI resource conflict messages are logged at level
+> KERN_ERR. This is a rather high level for a message that is more a
+> warning than an indication of a real kernel error. Also, KERN_ERR level
+> messages can appear over some boot splash screens, and this message is
+> not serious enough to warrant such treatment. Thus, the log level has
+> been reduced to KERN_INFO.
+>
+> Also, cleanup message to use %pR resource printing format.
 
+I saw a bunch of patches get rolled into the acpi tree and pulled into
+Linus' tree two days ago. I'm not familiar with the process for how
+patches are handled in the acpi tree, so when should I expect to see
+this patch get pulled in (or NAK'd)?
 
+Thanks,
+Chase
