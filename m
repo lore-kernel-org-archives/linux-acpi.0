@@ -1,64 +1,104 @@
-From: Venkatesh Pallipadi <venki@google.com>
-Subject: Re: [PATCH 1/3] hpet: convert to PNP driver
-Date: Wed, 17 Mar 2010 15:18:27 -0700
-Message-ID: <3055132f1003171518o46c4712bk5089a7bab8574019@mail.gmail.com>
-References: <20100317173329.31124.69795.stgit@bob.kio>
-	 <20100317173500.31124.53755.stgit@bob.kio>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: [LKML] Re: [LKML] Re: swiotlb detection should be memory
+	hotplug aware ?
+Date: Wed, 17 Mar 2010 15:48:33 -0700
+Message-ID: <1268866113.20507.26.camel@ank32>
+References: <1268446032.13691.69.camel@ank32>
+	 <4B9B01F5.3000807@linux.intel.com>
+	 <20100316005140.GB7622@phenom.dumpdata.com>
+	 <20100316103259E.fujita.tomonori@lab.ntt.co.jp>
+	 <20100316124556.GA25340@phenom.dumpdata.com>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.35]:7011 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750915Ab0CQWSd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Mar 2010 18:18:33 -0400
-In-Reply-To: <20100317173500.31124.53755.stgit@bob.kio>
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:19382 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756221Ab0CQWse (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Mar 2010 18:48:34 -0400
+In-Reply-To: <20100316124556.GA25340@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>, linux-acpi@vger.kernel.org, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "ak@linux.intel.com" <ak@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
 
-On Wed, Mar 17, 2010 at 10:35 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> =
-wrote:
->
-> PNPACPI already parses _CRS, and does a more complete job than we did=
- here,
-> so let's just take advantage of that.
->
 
-Patch looks good.
-One comment is that we now have a dependency on CONFIG_PNP. That
-probably needs to be added in drivers/char/Kconfig. But, that also
-means we may fail for users who do not have PNP in their config today.
-May be just select PNP when HPET is selected?
+On Tue, 2010-03-16 at 05:45 -0700, Konrad Rzeszutek Wilk wrote:
+> On Tue, Mar 16, 2010 at 10:33:20AM +0900, FUJITA Tomonori wrote:
+> > On Mon, 15 Mar 2010 20:51:40 -0400
+> > Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+> > 
+> > > On Fri, Mar 12, 2010 at 07:09:41PM -0800, Andi Kleen wrote:
+> > > > , Alok Kataria wrote:
+> > > >
+> > > > Hi Alok,
+> > > >
+> > > >> Hi,
+> > > >>
+> > > >> Looking at the current code swiotlb is initialized for 64bit kernels
+> > > >> only when the max_pfn value is greater than 4G (MAX_DMA32_PFN value).
+> > > >> So in cases when the initial memory is less than 4GB the kernel boots
+> > > >> without enabling swiotlb, when we hotadd memory to such a kernel and go
+> > > >> beyond the 4G limit, swiotlb is still disabled. As a result when any
+> > > >> 32bit devices start using this newly added memory beyond 4G, the kernel
+> > > >> starts spitting error messages like below or in some cases it causes
+> > > >> kernel panics.
+> > > >
+> > > > Yes seems like a real problem.
+> > > >
+> > > >>
+> > > >> 1. Enable swiotlb for all 64bit kernels which have memory hot-add
+> > > >> support.
+> > > >
+> > > > I don't think that's a good idea. It would enable it everywhere on
+> > > > distributions which compile with hotadd. Need (2)
+> > > >
+> > > >> 2. Instead of checking the max_pfn value in pci_swiotlb_detect, check
+> > > >> for max_hotpluggable_pfn (or some such) value. Though I don't see such a
+> > > >> value readily available. I could parse the SRAT and get hotplug memory
+> > > >> information but that will make swiotlb detection logic a little too
+> > > >> complex. A quick look around srat_xx.c files and the acpi_memhotplug
+> > > >> module didn't find any useful API that could be used directly either.
+> > > >> So was wondering if any of you are aware of an easy way to get such
+> > > >> information ?
+> > > >
+> > > > I have a patchkit to revamp the SRAT parsing to store the hotadd information
+> > > 
 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
->
-> =A0drivers/char/hpet.c | =A0103 +++++++++++++------------------------=
---------------
-> =A01 files changed, 27 insertions(+), 76 deletions(-)
->
->
->
-> - =A0 =A0 =A0 if (!data.hd_address || !data.hd_nirqs) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk("%s: no address or irqs in _CRS\=
-n", __func__);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> - =A0 =A0 =A0 }
-> + =A0 =A0 =A0 data.hd_address =3D ioremap(mem->start, resource_size(m=
-em));
->
-> =A0 =A0 =A0 =A0return hpet_alloc(&data);
-> =A0}
+Andi...ping any pointers to the patchkit. 
 
-Not a problem with this patch. But, don't we have a problem of rogue
-ioremap when hpet_alloc() fails here?
+> > > There is a late mechanism to do kickoff the SWIOTLB. Perhaps the hot-add
+> > > could use swiotlb_init_late and start up the SWIOTLB?
+
+I don't see why we need to do this via late_init, swiotlb detection that
+happens through pci_swiotlb_detect, is already late enough that SRAT is
+already parsed. Or am I missing something ?
+> > 
+> > I guess that you are talking about
+> > swiotlb_late_init_with_default_size(), which IA64 uses. However, you
+> > can use swiotlb_late_init_with_default_size() only before we
+> > initialize devices. Making it work after initializing devices is not
+> > so easy, I think (that is, we need to change dma_ops).
+
+> That is a good point. Especially if we have some outstanding DMA pages
+> allocated via dma_alloc_coherent.
+> 
+> I thought that the machines that have hot-add memory they have their
+> own fancy IOMMU. For example the IBM x3955 (and its family) utilize the
+> Calgary IOMMU. The HP boxes utilize the Intel VT-D (or the AMD
+> equivalant).
+> So is this mostly specialized in the areas of virtualized guests? (Xen
+> PV guests with PCI passthrough suffer the same problem, btw).
+
+
+I am assuming that there were Intel based servers which supported memory
+hot-add before VT-d too. So, IMO this is not specialized to
+virtualization, though might be hard to prove if there are actual
+physical machines out there which have similar constraints (no HWIOMMU +
+MEMHOT add support)
 
 Thanks,
-Venki
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alok
+
