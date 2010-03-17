@@ -1,68 +1,54 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
-Date: Wed, 17 Mar 2010 14:47:55 -0400
-Message-ID: <4BA123DB.5050807@redhat.com>
-References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com> <1268294876.3632.5.camel@localhost.localdomain> <4B98AA89.4060609@linux.intel.com> <201003121418.14204.trenn@suse.de>
+From: Miklos Vajna <vmiklos@frugalware.org>
+Subject: Re: Suspend/hibernate wireless regression with 2.6.33 kernel
+Date: Wed, 17 Mar 2010 20:24:24 +0100
+Message-ID: <20100317192424.GA27414@genesis.frugalware.org>
+References: <20100317015113.4e833e1c@boulder.homenet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42179 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755496Ab0CQSsB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Mar 2010 14:48:01 -0400
-In-Reply-To: <201003121418.14204.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="glG7QM0/F4Gfd30i"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100317015113.4e833e1c@boulder.homenet>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chris Vine <chris@cvine.freeserve.co.uk>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: chen gong <gong.chen@linux.intel.com>, ykzhao <yakui.zhao@intel.com>, Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, trenn@novell.com
 
 
+--glG7QM0/F4Gfd30i
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thomas Renninger wrote:
-> On Thursday 11 March 2010 09:32:09 chen gong wrote:
->   
->> On 2010-3-11 16:07, ykzhao wrote:
->>     
-> ... 
->   
->> BTW, how about using UDEV rules to do this operation. It looks more smooth. I know some
->> Novell guy is working on it.
->>     
-> I also know this guy :)
->
-> These would be the udev rules to automatically add memory/cpus:
-> SUBSYSTEM=="cpu", ACTION=="add", TEST=="online", ATTR{online}=="0", ATTR{online}="1", RUN+="/bin/logger onlining cpu: $env{DEVPATH}"
-> SUBSYSTEM=="memory", ACTION=="add", TEST=="state", ATTR{state}=="offline", ATTR{state}="online", RUN+="/bin/logger onlining memory: $env{DEVPATH}"
->
-> But this should be the same as you suggest (at least the memory rule)
-> to do in the kernel:
-> automatically online the memory, once hotadded.
->
-> I would not add any udev rules before this does not work
-> reliably and currently it is totally broken, mainly because:
->   - not being able to alloc memory on foreign nodes (at least with slab)
->   - C-state, throttling and cpufreq set up is done without valid
->     cpu_data(new_cpu) resulting in wrong C-state (and other) info
->
->   
+On Wed, Mar 17, 2010 at 01:51:13AM +0000, Chris Vine <chris@cvine.freeserve=
+=2Eco.uk> wrote:
+> I have a Lenovo S12 (Ideapad) netbook with a BCM4312 802.11b/g
+> [14e4:4315] wireless device.  Although this works using the PIO option
+> in kernel 2.6.33/2.6.33.1 (not with DMA) using the in-kernel b43 driver,
+> and also works with the broadcom proprietary wl driver, it breaks after
+> a suspend or hibernate. Attempts to bring up the wlan0 interface with
+> 'ifconfig wlan0 up' after suspension or hibernation results in the
+> following message (although nothing is revealed by dmesg):
+>=20
+>   SIOCSIFFLAGS: Unknown error 132
 
-Thomas, forgive my ignorance of udev rules ... but can one udev rule 
-block another?  ... That's not the best way to explain it ... here's an 
-example:
+I just wanted to mention that I can reproduce this issue.
 
-CPU hot add on Nehalem-EX.  Memory is brought online.  Memory udev 
-events are generated.  CPU udev events are generated.
+Same HW (Lenovo S12 Ideapad), and I can reproduce with b43 and wl, on
+2.6.33 and 2.6.34-rc1 as well. It works fine on 2.6.32 for me, too.
 
-Can the memory udev events block the cpu udev events?  ie) can I be 
-assured that memory will come online before the cpus?
+Thanks.
 
-P.
+--glG7QM0/F4Gfd30i
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
->    Thomas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkuhLGgACgkQe81tAgORUJZZlgCghs9A0iiul4A3D3voO+gMdJJN
+1KIAoKDEx20R8r+1o490s9d9dRZvjrae
+=VY3z
+-----END PGP SIGNATURE-----
+
+--glG7QM0/F4Gfd30i--
