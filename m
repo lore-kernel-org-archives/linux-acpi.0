@@ -1,32 +1,75 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 0/3] hpet: convert from ACPI to PNP driver
-Date: Wed, 17 Mar 2010 11:34:55 -0600
-Message-ID: <20100317173329.31124.69795.stgit@bob.kio>
+Subject: [PATCH 2/3] hpet: pass physical address, not entire hpet_data,
+	to hpet_is_known()
+Date: Wed, 17 Mar 2010 11:35:05 -0600
+Message-ID: <20100317173505.31124.74595.stgit@bob.kio>
+References: <20100317173329.31124.69795.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:46334 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab0CQRe5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Mar 2010 13:34:57 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100317173329.31124.69795.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Clemens Ladisch <clemens@ladisch.de>
 Cc: linux-acpi@vger.kernel.org, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, "Venkatesh Pallipadi (Venki)" <venkatesh.pallipadi@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The hpet driver parses ACPI _CRS data manually, but PNPACPI already does
-that, and it does a more complete job, so we can simplify the hpet driver
-quite a bit by taking advantage of that.
 
+No functional change; hpet_is_known() only needs the physical address,
+so supplying that instead of the whole struct hpet_data makes the callers
+a little simpler.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
-Bjorn Helgaas (3):
-      hpet: convert to PNP driver
-      hpet: pass physical address, not entire hpet_data, to hpet_is_known()
-      MAINTAINERS: remove obsolete HPET ACPI entry
+ drivers/char/hpet.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
 
- MAINTAINERS         |    5 --
- drivers/char/hpet.c |  110 ++++++++++++++-------------------------------------
- 2 files changed, 30 insertions(+), 85 deletions(-)
+diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
+index 65a9aa8..4c508df 100644
+--- a/drivers/char/hpet.c
++++ b/drivers/char/hpet.c
+@@ -662,12 +662,12 @@ static const struct file_operations hpet_fops = {
+ 	.mmap = hpet_mmap,
+ };
+ 
+-static int hpet_is_known(struct hpet_data *hdp)
++static int hpet_is_known(unsigned long phys_address)
+ {
+ 	struct hpets *hpetp;
+ 
+ 	for (hpetp = hpets; hpetp; hpetp = hpetp->hp_next)
+-		if (hpetp->hp_hpet_phys == hdp->hd_phys_address)
++		if (hpetp->hp_hpet_phys == phys_address)
+ 			return 1;
+ 
+ 	return 0;
+@@ -788,7 +788,7 @@ int hpet_alloc(struct hpet_data *hdp)
+ 	 * If platform dependent code has allocated the hpet that
+ 	 * ACPI has also reported, then we catch it here.
+ 	 */
+-	if (hpet_is_known(hdp)) {
++	if (hpet_is_known(hdp->hd_phys_address)) {
+ 		printk(KERN_DEBUG "%s: duplicate HPET ignored\n",
+ 			__func__);
+ 		return 0;
+@@ -911,9 +911,7 @@ static int hpet_pnp_add(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
+ 	if (!mem)
+ 		return -ENODEV;
+ 
+-	data.hd_phys_address = mem->start;
+-
+-	if (hpet_is_known(&data))
++	if (hpet_is_known(mem->start))
+ 		return -EBUSY;
+ 
+ 	i = 0;
+@@ -925,6 +923,7 @@ static int hpet_pnp_add(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
+ 	if (!data.hd_nirqs)
+ 		return -ENODEV;
+ 
++	data.hd_phys_address = mem->start;
+ 	data.hd_address = ioremap(mem->start, resource_size(mem));
+ 
+ 	return hpet_alloc(&data);
