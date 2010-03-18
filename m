@@ -1,255 +1,88 @@
-From: Venkatesh Pallipadi <venki@google.com>
-Subject: Re: [PATCH v2 1/4] hpet: convert from ACPI to PNP driver
-Date: Thu, 18 Mar 2010 12:26:38 -0700
-Message-ID: <3055132f1003181226w3db55bd8o506b1020d2e2218c@mail.gmail.com>
-References: <20100318175852.15143.2124.stgit@bob.kio>
-	 <20100318175930.15143.28660.stgit@bob.kio>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.33-mmotm0304 - lockdep warning in ACPI code
+Date: Thu, 18 Mar 2010 13:36:58 -0700
+Message-ID: <20100318133658.80a15736.akpm@linux-foundation.org>
+References: <5057.1268124370@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:13772 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317Ab0CRT0m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Mar 2010 15:26:42 -0400
-In-Reply-To: <20100318175930.15143.28660.stgit@bob.kio>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45979 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752095Ab0CRUhZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Mar 2010 16:37:25 -0400
+In-Reply-To: <5057.1268124370@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Cc: Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, Thomas Gleixner <tglx@linutronix.de>
 
-Acked-by: Venkatesh Pallipadi <venki@google.com>
+On Tue, 09 Mar 2010 03:46:10 -0500
+Valdis.Kletnieks@vt.edu wrote:
 
-On Thu, Mar 18, 2010 at 10:59 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> =
-wrote:
->
-> PNPACPI already parses _CRS, and does a more complete job than we did=
- here,
-> so let's just take advantage of that.
->
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
->
-> =A0drivers/char/hpet.c | =A0109 +++++++++++++++----------------------=
---------------
-> =A01 files changed, 33 insertions(+), 76 deletions(-)
->
->
-> diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
-> index e481c59..5cb05ed 100644
-> --- a/drivers/char/hpet.c
-> +++ b/drivers/char/hpet.c
-> @@ -31,6 +31,7 @@
-> =A0#include <linux/seq_file.h>
-> =A0#include <linux/bitops.h>
-> =A0#include <linux/clocksource.h>
-> +#include <linux/pnp.h>
->
-> =A0#include <asm/current.h>
-> =A0#include <asm/uaccess.h>
-> @@ -40,7 +41,6 @@
-> =A0#include <asm/div64.h>
->
-> =A0#include <linux/acpi.h>
-> -#include <acpi/acpi_bus.h>
-> =A0#include <linux/hpet.h>
->
-> =A0/*
-> @@ -899,101 +899,56 @@ int hpet_alloc(struct hpet_data *hdp)
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> -static acpi_status hpet_resources(struct acpi_resource *res, void *d=
-ata)
-> +#ifdef CONFIG_PNP
-> +static int hpet_pnp_add(struct pnp_dev *dev, const struct pnp_device=
-_id *dev_id)
-> =A0{
-> - =A0 =A0 =A0 struct hpet_data *hdp;
-> - =A0 =A0 =A0 acpi_status status;
-> - =A0 =A0 =A0 struct acpi_resource_address64 addr;
-> -
-> - =A0 =A0 =A0 hdp =3D data;
-> -
-> - =A0 =A0 =A0 status =3D acpi_resource_to_address64(res, &addr);
-> -
-> - =A0 =A0 =A0 if (ACPI_SUCCESS(status)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_phys_address =3D addr.minimum;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_address =3D ioremap(addr.minimu=
-m, addr.address_length);
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (hpet_is_known(hdp)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(hdp->hd_address=
-);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return AE_ALREADY_EXIST=
-S;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> - =A0 =A0 =A0 } else if (res->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_ME=
-MORY32) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct acpi_resource_fixed_memory32 *fi=
-xmem32;
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 fixmem32 =3D &res->data.fixed_memory32;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!fixmem32)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return AE_NO_MEMORY;
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_phys_address =3D fixmem32->addr=
-ess;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_address =3D ioremap(fixmem32->a=
-ddress,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 HPET_RANGE_SIZE);
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (hpet_is_known(hdp)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(hdp->hd_address=
-);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return AE_ALREADY_EXIST=
-S;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> - =A0 =A0 =A0 } else if (res->type =3D=3D ACPI_RESOURCE_TYPE_EXTENDED=
-_IRQ) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct acpi_resource_extended_irq *irqp=
-;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 int i, irq;
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 irqp =3D &res->data.extended_irq;
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 0; i < irqp->interrupt_count=
-; i++) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq =3D acpi_register_g=
-si(NULL, irqp->interrupts[i],
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 irqp->triggering, irqp->polarity);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (irq < 0)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return =
-AE_ERROR;
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_irq[hdp->hd_nir=
-qs] =3D irq;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdp->hd_nirqs++;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> - =A0 =A0 =A0 }
-> -
-> - =A0 =A0 =A0 return AE_OK;
-> -}
-> -
-> -static int hpet_acpi_add(struct acpi_device *device)
-> -{
-> - =A0 =A0 =A0 acpi_status result;
-> =A0 =A0 =A0 =A0struct hpet_data data;
-> + =A0 =A0 =A0 struct resource *mem, *irq;
-> + =A0 =A0 =A0 int i;
->
-> =A0 =A0 =A0 =A0memset(&data, 0, sizeof(data));
->
-> - =A0 =A0 =A0 result =3D
-> - =A0 =A0 =A0 =A0 =A0 acpi_walk_resources(device->handle, METHOD_NAME=
-__CRS,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 hpet_re=
-sources, &data);
-> -
-> - =A0 =A0 =A0 if (ACPI_FAILURE(result))
-> + =A0 =A0 =A0 mem =3D pnp_get_resource(dev, IORESOURCE_MEM, 0);
-> + =A0 =A0 =A0 if (!mem)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
->
-> - =A0 =A0 =A0 if (!data.hd_address || !data.hd_nirqs) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk("%s: no address or irqs in _CRS\=
-n", __func__);
-> + =A0 =A0 =A0 data.hd_phys_address =3D mem->start;
-> +
-> + =A0 =A0 =A0 if (hpet_is_known(&data))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
-> +
-> + =A0 =A0 =A0 i =3D 0;
-> + =A0 =A0 =A0 while (data.hd_nirqs < ARRAY_SIZE(data.hd_irq)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq =3D pnp_get_resource(dev, IORESOURC=
-E_IRQ, i++);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pnp_resource_valid(irq) && pnp_reso=
-urce_enabled(irq))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 data.hd_irq[data.hd_nir=
-qs++] =3D irq->start;
-> =A0 =A0 =A0 =A0}
-> + =A0 =A0 =A0 if (!data.hd_nirqs)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> +
-> + =A0 =A0 =A0 data.hd_address =3D ioremap(mem->start, resource_size(m=
-em));
->
-> =A0 =A0 =A0 =A0return hpet_alloc(&data);
-> =A0}
->
-> -static int hpet_acpi_remove(struct acpi_device *device, int type)
-> +static void hpet_pnp_remove(struct pnp_dev *dev)
-> =A0{
-> =A0 =A0 =A0 =A0/* XXX need to unregister clocksource, dealloc mem, et=
-c */
-> - =A0 =A0 =A0 return -EINVAL;
-> =A0}
->
-> -static const struct acpi_device_id hpet_device_ids[] =3D {
-> +static const struct pnp_device_id hpet_device_ids[] =3D {
-> =A0 =A0 =A0 =A0{"PNP0103", 0},
-> =A0 =A0 =A0 =A0{"", 0},
-> =A0};
-> =A0MODULE_DEVICE_TABLE(acpi, hpet_device_ids);
->
-> -static struct acpi_driver hpet_acpi_driver =3D {
-> +static struct pnp_driver hpet_pnp_driver =3D {
-> =A0 =A0 =A0 =A0.name =3D "hpet",
-> - =A0 =A0 =A0 .ids =3D hpet_device_ids,
-> - =A0 =A0 =A0 .ops =3D {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .add =3D hpet_acpi_add,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .remove =3D hpet_acpi_remove,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .id_table =3D hpet_device_ids,
-> + =A0 =A0 =A0 .probe =3D hpet_pnp_add,
-> + =A0 =A0 =A0 .remove =3D hpet_pnp_remove,
-> =A0};
-> +#endif
->
-> =A0static struct miscdevice hpet_misc =3D { HPET_MINOR, "hpet", &hpet=
-_fops };
->
-> @@ -1007,26 +962,28 @@ static int __init hpet_init(void)
->
-> =A0 =A0 =A0 =A0sysctl_header =3D register_sysctl_table(dev_root);
->
-> - =A0 =A0 =A0 result =3D acpi_bus_register_driver(&hpet_acpi_driver);
-> +#ifdef CONFIG_PNP
-> + =A0 =A0 =A0 result =3D pnp_register_driver(&hpet_pnp_driver);
-> =A0 =A0 =A0 =A0if (result < 0) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (sysctl_header)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unregister_sysctl_tabl=
-e(sysctl_header);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0misc_deregister(&hpet_misc);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return result;
-> =A0 =A0 =A0 =A0}
-> +#endif
->
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> =A0static void __exit hpet_exit(void)
-> =A0{
-> - =A0 =A0 =A0 acpi_bus_unregister_driver(&hpet_acpi_driver);
-> +#ifdef CONFIG_PNP
-> + =A0 =A0 =A0 pnp_unregister_driver(&hpet_pnp_driver);
-> +#endif
->
-> =A0 =A0 =A0 =A0if (sysctl_header)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unregister_sysctl_table(sysctl_header)=
-;
-> =A0 =A0 =A0 =A0misc_deregister(&hpet_misc);
-> -
-> - =A0 =A0 =A0 return;
-> =A0}
->
-> =A0module_init(hpet_init);
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Seen in my dmesg.  Appears to have started in 2.6.33-rc7-mmotm0210, I can't
+> remember if I reported it before or not...
+> 
+> [    0.212297] ACPI: Using IOAPIC for interrupt routing
+> [    0.340075] 
+> [    0.340076] =============================================
+> [    0.340241] [ INFO: possible recursive locking detected ]
+> [    0.340330] 2.6.33-mmotm0304 #5
+> [    0.340415] ---------------------------------------------
+> [    0.340504] swapper/1 is trying to acquire lock:
+> [    0.340591]  (&dev->mutex){+.+...}, at: [<ffffffff812fddfd>] __driver_attach+0x47/0x80
+> [    0.340926] 
+> [    0.340927] but task is already holding lock:
+> [    0.340999]  (&dev->mutex){+.+...}, at: [<ffffffff812fddef>] __driver_attach+0x39/0x80
+> [    0.340999] 
+> [    0.340999] other info that might help us debug this:
+> [    0.340999] 1 lock held by swapper/1:
+> [    0.340999]  #0:  (&dev->mutex){+.+...}, at: [<ffffffff812fddef>] __driver_attach+0x39/0x80
+> [    0.340999] 
+> [    0.340999] stack backtrace:
+> [    0.340999] Pid: 1, comm: swapper Not tainted 2.6.33-mmotm0304 #5
+> [    0.340999] Call Trace:
+> [    0.340999]  [<ffffffff810645e7>] __lock_acquire+0xc74/0xceb
+> [    0.340999]  [<ffffffff81062a4f>] ? mark_lock+0x2d/0x22c
+> [    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+> [    0.340999]  [<ffffffff81064753>] lock_acquire+0xf5/0x112
+> [    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+> [    0.340999]  [<ffffffff81062ca0>] ? mark_held_locks+0x52/0x70
+> [    0.340999]  [<ffffffff81581bb5>] __mutex_lock_common+0x5c/0x5aa
+> [    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+> [    0.340999]  [<ffffffff81571004>] ? klist_next+0x24/0xd7
+> [    0.340999]  [<ffffffff812fddfd>] ? __driver_attach+0x47/0x80
+> [    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+> [    0.340999]  [<ffffffff815821a9>] mutex_lock_nested+0x34/0x39
+> [    0.340999]  [<ffffffff812fddfd>] __driver_attach+0x47/0x80
+> [    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+> [    0.340999]  [<ffffffff812fddb6>] ? __driver_attach+0x0/0x80
+> [    0.340999]  [<ffffffff812fd31f>] bus_for_each_dev+0x54/0x89
+> [    0.340999]  [<ffffffff812fdb66>] driver_attach+0x19/0x1b
+> [    0.340999]  [<ffffffff812fd7b1>] bus_add_driver+0xb4/0x203
+> [    0.340999]  [<ffffffff812fe10f>] driver_register+0xb8/0x129
+> [    0.340999]  [<ffffffff8123af12>] acpi_bus_register_driver+0x3e/0x40
+> [    0.340999]  [<ffffffff81b4aaa4>] acpi_ec_init+0x37/0x55
+> [    0.340999]  [<ffffffff81b4a920>] acpi_init+0x101/0x116
+> [    0.340999]  [<ffffffff81b4a81f>] ? acpi_init+0x0/0x116
+> [    0.340999]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
+> [    0.340999]  [<ffffffff81b2c687>] kernel_init+0x14d/0x1d7
+> [    0.340999]  [<ffffffff810033d4>] kernel_thread_helper+0x4/0x10
+> [    0.340999]  [<ffffffff81584040>] ? restore_args+0x0/0x30
+> [    0.340999]  [<ffffffff81b2c53a>] ? kernel_init+0x0/0x1d7
+> [    0.340999]  [<ffffffff810033d0>] ? kernel_thread_helper+0x0/0x10
+> [    0.341046] ACPI: EC: GPE = 0x11, I/O: command/status = 0x934, data = 0x930
+> 
+
+<looks at mainline's 8e9394ce2412254ec69fd2a4f3e44a66eade2297>
+
+    In the future, we are going to be changing the lock type for struct
+    device (once we get the lockdep infrastructure properly worked out)
+
+<looks at linux-next's "drivers/base: Convert dev->sem to mutex">
+
+Seems that the latter patch (from Greg and Thomas) went and did the
+mutex conversion before "we got the lockdep infrastructure properly
+worked out".
+
