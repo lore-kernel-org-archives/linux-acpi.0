@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 3/4] hpet: clean up io mapping when hpet_alloc() fails
-Date: Thu, 18 Mar 2010 11:59:40 -0600
-Message-ID: <20100318175940.15143.53027.stgit@bob.kio>
+Subject: [PATCH v2 4/4] MAINTAINERS: remove obsolete HPET ACPI entry
+Date: Thu, 18 Mar 2010 11:59:45 -0600
+Message-ID: <20100318175945.15143.34498.stgit@bob.kio>
 References: <20100318175852.15143.2124.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,39 +14,28 @@ Cc: Venkatesh Pallipadi <venki@google.com>, Vojtech Pavlik <vojtech@suse.cz>, li
 List-Id: linux-acpi@vger.kernel.org
 
 
-When hpet_alloc() fails, we should iounmap() the timer so we don't leak
-the mapping.
+Bob Picco is no longer at HP.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- drivers/char/hpet.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ MAINTAINERS |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
 
-diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
-index d132fef..8961985 100644
---- a/drivers/char/hpet.c
-+++ b/drivers/char/hpet.c
-@@ -904,7 +904,7 @@ static int hpet_pnp_add(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
- {
- 	struct hpet_data data;
- 	struct resource *mem, *irq;
--	int i;
-+	int i, ret;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 47cc449..30ba4e9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2664,11 +2664,6 @@ HPET:	x86_64
+ M:	Vojtech Pavlik <vojtech@suse.cz>
+ S:	Maintained
  
- 	memset(&data, 0, sizeof(data));
- 
-@@ -924,7 +924,11 @@ static int hpet_pnp_add(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
- 	data.hd_phys_address = mem->start;
- 	data.hd_address = ioremap(mem->start, resource_size(mem));
- 
--	return hpet_alloc(&data);
-+	ret = hpet_alloc(&data);
-+	if (ret)
-+		iounmap(data.hd_address);
-+
-+	return ret;
- }
- 
- static void hpet_pnp_remove(struct pnp_dev *dev)
+-HPET:	ACPI
+-M:	Bob Picco <bob.picco@hp.com>
+-S:	Maintained
+-F:	drivers/char/hpet.c
+-
+ HPFS FILESYSTEM
+ M:	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+ W:	http://artax.karlin.mff.cuni.cz/~mikulas/vyplody/hpfs/index-e.cgi
