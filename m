@@ -1,24 +1,40 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Subject: Re: [PATCH 2/3] hpet: pass physical address, not entire hpet_data,
- to hpet_is_known()
-Date: Thu, 18 Mar 2010 08:27:48 +0100
-Message-ID: <4BA1D5F4.7070304@ladisch.de>
-References: <20100317173329.31124.69795.stgit@bob.kio> <20100317173505.31124.74595.stgit@bob.kio>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPICA: Do memcpy of only allocated tables.
+Date: Thu, 18 Mar 2010 17:20:44 +0300
+Message-ID: <20100318142043.31211.11872.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100317173505.31124.74595.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, "Venkatesh Pallipadi (Venki)" <venkatesh.pallipadi@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nat.nue.novell.com ([195.135.221.3]:39920 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753804Ab0CROUm (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 18 Mar 2010 10:20:42 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-Bjorn Helgaas wrote:
-> No functional change; hpet_is_known() only needs the physical address,
-> so supplying that instead of the whole struct hpet_data makes the callers
-> a little simpler.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+ drivers/acpi/acpica/tbxface.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 5217a61..3cedfb3 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -194,7 +194,9 @@ acpi_status acpi_reallocate_root_table(void)
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
+-	ACPI_MEMCPY(tables, acpi_gbl_root_table_list.tables, new_size);
++	ACPI_MEMCPY(tables, acpi_gbl_root_table_list.tables,
++			acpi_gbl_root_table_list.count *
++			sizeof(struct acpi_table_desc));
+ 
+ 	acpi_gbl_root_table_list.size = acpi_gbl_root_table_list.count;
+ 	acpi_gbl_root_table_list.tables = tables;
+
