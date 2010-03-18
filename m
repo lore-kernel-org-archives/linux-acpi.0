@@ -1,40 +1,40 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: Do memcpy of only allocated tables.
-Date: Thu, 18 Mar 2010 17:20:44 +0300
-Message-ID: <20100318142043.31211.11872.stgit@thinkpad>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v2 0/4] hpet: convert from ACPI to PNP driver
+Date: Thu, 18 Mar 2010 11:59:25 -0600
+Message-ID: <20100318175852.15143.2124.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:39920 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753804Ab0CROUm (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 18 Mar 2010 10:20:42 -0400
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:36897 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753745Ab0CRR71 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Mar 2010 13:59:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Clemens Ladisch <clemens@ladisch.de>
+Cc: Venkatesh Pallipadi <venki@google.com>, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+The HPET driver parses ACPI _CRS data manually, but PNPACPI already does
+that, and it does a more complete job, so we can simplify the HPET driver
+quite a bit by taking advantage of that.
+
+Clemens, if you like these, will you take care of merging them, or do
+I need to shepherd them through some other path?
+
+Changes from v1 to v2:
+    - Wrap PNP code in "#ifdef CONFIG_PNP" (Venki)
+    - Fix leak when hpet_alloc() fails (Venki)
+
 ---
 
- drivers/acpi/acpica/tbxface.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Bjorn Helgaas (4):
+      hpet: convert from ACPI to PNP driver
+      hpet: pass physical address, not entire hpet_data, to hpet_is_known()
+      hpet: clean up io mapping when hpet_alloc() fails
+      MAINTAINERS: remove obsolete HPET ACPI entry
 
 
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index 5217a61..3cedfb3 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -194,7 +194,9 @@ acpi_status acpi_reallocate_root_table(void)
- 		return_ACPI_STATUS(AE_NO_MEMORY);
- 	}
- 
--	ACPI_MEMCPY(tables, acpi_gbl_root_table_list.tables, new_size);
-+	ACPI_MEMCPY(tables, acpi_gbl_root_table_list.tables,
-+			acpi_gbl_root_table_list.count *
-+			sizeof(struct acpi_table_desc));
- 
- 	acpi_gbl_root_table_list.size = acpi_gbl_root_table_list.count;
- 	acpi_gbl_root_table_list.tables = tables;
-
+ MAINTAINERS         |    5 --
+ drivers/char/hpet.c |  119 ++++++++++++++++-----------------------------------
+ 2 files changed, 38 insertions(+), 86 deletions(-)
