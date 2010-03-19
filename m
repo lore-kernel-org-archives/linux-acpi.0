@@ -1,126 +1,43 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH 4/6] drivers/acpi: Use kasprintf
-Date: Fri, 19 Mar 2010 00:48:51 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1003190048220.23874@ask.diku.dk>
-References: <Pine.LNX.4.64.1003102216290.1672@ask.diku.dk>
- <20100318162529.762251ef.akpm@linux-foundation.org>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH -v3 0/2] ACPI, APEI, use general HEST tabling parsing
+ in AER firmware_first setup
+Date: Fri, 19 Mar 2010 15:40:03 +0800
+Message-ID: <1268984403.3596.14.camel@yhuang-dev.sh.intel.com>
+References: <1268636261-31554-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:60740 "EHLO mgw2.diku.dk"
+Received: from mga03.intel.com ([143.182.124.21]:28778 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752451Ab0CRXsy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Mar 2010 19:48:54 -0400
-In-Reply-To: <20100318162529.762251ef.akpm@linux-foundation.org>
+	id S1751527Ab0CSHkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Mar 2010 03:40:07 -0400
+In-Reply-To: <1268636261-31554-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Thu, 18 Mar 2010, Andrew Morton wrote:
+Hi, Len,
 
-> On Wed, 10 Mar 2010 22:16:51 +0100 (CET)
-> Julia Lawall <julia@diku.dk> wrote:
-> 
-> > From: Julia Lawall <julia@diku.dk>
-> > 
-> > kasprintf combines kmalloc and sprintf, and takes care of the size
-> > calculation itself.
-> > 
-> > The semantic patch that makes this change is as follows:
-> > (http://coccinelle.lip6.fr/)
-> > 
-> > // <smpl>
-> > @@
-> > expression a,flag;
-> > expression list args;
-> > statement S;
-> > @@
-> > 
-> >   a =
-> > -  \(kmalloc\|kzalloc\)(...,flag)
-> > +  kasprintf(flag,args)
-> >   <... when != a
-> >   if (a == NULL || ...) S
-> >   ...>
-> > - sprintf(a,args);
-> > // </smpl>
-> > 
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> > 
-> > ---
-> >  drivers/acpi/video.c |    6 ++----
-> >  1 file changed, 2 insertions(+), 4 deletions(-)
-> > 
-> > diff -u -p a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -1005,11 +1005,10 @@ static void acpi_video_device_find_cap(s
-> >  		result = acpi_video_init_brightness(device);
-> >  		if (result)
-> >  			return;
-> > -		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-> > +		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-> >  		if (!name)
-> >  			return;
-> >  
-> > -		sprintf(name, "acpi_video%d", count++);
-> >  		device->backlight = backlight_device_register(name,
-> >  			NULL, device, &acpi_backlight_ops);
-> >  		kfree(name);
-> > @@ -1056,10 +1055,9 @@ static void acpi_video_device_find_cap(s
-> >  		if (device->cap._DCS && device->cap._DSS) {
-> >  			static int count;
-> >  			char *name;
-> > -			name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-> > +			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-> >  			if (!name)
-> >  				return;
-> > -			sprintf(name, "acpi_video%d", count++);
-> >  			device->output_dev = video_output_register(name,
-> >  					NULL, device, &acpi_output_properties);
-> >  			kfree(name);
-> 
-> It's not an equivalent change - if the memory allocation fails, this
-> patch will now cause `count' to be incremented anyway, presumably
-> leaving a gap in the enumeration.
+What do you think about this patchset?
 
-Indeed.  What is below looks better.
+Best Regards,
+Huang Ying
 
-julia
+On Mon, 2010-03-15 at 14:57 +0800, Huang, Ying wrote:
+> Changelog:
+> 
+> v3:
+> 
+> - Move pcie_aer_get_firmware_first into aerdrv_acpi.c, and make
+>   aer_set_firmware_first static in aerdrv_acpi.c. This makes external
+>   interface simple and clear.
+> 
+> v2:
+> 
+> - Setup firmware_first for every PCIE end point instead of just root point.
+> 
+> - Wrap firmware_first accessing in a function, because HEST parsing involved.
 
-> I don't know if that matters.  If so, this:
-> 
-> --- a/drivers/acpi/video.c~drivers-acpi-use-kasprintf-fix
-> +++ a/drivers/acpi/video.c
-> @@ -1006,9 +1006,10 @@ static void acpi_video_device_find_cap(s
->  		result = acpi_video_init_brightness(device);
->  		if (result)
->  			return;
-> -		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-> +		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
->  		if (!name)
->  			return;
-> +		count++;
->  
->  		memset(&props, 0, sizeof(struct backlight_properties));
->  		props.max_brightness = device->brightness->count - 3;
-> @@ -1058,9 +1059,10 @@ static void acpi_video_device_find_cap(s
->  		if (device->cap._DCS && device->cap._DSS) {
->  			static int count;
->  			char *name;
-> -			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-> +			name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
->  			if (!name)
->  				return;
-> +			count++;
->  			device->output_dev = video_output_register(name,
->  					NULL, device, &acpi_output_properties);
->  			kfree(name);
-> _
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
