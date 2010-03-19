@@ -1,56 +1,44 @@
-From: walter harms <wharms@bfs.de>
-Subject: Re: [patch] acpi_pad: "processor_aggregator" name too long
-Date: Fri, 19 Mar 2010 13:25:45 +0100
-Message-ID: <4BA36D49.7080703__29381.0757845224$1269002672$gmane$org@bfs.de>
-References: <20100319114806.GN5331@bicker>
-Reply-To: wharms@bfs.de
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH v2 0/4] hpet: convert from ACPI to PNP driver
+Date: Fri, 19 Mar 2010 08:58:06 -0700
+Message-ID: <201003190958.08006.bjorn.helgaas@hp.com>
+References: <20100318175852.15143.2124.stgit@bob.kio> <4BA3359F.8070305@ladisch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:5547 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751749Ab0CSMoY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Mar 2010 08:44:24 -0400
-In-Reply-To: <20100319114806.GN5331@bicker>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:7805 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585Ab0CSP6K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Mar 2010 11:58:10 -0400
+In-Reply-To: <4BA3359F.8070305@ladisch.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Chen Gong <gong.chen@linux.intel.com>, P
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>, Venkatesh Pallipadi <venki@google.com>, Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+Andrew, did you see these?  Can you put them in -mm or whatever your
+normal path for HPET patches is?
 
+Thanks,
+  Bjorn
 
-Dan Carpenter schrieb:
-> cpi_device_class can only be 19 characters and a NULL terminator.
+On Friday 19 March 2010 02:28:15 am Clemens Ladisch wrote:
+> Bjorn Helgaas wrote:
+> > Clemens, if you like these,
 > 
-> With the current name we get a buffer overflow in acpi_pad_add()
->         strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+> Yes.
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> Feel free to pick your own name if you don't like mine.  :)
+> > will you take care of merging them, or do I need to shepherd them
+> > through some other path?
+> 
+> I don't have a tree for this; HPET patches are usually picked up by akpm.
 > 
 > 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index 7e52295..2db89d9 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -30,7 +30,7 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> -#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"processor_aggregator"
-> +#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"proc_aggregator"
->  #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
->  #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
->  static DEFINE_MUTEX(isolated_cpus_lock);
+> Regards,
+> Clemens
+> 
 
-
-Hi Dan,
-IMHO this does not solve the core problem. acpi should use kstrncpy or better a pointer.
-The next guy that use "my_great_indentifier_is_longer_than_yours" will cause the same
-problem.
-But this is something that the acpi group needs to answer (fast).
-
-re,
- wh
 
