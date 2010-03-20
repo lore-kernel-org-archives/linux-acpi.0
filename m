@@ -1,52 +1,50 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] x86/PCI: ignore Consumer/Producer bit and parse
- additional _CRS resources
-Date: Fri, 19 Mar 2010 13:38:48 -0700
-Message-ID: <20100319133848.35465d9a@jbarnes-piketon>
-References: <20100316201046.24527.79634.stgit@bob.kio>
-	<20100316201134.24527.87006.stgit@bob.kio>
+From: Magyar =?ISO-8859-1?Q?B=E1lint?= <magyarbalint@indi.hu>
+Subject: Clevo M541N and acpi_apic_instance=2
+Date: Sat, 20 Mar 2010 13:46:08 +0100
+Message-ID: <1269089168.6157.4.camel@amphetamine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100316201134.24527.87006.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Pete Zaitcev <zaitcev@redhat.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from a.relay.invitel.net ([62.77.203.3]:36813 "EHLO
+	a.relay.invitel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495Ab0CTM5T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Mar 2010 08:57:19 -0400
+Received: from mailgw1.invitel.net (mailgw1.invitel.net [91.82.208.34])
+	by a.relay.invitel.net (Invitel Core SMTP Transmitter) with ESMTP id 1F21411A29A
+	for <linux-acpi@vger.kernel.org>; Sat, 20 Mar 2010 13:46:10 +0100 (CET)
+Received: from [192.168.0.134] ([91.83.156.240])
+ by mail.invitel.hu (Invitel Messaging Server)
+ with ESMTPA id <0KZK00I45ZGXQ5E0@invitel.hu> for linux-acpi@vger.kernel.org;
+ Sat, 20 Mar 2010 13:46:09 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tue, 16 Mar 2010 14:11:34 -0600
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+Greetings!
 
-> 
-> We previously used only resources marked "Producer," i.e., those the bridge
-> forwards downstream.  But BIOSes haven't used that bit consistently, so it's
-> useless.  For bridge devices, we have to assume *all* ACPI resources are
-> forwarded downstream.  Non-Producer bridge resources typically appear in
-> PCI config space and are not described in ACPI.
-> 
-> In addition to ACPI_RESOURCE_TYPE_ADDRESS{16,32,64}, parse these types:
-> 
->     ACPI_RESOURCE_TYPE_IO
->     ACPI_RESOURCE_TYPE_FIXED_IO
->     ACPI_RESOURCE_TYPE_MEMORY24
->     ACPI_RESOURCE_TYPE_MEMORY32
->     ACPI_RESOURCE_TYPE_FIXED_MEMORY32
->     ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64
-> 
-> This basically reimplements what drivers/pnp/pnpacpi/rsparser.c already
-> does, and I plan to take advantage of that, but we're not quite ready to
-> do it yet because it will require converting pci_root.c from an ACPI
-> driver to a PNP driver.
-> 
-> This is a possible fix for http://bugzilla.kernel.org/show_bug.cgi?id=15533
-> reported by Pete Zaitcev <zaitcev@redhat.com>.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
-> 
+I found a message in my dmesg that said to notify this address if I fin=
+d
+the kernel option acpi_apic_instance=3D2 to work better than the defaul=
+t
+setting. On this Clevo M541N laptop, the difference is apparent because
+without that option, I can only suspend once. On the second attempt it
+will make some noises with the optical drive, but it doesn't turn the
+display off after fading to black, or park the HDD's head. The kernel i=
+s
+then unresponsive to Magic SysRq keys as well and only the power switch
+helps. With the option set to "2" I found that I can suspend and resume
+as many times as I want.
 
-Applied to my for-linus tree, thanks.
+This is on Ubuntu 10.04 beta1, kernel version 2.6.32.16.17 on i386.
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+I can provide more information to you if you need.
+
+--=20
+B=C3=A1lint Magyar
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
