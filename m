@@ -1,35 +1,58 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [patch] power_meter: acpi_device_class "power_meter_resource"
-	too long
-Date: Mon, 22 Mar 2010 11:13:27 -0700
-Message-ID: <20100322181327.GG22820@tux1.beaverton.ibm.com>
-References: <20100319114920.GP5331@bicker>
-Reply-To: djwong@us.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chase Douglas <chase.douglas@ubuntu.com>
+Subject: [PATCH] Reduce ACPI resource conflict message to KERN_INFO, printf cleanup
+Date: Mon, 22 Mar 2010 15:08:09 -0400
+Message-ID: <1269284889-3968-1-git-send-email-chase.douglas@ubuntu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e4.ny.us.ibm.com ([32.97.182.144]:35032 "EHLO e4.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755359Ab0CVSNa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Mar 2010 14:13:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20100319114920.GP5331@bicker>
+Received: from adelie.canonical.com ([91.189.90.139]:43446 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752661Ab0CVTIO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Mar 2010 15:08:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, =?iso-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Lin Ming <ming.m.lin>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>
 
-On Fri, Mar 19, 2010 at 02:49:20PM +0300, Dan Carpenter wrote:
-> acpi_device_class can only be 19 characters and a NULL terminator.
-> 
-> The current code has a buffer overflow in acpi_power_meter_add():
->        strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> Feel free to change the name to anything you like.
+From: Chase Douglas <chase.douglas@canonical.com>
 
-How hard would it be to increase the size of that buffer?
+By default, ACPI resource conflict messages are logged at level
+KERN_ERR. This is a rather high level for a message that is more a
+warning than an indication of a real kernel error. Also, KERN_ERR level
+messages can appear over some boot splash screens, and this message is
+not serious enough to warrant such treatment. Thus, the log level has
+been reduced to KERN_INFO.
 
-(Or, is there a need to have "_resource" in that string at all?)
+Also, cleanup message to use %pR resource printing format.
 
---D
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ drivers/acpi/osl.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 02e8464..33a01cb 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1151,16 +1151,10 @@ int acpi_check_resource_conflict(const struct resource *res)
+ 
+ 	if (clash) {
+ 		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
+-			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+-			       " conflicts with ACPI region %s"
+-			       " [0x%llx-0x%llx]\n",
+-			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
+-			       ? KERN_WARNING : KERN_ERR,
+-			       ioport ? "I/O" : "Memory", res->name,
+-			       (long long) res->start, (long long) res->end,
+-			       res_list_elem->name,
+-			       (long long) res_list_elem->start,
+-			       (long long) res_list_elem->end);
++			printk(KERN_INFO "ACPI: resource %s %pR"
++			       " conflicts with ACPI region %s %pR\n",
++			       res->name, res, res_list_elem->name,
++			       res_list_elem);
+ 			if (acpi_enforce_resources == ENFORCE_RESOURCES_LAX)
+ 				printk(KERN_NOTICE "ACPI: This conflict may"
+ 				       " cause random problems and system"
+-- 
+1.6.3.3
+
