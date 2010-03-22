@@ -1,31 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.34-rc2: Reported regressions from 2.6.33
-Date: Mon, 22 Mar 2010 22:20:41 +0100
-Message-ID: <201003222220.41347.rjw@sisk.pl>
-References: <M9dVcHY7TxH.A.2GC.ZBopLB@chimera> <alpine.LFD.2.00.1003221012270.18017@i5.linux-foundation.org>
+From: Chris Vine <chris@cvine.freeserve.co.uk>
+Subject: Re: Suspend/hibernate wireless regression with 2.6.33 kernel
+Date: Mon, 22 Mar 2010 21:21:02 +0000
+Message-ID: <20100322212102.751099ee@boulder.homenet>
+References: <20100317015113.4e833e1c@boulder.homenet>
+	<20100322122517.1743e896@boulder.homenet>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1003221012270.18017@i5.linux-foundation.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100322122517.1743e896@boulder.homenet>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 22 March 2010, Linus Torvalds wrote:
-> 
-> On Sun, 21 Mar 2010, Rafael J. Wysocki wrote:
+On Mon, 22 Mar 2010 12:25:17 +0000
+Chris Vine <chris@cvine.freeserve.co.uk> wrote:
+> On Wed, 17 Mar 2010 01:51:13 +0000
+> Chris Vine <chris@cvine.freeserve.co.uk> wrote:
+> > Hi,
 > > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=15495
-> > Subject		: Flood of SELinux denials on polkitd
-> > Submitter	: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
-> > Date		: 2010-03-09 16:47 (13 days old)
+> > I have a Lenovo S12 (Ideapad) netbook with a BCM4312 802.11b/g
+> > [14e4:4315] wireless device.  Although this works using the PIO
+> > option in kernel 2.6.33/2.6.33.1 (not with DMA) using the in-kernel
+> > b43 driver, and also works with the broadcom proprietary wl driver,
+> > it breaks after a suspend or hibernate. Attempts to bring up the
+> > wlan0 interface with 'ifconfig wlan0 up' after suspension or
+> > hibernation results in the following message (although nothing is
+> > revealed by dmesg):
+> > 
+> >   SIOCSIFFLAGS: Unknown error 132
+> > 
+> > More worryingly, when suspending or hibernating, acpi sometimes
+> > but not always appears to write to the CMOS.  On two occasions I
+> > have observed that although a reboot into 2.6.33 would work (until
+> > there is another suspension or hibernation), wireless becomes
+> > permanently switched off when rebooting into 2.6.32 or earlier -
+> > when reading from the BIOS, kernel 2.6.32 and below appears to
+> > think that the radio has been disabled even though the BIOS set-up
+> > screen disagrees. When this occurs, I have to restore all defaults
+> > in the BIOS to get wireless to come on again in kernel 2.6.32 and
+> > less.
 > 
-> Fixed by commit 3836a03d978e68b0ae00d3589089343c998cd4ff ("anon_inodes: 
-> mark the anon inode private"), I'm pretty sure.
+> [snip]
+> 
+> This regression between 2.6.32 and 2.6.33 is still present in
+> 2.6.34-rc2, with an added twist.  In 2.6.34-rc2, on resuming from
+> suspension or hibernation, my rfkill button is completely disabled -
+> that is, I cannot switch wireless on, but I also cannot switch
+> bluetooth off.
 
-Thanks, closed.
+I have found the proximate cause of this.  From version 2.6.33, at boot
+time the acer-wmi module gets loaded.  As this is a Lenovo netbook
+and not an Acer laptop, and probably uses a different chipset, that is
+not a good thing to do.
 
-Rafael
+If I blacklist acer-wmi, then suspension and hibernation appears to
+work normally.
+
+Chris
