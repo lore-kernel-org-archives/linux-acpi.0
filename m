@@ -1,50 +1,52 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 1/2] ACPI dock: support multiple ACPI dock devices
-Date: Mon, 22 Mar 2010 15:46:49 +0800
-Message-ID: <1269244009.2205.1680.camel@rzhang1-desktop>
+Subject: [PATCH 2/2] ACPI: fixes a false alarm from lockdep
+Date: Mon, 22 Mar 2010 15:48:54 +0800
+Message-ID: <1269244134.2205.1683.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42764 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:17404 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753512Ab0CVHpl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Mar 2010 03:45:41 -0400
+	id S1750889Ab0CVHrr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Mar 2010 03:47:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-There may be multiple ACPI dock devices exist in ACPI namespace
-and we should probe all of them.
-http://bugzilla.kernel.org/show_bug.cgi?id=15521
+fixes a false alarm from lockdep, as acpi hotplug workqueue waits other
+workqueues.
+http://bugzilla.kernel.org/show_bug.cgi?id=14553
+https://bugzilla.kernel.org/show_bug.cgi?id=15521
 
-CC: Li Shaohua <shaohua.li@intel.com>
+Original-patch-from: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/dock.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/acpi/osl.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Index: linux-2.6/drivers/acpi/dock.c
+Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/dock.c	2010-03-22 10:19:00.000000000 +0800
-+++ linux-2.6/drivers/acpi/dock.c	2010-03-22 10:22:31.000000000 +0800
-@@ -1025,13 +1025,10 @@
- static acpi_status
- find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
--	acpi_status status = AE_OK;
--
- 	if (is_dock(handle))
--		if (dock_add(handle) >= 0)
--			status = AE_CTRL_TERMINATE;
-+		dock_add(handle);
+--- linux-2.6.orig/drivers/acpi/osl.c	2010-03-19 09:34:33.000000000 +0800
++++ linux-2.6/drivers/acpi/osl.c	2010-03-19 09:36:00.000000000 +0800
+@@ -758,7 +758,14 @@
+ 	queue = hp ? kacpi_hotplug_wq :
+ 		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+ 	dpc->wait = hp ? 1 : 0;
+-	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++
++	if (queue == kacpi_hotplug_wq)
++		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++	else if (queue == kacpi_notify_wq)
++		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++	else
++		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++
+ 	ret = queue_work(queue, &dpc->work);
  
--	return status;
-+	return AE_OK;
- }
- 
- static acpi_status
+ 	if (!ret) {
 
 
