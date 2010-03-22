@@ -1,54 +1,75 @@
-From: Chris Vine <chris@cvine.freeserve.co.uk>
-Subject: Re: Suspend/hibernate wireless regression with 2.6.33 kernel
-Date: Mon, 22 Mar 2010 12:25:17 +0000
-Message-ID: <20100322122517.1743e896@boulder.homenet>
-References: <20100317015113.4e833e1c@boulder.homenet>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: [PATCH] Fix key f70f4b50 not in .data in thermal_sys
+Date: Mon, 22 Mar 2010 15:15:08 +0200
+Message-ID: <20100322131508.GB3596@swordfish.minsk.epam.com>
+References: <20100309102754.GA3316@swordfish.minsk.epam.com>
+ <20100309141826.GC28606@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.freeserve.com ([193.252.22.151]:26011 "EHLO
-	smtp6.freeserve.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754087Ab0CVMZm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Mar 2010 08:25:42 -0400
-In-Reply-To: <20100317015113.4e833e1c@boulder.homenet>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:41050 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710Ab0CVNOF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Mar 2010 09:14:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20100309141826.GC28606@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-On Wed, 17 Mar 2010 01:51:13 +0000
-Chris Vine <chris@cvine.freeserve.co.uk> wrote:
-> Hi,
-> 
-> I have a Lenovo S12 (Ideapad) netbook with a BCM4312 802.11b/g
-> [14e4:4315] wireless device.  Although this works using the PIO option
-> in kernel 2.6.33/2.6.33.1 (not with DMA) using the in-kernel b43
-> driver, and also works with the broadcom proprietary wl driver, it
-> breaks after a suspend or hibernate. Attempts to bring up the wlan0
-> interface with 'ifconfig wlan0 up' after suspension or hibernation
-> results in the following message (although nothing is revealed by
-> dmesg):
-> 
->   SIOCSIFFLAGS: Unknown error 132
-> 
-> More worryingly, when suspending or hibernating, acpi sometimes
-> but not always appears to write to the CMOS.  On two occasions I
-> have observed that although a reboot into 2.6.33 would work (until
-> there is another suspension or hibernation), wireless becomes
-> permanently switched off when rebooting into 2.6.32 or earlier - when
-> reading from the BIOS, kernel 2.6.32 and below appears to think that
-> the radio has been disabled even though the BIOS set-up screen
-> disagrees. When this occurs, I have to restore all defaults in the
-> BIOS to get wireless to come on again in kernel 2.6.32 and less.
-
-[snip]
-
-This regression between 2.6.32 and 2.6.33 is still present in
-2.6.34-rc2, with an added twist.  In 2.6.34-rc2, on resuming from
-suspension or hibernation, my rfkill button is completely disabled -
-that is, I cannot switch wireless on, but I also cannot switch bluetooth
-off.
-
-Chris
+To: Greg KH <gregkh@suse.de>
+Cc: "Eric W.  Biederman" <ebiederm@xmission.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
 
 
+--wzJLGUyc3ArbnUjN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Initialize sysfs attributes before device_create_file call.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+---
+
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 5066de5..a76a6ff 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -492,6 +492,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 		goto free_mem;
+ 	}
+ 	dev_set_drvdata(hwmon->device, hwmon);
++	sysfs_attr_init(&dev_attr_name.attr);
+ 	result = device_create_file(hwmon->device, &dev_attr_name);
+ 	if (result)
+ 		goto unregister_hwmon_device;
+@@ -505,6 +506,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 	tz->temp_input.attr.attr.name = tz->temp_input.name;
+ 	tz->temp_input.attr.attr.mode = 0444;
+ 	tz->temp_input.attr.show = temp_input_show;
++	sysfs_attr_init(&tz->temp_input.attr.attr);
+ 	result = device_create_file(hwmon->device, &tz->temp_input.attr);
+ 	if (result)
+ 		goto unregister_hwmon_device;
+@@ -517,6 +519,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
+ 			tz->temp_crit.attr.attr.mode = 0444;
+ 			tz->temp_crit.attr.show = temp_crit_show;
++			sysfs_attr_init(&tz->temp_crit.attr.attr);
+ 			result = device_create_file(hwmon->device,
+ 						    &tz->temp_crit.attr);
+ 			if (result)
+
+--wzJLGUyc3ArbnUjN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iJwEAQECAAYFAkunbVwACgkQfKHnntdSXjQt3AQA3NnoKS/Jcgqn/o9iOaj1lvlW
+WI0fwNOjEF22kbbLNVPtekMdVG5/4TpC8gBv1bu0sVr+TZ5D8gLHQdmAe1wB16LY
+PZoABj7sQmTMN6T3mRk5yQxZ8aRjUxfPOio7zT3hGrmD2DDwXVO41ZMdwOwuYRwn
+mabL/fv2DnsoE2AOwTY=
+=kAOs
+-----END PGP SIGNATURE-----
+
+--wzJLGUyc3ArbnUjN--
