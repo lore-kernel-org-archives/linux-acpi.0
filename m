@@ -1,35 +1,35 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.34-rc2: Reported regressions from 2.6.33
-Date: Mon, 22 Mar 2010 10:12:38 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.1003221012270.18017@i5.linux-foundation.org>
-References: <M9dVcHY7TxH.A.2GC.ZBopLB@chimera>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [patch] power_meter: acpi_device_class "power_meter_resource"
+	too long
+Date: Mon, 22 Mar 2010 11:13:27 -0700
+Message-ID: <20100322181327.GG22820@tux1.beaverton.ibm.com>
+References: <20100319114920.GP5331@bicker>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <M9dVcHY7TxH.A.2GC.ZBopLB@chimera>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
-Cc: DRI <dri-devel@lists.sourceforge.net>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:35032 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755359Ab0CVSNa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Mar 2010 14:13:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20100319114920.GP5331@bicker>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, =?iso-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Lin Ming <ming.m.lin>
 
-
-On Sun, 21 Mar 2010, Rafael J. Wysocki wrote:
+On Fri, Mar 19, 2010 at 02:49:20PM +0300, Dan Carpenter wrote:
+> acpi_device_class can only be 19 characters and a NULL terminator.
 > 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=15495
-> Subject		: Flood of SELinux denials on polkitd
-> Submitter	: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
-> Date		: 2010-03-09 16:47 (13 days old)
+> The current code has a buffer overflow in acpi_power_meter_add():
+>        strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> Feel free to change the name to anything you like.
 
-Fixed by commit 3836a03d978e68b0ae00d3589089343c998cd4ff ("anon_inodes: 
-mark the anon inode private"), I'm pretty sure.
+How hard would it be to increase the size of that buffer?
 
-		Linus
+(Or, is there a need to have "_resource" in that string at all?)
+
+--D
