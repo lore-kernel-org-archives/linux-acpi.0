@@ -1,78 +1,35 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: [PATCH] Fix key f70f4b50 not in .data in thermal_sys V2
-Date: Mon, 22 Mar 2010 16:45:03 +0200
-Message-ID: <20100322144503.GD3388@swordfish.minsk.epam.com>
-References: <20100309102754.GA3316@swordfish.minsk.epam.com>
- <20100309141826.GC28606@suse.de>
- <20100322135235.GA3388@swordfish.minsk.epam.com>
- <20100322140713.GB1076@pengutronix.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.34-rc2: Reported regressions from 2.6.33
+Date: Mon, 22 Mar 2010 10:12:38 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1003221012270.18017@i5.linux-foundation.org>
+References: <M9dVcHY7TxH.A.2GC.ZBopLB@chimera>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2Z2K0IlrPCVsbNpk"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100322140713.GB1076@pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Greg KH <gregkh@suse.de>, "Eric W. Biederman" <ebiederm@xmission.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <M9dVcHY7TxH.A.2GC.ZBopLB@chimera>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
+Cc: DRI <dri-devel@lists.sourceforge.net>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
---2Z2K0IlrPCVsbNpk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sun, 21 Mar 2010, Rafael J. Wysocki wrote:
+> 
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=15495
+> Subject		: Flood of SELinux denials on polkitd
+> Submitter	: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
+> Date		: 2010-03-09 16:47 (13 days old)
 
+Fixed by commit 3836a03d978e68b0ae00d3589089343c998cd4ff ("anon_inodes: 
+mark the anon inode private"), I'm pretty sure.
 
-Initialize sysfs attributes before device_create_file call.
-
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
----
-
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 5066de5..ecb181d 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -505,6 +505,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
- 	tz->temp_input.attr.attr.name =3D tz->temp_input.name;
- 	tz->temp_input.attr.attr.mode =3D 0444;
- 	tz->temp_input.attr.show =3D temp_input_show;
-+	sysfs_attr_init(&tz->temp_input.attr.attr);
- 	result =3D device_create_file(hwmon->device, &tz->temp_input.attr);
- 	if (result)
- 		goto unregister_hwmon_device;
-@@ -517,6 +518,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
- 			tz->temp_crit.attr.attr.name =3D tz->temp_crit.name;
- 			tz->temp_crit.attr.attr.mode =3D 0444;
- 			tz->temp_crit.attr.show =3D temp_crit_show;
-+			sysfs_attr_init(&tz->temp_crit.attr.attr);
- 			result =3D device_create_file(hwmon->device,
- 						    &tz->temp_crit.attr);
- 			if (result)
-@@ -725,6 +727,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zon=
-e_device *tz,
- 		goto release_idr;
-=20
- 	sprintf(dev->attr_name, "cdev%d_trip_point", dev->id);
-+	sysfs_attr_init(&dev->attr.attr);
- 	dev->attr.attr.name =3D dev->attr_name;
- 	dev->attr.attr.mode =3D 0444;
- 	dev->attr.show =3D thermal_cooling_device_trip_point_show;
-
-
---2Z2K0IlrPCVsbNpk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iJwEAQECAAYFAkungm8ACgkQfKHnntdSXjRvrgP/bBwdLYqn3ivi+FfZ6t04AIbs
-ssji4gVUuw0KLUrTOcMQYm2h1gqVFLMC8T4Y9CorzbEOMujC0154/oJiBYvYGjeA
-VxGF6g2+BJF6fp63mlOKpjlEFqYxI1mT0E5fbz6eAmN/biphxYSMeBMcve3bW36g
-WMhkUXljreahn9qmVVU=
-=ih3v
------END PGP SIGNATURE-----
-
---2Z2K0IlrPCVsbNpk--
+		Linus
