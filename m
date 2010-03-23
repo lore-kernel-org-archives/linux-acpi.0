@@ -1,61 +1,58 @@
-From: Chris Vine <chris@cvine.freeserve.co.uk>
-Subject: Re: Suspend/hibernate wireless regression with 2.6.33 kernel
-Date: Mon, 22 Mar 2010 21:21:02 +0000
-Message-ID: <20100322212102.751099ee@boulder.homenet>
-References: <20100317015113.4e833e1c@boulder.homenet>
-	<20100322122517.1743e896@boulder.homenet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100322122517.1743e896@boulder.homenet>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 13/18] acpi: Provide config option to enable power tracepoints
+Date: Tue, 23 Mar 2010 01:32:15 +0100
+Message-ID: <1269304340-25372-14-git-send-email-jack@suse.cz>
+References: <1269304340-25372-1-git-send-email-jack@suse.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:45258 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755979Ab0CWAcP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Mar 2010 20:32:15 -0400
+In-Reply-To: <1269304340-25372-1-git-send-email-jack@suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Jan Kara <jack@suse.cz>, linux-acpi@vger.kernel.org
 
-On Mon, 22 Mar 2010 12:25:17 +0000
-Chris Vine <chris@cvine.freeserve.co.uk> wrote:
-> On Wed, 17 Mar 2010 01:51:13 +0000
-> Chris Vine <chris@cvine.freeserve.co.uk> wrote:
-> > Hi,
-> > 
-> > I have a Lenovo S12 (Ideapad) netbook with a BCM4312 802.11b/g
-> > [14e4:4315] wireless device.  Although this works using the PIO
-> > option in kernel 2.6.33/2.6.33.1 (not with DMA) using the in-kernel
-> > b43 driver, and also works with the broadcom proprietary wl driver,
-> > it breaks after a suspend or hibernate. Attempts to bring up the
-> > wlan0 interface with 'ifconfig wlan0 up' after suspension or
-> > hibernation results in the following message (although nothing is
-> > revealed by dmesg):
-> > 
-> >   SIOCSIFFLAGS: Unknown error 132
-> > 
-> > More worryingly, when suspending or hibernating, acpi sometimes
-> > but not always appears to write to the CMOS.  On two occasions I
-> > have observed that although a reboot into 2.6.33 would work (until
-> > there is another suspension or hibernation), wireless becomes
-> > permanently switched off when rebooting into 2.6.32 or earlier -
-> > when reading from the BIOS, kernel 2.6.32 and below appears to
-> > think that the radio has been disabled even though the BIOS set-up
-> > screen disagrees. When this occurs, I have to restore all defaults
-> > in the BIOS to get wireless to come on again in kernel 2.6.32 and
-> > less.
-> 
-> [snip]
-> 
-> This regression between 2.6.32 and 2.6.33 is still present in
-> 2.6.34-rc2, with an added twist.  In 2.6.34-rc2, on resuming from
-> suspension or hibernation, my rfkill button is completely disabled -
-> that is, I cannot switch wireless on, but I also cannot switch
-> bluetooth off.
+CC: linux-acpi@vger.kernel.org
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ include/trace/events/power.h |    2 ++
+ kernel/trace/Kconfig         |    9 +++++++++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-I have found the proximate cause of this.  From version 2.6.33, at boot
-time the acer-wmi module gets loaded.  As this is a Lenovo netbook
-and not an Acer laptop, and probably uses a different chipset, that is
-not a good thing to do.
+diff --git a/include/trace/events/power.h b/include/trace/events/power.h
+index c4efe9b..6d84fc1 100644
+--- a/include/trace/events/power.h
++++ b/include/trace/events/power.h
+@@ -1,5 +1,7 @@
+ #undef TRACE_SYSTEM
++#undef TRACE_CONFIG
+ #define TRACE_SYSTEM power
++#define TRACE_CONFIG CONFIG_POWER_TRACER
+ 
+ #if !defined(_TRACE_POWER_H) || defined(TRACE_HEADER_MULTI_READ)
+ #define _TRACE_POWER_H
+diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
+index 787f52e..a48ff49 100644
+--- a/kernel/trace/Kconfig
++++ b/kernel/trace/Kconfig
+@@ -430,6 +430,15 @@ config TIMER_TRACER
+ 
+ 	  If unsure, say N
+ 
++config POWER_TRACER
++	bool "Trace power events"
++	select GENERIC_TRACER
++	help
++	  Provide trace points for events like changing CPU frequency,
++	  turning CPUs on / off.
++
++	  If unsure, say N
++
+ config WORKQUEUE_TRACER
+ 	bool "Trace workqueues"
+ 	select GENERIC_TRACER
+-- 
+1.6.4.2
 
-If I blacklist acer-wmi, then suspension and hibernation appears to
-work normally.
-
-Chris
