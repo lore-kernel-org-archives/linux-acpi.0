@@ -1,58 +1,28 @@
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 13/18] acpi: Provide config option to enable power tracepoints
-Date: Tue, 23 Mar 2010 01:32:15 +0100
-Message-ID: <1269304340-25372-14-git-send-email-jack@suse.cz>
-References: <1269304340-25372-1-git-send-email-jack@suse.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/2] ACPI: fixes a false alarm from lockdep
+Date: Tue, 23 Mar 2010 00:18:17 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1003230018090.21410@localhost.localdomain>
+References: <1269244134.2205.1683.camel@rzhang1-desktop>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:45258 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755979Ab0CWAcP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Mar 2010 20:32:15 -0400
-In-Reply-To: <1269304340-25372-1-git-send-email-jack@suse.cz>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:55534 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744Ab0CWESa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Mar 2010 00:18:30 -0400
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KZP00KJRVYJB471@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 22 Mar 2010 23:18:21 -0500 (CDT)
+In-reply-to: <1269244134.2205.1683.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-CC: linux-acpi@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- include/trace/events/power.h |    2 ++
- kernel/trace/Kconfig         |    9 +++++++++
- 2 files changed, 11 insertions(+), 0 deletions(-)
+applied
 
-diff --git a/include/trace/events/power.h b/include/trace/events/power.h
-index c4efe9b..6d84fc1 100644
---- a/include/trace/events/power.h
-+++ b/include/trace/events/power.h
-@@ -1,5 +1,7 @@
- #undef TRACE_SYSTEM
-+#undef TRACE_CONFIG
- #define TRACE_SYSTEM power
-+#define TRACE_CONFIG CONFIG_POWER_TRACER
- 
- #if !defined(_TRACE_POWER_H) || defined(TRACE_HEADER_MULTI_READ)
- #define _TRACE_POWER_H
-diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index 787f52e..a48ff49 100644
---- a/kernel/trace/Kconfig
-+++ b/kernel/trace/Kconfig
-@@ -430,6 +430,15 @@ config TIMER_TRACER
- 
- 	  If unsure, say N
- 
-+config POWER_TRACER
-+	bool "Trace power events"
-+	select GENERIC_TRACER
-+	help
-+	  Provide trace points for events like changing CPU frequency,
-+	  turning CPUs on / off.
-+
-+	  If unsure, say N
-+
- config WORKQUEUE_TRACER
- 	bool "Trace workqueues"
- 	select GENERIC_TRACER
--- 
-1.6.4.2
+thanks,
+Len Brown, Intel Open Source Technology Center
 
