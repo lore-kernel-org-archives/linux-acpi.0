@@ -1,113 +1,79 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [RFC PATCH]: ACPI: Automatically online hot-added memory
-Date: Wed, 24 Mar 2010 11:16:09 -0400
-Message-ID: <4BAA2CB9.4080600@redhat.com>
-References: <20100309141203.10037.62453.sendpatchset@prarit.bos.redhat.com> <201003121418.14204.trenn@suse.de> <4BA123DB.5050807@redhat.com> <201003241540.01187.trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: use _HID when supplied by root-level devices
+Date: Wed, 24 Mar 2010 10:44:33 -0600
+Message-ID: <20100324164433.31102.54541.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21827 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756144Ab0CXPQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Mar 2010 11:16:16 -0400
-In-Reply-To: <201003241540.01187.trenn@suse.de>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:25367 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808Ab0CXQog (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Mar 2010 12:44:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: chen gong <gong.chen@linux.intel.com>, ykzhao <yakui.zhao@intel.com>, Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, trenn@novell.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Yong Wang <yong.y.wang@intel.com>
 
 
+Previously, we assumed the only Device object immediately below the root
+was the \_SB Scope (which the ACPI CA treats as a Device), so we forced
+the HID of all such objects to ACPI_BUS_HID ("LNXSYBUS").
 
-Thomas Renninger wrote:
-> On Wednesday 17 March 2010 19:47:55 Prarit Bhargava wrote:
->   
->> Thomas Renninger wrote:
->>     
->>> On Thursday 11 March 2010 09:32:09 chen gong wrote:
->>>   
->>>       
->>>> On 2010-3-11 16:07, ykzhao wrote:
->>>>     
->>>>         
->>> ... 
->>>   
->>>       
->>>> BTW, how about using UDEV rules to do this operation. It looks more smooth. I know some
->>>> Novell guy is working on it.
->>>>     
->>>>         
->>> I also know this guy :)
->>>
->>> These would be the udev rules to automatically add memory/cpus:
->>> SUBSYSTEM=="cpu", ACTION=="add", TEST=="online", ATTR{online}=="0", ATTR{online}="1", RUN+="/bin/logger onlining cpu: $env{DEVPATH}"
->>> SUBSYSTEM=="memory", ACTION=="add", TEST=="state", ATTR{state}=="offline", ATTR{state}="online", RUN+="/bin/logger onlining memory: $env{DEVPATH}"
->>>
->>> But this should be the same as you suggest (at least the memory rule)
->>> to do in the kernel:
->>> automatically online the memory, once hotadded.
->>>
->>> I would not add any udev rules before this does not work
->>> reliably and currently it is totally broken, mainly because:
->>>   - not being able to alloc memory on foreign nodes (at least with slab)
->>>   - C-state, throttling and cpufreq set up is done without valid
->>>     cpu_data(new_cpu) resulting in wrong C-state (and other) info
->>>
->>>   
->>>       
->> Thomas, forgive my ignorance of udev rules ... but can one udev rule 
->> block another?  ... That's not the best way to explain it ... here's an 
->> example:
->>
->> CPU hot add on Nehalem-EX.  Memory is brought online.  Memory udev 
->> events are generated.  CPU udev events are generated.
->>
->> Can the memory udev events block the cpu udev events?  ie) can I be 
->> assured that memory will come online before the cpus?
->>     
-> I give up, there are too many open issues.
-> Onlining cpus and memory in parallel currently is not a good idea.
->
->   
+However, there are DSDTs that supply root-level Device objects with _HIDs.
+This patch makes us pay attention to those _HIDs and only add the synthetic
+ACPI_BUS_HID for root-level objects that do not supply their own _HID.
 
-Thomas,
+For example, this DSDT: https://bugzilla.kernel.org/show_bug.cgi?id=15605
+contains:
 
-> If the cpu event comes first, you run into other issues. I accidently had
-> the acpi_memhotplug driver not loaded, in this case a new node was not
-> created at all and the cpus ended up on the wrong node.
->
->   
+    Scope (_SB) {
+	...
+    }
+    Device (AMW0) {
+	Name (_HID, EisaId ("PNP0C14"))
+	...
+    }
 
-Right :( 
-> Some comments on your patch:
-> Your patch misses EXPORT_SYMBOL(_GPL?)(set_memory_state); (I wonder why
-> drivers/base/memory.c does not export symbols under gpl...) and
-> EXPORT_SYMBOL_GPL(online_pages);
->
->   
+and we should use "PNP0C14" for the AMW0 device, not "LNXSYBUS".
 
-Okay, I'll fix that up. 
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Tested-by: Yong Wang <yong.y.wang@intel.com>
+---
 
-> You also need to set each memory block MEM_ONLINE somehow,
-> while all memory was active, only one memory block showed "online" here:
-> /sys/devices/system/node/node3/memory*/state
-> which has side-effects.
->
->   
+ drivers/acpi/scan.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-Huh -- I wonder if that has to do with they way I'm calling 
-online_pages.  I wonder if I have to make that clal "deeper" in the call 
-path and call it on EACH segment that I'm bringing into service...
 
-> Would be great if you add me to CC if you repost or on related topics.
->
->   
-Absolutely no problem :)  I didn't mean to leave you out of the 
-conversation :)
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index fb7fc24..1d42798 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1044,12 +1044,6 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		if (ACPI_IS_ROOT_DEVICE(device)) {
+ 			acpi_add_id(device, ACPI_SYSTEM_HID);
+ 			break;
+-		} else if (ACPI_IS_ROOT_DEVICE(device->parent)) {
+-			/* \_SB_, the only root-level namespace device */
+-			acpi_add_id(device, ACPI_BUS_HID);
+-			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
+-			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
+-			break;
+ 		}
+ 
+ 		status = acpi_get_object_info(device->handle, &info);
+@@ -1082,6 +1076,12 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 			acpi_add_id(device, ACPI_BAY_HID);
+ 		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+ 			acpi_add_id(device, ACPI_DOCK_HID);
++		else if (!acpi_device_hid(device) &&
++			 ACPI_IS_ROOT_DEVICE(device->parent)) {
++			acpi_add_id(device, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
++			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
++			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
++		}
+ 
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER:
 
-P.
-
-> Thanks,
->
->      Thomas
->   
