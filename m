@@ -1,79 +1,46 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ACPI: use _HID when supplied by root-level devices
-Date: Wed, 24 Mar 2010 10:44:33 -0600
-Message-ID: <20100324164433.31102.54541.stgit@bob.kio>
+From: =?UTF-8?B?w4Frb3MgTWFyw7N5?= <akos@maroy.hu>
+Subject: how to debug a kernel that does not power off?
+Date: Wed, 24 Mar 2010 22:32:21 -0600
+Message-ID: <4BAAE755.9090509@maroy.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:25367 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808Ab0CXQog (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Mar 2010 12:44:36 -0400
+Received: from perec.tyrell.hu ([66.197.149.104]:41115 "EHLO perec.tyrell.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752204Ab0CYFL5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Mar 2010 01:11:57 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by perec.tyrell.hu (Postfix) with ESMTP id 7ACAA300D5
+	for <linux-acpi@vger.kernel.org>; Thu, 25 Mar 2010 00:32:34 -0400 (EDT)
+Received: from perec.tyrell.hu ([127.0.0.1])
+	by localhost (perec.tyrell.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 8nrvcg03g6cG for <linux-acpi@vger.kernel.org>;
+	Thu, 25 Mar 2010 00:32:30 -0400 (EDT)
+Received: from [10.128.226.215] (unknown [189.140.25.145])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: akos@maroy.hu)
+	by perec.tyrell.hu (Postfix) with ESMTPSA id 872DA300D4
+	for <linux-acpi@vger.kernel.org>; Thu, 25 Mar 2010 00:32:30 -0400 (EDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Yong Wang <yong.y.wang@intel.com>
+To: linux-acpi@vger.kernel.org
+
+Hi,
+
+This might be a lame question, but: how would I debug a kernel that
+simply does not power off a machine? When powering off, on the console I
+get to the message: [...] Poweroff.
+
+but then, the machine actually does not power off. This is an HP Envy 15
+laptop using an intel i7 CPU, and kernel 2.6.32.8..10.
+
+I tried to read up on all sorts of documentation, but could not get more
+debug info out of the kernel :(
+
+any pointers would be welcome..
 
 
-Previously, we assumed the only Device object immediately below the root
-was the \_SB Scope (which the ACPI CA treats as a Device), so we forced
-the HID of all such objects to ACPI_BUS_HID ("LNXSYBUS").
-
-However, there are DSDTs that supply root-level Device objects with _HIDs.
-This patch makes us pay attention to those _HIDs and only add the synthetic
-ACPI_BUS_HID for root-level objects that do not supply their own _HID.
-
-For example, this DSDT: https://bugzilla.kernel.org/show_bug.cgi?id=15605
-contains:
-
-    Scope (_SB) {
-	...
-    }
-    Device (AMW0) {
-	Name (_HID, EisaId ("PNP0C14"))
-	...
-    }
-
-and we should use "PNP0C14" for the AMW0 device, not "LNXSYBUS".
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Yong Wang <yong.y.wang@intel.com>
----
-
- drivers/acpi/scan.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
-
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index fb7fc24..1d42798 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1044,12 +1044,6 @@ static void acpi_device_set_id(struct acpi_device *device)
- 		if (ACPI_IS_ROOT_DEVICE(device)) {
- 			acpi_add_id(device, ACPI_SYSTEM_HID);
- 			break;
--		} else if (ACPI_IS_ROOT_DEVICE(device->parent)) {
--			/* \_SB_, the only root-level namespace device */
--			acpi_add_id(device, ACPI_BUS_HID);
--			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
--			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
--			break;
- 		}
- 
- 		status = acpi_get_object_info(device->handle, &info);
-@@ -1082,6 +1076,12 @@ static void acpi_device_set_id(struct acpi_device *device)
- 			acpi_add_id(device, ACPI_BAY_HID);
- 		else if (ACPI_SUCCESS(acpi_dock_match(device)))
- 			acpi_add_id(device, ACPI_DOCK_HID);
-+		else if (!acpi_device_hid(device) &&
-+			 ACPI_IS_ROOT_DEVICE(device->parent)) {
-+			acpi_add_id(device, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
-+			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
-+			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
-+		}
- 
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
+Akos
 
