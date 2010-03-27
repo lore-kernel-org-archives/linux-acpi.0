@@ -1,62 +1,57 @@
-From: =?ISO-8859-15?Q?Robert_W=F6rle?= <robert@linuxdevelopment.de>
-Subject: Black screen-dead unit on S3 resume - Intel Atom
-Date: Sat, 27 Mar 2010 14:00:20 +0100
-Message-ID: <4BAE0164.9060503@linuxdevelopment.de>
+From: Mr CHARLES ARMSRONG <charlesarmstrong41@hotmail.com>
+Subject: WINNING NOTIFICATION
+Date: Sun, 28 Mar 2010 06:21:00 +0800
+Message-ID: <20100328062100.3zr0li640s04oo8o__23730.3824550056$1269742853$gmane$org@portal.yen.gr>
+Reply-To: charlesarmstrong1@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-7;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50615 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab0C0NAF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2010 09:00:05 -0400
+Received: from mailgate.yen.gr ([195.167.19.133]:46589 "EHLO mailgate.yen.gr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751209Ab0C1CUk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Mar 2010 22:20:40 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Dear List
-
-I am approaching this list now as one of my last hopes i ve to fix S3 on 
-Intel Atom based Tablet PC.
-
-The overall description of the situation is as follows.
-
-- entereing into S3 via "echo mem > /sys/power/state will result in a 
-suspend into the bios which is comparable to the one when running windows.
-The acitivity led starts blinking and it sits there. Power consumption 
-measurments show the equally amounts of mA take.
-
-The system then reacts on the power button only with a changing power 
-led to static. ( after around 1 sec)
-But that is all i can get as reaction.
-No hdd activity at all.
-
-So it stucks on the resume situation as early as acpi calls the waking 
-vektor. That is my assumption.
-
-Tests taken :
-- All /sys/power/pm_test  `scenarios runs fine without any obvious issue.
-- All test are done with mininal system scenario with only hdd, usb and 
-framebuffer drivers compiled in.
-- s3_beep kernel option also doesnt beep on resume , beepdriver is 
-compiled in.
-- testet various options, like acpi old_ordering, rsdt, sci_force_enable 
-and some more
-- most tests where done on 2.6.34-rc1.  but others where with 2.6.27 
-(openSuse 11.1) and 2.6.20
-
-I am about to recieve a ami bios post code - debug card. That one should 
-help to determine the bios side.
-
-So i am stuck without any further debug information beside the dmesg 
-from the bootet system and the pm_test runs.
 
 
-I can attach or mail any log you guys want me to. Also i ve all acpidump 
-`ed tables
+  Dear E-mail User,
+Your  email has just won the sum of =A3750,000.00 GBP in cash credited =
+to a file
+in the just concluded Irish Lottery International Award Programme held =
+20th of
+march,2010
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Your  e-mail address attached to:
+Winner Pin No:5388/10.
+Secret No:089188/10
+Winning Date: 20th of march,2010
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+1. Full Name 2. Address: 3.Age/Gender 4. Occupation 5.Nationality =20
+6.Phone Number
+7. Have you won a lottery before?(YES/NO)8.Amount Won?
+Send details to Fiduciary Agent: Dr.Culverton Humphery
+Tel: +44(0)703 595 7792
+Email:charlesarmstrong1@hotmail.com
 
-Any hints, help or suggstions are welcome at this point.
+Note:All Reponses should be sent to Agent via =20
+email:charlesarmstrong1@hotmail.com
+Online Co-Ordinator
+charles armstrong
 
-Regards Rob
 
 
+
+
+----------------------------------------------------------------
+This message was sent using YENANP Portal Server
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
