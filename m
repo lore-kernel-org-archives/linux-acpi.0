@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 11/14] x86 ioapic: Optimize pin_2_irq
-Date: Mon, 29 Mar 2010 16:20:22 -0700
-Message-ID: <1269904825-27462-11-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 04/14] x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
+Date: Mon, 29 Mar 2010 16:20:15 -0700
+Message-ID: <1269904825-27462-4-git-send-email-ebiederm@xmission.com>
 References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
@@ -12,50 +12,62 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Now that all ioapics have valid gsi_base values use this to
-accellerate pin_2_irq.  In the case of acpi this also ensures
-that pin_2_irq will compute the same irq value for an ioapic
-pin as acpi will.
+Currently acpi_sci_ioapic_setup calls mp_override_legacy_irq with
+bus_irq == gsi, which is wrong if we are comming from an override
+Instead pass the bus_irq into acpi_sci_ioapic_setup.
+
+This fix was inspired by a similar fix from:
+Yinghai Lu <yinghai@kernel.org>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 0515f26..996cf8f 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1018,7 +1018,7 @@ static inline int irq_trigger(int idx)
- int (*ioapic_renumber_irq)(int ioapic, int irq);
- static int pin_2_irq(int idx, int apic, int pin)
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index f96060d..1742888 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -312,7 +312,7 @@ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
+ /*
+  * Parse Interrupt Source Override for the ACPI SCI
+  */
+-static void __init acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
++static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger, u32 gsi)
  {
--	int irq, i;
-+	int irq;
- 	int bus = mp_irqs[idx].srcbus;
+ 	if (trigger == 0)	/* compatible SCI trigger is level */
+ 		trigger = 3;
+@@ -332,7 +332,7 @@ static void __init acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
+ 	 * If GSI is < 16, this will update its flags,
+ 	 * else it will create a new mp_irqs[] entry.
+ 	 */
+-	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
++	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
  
  	/*
-@@ -1030,18 +1030,13 @@ static int pin_2_irq(int idx, int apic, int pin)
- 	if (test_bit(bus, mp_bus_not_pci)) {
- 		irq = mp_irqs[idx].srcbusirq;
- 	} else {
--		/*
--		 * PCI IRQs are mapped in order
--		 */
--		i = irq = 0;
--		while (i < apic)
--			irq += nr_ioapic_registers[i++];
--		irq += pin;
-+		u32 gsi = mp_gsi_routing[apic].gsi_base + pin;
- 		/*
-                  * For MPS mode, so far only needed by ES7000 platform
-                  */
- 		if (ioapic_renumber_irq)
--			irq = ioapic_renumber_irq(apic, irq);
-+			gsi = ioapic_renumber_irq(apic, gsi);
-+		irq = gsi;
+ 	 * stash over-ride to indicate we've been here
+@@ -356,9 +356,10 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
+ 	acpi_table_print_madt_entry(header);
+ 
+ 	if (intsrc->source_irq == acpi_gbl_FADT.sci_interrupt) {
+-		acpi_sci_ioapic_setup(intsrc->global_irq,
++		acpi_sci_ioapic_setup(intsrc->source_irq,
+ 				      intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
+-				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
++				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
++				      intsrc->global_irq);
+ 		return 0;
  	}
  
- #ifdef CONFIG_X86_32
+@@ -1161,7 +1162,8 @@ static int __init acpi_parse_madt_ioapic_entries(void)
+ 	 * pretend we got one so we can set the SCI flags.
+ 	 */
+ 	if (!acpi_sci_override_gsi)
+-		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0);
++		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0,
++				      acpi_gbl_FADT.sci_interrupt);
+ 
+ 	/* Fill in identity legacy mappings where no override */
+ 	mp_config_acpi_legacy_irqs();
 -- 
 1.6.5.2.143.g8cc62
