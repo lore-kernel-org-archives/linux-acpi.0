@@ -1,12 +1,12 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 03/14] x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
-Date: Mon, 29 Mar 2010 16:20:14 -0700
-Message-ID: <1269904825-27462-3-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 01/14] x86 acpi/irq: Introduce apci_isa_irq_to_gsi
+Date: Mon, 29 Mar 2010 16:20:12 -0700
+Message-ID: <1269904825-27462-1-git-send-email-ebiederm@xmission.com>
 References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:54133 "EHLO
+Received: from out01.mta.xmission.com ([166.70.13.231]:54144 "EHLO
 	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006Ab0C2XUt (ORCPT
+	with ESMTP id S1754101Ab0C2XUt (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:49 -0400
 In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -16,37 +16,76 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Mo
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Strictly speaking on x86 (where acpi is used) dev->irq must be
-a dual i8259 irq input aka an isa irq.  Therefore we should translate
-that isa irq into a gsi before passing it to a function that
-takes a gsi.
+There are a number of cases where the current code makes the assumption
+that isa irqs identity map to the first 16 acpi global system intereupts.
+In most instances that assumption is correct as that is the required
+behaviour in dual i8259 mode and the default behavior in ioapic mode.
+
+However there are some systems out there that take advantage of acpis
+interrupt remapping  for the isa irqs to have a completely different
+mapping of isa_irq to gsi.
+
+Introduce acpi_isa_irq_to_gsi to perform this mapping explicitly in the
+code that needs it.  Initially this will be just the current assumed
+identity mapping to ensure it's introduction does not cause regressions.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- drivers/acpi/pci_irq.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/acpi.c     |    8 ++++++++
+ arch/x86/kernel/acpi/boot.c |    8 ++++++++
+ include/linux/acpi.h        |    1 +
+ 3 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 843699e..703541d 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -400,11 +400,13 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * driver reported one, then use it. Exit in any case.
- 	 */
- 	if (gsi < 0) {
-+		u32 dev_gsi;
- 		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
- 		/* Interrupt Line values above 0xF are forbidden */
--		if (dev->irq > 0 && (dev->irq <= 0xF)) {
--			printk(" - using IRQ %d\n", dev->irq);
--			acpi_register_gsi(&dev->dev, dev->irq,
-+		if (dev->irq > 0 && (dev->irq <= 0xF) &&
-+		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-+			printk(" - using ISA IRQ %d\n", dev->irq);
-+			acpi_register_gsi(&dev->dev, dev_gsi,
- 					  ACPI_LEVEL_SENSITIVE,
- 					  ACPI_ACTIVE_LOW);
- 			return 0;
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index f1c9f70..16921bd 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -784,6 +784,14 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+ 	return 0;
+ }
+ 
++int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
++{
++	if (isa_irq >= 16)
++		return -1;
++	*gsi = isa_irq;
++	return 0;
++}
++
+ /*
+  *  ACPI based hotplug CPU support
+  */
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 0061ea2..f96060d 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -457,6 +457,14 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+ 	return 0;
+ }
+ 
++int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
++{
++	if (isa_irq >= 16)
++		return -1;
++	*gsi = isa_irq;
++	return 0;
++}
++
+ /*
+  * success: return IRQ number (>=0)
+  * failure: return < 0
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b926afe..7a937da 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -116,6 +116,7 @@ extern unsigned long acpi_realmode_flags;
+ 
+ int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity);
+ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
++int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
+ 
+ #ifdef CONFIG_X86_IO_APIC
+ extern int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity);
 -- 
 1.6.5.2.143.g8cc62
 
