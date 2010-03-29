@@ -1,13 +1,13 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 02/14] x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
-Date: Mon, 29 Mar 2010 16:20:13 -0700
-Message-ID: <1269904825-27462-2-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 07/14] x86 ioapic: Fix the types of gsi values
+Date: Mon, 29 Mar 2010 16:20:18 -0700
+Message-ID: <1269904825-27462-7-git-send-email-ebiederm@xmission.com>
 References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:54122 "EHLO
+Received: from out01.mta.xmission.com ([166.70.13.231]:54170 "EHLO
 	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252Ab0C2XUt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:49 -0400
+	with ESMTP id S1754220Ab0C2XUu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:50 -0400
 In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,75 +16,70 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Mo
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-In perverse acpi implementations the isa irqs are not identity mapped
-to the first 16 gsi.  Furthermore at least the extended interrupt
-resource capability may return gsi's and not isa irqs.  So since
-what we get from acpi is a gsi teach acpi_get_overrride_irq to
-operate on a gsi instead of an isa_irq.
+This patches fixes the types of gsi_base and gsi_end values in
+struct mp_ioapic_gsi, and the gsi parameter of mp_find_ioapic
+and mp_find_ioapic_pin
+
+A gsi is cannonically a u32, not an int.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   23 ++++++++++++++---------
- include/linux/acpi.h           |    4 ++--
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/io_apic.h |   10 +++++-----
+ arch/x86/kernel/apic/io_apic.c |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index 35832a0..feeaf0d 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -180,12 +180,12 @@ extern void ioapic_write_entry(int apic, int pin,
+ extern void setup_ioapic_ids_from_mpc(void);
+ 
+ struct mp_ioapic_gsi{
+-	int gsi_base;
+-	int gsi_end;
++	u32 gsi_base;
++	u32 gsi_end;
+ };
+ extern struct mp_ioapic_gsi  mp_gsi_routing[];
+-int mp_find_ioapic(int gsi);
+-int mp_find_ioapic_pin(int ioapic, int gsi);
++int mp_find_ioapic(u32 gsi);
++int mp_find_ioapic_pin(int ioapic, u32 gsi);
+ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base);
+ extern void __init pre_init_apic_IRQ0(void);
+ 
+@@ -197,7 +197,7 @@ static const int timer_through_8259 = 0;
+ static inline void ioapic_init_mappings(void)	{ }
+ static inline void ioapic_insert_resources(void) { }
+ static inline void probe_nr_irqs_gsi(void)	{ }
+-static inline int mp_find_ioapic(int gsi) { return 0; }
++static inline int mp_find_ioapic(u32 gsi) { return 0; }
+ 
+ struct io_apic_irq_attr;
+ static inline int io_apic_set_pci_routing(struct device *dev, int irq,
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index e4e0ddc..54ba1f7 100644
+index 54ba1f7..32cea57 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -4073,22 +4073,27 @@ int __init io_apic_get_version(int ioapic)
- 	return reg_01.bits.version;
+@@ -4234,7 +4234,7 @@ void __init ioapic_insert_resources(void)
+ 	}
  }
  
--int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
-+int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity)
+-int mp_find_ioapic(int gsi)
++int mp_find_ioapic(u32 gsi)
  {
--	int i;
-+	int ioapic, pin, idx;
+ 	int i = 0;
  
- 	if (skip_ioapic_setup)
- 		return -1;
- 
--	for (i = 0; i < mp_irq_entries; i++)
--		if (mp_irqs[i].irqtype == mp_INT &&
--		    mp_irqs[i].srcbusirq == bus_irq)
--			break;
--	if (i >= mp_irq_entries)
-+	ioapic = mp_find_ioapic(gsi);
-+	if (ioapic < 0)
-+		return -1;
-+
-+	pin = mp_find_ioapic_pin(ioapic, gsi);
-+	if (pin < 0)
-+		return -1;
-+
-+	idx = find_irq_entry(ioapic, pin, mp_INT);
-+	if (idx < 0)
- 		return -1;
- 
--	*trigger = irq_trigger(i);
--	*polarity = irq_polarity(i);
-+	*trigger = irq_trigger(idx);
-+	*polarity = irq_polarity(idx);
- 	return 0;
+@@ -4249,7 +4249,7 @@ int mp_find_ioapic(int gsi)
+ 	return -1;
  }
  
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 7a937da..3da73f5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -119,9 +119,9 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
- 
- #ifdef CONFIG_X86_IO_APIC
--extern int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity);
-+extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
- #else
--#define acpi_get_override_irq(bus, trigger, polarity) (-1)
-+#define acpi_get_override_irq(gsi, trigger, polarity) (-1)
- #endif
- /*
-  * This function undoes the effect of one call to acpi_register_gsi().
+-int mp_find_ioapic_pin(int ioapic, int gsi)
++int mp_find_ioapic_pin(int ioapic, u32 gsi)
+ {
+ 	if (WARN_ON(ioapic == -1))
+ 		return -1;
 -- 
 1.6.5.2.143.g8cc62
 
