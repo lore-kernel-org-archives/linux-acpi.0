@@ -1,13 +1,13 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 07/14] x86 ioapic: Fix the types of gsi values
-Date: Mon, 29 Mar 2010 16:20:18 -0700
-Message-ID: <1269904825-27462-7-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 03/14] x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
+Date: Mon, 29 Mar 2010 16:20:14 -0700
+Message-ID: <1269904825-27462-3-git-send-email-ebiederm@xmission.com>
 References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:54170 "EHLO
+Received: from out01.mta.xmission.com ([166.70.13.231]:54133 "EHLO
 	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754220Ab0C2XUu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:50 -0400
+	with ESMTP id S1754006Ab0C2XUt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:49 -0400
 In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,70 +16,37 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Mo
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patches fixes the types of gsi_base and gsi_end values in
-struct mp_ioapic_gsi, and the gsi parameter of mp_find_ioapic
-and mp_find_ioapic_pin
-
-A gsi is cannonically a u32, not an int.
+Strictly speaking on x86 (where acpi is used) dev->irq must be
+a dual i8259 irq input aka an isa irq.  Therefore we should translate
+that isa irq into a gsi before passing it to a function that
+takes a gsi.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86/include/asm/io_apic.h |   10 +++++-----
- arch/x86/kernel/apic/io_apic.c |    4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/pci_irq.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 35832a0..feeaf0d 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -180,12 +180,12 @@ extern void ioapic_write_entry(int apic, int pin,
- extern void setup_ioapic_ids_from_mpc(void);
- 
- struct mp_ioapic_gsi{
--	int gsi_base;
--	int gsi_end;
-+	u32 gsi_base;
-+	u32 gsi_end;
- };
- extern struct mp_ioapic_gsi  mp_gsi_routing[];
--int mp_find_ioapic(int gsi);
--int mp_find_ioapic_pin(int ioapic, int gsi);
-+int mp_find_ioapic(u32 gsi);
-+int mp_find_ioapic_pin(int ioapic, u32 gsi);
- void __init mp_register_ioapic(int id, u32 address, u32 gsi_base);
- extern void __init pre_init_apic_IRQ0(void);
- 
-@@ -197,7 +197,7 @@ static const int timer_through_8259 = 0;
- static inline void ioapic_init_mappings(void)	{ }
- static inline void ioapic_insert_resources(void) { }
- static inline void probe_nr_irqs_gsi(void)	{ }
--static inline int mp_find_ioapic(int gsi) { return 0; }
-+static inline int mp_find_ioapic(u32 gsi) { return 0; }
- 
- struct io_apic_irq_attr;
- static inline int io_apic_set_pci_routing(struct device *dev, int irq,
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 54ba1f7..32cea57 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -4234,7 +4234,7 @@ void __init ioapic_insert_resources(void)
- 	}
- }
- 
--int mp_find_ioapic(int gsi)
-+int mp_find_ioapic(u32 gsi)
- {
- 	int i = 0;
- 
-@@ -4249,7 +4249,7 @@ int mp_find_ioapic(int gsi)
- 	return -1;
- }
- 
--int mp_find_ioapic_pin(int ioapic, int gsi)
-+int mp_find_ioapic_pin(int ioapic, u32 gsi)
- {
- 	if (WARN_ON(ioapic == -1))
- 		return -1;
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 843699e..703541d 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -400,11 +400,13 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (gsi < 0) {
++		u32 dev_gsi;
+ 		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
+ 		/* Interrupt Line values above 0xF are forbidden */
+-		if (dev->irq > 0 && (dev->irq <= 0xF)) {
+-			printk(" - using IRQ %d\n", dev->irq);
+-			acpi_register_gsi(&dev->dev, dev->irq,
++		if (dev->irq > 0 && (dev->irq <= 0xF) &&
++		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
++			printk(" - using ISA IRQ %d\n", dev->irq);
++			acpi_register_gsi(&dev->dev, dev_gsi,
+ 					  ACPI_LEVEL_SENSITIVE,
+ 					  ACPI_ACTIVE_LOW);
+ 			return 0;
 -- 
 1.6.5.2.143.g8cc62
 
