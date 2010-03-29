@@ -1,80 +1,90 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: [PATCH 0/14] Start coping gsis < 16 that are not isa irqs.
-Date: Mon, 29 Mar 2010 16:19:34 -0700
-Message-ID: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
-References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
-	<1269221770-9667-3-git-send-email-yinghai@kernel.org>
-	<alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
-	<m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: [PATCH 02/14] x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
+Date: Mon, 29 Mar 2010 16:20:13 -0700
+Message-ID: <1269904825-27462-2-git-send-email-ebiederm@xmission.com>
+References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:54018 "EHLO
+Received: from out01.mta.xmission.com ([166.70.13.231]:54122 "EHLO
 	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985Ab0C2XTn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:19:43 -0400
-In-Reply-To: <4BB0EA22.7000004@zytor.com> (H. Peter Anvin's message of "Mon\, 29 Mar 2010 10\:57\:54 -0700")
+	with ESMTP id S1753252Ab0C2XUt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Mar 2010 19:20:49 -0400
+In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>
 
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-It appears there are a few systems in the wild that use acpi
-interrupt source overrides to report a gsi > 16 is an isa irq.
+In perverse acpi implementations the isa irqs are not identity mapped
+to the first 16 gsi.  Furthermore at least the extended interrupt
+resource capability may return gsi's and not isa irqs.  So since
+what we get from acpi is a gsi teach acpi_get_overrride_irq to
+operate on a gsi instead of an isa_irq.
 
-This breaks all kinds of assumptions I figure any BIOS doing that
-probably should be shot as that is very much not a conservative position.
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+---
+ arch/x86/kernel/apic/io_apic.c |   23 ++++++++++++++---------
+ include/linux/acpi.h           |    4 ++--
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-That said acpi appears to allow this insanity and on the basis of being
-liberal in what we accept we should try to do something reasonable, and
-keep our notions of gsi, isa irq, and linux irq as straight as we can.
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index e4e0ddc..54ba1f7 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -4073,22 +4073,27 @@ int __init io_apic_get_version(int ioapic)
+ 	return reg_01.bits.version;
+ }
+ 
+-int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
++int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity)
+ {
+-	int i;
++	int ioapic, pin, idx;
+ 
+ 	if (skip_ioapic_setup)
+ 		return -1;
+ 
+-	for (i = 0; i < mp_irq_entries; i++)
+-		if (mp_irqs[i].irqtype == mp_INT &&
+-		    mp_irqs[i].srcbusirq == bus_irq)
+-			break;
+-	if (i >= mp_irq_entries)
++	ioapic = mp_find_ioapic(gsi);
++	if (ioapic < 0)
++		return -1;
++
++	pin = mp_find_ioapic_pin(ioapic, gsi);
++	if (pin < 0)
++		return -1;
++
++	idx = find_irq_entry(ioapic, pin, mp_INT);
++	if (idx < 0)
+ 		return -1;
+ 
+-	*trigger = irq_trigger(i);
+-	*polarity = irq_polarity(i);
++	*trigger = irq_trigger(idx);
++	*polarity = irq_polarity(idx);
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 7a937da..3da73f5 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -119,9 +119,9 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
+ int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
+ 
+ #ifdef CONFIG_X86_IO_APIC
+-extern int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity);
++extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
+ #else
+-#define acpi_get_override_irq(bus, trigger, polarity) (-1)
++#define acpi_get_override_irq(gsi, trigger, polarity) (-1)
+ #endif
+ /*
+  * This function undoes the effect of one call to acpi_register_gsi().
+-- 
+1.6.5.2.143.g8cc62
 
-To that end this patchset slightly modifies the gsi to linux irq
-mapping.  Making it a 1 to 1 identity mapping except for the first 16
-gsis.  If those gsis are isa irqs (the typical and default acpi
-configuration) they will be mapped into the first 16 irqs.  If those
-first 16 gsis are not isa irqs they will be given a linux irq number
-just past the last gsi.  Allowing us the chance to use them.
-
-This patchset is my attempt to straighten out our understanding of which
-kind of irq name is used where and the cleanups used to get there.
-
-Thanks to Yinghai Lu <yinghai@kernel.org> for taking the first stab at
-this and finding that there is a real world problem here.  This patchset
-is inspired by his work, but little of it remains the same.
-
-This patchset lies in the weird world between the acpi and x86 and ia64.
-Since most of the changes are x86 related I think it makes most sense
-to go via the x86 tree.
-
-
-Eric W. Biederman (14):
-      x86 acpi/irq: Introduce apci_isa_irq_to_gsi
-      x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
-      x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
-      x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
-      x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
-      x86 ioapic: Only export mp_find_ioapic and mp_find_ioapic_pin in io_apic.h
-      x86 ioapic: Fix the types of gsi values
-      x86 ioapic: Teach mp_register_ioapic to compute a global gsi_end
-      x86 ioapic: In mpparse use mp_register_ioapic
-      x86 ioapic: Move nr_ioapic_registers calculation to mp_register_ioapic.
-      x86 ioapic: Optimize pin_2_irq
-      x86 ioapic: Simplify probe_nr_irqs_gsi.
-      x86 acpi/irq: Handle isa irqs that are not identity mapped to gsi's.
-      x86 irq: Kill io_apic_renumber_irq
-
- arch/ia64/kernel/acpi.c          |    8 ++
- arch/x86/include/asm/io_apic.h   |   12 ++--
- arch/x86/include/asm/mpspec.h    |   10 ---
- arch/x86/kernel/acpi/boot.c      |  133 ++++++++++++++++++++++++--------------
- arch/x86/kernel/apic/es7000_32.c |   19 ------
- arch/x86/kernel/apic/io_apic.c   |   93 +++++++++++---------------
- arch/x86/kernel/mpparse.c        |   25 +-------
- arch/x86/kernel/sfi.c            |    4 +-
- drivers/acpi/pci_irq.c           |    8 ++-
- include/linux/acpi.h             |    5 +-
- 10 files changed, 149 insertions(+), 168 deletions(-)
-
-Eric
