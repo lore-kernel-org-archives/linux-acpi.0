@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 05/15] x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
-Date: Tue, 30 Mar 2010 01:07:06 -0700
-Message-ID: <1269936436-7039-5-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 13/15] x86 ioapic: Simplify probe_nr_irqs_gsi.
+Date: Tue, 30 Mar 2010 01:07:14 -0700
+Message-ID: <1269936436-7039-13-git-send-email-ebiederm@xmission.com>
 References: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
@@ -12,85 +12,99 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Remove the assumption that there is not an override for isa irq 0.
-Instead lookup the gsi and from that lookup the ioapic and pin of each
-isa irq indivdually.
-
-In general this should not have any behavioural affect but in
-perverse cases this gets all of the details correct, instead of
-doing something weird.
+Use the global gsi_end value now that all ioapics have
+valid gsi numbers instead of a combination of acpi_probe_gsi
+and walking all of the ioapics and couting their number of
+entries by hand if acpi_probe_gsi gave us an answer we did
+not like.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
+ arch/x86/include/asm/mpspec.h  |    6 ------
+ arch/x86/kernel/acpi/boot.c    |   23 -----------------------
+ arch/x86/kernel/apic/io_apic.c |   17 +++--------------
+ 3 files changed, 3 insertions(+), 43 deletions(-)
 
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index 29994f0..c82868e 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -105,12 +105,6 @@ extern void mp_config_acpi_legacy_irqs(void);
+ struct device;
+ extern int mp_register_gsi(struct device *dev, u32 gsi, int edge_level,
+ 				 int active_high_low);
+-extern int acpi_probe_gsi(void);
+-#else /* !CONFIG_ACPI: */
+-static inline int acpi_probe_gsi(void)
+-{
+-	return 0;
+-}
+ #endif /* CONFIG_ACPI */
+ 
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_APICS)
 diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 1742888..9c48e99 100644
+index 9c48e99..0e514a1 100644
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
-@@ -960,8 +960,6 @@ void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger, u32 gsi)
- void __init mp_config_acpi_legacy_irqs(void)
- {
- 	int i;
--	int ioapic;
--	unsigned int dstapic;
- 	struct mpc_intsrc mp_irq;
- 
- #if defined (CONFIG_MCA) || defined (CONFIG_EISA)
-@@ -982,19 +980,27 @@ void __init mp_config_acpi_legacy_irqs(void)
+@@ -875,29 +875,6 @@ static int __init acpi_parse_madt_lapic_entries(void)
+ extern int es7000_plat;
  #endif
  
- 	/*
--	 * Locate the IOAPIC that manages the ISA IRQs (0-15).
--	 */
--	ioapic = mp_find_ioapic(0);
--	if (ioapic < 0)
--		return;
--	dstapic = mp_ioapics[ioapic].apicid;
+-int __init acpi_probe_gsi(void)
+-{
+-	int idx;
+-	int gsi;
+-	int max_gsi = 0;
 -
--	/*
- 	 * Use the default configuration for the IRQs 0-15.  Unless
- 	 * overridden by (MADT) interrupt source override entries.
- 	 */
- 	for (i = 0; i < 16; i++) {
-+		int ioapic, pin;
-+		unsigned int dstapic;
- 		int idx;
-+		u32 gsi;
-+
-+		/* Locate the gsi that irq i maps to. */
-+		if (acpi_isa_irq_to_gsi(i, &gsi))
-+			continue;
-+
-+		/*
-+		 * Locate the IOAPIC that manages the ISA IRQ.
-+		 */
-+		ioapic = mp_find_ioapic(gsi);
-+		if (ioapic < 0)
-+			continue;
-+		pin = mp_find_ioapic_pin(ioapic, gsi);
-+		dstapic = mp_ioapics[ioapic].apicid;
+-	if (acpi_disabled)
+-		return 0;
+-
+-	if (!acpi_ioapic)
+-		return 0;
+-
+-	max_gsi = 0;
+-	for (idx = 0; idx < nr_ioapics; idx++) {
+-		gsi = mp_gsi_routing[idx].gsi_end;
+-
+-		if (gsi > max_gsi)
+-			max_gsi = gsi;
+-	}
+-
+-	return max_gsi + 1;
+-}
+-
+ static void assign_to_mp_irq(struct mpc_intsrc *m,
+ 				    struct mpc_intsrc *mp_irq)
+ {
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 764c74c..6d6def8 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3841,22 +3841,11 @@ int __init io_apic_get_redir_entries (int ioapic)
  
- 		for (idx = 0; idx < mp_irq_entries; idx++) {
- 			struct mpc_intsrc *irq = mp_irqs + idx;
-@@ -1004,7 +1010,7 @@ void __init mp_config_acpi_legacy_irqs(void)
- 				break;
+ void __init probe_nr_irqs_gsi(void)
+ {
+-	int nr = 0;
++	int nr;
  
- 			/* Do we already have a mapping for this IOAPIC pin */
--			if (irq->dstapic == dstapic && irq->dstirq == i)
-+			if (irq->dstapic == dstapic && irq->dstirq == pin)
- 				break;
- 		}
+-	nr = acpi_probe_gsi();
+-	if (nr > nr_irqs_gsi) {
++	nr = gsi_end + 1;
++	if (nr > nr_irqs_gsi)
+ 		nr_irqs_gsi = nr;
+-	} else {
+-		/* for acpi=off or acpi is not compiled in */
+-		int idx;
+-
+-		nr = 0;
+-		for (idx = 0; idx < nr_ioapics; idx++)
+-			nr += io_apic_get_redir_entries(idx);
+-
+-		if (nr > nr_irqs_gsi)
+-			nr_irqs_gsi = nr;
+-	}
  
-@@ -1019,7 +1025,7 @@ void __init mp_config_acpi_legacy_irqs(void)
- 		mp_irq.dstapic = dstapic;
- 		mp_irq.irqtype = mp_INT;
- 		mp_irq.srcbusirq = i; /* Identity mapped */
--		mp_irq.dstirq = i;
-+		mp_irq.dstirq = pin;
- 
- 		save_mp_irq(&mp_irq);
- 	}
+ 	printk(KERN_DEBUG "nr_irqs_gsi: %d\n", nr_irqs_gsi);
+ }
 -- 
 1.6.5.2.143.g8cc62
