@@ -1,85 +1,96 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: [PATCH 0/15] Start coping gsis < 16 that are not isa irqs. v2
-Date: Tue, 30 Mar 2010 01:06:20 -0700
-Message-ID: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
-References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
-	<1269221770-9667-3-git-send-email-yinghai@kernel.org>
-	<alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
-	<m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
-	<m1r5n2wwah.fsf_-_@fess.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:36158 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881Ab0C3IG3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Mar 2010 04:06:29 -0400
-In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org> (Eric W. Biederman's message of "Mon\, 29 Mar 2010 16\:19\:34 -0700")
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: [PATCH 05/15] x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
+Date: Tue, 30 Mar 2010 01:07:06 -0700
+Message-ID: <1269936436-7039-5-git-send-email-ebiederm@xmission.com>
+References: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>
+List-Id: linux-acpi@vger.kernel.org
 
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-It appears there are a few systems in the wild that use acpi
-interrupt source overrides to report a gsi > 16 is an isa irq.
+Remove the assumption that there is not an override for isa irq 0.
+Instead lookup the gsi and from that lookup the ioapic and pin of each
+isa irq indivdually.
 
-This breaks all kinds of assumptions I figure any BIOS doing that
-probably should be shot as that is very much not a conservative position.
+In general this should not have any behavioural affect but in
+perverse cases this gets all of the details correct, instead of
+doing something weird.
 
-That said acpi appears to allow this insanity and on the basis of being
-liberal in what we accept we should try to do something reasonable, and
-keep our notions of gsi, isa irq, and linux irq as straight as we can.
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+---
+ arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++++------------
+ 1 files changed, 18 insertions(+), 12 deletions(-)
 
-To that end this patchset slightly modifies the gsi to linux irq
-mapping.  Making it a 1 to 1 identity mapping except for the first 16
-gsis.  If those gsis are isa irqs (the typical and default acpi
-configuration) they will be mapped into the first 16 irqs.  If those
-first 16 gsis are not isa irqs they will be given a linux irq number
-just past the last gsi.  Allowing us the chance to use them.
-
-This patchset is my attempt to straighten out our understanding of which
-kind of irq name is used where and the cleanups used to get there.
-
-Thanks to Yinghai Lu <yinghai@kernel.org> for taking the first stab at
-this and finding that there is a real world problem here.  This patchset
-is inspired by his work, but little of it remains the same.
-
-This patchset lies in the weird world between the acpi and x86 and ia64.
-Since most of the changes are x86 related I think it makes most sense
-to go via the x86 tree.
-
-v2: Recognize that gsi_end is last gsi for an ioapic not one past the end.
-    Since I use gsi_end widely in my patchset a respin of many of the patches
-    made sense.
-
-Eric W. Biederman (15):
-      x86 acpi/irq: Introduce apci_isa_irq_to_gsi
-      x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
-      x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
-      x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
-      x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
-      x86 ioapic: Only export mp_find_ioapic and mp_find_ioapic_pin in io_apic.h
-      x86 ioapic: Fix io_apic_redir_entries to return the number of entries.
-      x86 ioapic: Fix the types of gsi values
-      x86 ioapic: Teach mp_register_ioapic to compute a global gsi_end
-      x86 ioapic: In mpparse use mp_register_ioapic
-      x86 ioapic: Move nr_ioapic_registers calculation to mp_register_ioapic.
-      x86 ioapic: Optimize pin_2_irq
-      x86 ioapic: Simplify probe_nr_irqs_gsi.
-      x86 acpi/irq: Handle isa irqs that are not identity mapped to gsi's.
-      x86 irq: Kill io_apic_renumber_irq
-
- arch/ia64/kernel/acpi.c          |    8 ++
- arch/x86/include/asm/io_apic.h   |   12 ++--
- arch/x86/include/asm/mpspec.h    |   10 ---
- arch/x86/kernel/acpi/boot.c      |  133 ++++++++++++++++++++++++--------------
- arch/x86/kernel/apic/es7000_32.c |   19 ------
- arch/x86/kernel/apic/io_apic.c   |   99 +++++++++++++---------------
- arch/x86/kernel/mpparse.c        |   25 +-------
- arch/x86/kernel/sfi.c            |    4 +-
- drivers/acpi/pci_irq.c           |    8 ++-
- include/linux/acpi.h             |    5 +-
- 10 files changed, 154 insertions(+), 169 deletions(-)
-
-Eric
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 1742888..9c48e99 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -960,8 +960,6 @@ void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger, u32 gsi)
+ void __init mp_config_acpi_legacy_irqs(void)
+ {
+ 	int i;
+-	int ioapic;
+-	unsigned int dstapic;
+ 	struct mpc_intsrc mp_irq;
+ 
+ #if defined (CONFIG_MCA) || defined (CONFIG_EISA)
+@@ -982,19 +980,27 @@ void __init mp_config_acpi_legacy_irqs(void)
+ #endif
+ 
+ 	/*
+-	 * Locate the IOAPIC that manages the ISA IRQs (0-15).
+-	 */
+-	ioapic = mp_find_ioapic(0);
+-	if (ioapic < 0)
+-		return;
+-	dstapic = mp_ioapics[ioapic].apicid;
+-
+-	/*
+ 	 * Use the default configuration for the IRQs 0-15.  Unless
+ 	 * overridden by (MADT) interrupt source override entries.
+ 	 */
+ 	for (i = 0; i < 16; i++) {
++		int ioapic, pin;
++		unsigned int dstapic;
+ 		int idx;
++		u32 gsi;
++
++		/* Locate the gsi that irq i maps to. */
++		if (acpi_isa_irq_to_gsi(i, &gsi))
++			continue;
++
++		/*
++		 * Locate the IOAPIC that manages the ISA IRQ.
++		 */
++		ioapic = mp_find_ioapic(gsi);
++		if (ioapic < 0)
++			continue;
++		pin = mp_find_ioapic_pin(ioapic, gsi);
++		dstapic = mp_ioapics[ioapic].apicid;
+ 
+ 		for (idx = 0; idx < mp_irq_entries; idx++) {
+ 			struct mpc_intsrc *irq = mp_irqs + idx;
+@@ -1004,7 +1010,7 @@ void __init mp_config_acpi_legacy_irqs(void)
+ 				break;
+ 
+ 			/* Do we already have a mapping for this IOAPIC pin */
+-			if (irq->dstapic == dstapic && irq->dstirq == i)
++			if (irq->dstapic == dstapic && irq->dstirq == pin)
+ 				break;
+ 		}
+ 
+@@ -1019,7 +1025,7 @@ void __init mp_config_acpi_legacy_irqs(void)
+ 		mp_irq.dstapic = dstapic;
+ 		mp_irq.irqtype = mp_INT;
+ 		mp_irq.srcbusirq = i; /* Identity mapped */
+-		mp_irq.dstirq = i;
++		mp_irq.dstirq = pin;
+ 
+ 		save_mp_irq(&mp_irq);
+ 	}
+-- 
+1.6.5.2.143.g8cc62
