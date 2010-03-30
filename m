@@ -1,73 +1,103 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 04/15] x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
-Date: Tue, 30 Mar 2010 01:07:05 -0700
-Message-ID: <1269936436-7039-4-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 10/15] x86 ioapic: In mpparse use mp_register_ioapic
+Date: Tue, 30 Mar 2010 01:07:11 -0700
+Message-ID: <1269936436-7039-10-git-send-email-ebiederm@xmission.com>
 References: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out01.mta.xmission.com ([166.70.13.231]:36260 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755233Ab0C3IHX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Mar 2010 04:07:23 -0400
 In-Reply-To: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Currently acpi_sci_ioapic_setup calls mp_override_legacy_irq with
-bus_irq == gsi, which is wrong if we are comming from an override
-Instead pass the bus_irq into acpi_sci_ioapic_setup.
+Long ago MP_ioapic_info was the primary way of setting up our
+ioapic data structures and mp_register_ioapic was a compatibility
+shim for acpi code.  Now the situation is reversed and
+and mp_register_ioapic is the primary way of setting up our
+ioapic data structures.
 
-This fix was inspired by a similar fix from:
-Yinghai Lu <yinghai@kernel.org>
+Keep the setting up of ioapic data structures uniform by
+having mp_register_ioapic call mp_register_ioapic.
+
+This changes a few fields:
+
+- type: is now hardset to MP_IOAPIC but type had to
+  bey MP_IOAPIC or MP_ioapic_info would not have been called.
+
+- flags: is now hard coded to MPC_APIC_USABLE.
+  We require flags to contain at least MPC_APIC_USEBLE in
+  MP_ioapic_info and we don't ever examine flags so dropping
+  a few flags that might possibly exist that we have never
+  used is harmless.
+
+- apicaddr: Unchanged
+
+- apicver: Read from the ioapic instead of using the cached
+  hardware value in the MP table.  The real hardware value
+  will be more accurate.
+
+- apicid: Now verified to be unique and changed if it is not.
+  If the BIOS got this right this is a noop.  If the BIOS did
+  not fixing things appears to be the better solution.
+
+This adds gsi_base and gsi_end values to our ioapics defined with
+the mpatable, which will make our lives simpler later since
+we can always assume gsi_base and gsi_end are valid.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86/kernel/acpi/boot.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ arch/x86/kernel/mpparse.c |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index f96060d..1742888 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -312,7 +312,7 @@ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
- /*
-  * Parse Interrupt Source Override for the ACPI SCI
-  */
--static void __init acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
-+static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger, u32 gsi)
+diff --git a/arch/x86/kernel/mpparse.c b/arch/x86/kernel/mpparse.c
+index a2c1edd..22ba4f3 100644
+--- a/arch/x86/kernel/mpparse.c
++++ b/arch/x86/kernel/mpparse.c
+@@ -115,21 +115,6 @@ static void __init MP_bus_info(struct mpc_bus *m)
+ 		printk(KERN_WARNING "Unknown bustype %s - ignoring\n", str);
+ }
+ 
+-static int bad_ioapic(unsigned long address)
+-{
+-	if (nr_ioapics >= MAX_IO_APICS) {
+-		printk(KERN_ERR "ERROR: Max # of I/O APICs (%d) exceeded "
+-		       "(found %d)\n", MAX_IO_APICS, nr_ioapics);
+-		panic("Recompile kernel with bigger MAX_IO_APICS!\n");
+-	}
+-	if (!address) {
+-		printk(KERN_ERR "WARNING: Bogus (zero) I/O APIC address"
+-		       " found in table, skipping!\n");
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ static void __init MP_ioapic_info(struct mpc_ioapic *m)
  {
- 	if (trigger == 0)	/* compatible SCI trigger is level */
- 		trigger = 3;
-@@ -332,7 +332,7 @@ static void __init acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
- 	 * If GSI is < 16, this will update its flags,
- 	 * else it will create a new mp_irqs[] entry.
- 	 */
--	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
-+	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
+ 	if (!(m->flags & MPC_APIC_USABLE))
+@@ -138,15 +123,7 @@ static void __init MP_ioapic_info(struct mpc_ioapic *m)
+ 	printk(KERN_INFO "I/O APIC #%d Version %d at 0x%X.\n",
+ 	       m->apicid, m->apicver, m->apicaddr);
  
- 	/*
- 	 * stash over-ride to indicate we've been here
-@@ -356,9 +356,10 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
- 	acpi_table_print_madt_entry(header);
+-	if (bad_ioapic(m->apicaddr))
+-		return;
+-
+-	mp_ioapics[nr_ioapics].apicaddr = m->apicaddr;
+-	mp_ioapics[nr_ioapics].apicid = m->apicid;
+-	mp_ioapics[nr_ioapics].type = m->type;
+-	mp_ioapics[nr_ioapics].apicver = m->apicver;
+-	mp_ioapics[nr_ioapics].flags = m->flags;
+-	nr_ioapics++;
++	mp_register_ioapic(m->apicid, m->apicaddr, gsi_end + 1);
+ }
  
- 	if (intsrc->source_irq == acpi_gbl_FADT.sci_interrupt) {
--		acpi_sci_ioapic_setup(intsrc->global_irq,
-+		acpi_sci_ioapic_setup(intsrc->source_irq,
- 				      intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
--				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-+				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
-+				      intsrc->global_irq);
- 		return 0;
- 	}
- 
-@@ -1161,7 +1162,8 @@ static int __init acpi_parse_madt_ioapic_entries(void)
- 	 * pretend we got one so we can set the SCI flags.
- 	 */
- 	if (!acpi_sci_override_gsi)
--		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0);
-+		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0,
-+				      acpi_gbl_FADT.sci_interrupt);
- 
- 	/* Fill in identity legacy mappings where no override */
- 	mp_config_acpi_legacy_irqs();
+ static void print_MP_intsrc_info(struct mpc_intsrc *m)
 -- 
 1.6.5.2.143.g8cc62
+
