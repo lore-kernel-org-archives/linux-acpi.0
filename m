@@ -1,32 +1,47 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] acpi: Export EDID blocks to the kernel
-Date: Tue, 30 Mar 2010 17:49:47 +0100
-Message-ID: <20100330164947.GA27983@srcf.ucam.org>
-References: <1263323823-11847-1-git-send-email-mjg@redhat.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] hwmon: (asus_atk0110) Don't load if ACPI  resources
+ aren't enforced
+Date: Tue, 30 Mar 2010 21:47:32 +0200
+Message-ID: <20100330214732.42f488ba@hyperion.delvare>
+References: <20100309135636.373a40a9@hyperion.delvare>
+	<20100330120319.627e8f9a@hyperion.delvare>
+	<20100330132132.GA16657@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38815 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab0C3Qtt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Mar 2010 12:49:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1263323823-11847-1-git-send-email-mjg@redhat.com>
+Received: from bamako.nerim.net ([62.4.17.28]:57326 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752144Ab0C3Trf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Mar 2010 15:47:35 -0400
+In-Reply-To: <20100330132132.GA16657@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, Len Brown <lenb@kernel.org>
 
-On Tue, Jan 12, 2010 at 02:17:03PM -0500, Matthew Garrett wrote:
-> The ACPI spec includes a provision for hardware to provide EDID via the
-> ACPI video extension. In the KMS world it's necessary for a way to obtain
-> this from within the kernel. Add a function that either returns the EDID
-> for the provided ACPI display ID or the first display of the provided type.
-> Also add support for ensuring that devices with legacy IDs are supported.
+Hi Matthew,
+
+On Tue, 30 Mar 2010 14:21:32 +0100, Matthew Garrett wrote:
+> On Tue, Mar 30, 2010 at 12:03:19PM +0200, Jean Delvare wrote:
+> > ACPI people,
+> > 
+> > Do you have any objection to the patch below, or can I push it upstream?
 > 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> If you pass that boot option, you're already indicating that you don't 
+> care about multiple things accessing the same resources simultaneously. 
+> I think it's reasonable to leave things up to the user to configure at 
+> that point.
 
-Did this get picked up?
+The asus_atk0110 driver loads automatically. The user doesn't configure
+anything, and it just loads. That's the problem. If the driver didn't
+load automatically, I wouldn't care. If you know of any way to prevent
+the asus_atk0110 driver from auto-loading as soon as
+acpi_enforce_resouce=lax or =no is passed, I am fine with this as well.
+This is what I wanted to do originally, but I couldn't find a way to do
+it, which is why I went for the more radical option of preventing the
+asus_atk0110 driver from loading.
 
+Thanks,
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jean Delvare
