@@ -1,132 +1,85 @@
 From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 12/14] x86 ioapic: Simplify probe_nr_irqs_gsi.
-Date: Mon, 29 Mar 2010 22:41:13 -0700
-Message-ID: <m1pr2mv01y.fsf@fess.ebiederm.org>
-References: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
-	<1269904825-27462-12-git-send-email-ebiederm@xmission.com>
-	<86802c441003291916u3381aae7r5cd76c754871421@mail.gmail.com>
-	<m17houwh9x.fsf@fess.ebiederm.org> <4BB1843D.3010800@kernel.org>
+Subject: [PATCH 0/15] Start coping gsis < 16 that are not isa irqs. v2
+Date: Tue, 30 Mar 2010 01:06:20 -0700
+Message-ID: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
+References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
+	<1269221770-9667-3-git-send-email-yinghai@kernel.org>
+	<alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
+	<m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
+	<m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:56919 "EHLO
+Received: from out01.mta.xmission.com ([166.70.13.231]:36158 "EHLO
 	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990Ab0C3Fl1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Mar 2010 01:41:27 -0400
-In-Reply-To: <4BB1843D.3010800@kernel.org> (Yinghai Lu's message of "Mon\, 29 Mar 2010 21\:55\:25 -0700")
+	with ESMTP id S1754881Ab0C3IG3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Mar 2010 04:06:29 -0400
+In-Reply-To: <m1r5n2wwah.fsf_-_@fess.ebiederm.org> (Eric W. Biederman's message of "Mon\, 29 Mar 2010 16\:19\:34 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
 
-Yinghai Lu <yinghai@kernel.org> writes:
 
-> On 03/29/2010 09:43 PM, Eric W. Biederman wrote:
->> Yinghai Lu <yinghai@kernel.org> writes:
->> 
->>> On Mon, Mar 29, 2010 at 4:20 PM, Eric W. Biederman
->>> <ebiederm@xmission.com> wrote:
->>>> From: Eric W. Biederman <ebiederm@xmission.com>
->>>>
->>>> Use the global gsi_end value now that all ioapics have
->>>> valid gsi numbers instead of a combination of acpi_probe_gsi
->>>> and walking all of the ioapics and couting their number of
->>>> entries by hand if acpi_probe_gsi gave us an answer we did
->>>> not like.
->>>>
->>>> This fixes a small bug in probe_nr_irqs_gsi.  Previously
->>>> acpi_probe_gsi unnecessarily added 1 to the maximum
->>>> gsi_end value.  gsi_end is already one past the end of
->>>> the number of gsi's so the additional increment was
->>>> superfluous.
->>>>
->>>> Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
->>>> ---
->>>>  arch/x86/include/asm/mpspec.h  |    6 ------
->>>>  arch/x86/kernel/acpi/boot.c    |   23 -----------------------
->>>>  arch/x86/kernel/apic/io_apic.c |   17 +++--------------
->>>>  3 files changed, 3 insertions(+), 43 deletions(-)
->>>>
->>>> diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
->>>> index 29994f0..c82868e 100644
->>>> --- a/arch/x86/include/asm/mpspec.h
->>>> +++ b/arch/x86/include/asm/mpspec.h
->>>> @@ -105,12 +105,6 @@ extern void mp_config_acpi_legacy_irqs(void);
->>>>  struct device;
->>>>  extern int mp_register_gsi(struct device *dev, u32 gsi, int edge_level,
->>>>                                 int active_high_low);
->>>> -extern int acpi_probe_gsi(void);
->>>> -#else /* !CONFIG_ACPI: */
->>>> -static inline int acpi_probe_gsi(void)
->>>> -{
->>>> -       return 0;
->>>> -}
->>>>  #endif /* CONFIG_ACPI */
->>>>
->>>>  #define PHYSID_ARRAY_SIZE      BITS_TO_LONGS(MAX_APICS)
->>>> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
->>>> index 9c48e99..0e514a1 100644
->>>> --- a/arch/x86/kernel/acpi/boot.c
->>>> +++ b/arch/x86/kernel/acpi/boot.c
->>>> @@ -875,29 +875,6 @@ static int __init acpi_parse_madt_lapic_entries(void)
->>>>  extern int es7000_plat;
->>>>  #endif
->>>>
->>>> -int __init acpi_probe_gsi(void)
->>>> -{
->>>> -       int idx;
->>>> -       int gsi;
->>>> -       int max_gsi = 0;
->>>> -
->>>> -       if (acpi_disabled)
->>>> -               return 0;
->>>> -
->>>> -       if (!acpi_ioapic)
->>>> -               return 0;
->>>> -
->>>> -       max_gsi = 0;
->>>> -       for (idx = 0; idx < nr_ioapics; idx++) {
->>>> -               gsi = mp_gsi_routing[idx].gsi_end;
->>>> -
->>>> -               if (gsi > max_gsi)
->>>> -                       max_gsi = gsi;
->>>> -       }
->>>> -
->>>> -       return max_gsi + 1;
->>>> -}
->>>> -
->>>>  static void assign_to_mp_irq(struct mpc_intsrc *m,
->>>>                                    struct mpc_intsrc *mp_irq)
->>>>  {
->>>> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
->>>> index 996cf8f..b57b7a3 100644
->>>> --- a/arch/x86/kernel/apic/io_apic.c
->>>> +++ b/arch/x86/kernel/apic/io_apic.c
->>>> @@ -3837,22 +3837,11 @@ int __init io_apic_get_redir_entries (int ioapic)
->>>>
->>>>  void __init probe_nr_irqs_gsi(void)
->>>>  {
->>>> -       int nr = 0;
->>>> +       int nr;
->>>>
->>>> -       nr = acpi_probe_gsi();
->>>> -       if (nr > nr_irqs_gsi) {
->>>> +       nr = gsi_end;
->>>
->>> you may need +1 here
->> 
->> As documented in my comment that extra +1 has every appearance of a
->> bug.  Nothing is at gsi_end.  gsi_end is already at 1 past the last in
->> use gsi.  Therefore an extra +1 puts us two past the end for no
->> apparent reason.
->
-> io_apic_get_redir_entries(), and io apic register readingout will return 23 if the total entries is 24.
+It appears there are a few systems in the wild that use acpi
+interrupt source overrides to report a gsi > 16 is an isa irq.
 
-Good catch.  I don't know if I have ever seen a function with a name to function
-correspondence.  Apparently sfi.c also got this wrong when it was written.
-and I missed the +1 in other places.
+This breaks all kinds of assumptions I figure any BIOS doing that
+probably should be shot as that is very much not a conservative position.
 
-I guess this calls for another patch way at the beginning of my series that fixes
-this brain damage.
+That said acpi appears to allow this insanity and on the basis of being
+liberal in what we accept we should try to do something reasonable, and
+keep our notions of gsi, isa irq, and linux irq as straight as we can.
+
+To that end this patchset slightly modifies the gsi to linux irq
+mapping.  Making it a 1 to 1 identity mapping except for the first 16
+gsis.  If those gsis are isa irqs (the typical and default acpi
+configuration) they will be mapped into the first 16 irqs.  If those
+first 16 gsis are not isa irqs they will be given a linux irq number
+just past the last gsi.  Allowing us the chance to use them.
+
+This patchset is my attempt to straighten out our understanding of which
+kind of irq name is used where and the cleanups used to get there.
+
+Thanks to Yinghai Lu <yinghai@kernel.org> for taking the first stab at
+this and finding that there is a real world problem here.  This patchset
+is inspired by his work, but little of it remains the same.
+
+This patchset lies in the weird world between the acpi and x86 and ia64.
+Since most of the changes are x86 related I think it makes most sense
+to go via the x86 tree.
+
+v2: Recognize that gsi_end is last gsi for an ioapic not one past the end.
+    Since I use gsi_end widely in my patchset a respin of many of the patches
+    made sense.
+
+Eric W. Biederman (15):
+      x86 acpi/irq: Introduce apci_isa_irq_to_gsi
+      x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
+      x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
+      x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
+      x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
+      x86 ioapic: Only export mp_find_ioapic and mp_find_ioapic_pin in io_apic.h
+      x86 ioapic: Fix io_apic_redir_entries to return the number of entries.
+      x86 ioapic: Fix the types of gsi values
+      x86 ioapic: Teach mp_register_ioapic to compute a global gsi_end
+      x86 ioapic: In mpparse use mp_register_ioapic
+      x86 ioapic: Move nr_ioapic_registers calculation to mp_register_ioapic.
+      x86 ioapic: Optimize pin_2_irq
+      x86 ioapic: Simplify probe_nr_irqs_gsi.
+      x86 acpi/irq: Handle isa irqs that are not identity mapped to gsi's.
+      x86 irq: Kill io_apic_renumber_irq
+
+ arch/ia64/kernel/acpi.c          |    8 ++
+ arch/x86/include/asm/io_apic.h   |   12 ++--
+ arch/x86/include/asm/mpspec.h    |   10 ---
+ arch/x86/kernel/acpi/boot.c      |  133 ++++++++++++++++++++++++--------------
+ arch/x86/kernel/apic/es7000_32.c |   19 ------
+ arch/x86/kernel/apic/io_apic.c   |   99 +++++++++++++---------------
+ arch/x86/kernel/mpparse.c        |   25 +-------
+ arch/x86/kernel/sfi.c            |    4 +-
+ drivers/acpi/pci_irq.c           |    8 ++-
+ include/linux/acpi.h             |    5 +-
+ 10 files changed, 154 insertions(+), 169 deletions(-)
 
 Eric
