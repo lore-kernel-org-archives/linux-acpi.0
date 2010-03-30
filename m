@@ -1,70 +1,64 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 07/15] x86 ioapic: Fix io_apic_redir_entries to return the number of entries.
-Date: Tue, 30 Mar 2010 01:07:08 -0700
-Message-ID: <1269936436-7039-7-git-send-email-ebiederm@xmission.com>
-References: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <m1oci6qlmr.fsf_-_@fess.ebiederm.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [RFC] Shutdown on thermal HOT event if no userspace tool registered being able to do S4
+Date: Tue, 30 Mar 2010 10:23:10 +0100
+Message-ID: <201003301123.10711.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:60924 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755964Ab0C3JXM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Mar 2010 05:23:12 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Joey Lee <jlee@novell.com>, Holger Macht <hmacht@suse.de>, Zhang Rui <rui.zhang@intel.com>, Rafael Wysocki <rwysocki@suse.de>
 
-From: Eric W. Biederman <ebiederm@xmission.com>
+Hi,
 
-io_apic_redir_entries has a huge conceptual bug.  It returns the maximum
-redirection entry not the number of redirection entries.  Which simply
-does not match what the name of the function.  This just caught me
-and it caught  Feng Tang, and  Len Brown when they wrote sfi_parse_ioapic.
+this is related to:
+commit fa80945269f312bc609e8384302f58b03c916e12
+    ACPI thermal: Don't invalidate thermal zone if critical trip point is bad
+and
+commit 8b7ef6d8f16274da42344cd50746ddb1c93c25ea
+    ACPI thermal: Check for thermal zone requirement
 
-Modify io_apic_redir_entries to actually return the number of redirection
-entries, and fix the callers so that they properly handle receiving the
-number of the number of redirection table entries, instead of the
-number of redirection table entries less one.
+There the critical trip point is replaced with the hot trip
+point if latest Windows OS is detected (Vista also? I think yes,
+but need to double check).
 
-While the usage in sfi.c does not show up in this patch it is fixed
-by virtue of the fact that io_apic_redir_entries now has the semantics
-sfi_parse_ioapic most reasonably expects.
+This seem to get more common and it looks like Windows suggests
+to use hot trip points for thermal emergency shutdowns (S4).
+It looks like the default Windows thermal emergency power off is
+S4. Thus the hot trip point is used and the critical trip point
+is of no use anymore (and often gets replaced or is invalid).
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
----
- arch/x86/kernel/apic/io_apic.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+As thermal emergency shut down is something urgent there is this
+direct call /sbin/poweroff in orderly_poweroff(true) compare with
+kernel/sys.c and drivers/thermal/thermal_sys.c
+This won't work in above cases when BIOS writers assume the machine
+is shut down with _HOT already and do not provide _CRT anymore.
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 54ba1f7..7e139bb 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3846,7 +3846,11 @@ int __init io_apic_get_redir_entries (int ioapic)
- 	reg_01.raw = io_apic_read(ioapic, 1);
- 	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
- 
--	return reg_01.bits.entries;
-+	/* The register returns the maximum index redir index
-+	 * supported, which is one less than the total number of redir
-+	 * entries.
-+	 */
-+	return reg_01.bits.entries + 1;
- }
- 
- void __init probe_nr_irqs_gsi(void)
-@@ -3862,7 +3866,7 @@ void __init probe_nr_irqs_gsi(void)
- 
- 		nr = 0;
- 		for (idx = 0; idx < nr_ioapics; idx++)
--			nr += io_apic_get_redir_entries(idx) + 1;
-+			nr += io_apic_get_redir_entries(idx);
- 
- 		if (nr > nr_irqs_gsi)
- 			nr_irqs_gsi = nr;
-@@ -4297,7 +4301,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base)
- 	 */
- 	mp_gsi_routing[idx].gsi_base = gsi_base;
- 	mp_gsi_routing[idx].gsi_end = gsi_base +
--	    io_apic_get_redir_entries(idx);
-+	    io_apic_get_redir_entries(idx) - 1;
- 
- 	printk(KERN_INFO "IOAPIC[%d]: apic_id %d, version %d, address 0x%x, "
- 	       "GSI %d-%d\n", idx, mp_ioapics[idx].apicid,
--- 
-1.6.5.2.143.g8cc62
+My idea is to also shutdown the system on _HOT by default,
+the same way as done if _CRT is exceeded as long as no userspace
+explicitly set a sysfs (only one file set by thermal_sys.c somewhere
+in /sys?).
+Background is that S4 needs some setup (e.g. swap) or userspace hooks
+to make sure S4 succeeds and everything (network, whatever...) is set
+up correctly afterwards.
+
+Requirement for the userspace tool setting the "do not shutdown if a
+hot thermal event happened" would be:
+  - Fetch the thermal hot event
+  - Reliably power off the system (shutdown if S4 did not succeed)
+  - ...
+
+Comments?
+What userspace tools are candidates to implement this if this
+makes sense?
+
+Thanks,
+
+      Thomas
