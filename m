@@ -1,56 +1,33 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] acpi: sleep: fixed a brace coding style issue
-Date: Wed, 31 Mar 2010 16:46:30 +0200
-Message-ID: <20100331144629.GB3449@ucw.cz>
-References: <1268196980-5697-1-git-send-email-bigras.bruno@gmail.com>
+From: =?ISO-8859-1?Q?Angel_Pe=F1a?= <angelpp@bigfoot.com>
+Subject: HP Probook 4510s fan always at high speed
+Date: Wed, 31 Mar 2010 20:06:52 +0200
+Message-ID: <4BB38F3C.4040108@bigfoot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ksp.mff.cuni.cz ([195.113.26.206]:57343 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751813Ab0CaOqj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Mar 2010 10:46:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1268196980-5697-1-git-send-email-bigras.bruno@gmail.com>
+Received: from relay.ubu.es ([193.146.160.3]:40953 "EHLO relay.ubu.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755725Ab0CaSPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Mar 2010 14:15:32 -0400
+Received: from [193.146.170.132] (isa05.inf.ubu.es [193.146.170.132])
+	by relay.ubu.es (ubumail) with ESMTP id 5D0364E4D0
+	for <linux-acpi@vger.kernel.org>; Wed, 31 Mar 2010 20:06:16 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bruno Bigras <bigras.bruno@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tue 2010-03-09 23:56:20, Bruno Bigras wrote:
-> Fix a coding style issue.
-> 
-> Signed-off-by: Bruno Bigras <bigras.bruno@gmail.com>
+My new HP Probook 4510s with openSuse 11.2 (kernel 2.6.31) or 11.3
+Milestone 4 (kernel 2.6.32) always ends running the fan at high speed.
+There must be a change in the BIOS because in others HP laptops (nx6125=
+,
+nx7300) it didn't occur.
 
+Thanks for you attention.
 
-While I'm not fan of {}s, this is really excessive.
-
-...especially in a code that uses u32 to pass enums, and opencodes
-typecasts.
-
-								Pavel
-> ---
->  drivers/acpi/sleep.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 3bde594..fc8343f 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -62,9 +62,9 @@ static int acpi_sleep_prepare(u32 acpi_state)
->  #ifdef CONFIG_ACPI_SLEEP
->  	/* do we have a wakeup address for S2 and S3? */
->  	if (acpi_state == ACPI_STATE_S3) {
-> -		if (!acpi_wakeup_address) {
-> +		if (!acpi_wakeup_address)
->  			return -EFAULT;
-> -		}
-> +
->  		acpi_set_firmware_waking_vector(
->  				(acpi_physical_address)acpi_wakeup_address);
->  
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Angel Pe=F1a
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
