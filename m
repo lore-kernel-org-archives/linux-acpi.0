@@ -1,65 +1,53 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC] Shutdown on thermal HOT event if no userspace tool
- registered being able to do S4
-Date: Tue, 30 Mar 2010 21:14:36 -0300
-Message-ID: <20100331001436.GA9925@khazad-dum.debian.net>
-References: <201003301123.10711.trenn@suse.de>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Don't load if ACPI
+ resources aren't enforced
+Date: Wed, 31 Mar 2010 09:30:04 +0200
+Message-ID: <20100331093004.5143415f@hyperion.delvare>
+References: <20100309135636.373a40a9@hyperion.delvare>
+	<20100330120319.627e8f9a@hyperion.delvare>
+	<20100330132132.GA16657@srcf.ucam.org>
+	<20100330214732.42f488ba@hyperion.delvare>
+	<20100330194835.GA32322@srcf.ucam.org>
+	<20100330223251.76c6b000@hyperion.delvare>
+	<20100330211049.GA1524@srcf.ucam.org>
+	<68676e01003301445v1b3ee070nfc0f0b53716c4740@mail.gmail.com>
+	<20100330215305.GA2220@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:32899 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932467Ab0CaAOk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Mar 2010 20:14:40 -0400
-Content-Disposition: inline
-In-Reply-To: <201003301123.10711.trenn@suse.de>
+Received: from bamako.nerim.net ([62.4.17.28]:55969 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756700Ab0CaHaH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Mar 2010 03:30:07 -0400
+In-Reply-To: <20100330215305.GA2220@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, Joey Lee <jlee@novell.com>, Holger Macht <hmacht@suse.de>, Zhang Rui <rui.zhang@intel.com>, Rafael Wysocki <rwysocki@suse.de>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Tue, 30 Mar 2010, Thomas Renninger wrote:
-> My idea is to also shutdown the system on _HOT by default,
-> the same way as done if _CRT is exceeded as long as no userspace
-> explicitly set a sysfs (only one file set by thermal_sys.c somewhere
-> in /sys?).
-> Background is that S4 needs some setup (e.g. swap) or userspace hooks
-> to make sure S4 succeeds and everything (network, whatever...) is set
-> up correctly afterwards.
+On Tue, 30 Mar 2010 22:53:05 +0100, Matthew Garrett wrote:
+> On Tue, Mar 30, 2010 at 11:45:46PM +0200, Luca Tettamanti wrote:
+> > On Tue, Mar 30, 2010 at 11:10 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > > Because the situation with the asus driver loaded isn't obviously any
+> > > worse than not having it loaded. The user is telling us that they're
+> > > happy with racy access to their hwmon hardware.
+> > 
+> > "lax" option is typically used when the user wants to load the native
+> > driver; in this case we know that it's not safe to load asus driver.
 > 
-> Requirement for the userspace tool setting the "do not shutdown if a
-> hot thermal event happened" would be:
->   - Fetch the thermal hot event
->   - Reliably power off the system (shutdown if S4 did not succeed)
->   - ...
-> 
-> Comments?
+> It's not safe to load the native driver, full stop. Not loading the asus 
+> driver doesn't alter that.
 
-ThinkPads have specific alarms that would benefit from a generic interface
-to report the above stuff to userspace, and to kick a S3/S4/S5 transition if
-userspace fails to do something about it.
+It definitely does. At least on some of the affected boards, no access
+to the I/O area in question is done at all as long as the asus_atk0110
+driver is not loaded. So it is actually safe to pass
+acpi_enforce_resources=lax and not load the asus_atk0110 driver. And
+people are actually doing this because native drivers can control the
+speed of their fans while the asus_atk0110 driver can't. So they see
+the current situation as a regression.
 
-These are:
-
-1. Emergency Thermal alarms (Lenovo tells me we should enter S3 or S4)
-   - Battery alarm (very dangerous, risk of Lithium fire)
-   - Sensor alarm (less dangerous, risk of permanent hardware damage)
-
-2. Wakeup from S3 because the battery is nearly empty (enter S4 or S5)
-   - Pretty much guarantees the user is !@#$#@ if we don't act on it,
-     since it will cause a mess even on a hibernate-to-S3 setup
-     if the user didn't tell the BIOS he does "RediSafe"...
-
-It would be nice to have flags to tell userspace if we want any sleep, or if
-we need S4/S5.
-
-It would also be nice to have a generic way to deliver these alarms,
-thinkpads have pre-alarms that should be used to notify the user before
-things get too dire...
+Again, can you please point to problems my patch has?
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jean Delvare
