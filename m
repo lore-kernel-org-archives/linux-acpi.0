@@ -1,8 +1,8 @@
 From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Don't load if ACPI
- resources aren't enforced
-Date: Wed, 31 Mar 2010 09:30:04 +0200
-Message-ID: <20100331093004.5143415f@hyperion.delvare>
+Subject: Re: [PATCH] hwmon: (asus_atk0110) Don't load if ACPI  resources
+ aren't enforced
+Date: Wed, 31 Mar 2010 09:42:47 +0200
+Message-ID: <20100331094247.049e3012@hyperion.delvare>
 References: <20100309135636.373a40a9@hyperion.delvare>
 	<20100330120319.627e8f9a@hyperion.delvare>
 	<20100330132132.GA16657@srcf.ucam.org>
@@ -10,44 +10,56 @@ References: <20100309135636.373a40a9@hyperion.delvare>
 	<20100330194835.GA32322@srcf.ucam.org>
 	<20100330223251.76c6b000@hyperion.delvare>
 	<20100330211049.GA1524@srcf.ucam.org>
-	<68676e01003301445v1b3ee070nfc0f0b53716c4740@mail.gmail.com>
-	<20100330215305.GA2220@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:55969 "EHLO bamako.nerim.net"
+Received: from poutre.nerim.net ([62.4.16.124]:58606 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756700Ab0CaHaH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Mar 2010 03:30:07 -0400
-In-Reply-To: <20100330215305.GA2220@srcf.ucam.org>
+	id S1756930Ab0CaHmw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Mar 2010 03:42:52 -0400
+In-Reply-To: <20100330211049.GA1524@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: linux-acpi@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, Len Brown <lenb@kernel.org>
 
-On Tue, 30 Mar 2010 22:53:05 +0100, Matthew Garrett wrote:
-> On Tue, Mar 30, 2010 at 11:45:46PM +0200, Luca Tettamanti wrote:
-> > On Tue, Mar 30, 2010 at 11:10 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > > Because the situation with the asus driver loaded isn't obviously any
-> > > worse than not having it loaded. The user is telling us that they're
-> > > happy with racy access to their hwmon hardware.
-> > 
-> > "lax" option is typically used when the user wants to load the native
-> > driver; in this case we know that it's not safe to load asus driver.
+On Tue, 30 Mar 2010 22:10:49 +0100, Matthew Garrett wrote:
+> On Tue, Mar 30, 2010 at 10:32:51PM +0200, Jean Delvare wrote:
 > 
-> It's not safe to load the native driver, full stop. Not loading the asus 
-> driver doesn't alter that.
+> > Sure, but why do you insist on having the user configure this manually
+> > when we can automate this at the kernel level? When
+> > acpi_enforce_resouce=yes, the kernel doesn't let non-ACPI driver be
+> > loaded, so I fail to see why we let ACPI drivers (for which we also
+> > have native drivers) load when acpi_enforce_resouce=no.
+> 
+> Because the situation with the asus driver loaded isn't obviously any 
+> worse than not having it loaded. The user is telling us that they're 
+> happy with racy access to their hwmon hardware.
 
-It definitely does. At least on some of the affected boards, no access
-to the I/O area in question is done at all as long as the asus_atk0110
-driver is not loaded. So it is actually safe to pass
-acpi_enforce_resources=lax and not load the asus_atk0110 driver. And
-people are actually doing this because native drivers can control the
-speed of their fans while the asus_atk0110 driver can't. So they see
-the current situation as a regression.
+No, they are not saying that. They are saying: I want to let native
+drivers access ACPI-reserved I/O ports. That's all they are saying.
+Attaching a single interpretation to this is incorrect. They might do
+this because their BIOS improperly reserves ports it doesn't use. Or
+because they prefer using a native driver over an ACPI driver for a
+given chip. Or indeed because they want to crash their machine. Just
+because it can't be called generally safe (and in all honesty is unsafe
+in many cases, quite possibly the majority) doesn't mean there are no
+cases where it makes sense. Hell, we lived without ACPI resource
+reservation until kernel 2.6.32 and without the asus_atk0110 driver and
+most people were totally happy with the situation.
 
-Again, can you please point to problems my patch has?
+> Automatically blocking 
+> the loading of the ACPI driver does nothing other than imply to the user 
+> that things are safe,
+
+Again, no, it doesn't imply that. It implies that loading the
+asus_atk0110 driver together with a native driver for the same device
+is very bad and should never be done, period.
+
+> when in reality they're anything but.
+
+They sometimes are, this is the point.
 
 -- 
 Jean Delvare
