@@ -1,44 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Don't load if ACPI
- resources aren't enforced
-Date: Wed, 31 Mar 2010 15:37:19 +0200
-Message-ID: <20100331153719.5c700763@hyperion.delvare>
-References: <20100330132132.GA16657@srcf.ucam.org>
-	<20100330214732.42f488ba@hyperion.delvare>
-	<20100330194835.GA32322@srcf.ucam.org>
-	<20100330223251.76c6b000@hyperion.delvare>
-	<20100330211049.GA1524@srcf.ucam.org>
-	<68676e01003301445v1b3ee070nfc0f0b53716c4740@mail.gmail.com>
-	<20100330215305.GA2220@srcf.ucam.org>
-	<20100331093004.5143415f@hyperion.delvare>
-	<20100331125122.GA16583@srcf.ucam.org>
-	<20100331152500.4b2ef6a0@hyperion.delvare>
-	<20100331132711.GA17104@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] acpi: sleep: fixed a brace coding style issue
+Date: Wed, 31 Mar 2010 16:46:30 +0200
+Message-ID: <20100331144629.GB3449@ucw.cz>
+References: <1268196980-5697-1-git-send-email-bigras.bruno@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:62059 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757451Ab0CaNhW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Mar 2010 09:37:22 -0400
-In-Reply-To: <20100331132711.GA17104@srcf.ucam.org>
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:57343 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751813Ab0CaOqj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Mar 2010 10:46:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1268196980-5697-1-git-send-email-bigras.bruno@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Bruno Bigras <bigras.bruno@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 31 Mar 2010 14:27:11 +0100, Matthew Garrett wrote:
-> If the firmware tells us that a resource range using indexed access is 
-> reserved, it's not safe to assume that the firmware isn't using it.
+On Tue 2010-03-09 23:56:20, Bruno Bigras wrote:
+> Fix a coding style issue.
+> 
+> Signed-off-by: Bruno Bigras <bigras.bruno@gmail.com>
 
-Whether it is safe of not is irrelevant. The user is telling us he/she
-_will_ use it nevertheless. So what is wrong with doing our best to
-avoid problems?
 
-The user paid for the hardware, and firmwares are often crappy. You
-know that better than anyone else, having worked on ACPI for some time
-now. 
+While I'm not fan of {}s, this is really excessive.
+
+...especially in a code that uses u32 to pass enums, and opencodes
+typecasts.
+
+								Pavel
+> ---
+>  drivers/acpi/sleep.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 3bde594..fc8343f 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -62,9 +62,9 @@ static int acpi_sleep_prepare(u32 acpi_state)
+>  #ifdef CONFIG_ACPI_SLEEP
+>  	/* do we have a wakeup address for S2 and S3? */
+>  	if (acpi_state == ACPI_STATE_S3) {
+> -		if (!acpi_wakeup_address) {
+> +		if (!acpi_wakeup_address)
+>  			return -EFAULT;
+> -		}
+> +
+>  		acpi_set_firmware_waking_vector(
+>  				(acpi_physical_address)acpi_wakeup_address);
+>  
 
 -- 
-Jean Delvare
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
