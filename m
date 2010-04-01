@@ -1,124 +1,156 @@
-From: Kay Sievers <kay.sievers@vrfy.org>
-Subject: Re: [RFC] Shutdown on thermal HOT event if no userspace tool
- registered being able to do S4
-Date: Thu, 01 Apr 2010 15:40:26 +0200
-Message-ID: <1270129226.1767.12.camel@yio.site>
-References: <4BB537F10200002300015C07@novprvlin0050.provo.novell.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer Ferrari One
+Date: Thu, 1 Apr 2010 21:45:07 +0200
+Message-ID: <201004012145.07898.rjw@sisk.pl>
+References: <201004010319.19366.rjw@sisk.pl> <1270085690.24064.4459.camel@rzhang1-desktop> <1270106322.24064.4496.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:58335 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350Ab0DANjA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Apr 2010 09:39:00 -0400
-Received: by fxm27 with SMTP id 27so521459fxm.28
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Apr 2010 06:38:58 -0700 (PDT)
-In-Reply-To: <4BB537F10200002300015C07@novprvlin0050.provo.novell.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:50198 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754773Ab0DATmJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Apr 2010 15:42:09 -0400
+In-Reply-To: <1270106322.24064.4496.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joey Lee <jlee@novell.com>
-Cc: trenn@suse.de, rui.zhang@intel.com, hmacht@suse.de, rwysocki@suse.de, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thu, 2010-04-01 at 07:18 -0600, Joey Lee wrote:
-> =E6=96=BC =E4=BA=8C=EF=BC=8C2010-03-30 =E6=96=BC 17:31 +0100=EF=BC=8C=
-Thomas Renninger =E6=8F=90=E5=88=B0=EF=BC=9A
-> > On Tuesday 30 March 2010 18:12:40 Joey Lee wrote:
-> > > =E6=96=BC =E4=BA=8C=EF=BC=8C2010-03-30 =E6=96=BC 10:23 +0100=EF=BC=
-=8CThomas Renninger =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > > What userspace tools are candidates to implement this if this
-> > > > makes sense?
-> > >=20
-> > > HAL + pm-util or DeviceKit-power might the candidates. But, if th=
-ere
-> > > have no those component in userland, what will acpi thermal modul=
-e do?
-> > > Direct shutdown?
-> > > And, how can kernel space know userland can do this job well? Mig=
-ht wait
-> > > 10 seconds if system doesn't S4 or shutdown?
-> > Yep, my idea is to e.g. provide:
-> > /sys/class/thermal/S4_capable
-> > By default you get:
-> > cat /sys/class/thermal/S4_capable
-> > 0
-> > and the thermal driver will call the same shutdown method
-> > if the hot thermal tp is reached as if the critical is reached.
-> >=20
-> > If pm-utils does:
-> > echo 1 >/sys/class/thermal/S4_capable
-> > it has to make sure it picks up acpi thermal hot event and initiate=
-s
-> > S4. If S4 fails for whatever reasons (no swap,
-> > stroking some kernel drivers fails, unmounting file systems fails, =
-=2E..),
-> > it has to make sure to force a system shutdown (just call /sbin/pow=
-eroff
-> > the same way the kernel does currently with a critical thermal even=
-t?).
-> > Emergency shutdown is then out of kernels hand (as it is currently =
-for HOT
-> > anyway which is dangerous).
+On Thursday 01 April 2010, Zhang Rui wrote:
+> On Thu, 2010-04-01 at 09:34 +0800, Zhang Rui wrote:
+> > On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > > 
+> > > On Acer Ferrari One, when _BQC is invoked for the first time, the
+> > > minimum brightness is returned, so the ACPI video drivers sets the
+> > > minimum brightness on boot.  This is not desirable, so use the
+> > > following rule:
+> > > 	If _BQC initially returns an invalid value or the minimum
+> > > 	brightness, use either the brightness level supposed to be
+> > > 	used on AC power, or the brightness level supposed to be
+> > > 	used on battery, depending on whether or not the system is
+> > > 	on AC power.  If these values are not exported by the BIOS,
+> > > 	use the maximum brightness level.
+> > > 
+> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > > ---
+> > >  drivers/acpi/video.c |   26 +++++++++++++++++++++++---
+> > >  1 file changed, 23 insertions(+), 3 deletions(-)
+> > > 
+> > > Index: linux-2.6/drivers/acpi/video.c
+> > > ===================================================================
+> > > --- linux-2.6.orig/drivers/acpi/video.c
+> > > +++ linux-2.6/drivers/acpi/video.c
+> > > @@ -44,6 +44,7 @@
+> > >  #include <acpi/acpi_bus.h>
+> > >  #include <acpi/acpi_drivers.h>
+> > >  #include <linux/suspend.h>
+> > > +#include <linux/power_supply.h>
+> > >  
+> > >  #define PREFIX "ACPI: "
+> > >  
+> > > @@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
+> > >  		 * Set the backlight to the initial state.
+> > >  		 * On some buggy laptops, _BQC returns an uninitialized value
+> > >  		 * when invoked for the first time, i.e. level_old is invalid.
+> > > -		 * set the backlight to max_level in this case
+> > > +		 * On some other systems _BQC returns the minimum brightness
+> > > +		 * when invoked for the first time, which also usually is
+> > > +		 * undesirable.  In that cases use the "AC power" value if on AC
+> > > +		 * power or the "battery" value otherwise.  If these vaules are
+> > > +		 * not exported, use max_level.
+> > >  		 */
+> > > -		for (i = 2; i < br->count; i++)
+> > > -			if (level_old == br->levels[i])
+> > > +		for (i = 3; i < br->count; i++)
+> > > +			if (level_old == br->levels[i]) {
+> > >  				level = level_old;
+> > > +				goto set_level;
+> > > +			}
+> > > +		if (!br->flags._BCL_no_ac_battery_levels)
+> > > +			level = power_supply_is_system_supplied() ?
+> > > +
+> > > 						br->levels[0] : br->levels[1];
+> > 
+> > this doesn't work currently.
+> > br->levels[0] and br->levels[1] doesn't equal the "AC power" value and
+> > "Battery" value, because the "AC power" and "Battery" value is not
+> > exported by many BIOS at all.
 
-What would be the event source? pm-utils is not a process, it can't pic=
-k
-stuff up, I EXPECT, unless the kernel would fork a certain binary.
+But if the BIOS doesn't export these values,
+br->flags._BCL_no_ac_battery_levels will be true, won't it?
 
-> > Hmm, this is acpi specific, possibly it should be a new dir here:
-> > /sys/firmware/acpi/thermal/S4_capable
-> > or something else?
-> >=20
->=20
-> Your idea looks good to me, but, the DeviceKit-power will rename to
-> upower,
+> I mean, for these laptops, br->levels[0] and br->levels[1] equals the
+> first and second elements in _BCL package.
+> But we can not use them as the "AC power" and "Battery" value.
 
-Yes, it did already a while ago.
+In that cases the if (!br->flags._BCL_no_ac_battery_levels) condition won't
+be satisfied.
 
-> We are discussing about how to handle the situtation if BIOS ACPI did=
-n't
-> return the _CRT value, and even have _HOT value, if S4 fail, what can=
- we
-> do on kernel space and userland.
->=20
-> _CRT value is the shutdown critical temperature
-> _HOT value is the critical temperature for sleep (entry to S4)
->=20
-> Per ACPI spec:
-> The platform vendor should define _HOT to be far enough below _CRT so=
- as
-> to allow OSPM enough time to transition the system into the S4 sleepi=
-ng
-> state.
->=20
-> Currently, there have a bit platform provider (OEM/ODM) only return t=
-he
-> _HOT, but didn't have _CRT value. But, if _HOT S4 fail, the system
-> components might dangerous if there have no any hardware protected
-> Mechanism.
->=20
-> Thomas's idea is add a sysfs interface /sys/class/thermal/S4_capable =
-for
-> userland to tell kernel userland component (pm-util or upower?) alrea=
-dy
-> take the _HOT event and try to do S4.
->=20
-> How do you think about this idea?
+On a second thought, though, something like this also works and is simpler.
 
-I'm not so sure, this sounds a bit like an ad-hoc interface for a prett=
-y
-specific problem. I would expect, it needs more integration than a
-global sysfs flag that keeps its state even when no userland process is
-taking care anymore.
+Rafael
 
-The details should probably be discussed on a mailing list like
-devkit-devel@lists.freedesktop.org and the people working on the
-userspace integration side should comment on it.
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI / Video: Fix initial brightness problem on Acer Ferrari One (v. 2)
 
-Cheers,
-Kay
+On Acer Ferrari One, when _BQC is invoked for the first time, the
+minimum brightness is returned, so the ACPI video drivers sets the
+minimum brightness on boot.  This is not desirable, so use the
+following rule:
+	Set brightness to either the level supposed to be used on
+	AC power, or the brightness level supposed to be used on
+	battery, depending on whether or not the system is on AC
+	power.  If these values are not exported by the BIOS, use the
+	brightness level initially returned by _BQC.  If that value
+	is invalid, use the maximum brightness level.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/video.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -44,6 +44,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <linux/suspend.h>
++#include <linux/power_supply.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -915,6 +916,18 @@ acpi_video_init_brightness(struct acpi_v
+ 
+ 	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
+ 
++	/*
++	 * Set brightness to the "AC power" value if on AC power or to the
++	 * "battery" value otherwise.  If these vaules are not exported, try
++	 * to use the value returned by the initial _BQC and fall back to
++	 * max_level.
++	 */
++	if (!br->flags._BCL_no_ac_battery_levels) {
++		level = power_supply_is_system_supplied() ?
++					br->levels[0] : br->levels[1];
++		goto set_level;
++	}
++
+ 	if (!br->flags._BQC_use_index) {
+ 		/*
+ 		 * Set the backlight to the initial state.
+@@ -930,7 +943,8 @@ acpi_video_init_brightness(struct acpi_v
+ 
+ 	if (br->flags._BCL_reversed)
+ 		level_old = (br->count - 1) - level_old;
+-	level = br->levels[level_old];
++	level = level_old >= 0 && level_old < br->count ?
++				br->levels[level_old] : max_level;
+ 
+ set_level:
+ 	result = acpi_video_device_lcd_set_level(device, level);
