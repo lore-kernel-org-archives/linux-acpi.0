@@ -1,70 +1,137 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 0/14] Start coping gsis < 16 that are not isa irqs.
-Date: Wed, 31 Mar 2010 20:31:39 -0700
-Message-ID: <m17horu9us.fsf@fess.ebiederm.org>
-References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
-	<1269221770-9667-3-git-send-email-yinghai@kernel.org>
-	<alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
-	<m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
-	<m1r5n2wwah.fsf_-_@fess.ebiederm.org>
-	<alpine.LFD.2.00.1003312154180.13993@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: Don't send KEY_UNKNOWN for random video
+ notifications
+Date: Thu, 01 Apr 2010 14:57:53 +0800
+Message-ID: <1270105073.24064.4488.camel@rzhang1-desktop>
+References: <1260571246-24582-1-git-send-email-mjg@redhat.com>
+	 <alpine.LFD.2.00.1003312057140.5062@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:57050 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927Ab0DADby (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Mar 2010 23:31:54 -0400
-In-Reply-To: <alpine.LFD.2.00.1003312154180.13993@localhost.localdomain> (Len Brown's message of "Wed\, 31 Mar 2010 22\:02\:33 -0400 \(EDT\)")
+Received: from mga09.intel.com ([134.134.136.24]:12298 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752018Ab0DAG4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Apr 2010 02:56:51 -0400
+In-Reply-To: <alpine.LFD.2.00.1003312057140.5062@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
+Cc: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Len Brown <lenb@kernel.org> writes:
+On Thu, 2010-04-01 at 08:57 +0800, Len Brown wrote:
+> applied to acpi-test -- looking for ack from rui, the driver maintainer
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> On Fri, 11 Dec 2009, Matthew Garrett wrote:
+> 
+> > I have a machine here that's sending 0xD1 notifications on the video
+> > device once every second or so. I have no idea why (it's a prototype,
+> > it may be broken), but sending KEY_UNKNOWN is unhelpful and results in
+> > the console becoming unusable. Let's not report keys unless we have
+> > something useful to say about them.
+> > 
+Hi, Matthew,
 
->> It appears there are a few systems in the wild that use acpi
->> interrupt source overrides to report a gsi > 16 is an isa irq.
->> 
->> This breaks all kinds of assumptions I figure any BIOS doing that
->> probably should be shot as that is very much not a conservative position.
->
-> You might run into trouble here on the ES7000 -- though I don't know
-> if anybody is booting a modern kernel on one of those these days.
->
-> IIR, ES7000 treated the bottom 16 as a special case.
-> When there was an irq shortage, I think they used overrides
-> to map higher PCI irqs into the empty spots below 16,
-> but I think to make room for them they may have mapped
-> some of the ISA irqs to high numbers.  Fuzzy memory
-> on this at the moment...
+can you attach the acpidump of your laptop please?
 
-A couple of things.
+thanks,
+rui
 
-The ES7000 change is trivially safe because despite differences in how
-the numbers are computed I have made that transform that the es7000
-does always apply.
 
-I also talked to Natalie about this.  I can't be certain about this
-but from your description, from Natalies memories and from looking
-at the code.  I believe the problem on the ES7000 is exactly what
-I am fixing in the code.  Natalie has threatened to test this on
-an ES7000.
+> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> > ---
+> >  drivers/acpi/video.c |   29 ++++++++++++++++-------------
+> >  1 files changed, 16 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> > index 05dff63..655183c 100644
+> > --- a/drivers/acpi/video.c
+> > +++ b/drivers/acpi/video.c
+> > @@ -2100,7 +2100,7 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+> >  {
+> >  	struct acpi_video_bus *video = acpi_driver_data(device);
+> >  	struct input_dev *input;
+> > -	int keycode;
+> > +	int keycode = 0;
+> >  
+> >  	if (!video)
+> >  		return;
+> > @@ -2136,17 +2136,19 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+> >  		break;
+> >  
+> >  	default:
+> > -		keycode = KEY_UNKNOWN;
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >  				  "Unsupported event [0x%x]\n", event));
+> >  		break;
+> >  	}
+> >  
+> >  	acpi_notifier_call_chain(device, event, 0);
+> > -	input_report_key(input, keycode, 1);
+> > -	input_sync(input);
+> > -	input_report_key(input, keycode, 0);
+> > -	input_sync(input);
+> > +
+> > +	if (keycode) {
+> > +		input_report_key(input, keycode, 1);
+> > +		input_sync(input);
+> > +		input_report_key(input, keycode, 0);
+> > +		input_sync(input);
+> > +	}
+> >  
+> >  	return;
+> >  }
+> > @@ -2157,7 +2159,7 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
+> >  	struct acpi_device *device = NULL;
+> >  	struct acpi_video_bus *bus;
+> >  	struct input_dev *input;
+> > -	int keycode;
+> > +	int keycode = 0;
+> >  
+> >  	if (!video_device)
+> >  		return;
+> > @@ -2198,17 +2200,19 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
+> >  		keycode = KEY_DISPLAY_OFF;
+> >  		break;
+> >  	default:
+> > -		keycode = KEY_UNKNOWN;
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >  				  "Unsupported event [0x%x]\n", event));
+> >  		break;
+> >  	}
+> >  
+> >  	acpi_notifier_call_chain(device, event, 0);
+> > -	input_report_key(input, keycode, 1);
+> > -	input_sync(input);
+> > -	input_report_key(input, keycode, 0);
+> > -	input_sync(input);
+> > +
+> > +	if (keycode) {
+> > +		input_report_key(input, keycode, 1);
+> > +		input_sync(input);
+> > +		input_report_key(input, keycode, 0);
+> > +		input_sync(input);
+> > +	}
+> >  
+> >  	return;
+> >  }
+> > @@ -2299,7 +2303,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+> >  	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
+> >  	set_bit(KEY_BRIGHTNESS_ZERO, input->keybit);
+> >  	set_bit(KEY_DISPLAY_OFF, input->keybit);
+> > -	set_bit(KEY_UNKNOWN, input->keybit);
+> >  
+> >  	error = input_register_device(input);
+> >  	if (error)
+> > -- 
+> > 1.6.5.2
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The case of interest is this:
-Weird but valid platforms where
-GSI 0-15 are not ISA irqs.
-
-Some high numbered GSIs are ISA irqs and use interrupt source
-overrides to describe them.
-
-That is the case on the IBM platform that regressed a bit ago
-and Iranna D Ankad bisected a failure on. On that IBM platform
-GSI 0-15 (because the are not ISA irqs) are unusable today.
-
-Everything points to this problem I an fixing being the problem with
-early ES7000 machines, including the memory of their boot firmware
-developers complaint that they were in spec.
-
-Eric
 
