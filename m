@@ -1,124 +1,72 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: Don't send KEY_UNKNOWN for random video notifications
-Date: Wed, 31 Mar 2010 20:57:31 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1003312057140.5062@localhost.localdomain>
-References: <1260571246-24582-1-git-send-email-mjg@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer Ferrari One
+Date: Thu, 1 Apr 2010 03:19:19 +0200
+Message-ID: <201004010319.19366.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:50165 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758066Ab0DAA5u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Mar 2010 20:57:50 -0400
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173015.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L06008JVANWCAR5@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 31 Mar 2010 19:57:45 -0500 (CDT)
-In-reply-to: <1260571246-24582-1-git-send-email-mjg@redhat.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:46367 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758499Ab0DABQE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Mar 2010 21:16:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>
 
-applied to acpi-test -- looking for ack from rui, the driver maintainer
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+On Acer Ferrari One, when _BQC is invoked for the first time, the
+minimum brightness is returned, so the ACPI video drivers sets the
+minimum brightness on boot.  This is not desirable, so use the
+following rule:
+	If _BQC initially returns an invalid value or the minimum
+	brightness, use either the brightness level supposed to be
+	used on AC power, or the brightness level supposed to be
+	used on battery, depending on whether or not the system is
+	on AC power.  If these values are not exported by the BIOS,
+	use the maximum brightness level.
 
-On Fri, 11 Dec 2009, Matthew Garrett wrote:
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/video.c |   26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-> I have a machine here that's sending 0xD1 notifications on the video
-> device once every second or so. I have no idea why (it's a prototype,
-> it may be broken), but sending KEY_UNKNOWN is unhelpful and results in
-> the console becoming unusable. Let's not report keys unless we have
-> something useful to say about them.
-> 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> ---
->  drivers/acpi/video.c |   29 ++++++++++++++++-------------
->  1 files changed, 16 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 05dff63..655183c 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -2100,7 +2100,7 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
->  {
->  	struct acpi_video_bus *video = acpi_driver_data(device);
->  	struct input_dev *input;
-> -	int keycode;
-> +	int keycode = 0;
->  
->  	if (!video)
->  		return;
-> @@ -2136,17 +2136,19 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
->  		break;
->  
->  	default:
-> -		keycode = KEY_UNKNOWN;
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  				  "Unsupported event [0x%x]\n", event));
->  		break;
->  	}
->  
->  	acpi_notifier_call_chain(device, event, 0);
-> -	input_report_key(input, keycode, 1);
-> -	input_sync(input);
-> -	input_report_key(input, keycode, 0);
-> -	input_sync(input);
-> +
-> +	if (keycode) {
-> +		input_report_key(input, keycode, 1);
-> +		input_sync(input);
-> +		input_report_key(input, keycode, 0);
-> +		input_sync(input);
-> +	}
->  
->  	return;
->  }
-> @@ -2157,7 +2159,7 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
->  	struct acpi_device *device = NULL;
->  	struct acpi_video_bus *bus;
->  	struct input_dev *input;
-> -	int keycode;
-> +	int keycode = 0;
->  
->  	if (!video_device)
->  		return;
-> @@ -2198,17 +2200,19 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
->  		keycode = KEY_DISPLAY_OFF;
->  		break;
->  	default:
-> -		keycode = KEY_UNKNOWN;
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  				  "Unsupported event [0x%x]\n", event));
->  		break;
->  	}
->  
->  	acpi_notifier_call_chain(device, event, 0);
-> -	input_report_key(input, keycode, 1);
-> -	input_sync(input);
-> -	input_report_key(input, keycode, 0);
-> -	input_sync(input);
-> +
-> +	if (keycode) {
-> +		input_report_key(input, keycode, 1);
-> +		input_sync(input);
-> +		input_report_key(input, keycode, 0);
-> +		input_sync(input);
-> +	}
->  
->  	return;
->  }
-> @@ -2299,7 +2303,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
->  	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
->  	set_bit(KEY_BRIGHTNESS_ZERO, input->keybit);
->  	set_bit(KEY_DISPLAY_OFF, input->keybit);
-> -	set_bit(KEY_UNKNOWN, input->keybit);
->  
->  	error = input_register_device(input);
->  	if (error)
-> -- 
-> 1.6.5.2
-> 
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -44,6 +44,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <linux/suspend.h>
++#include <linux/power_supply.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
+ 		 * Set the backlight to the initial state.
+ 		 * On some buggy laptops, _BQC returns an uninitialized value
+ 		 * when invoked for the first time, i.e. level_old is invalid.
+-		 * set the backlight to max_level in this case
++		 * On some other systems _BQC returns the minimum brightness
++		 * when invoked for the first time, which also usually is
++		 * undesirable.  In that cases use the "AC power" value if on AC
++		 * power or the "battery" value otherwise.  If these vaules are
++		 * not exported, use max_level.
+ 		 */
+-		for (i = 2; i < br->count; i++)
+-			if (level_old == br->levels[i])
++		for (i = 3; i < br->count; i++)
++			if (level_old == br->levels[i]) {
+ 				level = level_old;
++				goto set_level;
++			}
++		if (!br->flags._BCL_no_ac_battery_levels)
++			level = power_supply_is_system_supplied() ?
++						br->levels[0] : br->levels[1];
+ 		goto set_level;
+ 	}
+ 
