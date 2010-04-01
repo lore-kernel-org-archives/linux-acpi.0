@@ -1,96 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer
- Ferrari One
-Date: Thu, 01 Apr 2010 09:34:50 +0800
-Message-ID: <1270085690.24064.4459.camel@rzhang1-desktop>
-References: <201004010319.19366.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: how to diagnose/fix : cannot boot without acpi=off
+Date: Wed, 31 Mar 2010 21:42:48 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1003312138001.13993@localhost.localdomain>
+References: <20100330205516.GC26538@frolo.macqel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19054 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758560Ab0DABds (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Mar 2010 21:33:48 -0400
-In-Reply-To: <201004010319.19366.rjw@sisk.pl>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:51790 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758559Ab0DABnJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Mar 2010 21:43:09 -0400
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L06001OLCRDVOO4@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 31 Mar 2010 20:42:55 -0500 (CDT)
+In-reply-to: <20100330205516.GC26538@frolo.macqel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Philippe De Muyter <phdm@macqel.be>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> On Acer Ferrari One, when _BQC is invoked for the first time, the
-> minimum brightness is returned, so the ACPI video drivers sets the
-> minimum brightness on boot.  This is not desirable, so use the
-> following rule:
-> 	If _BQC initially returns an invalid value or the minimum
-> 	brightness, use either the brightness level supposed to be
-> 	used on AC power, or the brightness level supposed to be
-> 	used on battery, depending on whether or not the system is
-> 	on AC power.  If these values are not exported by the BIOS,
-> 	use the maximum brightness level.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/video.c |   26 +++++++++++++++++++++++---
->  1 file changed, 23 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -44,6 +44,7 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  #include <linux/suspend.h>
-> +#include <linux/power_supply.h>
->  
->  #define PREFIX "ACPI: "
->  
-> @@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
->  		 * Set the backlight to the initial state.
->  		 * On some buggy laptops, _BQC returns an uninitialized value
->  		 * when invoked for the first time, i.e. level_old is invalid.
-> -		 * set the backlight to max_level in this case
-> +		 * On some other systems _BQC returns the minimum brightness
-> +		 * when invoked for the first time, which also usually is
-> +		 * undesirable.  In that cases use the "AC power" value if on AC
-> +		 * power or the "battery" value otherwise.  If these vaules are
-> +		 * not exported, use max_level.
->  		 */
-> -		for (i = 2; i < br->count; i++)
-> -			if (level_old == br->levels[i])
-> +		for (i = 3; i < br->count; i++)
-> +			if (level_old == br->levels[i]) {
->  				level = level_old;
-> +				goto set_level;
-> +			}
-> +		if (!br->flags._BCL_no_ac_battery_levels)
-> +			level = power_supply_is_system_supplied() ?
-> +
-> 						br->levels[0] : br->levels[1];
+On Tue, 30 Mar 2010, Philippe De Muyter wrote:
 
-this doesn't work currently.
-br->levels[0] and br->levels[1] doesn't equal the "AC power" value and
-"Battery" value, because the "AC power" and "Battery" value is not
-exported by many BIOS at all.
-But we can make it work if we fake the AC and Battery value for these
-laptops, which is not done yet. For example, set the AC power value the
-maximum brightness level, if it's not exported by BIOS.
+> Hello acpi experts
+> 
+> I have just installed opensuse 11.3 milestone 4 (2.6.33-6-desktop) on a laptop
+> hp pavilion dv6-1300sb, and it refuses to boot without acpi=off which in turn
+> prevents me to use the wireless chip.
+> 
+> I would like to diagnose precisely what the problem(s) is/are.
+> 
+> which option should I add to the linux commandline to make it point to the
+> problem ?  I have already tried 'ignore_loglevel debug' but the last
+> message is never the same.
+
+Did previous versions of Linux boot properly on this machine?
+
+Please open a bug report:
+
+https://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+
+and attach the output from acpidump and dmesg -s64000
+from your acpi=off boot.
+
+If you can take a photo of the failed boot, or otherwise
+describe it in more detail, that would be helpful.
+
+See if any of these random options help it boot:
+acpi=ht (likely this will work)
+acpi=rsdt
+acpi=noirq
+pci=noacpi
 
 thanks,
-rui
-
-
-
->  		goto set_level;
->  	}
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-Len Brown, Intel Open Source Technology Center
 
