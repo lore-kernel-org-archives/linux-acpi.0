@@ -1,134 +1,106 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] acpi: Don't send KEY_UNKNOWN for random video
- notifications
-Date: Thu, 01 Apr 2010 14:57:53 +0800
-Message-ID: <1270105073.24064.4488.camel@rzhang1-desktop>
-References: <1260571246-24582-1-git-send-email-mjg@redhat.com>
-	 <alpine.LFD.2.00.1003312057140.5062@localhost.localdomain>
+Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer
+ Ferrari One
+Date: Thu, 01 Apr 2010 15:18:42 +0800
+Message-ID: <1270106322.24064.4496.camel@rzhang1-desktop>
+References: <201004010319.19366.rjw@sisk.pl>
+	 <1270085690.24064.4459.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12298 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:42541 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018Ab0DAG4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Apr 2010 02:56:51 -0400
-In-Reply-To: <alpine.LFD.2.00.1003312057140.5062@localhost.localdomain>
+	id S1752477Ab0DAHRk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Apr 2010 03:17:40 -0400
+In-Reply-To: <1270085690.24064.4459.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thu, 2010-04-01 at 08:57 +0800, Len Brown wrote:
-> applied to acpi-test -- looking for ack from rui, the driver maintainer
+On Thu, 2010-04-01 at 09:34 +0800, Zhang Rui wrote:
+> On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > On Acer Ferrari One, when _BQC is invoked for the first time, the
+> > minimum brightness is returned, so the ACPI video drivers sets the
+> > minimum brightness on boot.  This is not desirable, so use the
+> > following rule:
+> > 	If _BQC initially returns an invalid value or the minimum
+> > 	brightness, use either the brightness level supposed to be
+> > 	used on AC power, or the brightness level supposed to be
+> > 	used on battery, depending on whether or not the system is
+> > 	on AC power.  If these values are not exported by the BIOS,
+> > 	use the maximum brightness level.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/acpi/video.c |   26 +++++++++++++++++++++++---
+> >  1 file changed, 23 insertions(+), 3 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/video.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/video.c
+> > +++ linux-2.6/drivers/acpi/video.c
+> > @@ -44,6 +44,7 @@
+> >  #include <acpi/acpi_bus.h>
+> >  #include <acpi/acpi_drivers.h>
+> >  #include <linux/suspend.h>
+> > +#include <linux/power_supply.h>
+> >  
+> >  #define PREFIX "ACPI: "
+> >  
+> > @@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
+> >  		 * Set the backlight to the initial state.
+> >  		 * On some buggy laptops, _BQC returns an uninitialized value
+> >  		 * when invoked for the first time, i.e. level_old is invalid.
+> > -		 * set the backlight to max_level in this case
+> > +		 * On some other systems _BQC returns the minimum brightness
+> > +		 * when invoked for the first time, which also usually is
+> > +		 * undesirable.  In that cases use the "AC power" value if on AC
+> > +		 * power or the "battery" value otherwise.  If these vaules are
+> > +		 * not exported, use max_level.
+> >  		 */
+> > -		for (i = 2; i < br->count; i++)
+> > -			if (level_old == br->levels[i])
+> > +		for (i = 3; i < br->count; i++)
+> > +			if (level_old == br->levels[i]) {
+> >  				level = level_old;
+> > +				goto set_level;
+> > +			}
+> > +		if (!br->flags._BCL_no_ac_battery_levels)
+> > +			level = power_supply_is_system_supplied() ?
+> > +
+> > 						br->levels[0] : br->levels[1];
+> 
+> this doesn't work currently.
+> br->levels[0] and br->levels[1] doesn't equal the "AC power" value and
+> "Battery" value, because the "AC power" and "Battery" value is not
+> exported by many BIOS at all.
+
+I mean, for these laptops, br->levels[0] and br->levels[1] equals the
+first and second elements in _BCL package.
+But we can not use them as the "AC power" and "Battery" value.
+
+> But we can make it work if we fake the AC and Battery value for these
+> laptops, which is not done yet. For example, set the AC power value the
+> maximum brightness level, if it's not exported by BIOS.
 > 
 > thanks,
-> Len Brown, Intel Open Source Technology Center
+> rui
 > 
-> On Fri, 11 Dec 2009, Matthew Garrett wrote:
 > 
-> > I have a machine here that's sending 0xD1 notifications on the video
-> > device once every second or so. I have no idea why (it's a prototype,
-> > it may be broken), but sending KEY_UNKNOWN is unhelpful and results in
-> > the console becoming unusable. Let's not report keys unless we have
-> > something useful to say about them.
-> > 
-Hi, Matthew,
-
-can you attach the acpidump of your laptop please?
-
-thanks,
-rui
-
-
-> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> > ---
-> >  drivers/acpi/video.c |   29 ++++++++++++++++-------------
-> >  1 files changed, 16 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 05dff63..655183c 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -2100,7 +2100,7 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-> >  {
-> >  	struct acpi_video_bus *video = acpi_driver_data(device);
-> >  	struct input_dev *input;
-> > -	int keycode;
-> > +	int keycode = 0;
-> >  
-> >  	if (!video)
-> >  		return;
-> > @@ -2136,17 +2136,19 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-> >  		break;
-> >  
-> >  	default:
-> > -		keycode = KEY_UNKNOWN;
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  				  "Unsupported event [0x%x]\n", event));
-> >  		break;
+> 
+> >  		goto set_level;
 > >  	}
 > >  
-> >  	acpi_notifier_call_chain(device, event, 0);
-> > -	input_report_key(input, keycode, 1);
-> > -	input_sync(input);
-> > -	input_report_key(input, keycode, 0);
-> > -	input_sync(input);
-> > +
-> > +	if (keycode) {
-> > +		input_report_key(input, keycode, 1);
-> > +		input_sync(input);
-> > +		input_report_key(input, keycode, 0);
-> > +		input_sync(input);
-> > +	}
-> >  
-> >  	return;
-> >  }
-> > @@ -2157,7 +2159,7 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
-> >  	struct acpi_device *device = NULL;
-> >  	struct acpi_video_bus *bus;
-> >  	struct input_dev *input;
-> > -	int keycode;
-> > +	int keycode = 0;
-> >  
-> >  	if (!video_device)
-> >  		return;
-> > @@ -2198,17 +2200,19 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
-> >  		keycode = KEY_DISPLAY_OFF;
-> >  		break;
-> >  	default:
-> > -		keycode = KEY_UNKNOWN;
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  				  "Unsupported event [0x%x]\n", event));
-> >  		break;
-> >  	}
-> >  
-> >  	acpi_notifier_call_chain(device, event, 0);
-> > -	input_report_key(input, keycode, 1);
-> > -	input_sync(input);
-> > -	input_report_key(input, keycode, 0);
-> > -	input_sync(input);
-> > +
-> > +	if (keycode) {
-> > +		input_report_key(input, keycode, 1);
-> > +		input_sync(input);
-> > +		input_report_key(input, keycode, 0);
-> > +		input_sync(input);
-> > +	}
-> >  
-> >  	return;
-> >  }
-> > @@ -2299,7 +2303,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
-> >  	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
-> >  	set_bit(KEY_BRIGHTNESS_ZERO, input->keybit);
-> >  	set_bit(KEY_DISPLAY_OFF, input->keybit);
-> > -	set_bit(KEY_UNKNOWN, input->keybit);
-> >  
-> >  	error = input_register_device(input);
-> >  	if (error)
-> > -- 
-> > 1.6.5.2
-> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
