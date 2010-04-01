@@ -1,58 +1,41 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: how to diagnose/fix : cannot boot without acpi=off
-Date: Wed, 31 Mar 2010 21:42:48 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1003312138001.13993@localhost.localdomain>
-References: <20100330205516.GC26538@frolo.macqel>
+Subject: Re: [PATCH 0/14] Start coping gsis < 16 that are not isa irqs.
+Date: Wed, 31 Mar 2010 22:02:33 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1003312154180.13993@localhost.localdomain>
+References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
+ <1269221770-9667-3-git-send-email-yinghai@kernel.org>
+ <alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
+ <m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
+ <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:51790 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758559Ab0DABnJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Mar 2010 21:43:09 -0400
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L06001OLCRDVOO4@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 31 Mar 2010 20:42:55 -0500 (CDT)
-In-reply-to: <20100330205516.GC26538@frolo.macqel>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:57202 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750714Ab0DACCx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Mar 2010 22:02:53 -0400
+In-reply-to: <m1r5n2wwah.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Philippe De Muyter <phdm@macqel.be>
-Cc: linux-acpi@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
 
-On Tue, 30 Mar 2010, Philippe De Muyter wrote:
-
-> Hello acpi experts
+> It appears there are a few systems in the wild that use acpi
+> interrupt source overrides to report a gsi > 16 is an isa irq.
 > 
-> I have just installed opensuse 11.3 milestone 4 (2.6.33-6-desktop) on a laptop
-> hp pavilion dv6-1300sb, and it refuses to boot without acpi=off which in turn
-> prevents me to use the wireless chip.
-> 
-> I would like to diagnose precisely what the problem(s) is/are.
-> 
-> which option should I add to the linux commandline to make it point to the
-> problem ?  I have already tried 'ignore_loglevel debug' but the last
-> message is never the same.
+> This breaks all kinds of assumptions I figure any BIOS doing that
+> probably should be shot as that is very much not a conservative position.
 
-Did previous versions of Linux boot properly on this machine?
+You might run into trouble here on the ES7000 -- though I don't know
+if anybody is booting a modern kernel on one of those these days.
 
-Please open a bug report:
+IIR, ES7000 treated the bottom 16 as a special case.
+When there was an irq shortage, I think they used overrides
+to map higher PCI irqs into the empty spots below 16,
+but I think to make room for them they may have mapped
+some of the ISA irqs to high numbers.  Fuzzy memory
+on this at the moment...
 
-https://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-and attach the output from acpidump and dmesg -s64000
-from your acpi=off boot.
-
-If you can take a photo of the failed boot, or otherwise
-describe it in more detail, that would be helpful.
-
-See if any of these random options help it boot:
-acpi=ht (likely this will work)
-acpi=rsdt
-acpi=noirq
-pci=noacpi
-
-thanks,
--Len Brown, Intel Open Source Technology Center
+cheers,
+Len Brown, Intel Open Source Technology Center
 
