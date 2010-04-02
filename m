@@ -1,43 +1,185 @@
-From: marcausl@gmail.com
-Subject: as requested in dmesg - no know problems.
-Date: Fri, 02 Apr 2010 12:28:57 -0400
-Message-ID: <E1Nxjjt-00014a-6M@aptiva.optonline.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer Ferrari One
+Date: Fri, 2 Apr 2010 19:25:48 +0200
+Message-ID: <201004021925.48128.rjw@sisk.pl>
+References: <201004010319.19366.rjw@sisk.pl> <201004012145.07898.rjw@sisk.pl> <1270170906.24064.4510.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta6.srv.hcvlny.cv.net ([167.206.4.212]:35143 "EHLO
-	mta6.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755299Ab0DBQ7G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Apr 2010 12:59:06 -0400
-Received: from aptiva.optonline.net
- (ool-44c7f092.dyn.optonline.net [68.199.240.146]) by mta6.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L0900J8MCG9OO40@mta6.srv.hcvlny.cv.net> for
- linux-acpi@vger.kernel.org; Fri, 02 Apr 2010 12:28:57 -0400 (EDT)
-Received: from marc by aptiva.optonline.net with local (Exim 4.69)
-	(envelope-from <marcausl@gmail.com>)
-	id 1Nxjjt-00014a-6M	for linux-acpi@vger.kernel.org; Fri,
- 02 Apr 2010 12:28:57 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:52448 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755851Ab0DBRWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Apr 2010 13:22:48 -0400
+In-Reply-To: <1270170906.24064.4510.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
 
-[ =A0 =A00.240015] ACPI: EC: Look up EC in DSDT=20
-[ =A0 =A00.241830] ACPI: BIOS _OSI(Linux) query ignored=20
-[ =A0 =A00.241869] ACPI: DMI System Vendor: eMachines=20
-[ =A0 =A00.241907] ACPI: DMI Product Name: ET1831=20
-[ =A0 =A00.241945] ACPI: DMI Product Version: =A0 =A0 =A0 =A0 =20
-[ =A0 =A00.241983] ACPI: DMI Board Name: EMCP73VT-PM=20
-[ =A0 =A00.242021] ACPI: DMI BIOS Vendor: AMI=20
-[ =A0 =A00.242058] ACPI: DMI BIOS Date: 09/14/2009=20
-[ =A0 =A00.242096] ACPI: Please send DMI info above to linux-acpi@vger.=
-kernel.org=20
+On Friday 02 April 2010, Zhang Rui wrote:
+> On Fri, 2010-04-02 at 03:45 +0800, Rafael J. Wysocki wrote:
+> > On Thursday 01 April 2010, Zhang Rui wrote:
+> > > On Thu, 2010-04-01 at 09:34 +0800, Zhang Rui wrote:
+> > > > On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
+> > > > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > > > > 
+> > > > > On Acer Ferrari One, when _BQC is invoked for the first time, the
+> > > > > minimum brightness is returned, so the ACPI video drivers sets the
+> > > > > minimum brightness on boot.  This is not desirable, so use the
+> > > > > following rule:
+> > > > > 	If _BQC initially returns an invalid value or the minimum
+> > > > > 	brightness, use either the brightness level supposed to be
+> > > > > 	used on AC power, or the brightness level supposed to be
+> > > > > 	used on battery, depending on whether or not the system is
+> > > > > 	on AC power.  If these values are not exported by the BIOS,
+> > > > > 	use the maximum brightness level.
+> > > > > 
+> > > > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > > > > ---
+> > > > >  drivers/acpi/video.c |   26 +++++++++++++++++++++++---
+> > > > >  1 file changed, 23 insertions(+), 3 deletions(-)
+> > > > > 
+> > > > > Index: linux-2.6/drivers/acpi/video.c
+> > > > > ===================================================================
+> > > > > --- linux-2.6.orig/drivers/acpi/video.c
+> > > > > +++ linux-2.6/drivers/acpi/video.c
+> > > > > @@ -44,6 +44,7 @@
+> > > > >  #include <acpi/acpi_bus.h>
+> > > > >  #include <acpi/acpi_drivers.h>
+> > > > >  #include <linux/suspend.h>
+> > > > > +#include <linux/power_supply.h>
+> > > > >  
+> > > > >  #define PREFIX "ACPI: "
+> > > > >  
+> > > > > @@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
+> > > > >  		 * Set the backlight to the initial state.
+> > > > >  		 * On some buggy laptops, _BQC returns an uninitialized value
+> > > > >  		 * when invoked for the first time, i.e. level_old is invalid.
+> > > > > -		 * set the backlight to max_level in this case
+> > > > > +		 * On some other systems _BQC returns the minimum brightness
+> > > > > +		 * when invoked for the first time, which also usually is
+> > > > > +		 * undesirable.  In that cases use the "AC power" value if on AC
+> > > > > +		 * power or the "battery" value otherwise.  If these vaules are
+> > > > > +		 * not exported, use max_level.
+> > > > >  		 */
+> > > > > -		for (i = 2; i < br->count; i++)
+> > > > > -			if (level_old == br->levels[i])
+> > > > > +		for (i = 3; i < br->count; i++)
+> > > > > +			if (level_old == br->levels[i]) {
+> > > > >  				level = level_old;
+> > > > > +				goto set_level;
+> > > > > +			}
+> > > > > +		if (!br->flags._BCL_no_ac_battery_levels)
+> > > > > +			level = power_supply_is_system_supplied() ?
+> > > > > +
+> > > > > 						br->levels[0] : br->levels[1];
+> > > > 
+> > > > this doesn't work currently.
+> > > > br->levels[0] and br->levels[1] doesn't equal the "AC power" value and
+> > > > "Battery" value, because the "AC power" and "Battery" value is not
+> > > > exported by many BIOS at all.
+> > 
+> > But if the BIOS doesn't export these values,
+> > br->flags._BCL_no_ac_battery_levels will be true, won't it?
+> > 
+> no.
+> for example, I have seen a _BCL package like this: {100, 0, 10, 20, ...,
+> 90, 100}.
+> Only one value, not sure the "AC power" or "Battery" value, is returned,
+> the br->flags._BCL_no_ac_battery_levels is also set in this case.
 
-Marc Auslander=20
---=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, it is, and that's fine.
+
+The code added by the patch won't be executed in that case.
+
+> > ---
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > Subject: ACPI / Video: Fix initial brightness problem on Acer Ferrari One (v. 2)
+> > 
+> > On Acer Ferrari One, when _BQC is invoked for the first time, the
+> > minimum brightness is returned, so the ACPI video drivers sets the
+> > minimum brightness on boot.  This is not desirable, so use the
+> > following rule:
+> > 	Set brightness to either the level supposed to be used on
+> > 	AC power, or the brightness level supposed to be used on
+> > 	battery, depending on whether or not the system is on AC
+> > 	power.  If these values are not exported by the BIOS, use the
+> > 	brightness level initially returned by _BQC.  If that value
+> > 	is invalid, use the maximum brightness level.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/acpi/video.c |   16 +++++++++++++++-
+> >  1 file changed, 15 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/video.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/video.c
+> > +++ linux-2.6/drivers/acpi/video.c
+> > @@ -44,6 +44,7 @@
+> >  #include <acpi/acpi_bus.h>
+> >  #include <acpi/acpi_drivers.h>
+> >  #include <linux/suspend.h>
+> > +#include <linux/power_supply.h>
+> >  
+> >  #define PREFIX "ACPI: "
+> >  
+> > @@ -915,6 +916,18 @@ acpi_video_init_brightness(struct acpi_v
+> >  
+> >  	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
+> >  
+> I think the patch will work if we add some code here:
+> 
+> 	if (!br->flags._BCL_no_ac_battery_levels) {
+> 		/* the "AC power" and "Battery" brightness value is not reliable */
+> 		br->levels[0] = ...; /* the maximum value? */
+> 		br->levels[1] = ...; /* br->levels[maximum -1 ]? */
+> 	}
+
+Well, the code that checks the "AC power" and "battery" levels does this:
+
+        for (i = 2; i < count; i++) {
+                if (br->levels[i] == br->levels[0])
+                        level_ac_battery++;
+                if (br->levels[i] == br->levels[1])
+                        level_ac_battery++;
+        }
+
+        if (level_ac_battery < 2) {
+                level_ac_battery = 2 - level_ac_battery;
+                br->flags._BCL_no_ac_battery_levels = 1;
+
+so in your example case the code below won't use the "AC power" and "battery"
+values, which I believe is correct.  [We'll try to use the initial brightness
+and fall back to max_level in that case, as described in the changelog.]
+
+> > +	/*
+> > +	 * Set brightness to the "AC power" value if on AC power or to the
+> > +	 * "battery" value otherwise.  If these vaules are not exported, try
+> > +	 * to use the value returned by the initial _BQC and fall back to
+> > +	 * max_level.
+> > +	 */
+> > +	if (!br->flags._BCL_no_ac_battery_levels) {
+> > +		level = power_supply_is_system_supplied() ?
+> > +					br->levels[0] : br->levels[1];
+> > +		goto set_level;
+> > +	}
+> > +
+> >  	if (!br->flags._BQC_use_index) {
+> >  		/*
+> >  		 * Set the backlight to the initial state.
+> > @@ -930,7 +943,8 @@ acpi_video_init_brightness(struct acpi_v
+> >  
+> >  	if (br->flags._BCL_reversed)
+> >  		level_old = (br->count - 1) - level_old;
+> > -	level = br->levels[level_old];
+> > +	level = level_old >= 0 && level_old < br->count ?
+> > +				br->levels[level_old] : max_level;
+> >  
+> >  set_level:
+> >  	result = acpi_video_device_lcd_set_level(device, level);
+
+Thanks,
+Rafael
