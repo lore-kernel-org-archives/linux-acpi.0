@@ -1,185 +1,104 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer Ferrari One
-Date: Fri, 2 Apr 2010 19:25:48 +0200
-Message-ID: <201004021925.48128.rjw@sisk.pl>
-References: <201004010319.19366.rjw@sisk.pl> <201004012145.07898.rjw@sisk.pl> <1270170906.24064.4510.camel@rzhang1-desktop>
+Subject: [RFC][PATCH] ACPI / ACPICA: Always use the same lock for GPE locking
+Date: Fri, 2 Apr 2010 22:37:28 +0200
+Message-ID: <201004022237.28871.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52448 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52918 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755851Ab0DBRWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Apr 2010 13:22:48 -0400
-In-Reply-To: <1270170906.24064.4510.camel@rzhang1-desktop>
+	id S1752917Ab0DBUeh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Apr 2010 16:34:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Friday 02 April 2010, Zhang Rui wrote:
-> On Fri, 2010-04-02 at 03:45 +0800, Rafael J. Wysocki wrote:
-> > On Thursday 01 April 2010, Zhang Rui wrote:
-> > > On Thu, 2010-04-01 at 09:34 +0800, Zhang Rui wrote:
-> > > > On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
-> > > > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > > 
-> > > > > On Acer Ferrari One, when _BQC is invoked for the first time, the
-> > > > > minimum brightness is returned, so the ACPI video drivers sets the
-> > > > > minimum brightness on boot.  This is not desirable, so use the
-> > > > > following rule:
-> > > > > 	If _BQC initially returns an invalid value or the minimum
-> > > > > 	brightness, use either the brightness level supposed to be
-> > > > > 	used on AC power, or the brightness level supposed to be
-> > > > > 	used on battery, depending on whether or not the system is
-> > > > > 	on AC power.  If these values are not exported by the BIOS,
-> > > > > 	use the maximum brightness level.
-> > > > > 
-> > > > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > > ---
-> > > > >  drivers/acpi/video.c |   26 +++++++++++++++++++++++---
-> > > > >  1 file changed, 23 insertions(+), 3 deletions(-)
-> > > > > 
-> > > > > Index: linux-2.6/drivers/acpi/video.c
-> > > > > ===================================================================
-> > > > > --- linux-2.6.orig/drivers/acpi/video.c
-> > > > > +++ linux-2.6/drivers/acpi/video.c
-> > > > > @@ -44,6 +44,7 @@
-> > > > >  #include <acpi/acpi_bus.h>
-> > > > >  #include <acpi/acpi_drivers.h>
-> > > > >  #include <linux/suspend.h>
-> > > > > +#include <linux/power_supply.h>
-> > > > >  
-> > > > >  #define PREFIX "ACPI: "
-> > > > >  
-> > > > > @@ -920,11 +928,20 @@ acpi_video_init_brightness(struct acpi_v
-> > > > >  		 * Set the backlight to the initial state.
-> > > > >  		 * On some buggy laptops, _BQC returns an uninitialized value
-> > > > >  		 * when invoked for the first time, i.e. level_old is invalid.
-> > > > > -		 * set the backlight to max_level in this case
-> > > > > +		 * On some other systems _BQC returns the minimum brightness
-> > > > > +		 * when invoked for the first time, which also usually is
-> > > > > +		 * undesirable.  In that cases use the "AC power" value if on AC
-> > > > > +		 * power or the "battery" value otherwise.  If these vaules are
-> > > > > +		 * not exported, use max_level.
-> > > > >  		 */
-> > > > > -		for (i = 2; i < br->count; i++)
-> > > > > -			if (level_old == br->levels[i])
-> > > > > +		for (i = 3; i < br->count; i++)
-> > > > > +			if (level_old == br->levels[i]) {
-> > > > >  				level = level_old;
-> > > > > +				goto set_level;
-> > > > > +			}
-> > > > > +		if (!br->flags._BCL_no_ac_battery_levels)
-> > > > > +			level = power_supply_is_system_supplied() ?
-> > > > > +
-> > > > > 						br->levels[0] : br->levels[1];
-> > > > 
-> > > > this doesn't work currently.
-> > > > br->levels[0] and br->levels[1] doesn't equal the "AC power" value and
-> > > > "Battery" value, because the "AC power" and "Battery" value is not
-> > > > exported by many BIOS at all.
-> > 
-> > But if the BIOS doesn't export these values,
-> > br->flags._BCL_no_ac_battery_levels will be true, won't it?
-> > 
-> no.
-> for example, I have seen a _BCL package like this: {100, 0, 10, 20, ...,
-> 90, 100}.
-> Only one value, not sure the "AC power" or "Battery" value, is returned,
-> the br->flags._BCL_no_ac_battery_levels is also set in this case.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Yes, it is, and that's fine.
+The GPE locking is now inconsistent, because acpi_set_gpe(),
+acpi_enable_gpe() and acpi_disable_gpe() use acpi_gbl_gpe_lock for
+this purpose, while acpi_clear_gpe() and acpi_get_gpe_status() use
+the ACPI_MTX_EVENTS mutex instead (the mutex is only acquired if
+they are not executed in interrupt context).  Fix this by changing
+acpi_clear_gpe() and acpi_get_gpe_status() so that they acquire
+acpi_gbl_gpe_lock too.
 
-The code added by the patch won't be executed in that case.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Robert Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/evxfevnt.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-> > ---
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: ACPI / Video: Fix initial brightness problem on Acer Ferrari One (v. 2)
-> > 
-> > On Acer Ferrari One, when _BQC is invoked for the first time, the
-> > minimum brightness is returned, so the ACPI video drivers sets the
-> > minimum brightness on boot.  This is not desirable, so use the
-> > following rule:
-> > 	Set brightness to either the level supposed to be used on
-> > 	AC power, or the brightness level supposed to be used on
-> > 	battery, depending on whether or not the system is on AC
-> > 	power.  If these values are not exported by the BIOS, use the
-> > 	brightness level initially returned by _BQC.  If that value
-> > 	is invalid, use the maximum brightness level.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/acpi/video.c |   16 +++++++++++++++-
-> >  1 file changed, 15 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/video.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/video.c
-> > +++ linux-2.6/drivers/acpi/video.c
-> > @@ -44,6 +44,7 @@
-> >  #include <acpi/acpi_bus.h>
-> >  #include <acpi/acpi_drivers.h>
-> >  #include <linux/suspend.h>
-> > +#include <linux/power_supply.h>
-> >  
-> >  #define PREFIX "ACPI: "
-> >  
-> > @@ -915,6 +916,18 @@ acpi_video_init_brightness(struct acpi_v
-> >  
-> >  	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
-> >  
-> I think the patch will work if we add some code here:
-> 
-> 	if (!br->flags._BCL_no_ac_battery_levels) {
-> 		/* the "AC power" and "Battery" brightness value is not reliable */
-> 		br->levels[0] = ...; /* the maximum value? */
-> 		br->levels[1] = ...; /* br->levels[maximum -1 ]? */
-> 	}
-
-Well, the code that checks the "AC power" and "battery" levels does this:
-
-        for (i = 2; i < count; i++) {
-                if (br->levels[i] == br->levels[0])
-                        level_ac_battery++;
-                if (br->levels[i] == br->levels[1])
-                        level_ac_battery++;
-        }
-
-        if (level_ac_battery < 2) {
-                level_ac_battery = 2 - level_ac_battery;
-                br->flags._BCL_no_ac_battery_levels = 1;
-
-so in your example case the code below won't use the "AC power" and "battery"
-values, which I believe is correct.  [We'll try to use the initial brightness
-and fall back to max_level in that case, as described in the changelog.]
-
-> > +	/*
-> > +	 * Set brightness to the "AC power" value if on AC power or to the
-> > +	 * "battery" value otherwise.  If these vaules are not exported, try
-> > +	 * to use the value returned by the initial _BQC and fall back to
-> > +	 * max_level.
-> > +	 */
-> > +	if (!br->flags._BCL_no_ac_battery_levels) {
-> > +		level = power_supply_is_system_supplied() ?
-> > +					br->levels[0] : br->levels[1];
-> > +		goto set_level;
-> > +	}
-> > +
-> >  	if (!br->flags._BQC_use_index) {
-> >  		/*
-> >  		 * Set the backlight to the initial state.
-> > @@ -930,7 +943,8 @@ acpi_video_init_brightness(struct acpi_v
-> >  
-> >  	if (br->flags._BCL_reversed)
-> >  		level_old = (br->count - 1) - level_old;
-> > -	level = br->levels[level_old];
-> > +	level = level_old >= 0 && level_old < br->count ?
-> > +				br->levels[level_old] : max_level;
-> >  
-> >  set_level:
-> >  	result = acpi_video_device_lcd_set_level(device, level);
-
-Thanks,
-Rafael
+Index: linux-2.6/drivers/acpi/acpica/evxfevnt.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/evxfevnt.c
++++ linux-2.6/drivers/acpi/acpica/evxfevnt.c
+@@ -476,19 +476,13 @@ ACPI_EXPORT_SYMBOL(acpi_clear_event)
+  ******************************************************************************/
+ acpi_status acpi_clear_gpe(acpi_handle gpe_device, u32 gpe_number, u32 flags)
+ {
++	acpi_cpu_flags cpu_flags;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_clear_gpe);
+ 
+-	/* Use semaphore lock if not executing at interrupt level */
+-
+-	if (flags & ACPI_NOT_ISR) {
+-		status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-	}
++	cpu_flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 
+ 	/* Ensure that we have a valid GPE number */
+ 
+@@ -501,9 +495,7 @@ acpi_status acpi_clear_gpe(acpi_handle g
+ 	status = acpi_hw_clear_gpe(gpe_event_info);
+ 
+       unlock_and_exit:
+-	if (flags & ACPI_NOT_ISR) {
+-		(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+-	}
++	acpi_os_release_lock(acpi_gbl_gpe_lock, cpu_flags);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -584,19 +576,13 @@ acpi_status
+ acpi_get_gpe_status(acpi_handle gpe_device,
+ 		    u32 gpe_number, u32 flags, acpi_event_status * event_status)
+ {
++	acpi_cpu_flags cpu_flags;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_get_gpe_status);
+ 
+-	/* Use semaphore lock if not executing at interrupt level */
+-
+-	if (flags & ACPI_NOT_ISR) {
+-		status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-	}
++	cpu_flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 
+ 	/* Ensure that we have a valid GPE number */
+ 
+@@ -614,9 +600,7 @@ acpi_get_gpe_status(acpi_handle gpe_devi
+ 		*event_status |= ACPI_EVENT_FLAG_HANDLE;
+ 
+       unlock_and_exit:
+-	if (flags & ACPI_NOT_ISR) {
+-		(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+-	}
++	acpi_os_release_lock(acpi_gbl_gpe_lock, cpu_flags);
+ 	return_ACPI_STATUS(status);
+ }
+ 
