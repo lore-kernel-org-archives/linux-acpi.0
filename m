@@ -1,191 +1,121 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [RFC PATCH] acpi: Automatically online hot-added memory [v2]
-Date: Mon, 05 Apr 2010 09:49:53 -0400
-Message-ID: <4BB9EA81.4080009@redhat.com>
-References: <20100401131944.4086.82010.sendpatchset@prarit.bos.redhat.com> <201004020931.46783.bjorn.helgaas@hp.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: battery: register power_supply subdevice even when
+	battery not present
+Date: Mon, 05 Apr 2010 20:23:46 +0400
+Message-ID: <20100405162346.2760.94455.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010800040200000806040202"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26143 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751107Ab0DENue (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Apr 2010 09:50:34 -0400
-In-Reply-To: <201004020931.46783.bjorn.helgaas@hp.com>
+Received: from nat.nue.novell.com ([195.135.221.3]:34334 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755495Ab0DEQXr (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 5 Apr 2010 12:23:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, trenn@suse.de, mjg@redhat.com
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010800040200000806040202
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
+Keeping this device around lets userspace know that we have a battery
+bay, even if there is nothing in it at the moment.  This is what every
+other battery driver does, so ACPI should do it as well.
 
-Hi Bjorn,
+For example, this means gnome-power-manager will now allow configuring
+behaviour for "on battery power" if the battery bay was empty on
+startup. (Thanks to Maxim Levitsky for pointing this out).
 
-Thanks for the comments ...
-> It looks like acpi_memhotplug can be compiled as a module, so
-> shouldn't "mem_hotadd_auto=" be a module parameter?
->
->   
+There is no reason to preserve the old behaviour.  We now correctly
+provide the "present" attribute, which will return "0" when the battery
+is removed.  HAL was already trying to check this attribute when
+the old behaviour was implemented.  This should not break any version
+of HAL.
 
-Good point -- I have changed this to a module parameter.
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-> Is it possible that a user would want to online memory for some
-> hot-add events but not others?  If so, maybe the mem_hotadd_auto
-> thing should also be in sysfs?
->   
-Users are going to turn it on and keep it on.  To be honest, I've only 
-included it because I found it useful while debugging cpu hot adds.
-
-> Printks with constant text are one of my pet peeves because they don't
-> give any clues for debugging.  Surely there's useful information we
-> could include here, like the ACPI device info (maybe using dev_err()),
-> the memory range, etc?
->   
-
-Fixed -- I was taking a hint from the surrounding code and not including 
-the memory range, but I agree with you that more info is better. I've 
-changed this to display the memory range that failed.
-
-P.
-
-D'oh!  Fixed.
+ drivers/acpi/battery.c |   36 ++++++++++++++++--------------------
+ 1 files changed, 16 insertions(+), 20 deletions(-)
 
 
-> Bjorn
->   
-
---------------010800040200000806040202
-Content-Type: text/plain;
- name="diff1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="diff1"
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 93d2c79..dece6bd 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -350,6 +350,14 @@ config ACPI_HOTPLUG_MEMORY
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpi_memhotplug.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index db78b6e..5b9fd78 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -546,8 +546,6 @@ static int sysfs_add_battery(struct acpi_battery *battery)
  
-+config ACPI_HOTPLUG_MEMORY_AUTO_ONLINE
-+	bool "Automatically online hotplugged memory"
-+	depends on ACPI_HOTPLUG_MEMORY
-+	default n
-+	help
-+	  This forces memory that is brought into service by ACPI
-+	  to be automatically onlined.
-+
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 3597d73..8d40613 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/memory.h>
- #include <acpi/acpi_drivers.h>
- 
- #define ACPI_MEMORY_DEVICE_CLASS		"memory"
-@@ -45,6 +46,11 @@ ACPI_MODULE_NAME("acpi_memhotplug");
- MODULE_AUTHOR("Naveen B S <naveen.b.s@intel.com>");
- MODULE_DESCRIPTION("Hotplug Mem Driver");
- MODULE_LICENSE("GPL");
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY_AUTO_ONLINE
-+static int mem_hotadd_auto = 1;
-+module_param(mem_hotadd_auto, bool, 0444);
-+MODULE_PARM_DESC(mem_hotadd_auto, "Disable automatic onlining of memory");
-+#endif
- 
- /* Memory Device States */
- #define MEMORY_INVALID_STATE	0
-@@ -252,6 +258,20 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		result = add_memory(node, info->start_addr, info->length);
- 		if (result)
- 			continue;
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY_AUTO_ONLINE
-+		if (mem_hotadd_auto) {
-+			result = online_pages(info->start_addr >> PAGE_SHIFT,
-+					      info->length >> PAGE_SHIFT);
-+			if (!result)
-+				set_memory_state(info->start_addr >> PAGE_SHIFT,
-+						 info->length >> PAGE_SHIFT,
-+						 MEM_ONLINE);
-+			else
-+				printk(KERN_ERR PREFIX "Memory online failed "
-+				       "for 0x%llx - 0x%llx\n", info->start_addr,
-+				       info->start_addr + info->length);
-+		}
-+#endif
- 		info->enabled = 1;
- 		num_enabled++;
+ static void sysfs_remove_battery(struct acpi_battery *battery)
+ {
+-	if (!battery->bat.dev)
+-		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
+ 	battery->bat.dev = NULL;
+@@ -568,9 +566,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	if (result)
+ 		return result;
+ 	if (!acpi_battery_present(battery)) {
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+-		sysfs_remove_battery(battery);
+-#endif
+ 		battery->update_time = 0;
+ 		return 0;
  	}
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index db0848e..219be91 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -515,6 +515,29 @@ int remove_memory_block(unsigned long node_id, struct mem_section *section,
+@@ -582,10 +577,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+-	if (!battery->bat.dev)
+-		sysfs_add_battery(battery);
+-#endif
+ 	return acpi_battery_get_state(battery);
  }
  
- /*
-+ * need an interface for the VM to mark sections on and offline when
-+ * hot-swapping memory.
-+ */
-+void set_memory_state(unsigned long start_pfn, unsigned long nr_pages,
-+		      unsigned long state)
-+{
-+	struct mem_section *section;
-+	struct memory_block *mem;
-+	unsigned long start_sec, end_sec, i;
-+
-+	start_sec = pfn_to_section_nr(start_pfn);
-+	end_sec = pfn_to_section_nr(start_pfn + nr_pages - 1);
-+	for (i = start_sec; i <= end_sec; i++) {
-+		if (valid_section_nr(i) && present_section_nr(i)) {
-+			section = __nr_to_section(i);
-+			mem = find_memory_block(section);
-+			mem->state = state;
-+		}
-+	}
-+}
-+EXPORT_SYMBOL(set_memory_state);
-+
-+/*
-  * need an interface for the VM to add new memory regions,
-  * but without onlining it.
-  */
-diff --git a/include/linux/memory.h b/include/linux/memory.h
-index 85582e1..5735253 100644
---- a/include/linux/memory.h
-+++ b/include/linux/memory.h
-@@ -114,6 +114,7 @@ extern int remove_memory_block(unsigned long, struct mem_section *, int);
- extern int memory_notify(unsigned long val, void *v);
- extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block(struct mem_section *);
-+extern void set_memory_state(unsigned long, unsigned long, unsigned long);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- enum mem_add_context { BOOT, HOTPLUG };
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index be211a5..2eb8751 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -450,6 +450,7 @@ int online_pages(unsigned long pfn, unsigned long nr_pages)
- 
- 	return 0;
+@@ -877,9 +868,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ 					dev_name(&device->dev), event,
+ 					acpi_battery_present(battery));
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+-	/* acpi_battery_update could remove power_supply object */
+-	if (battery->bat.dev)
+-		power_supply_changed(&battery->bat);
++	power_supply_changed(&battery->bat);
+ #endif
  }
-+EXPORT_SYMBOL_GPL(online_pages);
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
  
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+@@ -904,17 +893,24 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
++	if (result)
++		goto fail;
+ #endif
+-	if (!result) {
+-		printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
+-			ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
+-			device->status.battery_present ? "present" : "absent");
+-	} else {
++#ifdef CONFIG_ACPI_SYSFS_POWER
++	result = sysfs_add_battery(battery);
++	if (result)
++		goto fail;
++#endif
++	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
++		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
++		device->status.battery_present ? "present" : "absent");
++	return 0;
++
++fail:
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+-		acpi_battery_remove_fs(device);
++	acpi_battery_remove_fs(device);
+ #endif
+-		kfree(battery);
+-	}
++	kfree(battery);
+ 	return result;
+ }
+ 
 
---------------010800040200000806040202--
