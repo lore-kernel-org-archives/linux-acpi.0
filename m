@@ -1,173 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PM: Move ACPI video resume to a PM notifier
-Date: Mon, 5 Apr 2010 01:43:51 +0200
-Message-ID: <201004050143.51109.rjw@sisk.pl>
-References: <201003040125.30091.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Fix key f70f4b50 not in .data in thermal_sys V2
+Date: Sun, 04 Apr 2010 20:17:43 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004042017400.4155@localhost.localdomain>
+References: <20100309102754.GA3316@swordfish.minsk.epam.com>
+ <20100309141826.GC28606@suse.de>
+ <20100322135235.GA3388@swordfish.minsk.epam.com>
+ <20100322140713.GB1076@pengutronix.de>
+ <20100322144503.GD3388@swordfish.minsk.epam.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56034 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751384Ab0DDXky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Apr 2010 19:40:54 -0400
-In-Reply-To: <201003040125.30091.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20100322144503.GD3388@swordfish.minsk.epam.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>, Greg KH <gregkh@suse.de>, "Eric W. Biederman" <ebiederm@xmission.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Len,
+applied
 
-On Thursday 04 March 2010, Rafael J. Wysocki wrote:
-> There is a problem with the ACPI video resume routine that it's
-> executed before the GPU that may be accessed by it.  To fix this
-> issue, move the ACPI video resume to a power management notifier,
-> so that it's executed after resuming all devices, including the GPU.
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+On Mon, 22 Mar 2010, Sergey Senozhatsky wrote:
+
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-Please replace the $subject patch with the appended one.
-
-The problem is that the notifier is also executed while we're checking for
-the presence of hibernation image during boot and in that case we'll set the
-brightness to a wrong value if device->backlight->props.brightness  is not
-initialized by acpi_video_device_find_cap().
-
-Rafael
-
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / PM: Move ACPI video resume to a PM notifier
-
-There is a problem with the ACPI video resume routine that it's
-executed before the GPU that may be accessed by it.  To fix this
-issue, move the ACPI video resume to a power management notifier,
-so that's executed after resuming all devices, including the GPU.
-
-Fixes https://bugzilla.kernel.org/show_bug.cgi?id=15096, which is
-a listed regression from 2.6.31.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/video.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
-
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -43,6 +43,7 @@
- #include <linux/dmi.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+#include <linux/suspend.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -88,7 +89,6 @@ module_param(allow_duplicates, bool, 064
- static int register_count = 0;
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device, int type);
--static int acpi_video_resume(struct acpi_device *device);
- static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
- 
- static const struct acpi_device_id video_device_ids[] = {
-@@ -104,7 +104,6 @@ static struct acpi_driver acpi_video_bus
- 	.ops = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
--		.resume = acpi_video_resume,
- 		.notify = acpi_video_bus_notify,
- 		},
- };
-@@ -159,6 +158,7 @@ struct acpi_video_bus {
- 	struct proc_dir_entry *dir;
- 	struct input_dev *input;
- 	char phys[32];	/* for input device */
-+	struct notifier_block pm_nb;
- };
- 
- struct acpi_video_device_flags {
-@@ -1020,6 +1020,13 @@ static void acpi_video_device_find_cap(s
- 		if (IS_ERR(device->backlight))
- 			return;
- 
-+		/*
-+		 * Save current brightness level in case we have to restore it
-+		 * before acpi_video_device_lcd_set_level() is called next time.
-+		 */
-+		device->backlight->props.brightness =
-+				acpi_video_get_brightness(device->backlight);
-+
- 		result = sysfs_create_link(&device->backlight->dev.kobj,
- 					   &device->dev->dev.kobj, "device");
- 		if (result)
-@@ -2235,24 +2242,31 @@ static void acpi_video_device_notify(acp
- 	return;
- }
- 
--static int instance;
--static int acpi_video_resume(struct acpi_device *device)
-+static int acpi_video_resume(struct notifier_block *nb,
-+				unsigned long val, void *ign)
- {
- 	struct acpi_video_bus *video;
- 	struct acpi_video_device *video_device;
- 	int i;
- 
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
-+	switch (val) {
-+	case PM_HIBERNATION_PREPARE:
-+	case PM_SUSPEND_PREPARE:
-+	case PM_RESTORE_PREPARE:
-+		return NOTIFY_DONE;
-+	}
- 
--	video = acpi_driver_data(device);
-+	video = container_of(nb, struct acpi_video_bus, pm_nb);
-+
-+	dev_info(&video->device->dev, "Restoring backlight state\n");
- 
- 	for (i = 0; i < video->attached_count; i++) {
- 		video_device = video->attached_array[i].bind_info;
- 		if (video_device && video_device->backlight)
- 			acpi_video_set_brightness(video_device->backlight);
- 	}
--	return AE_OK;
-+
-+	return NOTIFY_OK;
- }
- 
- static acpi_status
-@@ -2276,6 +2290,8 @@ acpi_video_bus_match(acpi_handle handle,
- 	return AE_OK;
- }
- 
-+static int instance;
-+
- static int acpi_video_bus_add(struct acpi_device *device)
- {
- 	struct acpi_video_bus *video;
-@@ -2369,6 +2385,10 @@ static int acpi_video_bus_add(struct acp
- 	       video->flags.rom ? "yes" : "no",
- 	       video->flags.post ? "yes" : "no");
- 
-+	video->pm_nb.notifier_call = acpi_video_resume;
-+	video->pm_nb.priority = 0;
-+	register_pm_notifier(&video->pm_nb);
-+
- 	return 0;
- 
-  err_free_input_dev:
-@@ -2395,6 +2415,8 @@ static int acpi_video_bus_remove(struct 
- 
- 	video = acpi_driver_data(device);
- 
-+	unregister_pm_notifier(&video->pm_nb);
-+
- 	acpi_video_bus_stop_devices(video);
- 	acpi_video_bus_put_devices(video);
- 	acpi_video_bus_remove_fs(device);
+> Initialize sysfs attributes before device_create_file call.
+> 
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+> ---
+> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 5066de5..ecb181d 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -505,6 +505,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+>  	tz->temp_input.attr.attr.name = tz->temp_input.name;
+>  	tz->temp_input.attr.attr.mode = 0444;
+>  	tz->temp_input.attr.show = temp_input_show;
+> +	sysfs_attr_init(&tz->temp_input.attr.attr);
+>  	result = device_create_file(hwmon->device, &tz->temp_input.attr);
+>  	if (result)
+>  		goto unregister_hwmon_device;
+> @@ -517,6 +518,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+>  			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
+>  			tz->temp_crit.attr.attr.mode = 0444;
+>  			tz->temp_crit.attr.show = temp_crit_show;
+> +			sysfs_attr_init(&tz->temp_crit.attr.attr);
+>  			result = device_create_file(hwmon->device,
+>  						    &tz->temp_crit.attr);
+>  			if (result)
+> @@ -725,6 +727,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  		goto release_idr;
+>  
+>  	sprintf(dev->attr_name, "cdev%d_trip_point", dev->id);
+> +	sysfs_attr_init(&dev->attr.attr);
+>  	dev->attr.attr.name = dev->attr_name;
+>  	dev->attr.attr.mode = 0444;
+>  	dev->attr.show = thermal_cooling_device_trip_point_show;
+> 
+> 
