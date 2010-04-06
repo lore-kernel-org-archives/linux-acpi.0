@@ -1,121 +1,48 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: battery: register power_supply subdevice even when
-	battery not present
-Date: Mon, 05 Apr 2010 20:23:46 +0400
-Message-ID: <20100405162346.2760.94455.stgit@thinkpad>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch v2] acpi_pad: "processor_aggregator" name too long
+Date: Tue, 6 Apr 2010 09:21:13 +0800
+Message-ID: <20100406012113.GA18672@sli10-desk.sh.intel.com>
+References: <20100319114806.GN5331@bicker>
+ <20100325142738.GD1602@ucw.cz>
+ <20100325144122.GF5069@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:34334 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755495Ab0DEQXr (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 5 Apr 2010 12:23:47 -0400
+Received: from mga01.intel.com ([192.55.52.88]:31285 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756236Ab0DFBVQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Apr 2010 21:21:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20100325144122.GF5069@bicker>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Chen Gong <gong.chen@linux.intel.com>, Peter
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+On Thu, Mar 25, 2010 at 10:41:22PM +0800, Dan Carpenter wrote:
+> cpi_device_class can only be 19 characters and a NULL terminator.
+> 
+> With the current name we get a buffer overflow in acpi_pad_add()
+> 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> V2: Thanks to Pavel Machek for coming up with the right name for this.
+> 
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index 7e52295..790aaa1 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -30,7 +30,7 @@
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  
+> -#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"processor_aggregator"
+> +#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"cpu_aggregator"
+>  #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
+>  #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
+>  static DEFINE_MUTEX(isolated_cpus_lock);
+sorry for being later to reply. Better the name could be 'acpi_pad', which
+is what the spec called. cpu_aggregator looks like a invented name.
 
-Keeping this device around lets userspace know that we have a battery
-bay, even if there is nothing in it at the moment.  This is what every
-other battery driver does, so ACPI should do it as well.
-
-For example, this means gnome-power-manager will now allow configuring
-behaviour for "on battery power" if the battery bay was empty on
-startup. (Thanks to Maxim Levitsky for pointing this out).
-
-There is no reason to preserve the old behaviour.  We now correctly
-provide the "present" attribute, which will return "0" when the battery
-is removed.  HAL was already trying to check this attribute when
-the old behaviour was implemented.  This should not break any version
-of HAL.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
-
- drivers/acpi/battery.c |   36 ++++++++++++++++--------------------
- 1 files changed, 16 insertions(+), 20 deletions(-)
-
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index db78b6e..5b9fd78 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -546,8 +546,6 @@ static int sysfs_add_battery(struct acpi_battery *battery)
- 
- static void sysfs_remove_battery(struct acpi_battery *battery)
- {
--	if (!battery->bat.dev)
--		return;
- 	device_remove_file(battery->bat.dev, &alarm_attr);
- 	power_supply_unregister(&battery->bat);
- 	battery->bat.dev = NULL;
-@@ -568,9 +566,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	if (result)
- 		return result;
- 	if (!acpi_battery_present(battery)) {
--#ifdef CONFIG_ACPI_SYSFS_POWER
--		sysfs_remove_battery(battery);
--#endif
- 		battery->update_time = 0;
- 		return 0;
- 	}
-@@ -582,10 +577,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
--#ifdef CONFIG_ACPI_SYSFS_POWER
--	if (!battery->bat.dev)
--		sysfs_add_battery(battery);
--#endif
- 	return acpi_battery_get_state(battery);
- }
- 
-@@ -877,9 +868,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
- #ifdef CONFIG_ACPI_SYSFS_POWER
--	/* acpi_battery_update could remove power_supply object */
--	if (battery->bat.dev)
--		power_supply_changed(&battery->bat);
-+	power_supply_changed(&battery->bat);
- #endif
- }
- 
-@@ -904,17 +893,24 @@ static int acpi_battery_add(struct acpi_device *device)
- 	acpi_battery_update(battery);
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
-+	if (result)
-+		goto fail;
- #endif
--	if (!result) {
--		printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
--			ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
--			device->status.battery_present ? "present" : "absent");
--	} else {
-+#ifdef CONFIG_ACPI_SYSFS_POWER
-+	result = sysfs_add_battery(battery);
-+	if (result)
-+		goto fail;
-+#endif
-+	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
-+		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
-+		device->status.battery_present ? "present" : "absent");
-+	return 0;
-+
-+fail:
- #ifdef CONFIG_ACPI_PROCFS_POWER
--		acpi_battery_remove_fs(device);
-+	acpi_battery_remove_fs(device);
- #endif
--		kfree(battery);
--	}
-+	kfree(battery);
- 	return result;
- }
- 
-
+Thanks,
+Shaohua
