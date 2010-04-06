@@ -1,48 +1,50 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [patch v2] acpi_pad: "processor_aggregator" name too long
-Date: Tue, 6 Apr 2010 09:21:13 +0800
-Message-ID: <20100406012113.GA18672@sli10-desk.sh.intel.com>
-References: <20100319114806.GN5331@bicker>
- <20100325142738.GD1602@ucw.cz>
- <20100325144122.GF5069@bicker>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH]  ACPI / Video: Fix initial brightness problem on Acer
+ Ferrari One
+Date: Tue, 06 Apr 2010 14:04:57 +0800
+Message-ID: <1270533897.24064.4575.camel@rzhang1-desktop>
+References: <201004010319.19366.rjw@sisk.pl>
+	 <1270170906.24064.4510.camel@rzhang1-desktop>
+	 <201004021925.48128.rjw@sisk.pl>  <201004050119.19790.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31285 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:61548 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756236Ab0DFBVQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Apr 2010 21:21:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20100325144122.GF5069@bicker>
+	id S1751926Ab0DFGD5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Apr 2010 02:03:57 -0400
+In-Reply-To: <201004050119.19790.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Chen Gong <gong.chen@linux.intel.com>, Peter
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thu, Mar 25, 2010 at 10:41:22PM +0800, Dan Carpenter wrote:
-> cpi_device_class can only be 19 characters and a NULL terminator.
+On Mon, 2010-04-05 at 07:19 +0800, Rafael J. Wysocki wrote:
+> On Friday 02 April 2010, Rafael J. Wysocki wrote:
+> > On Friday 02 April 2010, Zhang Rui wrote:
+> > > On Fri, 2010-04-02 at 03:45 +0800, Rafael J. Wysocki wrote:
+> > > > On Thursday 01 April 2010, Zhang Rui wrote:
+> > > > > On Thu, 2010-04-01 at 09:34 +0800, Zhang Rui wrote:
+> > > > > > On Thu, 2010-04-01 at 09:19 +0800, Rafael J. Wysocki wrote:
 > 
-> With the current name we get a buffer overflow in acpi_pad_add()
-> 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+> This patch may not be necessary after all.
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> V2: Thanks to Pavel Machek for coming up with the right name for this.
+> I'll repost it if I find it's still needed.
 > 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index 7e52295..790aaa1 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -30,7 +30,7 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> -#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"processor_aggregator"
-> +#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"cpu_aggregator"
->  #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
->  #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
->  static DEFINE_MUTEX(isolated_cpus_lock);
-sorry for being later to reply. Better the name could be 'acpi_pad', which
-is what the spec called. cpu_aggregator looks like a invented name.
+okay.
+I re-read the code and find out that you're right. sorry for the noise.
 
-Thanks,
-Shaohua
+please feel free to add an Acked-by from me next time you send it to the
+list.
+
+thanks,
+rui
+
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
