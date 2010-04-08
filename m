@@ -1,39 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: my KDE-4.4.2 Battery Monitor ppplet dislikes the ACPI changes in 2.6.34-rc3 betweeen f5284e7..cf90bfe
-Date: Thu, 8 Apr 2010 22:31:42 +0200
-Message-ID: <201004082231.42327.rjw@sisk.pl>
-References: <201004081812.10656.toralf.foerster@gmx.de> <201004081817.29561.toralf.foerster@gmx.de>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Thu, 8 Apr 2010 22:43:18 +0200
+Message-ID: <201004082243.18393.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <201004072149.23791.rjw@sisk.pl> <20100408094905.GA3948@tiehlicka.suse.cz>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201004081817.29561.toralf.foerster@gmx.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toralf =?iso-8859-1?q?F=F6rster?= <toralf.foerster@gmx.de>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:41193 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758869Ab0DHUj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Apr 2010 16:39:58 -0400
+In-Reply-To: <20100408094905.GA3948@tiehlicka.suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday 08 April 2010, Toralf F=F6rster wrote:
->=20
-> Toralf F=F6rster wrote at 18:12:09
-> > because now it tells me that my ThinkPad T400 has 0 cpus and 0 batt=
-eries
-> > ...
->=20
-> FWIW :=20
->=20
-> tfoerste@n22 ~/tmp $ grep "ACPI E" dmesg-2.6.34-rc3-00406-gcf90bfe
-> ACPI Error: Null Object! Obj=3D(null) State=3Df676bc00 Num=3D0=20
-> (20100121/dswstate-183)
-> ACPI Error (psparse-0537): Method parse/execution failed=20
-> [\_SB_.PCI0.LPC_.EC__.GBIF] (Node f70d4e28), AE_BAD_PARAMETER
-> ACPI Error (psparse-0537): Method parse/execution failed=20
-> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f70d4d60), AE_BAD_PARAMETER
-> ACPI Exception: AE_BAD_PARAMETER, Evaluating _BIF (20100121/battery-4=
-05)
-> thinkpad_acpi: ThinkPad ACPI Extras v0.24
+On Thursday 08 April 2010, Michal Hocko wrote:
+> On Wed 07-04-10 21:49:23, Rafael J. Wysocki wrote:
+> > On Wednesday 07 April 2010, Michal Hocko wrote:
+> > > Sorry for late reply, but I was AFK during holiday.
+> > > 
+> > > On Fri 02-04-10 21:31:47, Rafael J. Wysocki wrote:
+> > > > On Thursday 01 April 2010, Michal Hocko wrote:
+> > > > > On Thu 01-04-10 14:45:35, Matthew Garrett wrote:
+> > > > > > On Thu, Apr 01, 2010 at 03:39:23PM +0200, Michal Hocko wrote:
+> > > > > > > Hi Rafael, Matthew,
+> > > > > > > my laptop changed behavior during poweroff recently (after upgrading
+> > > > > > > from .33 to .34-rc1). The system seems to be powered off (status display
+> > > > > > > is off) at first glance but when I close the lid then I can hear a noise
+> > > > > > > which sounds like HDD parking and when I open lid again it starts
+> > > > > > > booting without poweroff button (same like when I suspend to RAM).
+> > > > > > 
+> > > > > > Hm. At a guess, we're somehow managing to leave the lid GPE enabled at 
+> > > > > > poweroff. Can you send the output of the acpidump command?
+> > > > > 
+> > > > > Sure, see attached.
+> > > > 
+> > > > Thanks.
+> > > > 
+> > > > Please also send the contents of /proc/acpi/wakeup.
+> > > 
+> > > See attached. I have checked both kernels (with and without reverted
+> > > 9630bdd) and the output looks pretty much same. 2.6.34-rc3, however,
+> > > looks different a bit, so I am attaching it as well.
+> > 
+> > Well, I fail to see the possible failure scenario, so let's first try a blind
+> > shot.
+> > 
+> > Please check if this patch helps:
+> > https://patchwork.kernel.org/patch/86238/
+> 
+> No change, sorry. I have tried that on top of 0fdf867 which is not the
+> most recent one (does it make sense to retest on the most recent one
+> f5284e7?)
 
-Please always Cc linux-acpi when reporting ACPI problems (now added).
+There were no other changes in that area I know of, but the current git
+contains the above patch, so I'd recommend to use it for further testing.
 
-Thanks,
+I'll try to prepare a debug patch for this issue.
+
 Rafael
