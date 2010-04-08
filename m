@@ -1,52 +1,40 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: Re: 2.6.34-rc3-git6: Reported regressions from 2.6.33
-Date: Thu, 8 Apr 2010 00:06:07 +0100
-Message-ID: <20100407230607.GM30031@ZenIV.linux.org.uk>
-References: <6Pphclm24fK.A.lSF.qsPvLB@chimera>
- <alpine.LFD.2.00.1004071444440.3586@i5.linux-foundation.org>
- <20100407221941.GL30031@ZenIV.linux.org.uk>
- <alpine.LFD.2.00.1004071521500.3586@i5.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1004071521500.3586-GpypE611fyS63QaFMGN2QEqCLAeBNdoH@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH] trival: fix acpi_hest_firmware_first_pci() caused oops
+Date: Thu,  8 Apr 2010 11:16:15 +0800
+Message-ID: <1270696575-3385-1-git-send-email-shaohua.li@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:39887 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753545Ab0DHDQZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Apr 2010 23:16:25 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, Shaohua Li <shaohua.li@intel.com>
 
-On Wed, Apr 07, 2010 at 03:22:20PM -0700, Linus Torvalds wrote:
-> 
-> 
-> On Wed, 7 Apr 2010, Al Viro wrote:
-> > 
-> > No, it's not the same thing; the fix is to have nfs ->d_revalidate()
-> > return an error on failing open attempt (in insane codepath that has
-> > ->d_revalidate() handling open()).  Confirmed to work by reporter...
-> 
-> Ok, can you do the proper changelog description and sign-offs etc?
+acpi_hest_firmware_first_pci() could be called when acpi is disabled
+and cause system oops.
 
-[PATCH] Have nfs ->d_revalidate() report errors properly
-
-	If nfs atomic open implementation ends up doing open request from
-->d_revalidate() codepath and gets an error from server, return that error
-to caller explicitly and don't bother with lookup_instantiate_filp() at all.
-->d_revalidate() can return an error itself just fine...
-
-Signed-off-by: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
-diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
-index d79a7b3..fe0cd9e 100644
---- a/fs/nfs/nfs4proc.c
-+++ b/fs/nfs/nfs4proc.c
-@@ -2068,8 +2068,7 @@ nfs4_open_revalidate(struct inode *dir, struct dentry *dentry, int openflags, st
- 			case -EDQUOT:
- 			case -ENOSPC:
- 			case -EROFS:
--				lookup_instantiate_filp(nd, (struct dentry *)state, NULL);
--				return 1;
-+				return PTR_ERR(state);
- 			default:
- 				goto out_drop;
- 		}
+ drivers/acpi/hest.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/hest.c b/drivers/acpi/hest.c
+index 4bb18c9..1c527a1 100644
+--- a/drivers/acpi/hest.c
++++ b/drivers/acpi/hest.c
+@@ -123,6 +123,10 @@ int acpi_hest_firmware_first_pci(struct pci_dev *pci)
+ {
+ 	acpi_status status = AE_NOT_FOUND;
+ 	struct acpi_table_header *hest = NULL;
++
++	if (acpi_disabled)
++		return 0;
++
+ 	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
+ 
+ 	if (ACPI_SUCCESS(status)) {
+-- 
+1.6.3.3
+
