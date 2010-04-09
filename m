@@ -1,32 +1,89 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.34-rc3-git8: Reported regressions 2.6.32 -> 2.6.33
-Date: Fri, 9 Apr 2010 21:56:05 +0200
-Message-ID: <201004092156.05674.rjw@sisk.pl>
-References: <cjwJ7Pf9h0L.A.9pB.1DmvLB@chimera> <4BBE92AE.6090301@gmail.com>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Fri, 9 Apr 2010 22:42:17 +0200
+Message-ID: <201004092242.17341.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <20100408094905.GA3948@tiehlicka.suse.cz> <201004082243.18393.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <4BBE92AE.6090301@gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Gertjan van Wingerde <gwingerde@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:44862 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754568Ab0DIUje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Apr 2010 16:39:34 -0400
+In-Reply-To: <201004082243.18393.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Tony Vroon <tony@linx.net>
 
-On Friday 09 April 2010, Gertjan van Wingerde wrote:
-> On 04/09/10 00:54, Rafael J. Wysocki wrote:
+On Thursday 08 April 2010, Rafael J. Wysocki wrote:
+> On Thursday 08 April 2010, Michal Hocko wrote:
+> > On Wed 07-04-10 21:49:23, Rafael J. Wysocki wrote:
+> > > On Wednesday 07 April 2010, Michal Hocko wrote:
+> > > > Sorry for late reply, but I was AFK during holiday.
+> > > > 
+> > > > On Fri 02-04-10 21:31:47, Rafael J. Wysocki wrote:
+> > > > > On Thursday 01 April 2010, Michal Hocko wrote:
+> > > > > > On Thu 01-04-10 14:45:35, Matthew Garrett wrote:
+> > > > > > > On Thu, Apr 01, 2010 at 03:39:23PM +0200, Michal Hocko wrote:
+> > > > > > > > Hi Rafael, Matthew,
+> > > > > > > > my laptop changed behavior during poweroff recently (after upgrading
+> > > > > > > > from .33 to .34-rc1). The system seems to be powered off (status display
+> > > > > > > > is off) at first glance but when I close the lid then I can hear a noise
+> > > > > > > > which sounds like HDD parking and when I open lid again it starts
+> > > > > > > > booting without poweroff button (same like when I suspend to RAM).
+> > > > > > > 
+> > > > > > > Hm. At a guess, we're somehow managing to leave the lid GPE enabled at 
+> > > > > > > poweroff. Can you send the output of the acpidump command?
+> > > > > > 
+> > > > > > Sure, see attached.
+> > > > > 
+> > > > > Thanks.
+> > > > > 
+> > > > > Please also send the contents of /proc/acpi/wakeup.
+> > > > 
+> > > > See attached. I have checked both kernels (with and without reverted
+> > > > 9630bdd) and the output looks pretty much same. 2.6.34-rc3, however,
+> > > > looks different a bit, so I am attaching it as well.
+> > > 
+> > > Well, I fail to see the possible failure scenario, so let's first try a blind
+> > > shot.
+> > > 
+> > > Please check if this patch helps:
+> > > https://patchwork.kernel.org/patch/86238/
 > > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=15699
-> > Subject		: rt2500usb driver cannot remain connected
-> > Submitter	:  <abcd@gentoo.org>
-> > Date		: 2010-04-05 19:30 (4 days old)
-> > Handled-By	: Ivo van Doorn <IvDoorn@gmail.com>
-> > 
+> > No change, sorry. I have tried that on top of 0fdf867 which is not the
+> > most recent one (does it make sense to retest on the most recent one
+> > f5284e7?)
 > 
-> This one ought to be fixed by commit 9e76ad2a27f592c1390248867391880c7efe78b3
-> in Linus' tree.
+> There were no other changes in that area I know of, but the current git
+> contains the above patch, so I'd recommend to use it for further testing.
+> 
+> I'll try to prepare a debug patch for this issue.
 
-Thanks, closing.
+Please check if the patch below changes anything.
 
 Rafael
+
+---
+ drivers/acpi/wakeup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/wakeup.c
++++ linux-2.6/drivers/acpi/wakeup.c
+@@ -71,9 +71,9 @@ void acpi_enable_wakeup_device(u8 sleep_
+ 		    || sleep_state > (u32) dev->wakeup.sleep_state)
+ 			continue;
+ 
+-		/* The wake-up power should have been enabled already. */
++		/* The wake-up power should have been enabled already.
+ 		acpi_set_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+-				ACPI_GPE_ENABLE);
++				ACPI_GPE_ENABLE);*/
+ 	}
+ }
+ 
