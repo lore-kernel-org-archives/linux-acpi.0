@@ -1,101 +1,71 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC] Shutdown on thermal HOT event if no userspace tool
- registered being able to do S4
-Date: Mon, 12 Apr 2010 10:38:14 +0800
-Message-ID: <1271039894.7167.113.camel@rzhang1-desktop>
-References: <201003301123.10711.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Tue, 13 Apr 2010 01:01:54 +0200
+Message-ID: <201004130101.54117.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <1270848027.3071.0.camel@localhost> <201004102136.43246.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:42503 "EHLO mga14.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:50792 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752297Ab0DLChS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Apr 2010 22:37:18 -0400
-In-Reply-To: <201003301123.10711.trenn@suse.de>
+	id S1754177Ab0DLV6z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Apr 2010 17:58:55 -0400
+In-Reply-To: <201004102136.43246.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Joey Lee <jlee@novell.com>, Holger Macht <hmacht@suse.de>, Rafael Wysocki <rwysocki@suse.de>
+To: Tony Vroon <tony@linx.net>, Michal Hocko <mhocko@suse.cz>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, 2010-03-30 at 17:23 +0800, Thomas Renninger wrote:
-> Hi,
+On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> On Friday 09 April 2010, Tony Vroon wrote:
+> > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > Please check if the patch below changes anything.
+> > >  drivers/acpi/wakeup.c |    4 ++--
+> > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > That didn't change the behaviour for me, sorry.
 > 
-> this is related to:
-> commit fa80945269f312bc609e8384302f58b03c916e12
->     ACPI thermal: Don't invalidate thermal zone if critical trip point is bad
-> and
-> commit 8b7ef6d8f16274da42344cd50746ddb1c93c25ea
->     ACPI thermal: Check for thermal zone requirement
+> Well, I would be sorry if it did, because the patch removed some useful code. :-)
 > 
-> There the critical trip point is replaced with the hot trip
-> point if latest Windows OS is detected (Vista also? I think yes,
-> but need to double check).
+> > (I made sure to go through a full power down session before trying the
+> > patched kernel)
 > 
-> This seem to get more common and it looks like Windows suggests
-> to use hot trip points for thermal emergency shutdowns (S4).
-> It looks like the default Windows thermal emergency power off is
-> S4. Thus the hot trip point is used and the critical trip point
-> is of no use anymore (and often gets replaced or is invalid).
+> Thanks for testing.  So it looks like we don't disable the GPE during power off.
 > 
-> As thermal emergency shut down is something urgent there is this
-> direct call /sbin/poweroff in orderly_poweroff(true) compare with
-> kernel/sys.c and drivers/thermal/thermal_sys.c
-> This won't work in above cases when BIOS writers assume the machine
-> is shut down with _HOT already and do not provide _CRT anymore.
-> 
-> My idea is to also shutdown the system on _HOT by default,
-> the same way as done if _CRT is exceeded as long as no userspace
-> explicitly set a sysfs (only one file set by thermal_sys.c somewhere
-> in /sys?).
-> Background is that S4 needs some setup (e.g. swap) or userspace hooks
-> to make sure S4 succeeds and everything (network, whatever...) is set
-> up correctly afterwards.
-> 
-> Requirement for the userspace tool setting the "do not shutdown if a
-> hot thermal event happened" would be:
->   - Fetch the thermal hot event
+> I'll try to figure out what's going on, please stay tuned.
 
-We need to introduce the notification mechanism, probably via netlink,
-if we want to do this in the thermal sysfs driver.
+Can you please check if the patch below changes the behavior?
 
->   - Reliably power off the system (shutdown if S4 did not succeed)
->   - ...
-> 
-Any then introduce another sysfs attribute for each trip point, say
-"trippoint_x_mode".
-kernel driver takes default actions when the threshold is reached when
-it's set "kernel", and takes no action if it's set "user".
-users can get the hot event via netlink and take any actions they want..
+Rafael
 
-On the other hand, we can do this in ACPI thermal driver as well.
-Because
-1. netlink event has already been supported.
-2. we can disable the kernel action of _HOT by module parameters, say
-thermal.hot=on(default, s4 or shutdown in kernel)/off(no action, no
-events)/ignore(no action, but still sends events to userspace).
+---
+ drivers/acpi/wakeup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-thanks,
-rui
-
-
-
-
-
-
-we don't have any notification mechanism in the thermal sys driver
-currently. 
-So If we want to do this in the generic thermal driver, we need to
-introduce the 
-
-
-
-> Comments?
-> What userspace tools are candidates to implement this if this
-> makes sense?
-> 
-> Thanks,
-> 
->       Thomas
-
-
+Index: linux-2.6/drivers/acpi/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/wakeup.c
++++ linux-2.6/drivers/acpi/wakeup.c
+@@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev =
+ 			container_of(node, struct acpi_device, wakeup_list);
++		u8 action = ACPI_GPE_ENABLE;
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 
+ 		if ((!dev->wakeup.state.enabled && !dev->wakeup.prepare_count)
+ 		    || sleep_state > (u32) dev->wakeup.sleep_state)
+-			continue;
++			action = ACPI_GPE_DISABLE;
+ 
+-		/* The wake-up power should have been enabled already. */
+ 		acpi_set_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+-				ACPI_GPE_ENABLE);
++				action);
+ 	}
+ }
+ 
