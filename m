@@ -1,57 +1,86 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: new kmemleak w/ latest ACPI updates
-Date: Tue, 13 Apr 2010 15:52:19 +0800
-Message-ID: <1271145139.7633.4.camel@minggr.sh.intel.com>
-References: <201004102102.57235.toralf.foerster@gmx.de>
-	 <1271124196.3656.0.camel@minggr.sh.intel.com>
-	 <201004130939.40175.toralf.foerster@gmx.de>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Tue, 13 Apr 2010 10:27:56 +0200
+Message-ID: <20100413082756.GA5233@tiehlicka.suse.cz>
+References: <20100401133923.GA4104@tiehlicka.suse.cz>
+ <1270848027.3071.0.camel@localhost>
+ <201004102136.43246.rjw@sisk.pl>
+ <201004130101.54117.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53177 "EHLO mga09.intel.com"
+Received: from cantor.suse.de ([195.135.220.2]:54301 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197Ab0DMIMT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Apr 2010 04:12:19 -0400
-In-Reply-To: <201004130939.40175.toralf.foerster@gmx.de>
+	id S1751307Ab0DMI17 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Apr 2010 04:27:59 -0400
+Content-Disposition: inline
+In-Reply-To: <201004130101.54117.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, 2010-04-13 at 15:39 +0800, Toralf F=C3=B6rster wrote:
-> Lin Ming wrote at 04:03:16
-> > On Sun, 2010-04-11 at 03:02 +0800, Toralf F=C3=B6rster wrote:
-> > > Hello,
-> > >=20
-> > > running git kernel v2.6.34-rc3-500-g0eddb51 I observe this new km=
-emleak :
-> > >=20
-> >=20
-> > Could you please send the acpidump output?
->=20
-> Attached,
+On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > On Friday 09 April 2010, Tony Vroon wrote:
+> > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > Please check if the patch below changes anything.
+> > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > 
+> > > That didn't change the behaviour for me, sorry.
+> > 
+> > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > 
+> > > (I made sure to go through a full power down session before trying the
+> > > patched kernel)
+> > 
+> > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > 
+> > I'll try to figure out what's going on, please stay tuned.
+> 
+> Can you please check if the patch below changes the behavior?
 
-Thanks.
-I'll try to reproduce this memory leak in the simulator(AcpiExec).
+Unfortunately, it didn't help either (I have tried on top of the fresh
+rc4).
 
-The only ACPICA commit between f5284e..0eddb51 is bf02bd2
+> 
+> Rafael
+> 
+> ---
+>  drivers/acpi/wakeup.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/wakeup.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/wakeup.c
+> +++ linux-2.6/drivers/acpi/wakeup.c
+> @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+>  		struct acpi_device *dev =
+>  			container_of(node, struct acpi_device, wakeup_list);
+> +		u8 action = ACPI_GPE_ENABLE;
+>  
+>  		if (!dev->wakeup.flags.valid)
+>  			continue;
+>  
+>  		if ((!dev->wakeup.state.enabled && !dev->wakeup.prepare_count)
+>  		    || sleep_state > (u32) dev->wakeup.sleep_state)
+> -			continue;
+> +			action = ACPI_GPE_DISABLE;
+>  
+> -		/* The wake-up power should have been enabled already. */
+>  		acpi_set_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+> -				ACPI_GPE_ENABLE);
+> +				action);
+>  	}
+>  }
+>  
 
-Could you revert that commit and see if the leak is gone?
-
-Lin Ming
-
->=20
-> btw suspend2ram (system in docking station) and wakeup (out of the do=
-cking=20
-> station with external VGA monitor) doesn't work too since that commit=
- (but=20
-> might be related to different root cause).
->=20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Michal Hocko
+L3 team 
+SUSE LINUX s.r.o.
+Lihovarska 1060/12
+190 00 Praha 9    
+Czech Republic
