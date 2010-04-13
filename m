@@ -1,18 +1,75 @@
-From: Jaakan Shorter <jaakanshorter@gmail.com>
-Subject: Opa
-Date: Tue, 13 Apr 2010 09:32:46 -0400
-Message-ID: <s2m3a082f0c1004130632gac7c0c1dhd0777e2dd674bff1@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Tue, 13 Apr 2010 22:53:37 +0200
+Message-ID: <201004132253.37432.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <201004130101.54117.rjw@sisk.pl> <20100413082756.GA5233@tiehlicka.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:41423 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855Ab0DMNcr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Apr 2010 09:32:47 -0400
-Received: by pva18 with SMTP id 18so3758527pva.19
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Apr 2010 06:32:46 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100413082756.GA5233@tiehlicka.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: leilajackson28@gmail.com, lenb@kernel.org, jeremy.leposa@rht.com, letmebeme0926@yahoo.com, lightangel_d@yahoo.com, lilvanilla36@yahoo.com, bready4myjunkindatrunk83@hotmail.com, mytrsh
 
-http://sites.google.com/site/der4wgeugi/vxit5l
+On Tuesday 13 April 2010, Michal Hocko wrote:
+> On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > > On Friday 09 April 2010, Tony Vroon wrote:
+> > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > > Please check if the patch below changes anything.
+> > > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > 
+> > > > That didn't change the behaviour for me, sorry.
+> > > 
+> > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > > 
+> > > > (I made sure to go through a full power down session before trying the
+> > > > patched kernel)
+> > > 
+> > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > > 
+> > > I'll try to figure out what's going on, please stay tuned.
+> > 
+> > Can you please check if the patch below changes the behavior?
+> 
+> Unfortunately, it didn't help either (I have tried on top of the fresh
+> rc4).
+
+That gets really weird.
+
+> > ---
+> >  drivers/acpi/wakeup.c |    6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/wakeup.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/wakeup.c
+> > +++ linux-2.6/drivers/acpi/wakeup.c
+> > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+> >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> >  		struct acpi_device *dev =
+> >  			container_of(node, struct acpi_device, wakeup_list);
+> > +		u8 action = ACPI_GPE_ENABLE;
+
+Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
+
+> >  		if (!dev->wakeup.flags.valid)
+> >  			continue;
+> >  
+> >  		if ((!dev->wakeup.state.enabled && !dev->wakeup.prepare_count)
+> >  		    || sleep_state > (u32) dev->wakeup.sleep_state)
+> > -			continue;
+> > +			action = ACPI_GPE_DISABLE;
+> >  
+> > -		/* The wake-up power should have been enabled already. */
+> >  		acpi_set_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+> > -				ACPI_GPE_ENABLE);
+> > +				action);
+> >  	}
+> >  }
+
+Rafael
