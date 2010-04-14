@@ -1,184 +1,69 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [RFC][PATCH] ACPI: EC: Allow limited large burst reads
-Date: Thu, 15 Apr 2010 01:11:40 +0400
-Message-ID: <20100414211140.23405.21979.stgit@thinkpad>
+From: Chris Bagwell <chris@cnpbagwell.com>
+Subject: Re: [Acpi4asus-user] 1005PE's and backlight controls
+Date: Wed, 14 Apr 2010 17:18:40 -0500
+Message-ID: <w2rdb599ead1004141518ze39ccb45g8b588888e6a87fcf@mail.gmail.com>
+References: <y2g3b2dfeb01004131934x67e23d80vc73dfd6d5af133fa@mail.gmail.com>
+	 <t2i9b2b86521004140923x9c1aaa64p867674329ae158af@mail.gmail.com>
+	 <20100414164030.GA14758@srcf.ucam.org>
+	 <v2vdb599ead1004141014qb02bc808l6aa29c3b5b23de51@mail.gmail.com>
+	 <20100414172608.GA15965@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:58056 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755749Ab0DNVLl (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 14 Apr 2010 17:11:41 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20100414172608.GA15965@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
 
-access_bit_width field is u8 in ACPICA, thus 256 value written to it
-becomes 0, causing divide by zero later.
-Proper fix would be to remove access_bit_width at all, just because
-we already have access_byte_width, which is access_bit_width / 8.
-Limit access width to 64 bit for in general, but allow larger reads
-if they are aligned with access_byte_width.
+On Wed, Apr 14, 2010 at 12:26 PM, Matthew Garrett <mjg59@srcf.ucam.org>=
+ wrote:
+> On Wed, Apr 14, 2010 at 12:14:04PM -0500, Chris Bagwell wrote:
+>
+>> Does the acpi-video logic not have logic on its own to send key
+>> events? =A0So I guess laptops that don't have custom modules to hand=
+le
+>> this type of stuff don't get visual feedback from gnome-power-manage=
+r?
+>
+> It does, but it's dependent upon the firmware sending them.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+I think the following tells me firmware is sending them.  If I leave
+acpi_osi=3D"Windows 2009" so that eeepc_laptop doesn't get loaded, I se=
+e
+events like this on /pro/acpi/event:
 
- drivers/acpi/acpica/acobject.h |    3 +--
- drivers/acpi/acpica/exfldio.c  |   24 ++++++++++++------------
- drivers/acpi/acpica/exprep.c   |   16 +++++-----------
- 3 files changed, 18 insertions(+), 25 deletions(-)
+video LCDD 00000087 00000000
+video LCDD 00000087 00000000
+video LCDD 00000086 00000000
+video LCDD 00000086 00000000
 
+Thats a couple decreases followed by a couple increases.
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index cde18ea..8ef1a08 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -243,12 +243,11 @@ ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
- 	u8                              field_flags;        /* Access, update, and lock bits */\
- 	u8                              attribute;          /* From access_as keyword */\
- 	u8                              access_byte_width;  /* Read/Write size in bytes */\
-+	u8                              start_field_bit_offset;/* Bit offset within first field datum (0-63) */\
- 	struct acpi_namespace_node      *node;              /* Link back to parent node */\
- 	u32                             bit_length;         /* Length of field in bits */\
- 	u32                             base_byte_offset;   /* Byte offset within containing object */\
- 	u32                             value;              /* Value to store into the Bank or Index register */\
--	u8                              start_field_bit_offset;/* Bit offset within first field datum (0-63) */\
--	u8                              access_bit_width;	/* Read/Write size in bits (8-64) */
- 
- struct acpi_object_field_common {	/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
- 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_FIELD_INFO union acpi_operand_object *region_obj;	/* Parent Operation Region object (REGION/BANK fields only) */
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index f68a216..a05cef5 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -699,12 +699,12 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 	/* Compute the number of datums (access width data items) */
- 
- 	datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length,
--				       obj_desc->common_field.access_bit_width);
-+				       obj_desc->common_field.access_byte_width * 8);
- 	field_datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length +
- 					     obj_desc->common_field.
- 					     start_field_bit_offset,
- 					     obj_desc->common_field.
--					     access_bit_width);
-+					     access_byte_width * 8);
- 
- 	/* Priming read from the field */
- 
-@@ -738,12 +738,12 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 		 * This avoids the differences in behavior between different compilers
- 		 * concerning shift values larger than the target data width.
- 		 */
--		if ((obj_desc->common_field.access_bit_width -
-+		if ((obj_desc->common_field.access_byte_width * 8 -
- 		     obj_desc->common_field.start_field_bit_offset) <
- 		    ACPI_INTEGER_BIT_SIZE) {
- 			merged_datum |=
- 			    raw_datum << (obj_desc->common_field.
--					  access_bit_width -
-+					  access_byte_width * 8 -
- 					  obj_desc->common_field.
- 					  start_field_bit_offset);
- 		}
-@@ -766,7 +766,7 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 	/* Mask off any extra bits in the last datum */
- 
- 	buffer_tail_bits = obj_desc->common_field.bit_length %
--	    obj_desc->common_field.access_bit_width;
-+	    (obj_desc->common_field.access_byte_width * 8);
- 	if (buffer_tail_bits) {
- 		merged_datum &= ACPI_MASK_BITS_ABOVE(buffer_tail_bits);
- 	}
-@@ -849,12 +849,12 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
- 	 * Note: This if/else is used to bypass compiler differences with the
- 	 * shift operator
- 	 */
--	if (obj_desc->common_field.access_bit_width == ACPI_INTEGER_BIT_SIZE) {
-+	if (obj_desc->common_field.access_byte_width * 8 == ACPI_INTEGER_BIT_SIZE) {
- 		width_mask = ACPI_UINT64_MAX;
- 	} else {
- 		width_mask =
- 		    ACPI_MASK_BITS_ABOVE(obj_desc->common_field.
--					 access_bit_width);
-+					 access_byte_width * 8);
- 	}
- 
- 	mask = width_mask &
-@@ -863,13 +863,13 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
- 	/* Compute the number of datums (access width data items) */
- 
- 	datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length,
--				       obj_desc->common_field.access_bit_width);
-+				       obj_desc->common_field.access_byte_width * 8);
- 
- 	field_datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length +
- 					     obj_desc->common_field.
- 					     start_field_bit_offset,
- 					     obj_desc->common_field.
--					     access_bit_width);
-+					     access_byte_width * 8);
- 
- 	/* Get initial Datum from the input buffer */
- 
-@@ -905,12 +905,12 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
- 		 * This avoids the differences in behavior between different compilers
- 		 * concerning shift values larger than the target data width.
- 		 */
--		if ((obj_desc->common_field.access_bit_width -
-+		if ((obj_desc->common_field.access_byte_width * 8 -
- 		     obj_desc->common_field.start_field_bit_offset) <
- 		    ACPI_INTEGER_BIT_SIZE) {
- 			merged_datum =
- 			    raw_datum >> (obj_desc->common_field.
--					  access_bit_width -
-+					  access_byte_width * 8 -
- 					  obj_desc->common_field.
- 					  start_field_bit_offset);
- 		} else {
-@@ -937,7 +937,7 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
- 
- 	buffer_tail_bits = (obj_desc->common_field.bit_length +
- 			    obj_desc->common_field.start_field_bit_offset) %
--	    obj_desc->common_field.access_bit_width;
-+	    (obj_desc->common_field.access_byte_width * 8);
- 	if (buffer_tail_bits) {
- 		mask &= ACPI_MASK_BITS_ABOVE(buffer_tail_bits);
- 	}
-diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
-index a610ebe..b401c50 100644
---- a/drivers/acpi/acpica/exprep.c
-+++ b/drivers/acpi/acpica/exprep.c
-@@ -360,8 +360,6 @@ acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
- 	obj_desc->common_field.access_byte_width = (u8)
- 	    ACPI_DIV_8(access_bit_width);	/* 1,  2,  4,  8 */
- 
--	obj_desc->common_field.access_bit_width = (u8) access_bit_width;
--
- 	/*
- 	 * base_byte_offset is the address of the start of the field within the
- 	 * region.  It is the byte address of the first *datum* (field-width data
-@@ -470,15 +468,11 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
- 
- 		/* allow full data read from EC address space */
- 		if (obj_desc->field.region_obj->region.space_id ==
--			ACPI_ADR_SPACE_EC) {
--			if (obj_desc->common_field.bit_length > 8)
--				obj_desc->common_field.access_bit_width =
--				ACPI_ROUND_UP(obj_desc->common_field.
--							bit_length, 8);
--				obj_desc->common_field.access_byte_width =
--				ACPI_DIV_8(obj_desc->common_field.
--							access_bit_width);
--		}
-+			ACPI_ADR_SPACE_EC &&
-+		    obj_desc->common_field.bit_length > 8)
-+			obj_desc->common_field.access_byte_width =
-+				ACPI_ROUND_BITS_UP_TO_BYTES(
-+				    obj_desc->common_field.bit_length);
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
- 				  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
+If I change acpi_osi=3D"!Windows 2009" with and without
+acpi_backlight=3Dvendor then I get events like:
 
+hotkey ATKD 00000027 00000000
+hotkey ATKD 00000026 00000000
+hotkey ATKD 00000025 00000000
+hotkey ATKD 00000024 00000000
+
+The main difference is that with acpi_backlight=3Dvendor then I also ge=
+t
+events sent on /dev/input/event*.
+
+=46rom here, I'd have to compile some custom eeepc-laptop's and see if
+bd->props.brightness is being updated with correct values and then we
+could do just the event send while skipping the update part.
+
+=2E..or is there a way to not register for events 0x20 to 0x2f and let
+ACPI Video process those?  If later is more correct way, is it obvious
+why that code isn't sending key events today?
+
+Chris
+--
+To unsubscribe from this list: send the line "unsubscribe platform-driv=
+er-x86" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
