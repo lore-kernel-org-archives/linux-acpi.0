@@ -1,64 +1,86 @@
-From: "Justin P. mattock" <justinmattock@gmail.com>
-Subject: Re: [acpi:battery?] kernel oops on boot
-Date: Wed, 14 Apr 2010 08:16:04 -0700
-Message-ID: <4BC5DC34.2010004@gmail.com>
-References: <20100414095750.GA3304@swordfish.minsk.epam.com> <20100414131324.GA6598@nb-core2.darkstar.lan> <alpine.LFD.2.00.1004141641010.3640@terrop> <4BC5CA13.3070801@suse.de> <alpine.LFD.2.00.1004141704350.1535@terrop>
+From: Alan Jenkins <sourcejedi.lkml-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: 1005PE's and backlight controls
+Date: Wed, 14 Apr 2010 17:23:22 +0100
+Message-ID: <t2i9b2b86521004140923x9c1aaa64p867674329ae158af@mail.gmail.com>
+References: <y2g3b2dfeb01004131934x67e23d80vc73dfd6d5af133fa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1004141704350.1535@terrop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Roponen <tero.roponen@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Luca Tettamanti <kronos.it@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, len.brown@intel.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <y2g3b2dfeb01004131934x67e23d80vc73dfd6d5af133fa-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Chris Bagwell <chris-ZCD0YumhXB+iMFqZbmIluw@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/14/2010 07:05 AM, Tero Roponen wrote:
+On 4/14/10, Chris Bagwell <chris-ZCD0YumhXB+iMFqZbmIluw@public.gmane.org> wrote:
+> Hi all,
 >
-> On Wed, 14 Apr 2010, Alexey Starikovskiy wrote:
+> I've seen the following issue reported on various web pages but not sure if
+> it was directly reported.  First up, you guys know about issue with acpi_osi
+> of "Windows 2009" disables eeepc_backend and thats were eeepc_wmi comes in.
+
+[Subsequent messages from Chris clarified that both eeepc-laptop and
+eeepc-wmi suffer as described below]
+
+> There is a secondary bug though if you boot with acpi_osi="!Windows 2009"
+> (or "Linux").  The ACPI driver will take control of backlight controls with
+> Fn-F5/F6.  Those keys will work but has issues with Gnome and other user
+> processes.
 >
->> 14.04.2010 17:50, Tero Roponen =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->>>
->>> On Wed, 14 Apr 2010, Luca Tettamanti wrote:
->>>
->>>> Hello,
->>>> I'm seeing a similar bug on my notebook (Asus F3Sa) with current g=
-it.
->>>> -rc4 does not work, while -rc3 does work.
->>>>
->>>> The error (at least in my case) is a division by zero in
->>>> acpi_ex_insert_into_field.
->>>
->>> I have a similar problem with Asus M50Vm. git-bisect found
->>> the following commit and reverting it does indeed fix the
->>> problem.
->>>
->>> commit dadf28a10c3eb29421837a2e413ab869ebd9e168
->>> Author: Alexey Starikovskiy<astarikovskiy@suse.de>
->>> Date:   Wed Mar 17 13:14:13 2010 -0400
->>>
->>>       ACPI: EC: Allow multibyte access to EC
->>>
->>>       http://bugzilla.kernel.org/show_bug.cgi?id=3D14667
->>>
->>>       Signed-off-by: Alexey Starikovskiy<astarikovskiy@suse.de>
->>>       Signed-off-by: Len Brown<len.brown@intel.com>
->>>
->> Please see the patch in https://bugzilla.kernel.org/show_bug.cgi?id=3D=
-15749
+> Anything that uses any of the /sys/* interfaces to control backlight do not
+> work correctly.  When software cycles threw levels, the behavior is kinda
+> odd.  It will cycle each time you dim to something like
+> Bright->Dim->Bight->Off->Bright->etc.  Also, Gnome will give no feedback
+> because eeepc_laptop discards the events and it will not make it to
+> /dev/input/event*.  And last, the status of current brightness is never
+> updated under /sys/* correctly which confuses Gnome as well.
 >
-> Work for me. Thanks.
+> The secondary work around is to add acpi_backlight=vendor to boot options.
+> Then eepc_backlight takes charge and life is good.  Gnome gives visual
+> feedback and dimmer works as expected.
 >
-> Tested-by: Tero Roponen<tero.roponen@gmail.com>
+> Baring a firmware fix from Asus, would it be possible to enable some sort of
+> backlist for using ACPI backlight support and have 1005P's use eeepc_laptop?
+>
+> Chris
+
+I suggest you contact the ACPI video maintainer, Zhang Rui
+<rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, and attach the output of "dmidecode".  The best
+way would probably be to report the problem on bugzilla.kernel.org (on
+the ACPI video driver).
+
+I think it will indeed be possible to blacklist your machine, because
+someone has already anticipated this problem :-).
 
 
-same here(just posted the Oops).
-patch works:
+drivers/acpi/video_detect.c:
 
-Tested-by: Justin P. Mattock <justinmattock@gmail.com>
+long acpi_video_get_capabilities(acpi_handle graphics_handle)
+...
+		/* Add blacklists here. Be careful to use the right *DMI* bits
+		 * to still be able to override logic via boot params, e.g.:
+		 *
+		 *   if (dmi_name_in_vendors("XY")) {
+...
+		 *	acpi_video_support |=
+		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+		 *}
+		 */
 
-I actually was getting excited to do a bisect
-(I'm a glutton for pain!!).
+Regards
+Alan
 
-Justin P. Mattock
+------------------------------------------------------------------------------
+Download Intel&#174; Parallel Studio Eval
+Try the new software tools for yourself. Speed compiling, find bugs
+proactively, and fine-tune applications for parallel performance.
+See why Intel Parallel Studio got high marks during beta.
+http://p.sf.net/sfu/intel-sw-dev
