@@ -1,86 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
-Date: Fri, 16 Apr 2010 20:00:29 +0200
-Message-ID: <201004162000.29861.rjw@sisk.pl>
-References: <20100401133923.GA4104@tiehlicka.suse.cz> <201004132253.37432.rjw@sisk.pl> <20100414075808.GA4202@tiehlicka.suse.cz>
+From: =?UTF-8?B?RMOibmllbA==?= Fraga <fragabr@gmail.com>
+Subject: Linux doesn't shutdown (turn off) the computer
+Date: Fri, 16 Apr 2010 15:06:17 -0300
+Message-ID: <phlm97-dol.ln1@tux.abusar.org.br>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40178 "EHLO ogre.sisk.pl"
+Received: from lo.gmane.org ([80.91.229.12]:50429 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753871Ab0DPR5l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Apr 2010 13:57:41 -0400
-In-Reply-To: <20100414075808.GA4202@tiehlicka.suse.cz>
+	id S1757722Ab0DPSPF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Apr 2010 14:15:05 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1O2q4F-0008Q0-FL
+	for linux-acpi@vger.kernel.org; Fri, 16 Apr 2010 20:15:03 +0200
+Received: from 189.62.197.41 ([189.62.197.41])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Apr 2010 20:15:03 +0200
+Received: from fragabr by 189.62.197.41 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Apr 2010 20:15:03 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Hocko <mhocko@suse.cz>
-Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday 14 April 2010, Michal Hocko wrote:
-> On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
-> > On Tuesday 13 April 2010, Michal Hocko wrote:
-> > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
-> > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
-> > > > > On Friday 09 April 2010, Tony Vroon wrote:
-> > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
-> > > > > > > Please check if the patch below changes anything.
-> > > > > > >  drivers/acpi/wakeup.c |    4 ++--
-> > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > > > > 
-> > > > > > That didn't change the behaviour for me, sorry.
-> > > > > 
-> > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
-> > > > > 
-> > > > > > (I made sure to go through a full power down session before trying the
-> > > > > > patched kernel)
-> > > > > 
-> > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
-> > > > > 
-> > > > > I'll try to figure out what's going on, please stay tuned.
-> > > > 
-> > > > Can you please check if the patch below changes the behavior?
-> > > 
-> > > Unfortunately, it didn't help either (I have tried on top of the fresh
-> > > rc4).
-> > 
-> > That gets really weird.
-> > 
-> > > > ---
-> > > >  drivers/acpi/wakeup.c |    6 +++---
-> > > >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > > > 
-> > > > Index: linux-2.6/drivers/acpi/wakeup.c
-> > > > ===================================================================
-> > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
-> > > > +++ linux-2.6/drivers/acpi/wakeup.c
-> > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
-> > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-> > > >  		struct acpi_device *dev =
-> > > >  			container_of(node, struct acpi_device, wakeup_list);
-> > > > +		u8 action = ACPI_GPE_ENABLE;
-> > 
-> > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
-> 
-> Unfortunately didn't help as well...
-> Just for reference:
-> 
-> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-> index 248b473..f23c08f 100644
-> --- a/drivers/acpi/wakeup.c
-> +++ b/drivers/acpi/wakeup.c
-> @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  			container_of(node, struct acpi_device, wakeup_list);
-> -		u8 action = ACPI_GPE_ENABLE;
-> +		u8 action = ACPI_GPE_DISABLE;
+	I've been using Linux since 1997 and started with Slackware
+3.1 with an AT case.
 
-That probably means the chipset enables the GPEs by itself _after_ we've
-disabled them in acpi_enable_wakeup_device().
+	Then some time after, I upgraded the system to a ATX case and
+ATX power supply of course. Unfortunately Linux never turn the computer
+off after shutdown. It *always* stay at the "System halted" screen and
+I have to press for 4 seconds the power button for the computer to
+turn off.
 
-Unfortunately, I can't reproduce the issue on any of my test boxes and it's
-hard to find the source of the problem staring at the code.
+	With Windows everything works perfectly...
 
-Rafael
+	I tested this Linux system with 3 different motherboards and
+the problem remains.
+
+	So, is it a ACPI issue, configuration? What logs or information
+do you need to properly debug this?
+
+	Now I'm using Linux 2.6.33.
+
+	Thanks.
+
+	Ps: my question is: what happens after the "System halted"
+message? The kernel sends a signal to the motherboard, BIOS, whatever
+to shutdown the computer? Maybe something is blocking it? Thanks.
+
+-- 
+Linux 2.6.33: Man-Eating Seals of Antiquity
+
+
