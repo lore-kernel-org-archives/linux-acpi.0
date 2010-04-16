@@ -1,76 +1,86 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH] ACPI: EC: limit multibyte access to EC to 8 byte
-Date: Fri, 16 Apr 2010 21:24:31 +0400
-Message-ID: <4BC89D4F.8060509@suse.de>
-References: <1271434066-7292-1-git-send-email-alexander.rauth@promotion-ie.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Fri, 16 Apr 2010 20:00:29 +0200
+Message-ID: <201004162000.29861.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <201004132253.37432.rjw@sisk.pl> <20100414075808.GA4202@tiehlicka.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:49954 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751710Ab0DPRYd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Apr 2010 13:24:33 -0400
-In-Reply-To: <1271434066-7292-1-git-send-email-alexander.rauth@promotion-ie.de>
+Received: from ogre.sisk.pl ([217.79.144.158]:40178 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753871Ab0DPR5l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Apr 2010 13:57:41 -0400
+In-Reply-To: <20100414075808.GA4202@tiehlicka.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Rauth <alexander.rauth@promotion-ie.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Hi Alexander,
+On Wednesday 14 April 2010, Michal Hocko wrote:
+> On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
+> > On Tuesday 13 April 2010, Michal Hocko wrote:
+> > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > > > > On Friday 09 April 2010, Tony Vroon wrote:
+> > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > > > > Please check if the patch below changes anything.
+> > > > > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > > > 
+> > > > > > That didn't change the behaviour for me, sorry.
+> > > > > 
+> > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > > > > 
+> > > > > > (I made sure to go through a full power down session before trying the
+> > > > > > patched kernel)
+> > > > > 
+> > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > > > > 
+> > > > > I'll try to figure out what's going on, please stay tuned.
+> > > > 
+> > > > Can you please check if the patch below changes the behavior?
+> > > 
+> > > Unfortunately, it didn't help either (I have tried on top of the fresh
+> > > rc4).
+> > 
+> > That gets really weird.
+> > 
+> > > > ---
+> > > >  drivers/acpi/wakeup.c |    6 +++---
+> > > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > > 
+> > > > Index: linux-2.6/drivers/acpi/wakeup.c
+> > > > ===================================================================
+> > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
+> > > > +++ linux-2.6/drivers/acpi/wakeup.c
+> > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+> > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > >  		struct acpi_device *dev =
+> > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > +		u8 action = ACPI_GPE_ENABLE;
+> > 
+> > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
+> 
+> Unfortunately didn't help as well...
+> Just for reference:
+> 
+> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+> index 248b473..f23c08f 100644
+> --- a/drivers/acpi/wakeup.c
+> +++ b/drivers/acpi/wakeup.c
+> @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+>  		struct acpi_device *dev =
+>  			container_of(node, struct acpi_device, wakeup_list);
+> -		u8 action = ACPI_GPE_ENABLE;
+> +		u8 action = ACPI_GPE_DISABLE;
 
-Thanks, but we already have patch to do just that.
-See https://bugzilla.kernel.org/show_bug.cgi?id=3D15749
+That probably means the chipset enables the GPEs by itself _after_ we've
+disabled them in acpi_enable_wakeup_device().
 
-Regards,
-Alex.
+Unfortunately, I can't reproduce the issue on any of my test boxes and it's
+hard to find the source of the problem staring at the code.
 
-16.04.2010 20:07, Alexander Rauth =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> commit dadf28a10c3eb29421837a2e413ab869ebd9e168 enabled multibyte
-> access to EC, but ignored that the consuming function expects the
-> bitfields to be in chunks of maximal 64 bit. So limit multibyte
-> access to 8 byte to prevent error in the ACPI layer.
->
-> Signed-off-by: Alexander Rauth<alexander.rauth@promotion-ie.de>
-> ---
->   drivers/acpi/acpica/exprep.c |   17 +++++++++++------
->   1 files changed, 11 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/expre=
-p.c
-> index a610ebe..58659af 100644
-> --- a/drivers/acpi/acpica/exprep.c
-> +++ b/drivers/acpi/acpica/exprep.c
-> @@ -471,13 +471,18 @@ acpi_status acpi_ex_prep_field_value(struct acp=
-i_create_field_info *info)
->   		/* allow full data read from EC address space */
->   		if (obj_desc->field.region_obj->region.space_id =3D=3D
->   			ACPI_ADR_SPACE_EC) {
-> -			if (obj_desc->common_field.bit_length>  8)
-> -				obj_desc->common_field.access_bit_width =3D
-> -				ACPI_ROUND_UP(obj_desc->common_field.
-> -							bit_length, 8);
-> +			if (obj_desc->common_field.bit_length>  8) {
-> +				if (obj_desc->common_field.bit_length<=3D 64) {
-> +					obj_desc->common_field.access_bit_width =3D
-> +						ACPI_ROUND_UP(obj_desc->common_field.
-> +						bit_length, 8);
-> +				} else {
-> +					obj_desc->common_field.access_bit_width =3D 64;
-> +				}=09
->   				obj_desc->common_field.access_byte_width =3D
-> -				ACPI_DIV_8(obj_desc->common_field.
-> -							access_bit_width);
-> +					ACPI_DIV_8(obj_desc->common_field.
-> +					access_bit_width);
-> +			}
->   		}
->
->   		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
