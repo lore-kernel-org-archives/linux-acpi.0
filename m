@@ -1,59 +1,73 @@
-From: <pat-lkml@erley.org>
-Subject: Working DSDT+SSDT, what's =?UTF-8?Q?next=3F?=
-Date: Fri, 16 Apr 2010 14:42:46 -0400
-Message-ID: <f95d4e7ce96630fd1e07c05fd8ab2504@127.0.0.1>
+From: Len Brown <lenb@kernel.org>
+Subject: [git pull request] ACPI patch for 2.6.34-rc4
+Date: Fri, 16 Apr 2010 17:46:53 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004161745410.4449@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from li59-9.members.linode.com ([97.107.129.9]:54297 "EHLO erley.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757722Ab0DPSvl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Apr 2010 14:51:41 -0400
-Received: from home.erley.org (pool-71-115-176-202.gdrpmi.dsl-w.verizon.net [71.115.176.202])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: pat)
-	by erley.org (Postfix) with ESMTPSA id 30F6D287C7
-	for <linux-acpi@vger.kernel.org>; Fri, 16 Apr 2010 18:41:19 +0000 (UTC)
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46426 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932420Ab0DPVrM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Apr 2010 17:47:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Ok, first time poster, long time reader.  
+Hi Linus,
 
-I have a Clevo D900T mobo based laptop.  These were only ever produced
-with p4 5xx series chips, but the chipset (ICH6) supports the 6xx series. 
-Because it was never produced with a 6xx cpu, a bios was never released
-that supported things like EIST or EM64T.  EM64T worked fine, out of the
-box.  EIST did not (due to no SSDT tables with PSS/PCT/PPC methods).  I was
-able to get EIST working with a hacked-up DSDT, but I'm curious if I'm
-doing everything I should.
+please pull from: 
 
-Intel CPU Spec: http://processorfinder.intel.com/details.aspx?sSpec=SL8Q7
-Intel Data Sheet:
-http://download.intel.com/design/Pentium4/datashts/303128.pdf
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-Right now, I just have 2 C States, for 3.0Ghz and 2.8Ghz.  It's my
-understanding that these are the only speeds EIST can do in this CPU.  
+fixes a popular 2.6.34-rc4 regression.
 
-now, the questions:
+This will update the files shown below.
 
-1. Is there something I should be doing with a _CSD type entry in my
-CPU{0,1} entries to signify that they're HT?
-2. How can I verify that EIST is actually working?
-3. How do I determine VID values? 
-   a. I've just lowered VID 1 by 1, loading the system until it became
-unstable, at which point I added 1 and called it good
-   b. Is there any advantage to multiple VID's with 1 VID?  IE:
-3ghz@1.45V, 3Ghz@1.25V
-4. in the PSS table, the first entry (3000,2800 in my case), are those
-just for show?
-5. Are there additional features the CPU supports that, due to bios
-limitation, I should enable this way (C1E?)
+thanks!
 
-outline of what I've done: http://pat.erley.org/Other/P4EISTSSDT
+--
+Len Brown
+Intel Open Source Technology Center
 
-Pat Erley
 
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.34/acpi-release-20100121-2.6.34-rc4.diff.gz
+
+ drivers/acpi/acpica/exprep.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
+
+through these commits:
+
+Alexey Starikovskiy (1):
+      ACPI: EC: Limit burst to 64 bits
+
+with this log:
+
+commit bc3966921ff9528ae44a4a108085ab06107c1e7d
+Merge: dc57da3 2060c44
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Apr 16 16:08:07 2010 -0400
+
+    Merge branch 'bugzilla-15749' into release
+
+commit 2060c44576c79086ff24718878d7edaa7384a985
+Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+Date:   Fri Apr 16 15:36:40 2010 -0400
+
+    ACPI: EC: Limit burst to 64 bits
+    
+    access_bit_width field is u8 in ACPICA, thus 256 value written to it
+    becomes 0, causing divide by zero later.
+    
+    Proper fix would be to remove access_bit_width at all, just because
+    we already have access_byte_width, which is access_bit_width / 8.
+    Limit access width to 64 bit for now.
+    
+    https://bugzilla.kernel.org/show_bug.cgi?id=15749
+    fixes regression caused by the fix for:
+    https://bugzilla.kernel.org/show_bug.cgi?id=14667
+    
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
