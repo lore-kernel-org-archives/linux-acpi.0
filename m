@@ -1,73 +1,70 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [git pull request] ACPI patch for 2.6.34-rc4
-Date: Fri, 16 Apr 2010 17:46:53 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1004161745410.4449@localhost.localdomain>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Looking for some pointers on WMI/EC access
+Date: Sat, 17 Apr 2010 17:37:33 +0200
+Message-ID: <1271518653.4549.186.camel@flunder>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:46426 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932420Ab0DPVrM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Apr 2010 17:47:12 -0400
+Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]:33551
+	"EHLO butterbrot.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863Ab0DQPse (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Apr 2010 11:48:34 -0400
+Received: from [192.168.178.27] (unknown [93.104.92.96])
+	(using SSLv3 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by butterbrot.org (Postfix) with ESMTPSA id 0E4EA15407A
+	for <linux-acpi@vger.kernel.org>; Sat, 17 Apr 2010 17:39:14 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Hello everyone,
 
-please pull from: 
+I've just bought an Ideapad S10-3t, and most features including ACPI
+work fine. However, since neither thinkpad-acpi nor lenovo-sl-laptop
+support this device, I've been looking around for some hints on how to
+access the embedded controller in order to get the hotkeys working. I'l=
+l
+post what I've found so far and hope that somebody could give me some
+hints as to how to proceed.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+=46irst, I've dumped the DSDT and browsed through it. I've found a _WDT
+section, and wmidump shows:
 
-fixes a popular 2.6.34-rc4 regression.
+ABBC0F20-8EA1-11D1-00A0-C90629100000:
+	object_id: =EF=BF=BD
+	notify_id: 80
+	reserved: 00
+	instance_count: 1
+	flags: 0x8 ACPI_WMI_EVENT=20
+ABBC0F40-8EA1-11D1-00A0-C90629100000:
+	object_id: IO
+	notify_id: 49
+	reserved: 4F
+	instance_count: 1
+	flags: 0x1 ACPI_WMI_EXPENSIVE=20
+05901221-D566-11D1-B2F0-00A0C9062910:
+	object_id: AE
+	notify_id: 41
+	reserved: 45
+	instance_count: 1
+	flags: 0
 
-This will update the files shown below.
+As this laptop also runs some kind of Splashtop instant-on Linux called
+Lenovo Quickstart, I've decided to extract the initrd from its kernel
+(*) and browse through the modules. Interestingly, I've found a
+lenovo_ec.ko: strings shows that it accesses some DSDT elements which
+are present on the S10-3t. Would it make sense to disassemble this?
 
-thanks!
+Yours, Florian
+
+(*) The Splashtop kernel is obfuscated in the most stupid way
+imaginable: XOR "encryption" with 'QWER' as key. Need I say more?
+
 
 --
-Len Brown
-Intel Open Source Technology Center
-
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.34/acpi-release-20100121-2.6.34-rc4.diff.gz
-
- drivers/acpi/acpica/exprep.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
-
-through these commits:
-
-Alexey Starikovskiy (1):
-      ACPI: EC: Limit burst to 64 bits
-
-with this log:
-
-commit bc3966921ff9528ae44a4a108085ab06107c1e7d
-Merge: dc57da3 2060c44
-Author: Len Brown <len.brown@intel.com>
-Date:   Fri Apr 16 16:08:07 2010 -0400
-
-    Merge branch 'bugzilla-15749' into release
-
-commit 2060c44576c79086ff24718878d7edaa7384a985
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Fri Apr 16 15:36:40 2010 -0400
-
-    ACPI: EC: Limit burst to 64 bits
-    
-    access_bit_width field is u8 in ACPICA, thus 256 value written to it
-    becomes 0, causing divide by zero later.
-    
-    Proper fix would be to remove access_bit_width at all, just because
-    we already have access_byte_width, which is access_bit_width / 8.
-    Limit access width to 64 bit for now.
-    
-    https://bugzilla.kernel.org/show_bug.cgi?id=15749
-    fixes regression caused by the fix for:
-    https://bugzilla.kernel.org/show_bug.cgi?id=14667
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
