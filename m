@@ -1,108 +1,96 @@
-From: Michal Hocko <mhocko@suse.cz>
-Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
-Date: Mon, 19 Apr 2010 13:59:42 +0200
-Message-ID: <20100419115942.GC5160@tiehlicka.suse.cz>
-References: <20100401133923.GA4104@tiehlicka.suse.cz>
- <201004132253.37432.rjw@sisk.pl>
- <20100414075808.GA4202@tiehlicka.suse.cz>
- <201004162000.29861.rjw@sisk.pl>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Re: Looking for some pointers on WMI/EC access
+Date: Mon, 19 Apr 2010 16:25:30 +0200
+Message-ID: <1271687130.26267.147.camel@pancake>
+References: <1271518653.4549.186.camel@flunder>
+	 <q2s71cd59b01004181221kce7c1e5cn7742b1063827ac3b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:58965 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753953Ab0DSL7p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Apr 2010 07:59:45 -0400
-Content-Disposition: inline
-In-Reply-To: <201004162000.29861.rjw@sisk.pl>
+Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]:50232
+	"EHLO butterbrot.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754800Ab0DSOZd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Apr 2010 10:25:33 -0400
+In-Reply-To: <q2s71cd59b01004181221kce7c1e5cn7742b1063827ac3b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-On Fri 16-04-10 20:00:29, Rafael J. Wysocki wrote:
-> On Wednesday 14 April 2010, Michal Hocko wrote:
-> > On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
-> > > On Tuesday 13 April 2010, Michal Hocko wrote:
-> > > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
-> > > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
-> > > > > > On Friday 09 April 2010, Tony Vroon wrote:
-> > > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
-> > > > > > > > Please check if the patch below changes anything.
-> > > > > > > >  drivers/acpi/wakeup.c |    4 ++--
-> > > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > > > > > 
-> > > > > > > That didn't change the behaviour for me, sorry.
-> > > > > > 
-> > > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
-> > > > > > 
-> > > > > > > (I made sure to go through a full power down session before trying the
-> > > > > > > patched kernel)
-> > > > > > 
-> > > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
-> > > > > > 
-> > > > > > I'll try to figure out what's going on, please stay tuned.
-> > > > > 
-> > > > > Can you please check if the patch below changes the behavior?
-> > > > 
-> > > > Unfortunately, it didn't help either (I have tried on top of the fresh
-> > > > rc4).
-> > > 
-> > > That gets really weird.
-> > > 
-> > > > > ---
-> > > > >  drivers/acpi/wakeup.c |    6 +++---
-> > > > >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > > > > 
-> > > > > Index: linux-2.6/drivers/acpi/wakeup.c
-> > > > > ===================================================================
-> > > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
-> > > > > +++ linux-2.6/drivers/acpi/wakeup.c
-> > > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
-> > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-> > > > >  		struct acpi_device *dev =
-> > > > >  			container_of(node, struct acpi_device, wakeup_list);
-> > > > > +		u8 action = ACPI_GPE_ENABLE;
-> > > 
-> > > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
-> > 
-> > Unfortunately didn't help as well...
-> > Just for reference:
-> > 
-> > diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-> > index 248b473..f23c08f 100644
-> > --- a/drivers/acpi/wakeup.c
-> > +++ b/drivers/acpi/wakeup.c
-> > @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
-> >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-> >  		struct acpi_device *dev =
-> >  			container_of(node, struct acpi_device, wakeup_list);
-> > -		u8 action = ACPI_GPE_ENABLE;
-> > +		u8 action = ACPI_GPE_DISABLE;
-> 
-> That probably means the chipset enables the GPEs by itself _after_ we've
-> disabled them in acpi_enable_wakeup_device().
+Am Sonntag, den 18.04.2010, 21:21 +0200 schrieb Corentin Chary:
+> On Sat, Apr 17, 2010 at 5:37 PM, Florian Echtler <floe@butterbrot.org=
+> wrote:
+> > I've just bought an Ideapad S10-3t, and most features including ACP=
+I
+> > work fine. However, since neither thinkpad-acpi nor lenovo-sl-lapto=
+p
+> > support this device, I've been looking around for some hints on how=
+ to
+> > access the embedded controller in order to get the hotkeys working.=
+ I'll
+> > post what I've found so far and hope that somebody could give me so=
+me
+> > hints as to how to proceed.
+> > First, I've dumped the DSDT and browsed through it. I've found a _W=
+DT
+> > section, and wmidump shows:
+> Wow, someone actually used that tool ^^
+> A Quick hint would be to look at
+> https://patchwork.kernel.org/patch/87210/ which is basically a really
+> short example of what a wmi-driver is.
+> Just change the guid, buid/load, push some hotkeys, see dmesg, edit
+> the keymap, build, load, test ..
+Thanks for the pointer - I've given it a quick try and the driver loads
+successfully, however, the event doesn't seem to be triggered. I've put
+a printk into the eeepc_wmi_notify function, and this is seemingly neve=
+r
+called.. although I believe this may be the right direction, as the GUI=
+D
+from the eeepc driver (ABBC0F72-8EA1-11D1-00A0-C90629100000) and the on=
+e
+from my Lenovo (ABBC0F20-8EA1-11D1-00A0-C90629100000) differ only by a
+single byte. Could this event be disabled somehow?=20
 
-Is this something BIOS specific?
+> > ABBC0F20-8EA1-11D1-00A0-C90629100000:
+> >        object_id: =EF=BF=BD
+> >        notify_id: 80
+> >        reserved: 00
+> >        instance_count: 1
+> >        flags: 0x8 ACPI_WMI_EVENT
+> > ABBC0F40-8EA1-11D1-00A0-C90629100000:
+> >        object_id: IO
+> >        notify_id: 49
+> >        reserved: 4F
+> >        instance_count: 1
+> >        flags: 0x1 ACPI_WMI_EXPENSIVE
+> > 05901221-D566-11D1-B2F0-00A0C9062910:
+> >        object_id: AE
+> >        notify_id: 41
+> >        reserved: 45
+> >        instance_count: 1
+> >        flags: 0
+Corresponding to the 2nd GUID, there's also a WQIO method in my DSDT
+which should return a data block, correct?
 
-> 
-> Unfortunately, I can't reproduce the issue on any of my test boxes and it's
-> hard to find the source of the problem staring at the code.
+> > As this laptop also runs some kind of Splashtop instant-on Linux ca=
+lled
+> > Lenovo Quickstart, I've decided to extract the initrd from its kern=
+el
+> > (*) and browse through the modules. Interestingly, I've found a
+> > lenovo_ec.ko: strings shows that it accesses some DSDT elements whi=
+ch
+> > are present on the S10-3t. Would it make sense to disassemble this?
+> You can also try to see if the manufacturer give some sources or ask =
+them to ...
+I've done that, let's see if I will get some response.
 
-Are there any debug options I can turn on to provide some information?
+=46lorian
+--=20
+0666 - Filemode of the Beast
 
-Btw. what exactly does this mean? In what state is the laptop while it
-is turned off and GPE is enabled?
-
-Thanks!
-
-> 
-> Rafael
-
--- 
-Michal Hocko
-L3 team 
-SUSE LINUX s.r.o.
-Lihovarska 1060/12
-190 00 Praha 9    
-Czech Republic
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
