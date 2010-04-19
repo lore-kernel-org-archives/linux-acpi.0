@@ -1,23 +1,23 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+From: Thomas Backlund <tmb@mandriva.org>
 Subject: Re: MacBookPro2,2 unable too boot with the latest HEAD
-Date: Mon, 19 Apr 2010 15:09:10 -0700
-Message-ID: <4BCCD486.9050006@gmail.com>
+Date: Tue, 20 Apr 2010 01:02:04 +0300
+Message-ID: <4BCCD2DC.7040301@mandriva.org>
 References: <i2vdd18b0c31004140812i6a0e9430u68ab49b24273fe9b@mail.gmail.com>	<20100419142804.3cd53666.akpm@linux-foundation.org>	<4BCCCCDF.4010605@gmail.com> <20100419145741.95688467.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f171.google.com ([209.85.210.171]:65009 "EHLO
-	mail-yx0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319Ab0DSWHt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Apr 2010 18:07:49 -0400
+Received: from mbox2.netikka.net ([213.250.81.203]:51749 "EHLO
+	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752423Ab0DSWJd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Apr 2010 18:09:33 -0400
 In-Reply-To: <20100419145741.95688467.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "Justin P. Mattock" <justinmattock@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On 04/19/2010 02:57 PM, Andrew Morton wrote:
+On 20.4.2010 00:57, Andrew Morton wrote:
 > On Mon, 19 Apr 2010 14:36:31 -0700
 > "Justin P. Mattock"<justinmattock@gmail.com>  wrote:
 >
@@ -59,17 +59,11 @@ On 04/19/2010 02:57 PM, Andrew Morton wrote:
 >
 > hm.  I wonder how you go from a bugzilla attachment back up tot he bug
 > to which it is attached?
-
-I don't know.. maybe backwards thinking(me lefthanded people
-suffer from things of that nature).
-
 >
 > Oh well.  Alexey, I trust that patch is in the 2.6.34 queue?
 >
-> Thanks.
->
 
+It's already in Linus tree, commit 2060c44576c79086ff24718878d7edaa7384a985
 
-cool..
-
-Justin P. Mattock
+--
+Thomas
