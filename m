@@ -1,63 +1,108 @@
-From: =?ISO-8859-15?Q?Robert_W=F6rle?= <robert@linuxdevelopment.de>
-Subject: Black screen-dead unit on S3 resume - Intel Atom
-Date: Mon, 19 Apr 2010 12:00:51 +0200
-Message-ID: <4BCC29D3.9030405@linuxdevelopment.de>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Mon, 19 Apr 2010 13:59:42 +0200
+Message-ID: <20100419115942.GC5160@tiehlicka.suse.cz>
+References: <20100401133923.GA4104@tiehlicka.suse.cz>
+ <201004132253.37432.rjw@sisk.pl>
+ <20100414075808.GA4202@tiehlicka.suse.cz>
+ <201004162000.29861.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:55237 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab0DSKAw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Apr 2010 06:00:52 -0400
+Received: from cantor.suse.de ([195.135.220.2]:58965 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753953Ab0DSL7p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Apr 2010 07:59:45 -0400
+Content-Disposition: inline
+In-Reply-To: <201004162000.29861.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Dear List
+On Fri 16-04-10 20:00:29, Rafael J. Wysocki wrote:
+> On Wednesday 14 April 2010, Michal Hocko wrote:
+> > On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
+> > > On Tuesday 13 April 2010, Michal Hocko wrote:
+> > > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> > > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > > > > > On Friday 09 April 2010, Tony Vroon wrote:
+> > > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > > > > > Please check if the patch below changes anything.
+> > > > > > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > > > > 
+> > > > > > > That didn't change the behaviour for me, sorry.
+> > > > > > 
+> > > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > > > > > 
+> > > > > > > (I made sure to go through a full power down session before trying the
+> > > > > > > patched kernel)
+> > > > > > 
+> > > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > > > > > 
+> > > > > > I'll try to figure out what's going on, please stay tuned.
+> > > > > 
+> > > > > Can you please check if the patch below changes the behavior?
+> > > > 
+> > > > Unfortunately, it didn't help either (I have tried on top of the fresh
+> > > > rc4).
+> > > 
+> > > That gets really weird.
+> > > 
+> > > > > ---
+> > > > >  drivers/acpi/wakeup.c |    6 +++---
+> > > > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > > > 
+> > > > > Index: linux-2.6/drivers/acpi/wakeup.c
+> > > > > ===================================================================
+> > > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
+> > > > > +++ linux-2.6/drivers/acpi/wakeup.c
+> > > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+> > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > > >  		struct acpi_device *dev =
+> > > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > > +		u8 action = ACPI_GPE_ENABLE;
+> > > 
+> > > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
+> > 
+> > Unfortunately didn't help as well...
+> > Just for reference:
+> > 
+> > diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+> > index 248b473..f23c08f 100644
+> > --- a/drivers/acpi/wakeup.c
+> > +++ b/drivers/acpi/wakeup.c
+> > @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+> >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> >  		struct acpi_device *dev =
+> >  			container_of(node, struct acpi_device, wakeup_list);
+> > -		u8 action = ACPI_GPE_ENABLE;
+> > +		u8 action = ACPI_GPE_DISABLE;
+> 
+> That probably means the chipset enables the GPEs by itself _after_ we've
+> disabled them in acpi_enable_wakeup_device().
 
-I am approaching this list now as one of my last hopes i ve to fix S3 on
-Intel Atom based Tablet PC.
+Is this something BIOS specific?
 
-The overall description of the situation is as follows.
+> 
+> Unfortunately, I can't reproduce the issue on any of my test boxes and it's
+> hard to find the source of the problem staring at the code.
 
-- entereing into S3 via "echo mem > /sys/power/state will result in a
-suspend into the bios which is comparable to the one when running windows.
-The acitivity led starts blinking and it sits there. Power consumption
-measurments show the equally amounts of mA take.
+Are there any debug options I can turn on to provide some information?
 
-The system then reacts on the power button only with a changing power
-led to static. ( after around 1 sec)
-But that is all i can get as reaction.
-No hdd activity at all.
+Btw. what exactly does this mean? In what state is the laptop while it
+is turned off and GPE is enabled?
 
-So it stucks on the resume situation as early as acpi calls the waking
-vektor. That is my assumption.
+Thanks!
 
-Tests taken :
-- All /sys/power/pm_test  `scenarios runs fine without any obvious issue.
-- All test are done with mininal system scenario with only hdd, usb and
-framebuffer drivers compiled in.
-- s3_beep kernel option also doesnt beep on resume , beepdriver is
-compiled in.
-- testet various options, like acpi old_ordering, rsdt, sci_force_enable
-and some more
-- most tests where done on 2.6.34-rc1.  but others where with 2.6.27
-(openSuse 11.1) and 2.6.20
+> 
+> Rafael
 
-I am about to recieve a ami bios post code - debug card. That one should
-help to determine the bios side.
-
-So i am stuck without any further debug information beside the dmesg
-from the bootet system and the pm_test runs.
-
-
-I can attach or mail any log you guys want me to. Also i ve all acpidump
-`ed tables
-
-Any hints, help or suggstions are welcome at this point.
-
-Regards Rob
-
-
-
+-- 
+Michal Hocko
+L3 team 
+SUSE LINUX s.r.o.
+Lihovarska 1060/12
+190 00 Praha 9    
+Czech Republic
