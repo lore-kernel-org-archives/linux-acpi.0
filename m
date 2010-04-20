@@ -1,40 +1,106 @@
-From: Alex Chiang <achiang@canonical.com>
-Subject: Re: [PATCH] acpi: Fall back to manually changing SCI_EN
-Date: Tue, 20 Apr 2010 09:00:10 -0600
-Message-ID: <20100420150010.GA17935@canonical.com>
-References: <1271711614-15527-1-git-send-email-mjg@redhat.com>
+From: Jerone Young <jerone.young@canonical.com>
+Subject: Re: [PATCH] ACPI: DMI init_set_sci_en_on_resume for multiple
+ Lenovo ThinkPads
+Date: Tue, 20 Apr 2010 11:56:41 -0500
+Message-ID: <1271782601.25170.105.camel@laptop>
+References: <20100420140314.GA5573@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:52383 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab0DTPAP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Apr 2010 11:00:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1271711614-15527-1-git-send-email-mjg@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100420140314.GA5573@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Chiang <achiang@canonical.com>
+Cc: lenb@kernel.org, colin.king@canonical.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, stable@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-* Matthew Garrett <mjg@redhat.com>:
-> The ACPI spec tells us that the ACPI SCI_EN bit is under hardware control
-> and shouldn't be touched by the OS. It seems that the Leading Other OS
-> ignores this and some machines expect this behaviour. We have a blacklist
-> for these, but given that we're able to detect the failure case and the
-> alternative to breaking the spec is letting the machine crash and burn,
-> let's try falling back when we know the alternative is a mostly-dead
-> machine.
+Don't think this patch should go in as Lenovo is issuing a BIOS to
+address this issue. On these Thinkpads listed and more. Seems to add
+uneeded quirks in my opinion.
 
-Yes, we got a hint from a Lenovo BIOS developer:
+Though some over all patch may be good for all machines. As Windows
+seems to be setting this bit on it's own.
 
-	A SCI_EN bit had not been set at S3 resume post. It
-	should be set as ACPI defines. It seems that Windows OS
-	sets SCI_EN bit by itself after S3 resume....
+				Jerone
 
-So I believe that Matthew's approach is reasonably safe and
-correct.
-
-Acked-by: Alex Chiang <achiang@canonical.com>
-
-/ac
+On Tue, 2010-04-20 at 08:03 -0600, Alex Chiang wrote:
+> Multiple Lenovo ThinkPad models with Intel Core i5/i7 CPUs can
+> successfully suspend/resume once, and then hang on the second s/r
+> cycle.
+> 
+> We got confirmation that this was due to a BIOS defect. The BIOS
+> did not properly set SCI_EN coming out of S3. The BIOS guys
+> hinted that The Other Leading OS ignores the fact that hardware
+> owns the bit and sets it manually.
+> 
+> In any case, an existing DMI table exists for machines where this
+> defect is a known problem. Lenovo promise to fix their BIOS, but
+> for folks who either won't or can't upgrade their BIOS, allow
+> Linux to workaround the issue.
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=15407
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/532374
+> 
+> Confirmed by numerous testers in the launchpad bug that using
+> acpi_sleep=sci_force_enable fixes the issue. We add the machines
+> to acpisleep_dmi_table[] to automatically enable this workaround.
+> 
+> Cc: stable@kernel.org
+> Cc: Colin King <colin.king@canonical.com>
+> Signed-off-by: Alex Chiang <achiang@canonical.com>
+> ---
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index f74834a..ce54cd0 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -450,6 +450,46 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+>  		},
+>  	},
+>  	{
+> +	.callback = init_set_sci_en_on_resume,
+> +	.ident = "Lenovo ThinkPad T410",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T410"),
+> +		},
+> +	},
+> +	{
+> +	.callback = init_set_sci_en_on_resume,
+> +	.ident = "Lenovo ThinkPad T510",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T510"),
+> +		},
+> +	},
+> +	{
+> +	.callback = init_set_sci_en_on_resume,
+> +	.ident = "Lenovo ThinkPad W510",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
+> +		},
+> +	},
+> +	{
+> +	.callback = init_set_sci_en_on_resume,
+> +	.ident = "Lenovo ThinkPad X201",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
+> +		},
+> +	},
+> +	{
+> +	.callback = init_set_sci_en_on_resume,
+> +	.ident = "Lenovo ThinkPad X201",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201s"),
+> +		},
+> +	},
+> +	{
+>  	.callback = init_old_suspend_ordering,
+>  	.ident = "Panasonic CF51-2L",
+>  	.matches = {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
