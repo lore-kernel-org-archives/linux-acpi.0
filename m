@@ -1,37 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: DMI init_set_sci_en_on_resume for multiple Lenovo ThinkPads
-Date: Tue, 20 Apr 2010 21:01:10 +0200
-Message-ID: <201004202101.10245.rjw@sisk.pl>
-References: <20100420140314.GA5573@canonical.com> <1271783936.25170.131.camel@laptop> <20100420172419.GA9719@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] x86/PCI: parse additional host bridge window resource types
+Date: Tue, 20 Apr 2010 13:52:41 -0600
+Message-ID: <20100420195241.13265.93577.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52725 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753234Ab0DTTAb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Apr 2010 15:00:31 -0400
-In-Reply-To: <20100420172419.GA9719@srcf.ucam.org>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:17454 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754798Ab0DTTwn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Apr 2010 15:52:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jerone Young <jerone.young@canonical.com>, Alex Chiang <achiang@canonical.com>, lenb@kernel.org, colin.king@canonical.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, stable@kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Tuesday 20 April 2010, Matthew Garrett wrote:
-> On Tue, Apr 20, 2010 at 12:18:56PM -0500, Jerone Young wrote:
-> 
-> > I could agree, but the only issue is if you go to the thinkpad-acpi or
-> > ibm-acpi mailing list they would probably disagree as there have been
-> > updates to the bios in the past required for proper functionality of
-> > Thinkpads ;-) .. the bios update methods have not changed since then for
-> > Thinkpads.
-> 
-> If another OS works, and if Linux can be made to work without impairing 
-> the functionality of working machines, then Linux should be made to 
-> work. Always. Updating the BIOS should be limited to cases where it's 
-> impossible to fix things up in the OS.
 
-Agreed.
+This adds support for Memory24, Memory32, and Memory32Fixed descriptors in
+PCI host bridge _CRS.
 
-Rafael
+I experimentally determined that Windows (2008 R2) accepts these descriptors
+and treats them as windows that are forwarded to the PCI bus, e.g., if
+it finds any PCI devices with BARs outside the windows, it moves them into
+the windows.
+
+I don't know whether any machines actually use these descriptors in PCI
+host bridge _CRS methods, but if any exist and they're new enough that we
+automatically turn on "pci=use_crs", they will work with Windows but not
+with Linux.
+
+Here are the details: https://bugzilla.kernel.org/show_bug.cgi?id=15817
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+
+ arch/x86/pci/acpi.c |   43 +++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 37 insertions(+), 6 deletions(-)
+
+
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 334153c..44f83ce 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -66,13 +66,44 @@ resource_to_addr(struct acpi_resource *resource,
+ 			struct acpi_resource_address64 *addr)
+ {
+ 	acpi_status status;
+-
+-	status = acpi_resource_to_address64(resource, addr);
+-	if (ACPI_SUCCESS(status) &&
+-	    (addr->resource_type == ACPI_MEMORY_RANGE ||
+-	    addr->resource_type == ACPI_IO_RANGE) &&
+-	    addr->address_length > 0) {
++	struct acpi_resource_memory24 *memory24;
++	struct acpi_resource_memory32 *memory32;
++	struct acpi_resource_fixed_memory32 *fixed_memory32;
++
++	memset(addr, 0, sizeof(*addr));
++	switch (resource->type) {
++	case ACPI_RESOURCE_TYPE_MEMORY24:
++		memory24 = &resource->data.memory24;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = memory24->minimum;
++		addr->address_length = memory24->address_length;
++		addr->maximum = addr->minimum + addr->address_length - 1;
++		return AE_OK;
++	case ACPI_RESOURCE_TYPE_MEMORY32:
++		memory32 = &resource->data.memory32;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = memory32->minimum;
++		addr->address_length = memory32->address_length;
++		addr->maximum = addr->minimum + addr->address_length - 1;
+ 		return AE_OK;
++	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
++		fixed_memory32 = &resource->data.fixed_memory32;
++		addr->resource_type = ACPI_MEMORY_RANGE;
++		addr->minimum = fixed_memory32->address;
++		addr->address_length = fixed_memory32->address_length;
++		addr->maximum = addr->minimum + addr->address_length - 1;
++		return AE_OK;
++	case ACPI_RESOURCE_TYPE_ADDRESS16:
++	case ACPI_RESOURCE_TYPE_ADDRESS32:
++	case ACPI_RESOURCE_TYPE_ADDRESS64:
++		status = acpi_resource_to_address64(resource, addr);
++		if (ACPI_SUCCESS(status) &&
++		    (addr->resource_type == ACPI_MEMORY_RANGE ||
++		    addr->resource_type == ACPI_IO_RANGE) &&
++		    addr->address_length > 0) {
++			return AE_OK;
++		}
++		break;
+ 	}
+ 	return AE_ERROR;
+ }
+
