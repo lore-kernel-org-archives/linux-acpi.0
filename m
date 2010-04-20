@@ -1,60 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH]PM QOS refresh against next-20100430
-Date: Sat, 1 May 2010 01:08:28 +0200
-Message-ID: <201005010108.28593.rjw@sisk.pl>
-References: <20100430212043.GA30315@linux.intel.com> <201005010013.16262.rjw@sisk.pl> <20100430230529.GA31391@linux.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA Release 20100331 linuxized patches
+Date: Tue, 20 Apr 2010 10:51:17 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004201050330.2402@sony>
+References: <1270710730.3473.34.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:32917 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757386Ab0D3XIb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Apr 2010 19:08:31 -0400
-In-Reply-To: <20100430230529.GA31391@linux.intel.com>
+Received: from [12.175.186.2] ([12.175.186.2]:41717 "EHLO
+	vbn.0055647.lodgenet.net" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1758822Ab0EABoc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Apr 2010 21:44:32 -0400
+In-Reply-To: <1270710730.3473.34.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mgross@linux.intel.com
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, aili@codeaurora.org, dwalker@codeaurora.org, tiwai@suse.de, bruce.w.allan@intel.com, davidb@quicinc.com, mcgrof@gmail.com, pavel@ucw.cz, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "John W. Linville" <linville@tuxdriver.com>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Saturday 01 May 2010, mark gross wrote:
-> On Sat, May 01, 2010 at 12:13:16AM +0200, Rafael J. Wysocki wrote:
-> > On Friday 30 April 2010, mark gross wrote:
-> > > The following is a refresh of the PM_QOS implementation, this patch
-> > > updates some documentation input I got from Randy.
-> > > 
-> > > This patch changes the string based list management to a handle base
-> > > implementation to help with the hot path use of pm-qos, it also renames
-> > > much of the API to use "request" as opposed to "requirement" that was
-> > > used in the initial implementation.  I did this because request more
-> > > accurately represents what it actually does.
-> > > 
-> > > Also, I added a string based ABI for users wanting to use a string
-> > > interface.  So if the user writes 0xDDDDDDDD formatted hex it will be
-> > > accepted by the interface.  (someone asked me for it and I don't think
-> > > it hurts anything.)
-> > > 
-> > > I really would like to get this refresh taken care of.  Its been taking
-> > > me too long to close this.  please review or include it in next.
-> > > 
-> > > Thanks!
-> > 
-> > Well, I'd take it to suspend-2.6/linux-next, but first, it touches
-> > subsystems whose maintainers were not in the Cc list, like the network
-> > drivers, wireless and ACPI.  The changes are trivial, so I hope they don't
-> > mind.
-> > 
-> > Second, my tree is based on the Linus' tree rather than linux-next and
-> > the change in net/mac80211/scan.c doesn't seem to match that.  Please tell me
-> > what I'm supposed to do about that.
-> 
-> You can waite for monday and I'll send a rebased version to linus' tree.
-> 
-> I thought linux-next was where folks wanted me to put it.
-> 
-> I'll email out a new one monday.
+applied to acpi-test
+(and acpica branch re-based to 2.6.34-rc5 to allow 8/9 to apply)
 
-Great, thanks!
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Rafael
+On Thu, 8 Apr 2010, Lin Ming wrote:
+
+> Hi, Len
+> 
+> This patch series applied cleanly on top of your acpi/test branch.
+> Build and test on my machine and it works well.
+> 
+> [PATCH 1/9] ACPICA: Update comments/headers, no functional change
+> [PATCH 2/9] ACPICA: Fix for acpi_reallocate_root_table for incorrect root table copy
+> [PATCH 3/9] ACPICA: Add write support for DataTable operation regions
+> [PATCH 4/9] ACPICA: Add detection of corrupted/replaced DSDT
+> [PATCH 5/9] ACPICA: Add subsystem option to force copy of DSDT to local memory
+> [PATCH 6/9] ACPICA: Update DSDT copy/detection.
+> [PATCH 7/9] ACPI: add boot option acpi=copy_dsdt to fix corrupt DSDT
+> [PATCH 8/9] ACPICA: Minimize the differences between linux GPE code and ACPICA code base
+> [PATCH 9/9] ACPICA: Update version to 20100331.
+> 
+> Patch 7 includes the acpi=copy_dsdt option, DMI backlist and customized
+> ACPICA warning message for corrupt DSDT workaround (bug 14679).
+> 
+> Lin Ming
+> 
+> 
