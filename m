@@ -1,48 +1,32 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Low-Level and Long-Term Battery Control
-Date: Tue, 20 Apr 2010 15:37:24 +0200
-Message-ID: <20100420133724.GD8670@ucw.cz>
-References: <w2r45cc95261004130535y80da503ev5389bb4a97bdd58f@mail.gmail.com>
- <4BCBDCA1.9030500@myrealbox.com>
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Re: 2.6.34-rc5: Reported regressions from 2.6.33
+Date: Tue, 20 Apr 2010 09:56:36 -0400
+Message-ID: <20100420135636.GA10674@elliptictech.com>
+References: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ksp.mff.cuni.cz ([195.113.26.206]:52959 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751574Ab0DTNhh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Apr 2010 09:37:37 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4BCBDCA1.9030500@myrealbox.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@myrealbox.com>
-Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
+On 05:15 Tue 20 Apr     , Rafael J. Wysocki wrote:
+> If you know of any other unresolved regressions from 2.6.33, please let us
+> know either and we'll add them to the list.  Also, please let us know
+> if any of the entries below are invalid.
 
-> >Is there any function in the Linux kernel that control the
-> >charging/discharging of the battery to provide better lifespan ?
-> >(add some years to its life ?)
-> >
-> >For Laptops, it is better to extract the battery from the Laptop when
-> >the computer will be on power for a long period.
-> >I ask if the kernel can do such control without the user intention and
-> >in an automatic way.
-> >
-> >Some BIOS provide to the user to select whether to block the battery
-> >charging to 50% to make it stand for more time.
-> >And Many people (like me) forget their laptops on power until the
-> >battery no more can hold energy after 2minutes of no power.
-> >
-> 
-> On ThinkPads, tp_smapi (not in the kernel.org kernel) can do it.
-> I'd like to see this feature standardized in sysfs.
+Please list these two similar regressions from 2.6.33 in the r600 DRM:
 
-Yep, it does, and it would make sense to make it standardized. (But I
-don't think setting it as low as 50% is practical -- nor do I think
-anyone sets it this low).
-									Pavel
+ * r600 CS checker rejects GL_DEPTH_TEST w/o depth buffer:
+           https://bugs.freedesktop.org/show_bug.cgi?id=27571
+
+ * r600 CS checker rejects narrow FBO renderbuffers:
+           https://bugs.freedesktop.org/show_bug.cgi?id=27609
+
+Thanks.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
