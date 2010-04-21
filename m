@@ -1,96 +1,30 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] x86/PCI: parse additional host bridge window resource types
-Date: Tue, 20 Apr 2010 13:52:41 -0600
-Message-ID: <20100420195241.13265.93577.stgit@bob.kio>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:17454 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798Ab0DTTwn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Apr 2010 15:52:43 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.34-rc5: Reported regressions from 2.6.33
+Date: Tue, 20 Apr 2010 19:02:43 -0700 (PDT)
+Message-ID: <4bce5cc3.966bdc0a.2ef7.fffff5de@mx.google.com>
+References: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
+On Tue, 20 Apr 2010 05:15:57 +0200 (CEST), "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> This message contains a list of some regressions from 2.6.33,
+> for which there are no fixes in the mainline known to the tracking team.
+> If any of them have been fixed already, please let us know.
+> 
+> If you know of any other unresolved regressions from 2.6.33, please let us
+> know either and we'll add them to the list.  Also, please let us know
+> if any of the entries below are invalid.
+> 
 
-This adds support for Memory24, Memory32, and Memory32Fixed descriptors in
-PCI host bridge _CRS.
+I have recently reported this suspend regression on my Dell laptop hardware.
 
-I experimentally determined that Windows (2008 R2) accepts these descriptors
-and treats them as windows that are forwarded to the PCI bus, e.g., if
-it finds any PCI devices with BARs outside the windows, it moves them into
-the windows.
+References: http://lkml.org/lkml/2010/4/18/20
+Bug-report: https://bugzilla.kernel.org/show_bug.cgi?id=15820
 
-I don't know whether any machines actually use these descriptors in PCI
-host bridge _CRS methods, but if any exist and they're new enough that we
-automatically turn on "pci=use_crs", they will work with Windows but not
-with Linux.
+Thanks,
 
-Here are the details: https://bugzilla.kernel.org/show_bug.cgi?id=15817
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
-
- arch/x86/pci/acpi.c |   43 +++++++++++++++++++++++++++++++++++++------
- 1 files changed, 37 insertions(+), 6 deletions(-)
-
-
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 334153c..44f83ce 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -66,13 +66,44 @@ resource_to_addr(struct acpi_resource *resource,
- 			struct acpi_resource_address64 *addr)
- {
- 	acpi_status status;
--
--	status = acpi_resource_to_address64(resource, addr);
--	if (ACPI_SUCCESS(status) &&
--	    (addr->resource_type == ACPI_MEMORY_RANGE ||
--	    addr->resource_type == ACPI_IO_RANGE) &&
--	    addr->address_length > 0) {
-+	struct acpi_resource_memory24 *memory24;
-+	struct acpi_resource_memory32 *memory32;
-+	struct acpi_resource_fixed_memory32 *fixed_memory32;
-+
-+	memset(addr, 0, sizeof(*addr));
-+	switch (resource->type) {
-+	case ACPI_RESOURCE_TYPE_MEMORY24:
-+		memory24 = &resource->data.memory24;
-+		addr->resource_type = ACPI_MEMORY_RANGE;
-+		addr->minimum = memory24->minimum;
-+		addr->address_length = memory24->address_length;
-+		addr->maximum = addr->minimum + addr->address_length - 1;
-+		return AE_OK;
-+	case ACPI_RESOURCE_TYPE_MEMORY32:
-+		memory32 = &resource->data.memory32;
-+		addr->resource_type = ACPI_MEMORY_RANGE;
-+		addr->minimum = memory32->minimum;
-+		addr->address_length = memory32->address_length;
-+		addr->maximum = addr->minimum + addr->address_length - 1;
- 		return AE_OK;
-+	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-+		fixed_memory32 = &resource->data.fixed_memory32;
-+		addr->resource_type = ACPI_MEMORY_RANGE;
-+		addr->minimum = fixed_memory32->address;
-+		addr->address_length = fixed_memory32->address_length;
-+		addr->maximum = addr->minimum + addr->address_length - 1;
-+		return AE_OK;
-+	case ACPI_RESOURCE_TYPE_ADDRESS16:
-+	case ACPI_RESOURCE_TYPE_ADDRESS32:
-+	case ACPI_RESOURCE_TYPE_ADDRESS64:
-+		status = acpi_resource_to_address64(resource, addr);
-+		if (ACPI_SUCCESS(status) &&
-+		    (addr->resource_type == ACPI_MEMORY_RANGE ||
-+		    addr->resource_type == ACPI_IO_RANGE) &&
-+		    addr->address_length > 0) {
-+			return AE_OK;
-+		}
-+		break;
- 	}
- 	return AE_ERROR;
- }
-
+- Ben
