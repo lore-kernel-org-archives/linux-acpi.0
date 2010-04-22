@@ -1,30 +1,39 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] pci: Ensure we re-enable devices on resume
-Date: Thu, 22 Apr 2010 16:17:35 -0700
-Message-ID: <20100422161735.28dcc8b9@virtuousgeek.org>
-References: <1271943051-2671-1-git-send-email-mjg@redhat.com>
+Subject: Re: [PATCH] x86/PCI: parse additional host bridge window resource
+ types
+Date: Thu, 22 Apr 2010 16:17:49 -0700
+Message-ID: <20100422161749.5e8af128@virtuousgeek.org>
+References: <20100420195241.13265.93577.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1271943051-2671-1-git-send-email-mjg@redhat.com>
+In-Reply-To: <20100420195241.13265.93577.stgit@bob.kio>
 Sender: linux-pci-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, achiang@canonical.com, rjw@sisk.pl
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 22 Apr 2010 09:30:51 -0400
-Matthew Garrett <mjg@redhat.com> wrote:
+On Tue, 20 Apr 2010 13:52:41 -0600
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-> If the firmware puts a device back into D0 state at resume time, we'll
-> update its state in resume_noirq and thus skip the platform resume code.
-> Calling that code twice should be safe and we ought to avoid getting to
-> that point anyway, so remove the check and also allow the platform pci
-> code to be called for D0.
 > 
-> Fixes USB not being powered after resume on recent Lenovo machines.
+> This adds support for Memory24, Memory32, and Memory32Fixed descriptors in
+> PCI host bridge _CRS.
 > 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> I experimentally determined that Windows (2008 R2) accepts these descriptors
+> and treats them as windows that are forwarded to the PCI bus, e.g., if
+> it finds any PCI devices with BARs outside the windows, it moves them into
+> the windows.
+> 
+> I don't know whether any machines actually use these descriptors in PCI
+> host bridge _CRS methods, but if any exist and they're new enough that we
+> automatically turn on "pci=use_crs", they will work with Windows but not
+> with Linux.
+> 
+> Here are the details: https://bugzilla.kernel.org/show_bug.cgi?id=15817
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > ---
 
 Applied to for-linus, thanks.
