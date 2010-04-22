@@ -1,47 +1,92 @@
-From: Alex Chiang <achiang@canonical.com>
-Subject: Re: [PATCH] pci: Ensure we re-enable devices on resume
-Date: Thu, 22 Apr 2010 17:46:53 -0600
-Message-ID: <20100422234653.GA4388@canonical.com>
-References: <1271943051-2671-1-git-send-email-mjg@redhat.com>
- <20100422161735.28dcc8b9@virtuousgeek.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100422161735.28dcc8b9@virtuousgeek.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, stable@kernel.org
+From: Venkatesh Pallipadi <venki@google.com>
+Subject: [PATCH] acpi: Minor cleanup eliminating redundant PMTIMER_TICKS to NS conversion
+Date: Thu, 22 Apr 2010 16:48:33 -0700
+Message-ID: <1271980113-5624-1-git-send-email-venki@google.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:35324 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753914Ab0DVXtY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Apr 2010 19:49:24 -0400
+Received: from kpbe14.cbf.corp.google.com (kpbe14.cbf.corp.google.com [172.25.105.78])
+	by smtp-out.google.com with ESMTP id o3MNnMOH015555
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Apr 2010 16:49:23 -0700
+Received: from gwaa20 (gwaa20.prod.google.com [10.200.27.20])
+	by kpbe14.cbf.corp.google.com with ESMTP id o3MNnLTQ028857
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Apr 2010 16:49:22 -0700
+Received: by gwaa20 with SMTP id a20so3559169gwa.39
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Apr 2010 16:49:21 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI list <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venki@google.com>
 
-* Jesse Barnes <jbarnes@virtuousgeek.org>:
-> On Thu, 22 Apr 2010 09:30:51 -0400
-> Matthew Garrett <mjg@redhat.com> wrote:
-> 
-> > If the firmware puts a device back into D0 state at resume time, we'll
-> > update its state in resume_noirq and thus skip the platform resume code.
-> > Calling that code twice should be safe and we ought to avoid getting to
-> > that point anyway, so remove the check and also allow the platform pci
-> > code to be called for D0.
-> > 
-> > Fixes USB not being powered after resume on recent Lenovo machines.
-> > 
-> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> 
-> Applied to for-linus, thanks.
+acpi_enter_[simple,bm] does
+idle timing in ns, convert it to timeval, then to us, then to
+pmtimer_ticks and then back to ns.
 
-Thanks Jesse. 
+This patch changes things to
+idle timing in ns, convert it to us, and then to pmtimer_ticks.
 
-Stable, can you please pick this up too?
+Just saves an imul along this path, but makes the code cleaner.
 
-The original commit that introduced the thinko was 4a865905.
+Signed-off-by: Venkatesh Pallipadi <venki@google.com>
+---
+ drivers/acpi/processor_idle.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-achiang@aspen:~/kernels/linux-2.6$ git describe --contains 4a865905
-v2.6.30-rc1~609^2~4
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 5939e7f..9e734ce 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -869,6 +869,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 	ktime_t  kt1, kt2;
++	s64 idle_time_ns;
+ 	s64 idle_time;
+ 	s64 sleep_ticks = 0;
+ 
+@@ -910,12 +911,14 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+ 	kt2 = ktime_get_real();
+-	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
++	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
++	idle_time = idle_time_ns;
++	do_div(idle_time, NSEC_PER_USEC);
+ 
+ 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+ 
+ 	/* Tell the scheduler how much we idled: */
+-	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
++	sched_clock_idle_wakeup_event(idle_time_ns);
+ 
+ 	local_irq_enable();
+ 	current_thread_info()->status |= TS_POLLING;
+@@ -943,6 +946,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 	ktime_t  kt1, kt2;
++	s64 idle_time_ns;
+ 	s64 idle_time;
+ 	s64 sleep_ticks = 0;
+ 
+@@ -1025,11 +1029,13 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		spin_unlock(&c3_lock);
+ 	}
+ 	kt2 = ktime_get_real();
+-	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
++	idle_time_ns = ktime_to_us(ktime_sub(kt2, kt1));
++	idle_time = idle_time_ns;
++	do_div(idle_time, NSEC_PER_USEC);
+ 
+ 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+ 	/* Tell the scheduler how much we idled: */
+-	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
++	sched_clock_idle_wakeup_event(idle_time_ns);
+ 
+ 	local_irq_enable();
+ 	current_thread_info()->status |= TS_POLLING;
+-- 
+1.7.0.1
 
-which looks like it was introduced in 2.6.30, but I'd be happy with
-just hitting v2.6.32, since this is what just about every distro
-has settled on these days.
-
-Thanks,
-/ac
