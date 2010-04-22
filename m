@@ -1,42 +1,47 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] x86/PCI: parse additional host bridge window resource
- types
-Date: Thu, 22 Apr 2010 16:17:49 -0700
-Message-ID: <20100422161749.5e8af128@virtuousgeek.org>
-References: <20100420195241.13265.93577.stgit@bob.kio>
+From: Alex Chiang <achiang@canonical.com>
+Subject: Re: [PATCH] pci: Ensure we re-enable devices on resume
+Date: Thu, 22 Apr 2010 17:46:53 -0600
+Message-ID: <20100422234653.GA4388@canonical.com>
+References: <1271943051-2671-1-git-send-email-mjg@redhat.com>
+ <20100422161735.28dcc8b9@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20100420195241.13265.93577.stgit@bob.kio>
+Content-Disposition: inline
+In-Reply-To: <20100422161735.28dcc8b9@virtuousgeek.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, stable@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 20 Apr 2010 13:52:41 -0600
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+* Jesse Barnes <jbarnes@virtuousgeek.org>:
+> On Thu, 22 Apr 2010 09:30:51 -0400
+> Matthew Garrett <mjg@redhat.com> wrote:
+> 
+> > If the firmware puts a device back into D0 state at resume time, we'll
+> > update its state in resume_noirq and thus skip the platform resume code.
+> > Calling that code twice should be safe and we ought to avoid getting to
+> > that point anyway, so remove the check and also allow the platform pci
+> > code to be called for D0.
+> > 
+> > Fixes USB not being powered after resume on recent Lenovo machines.
+> > 
+> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+> Applied to for-linus, thanks.
 
-> 
-> This adds support for Memory24, Memory32, and Memory32Fixed descriptors in
-> PCI host bridge _CRS.
-> 
-> I experimentally determined that Windows (2008 R2) accepts these descriptors
-> and treats them as windows that are forwarded to the PCI bus, e.g., if
-> it finds any PCI devices with BARs outside the windows, it moves them into
-> the windows.
-> 
-> I don't know whether any machines actually use these descriptors in PCI
-> host bridge _CRS methods, but if any exist and they're new enough that we
-> automatically turn on "pci=use_crs", they will work with Windows but not
-> with Linux.
-> 
-> Here are the details: https://bugzilla.kernel.org/show_bug.cgi?id=15817
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
+Thanks Jesse. 
 
-Applied to for-linus, thanks.
+Stable, can you please pick this up too?
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+The original commit that introduced the thinko was 4a865905.
+
+achiang@aspen:~/kernels/linux-2.6$ git describe --contains 4a865905
+v2.6.30-rc1~609^2~4
+
+which looks like it was introduced in 2.6.30, but I'd be happy with
+just hitting v2.6.32, since this is what just about every distro
+has settled on these days.
+
+Thanks,
+/ac
