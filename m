@@ -1,24 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Alex Chiang <achiang@canonical.com>
 Subject: Re: [PATCH] pci: Ensure we re-enable devices on resume
-Date: Thu, 22 Apr 2010 20:14:49 +0200
-Message-ID: <201004222014.49206.rjw@sisk.pl>
+Date: Thu, 22 Apr 2010 13:43:35 -0600
+Message-ID: <20100422194335.GB619@canonical.com>
 References: <1271943051-2671-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33009 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753434Ab0DVSOe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Apr 2010 14:14:34 -0400
+Received: from adelie.canonical.com ([91.189.90.139]:40530 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757441Ab0DVTno (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Apr 2010 15:43:44 -0400
+Content-Disposition: inline
 In-Reply-To: <1271943051-2671-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg@redhat.com>
-Cc: jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, achiang@canonical.com
+Cc: jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, jerone.young@canonical.com
 
-On Thursday 22 April 2010, Matthew Garrett wrote:
+Looks good to me. Thanks for doing this, Matthew.
+
+Acked-by: Alex Chiang <achiang@canonical.com>
+
+/ac
+
+* Matthew Garrett <mjg@redhat.com>:
 > If the firmware puts a device back into D0 state at resume time, we'll
 > update its state in resume_noirq and thus skip the platform resume code.
 > Calling that code twice should be safe and we ought to avoid getting to
@@ -26,9 +31,7 @@ On Thursday 22 April 2010, Matthew Garrett wrote:
 > code to be called for D0.
 > 
 > Fixes USB not being powered after resume on recent Lenovo machines.
-
-OK ...
-
+> 
 > Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > ---
 >  drivers/pci/pci.c |    6 +-----
@@ -55,18 +58,9 @@ OK ...
 > -	if (dev->current_state == state)
 > -		return 0;
 > -
-
-If my memory serves me right, this check is actually there for a reason,
-although I don't remember _what_ exactly the reason is right now.  Sigh.
-
-[/me puts a note for himself to _always_ add specific comments into the code
- in such cases.]
-
 >  	__pci_start_power_transition(dev, state);
 >  
 >  	/* This device is quirked not to be put into D3, so
+> -- 
+> 1.7.0.1
 > 
-
-Well, I'd say let's try that.  If it breaks things, we'll know relatively quickly. ;-)
-
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
