@@ -1,36 +1,54 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: Looking for some pointers on WMI/EC access
-Date: Thu, 22 Apr 2010 16:33:13 +0200
-Message-ID: <k2y71cd59b01004220733wcc7cc3efte13d61ed03040a4d@mail.gmail.com>
-References: <s2o71cd59b01004200030jfaa10a4bs81e937d2e50b15b0@mail.gmail.com>
-	 <m2i71cd59b01004200509ye8fa593xc7bd5b201d484046@mail.gmail.com>
-	 <1271853961.1537.1781.camel@pancake>
-	 <20100421133305.GA28710@srcf.ucam.org>
-	 <1271860206.1537.1914.camel@pancake>
-	 <20100421143239.GA484@srcf.ucam.org>
-	 <1271924488.3790.25.camel@flunder>
-	 <20100422133605.GA31680@srcf.ucam.org>
-	 <1271944219.29664.42.camel@pancake.fritz.box>
-	 <20100422135336.GA31984@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20100422135336.GA31984@srcf.ucam.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Florian Echtler <floe@butterbrot.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] pci: Ensure we re-enable devices on resume
+Date: Thu, 22 Apr 2010 09:30:51 -0400
+Message-ID: <1271943051-2671-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:3631 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754508Ab0DVRbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Apr 2010 13:31:35 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: jbarnes@virtuousgeek.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, achiang@canonical.com, rjw@sisk.pl, Matthew Garrett <mjg@redhat.com>
 
-On Thu, Apr 22, 2010 at 3:53 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Thu, Apr 22, 2010 at 03:50:19PM +0200, Florian Echtler wrote:
->> I also think so in general, but in this case, the entire notification
->> setup looks like an incredible mess to me. In any other case, I wouldn't
->> really bother with the hotkeys, but as this is a tablet PC, the hotkeys
->> on the screen side become really important all of a sudden...
->
-> Yeah. I'll take a look and see if there's anything obvious.
+If the firmware puts a device back into D0 state at resume time, we'll
+update its state in resume_noirq and thus skip the platform resume code.
+Calling that code twice should be safe and we ought to avoid getting to
+that point anyway, so remove the check and also allow the platform pci
+code to be called for D0.
 
-It may be linked VPC0._CFG ..
+Fixes USB not being powered after resume on recent Lenovo machines.
+
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/pci/pci.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 5ea587e..3749912 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -679,7 +679,7 @@ static void __pci_start_power_transition(struct pci_dev *dev, pci_power_t state)
+  */
+ int __pci_complete_power_transition(struct pci_dev *dev, pci_power_t state)
+ {
+-	return state > PCI_D0 ?
++	return state >= PCI_D0 ?
+ 			pci_platform_power_transition(dev, state) : -EINVAL;
+ }
+ EXPORT_SYMBOL_GPL(__pci_complete_power_transition);
+@@ -716,10 +716,6 @@ int pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+ 		 */
+ 		return 0;
+ 
+-	/* Check if we're already there */
+-	if (dev->current_state == state)
+-		return 0;
+-
+ 	__pci_start_power_transition(dev, state);
+ 
+ 	/* This device is quirked not to be put into D3, so
 -- 
-Corentin Chary
-http://xf.iksaif.net
+1.7.0.1
+
