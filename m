@@ -1,34 +1,37 @@
-From: Florian Echtler <floe@butterbrot.org>
-Subject: Re: Looking for some pointers on WMI/EC access
-Date: Fri, 23 Apr 2010 13:24:30 +0200
-Message-ID: <1272021870.29664.109.camel@pancake.fritz.box>
-References: <1271762498.1537.215.camel@pancake>
-	 <m2i71cd59b01004200509ye8fa593xc7bd5b201d484046@mail.gmail.com>
-	 <1271853961.1537.1781.camel@pancake> <20100421133305.GA28710@srcf.ucam.org>
-	 <1271860206.1537.1914.camel@pancake> <20100421143239.GA484@srcf.ucam.org>
-	 <1271924488.3790.25.camel@flunder> <20100422133605.GA31680@srcf.ucam.org>
-	 <1271944219.29664.42.camel@pancake.fritz.box>
-	 <20100422135336.GA31984@srcf.ucam.org>
-	 <20100422140518.GA32558@srcf.ucam.org>
+From: Nick Bowler <nbowler-7BP4RkwGw0uXmMXjJBpWqg@public.gmane.org>
+Subject: Re: 2.6.34-rc5: Reported regressions from 2.6.33
+Date: Fri, 23 Apr 2010 11:31:45 -0400
+Message-ID: <20100423153145.GA6072@elliptictech.com>
+References: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
+ <20100420135636.GA10674@elliptictech.com>
+ <201004210715.38621.rjw@sisk.pl>
+ <20100421085739.GA2576@barney.localdomain>
+ <20100421165758.GA23565@elliptictech.com>
+ <20100423102338.GA3151@barney.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20100422140518.GA32558@srcf.ucam.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Corentin Chary <corentin.chary@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100423102338.GA3151-N6zOBCg9HoVSq9BJjBFyUp/QNRX+jHPU@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jerome Glisse <glisse-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Donnerstag, den 22.04.2010, 15:05 +0100 schrieb Matthew Garrett:
-> Hm. Yeah, that looks pretty messed up. I think you'd be justified in 
-> just changing that entry yourself, to be honest, and then see if that 
-> makes things behave more usefully.
-You mean, change the initial value for ERQ0 in the DSDT and load that
-through the kernel? I'll try that. I'll also try a BIOS update and see
-if there's a little more sense in the DSDT afterwards..
+On 12:23 Fri 23 Apr     , Jerome Glisse wrote:
+> On Wed, Apr 21, 2010 at 12:57:58PM -0400, Nick Bowler wrote:
+> > OK, if the failure is due to userspace is doing Very Bad Things(tm),
+> > catching that seems reasonable.
+> > 
+> > Nevertheless, even if it happened by luck, the result was (ostensibly)
+> > working programs that suddenly break once one "upgrades" to the latest
+> > kernel.  If userspace can't be fixed before 2.6.34 is released, perhaps
+> > a less cryptic log message would be appropriate?
+> 
+> I pushed fix into mesa for the depth issue i will look into the other
+> one today and likely push kernel fix.
 
-Florian
+Great, thanks.  I'll try out the depth fix tonight.
+
 -- 
-0666 - Filemode of the Beast
-
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
