@@ -1,55 +1,34 @@
-From: Jerome Glisse <glisse-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org>
-Subject: Re: 2.6.34-rc5: Reported regressions from 2.6.33
-Date: Fri, 23 Apr 2010 12:23:38 +0200
-Message-ID: <20100423102338.GA3151@barney.localdomain>
-References: <deuQKFRcc0B.A.3EG.BRSzLB@tosh>
- <20100420135636.GA10674@elliptictech.com>
- <201004210715.38621.rjw@sisk.pl>
- <20100421085739.GA2576@barney.localdomain>
- <20100421165758.GA23565@elliptictech.com>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Re: Looking for some pointers on WMI/EC access
+Date: Fri, 23 Apr 2010 13:24:30 +0200
+Message-ID: <1272021870.29664.109.camel@pancake.fritz.box>
+References: <1271762498.1537.215.camel@pancake>
+	 <m2i71cd59b01004200509ye8fa593xc7bd5b201d484046@mail.gmail.com>
+	 <1271853961.1537.1781.camel@pancake> <20100421133305.GA28710@srcf.ucam.org>
+	 <1271860206.1537.1914.camel@pancake> <20100421143239.GA484@srcf.ucam.org>
+	 <1271924488.3790.25.camel@flunder> <20100422133605.GA31680@srcf.ucam.org>
+	 <1271944219.29664.42.camel@pancake.fritz.box>
+	 <20100422135336.GA31984@srcf.ucam.org>
+	 <20100422140518.GA32558@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100421165758.GA23565-7BP4RkwGw0uXmMXjJBpWqg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20100422140518.GA32558@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Corentin Chary <corentin.chary@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 21, 2010 at 12:57:58PM -0400, Nick Bowler wrote:
-> On Wed, Apr 21, 2010 at 07:15:38AM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday 20 April 2010, Nick Bowler wrote:
-> > > Please list these two similar regressions from 2.6.33 in the r600 DRM:
-> > > 
-> > >  * r600 CS checker rejects GL_DEPTH_TEST w/o depth buffer:
-> > >            https://bugs.freedesktop.org/show_bug.cgi?id=27571
-> > > 
-> > >  * r600 CS checker rejects narrow FBO renderbuffers:
-> > >            https://bugs.freedesktop.org/show_bug.cgi?id=27609
-> > 
-> > Do you want to me to add them as one entry or as two separate bugs?
-> 
-> As upstream doesn't consider the first to be a kernel issue, I guess you
-> should just list the second.
-> 
-> On 10:57 Wed 21 Apr     , Jerome Glisse wrote:
-> > First one is userspace bug, i need to look into the second one.
-> > ie we were lucky the hw didn't lockup without depth buffer and
-> > depth test enabled.
-> 
-> OK, if the failure is due to userspace is doing Very Bad Things(tm),
-> catching that seems reasonable.
-> 
-> Nevertheless, even if it happened by luck, the result was (ostensibly)
-> working programs that suddenly break once one "upgrades" to the latest
-> kernel.  If userspace can't be fixed before 2.6.34 is released, perhaps
-> a less cryptic log message would be appropriate?
-> 
-> -- 
-> Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
+Am Donnerstag, den 22.04.2010, 15:05 +0100 schrieb Matthew Garrett:
+> Hm. Yeah, that looks pretty messed up. I think you'd be justified in 
+> just changing that entry yourself, to be honest, and then see if that 
+> makes things behave more usefully.
+You mean, change the initial value for ERQ0 in the DSDT and load that
+through the kernel? I'll try that. I'll also try a BIOS update and see
+if there's a little more sense in the DSDT afterwards..
 
-I pushed fix into mesa for the depth issue i will look into the other
-one today and likely push kernel fix.
+Florian
+-- 
+0666 - Filemode of the Beast
 
-Cheers,
-Jerome
