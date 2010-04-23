@@ -1,30 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Looking for some pointers on WMI/EC access
-Date: Fri, 23 Apr 2010 18:47:29 +0100
-Message-ID: <20100423174729.GB31005@srcf.ucam.org>
-References: <1271853961.1537.1781.camel@pancake> <20100421133305.GA28710@srcf.ucam.org> <1271860206.1537.1914.camel@pancake> <20100421143239.GA484@srcf.ucam.org> <1271924488.3790.25.camel@flunder> <20100422133605.GA31680@srcf.ucam.org> <1271944219.29664.42.camel@pancake.fritz.box> <20100422135336.GA31984@srcf.ucam.org> <20100422140518.GA32558@srcf.ucam.org> <1272021870.29664.109.camel@pancake.fritz.box>
+From: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch] acpi: silence kmemcheck false positive
+Date: Fri, 23 Apr 2010 21:17:14 +0200
+Message-ID: <20100423191714.GJ29093@bicker>
+References: <20100422194346.GB29093@bicker> <20100422200220.GC29093@bicker> <201004221632.21129.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:54818 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758381Ab0DWRrg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Apr 2010 13:47:36 -0400
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:33263 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab0DWTRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Apr 2010 15:17:39 -0400
+Received: by wwg30 with SMTP id 30so187998wwg.19
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Apr 2010 12:17:37 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1272021870.29664.109.camel@pancake.fritz.box>
+In-Reply-To: <201004221632.21129.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Florian Echtler <floe@butterbrot.org>
-Cc: Corentin Chary <corentin.chary@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, vegardno@ifi.uio.no, casteyde.christian@free.fr
 
-On Fri, Apr 23, 2010 at 01:24:30PM +0200, Florian Echtler wrote:
+On Thu, Apr 22, 2010 at 04:32:20PM -0600, Bjorn Helgaas wrote:
+> > > -	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC);
+> > > +	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC | __GFP_NOTRACK_FALSE_POSITIVE);
+> 
+> Just in terms of reading the code, this solution is fairly ugly.
+> I think __GFP_NOTRACK should be sort of the last resort, after we've
+> ruled out all the more conventional strategies.
+> 
+> Has anybody tried any of the alternatives Vegard suggested here:
+> https://bugzilla.kernel.org/show_bug.cgi?id=14998#c35 ?
 
-> You mean, change the initial value for ERQ0 in the DSDT and load that
-> through the kernel? I'll try that. I'll also try a BIOS update and see
-> if there's a little more sense in the DSDT afterwards..
+Another potential solution would be to change the kmalloc() to a
+kzalloc().
 
-More manipulate the buffer directly from the driver. This ought to be 
-possible, if a little fiddly.
+This isn't really my code, I was just randomly poking through bugzilla.
+Tell me which approach you prefer and I'll do it.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+regards,
+dan carpenter
+
