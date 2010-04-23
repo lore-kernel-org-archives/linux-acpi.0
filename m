@@ -1,126 +1,111 @@
 From: Jerone Young <jerone.young@canonical.com>
-Subject: Re: [PATCH v2] ACPI: DMI init_set_sci_en_on_resume for multiple
- Lenovo ThinkPads
-Date: Fri, 23 Apr 2010 16:46:41 -0500
-Message-ID: <1272059201.1594.10.camel@laptop>
-References: <20100423162015.GA27760@canonical.com>
-	 <1272058866.1594.7.camel@laptop>
+Subject: [PATCH] Fix mute key on older Thinkpads by OSI blacklisting them
+Date: Fri, 23 Apr 2010 17:48:04 -0500
+Message-ID: <1272062884.1594.73.camel@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:34517 "EHLO
+Received: from adelie.canonical.com ([91.189.90.139]:43279 "EHLO
 	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753737Ab0DWVqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Apr 2010 17:46:47 -0400
-In-Reply-To: <1272058866.1594.7.camel@laptop>
+	with ESMTP id S1750835Ab0DWWsI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Apr 2010 18:48:08 -0400
+Received: from hutte.canonical.com ([91.189.90.181])
+	by adelie.canonical.com with esmtp (Exim 4.69 #1 (Debian))
+	id 1O5RfL-0004Dj-B1
+	for <linux-acpi@vger.kernel.org>; Fri, 23 Apr 2010 23:48:07 +0100
+Received: from rrcs-24-227-244-55.sw.biz.rr.com ([24.227.244.55] helo=[192.168.1.220])
+	by hutte.canonical.com with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <jerone.young@canonical.com>)
+	id 1O5RfL-0000YC-1K
+	for linux-acpi@vger.kernel.org; Fri, 23 Apr 2010 23:48:07 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@canonical.com>
-Cc: lenb@kernel.org, colin.king@canonical.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, stable@kernel.org
+To: linux-acpi@vger.kernel.org
 
-Apparently I made a mistake. Not realizing that  DMI_MATCH does not do
-an exact match.
+This patch fixes that mute keys for X & R & W series Thinkpads. For
+these Thinkpads in the BIOS if OS exposes itself as "Linux" it will
+switch the functionality of the mute key to send a mute key press to the
+OS. These machines will not be getting any bios updates in the future.
 
-Patch looks good.
+All of these Thinkpads do not have a little light that would indicate
+the mute is on. So having them send the mute key to the OS makes a
+better user experience and also will match behavior of newer Thinkpads.
+These all have the same quirk the T400 & T500 have.
 
-On Fri, 2010-04-23 at 16:41 -0500, Jerone Young wrote:
-> You made a small mistake..point out below.
-> 
-> **mumble** .. still not a fan of quirk tables when a bios coming out to
-> resolve this issue is coming out..one out for T410 came out yesterday.
-> 
-> On Fri, 2010-04-23 at 10:20 -0600, Alex Chiang wrote:
-> > Multiple Lenovo ThinkPad models with Intel Core i5/i7 CPUs can
-> > successfully suspend/resume once, and then hang on the second s/r
-> > cycle.
-> > 
-> > We got confirmation that this was due to a BIOS defect. The BIOS
-> > did not properly set SCI_EN coming out of S3. The BIOS guys
-> > hinted that The Other Leading OS ignores the fact that hardware
-> > owns the bit and sets it manually.
-> > 
-> > In any case, an existing DMI table exists for machines where this
-> > defect is a known problem. Lenovo promise to fix their BIOS, but
-> > for folks who either won't or can't upgrade their BIOS, allow
-> > Linux to workaround the issue.
-> > 
-> > Confirmed by numerous testers in the launchpad bug that using
-> > acpi_sleep=sci_force_enable fixes the issue. We add the machines
-> > to acpisleep_dmi_table[] to automatically enable this workaround.
-> > 
-> > https://bugzilla.kernel.org/show_bug.cgi?id=15407
-> > BugLink: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/532374
-> > 
-> > Cc: stable@kernel.org
-> > Signed-off-by: Alex Chiang <achiang@canonical.com>
-> > ---
-> > We want to get this patch upstream so that we can get it into
-> > -stable. Matthew Garrett's patch titled "Fall back to manually
-> > changing SCI_EN" is the plan for dealing with future platforms
-> > that will likely have this same BIOS bug.
-> > 
-> > v1 -> v2:
-> > 	- remove separate X201s entry, as the X201 entry will match it too
-> > ---
-> >  sleep.c |   32 ++++++++++++++++++++++++++++++++
-> >  1 file changed, 32 insertions(+)
-> > ---
-> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> > index f74834a..317794f 100644
-> > --- a/drivers/acpi/sleep.c
-> > +++ b/drivers/acpi/sleep.c
-> > @@ -450,6 +450,38 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-> >  		},
-> >  	},
-> >  	{
-> > +	.callback = init_set_sci_en_on_resume,
-> > +	.ident = "Lenovo ThinkPad T410",
-> > +	.matches = {
-> > +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> > +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T410"),
-> > +		},
-> > +	},
-> > +	{
-> > +	.callback = init_set_sci_en_on_resume,
-> > +	.ident = "Lenovo ThinkPad T510",
-> > +	.matches = {
-> > +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> > +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T510"),
-> > +		},
-> > +	},
-> > +	{
-> > +	.callback = init_set_sci_en_on_resume,
-> > +	.ident = "Lenovo ThinkPad W510",
-> > +	.matches = {
-> > +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> > +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
-> > +		},
-> > +	},
-> > +	{
-> > +	.callback = init_set_sci_en_on_resume,
-> > +	.ident = "Lenovo ThinkPad X201[s]",
-> > +	.matches = {
-> > +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> > +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
-> 
-> The X201s identifies it's self as an X201s .. So you would need two
-> separate entries.
-> 
-> Here is dmidecode data from a X201s:
-> http://launchpadlibrarian.net/45050202/dmidecode
-> 
-> 
-> > +		},
-> > +	},
-> > +	{
-> >  	.callback = init_old_suspend_ordering,
-> >  	.ident = "Panasonic CF51-2L",
-> >  	.matches = {
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Unlike the last time I sent a similar patch(s) somethings have happened:
+
+	- All new Lenovo Thinkpads now send a mute key press to the 
+          OS by default (x201 series).
+
+	- I've decoded the bioses. Under the Linux selection it 
+          only does one operation. Switch the hardware mute to
+          a software mute. Has no special operations done under
+          Windows selections.
+	
+	- On all the machines. The hardware mute key is only wired
+          to the external speakers. So the headphone jack does not 
+          get muted by the hardware mute.
+
+	- I also have gotten confirmation from users around the
+          net that it works. Except for the W700, though based on
+          data I found it was the same as the W500.
+
+
+Signed-off-by: Jerone Young <jerone.young@canonical.com>
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 2815df6..cce6e1a 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -285,6 +285,46 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T500"),
+ 		},
+ 	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo ThinkPad X200[s][t]",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X200"),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo ThinkPad R400",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R400"),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo ThinkPad R500",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R500"),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo ThinkPad W500",
++	.matches = {
++		    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		    DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W500"),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo ThinkPad W700[ds]",
++	.matches = {
++		   DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		   DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W700"),
++		},
++	},
+ 	{}
+ };
+ 
+
 
 
