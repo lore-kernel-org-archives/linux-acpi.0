@@ -1,45 +1,23 @@
-From: Alex Chiang <achiang@canonical.com>
-Subject: Re: [stable] [PATCH] pci: Ensure we re-enable devices on resume
-Date: Sat, 24 Apr 2010 22:21:49 -0600
-Message-ID: <20100425042149.GA3010@canonical.com>
-References: <1271943051-2671-1-git-send-email-mjg@redhat.com>
- <20100422161735.28dcc8b9@virtuousgeek.org>
- <20100422234653.GA4388@canonical.com>
- <20100423000819.GA6022@kroah.com>
+From: le thi thao <thao.lt29K2TK@due.edu.vn>
+Subject: INDICATE YOUR INTEREST!!!
+Date: Mon, 26 Apr 2010 00:42:30 +0700
+Message-ID: <4810560759F0DA4AA6F9392DDA8142490196F04E1884@mail.due.edu.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100423000819.GA6022@kroah.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, stable@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [203.190.166.85] ([203.190.166.85]:58697 "EHLO mail.due.edu.vn"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753450Ab0DYRvJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Apr 2010 13:51:09 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Greg KH <greg@kroah.com>:
-> On Thu, Apr 22, 2010 at 05:46:53PM -0600, Alex Chiang wrote:
-> > * Jesse Barnes <jbarnes@virtuousgeek.org>:
-> > > Matthew Garrett <mjg@redhat.com> wrote:
-> > > 
-> > > > If the firmware puts a device back into D0 state at
-> > > > resume time, we'll update its state in resume_noirq and
-> > > > thus skip the platform resume code. Calling that code
-> > > > twice should be safe and we ought to avoid getting to
-> > > > that point anyway, so remove the check and also allow the
-> > > > platform pci code to be called for D0.
-> > > > 
-> > > > Fixes USB not being powered after resume on recent Lenovo
-> > > > machines.
-> > > > 
-> > > 
-> > > Applied to for-linus, thanks.
-> > 
-> > Stable, can you please pick this up too?
-> 
-> When it goes into Linus's tree, yes.  Care to let me know what
-> the git commit id of it is when that happens?
 
-commit cc2893b6af5265baa1d68b17b136cffca9e40cfa
 
-Thanks!
-/ac
+
+Greetings,
+This is a personal email directed to you for your consideration alone, I request that it remain and be treated as such only. Please bear with me for now and do not ask my name. I am a banker with HSBC in Malta. I have an interesting business proposal for you that will be of immense benefit to both of us. Although this may be hard for you to believe, we stand to gain 7.2 million USD between us in a matter of days. Please grant me the benefit of doubt and hear me out. I need you to signify your interest by replying to this email.
+Most importantly, I will need you to promise to keep whatever you learn from me between us even if you decide not to go along with me. I will make more details available to you on receipt of a positive response from you. Do contact me only at my private email address: privateaddresss@iwrahost.com
+Warm regards from Malta.
