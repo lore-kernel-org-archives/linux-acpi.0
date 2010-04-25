@@ -1,35 +1,56 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Jerone Young <jerone.young@canonical.com>
 Subject: Re: [PATCH] Fix mute key on older Thinkpads by OSI blacklisting
-	them
-Date: Sun, 25 Apr 2010 19:44:05 +0100
-Message-ID: <20100425184405.GA29130@srcf.ucam.org>
-References: <1272062884.1594.73.camel@laptop> <20100424160114.GA13867@srcf.ucam.org> <1272142178.1839.138.camel@laptop> <20100424211601.GA16731@srcf.ucam.org> <1272154109.1839.345.camel@laptop> <20100425022832.GA27607@khazad-dum.debian.net> <1272220091.1274.94.camel@laptop>
+ them
+Date: Sun, 25 Apr 2010 13:57:52 -0500
+Message-ID: <1272221872.1640.22.camel@laptop>
+References: <1272062884.1594.73.camel@laptop>
+	 <20100424160114.GA13867@srcf.ucam.org> <1272142178.1839.138.camel@laptop>
+	 <20100424211601.GA16731@srcf.ucam.org> <1272154109.1839.345.camel@laptop>
+	 <20100425022832.GA27607@khazad-dum.debian.net>
+	 <1272220091.1274.94.camel@laptop>  <20100425184405.GA29130@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:57527 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373Ab0DYSoL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Apr 2010 14:44:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1272220091.1274.94.camel@laptop>
+Received: from adelie.canonical.com ([91.189.90.139]:56354 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373Ab0DYS55 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Apr 2010 14:57:57 -0400
+In-Reply-To: <20100425184405.GA29130@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerone Young <jerone.young@canonical.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
 
-On Sun, Apr 25, 2010 at 01:28:11PM -0500, Jerone Young wrote:
+On Sun, 2010-04-25 at 19:44 +0100, Matthew Garrett wrote:
+> On Sun, Apr 25, 2010 at 01:28:11PM -0500, Jerone Young wrote:
+> 
+> > I think it's not really possible to get it correct with thinkpad-acpi .
+> > The reason is the userspace sound server. In our case it's pulse audio.
+> > So we are no longer just dealing with ALSA anymore. So if the OS gets a
+> > proper hotkey event it is able to mute at the pulse audio level then,
+> > pulse audio does work at the ALSA level (toggling the mixer).
+> > thinkpad-acpi has no way to check on the status of pulse audio.
+> 
+> This really isn't a problem. We have a mixer device for the Thinkpad's 
+> own mixer, and we can send ALSA events to indicate that its state has 
+> changed.
 
-> I think it's not really possible to get it correct with thinkpad-acpi .
-> The reason is the userspace sound server. In our case it's pulse audio.
-> So we are no longer just dealing with ALSA anymore. So if the OS gets a
-> proper hotkey event it is able to mute at the pulse audio level then,
-> pulse audio does work at the ALSA level (toggling the mixer).
-> thinkpad-acpi has no way to check on the status of pulse audio.
+I think it is. Since pulse audio only pay attention to the Master mixer
+of the primary card. The Thinkpad EC shows up basically as a second
+audio card. 
 
-This really isn't a problem. We have a mixer device for the Thinkpad's 
-own mixer, and we can send ALSA events to indicate that its state has 
-changed.
- 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+But again new Thinkpads don't need this. Since they send a soft keypress
+by default. So userspace catches it and changes the Master mixer to
+mute.
+
+I think all this work isn't going to help the situation any. There
+appears to be a easy solution. Just a matter of getting the LEDs on some
+to light correctly, and see when the hardware mute is enabled.
+
+				Thanks,
+					Jerone
+
+>  
+
+
