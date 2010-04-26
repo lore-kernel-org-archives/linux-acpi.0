@@ -1,94 +1,102 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] Fix mute key on older Thinkpads by OSI blacklisting
- them
-Date: Mon, 26 Apr 2010 07:38:55 -0300
-Message-ID: <20100426103855.GB2614@khazad-dum.debian.net>
-References: <1272062884.1594.73.camel@laptop>
- <20100424160114.GA13867@srcf.ucam.org>
- <1272142178.1839.138.camel@laptop>
- <20100424211601.GA16731@srcf.ucam.org>
- <1272154109.1839.345.camel@laptop>
- <20100425022832.GA27607@khazad-dum.debian.net>
- <1272222168.1640.33.camel@laptop>
+From: =?ISO-8859-1?Q?Angel_Pe=F1a?= <angelpp@bigfoot.com>
+Subject: Re: HP Probook 4510s fan always at high speed
+Date: Mon, 26 Apr 2010 14:07:57 +0200
+Message-ID: <4BD5821D.6000406@bigfoot.com>
+References: <4BB38F3C.4040108@bigfoot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:36745 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754437Ab0DZKi7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Apr 2010 06:38:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1272222168.1640.33.camel@laptop>
+Received: from relay.ubu.es ([193.146.160.3]:60048 "EHLO relay.ubu.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752862Ab0DZMG7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Apr 2010 08:06:59 -0400
+Received: from [193.146.170.132] (isa05.inf.ubu.es [193.146.170.132])
+	by relay.ubu.es (ubumail) with ESMTP id 119044E2CA
+	for <linux-acpi@vger.kernel.org>; Mon, 26 Apr 2010 14:06:58 +0200 (CEST)
+In-Reply-To: <4BB38F3C.4040108@bigfoot.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerone Young <jerone.young@canonical.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, 25 Apr 2010, Jerone Young wrote:
-> No ACPI event is sent by the mute key. This is on my X301 & T61 (already
-> in blacklist.c). They must be doing some polling, as I remember there
-> being a slight delay when you press the mute key and Windows getting the
-> update from the userspace daemon.
+This is the sensors-detect command output from my HP 4510s ProBook:
 
-Please test on the T400 and T410, if possible.
+# sensors-detect
+Shutting down sensors:                                               do=
+ne
+# sensors-detect revision 5729 (2009-06-02 15:51:29 +0200)             =
+=20
+# System: Hewlett-Packard HP ProBook 4510s (laptop)                    =
+=20
+# Board: Hewlett-Packard 3074                                          =
+=20
 
-> > Comparing GPEs across several IBM-heritage DSDTs (ignore the X100e and
-> > other OEM crap with a thinkpad name), I think it comes in as 'hotkeys'
-> > (i.e. 0x10xx HKEY events).  Please enable the high eight bits on the
-> > thinkpad-acpi hotkey mask, assign keycodes to those keys, and tell me
-> > what you find.  Make sure to have OSI(Linux) *disabled*, I very much
-> > doubt it works in "Linux" mode.
-> 
-> Since it sends no acpi event there is no way for it to catch it. Could
-> I be wrong?
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe=20
+and recommended to accept the default answers to all questions, =20
+unless you know what you're doing.                              =20
 
-There are three new HKEY events on some of the newer thinkpads (I don't know
-if they exist in the X300/X301).  They're hooked to suspicious GPEs that are
-the same as the ones for volume feedback on all other thinkpads.
+Some south bridges, CPUs or memory controllers contain embedded sensors=
+=2E
+Do you want to scan for them? This is totally safe. (YES/no): YES     =20
+Silicon Integrated Systems SIS5595...                       No        =20
+VIA VT82C686 Integrated Sensors...                          No        =20
+VIA VT8231 Integrated Sensors...                            No        =20
+AMD K8 thermal sensors...                                   No        =20
+AMD K10 thermal sensors...                                  No        =20
+Intel Core family thermal sensor...                         Success!  =20
+    (driver `coretemp')                                               =20
+Intel AMB FB-DIMM thermal sensor...                         No        =20
+VIA C7 thermal and voltage sensors...                       No        =20
 
-Whatever solution I will adopt, won't be one for the X300 in particular.  It
-needs to be one that won't be a hindrance in the next two years at least.
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.         =20
+Do you want to scan for Super I/O sensors? (YES/no):            =20
+Probing for Super-I/O at 0x2e/0x2f                              =20
+Trying family `National Semiconductor'...                   No  =20
+Trying family `SMSC'...                                     Yes =20
+=46ound unknown chip with ID 0x4501                               =20
+Probing for Super-I/O at 0x4e/0x4f                              =20
+Trying family `National Semiconductor'...                   No  =20
+Trying family `SMSC'...                                     No  =20
+Trying family `VIA/Winbond/Fintek'...                       No  =20
+Trying family `ITE'...                                      No  =20
 
-I need more data on the newest models first, to make an informed decision.
-It is entirely possible that the X300/T61 generation require a different
-solution than the earlier models.  And it is entirely possible that the T410
-and newer allow for a better solution than the X300/T61.
+This is the sensors command output
 
-EC polling is bad, hardware state unsynced is worse.  And any polling done
-in userspace is Ugly, Bad, and will bite us back when it is not needed
-anymore.
+# sensors
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +75.0=B0C  (crit =3D +108.0=B0C)
+temp2:       +30.0=B0C  (crit =3D +105.0=B0C)
+temp3:       +40.0=B0C  (crit =3D +108.0=B0C)
+temp4:       +45.0=B0C  (crit =3D +105.0=B0C)
+temp5:       +20.0=B0C  (crit =3D +108.0=B0C)
+temp6:       +45.0=B0C  (crit =3D +110.0=B0C)
 
-thinkpad-acpi is perfectly capable of doing polling on its own so that it
-becomes transparent to userspace, and userspace won't screw over the owners
-of thinkpads that don't need polling.
+temp1 is high and increasing from +70.0=BAC despite the high fan speed.
 
-So, it is not that I am against the OSI(Linux) patch.  But I *do* want the
-full data...
+It seems that this machine is not yet supported.
 
-> The problem here as I describe in my last email is that thinkpad-acpi
-> cannot full fix this issue. You need to have a userspace daemon to
-> interact with the userspace sound server.
+Angel
 
-But you can send full state messages using EV_SW or some other channel, to
-force userspace into sync with the hardware state (if we can get to the
-hardware state).  I'd rather find out whether we need that on the newest
-generation of thinkpads *before* userspace starts expecting a certain
-behaviour from the thinkpad.
 
-> What is getting me guys is that we have machines already doing this
-> right now in the code from the same time period (They where put there to
-> solve the exact same issue). This is just an extension of those
-> machines. I think what we are discussing now is a separate possible
-> solution. But for the short term we should black list these machines
-> also, till can sort it out. Once it is we can unblack list all of them.
+Angel Pe=F1a escribi=F3:
+> My new HP Probook 4510s with openSuse 11.2 (kernel 2.6.31) or 11.3
+> Milestone 4 (kernel 2.6.32) always ends running the fan at high speed=
+=2E
+> There must be a change in the BIOS because in others HP laptops (nx61=
+25,
+> nx7300) it didn't occur.
+>
+> Thanks for you attention.
+>
+> Angel Pe=F1a
+>
+>  =20
 
-I don't mind short-term solutions.  But I *do* mind any future pressure to
-keep them around instead of fixing things properly even if we will need to
-break userspace hacks.  I am not yet sure this won't be the case, here.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
