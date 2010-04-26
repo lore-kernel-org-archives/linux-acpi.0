@@ -1,75 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
-Date: Mon, 26 Apr 2010 12:22:58 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1004261130090.3999@localhost.localdomain>
-References: <20100401133923.GA4104@tiehlicka.suse.cz>
- <20100419115942.GC5160@tiehlicka.suse.cz> <201004191719.53602.rjw@sisk.pl>
- <201004250435.42779.rjw@sisk.pl> <20100426150503.GA4005@tiehlicka.suse.cz>
+From: Toralf =?iso-8859-1?q?F=F6rster?= <toralf.foerster@gmx.de>
+Subject: should the resoltion of a closed lid of a docked ThinkPad be considered
+Date: Mon, 26 Apr 2010 19:06:44 +0200
+Message-ID: <201004261906.45251.toralf.foerster@gmx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20100426150503.GA4005@tiehlicka.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:34400 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751210Ab0DZRHI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Apr 2010 13:07:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "linux-acpi@vger.kernel.org l" <linux-acpi@vger.kernel.org>, linux-video@atrey.karlin.mff.cuni.cz
 
-Michal,
+Hello,
 
-> my laptop changed behavior during poweroff recently (after upgrading
-> from .33 to .34-rc1). The system seems to be powered off (status display
-> is off) at first glance but when I close the lid then I can hear a noise
-> which sounds like HDD parking and when I open lid again it starts
-> booting without poweroff button (same like when I suspend to RAM).
+there's a different behaviour between 2.6.33.3 and 2.6.34-rc5 observed =
+at a=20
+ThinkPad T400 with intel graphic GM45 .
 
-Tony,
+If it is docked and the lid is closed (1440x900) and an external DVI mo=
+nitor=20
+(1650x1080) is connected at the docking station - the dmesg of 2.6.33.3=
+ gives:
+	Console: switching to colour frame buffer device 210x65
+whereas 2.6.34 gives:
+	Console: switching to colour frame buffer device 180x56
 
-> I have the exact same "lid close = powering back on" regression on a
-> Fujitsu-Siemens Lifebook S6420.
+=46urthermore X differs in the fact, that 2.6.33.3 sets the external mo=
+nitor to=20
+the expected resolution:
+	(II) intel(0): Output HDMI2 using initial mode 1680x1050
+whereas 2.6.34-rc5 sets it to the (unwanted) lower resolution :
+	(II) intel(0): Output HDMI2 using initial mode 1440x900
 
-Perhaps you can review this description and help me
-better understand the symptoms?
+Now I'm wondering whether this new behaviour is wanted - and if not - w=
+hich=20
+mailing list is the correct one ?
 
-Michal,
-Re: poweroff
+--=20
+MfG/Sincerely
+Toralf F=F6rster
 
-Before the regression you could hear the HDD park as a result of the
-"poweroff" command without touching the lid, and after the regression
-you don't hear that sound until after you close the lid -- no matter
-how long you wait to close the lid?
+pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
 
-During this period after poweroff and LCD goes out, but before
-lid close, are there any other signs of life?  eg. does caps
-lock button light the caps LED?
-
-How about during this period if you press the power button and
-hold it for 5 seconds, does that cause the HDD parking sound?
-
-If yes, then the regression is that poweroff never completes,
-though perhaps a lid event allows it to complete.
-
-When you say 'when I open the lid again i starts booting'.
-Is that a cold boot from scratch, or a resume from suspend?
-
-Does the new boot start when the lid is closed, or when it is
-subsequently opened?
-
-Thanks for sending your /proc/acpi/wakeup, it shows that
-
-LID       S4    *enabled  
-
-which means that the LID is not an S5 wakeup device.
-So if you really do get down to S5, the LID should
-not be able to wake the system.  So if it is, then
-we are never getting to S5.
-
-Tony,
-Please send the /proc/acpi/wakeup file before and after
-the regression.  Does the system reach a complete poweroff
-before the lid is closed?  If yes, what happens when
-you press the power button w/o closing the lid?
-If you reached S5, it should give you a cold boot.
-If you did not reach S5, it will have no effect.
-
-thanks,
-Len Brown, Intel Open Source Technology Center
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
