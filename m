@@ -1,109 +1,119 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Re: ACPI acpi_processor_get_throttling_info taking excessive time?
-Date: Mon, 26 Apr 2010 11:14:51 -0700
-Message-ID: <4BD5D81B.4020600@sgi.com>
-References: <4BD4F0A5.7050208@sgi.com> <1272248522.25088.67.camel@rzhang1-desktop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Mon, 26 Apr 2010 20:51:09 +0200
+Message-ID: <201004262051.09175.rjw@sisk.pl>
+References: <20100401133923.GA4104@tiehlicka.suse.cz> <201004250435.42779.rjw@sisk.pl> <20100426150503.GA4005@tiehlicka.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:49500 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752996Ab0DZSOy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Apr 2010 14:14:54 -0400
-In-Reply-To: <1272248522.25088.67.camel@rzhang1-desktop>
+Received: from ogre.sisk.pl ([217.79.144.158]:44931 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751157Ab0DZSvU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Apr 2010 14:51:20 -0400
+In-Reply-To: <20100426150503.GA4005@tiehlicka.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jack Steiner <steiner@sgi.com>, Hedi Berriche <hedi@sgi.com>, Robin Holt <holt@sgi.com>
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Hi,
-
-Thanks for the reply.  I've added a new BZ:
-
-	https://bugzilla.kernel.org/show_bug.cgi?id=15856
-
-and attached the console output I collected from:
-
-ignore_loglevel acpi.debug_layer=0x2800001f acpi.debug_level=0x00000027
-
-This took almost an hour to boot so adding all flags would not be
-practical.
-
-Thanks!
-Mike
-
-Zhang Rui wrote:
-> Hi, Mike,
+On Monday 26 April 2010, Michal Hocko wrote:
+> On Sun 25-04-10 04:35:42, Rafael J. Wysocki wrote:
+> > On Monday 19 April 2010, Rafael J. Wysocki wrote:
+> > > On Monday 19 April 2010, Michal Hocko wrote:
+> > > > On Fri 16-04-10 20:00:29, Rafael J. Wysocki wrote:
+> > > > > On Wednesday 14 April 2010, Michal Hocko wrote:
+> > > > > > On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
+> > > > > > > On Tuesday 13 April 2010, Michal Hocko wrote:
+> > > > > > > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> > > > > > > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > > > > > > > > > On Friday 09 April 2010, Tony Vroon wrote:
+> > > > > > > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > > > > > > > > > Please check if the patch below changes anything.
+> > > > > > > > > > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > > > > > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > > > > > > > > 
+> > > > > > > > > > > That didn't change the behaviour for me, sorry.
+> > > > > > > > > > 
+> > > > > > > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > > > > > > > > > 
+> > > > > > > > > > > (I made sure to go through a full power down session before trying the
+> > > > > > > > > > > patched kernel)
+> > > > > > > > > > 
+> > > > > > > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > > > > > > > > > 
+> > > > > > > > > > I'll try to figure out what's going on, please stay tuned.
+> > > > > > > > > 
+> > > > > > > > > Can you please check if the patch below changes the behavior?
+> > > > > > > > 
+> > > > > > > > Unfortunately, it didn't help either (I have tried on top of the fresh
+> > > > > > > > rc4).
+> > > > > > > 
+> > > > > > > That gets really weird.
+> > > > > > > 
+> > > > > > > > > ---
+> > > > > > > > >  drivers/acpi/wakeup.c |    6 +++---
+> > > > > > > > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > > > > > > > 
+> > > > > > > > > Index: linux-2.6/drivers/acpi/wakeup.c
+> > > > > > > > > ===================================================================
+> > > > > > > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
+> > > > > > > > > +++ linux-2.6/drivers/acpi/wakeup.c
+> > > > > > > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+> > > > > > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > > > > > > >  		struct acpi_device *dev =
+> > > > > > > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > > > > > > +		u8 action = ACPI_GPE_ENABLE;
+> > > > > > > 
+> > > > > > > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
+> > > > > > 
+> > > > > > Unfortunately didn't help as well...
+> > > > > > Just for reference:
+> > > > > > 
+> > > > > > diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+> > > > > > index 248b473..f23c08f 100644
+> > > > > > --- a/drivers/acpi/wakeup.c
+> > > > > > +++ b/drivers/acpi/wakeup.c
+> > > > > > @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+> > > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > > > >  		struct acpi_device *dev =
+> > > > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > > > -		u8 action = ACPI_GPE_ENABLE;
+> > > > > > +		u8 action = ACPI_GPE_DISABLE;
+> > > > > 
+> > > > > That probably means the chipset enables the GPEs by itself _after_ we've
+> > > > > disabled them in acpi_enable_wakeup_device().
+> > > > 
+> > > > Is this something BIOS specific?
+> > > > 
+> > > > > 
+> > > > > Unfortunately, I can't reproduce the issue on any of my test boxes and it's
+> > > > > hard to find the source of the problem staring at the code.
+> > > > 
+> > > > Are there any debug options I can turn on to provide some information?
+> > > 
+> > > We can only check what the kernel tells us before power off, but all that seems
+> > > correct.
+> > > 
+> > > > Btw. what exactly does this mean? In what state is the laptop while it
+> > > > is turned off and GPE is enabled?
+> > > 
+> > > If a GPE is enabled, then some part of the chipset has power provided so that
+> > > it can signal wakeup.
+> > > 
+> > > I'll look into it a bit more later today.
+> > 
+> > Please try the patch below.  It kind of restores the previous behavior,
+> > let's see if it changes anything.
 > 
-> please attach the acpidump of this machine, together with full dmesg
-> output after boot (you can use boot option log_buf_len=4M to save more
-> boot logs).
-> BTW: it would be great if you can file a new bug report about this at
-> https://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-> and attach all the info there.
-> 
-> thanks,
-> rui
-> 
-> On Mon, 2010-04-26 at 09:47 +0800, Mike Travis wrote:
->> Hi,
->>
->> On our test machine that has 1664 processors, we've discovered that
->> the function acpi_processor_get_throttling_info takes 10 minutes.
->> It's estimated that with 4096 cpus, this will take over 25 minutes.
->>
->> It seems that the acpi_processor_get_throttling_info serially queries
->> each cpu with a "runon" function to extract the throttling states.
->>
->> My question is can this be optimized to use the previous processor's
->> throttling states?  Would there be any reason to expect any of the
->> processors to be different?
->>
->> Another thought, if each processor needs to be queried, can the
->> functions be run in parallel?
->>
->> Each time I broke into this delay, this was the call stack:
->>
->>     6.559522 (    0.000032)| Stack traceback for pid 16894
->>     6.559554 (    0.000032)| 0xffff8827fb4d8680    16894        1  1  358   R  0xffff8827fb4d8d10  modprobe
->>     6.559628 (    0.000074)|  ffff8827fb535ae0 0000000000000018 ffffffff81246665 ffff8ac700000004
->>     6.559694 (    0.000066)|  ffff8d21fc07d150 ffff8ac7fc2e8800 0000000000000000 ffff8ac7fc2e9550
->>     6.559771 (    0.000077)|  0000000000000000 ffff8827fb535cd8 ffffffff81235822 ffffffff8158ac76
->>     6.559837 (    0.000066)| Call Trace:
->>     6.559852 (    0.000015)| Inexact backtrace:
->>     6.559874 (    0.000022)|
->>     6.559879 (    0.000005)|  [<ffffffff81246665>] ? acpi_ns_delete_namespace_by_owner+0xb2/0xdb
->>     6.559944 (    0.000065)|  [<ffffffff81235822>] ? acpi_ds_terminate_control_method+0x74/0x102
->>     6.560008 (    0.000064)|  [<ffffffff8124a60f>] ? acpi_ps_parse_aml+0x246/0x3c9
->>     6.560061 (    0.000053)|  [<ffffffff81251e25>] ? acpi_ut_create_internal_object_dbg+0x18/0x79
->>     6.560129 (    0.000068)|  [<ffffffff8124be20>] ? acpi_ps_execute_method+0x229/0x331
->>     6.560194 (    0.000065)|  [<ffffffff81246851>] ? acpi_ns_evaluate+0x189/0x2bc
->>     6.560246 (    0.000052)|  [<ffffffff8124611c>] ? acpi_evaluate_object+0x15e/0x2a5
->>     6.560301 (    0.000055)|  [<ffffffff812513e8>] ? acpi_ut_update_ref_count+0x17f/0x1d6
->>     6.560386 (    0.000085)|  [<ffffffffa012e14c>] ? acpi_processor_get_throttling_info+0x202/0x6f9 [processor]
->>     6.560464 (    0.000078)|  [<ffffffffa0131c46>] ? acpi_processor_add+0x93a/0xa8c [processor]
->>     6.560528 (    0.000064)|  [<ffffffff8122b247>] ? acpi_device_probe+0x4e/0x179
->>     6.560580 (    0.000052)|  [<ffffffff8128cb28>] ? driver_probe_device+0xc8/0x2d0
->>     6.560633 (    0.000053)|  [<ffffffff8128cdc3>] ? __driver_attach+0x93/0xa0
->>     6.560682 (    0.000049)|  [<ffffffff8128cd30>] ? __driver_attach+0x0/0xa0
->>     6.560740 (    0.000058)|  [<ffffffff8128c158>] ? bus_for_each_dev+0x58/0x80
->>     6.560790 (    0.000050)|  [<ffffffff8128b945>] ? bus_add_driver+0x155/0x2b0
->>     6.560839 (    0.000049)|  [<ffffffffa00d0000>] ? acpi_processor_init+0x0/0x10e [processor]
->>     6.560902 (    0.000063)|  [<ffffffff8128d0d9>] ? driver_register+0x79/0x170
->>     6.560952 (    0.000050)|  [<ffffffffa00d0000>] ? acpi_processor_init+0x0/0x10e [processor]
->>     6.561015 (    0.000063)|  [<ffffffffa00d009a>] ? acpi_processor_init+0x9a/0x10e [processor]
->>     6.561079 (    0.000064)|  [<ffffffff81067325>] ? __blocking_notifier_call_chain+0x65/0x90
->>     6.561141 (    0.000062)|  [<ffffffff810001e5>] ? do_one_initcall+0x35/0x190
->>     6.561190 (    0.000049)|  [<ffffffff8107b514>] ? sys_init_module+0xe4/0x270
->>     6.561240 (    0.000050)|  [<ffffffff81002e7b>] ? system_call_fastpath+0x16/0x1b
->>
->> Thanks,
->> Mike
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Again, no success. Just to make sure that I didn't screw anything. I
+> have used just the following patch on top of the clean rc5 (your patch
+> has failed with some rejects but I guess that the following should do
+> the same):
+
+Thanks for testing.  Did you try the second thing, ie. try to comment out the
+acpi_enable_gpe() in drivers/acpi/wakeup.c:acpi_wakeup_device_init() and
+retest (if you haven't done that already)?
+
+Rafael
