@@ -1,102 +1,199 @@
-From: =?ISO-8859-1?Q?Angel_Pe=F1a?= <angelpp@bigfoot.com>
-Subject: Re: HP Probook 4510s fan always at high speed
-Date: Mon, 26 Apr 2010 14:07:57 +0200
-Message-ID: <4BD5821D.6000406@bigfoot.com>
-References: <4BB38F3C.4040108@bigfoot.com>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
+Date: Mon, 26 Apr 2010 17:05:03 +0200
+Message-ID: <20100426150503.GA4005@tiehlicka.suse.cz>
+References: <20100401133923.GA4104@tiehlicka.suse.cz>
+ <20100419115942.GC5160@tiehlicka.suse.cz>
+ <201004191719.53602.rjw@sisk.pl>
+ <201004250435.42779.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay.ubu.es ([193.146.160.3]:60048 "EHLO relay.ubu.es"
+Received: from cantor2.suse.de ([195.135.220.15]:48854 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752862Ab0DZMG7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Apr 2010 08:06:59 -0400
-Received: from [193.146.170.132] (isa05.inf.ubu.es [193.146.170.132])
-	by relay.ubu.es (ubumail) with ESMTP id 119044E2CA
-	for <linux-acpi@vger.kernel.org>; Mon, 26 Apr 2010 14:06:58 +0200 (CEST)
-In-Reply-To: <4BB38F3C.4040108@bigfoot.com>
+	id S1752160Ab0DZPFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Apr 2010 11:05:06 -0400
+Content-Disposition: inline
+In-Reply-To: <201004250435.42779.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-This is the sensors-detect command output from my HP 4510s ProBook:
+On Sun 25-04-10 04:35:42, Rafael J. Wysocki wrote:
+> On Monday 19 April 2010, Rafael J. Wysocki wrote:
+> > On Monday 19 April 2010, Michal Hocko wrote:
+> > > On Fri 16-04-10 20:00:29, Rafael J. Wysocki wrote:
+> > > > On Wednesday 14 April 2010, Michal Hocko wrote:
+> > > > > On Tue 13-04-10 22:53:37, Rafael J. Wysocki wrote:
+> > > > > > On Tuesday 13 April 2010, Michal Hocko wrote:
+> > > > > > > On Tue 13-04-10 01:01:54, Rafael J. Wysocki wrote:
+> > > > > > > > On Saturday 10 April 2010, Rafael J. Wysocki wrote:
+> > > > > > > > > On Friday 09 April 2010, Tony Vroon wrote:
+> > > > > > > > > > On Fri, 2010-04-09 at 22:42 +0200, Rafael J. Wysocki wrote:
+> > > > > > > > > > > Please check if the patch below changes anything.
+> > > > > > > > > > >  drivers/acpi/wakeup.c |    4 ++--
+> > > > > > > > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > > > > > > > 
+> > > > > > > > > > That didn't change the behaviour for me, sorry.
+> > > > > > > > > 
+> > > > > > > > > Well, I would be sorry if it did, because the patch removed some useful code. :-)
+> > > > > > > > > 
+> > > > > > > > > > (I made sure to go through a full power down session before trying the
+> > > > > > > > > > patched kernel)
+> > > > > > > > > 
+> > > > > > > > > Thanks for testing.  So it looks like we don't disable the GPE during power off.
+> > > > > > > > > 
+> > > > > > > > > I'll try to figure out what's going on, please stay tuned.
+> > > > > > > > 
+> > > > > > > > Can you please check if the patch below changes the behavior?
+> > > > > > > 
+> > > > > > > Unfortunately, it didn't help either (I have tried on top of the fresh
+> > > > > > > rc4).
+> > > > > > 
+> > > > > > That gets really weird.
+> > > > > > 
+> > > > > > > > ---
+> > > > > > > >  drivers/acpi/wakeup.c |    6 +++---
+> > > > > > > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > > > > > > 
+> > > > > > > > Index: linux-2.6/drivers/acpi/wakeup.c
+> > > > > > > > ===================================================================
+> > > > > > > > --- linux-2.6.orig/drivers/acpi/wakeup.c
+> > > > > > > > +++ linux-2.6/drivers/acpi/wakeup.c
+> > > > > > > > @@ -63,17 +63,17 @@ void acpi_enable_wakeup_device(u8 sleep_
+> > > > > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > > > > > >  		struct acpi_device *dev =
+> > > > > > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > > > > > +		u8 action = ACPI_GPE_ENABLE;
+> > > > > > 
+> > > > > > Can you try to change the above to ACPI_GPE_DISABLE and retest, please?
+> > > > > 
+> > > > > Unfortunately didn't help as well...
+> > > > > Just for reference:
+> > > > > 
+> > > > > diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+> > > > > index 248b473..f23c08f 100644
+> > > > > --- a/drivers/acpi/wakeup.c
+> > > > > +++ b/drivers/acpi/wakeup.c
+> > > > > @@ -63,7 +63,7 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+> > > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > > >  		struct acpi_device *dev =
+> > > > >  			container_of(node, struct acpi_device, wakeup_list);
+> > > > > -		u8 action = ACPI_GPE_ENABLE;
+> > > > > +		u8 action = ACPI_GPE_DISABLE;
+> > > > 
+> > > > That probably means the chipset enables the GPEs by itself _after_ we've
+> > > > disabled them in acpi_enable_wakeup_device().
+> > > 
+> > > Is this something BIOS specific?
+> > > 
+> > > > 
+> > > > Unfortunately, I can't reproduce the issue on any of my test boxes and it's
+> > > > hard to find the source of the problem staring at the code.
+> > > 
+> > > Are there any debug options I can turn on to provide some information?
+> > 
+> > We can only check what the kernel tells us before power off, but all that seems
+> > correct.
+> > 
+> > > Btw. what exactly does this mean? In what state is the laptop while it
+> > > is turned off and GPE is enabled?
+> > 
+> > If a GPE is enabled, then some part of the chipset has power provided so that
+> > it can signal wakeup.
+> > 
+> > I'll look into it a bit more later today.
+> 
+> Please try the patch below.  It kind of restores the previous behavior,
+> let's see if it changes anything.
 
-# sensors-detect
-Shutting down sensors:                                               do=
-ne
-# sensors-detect revision 5729 (2009-06-02 15:51:29 +0200)             =
-=20
-# System: Hewlett-Packard HP ProBook 4510s (laptop)                    =
-=20
-# Board: Hewlett-Packard 3074                                          =
-=20
+Again, no success. Just to make sure that I didn't screw anything. I
+have used just the following patch on top of the clean rc5 (your patch
+has failed with some rejects but I guess that the following should do
+the same):
 
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe=20
-and recommended to accept the default answers to all questions, =20
-unless you know what you're doing.                              =20
+commit 65eafe4a504e3bb2c13b4feb8590dc52e7439baa
+Author: Rafael J. Wysocki <rjw@sisk.pl>
+Date:   Sun Apr 25 04:35:42 2010 +0200
 
-Some south bridges, CPUs or memory controllers contain embedded sensors=
-=2E
-Do you want to scan for them? This is totally safe. (YES/no): YES     =20
-Silicon Integrated Systems SIS5595...                       No        =20
-VIA VT82C686 Integrated Sensors...                          No        =20
-VIA VT8231 Integrated Sensors...                            No        =20
-AMD K8 thermal sensors...                                   No        =20
-AMD K10 thermal sensors...                                  No        =20
-Intel Core family thermal sensor...                         Success!  =20
-    (driver `coretemp')                                               =20
-Intel AMB FB-DIMM thermal sensor...                         No        =20
-VIA C7 thermal and voltage sensors...                       No        =20
+diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
+index fef7219..b6e1e0c 100644
+--- a/drivers/acpi/acpica/evgpeblk.c
++++ b/drivers/acpi/acpica/evgpeblk.c
+@@ -367,7 +367,7 @@ acpi_ev_match_prw_and_gpe(acpi_handle obj_handle,
+ 	union acpi_operand_object *pkg_desc;
+ 	union acpi_operand_object *obj_desc;
+ 	u32 gpe_number;
+-	acpi_status status;
++	acpi_status status = AE_OK;
+ 
+ 	ACPI_FUNCTION_TRACE(ev_match_prw_and_gpe);
+ 
+@@ -447,12 +447,13 @@ acpi_ev_match_prw_and_gpe(acpi_handle obj_handle,
+ 							gpe_block->
+ 							block_base_number];
+ 
++		status = acpi_ev_disable_gpe(gpe_event_info);
+ 		gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
+ 	}
+ 
+       cleanup:
+ 	acpi_ut_remove_reference(pkg_desc);
+-	return_ACPI_STATUS(AE_OK);
++	return_ACPI_STATUS(status);
+ }
+ 
+ /*******************************************************************************
 
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.         =20
-Do you want to scan for Super I/O sensors? (YES/no):            =20
-Probing for Super-I/O at 0x2e/0x2f                              =20
-Trying family `National Semiconductor'...                   No  =20
-Trying family `SMSC'...                                     Yes =20
-=46ound unknown chip with ID 0x4501                               =20
-Probing for Super-I/O at 0x4e/0x4f                              =20
-Trying family `National Semiconductor'...                   No  =20
-Trying family `SMSC'...                                     No  =20
-Trying family `VIA/Winbond/Fintek'...                       No  =20
-Trying family `ITE'...                                      No  =20
+> 
+> Rafael
+> 
+> ---
+>  drivers/acpi/acpica/evgpeblk.c |    8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/acpica/evgpeblk.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evgpeblk.c
+> +++ linux-2.6/drivers/acpi/acpica/evgpeblk.c
+> @@ -364,7 +364,7 @@ acpi_ev_match_prw_and_gpe(acpi_handle ob
+>  	union acpi_operand_object *pkg_desc;
+>  	union acpi_operand_object *obj_desc;
+>  	u32 gpe_number;
+> -	acpi_status status;
+> +	acpi_status status = AE_OK;
+>  
+>  	ACPI_FUNCTION_TRACE(ev_match_prw_and_gpe);
+>  
+> @@ -439,13 +439,15 @@ acpi_ev_match_prw_and_gpe(acpi_handle ob
+>  	if (gpe_device == target_gpe_device) {
+>  		gpe_event_info = acpi_ev_gpeblk_event_info(gpe_block,
+>  							   gpe_number);
+> -		if (gpe_event_info)
+> +		if (gpe_event_info) {
+> +			status = acpi_ev_disable_gpe(gpe_event_info);
+>  			gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
+> +		}
+>  	}
+>  
+>        cleanup:
+>  	acpi_ut_remove_reference(pkg_desc);
+> -	return_ACPI_STATUS(AE_OK);
+> +	return_ACPI_STATUS(status);
+>  }
+>  
+>  /*******************************************************************************
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-This is the sensors command output
-
-# sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +75.0=B0C  (crit =3D +108.0=B0C)
-temp2:       +30.0=B0C  (crit =3D +105.0=B0C)
-temp3:       +40.0=B0C  (crit =3D +108.0=B0C)
-temp4:       +45.0=B0C  (crit =3D +105.0=B0C)
-temp5:       +20.0=B0C  (crit =3D +108.0=B0C)
-temp6:       +45.0=B0C  (crit =3D +110.0=B0C)
-
-temp1 is high and increasing from +70.0=BAC despite the high fan speed.
-
-It seems that this machine is not yet supported.
-
-Angel
-
-
-Angel Pe=F1a escribi=F3:
-> My new HP Probook 4510s with openSuse 11.2 (kernel 2.6.31) or 11.3
-> Milestone 4 (kernel 2.6.32) always ends running the fan at high speed=
-=2E
-> There must be a change in the BIOS because in others HP laptops (nx61=
-25,
-> nx7300) it didn't occur.
->
-> Thanks for you attention.
->
-> Angel Pe=F1a
->
->  =20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Michal Hocko
+L3 team 
+SUSE LINUX s.r.o.
+Lihovarska 1060/12
+190 00 Praha 9    
+Czech Republic
