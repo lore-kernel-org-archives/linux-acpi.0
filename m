@@ -1,47 +1,65 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/1] Tabletkiosk eo7300 series WMI button support
-Date: Tue, 27 Apr 2010 15:26:55 +0100
-Message-ID: <20100427142655.GA3062@srcf.ucam.org>
-References: <4BD6F030.6080701@linuxdevelopment.de>
+From: Philip Langdale <philipl@overt.org>
+Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
+Date: Tue, 27 Apr 2010 08:41:34 -0700
+Message-ID: <20100427084134.2874d142@fido5>
+References: <20100126084740.GA5265@jgarrett.org>
+	<87y6jkee1b.fsf@basil.nowhere.org>
+	<20100205160900.GA2736@jgarrett.org>
+	<alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
+	<20100426194002.586fbaa5@fido5>
+	<alpine.LFD.2.00.1004270319560.3999@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38080 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950Ab0D0O06 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 10:26:58 -0400
-Content-Disposition: inline
-In-Reply-To: <4BD6F030.6080701@linuxdevelopment.de>
+Received: from usul.saidi.cx ([204.11.33.34]:50201 "EHLO usul.overt.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754033Ab0D0Plm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Apr 2010 11:41:42 -0400
+In-Reply-To: <alpine.LFD.2.00.1004270319560.3999@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert =?iso-8859-1?Q?W=F6rle?= <robert@linuxdevelopment.de>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Apr 27, 2010 at 04:09:52PM +0200, Robert W=F6rle wrote:
+On Tue, 27 Apr 2010 03:26:34 -0400 (EDT)
+Len Brown <lenb@kernel.org> wrote:
 
-> find attached a patch to get the WMI buttons going for the Tabletkios=
-k
-> eo7300
-> of course i will host this driver on our website but if they ever get
-> included , i would be more then proud.
->=20
-> As i am not a frequent patch sender, feel free to bitch me about
-> condingstyle or anything else to get this patch fly.
+> 
+> 
+> Curious failure.
+> I could imagine that there is something in the design of this board
+> where we want to not enter a deep C-state, and thus the board and
+> Linux are doing the right thing by avoiding the C-state.
+> However, ignoring the bm-status check and blindly going to that state
+> I would expect to impact throughput and latency, but don't see
+> how that might 'serialize' the workload or otherwise cause it
+> to use some cores and not others.
 
-Hi Rob,
+Hmm - and now I can't reproduce it. I got proper parallelization across
+the kernel compile. I guess some sort of runtime state was messed up,
+and I obviously lost that then I rebooted. :-/
+ 
+> It is possible that we jump into those deep states just to be
+> immediately forced to jump right back out.  You'd see this in
+> high usage counts under /sys/devices/system/cpu/cpu*/cpuidle
+> 
+> turbostat, of course, would tell you the actual residency in those
+> states. Of course there is a twist...  The hardware has a feature to
+> recognize thrashing and may demote an OS request for a deep state into
+> an actual hardware request for a shallower state.  this is one reason
+> that the output of powertop (request) and turbostat (result)
+> may be different.
 
-Could you also send this to platform-driver-x86@vger.kernel.org along=20
-with a signed-off-by: line as discussed in=20
-Documentation/SubmittingPatches? I'll review it there and include it in=
-=20
-the platform drivers tree for .35 if there's no major problems.
+Without the patch, Turbostat showed C3 residency of 99% for most
+hyper-threads with one or two getting ~15% C6 residency. PC3 was 75%.
+Cores were at their lowest P state.
 
-Thanks
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With the patch, C6 residency is 99%, PC6 is 75% and 7 hyper-threads at
+lowest P state with one stubborning running at a higher level.
+
+I have a very similarly configured machine with an asus motherboard and
+it doesn't have this problem - which is another reason I'm wondering if
+it's an OEM screwup.
+
+--phil
