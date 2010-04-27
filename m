@@ -1,776 +1,392 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 02/12] ACPI, APEI, APEI supporting infrastructure
-Date: Tue, 27 Apr 2010 14:41:11 +0800
-Message-ID: <1272350481-27951-3-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 06/12] ACPI, APEI, PCIE AER, use general HEST table parsing in AER firmware_first setup
+Date: Tue, 27 Apr 2010 14:41:15 +0800
+Message-ID: <1272350481-27951-7-git-send-email-ying.huang@intel.com>
 References: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61927 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751451Ab0D0GnF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 02:43:05 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-APEI stands for ACPI Platform Error Interface, which allows to report
-errors (for example from the chipset) to the operating system. This
-improves NMI handling especially. In addition it supports error
-serialization and error injection.
-
-For more information about APEI, please refer to ACPI Specification
-version 4.0, chapter 17.
-
-This patch provides some common functions used by more than one APEI
-tables, mainly framework of interpreter for EINJ and ERST.
-
-A machine readable language is defined for EINJ and ERST for OS to
-execute, and so to drive the firmware to fulfill the corresponding
-functions. The machine language for EINJ and ERST is compatible, so a
-common framework is defined for them.
+Now, a dedicated HEST tabling parsing code is used for PCIE AER
+firmware_first setup. It is rebased on general HEST tabling parsing
+code of APEI. The firmware_first setup code is moved from PCI core to
+AER driver too, because it is only AER related.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 ---
- drivers/acpi/Kconfig              |    2 
- drivers/acpi/Makefile             |    2 
- drivers/acpi/apei/Kconfig         |    9 
- drivers/acpi/apei/Makefile        |    3 
- drivers/acpi/apei/apei-base.c     |  593 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/apei/apei-internal.h |   95 ++++++
- 6 files changed, 704 insertions(+)
- create mode 100644 drivers/acpi/apei/Kconfig
- create mode 100644 drivers/acpi/apei/Makefile
- create mode 100644 drivers/acpi/apei/apei-base.c
- create mode 100644 drivers/acpi/apei/apei-internal.h
+ drivers/acpi/Makefile              |    1 
+ drivers/acpi/hest.c                |  135 -------------------------------------
+ drivers/pci/pcie/aer/aerdrv.h      |   17 ++++
+ drivers/pci/pcie/aer/aerdrv_acpi.c |   77 +++++++++++++++++++++
+ drivers/pci/pcie/aer/aerdrv_core.c |    8 +-
+ drivers/pci/probe.c                |    8 --
+ include/acpi/acpi_hest.h           |   12 ---
+ include/linux/pci.h                |    3 
+ 8 files changed, 100 insertions(+), 161 deletions(-)
+ delete mode 100644 drivers/acpi/hest.c
+ delete mode 100644 include/acpi/acpi_hest.h
 
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -360,4 +360,6 @@ config ACPI_SBS
- 	  To compile this driver as a module, choose M here:
- 	  the modules will be called sbs and sbshc.
- 
-+source "drivers/acpi/apei/Kconfig"
-+
- endif	# ACPI
 --- a/drivers/acpi/Makefile
 +++ b/drivers/acpi/Makefile
-@@ -67,3 +67,5 @@ processor-y			+= processor_idle.o proces
- processor-$(CONFIG_CPU_FREQ)	+= processor_perflib.o
+@@ -20,7 +20,6 @@ obj-y				+= acpi.o \
+ # All the builtin files are in the "acpi." module_param namespace.
+ acpi-y				+= osl.o utils.o reboot.o
+ acpi-y				+= atomicio.o
+-acpi-y				+= hest.o
  
- obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
-+
-+obj-$(CONFIG_ACPI_APEI)		+= apei/
---- /dev/null
-+++ b/drivers/acpi/apei/Kconfig
-@@ -0,0 +1,9 @@
-+config ACPI_APEI
-+	bool "ACPI Platform Error Interface (APEI)"
-+	depends on X86
-+	help
-+	  APEI allows to report errors (for example from the chipset)
-+	  to the operating system. This improves NMI handling
-+	  especially. In addition it supports error serialization and
-+	  error injection.
-+
---- /dev/null
-+++ b/drivers/acpi/apei/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_ACPI_APEI)		+= apei.o
-+
-+apei-y := apei-base.o
---- /dev/null
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -0,0 +1,593 @@
-+/*
-+ * apei-base.c - ACPI Platform Error Interface (APEI) supporting
-+ * infrastructure
-+ *
-+ * APEI allows to report errors (for example from the chipset) to the
-+ * the operating system. This improves NMI handling especially. In
-+ * addition it supports error serialization and error injection.
-+ *
-+ * For more information about APEI, please refer to ACPI Specification
-+ * version 4.0, chapter 17.
-+ *
-+ * This file has Common functions used by more than one APEI table,
-+ * including framework of interpreter for ERST and EINJ; resource
-+ * management for APEI registers.
-+ *
-+ * Copyright (C) 2009, Intel Corp.
-+ *	Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/io.h>
-+#include <linux/kref.h>
-+#include <linux/rculist.h>
-+#include <linux/interrupt.h>
-+#include <linux/debugfs.h>
-+#include <acpi/atomicio.h>
-+
-+#include "apei-internal.h"
-+
-+#define APEI_PFX "APEI: "
-+
-+/*
-+ * APEI ERST (Error Record Serialization Table) and EINJ (Error
-+ * INJection) interpreter framework.
-+ */
-+
-+#define APEI_EXEC_PRESERVE_REGISTER	0x1
-+
-+void apei_exec_ctx_init(struct apei_exec_context *ctx,
-+			struct apei_exec_ins_type *ins_table,
-+			u32 instructions,
-+			struct acpi_whea_header *action_table,
-+			u32 entries)
+ # sleep related files
+ acpi-y				+= wakeup.o
+--- a/drivers/acpi/hest.c
++++ /dev/null
+@@ -1,135 +0,0 @@
+-#include <linux/acpi.h>
+-#include <linux/pci.h>
+-
+-#define PREFIX "ACPI: "
+-
+-static inline unsigned long parse_acpi_hest_ia_machine_check(struct acpi_hest_ia_machine_check *p)
+-{
+-	return sizeof(*p) +
+-		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
+-}
+-
+-static inline unsigned long parse_acpi_hest_ia_corrected(struct acpi_hest_ia_corrected *p)
+-{
+-	return sizeof(*p) +
+-		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
+-}
+-
+-static inline unsigned long parse_acpi_hest_ia_nmi(struct acpi_hest_ia_nmi *p)
+-{
+-	return sizeof(*p);
+-}
+-
+-static inline unsigned long parse_acpi_hest_generic(struct acpi_hest_generic *p)
+-{
+-	return sizeof(*p);
+-}
+-
+-static inline unsigned int hest_match_pci(struct acpi_hest_aer_common *p, struct pci_dev *pci)
+-{
+-	return	(0           == pci_domain_nr(pci->bus) &&
+-		 p->bus      == pci->bus->number &&
+-		 p->device   == PCI_SLOT(pci->devfn) &&
+-		 p->function == PCI_FUNC(pci->devfn));
+-}
+-
+-static unsigned long parse_acpi_hest_aer(void *hdr, int type, struct pci_dev *pci, int *firmware_first)
+-{
+-	struct acpi_hest_aer_common *p = hdr + sizeof(struct acpi_hest_header);
+-	unsigned long rc=0;
+-	u8 pcie_type = 0;
+-	u8 bridge = 0;
+-	switch (type) {
+-	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+-		rc = sizeof(struct acpi_hest_aer_root);
+-		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_ENDPOINT:
+-		rc = sizeof(struct acpi_hest_aer);
+-		pcie_type = PCI_EXP_TYPE_ENDPOINT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_BRIDGE:
+-		rc = sizeof(struct acpi_hest_aer_bridge);
+-		if ((pci->class >> 16) == PCI_BASE_CLASS_BRIDGE)
+-			bridge = 1;
+-		break;
+-	}
+-
+-	if (p->flags & ACPI_HEST_GLOBAL) {
+-		if ((pci->is_pcie && (pci->pcie_type == pcie_type)) || bridge)
+-			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+-	}
+-	else
+-		if (hest_match_pci(p, pci))
+-			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+-	return rc;
+-}
+-
+-static int acpi_hest_firmware_first(struct acpi_table_header *stdheader, struct pci_dev *pci)
+-{
+-	struct acpi_table_hest *hest = (struct acpi_table_hest *)stdheader;
+-	void *p = (void *)hest + sizeof(*hest); /* defined by the ACPI 4.0 spec */
+-	struct acpi_hest_header *hdr = p;
+-
+-	int i;
+-	int firmware_first = 0;
+-	static unsigned char printed_unused = 0;
+-	static unsigned char printed_reserved = 0;
+-
+-	for (i=0, hdr=p; p < (((void *)hest) + hest->header.length) && i < hest->error_source_count; i++) {
+-		switch (hdr->type) {
+-		case ACPI_HEST_TYPE_IA32_CHECK:
+-			p += parse_acpi_hest_ia_machine_check(p);
+-			break;
+-		case ACPI_HEST_TYPE_IA32_CORRECTED_CHECK:
+-			p += parse_acpi_hest_ia_corrected(p);
+-			break;
+-		case ACPI_HEST_TYPE_IA32_NMI:
+-			p += parse_acpi_hest_ia_nmi(p);
+-			break;
+-		/* These three should never appear */
+-		case ACPI_HEST_TYPE_NOT_USED3:
+-		case ACPI_HEST_TYPE_NOT_USED4:
+-		case ACPI_HEST_TYPE_NOT_USED5:
+-			if (!printed_unused) {
+-				printk(KERN_DEBUG PREFIX
+-				       "HEST Error Source list contains an obsolete type (%d).\n", hdr->type);
+-				printed_unused = 1;
+-			}
+-			break;
+-		case ACPI_HEST_TYPE_AER_ROOT_PORT:
+-		case ACPI_HEST_TYPE_AER_ENDPOINT:
+-		case ACPI_HEST_TYPE_AER_BRIDGE:
+-			p += parse_acpi_hest_aer(p, hdr->type, pci, &firmware_first);
+-			break;
+-		case ACPI_HEST_TYPE_GENERIC_ERROR:
+-			p += parse_acpi_hest_generic(p);
+-			break;
+-		/* These should never appear either */
+-		case ACPI_HEST_TYPE_RESERVED:
+-		default:
+-			if (!printed_reserved) {
+-				printk(KERN_DEBUG PREFIX
+-				       "HEST Error Source list contains a reserved type (%d).\n", hdr->type);
+-				printed_reserved = 1;
+-			}
+-			break;
+-		}
+-	}
+-	return firmware_first;
+-}
+-
+-int acpi_hest_firmware_first_pci(struct pci_dev *pci)
+-{
+-	acpi_status status = AE_NOT_FOUND;
+-	struct acpi_table_header *hest = NULL;
+-	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
+-
+-	if (ACPI_SUCCESS(status)) {
+-		if (acpi_hest_firmware_first(hest, pci)) {
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
+--- a/drivers/pci/pcie/aer/aerdrv.h
++++ b/drivers/pci/pcie/aer/aerdrv.h
+@@ -134,4 +134,21 @@ static inline int aer_osc_setup(struct p
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_APEI
++extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
++#else
++static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_dev)
 +{
-+	ctx->ins_table = ins_table;
-+	ctx->instructions = instructions;
-+	ctx->action_table = action_table;
-+	ctx->entries = entries;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_ctx_init);
-+
-+int __apei_exec_read_register(struct acpi_whea_header *entry, u64 *val)
-+{
-+	int rc;
-+
-+	rc = acpi_atomic_read(val, &entry->register_region);
-+	if (rc)
-+		return rc;
-+	*val >>= entry->register_region.bit_offset;
-+	*val &= entry->mask;
-+
++	if (pci_dev->__aer_firmware_first_valid)
++		return pci_dev->__aer_firmware_first;
 +	return 0;
 +}
-+
-+int apei_exec_read_register(struct apei_exec_context *ctx,
-+			    struct acpi_whea_header *entry)
-+{
-+	int rc;
-+	u64 val = 0;
-+
-+	rc = __apei_exec_read_register(entry, &val);
-+	if (rc)
-+		return rc;
-+	ctx->value = val;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_read_register);
-+
-+int apei_exec_read_register_value(struct apei_exec_context *ctx,
-+				  struct acpi_whea_header *entry)
-+{
-+	int rc;
-+
-+	rc = apei_exec_read_register(ctx, entry);
-+	if (rc)
-+		return rc;
-+	ctx->value = (ctx->value == entry->value);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_read_register_value);
-+
-+int __apei_exec_write_register(struct acpi_whea_header *entry, u64 val)
-+{
-+	int rc;
-+
-+	val &= entry->mask;
-+	val <<= entry->register_region.bit_offset;
-+	if (entry->flags & APEI_EXEC_PRESERVE_REGISTER) {
-+		u64 valr = 0;
-+		rc = acpi_atomic_read(&valr, &entry->register_region);
-+		if (rc)
-+			return rc;
-+		valr &= ~(entry->mask << entry->register_region.bit_offset);
-+		val |= valr;
-+	}
-+	rc = acpi_atomic_write(val, &entry->register_region);
-+
-+	return rc;
-+}
-+
-+int apei_exec_write_register(struct apei_exec_context *ctx,
-+			     struct acpi_whea_header *entry)
-+{
-+	return __apei_exec_write_register(entry, ctx->value);
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_write_register);
-+
-+int apei_exec_write_register_value(struct apei_exec_context *ctx,
-+				   struct acpi_whea_header *entry)
-+{
-+	int rc;
-+
-+	ctx->value = entry->value;
-+	rc = apei_exec_write_register(ctx, entry);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_write_register_value);
-+
-+int apei_exec_noop(struct apei_exec_context *ctx,
-+		   struct acpi_whea_header *entry)
-+{
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_noop);
-+
-+/*
-+ * Interpret the specified action. Go through whole action table,
-+ * execute all instructions belong to the action.
-+ */
-+int apei_exec_run(struct apei_exec_context *ctx, u8 action)
-+{
-+	int rc;
-+	u32 i, ip;
-+	struct acpi_whea_header *entry;
-+	apei_exec_ins_func_t run;
-+
-+	ctx->ip = 0;
-+
-+	/*
-+	 * "ip" is the instruction pointer of current instruction,
-+	 * "ctx->ip" specifies the next instruction to executed,
-+	 * instruction "run" function may change the "ctx->ip" to
-+	 * implement "goto" semantics.
-+	 */
-+rewind:
-+	ip = 0;
-+	for (i = 0; i < ctx->entries; i++) {
-+		entry = &ctx->action_table[i];
-+		if (entry->action != action)
-+			continue;
-+		if (ip == ctx->ip) {
-+			if (entry->instruction >= ctx->instructions ||
-+			    !ctx->ins_table[entry->instruction].run) {
-+				pr_warning(FW_WARN APEI_PFX
-+			"Invalid action table, unknown instruction type: %d\n",
-+					   entry->instruction);
-+				return -EINVAL;
-+			}
-+			run = ctx->ins_table[entry->instruction].run;
-+			rc = run(ctx, entry);
-+			if (rc < 0)
-+				return rc;
-+			else if (rc != APEI_EXEC_SET_IP)
-+				ctx->ip++;
-+		}
-+		ip++;
-+		if (ctx->ip < ip)
-+			goto rewind;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_run);
-+
-+typedef int (*apei_exec_entry_func_t)(struct apei_exec_context *ctx,
-+				      struct acpi_whea_header *entry,
-+				      void *data);
-+
-+static int apei_exec_for_each_entry(struct apei_exec_context *ctx,
-+				    apei_exec_entry_func_t func,
-+				    void *data,
-+				    int *end)
-+{
-+	u8 ins;
-+	int i, rc;
-+	struct acpi_whea_header *entry;
-+	struct apei_exec_ins_type *ins_table = ctx->ins_table;
-+
-+	for (i = 0; i < ctx->entries; i++) {
-+		entry = ctx->action_table + i;
-+		ins = entry->instruction;
-+		if (end)
-+			*end = i;
-+		if (ins >= ctx->instructions || !ins_table[ins].run) {
-+			pr_warning(FW_WARN APEI_PFX
-+			"Invalid action table, unknown instruction type: %d\n",
-+				   ins);
-+			return -EINVAL;
-+		}
-+		rc = func(ctx, entry, data);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int pre_map_gar_callback(struct apei_exec_context *ctx,
-+				struct acpi_whea_header *entry,
-+				void *data)
-+{
-+	u8 ins = entry->instruction;
-+
-+	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
-+		return acpi_pre_map_gar(&entry->register_region);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Pre-map all GARs in action table to make it possible to access them
-+ * in NMI handler.
-+ */
-+int apei_exec_pre_map_gars(struct apei_exec_context *ctx)
-+{
-+	int rc, end;
-+
-+	rc = apei_exec_for_each_entry(ctx, pre_map_gar_callback,
-+				      NULL, &end);
-+	if (rc) {
-+		struct apei_exec_context ctx_unmap;
-+		memcpy(&ctx_unmap, ctx, sizeof(*ctx));
-+		ctx_unmap.entries = end;
-+		apei_exec_post_unmap_gars(&ctx_unmap);
-+	}
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_pre_map_gars);
-+
-+static int post_unmap_gar_callback(struct apei_exec_context *ctx,
-+				   struct acpi_whea_header *entry,
-+				   void *data)
-+{
-+	u8 ins = entry->instruction;
-+
-+	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
-+		acpi_post_unmap_gar(&entry->register_region);
-+
-+	return 0;
-+}
-+
-+/* Post-unmap all GAR in action table. */
-+int apei_exec_post_unmap_gars(struct apei_exec_context *ctx)
-+{
-+	return apei_exec_for_each_entry(ctx, post_unmap_gar_callback,
-+					NULL, NULL);
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_post_unmap_gars);
-+
-+/*
-+ * Resource management for GARs in APEI
-+ */
-+struct apei_res {
-+	struct list_head list;
-+	unsigned long start;
-+	unsigned long end;
-+};
-+
-+/* Collect all resources requested, to avoid conflict */
-+struct apei_resources apei_resources_all = {
-+	.iomem = LIST_HEAD_INIT(apei_resources_all.iomem),
-+	.ioport = LIST_HEAD_INIT(apei_resources_all.ioport),
-+};
-+
-+static int apei_res_add(struct list_head *res_list,
-+			unsigned long start, unsigned long size)
-+{
-+	struct apei_res *res, *resn, *res_ins = NULL;
-+	unsigned long end = start + size;
-+
-+	if (end <= start)
-+		return 0;
-+repeat:
-+	list_for_each_entry_safe(res, resn, res_list, list) {
-+		if (res->start > end || res->end < start)
-+			continue;
-+		else if (end <= res->end && start >= res->start) {
-+			kfree(res_ins);
-+			return 0;
-+		}
-+		list_del(&res->list);
-+		res->start = start = min(res->start, start);
-+		res->end = end = max(res->end, end);
-+		kfree(res_ins);
-+		res_ins = res;
-+		goto repeat;
-+	}
-+
-+	if (res_ins)
-+		list_add(&res_ins->list, res_list);
-+	else {
-+		res_ins = kmalloc(sizeof(*res), GFP_KERNEL);
-+		if (!res_ins)
-+			return -ENOMEM;
-+		res_ins->start = start;
-+		res_ins->end = end;
-+		list_add(&res_ins->list, res_list);
-+	}
-+
-+	return 0;
-+}
-+
-+static int apei_res_sub(struct list_head *res_list1,
-+			struct list_head *res_list2)
-+{
-+	struct apei_res *res1, *resn1, *res2, *res;
-+	res1 = list_entry(res_list1->next, struct apei_res, list);
-+	resn1 = list_entry(res1->list.next, struct apei_res, list);
-+	while (&res1->list != res_list1) {
-+		list_for_each_entry(res2, res_list2, list) {
-+			if (res1->start >= res2->end ||
-+			    res1->end <= res2->start)
-+				continue;
-+			else if (res1->end <= res2->end &&
-+				 res1->start >= res2->start) {
-+				list_del(&res1->list);
-+				kfree(res1);
-+				break;
-+			} else if (res1->end > res2->end &&
-+				   res1->start < res2->start) {
-+				res = kmalloc(sizeof(*res), GFP_KERNEL);
-+				if (!res)
-+					return -ENOMEM;
-+				res->start = res2->end;
-+				res->end = res1->end;
-+				res1->end = res2->start;
-+				list_add(&res->list, &res1->list);
-+				resn1 = res;
-+			} else {
-+				if (res1->start < res2->start)
-+					res1->end = res2->start;
-+				else
-+					res1->start = res2->end;
-+			}
-+		}
-+		res1 = resn1;
-+		resn1 = list_entry(resn1->list.next, struct apei_res, list);
-+	}
-+
-+	return 0;
-+}
-+
-+static void apei_res_clean(struct list_head *res_list)
-+{
-+	struct apei_res *res, *resn;
-+
-+	list_for_each_entry_safe(res, resn, res_list, list) {
-+		list_del(&res->list);
-+		kfree(res);
-+	}
-+}
-+
-+void apei_resources_fini(struct apei_resources *resources)
-+{
-+	apei_res_clean(&resources->iomem);
-+	apei_res_clean(&resources->ioport);
-+}
-+EXPORT_SYMBOL_GPL(apei_resources_fini);
-+
-+static int apei_resources_merge(struct apei_resources *resources1,
-+				struct apei_resources *resources2)
-+{
-+	int rc;
-+	struct apei_res *res;
-+
-+	list_for_each_entry(res, &resources2->iomem, list) {
-+		rc = apei_res_add(&resources1->iomem, res->start,
-+				  res->end - res->start);
-+		if (rc)
-+			return rc;
-+	}
-+	list_for_each_entry(res, &resources2->ioport, list) {
-+		rc = apei_res_add(&resources1->ioport, res->start,
-+				  res->end - res->start);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * EINJ has two groups of GARs (EINJ table entry and trigger table
-+ * entry), so common resources are subtracted from the trigger table
-+ * resources before the second requesting.
-+ */
-+int apei_resources_sub(struct apei_resources *resources1,
-+		       struct apei_resources *resources2)
-+{
-+	int rc;
-+
-+	rc = apei_res_sub(&resources1->iomem, &resources2->iomem);
-+	if (rc)
-+		return rc;
-+	return apei_res_sub(&resources1->ioport, &resources2->ioport);
-+}
-+EXPORT_SYMBOL_GPL(apei_resources_sub);
-+
-+/*
-+ * IO memory/port rersource management mechanism is used to check
-+ * whether memory/port area used by GARs conflicts with normal memory
-+ * or IO memory/port of devices.
-+ */
-+int apei_resources_request(struct apei_resources *resources,
-+			   const char *desc)
-+{
-+	struct apei_res *res, *res_bak;
-+	struct resource *r;
-+
-+	apei_resources_sub(resources, &apei_resources_all);
-+
-+	list_for_each_entry(res, &resources->iomem, list) {
-+		r = request_mem_region(res->start, res->end - res->start,
-+				       desc);
-+		if (!r) {
-+			pr_err(APEI_PFX
-+		"Can not request iomem region <%016llx-%016llx> for GARs.\n",
-+			       (unsigned long long)res->start,
-+			       (unsigned long long)res->end);
-+			res_bak = res;
-+			goto err_unmap_iomem;
-+		}
-+	}
-+
-+	list_for_each_entry(res, &resources->ioport, list) {
-+		r = request_region(res->start, res->end - res->start, desc);
-+		if (!r) {
-+			pr_err(APEI_PFX
-+		"Can not request ioport region <%016llx-%016llx> for GARs.\n",
-+			       (unsigned long long)res->start,
-+			       (unsigned long long)res->end);
-+			res_bak = res;
-+			goto err_unmap_ioport;
-+		}
-+	}
-+
-+	apei_resources_merge(&apei_resources_all, resources);
-+
-+	return 0;
-+err_unmap_ioport:
-+	list_for_each_entry(res, &resources->ioport, list) {
-+		if (res == res_bak)
-+			break;
-+		release_mem_region(res->start, res->end - res->start);
-+	}
-+	res_bak = NULL;
-+err_unmap_iomem:
-+	list_for_each_entry(res, &resources->iomem, list) {
-+		if (res == res_bak)
-+			break;
-+		release_region(res->start, res->end - res->start);
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(apei_resources_request);
-+
-+void apei_resources_release(struct apei_resources *resources)
-+{
-+	struct apei_res *res;
-+
-+	list_for_each_entry(res, &resources->iomem, list)
-+		release_mem_region(res->start, res->end - res->start);
-+	list_for_each_entry(res, &resources->ioport, list)
-+		release_region(res->start, res->end - res->start);
-+
-+	apei_resources_sub(&apei_resources_all, resources);
-+}
-+EXPORT_SYMBOL_GPL(apei_resources_release);
-+
-+static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr)
-+{
-+	u32 width, space_id;
-+
-+	width = reg->bit_width;
-+	space_id = reg->space_id;
-+	/* Handle possible alignment issues */
-+	memcpy(paddr, &reg->address, sizeof(*paddr));
-+	if (!*paddr) {
-+		pr_warning(FW_BUG APEI_PFX
-+			   "Invalid physical address in GAR [0x%llx/%u/%u]\n",
-+			   *paddr, width, space_id);
-+		return -EINVAL;
-+	}
-+
-+	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
-+		pr_warning(FW_BUG APEI_PFX
-+			   "Invalid bit width in GAR [0x%llx/%u/%u]\n",
-+			   *paddr, width, space_id);
-+		return -EINVAL;
-+	}
-+
-+	if (space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-+	    space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
-+		pr_warning(FW_BUG APEI_PFX
-+			   "Invalid address space type in GAR [0x%llx/%u/%u]\n",
-+			   *paddr, width, space_id);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int collect_res_callback(struct apei_exec_context *ctx,
-+				struct acpi_whea_header *entry,
-+				void *data)
-+{
-+	struct apei_resources *resources = data;
-+	struct acpi_generic_address *reg = &entry->register_region;
-+	u8 ins = entry->instruction;
-+	u64 paddr;
-+	int rc;
-+
-+	if (!(ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER))
-+		return 0;
-+
-+	rc = apei_check_gar(reg, &paddr);
-+	if (rc)
-+		return rc;
-+
-+	switch (reg->space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+		return apei_res_add(&resources->iomem, paddr,
-+				    reg->bit_width / 8);
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		return apei_res_add(&resources->ioport, paddr,
-+				    reg->bit_width / 8);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+/*
-+ * Same register may be used by multiple instructions in GARs, so
-+ * resources are collected before requesting.
-+ */
-+int apei_exec_collect_resources(struct apei_exec_context *ctx,
-+				struct apei_resources *resources)
-+{
-+	return apei_exec_for_each_entry(ctx, collect_res_callback,
-+					resources, NULL);
-+}
-+EXPORT_SYMBOL_GPL(apei_exec_collect_resources);
-+
-+struct dentry *apei_get_debugfs_dir(void)
-+{
-+	static struct dentry *dapei;
-+
-+	if (!dapei)
-+		dapei = debugfs_create_dir("apei", NULL);
-+
-+	return dapei;
-+}
-+EXPORT_SYMBOL_GPL(apei_get_debugfs_dir);
---- /dev/null
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -0,0 +1,95 @@
-+/*
-+ * apei-internal.h - ACPI Platform Error Interface internal
-+ * definations.
-+ */
-+
-+#ifndef APEI_INTERNAL_H
-+#define APEI_INTERNAL_H
-+
-+struct apei_exec_context;
-+
-+typedef int (*apei_exec_ins_func_t)(struct apei_exec_context *ctx,
-+				    struct acpi_whea_header *entry);
-+
-+#define APEI_EXEC_INS_ACCESS_REGISTER	0x0001
-+
-+struct apei_exec_ins_type {
-+	u32 flags;
-+	apei_exec_ins_func_t run;
-+};
-+
-+struct apei_exec_context {
-+	u32 ip;
-+	u64 value;
-+	u64 var1;
-+	u64 var2;
-+	u64 src_base;
-+	u64 dst_base;
-+	struct apei_exec_ins_type *ins_table;
-+	u32 instructions;
-+	struct acpi_whea_header *action_table;
-+	u32 entries;
-+};
-+
-+void apei_exec_ctx_init(struct apei_exec_context *ctx,
-+			struct apei_exec_ins_type *ins_table,
-+			u32 instructions,
-+			struct acpi_whea_header *action_table,
-+			u32 entries);
-+
-+static inline void apei_exec_ctx_set_input(struct apei_exec_context *ctx,
-+					   u64 input)
-+{
-+	ctx->value = input;
-+}
-+
-+static inline u64 apei_exec_ctx_get_output(struct apei_exec_context *ctx)
-+{
-+	return ctx->value;
-+}
-+
-+int apei_exec_run(struct apei_exec_context *ctx, u8 action);
-+
-+/* Common instruction implementation */
-+
-+/* IP has been set in instruction function */
-+#define APEI_EXEC_SET_IP	1
-+
-+int __apei_exec_read_register(struct acpi_whea_header *entry, u64 *val);
-+int __apei_exec_write_register(struct acpi_whea_header *entry, u64 val);
-+int apei_exec_read_register(struct apei_exec_context *ctx,
-+			    struct acpi_whea_header *entry);
-+int apei_exec_read_register_value(struct apei_exec_context *ctx,
-+				  struct acpi_whea_header *entry);
-+int apei_exec_write_register(struct apei_exec_context *ctx,
-+			     struct acpi_whea_header *entry);
-+int apei_exec_write_register_value(struct apei_exec_context *ctx,
-+				   struct acpi_whea_header *entry);
-+int apei_exec_noop(struct apei_exec_context *ctx,
-+		   struct acpi_whea_header *entry);
-+int apei_exec_pre_map_gars(struct apei_exec_context *ctx);
-+int apei_exec_post_unmap_gars(struct apei_exec_context *ctx);
-+
-+struct apei_resources {
-+	struct list_head iomem;
-+	struct list_head ioport;
-+};
-+
-+static inline void apei_resources_init(struct apei_resources *resources)
-+{
-+	INIT_LIST_HEAD(&resources->iomem);
-+	INIT_LIST_HEAD(&resources->ioport);
-+}
-+
-+void apei_resources_fini(struct apei_resources *resources);
-+int apei_resources_sub(struct apei_resources *resources1,
-+		       struct apei_resources *resources2);
-+int apei_resources_request(struct apei_resources *resources,
-+			   const char *desc);
-+void apei_resources_release(struct apei_resources *resources);
-+int apei_exec_collect_resources(struct apei_exec_context *ctx,
-+				struct apei_resources *resources);
-+
-+struct dentry;
-+struct dentry *apei_get_debugfs_dir(void);
 +#endif
++
++static inline void pcie_aer_force_firmware_first(struct pci_dev *pci_dev,
++						 int enable)
++{
++	pci_dev->__aer_firmware_first = !!enable;
++	pci_dev->__aer_firmware_first_valid = 1;
++}
+ #endif /* _AERDRV_H_ */
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -16,6 +16,7 @@
+ #include <linux/acpi.h>
+ #include <linux/pci-acpi.h>
+ #include <linux/delay.h>
++#include <acpi/apei.h>
+ #include "aerdrv.h"
+ 
+ /**
+@@ -53,3 +54,79 @@ int aer_osc_setup(struct pcie_device *pc
+ 
+ 	return 0;
+ }
++
++#ifdef CONFIG_ACPI_APEI
++static inline int hest_match_pci(struct acpi_hest_aer_common *p,
++				 struct pci_dev *pci)
++{
++	return	(0           == pci_domain_nr(pci->bus) &&
++		 p->bus      == pci->bus->number &&
++		 p->device   == PCI_SLOT(pci->devfn) &&
++		 p->function == PCI_FUNC(pci->devfn));
++}
++
++struct aer_hest_parse_info {
++	struct pci_dev *pci_dev;
++	int firmware_first;
++};
++
++static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
++{
++	struct aer_hest_parse_info *info = data;
++	struct acpi_hest_aer_common *p;
++	u8 pcie_type = 0;
++	u8 bridge = 0;
++	int ff = 0;
++
++	switch (hest_hdr->type) {
++	case ACPI_HEST_TYPE_AER_ROOT_PORT:
++		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
++		break;
++	case ACPI_HEST_TYPE_AER_ENDPOINT:
++		pcie_type = PCI_EXP_TYPE_ENDPOINT;
++		break;
++	case ACPI_HEST_TYPE_AER_BRIDGE:
++		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
++			bridge = 1;
++		break;
++	default:
++		return 0;
++	}
++
++	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
++	if (p->flags & ACPI_HEST_GLOBAL) {
++		if ((info->pci_dev->is_pcie &&
++		     info->pci_dev->pcie_type == pcie_type) || bridge)
++			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
++	} else
++		if (hest_match_pci(p, info->pci_dev))
++			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
++	info->firmware_first = ff;
++
++	return 0;
++}
++
++static void aer_set_firmware_first(struct pci_dev *pci_dev)
++{
++	int rc;
++	struct aer_hest_parse_info info = {
++		.pci_dev	= pci_dev,
++		.firmware_first	= 0,
++	};
++
++	rc = apei_hest_parse(aer_hest_parse, &info);
++
++	if (rc)
++		pci_dev->__aer_firmware_first = 0;
++	else
++		pci_dev->__aer_firmware_first = info.firmware_first;
++	pci_dev->__aer_firmware_first_valid = 1;
++}
++
++int pcie_aer_get_firmware_first(struct pci_dev *dev)
++{
++	if (!dev->__aer_firmware_first_valid)
++		aer_set_firmware_first(dev);
++	return dev->__aer_firmware_first;
++}
++#endif
+--- a/drivers/pci/pcie/aer/aerdrv_core.c
++++ b/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -36,7 +36,7 @@ int pci_enable_pcie_error_reporting(stru
+ 	u16 reg16 = 0;
+ 	int pos;
+ 
+-	if (dev->aer_firmware_first)
++	if (pcie_aer_get_firmware_first(dev))
+ 		return -EIO;
+ 
+ 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
+@@ -64,7 +64,7 @@ int pci_disable_pcie_error_reporting(str
+ 	u16 reg16 = 0;
+ 	int pos;
+ 
+-	if (dev->aer_firmware_first)
++	if (pcie_aer_get_firmware_first(dev))
+ 		return -EIO;
+ 
+ 	pos = pci_pcie_cap(dev);
+@@ -859,7 +859,7 @@ void aer_delete_rootport(struct aer_rpc
+  */
+ int aer_init(struct pcie_device *dev)
+ {
+-	if (dev->port->aer_firmware_first) {
++	if (pcie_aer_get_firmware_first(dev->port)) {
+ 		dev_printk(KERN_DEBUG, &dev->device,
+ 			   "PCIe errors handled by platform firmware.\n");
+ 		goto out;
+@@ -873,7 +873,7 @@ out:
+ 	if (forceload) {
+ 		dev_printk(KERN_DEBUG, &dev->device,
+ 			   "aerdrv forceload requested.\n");
+-		dev->port->aer_firmware_first = 0;
++		pcie_aer_force_firmware_first(dev->port, 0);
+ 		return 0;
+ 	}
+ 	return -ENXIO;
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -10,7 +10,6 @@
+ #include <linux/module.h>
+ #include <linux/cpumask.h>
+ #include <linux/pci-aspm.h>
+-#include <acpi/acpi_hest.h>
+ #include "pci.h"
+ 
+ #define CARDBUS_LATENCY_TIMER	176	/* secondary latency timer */
+@@ -904,12 +903,6 @@ void set_pcie_hotplug_bridge(struct pci_
+ 		pdev->is_hotplug_bridge = 1;
+ }
+ 
+-static void set_pci_aer_firmware_first(struct pci_dev *pdev)
+-{
+-	if (acpi_hest_firmware_first_pci(pdev))
+-		pdev->aer_firmware_first = 1;
+-}
+-
+ #define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
+ 
+ /**
+@@ -939,7 +932,6 @@ int pci_setup_device(struct pci_dev *dev
+ 	dev->multifunction = !!(hdr_type & 0x80);
+ 	dev->error_state = pci_channel_io_normal;
+ 	set_pcie_port_type(dev);
+-	set_pci_aer_firmware_first(dev);
+ 
+ 	list_for_each_entry(slot, &dev->bus->slots, list)
+ 		if (PCI_SLOT(dev->devfn) == slot->number)
+--- a/include/acpi/acpi_hest.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-#ifndef __ACPI_HEST_H
+-#define __ACPI_HEST_H
+-
+-#include <linux/pci.h>
+-
+-#ifdef CONFIG_ACPI
+-extern int acpi_hest_firmware_first_pci(struct pci_dev *pci);
+-#else
+-static inline int acpi_hest_firmware_first_pci(struct pci_dev *pci) { return 0; }
+-#endif
+-
+-#endif
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -311,7 +311,8 @@ struct pci_dev {
+ 	unsigned int	is_virtfn:1;
+ 	unsigned int	reset_fn:1;
+ 	unsigned int    is_hotplug_bridge:1;
+-	unsigned int    aer_firmware_first:1;
++	unsigned int    __aer_firmware_first_valid:1;
++	unsigned int	__aer_firmware_first:1;
+ 	pci_dev_flags_t dev_flags;
+ 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+ 
