@@ -1,198 +1,93 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 07/12] ACPI Hardware Error Device (PNP0C33) support
-Date: Tue, 27 Apr 2010 14:41:16 +0800
-Message-ID: <1272350481-27951-8-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 05/12] ACPI, APEI, Document for APEI
+Date: Tue, 27 Apr 2010 14:41:14 +0800
+Message-ID: <1272350481-27951-6-git-send-email-ying.huang@intel.com>
 References: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:2551 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752618Ab0D0GnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 02:43:12 -0400
+	id S1750952Ab0D0GnK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Apr 2010 02:43:10 -0400
 In-Reply-To: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-Hardware Error Device (PNP0C33) is used to report some hardware errors
-notified via SCI, mainly the corrected errors. Some APEI Generic
-Hardware Error Source (GHES) may use SCI on hardware error device to
-notify hardware error to kernel.
-
-After receiving notification from ACPI core, it is forwarded to all
-listeners via a notifier chain. The listener such as APEI GHES should
-check corresponding error source for new events when notified.
+Add document for APEI, including kernel parameters and EINJ debug file
+sytem interface.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/Kconfig  |    7 +++
- drivers/acpi/Makefile |    1 
- drivers/acpi/hed.c    |  112 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/hed.h    |   18 ++++++++
- 4 files changed, 138 insertions(+)
- create mode 100644 drivers/acpi/hed.c
- create mode 100644 include/acpi/hed.h
+ Documentation/acpi/apei/einj.txt    |   49 ++++++++++++++++++++++++++++++++++++
+ Documentation/kernel-parameters.txt |    5 +++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 Documentation/acpi/apei/einj.txt
 
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -360,6 +360,13 @@ config ACPI_SBS
- 	  To compile this driver as a module, choose M here:
- 	  the modules will be called sbs and sbshc.
- 
-+config ACPI_HED
-+	tristate "Hardware Error Device"
-+	help
-+	  This driver supports the Hardware Error Device (PNP0C33),
-+	  which is used to report some hardware errors notified via
-+	  SCI, mainly the corrected errors.
-+
- source "drivers/acpi/apei/Kconfig"
- 
- endif	# ACPI
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -59,6 +59,7 @@ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
- obj-$(CONFIG_ACPI_POWER_METER)	+= power_meter.o
-+obj-$(CONFIG_ACPI_HED)		+= hed.o
- 
- # processor has its own "processor." module_param namespace
- processor-y			:= processor_driver.o processor_throttling.o
 --- /dev/null
-+++ b/drivers/acpi/hed.c
-@@ -0,0 +1,112 @@
-+/*
-+ * ACPI Hardware Error Device (PNP0C33) Driver
-+ *
-+ * Copyright (C) 2010, Intel Corp.
-+ *	Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * ACPI Hardware Error Device is used to report some hardware errors
-+ * notified via SCI, mainly the corrected errors.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
++++ b/Documentation/acpi/apei/einj.txt
+@@ -0,0 +1,49 @@
++			APEI Error INJection
++			~~~~~~~~~~~~~~~~~~~~
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <acpi/hed.h>
++EINJ provides a hardware error injection mechanism, it is very useful
++for debugging and testing of other APEI and RAS features.
 +
-+static struct acpi_device_id acpi_hed_ids[] = {
-+	{"PNP0C33", 0},
-+	{"", 0},
-+};
-+MODULE_DEVICE_TABLE(acpi, acpi_hed_ids);
++To use EINJ, make the following is enabled in your kernel
++configuration:
 +
-+static acpi_handle hed_handle;
++CONFIG_DEBUG_FS
++CONFIG_ACPI_APEI
++CONFIG_ACPI_APEI_EINJ
 +
-+static BLOCKING_NOTIFIER_HEAD(acpi_hed_notify_list);
++The user interface of EINJ is in debug file system, under the
++directory apei/einj. The following files are provided.
 +
-+int register_acpi_hed_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&acpi_hed_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_acpi_hed_notifier);
++- available_error_type
++  Read this file will return the error injection capability of the
++  platform, that is, which error types are supported. The error type
++  definition is as follow, the left field is the error type value, the
++  right field is error description.
 +
-+void unregister_acpi_hed_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&acpi_hed_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_acpi_hed_notifier);
++    0x00000001	Processor Correctable
++    0x00000002	Processor Uncorrectable non-fatal
++    0x00000004	Processor Uncorrectable fatal
++    0x00000008  Memory Correctable
++    0x00000010  Memory Uncorrectable non-fatal
++    0x00000020  Memory Uncorrectable fatal
++    0x00000040	PCI Express Correctable
++    0x00000080	PCI Express Uncorrectable fatal
++    0x00000100	PCI Express Uncorrectable non-fatal
++    0x00000200	Platform Correctable
++    0x00000400	Platform Uncorrectable non-fatal
++    0x00000800	Platform Uncorrectable fatal
 +
-+/*
-+ * SCI to report hardware error is forwarded to the listeners of HED,
-+ * it is used by HEST Generic Hardware Error Source with notify type
-+ * SCI.
-+ */
-+static void acpi_hed_notify(struct acpi_device *device, u32 event)
-+{
-+	return blocking_notifier_call_chain(&acpi_hed_notify_list, 0, NULL);
-+}
++  The format of file contents are as above, except there are only the
++  available error type lines.
 +
-+static int __devinit acpi_hed_add(struct acpi_device *device)
-+{
-+	/* Only one hardware error device */
-+	if (hed_handle)
-+		return -EINVAL;
-+	hed_handle = device->handle;
-+	return 0;
-+}
++- error_type
++  This file is used to set the error type value. The error type value
++  is defined in "available_error_type" description.
 +
-+static int __devexit acpi_hed_remove(struct acpi_device *device, int type)
-+{
-+	hed_handle = NULL;
-+	return 0;
-+}
++- error_inject
++  Write any integer to this file to trigger the error
++  injection. Before this, please specify all necessary error
++  parameters.
 +
-+static struct acpi_driver acpi_hed_driver = {
-+	.name = "hardware_error_device",
-+	.class = "hardware_error",
-+	.ids = acpi_hed_ids,
-+	.ops = {
-+		.add = acpi_hed_add,
-+		.remove = acpi_hed_remove,
-+		.notify = acpi_hed_notify,
-+	},
-+};
++For more information about EINJ, please refer to ACPI specification
++version 4.0, section 17.5.
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -843,6 +843,11 @@ and is between 256 and 4096 characters.
+ 	hd=		[EIDE] (E)IDE hard drive subsystem geometry
+ 			Format: <cyl>,<head>,<sect>
+ 
++	hest_disable	[ACPI]
++			Disable Hardware Error Source Table (HEST) support,
++			corresponding firmware-first mode error processing
++			logic will be disabled.
 +
-+static int __init acpi_hed_init(void)
-+{
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	if (acpi_bus_register_driver(&acpi_hed_driver) < 0)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void __exit acpi_hed_exit(void)
-+{
-+	acpi_bus_unregister_driver(&acpi_hed_driver);
-+}
-+
-+module_init(acpi_hed_init);
-+module_exit(acpi_hed_exit);
-+
-+ACPI_MODULE_NAME("hed");
-+MODULE_AUTHOR("Huang Ying");
-+MODULE_DESCRIPTION("ACPI Hardware Error Device Driver");
-+MODULE_LICENSE("GPL");
---- /dev/null
-+++ b/include/acpi/hed.h
-@@ -0,0 +1,18 @@
-+/*
-+ * hed.h - ACPI Hardware Error Device
-+ *
-+ * Copyright (C) 2009, Intel Corp.
-+ *	Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This file is released under the GPLv2.
-+ */
-+
-+#ifndef ACPI_HED_H
-+#define ACPI_HED_H
-+
-+#include <linux/notifier.h>
-+
-+int register_acpi_hed_notifier(struct notifier_block *nb);
-+void unregister_acpi_hed_notifier(struct notifier_block *nb);
-+
-+#endif
+ 	highmem=nn[KMG]	[KNL,BOOT] forces the highmem zone to have an exact
+ 			size of <nn>. This works even on boxes that have no
+ 			highmem otherwise. This also works to reduce highmem
