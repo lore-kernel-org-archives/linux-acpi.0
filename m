@@ -1,95 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] acerhdf: add new BIOS versions
-Date: Tue, 27 Apr 2010 14:06:03 -0700
-Message-ID: <201004272106.o3RL63Un019655@imap1.linux-foundation.org>
+Subject: [patch 4/4] acpi_pad: "processor_aggregator" name too long
+Date: Tue, 27 Apr 2010 14:06:05 -0700
+Message-ID: <201004272106.o3RL66mW019664@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751614Ab0D0VGP (ORCPT
+	by vger.kernel.org with ESMTP id S1754077Ab0D0VGX (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:06:15 -0400
+	Tue, 27 Apr 2010 17:06:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, error27@gmail.com, pavel@ucw.cz, shaohua.li@intel.com, wharms@bfs.de
 
-From: Peter Feuerer <peter@piie.net>
+From: Dan Carpenter <error27@gmail.com>
 
-Add new BIOS versions for Acer 1410 and 1810xx and Packard Bell netbooks.
+cpi_device_class can only be 19 characters and a NULL terminator.
 
-Fixed registers of Acer AOA150 BIOS version v0.3114: Old registers caused
-Fan to spin up at every temperature check.
+With the current name we get a buffer overflow in acpi_pad_add()
+	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
+[akpm@linux-foundation.org: call it acpi_pad, per Shaohua Li]
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: walter harms <wharms@bfs.de>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Len Brown <lenb@kernel.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_pad.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-add-new-bios-versions drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-add-new-bios-versions
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
+diff -puN drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long drivers/acpi/acpi_pad.c
+--- a/drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long
++++ a/drivers/acpi/acpi_pad.c
+@@ -31,7 +31,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
--#define DRV_VER "0.5.22"
-+#define DRV_VER "0.5.23"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -146,7 +146,7 @@ static const struct bios_settings_t bios
- 	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	/* AOA150 */
--	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
- 	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x20, 0x00} },
-@@ -155,13 +155,20 @@ static const struct bios_settings_t bios
- 	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	/* Acer 1410 */
-+	{"Acer", "Aspire 1410", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	/* Acer 1810xx */
-+	{"Acer", "Aspire 1810TZ", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v0.3119", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T", "v0.3119", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Acer", "Aspire 1810T", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
--	{"Acer", "Aspire 1810T", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v1.3204", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T", "v1.3204", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	/* Gateway */
- 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
-@@ -175,6 +182,7 @@ static const struct bios_settings_t bios
- 	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	{"Packard Bell", "DOTMU", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	{"Packard Bell", "DOTMU", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
-+	{"Packard Bell", "DOTMA", "v1.3201", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	/* pewpew-terminator */
- 	{"", "", "", 0, 0, {0, 0, 0} }
- };
-@@ -667,6 +675,7 @@ MODULE_ALIAS("dmi:*:*Gateway*:pnLT31*:")
- MODULE_ALIAS("dmi:*:*Packard Bell*:pnAOA*:");
- MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOA*:");
- MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOTMU*:");
-+MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOTMA*:");
- 
- module_init(acerhdf_init);
- module_exit(acerhdf_exit);
+-#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"processor_aggregator"
++#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"acpi_pad"
+ #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
+ #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
+ static DEFINE_MUTEX(isolated_cpus_lock);
 _
