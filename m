@@ -1,82 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/4] drivers/acpi: use kasprintf
-Date: Tue, 27 Apr 2010 14:06:04 -0700
-Message-ID: <201004272106.o3RL64Y0019658@imap1.linux-foundation.org>
+Subject: [patch 1/4] acerhdf: add new BIOS versions
+Date: Tue, 27 Apr 2010 14:06:03 -0700
+Message-ID: <201004272106.o3RL63Un019655@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750797Ab0D0VGJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751614Ab0D0VGP (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:06:09 -0400
+	Tue, 27 Apr 2010 17:06:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, julia@diku.dk
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@gmail.com
 
-From: Julia Lawall <julia@diku.dk>
+From: Peter Feuerer <peter@piie.net>
 
-kasprintf combines kmalloc and sprintf, and takes care of the size
-calculation itself.
+Add new BIOS versions for Acer 1410 and 1810xx and Packard Bell netbooks.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+Fixed registers of Acer AOA150 BIOS version v0.3114: Old registers caused
+Fan to spin up at every temperature check.
 
-// <smpl>
-@@
-expression a,flag;
-expression list args;
-statement S;
-@@
-
-  a =
--  \(kmalloc\|kzalloc\)(...,flag)
-+  kasprintf(flag,args)
-  <... when != a
-  if (a == NULL || ...) S
-  ...>
-- sprintf(a,args);
-// </smpl>
-
-[akpm@linux-foundation.org: don't change handling of `count']
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Borislav Petkov <petkovbb@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/platform/x86/acerhdf.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/video.c~drivers-acpi-use-kasprintf drivers/acpi/video.c
---- a/drivers/acpi/video.c~drivers-acpi-use-kasprintf
-+++ a/drivers/acpi/video.c
-@@ -1003,11 +1003,11 @@ static void acpi_video_device_find_cap(s
- 		result = acpi_video_init_brightness(device);
- 		if (result)
- 			return;
--		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 		if (!name)
- 			return;
-+		count++;
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-add-new-bios-versions drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-add-new-bios-versions
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
  
--		sprintf(name, "acpi_video%d", count++);
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.max_brightness = device->brightness->count - 3;
- 		device->backlight = backlight_device_register(name, NULL, device,
-@@ -1063,10 +1063,10 @@ static void acpi_video_device_find_cap(s
- 		if (device->cap._DCS && device->cap._DSS) {
- 			static int count;
- 			char *name;
--			name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+			name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 			if (!name)
- 				return;
--			sprintf(name, "acpi_video%d", count++);
-+			count++;
- 			device->output_dev = video_output_register(name,
- 					NULL, device, &acpi_output_properties);
- 			kfree(name);
+-#define DRV_VER "0.5.22"
++#define DRV_VER "0.5.23"
+ 
+ /*
+  * According to the Atom N270 datasheet,
+@@ -146,7 +146,7 @@ static const struct bios_settings_t bios
+ 	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	/* AOA150 */
+-	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
+ 	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x20, 0x00} },
+@@ -155,13 +155,20 @@ static const struct bios_settings_t bios
+ 	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	/* Acer 1410 */
++	{"Acer", "Aspire 1410", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Acer", "Aspire 1410", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	/* Acer 1810xx */
++	{"Acer", "Aspire 1810TZ", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810T", "v0.3115", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810TZ", "v0.3119", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810T", "v0.3119", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Acer", "Aspire 1810TZ", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Acer", "Aspire 1810T", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+-	{"Acer", "Aspire 1810T", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810TZ", "v1.3204", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810T", "v1.3204", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Acer", "Aspire 1810TZ", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Acer", "Aspire 1810T", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	/* Gateway */
+ 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
+@@ -175,6 +182,7 @@ static const struct bios_settings_t bios
+ 	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	{"Packard Bell", "DOTMU", "v1.3303", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	{"Packard Bell", "DOTMU", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
++	{"Packard Bell", "DOTMA", "v1.3201", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	/* pewpew-terminator */
+ 	{"", "", "", 0, 0, {0, 0, 0} }
+ };
+@@ -667,6 +675,7 @@ MODULE_ALIAS("dmi:*:*Gateway*:pnLT31*:")
+ MODULE_ALIAS("dmi:*:*Packard Bell*:pnAOA*:");
+ MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOA*:");
+ MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOTMU*:");
++MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOTMA*:");
+ 
+ module_init(acerhdf_init);
+ module_exit(acerhdf_exit);
 _
