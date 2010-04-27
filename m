@@ -1,65 +1,57 @@
-From: Philip Langdale <philipl@overt.org>
-Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
-Date: Tue, 27 Apr 2010 08:41:34 -0700
-Message-ID: <20100427084134.2874d142@fido5>
-References: <20100126084740.GA5265@jgarrett.org>
-	<87y6jkee1b.fsf@basil.nowhere.org>
-	<20100205160900.GA2736@jgarrett.org>
-	<alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
-	<20100426194002.586fbaa5@fido5>
-	<alpine.LFD.2.00.1004270319560.3999@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: [PATCH] ACPI: fix fan module removal when ACPI_PROCFS is disabled
+Date: Tue, 27 Apr 2010 13:19:18 -0300
+Message-ID: <1272385158-4080-1-git-send-email-cascardo@holoscopio.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usul.saidi.cx ([204.11.33.34]:50201 "EHLO usul.overt.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754033Ab0D0Plm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 11:41:42 -0400
-In-Reply-To: <alpine.LFD.2.00.1004270319560.3999@localhost.localdomain>
+Received: from liberdade.minaslivre.org ([72.232.254.139]:40383 "EHLO
+	liberdade.minaslivre.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756357Ab0D0Q2P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 12:28:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, rui.zhang@intel.com, linux-kernel@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-On Tue, 27 Apr 2010 03:26:34 -0400 (EDT)
-Len Brown <lenb@kernel.org> wrote:
+When ACPI_PROCFS is disabled, /proc/acpi/fan/ directory is not created.
+So, it should not be removed during the module removal either.
 
-> 
-> 
-> Curious failure.
-> I could imagine that there is something in the design of this board
-> where we want to not enter a deep C-state, and thus the board and
-> Linux are doing the right thing by avoiding the C-state.
-> However, ignoring the bm-status check and blindly going to that state
-> I would expect to impact throughput and latency, but don't see
-> how that might 'serialize' the workload or otherwise cause it
-> to use some cores and not others.
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+---
+ drivers/acpi/fan.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-Hmm - and now I can't reproduce it. I got proper parallelization across
-the kernel compile. I guess some sort of runtime state was messed up,
-and I obviously lost that then I rebooted. :-/
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index acf2ab2..d92c035 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -355,12 +355,13 @@ static int __init acpi_fan_init(void)
+ #endif
  
-> It is possible that we jump into those deep states just to be
-> immediately forced to jump right back out.  You'd see this in
-> high usage counts under /sys/devices/system/cpu/cpu*/cpuidle
-> 
-> turbostat, of course, would tell you the actual residency in those
-> states. Of course there is a twist...  The hardware has a feature to
-> recognize thrashing and may demote an OS request for a deep state into
-> an actual hardware request for a shallower state.  this is one reason
-> that the output of powertop (request) and turbostat (result)
-> may be different.
+ 	result = acpi_bus_register_driver(&acpi_fan_driver);
+-	if (result < 0) {
++
++#ifdef CONFIG_ACPI_PROCFS
++	if (result < 0)
+ 		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
+-		return -ENODEV;
+-	}
++#endif
+ 
+-	return 0;
++	return result;
+ }
+ 
+ static void __exit acpi_fan_exit(void)
+@@ -368,7 +369,9 @@ static void __exit acpi_fan_exit(void)
+ 
+ 	acpi_bus_unregister_driver(&acpi_fan_driver);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++#endif
+ 
+ 	return;
+ }
+-- 
+1.6.6.1
 
-Without the patch, Turbostat showed C3 residency of 99% for most
-hyper-threads with one or two getting ~15% C6 residency. PC3 was 75%.
-Cores were at their lowest P state.
-
-With the patch, C6 residency is 99%, PC6 is 75% and 7 hyper-threads at
-lowest P state with one stubborning running at a higher level.
-
-I have a very similarly configured machine with an asus motherboard and
-it doesn't have this problem - which is another reason I'm wondering if
-it's an OEM screwup.
-
---phil
