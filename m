@@ -1,117 +1,45 @@
-From: Michal Hocko <mhocko@suse.cz>
-Subject: Re: commit 9630bdd9 changes behavior of the poweroff - bug?
-Date: Tue, 27 Apr 2010 09:04:05 +0200
-Message-ID: <20100427070405.GA6170@tiehla.suse.cz>
-References: <20100401133923.GA4104@tiehlicka.suse.cz> <20100419115942.GC5160@tiehlicka.suse.cz> <201004191719.53602.rjw@sisk.pl> <201004250435.42779.rjw@sisk.pl> <20100426150503.GA4005@tiehlicka.suse.cz> <alpine.LFD.2.00.1004261130090.3999@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI acpi_processor_get_throttling_info taking excessive time?
+Date: Tue, 27 Apr 2010 03:05:15 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004270301340.3999@localhost.localdomain>
+References: <4BD4F0A5.7050208@sgi.com>
+ <1272248522.25088.67.camel@rzhang1-desktop> <4BD5D81B.4020600@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:37398 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751092Ab0D0HEI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Apr 2010 03:04:08 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1004261130090.3999@localhost.localdomain>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:55162 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab0D0HFU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 03:05:20 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L1I00HHTX0SOUJ7@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 27 Apr 2010 02:05:19 -0500 (CDT)
+In-reply-to: <4BD5D81B.4020600@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Vroon <tony@linx.net>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Mike Travis <travis@sgi.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jack Steiner <steiner@sgi.com>, Hedi Berriche <hedi@sgi.com>, Robin Holt <holt@sgi.com>
 
-Hi Len,
+> ...I've added a new BZ:
+> 
+> 	https://bugzilla.kernel.org/show_bug.cgi?id=15856
+> 
+> and attached the console output I collected from:
+> 
+> ignore_loglevel acpi.debug_layer=0x2800001f acpi.debug_level=0x00000027
+> 
+> This took almost an hour to boot so adding all flags would not be
+> practical.
 
-On Mon 26-04-10 12:22:58, Len Brown wrote:
-> Michal,
-> 
-> > my laptop changed behavior during poweroff recently (after upgrading
-> > from .33 to .34-rc1). The system seems to be powered off (status display
-> > is off) at first glance but when I close the lid then I can hear a noise
-> > which sounds like HDD parking and when I open lid again it starts
-> > booting without poweroff button (same like when I suspend to RAM).
-> 
-> Tony,
-> 
-> > I have the exact same "lid close = powering back on" regression on a
-> > Fujitsu-Siemens Lifebook S6420.
-> 
-> Perhaps you can review this description and help me
-> better understand the symptoms?
-> 
-> Michal,
-> Re: poweroff
-> 
-> Before the regression you could hear the HDD park as a result of the
+I don't see any attachments to that bug report.
 
-It is hard to tell whether this sound comes from HDD and I think that it
-is actually something different as I've realized that I've heard this
-kind of sound only when system was suspended to RAM and lid was closed.
-Never during poweroff.
+CONFIG_ACPI_DEBUG=y with
+acpi.debug_layer=0x20000000 maxcpus=4 should do it.
 
-> "poweroff" command without touching the lid, and after the regression
-> you don't hear that sound until after you close the lid -- no matter
-> how long you wait to close the lid?
+Also, the output from acpidump.
 
-Yes. Also the main difference is that the laptop turns on automatically
-after lid is open which did not happen before.
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
-> 
-> During this period after poweroff and LCD goes out, but before
-> lid close, are there any other signs of life?  eg. does caps
-> lock button light the caps LED?
-
-No signs of life at all. The small display which shows the status
-(charging, battery status, caps lock, num lock, etc.) is turned off.
-No reaction to any key press.
-
-> 
-> How about during this period if you press the power button and
-> hold it for 5 seconds, does that cause the HDD parking sound?
-
-No sound. Even when I closed the lid. Nevertheless, laptop doesn't
-start automatically after lid is open.
-
-> 
-> If yes, then the regression is that poweroff never completes,
-> though perhaps a lid event allows it to complete.
-> 
-> When you say 'when I open the lid again i starts booting'.
-> Is that a cold boot from scratch, or a resume from suspend?
-
-Cold boot.
-
-> 
-> Does the new boot start when the lid is closed, or when it is
-> subsequently opened?
-
-I have not seen start during lid being closed. As I already said, the
-system starts up automatically when I open the lid.
-
-> 
-> Thanks for sending your /proc/acpi/wakeup, it shows that
-> 
-> LID       S4    *enabled  
-> 
-> which means that the LID is not an S5 wakeup device.
-> So if you really do get down to S5, the LID should
-> not be able to wake the system.  So if it is, then
-> we are never getting to S5.
-> 
-> Tony,
-> Please send the /proc/acpi/wakeup file before and after
-> the regression.  Does the system reach a complete poweroff
-> before the lid is closed?  If yes, what happens when
-> you press the power button w/o closing the lid?
-> If you reached S5, it should give you a cold boot.
-> If you did not reach S5, it will have no effect.
-> 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
-
-Thanks!
--- 
-Michal Hocko
-L3 team 
-SUSE LINUX s.r.o.
-Lihovarska 1060/12
-190 00 Praha 9    
-Czech Republic
