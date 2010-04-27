@@ -1,120 +1,79 @@
 From: Jerone Young <jerone.young@canonical.com>
 Subject: Re: [PATCH] Fix mute key on older Thinkpads by OSI blacklisting
  them
-Date: Tue, 27 Apr 2010 00:44:17 -0500
-Message-ID: <1272347057.14100.14.camel@laptop>
+Date: Tue, 27 Apr 2010 00:50:12 -0500
+Message-ID: <1272347412.14100.18.camel@laptop>
 References: <1272062884.1594.73.camel@laptop>
 	 <20100424160114.GA13867@srcf.ucam.org> <1272142178.1839.138.camel@laptop>
 	 <20100424211601.GA16731@srcf.ucam.org> <1272154109.1839.345.camel@laptop>
 	 <20100425022832.GA27607@khazad-dum.debian.net>
-	 <1272222168.1640.33.camel@laptop>
-	 <20100426103855.GB2614@khazad-dum.debian.net>
+	 <1272220091.1274.94.camel@laptop> <20100425184405.GA29130@srcf.ucam.org>
+	 <1272221872.1640.22.camel@laptop>
+	 <20100426101115.GA2614@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:55188 "EHLO
+Received: from adelie.canonical.com ([91.189.90.139]:55124 "EHLO
 	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077Ab0D0FoY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 01:44:24 -0400
-In-Reply-To: <20100426103855.GB2614@khazad-dum.debian.net>
+	with ESMTP id S1750998Ab0D0FuS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 01:50:18 -0400
+In-Reply-To: <20100426101115.GA2614@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-On Mon, 2010-04-26 at 07:38 -0300, Henrique de Moraes Holschuh wrote:
+On Mon, 2010-04-26 at 07:11 -0300, Henrique de Moraes Holschuh wrote:
 > On Sun, 25 Apr 2010, Jerone Young wrote:
-> > No ACPI event is sent by the mute key. This is on my X301 & T61 (already
-> > in blacklist.c). They must be doing some polling, as I remember there
-> > being a slight delay when you press the mute key and Windows getting the
-> > update from the userspace daemon.
-> 
-> Please test on the T400 and T410, if possible.
-
-The T410 sends a soft keypress & hardware keypress at the same time (it
-also turns on the LED on the mute key .. which indicates the hardware
-mute is on for the speakers). No acpi event. 
-
-With the X201 & W510 (2nd hand data on the W510) they ONLY send a  mute
-soft keypress .. no more hardware mute. So no way to fall out of sync.
-They also don't have a LED on the mute key. No acpi event.
-
-Unfortunately don't have or know anyone around with a T400 to get more
-data from it. But looks like any machine Lenovo produced during this
-time had the exact same thing going on.
-
-> > > Comparing GPEs across several IBM-heritage DSDTs (ignore the X100e and
-> > > other OEM crap with a thinkpad name), I think it comes in as 'hotkeys'
-> > > (i.e. 0x10xx HKEY events).  Please enable the high eight bits on the
-> > > thinkpad-acpi hotkey mask, assign keycodes to those keys, and tell me
-> > > what you find.  Make sure to have OSI(Linux) *disabled*, I very much
-> > > doubt it works in "Linux" mode.
+> > On Sun, 2010-04-25 at 19:44 +0100, Matthew Garrett wrote:
+> > > On Sun, Apr 25, 2010 at 01:28:11PM -0500, Jerone Young wrote:
+> > > > I think it's not really possible to get it correct with thinkpad-acpi .
+> > > > The reason is the userspace sound server. In our case it's pulse audio.
+> > > > So we are no longer just dealing with ALSA anymore. So if the OS gets a
+> > > > proper hotkey event it is able to mute at the pulse audio level then,
+> > > > pulse audio does work at the ALSA level (toggling the mixer).
+> > > > thinkpad-acpi has no way to check on the status of pulse audio.
+> > > 
+> > > This really isn't a problem. We have a mixer device for the Thinkpad's 
+> > > own mixer, and we can send ALSA events to indicate that its state has 
+> > > changed.
 > > 
-> > Since it sends no acpi event there is no way for it to catch it. Could
-> > I be wrong?
+> > I think it is. Since pulse audio only pay attention to the Master mixer
+> > of the primary card. The Thinkpad EC shows up basically as a second
+> > audio card. 
 > 
-> There are three new HKEY events on some of the newer thinkpads (I don't know
-> if they exist in the X300/X301).  They're hooked to suspicious GPEs that are
-> the same as the ones for volume feedback on all other thinkpads.
-> 
+> Fix userspace, don't break the kernel.
 
-Hmmm .. not my X301, I have the latest bios/ec update also.
-
-
-> Whatever solution I will adopt, won't be one for the X300 in particular.  It
-> needs to be one that won't be a hindrance in the next two years at least.
-> 
-> I need more data on the newest models first, to make an informed decision.
-> It is entirely possible that the X300/T61 generation require a different
-> solution than the earlier models.  And it is entirely possible that the T410
-> and newer allow for a better solution than the X300/T61.
-
-Looks like on the newest Models. Lenovo is beginning to move away from
-hardware mute.
+I think going this route actually is more hacky .. by having a second
+sound device for this. My thoughts is all of this should be removed.
+Instead have somewhere where hardware mute state can be checked easily.
 
 > 
-> EC polling is bad, hardware state unsynced is worse.  And any polling done
-> in userspace is Ugly, Bad, and will bite us back when it is not needed
-> anymore.
+> It is taking more than two years to fix the last such "shortcut" (brightness
+> control keys misused as notifications) taken because of userspace
+> shortcomings.
 > 
-> thinkpad-acpi is perfectly capable of doing polling on its own so that it
-> becomes transparent to userspace, and userspace won't screw over the owners
-> of thinkpads that don't need polling.
+> > I think all this work isn't going to help the situation any. There
+> > appears to be a easy solution. Just a matter of getting the LEDs on some
+> > to light correctly, and see when the hardware mute is enabled.
 > 
-> So, it is not that I am against the OSI(Linux) patch.  But I *do* want the
-> full data...
+> It is a matter of keeping the hardware state and software states in sync.
+> 
+> Looking at it in any other way will result in gross, fragile hacks.
 
-Sure that sounds reasonable.
+I agree. I think though that by trying to solve the whole problem at the
+thinkpad-acpi level makes it more hacky.
 
-> 
-> > The problem here as I describe in my last email is that thinkpad-acpi
-> > cannot full fix this issue. You need to have a userspace daemon to
-> > interact with the userspace sound server.
-> 
-> But you can send full state messages using EV_SW or some other channel, to
-> force userspace into sync with the hardware state (if we can get to the
-> hardware state).  I'd rather find out whether we need that on the newest
-> generation of thinkpads *before* userspace starts expecting a certain
-> behaviour from the thinkpad.
+Instead having thinkpad-acpi just exposing the LEDs & hardware mute
+state. Then allowing a userspace daemon to see & manipulate these states
+is a more elegant solution. This way it can also query & manipulate
+higher level things, like sound servers (pulse audio) , and keep
+everyone in sync.
 
-It looks like not .. see first paragraph.
+				Thanks,
+					Jerone
 
-> 
-> > What is getting me guys is that we have machines already doing this
-> > right now in the code from the same time period (They where put there to
-> > solve the exact same issue). This is just an extension of those
-> > machines. I think what we are discussing now is a separate possible
-> > solution. But for the short term we should black list these machines
-> > also, till can sort it out. Once it is we can unblack list all of them.
-> 
-> I don't mind short-term solutions.  But I *do* mind any future pressure to
-> keep them around instead of fixing things properly even if we will need to
-> break userspace hacks.  I am not yet sure this won't be the case, here.
-
-I could agree. Though after seeing the behavior of the new Thinkpads I
-realized Lenovo was just making the bahavior exactly what they had
-OSI(Linux) on the old Thinkpads. 
 
 > 
 
