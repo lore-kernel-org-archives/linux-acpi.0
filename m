@@ -1,85 +1,137 @@
-From: Philip Langdale <philipl@overt.org>
-Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
-Date: Mon, 26 Apr 2010 19:40:02 -0700
-Message-ID: <20100426194002.586fbaa5@fido5>
-References: <20100126084740.GA5265@jgarrett.org>
-	<87y6jkee1b.fsf@basil.nowhere.org>
-	<20100205160900.GA2736@jgarrett.org>
-	<alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
+From: minskey <chaohong_guo@linux.intel.com>
+Subject: [PATCH] permit to online CPUs before local memory comes online
+Date: Tue, 27 Apr 2010 12:57:44 +0800
+Message-ID: <1272344264.28378.3.camel@minskey-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usul.saidi.cx ([204.11.33.34]:42450 "EHLO usul.overt.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753019Ab0D0DVy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Apr 2010 23:21:54 -0400
-In-Reply-To: <alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
+Received: from mga09.intel.com ([134.134.136.24]:15686 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751011Ab0D0FJv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Apr 2010 01:09:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-On Fri, 05 Feb 2010 12:45:21 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
-
-> Jeff,
-> What do you see if you apply just the patch below?
-> 
-> Also, in addition to "powertop -d" to show what the kernel requests,
-> please run turbostat to show what the hardware actually did:
-> 
-> http://userweb.kernel.org/~lenb/acpi/utils/pmtools-latest/turbostat/turbostat.c
-> 
-> eg.
-> # turbostat -d -v sleep 5
-> 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> ---
-
-To resurrect this thread...
-
-I have a giga-byte GA-P55M-UD4 motherboard and I have this same problem
-as well. Len's patch "works" in that I see C6 being used, but it also
-cripples the system - if I do a make -j16 kernel build, I see most jobs
-serialized onto one or two cores. Without the patch, I see the
-full utilization of all 8 hyper-threads as expected.
-
-Now, gigabyte have already b0rked these boards up by using the UHCI
-controllers on the PCH instead of the rate matching hubs. Maybe that's
-directly the cause of BM activity - maybe they screwed something else
-up - is it possible for BIOS/ACPI mistakes to lead to this behaviour?
-
-Jeff - is your board gigabyte too?
-
---phil
-
-> diff --git a/drivers/acpi/processor_idle.c
-> b/drivers/acpi/processor_idle.c index 7c0441f..f528625 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -763,7 +763,7 @@ static const struct file_operations
-> acpi_processor_power_fops = { static int acpi_idle_bm_check(void)
->  {
->  	u32 bm_status = 0;
-> -
-> +return bm_status;
->  	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_STATUS,
-> &bm_status); if (bm_status)
->  		acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_STATUS,
-> 1);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-kernel" in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
-> 
+To: linux-acpi@vger.kernel.org
 
 
 
+This patch enables users to online CPUs even if the CPUs belongs to
+a numa node which doesn't have onlined local memory.
 
---phil
+The zonlists(pg_data_t.node_zonelists[]) of a numa node are created
+either in system boot/init period, or at the time of local memory
+online.  For a numa node without onlined local memory, its zonelists
+are not initialized at present. As a result, any memory allocation
+operations executed by CPUs within this node will fail. In fact, an
+out-of-memory error is triggered when attempt to online CPUs before
+memory comes to online.
+
+This patch tries to create zonelists for such numa nodes, so that
+the memory allocation for this node can be fallback'ed to other
+nodes.
+
+Signed-off-by: minskey guo<chaohong.guo@intel.com>
+---
+ include/linux/memory_hotplug.h |    1 +
+ kernel/cpu.c                   |   26 ++++++++++++++++++++++++++
+ mm/memory_hotplug.c            |   25 +++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 35b07b7..864035f 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -202,6 +202,7 @@ static inline int is_mem_section_removable(unsigned long pfn,
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
++extern int mem_online_node(int nid);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int remove_memory(u64 start, u64 size);
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index f8cced2..c31b9cb 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -335,6 +335,12 @@ out_notify:
+ int __cpuinit cpu_up(unsigned int cpu)
+ {
+ 	int err = 0;
++
++#ifdef	CONFIG_MEMORY_HOTPLUG
++	int nid;
++	pg_data_t	*pgdat;
++#endif
++
+ 	if (!cpu_possible(cpu)) {
+ 		printk(KERN_ERR "can't online cpu %d because it is not "
+ 			"configured as may-hotadd at boot time\n", cpu);
+@@ -345,6 +351,26 @@ int __cpuinit cpu_up(unsigned int cpu)
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef	CONFIG_MEMORY_HOTPLUG
++	nid = cpu_to_node(cpu);
++	if (!node_online(nid)) {
++		err = mem_online_node(nid);
++		if (err)
++			return err;
++	}
++
++	pgdat = NODE_DATA(nid);
++	if (!pgdat) {
++		printk(KERN_ERR
++			"Can't online cpu %d due to NULL pgdat\n", cpu);
++		return -ENOMEM;
++	}
++
++	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
++		build_all_zonelists();
++	} 
++#endif
++
+ 	cpu_maps_update_begin();
+ 
+ 	if (cpu_hotplug_disabled) {
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index be211a5..2d24bef 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -482,6 +482,31 @@ static void rollback_node_hotadd(int nid, pg_data_t *pgdat)
+ }
+ 
+ 
++/*
++ * called by cpu_up() to online a node without onlined memory.
++ */
++int mem_online_node(int nid)
++{
++	pg_data_t	*pgdat;
++	int	ret;
++
++	lock_system_sleep();
++	pgdat = hotadd_new_pgdat(nid, 0);
++	if (pgdat) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	node_set_online(nid);
++	ret = register_one_node(nid);
++	BUG_ON(ret);
++
++out:
++	unlock_system_sleep();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(mem_online_node);
++
++
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ int __ref add_memory(int nid, u64 start, u64 size)
+ {
+-- 
+1.6.3.3
+
+
+
