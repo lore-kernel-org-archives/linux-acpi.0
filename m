@@ -1,82 +1,50 @@
-From: Pat Erley <pat-lkml@erley.org>
+From: Manuel =?UTF-8?B?QXJnw7xlbGxlcw==?= <manuel.arguelles@gmail.com>
 Subject: Re: powernow-k8: No compatible ACPI _PSS objects found. (Asrock N68-S)
-Date: Wed, 28 Apr 2010 01:00:47 -0400
-Message-ID: <4BD7C0FF.5030302@erley.org>
-References: <hr8dum$ivs$1@dough.gmane.org>
+Date: Wed, 28 Apr 2010 00:30:32 -0500
+Message-ID: <hr8h5q$qt7$1@dough.gmane.org>
+References: <hr8dum$ivs$1@dough.gmane.org> <4BD7C0FF.5030302@erley.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from li59-9.members.linode.com ([97.107.129.9]:54456 "EHLO erley.org"
+Received: from lo.gmane.org ([80.91.229.12]:47052 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345Ab0D1FAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Apr 2010 01:00:55 -0400
-In-Reply-To: <hr8dum$ivs$1@dough.gmane.org>
+	id S1751852Ab0D1Fao (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Apr 2010 01:30:44 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1O6zr9-0007t5-Hh
+	for linux-acpi@vger.kernel.org; Wed, 28 Apr 2010 07:30:43 +0200
+Received: from cpe-000db902aab0.cpe.cableonda.net ([190.218.24.110])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 07:30:43 +0200
+Received: from manuel.arguelles by cpe-000db902aab0.cpe.cableonda.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 07:30:43 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Manuel_Arg=FCelles?= <manuel.arguelles@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 04/28/10 00:35, Manuel Arg=FCelles wrote:
-> Hi,
->=20
-> I just bought an AsRock N68-S motherboard with an AMD Phenom II 955=20
-> processor and I'm getting this message.
->=20
-> Cool 'n Quiet option is enabled on the bios, I retrieved the DSDT (fr=
-om=20
-> /proc/acpi/dsdt) and decoded it with iasl -d, couldn't find anything =
-about=20
-> _PSS on it.
->=20
-> I emailed AsRock support but no answer, the bios version that I have =
-is 2.0,=20
-> it was released on December 25, 2009.
->=20
-> I have read that it is possible to modify the DSDT to support this, b=
-ut I=20
-> have no idea how to do that, I haven't found much information either.
->=20
-> What do you recommend me to do?, should I try to get more into DSDT? =
-is=20
-> adding _PSS to a DSDT an easy task?
->=20
-> I haven't test it on windows, do you think that may help? is there an=
-y=20
-> useful information that I cat get about it on windows? does windows a=
-lso=20
-> interacts with the Cool 'n Quiet feature using the bios' DSDT or some=
-thing=20
-> else? Will it be possible that it works fine on windows but not on li=
-nux? On=20
-> the download page there's a Cool'n'Quiet driver for windows. (Is ther=
-e=20
-> anything that can be done with that?)
->=20
-> I also tried to recompile the DSDT and got one error and 7 warnings, =
-the=20
-> error was:
->=20
-> DSDT.dsl  4832:  Return (Zero)
-> Error    4080 -  ^ Invalid object type for reserved name (found ZERO,=
-=20
-> requires Buffer)
->=20
-> Which I suppose has nothing to do with this.
->=20
-> Regards
->=20
+Pat Erley wrote:
+> 
+> I recently did something similar: http://pat.erley.org/Other/P4EISTSSDT
+> 
+> It wasn't 'too hard', but it was by no means easy... the _PSS values were
+> kinda voodoo for me to come up with, and I'm not sure that I have them
+> correct, just that they work.
+> 
+> Pat
 
-I recently did something similar: http://pat.erley.org/Other/P4EISTSSDT
+Thanks a lot!! I took a look at my ssdt and it doesn't even looks complete:
 
-It wasn't 'too hard', but it was by no means easy... the _PSS values we=
-re=20
-kinda voodoo for me to come up with, and I'm not sure that I have them
-correct, just that they work.
+DefinitionBlock ("SSDT.aml", "SSDT", 1, "A M I ", "POWERNOW", 0x00000001)
+{
 
-Pat
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No idea how to get the values for my CPU, maybe contacting AMD?
+
+One question, if I do something really really stupid, is it possible to fry 
+the CPU? what can be the worst case scenario? 
+
+Regards
+
