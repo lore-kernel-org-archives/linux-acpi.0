@@ -1,64 +1,66 @@
-From: Pat Erley <pat-lkml@erley.org>
-Subject: Re: powernow-k8: No compatible ACPI _PSS objects found. (Asrock N68-S)
-Date: Wed, 28 Apr 2010 01:38:00 -0400
-Message-ID: <4BD7C9B8.3090508@erley.org>
-References: <hr8dum$ivs$1@dough.gmane.org> <4BD7C0FF.5030302@erley.org> <hr8h5q$qt7$1@dough.gmane.org>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [patch for 2.6.34? 1/1] power_meter: acpi_device_class
+	"power_meter_resource" too long
+Date: Wed, 28 Apr 2010 10:25:32 -0700
+Message-ID: <20100428172532.GD15515@tux1.beaverton.ibm.com>
+References: <201004272101.o3RL17kH019428@imap1.linux-foundation.org>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from li59-9.members.linode.com ([97.107.129.9]:42894 "EHLO erley.org"
+Received: from e8.ny.us.ibm.com ([32.97.182.138]:42749 "EHLO e8.ny.us.ibm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752538Ab0D1FiH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Apr 2010 01:38:07 -0400
-In-Reply-To: <hr8h5q$qt7$1@dough.gmane.org>
+	id S1752222Ab0D1RZk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Apr 2010 13:25:40 -0400
+Received: from d01relay07.pok.ibm.com (d01relay07.pok.ibm.com [9.56.227.147])
+	by e8.ny.us.ibm.com (8.14.3/8.13.1) with ESMTP id o3SD71Qq030693
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 09:07:01 -0400
+Received: from d01av04.pok.ibm.com (d01av04.pok.ibm.com [9.56.224.64])
+	by d01relay07.pok.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id o3SHPcQl1736898
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 13:25:38 -0400
+Received: from d01av04.pok.ibm.com (loopback [127.0.0.1])
+	by d01av04.pok.ibm.com (8.14.3/8.13.1/NCO v10.0 AVout) with ESMTP id o3SHPaTe017340
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 13:25:38 -0400
+Content-Disposition: inline
+In-Reply-To: <201004272101.o3RL17kH019428@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Manuel_Arg=FCelles?= <manuel.arguelles@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, error27@gmail.com, stable@kernel.org
 
-On 04/28/10 01:30, Manuel Arg=FCelles wrote:
-> Pat Erley wrote:
->>
->> I recently did something similar: http://pat.erley.org/Other/P4EISTS=
-SDT
->>
->> It wasn't 'too hard', but it was by no means easy... the _PSS values=
- were
->> kinda voodoo for me to come up with, and I'm not sure that I have th=
-em
->> correct, just that they work.
->>
->> Pat
->=20
-> Thanks a lot!! I took a look at my ssdt and it doesn't even looks com=
-plete:
->=20
-> DefinitionBlock ("SSDT.aml", "SSDT", 1, "A M I ", "POWERNOW", 0x00000=
-001)
-> {
->=20
-> No idea how to get the values for my CPU, maybe contacting AMD?
->=20
-> One question, if I do something really really stupid, is it possible =
-to fry=20
-> the CPU? what can be the worst case scenario?=20
+On Tue, Apr 27, 2010 at 02:01:07PM -0700, akpm@linux-foundation.org wrote:
+> From: Dan Carpenter <error27@gmail.com>
+> 
+> acpi_device_class can only be 19 characters and a NULL terminator.
+> 
+> The current code has a buffer overflow in acpi_power_meter_add():
+>        strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+> Cc: <stable@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Unfortunately, I don't have answers to any of these questions/problems.=
-  In=20
-my case, Intel DSDT/SSDT mods are common in the Mac world, so I was abl=
-e to
-find a lot of resources.  I'm guessing the wrong value could damage som=
-ething,
-but can't speak from experience.  the PSS values dictate CPU voltages a=
-nd=20
-=46reqencies, which dictate heat generation, so it'd be logical that th=
-is=20
-could cause damage.  I'd suggest looking up AMD datasheets for the CPU =
-and=20
-chipsets.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks ok to me, so:
+
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+
+> ---
+> 
+>  drivers/acpi/power_meter.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN drivers/acpi/power_meter.c~power_meter-acpi_device_class-power_meter_resource-too-long drivers/acpi/power_meter.c
+> --- a/drivers/acpi/power_meter.c~power_meter-acpi_device_class-power_meter_resource-too-long
+> +++ a/drivers/acpi/power_meter.c
+> @@ -35,7 +35,7 @@
+>  #define ACPI_POWER_METER_NAME		"power_meter"
+>  ACPI_MODULE_NAME(ACPI_POWER_METER_NAME);
+>  #define ACPI_POWER_METER_DEVICE_NAME	"Power Meter"
+> -#define ACPI_POWER_METER_CLASS		"power_meter_resource"
+> +#define ACPI_POWER_METER_CLASS		"pwr_meter_resource"
+> 
+>  #define NUM_SENSORS			17
+> 
+> _
