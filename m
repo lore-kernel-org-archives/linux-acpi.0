@@ -1,66 +1,76 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [patch for 2.6.34? 1/1] power_meter: acpi_device_class
-	"power_meter_resource" too long
-Date: Wed, 28 Apr 2010 10:25:32 -0700
-Message-ID: <20100428172532.GD15515@tux1.beaverton.ibm.com>
-References: <201004272101.o3RL17kH019428@imap1.linux-foundation.org>
-Reply-To: djwong@us.ibm.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: Fall back to manually changing SCI_EN
+Date: Wed, 28 Apr 2010 20:58:20 +0200
+Message-ID: <201004282058.20910.rjw@sisk.pl>
+References: <1271711614-15527-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e8.ny.us.ibm.com ([32.97.182.138]:42749 "EHLO e8.ny.us.ibm.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:53136 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab0D1RZk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Apr 2010 13:25:40 -0400
-Received: from d01relay07.pok.ibm.com (d01relay07.pok.ibm.com [9.56.227.147])
-	by e8.ny.us.ibm.com (8.14.3/8.13.1) with ESMTP id o3SD71Qq030693
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 09:07:01 -0400
-Received: from d01av04.pok.ibm.com (d01av04.pok.ibm.com [9.56.224.64])
-	by d01relay07.pok.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id o3SHPcQl1736898
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 13:25:38 -0400
-Received: from d01av04.pok.ibm.com (loopback [127.0.0.1])
-	by d01av04.pok.ibm.com (8.14.3/8.13.1/NCO v10.0 AVout) with ESMTP id o3SHPaTe017340
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 13:25:38 -0400
-Content-Disposition: inline
-In-Reply-To: <201004272101.o3RL17kH019428@imap1.linux-foundation.org>
+	id S1754263Ab0D1S57 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Apr 2010 14:57:59 -0400
+In-Reply-To: <1271711614-15527-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, error27@gmail.com, stable@kernel.org
+To: Matthew Garrett <mjg@redhat.com>, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-On Tue, Apr 27, 2010 at 02:01:07PM -0700, akpm@linux-foundation.org wrote:
-> From: Dan Carpenter <error27@gmail.com>
+On Monday 19 April 2010, Matthew Garrett wrote:
+> The ACPI spec tells us that the ACPI SCI_EN bit is under hardware control
+> and shouldn't be touched by the OS. It seems that the Leading Other OS
+> ignores this and some machines expect this behaviour. We have a blacklist
+> for these, but given that we're able to detect the failure case and the
+> alternative to breaking the spec is letting the machine crash and burn,
+> let's try falling back when we know the alternative is a mostly-dead
+> machine.
 > 
-> acpi_device_class can only be 19 characters and a NULL terminator.
-> 
-> The current code has a buffer overflow in acpi_power_meter_add():
->        strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Darrick J. Wong" <djwong@us.ibm.com>
-> Cc: <stable@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Looks ok to me, so:
+I guess we can try that, but I'd prefer it if that went into .35.
 
-Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+It _should_ be safe, but ...
+
+Anyway, Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
 > ---
+>  drivers/acpi/sleep.c |   16 +++++++++++++---
+>  1 files changed, 13 insertions(+), 3 deletions(-)
 > 
->  drivers/acpi/power_meter.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -puN drivers/acpi/power_meter.c~power_meter-acpi_device_class-power_meter_resource-too-long drivers/acpi/power_meter.c
-> --- a/drivers/acpi/power_meter.c~power_meter-acpi_device_class-power_meter_resource-too-long
-> +++ a/drivers/acpi/power_meter.c
-> @@ -35,7 +35,7 @@
->  #define ACPI_POWER_METER_NAME		"power_meter"
->  ACPI_MODULE_NAME(ACPI_POWER_METER_NAME);
->  #define ACPI_POWER_METER_DEVICE_NAME	"Power Meter"
-> -#define ACPI_POWER_METER_CLASS		"power_meter_resource"
-> +#define ACPI_POWER_METER_CLASS		"pwr_meter_resource"
-> 
->  #define NUM_SENSORS			17
-> 
-> _
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index f74834a..79df8d4 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -227,6 +227,7 @@ static int acpi_suspend_begin(suspend_state_t pm_state)
+>  static int acpi_suspend_enter(suspend_state_t pm_state)
+>  {
+>  	acpi_status status = AE_OK;
+> +	acpi_status enable_status = AE_OK;
+>  	unsigned long flags = 0;
+>  	u32 acpi_state = acpi_target_sleep_state;
+>  
+> @@ -254,10 +255,19 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+>  	}
+>  
+>  	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
+> -	if (set_sci_en_on_resume)
+> +	if (!set_sci_en_on_resume)
+> +		enable_status = acpi_enable();
+> +
+> +	if (set_sci_en_on_resume || enable_status == AE_NO_HARDWARE_RESPONSE)
+> +		/* If we're still in legacy mode then we have a problem. The
+> +		 * spec tells us that this bit is under hardware control, but
+> +		 * there's no plausible way that the OS can transition back to
+> +		 * legacy mode so our choices here are to either ignore the
+> +		 * spec or crash and burn horribly. The latter doesn't seem
+> +		 * like it's ever going to be the preferable choice, so let's
+> +		 * live dangerously.
+> +		 */
+>  		acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
+> -	else
+> -		acpi_enable();
+>  
+>  	/* Reprogram control registers and execute _BFS */
+>  	acpi_leave_sleep_state_prep(acpi_state);
