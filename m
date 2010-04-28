@@ -1,60 +1,63 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: Linux doesn't shutdown (turn off) the computer
-Date: Tue, 27 Apr 2010 17:50:05 -0600
-Message-ID: <4BD7782D.4080608@gmail.com>
-References: <phlm97-dol.ln1@tux.abusar.org.br>
+From: Manuel =?UTF-8?B?QXJnw7xlbGxlcw==?= <manuel.arguelles@gmail.com>
+Subject: powernow-k8: No compatible ACPI _PSS objects found. (Asrock N68-S)
+Date: Tue, 27 Apr 2010 23:35:05 -0500
+Message-ID: <hr8dum$ivs$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:33093 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752635Ab0D0XuI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Apr 2010 19:50:08 -0400
-Received: by pvb32 with SMTP id 32so124375pvb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Apr 2010 16:50:07 -0700 (PDT)
-In-Reply-To: <phlm97-dol.ln1@tux.abusar.org.br>
+Received: from lo.gmane.org ([80.91.229.12]:47102 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751060Ab0D1EuI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Apr 2010 00:50:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1O6zDn-000334-8M
+	for linux-acpi@vger.kernel.org; Wed, 28 Apr 2010 06:50:03 +0200
+Received: from 190.218.24.110 ([190.218.24.110])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 06:50:03 +0200
+Received: from manuel.arguelles by 190.218.24.110 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Apr 2010 06:50:03 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?D=E2niel_Fraga?= <fragabr@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 04/16/2010 12:06 PM, D=E2niel Fraga wrote:
-> 	I've been using Linux since 1997 and started with Slackware
-> 3.1 with an AT case.
->
-> 	Then some time after, I upgraded the system to a ATX case and
-> ATX power supply of course. Unfortunately Linux never turn the comput=
-er
-> off after shutdown. It *always* stay at the "System halted" screen an=
-d
-> I have to press for 4 seconds the power button for the computer to
-> turn off.
->
-> 	With Windows everything works perfectly...
->
-> 	I tested this Linux system with 3 different motherboards and
-> the problem remains.
->
-> 	So, is it a ACPI issue, configuration? What logs or information
-> do you need to properly debug this?
->
-> 	Now I'm using Linux 2.6.33.
->
-> 	Thanks.
->
-> 	Ps: my question is: what happens after the "System halted"
-> message? The kernel sends a signal to the motherboard, BIOS, whatever
-> to shutdown the computer? Maybe something is blocking it? Thanks.
+Hi,
 
-dmesg output from bootup would be useful. Is it actually using ACPI, or=
-=20
-is it an APM system? I think you should see an "acpi_power_off called"=20
-message if the kernel is actually trying to use ACPI to power off the=20
-machine.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I just bought an AsRock N68-S motherboard with an AMD Phenom II 955 
+processor and I'm getting this message.
+
+Cool 'n Quiet option is enabled on the bios, I retrieved the DSDT (from 
+/proc/acpi/dsdt) and decoded it with iasl -d, couldn't find anything about 
+_PSS on it.
+
+I emailed AsRock support but no answer, the bios version that I have is 2.0, 
+it was released on December 25, 2009.
+
+I have read that it is possible to modify the DSDT to support this, but I 
+have no idea how to do that, I haven't found much information either.
+
+What do you recommend me to do?, should I try to get more into DSDT? is 
+adding _PSS to a DSDT an easy task?
+
+I haven't test it on windows, do you think that may help? is there any 
+useful information that I cat get about it on windows? does windows also 
+interacts with the Cool 'n Quiet feature using the bios' DSDT or something 
+else? Will it be possible that it works fine on windows but not on linux? On 
+the download page there's a Cool'n'Quiet driver for windows. (Is there 
+anything that can be done with that?)
+
+I also tried to recompile the DSDT and got one error and 7 warnings, the 
+error was:
+
+DSDT.dsl  4832:  Return (Zero)
+Error    4080 -  ^ Invalid object type for reserved name (found ZERO, 
+requires Buffer)
+
+Which I suppose has nothing to do with this.
+
+Regards
+
