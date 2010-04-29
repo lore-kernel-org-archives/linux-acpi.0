@@ -1,38 +1,82 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] acpi: fix early DSDT dmi check warnings on ia64
-Date: Thu, 29 Apr 2010 15:12:38 -0700
-Message-ID: <987664A83D2D224EAE907B061CE93D53B91F9656@orsmsx505.amr.corp.intel.com>
-References: <1272505354.9950.16.camel@minggr.sh.intel.com>
- <201004290956.26922.bjorn.helgaas@hp.com>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: MacBookPro2,2 unable too boot with the latest HEAD
+Date: Thu, 29 Apr 2010 07:38:00 -0700
+Message-ID: <4BD999C8.7090602@gmail.com>
+References: <i2vdd18b0c31004140812i6a0e9430u68ab49b24273fe9b@mail.gmail.com> <20100419142804.3cd53666.akpm@linux-foundation.org> <4BCCCCDF.4010605@gmail.com> <20100419145741.95688467.akpm@linux-foundation.org> <alpine.LFD.2.00.1004201011050.2402@sony>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2297 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933090Ab0D3RVX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Apr 2010 13:21:23 -0400
-Content-Language: en-US
+Received: from mail-px0-f174.google.com ([209.85.212.174]:53833 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759320Ab0D3SuL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Apr 2010 14:50:11 -0400
+Received: by pxi17 with SMTP id 17so326303pxi.19
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Apr 2010 11:50:11 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.1004201011050.2402@sony>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
->There is not clue in the commit that added this to ia64 as to why
->dmi_scan_machine() was added as an initcall.  I just tried to move
->it into setup_arch() - immediately after the efi_init() call as in
->x86 - and my system hung without printing anything in boot.
+On 04/20/2010 07:17 AM, Len Brown wrote:
 >
->Agreed this would be a better fix.  I'll see if I can figure out
->what this call depends on, and so whether I can move is a bit later,
->but still early enough to be available for Ming's code to work.
+>>> the patch here fixes it for me:ACPI: EC: Limit burst to 64 bit
+>>> https://bugzilla.kernel.org/attachment.cgi?id=25962
+>>
+>> hm.  I wonder how you go from a bugzilla attachment back up tot he bug
+>> to which it is attached?
+>
+> Use "A comment contains this string" in bugzilla's advanced search
+> and plug in "attachment.cgi?id=25962" for this case.
+>
+> you'll find the patch in this comment:
+> https://bugzilla.kernel.org/show_bug.cgi?id=15749#c7
+>
+> It is a bit more user friendly to supply the
+> URL of the commment containing the patch rather than
+> the direct URL of the attachment itself.
+>
+>> Oh well.  Alexey, I trust that patch is in the 2.6.34 queue?
+>
+> it shipped in 2.6.34-rc5 in commit
+> 2060c44576c79086ff24718878d7edaa7384a985
+>
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+>
+>
 
-At a random mid-point in setup_arch() I got a lot of errors from
-slub about not being able to allocate memory.  At the very end of
-setup_arch() (after paging_init()) it still failed - with a deref
-NULL inside kmem_alloc().
 
-So it seems to be non-trivial to just move dmi_scan_machine()
-earlier on ia64 :-(
+ahh... o.k. so I just have to add
+#(then a comment number) i.g.
+#7 at the end of the bug URL.
 
--Tony
+make sense...
+
+off topic of this bug, I've another
+issue over here with the iMac9,1
+(that I've been slowly working on)
+
+basically long story short there is
+no entry for the AC adapter in it's
+dsdt(ACPI0003)
+ac.c:
+static const struct acpi_device_id ac_device_ids[] = {
+          {"ACPI0003", 0},
+          {"", 0},
+  };
+
+causing no entries in /proc/acpi/*
+and /sys/class/power_supply
+
+This doesn't seem to be a big issue
+it's just one machine defaults to ac
+and then another machine defaults to battery
+(keep in mind both machines are iMac9,1's
+just different gpu's).
+
+is there some boot param to tell the kernel
+to simply go to ac?
+
+Justin P. Mattock
