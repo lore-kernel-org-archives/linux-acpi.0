@@ -1,19 +1,15 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: commit 9630bdd9 changes behavior of the poweroff -
-	bug?
-Date: Thu, 29 Apr 2010 15:38:14 +0100
-Message-ID: <4BD999D6.7070808@linx.net>
-References: <20100401133923.GA4104@tiehlicka.suse.cz>
-	<20100419115942.GC5160@tiehlicka.suse.cz>
-	<201004191719.53602.rjw@sisk.pl> <201004250435.42779.rjw@sisk.pl>
-	<20100426150503.GA4005@tiehlicka.suse.cz>
-	<alpine.LFD.2.00.1004261130090.3999@localhost.localdomain>
-Reply-To: tony@linx.net
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: Fall back to manually changing SCI_EN
+Date: Thu, 29 Apr 2010 23:05:11 +0200
+Message-ID: <201004292305.11493.rjw@sisk.pl>
+References: <1271711614-15527-1-git-send-email-mjg@redhat.com>
+	<201004282058.20910.rjw@sisk.pl>
+	<alpine.LFD.2.00.1004282019240.2598@sony>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <alpine.LFD.2.00.1004261130090.3999@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.00.1004282019240.2598@sony>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -24,47 +20,49 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Michal Hocko <mhocko@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thursday 29 April 2010, Len Brown wrote:
+> 
+> On Wed, 28 Apr 2010, Rafael J. Wysocki wrote:
+> 
+> > On Monday 19 April 2010, Matthew Garrett wrote:
+> > > The ACPI spec tells us that the ACPI SCI_EN bit is under hardware control
+> > > and shouldn't be touched by the OS. It seems that the Leading Other OS
+> > > ignores this and some machines expect this behaviour. We have a blacklist
+> > > for these, but given that we're able to detect the failure case and the
+> > > alternative to breaking the spec is letting the machine crash and burn,
+> > > let's try falling back when we know the alternative is a mostly-dead
+> > > machine.
+> > > 
+> > > Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> > 
+> > I guess we can try that, but I'd prefer it if that went into .35.
+> > 
+> > It _should_ be safe, but ...
+> > 
+> > Anyway, Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> 
+> I'd like to push this patch in .34,
+> and in .35 remove the DMI list and the boot option.
+> 
+> One thing that has bothered me about the boot option
+> is that it writes SCI_EN instead of callin acpi_enable()
+> as opposed to in-addition-to acpi_enable().
+> If all acpi_enable() did was set SCI_EN, then it would
+> not make a difference.  However, acpi_enable() writes
+> SMI_CMD and we really have no idea what other stuff
+> the BIOS may do in SMM on this transition.
+> 
+> So if we don't end up reverting this one,
+> I'd really like to see the boot option gone in .35.
 
-On 26/04/10 17:22, Len Brown wrote:
-> During this period after poweroff and LCD goes out, but before
-> lid close, are there any other signs of life?  eg. does caps
-> lock button light the caps LED?
+There are some suspend changes in .34 that may cause problems to happen for
+people, so I'm not sure if it's actually a good idea to introduce one more of
+them after -rc5.
 
-The caps lock button does not respond, no.
+Also removing the boot option can easily wait until .36 IMHO.
 
-> How about during this period if you press the power button and
-> hold it for 5 seconds, does that cause the HDD parking sound?
-
-Holding down the power button for 5 seconds has no audible or visible
-effects, but does indeed properly shut it down. Closing or opening the
-lid afterwards does not cause a phantom power-up.
-A short push of the power button seems to start the machine up normally
-(from a cold boot; just like when the lid is closed/opened after a linux
-"shutdown").
-
-> Please send the /proc/acpi/wakeup file before and after
-> the regression.
-
-I don't have this file in my /proc filesystem, sorry.
-
-Regards,
-- --
-Tony Vroon
-UNIX systems administrator
-London Internet Exchange Ltd, Trinity Court, Trinity Street,
-Peterborough, PE1 1DA
-Registered in England number 3137929
-E-Mail: tony@linx.net
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.15 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAkvZmdYACgkQp5vW4rUFj5oUxgCdGPnfQsSE9jhjSzzar/kQbw95
-Er4AmgLGStZlrvGZltqsU/REs2srO95A
-=6VLH
------END PGP SIGNATURE-----
+Rafael
