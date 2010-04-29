@@ -1,31 +1,29 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: fix early DSDT dmi check warnings on ia64
-Date: Thu, 29 Apr 2010 10:42:18 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1004291036590.22770@sony>
-References: <1272505354.9950.16.camel@minggr.sh.intel.com>
+Subject: Re: [PATCH 0/2] PNPACPI, x86/PCI: handle _CRS windows like Windows
+ does
+Date: Wed, 28 Apr 2010 21:48:42 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004282147490.2598@sony>
+References: <20100427202122.23753.63421.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from [12.175.186.2] ([12.175.186.2]:41717 "EHLO
 	vbn.0055647.lodgenet.net" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1758871Ab0EABoc (ORCPT
+	by vger.kernel.org with ESMTP id S932591Ab0EABog (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Apr 2010 21:44:32 -0400
-In-Reply-To: <1272505354.9950.16.camel@minggr.sh.intel.com>
+	Fri, 30 Apr 2010 21:44:36 -0400
+In-Reply-To: <20100427202122.23753.63421.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: tony.luck@intel.com, linux-acpi <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-x86 calls dmi_scan_machine() to initialize DMI
-from setup_arch().
+applied both to acpi-test tree.
 
-ia64 calls dmi_scan_machine() from core_initcall()
+you have pretty convincing evidence in the bug report that this is 
+"corrrect" -- where "correct" = matches common industry practice.
 
-Maybe they should both call it from the same place?
-
-Also, ia64 should not parse entries which are known
-at compile-time to be x86 specific
+I wonder if this should wait for .35 or not...
 
 thanks,
 Len Brown, Intel Open Source Technology Center
