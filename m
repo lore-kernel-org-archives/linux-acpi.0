@@ -1,40 +1,36 @@
-From: Philip Langdale <philipl@overt.org>
+From: Len Brown <lenb@kernel.org>
 Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
-Date: Fri, 30 Apr 2010 07:57:03 -0700
-Message-ID: <20100430075703.15dd05bb@fido5>
+Date: Fri, 30 Apr 2010 12:25:44 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1004301218280.2489@sony>
 References: <20100126084740.GA5265@jgarrett.org>
-	<87y6jkee1b.fsf@basil.nowhere.org>
-	<20100205160900.GA2736@jgarrett.org>
-	<alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
-	<20100426194002.586fbaa5@fido5>
-	<20100427124703.GA16706@jgarrett.org>
+ <87y6jkee1b.fsf@basil.nowhere.org> <20100205160900.GA2736@jgarrett.org>
+ <alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
+ <20100426194002.586fbaa5@fido5> <20100427124703.GA16706@jgarrett.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100427124703.GA16706@jgarrett.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeff Garrett <jeff@jgarrett.org>
-Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46651 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933106Ab0D3RaB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Apr 2010 13:30:01 -0400
+In-reply-to: <20100427124703.GA16706@jgarrett.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeff Garrett <jeff@jgarrett.org>
+Cc: Philip Langdale <philipl@overt.org>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 27 Apr 2010 07:47:03 -0500
-jeff@jgarrett.org (Jeff Garrett) wrote:
+Philip, Jeff,
+Please open up a bugzilla.kernel.org report and attach the output from 
+acpidump from your machines.
 
+I am hopeful that the "right thin to do" is to not look at bm-status
+and that perhaps there is a bug where we are looking at it
+"by mistake".
 
-> My board identifies it as a Dell.  No idea if they rebranded a
-> gigabyte.
-> 
-> The patch seems to work for me as well, powertop shows 97.5% c3,
-> turbostat shows 93.6% c6 now.  I do get weird latency spikes (on I/O)
-> from time to time.
-> 
-> When I was investigating, I completely configured USB off, and it
-> still wouldn't go into deep sleep.  Not sure how well that meshes
-> with your UHCI theory.
+However, it is important that the system be operating properly
+when it indeed using c6 as it does with that 1 line patch
+earlier in this thread.  So if that patch causes abnormal
+operation, please let me know.
 
-Does your board expose UHCI controllers or just EHCI with the rate
-matching hubs? When you say 'configured USB off'?, do you mean off
-in the BIOS or just no drivers?
-
---phil
+thanks,
+Len Brown, Intel Open Source Technology Center
