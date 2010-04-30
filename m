@@ -1,39 +1,45 @@
-From: <pat-lkml@erley.org>
-Subject: MWAIT... How is it's use =?UTF-8?Q?decided=3F?=
-Date: Fri, 30 Apr 2010 16:51:42 -0400
-Message-ID: <8370cf5099deada43bf7cc64b06ae25b@127.0.0.1>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: MacBookPro2,2 unable too boot with the latest HEAD
+Date: Fri, 30 Apr 2010 22:14:51 +0100
+Message-ID: <20100430211451.GA21791@srcf.ucam.org>
+References: <i2vdd18b0c31004140812i6a0e9430u68ab49b24273fe9b@mail.gmail.com> <20100419142804.3cd53666.akpm@linux-foundation.org> <4BCCCCDF.4010605@gmail.com> <20100419145741.95688467.akpm@linux-foundation.org> <alpine.LFD.2.00.1004201011050.2402@sony> <4BD999C8.7090602@gmail.com> <20100430204912.GA21240@srcf.ucam.org> <4BDB47A7.8080200@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from li59-9.members.linode.com ([97.107.129.9]:42381 "EHLO erley.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753045Ab0D3Uvp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Apr 2010 16:51:45 -0400
-Received: from home.erley.org (pool-71-115-176-202.gdrpmi.dsl-w.verizon.net [71.115.176.202])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: pat)
-	by erley.org (Postfix) with ESMTPSA id 49A8C289F8
-	for <linux-acpi@vger.kernel.org>; Fri, 30 Apr 2010 20:49:35 +0000 (UTC)
+Received: from cavan.codon.org.uk ([93.93.128.6]:35569 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754191Ab0D3VOz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Apr 2010 17:14:55 -0400
+Content-Disposition: inline
+In-Reply-To: <4BDB47A7.8080200@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-I have a p4 630 in a system that only supported through the 
-P4 5xx series chips.  I've written a custom DSDT that added 
-C-States[C1-C4] and P-States[2.8+3.0Ghz, with a little VID
-drop], and have acpi-cpufreq working quite well with it.  
+On Fri, Apr 30, 2010 at 02:12:07PM -0700, Justin P. Mattock wrote:
 
-The only things I can think of left are getting MWAIT/C1E
-working and TM2.  TM2 isn't a big concern of mine, as I
-rarely get it hot, but C1E would be neat to enable.  I 
-just can't figure out what to do to do it though.  If I
-pass idle=mwait on the kernel command line, it disables 
-acpi-cpufreq, or disables my custom DSDT table (not sure 
-which).  But with idle=mwait, it works, but no cpufreq
-or C-States.  can anyone provide a pointer as to what
-to look at to fix this?
+> The first issue is there's no entries
+> in /proc/acpi/* and /sys/class/power_supply
 
-Pat Erley
+It's a desktop. There shouldn't be.
+
+> as for the defaulting to battery this is something
+> nvidia is doing because of the no entries in either of
+> the two places.
+> heres what I'm looking at:
+> two machines: both iMac9,1
+> 
+> 1= NVIDIA GPU GeForce 9400 (C79)
+> 2= NVIDIA GPU GrForce GT 130 (G94)
+> 
+> the 9400 defaults to battery when looking
+> at nvidia-settings and the other goes to A/C.
+> both have no entries in the dsdt of A/C if this is
+> supposed to happen.
+
+Sounds like a bug with nvidia's drivers. This isn't a problem with the 
+kernel.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
