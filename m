@@ -1,29 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: MacBookPro2,2 unable too boot with the latest HEAD
-Date: Fri, 30 Apr 2010 21:49:13 +0100
-Message-ID: <20100430204912.GA21240@srcf.ucam.org>
-References: <i2vdd18b0c31004140812i6a0e9430u68ab49b24273fe9b@mail.gmail.com> <20100419142804.3cd53666.akpm@linux-foundation.org> <4BCCCCDF.4010605@gmail.com> <20100419145741.95688467.akpm@linux-foundation.org> <alpine.LFD.2.00.1004201011050.2402@sony> <4BD999C8.7090602@gmail.com>
+From: <pat-lkml@erley.org>
+Subject: MWAIT... How is it's use =?UTF-8?Q?decided=3F?=
+Date: Fri, 30 Apr 2010 16:51:42 -0400
+Message-ID: <8370cf5099deada43bf7cc64b06ae25b@127.0.0.1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4BD999C8.7090602@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from li59-9.members.linode.com ([97.107.129.9]:42381 "EHLO erley.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753045Ab0D3Uvp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Apr 2010 16:51:45 -0400
+Received: from home.erley.org (pool-71-115-176-202.gdrpmi.dsl-w.verizon.net [71.115.176.202])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: pat)
+	by erley.org (Postfix) with ESMTPSA id 49A8C289F8
+	for <linux-acpi@vger.kernel.org>; Fri, 30 Apr 2010 20:49:35 +0000 (UTC)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Apr 29, 2010 at 07:38:00AM -0700, Justin P. Mattock wrote:
+I have a p4 630 in a system that only supported through the 
+P4 5xx series chips.  I've written a custom DSDT that added 
+C-States[C1-C4] and P-States[2.8+3.0Ghz, with a little VID
+drop], and have acpi-cpufreq working quite well with it.  
 
-> This doesn't seem to be a big issue
-> it's just one machine defaults to ac
-> and then another machine defaults to battery
-> (keep in mind both machines are iMac9,1's
-> just different gpu's).
+The only things I can think of left are getting MWAIT/C1E
+working and TM2.  TM2 isn't a big concern of mine, as I
+rarely get it hot, but C1E would be neat to enable.  I 
+just can't figure out what to do to do it though.  If I
+pass idle=mwait on the kernel command line, it disables 
+acpi-cpufreq, or disables my custom DSDT table (not sure 
+which).  But with idle=mwait, it works, but no cpufreq
+or C-States.  can anyone provide a pointer as to what
+to look at to fix this?
 
-What do you mean, "Defaults to battery"? The iMac is a desktop machine, 
-isn't it? There typically isn't an AC adapter present in the ACPI 
-description.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Pat Erley
