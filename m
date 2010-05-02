@@ -1,159 +1,73 @@
-From: Jerone Young <jerone.young@canonical.com>
-Subject: [PATCH] [RESUBMIT] Fix mute key on older Lenovo made Thinkpads by
- OSI blacklisting
-Date: Sat, 01 May 2010 22:20:32 -0500
-Message-ID: <1272770432.15493.49.camel@laptop>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: Input Brightness events on EeePc 1201HA
+Date: Sun, 2 May 2010 14:31:19 +0200
+Message-ID: <q2k71cd59b01005020531n8f827e63qd03588fd980c3c9a@mail.gmail.com>
+References: <1272383014.8403.12.camel@plop>
+	 <w2t71cd59b01004280220rbbff08cek497c98985e996748@mail.gmail.com>
+	 <1272446724.12834.24.camel@plop>
+	 <g2o71cd59b01004280508m99790717x9d9f10c71fd1145b@mail.gmail.com>
+	 <1272457434.12834.29.camel@plop>
+	 <q2z71cd59b01004280528scc775622lf85055f797cec79e@mail.gmail.com>
+	 <1272461780.12834.93.camel@plop> <1272462009.12834.95.camel@plop>
+	 <t2g71cd59b01004292311sd797e259g6340d701bc52a93e@mail.gmail.com>
+	 <1272643738.26706.63.camel@plop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:57288 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754850Ab0EBDUl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 May 2010 23:20:41 -0400
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:53123 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649Ab0EBMbW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 May 2010 08:31:22 -0400
+Received: by bwz19 with SMTP id 19so850607bwz.21
+        for <linux-acpi@vger.kernel.org>; Sun, 02 May 2010 05:31:20 -0700 (PDT)
+In-Reply-To: <1272643738.26706.63.camel@plop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>
+To: Pascal Terjan <pterjan@mandriva.com>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: acpi4asus-user@lists.sourceforge.net, linux acpi <linux-acpi@vger.kernel.org>
 
-After much discussion over these patches there are some points that have
-been sorted out:
+CCing linux-acpi and Zhang Rui.
 
-	- New X & W series Thinkpads (X201 & W510) ONLY send a mute
-          key press and nothing more. By adding the older
-          models, as this patch does, has the machines acting with the
-          same behavior. Lenovo has dropped hardware mute.
-          Lenovo looks to not be updating the R series.
+>> - Does brightness react to keypress (up and/or down) in grub ? windows
+>> ? linux wihout X ?
+>
+> It does not work in GRUB for an unknown reason but I have "good" news
+>
+> It works in Linux, without using video (which can not manage this
+> machine), until psb driver is loaded and creates a backlight device
+> using PWM!
 
-	- These models have no light indicator on them that the mute
-          is on. This is a Lenovo x200 keyboard:
-          http://www.slashgear.com/gallery/data_files/7/4/ThinkPad_X200_keyboard.jpg
-          
-	
-	- These machines do not send any ACPI or any type of event when 
-          the mute button is pressed. Unless you expose to them that
-          Linux is the OS. Then it will send mute key press. Lenovo made
-          Thinkpads do not have the same behavior as the IBM made
-          Thinkpads.
- 
+Looking at the dsdt:
 
-	- While the hardware mute is disabled by this patch.
-		- Fixes muting of headphone jack. Lenovo only has
-                  hardware mute wired to the external speakers.
-		- Gives users a much better Linux experience as Linux
-                  can see the mute keypress and so (in distributions
-                  like Ubuntu), give users visual indication that 
-                  Mute is on. Right now users have no idea.
+                        Method (STBR, 0, Serialized)
+                        {
+                            If (And (^^^GFX0.TCHE, 0x02))
+                            {
+                                ISMI (0x7A)
+                                ^^^GFX0.AINT (One, PAR0)
+                            }
+                            Else
+                            {
+                                ISMI (0x78)
+                            }
+                        }
 
-		* The hardware mute muted the volume in the hardware,
-                  not waiting for software. This only comes in
-                  handy if userspace or kernel crashes or malfunctions
-                  and sound is still being sent from the sound card. 
-         	  Thought this is a rare case. Most users perfer
-                  knowing that the mute is on or off.
+ISMI (0x78) is the working path, so when psb load, And (^^^GFX0.TCHE,
+0x02) become true,  Maybe in this case the psb driver should do
+something that it doesn't.
 
-	- To pull off hardware muting properly under Linux will 
-          require a userspace daemon to keep both hardware mute
-          & userspace sound servers in sync. Again this is something
-          newer equivalent Thinkpads could not use.
+A quick workaround would be to send input events in eeepc-laptop if
+GFX0.TCHE & 0x2, but does not sound pretty.
 
-	- Other Lenovo models from this exact same time frame are
-          already in blacklist.c fixing the SAME issue, and they
-          ALL change the behavior in the SAME way. These include
-          Lenovo Thinkpads T400 & T500.
-
-	- This has been tested by many many users who love this
-          behavior over the way it works now. Lenovo has changed
-          the default behavior of the new Thinkpads to reflect 
-          this.
-
-	- These machines will not be getting a bios update to 
-          change the behavior in the future.
- 
-This patch fixes that mute keys for X & R & W series Thinkpads. For
-these Thinkpads in the BIOS if OS exposes itself as "Linux" it will
-switch the functionality of the mute key to send a mute key press to the
-OS. These machines will not be getting any bios updates in the future.
-
-All of these Thinkpads do not have a little light that would indicate
-the mute is on. So having them send the mute key to the OS makes a
-better user experience and also will match behavior of newer Thinkpads.
-These all have the same quirk the T400 & T500 have.
-
-Unlike the last time I sent a similar patch(s) somethings have happened:
-
-        - All new Lenovo Thinkpads now send a mute key press to the 
-          OS by default (x201 series).
-
-        - I've decoded the bioses. Under the Linux selection it 
-          only does one operation. Switch the hardware mute to
-          a software mute. Has no special operations done under
-          Windows selections.
-        
-        - On all the machines. The hardware mute key is only wired
-          to the external speakers. So the headphone jack does not 
-          get muted by the hardware mute.
-
-        - I also have gotten confirmation from users around the
-          net that it works. Except for the W700, though based on
-          data I found it was the same as the W500.
-
-
-Signed-off-by: Jerone Young <jerone.young@canonical.com>
-
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 2815df6..cce6e1a 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -285,6 +285,46 @@ static struct dmi_system_id acpi_osi_dmi_table[]
-__initdata = {
-                     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T500"),
-                },
-        },
-+       {
-+       .callback = dmi_enable_osi_linux,
-+       .ident = "Lenovo ThinkPad X200[s][t]",
-+       .matches = {
-+                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+                    DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X200"),
-+               },
-+       },
-+       {
-+       .callback = dmi_enable_osi_linux,
-+       .ident = "Lenovo ThinkPad R400",
-+       .matches = {
-+                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+                    DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R400"),
-+               },
-+       },
-+       {
-+       .callback = dmi_enable_osi_linux,
-+       .ident = "Lenovo ThinkPad R500",
-+       .matches = {
-+                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+                    DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R500"),
-+               },
-+       },
-+       {
-+       .callback = dmi_enable_osi_linux,
-+       .ident = "Lenovo ThinkPad W500",
-+       .matches = {
-+                   DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+                   DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W500"),
-+               },
-+       },
-+       {
-+       .callback = dmi_enable_osi_linux,
-+       .ident = "Lenovo ThinkPad W700[ds]",
-+       .matches = {
-+                  DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+                  DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W700"),
-+               },
-+       },
-        {}
- };
- 
+> Unfortunately I can't think of a solution for machines using psb except
+> disabling backlight handling there.
+>
+> It would either conflict (2 backlights device, on in psb, the other in
+> eeepc-laptop/wmi) or have keys not handled (as both would not handle
+> them if they do not handle backlight)
 
 
 
-
+-- 
+Corentin Chary
+http://xf.iksaif.net
