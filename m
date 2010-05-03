@@ -1,201 +1,69 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 1/2] acpi: Provide interface for driver notification on method call
-Date: Mon,  3 May 2010 16:02:59 -0400
-Message-ID: <1272916980-11835-1-git-send-email-mjg@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] PNP: don't check for conflicts with bridge windows
+Date: Mon, 03 May 2010 16:50:08 -0600
+Message-ID: <1272927008.28149.91.camel@dc7800.home>
+References: <20100503164647.308.86063.stgit@bob.kio>
+	 <20100503164721.308.11075.stgit@bob.kio>
+	 <alpine.LFD.2.00.1005030950530.5478@i5.linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:38081 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757341Ab0ECWvN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 May 2010 18:51:13 -0400
+In-Reply-To: <alpine.LFD.2.00.1005030950530.5478@i5.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Pavel Kysilka <goldenfish@linuxsoft.cz>, Adam Belay <abelay@mit.edu>, Jaroslav Kysela <perex@perex.cz>
 
-It's sometimes useful for a driver to receive notifications in response
-to an ACPI event even if there's no explicit notification in the bytecode.
-Add an interface to allow drivers to register for callbacks when a given
-method is executed.
+On Mon, 2010-05-03 at 09:53 -0700, Linus Torvalds wrote:
+> 
+> On Mon, 3 May 2010, Bjorn Helgaas wrote:
+> >  			if (tres->flags & IORESOURCE_IO) {
+> >  				if (cannot_compare(tres->flags))
+> >  					continue;
+> > +				if (tres->flags & IORESOURCE_WINDOW)
+> > +					continue;
+> >  				tport = &tres->start;
+> >  				tend = &tres->end;
+> >  				if (ranged_conflict(port, end, tport, tend))
+> > @@ -271,6 +273,8 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
+> >  			if (tres->flags & IORESOURCE_MEM) {
+> >  				if (cannot_compare(tres->flags))
+> >  					continue;
+> > +				if (tres->flags & IORESOURCE_WINDOW)
+> > +					continue;
+> 
+> Hmm. Looking at the patch, I am wondering if it wouldn't make _more_ sense 
+> to instead say that you never mix IORESOURCE_WINDOW with 
+> IORESOURCE_IO/MEM? That would make the above patch unnecessary, since it 
+> would never trigger the test for IORESOURCE_IO/MEM in the first place.
+> 
+> A resource window is a window - it's not the resource itself. It's not IO 
+> or MEM - that could/should be an attribute of what resource _tree_ the 
+> window is linked into, not the resource itself.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/acpica/acobject.h |    2 +
- drivers/acpi/acpica/dsmethod.c |    5 ++
- drivers/acpi/acpica/evxface.c  |  103 ++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpixf.h          |    7 +++
- include/acpi/actypes.h         |    2 +
- 5 files changed, 119 insertions(+), 0 deletions(-)
+That's an interesting idea, and it might make more sense.  I haven't
+done anything useful with IORESOURCE_WINDOW yet, so I don't know how it
+will work out.
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index cde18ea..b46b23c 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -188,6 +188,8 @@ struct acpi_object_method {
- 	u32 aml_length;
- 	u8 thread_count;
- 	acpi_owner_id owner_id;
-+	acpi_osd_exec_callback notify;
-+	void *context;
- };
- 
- /******************************************************************************
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 7210392..a453cda 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -420,6 +420,11 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
- 		}
- 	}
- 
-+	if (obj_desc->method.notify) {
-+		acpi_os_execute(OSL_NOTIFY_HANDLER, obj_desc->method.notify,
-+				obj_desc->method.context);
-+	}
-+
- 	return_ACPI_STATUS(status);
- 
-       cleanup:
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index b407579..af81832 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -653,6 +653,109 @@ ACPI_EXPORT_SYMBOL(acpi_remove_notify_handler)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_install_method_handler
-+ *
-+ * PARAMETERS:  Oathname        - The method for which notifies will be handled
-+ *              Handler         - Address of the handler
-+ *              Context         - Value passed to the handler on each call
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Install a handler for notifies on ACPI method execution
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_install_method_handler (acpi_handle handle, acpi_method_handler handler,
-+			     void *context)
-+{
-+	struct acpi_namespace_node *node;
-+	union acpi_operand_object *method;
-+	acpi_status status;
-+
-+	if (!handle || !handler)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-+
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	node = acpi_ns_validate_handle(handle);
-+
-+	if (!node) {
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
-+	}
-+
-+	method = acpi_ns_get_attached_object(node);
-+
-+	if (method->method.notify) {
-+		status = AE_ALREADY_EXISTS;
-+		goto unlock_and_exit;
-+	}
-+
-+	method->method.notify = handler;
-+	method->method.context = context;
-+
-+unlock_and_exit:
-+	acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+	return_ACPI_STATUS(status);
-+}
-+ACPI_EXPORT_SYMBOL(acpi_install_method_handler)
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_remove_method_handler
-+ *
-+ * PARAMETERS:  Pathname        - The method for which notifies will be handled
-+ *              Handler         - Address of the handler
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Remove a handler for notifies on ACPI method execution
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_remove_method_handler (acpi_handle handle, acpi_method_handler handler)
-+{
-+	struct acpi_namespace_node *node;
-+	union acpi_operand_object *method;
-+	acpi_status status;
-+
-+	if (!handle || !handler)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	node = acpi_ns_validate_handle(handle);
-+
-+	if (!node) {
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
-+	}
-+
-+	method = acpi_ns_get_attached_object(node);
-+
-+	if (method->method.notify != handler) {
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
-+	}
-+
-+	method->method.notify = NULL;
-+	method->method.context = NULL;
-+
-+unlock_and_exit:
-+	acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+	return_ACPI_STATUS(status);
-+}
-+ACPI_EXPORT_SYMBOL(acpi_remove_method_handler)
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_install_gpe_handler
-  *
-  * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 4447a04..21e7646 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -240,6 +240,13 @@ acpi_remove_notify_handler(acpi_handle device,
- 			   u32 handler_type, acpi_notify_handler handler);
- 
- acpi_status
-+acpi_install_method_handler(acpi_handle handle, acpi_method_handler handler,
-+			    void *context);
-+
-+acpi_status
-+acpi_remove_method_handler(acpi_handle handle, acpi_method_handler handler);
-+
-+acpi_status
- acpi_install_address_space_handler(acpi_handle device,
- 				   acpi_adr_space_type space_id,
- 				   acpi_adr_space_handler handler,
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 3f08e64..bf2fcf8 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -916,6 +916,8 @@ void (*acpi_notify_handler) (acpi_handle device, u32 value, void *context);
- typedef
- void (*acpi_object_handler) (acpi_handle object, void *data);
- 
-+typedef void (*acpi_method_handler) (void *context);
-+
- typedef acpi_status(*acpi_init_handler) (acpi_handle object, u32 function);
- 
- #define ACPI_INIT_DEVICE_INI        1
--- 
-1.7.0.1
+My *plan* was to make pci_root.c a PNP driver, so it would use the
+pre-parsed PNP resources to find the host bridge windows rather than
+re-parsing the ACPI _CRS info by hand.  Those PNP resources are not in
+the resource tree when the driver first sees them (which might be a
+deficiency of our current PNP core), so I don't think there's currently
+a way for the driver to distinguish IO from MEM unless it's in the
+resource itself.
+
+At this stage of the release, my preference would be to use the patch
+above (with the intention of coming back later for some more work), or
+to just revert fa35b4926 (PNPACPI window support) and maybe 9d7cca04
+(generic window support).  If we revert those patches, I'll have to
+figure out another way to clean up pci_root.c.
+
+Bjorn
+
 
