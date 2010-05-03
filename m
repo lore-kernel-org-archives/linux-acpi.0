@@ -1,43 +1,87 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] PNP: don't check for conflicts with bridge windows
-Date: Mon, 3 May 2010 16:03:11 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.1005031601450.5478@i5.linux-foundation.org>
-References: <20100503164647.308.86063.stgit@bob.kio>  <20100503164721.308.11075.stgit@bob.kio>  <alpine.LFD.2.00.1005030950530.5478@i5.linux-foundation.org> <1272927008.28149.91.camel@dc7800.home>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 0/15] Start coping gsis < 16 that are not isa irqs. v2
+Date: Mon, 03 May 2010 16:21:33 -0700
+Message-ID: <m163348tc2.fsf@fess.ebiederm.org>
+References: <1269221770-9667-1-git-send-email-yinghai@kernel.org>
+	<1269221770-9667-3-git-send-email-yinghai@kernel.org>
+	<alpine.LFD.2.00.1003221131470.3147@localhost.localdomain>
+	<m1iq8f1c1f.fsf@fess.ebiederm.org> <4BB0EA22.7000004@zytor.com>
+	<m1r5n2wwah.fsf_-_@fess.ebiederm.org>
+	<m1oci6qlmr.fsf_-_@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41265 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759705Ab0ECXEs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 May 2010 19:04:48 -0400
-In-Reply-To: <1272927008.28149.91.camel@dc7800.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <m1oci6qlmr.fsf_-_@fess.ebiederm.org> (Eric W. Biederman's message of "Tue\, 30 Mar 2010 01\:06\:20 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Suresh Siddha <suresh.b.siddha@intel.com>, len.brown@intel.com, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org, Iranna D Ankad <iranna.ankad@in.ibm.com>, Gary Hade <garyhade@us.ibm.com>, Natalie Protasevich <protasnb@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Pavel Kysilka <goldenfish@linuxsoft.cz>, Adam Belay <abelay@mit.edu>, Jaroslav Kysela <perex@perex.cz>
 
+ebiederm@xmission.com (Eric W. Biederman) writes:
 
+> It appears there are a few systems in the wild that use acpi
+> interrupt source overrides to report a gsi > 16 is an isa irq.
+>
+> This breaks all kinds of assumptions I figure any BIOS doing that
+> probably should be shot as that is very much not a conservative position.
+>
+> That said acpi appears to allow this insanity and on the basis of being
+> liberal in what we accept we should try to do something reasonable, and
+> keep our notions of gsi, isa irq, and linux irq as straight as we can.
+>
+> To that end this patchset slightly modifies the gsi to linux irq
+> mapping.  Making it a 1 to 1 identity mapping except for the first 16
+> gsis.  If those gsis are isa irqs (the typical and default acpi
+> configuration) they will be mapped into the first 16 irqs.  If those
+> first 16 gsis are not isa irqs they will be given a linux irq number
+> just past the last gsi.  Allowing us the chance to use them.
+>
+> This patchset is my attempt to straighten out our understanding of which
+> kind of irq name is used where and the cleanups used to get there.
+>
+> Thanks to Yinghai Lu <yinghai@kernel.org> for taking the first stab at
+> this and finding that there is a real world problem here.  This patchset
+> is inspired by his work, but little of it remains the same.
+>
+> This patchset lies in the weird world between the acpi and x86 and ia64.
+> Since most of the changes are x86 related I think it makes most sense
+> to go via the x86 tree.
+>
+> v2: Recognize that gsi_end is last gsi for an ioapic not one past the end.
+>     Since I use gsi_end widely in my patchset a respin of many of the patches
+>     made sense.
+>
+> Eric W. Biederman (15):
+>       x86 acpi/irq: Introduce apci_isa_irq_to_gsi
+>       x86 acpi/irq: Teach acpi_get_override_irq to take a gsi not an isa_irq
+>       x86 acpi/irq: pci device dev->irq is an isa irq not a gsi
+>       x86 acpi/irq: Fix acpi_sci_ioapic_setup so it has both bus_irq and gsi
+>       x86 acpi/irq: Generalize mp_config_acpi_legacy_irqs
+>       x86 ioapic: Only export mp_find_ioapic and mp_find_ioapic_pin in io_apic.h
+>       x86 ioapic: Fix io_apic_redir_entries to return the number of entries.
+>       x86 ioapic: Fix the types of gsi values
+>       x86 ioapic: Teach mp_register_ioapic to compute a global gsi_end
+>       x86 ioapic: In mpparse use mp_register_ioapic
+>       x86 ioapic: Move nr_ioapic_registers calculation to mp_register_ioapic.
+>       x86 ioapic: Optimize pin_2_irq
+>       x86 ioapic: Simplify probe_nr_irqs_gsi.
+>       x86 acpi/irq: Handle isa irqs that are not identity mapped to gsi's.
+>       x86 irq: Kill io_apic_renumber_irq
+>
+>  arch/ia64/kernel/acpi.c          |    8 ++
+>  arch/x86/include/asm/io_apic.h   |   12 ++--
+>  arch/x86/include/asm/mpspec.h    |   10 ---
+>  arch/x86/kernel/acpi/boot.c      |  133 ++++++++++++++++++++++++--------------
+>  arch/x86/kernel/apic/es7000_32.c |   19 ------
+>  arch/x86/kernel/apic/io_apic.c   |   99 +++++++++++++---------------
+>  arch/x86/kernel/mpparse.c        |   25 +-------
+>  arch/x86/kernel/sfi.c            |    4 +-
+>  drivers/acpi/pci_irq.c           |    8 ++-
+>  include/linux/acpi.h             |    5 +-
+>  10 files changed, 154 insertions(+), 169 deletions(-)
 
-On Mon, 3 May 2010, Bjorn Helgaas wrote:
-> 
-> My *plan* was to make pci_root.c a PNP driver, so it would use the
-> pre-parsed PNP resources to find the host bridge windows rather than
-> re-parsing the ACPI _CRS info by hand.  Those PNP resources are not in
-> the resource tree when the driver first sees them (which might be a
-> deficiency of our current PNP core), so I don't think there's currently
-> a way for the driver to distinguish IO from MEM unless it's in the
-> resource itself.
-> 
-> At this stage of the release, my preference would be to use the patch
-> above (with the intention of coming back later for some more work), or
-> to just revert fa35b4926 (PNPACPI window support) and maybe 9d7cca04
-> (generic window support).  If we revert those patches, I'll have to
-> figure out another way to clean up pci_root.c.
+ping
 
-Oh, I'm fine with your patch, I just reacted to it wondering whether maybe 
-there was some cleaner way of solving the problem. I guess annotating the 
-resource itself is ok.
+Where are we at with this patchset?
 
-So don't take my comment as a NAK, more of a "hmm, how about.. "
-
-		Linus
+Eric
