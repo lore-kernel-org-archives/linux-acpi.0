@@ -1,48 +1,20 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] PNP: don't check for conflicts with bridge windows
-Date: Mon, 3 May 2010 09:53:05 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.1005030950530.5478@i5.linux-foundation.org>
-References: <20100503164647.308.86063.stgit@bob.kio> <20100503164721.308.11075.stgit@bob.kio>
+From: Shawn M Higgs <s.m.higgs@csuohio.edu>
+Subject: PRIVATE AND CONFIDENTIAL
+Date: Mon, 3 May 2010 13:16:46 -0400
+Message-ID: <OF918FF99E.13CDAB09-ON85257718.005ECCF1-85257718.005EEB53@csuohio.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53766 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750933Ab0ECQyg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 May 2010 12:54:36 -0400
-In-Reply-To: <20100503164721.308.11075.stgit@bob.kio>
+Received: from antispam5.csuohio.edu ([137.148.19.13]:1451 "EHLO
+	antispam5.csuohio.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203Ab0ECRei convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 May 2010 13:34:38 -0400
+Received: from antispam5.csuohio.edu (127.0.0.1) by antispam5.csuohio.edu (MlfMTA v3.2r9) id hrs4j00171sq for <linux-acpi@vger.kernel.org>; Mon, 3 May 2010 13:18:32 -0400 (envelope-from <s.m.higgs@csuohio.edu>)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Pavel Kysilka <goldenfish@linuxsoft.cz>, Adam Belay <abelay@mit.edu>, Jaroslav Kysela <perex@perex.cz>
 
 
-
-On Mon, 3 May 2010, Bjorn Helgaas wrote:
->  			if (tres->flags & IORESOURCE_IO) {
->  				if (cannot_compare(tres->flags))
->  					continue;
-> +				if (tres->flags & IORESOURCE_WINDOW)
-> +					continue;
->  				tport = &tres->start;
->  				tend = &tres->end;
->  				if (ranged_conflict(port, end, tport, tend))
-> @@ -271,6 +273,8 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
->  			if (tres->flags & IORESOURCE_MEM) {
->  				if (cannot_compare(tres->flags))
->  					continue;
-> +				if (tres->flags & IORESOURCE_WINDOW)
-> +					continue;
-
-Hmm. Looking at the patch, I am wondering if it wouldn't make _more_ sense 
-to instead say that you never mix IORESOURCE_WINDOW with 
-IORESOURCE_IO/MEM? That would make the above patch unnecessary, since it 
-would never trigger the test for IORESOURCE_IO/MEM in the first place.
-
-A resource window is a window - it's not the resource itself. It's not IO 
-or MEM - that could/should be an attribute of what resource _tree_ the 
-window is linked into, not the resource itself.
-
-Hmm?
-
-		Linus
+Hello 
+I'm Mr. Tomo Sand Nori of , Tokyo Mitsubishi Bank,Japan.I have a bussiness proposal for you. 
+If intrested Contact me via my secured email: tomosandnori5@w.cn
