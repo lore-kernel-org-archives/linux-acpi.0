@@ -1,37 +1,25 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for May 6 (acpi: PCI=n)
-Date: Thu, 6 May 2010 08:07:22 -0700
-Message-ID: <20100506080722.3b724475.randy.dunlap@oracle.com>
-References: <20100506151502.f97afe54.sfr@canb.auug.org.au>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: sleep: init_set_sci_en_on_resume for Dell Studio 155x
+Date: Thu, 06 May 2010 13:23:17 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005061322520.15286@localhost.localdomain>
+References: <201004272233.o3RMXLQ6010267@hera.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:63991 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab0EFPHp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 May 2010 11:07:45 -0400
-In-Reply-To: <20100506151502.f97afe54.sfr@canb.auug.org.au>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:62295 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751449Ab0EFRXY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 May 2010 13:23:24 -0400
+In-reply-to: <201004272233.o3RMXLQ6010267@hera.kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Kamal Mostafa <kamal@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Alex Chiang <achiang@canonical.com>
 
-On Thu, 6 May 2010 15:15:02 +1000 Stephen Rothwell wrote:
+applied, along with achiang's lenovo list.
 
-> Hi all,
-> 
-> Changes since 20100505:
+looking forward to deleting this list in 2.6.35...
 
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-When CONFIG_PCI is not enabled:
-
-arch/x86/kernel/acpi/boot.c:1034: error: 'pci_bus_type' undeclared
-
-drivers/acpi/reboot.c:30: error:implicit declaration of function 'pci_find_bus'
-drivers/acpi/reboot.c:30: warning: assignment makes pointer from integer without a cast
-drivers/acpi/reboot.c:38: error:implicit declaration of function 'pci_bus_write_config_byte'
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
