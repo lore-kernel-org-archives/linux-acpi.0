@@ -1,71 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH]PM QOS refresh against next-20100430
-Date: Thu, 6 May 2010 01:59:10 +0200
-Message-ID: <201005060159.10224.rjw@sisk.pl>
-References: <20100430212043.GA30315@linux.intel.com> <201005010108.28593.rjw@sisk.pl> <20100504143043.GA27927@linux.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: RE: [PATCH] acpi: fix early DSDT dmi check warnings on ia64
+Date: Thu, 06 May 2010 09:58:39 +0800
+Message-ID: <1273111119.9950.41.camel@minggr.sh.intel.com>
+References: <1272505354.9950.16.camel@minggr.sh.intel.com>
+	 <201004290956.26922.bjorn.helgaas@hp.com>
+	 <987664A83D2D224EAE907B061CE93D53B91F9656@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48888 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:8496 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984Ab0EEX6X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 May 2010 19:58:23 -0400
-In-Reply-To: <20100504143043.GA27927@linux.intel.com>
+	id S1751040Ab0EFB6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 May 2010 21:58:08 -0400
+In-Reply-To: <987664A83D2D224EAE907B061CE93D53B91F9656@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mgross@linux.intel.com
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, aili@codeaurora.org, dwalker@codeaurora.org, tiwai@suse.de, bruce.w.allan@intel.com, davidb@quicinc.com, mcgrof@gmail.com, pavel@ucw.cz, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "John W. Linville" <linville@tuxdriver.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday 04 May 2010, mark gross wrote:
-> On Sat, May 01, 2010 at 01:08:28AM +0200, Rafael J. Wysocki wrote:
-> > On Saturday 01 May 2010, mark gross wrote:
-> > > On Sat, May 01, 2010 at 12:13:16AM +0200, Rafael J. Wysocki wrote:
-> > > > On Friday 30 April 2010, mark gross wrote:
-> > > > > The following is a refresh of the PM_QOS implementation, this patch
-> > > > > updates some documentation input I got from Randy.
-> > > > > 
-> > > > > This patch changes the string based list management to a handle base
-> > > > > implementation to help with the hot path use of pm-qos, it also renames
-> > > > > much of the API to use "request" as opposed to "requirement" that was
-> > > > > used in the initial implementation.  I did this because request more
-> > > > > accurately represents what it actually does.
-> > > > > 
-> > > > > Also, I added a string based ABI for users wanting to use a string
-> > > > > interface.  So if the user writes 0xDDDDDDDD formatted hex it will be
-> > > > > accepted by the interface.  (someone asked me for it and I don't think
-> > > > > it hurts anything.)
-> > > > > 
-> > > > > I really would like to get this refresh taken care of.  Its been taking
-> > > > > me too long to close this.  please review or include it in next.
-> > > > > 
-> > > > > Thanks!
-> > > > 
-> > > > Well, I'd take it to suspend-2.6/linux-next, but first, it touches
-> > > > subsystems whose maintainers were not in the Cc list, like the network
-> > > > drivers, wireless and ACPI.  The changes are trivial, so I hope they don't
-> > > > mind.
-> > > > 
-> > > > Second, my tree is based on the Linus' tree rather than linux-next and
-> > > > the change in net/mac80211/scan.c doesn't seem to match that.  Please tell me
-> > > > what I'm supposed to do about that.
-> > > 
-> > > You can waite for monday and I'll send a rebased version to linus' tree.
-> > > 
-> > > I thought linux-next was where folks wanted me to put it.
-> > > 
-> > > I'll email out a new one monday.
-> > 
-> > Great, thanks!
-> > 
-> > Rafael
+On Fri, 2010-04-30 at 06:12 +0800, Luck, Tony wrote:
+> >There is not clue in the commit that added this to ia64 as to why
+> >dmi_scan_machine() was added as an initcall.  I just tried to move
+> >it into setup_arch() - immediately after the efi_init() call as in
+> >x86 - and my system hung without printing anything in boot.
+> >
+> >Agreed this would be a better fix.  I'll see if I can figure out
+> >what this call depends on, and so whether I can move is a bit later,
+> >but still early enough to be available for Ming's code to work.
 > 
-> Sorry I'm late, 
+> At a random mid-point in setup_arch() I got a lot of errors from
+> slub about not being able to allocate memory.  At the very end of
+> setup_arch() (after paging_init()) it still failed - with a deref
+> NULL inside kmem_alloc().
 > 
-> 
-> Signed-off-by: markgross <mgross@linux.intel.com>
+> So it seems to be non-trivial to just move dmi_scan_machine()
+> earlier on ia64 :-(
 
-Applied to suspend-2.6/linux-next.  Please verify the changelog.
+Sorry for late response, I'm just back from holiday.
 
-Rafael
+Len, 
+Can you apply the patch since dmi_available check is needed for ia64?
+
+Thanks,
+Lin Ming
+
