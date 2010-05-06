@@ -1,44 +1,40 @@
 From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [linux-pm] linux-next: Tree for May 6 (acpi: PM=n)
-Date: Thu, 6 May 2010 13:32:15 -0700
-Message-ID: <20100506133215.f5dc579a.randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for May 6 (acpi: PCI=n)
+Date: Thu, 6 May 2010 13:42:11 -0700
+Message-ID: <20100506134211.e08c795a.randy.dunlap@oracle.com>
 References: <20100506151502.f97afe54.sfr@canb.auug.org.au>
-	<20100506080538.b566f50e.randy.dunlap@oracle.com>
-	<alpine.LFD.2.00.1005061623060.15286@localhost.localdomain>
+	<20100506080722.3b724475.randy.dunlap@oracle.com>
+	<alpine.LFD.2.00.1005061628070.12696@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:30375 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755819Ab0EFUdg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 May 2010 16:33:36 -0400
-In-Reply-To: <alpine.LFD.2.00.1005061623060.15286@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1005061628070.12696@localhost.localdomain>
+Sender: linux-next-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, James Morris <jmorris@namei.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 06 May 2010 16:26:13 -0400 (EDT) Len Brown wrote:
+On Thu, 06 May 2010 16:29:42 -0400 (EDT) Len Brown wrote:
 
-> > When CONFIG_PM is not set:
+> > When CONFIG_PCI is not enabled:
 > > 
-> > drivers/built-in.o: In function `acpi_init':
-> > bus.c:(.init.text+0x2d84): undefined reference to `pm_flags'
-> > bus.c:(.init.text+0x2d91): undefined reference to `pm_flags'
+> > arch/x86/kernel/acpi/boot.c:1034: error: 'pci_bus_type' undeclared
+> > 
+> > drivers/acpi/reboot.c:30: error:implicit declaration of function 'pci_find_bus'
+> > drivers/acpi/reboot.c:30: warning: assignment makes pointer from integer without a cast
+> > drivers/acpi/reboot.c:38: error:implicit declaration of function 'pci_bus_write_config_byte'
 > 
-> CONFIG_ACPI depends on CONFIG_PM,
-> so acpi/bus.c should not be compiled for CONFIG_PM=n
+> CONFIG_ACPI depends on CONFIG_PCI, so this file should not be build with 
+> CONFIG_PCI=n.
 > 
-> Hmm, is is somebody doing something strange, like "select ACPI"
-> without guaranteeing that all of ACPI's dependencies are satisfied?
+> Please let me know how you were able to generate this illegal 
+> configuration.
 
-Oh, thanks for the clue.
 
-That would be a patch that I commented on and was ignored,
-but James Morris merged it anyway.  Now it should be dropped.
+Same TPM kconfig that selects ACPI without any other qualifications.
 
-http://lkml.org/lkml/2010/5/4/379
+In 50 randconfig builds, 12 build failures were due to that one bad kconfig.
 
 ---
 ~Randy
