@@ -1,53 +1,34 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] Subject: Add constraints on usage of ACPI Sleep
-	function
-Date: Thu, 06 May 2010 21:31:20 +0400
-Message-ID: <20100506173120.16854.60202.stgit@thinkpad>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [linux-pm] linux-next: Tree for May 6 (acpi: PM=n)
+Date: Thu, 06 May 2010 16:26:13 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005061623060.15286@localhost.localdomain>
+References: <20100506151502.f97afe54.sfr@canb.auug.org.au>
+ <20100506080538.b566f50e.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:39104 "EHLO
-	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932239Ab0EFRbV (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 6 May 2010 13:31:21 -0400
+Received: from vms173011pub.verizon.net ([206.46.173.11]:58805 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757810Ab0EFU0Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 May 2010 16:26:24 -0400
+In-reply-to: <20100506080538.b566f50e.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-Panasonic Toughbook CF-52 may use uninitialized variable as argument
-to Sleep(), thus stopping init sequence for about 45 days (0xf0000def ms).
-Add constraints to not sleep that long, and also to not sleep during init.
+> When CONFIG_PM is not set:
+> 
+> drivers/built-in.o: In function `acpi_init':
+> bus.c:(.init.text+0x2d84): undefined reference to `pm_flags'
+> bus.c:(.init.text+0x2d91): undefined reference to `pm_flags'
 
-References: http://bugzilla.novell.com/show_bug.cgi?id=557710
-	    http://bugzilla.kernel.org/show_bug.cgi?id=13195
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+CONFIG_ACPI depends on CONFIG_PM,
+so acpi/bus.c should not be compiled for CONFIG_PM=n
 
- drivers/acpi/osl.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+Hmm, is is somebody doing something strange, like "select ACPI"
+without guaranteeing that all of ACPI's dependencies are satisfied?
 
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 7594f65..b3451a0 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -438,7 +438,15 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
- 
- void acpi_os_sleep(u64 ms)
- {
--	schedule_timeout_interruptible(msecs_to_jiffies(ms));
-+	if (ms > 1000) {
-+		printk(KERN_WARNING FW_BUG
-+			"ACPI: Limit %lld sleep to 1 second\n", ms);
-+		ms = 1000;
-+	}
-+	if (system_state == SYSTEM_RUNNING)
-+		schedule_timeout_interruptible(msecs_to_jiffies(ms));
-+	else
-+		acpi_os_stall(ms * 1000);
- }
- 
- void acpi_os_stall(u32 us)
+thanks,
+Len Brown, Intel Open Source Technology Center
 
