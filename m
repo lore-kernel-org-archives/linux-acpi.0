@@ -1,25 +1,52 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: sleep: init_set_sci_en_on_resume for Dell Studio 155x
-Date: Thu, 06 May 2010 13:23:17 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1005061322520.15286@localhost.localdomain>
-References: <201004272233.o3RMXLQ6010267@hera.kernel.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] Subject: Add constraints on usage of ACPI Sleep
+	function
+Date: Thu, 06 May 2010 21:30:34 +0400
+Message-ID: <20100506173034.16768.15614.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:62295 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449Ab0EFRXY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 May 2010 13:23:24 -0400
-In-reply-to: <201004272233.o3RMXLQ6010267@hera.kernel.org>
+Received: from nat.nue.novell.com ([195.135.221.3]:52754 "EHLO
+	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932239Ab0EFRai (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 6 May 2010 13:30:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kamal Mostafa <kamal@canonical.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Alex Chiang <achiang@canonical.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-applied, along with achiang's lenovo list.
+Panasonic Toughbook CF-52 may use uninitialized variable as argument
+to Sleep(), thus stopping init sequence for about 45 days (0xf0000def ms).
+Add constraints to not sleep that long, and also to not sleep during init.
 
-looking forward to deleting this list in 2.6.35...
+References: http://bugzilla.novell.com/show_bug.cgi?id=557710
+	    http://bugzilla.kernel.org/show_bug.cgi?id=13195
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+ drivers/acpi/osl.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7594f65..7a58dc5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -438,7 +438,14 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+ 
+ void acpi_os_sleep(u64 ms)
+ {
+-	schedule_timeout_interruptible(msecs_to_jiffies(ms));
++	if (ms > 1000) {
++		printk(KERN_WARNING "ACPI: Limit long sleep to 1 second\n");
++		ms = 1000;
++	}
++	if (system_state == SYSTEM_RUNNING)
++		schedule_timeout_interruptible(msecs_to_jiffies(ms));
++	else
++		acpi_os_stall(ms * 1000);
+ }
+ 
+ void acpi_os_stall(u32 us)
 
