@@ -1,35 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
-Date: Sat, 8 May 2010 00:39:45 +0200
-Message-ID: <201005080039.45533.rjw@sisk.pl>
-References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org>
+Date: Fri, 7 May 2010 16:00:54 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1005071600030.901@i5.linux-foundation.org>
+References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <201005080039.45533.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57136 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752767Ab0EGWir (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 May 2010 18:38:47 -0400
-In-Reply-To: <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45579 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753398Ab0EGXDN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 May 2010 19:03:13 -0400
+In-Reply-To: <201005080039.45533.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Friday 07 May 2010, Linus Torvalds wrote:
-> 
-> On Thu, 6 May 2010, Len Brown wrote:
+
+
+On Sat, 8 May 2010, Rafael J. Wysocki wrote:
+
+> On Friday 07 May 2010, Linus Torvalds wrote:
 > > 
-> > The big DMI list in sleep.c a temporary brute force and low-risk workaround.
-> > We will endeavor to delete it entirely in 2.6.35 with a clean fix
-> > that was deemed too risky for this late in the .34 release cycle.
+> > Btw, why don't we just force the SCI_EN by hand?
 > 
-> Btw, why don't we just force the SCI_EN by hand?
+> Because there are boxes that are broken right away by this.
+> 
+> I have one on my desk in front of me. :-)
 
-Because there are boxes that are broken right away by this.
+Also if we check whether it was already set before?
 
-I have one on my desk in front of me. :-)
+The thing is, if that bit is clear (_after_ we've done the regular ACPI 
+setup), the box can't work correctly as far as I know.
 
-Rafael
+			Linus
