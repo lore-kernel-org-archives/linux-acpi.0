@@ -1,44 +1,35 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
-Date: Fri, 7 May 2010 22:36:00 +0100
-Message-ID: <20100507213600.GC28906@srcf.ucam.org>
-References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org> <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org>
+Date: Sat, 8 May 2010 00:39:45 +0200
+Message-ID: <201005080039.45533.rjw@sisk.pl>
+References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36629 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756436Ab0EGVgI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 May 2010 17:36:08 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:57136 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752767Ab0EGWir (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 May 2010 18:38:47 -0400
+In-Reply-To: <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Fri, May 07, 2010 at 02:21:08PM -0700, Linus Torvalds wrote:
-> On Fri, 7 May 2010, Matthew Garrett wrote:
+On Friday 07 May 2010, Linus Torvalds wrote:
 > 
-> > On Fri, May 07, 2010 at 02:06:53PM -0700, Linus Torvalds wrote:
-> > > On Fri, 7 May 2010, Matthew Garrett wrote:
-> > > > 
-> > > > The spec says we can't. I've posted a patch to do so if it's still not 
-> > > > set after we've tried doing it the right way, but I'm not keen on 
-> > > > pushing it into a release at this point.
-> > > 
-> > > I'm ok with the "release at this point".
+> On Thu, 6 May 2010, Len Brown wrote:
 > > 
-> > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=3b12303e6bda6e05579d899fb71cb3e9d3bc26ba
+> > The big DMI list in sleep.c a temporary brute force and low-risk workaround.
+> > We will endeavor to delete it entirely in 2.6.35 with a clean fix
+> > that was deemed too risky for this late in the .34 release cycle.
 > 
-> Well, is there any reason to have 'set_sci_en_on_resume' at all then?
+> Btw, why don't we just force the SCI_EN by hand?
 
-I'd hope not, but it depends on what Windows does on resume. If it 
-doesn't do the SMM call and just does the register write instead, then 
-it may be that some machines are on that list because the SMM call 
-breaks them rather than because they need the register to be set by 
-hand. I'm planning on instrumenting it to check, but haven't had time to 
-do so yet.
+Because there are boxes that are broken right away by this.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I have one on my desk in front of me. :-)
+
+Rafael
