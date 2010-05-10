@@ -1,47 +1,68 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: linux-next: Tree for May 7 (apei)
-Date: Mon, 10 May 2010 08:33:10 +0800
-Message-ID: <1273451590.3344.52.camel@yhuang-dev.sh.intel.com>
-References: <20100507155520.75026a8b.sfr@canb.auug.org.au>
-	 <20100507085509.fb5682d4.randy.dunlap@oracle.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: [Patch-next] Oops caused by ERST Table not supported.
+Date: Mon, 10 May 2010 17:04:32 +0900
+Message-ID: <4BE7BE10.8080000@np.css.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20100507085509.fb5682d4.randy.dunlap@oracle.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <lenb@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:57923 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752318Ab0EJIFt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 May 2010 04:05:49 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: LKLM <linux-kernel@vger.kernel.org>
+Cc: lenb <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Huang Ying <ying.huang@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>
 
-On Fri, 2010-05-07 at 23:55 +0800, Randy Dunlap wrote:
-> On Fri, 7 May 2010 15:55:20 +1000 Stephen Rothwell wrote:
-> 
-> > Hi all,
-> > 
-> > Changes since 20100506:
-> 
-> 
-> drivers/acpi/apei/einj.c:127:error: implicit declaration of function 'ndelay'
-> => needs to #include <linux/delay.h>
-> 
-> 
-> 
-> ghes.c:(.text+0x119e71): undefined reference to `apei_mce_report_mem_error'
-> 
-> CONFIG_X86_MCE is not enabled, so make never descends into the
-> arch/x86/kernel/cpu/mcheck/ sub-directory to build mce-apei.o.
-> 
-> config attached.
+On my server(x86_64) when the mcelog is executed, it will cause oops. And
+following information could be gotten.
 
-Hi, Randy,
+Call Trace:
+  [<ffffffff812ceefd>] ? avc_has_perm_noaudit+0x4d/0x680
+  [<ffffffff812ceefd>] ? avc_has_perm_noaudit+0x4d/0x680
+  [<ffffffff8142492b>] erst_read_next+0x3b/0x100
+  [<ffffffff81028def>] apei_read_mce+0x2f/0x170
+  [<ffffffff811bfc5d>] ? check_object+0x36d/0x430
+  [<ffffffff811c059c>] ? init_object+0x9c/0xe0
+  [<ffffffff811c38ef>] ? __slab_alloc+0x7cf/0x8b0
+  [<ffffffff81025cba>] ? mce_read+0x4a/0x510
+  [<ffffffff811c49ab>] ? __kmalloc+0x2db/0x390
+  [<ffffffff81025cba>] ? mce_read+0x4a/0x510
+  [<ffffffff811bf81d>] ? check_bytes_and_report+0x3d/0x110
+  [<ffffffff816caf1e>] ? _cond_resched+0x3e/0x80
+  [<ffffffff8102613b>] mce_read+0x4cb/0x510
+  [<ffffffff812cb9f2>] ? security_file_permission+0x122/0x130
+  [<ffffffff811dff16>] ? rw_verify_area+0x196/0x210
+  [<ffffffff811e0e7b>] vfs_read+0x1bb/0x2f0
+  [<ffffffff811e172d>] sys_read+0x8d/0xe0
+  [<ffffffff81003c9b>] system_call_fastpath+0x16/0x1b
 
-Thank you for your reporting. I will fix it as soon as possible.
+This is because of the ERST Table not supported on my server and it
+makes the variable "ctx" used by erst_read_nextis NULL. So I make
+the patch to solve this problem.
 
-Hi, Len,
+And I confirmed it on my server(x86_64).
 
-Fixing them in a new fixing patch or providing a update version (v2) of
-whole patch queue, which one do you prefer?
+Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+---
+ drivers/acpi/apei/erst.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Best Regards,
-Huang Ying
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 5fe5c0f..2ebc391 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -698,6 +698,9 @@ ssize_t erst_read_next(struct cper_record_header *record, size_t buflen)
+ 	unsigned long flags;
+ 	u64 record_id;
+ 
++	if (erst_disable)
++		return -ENODEV;
++
+ 	spin_lock_irqsave(&erst_lock, flags);
+ 	rc = __erst_get_next_record_id(&record_id);
+ 	if (rc) {
+-- 
+1.7.0.3
+
