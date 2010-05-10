@@ -1,63 +1,48 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX] ACPI, APEI, Fix building of APEI EINJ and GHES
-Date: Mon, 10 May 2010 17:24:42 +0800
-Message-ID: <1273483482.3344.65.camel@yhuang-dev.sh.intel.com>
+From: Western Union Department <cpeme@efn.uncor.edu>
+Subject: Call For Confirmation Tel: +(44) 702 4098910,
+Date: Mon, 10 May 2010 09:06:05 -0300
+Message-ID: <20100510090605.63321xpo4mx7zctc@gtwing.efn.uncor.edu>
+Reply-To: westeruniondepartment@ws.tc
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:62721 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752582Ab0EJJYo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 May 2010 05:24:44 -0400
+Received: from host1.efn.uncor.edu ([200.16.19.1]:47637 "EHLO
+	gtwing.efn.uncor.edu" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068Ab0EJM6F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 May 2010 08:58:05 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Randy reported building warnings and errors for APEI EINJ and GHES as follow:
 
-drivers/acpi/apei/einj.c:127:error: implicit declaration of function 'ndelay'
 
-ghes.c:(.text+0x119e71): undefined reference to `apei_mce_report_mem_error'
-CONFIG_X86_MCE is not enabled
+My associate has helped me to send your first payment of US$7,500 to you
+as instructed by Mr.James Gordon Brown the United Kingdom prime minister
+after the last G20 meeting that was held on April 2nd in United Kindom,
+making you one of the beneficaries. Here is the information below.
 
-This patch fixes these two bugs.
+MONEY TRANSFER CONTROL NUMBER: 8309124803
+SENDER NAME: Mr.Solomon Daniel.Q
+AMOUNT: US$7,500
 
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/einj.c |    1 +
- drivers/acpi/apei/ghes.c |    2 ++
- 2 files changed, 3 insertions(+)
+I told him to keep sending you US$7,500 twice a week until the FULL
+payment of (US $360,000.00 Dollars) is completed within 6 (six) Months.
+A certificate will be made to change the Reciever Name as stated by the
+British prime minister, send your Full Names and address via Email to:
+Mr Garry Moore
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -29,6 +29,7 @@
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/debugfs.h>
-+#include <linux/delay.h>
- #include <linux/seq_file.h>
- #include <linux/nmi.h>
- #include <acpi/acpi.h>
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -242,6 +242,7 @@ static void ghes_do_proc(struct ghes *gh
- 
- 	ser = ghes_severity(ghes->estatus->error_severity);
- 	apei_estatus_for_each_section(ghes->estatus, gdata) {
-+#ifdef CONFIG_X86_MCE
- 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
- 			apei_mce_report_mem_error(
-@@ -249,6 +250,7 @@ static void ghes_do_proc(struct ghes *gh
- 				(struct cper_sec_mem_err *)(gdata+1));
- 			processed = 1;
- 		}
-+#endif
- 	}
- 
- 	if (!processed && printk_ratelimit())
+The money will not reflect untill the clearance certificate is issue to
+you by the G20 commitee.
+
+E-mail: westeruniondepartment@ws.tc
+
+Tel: +(44) 702 4098910,
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
 
