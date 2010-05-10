@@ -1,79 +1,63 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [Patch-next] Oops caused by ERST Table not supported.
-Date: Mon, 10 May 2010 16:11:50 +0800
-Message-ID: <1273479110.3344.56.camel@yhuang-dev.sh.intel.com>
-References: <4BE7BE10.8080000@np.css.fujitsu.com>
+Subject: [BUGFIX] ACPI, APEI, Fix building of APEI EINJ and GHES
+Date: Mon, 10 May 2010 17:24:42 +0800
+Message-ID: <1273483482.3344.65.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51930 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:62721 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311Ab0EJILx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 May 2010 04:11:53 -0400
-In-Reply-To: <4BE7BE10.8080000@np.css.fujitsu.com>
+	id S1752582Ab0EJJYo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 May 2010 05:24:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Cc: LKLM <linux-kernel@vger.kernel.org>, lenb <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Dongming,
+Randy reported building warnings and errors for APEI EINJ and GHES as follow:
 
-On Mon, 2010-05-10 at 16:04 +0800, Jin Dongming wrote:
-> On my server(x86_64) when the mcelog is executed, it will cause oops. And
-> following information could be gotten.
-> 
-> Call Trace:
->   [<ffffffff812ceefd>] ? avc_has_perm_noaudit+0x4d/0x680
->   [<ffffffff812ceefd>] ? avc_has_perm_noaudit+0x4d/0x680
->   [<ffffffff8142492b>] erst_read_next+0x3b/0x100
->   [<ffffffff81028def>] apei_read_mce+0x2f/0x170
->   [<ffffffff811bfc5d>] ? check_object+0x36d/0x430
->   [<ffffffff811c059c>] ? init_object+0x9c/0xe0
->   [<ffffffff811c38ef>] ? __slab_alloc+0x7cf/0x8b0
->   [<ffffffff81025cba>] ? mce_read+0x4a/0x510
->   [<ffffffff811c49ab>] ? __kmalloc+0x2db/0x390
->   [<ffffffff81025cba>] ? mce_read+0x4a/0x510
->   [<ffffffff811bf81d>] ? check_bytes_and_report+0x3d/0x110
->   [<ffffffff816caf1e>] ? _cond_resched+0x3e/0x80
->   [<ffffffff8102613b>] mce_read+0x4cb/0x510
->   [<ffffffff812cb9f2>] ? security_file_permission+0x122/0x130
->   [<ffffffff811dff16>] ? rw_verify_area+0x196/0x210
->   [<ffffffff811e0e7b>] vfs_read+0x1bb/0x2f0
->   [<ffffffff811e172d>] sys_read+0x8d/0xe0
->   [<ffffffff81003c9b>] system_call_fastpath+0x16/0x1b
-> 
-> This is because of the ERST Table not supported on my server and it
-> makes the variable "ctx" used by erst_read_nextis NULL. So I make
-> the patch to solve this problem.
-> 
-> And I confirmed it on my server(x86_64).
-> 
-> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-> ---
->  drivers/acpi/apei/erst.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 5fe5c0f..2ebc391 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -698,6 +698,9 @@ ssize_t erst_read_next(struct cper_record_header *record, size_t buflen)
->  	unsigned long flags;
->  	u64 record_id;
->  
-> +	if (erst_disable)
-> +		return -ENODEV;
-> +
->  	spin_lock_irqsave(&erst_lock, flags);
->  	rc = __erst_get_next_record_id(&record_id);
->  	if (rc) {
+drivers/acpi/apei/einj.c:127:error: implicit declaration of function 'ndelay'
 
-Thank you very much for your fixing.
+ghes.c:(.text+0x119e71): undefined reference to `apei_mce_report_mem_error'
+CONFIG_X86_MCE is not enabled
 
-Acked-by: Huang Ying <ying.huang@intel.com>
+This patch fixes these two bugs.
 
-Best Regards,
-Huang Ying
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+---
+ drivers/acpi/apei/einj.c |    1 +
+ drivers/acpi/apei/ghes.c |    2 ++
+ 2 files changed, 3 insertions(+)
+
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -29,6 +29,7 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/debugfs.h>
++#include <linux/delay.h>
+ #include <linux/seq_file.h>
+ #include <linux/nmi.h>
+ #include <acpi/acpi.h>
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -242,6 +242,7 @@ static void ghes_do_proc(struct ghes *gh
+ 
+ 	ser = ghes_severity(ghes->estatus->error_severity);
+ 	apei_estatus_for_each_section(ghes->estatus, gdata) {
++#ifdef CONFIG_X86_MCE
+ 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
+ 				 CPER_SEC_PLATFORM_MEM)) {
+ 			apei_mce_report_mem_error(
+@@ -249,6 +250,7 @@ static void ghes_do_proc(struct ghes *gh
+ 				(struct cper_sec_mem_err *)(gdata+1));
+ 			processed = 1;
+ 		}
++#endif
+ 	}
+ 
+ 	if (!processed && printk_ratelimit())
 
 
