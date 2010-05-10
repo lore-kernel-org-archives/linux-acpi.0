@@ -1,48 +1,42 @@
-From: Western Union Department <cpeme@efn.uncor.edu>
-Subject: Call For Confirmation Tel: +(44) 702 4098910,
-Date: Mon, 10 May 2010 09:06:05 -0300
-Message-ID: <20100510090605.63321xpo4mx7zctc@gtwing.efn.uncor.edu>
-Reply-To: westeruniondepartment@ws.tc
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Re: 2.6.34-rc6-git6: Reported regressions from 2.6.33
+Date: Mon, 10 May 2010 12:07:24 -0400
+Message-ID: <20100510160724.GA31416@elliptictech.com>
+References: <10aqDnTJcLO.A.mLE.48y5LB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host1.efn.uncor.edu ([200.16.19.1]:47637 "EHLO
-	gtwing.efn.uncor.edu" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754068Ab0EJM6F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 May 2010 08:58:05 -0400
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <10aqDnTJcLO.A.mLE.48y5LB@chimera>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: DRI <dri-devel@lists.sourceforge.net>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On 23:13 Sun 09 May     , Rafael J. Wysocki wrote:
+> This message contains a list of some regressions from 2.6.33,
+> for which there are no fixes in the mainline known to the tracking team.
+> If any of them have been fixed already, please let us know.
+> 
+> If you know of any other unresolved regressions from 2.6.33, please let us
+> know either and we'll add them to the list.  Also, please let us know
+> if any of the entries below are invalid.
 
+Seems that
 
-My associate has helped me to send your first payment of US$7,500 to you
-as instructed by Mr.James Gordon Brown the United Kingdom prime minister
-after the last G20 meeting that was held on April 2nd in United Kindom,
-making you one of the beneficaries. Here is the information below.
+  r600 CS checker rejects narrow FBO renderbuffers
+  https://bugs.freedesktop.org/show_bug.cgi?id=27609
 
-MONEY TRANSFER CONTROL NUMBER: 8309124803
-SENDER NAME: Mr.Solomon Daniel.Q
-AMOUNT: US$7,500
+never got added to the list.  It is still an issue as of 2.6.34-rc7.
 
-I told him to keep sending you US$7,500 twice a week until the FULL
-payment of (US $360,000.00 Dollars) is completed within 6 (six) Months.
-A certificate will be made to change the Reciever Name as stated by the
-British prime minister, send your Full Names and address via Email to:
-Mr Garry Moore
-
-The money will not reflect untill the clearance certificate is issue to
-you by the G20 commitee.
-
-E-mail: westeruniondepartment@ws.tc
-
-Tel: +(44) 702 4098910,
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
-
+-- 
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
