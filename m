@@ -1,53 +1,261 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
-Date: Tue, 11 May 2010 10:42:52 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.1005111031260.3711@i5.linux-foundation.org>
-References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org>
- <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org> <20100507213600.GC28906@srcf.ucam.org> <20100511172543.GA17868@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] acpi: Unconditionally set SCI_EN on resume
+Date: Tue, 11 May 2010 13:49:25 -0400
+Message-ID: <1273600165-16681-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752347Ab0EKRpe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 May 2010 13:45:34 -0400
-In-Reply-To: <20100511172543.GA17868@srcf.ucam.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42505 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754832Ab0EKRta (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 May 2010 13:49:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
+The ACPI spec tells us that the firmware will reenable SCI_EN on resume.
+Reality disagrees in some cases. The ACPI spec tells us that the only way
+to set SCI_EN is via an SMM call.
+https://bugzilla.kernel.org/show_bug.cgi?id=13745 shows us that doing so
+may break machines. Tracing the ACPI calls made by Windows shows that it
+unconditionally sets SCI_EN on resume with a direct register write, and
+therefore the overwhelming probability is that everything is fine with
+this behaviour.
 
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ arch/x86/kernel/acpi/sleep.c |    2 -
+ drivers/acpi/sleep.c         |  157 +-----------------------------------------
+ include/linux/acpi.h         |    1 -
+ 3 files changed, 2 insertions(+), 158 deletions(-)
 
-On Tue, 11 May 2010, Matthew Garrett wrote:
-> 
-> I've now checked the behaviour of Windows. It turns out that it never 
-> makes the ACPI enable SMM call on resume. This is consistent with 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13745 which shows a bug 
-> being introduced by us making the enable call in the first place. 
-> Merging my patch and removing the blacklist would re-break these 
-> machines. Instead, we should just unconditionally set SCI_EN since this 
-> is the tested configuration. I'll send a followup patch.
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index f996103..82e5086 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -162,8 +162,6 @@ static int __init acpi_sleep_setup(char *str)
+ #endif
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
+-		if (strncmp(str, "sci_force_enable", 16) == 0)
+-			acpi_set_sci_en_on_resume();
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index baa76bb..4ab2275 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -80,22 +80,6 @@ static int acpi_sleep_prepare(u32 acpi_state)
+ 
+ #ifdef CONFIG_ACPI_SLEEP
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+-/*
+- * According to the ACPI specification the BIOS should make sure that ACPI is
+- * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
+- * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
+- * on such systems during resume.  Unfortunately that doesn't help in
+- * particularly pathological cases in which SCI_EN has to be set directly on
+- * resume, although the specification states very clearly that this flag is
+- * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
+- * cases.
+- */
+-static bool set_sci_en_on_resume;
+-
+-void __init acpi_set_sci_en_on_resume(void)
+-{
+-	set_sci_en_on_resume = true;
+-}
+ 
+ /*
+  * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
+@@ -253,11 +237,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 		break;
+ 	}
+ 
+-	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
+-	if (set_sci_en_on_resume)
+-		acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
+-	else
+-		acpi_enable();
++	/* This violates the spec but is required for bug compatibility. */
++	acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
+ 
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(acpi_state);
+@@ -346,12 +327,6 @@ static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
+-static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
+-{
+-	set_sci_en_on_resume = true;
+-	return 0;
+-}
+-
+ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	{
+ 	.callback = init_old_suspend_ordering,
+@@ -370,22 +345,6 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		},
+ 	},
+ 	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Apple MacBook 1,1",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Apple MacMini 1,1",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
+-		},
+-	},
+-	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+ 	.matches = {
+@@ -394,94 +353,6 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		},
+ 	},
+ 	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Toshiba Satellite L300",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite L300"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard HP G7000 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP G7000 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard HP Pavilion dv3 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv3 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Pavilion dv4",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv4"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Pavilion dv7",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv7"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Compaq Presario C700 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario C700 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Compaq Presario CQ40 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario CQ40 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad T410",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T410"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad T510",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T510"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad W510",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad X201[s]",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
+-		},
+-	},
+-	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Panasonic CF51-2L",
+ 	.matches = {
+@@ -490,30 +361,6 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
+ 		},
+ 	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Dell Studio 1558",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1558"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Dell Studio 1557",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1557"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Dell Studio 1555",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1555"),
+-		},
+-	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b926afe..87ca491 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -251,7 +251,6 @@ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+ void __init acpi_no_s4_hw_signature(void);
+ void __init acpi_old_suspend_ordering(void);
+ void __init acpi_s4_no_nvs(void);
+-void __init acpi_set_sci_en_on_resume(void);
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ struct acpi_osc_context {
+-- 
+1.7.0.1
 
-Hmm. But that's the thing that Rafael claims doesn't work on his machine. 
-
-Maybe windows does something else? Or do you _see_ windows doing that 
-write?
-
-Note that our acpi_enable() won't do anything either if the machine comes 
-up in ACPI mode, so maybe you checked the behavior on that kind of 
-machine, and Windows does the same? IOW, if acpi_hw_get_mode() already 
-returns ACPI_SYS_MODE_ACPI, the whole thing is a no-op.
-
-Finally, it's possible that we really should just write the dang SCI_EN 
-bit directly, but that what we do wrong is that doing so with
-
-	acpi_write_bit_register()
-
-will write it _even_if_ the bit was already set. That could explain 
-Rafael's problems too - writing the register directly may be the 
-RightThing(tm), but writing it if the bit was already set may well cause 
-some confusion.
-
-				Linus
