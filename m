@@ -1,43 +1,32 @@
-From: Phillip Susi <psusi@cfl.rr.com>
-Subject: Re: Automatic S1 sleep
-Date: Tue, 11 May 2010 14:18:01 -0400
-Message-ID: <4BE99F59.1010100@cfl.rr.com>
-References: <4BE97FC9.4040302@cfl.rr.com> <20100511171900.GA17704@srcf.ucam.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
+Date: Tue, 11 May 2010 11:17:34 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1005111107020.3711@i5.linux-foundation.org>
+References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org>
+ <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org> <20100507213600.GC28906@srcf.ucam.org> <20100511172543.GA17868@srcf.ucam.org> <alpine.LFD.2.00.1005111031260.3711@i5.linux-foundation.org> <20100511175904.GA18797@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exhub016-3.exch016.msoutlookonline.net ([207.5.72.226]:8288
-	"EHLO EXHUB016-3.exch016.msoutlookonline.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756909Ab0EKSSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 May 2010 14:18:06 -0400
-In-Reply-To: <20100511171900.GA17704@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100511175904.GA18797@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 5/11/2010 1:19 PM, Matthew Garrett wrote:
-> You'll need wakeup events on mouse, keyboard, network packets and so on. 
-> Some of these are possible, some aren't really.
 
-On some systems, yes, but generally these are widely possible.  Last
-night I experimented with S1 on my desktop pc and after using ethtool to
-enable wake on lan, the system slept for several seconds, then woke up
-when someone spoke on IRC, causing a packet to hit the NIC.  Another
-machine I have here has an Intel e100 series NIC and it appears that the
-driver for it only supports wake on magic packet, though I checked the
-Intel specs on the chip and it is capable of the other wol modes.
 
-> Just have suspend_devices_and_enter conditionalise the device suspend on 
-> whether or not it's PM_SUSPEND_STANDBY.
+On Tue, 11 May 2010, Matthew Garrett wrote:
+> 
+> I see Windows write the SCI_EN bit without reading it first and without 
+> calling the ACPI enable SMM function.
 
-Ahh, that looks like the place.  Is there a reason why it does not
-already do that?
+Hmm. So presumably Windows doesn't even do them bit-by-bit, but simply 
+does a "restore PM1 Control register value" on resume.
 
-Also Documentation/power/states.txt says that S1 puts devices that
-support it into D1.  I would think the code to do that would be here in
-suspend_devices_and_enter() but I don't see it.  Do you know where that
-is?  I checked and my ATI Radeon video card supports D1 and D2 so could
-potentially save a good bit of power by using these states.
+And I guess it probably does the same for the PM1_ENABLE register and the 
+PM2 control registers too?
+
+Just restoring the whole register values _does_ sound a lot simpler than 
+worrying about individual bits.
+
+		Linus
