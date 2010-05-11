@@ -1,55 +1,41 @@
-From: Phillip Susi <psusi@cfl.rr.com>
-Subject: Re: Automatic S1 sleep
-Date: Tue, 11 May 2010 16:19:05 -0400
-Message-ID: <4BE9BBB9.6030008@cfl.rr.com>
-References: <4BE97FC9.4040302@cfl.rr.com> <20100511171900.GA17704@srcf.ucam.org> <4BE99F59.1010100@cfl.rr.com> <20100511182129.GA19264@srcf.ucam.org> <4BE9A54D.2060500@cfl.rr.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH] acpi: fix early DSDT dmi check warnings on ia64
+Date: Tue, 11 May 2010 16:01:31 -0700
+Message-ID: <987664A83D2D224EAE907B061CE93D53C5D446C0@orsmsx505.amr.corp.intel.com>
+References: <1272505354.9950.16.camel@minggr.sh.intel.com>
+	 <201004290956.26922.bjorn.helgaas@hp.com>
+	 <987664A83D2D224EAE907B061CE93D53B91F9656@orsmsx505.amr.corp.intel.com>
+	 <1273111119.9950.41.camel@minggr.sh.intel.com>
+ <1273543767.30322.2.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exhub016-2.exch016.msoutlookonline.net ([207.5.72.164]:43275
-	"EHLO EXHUB016-2.exch016.msoutlookonline.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753115Ab0EKUTK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 May 2010 16:19:10 -0400
-In-Reply-To: <4BE9A54D.2060500@cfl.rr.com>
+Received: from mga09.intel.com ([134.134.136.24]:65433 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752391Ab0EKXBd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 May 2010 19:01:33 -0400
+In-Reply-To: <1273543767.30322.2.camel@minggr.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On 5/11/2010 2:43 PM, Phillip Susi wrote:
-> How does the PCI core get called when changing state?  I would think it
-> would be when suspend_devices_and_enter() calls
-> dpm_suspend_start(PMESG_SUSPEND) but that does not differentiate between
-> S1 and S3, so I would think that currently it would result in placing
-> the device in D3, and that if I remove the PMESG_SUSPEND for
-> PM_SUSPEND_STANDBY that it would result in leaving devices in D0.
++#ifdef CONFIG_X86
+ static struct dmi_system_id dsdt_dmi_table[] __initdata = {
 
-The more I have looked at it the more I think that D1 is NOT used the
-way Documentation/power/states.txt says.  It looks to me that the way it
-works now is that the PM_EVENT_SUSPEND message is sent to the drivers by
-dpm_suspend_start(), and it is up to each individual driver to call
-pci_set_power_state() passing it the value returned by
-pci_choose_state().  This ends up calling acpi_pci_choose_state() which
-calls acpi_pm_device_sleep_state() which consults the ACPI tables to
-find out the highest D state the device can wake the system in, if the
-device is set to wake up the system.  Otherwise it just returns D3.
+This #ifdef needs to be a few lines earlier to avoid getting a
+warning:
 
-In the case of the video card, it is not and can not be set to wakeup
-the system, so it should end up using D3.
+drivers/acpi/bus.c:73: 'set_copy_dsdt' defined but not used
 
-If suspend_devices_and_enter() is modified NOT to call
-dpm_suspend_start(PMESG_SUSPEND) for PM_SUSPEND_STANDBY, then the
-drivers would never call into the pci core to set the power state of the
-device, so they would remain in D0.
+But otherwise this patch does work and fixes the problem.
 
-So it seems that what is needed is a PMESG_SUSPEND_STANDBY to cause the
-drivers to call pci_set_power_state() and acpi_choose_state() needs
-modified to either use D1 if the device supports it, or D0 otherwise
-when switching to S1.
+Tested-by: Tony Luck <tony.luck@intel.com>
 
-Either that or have suspend_devices_and_enter() skip the PMESG_SUSPEND
-and instead call into the pci core to walk all devices on the bus and
-set them to D1 if they support it without the knowledge of the
-controlling driver.
+Insyde are now writing BIOS for ia64 systems (I have two in
+my lab). I hope they don't copy this bug from their laptop
+BIOS to my systems.  If they do, we'd have to revisit this :-)
+
+-Tony
