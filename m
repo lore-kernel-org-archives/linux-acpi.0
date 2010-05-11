@@ -1,46 +1,37 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: ACPI, APEI support
-Date: Tue, 11 May 2010 13:25:27 +0200
-Message-ID: <20100511112526.GA23942@basil.fritz.box>
-References: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
+From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
+Subject: ACPI Errors on Acer Aspire One
+Date: Tue, 11 May 2010 20:25:31 +0530
+Message-ID: <AANLkTilF304TbgACKtvc_FA01uxHrdRBS2Q-o6Tm-n8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:43968 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab0EKLZe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 May 2010 07:25:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1272350481-27951-1-git-send-email-ying.huang@intel.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:48113 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab0EKOzd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 May 2010 10:55:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, andi@firstfloor.org, linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Apr 27, 2010 at 02:41:09PM +0800, Huang Ying wrote:
-> 
-> This patchset adds the APEI (ACPI Platform Error Interface) support to
-> Linux kernel.
-> 
-> 01-06 include the basic APEI HEST parsing and EINJ support. They have
-> been posted to mailing list before and get some reviews and
-> ACKs. Changes since the last post are as follow.
-> 
-> - Make APEI infrastructure and HEST parsing configurable built-in
->   instead of modules to solve some dependency issues.
-> 
-> - Some minor fixes, such as printk
-> 
-> 07-10 are newly added to support GHES (Generic Hardware Error Source)
-> corrected memory error. On some machines, Machine Check can not report
-> physical address for some corrected memory errors, but GHES can do
-> that. So this simplified GHES is implemented and posted firstly.
+Hello,
 
-I read all the code again and it looks all good to go for .35 to me.
+With latest git kernel, I am getting following ACPI errors :
 
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+[    0.289038] ACPI Error (dsfield-0143): [CAPB] Namespace lookup
+failure, AE_ALREADY_EXISTS
+[    0.289399] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.PCI0._OSC] (Node f70477e8), AE_ALREADY_EXISTS
+[    0.299684] ACPI Error (dsfield-0143): [CAPB] Namespace lookup
+failure, AE_ALREADY_EXISTS
+[    0.300007] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.PCI0._OSC] (Node f70477e8), AE_ALREADY_EXISTS
 
--Andi
 
--- 
-ak@linux.intel.com -- Speaking for myself only.
+dmesg : http://userweb.kernel.org/~jaswinder/acer_netbook/dmesg_2634-rc7.txt
+.config : http://userweb.kernel.org/~jaswinder/acer_netbook/config_2634-rc7.txt
+
+How can I fix these errors.
+
+Thanks,
+--
+Jaswinder Singh.
