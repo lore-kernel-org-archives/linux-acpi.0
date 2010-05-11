@@ -1,38 +1,47 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] acpi: Unconditionally set SCI_EN on resume
-Date: Tue, 11 May 2010 19:41:20 +0100
-Message-ID: <20100511184120.GA19953@srcf.ucam.org>
-References: <1273600165-16681-1-git-send-email-mjg@redhat.com> <201005112027.36923.rjw@sisk.pl> <20100511183343.GA19783@srcf.ucam.org> <201005112041.02339.rjw@sisk.pl>
+From: Phillip Susi <psusi@cfl.rr.com>
+Subject: Re: Automatic S1 sleep
+Date: Tue, 11 May 2010 14:43:25 -0400
+Message-ID: <4BE9A54D.2060500@cfl.rr.com>
+References: <4BE97FC9.4040302@cfl.rr.com> <20100511171900.GA17704@srcf.ucam.org> <4BE99F59.1010100@cfl.rr.com> <20100511182129.GA19264@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52383 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755336Ab0EKSl0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 May 2010 14:41:26 -0400
-Content-Disposition: inline
-In-Reply-To: <201005112041.02339.rjw@sisk.pl>
+Received: from exhub016-3.exch016.msoutlookonline.net ([207.5.72.226]:12165
+	"EHLO EXHUB016-3.exch016.msoutlookonline.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751870Ab0EKSn3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 May 2010 14:43:29 -0400
+In-Reply-To: <20100511182129.GA19264@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, May 11, 2010 at 08:41:02PM +0200, Rafael J. Wysocki wrote:
-> On Tuesday 11 May 2010, Matthew Garrett wrote:
-> > On Tue, May 11, 2010 at 08:27:36PM +0200, Rafael J. Wysocki wrote:
-> > 
-> > > No, this breaks my MSI Wind U100 right away.
-> > > 
-> > > If you called acpi_enable() before that and do that depending on its result,
-> > > _that_ would work.
-> > 
-> > Calling acpi_enable breaks some HPs. What version of Windows did the 
-> > Wind ship with?
-> 
-> Without any.  It shipped with SLED 10. :-)
+On 5/11/2010 2:21 PM, Matthew Garrett wrote:
+> The exact meaning of PM_STANDBY_SUSPEND isn't defined. The sanest 
+> approach might be to add a callback in the platform_suspend_ops 
+> structure, pass the sleep state to that and then use that to decide 
+> whether or not devices need to sleep.
 
-Can you dump the DSDT? It's possible that this behaviour varies 
-depending on the OSI queries.
+Sounds reasonable.  Maybe I'll take a crack at writing a patch to do that.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> Putting a video card into D1 is either going to turn off the output or 
+> do nothing, so I don't think that's terribly compatible with what you 
+> want here. But to answer your question, the PCI core will decide what 
+> state to put devices in based on the sleep type provided.
+
+Actually after looking at some ATI specs it seems that there are several
+configuration options of exactly what should be powered down in D1 and
+D2 but the DAC output did not seem to be one of them.  It seems to be
+intended to do things like stop the GPU clocks but otherwise leave the
+display on.  I assumed that the card was in D1 last night while the
+system was in S1, and the display remained visible.  If D1 does stop the
+DVI output then it must not have been set to D1.
+
+How does the PCI core get called when changing state?  I would think it
+would be when suspend_devices_and_enter() calls
+dpm_suspend_start(PMESG_SUSPEND) but that does not differentiate between
+S1 and S3, so I would think that currently it would result in placing
+the device in D3, and that if I remove the PMESG_SUSPEND for
+PM_SUSPEND_STANDBY that it would result in leaving devices in D0.
