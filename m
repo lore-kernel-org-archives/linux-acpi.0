@@ -1,38 +1,36 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Automatic S1 sleep
-Date: Tue, 11 May 2010 18:19:00 +0100
-Message-ID: <20100511171900.GA17704@srcf.ucam.org>
-References: <4BE97FC9.4040302@cfl.rr.com>
+Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
+Date: Tue, 11 May 2010 18:25:43 +0100
+Message-ID: <20100511172543.GA17868@srcf.ucam.org>
+References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org> <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org> <20100507213600.GC28906@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:37621 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756537Ab0EKRTG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 May 2010 13:19:06 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4BE97FC9.4040302@cfl.rr.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20100507213600.GC28906@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Phillip Susi <psusi@cfl.rr.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Tue, May 11, 2010 at 12:03:21PM -0400, Phillip Susi wrote:
+On Fri, May 07, 2010 at 10:36:00PM +0100, Matthew Garrett wrote:
+> On Fri, May 07, 2010 at 02:21:08PM -0700, Linus Torvalds wrote:
+> > Well, is there any reason to have 'set_sci_en_on_resume' at all then?
+> 
+> I'd hope not, but it depends on what Windows does on resume. If it 
+> doesn't do the SMM call and just does the register write instead, then 
+> it may be that some machines are on that list because the SMM call 
+> breaks them rather than because they need the register to be set by 
+> hand. I'm planning on instrumenting it to check, but haven't had time to 
+> do so yet.
 
-> Unlike S3, S1 keeps the Vcc power plane on and all devices remain in D0
-> or D1, so the screen remains on and visible, so it should be possible to
-> use this state transparently without the user even being aware of it.
-> Since everything remains on, no hardware needs reinitialized when
-> resuming from S1.  Here seems to be a problem with the current kernel code:
-
-You'll need wakeup events on mouse, keyboard, network packets and so on. 
-Some of these are possible, some aren't really.
-
-> Does anyone have any thoughts on my conclusion or advice on how to
-> trigger S1 without generating PM_EVENT_SUSPEND?
-
-Just have suspend_devices_and_enter conditionalise the device suspend on 
-whether or not it's PM_SUSPEND_STANDBY.
+I've now checked the behaviour of Windows. It turns out that it never 
+makes the ACPI enable SMM call on resume. This is consistent with 
+http://bugzilla.kernel.org/show_bug.cgi?id=13745 which shows a bug 
+being introduced by us making the enable call in the first place. 
+Merging my patch and removing the blacklist would re-break these 
+machines. Instead, we should just unconditionally set SCI_EN since this 
+is the tested configuration. I'll send a followup patch.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
