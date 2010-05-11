@@ -1,36 +1,53 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [git pull request] ACPI patches for 2.6.34-rc6
-Date: Tue, 11 May 2010 18:25:43 +0100
-Message-ID: <20100511172543.GA17868@srcf.ucam.org>
-References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org> <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org> <20100507213600.GC28906@srcf.ucam.org>
+Date: Tue, 11 May 2010 10:42:52 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1005111031260.3711@i5.linux-foundation.org>
+References: <alpine.LFD.2.00.1005062216430.10792@localhost.localdomain> <alpine.LFD.2.00.1005061926460.901@i5.linux-foundation.org> <20100507061203.GA8779@srcf.ucam.org> <alpine.LFD.2.00.1005071402080.901@i5.linux-foundation.org> <20100507211331.GA28906@srcf.ucam.org>
+ <alpine.LFD.2.00.1005071418200.901@i5.linux-foundation.org> <20100507213600.GC28906@srcf.ucam.org> <20100511172543.GA17868@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100507213600.GC28906@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752347Ab0EKRpe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 May 2010 13:45:34 -0400
+In-Reply-To: <20100511172543.GA17868@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Fri, May 07, 2010 at 10:36:00PM +0100, Matthew Garrett wrote:
-> On Fri, May 07, 2010 at 02:21:08PM -0700, Linus Torvalds wrote:
-> > Well, is there any reason to have 'set_sci_en_on_resume' at all then?
+
+
+On Tue, 11 May 2010, Matthew Garrett wrote:
 > 
-> I'd hope not, but it depends on what Windows does on resume. If it 
-> doesn't do the SMM call and just does the register write instead, then 
-> it may be that some machines are on that list because the SMM call 
-> breaks them rather than because they need the register to be set by 
-> hand. I'm planning on instrumenting it to check, but haven't had time to 
-> do so yet.
+> I've now checked the behaviour of Windows. It turns out that it never 
+> makes the ACPI enable SMM call on resume. This is consistent with 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13745 which shows a bug 
+> being introduced by us making the enable call in the first place. 
+> Merging my patch and removing the blacklist would re-break these 
+> machines. Instead, we should just unconditionally set SCI_EN since this 
+> is the tested configuration. I'll send a followup patch.
 
-I've now checked the behaviour of Windows. It turns out that it never 
-makes the ACPI enable SMM call on resume. This is consistent with 
-http://bugzilla.kernel.org/show_bug.cgi?id=13745 which shows a bug 
-being introduced by us making the enable call in the first place. 
-Merging my patch and removing the blacklist would re-break these 
-machines. Instead, we should just unconditionally set SCI_EN since this 
-is the tested configuration. I'll send a followup patch.
+Hmm. But that's the thing that Rafael claims doesn't work on his machine. 
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Maybe windows does something else? Or do you _see_ windows doing that 
+write?
+
+Note that our acpi_enable() won't do anything either if the machine comes 
+up in ACPI mode, so maybe you checked the behavior on that kind of 
+machine, and Windows does the same? IOW, if acpi_hw_get_mode() already 
+returns ACPI_SYS_MODE_ACPI, the whole thing is a no-op.
+
+Finally, it's possible that we really should just write the dang SCI_EN 
+bit directly, but that what we do wrong is that doing so with
+
+	acpi_write_bit_register()
+
+will write it _even_if_ the bit was already set. That could explain 
+Rafael's problems too - writing the register directly may be the 
+RightThing(tm), but writing it if the bit was already set may well cause 
+some confusion.
+
+				Linus
