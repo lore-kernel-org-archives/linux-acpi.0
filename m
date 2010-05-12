@@ -1,33 +1,50 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] Add x64 support to debugfs
-Date: Wed, 12 May 2010 14:47:37 -0700
-Message-ID: <20100512214737.GA27785@kroah.com>
-References: <1273653641-4519-1-git-send-email-ying.huang@intel.com>
- <1273653641-4519-2-git-send-email-ying.huang@intel.com>
+From: akpm@linux-foundation.org
+Subject: [patch for 2.6.34? 1/1] acpi: video: fix acpi_backlight=video
+Date: Wed, 12 May 2010 15:33:57 -0700
+Message-ID: <201005122233.o4CMXvi7024758@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1273653641-4519-2-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34606 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758343Ab0ELWeI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 May 2010 18:34:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, rui.zhang@intel.com, stable@kernel.org
 
-On Wed, May 12, 2010 at 04:40:40PM +0800, Huang Ying wrote:
-> Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
-> 
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> Signed-off-by: Andi Kleen <ak@linux.intel.com>
-> CC: Greg KH <greg@kroah.com>
+From: Kamal Mostafa <kamal@canonical.com>
 
-Do you want me to take this through my tree?  Or should it go through
-the acpi one as you depend on it?
+Make "acpi_backlight=video" param enable ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
+as intended, instead of incorrectly enabling video output switching.
 
-If so, that's fine with me, feel free to add:
-	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-to the patch then.
+Addresses http://bugs.launchpad.net/bugs/573120
 
-thanks,
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: <stable@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-greg k-h
+ drivers/acpi/video_detect.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video drivers/acpi/video_detect.c
+--- a/drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video
++++ a/drivers/acpi/video_detect.c
+@@ -250,7 +250,7 @@ static int __init acpi_backlight(char *s
+ 				ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR;
+ 		if (!strcmp("video", str))
+ 			acpi_video_support |=
+-				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
++				ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO;
+ 	}
+ 	return 1;
+ }
+_
