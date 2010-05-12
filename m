@@ -1,75 +1,57 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 1/2] Add x64 support to debugfs
-Date: Wed, 12 May 2010 16:40:40 +0800
-Message-ID: <1273653641-4519-2-git-send-email-ying.huang@intel.com>
-References: <1273653641-4519-1-git-send-email-ying.huang@intel.com>
+From: Phillip Susi <psusi@cfl.rr.com>
+Subject: Re: Automatic S1 sleep
+Date: Wed, 12 May 2010 09:39:08 -0400
+Message-ID: <4BEAAF7C.6070004@cfl.rr.com>
+References: <4BE97FC9.4040302@cfl.rr.com> <alpine.LFD.2.00.1005120133190.5297@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53713 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754876Ab0ELIku (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 May 2010 04:40:50 -0400
-In-Reply-To: <1273653641-4519-1-git-send-email-ying.huang@intel.com>
+Received: from exhub016-1.exch016.msoutlookonline.net ([207.5.72.163]:42345
+	"EHLO EXHUB016-1.exch016.msoutlookonline.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753965Ab0ELNjO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 May 2010 09:39:14 -0400
+In-Reply-To: <alpine.LFD.2.00.1005120133190.5297@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Greg KH <greg@kroah.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
+On 5/12/2010 1:57 AM, Len Brown wrote:
+> I'm not aware of any ACPI systems that can keep the display enabled
+> when in S1 (or S3).  If you've been able to get into this state,
+> I'd like to know more about it.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-CC: Greg KH <greg@kroah.com>
----
- fs/debugfs/file.c       |   21 ++++++++++++++++++++-
- include/linux/debugfs.h |    2 ++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+If it is a laptop I would imagine that S1 would power down the display,
+but on my desktop the display remains visible during S1, though I would
+not expect that while the video card is in D3Hot as I believe it is.  I
+did pull out my trusty Kill-a-watt last night and measure the load and
+it remained 120 watts both idle ( no C states, but cpufreq downclocked
+to 1 GHz and rotating disks spun down with hdparm -y ) and in S1.
 
---- a/fs/debugfs/file.c
-+++ b/fs/debugfs/file.c
-@@ -277,8 +277,10 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_x32, debugf
- DEFINE_SIMPLE_ATTRIBUTE(fops_x32_ro, debugfs_u32_get, NULL, "0x%08llx\n");
- DEFINE_SIMPLE_ATTRIBUTE(fops_x32_wo, NULL, debugfs_u32_set, "0x%08llx\n");
- 
-+DEFINE_SIMPLE_ATTRIBUTE(fops_x64, debugfs_u64_get, debugfs_u64_set, "0x%016llx\n");
-+
- /*
-- * debugfs_create_x{8,16,32} - create a debugfs file that is used to read and write an unsigned {8,16,32}-bit value
-+ * debugfs_create_x{8,16,32,64} - create a debugfs file that is used to read and write an unsigned {8,16,32,64}-bit value
-  *
-  * These functions are exactly the same as the above functions (but use a hex
-  * output for the decimal challenged). For details look at the above unsigned
-@@ -357,6 +359,23 @@ struct dentry *debugfs_create_x32(const
- }
- EXPORT_SYMBOL_GPL(debugfs_create_x32);
- 
-+/**
-+ * debugfs_create_x64 - create a debugfs file that is used to read and write an unsigned 64-bit value
-+ * @name: a pointer to a string containing the name of the file to create.
-+ * @mode: the permission that the file should have
-+ * @parent: a pointer to the parent dentry for this file.  This should be a
-+ *          directory dentry if set.  If this parameter is %NULL, then the
-+ *          file will be created in the root of the debugfs filesystem.
-+ * @value: a pointer to the variable that the file should read to and write
-+ *         from.
-+ */
-+struct dentry *debugfs_create_x64(const char *name, mode_t mode,
-+				 struct dentry *parent, u64 *value)
-+{
-+	return debugfs_create_file(name, mode, parent, value, &fops_x64);
-+}
-+EXPORT_SYMBOL_GPL(debugfs_create_x64);
-+
- 
- static int debugfs_size_t_set(void *data, u64 val)
- {
---- a/include/linux/debugfs.h
-+++ b/include/linux/debugfs.h
-@@ -63,6 +63,8 @@ struct dentry *debugfs_create_x16(const
- 				  struct dentry *parent, u16 *value);
- struct dentry *debugfs_create_x32(const char *name, mode_t mode,
- 				  struct dentry *parent, u32 *value);
-+struct dentry *debugfs_create_x64(const char *name, mode_t mode,
-+				  struct dentry *parent, u64 *value);
- struct dentry *debugfs_create_size_t(const char *name, mode_t mode,
- 				     struct dentry *parent, size_t *value);
- struct dentry *debugfs_create_bool(const char *name, mode_t mode,
+I also tried using setpci to force the video card into D1 and did not
+see any change in load, though at 120 watts, I may be hitting the lower
+efficiency bound of my PSU, so it may have saved a watt and it just
+didn't make it past the psu to the Kill-a-watt to be measured.  Also as
+I mentioned before, there seem to be control registers in the radeon
+that the bios is supposed to configure for what power saving options are
+wanted in D1 and D2, so it is possible that since this is a desktop, it
+may not be set up to save much power.
+
+> Please measure the power difference between S0 and S1 -- don't assume
+> that S1 consumes less power than S0.  Also, note that the latency
+> difference between S1 and S3 may effectively be 0.
+
+There currently is not much difference in latency between S1 and S3, but
+I believe that this is more the fault of the kernel, since when it
+resumes from S1 it still does full device reinitialization just like it
+does for S3, when most devices do not require that to come out of D3Hot,
+and indeed, devices that do not support the power management capability
+remain in D0 for S1.  A good chunk of the time spent suspending and
+resuming was being spent waiting for disks to spin down/up, but I put a
+stop to that by changing the scsi_disk's manage_start_stop entry in
+sysfs from 1 to 0.  After that total time to resume from S1 was around
+500ms.  I believe that if the display did not get blanked and redrawn
+and other unnecessary hardware reinitialization was not done, S1 resume
+could take as little as 10-50ms.
