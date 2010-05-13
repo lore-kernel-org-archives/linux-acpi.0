@@ -1,199 +1,43 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2 2/2] ACPI, APEI, EINJ injection parameters support
-Date: Thu, 13 May 2010 10:09:23 +0800
-Message-ID: <1273716563-23573-3-git-send-email-ying.huang@intel.com>
-References: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 1/2] Add x64 support to debugfs
+Date: Wed, 12 May 2010 22:51:13 -0700
+Message-ID: <20100513055113.GA27033@kroah.com>
+References: <1273653641-4519-1-git-send-email-ying.huang@intel.com> <1273653641-4519-2-git-send-email-ying.huang@intel.com> <20100512214737.GA27785@kroah.com> <1273710327.3564.61.camel@yhuang-dev.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from kroah.org ([198.145.64.141]:39777 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752384Ab0EMFys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 May 2010 01:54:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1273710327.3564.61.camel@yhuang-dev.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>
 
-Some hardware error injection needs parameters, for example, it is
-useful to specify memory address and memory address mask for memory
-errors.
+On Thu, May 13, 2010 at 08:25:27AM +0800, Huang Ying wrote:
+> On Thu, 2010-05-13 at 05:47 +0800, Greg KH wrote:
+> > On Wed, May 12, 2010 at 04:40:40PM +0800, Huang Ying wrote:
+> > > Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
+> > > 
+> > > Signed-off-by: Huang Ying <ying.huang@intel.com>
+> > > Signed-off-by: Andi Kleen <ak@linux.intel.com>
+> > > CC: Greg KH <greg@kroah.com>
+> > 
+> > Do you want me to take this through my tree?  Or should it go through
+> > the acpi one as you depend on it?
+> > 
+> > If so, that's fine with me, feel free to add:
+> > 	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+> > to the patch then.
+> 
+> Thank you very much for you kindness. Cross tree merging is pain, so I
+> want to go through the ACPI tree to make it easier.
 
-Some BIOSes allow parameters to be specified via an unpublished
-extension. This patch adds support to it. The parameters will be
-ignored on machines without necessary BIOS support.
+Great, Len, feel free to take this through your tree.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
----
- drivers/acpi/apei/einj.c |   72 +++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 67 insertions(+), 5 deletions(-)
+thanks,
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -7,7 +7,7 @@
-  * For more information about EINJ, please refer to ACPI Specification
-  * version 4.0, section 17.5.
-  *
-- * Copyright 2009 Intel Corp.
-+ * Copyright 2009-2010 Intel Corp.
-  *   Author: Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -41,6 +41,20 @@
- /* Firmware should respond within 1 miliseconds */
- #define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
- 
-+/*
-+ * Some BIOSes allow parameters to the SET_ERROR_TYPE entries in the
-+ * EINJ table through an unpublished extension. Use with caution as
-+ * most will ignore the parameter and make their own choice of address
-+ * for error injection.
-+ */
-+struct einj_parameter {
-+	u64 type;
-+	u64 reserved1;
-+	u64 reserved2;
-+	u64 param1;
-+	u64 param2;
-+};
-+
- #define EINJ_OP_BUSY			0x1
- #define EINJ_STATUS_SUCCESS		0x0
- #define EINJ_STATUS_FAIL		0x1
-@@ -84,6 +98,8 @@ static struct apei_exec_ins_type einj_in
-  */
- static DEFINE_MUTEX(einj_mutex);
- 
-+static struct einj_parameter *einj_param;
-+
- static void einj_exec_ctx_init(struct apei_exec_context *ctx)
- {
- 	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
-@@ -129,6 +145,26 @@ static int einj_timedout(u64 *t)
- 	return 0;
- }
- 
-+static u64 einj_get_parameter_address(void)
-+{
-+	int i;
-+	u64 paddr = 0;
-+	struct acpi_whea_header *entry;
-+
-+	entry = EINJ_TAB_ENTRY(einj_tab);
-+	for (i = 0; i < einj_tab->entries; i++) {
-+		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE &&
-+		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
-+		    entry->register_region.space_id ==
-+		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
-+			memcpy(&paddr, &entry->register_region.address,
-+			       sizeof(paddr));
-+		entry++;
-+	}
-+
-+	return paddr;
-+}
-+
- /* do sanity check to trigger table */
- static int einj_check_trigger_header(struct acpi_einj_trigger *trigger_tab)
- {
-@@ -232,7 +268,7 @@ out:
- 	return rc;
- }
- 
--static int __einj_error_inject(u32 type)
-+static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- {
- 	struct apei_exec_context ctx;
- 	u64 val, trigger_paddr, timeout = FIRMWARE_TIMEOUT;
-@@ -247,6 +283,10 @@ static int __einj_error_inject(u32 type)
- 	rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
- 	if (rc)
- 		return rc;
-+	if (einj_param) {
-+		writeq(param1, &einj_param->param1);
-+		writeq(param2, &einj_param->param2);
-+	}
- 	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
- 	if (rc)
- 		return rc;
-@@ -280,18 +320,20 @@ static int __einj_error_inject(u32 type)
- }
- 
- /* Inject the specified hardware error */
--static int einj_error_inject(u32 type)
-+static int einj_error_inject(u32 type, u64 param1, u64 param2)
- {
- 	int rc;
- 
- 	mutex_lock(&einj_mutex);
--	rc = __einj_error_inject(type);
-+	rc = __einj_error_inject(type, param1, param2);
- 	mutex_unlock(&einj_mutex);
- 
- 	return rc;
- }
- 
- static u32 error_type;
-+static u64 error_param1;
-+static u64 error_param2;
- static struct dentry *einj_debug_dir;
- 
- static int available_error_type_show(struct seq_file *m, void *v)
-@@ -375,7 +417,7 @@ static int error_inject_set(void *data,
- 	if (!error_type)
- 		return -EINVAL;
- 
--	return einj_error_inject(error_type);
-+	return einj_error_inject(error_type, error_param1, error_param2);
- }
- 
- DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
-@@ -398,6 +440,7 @@ static int einj_check_table(struct acpi_
- static int __init einj_init(void)
- {
- 	int rc;
-+	u64 param_paddr;
- 	acpi_status status;
- 	struct dentry *fentry;
- 	struct apei_exec_context ctx;
-@@ -435,6 +478,14 @@ static int __init einj_init(void)
- 				     einj_debug_dir, NULL, &error_type_fops);
- 	if (!fentry)
- 		goto err_cleanup;
-+	fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
-+				    einj_debug_dir, &error_param1);
-+	if (!fentry)
-+		goto err_cleanup;
-+	fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
-+				    einj_debug_dir, &error_param2);
-+	if (!fentry)
-+		goto err_cleanup;
- 	fentry = debugfs_create_file("error_inject", S_IWUSR,
- 				     einj_debug_dir, NULL, &error_inject_fops);
- 	if (!fentry)
-@@ -451,11 +502,20 @@ static int __init einj_init(void)
- 	rc = apei_exec_pre_map_gars(&ctx);
- 	if (rc)
- 		goto err_release;
-+	param_paddr = einj_get_parameter_address();
-+	if (param_paddr) {
-+		einj_param = ioremap(param_paddr, sizeof(*einj_param));
-+		rc = -ENOMEM;
-+		if (!einj_param)
-+			goto err_unmap;
-+	}
- 
- 	pr_info(EINJ_PFX "Error INJection is initialized.\n");
- 
- 	return 0;
- 
-+err_unmap:
-+	apei_exec_post_unmap_gars(&ctx);
- err_release:
- 	apei_resources_release(&einj_resources);
- err_fini:
-@@ -470,6 +530,8 @@ static void __exit einj_exit(void)
- {
- 	struct apei_exec_context ctx;
- 
-+	if (einj_param)
-+		iounmap(einj_param);
- 	einj_exec_ctx_init(&ctx);
- 	apei_exec_post_unmap_gars(&ctx);
- 	apei_resources_release(&einj_resources);
+greg k-h
