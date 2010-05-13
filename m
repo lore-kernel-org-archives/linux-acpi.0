@@ -1,43 +1,37 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] Add x64 support to debugfs
-Date: Wed, 12 May 2010 22:51:13 -0700
-Message-ID: <20100513055113.GA27033@kroah.com>
-References: <1273653641-4519-1-git-send-email-ying.huang@intel.com> <1273653641-4519-2-git-send-email-ying.huang@intel.com> <20100512214737.GA27785@kroah.com> <1273710327.3564.61.camel@yhuang-dev.sh.intel.com>
+From: Andi Kleen <andi@halobates.de>
+Subject: Re: [PATCH -v2 2/2] ACPI, APEI, EINJ injection parameters support
+Date: Thu, 13 May 2010 11:04:45 +0200
+Message-ID: <877hn8uq8i.fsf@basil.nowhere.org>
+References: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
+	<1273716563-23573-3-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:39777 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752384Ab0EMFys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 May 2010 01:54:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1273710327.3564.61.camel@yhuang-dev.sh.intel.com>
+Received: from one.firstfloor.org ([213.235.205.2]:57545 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757876Ab0EMJEu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 May 2010 05:04:50 -0400
+In-Reply-To: <1273716563-23573-3-git-send-email-ying.huang@intel.com> (Huang Ying's message of "Thu\, 13 May 2010 10\:09\:23 +0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>
+Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-On Thu, May 13, 2010 at 08:25:27AM +0800, Huang Ying wrote:
-> On Thu, 2010-05-13 at 05:47 +0800, Greg KH wrote:
-> > On Wed, May 12, 2010 at 04:40:40PM +0800, Huang Ying wrote:
-> > > Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
-> > > 
-> > > Signed-off-by: Huang Ying <ying.huang@intel.com>
-> > > Signed-off-by: Andi Kleen <ak@linux.intel.com>
-> > > CC: Greg KH <greg@kroah.com>
-> > 
-> > Do you want me to take this through my tree?  Or should it go through
-> > the acpi one as you depend on it?
-> > 
-> > If so, that's fine with me, feel free to add:
-> > 	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-> > to the patch then.
-> 
-> Thank you very much for you kindness. Cross tree merging is pain, so I
-> want to go through the ACPI tree to make it easier.
+Huang Ying <ying.huang@intel.com> writes:
 
-Great, Len, feel free to take this through your tree.
+> Some hardware error injection needs parameters, for example, it is
+> useful to specify memory address and memory address mask for memory
+> errors.
+>
+> Some BIOSes allow parameters to be specified via an unpublished
+> extension. This patch adds support to it. The parameters will be
+> ignored on machines without necessary BIOS support.
 
-thanks,
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 
-greg k-h
+Looks good. Len please add to the existing APEI queue.
+
+-Andi
+
+-- 
+ak@linux.intel.com -- Speaking for myself only.
