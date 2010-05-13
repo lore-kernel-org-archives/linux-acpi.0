@@ -1,22 +1,71 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2 0/2] ACPI, APEI EINJ injection parameters support
-Date: Thu, 13 May 2010 10:09:21 +0800
-Message-ID: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:51202 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756564Ab0EMCJ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 May 2010 22:09:27 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH -v2 1/2] Add x64 support to debugfs
+Date: Thu, 13 May 2010 10:09:22 +0800
+Message-ID: <1273716563-23573-2-git-send-email-ying.huang@intel.com>
+References: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1273716563-23573-1-git-send-email-ying.huang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
+Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
 
-This patch queue is based on acpi-test.git.
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ fs/debugfs/file.c       |   21 ++++++++++++++++++++-
+ include/linux/debugfs.h |    2 ++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-Changelog:
-
-v2:
-
-- Remove uninject support, because it is not implemented in BIOS properly now.
+--- a/fs/debugfs/file.c
++++ b/fs/debugfs/file.c
+@@ -277,8 +277,10 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_x32, debugf
+ DEFINE_SIMPLE_ATTRIBUTE(fops_x32_ro, debugfs_u32_get, NULL, "0x%08llx\n");
+ DEFINE_SIMPLE_ATTRIBUTE(fops_x32_wo, NULL, debugfs_u32_set, "0x%08llx\n");
+ 
++DEFINE_SIMPLE_ATTRIBUTE(fops_x64, debugfs_u64_get, debugfs_u64_set, "0x%016llx\n");
++
+ /*
+- * debugfs_create_x{8,16,32} - create a debugfs file that is used to read and write an unsigned {8,16,32}-bit value
++ * debugfs_create_x{8,16,32,64} - create a debugfs file that is used to read and write an unsigned {8,16,32,64}-bit value
+  *
+  * These functions are exactly the same as the above functions (but use a hex
+  * output for the decimal challenged). For details look at the above unsigned
+@@ -357,6 +359,23 @@ struct dentry *debugfs_create_x32(const
+ }
+ EXPORT_SYMBOL_GPL(debugfs_create_x32);
+ 
++/**
++ * debugfs_create_x64 - create a debugfs file that is used to read and write an unsigned 64-bit value
++ * @name: a pointer to a string containing the name of the file to create.
++ * @mode: the permission that the file should have
++ * @parent: a pointer to the parent dentry for this file.  This should be a
++ *          directory dentry if set.  If this parameter is %NULL, then the
++ *          file will be created in the root of the debugfs filesystem.
++ * @value: a pointer to the variable that the file should read to and write
++ *         from.
++ */
++struct dentry *debugfs_create_x64(const char *name, mode_t mode,
++				 struct dentry *parent, u64 *value)
++{
++	return debugfs_create_file(name, mode, parent, value, &fops_x64);
++}
++EXPORT_SYMBOL_GPL(debugfs_create_x64);
++
+ 
+ static int debugfs_size_t_set(void *data, u64 val)
+ {
+--- a/include/linux/debugfs.h
++++ b/include/linux/debugfs.h
+@@ -63,6 +63,8 @@ struct dentry *debugfs_create_x16(const
+ 				  struct dentry *parent, u16 *value);
+ struct dentry *debugfs_create_x32(const char *name, mode_t mode,
+ 				  struct dentry *parent, u32 *value);
++struct dentry *debugfs_create_x64(const char *name, mode_t mode,
++				  struct dentry *parent, u64 *value);
+ struct dentry *debugfs_create_size_t(const char *name, mode_t mode,
+ 				     struct dentry *parent, size_t *value);
+ struct dentry *debugfs_create_bool(const char *name, mode_t mode,
