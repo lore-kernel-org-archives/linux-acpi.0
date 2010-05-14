@@ -1,42 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC,5/7] NUMA hotplug emulator
-Date: Thu, 13 May 2010 14:11:20 +0200
-Message-ID: <20100513141120.10524f05@hyperion.delvare>
-References: <20100513115625.GF2169@shaohui>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch for 2.6.34? 1/1] acpi: video: fix acpi_backlight=video
+Date: Fri, 14 May 2010 15:34:37 +0200
+Message-ID: <201005141534.37456.trenn@suse.de>
+References: <201005122233.o4CMXvi7024758@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100513115625.GF2169@shaohui>
-Sender: owner-linux-mm@kvack.org
-To: Shaohui Zheng <shaohui.zheng@intel.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Thomas Renninger <trenn@suse.de>, David Rientjes <rientjes@google.com>, Mel Gorman <mel@csn.ul.ie>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Alex Chiang <achiang@hp.com>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux-foundation.org>, Greg Kroah-Hartman <gregkh@suse.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Shaohua Li <shaohua.li@intel.com>, Hugh Dickins <hugh.dickins@tiscali.co.uk>, James Bottomley <James.Bottomley@HansenPartn>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:53605 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752261Ab0ENNeL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 May 2010 09:34:11 -0400
+In-Reply-To: <201005122233.o4CMXvi7024758@imap1.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, rui.zhang@intel.com, stable@kernel.org
 
-On Thu, 13 May 2010 19:56:25 +0800, Shaohui Zheng wrote:
+On Thursday 13 May 2010 00:33:57 akpm@linux-foundation.org wrote:
+> From: Kamal Mostafa <kamal@canonical.com>
 > 
-> hotplug emulator: Abstract cpu register functions
-> 
-> Abstract function arch_register_cpu and register_cpu, move the implementation
-> details to a sub function with prefix "__". 
-> 
-> each of the sub function has an extra parameter nid, it can be used to register
-> CPU under a fake NUMA node, it is a reserved interface for cpu hotplug emulation
-> (CPU PROBE/RELEASE) in x86.
-> 
-> Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
-> Signed-off-by: Haicheng Li <haicheng.li@intel.com>
+> Make "acpi_backlight=video" param enable
+> ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
+> as intended, instead of incorrectly enabling video output switching.
 
-I don't know anything about this, please don't Cc me on these patches.
-Given the very long Cc list, I'm certain many other developers you have
-included are not interested. Please focus on the relevant lists next
-time!
+This one is correct and absolutely safe.
 
--- 
-Jean Delvare
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+      Thomas
