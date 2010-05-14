@@ -1,32 +1,62 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch for 2.6.34? 1/1] acpi: video: fix acpi_backlight=video
-Date: Fri, 14 May 2010 15:34:37 +0200
-Message-ID: <201005141534.37456.trenn@suse.de>
-References: <201005122233.o4CMXvi7024758@imap1.linux-foundation.org>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 3/10] drivers/acpi: Use kstrdup
+Date: Fri, 14 May 2010 21:29:03 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005142128370.28935@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:53605 "EHLO mx1.suse.de"
+Received: from mgw2.diku.dk ([130.225.96.92]:51380 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261Ab0ENNeL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 May 2010 09:34:11 -0400
-In-Reply-To: <201005122233.o4CMXvi7024758@imap1.linux-foundation.org>
+	id S1750899Ab0ENT3J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 May 2010 15:29:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, rui.zhang@intel.com, stable@kernel.org
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Thursday 13 May 2010 00:33:57 akpm@linux-foundation.org wrote:
-> From: Kamal Mostafa <kamal@canonical.com>
-> 
-> Make "acpi_backlight=video" param enable
-> ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
-> as intended, instead of incorrectly enabling video output switching.
+From: Julia Lawall <julia@diku.dk>
 
-This one is correct and absolutely safe.
+Use kstrdup when the goal of an allocation is copy a string into the
+allocated region.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-      Thomas
+// <smpl>
+@@
+expression from,to;
+expression flag,E1,E2;
+statement S;
+@@
+
+-  to = kmalloc(strlen(from) + 1,flag);
++  to = kstrdup(from, flag);
+   ... when != \(from = E1 \| to = E1 \)
+   if (to==NULL || ...) S
+   ... when != \(from = E2 \| to = E2 \)
+-  strcpy(to, from);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/acpi/scan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff -u -p a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1024,13 +1024,12 @@ static void acpi_add_id(struct acpi_devi
+ 	if (!id)
+ 		return;
+ 
+-	id->id = kmalloc(strlen(dev_id) + 1, GFP_KERNEL);
++	id->id = kstrdup(dev_id, GFP_KERNEL);
+ 	if (!id->id) {
+ 		kfree(id);
+ 		return;
+ 	}
+ 
+-	strcpy(id->id, dev_id);
+ 	list_add_tail(&id->list, &device->pnp.ids);
+ }
+ 
