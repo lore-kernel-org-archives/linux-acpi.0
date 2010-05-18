@@ -1,174 +1,222 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v5 08/14] Unified UUID/GUID definition
-Date: Tue, 18 May 2010 14:35:18 +0800
-Message-ID: <1274164524-6092-9-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v5 14/14] ACPI, APEI, EINJ injection parameters support
+Date: Tue, 18 May 2010 14:35:24 +0800
+Message-ID: <1274164524-6092-15-git-send-email-ying.huang@intel.com>
 References: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:12057 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756794Ab0ERGfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 May 2010 02:35:53 -0400
 In-Reply-To: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-There are many different UUID/GUID definitions in kernel, such as that
-in EFI, many file systems, some drivers, etc. Every kernel components
-need UUID/GUID has its own definition. This patch provides a unified
-definition for UUID/GUID.
+Some hardware error injection needs parameters, for example, it is
+useful to specify memory address and memory address mask for memory
+errors.
 
-UUID is defined via typedef. This makes that UUID appears more like a
-preliminary type, and makes the data type explicit (comparing with
-implicit "u8 uuid[16]").
-
-The binary representation of UUID/GUID can be little-endian (used by
-EFI, etc) or big-endian (defined by RFC4122), so both is defined.
+Some BIOSes allow parameters to be specified via an unpublished
+extension. This patch adds support to it. The parameters will be
+ignored on machines without necessary BIOS support.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 ---
- include/linux/uuid.h |   70 +++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/Makefile         |    2 -
- lib/uuid.c           |   53 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 124 insertions(+), 1 deletion(-)
- create mode 100644 include/linux/uuid.h
- create mode 100644 lib/uuid.c
+ Documentation/acpi/apei/einj.txt |   10 +++++
+ drivers/acpi/apei/einj.c         |   72 ++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 77 insertions(+), 5 deletions(-)
 
---- /dev/null
-+++ b/include/linux/uuid.h
-@@ -0,0 +1,70 @@
-+/*
-+ * UUID/GUID definition
-+ *
-+ * Copyright (C) 2010, Intel Corp.
-+ *	Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _LINUX_UUID_H_
-+#define _LINUX_UUID_H_
-+
-+#include <linux/types.h>
-+#include <linux/string.h>
-+
-+typedef struct {
-+	__u8 b[16];
-+} uuid_le;
-+
-+typedef struct {
-+	__u8 b[16];
-+} uuid_be;
-+
-+#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
-+((uuid_le)								\
-+{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
-+   (b) & 0xff, ((b) >> 8) & 0xff,					\
-+   (c) & 0xff, ((c) >> 8) & 0xff,					\
-+   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+
-+#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
-+((uuid_be)								\
-+{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
-+   ((b) >> 8) & 0xff, (b) & 0xff,					\
-+   ((c) >> 8) & 0xff, (c) & 0xff,					\
-+   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+
-+#define NULL_UUID_LE							\
-+	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
-+		0x00, 0x00, 0x00, 0x00)
-+
-+#define NULL_UUID_BE							\
-+	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
-+		0x00, 0x00, 0x00, 0x00)
-+
-+static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
-+{
-+	return memcmp(&u1, &u2, sizeof(uuid_le));
-+}
-+
-+static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
-+{
-+	return memcmp(&u1, &u2, sizeof(uuid_be));
-+}
-+
-+extern void uuid_le_gen(uuid_le *u);
-+extern void uuid_be_gen(uuid_be *u);
-+
-+#endif
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
+--- a/Documentation/acpi/apei/einj.txt
++++ b/Documentation/acpi/apei/einj.txt
+@@ -45,5 +45,15 @@ directory apei/einj. The following files
+   injection. Before this, please specify all necessary error
+   parameters.
  
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
--	 string_helpers.o gcd.o lcm.o list_sort.o
-+	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o
++- param1
++  This file is used to set the first error parameter value. Effect of
++  parameter depends on error_type specified. For memory error, this is
++  physical memory address.
++
++- param2
++  This file is used to set the second error parameter value. Effect of
++  parameter depends on error_type specified. For memory error, this is
++  physical memory address mask.
++
+ For more information about EINJ, please refer to ACPI specification
+ version 4.0, section 17.5.
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -7,7 +7,7 @@
+  * For more information about EINJ, please refer to ACPI Specification
+  * version 4.0, section 17.5.
+  *
+- * Copyright 2009 Intel Corp.
++ * Copyright 2009-2010 Intel Corp.
+  *   Author: Huang Ying <ying.huang@intel.com>
+  *
+  * This program is free software; you can redistribute it and/or
+@@ -42,6 +42,20 @@
+ /* Firmware should respond within 1 miliseconds */
+ #define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
  
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
---- /dev/null
-+++ b/lib/uuid.c
-@@ -0,0 +1,53 @@
 +/*
-+ * Unified UUID/GUID definition
-+ *
-+ * Copyright (C) 2009, Intel Corp.
-+ *	Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * Some BIOSes allow parameters to the SET_ERROR_TYPE entries in the
++ * EINJ table through an unpublished extension. Use with caution as
++ * most will ignore the parameter and make their own choice of address
++ * for error injection.
 + */
++struct einj_parameter {
++	u64 type;
++	u64 reserved1;
++	u64 reserved2;
++	u64 param1;
++	u64 param2;
++};
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/uuid.h>
-+#include <linux/random.h>
+ #define EINJ_OP_BUSY			0x1
+ #define EINJ_STATUS_SUCCESS		0x0
+ #define EINJ_STATUS_FAIL		0x1
+@@ -85,6 +99,8 @@ static struct apei_exec_ins_type einj_in
+  */
+ static DEFINE_MUTEX(einj_mutex);
+ 
++static struct einj_parameter *einj_param;
 +
-+static void __uuid_gen_common(__u8 b[16])
+ static void einj_exec_ctx_init(struct apei_exec_context *ctx)
+ {
+ 	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
+@@ -130,6 +146,26 @@ static int einj_timedout(u64 *t)
+ 	return 0;
+ }
+ 
++static u64 einj_get_parameter_address(void)
 +{
 +	int i;
-+	u32 r;
++	u64 paddr = 0;
++	struct acpi_whea_header *entry;
 +
-+	for (i = 0; i < 4; i++) {
-+		r = random32();
-+		memcpy(b + i * 4, &r, 4);
++	entry = EINJ_TAB_ENTRY(einj_tab);
++	for (i = 0; i < einj_tab->entries; i++) {
++		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE &&
++		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
++		    entry->register_region.space_id ==
++		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
++			memcpy(&paddr, &entry->register_region.address,
++			       sizeof(paddr));
++		entry++;
 +	}
-+	/* reversion 0b10 */
-+	b[8] = (b[8] & 0x3F) | 0x80;
++
++	return paddr;
 +}
 +
-+void uuid_le_gen(uuid_le *lu)
-+{
-+	__uuid_gen_common(lu->b);
-+	/* version 4 : random generation */
-+	lu->b[7] = (lu->b[7] & 0x0F) | 0x40;
-+}
-+EXPORT_SYMBOL_GPL(uuid_le_gen);
-+
-+void uuid_be_gen(uuid_be *bu)
-+{
-+	__uuid_gen_common(bu->b);
-+	/* version 4 : random generation */
-+	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
-+}
-+EXPORT_SYMBOL_GPL(uuid_be_gen);
+ /* do sanity check to trigger table */
+ static int einj_check_trigger_header(struct acpi_einj_trigger *trigger_tab)
+ {
+@@ -233,7 +269,7 @@ out:
+ 	return rc;
+ }
+ 
+-static int __einj_error_inject(u32 type)
++static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ {
+ 	struct apei_exec_context ctx;
+ 	u64 val, trigger_paddr, timeout = FIRMWARE_TIMEOUT;
+@@ -248,6 +284,10 @@ static int __einj_error_inject(u32 type)
+ 	rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
+ 	if (rc)
+ 		return rc;
++	if (einj_param) {
++		writeq(param1, &einj_param->param1);
++		writeq(param2, &einj_param->param2);
++	}
+ 	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
+ 	if (rc)
+ 		return rc;
+@@ -281,18 +321,20 @@ static int __einj_error_inject(u32 type)
+ }
+ 
+ /* Inject the specified hardware error */
+-static int einj_error_inject(u32 type)
++static int einj_error_inject(u32 type, u64 param1, u64 param2)
+ {
+ 	int rc;
+ 
+ 	mutex_lock(&einj_mutex);
+-	rc = __einj_error_inject(type);
++	rc = __einj_error_inject(type, param1, param2);
+ 	mutex_unlock(&einj_mutex);
+ 
+ 	return rc;
+ }
+ 
+ static u32 error_type;
++static u64 error_param1;
++static u64 error_param2;
+ static struct dentry *einj_debug_dir;
+ 
+ static int available_error_type_show(struct seq_file *m, void *v)
+@@ -376,7 +418,7 @@ static int error_inject_set(void *data,
+ 	if (!error_type)
+ 		return -EINVAL;
+ 
+-	return einj_error_inject(error_type);
++	return einj_error_inject(error_type, error_param1, error_param2);
+ }
+ 
+ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
+@@ -399,6 +441,7 @@ static int einj_check_table(struct acpi_
+ static int __init einj_init(void)
+ {
+ 	int rc;
++	u64 param_paddr;
+ 	acpi_status status;
+ 	struct dentry *fentry;
+ 	struct apei_exec_context ctx;
+@@ -436,6 +479,14 @@ static int __init einj_init(void)
+ 				     einj_debug_dir, NULL, &error_type_fops);
+ 	if (!fentry)
+ 		goto err_cleanup;
++	fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
++				    einj_debug_dir, &error_param1);
++	if (!fentry)
++		goto err_cleanup;
++	fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
++				    einj_debug_dir, &error_param2);
++	if (!fentry)
++		goto err_cleanup;
+ 	fentry = debugfs_create_file("error_inject", S_IWUSR,
+ 				     einj_debug_dir, NULL, &error_inject_fops);
+ 	if (!fentry)
+@@ -452,11 +503,20 @@ static int __init einj_init(void)
+ 	rc = apei_exec_pre_map_gars(&ctx);
+ 	if (rc)
+ 		goto err_release;
++	param_paddr = einj_get_parameter_address();
++	if (param_paddr) {
++		einj_param = ioremap(param_paddr, sizeof(*einj_param));
++		rc = -ENOMEM;
++		if (!einj_param)
++			goto err_unmap;
++	}
+ 
+ 	pr_info(EINJ_PFX "Error INJection is initialized.\n");
+ 
+ 	return 0;
+ 
++err_unmap:
++	apei_exec_post_unmap_gars(&ctx);
+ err_release:
+ 	apei_resources_release(&einj_resources);
+ err_fini:
+@@ -471,6 +531,8 @@ static void __exit einj_exit(void)
+ {
+ 	struct apei_exec_context ctx;
+ 
++	if (einj_param)
++		iounmap(einj_param);
+ 	einj_exec_ctx_init(&ctx);
+ 	apei_exec_post_unmap_gars(&ctx);
+ 	apei_resources_release(&einj_resources);
