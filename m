@@ -1,400 +1,537 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v5 06/14] ACPI, APEI, PCIE AER, use general HEST table parsing in AER firmware_first setup
-Date: Tue, 18 May 2010 14:35:16 +0800
-Message-ID: <1274164524-6092-7-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v5 04/14] ACPI, APEI, EINJ support
+Date: Tue, 18 May 2010 14:35:14 +0800
+Message-ID: <1274164524-6092-5-git-send-email-ying.huang@intel.com>
 References: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12036 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:14864 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755763Ab0ERGfl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 May 2010 02:35:41 -0400
+	id S1755581Ab0ERGfk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 May 2010 02:35:40 -0400
 In-Reply-To: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-Now, a dedicated HEST tabling parsing code is used for PCIE AER
-firmware_first setup. It is rebased on general HEST tabling parsing
-code of APEI. The firmware_first setup code is moved from PCI core to
-AER driver too, because it is only AER related.
+EINJ provides a hardware error injection mechanism, this is useful for
+debugging and testing of other APEI and RAS features.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 ---
- drivers/acpi/Makefile              |    1 
- drivers/acpi/hest.c                |  139 -------------------------------------
- drivers/pci/pcie/aer/aerdrv.h      |   17 ++++
- drivers/pci/pcie/aer/aerdrv_acpi.c |   77 ++++++++++++++++++++
- drivers/pci/pcie/aer/aerdrv_core.c |    8 +-
- drivers/pci/probe.c                |    8 --
- include/acpi/acpi_hest.h           |   12 ---
- include/linux/pci.h                |    3 
- 8 files changed, 100 insertions(+), 165 deletions(-)
- delete mode 100644 drivers/acpi/hest.c
- delete mode 100644 include/acpi/acpi_hest.h
+ drivers/acpi/apei/Kconfig  |    7 
+ drivers/acpi/apei/Makefile |    1 
+ drivers/acpi/apei/einj.c   |  486 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 494 insertions(+)
+ create mode 100644 drivers/acpi/apei/einj.c
 
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -20,7 +20,6 @@ obj-y				+= acpi.o \
- # All the builtin files are in the "acpi." module_param namespace.
- acpi-y				+= osl.o utils.o reboot.o
- acpi-y				+= atomicio.o
--acpi-y				+= hest.o
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -7,3 +7,10 @@ config ACPI_APEI
+ 	  especially. In addition it supports error serialization and
+ 	  error injection.
  
- # sleep related files
- acpi-y				+= wakeup.o
---- a/drivers/acpi/hest.c
-+++ /dev/null
-@@ -1,139 +0,0 @@
--#include <linux/acpi.h>
--#include <linux/pci.h>
--
--#define PREFIX "ACPI: "
--
--static inline unsigned long parse_acpi_hest_ia_machine_check(struct acpi_hest_ia_machine_check *p)
--{
--	return sizeof(*p) +
--		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
--}
--
--static inline unsigned long parse_acpi_hest_ia_corrected(struct acpi_hest_ia_corrected *p)
--{
--	return sizeof(*p) +
--		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
--}
--
--static inline unsigned long parse_acpi_hest_ia_nmi(struct acpi_hest_ia_nmi *p)
--{
--	return sizeof(*p);
--}
--
--static inline unsigned long parse_acpi_hest_generic(struct acpi_hest_generic *p)
--{
--	return sizeof(*p);
--}
--
--static inline unsigned int hest_match_pci(struct acpi_hest_aer_common *p, struct pci_dev *pci)
--{
--	return	(0           == pci_domain_nr(pci->bus) &&
--		 p->bus      == pci->bus->number &&
--		 p->device   == PCI_SLOT(pci->devfn) &&
--		 p->function == PCI_FUNC(pci->devfn));
--}
--
--static unsigned long parse_acpi_hest_aer(void *hdr, int type, struct pci_dev *pci, int *firmware_first)
--{
--	struct acpi_hest_aer_common *p = hdr + sizeof(struct acpi_hest_header);
--	unsigned long rc=0;
--	u8 pcie_type = 0;
--	u8 bridge = 0;
--	switch (type) {
--	case ACPI_HEST_TYPE_AER_ROOT_PORT:
--		rc = sizeof(struct acpi_hest_aer_root);
--		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
--		break;
--	case ACPI_HEST_TYPE_AER_ENDPOINT:
--		rc = sizeof(struct acpi_hest_aer);
--		pcie_type = PCI_EXP_TYPE_ENDPOINT;
--		break;
--	case ACPI_HEST_TYPE_AER_BRIDGE:
--		rc = sizeof(struct acpi_hest_aer_bridge);
--		if ((pci->class >> 16) == PCI_BASE_CLASS_BRIDGE)
--			bridge = 1;
--		break;
--	}
--
--	if (p->flags & ACPI_HEST_GLOBAL) {
--		if ((pci->is_pcie && (pci->pcie_type == pcie_type)) || bridge)
--			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	}
--	else
--		if (hest_match_pci(p, pci))
--			*firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	return rc;
--}
--
--static int acpi_hest_firmware_first(struct acpi_table_header *stdheader, struct pci_dev *pci)
--{
--	struct acpi_table_hest *hest = (struct acpi_table_hest *)stdheader;
--	void *p = (void *)hest + sizeof(*hest); /* defined by the ACPI 4.0 spec */
--	struct acpi_hest_header *hdr = p;
--
--	int i;
--	int firmware_first = 0;
--	static unsigned char printed_unused = 0;
--	static unsigned char printed_reserved = 0;
--
--	for (i=0, hdr=p; p < (((void *)hest) + hest->header.length) && i < hest->error_source_count; i++) {
--		switch (hdr->type) {
--		case ACPI_HEST_TYPE_IA32_CHECK:
--			p += parse_acpi_hest_ia_machine_check(p);
--			break;
--		case ACPI_HEST_TYPE_IA32_CORRECTED_CHECK:
--			p += parse_acpi_hest_ia_corrected(p);
--			break;
--		case ACPI_HEST_TYPE_IA32_NMI:
--			p += parse_acpi_hest_ia_nmi(p);
--			break;
--		/* These three should never appear */
--		case ACPI_HEST_TYPE_NOT_USED3:
--		case ACPI_HEST_TYPE_NOT_USED4:
--		case ACPI_HEST_TYPE_NOT_USED5:
--			if (!printed_unused) {
--				printk(KERN_DEBUG PREFIX
--				       "HEST Error Source list contains an obsolete type (%d).\n", hdr->type);
--				printed_unused = 1;
--			}
--			break;
--		case ACPI_HEST_TYPE_AER_ROOT_PORT:
--		case ACPI_HEST_TYPE_AER_ENDPOINT:
--		case ACPI_HEST_TYPE_AER_BRIDGE:
--			p += parse_acpi_hest_aer(p, hdr->type, pci, &firmware_first);
--			break;
--		case ACPI_HEST_TYPE_GENERIC_ERROR:
--			p += parse_acpi_hest_generic(p);
--			break;
--		/* These should never appear either */
--		case ACPI_HEST_TYPE_RESERVED:
--		default:
--			if (!printed_reserved) {
--				printk(KERN_DEBUG PREFIX
--				       "HEST Error Source list contains a reserved type (%d).\n", hdr->type);
--				printed_reserved = 1;
--			}
--			break;
--		}
--	}
--	return firmware_first;
--}
--
--int acpi_hest_firmware_first_pci(struct pci_dev *pci)
--{
--	acpi_status status = AE_NOT_FOUND;
--	struct acpi_table_header *hest = NULL;
--
--	if (acpi_disabled)
--		return 0;
--
--	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
--
--	if (ACPI_SUCCESS(status)) {
--		if (acpi_hest_firmware_first(hest, pci)) {
--			return 1;
--		}
--	}
--	return 0;
--}
--EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
---- a/drivers/pci/pcie/aer/aerdrv.h
-+++ b/drivers/pci/pcie/aer/aerdrv.h
-@@ -134,4 +134,21 @@ static inline int aer_osc_setup(struct p
- }
- #endif
++config ACPI_APEI_EINJ
++	tristate "APEI Error INJection (EINJ)"
++	depends on ACPI_APEI && DEBUG_FS
++	help
++	  EINJ provides a hardware error injection mechanism, it is
++	  mainly used for debugging and testing the other parts of
++	  APEI and some other RAS features.
+--- a/drivers/acpi/apei/Makefile
++++ b/drivers/acpi/apei/Makefile
+@@ -1,3 +1,4 @@
+ obj-$(CONFIG_ACPI_APEI)		+= apei.o
++obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
  
-+#ifdef CONFIG_ACPI_APEI
-+extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
-+#else
-+static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_dev)
-+{
-+	if (pci_dev->__aer_firmware_first_valid)
-+		return pci_dev->__aer_firmware_first;
-+	return 0;
-+}
-+#endif
+ apei-y := apei-base.o hest.o
+--- /dev/null
++++ b/drivers/acpi/apei/einj.c
+@@ -0,0 +1,486 @@
++/*
++ * APEI Error INJection support
++ *
++ * EINJ provides a hardware error injection mechanism, this is useful
++ * for debugging and testing of other APEI and RAS features.
++ *
++ * For more information about EINJ, please refer to ACPI Specification
++ * version 4.0, section 17.5.
++ *
++ * Copyright 2009 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
-+static inline void pcie_aer_force_firmware_first(struct pci_dev *pci_dev,
-+						 int enable)
-+{
-+	pci_dev->__aer_firmware_first = !!enable;
-+	pci_dev->__aer_firmware_first_valid = 1;
-+}
- #endif /* _AERDRV_H_ */
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -16,6 +16,7 @@
- #include <linux/acpi.h>
- #include <linux/pci-acpi.h>
- #include <linux/delay.h>
-+#include <acpi/apei.h>
- #include "aerdrv.h"
- 
- /**
-@@ -53,3 +54,79 @@ int aer_osc_setup(struct pcie_device *pc
- 
- 	return 0;
- }
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++#include <linux/nmi.h>
++#include <linux/delay.h>
++#include <acpi/acpi.h>
 +
-+#ifdef CONFIG_ACPI_APEI
-+static inline int hest_match_pci(struct acpi_hest_aer_common *p,
-+				 struct pci_dev *pci)
-+{
-+	return	(0           == pci_domain_nr(pci->bus) &&
-+		 p->bus      == pci->bus->number &&
-+		 p->device   == PCI_SLOT(pci->devfn) &&
-+		 p->function == PCI_FUNC(pci->devfn));
-+}
++#include "apei-internal.h"
 +
-+struct aer_hest_parse_info {
-+	struct pci_dev *pci_dev;
-+	int firmware_first;
++#define EINJ_PFX "EINJ: "
++
++#define SPIN_UNIT		100			/* 100ns */
++/* Firmware should respond within 1 miliseconds */
++#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
++
++#define EINJ_OP_BUSY			0x1
++#define EINJ_STATUS_SUCCESS		0x0
++#define EINJ_STATUS_FAIL		0x1
++#define EINJ_STATUS_INVAL		0x2
++
++#define EINJ_TAB_ENTRY(tab)						\
++	((struct acpi_whea_header *)((char *)(tab) +			\
++				    sizeof(struct acpi_table_einj)))
++
++static struct acpi_table_einj *einj_tab;
++
++static struct apei_resources einj_resources;
++
++static struct apei_exec_ins_type einj_ins_type[] = {
++	[ACPI_EINJ_READ_REGISTER] = {
++		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
++		.run   = apei_exec_read_register,
++	},
++	[ACPI_EINJ_READ_REGISTER_VALUE] = {
++		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
++		.run   = apei_exec_read_register_value,
++	},
++	[ACPI_EINJ_WRITE_REGISTER] = {
++		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
++		.run   = apei_exec_write_register,
++	},
++	[ACPI_EINJ_WRITE_REGISTER_VALUE] = {
++		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
++		.run   = apei_exec_write_register_value,
++	},
++	[ACPI_EINJ_NOOP] = {
++		.flags = 0,
++		.run   = apei_exec_noop,
++	},
 +};
 +
-+static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
++/*
++ * Prevent EINJ interpreter to run simultaneously, because the
++ * corresponding firmware implementation may not work properly when
++ * invoked simultaneously.
++ */
++static DEFINE_MUTEX(einj_mutex);
++
++static void einj_exec_ctx_init(struct apei_exec_context *ctx)
 +{
-+	struct aer_hest_parse_info *info = data;
-+	struct acpi_hest_aer_common *p;
-+	u8 pcie_type = 0;
-+	u8 bridge = 0;
-+	int ff = 0;
++	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
++			   EINJ_TAB_ENTRY(einj_tab), einj_tab->entries);
++}
 +
-+	switch (hest_hdr->type) {
-+	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
-+		break;
-+	case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		pcie_type = PCI_EXP_TYPE_ENDPOINT;
-+		break;
-+	case ACPI_HEST_TYPE_AER_BRIDGE:
-+		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
-+			bridge = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
++static int __einj_get_available_error_type(u32 *type)
++{
++	struct apei_exec_context ctx;
++	int rc;
 +
-+	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
-+	if (p->flags & ACPI_HEST_GLOBAL) {
-+		if ((info->pci_dev->is_pcie &&
-+		     info->pci_dev->pcie_type == pcie_type) || bridge)
-+			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	} else
-+		if (hest_match_pci(p, info->pci_dev))
-+			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	info->firmware_first = ff;
++	einj_exec_ctx_init(&ctx);
++	rc = apei_exec_run(&ctx, ACPI_EINJ_GET_ERROR_TYPE);
++	if (rc)
++		return rc;
++	*type = apei_exec_ctx_get_output(&ctx);
 +
 +	return 0;
 +}
 +
-+static void aer_set_firmware_first(struct pci_dev *pci_dev)
++/* Get error injection capabilities of the platform */
++static int einj_get_available_error_type(u32 *type)
 +{
 +	int rc;
-+	struct aer_hest_parse_info info = {
-+		.pci_dev	= pci_dev,
-+		.firmware_first	= 0,
-+	};
 +
-+	rc = apei_hest_parse(aer_hest_parse, &info);
++	mutex_lock(&einj_mutex);
++	rc = __einj_get_available_error_type(type);
++	mutex_unlock(&einj_mutex);
 +
-+	if (rc)
-+		pci_dev->__aer_firmware_first = 0;
-+	else
-+		pci_dev->__aer_firmware_first = info.firmware_first;
-+	pci_dev->__aer_firmware_first_valid = 1;
++	return rc;
 +}
 +
-+int pcie_aer_get_firmware_first(struct pci_dev *dev)
++static int einj_timedout(u64 *t)
 +{
-+	if (!dev->__aer_firmware_first_valid)
-+		aer_set_firmware_first(dev);
-+	return dev->__aer_firmware_first;
++	if ((s64)*t < SPIN_UNIT) {
++		pr_warning(FW_WARN EINJ_PFX
++			   "Firmware does not respond in time\n");
++		return 1;
++	}
++	*t -= SPIN_UNIT;
++	ndelay(SPIN_UNIT);
++	touch_nmi_watchdog();
++	return 0;
 +}
-+#endif
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -36,7 +36,7 @@ int pci_enable_pcie_error_reporting(stru
- 	u16 reg16 = 0;
- 	int pos;
- 
--	if (dev->aer_firmware_first)
-+	if (pcie_aer_get_firmware_first(dev))
- 		return -EIO;
- 
- 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
-@@ -64,7 +64,7 @@ int pci_disable_pcie_error_reporting(str
- 	u16 reg16 = 0;
- 	int pos;
- 
--	if (dev->aer_firmware_first)
-+	if (pcie_aer_get_firmware_first(dev))
- 		return -EIO;
- 
- 	pos = pci_pcie_cap(dev);
-@@ -859,7 +859,7 @@ void aer_delete_rootport(struct aer_rpc
-  */
- int aer_init(struct pcie_device *dev)
- {
--	if (dev->port->aer_firmware_first) {
-+	if (pcie_aer_get_firmware_first(dev->port)) {
- 		dev_printk(KERN_DEBUG, &dev->device,
- 			   "PCIe errors handled by platform firmware.\n");
- 		goto out;
-@@ -873,7 +873,7 @@ out:
- 	if (forceload) {
- 		dev_printk(KERN_DEBUG, &dev->device,
- 			   "aerdrv forceload requested.\n");
--		dev->port->aer_firmware_first = 0;
-+		pcie_aer_force_firmware_first(dev->port, 0);
- 		return 0;
- 	}
- 	return -ENXIO;
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -10,7 +10,6 @@
- #include <linux/module.h>
- #include <linux/cpumask.h>
- #include <linux/pci-aspm.h>
--#include <acpi/acpi_hest.h>
- #include "pci.h"
- 
- #define CARDBUS_LATENCY_TIMER	176	/* secondary latency timer */
-@@ -904,12 +903,6 @@ void set_pcie_hotplug_bridge(struct pci_
- 		pdev->is_hotplug_bridge = 1;
- }
- 
--static void set_pci_aer_firmware_first(struct pci_dev *pdev)
--{
--	if (acpi_hest_firmware_first_pci(pdev))
--		pdev->aer_firmware_first = 1;
--}
--
- #define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
- 
- /**
-@@ -939,7 +932,6 @@ int pci_setup_device(struct pci_dev *dev
- 	dev->multifunction = !!(hdr_type & 0x80);
- 	dev->error_state = pci_channel_io_normal;
- 	set_pcie_port_type(dev);
--	set_pci_aer_firmware_first(dev);
- 
- 	list_for_each_entry(slot, &dev->bus->slots, list)
- 		if (PCI_SLOT(dev->devfn) == slot->number)
---- a/include/acpi/acpi_hest.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#ifndef __ACPI_HEST_H
--#define __ACPI_HEST_H
--
--#include <linux/pci.h>
--
--#ifdef CONFIG_ACPI
--extern int acpi_hest_firmware_first_pci(struct pci_dev *pci);
--#else
--static inline int acpi_hest_firmware_first_pci(struct pci_dev *pci) { return 0; }
--#endif
--
--#endif
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -311,7 +311,8 @@ struct pci_dev {
- 	unsigned int	is_virtfn:1;
- 	unsigned int	reset_fn:1;
- 	unsigned int    is_hotplug_bridge:1;
--	unsigned int    aer_firmware_first:1;
-+	unsigned int    __aer_firmware_first_valid:1;
-+	unsigned int	__aer_firmware_first:1;
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
++
++/* do sanity check to trigger table */
++static int einj_check_trigger_header(struct acpi_einj_trigger *trigger_tab)
++{
++	if (trigger_tab->header_size != sizeof(struct acpi_einj_trigger))
++		return -EINVAL;
++	if (trigger_tab->table_size > PAGE_SIZE ||
++	    trigger_tab->table_size <= trigger_tab->header_size)
++		return -EINVAL;
++	if (trigger_tab->entry_count !=
++	    (trigger_tab->table_size - trigger_tab->header_size) /
++	    sizeof(struct acpi_einj_entry))
++		return -EINVAL;
++
++	return 0;
++}
++
++/* Execute instructions in trigger error action table */
++static int __einj_error_trigger(u64 trigger_paddr)
++{
++	struct acpi_einj_trigger *trigger_tab = NULL;
++	struct apei_exec_context trigger_ctx;
++	struct apei_resources trigger_resources;
++	struct acpi_whea_header *trigger_entry;
++	struct resource *r;
++	u32 table_size;
++	int rc = -EIO;
++
++	r = request_mem_region(trigger_paddr, sizeof(*trigger_tab),
++			       "APEI EINJ Trigger Table");
++	if (!r) {
++		pr_err(EINJ_PFX
++	"Can not request iomem region <%016llx-%016llx> for Trigger table.\n",
++		       (unsigned long long)trigger_paddr,
++		       (unsigned long long)trigger_paddr+sizeof(*trigger_tab));
++		goto out;
++	}
++	trigger_tab = ioremap_cache(trigger_paddr, sizeof(*trigger_tab));
++	if (!trigger_tab) {
++		pr_err(EINJ_PFX "Failed to map trigger table!\n");
++		goto out_rel_header;
++	}
++	rc = einj_check_trigger_header(trigger_tab);
++	if (rc) {
++		pr_warning(FW_BUG EINJ_PFX
++			   "The trigger error action table is invalid\n");
++		goto out_rel_header;
++	}
++	rc = -EIO;
++	table_size = trigger_tab->table_size;
++	r = request_mem_region(trigger_paddr + sizeof(*trigger_tab),
++			       table_size - sizeof(*trigger_tab),
++			       "APEI EINJ Trigger Table");
++	if (!r) {
++		pr_err(EINJ_PFX
++"Can not request iomem region <%016llx-%016llx> for Trigger Table Entry.\n",
++		       (unsigned long long)trigger_paddr+sizeof(*trigger_tab),
++		       (unsigned long long)trigger_paddr + table_size);
++		goto out_rel_header;
++	}
++	iounmap(trigger_tab);
++	trigger_tab = ioremap_cache(trigger_paddr, table_size);
++	if (!trigger_tab) {
++		pr_err(EINJ_PFX "Failed to map trigger table!\n");
++		goto out_rel_entry;
++	}
++	trigger_entry = (struct acpi_whea_header *)
++		((char *)trigger_tab + sizeof(struct acpi_einj_trigger));
++	apei_resources_init(&trigger_resources);
++	apei_exec_ctx_init(&trigger_ctx, einj_ins_type,
++			   ARRAY_SIZE(einj_ins_type),
++			   trigger_entry, trigger_tab->entry_count);
++	rc = apei_exec_collect_resources(&trigger_ctx, &trigger_resources);
++	if (rc)
++		goto out_fini;
++	rc = apei_resources_sub(&trigger_resources, &einj_resources);
++	if (rc)
++		goto out_fini;
++	rc = apei_resources_request(&trigger_resources, "APEI EINJ Trigger");
++	if (rc)
++		goto out_fini;
++	rc = apei_exec_pre_map_gars(&trigger_ctx);
++	if (rc)
++		goto out_release;
++
++	rc = apei_exec_run(&trigger_ctx, ACPI_EINJ_TRIGGER_ERROR);
++
++	apei_exec_post_unmap_gars(&trigger_ctx);
++out_release:
++	apei_resources_release(&trigger_resources);
++out_fini:
++	apei_resources_fini(&trigger_resources);
++out_rel_entry:
++	release_mem_region(trigger_paddr + sizeof(*trigger_tab),
++			   table_size - sizeof(*trigger_tab));
++out_rel_header:
++	release_mem_region(trigger_paddr, sizeof(*trigger_tab));
++out:
++	if (trigger_tab)
++		iounmap(trigger_tab);
++
++	return rc;
++}
++
++static int __einj_error_inject(u32 type)
++{
++	struct apei_exec_context ctx;
++	u64 val, trigger_paddr, timeout = FIRMWARE_TIMEOUT;
++	int rc;
++
++	einj_exec_ctx_init(&ctx);
++
++	rc = apei_exec_run(&ctx, ACPI_EINJ_BEGIN_OPERATION);
++	if (rc)
++		return rc;
++	apei_exec_ctx_set_input(&ctx, type);
++	rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
++	if (rc)
++		return rc;
++	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
++	if (rc)
++		return rc;
++	for (;;) {
++		rc = apei_exec_run(&ctx, ACPI_EINJ_CHECK_BUSY_STATUS);
++		if (rc)
++			return rc;
++		val = apei_exec_ctx_get_output(&ctx);
++		if (!(val & EINJ_OP_BUSY))
++			break;
++		if (einj_timedout(&timeout))
++			return -EIO;
++	}
++	rc = apei_exec_run(&ctx, ACPI_EINJ_GET_COMMAND_STATUS);
++	if (rc)
++		return rc;
++	val = apei_exec_ctx_get_output(&ctx);
++	if (val != EINJ_STATUS_SUCCESS)
++		return -EBUSY;
++
++	rc = apei_exec_run(&ctx, ACPI_EINJ_GET_TRIGGER_TABLE);
++	if (rc)
++		return rc;
++	trigger_paddr = apei_exec_ctx_get_output(&ctx);
++	rc = __einj_error_trigger(trigger_paddr);
++	if (rc)
++		return rc;
++	rc = apei_exec_run(&ctx, ACPI_EINJ_END_OPERATION);
++
++	return rc;
++}
++
++/* Inject the specified hardware error */
++static int einj_error_inject(u32 type)
++{
++	int rc;
++
++	mutex_lock(&einj_mutex);
++	rc = __einj_error_inject(type);
++	mutex_unlock(&einj_mutex);
++
++	return rc;
++}
++
++static u32 error_type;
++static struct dentry *einj_debug_dir;
++
++static int available_error_type_show(struct seq_file *m, void *v)
++{
++	int rc;
++	u32 available_error_type = 0;
++
++	rc = einj_get_available_error_type(&available_error_type);
++	if (rc)
++		return rc;
++	if (available_error_type & 0x0001)
++		seq_printf(m, "0x00000001\tProcessor Correctable\n");
++	if (available_error_type & 0x0002)
++		seq_printf(m, "0x00000002\tProcessor Uncorrectable non-fatal\n");
++	if (available_error_type & 0x0004)
++		seq_printf(m, "0x00000004\tProcessor Uncorrectable fatal\n");
++	if (available_error_type & 0x0008)
++		seq_printf(m, "0x00000008\tMemory Correctable\n");
++	if (available_error_type & 0x0010)
++		seq_printf(m, "0x00000010\tMemory Uncorrectable non-fatal\n");
++	if (available_error_type & 0x0020)
++		seq_printf(m, "0x00000020\tMemory Uncorrectable fatal\n");
++	if (available_error_type & 0x0040)
++		seq_printf(m, "0x00000040\tPCI Express Correctable\n");
++	if (available_error_type & 0x0080)
++		seq_printf(m, "0x00000080\tPCI Express Uncorrectable non-fatal\n");
++	if (available_error_type & 0x0100)
++		seq_printf(m, "0x00000100\tPCI Express Uncorrectable fatal\n");
++	if (available_error_type & 0x0200)
++		seq_printf(m, "0x00000200\tPlatform Correctable\n");
++	if (available_error_type & 0x0400)
++		seq_printf(m, "0x00000400\tPlatform Uncorrectable non-fatal\n");
++	if (available_error_type & 0x0800)
++		seq_printf(m, "0x00000800\tPlatform Uncorrectable fatal\n");
++
++	return 0;
++}
++
++static int available_error_type_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, available_error_type_show, NULL);
++}
++
++static const struct file_operations available_error_type_fops = {
++	.open		= available_error_type_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int error_type_get(void *data, u64 *val)
++{
++	*val = error_type;
++
++	return 0;
++}
++
++static int error_type_set(void *data, u64 val)
++{
++	int rc;
++	u32 available_error_type = 0;
++
++	/* Only one error type can be specified */
++	if (val & (val - 1))
++		return -EINVAL;
++	rc = einj_get_available_error_type(&available_error_type);
++	if (rc)
++		return rc;
++	if (!(val & available_error_type))
++		return -EINVAL;
++	error_type = val;
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(error_type_fops, error_type_get,
++			error_type_set, "0x%llx\n");
++
++static int error_inject_set(void *data, u64 val)
++{
++	if (!error_type)
++		return -EINVAL;
++
++	return einj_error_inject(error_type);
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
++			error_inject_set, "%llu\n");
++
++static int einj_check_table(struct acpi_table_einj *einj_tab)
++{
++	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
++		return -EINVAL;
++	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
++		return -EINVAL;
++	if (einj_tab->entries !=
++	    (einj_tab->header.length - sizeof(struct acpi_table_einj)) /
++	    sizeof(struct acpi_einj_entry))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int __init einj_init(void)
++{
++	int rc;
++	acpi_status status;
++	struct dentry *fentry;
++	struct apei_exec_context ctx;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	status = acpi_get_table(ACPI_SIG_EINJ, 0,
++				(struct acpi_table_header **)&einj_tab);
++	if (status == AE_NOT_FOUND) {
++		pr_info(EINJ_PFX "Table is not found!\n");
++		return -ENODEV;
++	} else if (ACPI_FAILURE(status)) {
++		const char *msg = acpi_format_exception(status);
++		pr_err(EINJ_PFX "Failed to get table, %s\n", msg);
++		return -EINVAL;
++	}
++
++	rc = einj_check_table(einj_tab);
++	if (rc) {
++		pr_warning(FW_BUG EINJ_PFX "EINJ table is invalid\n");
++		return -EINVAL;
++	}
++
++	rc = -ENOMEM;
++	einj_debug_dir = debugfs_create_dir("einj", apei_get_debugfs_dir());
++	if (!einj_debug_dir)
++		goto err_cleanup;
++	fentry = debugfs_create_file("available_error_type", S_IRUSR,
++				     einj_debug_dir, NULL,
++				     &available_error_type_fops);
++	if (!fentry)
++		goto err_cleanup;
++	fentry = debugfs_create_file("error_type", S_IRUSR | S_IWUSR,
++				     einj_debug_dir, NULL, &error_type_fops);
++	if (!fentry)
++		goto err_cleanup;
++	fentry = debugfs_create_file("error_inject", S_IWUSR,
++				     einj_debug_dir, NULL, &error_inject_fops);
++	if (!fentry)
++		goto err_cleanup;
++
++	apei_resources_init(&einj_resources);
++	einj_exec_ctx_init(&ctx);
++	rc = apei_exec_collect_resources(&ctx, &einj_resources);
++	if (rc)
++		goto err_fini;
++	rc = apei_resources_request(&einj_resources, "APEI EINJ");
++	if (rc)
++		goto err_fini;
++	rc = apei_exec_pre_map_gars(&ctx);
++	if (rc)
++		goto err_release;
++
++	pr_info(EINJ_PFX "Error INJection is initialized.\n");
++
++	return 0;
++
++err_release:
++	apei_resources_release(&einj_resources);
++err_fini:
++	apei_resources_fini(&einj_resources);
++err_cleanup:
++	debugfs_remove_recursive(einj_debug_dir);
++
++	return rc;
++}
++
++static void __exit einj_exit(void)
++{
++	struct apei_exec_context ctx;
++
++	einj_exec_ctx_init(&ctx);
++	apei_exec_post_unmap_gars(&ctx);
++	apei_resources_release(&einj_resources);
++	apei_resources_fini(&einj_resources);
++	debugfs_remove_recursive(einj_debug_dir);
++}
++
++module_init(einj_init);
++module_exit(einj_exit);
++
++MODULE_AUTHOR("Huang Ying");
++MODULE_DESCRIPTION("APEI Error INJection support");
++MODULE_LICENSE("GPL");
