@@ -1,81 +1,91 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v5 11/14] ACPI, APEI, Error Record Serialization Table (ERST) support
-Date: Tue, 18 May 2010 14:35:21 +0800
-Message-ID: <1274164524-6092-12-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v5 09/14] ACPI, APEI, UEFI Common Platform Error Record (CPER) header
+Date: Tue, 18 May 2010 14:35:19 +0800
+Message-ID: <1274164524-6092-10-git-send-email-ying.huang@intel.com>
 References: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12036 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753398Ab0ERGfs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 May 2010 02:35:48 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ERST is a way provided by APEI to save and retrieve hardware error
-record to and from some simple persistent storage (such as flash).
+CPER stands for Common Platform Error Record, it is the hardware error
+record format used to describe platform hardware error by various APEI
+tables, such as ERST, BERT and HEST etc.
 
-The Linux kernel support implementation is quite simple and workable
-in NMI context. So it can be used to save hardware error record into
-flash in hardware error exception or NMI handler, where other more
-complex persistent storage such as disk is not usable. After saving
-hardware error records via ERST in hardware error exception or NMI
-handler, the error records can be retrieved and logged into disk or
-network after a clean reboot.
+For more information about CPER, please refer to Appendix N of UEFI
+Specification version 2.3.
 
-For more information about ERST, please refer to ACPI Specification
-version 4.0, section 17.4.
-
-This patch incorporate fixes from Jin Dongming.
+This patch mainly includes the data structure difinition header file
+used by other files.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-CC: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 ---
- Documentation/kernel-parameters.txt |    4 
- drivers/acpi/apei/Makefile          |    2 
- drivers/acpi/apei/erst.c            |  855 ++++++++++++++++++++++++++++++++++++
- include/acpi/apei.h                 |   21 
- 4 files changed, 881 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/apei/erst.c
+ drivers/acpi/apei/Makefile        |    2 
+ drivers/acpi/apei/apei-internal.h |   19 ++
+ drivers/acpi/apei/cper.c          |   84 ++++++++++
+ include/linux/cper.h              |  314 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 418 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/apei/cper.c
+ create mode 100644 include/linux/cper.h
 
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -750,6 +750,10 @@ and is between 256 and 4096 characters.
- 			Default value is 0.
- 			Value can be changed at runtime via /selinux/enforce.
- 
-+	erst_disable	[ACPI]
-+			Disable Error Record Serialization Table (ERST)
-+			support.
-+
- 	ether=		[HW,NET] Ethernet cards parameters
- 			This option is obsoleted by the "netdev=" option, which
- 			has equivalent usage. See its documentation for details.
 --- a/drivers/acpi/apei/Makefile
 +++ b/drivers/acpi/apei/Makefile
-@@ -2,4 +2,4 @@ obj-$(CONFIG_ACPI_APEI)		+= apei.o
- obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
+@@ -1,4 +1,4 @@
+ obj-$(CONFIG_ACPI_APEI)		+= apei.o
  obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
  
--apei-y := apei-base.o hest.o cper.o
-+apei-y := apei-base.o hest.o cper.o erst.o
+-apei-y := apei-base.o hest.o
++apei-y := apei-base.o hest.o cper.o
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -6,6 +6,8 @@
+ #ifndef APEI_INTERNAL_H
+ #define APEI_INTERNAL_H
+ 
++#include <linux/cper.h>
++
+ struct apei_exec_context;
+ 
+ typedef int (*apei_exec_ins_func_t)(struct apei_exec_context *ctx,
+@@ -92,4 +94,21 @@ int apei_exec_collect_resources(struct a
+ 
+ struct dentry;
+ struct dentry *apei_get_debugfs_dir(void);
++
++#define apei_estatus_for_each_section(estatus, section)			\
++	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
++	     (void *)section - (void *)estatus < estatus->data_length;	\
++	     section = (void *)(section+1) + section->error_data_length)
++
++static inline u32 apei_estatus_len(struct acpi_hest_generic_status *estatus)
++{
++	if (estatus->raw_data_length)
++		return estatus->raw_data_offset + \
++			estatus->raw_data_length;
++	else
++		return sizeof(*estatus) + estatus->data_length;
++}
++
++int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
++int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
+ #endif
 --- /dev/null
-+++ b/drivers/acpi/apei/erst.c
-@@ -0,0 +1,855 @@
++++ b/drivers/acpi/apei/cper.c
+@@ -0,0 +1,84 @@
 +/*
-+ * APEI Error Record Serialization Table support
++ * UEFI Common Platform Error Record (CPER) support
 + *
-+ * ERST is a way provided by APEI to save and retrieve hardware error
-+ * infomation to and from a persistent store.
++ * Copyright (C) 2010, Intel Corp.
++ *	Author: Huang Ying <ying.huang@intel.com>
 + *
-+ * For more information about ERST, please refer to ACPI Specification
-+ * version 4.0, section 17.4.
++ * CPER is the format used to describe platform hardware error by
++ * various APEI tables, such as ERST, BERT and HEST etc.
 + *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
++ * For more information about CPER, please refer to Appendix N of UEFI
++ * Specification version 2.3.
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License version
@@ -93,863 +103,376 @@ CC: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 +
 +#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/acpi.h>
-+#include <linux/uaccess.h>
++#include <linux/time.h>
 +#include <linux/cper.h>
-+#include <linux/nmi.h>
-+#include <acpi/apei.h>
-+
-+#include "apei-internal.h"
-+
-+#define ERST_PFX "ERST: "
-+
-+/* ERST command status */
-+#define ERST_STATUS_SUCCESS			0x0
-+#define ERST_STATUS_NOT_ENOUGH_SPACE		0x1
-+#define ERST_STATUS_HARDWARE_NOT_AVAILABLE	0x2
-+#define ERST_STATUS_FAILED			0x3
-+#define ERST_STATUS_RECORD_STORE_EMPTY		0x4
-+#define ERST_STATUS_RECORD_NOT_FOUND		0x5
-+
-+#define ERST_TAB_ENTRY(tab)						\
-+	((struct acpi_whea_header *)((char *)(tab) +			\
-+				     sizeof(struct acpi_table_erst)))
-+
-+#define SPIN_UNIT		100			/* 100ns */
-+/* Firmware should respond within 1 miliseconds */
-+#define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
-+#define FIRMWARE_MAX_STALL	50			/* 50us */
-+
-+int erst_disable;
-+EXPORT_SYMBOL_GPL(erst_disable);
-+
-+static struct acpi_table_erst *erst_tab;
-+
-+/* ERST Error Log Address Range atrributes */
-+#define ERST_RANGE_RESERVED	0x0001
-+#define ERST_RANGE_NVRAM	0x0002
-+#define ERST_RANGE_SLOW		0x0004
++#include <linux/acpi.h>
 +
 +/*
-+ * ERST Error Log Address Range, used as buffer for reading/writing
-+ * error records.
++ * CPER record ID need to be unique even after reboot, because record
++ * ID is used as index for ERST storage, while CPER records from
++ * multiple boot may co-exist in ERST.
 + */
-+static struct erst_erange {
-+	u64 base;
-+	u64 size;
-+	void __iomem *vaddr;
-+	u32 attr;
-+} erst_erange;
-+
-+/*
-+ * Prevent ERST interpreter to run simultaneously, because the
-+ * corresponding firmware implementation may not work properly when
-+ * invoked simultaneously.
-+ *
-+ * It is used to provide exclusive accessing for ERST Error Log
-+ * Address Range too.
-+ */
-+static DEFINE_SPINLOCK(erst_lock);
-+
-+static inline int erst_errno(int command_status)
++u64 cper_next_record_id(void)
 +{
-+	switch (command_status) {
-+	case ERST_STATUS_SUCCESS:
-+		return 0;
-+	case ERST_STATUS_HARDWARE_NOT_AVAILABLE:
-+		return -ENODEV;
-+	case ERST_STATUS_NOT_ENOUGH_SPACE:
-+		return -ENOSPC;
-+	case ERST_STATUS_RECORD_STORE_EMPTY:
-+	case ERST_STATUS_RECORD_NOT_FOUND:
-+		return -ENOENT;
-+	default:
++	static atomic64_t seq;
++
++	if (!atomic64_read(&seq))
++		atomic64_set(&seq, ((u64)get_seconds()) << 32);
++
++	return atomic64_inc_return(&seq);
++}
++EXPORT_SYMBOL_GPL(cper_next_record_id);
++
++int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus)
++{
++	if (estatus->data_length &&
++	    estatus->data_length < sizeof(struct acpi_hest_generic_data))
 +		return -EINVAL;
-+	}
-+}
++	if (estatus->raw_data_length &&
++	    estatus->raw_data_offset < sizeof(*estatus) + estatus->data_length)
++		return -EINVAL;
 +
-+static int erst_timedout(u64 *t, u64 spin_unit)
-+{
-+	if ((s64)*t < spin_unit) {
-+		pr_warning(FW_WARN ERST_PFX
-+			   "Firmware does not respond in time\n");
-+		return 1;
-+	}
-+	*t -= spin_unit;
-+	ndelay(spin_unit);
-+	touch_nmi_watchdog();
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(apei_estatus_check_header);
 +
-+static int erst_exec_load_var1(struct apei_exec_context *ctx,
-+			       struct acpi_whea_header *entry)
++int apei_estatus_check(const struct acpi_hest_generic_status *estatus)
 +{
-+	return __apei_exec_read_register(entry, &ctx->var1);
-+}
-+
-+static int erst_exec_load_var2(struct apei_exec_context *ctx,
-+			       struct acpi_whea_header *entry)
-+{
-+	return __apei_exec_read_register(entry, &ctx->var2);
-+}
-+
-+static int erst_exec_store_var1(struct apei_exec_context *ctx,
-+				struct acpi_whea_header *entry)
-+{
-+	return __apei_exec_write_register(entry, ctx->var1);
-+}
-+
-+static int erst_exec_add(struct apei_exec_context *ctx,
-+			 struct acpi_whea_header *entry)
-+{
-+	ctx->var1 += ctx->var2;
-+	return 0;
-+}
-+
-+static int erst_exec_subtract(struct apei_exec_context *ctx,
-+			      struct acpi_whea_header *entry)
-+{
-+	ctx->var1 -= ctx->var2;
-+	return 0;
-+}
-+
-+static int erst_exec_add_value(struct apei_exec_context *ctx,
-+			       struct acpi_whea_header *entry)
-+{
++	struct acpi_hest_generic_data *gdata;
++	unsigned int data_len, gedata_len;
 +	int rc;
-+	u64 val;
 +
-+	rc = __apei_exec_read_register(entry, &val);
++	rc = apei_estatus_check_header(estatus);
 +	if (rc)
 +		return rc;
-+	val += ctx->value;
-+	rc = __apei_exec_write_register(entry, val);
-+	return rc;
-+}
-+
-+static int erst_exec_subtract_value(struct apei_exec_context *ctx,
-+				    struct acpi_whea_header *entry)
-+{
-+	int rc;
-+	u64 val;
-+
-+	rc = __apei_exec_read_register(entry, &val);
-+	if (rc)
-+		return rc;
-+	val -= ctx->value;
-+	rc = __apei_exec_write_register(entry, val);
-+	return rc;
-+}
-+
-+static int erst_exec_stall(struct apei_exec_context *ctx,
-+			   struct acpi_whea_header *entry)
-+{
-+	u64 stall_time;
-+
-+	if (ctx->value > FIRMWARE_MAX_STALL) {
-+		if (!in_nmi())
-+			pr_warning(FW_WARN ERST_PFX
-+			"Too long stall time for stall instruction: %llx.\n",
-+				   ctx->value);
-+		stall_time = FIRMWARE_MAX_STALL;
-+	} else
-+		stall_time = ctx->value;
-+	udelay(stall_time);
-+	return 0;
-+}
-+
-+static int erst_exec_stall_while_true(struct apei_exec_context *ctx,
-+				      struct acpi_whea_header *entry)
-+{
-+	int rc;
-+	u64 val;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 stall_time;
-+
-+	if (ctx->var1 > FIRMWARE_MAX_STALL) {
-+		if (!in_nmi())
-+			pr_warning(FW_WARN ERST_PFX
-+		"Too long stall time for stall while true instruction: %llx.\n",
-+				   ctx->var1);
-+		stall_time = FIRMWARE_MAX_STALL;
-+	} else
-+		stall_time = ctx->var1;
-+
-+	for (;;) {
-+		rc = __apei_exec_read_register(entry, &val);
-+		if (rc)
-+			return rc;
-+		if (val != ctx->value)
-+			break;
-+		if (erst_timedout(&timeout, stall_time * NSEC_PER_USEC))
-+			return -EIO;
++	data_len = estatus->data_length;
++	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
++	while (data_len > sizeof(*gdata)) {
++		gedata_len = gdata->error_data_length;
++		if (gedata_len > data_len - sizeof(*gdata))
++			return -EINVAL;
++		data_len -= gedata_len + sizeof(*gdata);
 +	}
-+	return 0;
-+}
-+
-+static int erst_exec_skip_next_instruction_if_true(
-+	struct apei_exec_context *ctx,
-+	struct acpi_whea_header *entry)
-+{
-+	int rc;
-+	u64 val;
-+
-+	rc = __apei_exec_read_register(entry, &val);
-+	if (rc)
-+		return rc;
-+	if (val == ctx->value) {
-+		ctx->ip += 2;
-+		return APEI_EXEC_SET_IP;
-+	}
++	if (data_len)
++		return -EINVAL;
 +
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(apei_estatus_check);
+--- /dev/null
++++ b/include/linux/cper.h
+@@ -0,0 +1,314 @@
++/*
++ * UEFI Common Platform Error Record
++ *
++ * Copyright (C) 2010, Intel Corp.
++ *	Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
-+static int erst_exec_goto(struct apei_exec_context *ctx,
-+			  struct acpi_whea_header *entry)
-+{
-+	ctx->ip = ctx->value;
-+	return APEI_EXEC_SET_IP;
-+}
++#ifndef LINUX_CPER_H
++#define LINUX_CPER_H
 +
-+static int erst_exec_set_src_address_base(struct apei_exec_context *ctx,
-+					  struct acpi_whea_header *entry)
-+{
-+	return __apei_exec_read_register(entry, &ctx->src_base);
-+}
++#include <linux/uuid.h>
 +
-+static int erst_exec_set_dst_address_base(struct apei_exec_context *ctx,
-+					  struct acpi_whea_header *entry)
-+{
-+	return __apei_exec_read_register(entry, &ctx->dst_base);
-+}
++/* CPER record signature and the size */
++#define CPER_SIG_RECORD				"CPER"
++#define CPER_SIG_SIZE				4
++/* Used in signature_end field in struct cper_record_header */
++#define CPER_SIG_END				0xffffffff
 +
-+static int erst_exec_move_data(struct apei_exec_context *ctx,
-+			       struct acpi_whea_header *entry)
-+{
-+	int rc;
-+	u64 offset;
++/*
++ * CPER record header revision, used in revision field in struct
++ * cper_record_header
++ */
++#define CPER_RECORD_REV				0x0100
 +
-+	rc = __apei_exec_read_register(entry, &offset);
-+	if (rc)
-+		return rc;
-+	memmove((void *)ctx->dst_base + offset,
-+		(void *)ctx->src_base + offset,
-+		ctx->var2);
++/*
++ * Severity difinition for error_severity in struct cper_record_header
++ * and section_severity in struct cper_section_descriptor
++ */
++#define CPER_SER_RECOVERABLE			0x0
++#define CPER_SER_FATAL				0x1
++#define CPER_SER_CORRECTED			0x2
++#define CPER_SER_INFORMATIONAL			0x3
 +
-+	return 0;
-+}
++/*
++ * Validation bits difinition for validation_bits in struct
++ * cper_record_header. If set, corresponding fields in struct
++ * cper_record_header contain valid information.
++ *
++ * corresponds platform_id
++ */
++#define CPER_VALID_PLATFORM_ID			0x0001
++/* corresponds timestamp */
++#define CPER_VALID_TIMESTAMP			0x0002
++/* corresponds partition_id */
++#define CPER_VALID_PARTITION_ID			0x0004
 +
-+static struct apei_exec_ins_type erst_ins_type[] = {
-+	[ACPI_ERST_READ_REGISTER] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = apei_exec_read_register,
-+	},
-+	[ACPI_ERST_READ_REGISTER_VALUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = apei_exec_read_register_value,
-+	},
-+	[ACPI_ERST_WRITE_REGISTER] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = apei_exec_write_register,
-+	},
-+	[ACPI_ERST_WRITE_REGISTER_VALUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = apei_exec_write_register_value,
-+	},
-+	[ACPI_ERST_NOOP] = {
-+		.flags = 0,
-+		.run = apei_exec_noop,
-+	},
-+	[ACPI_ERST_LOAD_VAR1] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_load_var1,
-+	},
-+	[ACPI_ERST_LOAD_VAR2] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_load_var2,
-+	},
-+	[ACPI_ERST_STORE_VAR1] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_store_var1,
-+	},
-+	[ACPI_ERST_ADD] = {
-+		.flags = 0,
-+		.run = erst_exec_add,
-+	},
-+	[ACPI_ERST_SUBTRACT] = {
-+		.flags = 0,
-+		.run = erst_exec_subtract,
-+	},
-+	[ACPI_ERST_ADD_VALUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_add_value,
-+	},
-+	[ACPI_ERST_SUBTRACT_VALUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_subtract_value,
-+	},
-+	[ACPI_ERST_STALL] = {
-+		.flags = 0,
-+		.run = erst_exec_stall,
-+	},
-+	[ACPI_ERST_STALL_WHILE_TRUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_stall_while_true,
-+	},
-+	[ACPI_ERST_SKIP_NEXT_IF_TRUE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_skip_next_instruction_if_true,
-+	},
-+	[ACPI_ERST_GOTO] = {
-+		.flags = 0,
-+		.run = erst_exec_goto,
-+	},
-+	[ACPI_ERST_SET_SRC_ADDRESS_BASE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_set_src_address_base,
-+	},
-+	[ACPI_ERST_SET_DST_ADDRESS_BASE] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_set_dst_address_base,
-+	},
-+	[ACPI_ERST_MOVE_DATA] = {
-+		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
-+		.run = erst_exec_move_data,
-+	},
++/*
++ * Notification type used to generate error record, used in
++ * notification_type in struct cper_record_header
++ *
++ * Corrected Machine Check
++ */
++#define CPER_NOTIFY_CMC							\
++	UUID_LE(0x2DCE8BB1, 0xBDD7, 0x450e, 0xB9, 0xAD, 0x9C, 0xF4,	\
++		0xEB, 0xD4, 0xF8, 0x90)
++/* Corrected Platform Error */
++#define CPER_NOTIFY_CPE							\
++	UUID_LE(0x4E292F96, 0xD843, 0x4a55, 0xA8, 0xC2, 0xD4, 0x81,	\
++		0xF2, 0x7E, 0xBE, 0xEE)
++/* Machine Check Exception */
++#define CPER_NOTIFY_MCE							\
++	UUID_LE(0xE8F56FFE, 0x919C, 0x4cc5, 0xBA, 0x88, 0x65, 0xAB,	\
++		0xE1, 0x49, 0x13, 0xBB)
++/* PCI Express Error */
++#define CPER_NOTIFY_PCIE						\
++	UUID_LE(0xCF93C01F, 0x1A16, 0x4dfc, 0xB8, 0xBC, 0x9C, 0x4D,	\
++		0xAF, 0x67, 0xC1, 0x04)
++/* INIT Record (for IPF) */
++#define CPER_NOTIFY_INIT						\
++	UUID_LE(0xCC5263E8, 0x9308, 0x454a, 0x89, 0xD0, 0x34, 0x0B,	\
++		0xD3, 0x9B, 0xC9, 0x8E)
++/* Non-Maskable Interrupt */
++#define CPER_NOTIFY_NMI							\
++	UUID_LE(0x5BAD89FF, 0xB7E6, 0x42c9, 0x81, 0x4A, 0xCF, 0x24,	\
++		0x85, 0xD6, 0xE9, 0x8A)
++/* BOOT Error Record */
++#define CPER_NOTIFY_BOOT						\
++	UUID_LE(0x3D61A466, 0xAB40, 0x409a, 0xA6, 0x98, 0xF3, 0x62,	\
++		0xD4, 0x64, 0xB3, 0x8F)
++/* DMA Remapping Error */
++#define CPER_NOTIFY_DMAR						\
++	UUID_LE(0x667DD791, 0xC6B3, 0x4c27, 0x8A, 0x6B, 0x0F, 0x8E,	\
++		0x72, 0x2D, 0xEB, 0x41)
++
++/*
++ * Flags bits definitions for flags in struct cper_record_header
++ * If set, the error has been recovered
++ */
++#define CPER_HW_ERROR_FLAGS_RECOVERED		0x1
++/* If set, the error is for previous boot */
++#define CPER_HW_ERROR_FLAGS_PREVERR		0x2
++/* If set, the error is injected for testing */
++#define CPER_HW_ERROR_FLAGS_SIMULATED		0x4
++
++/*
++ * CPER section header revision, used in revision field in struct
++ * cper_section_descriptor
++ */
++#define CPER_SEC_REV				0x0100
++
++/*
++ * Validation bits difinition for validation_bits in struct
++ * cper_section_descriptor. If set, corresponding fields in struct
++ * cper_section_descriptor contain valid information.
++ *
++ * corresponds fru_id
++ */
++#define CPER_SEC_VALID_FRU_ID			0x1
++/* corresponds fru_text */
++#define CPER_SEC_VALID_FRU_TEXT			0x2
++
++/*
++ * Flags bits definitions for flags in struct cper_section_descriptor
++ *
++ * If set, the section is associated with the error condition
++ * directly, and should be focused on
++ */
++#define CPER_SEC_PRIMARY			0x0001
++/*
++ * If set, the error was not contained within the processor or memory
++ * hierarchy and the error may have propagated to persistent storage
++ * or network
++ */
++#define CPER_SEC_CONTAINMENT_WARNING		0x0002
++/* If set, the component must be re-initialized or re-enabled prior to use */
++#define CPER_SEC_RESET				0x0004
++/* If set, Linux may choose to discontinue use of the resource */
++#define CPER_SEC_ERROR_THRESHOLD_EXCEEDED	0x0008
++/*
++ * If set, resource could not be queried for error information due to
++ * conflicts with other system software or resources. Some fields of
++ * the section will be invalid
++ */
++#define CPER_SEC_RESOURCE_NOT_ACCESSIBLE	0x0010
++/*
++ * If set, action has been taken to ensure error containment (such as
++ * poisoning data), but the error has not been fully corrected and the
++ * data has not been consumed. Linux may choose to take further
++ * corrective action before the data is consumed
++ */
++#define CPER_SEC_LATENT_ERROR			0x0020
++
++/*
++ * Section type definitions, used in section_type field in struct
++ * cper_section_descriptor
++ *
++ * Processor Generic
++ */
++#define CPER_SEC_PROC_GENERIC						\
++	UUID_LE(0x9876CCAD, 0x47B4, 0x4bdb, 0xB6, 0x5E, 0x16, 0xF1,	\
++		0x93, 0xC4, 0xF3, 0xDB)
++/* Processor Specific: X86/X86_64 */
++#define CPER_SEC_PROC_IA						\
++	UUID_LE(0xDC3EA0B0, 0xA144, 0x4797, 0xB9, 0x5B, 0x53, 0xFA,	\
++		0x24, 0x2B, 0x6E, 0x1D)
++/* Processor Specific: IA64 */
++#define CPER_SEC_PROC_IPF						\
++	UUID_LE(0xE429FAF1, 0x3CB7, 0x11D4, 0x0B, 0xCA, 0x07, 0x00,	\
++		0x80, 0xC7, 0x3C, 0x88, 0x81)
++/* Platform Memory */
++#define CPER_SEC_PLATFORM_MEM						\
++	UUID_LE(0xA5BC1114, 0x6F64, 0x4EDE, 0xB8, 0x63, 0x3E, 0x83,	\
++		0xED, 0x7C, 0x83, 0xB1)
++#define CPER_SEC_PCIE							\
++	UUID_LE(0xD995E954, 0xBBC1, 0x430F, 0xAD, 0x91, 0xB4, 0x4D,	\
++		0xCB, 0x3C, 0x6F, 0x35)
++/* Firmware Error Record Reference */
++#define CPER_SEC_FW_ERR_REC_REF						\
++	UUID_LE(0x81212A96, 0x09ED, 0x4996, 0x94, 0x71, 0x8D, 0x72,	\
++		0x9C, 0x8E, 0x69, 0xED)
++/* PCI/PCI-X Bus */
++#define CPER_SEC_PCI_X_BUS						\
++	UUID_LE(0xC5753963, 0x3B84, 0x4095, 0xBF, 0x78, 0xED, 0xDA,	\
++		0xD3, 0xF9, 0xC9, 0xDD)
++/* PCI Component/Device */
++#define CPER_SEC_PCI_DEV						\
++	UUID_LE(0xEB5E4685, 0xCA66, 0x4769, 0xB6, 0xA2, 0x26, 0x06,	\
++		0x8B, 0x00, 0x13, 0x26)
++#define CPER_SEC_DMAR_GENERIC						\
++	UUID_LE(0x5B51FEF7, 0xC79D, 0x4434, 0x8F, 0x1B, 0xAA, 0x62,	\
++		0xDE, 0x3E, 0x2C, 0x64)
++/* Intel VT for Directed I/O specific DMAr */
++#define CPER_SEC_DMAR_VT						\
++	UUID_LE(0x71761D37, 0x32B2, 0x45cd, 0xA7, 0xD0, 0xB0, 0xFE,	\
++		0xDD, 0x93, 0xE8, 0xCF)
++/* IOMMU specific DMAr */
++#define CPER_SEC_DMAR_IOMMU						\
++	UUID_LE(0x036F84E1, 0x7F37, 0x428c, 0xA7, 0x9E, 0x57, 0x5F,	\
++		0xDF, 0xAA, 0x84, 0xEC)
++
++/*
++ * All tables and structs must be byte-packed to match CPER
++ * specification, since the tables are provided by the system BIOS
++ */
++#pragma pack(1)
++
++struct cper_record_header {
++	char	signature[CPER_SIG_SIZE];	/* must be CPER_SIG_RECORD */
++	__u16	revision;			/* must be CPER_RECORD_REV */
++	__u32	signature_end;			/* must be CPER_SIG_END */
++	__u16	section_count;
++	__u32	error_severity;
++	__u32	validation_bits;
++	__u32	record_length;
++	__u64	timestamp;
++	uuid_le	platform_id;
++	uuid_le	partition_id;
++	uuid_le	creator_id;
++	uuid_le	notification_type;
++	__u64	record_id;
++	__u32	flags;
++	__u64	persistence_information;
++	__u8	reserved[12];			/* must be zero */
 +};
 +
-+static inline void erst_exec_ctx_init(struct apei_exec_context *ctx)
-+{
-+	apei_exec_ctx_init(ctx, erst_ins_type, ARRAY_SIZE(erst_ins_type),
-+			   ERST_TAB_ENTRY(erst_tab), erst_tab->entries);
-+}
-+
-+static int erst_get_erange(struct erst_erange *range)
-+{
-+	struct apei_exec_context ctx;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_RANGE);
-+	if (rc)
-+		return rc;
-+	range->base = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_LENGTH);
-+	if (rc)
-+		return rc;
-+	range->size = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_ATTRIBUTES);
-+	if (rc)
-+		return rc;
-+	range->attr = apei_exec_ctx_get_output(&ctx);
-+
-+	return 0;
-+}
-+
-+static ssize_t __erst_get_record_count(void)
-+{
-+	struct apei_exec_context ctx;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_RECORD_COUNT);
-+	if (rc)
-+		return rc;
-+	return apei_exec_ctx_get_output(&ctx);
-+}
-+
-+ssize_t erst_get_record_count(void)
-+{
-+	ssize_t count;
-+	unsigned long flags;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&erst_lock, flags);
-+	count = __erst_get_record_count();
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return count;
-+}
-+EXPORT_SYMBOL_GPL(erst_get_record_count);
-+
-+static int __erst_get_next_record_id(u64 *record_id)
-+{
-+	struct apei_exec_context ctx;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_RECORD_ID);
-+	if (rc)
-+		return rc;
-+	*record_id = apei_exec_ctx_get_output(&ctx);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Get the record ID of an existing error record on the persistent
-+ * storage. If there is no error record on the persistent storage, the
-+ * returned record_id is APEI_ERST_INVALID_RECORD_ID.
-+ */
-+int erst_get_next_record_id(u64 *record_id)
-+{
-+	int rc;
-+	unsigned long flags;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&erst_lock, flags);
-+	rc = __erst_get_next_record_id(record_id);
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(erst_get_next_record_id);
-+
-+static int __erst_write_to_storage(u64 offset)
-+{
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_BEGIN_WRITE);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, offset);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	}
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
-+}
-+
-+static int __erst_read_from_storage(u64 record_id, u64 offset)
-+{
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_BEGIN_READ);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, offset);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, record_id);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	};
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
-+}
-+
-+static int __erst_clear_from_storage(u64 record_id)
-+{
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_BEGIN_CLEAR);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, record_id);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	}
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
-+}
-+
-+/* NVRAM ERST Error Log Address Range is not supported yet */
-+static void pr_unimpl_nvram(void)
-+{
-+	if (printk_ratelimit())
-+		pr_warning(ERST_PFX
-+		"NVRAM ERST Log Address Range is not implemented yet\n");
-+}
-+
-+static int __erst_write_to_nvram(const struct cper_record_header *record)
-+{
-+	/* do not print message, because printk is not safe for NMI */
-+	return -ENOSYS;
-+}
-+
-+static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
-+{
-+	pr_unimpl_nvram();
-+	return -ENOSYS;
-+}
-+
-+static int __erst_clear_from_nvram(u64 record_id)
-+{
-+	pr_unimpl_nvram();
-+	return -ENOSYS;
-+}
-+
-+int erst_write(const struct cper_record_header *record)
-+{
-+	int rc;
-+	unsigned long flags;
-+	struct cper_record_header *rcd_erange;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	if (memcmp(record->signature, CPER_SIG_RECORD, CPER_SIG_SIZE))
-+		return -EINVAL;
-+
-+	if (erst_erange.attr & ERST_RANGE_NVRAM) {
-+		if (!spin_trylock_irqsave(&erst_lock, flags))
-+			return -EBUSY;
-+		rc = __erst_write_to_nvram(record);
-+		spin_unlock_irqrestore(&erst_lock, flags);
-+		return rc;
-+	}
-+
-+	if (record->record_length > erst_erange.size)
-+		return -EINVAL;
-+
-+	if (!spin_trylock_irqsave(&erst_lock, flags))
-+		return -EBUSY;
-+	memcpy(erst_erange.vaddr, record, record->record_length);
-+	rcd_erange = erst_erange.vaddr;
-+	/* signature for serialization system */
-+	memcpy(&rcd_erange->persistence_information, "ER", 2);
-+
-+	rc = __erst_write_to_storage(0);
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(erst_write);
-+
-+static int __erst_read_to_erange(u64 record_id, u64 *offset)
-+{
-+	int rc;
-+
-+	if (erst_erange.attr & ERST_RANGE_NVRAM)
-+		return __erst_read_to_erange_from_nvram(
-+			record_id, offset);
-+
-+	rc = __erst_read_from_storage(record_id, 0);
-+	if (rc)
-+		return rc;
-+	*offset = 0;
-+
-+	return 0;
-+}
-+
-+static ssize_t __erst_read(u64 record_id, struct cper_record_header *record,
-+			   size_t buflen)
-+{
-+	int rc;
-+	u64 offset, len = 0;
-+	struct cper_record_header *rcd_tmp;
-+
-+	rc = __erst_read_to_erange(record_id, &offset);
-+	if (rc)
-+		return rc;
-+	rcd_tmp = erst_erange.vaddr + offset;
-+	len = rcd_tmp->record_length;
-+	if (len <= buflen)
-+		memcpy(record, rcd_tmp, len);
-+
-+	return len;
-+}
-+
-+/*
-+ * If return value > buflen, the buffer size is not big enough,
-+ * else if return value < 0, something goes wrong,
-+ * else everything is OK, and return value is record length
-+ */
-+ssize_t erst_read(u64 record_id, struct cper_record_header *record,
-+		  size_t buflen)
-+{
-+	ssize_t len;
-+	unsigned long flags;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&erst_lock, flags);
-+	len = __erst_read(record_id, record, buflen);
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+	return len;
-+}
-+EXPORT_SYMBOL_GPL(erst_read);
-+
-+/*
-+ * If return value > buflen, the buffer size is not big enough,
-+ * else if return value = 0, there is no more record to read,
-+ * else if return value < 0, something goes wrong,
-+ * else everything is OK, and return value is record length
-+ */
-+ssize_t erst_read_next(struct cper_record_header *record, size_t buflen)
-+{
-+	int rc;
-+	ssize_t len;
-+	unsigned long flags;
-+	u64 record_id;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&erst_lock, flags);
-+	rc = __erst_get_next_record_id(&record_id);
-+	if (rc) {
-+		spin_unlock_irqrestore(&erst_lock, flags);
-+		return rc;
-+	}
-+	/* no more record */
-+	if (record_id == APEI_ERST_INVALID_RECORD_ID) {
-+		spin_unlock_irqrestore(&erst_lock, flags);
-+		return 0;
-+	}
-+
-+	len = __erst_read(record_id, record, buflen);
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return len;
-+}
-+EXPORT_SYMBOL_GPL(erst_read_next);
-+
-+int erst_clear(u64 record_id)
-+{
-+	int rc;
-+	unsigned long flags;
-+
-+	if (erst_disable)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&erst_lock, flags);
-+	if (erst_erange.attr & ERST_RANGE_NVRAM)
-+		rc = __erst_clear_from_nvram(record_id);
-+	else
-+		rc = __erst_clear_from_storage(record_id);
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(erst_clear);
-+
-+static int __init setup_erst_disable(char *str)
-+{
-+	erst_disable = 1;
-+	return 0;
-+}
-+
-+__setup("erst_disable", setup_erst_disable);
-+
-+static int erst_check_table(struct acpi_table_erst *erst_tab)
-+{
-+	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
-+		return -EINVAL;
-+	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
-+		return -EINVAL;
-+	if (erst_tab->entries !=
-+	    (erst_tab->header.length - sizeof(struct acpi_table_erst)) /
-+	    sizeof(struct acpi_erst_entry))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int __init erst_init(void)
-+{
-+	int rc = 0;
-+	acpi_status status;
-+	struct apei_exec_context ctx;
-+	struct apei_resources erst_resources;
-+	struct resource *r;
-+
-+	if (acpi_disabled)
-+		goto err;
-+
-+	if (erst_disable) {
-+		pr_info(ERST_PFX
-+	"Error Record Serialization Table (ERST) support is disabled.\n");
-+		goto err;
-+	}
-+
-+	status = acpi_get_table(ACPI_SIG_ERST, 0,
-+				(struct acpi_table_header **)&erst_tab);
-+	if (status == AE_NOT_FOUND) {
-+		pr_err(ERST_PFX "Table is not found!\n");
-+		goto err;
-+	} else if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+		pr_err(ERST_PFX "Failed to get table, %s\n", msg);
-+		rc = -EINVAL;
-+		goto err;
-+	}
-+
-+	rc = erst_check_table(erst_tab);
-+	if (rc) {
-+		pr_err(FW_BUG ERST_PFX "ERST table is invalid\n");
-+		goto err;
-+	}
-+
-+	apei_resources_init(&erst_resources);
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_collect_resources(&ctx, &erst_resources);
-+	if (rc)
-+		goto err_fini;
-+	rc = apei_resources_request(&erst_resources, "APEI ERST");
-+	if (rc)
-+		goto err_fini;
-+	rc = apei_exec_pre_map_gars(&ctx);
-+	if (rc)
-+		goto err_release;
-+	rc = erst_get_erange(&erst_erange);
-+	if (rc) {
-+		if (rc == -ENODEV)
-+			pr_info(ERST_PFX
-+	"The corresponding hardware device or firmware implementation "
-+	"is not available.\n");
-+		else
-+			pr_err(ERST_PFX
-+			       "Failed to get Error Log Address Range.\n");
-+		goto err_unmap_reg;
-+	}
-+
-+	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
-+	if (!r) {
-+		pr_err(ERST_PFX
-+		"Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
-+		(unsigned long long)erst_erange.base,
-+		(unsigned long long)erst_erange.base + erst_erange.size);
-+		rc = -EIO;
-+		goto err_unmap_reg;
-+	}
-+	rc = -ENOMEM;
-+	erst_erange.vaddr = ioremap_cache(erst_erange.base,
-+					  erst_erange.size);
-+	if (!erst_erange.vaddr)
-+		goto err_release_erange;
-+
-+	pr_info(ERST_PFX
-+	"Error Record Serialization Table (ERST) support is initialized.\n");
-+
-+	return 0;
-+
-+err_release_erange:
-+	release_mem_region(erst_erange.base, erst_erange.size);
-+err_unmap_reg:
-+	apei_exec_post_unmap_gars(&ctx);
-+err_release:
-+	apei_resources_release(&erst_resources);
-+err_fini:
-+	apei_resources_fini(&erst_resources);
-+err:
-+	erst_disable = 1;
-+	return rc;
-+}
-+
-+device_initcall(erst_init);
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -5,9 +5,30 @@
- #ifndef ACPI_APEI_H
- #define ACPI_APEI_H
- 
-+#include <linux/acpi.h>
-+#include <linux/cper.h>
-+#include <asm/ioctls.h>
-+
-+#define APEI_ERST_INVALID_RECORD_ID	0xffffffffffffffffULL
-+
-+#define APEI_ERST_CLEAR_RECORD		_IOW('E', 1, u64)
-+#define APEI_ERST_GET_RECORD_COUNT	_IOR('E', 2, u32)
-+
-+#ifdef __KERNEL__
-+
- extern int hest_disable;
-+extern int erst_disable;
- 
- typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
- int apei_hest_parse(apei_hest_func_t func, void *data);
- 
-+int erst_write(const struct cper_record_header *record);
-+ssize_t erst_get_record_count(void);
-+int erst_get_next_record_id(u64 *record_id);
-+ssize_t erst_read(u64 record_id, struct cper_record_header *record,
-+		  size_t buflen);
-+ssize_t erst_read_next(struct cper_record_header *record, size_t buflen);
-+int erst_clear(u64 record_id);
++struct cper_section_descriptor {
++	__u32	section_offset;		/* Offset in bytes of the
++					 *  section body from the base
++					 *  of the record header */
++	__u32	section_length;
++	__u16	revision;		/* must be CPER_RECORD_REV */
++	__u8	validation_bits;
++	__u8	reserved;		/* must be zero */
++	__u32	flags;
++	uuid_le	section_type;
++	uuid_le	fru_id;
++	__u32	section_severity;
++	__u8	fru_text[20];
++};
++
++/* Generic Processor Error Section */
++struct cper_sec_proc_generic {
++	__u64	validation_bits;
++	__u8	proc_type;
++	__u8	proc_isa;
++	__u8	proc_error_type;
++	__u8	operation;
++	__u8	flags;
++	__u8	level;
++	__u16	reserved;
++	__u64	cpu_version;
++	char	cpu_brand[128];
++	__u64	proc_id;
++	__u64	target_addr;
++	__u64	requestor_id;
++	__u64	responder_id;
++	__u64	ip;
++};
++
++/* IA32/X64 Processor Error Section */
++struct cper_sec_proc_ia {
++	__u64	validation_bits;
++	__u8	lapic_id;
++	__u8	cpuid[48];
++};
++
++/* IA32/X64 Processor Error Infomation Structure */
++struct cper_ia_err_info {
++	uuid_le	err_type;
++	__u64	validation_bits;
++	__u64	check_info;
++	__u64	target_id;
++	__u64	requestor_id;
++	__u64	responder_id;
++	__u64	ip;
++};
++
++/* IA32/X64 Processor Context Information Structure */
++struct cper_ia_proc_ctx {
++	__u16	reg_ctx_type;
++	__u16	reg_arr_size;
++	__u32	msr_addr;
++	__u64	mm_reg_addr;
++};
++
++/* Memory Error Section */
++struct cper_sec_mem_err {
++	__u64	validation_bits;
++	__u64	error_status;
++	__u64	physical_addr;
++	__u64	physical_addr_mask;
++	__u16	node;
++	__u16	card;
++	__u16	module;
++	__u16	bank;
++	__u16	device;
++	__u16	row;
++	__u16	column;
++	__u16	bit_pos;
++	__u64	requestor_id;
++	__u64	responder_id;
++	__u64	target_id;
++	__u8	error_type;
++};
++
++/* Reset to default packing */
++#pragma pack()
++
++u64 cper_next_record_id(void);
 +
 +#endif
- #endif
