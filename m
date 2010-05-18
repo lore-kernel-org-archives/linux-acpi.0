@@ -1,7 +1,7 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v5 13/14] Add x64 support to debugfs
-Date: Tue, 18 May 2010 14:35:23 +0800
-Message-ID: <1274164524-6092-14-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v5 08/14] Unified UUID/GUID definition
+Date: Tue, 18 May 2010 14:35:18 +0800
+Message-ID: <1274164524-6092-9-git-send-email-ying.huang@intel.com>
 References: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
@@ -10,62 +10,165 @@ To: lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add debugfs_create_x64. This is needed by ACPI APEI EINJ parameters support.
+There are many different UUID/GUID definitions in kernel, such as that
+in EFI, many file systems, some drivers, etc. Every kernel components
+need UUID/GUID has its own definition. This patch provides a unified
+definition for UUID/GUID.
+
+UUID is defined via typedef. This makes that UUID appears more like a
+preliminary type, and makes the data type explicit (comparing with
+implicit "u8 uuid[16]").
+
+The binary representation of UUID/GUID can be little-endian (used by
+EFI, etc) or big-endian (defined by RFC4122), so both is defined.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/debugfs/file.c       |   21 ++++++++++++++++++++-
- include/linux/debugfs.h |    2 ++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ include/linux/uuid.h |   70 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/Makefile         |    2 -
+ lib/uuid.c           |   53 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 124 insertions(+), 1 deletion(-)
+ create mode 100644 include/linux/uuid.h
+ create mode 100644 lib/uuid.c
 
---- a/fs/debugfs/file.c
-+++ b/fs/debugfs/file.c
-@@ -277,8 +277,10 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_x32, debugf
- DEFINE_SIMPLE_ATTRIBUTE(fops_x32_ro, debugfs_u32_get, NULL, "0x%08llx\n");
- DEFINE_SIMPLE_ATTRIBUTE(fops_x32_wo, NULL, debugfs_u32_set, "0x%08llx\n");
- 
-+DEFINE_SIMPLE_ATTRIBUTE(fops_x64, debugfs_u64_get, debugfs_u64_set, "0x%016llx\n");
-+
- /*
-- * debugfs_create_x{8,16,32} - create a debugfs file that is used to read and write an unsigned {8,16,32}-bit value
-+ * debugfs_create_x{8,16,32,64} - create a debugfs file that is used to read and write an unsigned {8,16,32,64}-bit value
-  *
-  * These functions are exactly the same as the above functions (but use a hex
-  * output for the decimal challenged). For details look at the above unsigned
-@@ -357,6 +359,23 @@ struct dentry *debugfs_create_x32(const
- }
- EXPORT_SYMBOL_GPL(debugfs_create_x32);
- 
-+/**
-+ * debugfs_create_x64 - create a debugfs file that is used to read and write an unsigned 64-bit value
-+ * @name: a pointer to a string containing the name of the file to create.
-+ * @mode: the permission that the file should have
-+ * @parent: a pointer to the parent dentry for this file.  This should be a
-+ *          directory dentry if set.  If this parameter is %NULL, then the
-+ *          file will be created in the root of the debugfs filesystem.
-+ * @value: a pointer to the variable that the file should read to and write
-+ *         from.
+--- /dev/null
++++ b/include/linux/uuid.h
+@@ -0,0 +1,70 @@
++/*
++ * UUID/GUID definition
++ *
++ * Copyright (C) 2010, Intel Corp.
++ *	Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
-+struct dentry *debugfs_create_x64(const char *name, mode_t mode,
-+				 struct dentry *parent, u64 *value)
-+{
-+	return debugfs_create_file(name, mode, parent, value, &fops_x64);
-+}
-+EXPORT_SYMBOL_GPL(debugfs_create_x64);
 +
++#ifndef _LINUX_UUID_H_
++#define _LINUX_UUID_H_
++
++#include <linux/types.h>
++#include <linux/string.h>
++
++typedef struct {
++	__u8 b[16];
++} uuid_le;
++
++typedef struct {
++	__u8 b[16];
++} uuid_be;
++
++#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++((uuid_le)								\
++{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
++   (b) & 0xff, ((b) >> 8) & 0xff,					\
++   (c) & 0xff, ((c) >> 8) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++
++#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++((uuid_be)								\
++{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
++   ((b) >> 8) & 0xff, (b) & 0xff,					\
++   ((c) >> 8) & 0xff, (c) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++
++#define NULL_UUID_LE							\
++	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++		0x00, 0x00, 0x00, 0x00)
++
++#define NULL_UUID_BE							\
++	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++		0x00, 0x00, 0x00, 0x00)
++
++static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
++{
++	return memcmp(&u1, &u2, sizeof(uuid_le));
++}
++
++static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
++{
++	return memcmp(&u1, &u2, sizeof(uuid_be));
++}
++
++extern void uuid_le_gen(uuid_le *u);
++extern void uuid_be_gen(uuid_be *u);
++
++#endif
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
  
- static int debugfs_size_t_set(void *data, u64 val)
- {
---- a/include/linux/debugfs.h
-+++ b/include/linux/debugfs.h
-@@ -63,6 +63,8 @@ struct dentry *debugfs_create_x16(const
- 				  struct dentry *parent, u16 *value);
- struct dentry *debugfs_create_x32(const char *name, mode_t mode,
- 				  struct dentry *parent, u32 *value);
-+struct dentry *debugfs_create_x64(const char *name, mode_t mode,
-+				  struct dentry *parent, u64 *value);
- struct dentry *debugfs_create_size_t(const char *name, mode_t mode,
- 				     struct dentry *parent, size_t *value);
- struct dentry *debugfs_create_bool(const char *name, mode_t mode,
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o lcm.o list_sort.o
++	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+--- /dev/null
++++ b/lib/uuid.c
+@@ -0,0 +1,53 @@
++/*
++ * Unified UUID/GUID definition
++ *
++ * Copyright (C) 2009, Intel Corp.
++ *	Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/uuid.h>
++#include <linux/random.h>
++
++static void __uuid_gen_common(__u8 b[16])
++{
++	int i;
++	u32 r;
++
++	for (i = 0; i < 4; i++) {
++		r = random32();
++		memcpy(b + i * 4, &r, 4);
++	}
++	/* reversion 0b10 */
++	b[8] = (b[8] & 0x3F) | 0x80;
++}
++
++void uuid_le_gen(uuid_le *lu)
++{
++	__uuid_gen_common(lu->b);
++	/* version 4 : random generation */
++	lu->b[7] = (lu->b[7] & 0x0F) | 0x40;
++}
++EXPORT_SYMBOL_GPL(uuid_le_gen);
++
++void uuid_be_gen(uuid_be *bu)
++{
++	__uuid_gen_common(bu->b);
++	/* version 4 : random generation */
++	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
++}
++EXPORT_SYMBOL_GPL(uuid_be_gen);
