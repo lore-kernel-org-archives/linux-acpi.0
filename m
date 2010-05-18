@@ -1,68 +1,74 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 1/3] ACPICA: make ObjectCount to be UINT32
-Date: Wed, 19 May 2010 00:25:24 +0400
-Message-ID: <20100518202524.29771.96252.stgit@thinkpad>
+Subject: [PATCH 2/3] ACPICA: Keep track of method changes to namespace
+Date: Wed, 19 May 2010 00:25:31 +0400
+Message-ID: <20100518202531.29771.18173.stgit@thinkpad>
+References: <20100518202524.29771.96252.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:44487 "EHLO
+Received: from nat.nue.novell.com ([195.135.221.3]:33718 "EHLO
 	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755260Ab0ERUZ1 (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 18 May 2010 16:25:27 -0400
+	with ESMTP id S1755260Ab0ERUZd (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 18 May 2010 16:25:33 -0400
+In-Reply-To: <20100518202524.29771.96252.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-SGI UV machine does not fit into UINT16 count
+Try to delete nodes from namespace only if method really added them
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- source/components/dispatcher/dsinit.c |    2 +-
- source/components/namespace/nsinit.c  |    2 +-
- source/include/acstruct.h             |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ source/components/dispatcher/dsmethod.c |    5 ++++-
+ source/components/namespace/nsalloc.c   |    4 ++++
+ source/include/acobject.h               |    1 +
+ 3 files changed, 9 insertions(+), 1 deletions(-)
 
 
-diff --git a/source/components/dispatcher/dsinit.c b/source/components/dispatcher/dsinit.c
-index 4525a0b..349c774 100644
---- a/source/components/dispatcher/dsinit.c
-+++ b/source/components/dispatcher/dsinit.c
-@@ -297,7 +297,7 @@ AcpiDsInitializeObjects (
+diff --git a/source/components/dispatcher/dsmethod.c b/source/components/dispatcher/dsmethod.c
+index 969c9ca..fe7a9a8 100644
+--- a/source/components/dispatcher/dsmethod.c
++++ b/source/components/dispatcher/dsmethod.c
+@@ -700,7 +700,10 @@ AcpiDsTerminateControlMethod (
+          */
+         if (!(MethodDesc->Method.Flags & AOPOBJ_MODULE_LEVEL))
+         {
+-            AcpiNsDeleteNamespaceByOwner (MethodDesc->Method.OwnerId);
++            if (MethodDesc->Method.UsesNamespace)
++            {
++                AcpiNsDeleteNamespaceByOwner (MethodDesc->Method.OwnerId);
++            }
+         }
      }
  
-     ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT,
--        "\nTable [%4.4s](id %4.4X) - %hd Objects with %hd Devices %hd Methods %hd Regions\n",
-+        "\nTable [%4.4s](id %4.4X) - %d Objects with %hd Devices %hd Methods %hd Regions\n",
-         Table->Signature, OwnerId, Info.ObjectCount,
-         Info.DeviceCount, Info.MethodCount, Info.OpRegionCount));
+diff --git a/source/components/namespace/nsalloc.c b/source/components/namespace/nsalloc.c
+index aadafbf..16bcdd3 100644
+--- a/source/components/namespace/nsalloc.c
++++ b/source/components/namespace/nsalloc.c
+@@ -343,6 +343,10 @@ AcpiNsInstallNode (
+     if (WalkState)
+     {
+         OwnerId = WalkState->OwnerId;
++        if (WalkState->MethodDesc)
++        {
++            WalkState->MethodDesc->Method.UsesNamespace = 1;
++        }
+     }
  
-diff --git a/source/components/namespace/nsinit.c b/source/components/namespace/nsinit.c
-index 770235e..e59eb8e 100644
---- a/source/components/namespace/nsinit.c
-+++ b/source/components/namespace/nsinit.c
-@@ -194,7 +194,7 @@ AcpiNsInitializeObjects (
+     /* Link the new entry into the parent and existing children */
+diff --git a/source/include/acobject.h b/source/include/acobject.h
+index f86f839..502132a 100644
+--- a/source/include/acobject.h
++++ b/source/include/acobject.h
+@@ -296,6 +296,7 @@ typedef struct acpi_object_method
  
-     ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT,
-         "\nInitialized %hd/%hd Regions %hd/%hd Fields %hd/%hd "
--        "Buffers %hd/%hd Packages (%hd nodes)\n",
-+        "Buffers %hd/%hd Packages (%d nodes)\n",
-         Info.OpRegionInit,  Info.OpRegionCount,
-         Info.FieldInit,     Info.FieldCount,
-         Info.BufferInit,    Info.BufferCount,
-diff --git a/source/include/acstruct.h b/source/include/acstruct.h
-index d4696b8..8f9c550 100644
---- a/source/include/acstruct.h
-+++ b/source/include/acstruct.h
-@@ -218,7 +218,7 @@ typedef struct acpi_init_walk_info
-     UINT16                          FieldInit;
-     UINT16                          BufferInit;
-     UINT16                          PackageInit;
--    UINT16                          ObjectCount;
-+    UINT32                          ObjectCount;
+     UINT32                          AmlLength;
+     UINT8                           ThreadCount;
++    UINT8                           UsesNamespace;
      ACPI_OWNER_ID                   OwnerId;
-     UINT32                          TableIndex;
  
+ } ACPI_OBJECT_METHOD;
 
