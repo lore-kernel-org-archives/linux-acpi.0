@@ -1,125 +1,58 @@
-From: Venkatesh Pallipadi <venki@google.com>
-Subject: Re: [PATCH] acpi: Minor cleanup eliminating redundant PMTIMER_TICKS
-	to NS conversion
-Date: Mon, 17 May 2010 18:47:00 -0700
-Message-ID: <AANLkTikdLzwZmbJ4kubmdmArqgo7ya1ooN7XQzqN-39z@mail.gmail.com>
-References: <1271980113-5624-1-git-send-email-venki@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v5 00/14] ACPI, APEI support
+Date: Tue, 18 May 2010 14:35:10 +0800
+Message-ID: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:15755 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754422Ab0ERBrE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 May 2010 21:47:04 -0400
-Received: from kpbe15.cbf.corp.google.com (kpbe15.cbf.corp.google.com [172.25.105.79])
-	by smtp-out.google.com with ESMTP id o4I1l1gZ025315
-	for <linux-acpi@vger.kernel.org>; Mon, 17 May 2010 18:47:02 -0700
-Received: from gxk21 (gxk21.prod.google.com [10.202.11.21])
-	by kpbe15.cbf.corp.google.com with ESMTP id o4I1l0l9022902
-	for <linux-acpi@vger.kernel.org>; Mon, 17 May 2010 18:47:01 -0700
-Received: by gxk21 with SMTP id 21so957722gxk.14
-        for <linux-acpi@vger.kernel.org>; Mon, 17 May 2010 18:47:00 -0700 (PDT)
-In-Reply-To: <1271980113-5624-1-git-send-email-venki@google.com>
+Received: from mga02.intel.com ([134.134.136.20]:14864 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753398Ab0ERGfh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 May 2010 02:35:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI list <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venki@google.com>
+To: lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, ying.huang@intel.com, andi@firstfloor.org, linux-acpi@vger.kernel.org
 
-An incremental patch that removes some more redundancy in idle entry/exit.
+This patchset adds the APEI (ACPI Platform Error Interface) support to
+Linux kernel.
 
-Subject: [PATCH] acpi: Eliminate us to pm ticks conversion in common path
+Changelog:
 
-acpi_enter_[simple|bm] routines does us to pm tick conversion on every
-idle wakeup and the value is only used in /proc/acpi display. We can
-store the time in us and convert it into pm ticks before printing instead and
-avoid the conversion in the common path. That also means no
-unnecessary conversion overhead when ACPI_PROCFS is disabled.
+v5:
 
-Signed-off-by: Venkatesh Pallipadi <venki@google.com>
----
- drivers/acpi/processor_idle.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+- Incorporate some fixes to previous version
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 9e734ce..336da8d 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -80,7 +80,7 @@ module_param(nocst, uint, 0000);
- static unsigned int latency_factor __read_mostly = 2;
- module_param(latency_factor, uint, 0644);
+- Add EINJ parameter support: 13, 14
 
--static s64 us_to_pm_timer_ticks(s64 t)
-+static u64 us_to_pm_timer_ticks(s64 t)
- {
- 	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
- }
-@@ -741,10 +741,10 @@ static int acpi_processor_power_seq_show(struct
-seq_file *seq, void *offset)
- 		else
- 			seq_puts(seq, "demotion[--] ");
+v4:
 
--		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
-+		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020Lu]\n",
- 			   pr->power.states[i].latency,
- 			   pr->power.states[i].usage,
--			   (unsigned long long)pr->power.states[i].time);
-+			   us_to_pm_timer_ticks(pr->power.states[i].time));
- 	}
+1-06 include the basic APEI HEST parsing and EINJ support. They have
+been posted to mailing list before and get some reviews and
+ACKs. Changes since the last post are as follow.
 
-       end:
-@@ -871,7 +871,6 @@ static int acpi_idle_enter_simple(struct
-cpuidle_device *dev,
- 	ktime_t  kt1, kt2;
- 	s64 idle_time_ns;
- 	s64 idle_time;
--	s64 sleep_ticks = 0;
+- Make APEI infrastructure and HEST parsing configurable built-in
+  instead of modules to solve some dependency issues.
 
- 	pr = __get_cpu_var(processors);
+- Some minor fixes, such as printk
 
-@@ -915,8 +914,6 @@ static int acpi_idle_enter_simple(struct
-cpuidle_device *dev,
- 	idle_time = idle_time_ns;
- 	do_div(idle_time, NSEC_PER_USEC);
+07-10 are newly added to support GHES (Generic Hardware Error Source)
+corrected memory error. On some machines, Machine Check can not report
+physical address for some corrected memory errors, but GHES can do
+that. So this simplified GHES is implemented and posted firstly.
 
--	sleep_ticks = us_to_pm_timer_ticks(idle_time);
--
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(idle_time_ns);
+11-12 are newly added to support using ERST for persistent storage of
+MCE. This can improve fatal MCE report.
 
-@@ -926,7 +923,7 @@ static int acpi_idle_enter_simple(struct
-cpuidle_device *dev,
- 	cx->usage++;
-
- 	lapic_timer_state_broadcast(pr, cx, 0);
--	cx->time += sleep_ticks;
-+	cx->time += idle_time;
- 	return idle_time;
- }
-
-@@ -948,7 +945,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	ktime_t  kt1, kt2;
- 	s64 idle_time_ns;
- 	s64 idle_time;
--	s64 sleep_ticks = 0;
-
-
- 	pr = __get_cpu_var(processors);
-@@ -1033,7 +1029,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	idle_time = idle_time_ns;
- 	do_div(idle_time, NSEC_PER_USEC);
-
--	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(idle_time_ns);
-
-@@ -1043,7 +1038,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	cx->usage++;
-
- 	lapic_timer_state_broadcast(pr, cx, 0);
--	cx->time += sleep_ticks;
-+	cx->time += idle_time;
- 	return idle_time;
- }
-
--- 
-1.7.0.1
+[PATCH -v5 01/14] ACPI, IO memory pre-mapping and atomic accessing
+[PATCH -v5 02/14] ACPI, APEI, APEI supporting infrastructure
+[PATCH -v5 03/14] ACPI, APEI, HEST table parsing
+[PATCH -v5 04/14] ACPI, APEI, EINJ support
+[PATCH -v5 05/14] ACPI, APEI, Document for APEI
+[PATCH -v5 06/14] ACPI, APEI, PCIE AER, use general HEST table parsing in AER firmware_first setup
+[PATCH -v5 07/14] ACPI Hardware Error Device (PNP0C33) support
+[PATCH -v5 08/14] Unified UUID/GUID definition
+[PATCH -v5 09/14] ACPI, APEI, UEFI Common Platform Error Record (CPER) header
+[PATCH -v5 10/14] ACPI, APEI, Generic Hardware Error Source memory error support
+[PATCH -v5 11/14] ACPI, APEI, Error Record Serialization Table (ERST) support
+[PATCH -v5 12/14] ACPI, APEI, Use ERST for persistent storage of MCE
+[PATCH -v5 13/14] Add x64 support to debugfs
+[PATCH -v5 14/14] ACPI, APEI, EINJ injection parameters support
