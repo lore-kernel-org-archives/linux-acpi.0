@@ -1,91 +1,68 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPI: Ignore the upper bits of SystemIO addresses
-Date: Tue, 18 May 2010 11:50:34 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858707F6E46@orsmsx503.amr.corp.intel.com>
-References: <1274206035-10571-1-git-send-email-mjg@redhat.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH 1/3] ACPICA: make ObjectCount to be UINT32
+Date: Wed, 19 May 2010 00:25:24 +0400
+Message-ID: <20100518202524.29771.96252.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:7832 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753902Ab0ERSuk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 May 2010 14:50:40 -0400
-In-Reply-To: <1274206035-10571-1-git-send-email-mjg@redhat.com>
-Content-Language: en-US
+Received: from nat.nue.novell.com ([195.135.221.3]:44487 "EHLO
+	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755260Ab0ERUZ1 (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 18 May 2010 16:25:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>
+To: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-Ok, will backport to ACPICA.
-Thanks,
-Bob
+SGI UV machine does not fit into UINT16 count
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+
+ source/components/dispatcher/dsinit.c |    2 +-
+ source/components/namespace/nsinit.c  |    2 +-
+ source/include/acstruct.h             |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 
->-----Original Message-----
->From: Matthew Garrett [mailto:mjg@redhat.com]
->Sent: Tuesday, May 18, 2010 11:07 AM
->To: linux-acpi@vger.kernel.org
->Cc: Moore, Robert; lenb@kernel.org; Matthew Garrett
->Subject: [PATCH] ACPI: Ignore the upper bits of SystemIO addresses
->
->Various machines (https://bugzilla.redhat.com/show_bug.cgi?id=585756 for
->instance) contain SystemIO spaces with addresses > 16 bits. acpica throws
->an error for this, while Windows silently ignores the upper 16 bits and
->carries on happily. Implement the latter behaviour for bug compatibility.
->
->Signed-off-by: Matthew Garrett <mjg@redhat.com>
->---
-> drivers/acpi/acpica/hwvalid.c |   17 ++++++++---------
-> 1 files changed, 8 insertions(+), 9 deletions(-)
->
->diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
->index e26c17d..ddfb4f1 100644
->--- a/drivers/acpi/acpica/hwvalid.c
->+++ b/drivers/acpi/acpica/hwvalid.c
->@@ -146,15 +146,6 @@ acpi_hw_validate_io_request(acpi_io_address address,
->u32 bit_width)
-> 								      last_address),
-> 			  byte_width));
->
->-	/* Maximum 16-bit address in I/O space */
->-
->-	if (last_address > ACPI_UINT16_MAX) {
->-		ACPI_ERROR((AE_INFO,
->-			    "Illegal I/O port address/length above 64K: 0x%p/%X",
->-			    ACPI_CAST_PTR(void, address), byte_width));
->-		return_ACPI_STATUS(AE_LIMIT);
->-	}
->-
-> 	/* Exit if requested address is not within the protected port table
->*/
->
-> 	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end) {
->@@ -222,6 +213,10 @@ acpi_status acpi_hw_read_port(acpi_io_address address,
->u32 *value, u32 width)
-> 	u32 one_byte;
-> 	u32 i;
->
->+	/* Windows only uses the lower 16 bits of an address. Emulate that */
->+
->+	address &= 0xffff;
->+
-> 	/* Validate the entire request and perform the I/O */
->
-> 	status = acpi_hw_validate_io_request(address, width);
->@@ -279,6 +274,10 @@ acpi_status acpi_hw_write_port(acpi_io_address
->address, u32 value, u32 width)
-> 	acpi_status status;
-> 	u32 i;
->
->+	/* Windows only uses the lower 16 bits of an address. Emulate that */
->+
->+	address &= 0xffff;
->+
-> 	/* Validate the entire request and perform the I/O */
->
-> 	status = acpi_hw_validate_io_request(address, width);
->--
->1.7.0.1
+diff --git a/source/components/dispatcher/dsinit.c b/source/components/dispatcher/dsinit.c
+index 4525a0b..349c774 100644
+--- a/source/components/dispatcher/dsinit.c
++++ b/source/components/dispatcher/dsinit.c
+@@ -297,7 +297,7 @@ AcpiDsInitializeObjects (
+     }
+ 
+     ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT,
+-        "\nTable [%4.4s](id %4.4X) - %hd Objects with %hd Devices %hd Methods %hd Regions\n",
++        "\nTable [%4.4s](id %4.4X) - %d Objects with %hd Devices %hd Methods %hd Regions\n",
+         Table->Signature, OwnerId, Info.ObjectCount,
+         Info.DeviceCount, Info.MethodCount, Info.OpRegionCount));
+ 
+diff --git a/source/components/namespace/nsinit.c b/source/components/namespace/nsinit.c
+index 770235e..e59eb8e 100644
+--- a/source/components/namespace/nsinit.c
++++ b/source/components/namespace/nsinit.c
+@@ -194,7 +194,7 @@ AcpiNsInitializeObjects (
+ 
+     ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT,
+         "\nInitialized %hd/%hd Regions %hd/%hd Fields %hd/%hd "
+-        "Buffers %hd/%hd Packages (%hd nodes)\n",
++        "Buffers %hd/%hd Packages (%d nodes)\n",
+         Info.OpRegionInit,  Info.OpRegionCount,
+         Info.FieldInit,     Info.FieldCount,
+         Info.BufferInit,    Info.BufferCount,
+diff --git a/source/include/acstruct.h b/source/include/acstruct.h
+index d4696b8..8f9c550 100644
+--- a/source/include/acstruct.h
++++ b/source/include/acstruct.h
+@@ -218,7 +218,7 @@ typedef struct acpi_init_walk_info
+     UINT16                          FieldInit;
+     UINT16                          BufferInit;
+     UINT16                          PackageInit;
+-    UINT16                          ObjectCount;
++    UINT32                          ObjectCount;
+     ACPI_OWNER_ID                   OwnerId;
+     UINT32                          TableIndex;
+ 
 
