@@ -1,59 +1,37 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 3/3] ACPI: Enable Windows ioport access compatibility on Windows-compatible systems
-Date: Wed, 19 May 2010 10:25:58 -0600
-Message-ID: <201005191025.59005.bjorn.helgaas@hp.com>
-References: <1274283791-3380-1-git-send-email-mjg@redhat.com> <1274283791-3380-3-git-send-email-mjg@redhat.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH 1/3] ACPI: Ignore the upper bits of SystemIO addresses
+Date: Wed, 19 May 2010 17:27:02 +0100
+Message-ID: <20100519162702.GB25719@srcf.ucam.org>
+References: <1274283791-3380-1-git-send-email-mjg@redhat.com> <201005191018.46799.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:45702 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241Ab0ESQ0J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 May 2010 12:26:09 -0400
-In-Reply-To: <1274283791-3380-3-git-send-email-mjg@redhat.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:52572 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752241Ab0ESQ1N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 May 2010 12:27:13 -0400
+Content-Disposition: inline
+In-Reply-To: <201005191018.46799.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: linux-acpi@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org
 
-On Wednesday, May 19, 2010 09:43:11 am Matthew Garrett wrote:
-> Windows ignores everything but the lower 16 bits of system io accesses.
-> Enable compatibility with it if the firmware indicates Windows compatibility
-> by requesting a version of Windows via the _OSI method.
-> 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> ---
->  drivers/acpi/bus.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 743576b..a10144b 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -904,6 +904,14 @@ static int __init acpi_bus_init(void)
->  		goto error1;
->  	}
->  
-> +	/*
-> +	 * _SB_._INI has been called, so any _OSI requests should now have
-> +	 * been completed - enable any OS-specific workarounds
-> +	 */
-> +
-> +	if (acpi_gbl_osi_data >= ACPI_OSI_WIN_2000)
-> +		acpi_gbl_ignore_high_ioport_bits = TRUE;
+On Wed, May 19, 2010 at 10:18:46AM -0600, Bjorn Helgaas wrote:
 
-What's the basis for the Win 2000 check?  Is the intent that we
-do this for all Windows versions?  Wikipedia claims Windows 98 had
-ACPI support, but there's no ACPI_OSI_WIN_98 definition.
+> I think this is a good idea.  But it makes me a little bit nervous
+> to change addresses supplied by the firmware without any user-visible
+> indication at all.  Is it worth doing a WARN_ONCE() sort of thing
+> when we truncate?
 
-Is there a reason why we wouldn't just set ignore_high_ioport_bits = TRUE
-always?
+That doesn't seem unreasonable, but do we have anything equivalent to 
+that in the acpica code right now?
 
-I'm sure you're doing this right; I'm just hoping for enough details
-that if we ever *do* have a valid IO address that doesn't fit in 16
-bits, we'll be able to accomodate that without breaking old boxes
-again.
+> I know you experimented quite a bit to confirm that Windows does this
+> sort of masking.  Do you have any notes about that experimentation
+> that would be useful to add to the bugzilla?
 
-Bjorn
+Sure. I'll do that.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
