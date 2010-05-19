@@ -1,45 +1,50 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 3/3] ACPI: Enable Windows ioport access compatibility
-	on Windows-compatible systems
-Date: Wed, 19 May 2010 17:38:02 +0100
-Message-ID: <20100519163802.GA26175@srcf.ucam.org>
-References: <1274283791-3380-1-git-send-email-mjg@redhat.com> <1274283791-3380-3-git-send-email-mjg@redhat.com> <201005191025.59005.bjorn.helgaas@hp.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH] ACPICA: Handle large field appertures.
+Date: Wed, 19 May 2010 21:35:37 +0400
+Message-ID: <4BF42169.1090401@gmail.com>
+References: <20100518203129.30268.71941.stgit@thinkpad> <201005191028.12207.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:47283 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976Ab0ESQiN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 May 2010 12:38:13 -0400
-Content-Disposition: inline
-In-Reply-To: <201005191025.59005.bjorn.helgaas@hp.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47399 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215Ab0ESRfm (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 19 May 2010 13:35:42 -0400
+Received: by fxm10 with SMTP id 10so2620901fxm.19
+        for <Linux-acpi@vger.kernel.org>; Wed, 19 May 2010 10:35:40 -0700 (PDT)
+In-Reply-To: <201005191028.12207.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-On Wed, May 19, 2010 at 10:25:58AM -0600, Bjorn Helgaas wrote:
+19.05.2010 20:28, Bjorn Helgaas =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On Tuesday, May 18, 2010 02:31:29 pm Alexey Starikovskiy wrote:
+>   =20
+>> Signed-off-by: Alexey Starikovskiy<astarikovskiy@suse.de>
+>>     =20
+> What happened to the changelogs on this and the previous few patches?
+>
+> s/appertures/apertures/
+>
+> Bjorn
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   =20
+These were "old" patches, about a year ago... I sent them just as a=20
+reminder to Bob, not as request
+for inclusion.
 
-> What's the basis for the Win 2000 check?  Is the intent that we
-> do this for all Windows versions?  Wikipedia claims Windows 98 had
-> ACPI support, but there's no ACPI_OSI_WIN_98 definition.
+Thanks for spell check, will update.
 
-The aim is to do this for all Windows versions, but Windows < 2000 
-didn't provide an _OSI method - instead there's a _OS string that the 
-firmware can strcmp. It's not really practical to figure out what the 
-firmware's looking for in that case, and given that nobody else has 
-complained about this with luck we'll be fine.
-
-> Is there a reason why we wouldn't just set ignore_high_ioport_bits = TRUE
-> always?
-
-My only concern is that there may be a machine that was never intended 
-for use with Windows and which has an incorrect io port declared. In 
-that case we'd /potentially/ break an otherwise working machine. I think 
-the probability of this being the case is astronomically small, but it 
-probably makes sense to check. If x86 gains more ioports in future and 
-Windows supports that, we can limit the check to systems that don't 
-claim support for that newer version of Windows.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alex.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
