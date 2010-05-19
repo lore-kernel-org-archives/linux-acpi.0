@@ -1,81 +1,86 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 2/3] ACPI: Add acpi_gbl_osi_data to OS headers
-Date: Wed, 19 May 2010 11:43:10 -0400
-Message-ID: <1274283791-3380-2-git-send-email-mjg@redhat.com>
-References: <1274283791-3380-1-git-send-email-mjg@redhat.com>
+Subject: [PATCH 1/3] ACPI: Ignore the upper bits of SystemIO addresses
+Date: Wed, 19 May 2010 11:43:09 -0400
+Message-ID: <1274283791-3380-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18175 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:24600 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752044Ab0ESPnc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752320Ab0ESPnc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 19 May 2010 11:43:32 -0400
-In-Reply-To: <1274283791-3380-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: robert.moore@intel.com, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
 
-Different operating systems may wish to enable different workaround quirks
-depending on the _OSI methods called by the firmware. Add the declaration
-of acpi_gbl_osi_data to the OS headers and move the associated #defines in
-order to make this possible.
+Various machines (https://bugzilla.redhat.com/show_bug.cgi?id=585756 for
+instance) contain SystemIO spaces with addresses > 16 bits. acpica throws
+an error for this, while Windows silently ignores the upper 16 bits and
+carries on happily. Provide support for the latter behaviour for bug
+compatibility.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/acpica/aclocal.h |   13 -------------
- include/acpi/acpixf.h         |   14 ++++++++++++++
- 2 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    6 ++++++
+ drivers/acpi/acpica/hwvalid.c  |   10 ++++++++++
+ include/acpi/acpixf.h          |    1 +
+ 3 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 24b8faa..66f58f0 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -891,19 +891,6 @@ struct acpi_bit_register_info {
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index f8dd8f2..f302168 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -112,6 +112,12 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_leave_wake_gpes_disabled, TRUE);
+  */
+ u8 ACPI_INIT_GLOBAL(acpi_gbl_use_default_register_widths, TRUE);
  
- #define ACPI_BITPOSITION_ARB_DISABLE            0x00
++/*
++ * Optionally provide compatibility with Windows by only using the lower
++ * 16 bits of system io addresses.
++ */
++u8 ACPI_INIT_GLOBAL(acpi_gbl_ignore_high_ioport_bits, FALSE);
++
+ /* acpi_gbl_FADT is a local copy of the FADT, converted to a common format. */
  
--/* Structs and definitions for _OSI support and I/O port validation */
--
--#define ACPI_OSI_WIN_2000               0x01
--#define ACPI_OSI_WIN_XP                 0x02
--#define ACPI_OSI_WIN_XP_SP1             0x03
--#define ACPI_OSI_WINSRV_2003            0x04
--#define ACPI_OSI_WIN_XP_SP2             0x05
--#define ACPI_OSI_WINSRV_2003_SP1        0x06
--#define ACPI_OSI_WIN_VISTA              0x07
--#define ACPI_OSI_WINSRV_2008            0x08
--#define ACPI_OSI_WIN_VISTA_SP1          0x09
--#define ACPI_OSI_WIN_7                  0x0A
--
- #define ACPI_ALWAYS_ILLEGAL             0x00
+ struct acpi_table_fadt acpi_gbl_FADT;
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index e26c17d..c151a15 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -222,6 +222,11 @@ acpi_status acpi_hw_read_port(acpi_io_address address, u32 *value, u32 width)
+ 	u32 one_byte;
+ 	u32 i;
  
- struct acpi_interface_info {
++	if (acpi_gbl_ignore_high_ioport_bits)
++		/* Windows only uses the lower 16 bits of an address.
++		   Emulate that */
++		address &= 0xffff;
++
+ 	/* Validate the entire request and perform the I/O */
+ 
+ 	status = acpi_hw_validate_io_request(address, width);
+@@ -279,6 +284,11 @@ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width)
+ 	acpi_status status;
+ 	u32 i;
+ 
++	if (acpi_gbl_ignore_high_ioport_bits)
++		/* Windows only uses the lower 16 bits of an address.
++		   Emulate that */
++		address &= 0xffff;
++
+ 	/* Validate the entire request and perform the I/O */
+ 
+ 	status = acpi_hw_validate_io_request(address, width);
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 847d262..fa0a8ef 100644
+index 4447a04..847d262 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -66,9 +66,23 @@ extern u8 acpi_gbl_create_osi_method;
+@@ -65,6 +65,7 @@ extern u8 acpi_gbl_all_methods_serialized;
+ extern u8 acpi_gbl_create_osi_method;
  extern u8 acpi_gbl_leave_wake_gpes_disabled;
  extern u8 acpi_gbl_use_default_register_widths;
- extern u8 acpi_gbl_ignore_high_ioport_bits;
-+extern u8 acpi_gbl_osi_data;
++extern u8 acpi_gbl_ignore_high_ioport_bits;
  extern acpi_name acpi_gbl_trace_method_name;
  extern u32 acpi_gbl_trace_flags;
- 
-+/* Structs and definitions for _OSI support and I/O port validation */
-+
-+#define ACPI_OSI_WIN_2000               0x01
-+#define ACPI_OSI_WIN_XP                 0x02
-+#define ACPI_OSI_WIN_XP_SP1             0x03
-+#define ACPI_OSI_WINSRV_2003            0x04
-+#define ACPI_OSI_WIN_XP_SP2             0x05
-+#define ACPI_OSI_WINSRV_2003_SP1        0x06
-+#define ACPI_OSI_WIN_VISTA              0x07
-+#define ACPI_OSI_WINSRV_2008            0x08
-+#define ACPI_OSI_WIN_VISTA_SP1          0x09
-+#define ACPI_OSI_WIN_7                  0x0A
-+
- extern u32 acpi_current_gpe_count;
- extern struct acpi_table_fadt acpi_gbl_FADT;
  
 -- 
 1.7.0.1
