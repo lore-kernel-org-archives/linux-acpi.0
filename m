@@ -1,38 +1,24 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v5 05/14] ACPI, APEI, Document for APEI
-Date: Thu, 20 May 2010 10:43:11 +0800
-Message-ID: <1274323391.5309.5.camel@yhuang-dev.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH -v5 00/14] ACPI, APEI support
+Date: Wed, 19 May 2010 22:44:31 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005192244070.2921@localhost.localdomain>
 References: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
-	 <1274164524-6092-6-git-send-email-ying.huang@intel.com>
-	 <4BF30BF8.8080202@oracle.com>
-	 <1274238402.24034.12.camel@yhuang-dev.sh.intel.com>
-	 <alpine.LFD.2.00.1005192238320.2921@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47658 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752481Ab0ETCnN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 May 2010 22:43:13 -0400
-In-Reply-To: <alpine.LFD.2.00.1005192238320.2921@localhost.localdomain>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:39489 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab0ETCod (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 May 2010 22:44:33 -0400
+In-reply-to: <1274164524-6092-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: linux-kernel@vger.kernel.org, andi@firstfloor.org, linux-acpi@vger.kernel.org
 
-Hi, Len,
+Thank for the update, Ying.
+I've replaced v4 in the acpi tree with v5.
 
-Thank you very much!
-
-Best Regards,
-Huang Ying
-On Thu, 2010-05-20 at 10:39 +0800, Len Brown wrote:
-> Ying, I fixed these documentation issues in place,
-> so no need to send an incremental patch.
-> 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
-
+cheers,
+Len Brown, Intel Open Source Technology Center
 
