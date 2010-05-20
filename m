@@ -1,14 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/22] ACPICA: Add subsystem option to force copy of DSDT to
- local memory
-Date: Thu, 20 May 2010 01:18:38 -0400
-Message-ID: <69ec87efa815d69140423014bb5f91e034faac22.1274332657.git.len.brown@intel.com>
+Subject: [PATCH 11/22] ACPICA: Update DSDT copy/detection.
+Date: Thu, 20 May 2010 01:18:39 -0400
+Message-ID: <43323cb4c4b619414913f54fef9d492aabadd033.1274332657.git.len.brown@intel.com>
 References: <1274332730-27370-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173017pub.verizon.net ([206.46.173.17]:36044 "EHLO
 	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab0ETGPd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 May 2010 02:15:33 -0400
+	with ESMTP id S1753845Ab0ETGPe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 May 2010 02:15:34 -0400
 Received: from localhost.localdomain ([unknown] [98.118.125.200])
  by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
@@ -20,152 +19,193 @@ References: <4cdf1a562bfb5852954aadbe8515557b8acc8168.1274332657.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Optionally copy the entire DSDT to local memory (instead of
-simply mapping it.) There are some BIOSs that corrupt or replace
-the original DSDT, creating the need for this option. Default is
-FALSE, do not copy the DSDT.
+Move initialization of DSDT pointer. Emit address of DSDT
+in the dump of both table headers (good/bad DSDT).
+Now handles the case where the root table can be reallocated,
+which would invalidate the original pointer.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=14679
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    8 ++++++++
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/psxface.c  |    1 +
- drivers/acpi/acpica/tbutils.c  |   35 +++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/tbxface.c  |   10 ++++++++++
- include/acpi/acpixf.h          |    1 +
- 6 files changed, 57 insertions(+), 0 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    2 +-
+ drivers/acpi/acpica/actables.h |    2 +-
+ drivers/acpi/acpica/tbutils.c  |   23 ++++++++++++-----------
+ drivers/acpi/acpica/tbxface.c  |   29 +++++++++++++++++++++++------
+ drivers/acpi/acpica/utglobal.c |    1 +
+ 5 files changed, 38 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index a419fe9..e3813d2 100644
+index e3813d2..87f21d9 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -117,6 +117,14 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_use_default_register_widths, TRUE);
-  */
- u8 ACPI_INIT_GLOBAL(acpi_gbl_enable_aml_debug_object, FALSE);
+@@ -175,7 +175,7 @@ ACPI_EXTERN struct acpi_generic_address acpi_gbl_xpm1b_enable;
  
-+/*
-+ * Optionally copy the entire DSDT to local memory (instead of simply
-+ * mapping it.) There are some BIOSs that corrupt or replace the original
-+ * DSDT, creating the need for this option. Default is FALSE, do not copy
-+ * the DSDT.
-+ */
-+u8 ACPI_INIT_GLOBAL(acpi_gbl_copy_dsdt_locally, FALSE);
-+
- /* acpi_gbl_FADT is a local copy of the FADT, converted to a common format. */
+ /* DSDT information. Used to check for DSDT corruption */
  
- struct acpi_table_fadt acpi_gbl_FADT;
+-ACPI_EXTERN struct acpi_table_desc *acpi_gbl_DSDT;
++ACPI_EXTERN struct acpi_table_header *acpi_gbl_DSDT;
+ ACPI_EXTERN struct acpi_table_header acpi_gbl_original_dsdt_header;
+ 
+ /*
 diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index fc52b6f..b7197bf 100644
+index b7197bf..62a576e 100644
 --- a/drivers/acpi/acpica/actables.h
 +++ b/drivers/acpi/acpica/actables.h
-@@ -109,6 +109,8 @@ acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length);
+@@ -109,7 +109,7 @@ acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length);
  
  void acpi_tb_check_dsdt_header(void);
  
-+void acpi_tb_copy_dsdt(struct acpi_table_desc *table_desc);
-+
+-void acpi_tb_copy_dsdt(struct acpi_table_desc *table_desc);
++struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index);
+ 
  void
  acpi_tb_install_table(acpi_physical_address address,
- 		      char *signature, u32 table_index);
-diff --git a/drivers/acpi/acpica/psxface.c b/drivers/acpi/acpica/psxface.c
-index 67e7ad5..c42f067 100644
---- a/drivers/acpi/acpica/psxface.c
-+++ b/drivers/acpi/acpica/psxface.c
-@@ -46,6 +46,7 @@
- #include "acparser.h"
- #include "acdispat.h"
- #include "acinterp.h"
-+#include "actables.h"
- #include "amlcode.h"
- 
- #define _COMPONENT          ACPI_PARSER
 diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 07bc743..1efb094 100644
+index 1efb094..54a8712 100644
 --- a/drivers/acpi/acpica/tbutils.c
 +++ b/drivers/acpi/acpica/tbutils.c
-@@ -387,6 +387,41 @@ void acpi_tb_check_dsdt_header(void)
+@@ -366,22 +366,18 @@ void acpi_tb_check_dsdt_header(void)
+ 
+ 	/* Compare original length and checksum to current values */
+ 
+-	if (acpi_gbl_original_dsdt_header.length !=
+-	    acpi_gbl_DSDT->pointer->length
+-	    || acpi_gbl_original_dsdt_header.checksum !=
+-	    acpi_gbl_DSDT->pointer->checksum) {
++	if (acpi_gbl_original_dsdt_header.length != acpi_gbl_DSDT->length ||
++	    acpi_gbl_original_dsdt_header.checksum != acpi_gbl_DSDT->checksum) {
+ 		ACPI_ERROR((AE_INFO,
+ 			    "The DSDT has been corrupted or replaced - old, new headers below"));
+ 		acpi_tb_print_table_header(0, &acpi_gbl_original_dsdt_header);
+-		acpi_tb_print_table_header(acpi_gbl_DSDT->address,
+-					   acpi_gbl_DSDT->pointer);
++		acpi_tb_print_table_header(0, acpi_gbl_DSDT);
+ 
+ 		/* Disable further error messages */
+ 
+-		acpi_gbl_original_dsdt_header.length =
+-		    acpi_gbl_DSDT->pointer->length;
++		acpi_gbl_original_dsdt_header.length = acpi_gbl_DSDT->length;
+ 		acpi_gbl_original_dsdt_header.checksum =
+-		    acpi_gbl_DSDT->pointer->checksum;
++		    acpi_gbl_DSDT->checksum;
+ 	}
+ }
+ 
+@@ -399,15 +395,18 @@ void acpi_tb_check_dsdt_header(void)
+  *
+  ******************************************************************************/
+ 
+-void acpi_tb_copy_dsdt(struct acpi_table_desc *table_desc)
++struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index)
+ {
+ 	struct acpi_table_header *new_table;
++	struct acpi_table_desc *table_desc;
++
++	table_desc = &acpi_gbl_root_table_list.tables[table_index];
+ 
+ 	new_table = ACPI_ALLOCATE(table_desc->length);
+ 	if (!new_table) {
+ 		ACPI_ERROR((AE_INFO, "Could not copy DSDT of length 0x%X",
+ 			    table_desc->length));
+-		return;
++		return (NULL);
+ 	}
+ 
+ 	ACPI_MEMCPY(new_table, table_desc->pointer, table_desc->length);
+@@ -418,6 +417,8 @@ void acpi_tb_copy_dsdt(struct acpi_table_desc *table_desc)
+ 	ACPI_INFO((AE_INFO,
+ 		   "Forced DSDT copy: length 0x%05X copied locally, original unmapped",
+ 		   new_table->length));
++
++	return (new_table);
+ }
  
  /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_tb_copy_dsdt
-+ *
-+ * PARAMETERS:  table_desc          - Installed table to copy
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Implements a subsystem option to copy the DSDT to local memory.
-+ *              Some very bad BIOSs are known to either corrupt the DSDT or
-+ *              install a new, bad DSDT. This copy works around the problem.
-+ *
-+ ******************************************************************************/
-+
-+void acpi_tb_copy_dsdt(struct acpi_table_desc *table_desc)
-+{
-+	struct acpi_table_header *new_table;
-+
-+	new_table = ACPI_ALLOCATE(table_desc->length);
-+	if (!new_table) {
-+		ACPI_ERROR((AE_INFO, "Could not copy DSDT of length 0x%X",
-+			    table_desc->length));
-+		return;
-+	}
-+
-+	ACPI_MEMCPY(new_table, table_desc->pointer, table_desc->length);
-+	acpi_tb_delete_table(table_desc);
-+	table_desc->pointer = new_table;
-+	table_desc->flags = ACPI_TABLE_ORIGIN_ALLOCATED;
-+
-+	ACPI_INFO((AE_INFO,
-+		   "Forced DSDT copy: length 0x%05X copied locally, original unmapped",
-+		   new_table->length));
-+}
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_tb_install_table
-  *
-  * PARAMETERS:  Address                 - Physical address of DSDT or FACS
 diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index 3056510..f5378fc 100644
+index f5378fc..adb7f56 100644
 --- a/drivers/acpi/acpica/tbxface.c
 +++ b/drivers/acpi/acpica/tbxface.c
-@@ -532,6 +532,16 @@ static acpi_status acpi_tb_load_namespace(void)
+@@ -513,39 +513,56 @@ static acpi_status acpi_tb_load_namespace(void)
+ {
+ 	acpi_status status;
+ 	u32 i;
++	struct acpi_table_header *new_dsdt;
+ 
+ 	ACPI_FUNCTION_TRACE(tb_load_namespace);
+ 
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 
+-	acpi_gbl_DSDT = &acpi_gbl_root_table_list.tables[ACPI_TABLE_INDEX_DSDT];
+-
+ 	/*
+ 	 * Load the namespace. The DSDT is required, but any SSDT and
+ 	 * PSDT tables are optional. Verify the DSDT.
+ 	 */
+ 	if (!acpi_gbl_root_table_list.count ||
+-	    !ACPI_COMPARE_NAME(&acpi_gbl_DSDT->signature, ACPI_SIG_DSDT) ||
+-	    ACPI_FAILURE(acpi_tb_verify_table(acpi_gbl_DSDT))) {
++	    !ACPI_COMPARE_NAME(&
++			       (acpi_gbl_root_table_list.
++				tables[ACPI_TABLE_INDEX_DSDT].signature),
++			       ACPI_SIG_DSDT)
++	    ||
++	    ACPI_FAILURE(acpi_tb_verify_table
++			 (&acpi_gbl_root_table_list.
++			  tables[ACPI_TABLE_INDEX_DSDT]))) {
+ 		status = AE_NO_ACPI_TABLES;
+ 		goto unlock_and_exit;
  	}
  
  	/*
-+	 * Optionally copy the entire DSDT to local memory (instead of simply
-+	 * mapping it.) There are some BIOSs that corrupt or replace the original
-+	 * DSDT, creating the need for this option. Default is FALSE, do not copy
-+	 * the DSDT.
++	 * Save the DSDT pointer for simple access. This is the mapped memory
++	 * address. We must take care here because the address of the .Tables
++	 * array can change dynamically as tables are loaded at run-time. Note:
++	 * .Pointer field is not validated until after call to acpi_tb_verify_table.
 +	 */
-+	if (acpi_gbl_copy_dsdt_locally) {
-+		acpi_tb_copy_dsdt(acpi_gbl_DSDT);
-+	}
++	acpi_gbl_DSDT =
++	    acpi_gbl_root_table_list.tables[ACPI_TABLE_INDEX_DSDT].pointer;
 +
 +	/*
+ 	 * Optionally copy the entire DSDT to local memory (instead of simply
+ 	 * mapping it.) There are some BIOSs that corrupt or replace the original
+ 	 * DSDT, creating the need for this option. Default is FALSE, do not copy
+ 	 * the DSDT.
+ 	 */
+ 	if (acpi_gbl_copy_dsdt_locally) {
+-		acpi_tb_copy_dsdt(acpi_gbl_DSDT);
++		new_dsdt = acpi_tb_copy_dsdt(ACPI_TABLE_INDEX_DSDT);
++		if (new_dsdt) {
++			acpi_gbl_DSDT = new_dsdt;
++		}
+ 	}
+ 
+ 	/*
  	 * Save the original DSDT header for detection of table corruption
  	 * and/or replacement of the DSDT from outside the OS.
  	 */
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index f753222..fd815f6 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -68,6 +68,7 @@ extern u8 acpi_gbl_use_default_register_widths;
- extern acpi_name acpi_gbl_trace_method_name;
- extern u32 acpi_gbl_trace_flags;
- extern u8 acpi_gbl_enable_aml_debug_object;
-+extern u8 acpi_gbl_copy_dsdt_locally;
+-	ACPI_MEMCPY(&acpi_gbl_original_dsdt_header, acpi_gbl_DSDT->pointer,
++	ACPI_MEMCPY(&acpi_gbl_original_dsdt_header, acpi_gbl_DSDT,
+ 		    sizeof(struct acpi_table_header));
  
- extern u32 acpi_current_gpe_count;
- extern struct acpi_table_fadt acpi_gbl_FADT;
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index eda3e65..6611675 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -785,6 +785,7 @@ acpi_status acpi_ut_init_globals(void)
+ 
+ 	/* Miscellaneous variables */
+ 
++	acpi_gbl_DSDT = NULL;
+ 	acpi_gbl_cm_single_step = FALSE;
+ 	acpi_gbl_db_terminate_threads = FALSE;
+ 	acpi_gbl_shutdown = FALSE;
 -- 
 1.6.0.6
 
