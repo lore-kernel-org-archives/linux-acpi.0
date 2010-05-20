@@ -1,13 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 18/22] ACPICA: Prevent possible allocation overrun during
- object copy
-Date: Thu, 20 May 2010 01:18:46 -0400
-Message-ID: <17b82327f3e7ab5a068f8019768008ee82d912be.1274332658.git.len.brown@intel.com>
+Subject: [PATCH 14/22] ACPICA: Update version to 20100331.
+Date: Thu, 20 May 2010 01:18:42 -0400
+Message-ID: <e4eb0450c5d61dd0064ef0904d74088d35284ae2.1274332657.git.len.brown@intel.com>
 References: <1274332730-27370-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173017pub.verizon.net ([206.46.173.17]:36044 "EHLO
 	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734Ab0ETGPc (ORCPT
+	with ESMTP id S1753057Ab0ETGPc (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 May 2010 02:15:32 -0400
 Received: from localhost.localdomain ([unknown] [98.118.125.200])
  by vms173017.mailsrvcs.net
@@ -20,52 +19,32 @@ References: <4cdf1a562bfb5852954aadbe8515557b8acc8168.1274332657.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Robert Moore <robert.moore@intel.com>
 
-Original code did not handle the case where the object to be
-copied was a namespace node.
+Version 20100331.
 
+Signed-off-by: Robert Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/utcopy.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
-index 97ec362..6fef83f 100644
---- a/drivers/acpi/acpica/utcopy.c
-+++ b/drivers/acpi/acpica/utcopy.c
-@@ -677,16 +677,24 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
- 	u16 reference_count;
- 	union acpi_operand_object *next_object;
- 	acpi_status status;
-+	acpi_size copy_size;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index be16f97..e5bce4c 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -47,7 +47,7 @@
  
- 	/* Save fields from destination that we don't want to overwrite */
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
- 	reference_count = dest_desc->common.reference_count;
- 	next_object = dest_desc->common.next_object;
+-#define ACPI_CA_VERSION                 0x20100304
++#define ACPI_CA_VERSION                 0x20100331
  
--	/* Copy the entire source object over the destination object */
-+	/*
-+	 * Copy the entire source object over the destination object.
-+	 * Note: Source can be either an operand object or namespace node.
-+	 */
-+	copy_size = sizeof(union acpi_operand_object);
-+	if (ACPI_GET_DESCRIPTOR_TYPE(source_desc) == ACPI_DESC_TYPE_NAMED) {
-+		copy_size = sizeof(struct acpi_namespace_node);
-+	}
- 
--	ACPI_MEMCPY((char *)dest_desc, (char *)source_desc,
--		    sizeof(union acpi_operand_object));
-+	ACPI_MEMCPY(ACPI_CAST_PTR(char, dest_desc),
-+		    ACPI_CAST_PTR(char, source_desc), copy_size);
- 
- 	/* Restore the saved fields */
- 
+ #include "actypes.h"
+ #include "actbl.h"
 -- 
 1.6.0.6
 
