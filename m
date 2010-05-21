@@ -1,7 +1,7 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/7] x86 platform drivers: hp-wmi Reorder event id processing
-Date: Fri, 21 May 2010 16:18:09 +0200
-Message-ID: <1274451495-10252-2-git-send-email-trenn@suse.de>
+Subject: [PATCH 5/7] x86 platform drivers: hp-wmi Set placeholder for unimplemented events
+Date: Fri, 21 May 2010 16:18:13 +0200
+Message-ID: <1274451495-10252-6-git-send-email-trenn@suse.de>
 References: <1274451495-10252-1-git-send-email-trenn@suse.de>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1274451495-10252-1-git-send-email-trenn@suse.de>
@@ -10,111 +10,68 @@ To: mjg@redhat.com, trenn@suse.de
 Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Event id 0x4 defines the hotkey event.
-No need (or even wrong) to query HPWMI_HOTKEY_QUERY if event id is != 0x4.
-
-Reorder the eventcode conditionals and use switch case instead of if/else.
-Use an enum for the event ids cases.
-
+And tell the user that those have happened.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: mjg@redhat.com
 CC: linux-acpi@vger.kernel.org
 CC: platform-driver-x86@vger.kernel.org
 ---
- drivers/platform/x86/hp-wmi.c |   51 +++++++++++++++++++++++++---------------
- 1 files changed, 32 insertions(+), 19 deletions(-)
+ drivers/platform/x86/hp-wmi.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-index 51c07a0..f1c1862 100644
+index f3ae911..f869fae 100644
 --- a/drivers/platform/x86/hp-wmi.c
 +++ b/drivers/platform/x86/hp-wmi.c
-@@ -58,6 +58,12 @@ enum hp_wmi_radio {
- 	HPWMI_WWAN = 2,
+@@ -53,6 +53,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
+ #define HPWMI_HOTKEY_QUERY 0xc
+ 
+ #define PREFIX "HP WMI: "
++#define UNIMP "Unimplemented "
+ 
+ enum hp_wmi_radio {
+ 	HPWMI_WIFI = 0,
+@@ -62,8 +63,12 @@ enum hp_wmi_radio {
+ 
+ enum hp_wmi_event_ids {
+ 	HPWMI_DOCK_EVENT = 1,
++	HPWMI_PARK_HDD = 2,
++	HPWMI_SMART_ADAPTER = 3,
+ 	HPWMI_BEZEL_BUTTON = 4,
+ 	HPWMI_WIRELESS = 5,
++	HPWMI_CPU_BATTERY_THROTTLE = 6,
++	HPWMI_LOCK_SWITCH = 7,
  };
  
-+enum hp_wmi_event_ids {
-+	HPWMI_DOCK_EVENT = 1,
-+	HPWMI_BEZEL_BUTTON = 4,
-+	HPWMI_WIRELESS = 5,
-+};
-+
  static int __devinit hp_wmi_bios_setup(struct platform_device *device);
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
- static int hp_wmi_resume_handler(struct device *device);
-@@ -338,7 +344,7 @@ static void hp_wmi_notify(u32 value, void *context)
- 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
- 	static struct key_entry *key;
- 	union acpi_object *obj;
--	int eventcode;
-+	int eventcode, key_code;
- 	acpi_status status;
- 
- 	status = wmi_get_event_data(value, &response);
-@@ -357,28 +363,32 @@ static void hp_wmi_notify(u32 value, void *context)
- 
- 	eventcode = *((u8 *) obj->buffer.pointer);
- 	kfree(obj);
--	if (eventcode == 0x4)
--		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
--						0);
--	key = hp_wmi_get_entry_by_scancode(eventcode);
--	if (key) {
--		switch (key->type) {
--		case KE_KEY:
--			input_report_key(hp_wmi_input_dev,
--					 key->keycode, 1);
--			input_sync(hp_wmi_input_dev);
--			input_report_key(hp_wmi_input_dev,
--					 key->keycode, 0);
--			input_sync(hp_wmi_input_dev);
--			break;
--		}
--	} else if (eventcode == 0x1) {
-+	switch (eventcode) {
-+	case HPWMI_DOCK_EVENT:
- 		input_report_switch(hp_wmi_input_dev, SW_DOCK,
- 				    hp_wmi_dock_state());
- 		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
+@@ -374,6 +379,12 @@ static void hp_wmi_notify(u32 value, void *context)
  				    hp_wmi_tablet_state());
  		input_sync(hp_wmi_input_dev);
--	} else if (eventcode == 0x5) {
+ 		break;
++	case HPWMI_PARK_HDD:
++		printk(KERN_INFO PREFIX UNIMP "HDD park event detected\n");
 +		break;
-+	case HPWMI_BEZEL_BUTTON:
-+		key_code = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
-+						 0);
-+		key = hp_wmi_get_entry_by_scancode(key_code);
-+		if (key) {
-+			switch (key->type) {
-+			case KE_KEY:
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 1);
-+				input_sync(hp_wmi_input_dev);
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 0);
-+				input_sync(hp_wmi_input_dev);
-+				break;
-+			}
-+		}
++	case HPWMI_SMART_ADAPTER:
++		printk(KERN_INFO PREFIX UNIMP "Smart adapter event detected\n");
 +		break;
-+	case HPWMI_WIRELESS:
- 		if (wifi_rfkill)
- 			rfkill_set_states(wifi_rfkill,
- 					  hp_wmi_get_sw_state(HPWMI_WIFI),
-@@ -391,9 +401,12 @@ static void hp_wmi_notify(u32 value, void *context)
- 			rfkill_set_states(wwan_rfkill,
+ 	case HPWMI_BEZEL_BUTTON:
+ 		key_code = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
+ 						 0);
+@@ -407,6 +418,13 @@ static void hp_wmi_notify(u32 value, void *context)
  					  hp_wmi_get_sw_state(HPWMI_WWAN),
  					  hp_wmi_get_hw_state(HPWMI_WWAN));
--	} else
+ 		break;
++	case HPWMI_CPU_BATTERY_THROTTLE:
++		printk(KERN_INFO PREFIX UNIMP "CPU throttle because of 3 Cell"
++		       " battery event detected\n");
 +		break;
-+	default:
- 		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
- 			eventcode);
++	case HPWMI_LOCK_SWITCH:
++		printk(KERN_INFO PREFIX UNIMP "Lock switch event detected\n");
 +		break;
-+	}
- }
- 
- static int __init hp_wmi_input_setup(void)
+ 	default:
+ 		printk(KERN_INFO PREFIX "Unknown eventcode - %d\n",
+ 		       eventcode);
 -- 
 1.6.3
 
