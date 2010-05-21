@@ -1,41 +1,75 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 3/7] x86 platform drivers: hp-wmi Use consistent prefix string for messages.
-Date: Fri, 21 May 2010 11:14:53 -0700
-Message-ID: <201005211114.54902.dmitry.torokhov@gmail.com>
-References: <1274451495-10252-1-git-send-email-trenn@suse.de> <1274451495-10252-4-git-send-email-trenn@suse.de>
+From: Xavier Gnata <xavier.gnata@gmail.com>
+Subject: Sony vaio serie F PCIe PME service failure.
+Date: Fri, 21 May 2010 23:44:04 +0200
+Message-ID: <4BF6FEA4.1050406@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1274451495-10252-4-git-send-email-trenn@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: mjg@redhat.com, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:63804 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab0EUVoG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 May 2010 17:44:06 -0400
+Received: by gyg13 with SMTP id 13so686129gyg.19
+        for <linux-acpi@vger.kernel.org>; Fri, 21 May 2010 14:44:04 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Friday 21 May 2010 07:18:11 am Thomas Renninger wrote:
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> CC: mjg@redhat.com
-> CC: linux-acpi@vger.kernel.org
-> CC: platform-driver-x86@vger.kernel.org
-> ---
->  drivers/platform/x86/hp-wmi.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-> index 7b086dd..e04715a 100644
-> --- a/drivers/platform/x86/hp-wmi.c
-> +++ b/drivers/platform/x86/hp-wmi.c
-> @@ -52,6 +52,8 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
->  #define HPWMI_WIRELESS_QUERY 0x5
->  #define HPWMI_HOTKEY_QUERY 0xc
-> 
-> +#define PREFIX "HP WMI: "
+Hi,
+
+I get that during the boot of the vaio VPCF11M1E using unpatched 2.6.34
+from kernel.org:
+
+[    2.047242] pcieport 0000:00:01.0: Failed to receive control of PCIe
+PME service: ACPI _OSC failed
+[    2.047249] pcie_pme: probe of 0000:00:01.0:pcie01 failed with error -13
+[    2.047418] pcieport 0000:00:1c.0: Failed to receive control of PCIe
+PME service: ACPI _OSC failed
+[    2.047424] pcie_pme: probe of 0000:00:1c.0:pcie01 failed with error -13
+[    2.047589] pcieport 0000:00:1c.1: Failed to receive control of PCIe
+PME service: ACPI _OSC failed
+[    2.047595] pcie_pme: probe of 0000:00:1c.1:pcie01 failed with error -13
+[    2.047759] pcieport 0000:00:1c.2: Failed to receive control of PCIe
+PME service: ACPI _OSC failed
+[    2.047764] pcie_pme: probe of 0000:00:1c.2:pcie01 failed with error -13
+[    2.047928] pcieport 0000:00:1c.5: Failed to receive control of PCIe
+PME service: ACPI _OSC failed
+[    2.047933] pcie_pme: probe of 0000:00:1c.5:pcie01 failed with error -13
+
+for i in /sys/bus/pnp/devices/*; do echo $i; cat $i/id; done
+returns :
+
+/sys/bus/pnp/devices/00:00
+PNP0a08
+PNP0a03
+/sys/bus/pnp/devices/00:01
+PNP0200
+/sys/bus/pnp/devices/00:02
+INT0800
+/sys/bus/pnp/devices/00:03
+PNP0103
+/sys/bus/pnp/devices/00:04
+PNP0c04
+/sys/bus/pnp/devices/00:05
+PNP0c02
+/sys/bus/pnp/devices/00:06
+PNP0b00
+/sys/bus/pnp/devices/00:07
+PNP0303
+/sys/bus/pnp/devices/00:08
+SNY9011
+PNP0f13
+/sys/bus/pnp/devices/00:09
+PNP0c02
+/sys/bus/pnp/devices/00:0a
+PNP0a03
 
 
-Better yet, define pr_fmt() and  switch to using pr_info() and friends.
-dev_xxx() is another option too.
+Everthing looks fine except these messages during the boot.
+Any clue about what's going wrong? (maybe nothing...)
+I don't use any special boot options:
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 
--- 
-Dmitry
+Xavier
+
