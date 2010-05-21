@@ -1,88 +1,120 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Device enumeration at boot doesn't detect acpi battery.
-Date: Fri, 21 May 2010 08:58:33 +0800
-Message-ID: <1274403513.22924.5435.camel@rzhang1-desktop>
-References: <77056.54759.qm@web65511.mail.ac4.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27553 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755019Ab0EUA57 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 May 2010 20:57:59 -0400
-In-Reply-To: <77056.54759.qm@web65511.mail.ac4.yahoo.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/7] x86 platform drivers: hp-wmi Reorder event id processing
+Date: Fri, 21 May 2010 16:18:09 +0200
+Message-ID: <1274451495-10252-2-git-send-email-trenn@suse.de>
+References: <1274451495-10252-1-git-send-email-trenn@suse.de>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1274451495-10252-1-git-send-email-trenn@suse.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: mjg@redhat.com, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brian Hutsell <bhut_ooto@yahoo.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Brian,
+Event id 0x4 defines the hotkey event.
+No need (or even wrong) to query HPWMI_HOTKEY_QUERY if event id is != 0x4.
 
-please attach the acpidump output of your laptop.
-please attach the dmesg output after boot.
-It would be great if you can file a new bug report at
-https://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach these info there.
-
-thanks,
-rui
+Reorder the eventcode conditionals and use switch case instead of if/else.
+Use an enum for the event ids cases.
 
 
-On Thu, 2010-05-20 at 18:50 +0800, Brian Hutsell wrote:
-> Hello,
-> 
-> Apologies in 
-> advance if I sent this to the wrong place.  I'm not sure where the 
-> kernel's boot-time device enumeration code lives.  If this is the wrong 
-> forum, could someone please tell me the email address I should forward 
-> it to?  Thanks.
-> 
-> I have a laptop running Linux 2.6.32-22-generic 
-> #33-Ubuntu SMP x86_64.  My laptop is an ACER Aspire 6930.  When I boot, 
-> the battery isn't enumerated into "sysfs" like gnome-power-manager 
-> expects it to.
-> 
-> After boot, the following command finds nothing:
-> % find /sys -name "BAT1" -print
-> 
-> If I inspect the contents of one 
-> of the files in the /proc/acpi/battery/BAT1 directory, they'll appear:
-> %  cat /proc/acpi/battery/BAT1/state 
-> present:                 yes
-> capacity state:          ok
-> charging state:          charged
-> present rate:            0 mA
-> remaining 
-> capacity:      3619 mAh
-> present voltage:         12131 mV
-> 
-> % 
-> find /sys -name "BAT1" -print
-> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1
-> /sys/class/power_supply/BAT1
-> 
-> This is repeatable on every boot.  Once I "cat 
-> /proc/acpi/battery/BAT1/state", gnome-power-manager recognizes my 
-> battery (via upowerd) and all is well.
-> 
-> This is the 
-> non-"gnome-power-manager" part of https://bugzilla.gnome.org/show_bug.cgi?id=617529
-> 
-> 
-> Can someone point me at the right forum, the code that needs to be 
-> modified, or better yet, fix the problem?  I've never touched with the 
-> kernel code before.
-> 
-> All help is appreciated.
-> --Brian
-> 
-> 
->       
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: mjg@redhat.com
+CC: linux-acpi@vger.kernel.org
+CC: platform-driver-x86@vger.kernel.org
+---
+ drivers/platform/x86/hp-wmi.c |   51 +++++++++++++++++++++++++---------------
+ 1 files changed, 32 insertions(+), 19 deletions(-)
 
+diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+index 51c07a0..f1c1862 100644
+--- a/drivers/platform/x86/hp-wmi.c
++++ b/drivers/platform/x86/hp-wmi.c
+@@ -58,6 +58,12 @@ enum hp_wmi_radio {
+ 	HPWMI_WWAN = 2,
+ };
+ 
++enum hp_wmi_event_ids {
++	HPWMI_DOCK_EVENT = 1,
++	HPWMI_BEZEL_BUTTON = 4,
++	HPWMI_WIRELESS = 5,
++};
++
+ static int __devinit hp_wmi_bios_setup(struct platform_device *device);
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
+ static int hp_wmi_resume_handler(struct device *device);
+@@ -338,7 +344,7 @@ static void hp_wmi_notify(u32 value, void *context)
+ 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	static struct key_entry *key;
+ 	union acpi_object *obj;
+-	int eventcode;
++	int eventcode, key_code;
+ 	acpi_status status;
+ 
+ 	status = wmi_get_event_data(value, &response);
+@@ -357,28 +363,32 @@ static void hp_wmi_notify(u32 value, void *context)
+ 
+ 	eventcode = *((u8 *) obj->buffer.pointer);
+ 	kfree(obj);
+-	if (eventcode == 0x4)
+-		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
+-						0);
+-	key = hp_wmi_get_entry_by_scancode(eventcode);
+-	if (key) {
+-		switch (key->type) {
+-		case KE_KEY:
+-			input_report_key(hp_wmi_input_dev,
+-					 key->keycode, 1);
+-			input_sync(hp_wmi_input_dev);
+-			input_report_key(hp_wmi_input_dev,
+-					 key->keycode, 0);
+-			input_sync(hp_wmi_input_dev);
+-			break;
+-		}
+-	} else if (eventcode == 0x1) {
++	switch (eventcode) {
++	case HPWMI_DOCK_EVENT:
+ 		input_report_switch(hp_wmi_input_dev, SW_DOCK,
+ 				    hp_wmi_dock_state());
+ 		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
+ 				    hp_wmi_tablet_state());
+ 		input_sync(hp_wmi_input_dev);
+-	} else if (eventcode == 0x5) {
++		break;
++	case HPWMI_BEZEL_BUTTON:
++		key_code = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
++						 0);
++		key = hp_wmi_get_entry_by_scancode(key_code);
++		if (key) {
++			switch (key->type) {
++			case KE_KEY:
++				input_report_key(hp_wmi_input_dev,
++						 key->keycode, 1);
++				input_sync(hp_wmi_input_dev);
++				input_report_key(hp_wmi_input_dev,
++						 key->keycode, 0);
++				input_sync(hp_wmi_input_dev);
++				break;
++			}
++		}
++		break;
++	case HPWMI_WIRELESS:
+ 		if (wifi_rfkill)
+ 			rfkill_set_states(wifi_rfkill,
+ 					  hp_wmi_get_sw_state(HPWMI_WIFI),
+@@ -391,9 +401,12 @@ static void hp_wmi_notify(u32 value, void *context)
+ 			rfkill_set_states(wwan_rfkill,
+ 					  hp_wmi_get_sw_state(HPWMI_WWAN),
+ 					  hp_wmi_get_hw_state(HPWMI_WWAN));
+-	} else
++		break;
++	default:
+ 		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+ 			eventcode);
++		break;
++	}
+ }
+ 
+ static int __init hp_wmi_input_setup(void)
+-- 
+1.6.3
 
