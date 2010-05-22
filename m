@@ -1,75 +1,31 @@
-From: Xavier Gnata <xavier.gnata@gmail.com>
-Subject: Sony vaio serie F PCIe PME service failure.
-Date: Fri, 21 May 2010 23:44:04 +0200
-Message-ID: <4BF6FEA4.1050406@gmail.com>
+From: jane fugar <janefugar20104love@hotmail.com>
+Subject: Hello!!!
+Date: Sat, 22 May 2010 13:55:07 +0200
+Message-ID: <3d9fb38a28804949780515baa88092f7@41.208.131.125>
+Reply-To: jane fugar <janefugar20104love@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:63804 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040Ab0EUVoG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 May 2010 17:44:06 -0400
-Received: by gyg13 with SMTP id 13so686129gyg.19
-        for <linux-acpi@vger.kernel.org>; Fri, 21 May 2010 14:44:04 -0700 (PDT)
+Received: from host3.axxessdns.co.za ([74.200.206.58]:43967 "EHLO
+	host3.axxessdns.co.za" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754868Ab0EVMXH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 May 2010 08:23:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
+Hello!!!
+My name is Jane, i saw your profile today and became interested in you,i
+will also like to know you the more,and i want you to send an email to my
+email address so i can give you my picture for you to know whom i am.Here is
+my email address (janefugar20104love@hotmail.com) believe we can move from
+here!I am waiting for your mail to my email address above.(Remember the
+distance, color or language does not matter but love matters allot in life,
+janefugar20104love@hotmail.com
 
-I get that during the boot of the vaio VPCF11M1E using unpatched 2.6.34
-from kernel.org:
+____________________________________________________________
+This email was sent using the Axxess DSL(Ply)Ltd webmail system.
+For more information on the products & services that we offer please visit:
+http://www.adsl.co.za or phone 0861-300-900 
 
-[    2.047242] pcieport 0000:00:01.0: Failed to receive control of PCIe
-PME service: ACPI _OSC failed
-[    2.047249] pcie_pme: probe of 0000:00:01.0:pcie01 failed with error -13
-[    2.047418] pcieport 0000:00:1c.0: Failed to receive control of PCIe
-PME service: ACPI _OSC failed
-[    2.047424] pcie_pme: probe of 0000:00:1c.0:pcie01 failed with error -13
-[    2.047589] pcieport 0000:00:1c.1: Failed to receive control of PCIe
-PME service: ACPI _OSC failed
-[    2.047595] pcie_pme: probe of 0000:00:1c.1:pcie01 failed with error -13
-[    2.047759] pcieport 0000:00:1c.2: Failed to receive control of PCIe
-PME service: ACPI _OSC failed
-[    2.047764] pcie_pme: probe of 0000:00:1c.2:pcie01 failed with error -13
-[    2.047928] pcieport 0000:00:1c.5: Failed to receive control of PCIe
-PME service: ACPI _OSC failed
-[    2.047933] pcie_pme: probe of 0000:00:1c.5:pcie01 failed with error -13
-
-for i in /sys/bus/pnp/devices/*; do echo $i; cat $i/id; done
-returns :
-
-/sys/bus/pnp/devices/00:00
-PNP0a08
-PNP0a03
-/sys/bus/pnp/devices/00:01
-PNP0200
-/sys/bus/pnp/devices/00:02
-INT0800
-/sys/bus/pnp/devices/00:03
-PNP0103
-/sys/bus/pnp/devices/00:04
-PNP0c04
-/sys/bus/pnp/devices/00:05
-PNP0c02
-/sys/bus/pnp/devices/00:06
-PNP0b00
-/sys/bus/pnp/devices/00:07
-PNP0303
-/sys/bus/pnp/devices/00:08
-SNY9011
-PNP0f13
-/sys/bus/pnp/devices/00:09
-PNP0c02
-/sys/bus/pnp/devices/00:0a
-PNP0a03
-
-
-Everthing looks fine except these messages during the boot.
-Any clue about what's going wrong? (maybe nothing...)
-I don't use any special boot options:
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
-
-Xavier
 
