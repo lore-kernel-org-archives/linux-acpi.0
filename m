@@ -1,21 +1,24 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: Handle large field appertures.
-Date: Tue, 25 May 2010 14:56:28 +0400
-Message-ID: <20100525105628.2570.25853.stgit@thinkpad>
+Subject: [PATCH] ACPICA: Handle large field apertures.
+Date: Tue, 25 May 2010 14:59:10 +0400
+Message-ID: <20100525105910.2629.76253.stgit@thinkpad>
 References: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:56781 "EHLO
+Received: from nat.nue.novell.com ([195.135.221.3]:57240 "EHLO
 	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756548Ab0EYK4b (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 25 May 2010 06:56:31 -0400
+	with ESMTP id S1756556Ab0EYK7M (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 25 May 2010 06:59:12 -0400
 In-Reply-To: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
+
+Allow field reads of more than 64 bits if the field is properly aligned.
+EC driver will be able to read in bursts of up to 32 bytes with this patch.
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
