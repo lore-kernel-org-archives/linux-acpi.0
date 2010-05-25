@@ -1,48 +1,69 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/7] x86 platform drivers: hp-wmi Use consistent prefix string for messages.
-Date: Mon, 24 May 2010 22:04:57 +0200
-Message-ID: <201005242204.58240.trenn@suse.de>
-References: <1274451495-10252-1-git-send-email-trenn@suse.de> <1274451495-10252-4-git-send-email-trenn@suse.de> <201005211114.54902.dmitry.torokhov@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch for 2.6.35? 1/1] acpi: video: fix acpi_backlight=video
+Date: Mon, 24 May 2010 20:53:51 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005242053140.4059@localhost.localdomain>
+References: <201005241910.o4OJAwdh010716@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <201005211114.54902.dmitry.torokhov@gmail.com>
-Content-Disposition: inline
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: mjg@redhat.com, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:54364 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758142Ab0EYAyK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 May 2010 20:54:10 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L2Y00B5YAHU1FP5@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 24 May 2010 19:54:08 -0500 (CDT)
+In-reply-to: <201005241910.o4OJAwdh010716@imap1.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, rui.zhang@intel.com, stable@kernel.org, trenn@suse.de
 
-On Friday 21 May 2010 08:14:53 pm Dmitry Torokhov wrote:
-> On Friday 21 May 2010 07:18:11 am Thomas Renninger wrote:
-> > Signed-off-by: Thomas Renninger <trenn@suse.de>
-> > CC: mjg@redhat.com
-> > CC: linux-acpi@vger.kernel.org
-> > CC: platform-driver-x86@vger.kernel.org
-> > ---
-> >  drivers/platform/x86/hp-wmi.c |   10 ++++++----
-> >  1 files changed, 6 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/hp-wmi.c
-> > b/drivers/platform/x86/hp-wmi.c index 7b086dd..e04715a 100644
-> > --- a/drivers/platform/x86/hp-wmi.c
-> > +++ b/drivers/platform/x86/hp-wmi.c
-> > @@ -52,6 +52,8 @@
-> > MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4"); #define
-> > HPWMI_WIRELESS_QUERY 0x5
-> >  #define HPWMI_HOTKEY_QUERY 0xc
-> >
-> > +#define PREFIX "HP WMI: "
->
-> Better yet, define pr_fmt() and  switch to using pr_info() and friends.
-> dev_xxx() is another option too.
+yes, it is in acpi-test and linux-next, do you pull those into mm still?
 
-I would have to rediff the other patches...
-As printk was already used, I'd appreciate if these can be merged and I can 
-also fix this on top.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Thanks,
+On Mon, 24 May 2010, akpm@linux-foundation.org wrote:
 
-      Thomas
+> From: Kamal Mostafa <kamal@canonical.com>
+> 
+> Make "acpi_backlight=video" param enable ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
+> as intended, instead of incorrectly enabling video output switching.
+> 
+> Addresses http://bugs.launchpad.net/bugs/573120
+> 
+> Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Cc: Jiri Kosina <jkosina@suse.cz>
+> Acked-by: Thomas Renninger <trenn@suse.de>
+> Cc: Thomas Renninger <trenn@suse.de>
+> Cc: <stable@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/acpi/video_detect.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video drivers/acpi/video_detect.c
+> --- a/drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video
+> +++ a/drivers/acpi/video_detect.c
+> @@ -266,7 +266,7 @@ static int __init acpi_display_output(ch
+>  				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VENDOR;
+>  		if (!strcmp("video", str))
+>  			acpi_video_support |=
+> -				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
+> +				ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO;
+>  	}
+>  	return 1;
+>  }
+> _
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
