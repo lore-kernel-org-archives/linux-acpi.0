@@ -1,71 +1,64 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch for 2.6.35? 1/1] acpi: video: fix acpi_backlight=video
-Date: Mon, 24 May 2010 18:22:59 -0400
-Message-ID: <20100524182259.9cc66230.akpm@linux-foundation.org>
-References: <201005241910.o4OJAwdh010716@imap1.linux-foundation.org>
-	<alpine.LFD.2.00.1005242053140.4059@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
+Date: Tue, 25 May 2010 01:43:26 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
+References: <20100126084740.GA5265@jgarrett.org>
+ <87y6jkee1b.fsf@basil.nowhere.org> <20100205160900.GA2736@jgarrett.org>
+ <alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
+ <20100426194002.586fbaa5@fido5> <20100427124703.GA16706@jgarrett.org>
+ <alpine.LFD.2.00.1004301218280.2489@sony>
+ <20100430174447.GA14889@srcf.ucam.org>
+ <d7f2dd35a4361e5156079278543769a0@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43571 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758585Ab0EYBZG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 May 2010 21:25:06 -0400
-In-Reply-To: <alpine.LFD.2.00.1005242053140.4059@localhost.localdomain>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:39368 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756190Ab0EYFnu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 May 2010 01:43:50 -0400
+In-reply-to: <d7f2dd35a4361e5156079278543769a0@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, rui.zhang@intel.com, stable@kernel.org, trenn@suse.de
+To: Philip Langdale <philipl@overt.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, luming.yu@intel.com, venki@google.com
 
-On Mon, 24 May 2010 20:53:51 -0400 (EDT) Len Brown <lenb@kernel.org> wrote:
-
+> >> I am hopeful that the "right thing to do" is to not look at bm-status
+> >> and that perhaps there is a bug where we are looking at it
+> >> "by mistake".
+> > 
+> > https://patchwork.kernel.org/patch/58962/ - it seems to be a win.
 > 
-> On Mon, 24 May 2010, akpm@linux-foundation.org wrote:
+> Indeed. This patch does solve the C6 problem. I'm not in a position to
+> speak about whether there's any undesirable I/O latency, but it
+> passes the basic sanity check.
 > 
-> > From: Kamal Mostafa <kamal@canonical.com>
-> > 
-> > Make "acpi_backlight=video" param enable ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
-> > as intended, instead of incorrectly enabling video output switching.
-> > 
-> > Addresses http://bugs.launchpad.net/bugs/573120
-> > 
-> > Signed-off-by: Kamal Mostafa <kamal@canonical.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > Cc: Jiri Kosina <jkosina@suse.cz>
-> > Acked-by: Thomas Renninger <trenn@suse.de>
-> > Cc: Thomas Renninger <trenn@suse.de>
-> > Cc: <stable@kernel.org>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> > 
-> >  drivers/acpi/video_detect.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff -puN drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video drivers/acpi/video_detect.c
-> > --- a/drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video
-> > +++ a/drivers/acpi/video_detect.c
-> > @@ -266,7 +266,7 @@ static int __init acpi_display_output(ch
-> >  				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VENDOR;
-> >  		if (!strcmp("video", str))
-> >  			acpi_video_support |=
-> > -				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
-> > +				ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO;
-> >  	}
-> >  	return 1;
-> >  }
->
-> yes, it is in acpi-test and linux-next, do you pull those into mm still?
-> 
+> I have filed https://bugzilla.kernel.org/show_bug.cgi?id=15886 with
+> my acpi dump - assuming that's still useful.
 
-(top-posting repaired!)
+Luming's patch above basically deletes acpi_idle_bm_check() --
+the BM_STS check -- from the C3 path on all Intel SMP boxes.
+This is effectively the same as my test patch
+https://patchwork.kernel.org/patch/77370/
+that made acpi_idle_bm_check() do nothing.
 
-linux-next changes acpi_backlight().  In my tree patch(1) decided to
-migrate the hunk into acpi_display_output().
+I'm told by the hardware guys that BM_STS is _not_ always
+a NOP, and so we're not supposed to simply ignore it on C3 --
+though it should be extremely rare that we see it set.
+If it is ever set, it should go on and off depending on 
+activity on some latency sensitive device, like out on the LPC.
+It may be possible for the BIOS writer to configure the chipset
+so that BM_STS is enabled always, presumably to accomodate
+some latency sensitve device -- or maybe by mistake.
 
-Please check that acpi_display_output() didn't need the same change.
+(is it observed to be set always on your systems, or does
+ it ever change its value?)
 
-I'll drop the patch, thanks.
+The logic in Luming's patch doesn't make sense to me.
+bm_check and bm_control are related to C3 need to flush
+the cache or ability to invoke ARB_DIS.  They are not
+directly related to BM_STS -- which is a bit that tells
+us if there has recently been bus master activity of
+a type that would break us out of C3.
+
+-Len Brown, Intel Open Source Technology Center
+
