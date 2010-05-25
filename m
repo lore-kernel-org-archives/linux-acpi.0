@@ -1,251 +1,35 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: Handle large field apertures.
-Date: Tue, 25 May 2010 14:59:10 +0400
-Message-ID: <20100525105910.2629.76253.stgit@thinkpad>
-References: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: acpi_idle: Very idle Core i7 machine never enters C3
+Date: Tue, 25 May 2010 13:37:01 +0100
+Message-ID: <20100525123701.GA7876@srcf.ucam.org>
+References: <20100126084740.GA5265@jgarrett.org> <87y6jkee1b.fsf@basil.nowhere.org> <20100205160900.GA2736@jgarrett.org> <alpine.LFD.2.00.1002051238280.4050@localhost.localdomain> <20100426194002.586fbaa5@fido5> <20100427124703.GA16706@jgarrett.org> <alpine.LFD.2.00.1004301218280.2489@sony> <20100430174447.GA14889@srcf.ucam.org> <d7f2dd35a4361e5156079278543769a0@localhost> <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:57240 "EHLO
-	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756556Ab0EYK7M (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 25 May 2010 06:59:12 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:55718 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082Ab0EYMhU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 May 2010 08:37:20 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, luming.yu@intel.com, venki@google.com
 
-Allow field reads of more than 64 bits if the field is properly aligned.
-EC driver will be able to read in bursts of up to 32 bytes with this patch.
+On Tue, May 25, 2010 at 01:43:26AM -0400, Len Brown wrote:
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+> I'm told by the hardware guys that BM_STS is _not_ always
+> a NOP, and so we're not supposed to simply ignore it on C3 --
+> though it should be extremely rare that we see it set.
+> If it is ever set, it should go on and off depending on 
+> activity on some latency sensitive device, like out on the LPC.
+> It may be possible for the BIOS writer to configure the chipset
+> so that BM_STS is enabled always, presumably to accomodate
+> some latency sensitve device -- or maybe by mistake.
 
- source/components/executer/exfldio.c |   67 ++++++++++++++++++++++------------
- source/components/executer/exprep.c  |   12 +++++-
- source/include/acobject.h            |    3 +-
- 3 files changed, 54 insertions(+), 28 deletions(-)
+On some hardware we've seen BM_STS be enabled approximately 50% of the 
+time without any obvious cause.
 
-
-diff --git a/source/components/executer/exfldio.c b/source/components/executer/exfldio.c
-index 3276bc4..2e70763 100644
---- a/source/components/executer/exfldio.c
-+++ b/source/components/executer/exfldio.c
-@@ -233,9 +233,8 @@ AcpiExSetupRegion (
-      * (Region length is specified in bytes)
-      */
-     if (RgnDesc->Region.Length <
--            (ObjDesc->CommonField.BaseByteOffset +
--            FieldDatumByteOffset +
--            ObjDesc->CommonField.AccessByteWidth))
-+            (ObjDesc->CommonField.BaseByteOffset + FieldDatumByteOffset +
-+             ObjDesc->CommonField.AccessByteWidth))
-     {
-         if (AcpiGbl_EnableInterpreterSlack)
-         {
-@@ -795,6 +794,7 @@ AcpiExExtractFromField (
-     UINT32                  DatumCount;
-     UINT32                  FieldDatumCount;
-     UINT32                  i;
-+    UINT32                  AccessBitWidth;
- 
- 
-     ACPI_FUNCTION_TRACE (ExExtractFromField);
-@@ -802,8 +802,7 @@ AcpiExExtractFromField (
- 
-     /* Validate target buffer and clear it */
- 
--    if (BufferLength <
--            ACPI_ROUND_BITS_UP_TO_BYTES (ObjDesc->CommonField.BitLength))
-+    if (BufferLength < ACPI_ROUND_BITS_UP_TO_BYTES (ObjDesc->CommonField.BitLength))
-     {
-         ACPI_ERROR ((AE_INFO,
-             "Field size %u (bits) is too large for buffer (%u)",
-@@ -813,15 +812,30 @@ AcpiExExtractFromField (
-     }
-     ACPI_MEMSET (Buffer, 0, BufferLength);
- 
-+    /* Simple case handling */
-+    AccessBitWidth = ACPI_MUL_8(ObjDesc->CommonField.AccessByteWidth);
-+    if (ObjDesc->CommonField.StartFieldBitOffset == 0 &&
-+        ObjDesc->CommonField.BitLength == AccessBitWidth)
-+    {
-+        Status = AcpiExFieldDatumIo (ObjDesc, 0, Buffer, ACPI_READ);
-+        return_ACPI_STATUS(Status);
-+    }
-+
-+    /* Algo is limited to sizeof(UINT64), so cut the AccessByteWidth */
-+    if (ObjDesc->CommonField.AccessByteWidth > sizeof(UINT64))
-+    {
-+        ObjDesc->CommonField.AccessByteWidth = sizeof(UINT64);
-+        AccessBitWidth = ACPI_MUL_8(ObjDesc->CommonField.AccessByteWidth);
-+    }
-+
-     /* Compute the number of datums (access width data items) */
- 
-     DatumCount = ACPI_ROUND_UP_TO (
--                        ObjDesc->CommonField.BitLength,
--                        ObjDesc->CommonField.AccessBitWidth);
-+                        ObjDesc->CommonField.BitLength, AccessBitWidth);
-     FieldDatumCount = ACPI_ROUND_UP_TO (
-                         ObjDesc->CommonField.BitLength +
-                         ObjDesc->CommonField.StartFieldBitOffset,
--                        ObjDesc->CommonField.AccessBitWidth);
-+                        AccessBitWidth);
- 
-     /* Priming read from the field */
- 
-@@ -854,12 +868,11 @@ AcpiExExtractFromField (
-          * This avoids the differences in behavior between different compilers
-          * concerning shift values larger than the target data width.
-          */
--        if ((ObjDesc->CommonField.AccessBitWidth -
--            ObjDesc->CommonField.StartFieldBitOffset) < ACPI_INTEGER_BIT_SIZE)
-+        if (AccessBitWidth - ObjDesc->CommonField.StartFieldBitOffset <
-+                ACPI_INTEGER_BIT_SIZE)
-         {
-             MergedDatum |= RawDatum <<
--                (ObjDesc->CommonField.AccessBitWidth -
--                    ObjDesc->CommonField.StartFieldBitOffset);
-+                (AccessBitWidth - ObjDesc->CommonField.StartFieldBitOffset);
-         }
- 
-         if (i == DatumCount)
-@@ -879,8 +892,7 @@ AcpiExExtractFromField (
- 
-     /* Mask off any extra bits in the last datum */
- 
--    BufferTailBits = ObjDesc->CommonField.BitLength %
--                        ObjDesc->CommonField.AccessBitWidth;
-+    BufferTailBits = ObjDesc->CommonField.BitLength % AccessBitWidth;
-     if (BufferTailBits)
-     {
-         MergedDatum &= ACPI_MASK_BITS_ABOVE (BufferTailBits);
-@@ -928,6 +940,7 @@ AcpiExInsertIntoField (
-     UINT32                  FieldDatumCount;
-     UINT32                  i;
-     UINT32                  RequiredLength;
-+    UINT32                  AccessBitWidth;
-     void                    *NewBuffer;
- 
- 
-@@ -965,18 +978,26 @@ AcpiExInsertIntoField (
-         BufferLength = RequiredLength;
-     }
- 
-+    /* Algo is limited to sizeof(UINT64), so cut the AccessByteWidth */
-+    if (ObjDesc->CommonField.AccessByteWidth > sizeof(UINT64))
-+    {
-+        ObjDesc->CommonField.AccessByteWidth = sizeof(UINT64);
-+    }
-+
-+    AccessBitWidth = ACPI_MUL_8(ObjDesc->CommonField.AccessByteWidth);
-+
-     /*
-      * Create the bitmasks used for bit insertion.
-      * Note: This if/else is used to bypass compiler differences with the
-      * shift operator
-      */
--    if (ObjDesc->CommonField.AccessBitWidth == ACPI_INTEGER_BIT_SIZE)
-+    if (AccessBitWidth == ACPI_INTEGER_BIT_SIZE)
-     {
-         WidthMask = ACPI_UINT64_MAX;
-     }
-     else
-     {
--        WidthMask = ACPI_MASK_BITS_ABOVE (ObjDesc->CommonField.AccessBitWidth);
-+        WidthMask = ACPI_MASK_BITS_ABOVE (AccessBitWidth);
-     }
- 
-     Mask = WidthMask &
-@@ -985,11 +1006,11 @@ AcpiExInsertIntoField (
-     /* Compute the number of datums (access width data items) */
- 
-     DatumCount = ACPI_ROUND_UP_TO (ObjDesc->CommonField.BitLength,
--                    ObjDesc->CommonField.AccessBitWidth);
-+                    AccessBitWidth);
- 
-     FieldDatumCount = ACPI_ROUND_UP_TO (ObjDesc->CommonField.BitLength +
-                         ObjDesc->CommonField.StartFieldBitOffset,
--                        ObjDesc->CommonField.AccessBitWidth);
-+                        AccessBitWidth);
- 
-     /* Get initial Datum from the input buffer */
- 
-@@ -1024,12 +1045,11 @@ AcpiExInsertIntoField (
-          * This avoids the differences in behavior between different compilers
-          * concerning shift values larger than the target data width.
-          */
--        if ((ObjDesc->CommonField.AccessBitWidth -
--            ObjDesc->CommonField.StartFieldBitOffset) < ACPI_INTEGER_BIT_SIZE)
-+        if (AccessBitWidth - ObjDesc->CommonField.StartFieldBitOffset <
-+                ACPI_INTEGER_BIT_SIZE)
-         {
-             MergedDatum = RawDatum >>
--                (ObjDesc->CommonField.AccessBitWidth -
--                    ObjDesc->CommonField.StartFieldBitOffset);
-+                (AccessBitWidth - ObjDesc->CommonField.StartFieldBitOffset);
-         }
-         else
-         {
-@@ -1055,8 +1075,7 @@ AcpiExInsertIntoField (
-     /* Mask off any extra bits in the last datum */
- 
-     BufferTailBits = (ObjDesc->CommonField.BitLength +
--            ObjDesc->CommonField.StartFieldBitOffset) %
--                ObjDesc->CommonField.AccessBitWidth;
-+            ObjDesc->CommonField.StartFieldBitOffset) % AccessBitWidth;
-     if (BufferTailBits)
-     {
-         Mask &= ACPI_MASK_BITS_ABOVE (BufferTailBits);
-diff --git a/source/components/executer/exprep.c b/source/components/executer/exprep.c
-index 0709676..95fa502 100644
---- a/source/components/executer/exprep.c
-+++ b/source/components/executer/exprep.c
-@@ -455,8 +455,6 @@ AcpiExPrepCommonFieldObject (
-     ObjDesc->CommonField.AccessByteWidth = (UINT8)
-             ACPI_DIV_8 (AccessBitWidth);            /* 1,  2,  4,  8 */
- 
--    ObjDesc->CommonField.AccessBitWidth = (UINT8) AccessBitWidth;
--
-     /*
-      * BaseByteOffset is the address of the start of the field within the
-      * region.  It is the byte address of the first *datum* (field-width data
-@@ -567,6 +565,16 @@ AcpiExPrepFieldValue (
- 
-         ObjDesc->Field.RegionObj = AcpiNsGetAttachedObject (Info->RegionNode);
- 
-+	/* allow full data read from EC address space */
-+	if (ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_EC) {
-+	    if (ObjDesc->CommonField.BitLength > 8) {
-+		ObjDesc->CommonField.AccessByteWidth =
-+		    ACPI_ROUND_BITS_UP_TO_BYTES(ObjDesc->CommonField.BitLength);
-+	    }
-+	}
-+
-+
-+	
-         /* An additional reference for the container */
- 
-         AcpiUtAddReference (ObjDesc->Field.RegionObj);
-diff --git a/source/include/acobject.h b/source/include/acobject.h
-index cb6e199..e9c3d0a 100644
---- a/source/include/acobject.h
-+++ b/source/include/acobject.h
-@@ -381,12 +381,11 @@ typedef struct acpi_object_thermal_zone
-     UINT8                           FieldFlags;         /* Access, update, and lock bits */\
-     UINT8                           Attribute;          /* From AccessAs keyword */\
-     UINT8                           AccessByteWidth;    /* Read/Write size in bytes */\
-+    UINT8                           StartFieldBitOffset;/* Bit offset within first field datum (0-63) */\
-     ACPI_NAMESPACE_NODE             *Node;              /* Link back to parent node */\
-     UINT32                          BitLength;          /* Length of field in bits */\
-     UINT32                          BaseByteOffset;     /* Byte offset within containing object */\
-     UINT32                          Value;              /* Value to store into the Bank or Index register */\
--    UINT8                           StartFieldBitOffset;/* Bit offset within first field datum (0-63) */\
--    UINT8                           AccessBitWidth;     /* Read/Write size in bits (8-64) */
- 
- 
- typedef struct acpi_object_field_common                 /* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
