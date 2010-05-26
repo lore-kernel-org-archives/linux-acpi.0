@@ -1,76 +1,58 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] ACPI: Do not try to set up acpi processor stuff on cores exceeding maxcpus=
-Date: Wed, 26 May 2010 17:03:33 +0200
-Message-ID: <1274886213-16337-1-git-send-email-trenn@suse.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Handle large field apertures.
+Date: Wed, 26 May 2010 10:51:37 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D83085870A58F11@orsmsx503.amr.corp.intel.com>
+References: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
+	 <20100525105910.2629.76253.stgit@thinkpad>
+	 <1274841567.28455.16.camel@minggr.sh.intel.com>
+	 <1274842158.28455.18.camel@minggr.sh.intel.com>  <4BFCCE01.1070100@suse.de>
+ <1274859099.3429.25.camel@minggr.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:46331 "EHLO mx1.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:9799 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754797Ab0EZPDn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 May 2010 11:03:43 -0400
+	id S1753830Ab0EZRvk convert rfc822-to-8bit (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 26 May 2010 13:51:40 -0400
+In-Reply-To: <1274859099.3429.25.camel@minggr.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, travis@sgi.com, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "Lin, Ming M" <ming.m.lin@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
 
-Patch is against latest Linus master branch and is expected to be
-safe bug fix.
+Shouldn't this be:
 
-You get:
-ACPI: HARDWARE addr space,NOT supported yet
-for each ACPI defined CPU which status is active, but exceeds
-maxcpus= count.
+if (AccessByteWidth < 256)
+{
+    ObjDesc->CommonField.AccessByteWidth =3D (UINT8) AccessByteWidth;
+}
 
-As these "not booted" CPUs do not run an idle routine
-and echo X >/proc/acpi/processor/*/throttling did not work
-I couldn't find a way to really access not onlined/booted
-machines. Still this should get fixed and
-/proc/acpi/processor/X dirs of cores exceeding maxcpus
-should not show up.
 
-I wonder whether this could get cleaned up by truncating possible cpu mask
-and nr_cpu_ids to setup_max_cpus early some day
-(and not exporting setup_max_cpus anymore then).
-But this needs touching of a lot other places...
+>-----Original Message-----
+>From: Lin, Ming M
+>Sent: Wednesday, May 26, 2010 12:32 AM
+>To: Alexey Starikovskiy
+>Cc: Moore, Robert; Len Brown; Linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH] ACPICA: Handle large field apertures.
+>
+>On Wed, 2010-05-26 at 15:30 +0800, Alexey Starikovskiy wrote:
+>> Hi Ming,
+>>
+>> 26.05.2010 06:49, Lin Ming =D0=C9=DB=C5=D4:
+>> > Better to test AccessByteWidth as below,
+>> Why not just 'if (AccessByteWidth > 255)' ?
+>
+>OK, that's more clear.
+>
+>> >
+>> > +                if (!(AccessByteWidth & ~0xFF)) {
+>> >
+>>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: travis@sgi.com
-CC: linux-acpi@vger.kernel.org
-CC: lenb@kernel.org
----
- drivers/acpi/processor_driver.c |    5 +++++
- init/main.c                     |    4 +++-
- 2 files changed, 8 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 5675d97..7615bc2 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -581,6 +581,11 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 		return 0;
- 	}
- 
-+#ifdef CONFIG_SMP
-+	if (pr->id >= setup_max_cpus && pr->id != 0)
-+		return 0;
-+#endif
-+
- 	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
- 
- 	/*
-diff --git a/init/main.c b/init/main.c
-index 22881b5..fc104db 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -125,7 +125,9 @@ static char *ramdisk_execute_command;
- 
- #ifdef CONFIG_SMP
- /* Setup configured maximum number of CPUs to activate */
--unsigned int __initdata setup_max_cpus = NR_CPUS;
-+unsigned int setup_max_cpus = NR_CPUS;
-+EXPORT_SYMBOL(setup_max_cpus);
-+
- 
- /*
-  * Setup routine for controlling SMP activation
--- 
-1.6.3
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
