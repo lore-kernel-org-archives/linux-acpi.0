@@ -1,41 +1,76 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH] ACPICA: Handle large field apertures.
-Date: Wed, 26 May 2010 15:31:39 +0800
-Message-ID: <1274859099.3429.25.camel@minggr.sh.intel.com>
-References: <4911F71203A09E4D9981D27F9D830858709F2D04@orsmsx503.amr.corp.intel.com>
-	 <20100525105910.2629.76253.stgit@thinkpad>
-	 <1274841567.28455.16.camel@minggr.sh.intel.com>
-	 <1274842158.28455.18.camel@minggr.sh.intel.com>  <4BFCCE01.1070100@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] ACPI: Do not try to set up acpi processor stuff on cores exceeding maxcpus=
+Date: Wed, 26 May 2010 17:03:33 +0200
+Message-ID: <1274886213-16337-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54202 "EHLO mga01.intel.com"
+Received: from cantor.suse.de ([195.135.220.2]:46331 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042Ab0EZHc3 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 26 May 2010 03:32:29 -0400
-In-Reply-To: <4BFCCE01.1070100@suse.de>
+	id S1754797Ab0EZPDn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 May 2010 11:03:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, travis@sgi.com, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Wed, 2010-05-26 at 15:30 +0800, Alexey Starikovskiy wrote:
-> Hi Ming,
->=20
-> 26.05.2010 06:49, Lin Ming =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> > Better to test AccessByteWidth as below,
-> Why not just 'if (AccessByteWidth > 255)' ?
+Patch is against latest Linus master branch and is expected to be
+safe bug fix.
 
-OK, that's more clear.
+You get:
+ACPI: HARDWARE addr space,NOT supported yet
+for each ACPI defined CPU which status is active, but exceeds
+maxcpus= count.
 
-> >=20
-> > +                if (!(AccessByteWidth & ~0xFF)) {
-> >=20
->=20
+As these "not booted" CPUs do not run an idle routine
+and echo X >/proc/acpi/processor/*/throttling did not work
+I couldn't find a way to really access not onlined/booted
+machines. Still this should get fixed and
+/proc/acpi/processor/X dirs of cores exceeding maxcpus
+should not show up.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I wonder whether this could get cleaned up by truncating possible cpu mask
+and nr_cpu_ids to setup_max_cpus early some day
+(and not exporting setup_max_cpus anymore then).
+But this needs touching of a lot other places...
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: travis@sgi.com
+CC: linux-acpi@vger.kernel.org
+CC: lenb@kernel.org
+---
+ drivers/acpi/processor_driver.c |    5 +++++
+ init/main.c                     |    4 +++-
+ 2 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 5675d97..7615bc2 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -581,6 +581,11 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		return 0;
+ 	}
+ 
++#ifdef CONFIG_SMP
++	if (pr->id >= setup_max_cpus && pr->id != 0)
++		return 0;
++#endif
++
+ 	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
+ 
+ 	/*
+diff --git a/init/main.c b/init/main.c
+index 22881b5..fc104db 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -125,7 +125,9 @@ static char *ramdisk_execute_command;
+ 
+ #ifdef CONFIG_SMP
+ /* Setup configured maximum number of CPUs to activate */
+-unsigned int __initdata setup_max_cpus = NR_CPUS;
++unsigned int setup_max_cpus = NR_CPUS;
++EXPORT_SYMBOL(setup_max_cpus);
++
+ 
+ /*
+  * Setup routine for controlling SMP activation
+-- 
+1.6.3
+
