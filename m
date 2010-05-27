@@ -1,74 +1,90 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: (No subject header)
-Date: Thu, 27 May 2010 01:47:29 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1005270138320.8496@localhost.localdomain>
-References: <4a831611847e8965ed5f3328e52fe8758115b951.1274926772.git.len.brown@intel.com>
- <1274928151-30919-1-git-send-email-lenb@kernel.org>
- <e099975ca65a7f6ac7f8bc3fee84d3e03893aa31.1274926772.git.len.brown@intel.com>
- <1274937929_9182@mail4.comsite.net>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 16043] New: Resume w/USB remote working in
+ 2.6.33.2, no longer in 2.6.33.10
+Date: Thu, 27 May 2010 13:01:17 -0700
+Message-ID: <20100527130117.ca479487.akpm@linux-foundation.org>
+References: <bug-16043-10286@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:48831 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab0E0Frr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 May 2010 01:47:47 -0400
-In-reply-to: <1274937929_9182@mail4.comsite.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <bug-16043-10286-3bo0kxnWaOQUvHkbgXJLS5sdmw4N0Rt+2LY78lusg7I@public.gmane.org/>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, scott-ILTxhEaIe5LR7s880joybQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Milton Miller <miltonm@bga.com>
-Cc: Len Brown <len.brown@intel.com>, Peter Zijlstra <peterz@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 27 May 2010, Milton Miller wrote:
 
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
+
+On Tue, 25 May 2010 03:51:20 GMT
+bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
+
+> https://bugzilla.kernel.org/show_bug.cgi?id=16043
 > 
-> [Hmm, why did this not appear in patchwork.kernel.org?  Now
-> I have to guess a CC list.]
-> 
-> On Wed, 26 May 2010 around 22:43:50 -0400 (EDT), Len Brown wrote:
-> > From: Len Brown <len.brown@intel.com>
-> > 
-> > TS_POLLING set tells the scheduler a task will poll
-> > need_resched() to look for work.
-> > 
-> 
-> True
-> 
-> > TS_POLLING clear tells resched_task() and wake_up_idle_cpu()
-> > that the remote CPU is sleeping in idle, and thus requires
-> > a reschedule interrupt to wake them to notice work.
-> 
-> No, that only applies to the idle task.
-> 
-> 
-> > 
-> > Update the description of TS_POLLING to reflect how it works.
-> > "cleared when sleeping in idle, requiring reschedule interrupt"
-> 
-> That would imply its set for every normal task that is not in some
-> kind of sleep state.
+>            Summary: Resume w/USB remote working in 2.6.33.2, no longer in
+>                     2.6.33.10
 
-you're right, just the idle task sets this flag.
+This is a regression within -stable, presumably also in 2.6.34.
 
-> > Signed-off-by: Len Brown <len.brown@intel.com>
-> > Acked-by: Peter Zijlstra <peterz@infradead.org>
+>            Product: ACPI
+>            Version: 2.5
+>     Kernel Version: 2.6.33.10
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Power-Sleep-Wake
+>         AssignedTo: acpi_power-sleep-wake-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+>         ReportedBy: scott-ILTxhEaIe5LR7s880joybQ@public.gmane.org
+>         Regression: Yes
 > 
-> > -#define TS_POLLING		0x0004	/* true if in idle loop
-> > -					   and not sleeping */
-> > +#define TS_POLLING		0x0004	/* clear when sleeping in idle
-> > +					   requiring reschedule interrupt */
 > 
-> How about "idle task polling need_resched, skip sending interrupt"?
+> Using the latest Arch Linux kernel (2.6.33.10-1), the contents of
+> /proc/acpi/wakeup are:
+> 
+> [scott@blargh-htpc ~]$ cat /proc/acpi/wakeup
+> Device  S-state   Status   Sysfs node
+> HUB0      S5     disabled  pci:0000:00:09.0
+> XVR0      S5     disabled
+> XVR1      S5     disabled
+> XVR2      S5     disabled
+> XVR3      S5     disabled
+> XVR4      S5     disabled  pci:0000:00:16.0
+> XVR5      S5     disabled
+> XVR6      S5     disabled
+> UAR1      S5     disabled  pnp:00:08
+> USB0      S4     enabled   pci:0000:00:04.0
+> USB1      S4     disabled  pci:0000:00:06.0
+> USBB      S3     disabled  pci:0000:00:06.1
+> USB2      S3     disabled  pci:0000:00:04.1
+> AZAD      S5     disabled  pci:0000:00:08.0
+> MMAC      S5     disabled  pci:0000:00:0a.0
+> 
+> [scott@blargh-htpc pkg]$ uname -a
+> Linux blargh-htpc 2.6.33-ARCH #1 SMP PREEMPT Thu May 13 11:32:37 CEST 2010
+> x86_64 Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00GHz GenuineIntel GNU/Linu
+> x
+> 
+> The machine will suspend to RAM correctly, but will no longer be resumed by a
+> USB remote power-on event.  Instead, the power button on the machine must be
+> pressed.  It then resumes correctly.
+> 
+> This behavior was not present in the previous kernel I was running: 2.6.33.2-1.
+>  In that case, the machine powered back on correctly when the USB remote's
+> power button was pressed.  There was an intermediate kernel release
+> (2.6.33.4-1) that I have not tried, but certainly can do so if that might help
+> determine where the regression was introduced.
+> 
+> Additionally if there's more information I can provide about the system and my
+> setup, please let me know what is required.
+> 
 
-I think that is an improvement over my wording.
 
-Though technically we're not polling need_resched in the case
-I have in mind.  The hardware is snooping any write to the thread flags
-via MONITOR/MWAIT trigger address.
-
-cheers,
--Len Brown, Intel Open Source Technology Center
-
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
