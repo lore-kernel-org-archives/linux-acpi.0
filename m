@@ -1,28 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/2] ACPI / ACPICA: GPE reference counting fixes
-Date: Fri, 28 May 2010 22:45:19 +0200
-Message-ID: <201005282245.19382.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC PATCH] Quickstart Button ACPI driver to serve PNP0C32
+	ACPI devices
+Date: Fri, 28 May 2010 22:11:56 +0100
+Message-ID: <20100528211156.GA3883@srcf.ucam.org>
+References: <201005281940.09925.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54040 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932401Ab0E1Uqz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 May 2010 16:46:55 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201005281940.09925.trenn@suse.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Angelo Arrifano <miknix@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi Len,
+On Fri, May 28, 2010 at 07:40:09PM +0200, Thomas Renninger wrote:
 
-The following two patches fix a few problems introduced by the recent GPE
-reference counting changes.
+> The idea of these buttons is that they are undefined from BIOS/kernel
+> point of view. Userspace has to map a functionality to them.
+> Therefore the idea to modify the input event keycode via sysfs file.
+> There should be 2 situations that perfectly are triggered via userspace:
 
-Please review and apply if they make sense to you.
+They're logically buttons, so the right mechanism is for them to be 
+configured via the standard keymap ioctls. There's already 
+infrastructure for setting this via udev - see /lib/udev/keymaps on 
+recent systems. That should let you avoid the need to 
+unregister/reregister.
 
-Thanks,
-Rafael
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
