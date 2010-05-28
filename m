@@ -1,51 +1,30 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [Bugme-new] [Bug 16043] New: Resume w/USB remote working in
- 2.6.33.2, no longer in 2.6.33.10
-Date: Thu, 27 May 2010 18:01:22 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005271755500.1595-100000@iolanthe.rowland.org>
-References: <20100527130117.ca479487.akpm@linux-foundation.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 5/7] x86 platform drivers: hp-wmi Set placeholder for
+	unimplemented events
+Date: Fri, 28 May 2010 14:33:14 +0100
+Message-ID: <20100528133314.GB25189@srcf.ucam.org>
+References: <1274451495-10252-1-git-send-email-trenn@suse.de> <1274451495-10252-6-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100527130117.ca479487.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: scott-ILTxhEaIe5LR7s880joybQ@public.gmane.org
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:39564 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755267Ab0E1NdR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 May 2010 09:33:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1274451495-10252-6-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-On Thu, 27 May 2010, Andrew Morton wrote:
+On Fri, May 21, 2010 at 04:18:13PM +0200, Thomas Renninger wrote:
+> And tell the user that those have happened.
 
-> > https://bugzilla.kernel.org/show_bug.cgi?id=16043
-> > 
-> >            Summary: Resume w/USB remote working in 2.6.33.2, no longer in
-> >                     2.6.33.10
+Marking these as unimplemented seems fine, but I think the message is 
+too much - my system generates the smart charger events, and I'd rather 
+not have even more spew when I plug/unplug. Mind if I merge this without 
+the messages?
 
-> > Using the latest Arch Linux kernel (2.6.33.10-1), the contents of
-> > /proc/acpi/wakeup are:
-
-/proc/acpi/wakeup doesn't matter.  What matters are the power/wakeup 
-files under /sys.
-
-> > The machine will suspend to RAM correctly, but will no longer be resumed by a
-> > USB remote power-on event.  Instead, the power button on the machine must be
-> > pressed.  It then resumes correctly.
-
-By default, wakeup is disabled for USB host controllers.  This is so 
-that people don't cause their suspended laptops to wake up by 
-unplugging a USB mouse, for example.
-
-If you want to enable wakeup, you have to do it manually or from a 
-boot-time script like /etc/rc.d/rc.local.  For example, you might need 
-to do:
-
-	echo enabled >/sys/bus/pci/devices/0000:00:04.0/power/wakeup
-
-The system has been this way a long time, but up until just now it
-didn't work correctly.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
