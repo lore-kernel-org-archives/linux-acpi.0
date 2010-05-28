@@ -1,58 +1,47 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC PATCH] Quickstart Button ACPI driver to serve PNP0C32 ACPI
- devices
-Date: Fri, 28 May 2010 11:01:03 -0700
-Message-ID: <20100528180103.GA2905@core.coreip.homeip.net>
-References: <201005281940.09925.trenn@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Do not try to set up acpi processor stuff on cores
+ exceeding maxcpus=
+Date: Fri, 28 May 2010 14:46:27 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1005281445170.4045@localhost.localdomain>
+References: <1274886213-16337-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:54126 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638Ab0E1SBg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 May 2010 14:01:36 -0400
-Content-Disposition: inline
-In-Reply-To: <201005281940.09925.trenn@suse.de>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:62144 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab0E1Sqr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 May 2010 14:46:47 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L3500IEV85HV1E2@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 28 May 2010 13:46:34 -0500 (CDT)
+In-reply-to: <1274886213-16337-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Angelo Arrifano <miknix@gmail.com>
+Cc: travis@sgi.com, linux-acpi@vger.kernel.org
 
-On Fri, May 28, 2010 at 07:40:09PM +0200, Thomas Renninger wrote:
-> Hi,
+
+On Wed, 26 May 2010, Thomas Renninger wrote:
+
+> Patch is against latest Linus master branch and is expected to be
+> safe bug fix.
 > 
-> if you have a recent Microsoft Office format reader you find some
-> documentation here:
-> http://www.microsoft.com/whdc/system/platform/firmware/DirAppLaunch.mspx	
+> You get:
+> ACPI: HARDWARE addr space,NOT supported yet
+> for each ACPI defined CPU which status is active, but exceeds
+> maxcpus= count.
 > 
-> I finally got it converted and these should be readable in OpenOffice as well:
-> ftp.suse.com/pub/people/trenn/hotstart_quickstart_docu
-> 
-> The idea of these buttons is that they are undefined from BIOS/kernel
-> point of view. Userspace has to map a functionality to them.
-> Therefore the idea to modify the input event keycode via sysfs file.
+> As these "not booted" CPUs do not run an idle routine
+> and echo X >/proc/acpi/processor/*/throttling did not work
+> I couldn't find a way to really access not onlined/booted
+> machines. Still this should get fixed and
+> /proc/acpi/processor/X dirs of cores exceeding maxcpus
+> should not show up.
 
-What s wrong with using EVIOCSKEYCODE to adjust the mapping. Note that
-the issue of handlers not re-binding after keymap change should be
-solved regardless.
+Can we delete the /proc/acpi/processor/ dirs instead of maintaining them?
 
-> There should be 2 situations that perfectly are triggered via userspace:
->    - DMI match (or similar) and assign the correct buttons on the known
->      machine. I know that hal could do this rather well and had dmi
->      tables pre-defined. AFAIK hal is already obsolete? What userspace
->      tools/lists would be best to ask?
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
-udev/hal remap keys on laptop keyboards, they should have facilities to
-do that here as well.
-
-> 
->    - If the button is undefined, a higher level userspace X application
->      could ask the user to set it to something useful. For this to
->      happen the usage id has to be passed somehow through the input
->      layer. Not sure how realistic such an implementation is and what
->      is still needed in X to make this happen.
-
-Yes, KEY_UNKNOWN is expected to cause such behavior.
-
--- 
-Dmitry
