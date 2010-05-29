@@ -1,21 +1,20 @@
-From: Maria Gordon <roy-ocol-hod@moh.gov.om>
-Subject: Good News
-Date: Mon, 31 May 2010 19:21:33 +0400 (GST)
-Message-ID: <1589735090.119841275319293551.JavaMail.root__28713.1611178213$1275330118$gmane$org@moh-zcs-mbs1.moh.gov.om>
-Reply-To: Maria Gordon <lotto649@gala.net>
+From: "John Lee" <johnlee@mail.com>
+Subject: (unknown)
+Date: Sun, 30 May 2010 07:37:52 +0800
+Message-ID: <20100529232509.E423B143BE17@hosting.fp.cl>
+Reply-To: <johnlee101@live.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+	charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.moh.gov.om ([212.72.22.77]:48546 "HELO
-	moh-zcs-mta1.moh.gov.om" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1756055Ab0EaSVS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 May 2010 14:21:18 -0400
+Received: from [190.96.84.154] ([190.96.84.154]:54103 "EHLO hosting.fp.cl"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751973Ab0EaVYj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 May 2010 17:24:39 -0400
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Your e-mail address has made you a winner of 2,500,000GBP, from the Canadian Lottery Promo.
-Contact our British Agent Trevor Allan via: 
-E-mail: lotto649@gala.net
-Tel: +447031979972
-
+I am a Malaysian national, I have a good business plan that I would love to share with you.
+John Lee
