@@ -1,53 +1,29 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH 2/2] ACPI: Store NVS state even when entering suspend
- to RAM
-Date: Sun, 30 May 2010 17:40:04 +0300
-Message-ID: <1275230404.14907.11.camel@maxim-laptop>
-References: <1275078735-1866-1-git-send-email-mjg@redhat.com>
-	 <1275078735-1866-2-git-send-email-mjg@redhat.com>
+	to RAM
+Date: Sun, 30 May 2010 15:51:43 +0100
+Message-ID: <20100530145142.GA32078@srcf.ucam.org>
+References: <1275078735-1866-1-git-send-email-mjg@redhat.com> <1275078735-1866-2-git-send-email-mjg@redhat.com> <1275230404.14907.11.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55109 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754521Ab0E3OkJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 May 2010 10:40:09 -0400
-In-Reply-To: <1275078735-1866-2-git-send-email-mjg@redhat.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:45017 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754522Ab0E3Ovv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 May 2010 10:51:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1275230404.14907.11.camel@maxim-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Fri, 2010-05-28 at 16:32 -0400, Matthew Garrett wrote: 
-> https://bugzilla.kernel.org/show_bug.cgi?id=13931 describes a bug where
-> a system fails to successfully resume after the second suspend. Maxim
-> Levitsky discovered that this could be rectified by forcibly saving
-> and restoring the ACPI non-volatile state. The spec indicates that this
-> is only required for S4, but testing the behaviour of Windows by adding
-> an ACPI NVS region to qemu's e820 map and registering a custom memory
-> read/write handler reveals that it's saved and restored even over suspend
-> to RAM. We should mimic that behaviour to avoid other broken platforms.
-> 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> ---
->  drivers/acpi/sleep.c |   21 +++++++++++++--------
->  1 files changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index d3cbc55..18aa074 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -128,6 +128,8 @@ static int __acpi_pm_prepare(void)
->  {
->  	int error = acpi_sleep_prepare(acpi_target_sleep_state);
+On Sun, May 30, 2010 at 05:40:04PM +0300, Maxim Levitsky wrote:
 
+> Just one note, I am sure somebody will ask for s3_no_nvs option, just
+> like s4_no_nvs.
 
-Just one note, I am sure somebody will ask for s3_no_nvs option, just
-like s4_no_nvs.
+I'd be surprised. Better to add the option when we think it's needed.
 
-Also this needs to be rebased, like the first patch.
-
-Best regards,
-Maxim Levitsky
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
