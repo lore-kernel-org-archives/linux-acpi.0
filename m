@@ -1,33 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [git pull request] ACPI patches for 2.6.35-merge
-Date: Sat, 29 May 2010 22:27:57 +0200
-Message-ID: <201005292227.57939.rjw@sisk.pl>
-References: <alpine.LFD.2.00.1005281641080.4045@localhost.localdomain> <201005290036.34495.rjw@sisk.pl> <alpine.LFD.2.00.1005282337210.3942@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Linux 2.6.34 causes system lockup on Compaq Presario 2200
+ Laptop
+Date: Sat, 29 May 2010 20:22:53 -0700
+Message-ID: <20100529202253.0bd18bbd.akpm@linux-foundation.org>
+References: <AANLkTil6GGSoc8TpzRacr1LZBZS3ee3H1ejYDSqfdul4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1005282337210.3942@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51966 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754247Ab0E3DW4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 May 2010 23:22:56 -0400
+In-Reply-To: <AANLkTil6GGSoc8TpzRacr1LZBZS3ee3H1ejYDSqfdul4@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeffrey Merkey <jeffmerkey@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Saturday 29 May 2010, Len Brown wrote:
-> 
-> > Hmm, it looks like you omitted these two:
-> > 
-> > https://patchwork.kernel.org/patch/91560/
-> > https://patchwork.kernel.org/patch/91558/
-> > 
-> > Was that intentional or were they simply forgotten?
-> 
-> I missed those two.
-> Strange --  I recall discussing them in April,
-> so don't know why they were not in my test tree since then.
-> 
-> Anyway, they're in acpi-test now, and as it is a bug fix,
-> with just a small re-name, should be fine for the next push.
+(cc linux-acpi)
 
-Thanks!
+On Thu, 27 May 2010 12:08:48 -0600 Jeffrey Merkey <jeffmerkey@gmail.com> wrote:
+
+> 2.6.34 causes a hard system lockup when the screen blanking activates
+> for more than 10 minutes with low battery power.  Also misreports
+> battery level as "battery broken at 14%" when the battery is fully
+> charged.  Does not occur with 2.6.28 but 2.6.33 also seems to do it as
+> well.  software debugging tools useless as the keyboard does not
+> respond.
+> 
+
