@@ -1,33 +1,104 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Linux 2.6.34 causes system lockup on Compaq Presario 2200
- Laptop
-Date: Sat, 29 May 2010 20:22:53 -0700
-Message-ID: <20100529202253.0bd18bbd.akpm@linux-foundation.org>
-References: <AANLkTil6GGSoc8TpzRacr1LZBZS3ee3H1ejYDSqfdul4@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH] ACPI: Don't let acpi_pad needlessly mark LAPIC unstable
+Date: Sun, 30 May 2010 11:37:08 +0800
+Message-ID: <1275190628-18265-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51966 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754247Ab0E3DW4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 May 2010 23:22:56 -0400
-In-Reply-To: <AANLkTil6GGSoc8TpzRacr1LZBZS3ee3H1ejYDSqfdul4@mail.gmail.com>
+Received: from mga12.intel.com ([143.182.124.36]:17284 "EHLO
+	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755282Ab0E3DeV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 May 2010 23:34:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeffrey Merkey <jeffmerkey@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: venki@google.com, shaohua.li@intel.com
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-(cc linux-acpi)
+according to Venki's suggestion in the commit 0dc698b,
+adding LAPIC unstable detection in the acpi_pad drvier too.
 
-On Thu, 27 May 2010 12:08:48 -0600 Jeffrey Merkey <jeffmerkey@gmail.com> wrote:
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/acpi_pad.c |   36 ++++++++++++++++++++++++------------
+ 1 files changed, 24 insertions(+), 12 deletions(-)
 
-> 2.6.34 causes a hard system lockup when the screen blanking activates
-> for more than 10 minutes with low battery power.  Also misreports
-> battery level as "battery broken at 14%" when the battery is fully
-> charged.  Does not occur with 2.6.28 but 2.6.33 also seems to do it as
-> well.  software debugging tools useless as the keyboard does not
-> respond.
-> 
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index d269a8f..446aced 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -46,6 +46,8 @@ static unsigned long power_saving_mwait_eax;
+ 
+ static unsigned char tsc_detected_unstable;
+ static unsigned char tsc_marked_unstable;
++static unsigned char lapic_detected_unstable;
++static unsigned char lapic_marked_unstable;
+ 
+ static void power_saving_mwait_init(void)
+ {
+@@ -75,9 +77,6 @@ static void power_saving_mwait_init(void)
+ 	power_saving_mwait_eax = (highest_cstate << MWAIT_SUBSTATE_SIZE) |
+ 		(highest_subcstate - 1);
+ 
+-	for_each_online_cpu(i)
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &i);
+-
+ #if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
+ 	switch (boot_cpu_data.x86_vendor) {
+ 	case X86_VENDOR_AMD:
+@@ -86,13 +85,15 @@ static void power_saving_mwait_init(void)
+ 		 * AMD Fam10h TSC will tick in all
+ 		 * C/P/S0/S1 states when this bit is set.
+ 		 */
+-		if (boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
+-			return;
+-
+-		/*FALL THROUGH*/
++		if (!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
++			tsc_detected_unstable = 1;
++		if (!boot_cpu_has(X86_FEATURE_ARAT))
++			lapic_detected_unstable = 1;
++		break;
+ 	default:
+-		/* TSC could halt in idle */
++		/* TSC & LAPIC could halt in idle */
+ 		tsc_detected_unstable = 1;
++		lapic_detected_unstable = 1;
+ 	}
+ #endif
+ }
+@@ -180,10 +181,20 @@ static int power_saving_thread(void *data)
+ 				mark_tsc_unstable("TSC halts in idle");
+ 				tsc_marked_unstable = 1;
+ 			}
++			if (lapic_detected_unstable && !lapic_marked_unstable) {
++				int i;
++				/* LAPIC could halt in idle, so notify users */
++				for_each_online_cpu(i)
++					clockevents_notify(
++						CLOCK_EVT_NOTIFY_BROADCAST_ON,
++						&i);
++				lapic_marked_unstable = 1;
++			}
+ 			local_irq_disable();
+ 			cpu = smp_processor_id();
+-			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER,
+-				&cpu);
++			if (lapic_marked_unstable)
++				clockevents_notify(
++					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+ 			stop_critical_timings();
+ 
+ 			__monitor((void *)&current_thread_info()->flags, 0, 0);
+@@ -192,8 +203,9 @@ static int power_saving_thread(void *data)
+ 				__mwait(power_saving_mwait_eax, 1);
+ 
+ 			start_critical_timings();
+-			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT,
+-				&cpu);
++			if (lapic_marked_unstable)
++				clockevents_notify(
++					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+ 			local_irq_enable();
+ 
+ 			if (jiffies > expire_time) {
+-- 
+1.7.0.2.279.gf1ba1c
 
