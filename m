@@ -1,35 +1,21 @@
-From: "2010 Account Upgrade" <info@upgrade.co.uk>
-Subject: Dear Webmail/E-mail user
-Date: Mon, 31 May 2010 15:05:27 +0100 (BST)
-Message-ID: <52e3a97a65a5cabf77aa5452715d6fc8.squirrel@webmail.tdm.co.mz>
-Reply-To: sbc.upgrade@onfruit.cn
+From: Maria Gordon <roy-ocol-hod@moh.gov.om>
+Subject: Good News
+Date: Mon, 31 May 2010 19:21:33 +0400 (GST)
+Message-ID: <1589735090.119841275319293551.JavaMail.root__28713.1611178213$1275330118$gmane$org@moh-zcs-mbs1.moh.gov.om>
+Reply-To: Maria Gordon <lotto649@gala.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pop.tdm.co.mz ([41.220.162.42]:42638 "EHLO pop.tdm.co.mz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755755Ab0EaOQo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 May 2010 10:16:44 -0400
+Received: from mail.moh.gov.om ([212.72.22.77]:48546 "HELO
+	moh-zcs-mta1.moh.gov.om" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1756055Ab0EaSVS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 May 2010 14:21:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Webmail/E-mail user,
-
-This message is from our Webmail Messaging Center to all our account
-owners.We are currently upgrading our database and e-mail center. We are
-deleting all unused webmail account to create more space for new accounts.
-To ensure that you do not experience service interruption during this
-period; you will need to  verify your webmail account details through the
-following:
-
-1.Username :....................................
-2.Password :...................................
-3.Date of Birth :...............................
-
-You will be sent a new confirmation alphanumerical password that will only
-be valid during this period, and may be altered by this process. We very
-much regret any inconvenience this may cost you.Please reply to this
-message to enable us to give you better online services with our new
-improved webmail functionality and improvements.
+Your e-mail address has made you a winner of 2,500,000GBP, from the Canadian Lottery Promo.
+Contact our British Agent Trevor Allan via: 
+E-mail: lotto649@gala.net
+Tel: +447031979972
 
