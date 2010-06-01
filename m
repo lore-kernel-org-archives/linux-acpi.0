@@ -1,30 +1,33 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: ACPI error messages
-Date: Tue, 1 Jun 2010 09:11:36 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006010906530.16754-100000@netrider.rowland.org>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH] Store BIOS NVS area over s2ram [V2]
+Date: Tue, 01 Jun 2010 21:19:50 +0300
+Message-ID: <1275416390.3778.7.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:54957 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756187Ab0FANLj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jun 2010 09:11:39 -0400
+Received: from fg-out-1718.google.com ([72.14.220.154]:3429 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441Ab0FASTz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jun 2010 14:19:55 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so1308883fgb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Jun 2010 11:19:54 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>
 
-My kernel log is full of hundreds of messages like these:
+Hi,
 
-ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000046) is beyond end of object (20090903/exoparg2-445)
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node f701c918), AE_AML_BUFFER_LIMIT
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node f7017b58), AE_AML_BUFFER_LIMIT
-ACPI Error: Evaluating _BCM failed (20090903/video-528)
+This is rebased and slightly updated version of Matthew Garrett's
+patches.
+Tested on my system.
 
-This is on an ASUS UL20A laptop (ICH9 chipset) with Fedora-12 (kernel
-2.6.32.12).  What is the reason for these error messages?  Can anything 
-be done to fix them?
+Note that now I got positive feedback from 2 users of this system that
+this approach works, and no negative feedback.
 
-Thanks,
+Please review.
 
-Alan Stern
+Best regards,
+Maxim Levitsky
 
