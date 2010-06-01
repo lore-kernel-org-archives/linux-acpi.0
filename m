@@ -1,29 +1,30 @@
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: Re: How to disable power managment for SATA?
-Date: Tue, 01 Jun 2010 10:02:28 +0200
-Message-ID: <4C04BE94.50107@canonical.com>
-References: <AANLkTilxYC8a88DwMlc6MPgM_ai9we9vsCXej-KqwToY@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: ACPI error messages
+Date: Tue, 1 Jun 2010 09:11:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1006010906530.16754-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:54839 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696Ab0FAICa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jun 2010 04:02:30 -0400
-In-Reply-To: <AANLkTilxYC8a88DwMlc6MPgM_ai9we9vsCXej-KqwToY@mail.gmail.com>
+Received: from netrider.rowland.org ([192.131.102.5]:54957 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756187Ab0FANLj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jun 2010 09:11:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Fred ." <eldmannen@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 06/01/2010 01:38 AM, Fred . wrote:
-> I can disable power management with acpi=off
-> 
-> But how do I disable it just for SATA?
+My kernel log is full of hundreds of messages like these:
 
-For Ubuntu 10.04 there was a script in /usr/lib/pm-utils/power.d/ but that has
-been removed in newer updates as it caused quite severe SATA errors on some
-chipsets.
+ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000046) is beyond end of object (20090903/exoparg2-445)
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node f701c918), AE_AML_BUFFER_LIMIT
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node f7017b58), AE_AML_BUFFER_LIMIT
+ACPI Error: Evaluating _BCM failed (20090903/video-528)
 
--Stefan
+This is on an ASUS UL20A laptop (ICH9 chipset) with Fedora-12 (kernel
+2.6.32.12).  What is the reason for these error messages?  Can anything 
+be done to fix them?
+
+Thanks,
+
+Alan Stern
+
