@@ -1,25 +1,25 @@
 From: Venkatesh Pallipadi <venki@google.com>
 Subject: Re: [PATCH] ACPI: Fix the incorrect calculation about C-state idle
 	time
-Date: Wed, 2 Jun 2010 09:28:31 -0700
-Message-ID: <AANLkTikacbr_8PnevNPE7smvpOv1PEAa9vsqjUXAxiO_@mail.gmail.com>
+Date: Wed, 2 Jun 2010 09:29:54 -0700
+Message-ID: <AANLkTiljYG9BAdJfss-tfp1gLxXjrAmuGszP-WBKemLL@mail.gmail.com>
 References: <1275447849-25761-1-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.35]:15172 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:56957 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932579Ab0FBQ2h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 12:28:37 -0400
-Received: from kpbe17.cbf.corp.google.com (kpbe17.cbf.corp.google.com [172.25.105.81])
-	by smtp-out.google.com with ESMTP id o52GSYmB004768
-	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 09:28:35 -0700
-Received: from yxk8 (yxk8.prod.google.com [10.190.3.136])
-	by kpbe17.cbf.corp.google.com with ESMTP id o52GSXUB006543
-	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 09:28:33 -0700
-Received: by yxk8 with SMTP id 8so359629yxk.18
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 09:28:33 -0700 (PDT)
+	with ESMTP id S932727Ab0FBQ36 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 12:29:58 -0400
+Received: from kpbe15.cbf.corp.google.com (kpbe15.cbf.corp.google.com [172.25.105.79])
+	by smtp-out.google.com with ESMTP id o52GTueR015455
+	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 09:29:57 -0700
+Received: from ywh34 (ywh34.prod.google.com [10.192.8.34])
+	by kpbe15.cbf.corp.google.com with ESMTP id o52GTdpK014584
+	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 09:29:55 -0700
+Received: by ywh34 with SMTP id 34so5266041ywh.30
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 09:29:55 -0700 (PDT)
 In-Reply-To: <1275447849-25761-1-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
