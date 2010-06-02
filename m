@@ -1,261 +1,167 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [RFC PATCH 1/2] acpi/video: acpi_brightness_hook API
-Date: Wed,  2 Jun 2010 15:11:41 -0700
-Message-ID: <1275516702-27090-2-git-send-email-kamal@canonical.com>
-References: <1275516702-27090-1-git-send-email-kamal@canonical.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH]: x86: use acpi flags for apic mapping
+Date: Wed, 02 Jun 2010 18:20:15 -0400
+Message-ID: <4C06D91F.2060105@redhat.com>
+References: <20100602192418.2706.35192.sendpatchset@prarit.bos.redhat.com> <20100602194956.GB5264@lenovo>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------000708040405000008030502"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:49409 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758756Ab0FBWMD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 18:12:03 -0400
-In-Reply-To: <1275516702-27090-1-git-send-email-kamal@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42320 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758807Ab0FBWZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jun 2010 18:25:32 -0400
+In-Reply-To: <20100602194956.GB5264@lenovo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
-Cc: Kamal Mostafa <kamal@canonical.com>
+To: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com, x86@kernel.org
 
-BugLink: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/568611
+This is a multi-part message in MIME format.
+--------------000708040405000008030502
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-New acpi_brightness_hook_register lets another driver (e.g. i915) override
-the often-dysfunctional native acpi brightness control methods.
 
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- drivers/acpi/video.c |  149 ++++++++++++++++++++++++++++++++++++++++++++++----
- include/acpi/video.h |   10 +++
- 2 files changed, 147 insertions(+), 12 deletions(-)
+>>
+>> +#ifdef CONFIG_ACPI
+>> +enum apic_acpi_map_status apic_is_acpi_clustered_box(void)
+>> +{
+>
+> It's a bit strange that function is "is" prefixed and returns not true or false
+> but enum, perhaps we may name it apic_acpi_dst_model() or something like
+> that?
+>
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index bd9843a..331fdcc 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -481,6 +481,12 @@ acpi_video_device_set_state(struct acpi_video_device *device, int state)
- 	return status;
+Sure, np -- new patch.
+
+P.
+
+--------------000708040405000008030502
+Content-Type: text/plain;
+ name="acpi_apic-v2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="acpi_apic-v2.patch"
+
+diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
+index 1fa03e0..6b63f95 100644
+--- a/arch/x86/include/asm/apic.h
++++ b/arch/x86/include/asm/apic.h
+@@ -252,6 +252,14 @@ static inline int apic_is_clustered_box(void)
  }
- 
-+static unsigned int (*acpi_brightness_hook_routine)
-+			(void *dev, unsigned int brightness) = NULL;
-+static char *acpi_brightness_hook_driver;
-+static void *acpi_brightness_hook_dev;
-+static unsigned int acpi_brightness_hook_max;
-+
- static int
- acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
- 				   union acpi_object **levels)
-@@ -520,13 +526,25 @@ acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
- 	struct acpi_object_list args = { 1, &arg0 };
- 	int state;
- 
--	arg0.integer.value = level;
-+	/* If another driver has registered a brightness hook override,
-+	 * set the brightness using that method, otherwise set the brightness
-+	 * using the acpi _BCM method. */
-+	if ( acpi_brightness_hook_routine ) {
-+		status = acpi_brightness_hook_routine(acpi_brightness_hook_dev,
-+				level * acpi_brightness_hook_max / 100);
-+		if ( status != 0 ) {
-+			ACPI_ERROR((AE_INFO, "brightness hook failed"));
-+			return -EIO;
-+		}
-+	} else {
-+		arg0.integer.value = level;
- 
--	status = acpi_evaluate_object(device->dev->handle, "_BCM",
--				      &args, NULL);
--	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
--		return -EIO;
-+		status = acpi_evaluate_object(device->dev->handle, "_BCM",
-+					      &args, NULL);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
-+			return -EIO;
-+		}
- 	}
- 
- 	device->brightness->curr = level;
-@@ -607,7 +625,10 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
- 	acpi_status status = AE_OK;
- 	int i;
- 
--	if (device->cap._BQC || device->cap._BCQ) {
-+	/* Try to get the current brightness using the _BQC/_BCQ method, only
-+	 * if another driver has not registered a brightness hook override. */
-+	if (!acpi_brightness_hook_routine
-+			&& (device->cap._BQC || device->cap._BCQ)) {
- 		char *buf = device->cap._BQC ? "_BQC" : "_BCQ";
- 
- 		status = acpi_evaluate_integer(device->dev->handle, buf,
-@@ -784,7 +805,7 @@ acpi_video_cmp_level(const void *a, const void *b)
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-- *	Maximum brightness level
-+ *  	0 on success, error code on failure.
-  *
-  *  Allocate and initialize device->brightness.
-  */
-@@ -944,6 +965,99 @@ out:
-  *	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-+ *  	0 on success, error code on failure.
-+ *
-+ *  Allocate and initialize device->brightness. when a driver has registered
-+ *  a brightness hook override via acpi_brightness_hook_register.
-+ *
-+ *  Cobbles up a fake brightness 'levels' array (emulating a _BCL list) and
-+ *  sets max brightness -- effectively what acpi_video_init_brightness does
-+ *  for the native acpi brightness methods
-+ */
-+static int
-+acpi_brightness_hook_init(struct acpi_video_device *device)
-+{
-+	struct acpi_video_device_brightness *br = NULL;
-+	int result = -EINVAL;
-+	int nsteps = 10;
-+	int count, i;
-+	static int initialized = 0;
-+
-+	if ( initialized )
-+	    return 1;
-+	initialized = 1;
-+
-+	device->brightness = NULL;
-+
-+	br = kzalloc(sizeof(*br), GFP_KERNEL);
-+	if (!br) {
-+		printk(KERN_ERR "can't allocate memory\n");
-+		result = -ENOMEM;
-+		return result;
-+	}
-+	br->levels = kmalloc((nsteps + 2) * sizeof *(br->levels),
-+				GFP_KERNEL);
-+	if (!br->levels) {
-+		result = -ENOMEM;
-+		kfree(br);
-+		return result;
-+	}
-+
-+	for (count=2, i = 1; i <= nsteps; i++)
-+		br->levels[count++] = (u32) i * 100 / nsteps;
-+	br->levels[0] = 100;
-+	br->levels[1] = br->levels[2+(nsteps/2)];
-+	br->count = count;
-+	device->brightness = br;
-+
-+	result = acpi_video_device_lcd_set_level(device, 100);
-+	if (result) {
-+	    kfree(br->levels);
-+	    kfree(br);
-+	    device->brightness = NULL;
-+	    return result;
-+	}
-+
-+	/* Switch off acpi's native brightness switch control */
-+	brightness_switch_enabled = 0;
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "set up %d brightness levels\n", nsteps));
-+
-+	return 0;
-+}
-+
-+/*
-+ *  Arg:
-+ *	driver_name	: name of the registering driver
-+ *	set_brightness_routine:	pointer to the new set_brightness method
-+ *	dev		: arbitrary pointer passed to set_brightness_routine
-+ *	max_brightness	: set_brightnes_routines' maximum brightness value
-+ *
-+ *  Return Value:
-+ *  	None
-+ *
-+ *  Register a brightness hook override method, which ACPI will use
-+ *  instead of its native _BCM/_BCL/_BQC methods.
-+ */
-+void acpi_brightness_hook_register(
-+		char *driver_name,
-+		unsigned int (*set_brightness_routine)
-+				(void *dev, unsigned int brightness),
-+		void *dev, int max_brightness)
-+{
-+	acpi_brightness_hook_routine = set_brightness_routine;
-+	acpi_brightness_hook_driver = driver_name,
-+	acpi_brightness_hook_dev = dev;
-+	acpi_brightness_hook_max = max_brightness;
-+}
-+EXPORT_SYMBOL(acpi_brightness_hook_register);
-+
-+/*
-+ *  Arg:
-+ *	device	: video output device (LCD, CRT, ..)
-+ *
-+ *  Return Value:
-  *  	None
-  *
-  *  Find out all required AML methods defined under the output
-@@ -984,22 +1098,33 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 		device->cap._DSS = 1;
- 	}
- 
--	if (acpi_video_backlight_support()) {
-+	if (acpi_brightness_hook_routine || acpi_video_backlight_support()) {
- 		int result;
- 		static int count = 0;
- 		char *name;
- 
--		result = acpi_video_init_brightness(device);
-+		/* If another driver has registered a brightness hook override,
-+		 * call the brightness_hook init, otherwise call the native
-+		 * acpi_video brightness init. */
-+		if (acpi_brightness_hook_routine)
-+			result = acpi_brightness_hook_init(device);
-+		else
-+			result = acpi_video_init_brightness(device);
- 		if (result)
- 			return;
- 		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
- 		if (!name)
- 			return;
- 
--		sprintf(name, "acpi_video%d", count++);
-+		if (acpi_brightness_hook_routine)
-+			sprintf(name, "%s", acpi_brightness_hook_driver);
-+		else
-+			sprintf(name, "acpi_video%d", count++);
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
- 		device->backlight->props.max_brightness = device->brightness->count-3;
-+		dev_info(&device->dev->dev,
-+				"registered as backlight/%s\n", name);
- 		kfree(name);
- 
- 		result = sysfs_create_link(&device->backlight->dev.kobj,
-diff --git a/include/acpi/video.h b/include/acpi/video.h
-index cf7be3d..645b574 100644
---- a/include/acpi/video.h
-+++ b/include/acpi/video.h
-@@ -2,9 +2,19 @@
- #define __ACPI_VIDEO_H
- 
- #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-+extern void acpi_brightness_hook_register(
-+		char *driver_name,
-+		unsigned int (*set_brightness_routine)
-+				(void *dev, unsigned int brightness),
-+		void *dev, unsigned int max_brightness);
- extern int acpi_video_register(void);
- extern void acpi_video_unregister(void);
- #else
-+static inline acpi_brightness_hook_register(
-+		char *driver_name,
-+		unsigned int (*set_brightness_routine)
-+				(void *dev, unsigned int brightness),
-+		void *dev, unsigned int max_brightness) { return; }
- static inline int acpi_video_register(void) { return 0; }
- static inline void acpi_video_unregister(void) { return; }
  #endif
--- 
-1.7.0.4
+ 
++enum apic_acpi_map_status {
++	APIC_ACPI_BOTH,
++	APIC_ACPI_CLUSTER,
++	APIC_ACPI_PHYSICAL,
++	APIC_ACPI_NONE
++};
++extern enum apic_acpi_map_status apic_acpi_dst_model(void);
++
+ extern u8 setup_APIC_eilvt_mce(u8 vector, u8 msg_type, u8 mask);
+ extern u8 setup_APIC_eilvt_ibs(u8 vector, u8 msg_type, u8 mask);
+ 
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index e5a4a1e..e94a189 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -2189,6 +2189,30 @@ static const __cpuinitconst struct dmi_system_id multi_dmi_table[] = {
+ 	{}
+ };
+ 
++#ifdef CONFIG_ACPI
++enum apic_acpi_map_status apic_acpi_dst_model(void)
++{
++	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) {
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL &&
++		    acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER) {
++			/*
++			 * The rest of the code assumes physical flat
++			 * in this case.
++			 */
++			return APIC_ACPI_BOTH;
++		}
++
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER)
++			return APIC_ACPI_CLUSTER;
++
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)
++			return APIC_ACPI_PHYSICAL;
++	}
++
++	return APIC_ACPI_NONE;
++}
++#endif
++
+ static void __cpuinit dmi_check_multi(void)
+ {
+ 	if (multi_checked)
+@@ -2208,6 +2232,20 @@ static void __cpuinit dmi_check_multi(void)
+  */
+ __cpuinit int apic_is_clustered_box(void)
+ {
++#ifdef CONFIG_ACPI
++	switch (apic_acpi_dst_model()) {
++		case APIC_ACPI_PHYSICAL:
++		case APIC_ACPI_BOTH: /* assume physical flat in this case */
++			return 0;
++			break;
++		case APIC_ACPI_CLUSTER:
++			return 1;
++			break;
++		default:
++			break;
++	}
++#endif
++
+ 	dmi_check_multi();
+ 	if (multi)
+ 		return 1;
+diff --git a/arch/x86/kernel/apic/apic_flat_64.c b/arch/x86/kernel/apic/apic_flat_64.c
+index 09d3b17..c2318ac 100644
+--- a/arch/x86/kernel/apic/apic_flat_64.c
++++ b/arch/x86/kernel/apic/apic_flat_64.c
+@@ -231,14 +231,32 @@ static int physflat_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+ {
+ #ifdef CONFIG_ACPI
+ 	/*
+-	 * Quirk: some x86_64 machines can only use physical APIC mode
+-	 * regardless of how many processors are present (x86_64 ES7000
+-	 * is an example).
++	 * Some x86_64 machines can only use clustered or physical APIC
++	 * mode regardless of how many processors are present.
+ 	 */
+-	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
+-		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)) {
+-		printk(KERN_DEBUG "system APIC only can use physical flat");
+-		return 1;
++	switch (apic_acpi_dst_model()) {
++		case APIC_ACPI_BOTH:
++			printk(KERN_WARNING FW_BUG "ACPI has set apic mode to "
++			       "both clustered and physical flat.  Please "
++			       "contact your firmware vendor for an update.\n");
++			/*
++			 * In this case assume physical flat as only a very
++			 * limited number of systems use cluster
++			 */
++			printk(KERN_DEBUG "system APIC using physical flat\n");
++			return 1;
++			break;
++		case APIC_ACPI_CLUSTER:
++			printk(KERN_DEBUG "system APIC can only use cluster\n");
++			return 0;
++			break;
++		case APIC_ACPI_PHYSICAL:
++			printk(KERN_DEBUG "system APIC can only use physical"
++			       " flat\n");
++			return 1;
++			break;
++		default:
++			break;
+ 	}
+ 
+ 	if (!strncmp(oem_id, "IBM", 3) && !strncmp(oem_table_id, "EXA", 3)) {
 
+--------------000708040405000008030502--
