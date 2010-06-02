@@ -1,120 +1,137 @@
-From: Venkatesh Pallipadi <venki@google.com>
-Subject: [PATCH] acpi: Eliminate us to pm ticks conversion in common path
-Date: Wed,  2 Jun 2010 10:01:09 -0700
-Message-ID: <1275498069-30614-1-git-send-email-venki@google.com>
-References: <alpine.LFD.2.00.1005281509430.4045@localhost.localdomain>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:7560 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758220Ab0FBRBt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 13:01:49 -0400
-Received: from kpbe16.cbf.corp.google.com (kpbe16.cbf.corp.google.com [172.25.105.80])
-	by smtp-out.google.com with ESMTP id o52H1mlK029963
-	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 10:01:48 -0700
-Received: from pxi15 (pxi15.prod.google.com [10.243.27.15])
-	by kpbe16.cbf.corp.google.com with ESMTP id o52H1b5E012761
-	for <linux-acpi@vger.kernel.org>; Wed, 2 Jun 2010 10:01:46 -0700
-Received: by pxi15 with SMTP id 15so1782132pxi.16
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 10:01:46 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.00.1005281509430.4045@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH]: x86: use acpi flags for apic mapping
+Date: Wed, 2 Jun 2010 15:29:27 -0400
+Message-ID: <20100602192418.2706.35192.sendpatchset@prarit.bos.redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com, x86@kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI list <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venki@google.com>
 
-Is this one better?
+ACPI FADT has entries to describe the apic mapping of a system.  Currently,
+these are ignored in the apic code.
 
-Thanks,
-Venki
+Introduce apic_is_acpi_clustered_box() and read the FADT to determine
+if a box is clustered or not.
 
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
 
-acpi_enter_[simple|bm] routines does us to pm tick conversion on every
-idle wakeup and the value is only used in /proc/acpi display. We can
-store the time in us and convert it into pm ticks before printing instead and
-avoid the conversion in the common path.
-
-Signed-off-by: Venkatesh Pallipadi <venki@google.com>
----
- drivers/acpi/processor_idle.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 2e8c27d..71c9608 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -80,7 +80,7 @@ module_param(nocst, uint, 0000);
- static unsigned int latency_factor __read_mostly = 2;
- module_param(latency_factor, uint, 0644);
- 
--static s64 us_to_pm_timer_ticks(s64 t)
-+static u64 us_to_pm_timer_ticks(s64 t)
- {
- 	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
+diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
+index 1fa03e0..4518683 100644
+--- a/arch/x86/include/asm/apic.h
++++ b/arch/x86/include/asm/apic.h
+@@ -252,6 +252,14 @@ static inline int apic_is_clustered_box(void)
  }
-@@ -731,10 +731,10 @@ static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
+ #endif
  
- 		seq_puts(seq, "demotion[--] ");
++enum apic_acpi_map_status {
++	APIC_ACPI_BOTH,
++	APIC_ACPI_CLUSTER,
++	APIC_ACPI_PHYSICAL,
++	APIC_ACPI_NONE
++};
++extern enum apic_acpi_map_status apic_is_acpi_clustered_box(void);
++
+ extern u8 setup_APIC_eilvt_mce(u8 vector, u8 msg_type, u8 mask);
+ extern u8 setup_APIC_eilvt_ibs(u8 vector, u8 msg_type, u8 mask);
  
--		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
-+		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020Lu]\n",
- 			   pr->power.states[i].latency,
- 			   pr->power.states[i].usage,
--			   (unsigned long long)pr->power.states[i].time);
-+			   us_to_pm_timer_ticks(pr->power.states[i].time));
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index e5a4a1e..6ca346a 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -2189,6 +2189,30 @@ static const __cpuinitconst struct dmi_system_id multi_dmi_table[] = {
+ 	{}
+ };
+ 
++#ifdef CONFIG_ACPI
++enum apic_acpi_map_status apic_is_acpi_clustered_box(void)
++{
++	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) {
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL &&
++		    acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER) {
++			/*
++			 * The rest of the code assumes physical flat
++			 * in this case.
++			 */
++			return APIC_ACPI_BOTH;
++		}
++
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER)
++			return APIC_ACPI_CLUSTER;
++
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)
++			return APIC_ACPI_PHYSICAL;
++	}
++
++	return APIC_ACPI_NONE;
++}
++#endif
++
+ static void __cpuinit dmi_check_multi(void)
+ {
+ 	if (multi_checked)
+@@ -2208,6 +2232,20 @@ static void __cpuinit dmi_check_multi(void)
+  */
+ __cpuinit int apic_is_clustered_box(void)
+ {
++#ifdef CONFIG_ACPI
++	switch (apic_is_acpi_clustered_box()) {
++		case APIC_ACPI_PHYSICAL:
++		case APIC_ACPI_BOTH: /* assume physical flat in this case */
++			return 0;
++			break;
++		case APIC_ACPI_CLUSTER:
++			return 1;
++			break;
++		default:
++			break;
++	}
++#endif
++
+ 	dmi_check_multi();
+ 	if (multi)
+ 		return 1;
+diff --git a/arch/x86/kernel/apic/apic_flat_64.c b/arch/x86/kernel/apic/apic_flat_64.c
+index 09d3b17..80e291a 100644
+--- a/arch/x86/kernel/apic/apic_flat_64.c
++++ b/arch/x86/kernel/apic/apic_flat_64.c
+@@ -231,14 +231,32 @@ static int physflat_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+ {
+ #ifdef CONFIG_ACPI
+ 	/*
+-	 * Quirk: some x86_64 machines can only use physical APIC mode
+-	 * regardless of how many processors are present (x86_64 ES7000
+-	 * is an example).
++	 * Some x86_64 machines can only use clustered or physical APIC
++	 * mode regardless of how many processors are present.
+ 	 */
+-	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
+-		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)) {
+-		printk(KERN_DEBUG "system APIC only can use physical flat");
+-		return 1;
++	switch (apic_is_acpi_clustered_box()) {
++		case APIC_ACPI_BOTH:
++			printk(KERN_WARNING FW_BUG "ACPI has set apic mode to "
++			       "both clustered and physical flat.  Please "
++			       "contact your firmware vendor for an update.\n");
++			/*
++			 * In this case assume physical flat as only a very
++			 * limited number of systems use cluster
++			 */
++			printk(KERN_DEBUG "system APIC using physical flat\n");
++			return 1;
++			break;
++		case APIC_ACPI_CLUSTER:
++			printk(KERN_DEBUG "system APIC can only use cluster\n");
++			return 0;
++			break;
++		case APIC_ACPI_PHYSICAL:
++			printk(KERN_DEBUG "system APIC can only use physical"
++			       " flat\n");
++			return 1;
++			break;
++		default:
++			break;
  	}
  
-       end:
-@@ -861,7 +861,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	ktime_t  kt1, kt2;
- 	s64 idle_time_ns;
- 	s64 idle_time;
--	s64 sleep_ticks = 0;
- 
- 	pr = __get_cpu_var(processors);
- 
-@@ -906,8 +905,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	idle_time = idle_time_ns;
- 	do_div(idle_time, NSEC_PER_USEC);
- 
--	sleep_ticks = us_to_pm_timer_ticks(idle_time);
--
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(idle_time_ns);
- 
-@@ -918,7 +915,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	cx->usage++;
- 
- 	lapic_timer_state_broadcast(pr, cx, 0);
--	cx->time += sleep_ticks;
-+	cx->time += idle_time;
- 	return idle_time;
- }
- 
-@@ -940,7 +937,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	ktime_t  kt1, kt2;
- 	s64 idle_time_ns;
- 	s64 idle_time;
--	s64 sleep_ticks = 0;
- 
- 
- 	pr = __get_cpu_var(processors);
-@@ -1026,7 +1022,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	idle_time = idle_time_ns;
- 	do_div(idle_time, NSEC_PER_USEC);
- 
--	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(idle_time_ns);
- 
-@@ -1037,7 +1032,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	cx->usage++;
- 
- 	lapic_timer_state_broadcast(pr, cx, 0);
--	cx->time += sleep_ticks;
-+	cx->time += idle_time;
- 	return idle_time;
- }
- 
--- 
-1.7.0.1
-
+ 	if (!strncmp(oem_id, "IBM", 3) && !strncmp(oem_table_id, "EXA", 3)) {
