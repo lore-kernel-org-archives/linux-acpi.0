@@ -1,77 +1,61 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: Do not try to set up acpi processor stuff on
-	cores exceeding maxcpus=
-Date: Wed, 02 Jun 2010 09:22:46 +0800
-Message-ID: <1275441766.3718.15.camel@localhost.localdomain>
-References: <1274886213-16337-1-git-send-email-trenn@suse.de>
-	 <alpine.LFD.2.00.1005281445170.4045@localhost.localdomain>
-	 <201005282125.15681.trenn@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI error messages
+Date: Wed, 02 Jun 2010 10:13:33 +0800
+Message-ID: <1275444813.9119.7310.camel@rzhang1-desktop>
+References: <Pine.LNX.4.44L0.1006012126370.32192-300000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34762 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:56651 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754355Ab0FBBZu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Jun 2010 21:25:50 -0400
-In-Reply-To: <201005282125.15681.trenn@suse.de>
+	id S1753803Ab0FBCPT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Jun 2010 22:15:19 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1006012126370.32192-300000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, "travis@sgi.com" <travis@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, 2010-05-29 at 03:25 +0800, Thomas Renninger wrote:
-> On Friday 28 May 2010 08:46:27 pm Len Brown wrote:
-> > On Wed, 26 May 2010, Thomas Renninger wrote:
-> > > Patch is against latest Linus master branch and is expected to be
-> > > safe bug fix.
+On Wed, 2010-06-02 at 09:32 +0800, Alan Stern wrote:
+> On Wed, 2 Jun 2010, Zhang Rui wrote:
+> 
+> > On Tue, 2010-06-01 at 21:11 +0800, Alan Stern wrote:
+> > > My kernel log is full of hundreds of messages like these:
 > > >
-> > > You get:
-> > > ACPI: HARDWARE addr space,NOT supported yet
-> > > for each ACPI defined CPU which status is active, but exceeds
-> > > maxcpus= count.
+> > > ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000046) is beyond end of object (20090903/exoparg2-445)
+> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node f701c918), AE_AML_BUFFER_LIMIT
+> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node f7017b58), AE_AML_BUFFER_LIMIT
+> > > ACPI Error: Evaluating _BCM failed (20090903/video-528)
 > > >
-> > > As these "not booted" CPUs do not run an idle routine
-> > > and echo X >/proc/acpi/processor/*/throttling did not work
-> > > I couldn't find a way to really access not onlined/booted
-> > > machines. Still this should get fixed and
-> > > /proc/acpi/processor/X dirs of cores exceeding maxcpus
-> > > should not show up.
-> >
-> > Can we delete the /proc/acpi/processor/ dirs instead of maintaining them?
+> > This sounds like a win7 compatibility issue that I've seen before.
+> > please try boot option acpi_osi="!Windows 2009" and see if it helps.
 > 
-> This is not about "not creating proc files", but about setting up 
-> throttling/c-states  for not booted CPUs.
-> The message:
-> ACPI: HARDWARE addr space,NOT supported yet
-> comes from throttling init code. It goes an undefined path because
+> Yes, indeed it does!  It results in a few other differences too; I
+> can't tell whether they are good, bad, or neutral.
 > 
-> struct cpuinfo_x86 *c = &cpu_data(cpu);
-> is uninitialized (all is zero...):
-> if ((c->x86_vendor != X86_VENDOR_INTEL) ||
->                 !cpu_has(c, X86_FEATURE_ACPI)) {
->                 printk(KERN_ERR PREFIX
->                         "HARDWARE addr space,NOT supported yet\n");
+well, I don't see any other difference except some code execution
+ordering issue.
 
-Agree with your analysis.
+I read the acpidump of this laptop, and it also confirms that this (_BCM
+stuff) is the only place that acpi_osi="!Windows 2009" changes.
 
-Can we add "online check" in the above throtting patch or simply use the
-cpuinfo of the first boot CPU to fix the corresponding warning message?
-Maybe we will change the T-state for the hot-onlined cpu.
+thanks,
+rui
 
-thanks.
+> > BTW, it would be great if you can attach the acpidump of this laptop and
+> > the dmesg output after boot.
+> 
+> Attached (the dmesg log is from a boot without the acpi_osi option).
+> Below is a diff between that boot and one with acpi_osi="!Windows
+> 2009".  (I believe all those "name_count maxed" lines come from
+> mounting an NTFS filesystem; you can ignore them.)
+> 
+> Alan Stern
+> 
+> 
+> --- dmesg1.txt  2010-06-01 21:23:34.569204151 -0400
+> +++ dmesg2.txt  2010-06-01 21:18:21.329732003 -0400
 
-> 
-> Similar to what happens (happened?) on acpi processor (real) hotplug.
-> 
-> The proc files should vanish in a separate patch, but I am not sure what
-> could break.
-> I saw powertop still reading battery info from /proc, I thought hal is also 
-> still accessing it, but I cannot say for sure.
-> 
->       Thomas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
