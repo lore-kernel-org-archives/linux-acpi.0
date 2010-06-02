@@ -1,167 +1,67 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH]: x86: use acpi flags for apic mapping
-Date: Wed, 02 Jun 2010 18:20:15 -0400
-Message-ID: <4C06D91F.2060105@redhat.com>
-References: <20100602192418.2706.35192.sendpatchset@prarit.bos.redhat.com> <20100602194956.GB5264@lenovo>
+From: Pedro Ribeiro <pedrib@gmail.com>
+Subject: Re: [Intel-gfx] [RFC PATCH 0/2] i915 brightness control
+Date: Thu, 3 Jun 2010 00:20:39 +0100
+Message-ID: <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
+References: <1275516702-27090-1-git-send-email-kamal@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000708040405000008030502"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42320 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758807Ab0FBWZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jun 2010 18:25:32 -0400
-In-Reply-To: <20100602194956.GB5264@lenovo>
+Received: from mail-ew0-f223.google.com ([209.85.219.223]:39343 "EHLO
+	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758222Ab0FBXUl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 19:20:41 -0400
+Received: by ewy23 with SMTP id 23so826769ewy.1
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 16:20:40 -0700 (PDT)
+In-Reply-To: <1275516702-27090-1-git-send-email-kamal@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com, x86@kernel.org
+To: Kamal Mostafa <kamal@canonical.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-This is a multi-part message in MIME format.
---------------000708040405000008030502
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-
->>
->> +#ifdef CONFIG_ACPI
->> +enum apic_acpi_map_status apic_is_acpi_clustered_box(void)
->> +{
+On 2 June 2010 23:11, Kamal Mostafa <kamal@canonical.com> wrote:
+> Requesting comments on this idea (proposed by Matthew Garrett) and my
+> implementation. =A0Note especially the KNOWN PROBLEM with a "GM45" GP=
+U.
 >
-> It's a bit strange that function is "is" prefixed and returns not true or false
-> but enum, perhaps we may name it apic_acpi_dst_model() or something like
-> that?
+> =A0-Kamal
+>
+> .......
+>
+> BugLink: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/568611
+>
+> In order to avoid the often-dysfunctional native acpi brightness cont=
+rol
+> methods, a new acpi_brightness_hook interface is made available.
+>
+> The i915 driver uses the new hook to take over brightness control.
+> Boot with i915.brightness=3D0 to disable.
+>
+> KNOWN PROBLEM:
+> =A0- i915 opregion brightness control silently fails on GM45 (pci-id =
+0x2a42)
+>
+> [RFC PATCH 1/2] acpi/video: acpi_brightness_hook API
+> [RFC PATCH 2/2] drm/i915: override acpi brightness control
+>
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/intel-gfx
 >
 
-Sure, np -- new patch.
+Are you sure this is a good idea to enable it by default just because
+of a problem with one manufacturer (Dell)?
 
-P.
+My Lenovo laptop has fine brightness control with a GM45 and this may b=
+reak it.
+Might be safer only to enable it for laptops with known problems.
 
---------------000708040405000008030502
-Content-Type: text/plain;
- name="acpi_apic-v2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="acpi_apic-v2.patch"
 
-diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
-index 1fa03e0..6b63f95 100644
---- a/arch/x86/include/asm/apic.h
-+++ b/arch/x86/include/asm/apic.h
-@@ -252,6 +252,14 @@ static inline int apic_is_clustered_box(void)
- }
- #endif
- 
-+enum apic_acpi_map_status {
-+	APIC_ACPI_BOTH,
-+	APIC_ACPI_CLUSTER,
-+	APIC_ACPI_PHYSICAL,
-+	APIC_ACPI_NONE
-+};
-+extern enum apic_acpi_map_status apic_acpi_dst_model(void);
-+
- extern u8 setup_APIC_eilvt_mce(u8 vector, u8 msg_type, u8 mask);
- extern u8 setup_APIC_eilvt_ibs(u8 vector, u8 msg_type, u8 mask);
- 
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index e5a4a1e..e94a189 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -2189,6 +2189,30 @@ static const __cpuinitconst struct dmi_system_id multi_dmi_table[] = {
- 	{}
- };
- 
-+#ifdef CONFIG_ACPI
-+enum apic_acpi_map_status apic_acpi_dst_model(void)
-+{
-+	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) {
-+		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL &&
-+		    acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER) {
-+			/*
-+			 * The rest of the code assumes physical flat
-+			 * in this case.
-+			 */
-+			return APIC_ACPI_BOTH;
-+		}
-+
-+		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_CLUSTER)
-+			return APIC_ACPI_CLUSTER;
-+
-+		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)
-+			return APIC_ACPI_PHYSICAL;
-+	}
-+
-+	return APIC_ACPI_NONE;
-+}
-+#endif
-+
- static void __cpuinit dmi_check_multi(void)
- {
- 	if (multi_checked)
-@@ -2208,6 +2232,20 @@ static void __cpuinit dmi_check_multi(void)
-  */
- __cpuinit int apic_is_clustered_box(void)
- {
-+#ifdef CONFIG_ACPI
-+	switch (apic_acpi_dst_model()) {
-+		case APIC_ACPI_PHYSICAL:
-+		case APIC_ACPI_BOTH: /* assume physical flat in this case */
-+			return 0;
-+			break;
-+		case APIC_ACPI_CLUSTER:
-+			return 1;
-+			break;
-+		default:
-+			break;
-+	}
-+#endif
-+
- 	dmi_check_multi();
- 	if (multi)
- 		return 1;
-diff --git a/arch/x86/kernel/apic/apic_flat_64.c b/arch/x86/kernel/apic/apic_flat_64.c
-index 09d3b17..c2318ac 100644
---- a/arch/x86/kernel/apic/apic_flat_64.c
-+++ b/arch/x86/kernel/apic/apic_flat_64.c
-@@ -231,14 +231,32 @@ static int physflat_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
- {
- #ifdef CONFIG_ACPI
- 	/*
--	 * Quirk: some x86_64 machines can only use physical APIC mode
--	 * regardless of how many processors are present (x86_64 ES7000
--	 * is an example).
-+	 * Some x86_64 machines can only use clustered or physical APIC
-+	 * mode regardless of how many processors are present.
- 	 */
--	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
--		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)) {
--		printk(KERN_DEBUG "system APIC only can use physical flat");
--		return 1;
-+	switch (apic_acpi_dst_model()) {
-+		case APIC_ACPI_BOTH:
-+			printk(KERN_WARNING FW_BUG "ACPI has set apic mode to "
-+			       "both clustered and physical flat.  Please "
-+			       "contact your firmware vendor for an update.\n");
-+			/*
-+			 * In this case assume physical flat as only a very
-+			 * limited number of systems use cluster
-+			 */
-+			printk(KERN_DEBUG "system APIC using physical flat\n");
-+			return 1;
-+			break;
-+		case APIC_ACPI_CLUSTER:
-+			printk(KERN_DEBUG "system APIC can only use cluster\n");
-+			return 0;
-+			break;
-+		case APIC_ACPI_PHYSICAL:
-+			printk(KERN_DEBUG "system APIC can only use physical"
-+			       " flat\n");
-+			return 1;
-+			break;
-+		default:
-+			break;
- 	}
- 
- 	if (!strncmp(oem_id, "IBM", 3) && !strncmp(oem_table_id, "EXA", 3)) {
-
---------------000708040405000008030502--
+Regards,
+Pedro
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
