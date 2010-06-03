@@ -1,34 +1,35 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: Fix the incorrect calculation about C-state idle
-	time
-Date: Thu, 3 Jun 2010 02:39:04 +0100
-Message-ID: <20100603013904.GB18755@srcf.ucam.org>
-References: <1275447849-25761-1-git-send-email-yakui.zhao@intel.com> <20100602150659.GA5335@srcf.ucam.org> <1275527214.3718.38.camel@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: ACPI error messages
+Date: Wed, 2 Jun 2010 21:52:45 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1006022152080.24772-100000@netrider.rowland.org>
+References: <1275527406.9119.8724.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46576 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932518Ab0FCBjM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 21:39:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1275527214.3718.38.camel@localhost.localdomain>
+Received: from netrider.rowland.org ([192.131.102.5]:35695 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932590Ab0FCBwq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 21:52:46 -0400
+In-Reply-To: <1275527406.9119.8724.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venki@google.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Jun 03, 2010 at 09:06:54AM +0800, ykzhao wrote:
-> On Wed, 2010-06-02 at 23:06 +0800, Matthew Garrett wrote:
-> > What kind of system was this seen on?
+On Thu, 3 Jun 2010, Zhang Rui wrote:
+
+> This is a BIOS bug to me. The code runs in this way:
 > 
-> This can be seen on laptops. But maybe the idle power effect is not
-> significant on laptops like that on server machine. 
->      I also test the power on one T400 laptop and test shows that about
-> 0.3W idle power is increased. 
+> if (not Win7)
+>   good BIOS code
+> else
+>   buggy BIOS code
+> 
+> This is a regression because ACPI declares it's win7 compatible in
+> 2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
+> it. IMO, we should ping Asus to fix it in their new BIOS release.
 
-Thanks, I was able to reproduce this behaviour. Your patch appears to 
-fix it.
+Okay.  Thanks for the help.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan Stern
+
