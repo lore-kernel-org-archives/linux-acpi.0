@@ -1,37 +1,37 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI error messages
-Date: Thu, 3 Jun 2010 15:16:43 +0100
-Message-ID: <20100603141643.GA768@srcf.ucam.org>
-References: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org> <1275527406.9119.8724.camel@rzhang1-desktop>
+Subject: Re: [Intel-gfx] [RFC PATCH 0/2] i915 brightness control
+Date: Thu, 3 Jun 2010 15:19:41 +0100
+Message-ID: <20100603141941.GB768@srcf.ucam.org>
+References: <1275516702-27090-1-git-send-email-kamal@canonical.com> <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44575 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:44601 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754326Ab0FCOQv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 10:16:51 -0400
+	with ESMTP id S1754363Ab0FCOTr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 10:19:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1275527406.9119.8724.camel@rzhang1-desktop>
+In-Reply-To: <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Pedro Ribeiro <pedrib@gmail.com>
+Cc: Kamal Mostafa <kamal@canonical.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Thu, Jun 03, 2010 at 09:10:06AM +0800, Zhang Rui wrote:
+On Thu, Jun 03, 2010 at 12:20:39AM +0100, Pedro Ribeiro wrote:
 
-> This is a BIOS bug to me. The code runs in this way:
-> 
-> if (not Win7)
->   good BIOS code
-> else
->   buggy BIOS code
-> 
-> This is a regression because ACPI declares it's win7 compatible in
-> 2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
-> it. IMO, we should ping Asus to fix it in their new BIOS release.
+> Are you sure this is a good idea to enable it by default just because
+> of a problem with one manufacturer (Dell)?
 
-So if you install Windows 7 on these machines, backlight control doesn't 
-work?
+It should (a-ha ha) be entirely safe on systems using the IGD opregion 
+spec.
+
+> My Lenovo laptop has fine brightness control with a GM45 and this may break it.
+> Might be safer only to enable it for laptops with known problems.
+
+You have a complete list of all laptops with problems in this area? The 
+ongoing situation with Windows 7 compatibility breaking machines that 
+previously worked suggests that there's something going on which we 
+don't understand or implement.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
