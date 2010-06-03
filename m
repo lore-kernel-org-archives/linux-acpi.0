@@ -1,67 +1,77 @@
-From: Pedro Ribeiro <pedrib@gmail.com>
-Subject: Re: [Intel-gfx] [RFC PATCH 0/2] i915 brightness control
-Date: Thu, 3 Jun 2010 00:20:39 +0100
-Message-ID: <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
-References: <1275516702-27090-1-git-send-email-kamal@canonical.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI error messages
+Date: Thu, 03 Jun 2010 09:10:06 +0800
+Message-ID: <1275527406.9119.8724.camel@rzhang1-desktop>
+References: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223]:39343 "EHLO
-	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758222Ab0FBXUl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 19:20:41 -0400
-Received: by ewy23 with SMTP id 23so826769ewy.1
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 16:20:40 -0700 (PDT)
-In-Reply-To: <1275516702-27090-1-git-send-email-kamal@canonical.com>
+Received: from mga01.intel.com ([192.55.52.88]:25159 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757873Ab0FCBJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jun 2010 21:09:38 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kamal Mostafa <kamal@canonical.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2 June 2010 23:11, Kamal Mostafa <kamal@canonical.com> wrote:
-> Requesting comments on this idea (proposed by Matthew Garrett) and my
-> implementation. =A0Note especially the KNOWN PROBLEM with a "GM45" GP=
-U.
->
-> =A0-Kamal
->
-> .......
->
-> BugLink: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/568611
->
-> In order to avoid the often-dysfunctional native acpi brightness cont=
-rol
-> methods, a new acpi_brightness_hook interface is made available.
->
-> The i915 driver uses the new hook to take over brightness control.
-> Boot with i915.brightness=3D0 to disable.
->
-> KNOWN PROBLEM:
-> =A0- i915 opregion brightness control silently fails on GM45 (pci-id =
-0x2a42)
->
-> [RFC PATCH 1/2] acpi/video: acpi_brightness_hook API
-> [RFC PATCH 2/2] drm/i915: override acpi brightness control
->
-> _______________________________________________
-> Intel-gfx mailing list
-> Intel-gfx@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/intel-gfx
->
+On Wed, 2010-06-02 at 23:10 +0800, Alan Stern wrote:
+> On Wed, 2 Jun 2010, Zhang Rui wrote:
+> 
+> > On Wed, 2010-06-02 at 09:32 +0800, Alan Stern wrote:
+> > > On Wed, 2 Jun 2010, Zhang Rui wrote:
+> > > 
+> > > > On Tue, 2010-06-01 at 21:11 +0800, Alan Stern wrote:
+> > > > > My kernel log is full of hundreds of messages like these:
+> > > > >
+> > > > > ACPI Exception: AE_AML_BUFFER_LIMIT, Index (000000046) is beyond end of object (20090903/exoparg2-445)
+> > > > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.STBR] (Node f701c918), AE_AML_BUFFER_LIMIT
+> > > > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.VGA_.LCDD._BCM] (Node f7017b58), AE_AML_BUFFER_LIMIT
+> > > > > ACPI Error: Evaluating _BCM failed (20090903/video-528)
+> > > > >
+> > > > This sounds like a win7 compatibility issue that I've seen before.
+> > > > please try boot option acpi_osi="!Windows 2009" and see if it helps.
+> > > 
+> > > Yes, indeed it does!  It results in a few other differences too; I
+> > > can't tell whether they are good, bad, or neutral.
+> > > 
+> > well, I don't see any other difference except some code execution
+> > ordering issue.
+> 
+> You are right.  Well, there is one difference: the lines about 
+> "cfg80211: World regulatory domain updated:".  I'm not concerned about 
+> that.
+> 
+> > I read the acpidump of this laptop, and it also confirms that this (_BCM
+> > stuff) is the only place that acpi_osi="!Windows 2009" changes.
+> 
+> All right; I'll keep that boot config option.  Is there a plan to fix 
+> this compatibility issue?
+> 
+This is a BIOS bug to me. The code runs in this way:
 
-Are you sure this is a good idea to enable it by default just because
-of a problem with one manufacturer (Dell)?
+if (not Win7)
+  good BIOS code
+else
+  buggy BIOS code
 
-My Lenovo laptop has fine brightness control with a GM45 and this may b=
-reak it.
-Might be safer only to enable it for laptops with known problems.
+This is a regression because ACPI declares it's win7 compatible in
+2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
+it. IMO, we should ping Asus to fix it in their new BIOS release.
+
+thanks,
+rui
 
 
-Regards,
-Pedro
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+ We can not fix it in kernel.
+
+> Alan Stern
+> 
+
+
