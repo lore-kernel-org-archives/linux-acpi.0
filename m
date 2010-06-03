@@ -1,67 +1,37 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Fix the incorrect calculation about C-state idle
- time
-Date: Thu, 03 Jun 2010 01:42:34 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006030140000.4060@localhost.localdomain>
-References: <1275447849-25761-1-git-send-email-yakui.zhao@intel.com>
- <AANLkTikacbr_8PnevNPE7smvpOv1PEAa9vsqjUXAxiO_@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI error messages
+Date: Thu, 3 Jun 2010 15:16:43 +0100
+Message-ID: <20100603141643.GA768@srcf.ucam.org>
+References: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org> <1275527406.9119.8724.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1450428054-1275543754=:4060"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:8998 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046Ab0FCFmw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 01:42:52 -0400
-Received: from localhost.localdomain ([unknown] [98.118.125.200])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L3F00GXCBUZHM10@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 03 Jun 2010 00:42:41 -0500 (CDT)
-In-reply-to: <AANLkTikacbr_8PnevNPE7smvpOv1PEAa9vsqjUXAxiO_@mail.gmail.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:44575 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754326Ab0FCOQv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 10:16:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1275527406.9119.8724.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venki@google.com>
-Cc: yakui.zhao@intel.com, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Thu, Jun 03, 2010 at 09:10:06AM +0800, Zhang Rui wrote:
 
---8323328-1450428054-1275543754=:4060
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-
-
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-On Wed, 2 Jun 2010, Venkatesh Pallipadi wrote:
-
-> On Tue, Jun 1, 2010 at 8:04 PM,  <yakui.zhao@intel.com> wrote:
-> > From: Zhao Yakui <yakui.zhao@intel.com>
-> >
-> > The C-state idle time is not calculated correctly, which will return the wrong
-> > residency time in C-state. It will have the following effects:
-> >   1.  The system can't choose the deeper C-state when it is idle next time.
-> > Of course the system power is increased. E.g. On one server machine about 40W
-> > idle power is increased.
-> >   2.  The powertop shows that it will stay in C0 running state about 95% time
-> > although the system is idle at most time.
+> This is a BIOS bug to me. The code runs in this way:
 > 
-> This was a bug from my recent patch here :-(
-> http://marc.info/?l=linux-acpi&m=127198016715509&w=2
+> if (not Win7)
+>   good BIOS code
+> else
+>   buggy BIOS code
 > 
-> Thanks for catching this..
-> 
-> Acked-by: Venkatesh Pallipadi <venki@google.com>
+> This is a regression because ACPI declares it's win7 compatible in
+> 2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
+> it. IMO, we should ping Asus to fix it in their new BIOS release.
 
-Another question about that patch...
-regarding sched_clock_idle_wakeup_event().
-Why do we call it for _simple and _bm, but not for _c1?
-Why do we bother calculating its sleep_ticks*PM_TIMER_TICK_NS
-argument, when that argument is never accessed?
+So if you install Windows 7 on these machines, backlight control doesn't 
+work?
 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
---8323328-1450428054-1275543754=:4060--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
