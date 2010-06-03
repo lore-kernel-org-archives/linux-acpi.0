@@ -1,44 +1,30 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: Fix the incorrect calculation about C-state idle
-	time
-Date: Thu, 03 Jun 2010 09:06:54 +0800
-Message-ID: <1275527214.3718.38.camel@localhost.localdomain>
-References: <1275447849-25761-1-git-send-email-yakui.zhao@intel.com>
-	 <20100602150659.GA5335@srcf.ucam.org>
+From: bright lemar <lemar.bright@googlemail.com>
+Subject: !!! PUPPIES FOR ADOPTION !!!
+Date: Wed, 2 Jun 2010 17:17:02 -0800
+Message-ID: <AANLkTilv8P_ie1voVpRZJ5UAR-TGmOpNQYOuNaX0V7A0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28445 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757873Ab0FCBJy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jun 2010 21:09:54 -0400
-In-Reply-To: <20100602150659.GA5335@srcf.ucam.org>
+Received: from mail-ew0-f178.google.com ([209.85.219.178]:53107 "EHLO
+	mail-ew0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752449Ab0FCBfV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jun 2010 21:35:21 -0400
+Received: by ewy26 with SMTP id 26so593067ewy.1
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jun 2010 18:35:20 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venki@google.com>
 
-On Wed, 2010-06-02 at 23:06 +0800, Matthew Garrett wrote:
-> On Wed, Jun 02, 2010 at 11:04:09AM +0800, yakui.zhao@intel.com wrote:
-> > From: Zhao Yakui <yakui.zhao@intel.com>
-> > 
-> > The C-state idle time is not calculated correctly, which will return the wrong
-> > residency time in C-state. It will have the following effects:
-> >    1.  The system can't choose the deeper C-state when it is idle next time.
-> > Of course the system power is increased. E.g. On one server machine about 40W
-> > idle power is increased.
-> >    2.  The powertop shows that it will stay in C0 running state about 95% time
-> > although the system is idle at most time.
-> 
-> What kind of system was this seen on?
-
-This can be seen on laptops. But maybe the idle power effect is not
-significant on laptops like that on server machine. 
-     I also test the power on one T400 laptop and test shows that about
-0.3W idle power is increased. 
-
-thanks.
-    Yakui 
-> 
-
+Hello,
+    My name is Dr Lemar I'm an Oncologist by professional,and i work
+for different prominent hospitals, I came across your email address
+through surfing the internet affiliated with the US chamber of
+Commerce, and My late Grandma was a puppy breeder, She died about 4
+months ago and she left a Female English Bulldog before she died. She
+is so adorable,Due to my job as a Oncologist  it does not give me the
+proper time to take good care of these baby, I would have loved to
+take care of them myself but due to the nature of my job i do hardly
+have time for my self,hope you understand. So i am currently after
+finding for them a  caring & loving parent who would take good care of
+them and willing to adopt, if you are genuine interested in having one
+or more of them , please do feel free to email  me immediately,for
+more details and information.
