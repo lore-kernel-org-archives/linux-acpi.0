@@ -1,123 +1,37 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] PNPACPI: cope with invalid device IDs
-Date: Fri, 4 Jun 2010 11:23:22 -0600
-Message-ID: <201006041123.25141.bjorn.helgaas@hp.com>
-References: <20100604080432.16068.31159.stgit@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/3] ACPI: Add acpi_gbl_osi_data to OS headers
+Date: Fri, 04 Jun 2010 13:36:02 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006041333350.4073@localhost.localdomain>
+References: <1274283791-3380-1-git-send-email-mjg@redhat.com>
+ <1274283791-3380-2-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:16543 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756553Ab0FDRXu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 13:23:50 -0400
-In-Reply-To: <20100604080432.16068.31159.stgit@localhost.localdomain>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:59580 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732Ab0FDRgP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 13:36:15 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L3I000D13K3BZO6@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 12:36:06 -0500 (CDT)
+In-reply-to: <1274283791-3380-2-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, robert.moore@intel.com
 
-On Friday, June 04, 2010 02:04:32 am Dmitry Torokhov wrote:
-> If primary ID (HID) is invalid try locating first valid ID on compatible
-> ID list before giving up. This helps, for example, to recognize i8042 AUX
-> port on Sony Vaio VPCZ1 which uses SNYSYN0003 as HID.
 
-Is there a bugzilla report or mailing list discussion you could point
-to here (in the changelog)?
+> Different operating systems may wish to enable different workaround quirks
+> depending on the _OSI methods called by the firmware.
 
-> Tested-by: Jan-Hendrik Zab <jan@jhz.name>
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
->  drivers/pnp/pnpacpi/core.c |   27 +++++++++++++++++++++++----
->  1 files changed, 23 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> index f7ff628..1bf1677 100644
-> --- a/drivers/pnp/pnpacpi/core.c
-> +++ b/drivers/pnp/pnpacpi/core.c
-> @@ -28,7 +28,7 @@
->  #include "../base.h"
->  #include "pnpacpi.h"
->  
-> -static int num = 0;
-> +static int num;
+I think that if this compatibility puzzle is solved,
+then there is no reason that, say, BSD, would want to do something
+different than Linux.
 
-Unrelated change, but OK by me :-)
+So I think it makes more sent to implement this workaround
+inside ACPICA, and not in the Linux-specific code.
 
->  /* We need only to blacklist devices that have already an acpi driver that
->   * can't use pnp layer. We don't need to blacklist device that are directly
-> @@ -157,11 +157,24 @@ struct pnp_protocol pnpacpi_protocol = {
->  };
->  EXPORT_SYMBOL(pnpacpi_protocol);
->  
-> +static char *pnpacpi_get_id(struct acpi_device *device)
-> +{
-> +	struct acpi_hardware_id *id;
-> +
-> +	list_for_each_entry(id, &device->pnp.ids, list) {
-> +		if (ispnpidacpi(id->id))
-> +			return id->id;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
->  static int __init pnpacpi_add_device(struct acpi_device *device)
->  {
->  	acpi_handle temp = NULL;
->  	acpi_status status;
->  	struct pnp_dev *dev;
-> +	char *pnpid;
->  	struct acpi_hardware_id *id;
->  
->  	/*
-> @@ -169,11 +182,17 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
->  	 * driver should not be loaded.
->  	 */
->  	status = acpi_get_handle(device->handle, "_CRS", &temp);
-> -	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
-> -	    is_exclusive_device(device) || (!device->status.present))
-> +	if (ACPI_FAILURE(status))
-> +		return 0;
-> +
-> +	pnpid = pnpacpi_get_id(device);
-> +	if (!pnpid)
-> +		return 0;
-
-This part (run ispnpidacpi() on all _HIDs & _CIDs, not just on _HID,
-so we'll now build a PNPACPI device for things with an invalid _HID
-but a valid _CID) makes sense to me and is probably required for the
-i8042 PNP driver to claim the device.
-
-> +
-> +	if (!is_exclusive_device(device) || !device->status.present)
->  		return 0;
->  
-> -	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
-> +	dev = pnp_alloc_dev(&pnpacpi_protocol, num, pnpid);
-
-I'm curious about this part.  Does it fix something?
-
-Let's say this device has _HID=SNYSYN0003, _CID=PNP0F13.
-
-Previously, we didn't make a PNP device at all because SNYSYN0003 is
-invalid.  Now, we'll make a device, exclude SNYSYN0003 from the PNP ID
-list, and it looks like the loop farther down will add PNP0f13 again,
-so we'll end up with "PNP0f13 PNP0f13" (I think I mentioned this when
-reviewing an earlier version of the patch :-)).
-
-With the original pnp_alloc_dev(acpi_device_hid()) call, we'll probably
-end up with "SNYsyn0 PNP0f13".  That's clearly wrong, too.
-
-For now, I think the best fix is to keep this pnp_alloc_dev() call change
-and adjust the loop so it doesn't add "pnpid" again, so we end up with
-just "PNP0f13".
-
-In the long term, I wonder if it'd be better to quit checking the ID for
-validity and make pnp_id.id a pointer rather than an array, so we could
-have "SNYSYN0003 PNP0f13" as PNP IDs for this device.  I bet that's what
-Windows does. 
-
-Bjorn
+thanks,
+Len Brown, Intel Open Source Technology Center
