@@ -1,129 +1,88 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: Eliminate us to pm ticks conversion in common path
-Date: Fri, 04 Jun 2010 03:44:29 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006040343380.6669@localhost.localdomain>
-References: <alpine.LFD.2.00.1005281509430.4045@localhost.localdomain>
- <1275498069-30614-1-git-send-email-venki@google.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH] PNPACPI: cope with invalid device IDs
+Date: Fri, 04 Jun 2010 01:04:32 -0700
+Message-ID: <20100604080432.16068.31159.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:48165 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149Ab0FDHod (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 03:44:33 -0400
-Received: from localhost.localdomain ([unknown] [98.118.125.200])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L3H00K5VC66AV92@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 02:44:32 -0500 (CDT)
-In-reply-to: <1275498069-30614-1-git-send-email-venki@google.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:57595 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab0FDIEj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 04:04:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venki@google.com>
-Cc: ACPI list <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-> Is this one better?
+If primary ID (HID) is invalid try locating first valid ID on compatible
+ID list before giving up. This helps, for example, to recognize i8042 AUX
+port on Sony Vaio VPCZ1 which uses SNYSYN0003 as HID.
 
-Yes, but the patch I'm really looking forward to
-removed /proc/acpi/processor/*/power altogether...
+Tested-by: Jan-Hendrik Zab <jan@jhz.name>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-applied,
-thanks,
--Len Brown, Intel Open Source Technology Center
+ drivers/pnp/pnpacpi/core.c |   27 +++++++++++++++++++++++----
+ 1 files changed, 23 insertions(+), 4 deletions(-)
 
-> 
-> acpi_enter_[simple|bm] routines does us to pm tick conversion on every
-> idle wakeup and the value is only used in /proc/acpi display. We can
-> store the time in us and convert it into pm ticks before printing instead and
-> avoid the conversion in the common path.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venki@google.com>
-> ---
->  drivers/acpi/processor_idle.c |   15 +++++----------
->  1 files changed, 5 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 2e8c27d..71c9608 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -80,7 +80,7 @@ module_param(nocst, uint, 0000);
->  static unsigned int latency_factor __read_mostly = 2;
->  module_param(latency_factor, uint, 0644);
->  
-> -static s64 us_to_pm_timer_ticks(s64 t)
-> +static u64 us_to_pm_timer_ticks(s64 t)
->  {
->  	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
->  }
-> @@ -731,10 +731,10 @@ static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
->  
->  		seq_puts(seq, "demotion[--] ");
->  
-> -		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
-> +		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020Lu]\n",
->  			   pr->power.states[i].latency,
->  			   pr->power.states[i].usage,
-> -			   (unsigned long long)pr->power.states[i].time);
-> +			   us_to_pm_timer_ticks(pr->power.states[i].time));
->  	}
->  
->        end:
-> @@ -861,7 +861,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	ktime_t  kt1, kt2;
->  	s64 idle_time_ns;
->  	s64 idle_time;
-> -	s64 sleep_ticks = 0;
->  
->  	pr = __get_cpu_var(processors);
->  
-> @@ -906,8 +905,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	idle_time = idle_time_ns;
->  	do_div(idle_time, NSEC_PER_USEC);
->  
-> -	sleep_ticks = us_to_pm_timer_ticks(idle_time);
-> -
->  	/* Tell the scheduler how much we idled: */
->  	sched_clock_idle_wakeup_event(idle_time_ns);
->  
-> @@ -918,7 +915,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	cx->usage++;
->  
->  	lapic_timer_state_broadcast(pr, cx, 0);
-> -	cx->time += sleep_ticks;
-> +	cx->time += idle_time;
->  	return idle_time;
->  }
->  
-> @@ -940,7 +937,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	ktime_t  kt1, kt2;
->  	s64 idle_time_ns;
->  	s64 idle_time;
-> -	s64 sleep_ticks = 0;
->  
->  
->  	pr = __get_cpu_var(processors);
-> @@ -1026,7 +1022,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	idle_time = idle_time_ns;
->  	do_div(idle_time, NSEC_PER_USEC);
->  
-> -	sleep_ticks = us_to_pm_timer_ticks(idle_time);
->  	/* Tell the scheduler how much we idled: */
->  	sched_clock_idle_wakeup_event(idle_time_ns);
->  
-> @@ -1037,7 +1032,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	cx->usage++;
->  
->  	lapic_timer_state_broadcast(pr, cx, 0);
-> -	cx->time += sleep_ticks;
-> +	cx->time += idle_time;
->  	return idle_time;
->  }
->  
-> -- 
-> 1.7.0.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index f7ff628..1bf1677 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -28,7 +28,7 @@
+ #include "../base.h"
+ #include "pnpacpi.h"
+ 
+-static int num = 0;
++static int num;
+ 
+ /* We need only to blacklist devices that have already an acpi driver that
+  * can't use pnp layer. We don't need to blacklist device that are directly
+@@ -157,11 +157,24 @@ struct pnp_protocol pnpacpi_protocol = {
+ };
+ EXPORT_SYMBOL(pnpacpi_protocol);
+ 
++static char *pnpacpi_get_id(struct acpi_device *device)
++{
++	struct acpi_hardware_id *id;
++
++	list_for_each_entry(id, &device->pnp.ids, list) {
++		if (ispnpidacpi(id->id))
++			return id->id;
++	}
++
++	return NULL;
++}
++
+ static int __init pnpacpi_add_device(struct acpi_device *device)
+ {
+ 	acpi_handle temp = NULL;
+ 	acpi_status status;
+ 	struct pnp_dev *dev;
++	char *pnpid;
+ 	struct acpi_hardware_id *id;
+ 
+ 	/*
+@@ -169,11 +182,17 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+ 	 * driver should not be loaded.
+ 	 */
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+-	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+-	    is_exclusive_device(device) || (!device->status.present))
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	pnpid = pnpacpi_get_id(device);
++	if (!pnpid)
++		return 0;
++
++	if (!is_exclusive_device(device) || !device->status.present)
+ 		return 0;
+ 
+-	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
++	dev = pnp_alloc_dev(&pnpacpi_protocol, num, pnpid);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+
