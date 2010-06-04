@@ -1,36 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: ACPI patches on test branch
-Date: Fri, 04 Jun 2010 15:51:30 -0400
-Message-ID: <1275681106-8450-1-git-send-email-lenb@kernel.org>
+Subject: [PATCH 03/16] ACPICA: Fix namestring associated with AE_NO_HANDLER
+ exception
+Date: Fri, 04 Jun 2010 15:51:33 -0400
+Message-ID: <cd214019d9fb8ad059bee1880d693524f612a574.1275680880.git.len.brown@intel.com>
+References: <1275681106-8450-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:49744 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753464Ab0FDTvs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:51:48 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:56173 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753464Ab0FDTvt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:51:49 -0400
 Received: from localhost.localdomain ([unknown] [98.118.125.200])
- by vms173017.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L3I00BO49UBA8F5@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 14:51:48 -0500 (CDT)
-Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
-	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id o54Jplmh008529	for
- <linux-acpi@vger.kernel.org>; Fri, 04 Jun 2010 15:51:47 -0400
-Received: (from lenb@localhost)	by localhost.localdomain (8.14.2/8.14.2/Submit)
- id o54JplHb008527	for linux-acpi@vger.kernel.org; Fri,
- 04 Jun 2010 15:51:47 -0400
+ with ESMTPA id <0L3I00CD59UCSSU5@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 14:51:49 -0500 (CDT)
+In-reply-to: <1275681106-8450-1-git-send-email-lenb@kernel.org>
+In-reply-to: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
+References: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-Here are the patches currently on the ACPI test branch --
-beyond what is on the release branch.
+From: Bob Moore <robert.moore@intel.com>
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
+Was incorrectly AE_WAKE_ONLY_GPE.
 
-We may choose to cherry-pick some of these for 2.6.35-rc2,
-rather than waiting for 2.6.36, so please speak up
-if you have troubles with any of them.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ include/acpi/acexcep.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 5958d78..17714be 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -212,7 +212,7 @@ char const *acpi_gbl_exception_names_env[] = {
+ 	"AE_NO_GLOBAL_LOCK",
+ 	"AE_ABORT_METHOD",
+ 	"AE_SAME_HANDLER",
+-	"AE_WAKE_ONLY_GPE",
++	"AE_NO_HANDLER",
+ 	"AE_OWNER_ID_LIMIT"
+ };
+ 
+-- 
+1.6.0.6
 
