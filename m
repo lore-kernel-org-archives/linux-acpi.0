@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/16] ACPICA: iASL/Core: Add support for _WDG/_WED MS methods
-Date: Fri, 04 Jun 2010 15:51:34 -0400
-Message-ID: <dc9fdf22dc5d17961156ae657aa7eaecadbb2a58.1275680880.git.len.brown@intel.com>
+Subject: [PATCH 06/16] ACPICA: Limit maximum time for Sleep() operator
+Date: Fri, 04 Jun 2010 15:51:36 -0400
+Message-ID: <ebdc0df1500bb62efd3e0db042eb694706183c86.1275680880.git.len.brown@intel.com>
 References: <1275681106-8450-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:56531 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754289Ab0FDTvv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:51:51 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:55170 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753464Ab0FDTvu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:51:50 -0400
 Received: from localhost.localdomain ([unknown] [98.118.125.200])
- by vms173011.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L3I00AA99UC9VS5@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 14:51:51 -0500 (CDT)
+ with ESMTPA id <0L3I00C4X9UDUHC6@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 14:51:50 -0500 (CDT)
 In-reply-to: <1275681106-8450-1-git-send-email-lenb@kernel.org>
 In-reply-to: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
 References: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
@@ -23,46 +23,54 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-These objects are defined by "Windows Instrumentation", and are
-not part of the ACPI spec. Adds compiler support and runtime
-typechecking support in the ACPICA core. ACPICA BZ 860.
+To prevent accidental deep sleeps, limit the maximum time that
+Sleep() will sleep. Configurable, default maximum is two seconds.
+ACPICA bugzilla 854.
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=860
+http://www.acpica.org/bugzilla/show_bug.cgi?id=854
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/acconfig.h |    4 ++++
+ drivers/acpi/acpica/exsystem.c |    8 ++++++++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index 9711608..10998d3 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -503,15 +503,16 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_WAK", 1, ACPI_RTYPE_NONE | ACPI_RTYPE_INTEGER | ACPI_RTYPE_PACKAGE}},
- 			  {{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 2,0}, 0,0}}, /* Fixed-length (2 Int), but is optional */
+diff --git a/drivers/acpi/acpica/acconfig.h b/drivers/acpi/acpica/acconfig.h
+index 33181ad..b17d8de 100644
+--- a/drivers/acpi/acpica/acconfig.h
++++ b/drivers/acpi/acpica/acconfig.h
+@@ -119,6 +119,10 @@
  
--	{{{0,0,0,0}, 0,0}} /* Table terminator */
--};
-+	/* _WDG/_WED are MS extensions defined by "Windows Instrumentation" */
+ #define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
  
--#if 0
--	/* Not implemented */
-+	{{"_WDG", 0, ACPI_RTYPE_BUFFER}},
-+	{{"_WED", 1,
-+	  ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER}},
++/* Maximum sleep allowed via Sleep() operator */
++
++#define ACPI_MAX_SLEEP                  20000	/* Two seconds */
++
+ /******************************************************************************
+  *
+  * ACPI Specification constants (Do not change unless the specification changes)
+diff --git a/drivers/acpi/acpica/exsystem.c b/drivers/acpi/acpica/exsystem.c
+index 6d32e09..675aaa9 100644
+--- a/drivers/acpi/acpica/exsystem.c
++++ b/drivers/acpi/acpica/exsystem.c
+@@ -201,6 +201,14 @@ acpi_status acpi_ex_system_do_sleep(u64 how_long)
  
--	{{"_WDG", 0, ACPI_RTYPE_BUFFER}},  /* MS Extension */
--	{{"_WED", 1, ACPI_RTYPE_PACKAGE}}, /* MS Extension */
-+	{{{0, 0, 0, 0}, 0, 0}}  /* Table terminator */
-+};
+ 	acpi_ex_relinquish_interpreter();
  
-+#if 0
- 	/* This is an internally implemented control method, no need to check */
- 	{{"_OSI", 1, ACPI_RTYPE_INTEGER}},
++	/*
++	 * For compatibility with other ACPI implementations and to prevent
++	 * accidental deep sleeps, limit the sleep time to something reasonable.
++	 */
++	if (how_long > ACPI_MAX_SLEEP) {
++		how_long = ACPI_MAX_SLEEP;
++	}
++
+ 	acpi_os_sleep(how_long);
  
+ 	/* And now we must get the interpreter again */
 -- 
 1.6.0.6
 
