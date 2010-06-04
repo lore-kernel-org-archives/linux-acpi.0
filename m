@@ -1,87 +1,103 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/16] ACPICA: Update flags for operand object
-Date: Fri, 04 Jun 2010 15:51:41 -0400
-Message-ID: <b39cffd52a802c797608dfc7ae21df049644b2f9.1275680880.git.len.brown@intel.com>
+Subject: [PATCH 12/16] ACPICA: Optimization: Reduce the number of namespace
+ walks
+Date: Fri, 04 Jun 2010 15:51:42 -0400
+Message-ID: <d1ca10c372702e4c9cbfd056767b902a14f9d486.1275680880.git.len.brown@intel.com>
 References: <1275681106-8450-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:61797 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756217Ab0FHTmR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jun 2010 15:42:17 -0400
+	with ESMTP id S1756187Ab0FHTmT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jun 2010 15:42:19 -0400
 Received: from localhost.localdomain ([unknown] [98.118.125.200])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L3P00KKCO2A66I4@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 08 Jun 2010 14:42:16 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Tue, 08 Jun 2010 14:42:17 -0500 (CDT)
 In-reply-to: <1275681106-8450-1-git-send-email-lenb@kernel.org>
 In-reply-to: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
 References: <8aa4b14eb023fecaa48d55402e98bdf84b375c4a.1275680880.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Remove obsolete AOPOBJ_SINGLE_DATUM. Add AOPOBJ_INVALID for
-use if the host OS rejects the address of an operation region
-(currently only used by Linux.)
+On control method exit, only walk the namespace if the method is
+known to have created namespace objects outside of its local scope.
 
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acobject.h |   16 ++++++++--------
- drivers/acpi/acpica/exprep.c   |    9 ---------
- 2 files changed, 8 insertions(+), 17 deletions(-)
+ drivers/acpi/acpica/dsmethod.c |   18 ++++++++++++++++--
+ drivers/acpi/acpica/nsalloc.c  |   20 ++++++++++++++++----
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index cde18ea..54857fa 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -91,14 +91,14 @@
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 0084633..64750ee 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -584,8 +584,22 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 		 * want make the objects permanent.
+ 		 */
+ 		if (!(method_desc->method.flags & AOPOBJ_MODULE_LEVEL)) {
+-			acpi_ns_delete_namespace_by_owner(method_desc->method.
+-							  owner_id);
++
++			/* Delete any direct children of (created by) this method */
++
++			acpi_ns_delete_namespace_subtree(walk_state->
++							 method_node);
++
++			/*
++			 * Delete any objects that were created by this method
++			 * elsewhere in the namespace (if any were created).
++			 */
++			if (method_desc->method.
++			    flags & AOPOBJ_MODIFIED_NAMESPACE) {
++				acpi_ns_delete_namespace_by_owner(method_desc->
++								  method.
++								  owner_id);
++			}
+ 		}
+ 	}
  
- /* Values for Flag byte above */
+diff --git a/drivers/acpi/acpica/nsalloc.c b/drivers/acpi/acpica/nsalloc.c
+index 8d3a43a..1e5ff80 100644
+--- a/drivers/acpi/acpica/nsalloc.c
++++ b/drivers/acpi/acpica/nsalloc.c
+@@ -219,12 +219,24 @@ void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namesp
  
--#define AOPOBJ_AML_CONSTANT         0x01
--#define AOPOBJ_STATIC_POINTER       0x02
--#define AOPOBJ_DATA_VALID           0x04
--#define AOPOBJ_OBJECT_INITIALIZED   0x08
--#define AOPOBJ_SETUP_COMPLETE       0x10
--#define AOPOBJ_SINGLE_DATUM         0x20
--#define AOPOBJ_INVALID              0x40	/* Used if host OS won't allow an op_region address */
--#define AOPOBJ_MODULE_LEVEL         0x80
-+#define AOPOBJ_AML_CONSTANT         0x01	/* Integer is an AML constant */
-+#define AOPOBJ_STATIC_POINTER       0x02	/* Data is part of an ACPI table, don't delete */
-+#define AOPOBJ_DATA_VALID           0x04	/* Object is intialized and data is valid */
-+#define AOPOBJ_OBJECT_INITIALIZED   0x08	/* Region is initialized, _REG was run */
-+#define AOPOBJ_SETUP_COMPLETE       0x10	/* Region setup is complete */
-+#define AOPOBJ_INVALID              0x20	/* Host OS won't allow a Region address */
-+#define AOPOBJ_MODULE_LEVEL         0x40	/* Method is actually module-level code */
-+#define AOPOBJ_MODIFIED_NAMESPACE   0x80	/* Method modified the namespace */
- 
- /******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
-index 0686f27..98a331d 100644
---- a/drivers/acpi/acpica/exprep.c
-+++ b/drivers/acpi/acpica/exprep.c
-@@ -385,15 +385,6 @@ acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
- 	    (field_bit_position -
- 	     ACPI_MUL_8(obj_desc->common_field.base_byte_offset));
+ 	ACPI_FUNCTION_TRACE(ns_install_node);
  
 -	/*
--	 * Does the entire field fit within a single field access element? (datum)
--	 * (i.e., without crossing a datum boundary)
+-	 * Get the owner ID from the Walk state. The owner ID is used to track
+-	 * table deletion and deletion of objects created by methods.
 -	 */
--	if ((obj_desc->common_field.start_field_bit_offset +
--	     field_bit_length) <= (u16) access_bit_width) {
--		obj_desc->common.flags |= AOPOBJ_SINGLE_DATUM;
--	}
--
- 	return_ACPI_STATUS(AE_OK);
- }
+ 	if (walk_state) {
++		/*
++		 * Get the owner ID from the Walk state. The owner ID is used to
++		 * track table deletion and deletion of objects created by methods.
++		 */
+ 		owner_id = walk_state->owner_id;
++
++		if ((walk_state->method_desc) &&
++		    (parent_node != walk_state->method_node)) {
++			/*
++			 * A method is creating a new node that is not a child of the
++			 * method (it is non-local). Mark the executing method as having
++			 * modified the namespace. This is used for cleanup when the
++			 * method exits.
++			 */
++			walk_state->method_desc->method.flags |=
++			    AOPOBJ_MODIFIED_NAMESPACE;
++		}
+ 	}
  
+ 	/* Link the new entry into the parent and existing children */
 -- 
 1.6.0.6
 
