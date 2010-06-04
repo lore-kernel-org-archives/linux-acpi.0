@@ -1,51 +1,81 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI error messages
-Date: Fri, 04 Jun 2010 09:03:24 +0800
-Message-ID: <1275613404.19052.1028.camel@rzhang1-desktop>
-References: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org>
-	 <1275527406.9119.8724.camel@rzhang1-desktop>
-	 <20100603141643.GA768@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] x86: Look for IA32_ENERGY_PERF_BIAS support - v3
+Date: Thu, 03 Jun 2010 23:22:28 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006032310160.6669@localhost.localdomain>
+References: <20100304231454.247805000@intel.com>
+ <20100304231547.654246000@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3796 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757044Ab0FDBC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jun 2010 21:02:57 -0400
-In-Reply-To: <20100603141643.GA768@srcf.ucam.org>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:64097 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932167Ab0FDDWo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 23:22:44 -0400
+In-reply-to: <20100304231547.654246000@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: H Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Dave Jones <davej@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venki@google.com>
 
-On Thu, 2010-06-03 at 22:16 +0800, Matthew Garrett wrote:
-> On Thu, Jun 03, 2010 at 09:10:06AM +0800, Zhang Rui wrote:
-> 
-> > This is a BIOS bug to me. The code runs in this way:
-> > 
-> > if (not Win7)
-> >   good BIOS code
-> > else
-> >   buggy BIOS code
-> > 
-> > This is a regression because ACPI declares it's win7 compatible in
-> > 2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
-> > it. IMO, we should ping Asus to fix it in their new BIOS release.
-> 
-> So if you install Windows 7 on these machines, backlight control doesn't 
-> work?
-> 
-I've heard that win7 prefers the ACPI wmi driver instead of ACPI video
-driver for backlight control. But not sure if win7 prefers the platform
-driver as well.
+From:  Venkatesh Pallipadi <venki@google.com>
 
-Alan,
-can you help me verify if the backlight control works well when you boot
-w/ acpi_backlight=vendor and w/o acpi_osi="!Windwos 2009"?
+The new IA32_ENERGY_PERF_BIAS MSR allows system software to give
+hardware a hint whether OS policy favors more power saving,
+or more performance.  This allows the OS to have some influence
+on internal hardware power/performance tradeoffs where the OS
+has previously had no influence.
 
-thanks,
-rui
+The support for this feature is indicated by CPUID.06H.ECX.bit3,
+as documented in the Intel Architectures Software Developer's Manual.
 
+This patch discovers support of this feature and displays it
+as "epb" in /proc/cpuinfo.
 
+Signed-off-by: Venkatesh Pallipadi <venki@google.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+lenb: v3 refreshes venki's original patch to apply to 2.6.35-rc1
+
+ arch/x86/include/asm/cpufeature.h          |    1 +
+ arch/x86/include/asm/msr-index.h           |    2 ++
+ arch/x86/kernel/cpu/addon_cpuid_features.c |    1 +
+ 3 files changed, 4 insertions(+), 0 deletions(-)
+
+Index: linus/arch/x86/include/asm/cpufeature.h
+===================================================================
+--- linus.orig/arch/x86/include/asm/cpufeature.h
++++ linus/arch/x86/include/asm/cpufeature.h
+@@ -162,6 +162,7 @@
+ #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
+ #define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
+ #define X86_FEATURE_CPB		(7*32+ 2) /* AMD Core Performance Boost */
++#define X86_FEATURE_EPB		(7*32+ 3) /* IA32_ENERGY_PERF_BIAS support */
+ 
+ /* Virtualization flags: Linux defined */
+ #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
+Index: linus/arch/x86/include/asm/msr-index.h
+===================================================================
+--- linus.orig/arch/x86/include/asm/msr-index.h
++++ linus/arch/x86/include/asm/msr-index.h
+@@ -238,6 +238,8 @@
+ 
+ #define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
+ 
++#define MSR_IA32_ENERGY_PERF_BIAS	0x000001b0
++
+ /* MISC_ENABLE bits: architectural */
+ #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
+ #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
+Index: linus/arch/x86/kernel/cpu/addon_cpuid_features.c
+===================================================================
+--- linus.orig/arch/x86/kernel/cpu/addon_cpuid_features.c
++++ linus/arch/x86/kernel/cpu/addon_cpuid_features.c
+@@ -33,6 +33,7 @@ void __cpuinit init_scattered_cpuid_feat
+ 		{ X86_FEATURE_IDA,   		CR_EAX, 1, 0x00000006 },
+ 		{ X86_FEATURE_ARAT,  		CR_EAX, 2, 0x00000006 },
+ 		{ X86_FEATURE_APERFMPERF,	CR_ECX, 0, 0x00000006 },
++		{ X86_FEATURE_EPB,		CR_ECX, 3, 0x00000006 },
+ 		{ X86_FEATURE_CPB,   		CR_EDX, 9, 0x80000007 },
+ 		{ X86_FEATURE_NPT,   		CR_EDX, 0, 0x8000000a },
+ 		{ X86_FEATURE_LBRV,  		CR_EDX, 1, 0x8000000a },
 
