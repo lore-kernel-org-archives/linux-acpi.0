@@ -1,69 +1,61 @@
-From: Jerone Young <jerone.young@canonical.com>
-Subject: Re: [Intel-gfx] [RFC PATCH 0/2] i915 brightness control
-Date: Sat, 05 Jun 2010 03:47:39 +0800
-Message-ID: <1275680859.1828.1161.camel@laptop>
-References: <1275516702-27090-1-git-send-email-kamal@canonical.com>
-	 <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 4/5] ACPI: Fix the incorrect calculation about C-state idle time
+Date: Fri, 04 Jun 2010 15:47:24 -0400
+Message-ID: <157317ba3ec3e5a4d9683b8d24ba40b4f8f3296b.1275680785.git.len.brown@intel.com>
+References: <1275680845-8352-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60519 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036Ab0FDTrq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:47:46 -0400
-In-Reply-To: <AANLkTiktSDWqHg_A8V5_jQsCf1w4k5x9Q7ZOCjAIZTEH@mail.gmail.com>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:52791 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754036Ab0FDTrs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jun 2010 15:47:48 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L3I008Y29N6Y6L5@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 04 Jun 2010 14:47:31 -0500 (CDT)
+In-reply-to: <1275680845-8352-1-git-send-email-lenb@kernel.org>
+In-reply-to: <d5a64513c6a171262082c250592c062e97a2c693.1275680785.git.len.brown@intel.com>
+References: <d5a64513c6a171262082c250592c062e97a2c693.1275680785.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: Kamal Mostafa <kamal@canonical.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
+To: linux-acpi@vger.kernel.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
 
-On Thu, 2010-06-03 at 00:20 +0100, Pedro Ribeiro wrote:
-> On 2 June 2010 23:11, Kamal Mostafa <kamal@canonical.com> wrote:
-> > Requesting comments on this idea (proposed by Matthew Garrett) and my
-> > implementation.  Note especially the KNOWN PROBLEM with a "GM45" GPU.
-> >
-> >  -Kamal
-> >
-> > .......
-> >
-> > BugLink: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/568611
-> >
-> > In order to avoid the often-dysfunctional native acpi brightness control
-> > methods, a new acpi_brightness_hook interface is made available.
-> >
-> > The i915 driver uses the new hook to take over brightness control.
-> > Boot with i915.brightness=0 to disable.
-> >
-> > KNOWN PROBLEM:
-> >  - i915 opregion brightness control silently fails on GM45 (pci-id 0x2a42)
-> >
-> > [RFC PATCH 1/2] acpi/video: acpi_brightness_hook API
-> > [RFC PATCH 2/2] drm/i915: override acpi brightness control
-> >
-> > _______________________________________________
-> > Intel-gfx mailing list
-> > Intel-gfx@lists.freedesktop.org
-> > http://lists.freedesktop.org/mailman/listinfo/intel-gfx
-> >
-> 
-> Are you sure this is a good idea to enable it by default just because
-> of a problem with one manufacturer (Dell)?
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-This issue is with many manufactures. From this bug you can see HP
-machines are effected also.
+The C-state idle time is not calculated correctly, which will return the wrong
+residency time in C-state. It will have the following effects:
+   1.  The system can't choose the deeper C-state when it is idle next time.
+Of course the system power is increased. E.g. On one server machine about 40W
+idle power is increased.
+   2.  The powertop shows that it will stay in C0 running state about 95% time
+although the system is idle at most time.
 
-https://bugs.launchpad.net/ubuntu/+source/alsa-driver/+bug/568611
-> 
-> My Lenovo laptop has fine brightness control with a GM45 and this may break it.
-> Might be safer only to enable it for laptops with known problems.
-> 
-> 
-> Regards,
-> Pedro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.6.35-rc1 regression caused-by: 2da513f582a96c053aacc2c92873978d2ea7abff
+(ACPI: Minor cleanup eliminating redundant PMTIMER_TICKS to NS conversion)
 
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Reported-by: Yu Zhidong <zhidong.yu@intel.com>
+Tested-by: Yu Zhidong <zhidong.yu@intel.com>
+Acked-by: Venkatesh Pallipadi <venki@google.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 2e8c27d..6b38a6b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1022,7 +1022,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		spin_unlock(&c3_lock);
+ 	}
+ 	kt2 = ktime_get_real();
+-	idle_time_ns = ktime_to_us(ktime_sub(kt2, kt1));
++	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
+ 	idle_time = idle_time_ns;
+ 	do_div(idle_time, NSEC_PER_USEC);
+ 
+-- 
+1.6.0.6
 
