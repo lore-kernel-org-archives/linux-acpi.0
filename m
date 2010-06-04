@@ -1,36 +1,51 @@
-From: Yinghai Lu <yinghai.lu@oracle.com>
-Subject: Re: [PATCH]: x86: use acpi flags for apic mapping
-Date: Thu, 03 Jun 2010 14:30:52 -0700
-Message-ID: <4C081F0C.8060504@oracle.com>
-References: <20100602192418.2706.35192.sendpatchset@prarit.bos.redhat.com> <20100602194956.GB5264@lenovo> <4C06D91F.2060105@redhat.com> <20100603172126.GA5502@lenovo> <4C07EF69.6050301@redhat.com> <4C0817CE.6050006@oracle.com> <4C081B4A.4060801@redhat.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI error messages
+Date: Fri, 04 Jun 2010 09:03:24 +0800
+Message-ID: <1275613404.19052.1028.camel@rzhang1-desktop>
+References: <Pine.LNX.4.44L0.1006021105590.1992-100000@iolanthe.rowland.org>
+	 <1275527406.9119.8724.camel@rzhang1-desktop>
+	 <20100603141643.GA768@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:64516 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754710Ab0FCVcb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jun 2010 17:32:31 -0400
-In-Reply-To: <4C081B4A.4060801@redhat.com>
+Received: from mga01.intel.com ([192.55.52.88]:3796 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757044Ab0FDBC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Jun 2010 21:02:57 -0400
+In-Reply-To: <20100603141643.GA768@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com, x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Suresh Siddha <suresh.b.siddha@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 06/03/2010 02:14 PM, Prarit Bhargava wrote:
+On Thu, 2010-06-03 at 22:16 +0800, Matthew Garrett wrote:
+> On Thu, Jun 03, 2010 at 09:10:06AM +0800, Zhang Rui wrote:
 > 
->> It seems we don't need this patch.
->>
->> so all system should support phys apic mode, but system with less 8 cpus is supposed to support cluster mode for better performance.
->>
->> current kernel will try to use cluster mode if nr_cpus is less than 8.
->>
->> some system have problem like IBM and NCR only support phys apic mode even cpus < 8 ...
->>
->>   
+> > This is a BIOS bug to me. The code runs in this way:
+> > 
+> > if (not Win7)
+> >   good BIOS code
+> > else
+> >   buggy BIOS code
+> > 
+> > This is a regression because ACPI declares it's win7 compatible in
+> > 2.6.31. I'm afraid we can do nothing in Linux kernel to fix/workaround
+> > it. IMO, we should ping Asus to fix it in their new BIOS release.
 > 
-> What about systems that have set the ACPI values?  We just ignore those
-> then?
-we checked the value to see if it only support phys apic mode.
+> So if you install Windows 7 on these machines, backlight control doesn't 
+> work?
+> 
+I've heard that win7 prefers the ACPI wmi driver instead of ACPI video
+driver for backlight control. But not sure if win7 prefers the platform
+driver as well.
 
-Yinghai
+Alan,
+can you help me verify if the backlight control works well when you boot
+w/ acpi_backlight=vendor and w/o acpi_osi="!Windwos 2009"?
+
+thanks,
+rui
+
+
+
