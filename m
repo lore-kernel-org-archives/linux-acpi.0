@@ -1,16 +1,16 @@
 From: "2010 Account Upgrade" <info@upgrade.co.uk>
 Subject: Dear Webmail/E-mail user
-Date: Sat, 5 Jun 2010 08:22:56 +0100 (BST)
-Message-ID: <5869a0e0a9580fa434cf938f95f07442.squirrel__28803.3144236126$1275723865$gmane$org@webmail.tdm.co.mz>
+Date: Sat, 5 Jun 2010 08:24:17 +0100 (BST)
+Message-ID: <e5b945d885130d35dfc20c5bfceb2f5d.squirrel__31461.699671536$1275725609$gmane$org@webmail.tdm.co.mz>
 Reply-To: sbc.upgrade@onfruit.cn
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from webmail.tdm.co.mz ([41.220.162.42]:55847 "EHLO pop.tdm.co.mz"
+Received: from webmail.tdm.co.mz ([41.220.162.42]:55689 "EHLO pop.tdm.co.mz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755255Ab0FEHny (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jun 2010 03:43:54 -0400
+	id S932459Ab0FEINT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jun 2010 04:13:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
