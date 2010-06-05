@@ -1,35 +1,43 @@
-From: "2010 Account Upgrade" <info@upgrade.co.uk>
-Subject: Dear Webmail/E-mail user
-Date: Sat, 5 Jun 2010 08:24:17 +0100 (BST)
-Message-ID: <e5b945d885130d35dfc20c5bfceb2f5d.squirrel__31461.699671536$1275725609$gmane$org@webmail.tdm.co.mz>
-Reply-To: sbc.upgrade@onfruit.cn
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [PATCH 1/2] suspend: Move NVS save/restore code to generic
+ suspend functionality
+Date: Sat, 05 Jun 2010 18:28:38 +0300
+Message-ID: <1275751718.10792.0.camel@maxim-laptop>
+References: <1275078735-1866-1-git-send-email-mjg@redhat.com>
+	 <1275230238.14907.8.camel@maxim-laptop>
+	 <alpine.LFD.2.00.1006041508190.4073@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from webmail.tdm.co.mz ([41.220.162.42]:55689 "EHLO pop.tdm.co.mz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932459Ab0FEINT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jun 2010 04:13:19 -0400
+Received: from fg-out-1718.google.com ([72.14.220.152]:11265 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757398Ab0FEP2o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jun 2010 11:28:44 -0400
+In-Reply-To: <alpine.LFD.2.00.1006041508190.4073@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>
 
-Dear Webmail/E-mail user,
+On Fri, 2010-06-04 at 15:11 -0400, Len Brown wrote: 
+> > Since the other patch 'ACPI / EC / PM: Fix race between EC transactions
+> > and system suspend' is now merged, this should be rebased on top of it
+> > (I did the opposite....)
+> 
+> Maxim,
+> Since your system needs both these fixes, and they are merged together
+> in the acpi git tree, it would be great if you could test that tree
+> and let me know if we got it right.
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
 
-This message is from our Webmail Messaging Center to all our account
-owners.We are currently upgrading our database and e-mail center. We are
-deleting all unused webmail account to create more space for new accounts.
-To ensure that you do not experience service interruption during this
-period; you will need to  verify your webmail account details through the
-following:
+Which kernel do you expect these patches to land on?
 
-1.Username :....................................
-2.Password :...................................
-3.Date of Birth :...............................
-
-You will be sent a new confirmation alphanumerical password that will only
-be valid during this period, and may be altered by this process. We very
-much regret any inconvenience this may cost you.Please reply to this
-message to enable us to give you better online services with our new
-improved webmail functionality and improvements.
+Best regards,
+Maxim Levitsky
 
