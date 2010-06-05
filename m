@@ -1,24 +1,35 @@
-From: MR PETER LUK <pluk@xcelco.on.ca>
-Subject: RE:
-Date: Fri, 04 Jun 2010 23:47:03 -0400
-Message-ID: <1275709623.4c09c8b70de82@webmail.xcelco.on.ca>
-Reply-To: mrpeterluk@live.hk
+From: "2010 Account Upgrade" <info@upgrade.co.uk>
+Subject: Dear Webmail/E-mail user
+Date: Sat, 5 Jun 2010 08:22:27 +0100 (BST)
+Message-ID: <1b7c4434f015dd34d37aa5e032c9ffe2.squirrel@webmail.tdm.co.mz>
+Reply-To: sbc.upgrade@onfruit.cn
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta01.eastlink.ca ([24.224.136.8]:61224 "EHLO mta01.eastlink.ca"
+Received: from webmail.tdm.co.mz ([41.220.162.42]:58662 "EHLO pop.tdm.co.mz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757358Ab0FEDrP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jun 2010 23:47:15 -0400
-Received: from ip01.eastlink.ca ([unknown] [24.222.39.10])
- by mta01.eastlink.ca (Sun Java(tm) System Messaging Server 7u3-12.01 64bit
- (built Oct 15 2009)) with ESMTP id <0L3I007P2VUV2982@mta01.eastlink.ca> for
- linux-acpi@vger.kernel.org; Sat, 05 Jun 2010 00:47:19 -0300 (ADT)
+	id S1754537Ab0FEH1h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jun 2010 03:27:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: info@pluk.org
 
-I have a business proposal to share with you.
+Dear Webmail/E-mail user,
 
+This message is from our Webmail Messaging Center to all our account
+owners.We are currently upgrading our database and e-mail center. We are
+deleting all unused webmail account to create more space for new accounts.
+To ensure that you do not experience service interruption during this
+period; you will need to  verify your webmail account details through the
+following:
+
+1.Username :....................................
+2.Password :...................................
+3.Date of Birth :...............................
+
+You will be sent a new confirmation alphanumerical password that will only
+be valid during this period, and may be altered by this process. We very
+much regret any inconvenience this may cost you.Please reply to this
+message to enable us to give you better online services with our new
+improved webmail functionality and improvements.
 
