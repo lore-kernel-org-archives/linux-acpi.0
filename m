@@ -1,31 +1,33 @@
-From: Tom Gundersen <teg@jklm.no>
-Subject: Re: Unable to boot after "ACPI: Don't let acpi_pad needlessly mark
-	TSC unstable"
-Date: Mon, 7 Jun 2010 12:45:24 +0200
-Message-ID: <AANLkTilAHHvYcZ5QujxJphACIbOu0Cc6WsctMhB3lTZI@mail.gmail.com>
-References: <AANLkTikgWif5ACj4Zm_4eFbx5cAipxMHd5vR4wcYePEZ@mail.gmail.com>
-	<AANLkTinrRP_GYZiFRv_WzLnS_XGc9f0n-4V9GfZ-WVBQ@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH -v6 2/2] IPMI: use ACPI detection mechanism firstly to
+	detect IPMI system interface
+Date: Mon, 7 Jun 2010 13:52:13 +0100
+Message-ID: <20100607125213.GA8277@srcf.ucam.org>
+References: <1275902842-19895-1-git-send-email-yakui.zhao@intel.com> <1275902842-19895-2-git-send-email-yakui.zhao@intel.com> <1275902842-19895-3-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36256 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454Ab0FGKpq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jun 2010 06:45:46 -0400
-In-Reply-To: <AANLkTinrRP_GYZiFRv_WzLnS_XGc9f0n-4V9GfZ-WVBQ@mail.gmail.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:33176 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867Ab0FGMwe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jun 2010 08:52:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1275902842-19895-3-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venki@google.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: yakui.zhao@intel.com
+Cc: minyard@acm.org, lenb@kernel.org, openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Myron Stowe <myron.stowe@hp.com>
 
-Hi Venki,
+On Mon, Jun 07, 2010 at 05:27:22PM +0800, yakui.zhao@intel.com wrote:
 
-On Mon, Jun 7, 2010 at 5:33 AM, Venkatesh Pallipadi <venki@google.com> wrote:
-> Hmm... Do you have the actual message you see on fault?
-> Does the problem happen at the boot time?
+> Use the ACPI detection mechanism firstly to detect the IPMI system interface
+> so that we can know which IPMI system interface is detected in ACPI namespace and
+> then install the IPMI opregion to enable ACPI to access the BMC controller.
+> But the hardcode detection mechanism is still put in the first order.
 
-Yes, the problem happens at boot time (so don't have the message
-readily available). I will write it down after work tonight and report
-a bug as you suggested.
+This is less than ideal. I've seen several machines where the PCI IPMI 
+device is the only one to provide interrupts, so using the ACPI one and 
+refusing to register the PCI one isn't really an option.
 
--t
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
