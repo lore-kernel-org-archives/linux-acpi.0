@@ -1,27 +1,43 @@
-From: Tom Gundersen <teg@jklm.no>
-Subject: Unable to boot after "ACPI: Don't let acpi_pad needlessly mark TSC
-	unstable"
-Date: Mon, 7 Jun 2010 03:00:01 +0200
-Message-ID: <AANLkTikgWif5ACj4Zm_4eFbx5cAipxMHd5vR4wcYePEZ@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI error messages
+Date: Mon, 07 Jun 2010 09:12:20 +0800
+Message-ID: <1275873140.19052.9516.camel@rzhang1-desktop>
+References: <Pine.LNX.4.44L0.1006041050300.1794-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:49640 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab0FGBAX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jun 2010 21:00:23 -0400
+Received: from mga09.intel.com ([134.134.136.24]:35437 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751639Ab0FGBLz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jun 2010 21:11:55 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1006041050300.1794-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venki@google.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Venkatesh,
+On Fri, 2010-06-04 at 22:52 +0800, Alan Stern wrote:
+> On Fri, 4 Jun 2010, Zhang Rui wrote:
+> 
+> > I've heard that win7 prefers the ACPI wmi driver instead of ACPI video
+> > driver for backlight control. But not sure if win7 prefers the platform
+> > driver as well.
+> > 
+> > Alan,
+> > can you help me verify if the backlight control works well when you boot
+> > w/ acpi_backlight=vendor and w/o acpi_osi="!Windwos 2009"?
+> 
+> I don't have the laptop with me here, so this will have to wait a 
+> little.
+> 
+okay.
 
-It looks like your commit 0dc698b93f3eecdda43b22232131324eb41e510c
-causes init to segfault on one of my computers.
+> Also, I've never used the backlight control and I don't know how it 
+> works.  What should I do in order to test it?
+> 
+You can change the backlight by poking /sys/class/backlight/*/brightness
 
-Reverting 0dc698b9 on top of 2.6.35-rc2 solves the problem.
+thanks,
+rui
 
-Let me know if you would like more details or if I can help with testing.
-
-Tom
