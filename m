@@ -1,73 +1,31 @@
-From: yakui.zhao@intel.com
-Subject: [PATCH -v6 2/2] IPMI: use ACPI detection mechanism firstly to detect IPMI system interface
-Date: Mon,  7 Jun 2010 17:27:22 +0800
-Message-ID: <1275902842-19895-3-git-send-email-yakui.zhao@intel.com>
-References: <1275902842-19895-1-git-send-email-yakui.zhao@intel.com>
- <1275902842-19895-2-git-send-email-yakui.zhao@intel.com>
+From: Tom Gundersen <teg@jklm.no>
+Subject: Re: Unable to boot after "ACPI: Don't let acpi_pad needlessly mark
+	TSC unstable"
+Date: Mon, 7 Jun 2010 12:45:24 +0200
+Message-ID: <AANLkTilAHHvYcZ5QujxJphACIbOu0Cc6WsctMhB3lTZI@mail.gmail.com>
+References: <AANLkTikgWif5ACj4Zm_4eFbx5cAipxMHd5vR4wcYePEZ@mail.gmail.com>
+	<AANLkTinrRP_GYZiFRv_WzLnS_XGc9f0n-4V9GfZ-WVBQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55740 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752939Ab0FGJaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jun 2010 05:30:11 -0400
-In-Reply-To: <1275902842-19895-2-git-send-email-yakui.zhao@intel.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:36256 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751454Ab0FGKpq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jun 2010 06:45:46 -0400
+In-Reply-To: <AANLkTinrRP_GYZiFRv_WzLnS_XGc9f0n-4V9GfZ-WVBQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: minyard@acm.org
-Cc: lenb@kernel.org, openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Myron Stowe <myron.stowe@hp.com>
+To: Venkatesh Pallipadi <venki@google.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+Hi Venki,
 
-Sometimes one IPMI system interface will be detected by several methods.
-For example: ACPI mechanism, SPMI table, DMI.
-Maybe one IPMI system interface can be detected in two mechanism. In such case
-the second mechanism will fail in the detection and can't record which IPMI
-system interface is detected by it.
+On Mon, Jun 7, 2010 at 5:33 AM, Venkatesh Pallipadi <venki@google.com> wrote:
+> Hmm... Do you have the actual message you see on fault?
+> Does the problem happen at the boot time?
 
-Use the ACPI detection mechanism firstly to detect the IPMI system interface
-so that we can know which IPMI system interface is detected in ACPI namespace and
-then install the IPMI opregion to enable ACPI to access the BMC controller.
-But the hardcode detection mechanism is still put in the first order.
+Yes, the problem happens at boot time (so don't have the message
+readily available). I will write it down after work tonight and report
+a bug as you suggested.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-cc: Myron Stowe <myron.stowe@hp.com> 
----
- drivers/char/ipmi/ipmi_si_intf.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-index 87b5722..2807749 100644
---- a/drivers/char/ipmi/ipmi_si_intf.c
-+++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -3763,16 +3763,16 @@ static __devinit int init_ipmi_si(void)
- 	}
- 	mutex_unlock(&smi_infos_lock);
- 
-+#ifdef CONFIG_ACPI
-+	pnp_register_driver(&ipmi_pnp_driver);
-+#endif
-+
- #ifdef CONFIG_PCI
- 	rv = pci_register_driver(&ipmi_pci_driver);
- 	if (rv)
- 		printk(KERN_ERR PFX "Unable to register PCI driver: %d\n", rv);
- #endif
- 
--#ifdef CONFIG_ACPI
--	pnp_register_driver(&ipmi_pnp_driver);
--#endif
--
- #ifdef CONFIG_DMI
- 	dmi_find_bmc();
- #endif
-@@ -3933,6 +3933,7 @@ static __exit void cleanup_ipmi_si(void)
- #ifdef CONFIG_PCI
- 	pci_unregister_driver(&ipmi_pci_driver);
- #endif
-+
- #ifdef CONFIG_ACPI
- 	pnp_unregister_driver(&ipmi_pnp_driver);
- #endif
--- 
-1.5.4.5
-
+-t
