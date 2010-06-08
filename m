@@ -1,48 +1,38 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: Disable Vista compatibility for Sony VGN-NS50B_L
-Date: Tue, 08 Jun 2010 15:28:40 +0800
-Message-ID: <1275982120.19052.11515.camel@rzhang1-desktop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/5] ACPI / ACPICA: Fix problems related to GPE reference counting
+Date: Tue, 8 Jun 2010 10:46:48 +0200
+Message-ID: <201006081046.48488.rjw@sisk.pl>
+References: <201006080024.46142.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63719 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:37145 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864Ab0FHH2P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jun 2010 03:28:15 -0400
+	id S1752206Ab0FHJAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jun 2010 05:00:34 -0400
+In-Reply-To: <201006080024.46142.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, harestomper@gmail.com
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Zhang Rui <rui.zhang@intel.com>
 
+Hi,
 
-Disable Vista compatibility for Sony VGN-NS50B_L.
-https://bugzilla.kernel.org/show_bug.cgi?id=12904#c46
+I decided to split this big patch into a series of smaller ones addressing one
+issue each.  I think all of the issues addressed by [2-5/5] may be regarded as
+regressions from 2.6.33, because that kernel didn't have these problems.
 
-Tested-by: Voldemar <harestomper@gmail.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/blacklist.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+[1/5] - Not really a fix, but [2/5] depends on it and I don't see a reason to
+        duplicate that thing even more.
+[2/5] - Low-level GPE manipulation fix
+[3/5] - Fix possible issue with re-enabling a GPE after event handling
+[4/5] - Fix the initialization of GPEs
+[5/5] - Fix GPE sysfs interface
 
-Index: linux-2.6/drivers/acpi/blacklist.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/blacklist.c
-+++ linux-2.6/drivers/acpi/blacklist.c
-@@ -218,6 +218,14 @@ static struct dmi_system_id acpi_osi_dmi
- 		},
- 	},
- 	{
-+	.callback = dmi_disable_osi_vista,
-+	.ident = "VGN-NS50B_L",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NS50B_L"),
-+		},
-+	},
-+	{
- 	.callback = dmi_disable_osi_win7,
- 	.ident = "ASUS K50IJ",
- 	.matches = {
+Please review, possibly apply.
 
+Thanks,
+Rafael
 
