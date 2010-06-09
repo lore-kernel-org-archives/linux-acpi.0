@@ -1,71 +1,36 @@
 From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: Regression: BUG when battery is removed before resuming from hibernation
-Date: Wed, 9 Jun 2010 11:14:43 +0200
-Message-ID: <201006091114.43373.rjw@sisk.pl>
-References: <4C0E40E1.2080108@tuffmail.co.uk> <201006082252.49452.rjw@sisk.pl> <4C0F59C8.8020704@tuffmail.co.uk>
+Subject: Re: 2.6.35-rc2-git2: Reported regressions from 2.6.34
+Date: Wed, 9 Jun 2010 11:22:35 +0200
+Message-ID: <201006091122.35304.rjw@sisk.pl>
+References: <Rlf_Qjov7bG.A.a8F.I8rDMB@chimera> <AANLkTiksbL1qHg7Q0A-6TbX0uUrxra4jctUoIGVk5vnE@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C0F59C8.8020704-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+In-Reply-To: <AANLkTiksbL1qHg7Q0A-6TbX0uUrxra4jctUoIGVk5vnE-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Cc: Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sedat.dilek-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 09 June 2010, Alan Jenkins wrote:
-> Rafael J. Wysocki wrote:
-> > On Tuesday 08 June 2010, Alan Jenkins wrote:
-> >   
-> >> I found this bug 2.6.34 on my Asus EeePC 701 (x86_32 arch).  It didn't 
-> >> happen to me before, when I was running nearly-2.6.33 or 2.6.32-release.
-> >>
-> >> I used git-bisect, but unfortunately the result isn't very helpful.  My 
-> >> next step will be to try to narrowing down the culprits by disabling 
-> >> individual CONFIG options.  Here are my results so far, in case anyone 
-> >> is interested.
-> >>
-> >>
-> >> == Steps to reproduce ==
-> >>
-> >> I) Boot off mains power, with battery removed.  Login to KDE4 session, 
-> >> with Konsole as the only running application.
-> >> II) Run "sudo pm-hibernate"
-> >>
-> >> 1. When the system switches to text mode (a.k.a the console), 
-> >> immediately insert the battery.
-> >> 2. Once the system has fully hibernated, remove the battery.
-> >> 3. Press the power button to resume.  The backtrace below is generated 
-> >> during resume.
-> >>     
-> >
-> > You're not supposed to be doing that.
-> >
-> > Rafael
-> >   
+On Wednesday 09 June 2010, Sedat Dilek wrote:
+> The patch from [1] is still missing.
 > 
-> I take it you mean "don't plug devices in during hibernation; you'll run 
-> out of memory, Bad Things will happen, and you can expect resume to 
-> fail".  Pity.  It wasn't an artificial test case, just an unusual usage 
-> pattern of mine[1].
+>    "cpufreq-call-nr_iowait_cpu-with-disabled-preemption.patch" from
+> Dmitry Monakhoc
 > 
-> I guess it wouldn't be guaranteed safe even if I was plugging the device 
-> in first.  The battery connection could take a few seconds to stabilize, 
-> and there's software equivalents in things like the usb-storage delay.
+> Tested-by: Sedat Dilek <sedat.dilek-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Tested-by Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > 
-> I can't complain about safety margins; other people might want to do 
-> similar things with an entire docking station...
+> I have already reported this issue on LKML [2] and cpufreq ML [3].
 > 
-> Any chance of a big screaming warning?
+> - Sedat -
+> 
+> [1] http://www.spinics.net/lists/cpufreq/msg01631.html
+> [2] http://lkml.org/lkml/2010/5/31/77
+> [3] http://www.spinics.net/lists/cpufreq/msg01637.html
 
-It is possible, but certainly not a priority.  
-
-> IIRC there's one global flag to 
-> fail userspace call-outs while userspace is frozen.  Would it be 
-> acceptable to document this in code & behaviour by aborting the 
-> hibernation on hot-plug?  (hot-*un*plug would presumably be allowed).
-
-Ditto.
+Thanks, added.
 
 Rafael
