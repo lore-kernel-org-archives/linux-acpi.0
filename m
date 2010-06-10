@@ -1,31 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Wakeup races, PCI, and ACPI
-Date: Thu, 10 Jun 2010 01:30:48 +0200
-Message-ID: <201006100130.48861.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1006091148320.1728-100000@iolanthe.rowland.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: Disable Vista compatibility for Sony VGN-NS50B_L
+Date: Thu, 10 Jun 2010 09:07:34 +0800
+Message-ID: <1276132054.19052.14072.camel@rzhang1-desktop>
+References: <1275982120.19052.11515.camel@rzhang1-desktop>
+	 <alpine.LFD.2.00.1006091755080.1402@localhost.localdomain>
+	 <20100609222809.GA29937@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1006091148320.1728-100000@iolanthe.rowland.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:19535 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755921Ab0FJBHK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jun 2010 21:07:10 -0400
+In-Reply-To: <20100609222809.GA29937@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "harestomper@gmail.com" <harestomper@gmail.com>
 
-On Wednesday, June 09, 2010, Alan Stern wrote:
-> Rafael:
+On Thu, 2010-06-10 at 06:28 +0800, Matthew Garrett wrote:
+> On Wed, Jun 09, 2010 at 05:55:22PM -0400, Len Brown wrote:
+> > applied
 > 
-> I see that the kacpi_notify_wq thread isn't freezable.  This means we
-> are subject to a race during system sleep transitions.  If a PCI device
-> is already runtime-suspended, then a PME# wakeup request could cause
-> kacpi_notify_wq to attempt a runtime resume at the same time as the
-> regular suspend or freeze method is running.  (The same is true for 
-> non-PCI devices and ACPI-platform-specific wakeup requests.)
+> Len, as mentioned, there's absolutely no way that this can be the 
+> correct fix. Could you make note of that in the commit?
+> 
+agree.
 
-That, among other things, is why PCI devices are runtime resumed automatically
-by the PCI subsystem in its pm->prepare() callback.
+thanks,
+rui
 
-Thanks,
-Rafael
+
