@@ -1,44 +1,42 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: commit 'ACPICA: Minimize the differences between linux GPE code
- and ACPICA code base' breaks EC GPE on my system
-Date: Fri, 11 Jun 2010 14:47:19 +0300
-Message-ID: <1276256839.4251.7.camel@maxim-laptop>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [linux-pm] [PATCH 1/2] suspend: Move NVS save/restore code to
+ generic suspend functionality
+Date: Fri, 11 Jun 2010 10:32:19 -0300
+Message-ID: <20100611133219.GD28084@khazad-dum.debian.net>
+References: <1275416390.3778.7.camel@maxim-laptop>
+ <201006012331.59747.rjw@sisk.pl>
+ <1275429125.5573.7.camel@maxim-laptop>
+ <201006020040.22429.rjw@sisk.pl>
+ <1275432410.6733.4.camel@maxim-laptop>
+ <20100610135816.GG4514@ucw.cz>
+ <20100610140911.GA11193@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:8357 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758878Ab0FKLrY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2010 07:47:24 -0400
-Received: by fg-out-1718.google.com with SMTP id l26so169424fgb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Jun 2010 04:47:22 -0700 (PDT)
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57542 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760285Ab0FKNc0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jun 2010 09:32:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20100610140911.GA11193@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: mjg59 <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, len.brown@intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Maxim Levitsky <maximlevitsky@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
 
-Just bisected it.
+On Thu, 10 Jun 2010, Matthew Garrett wrote:
+> On Thu, Jun 10, 2010 at 03:58:16PM +0200, Pavel Machek wrote:
+> > Well... should we only do it in 'platform' hibernation mode? There are
+> > machines that predate windows/acpi and still should hibernate.
+> 
+> If they predate acpi then they won't declare any NVS regions.
 
-I also tried linux-acpi-next/test, and no change.
+What if they're ACPI and APM capable, and in APM mode?  Would the code need
+to guard against that?
 
-The sympthoms are that EC does't sent any GPEs, and therefore battery
-insert/removal events don't show up.
-
-It can be see by doing 'grep  . /sys/firmware/acpi/interrupts/*'
-With regression the line is shown like this:
-
-
-/sys/firmware/acpi/interrupts/gpe1C:   1	enabled
-
-Without regression it is
-
-/sys/firmware/acpi/interrupts/gpe1C:   22889	enabled
-
-and steadily increasing.
-
-After suspend/resume, regression disappears.
-
-Best regards,
-	Maxim Levitsky
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
