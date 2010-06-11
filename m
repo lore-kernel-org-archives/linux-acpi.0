@@ -1,88 +1,67 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: [linux-pm] commit 'ACPICA: Minimize the differences between
- linux GPE code and ACPICA code base' breaks EC GPE on my system
-Date: Sat, 12 Jun 2010 00:43:35 +0300
-Message-ID: <1276292615.2617.1.camel@maxim-laptop>
-References: <1276256839.4251.7.camel@maxim-laptop>
-	 <1276288322.2651.4.camel@maxim-laptop> <201006112234.39747.rjw@sisk.pl>
-	 <201006112259.33602.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH][Regression fix]  ACPI / ACPICA: Do not attempt to disable GPE when installing handler
+Date: Sat, 12 Jun 2010 00:05:19 +0200
+Message-ID: <201006120005.19807.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:50002 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760608Ab0FKVnu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jun 2010 17:43:50 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so452000fga.1
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Jun 2010 14:43:48 -0700 (PDT)
-In-Reply-To: <201006112259.33602.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:54580 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760620Ab0FKWHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jun 2010 18:07:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, len.brown@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, Maxim Levitsky <maximlevitsky@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, 2010-06-11 at 22:59 +0200, Rafael J. Wysocki wrote: 
-> On Friday, June 11, 2010, Rafael J. Wysocki wrote:
-> > On Friday, June 11, 2010, Maxim Levitsky wrote:
-> > > On Fri, 2010-06-11 at 21:43 +0200, Rafael J. Wysocki wrote: 
-> > > > On Friday, June 11, 2010, Rafael J. Wysocki wrote:
-> > > > > On Friday, June 11, 2010, Maxim Levitsky wrote:
-> > > > > > Just bisected it.
-> > > > > > 
-> > > > > > I also tried linux-acpi-next/test, and no change.
-> > > > > > 
-> > > > > > The sympthoms are that EC does't sent any GPEs, and therefore battery
-> > > > > > insert/removal events don't show up.
-> > > > > > 
-> > > > > > It can be see by doing 'grep  . /sys/firmware/acpi/interrupts/*'
-> > > > > > With regression the line is shown like this:
-> > > > > > 
-> > > > > > 
-> > > > > > /sys/firmware/acpi/interrupts/gpe1C:   1	enabled
-> > > > > > 
-> > > > > > Without regression it is
-> > > > > > 
-> > > > > > /sys/firmware/acpi/interrupts/gpe1C:   22889	enabled
-> > > > > > 
-> > > > > > and steadily increasing.
-> > > > > > 
-> > > > > > After suspend/resume, regression disappears.
-> > > > > 
-> > > > > Hmm.
-> > > > > 
-> > > > > Can you please apply the following patches:
-> > > > > 
-> > > > > https://patchwork.kernel.org/patch/104903/
-> > > > > https://patchwork.kernel.org/patch/104912/
-> > > > > https://patchwork.kernel.org/patch/104909/
-> > > > > https://patchwork.kernel.org/patch/104911/
-> > > > > https://patchwork.kernel.org/patch/104910/
-> > > > > 
-> > > > > on top of current -git and see if the problem is still there?
-> > > > 
-> > > > Also, regardless of whether or not this helps, please try to revert only the
-> > > > changes made by the "guilty" commit in drivers/acpi/acpica/evxface.c and see
-> > > > if that helps (this revert will conflict with the patches above, so you'll need
-> > > > to unapply them before).
-> > > > 
-> > > > Thanks,
-> > > > Rafael
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > > Yes, reverting changes in 'drivers/acpi/acpica/evxface.c' do restore
-> > > correct behavior.
-> > 
-> > Good.  I think we'll need to revert them for .35, then.
-> > 
-> > I'll prepare a patch and send it to Len.
-> 
-> Can you check if the patch below fixes the issue?
-Yes it does. Thanks!
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Best regards,
-Maxim Levitsky
+Commit 0f849d2cc6863c7874889ea60a871fb71399dd3f (ACPICA: Minimize
+the differences between linux GPE code and ACPICA code base)
+introduced a change attempting to disable a GPE before installing
+a handler for it in acpi_install_gpe_handler() which was incorrect.
+First, the GPE disabled by it is never enabled again (except during
+resume) which leads to battery insert/remove events not being
+reported on the Maxim Levitsky's machine.  Second, the disabled
+GPE is still reported as enabled by the sysfs interface that only
+checks its enable register's enable_for_run mask.
 
+Revert this change for now, because it causes more damage to happen
+than the bug it was supposed to fix.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+Hi Len,
+
+This will conflict with
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=a771b5f7b5b132fc3e653645405e20abb4da6e8c
+but the conflict is easy to resolve.
+
+Please apply.
+
+Rafael
+---
+ drivers/acpi/acpica/evxface.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+Index: linux-2.6/drivers/acpi/acpica/evxface.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/evxface.c
++++ linux-2.6/drivers/acpi/acpica/evxface.c
+@@ -719,13 +720,6 @@ acpi_install_gpe_handler(acpi_handle gpe
+ 	handler->context = context;
+ 	handler->method_node = gpe_event_info->dispatch.method_node;
+ 
+-	/* Disable the GPE before installing the handler */
+-
+-	status = acpi_ev_disable_gpe(gpe_event_info);
+-	if (ACPI_FAILURE (status)) {
+-		goto unlock_and_exit;
+-	}
+-
+ 	/* Install the handler */
+ 
+ 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
