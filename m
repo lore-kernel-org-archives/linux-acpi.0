@@ -1,47 +1,47 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 4/5] ACPI: remove deprecated ACPI procfs I/F
-Date: Sat, 12 Jun 2010 11:04:55 +0800
-Message-ID: <1276311895.19052.17253.camel@rzhang1-desktop>
-References: <1276235281.19052.15874.camel@rzhang1-desktop>
-	 <alpine.LFD.2.00.1006111202430.4096@localhost.localdomain>
+Subject: Re: [PATCH 5/5] ACPI: introduce module parameter acpi.aml_debug
+Date: Sat, 12 Jun 2010 11:05:44 +0800
+Message-ID: <1276311944.19052.17254.camel@rzhang1-desktop>
+References: <1276235286.19052.15875.camel@rzhang1-desktop>
+	 <alpine.LFD.2.00.1006111209180.4096@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5121 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:33252 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982Ab0FLDEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jun 2010 23:04:32 -0400
-In-Reply-To: <alpine.LFD.2.00.1006111202430.4096@localhost.localdomain>
+	id S1751982Ab0FLDFd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jun 2010 23:05:33 -0400
+In-Reply-To: <alpine.LFD.2.00.1006111209180.4096@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
-On Sat, 2010-06-12 at 00:06 +0800, Len Brown wrote:
+On Sat, 2010-06-12 at 00:11 +0800, Len Brown wrote:
 > On Fri, 11 Jun 2010, Zhang Rui wrote:
 > 
+> > Introduce module parameter acpi.aml_debug.
 > > 
-> > 1. Remove some deprecated ACPI procfs I/F, including
-> >    /proc/acpi/info, /proc/acpi/dsdt, /proc/acpi/fadt.
+> > With acpi.aml_debug set, we can get AML debug object
+> > output (Store (AAA, Debug)), even with CONFIG_ACPI_DEBUG
+> > cleared.
+> > 
+> > Together with the runtime custom method,
+> > we can debug AML code problems without rebuilding the kernel.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/acpi/acpica/acglobal.h |    2 +-
+> >  drivers/acpi/sysfs.c           |    4 ++++
+> >  include/acpi/acpixf.h          |    2 +-
+> >  3 files changed, 6 insertions(+), 2 deletions(-)
 > 
-> yay!
+> Is there an update to Documentation/acpi/ ?
 > 
-> > 2. Move the code for sysfs I/F to driver/acpi/sysfs.c.
-> 
-> two patches please: the delete of a user visible function
-> in the first, and move the code in the second.
-> 
-Okay, further more, I'll re-generate the patch in this way,
-Patch 01. Remove all the deprecated procfs I/F.
-Patch 02. Introduce driver/acpi/sysfs.c and move the code for
-          ACPI sysfs I/F to this file.
-Patch 03. Introduce drivers/acpi/debugfs.c and remove
-          drivers/acpi/debug.c as it's NULL.
-Patch 04. Introduce the new module parameter.
-
-what do you think?
+Oh, I'll update the documentation in patch V2.
 
 thanks,
 rui
+
 
