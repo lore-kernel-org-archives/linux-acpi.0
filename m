@@ -1,272 +1,80 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/4 V2] ACPI: introduce drivers/acpi/debugfs.c
-Date: Sat, 12 Jun 2010 15:46:17 +0800
-Message-ID: <1276328777.19052.17844.camel@rzhang1-desktop>
+Subject: [PATCH 4/4 V2] ACPI: introduce module parameter acpi.aml_debug
+Date: Sat, 12 Jun 2010 15:46:30 +0800
+Message-ID: <1276328790.19052.17845.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47420 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:40501 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752875Ab0FLHpy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jun 2010 03:45:54 -0400
+	id S1752940Ab0FLHqI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jun 2010 03:46:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
 
-Introduce drivers/acpi/debugfs.c.
 
-Code for ACPI debugfs I/F, i.e. /sys/kernel/debug/acpi/custom_method,
-is moved to this file.
+Introduce module parameter acpi.aml_debug.
 
-And make ACPI debugfs always built in,
-even if CONFIG_ACPI_DEBUG is cleared.
+With acpi.aml_debug set, we can get AML debug object output
+(Store (AAA, Debug)), even with CONFIG_ACPI_DEBUG cleared.
+
+Together with the runtime custom method mechanism,
+we can debug AML code problems without rebuilding the kernel.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Makefile   |    2 
- drivers/acpi/bus.c      |    2 
- drivers/acpi/debug.c    |   97 ------------------------------------------------
- drivers/acpi/debugfs.c  |   84 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |    6 +-
- 5 files changed, 89 insertions(+), 102 deletions(-)
+ Documentation/acpi/method-customizing.txt |    2 ++
+ drivers/acpi/debugfs.c                    |   21 +++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-Index: linux-2.6/drivers/acpi/debug.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/debug.c
-+++ /dev/null
-@@ -1,97 +0,0 @@
--/*
-- * debug.c - ACPI debug interface to userspace.
-- */
--
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/moduleparam.h>
--#include <linux/debugfs.h>
--#include <linux/slab.h>
--#include <asm/uaccess.h>
--#include <acpi/acpi_drivers.h>
--
--#define _COMPONENT		ACPI_SYSTEM_COMPONENT
--ACPI_MODULE_NAME("debug");
--
--/* --------------------------------------------------------------------------
--				DebugFS Interface
--   -------------------------------------------------------------------------- */
--
--static ssize_t cm_write(struct file *file, const char __user *user_buf,
--			size_t count, loff_t *ppos)
--{
--	static char *buf;
--	static int uncopied_bytes;
--	struct acpi_table_header table;
--	acpi_status status;
--
--	if (!(*ppos)) {
--		/* parse the table header to get the table length */
--		if (count <= sizeof(struct acpi_table_header))
--			return -EINVAL;
--		if (copy_from_user(&table, user_buf,
--			sizeof(struct acpi_table_header)))
--			return -EFAULT;
--		uncopied_bytes = table.length;
--		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
--		if (!buf)
--			return -ENOMEM;
--	}
--
--	if (uncopied_bytes < count) {
--		kfree(buf);
--		return -EINVAL;
--	}
--
--	if (copy_from_user(buf + (*ppos), user_buf, count)) {
--		kfree(buf);
--		return -EFAULT;
--	}
--
--	uncopied_bytes -= count;
--	*ppos += count;
--
--	if (!uncopied_bytes) {
--		status = acpi_install_method(buf);
--		kfree(buf);
--		if (ACPI_FAILURE(status))
--			return -EINVAL;
--		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
--	}
--
--	return count;
--}
--
--static const struct file_operations cm_fops = {
--	.write = cm_write,
--};
--
--static int acpi_debugfs_init(void)
--{
--	struct dentry *acpi_dir, *cm_dentry;
--
--	acpi_dir = debugfs_create_dir("acpi", NULL);
--	if (!acpi_dir)
--		goto err;
--
--	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
--					acpi_dir, NULL, &cm_fops);
--	if (!cm_dentry)
--		goto err;
--
--	return 0;
--
--err:
--	if (acpi_dir)
--		debugfs_remove(acpi_dir);
--	return -EINVAL;
--}
--
--int __init acpi_debug_init(void)
--{
--	acpi_debugfs_init();
--	return 0;
--}
 Index: linux-2.6/drivers/acpi/debugfs.c
 ===================================================================
---- /dev/null
+--- linux-2.6.orig/drivers/acpi/debugfs.c
 +++ linux-2.6/drivers/acpi/debugfs.c
-@@ -0,0 +1,84 @@
-+/*
-+ * debugfs.c - ACPI debugfs interface to userspace.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/debugfs.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define _COMPONENT		ACPI_SYSTEM_COMPONENT
-+ACPI_MODULE_NAME("debugfs");
-+
-+/* --------------------------------------------------------------------------
-+				DebugFS Interface
-+   -------------------------------------------------------------------------- */
-+
-+static ssize_t cm_write(struct file *file, const char __user *user_buf,
-+			size_t count, loff_t *ppos)
+@@ -9,6 +9,27 @@
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debugfs");
+ 
++static int param_set_aml_debug(const char *val, struct kernel_param *kp)
 +{
-+	static char *buf;
-+	static int uncopied_bytes;
-+	struct acpi_table_header table;
-+	acpi_status status;
-+
-+	if (!(*ppos)) {
-+		/* parse the table header to get the table length */
-+		if (count <= sizeof(struct acpi_table_header))
-+			return -EINVAL;
-+		if (copy_from_user(&table, user_buf,
-+			sizeof(struct acpi_table_header)))
-+			return -EFAULT;
-+		uncopied_bytes = table.length;
-+		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
-+		if (!buf)
-+			return -ENOMEM;
-+	}
-+
-+	if (uncopied_bytes < count) {
-+		kfree(buf);
++	if (!strncmp(val, "1\n", 2))
++		acpi_gbl_enable_aml_debug_object = 1;
++	else if (!strncmp(val, "0\n", 2))
++		acpi_gbl_enable_aml_debug_object = 0;
++	else
 +		return -EINVAL;
-+	}
-+
-+	if (copy_from_user(buf + (*ppos), user_buf, count)) {
-+		kfree(buf);
-+		return -EFAULT;
-+	}
-+
-+	uncopied_bytes -= count;
-+	*ppos += count;
-+
-+	if (!uncopied_bytes) {
-+		status = acpi_install_method(buf);
-+		kfree(buf);
-+		if (ACPI_FAILURE(status))
-+			return -EINVAL;
-+		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
-+	}
-+
-+	return count;
-+}
-+
-+static const struct file_operations cm_fops = {
-+	.write = cm_write,
-+};
-+
-+int __init acpi_debugfs_init(void)
-+{
-+	struct dentry *acpi_dir, *cm_dentry;
-+
-+	acpi_dir = debugfs_create_dir("acpi", NULL);
-+	if (!acpi_dir)
-+		goto err;
-+
-+	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
-+					acpi_dir, NULL, &cm_fops);
-+	if (!cm_dentry)
-+		goto err;
 +
 +	return 0;
-+
-+err:
-+	if (acpi_dir)
-+		debugfs_remove(acpi_dir);
-+	return -EINVAL;
 +}
-Index: linux-2.6/drivers/acpi/Makefile
-===================================================================
---- linux-2.6.orig/drivers/acpi/Makefile
-+++ linux-2.6/drivers/acpi/Makefile
-@@ -39,7 +39,7 @@ acpi-y				+= pci_root.o pci_link.o pci_i
- acpi-y				+= power.o
- acpi-y				+= event.o
- acpi-y				+= sysfs.o
--acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
- acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
- acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- ifdef CONFIG_ACPI_VIDEO
-Index: linux-2.6/drivers/acpi/internal.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/internal.h
-+++ linux-2.6/drivers/acpi/internal.h
-@@ -24,10 +24,10 @@ int init_acpi_device_notify(void);
- int acpi_scan_init(void);
- int acpi_sysfs_init(void);
- 
--#ifdef CONFIG_ACPI_DEBUG
--int acpi_debug_init(void);
-+#ifdef CONFIG_DEBUG_FS
-+int acpi_debugfs_init(void);
- #else
--static inline int acpi_debug_init(void) { return 0; }
-+static inline int acpi_debugfs_init(void) { return 0; }
- #endif
- 
++
++static int param_get_aml_debug(char *buffer, struct kernel_param *kp)
++{
++	if (acpi_gbl_enable_aml_debug_object)
++		return sprintf(buffer, "1");
++	else
++		return sprintf(buffer, "0");
++}
++
++module_param_call(aml_debug, param_set_aml_debug, param_get_aml_debug, NULL, 0644);
  /* --------------------------------------------------------------------------
-Index: linux-2.6/drivers/acpi/bus.c
+ 				DebugFS Interface
+    -------------------------------------------------------------------------- */
+Index: linux-2.6/Documentation/acpi/method-customizing.txt
 ===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -1035,7 +1035,7 @@ static int __init acpi_init(void)
- 	acpi_ec_init();
- 	acpi_power_init();
- 	acpi_sysfs_init();
--	acpi_debug_init();
-+	acpi_debugfs_init();
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	return result;
+--- linux-2.6.orig/Documentation/acpi/method-customizing.txt
++++ linux-2.6/Documentation/acpi/method-customizing.txt
+@@ -19,6 +19,8 @@ Note: Only ACPI METHOD can be overridden
+       "Device", "OperationRegion", are not recognized.
+ Note: The same ACPI control method can be overridden for many times,
+       and it's always the latest one that used by Linux/kernel.
++Note: To get the ACPI debug object output (Store (AAAA, Debug)),
++      please run "echo 1 > /sys/module/acpi/parameters/aml_debug".
+ 
+ 1. override an existing method
+    a) get the ACPI table via ACPI sysfs I/F. e.g. to get the DSDT,
 
 
