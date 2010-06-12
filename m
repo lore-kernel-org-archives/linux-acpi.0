@@ -1,334 +1,272 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 1/4 V2] ACPI: remove deprecated procfs I/F
-Date: Sat, 12 Jun 2010 15:45:27 +0800
-Message-ID: <1276328727.19052.17838.camel@rzhang1-desktop>
+Subject: [PATCH 3/4 V2] ACPI: introduce drivers/acpi/debugfs.c
+Date: Sat, 12 Jun 2010 15:46:17 +0800
+Message-ID: <1276328777.19052.17844.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3933 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:47420 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753024Ab0FLHpF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jun 2010 03:45:05 -0400
+	id S1752875Ab0FLHpy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jun 2010 03:45:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-Rmove deprecated ACPI procfs I/F, including
-/proc/acpi/debug_layer
-/proc/acpi/debug_level
-/proc/acpi/info
-/proc/acpi/dsdt
-/proc/acpi/fadt
-because the sysfs I/F is already available
-and has been working well for years.
+Introduce drivers/acpi/debugfs.c.
 
-No function change in this patch.
+Code for ACPI debugfs I/F, i.e. /sys/kernel/debug/acpi/custom_method,
+is moved to this file.
+
+And make ACPI debugfs always built in,
+even if CONFIG_ACPI_DEBUG is cleared.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Kconfig  |    5 -
- drivers/acpi/debug.c  |  128 --------------------------------------------------
- drivers/acpi/system.c |  124 ------------------------------------------------
- 3 files changed, 257 deletions(-)
+ drivers/acpi/Makefile   |    2 
+ drivers/acpi/bus.c      |    2 
+ drivers/acpi/debug.c    |   97 ------------------------------------------------
+ drivers/acpi/debugfs.c  |   84 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h |    6 +-
+ 5 files changed, 89 insertions(+), 102 deletions(-)
 
 Index: linux-2.6/drivers/acpi/debug.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/debug.c
-+++ linux-2.6/drivers/acpi/debug.c
-@@ -271,136 +271,8 @@ err:
- 	return -EINVAL;
- }
- 
++++ /dev/null
+@@ -1,97 +0,0 @@
+-/*
+- * debug.c - ACPI debug interface to userspace.
+- */
+-
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/moduleparam.h>
+-#include <linux/debugfs.h>
+-#include <linux/slab.h>
+-#include <asm/uaccess.h>
+-#include <acpi/acpi_drivers.h>
+-
+-#define _COMPONENT		ACPI_SYSTEM_COMPONENT
+-ACPI_MODULE_NAME("debug");
+-
 -/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
+-				DebugFS Interface
 -   -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
--#define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
 -
--static int acpi_system_debug_proc_show(struct seq_file *m, void *v)
+-static ssize_t cm_write(struct file *file, const char __user *user_buf,
+-			size_t count, loff_t *ppos)
 -{
--	unsigned int i;
+-	static char *buf;
+-	static int uncopied_bytes;
+-	struct acpi_table_header table;
+-	acpi_status status;
 -
--	seq_printf(m, "%-25s\tHex        SET\n", "Description");
--
--	switch ((unsigned long)m->private) {
--	case 0:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
--			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_layers[i].name,
--				     acpi_debug_layers[i].value,
--				     (acpi_dbg_layer & acpi_debug_layers[i].
--				      value) ? '*' : ' ');
--		}
--		seq_printf(m, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
--			     ACPI_ALL_DRIVERS,
--			     (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
--			     ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
--						       ACPI_ALL_DRIVERS) ==
--			     0 ? ' ' : '-');
--		seq_printf(m,
--			     "--\ndebug_layer = 0x%08X (* = enabled, - = partial)\n",
--			     acpi_dbg_layer);
--		break;
--	case 1:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
--			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_levels[i].name,
--				     acpi_debug_levels[i].value,
--				     (acpi_dbg_level & acpi_debug_levels[i].
--				      value) ? '*' : ' ');
--		}
--		seq_printf(m, "--\ndebug_level = 0x%08X (* = enabled)\n",
--			     acpi_dbg_level);
--		break;
+-	if (!(*ppos)) {
+-		/* parse the table header to get the table length */
+-		if (count <= sizeof(struct acpi_table_header))
+-			return -EINVAL;
+-		if (copy_from_user(&table, user_buf,
+-			sizeof(struct acpi_table_header)))
+-			return -EFAULT;
+-		uncopied_bytes = table.length;
+-		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
+-		if (!buf)
+-			return -ENOMEM;
 -	}
--	return 0;
--}
 -
--static int acpi_system_debug_proc_open(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_system_debug_proc_show, PDE(inode)->data);
--}
--
--static ssize_t acpi_system_debug_proc_write(struct file *file,
--			const char __user * buffer,
--			size_t count, loff_t *pos)
--{
--	char debug_string[12] = { '\0' };
--
--
--	if (count > sizeof(debug_string) - 1)
+-	if (uncopied_bytes < count) {
+-		kfree(buf);
 -		return -EINVAL;
+-	}
 -
--	if (copy_from_user(debug_string, buffer, count))
+-	if (copy_from_user(buf + (*ppos), user_buf, count)) {
+-		kfree(buf);
 -		return -EFAULT;
+-	}
 -
--	debug_string[count] = '\0';
+-	uncopied_bytes -= count;
+-	*ppos += count;
 -
--	switch ((unsigned long)PDE(file->f_path.dentry->d_inode)->data) {
--	case 0:
--		acpi_dbg_layer = simple_strtoul(debug_string, NULL, 0);
--		break;
--	case 1:
--		acpi_dbg_level = simple_strtoul(debug_string, NULL, 0);
--		break;
--	default:
--		return -EINVAL;
+-	if (!uncopied_bytes) {
+-		status = acpi_install_method(buf);
+-		kfree(buf);
+-		if (ACPI_FAILURE(status))
+-			return -EINVAL;
+-		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
 -	}
 -
 -	return count;
 -}
 -
--static const struct file_operations acpi_system_debug_proc_fops = {
--	.owner		= THIS_MODULE,
--	.open		= acpi_system_debug_proc_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--	.write		= acpi_system_debug_proc_write,
+-static const struct file_operations cm_fops = {
+-	.write = cm_write,
 -};
--#endif
 -
--int __init acpi_procfs_init(void)
+-static int acpi_debugfs_init(void)
 -{
--#ifdef CONFIG_ACPI_PROCFS
--	struct proc_dir_entry *entry;
--	int error = 0;
--	char *name;
+-	struct dentry *acpi_dir, *cm_dentry;
 -
--	/* 'debug_layer' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
--	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_root_dir, &acpi_system_debug_proc_fops,
--				 (void *)0);
--	if (!entry)
--		goto Error;
+-	acpi_dir = debugfs_create_dir("acpi", NULL);
+-	if (!acpi_dir)
+-		goto err;
 -
--	/* 'debug_level' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
--	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_root_dir, &acpi_system_debug_proc_fops,
--				 (void *)1);
--	if (!entry)
--		goto Error;
+-	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
+-					acpi_dir, NULL, &cm_fops);
+-	if (!cm_dentry)
+-		goto err;
 -
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LEVEL, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
--	error = -ENODEV;
--	goto Done;
--#else
 -	return 0;
--#endif
+-
+-err:
+-	if (acpi_dir)
+-		debugfs_remove(acpi_dir);
+-	return -EINVAL;
 -}
 -
- int __init acpi_debug_init(void)
- {
- 	acpi_debugfs_init();
--	acpi_procfs_init();
- 	return 0;
- }
-Index: linux-2.6/drivers/acpi/system.c
+-int __init acpi_debug_init(void)
+-{
+-	acpi_debugfs_init();
+-	return 0;
+-}
+Index: linux-2.6/drivers/acpi/debugfs.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/system.c
-+++ linux-2.6/drivers/acpi/system.c
-@@ -503,134 +503,10 @@ static void __exit interrupt_stats_exit(
- 	return;
- }
+--- /dev/null
++++ linux-2.6/drivers/acpi/debugfs.c
+@@ -0,0 +1,84 @@
++/*
++ * debugfs.c - ACPI debugfs interface to userspace.
++ */
++
++#include <linux/module.h>
++#include <linux/debugfs.h>
++#include <acpi/acpi_drivers.h>
++
++#define _COMPONENT		ACPI_SYSTEM_COMPONENT
++ACPI_MODULE_NAME("debugfs");
++
++/* --------------------------------------------------------------------------
++				DebugFS Interface
++   -------------------------------------------------------------------------- */
++
++static ssize_t cm_write(struct file *file, const char __user *user_buf,
++			size_t count, loff_t *ppos)
++{
++	static char *buf;
++	static int uncopied_bytes;
++	struct acpi_table_header table;
++	acpi_status status;
++
++	if (!(*ppos)) {
++		/* parse the table header to get the table length */
++		if (count <= sizeof(struct acpi_table_header))
++			return -EINVAL;
++		if (copy_from_user(&table, user_buf,
++			sizeof(struct acpi_table_header)))
++			return -EFAULT;
++		uncopied_bytes = table.length;
++		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
++		if (!buf)
++			return -ENOMEM;
++	}
++
++	if (uncopied_bytes < count) {
++		kfree(buf);
++		return -EINVAL;
++	}
++
++	if (copy_from_user(buf + (*ppos), user_buf, count)) {
++		kfree(buf);
++		return -EFAULT;
++	}
++
++	uncopied_bytes -= count;
++	*ppos += count;
++
++	if (!uncopied_bytes) {
++		status = acpi_install_method(buf);
++		kfree(buf);
++		if (ACPI_FAILURE(status))
++			return -EINVAL;
++		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
++	}
++
++	return count;
++}
++
++static const struct file_operations cm_fops = {
++	.write = cm_write,
++};
++
++int __init acpi_debugfs_init(void)
++{
++	struct dentry *acpi_dir, *cm_dentry;
++
++	acpi_dir = debugfs_create_dir("acpi", NULL);
++	if (!acpi_dir)
++		goto err;
++
++	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
++					acpi_dir, NULL, &cm_fops);
++	if (!cm_dentry)
++		goto err;
++
++	return 0;
++
++err:
++	if (acpi_dir)
++		debugfs_remove(acpi_dir);
++	return -EINVAL;
++}
+Index: linux-2.6/drivers/acpi/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/acpi/Makefile
++++ linux-2.6/drivers/acpi/Makefile
+@@ -39,7 +39,7 @@ acpi-y				+= pci_root.o pci_link.o pci_i
+ acpi-y				+= power.o
+ acpi-y				+= event.o
+ acpi-y				+= sysfs.o
+-acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
++acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ ifdef CONFIG_ACPI_VIDEO
+Index: linux-2.6/drivers/acpi/internal.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/internal.h
++++ linux-2.6/drivers/acpi/internal.h
+@@ -24,10 +24,10 @@ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
+ int acpi_sysfs_init(void);
  
--/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_INFO		"info"
--#define ACPI_SYSTEM_FILE_EVENT		"event"
--#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
--#define ACPI_SYSTEM_FILE_FADT		"fadt"
--
--static int acpi_system_read_info(struct seq_file *seq, void *offset)
--{
--
--	seq_printf(seq, "version:                 %x\n", ACPI_CA_VERSION);
--	return 0;
--}
--
--static int acpi_system_info_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_system_read_info, PDE(inode)->data);
--}
--
--static const struct file_operations acpi_system_info_ops = {
--	.owner = THIS_MODULE,
--	.open = acpi_system_info_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_dsdt_ops = {
--	.owner = THIS_MODULE,
--	.read = acpi_system_read_dsdt,
--};
--
--static ssize_t
--acpi_system_read_dsdt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *dsdt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
--
--	return res;
--}
--
--static ssize_t acpi_system_read_fadt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_fadt_ops = {
--	.owner = THIS_MODULE,
--	.read = acpi_system_read_fadt,
--};
--
--static ssize_t
--acpi_system_read_fadt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *fadt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
--
--	return res;
--}
--
--static int acpi_system_procfs_init(void)
--{
--	struct proc_dir_entry *entry;
--	int error = 0;
--
--	/* 'info' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_INFO, S_IRUGO, acpi_root_dir,
--			    &acpi_system_info_ops);
--	if (!entry)
--		goto Error;
--
--	/* 'dsdt' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_DSDT, S_IRUSR, acpi_root_dir,
--			    &acpi_system_dsdt_ops);
--	if (!entry)
--		goto Error;
--
--	/* 'fadt' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_FADT, S_IRUSR, acpi_root_dir,
--			    &acpi_system_fadt_ops);
--	if (!entry)
--		goto Error;
--
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
--
--	error = -EFAULT;
--	goto Done;
--}
--#else
--static int acpi_system_procfs_init(void)
--{
--	return 0;
--}
--#endif
--
- int __init acpi_system_init(void)
- {
- 	int result;
+-#ifdef CONFIG_ACPI_DEBUG
+-int acpi_debug_init(void);
++#ifdef CONFIG_DEBUG_FS
++int acpi_debugfs_init(void);
+ #else
+-static inline int acpi_debug_init(void) { return 0; }
++static inline int acpi_debugfs_init(void) { return 0; }
+ #endif
  
--	result = acpi_system_procfs_init();
--	if (result)
--		return result;
--
- 	result = acpi_system_sysfs_init();
- 
+ /* --------------------------------------------------------------------------
+Index: linux-2.6/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -1035,7 +1035,7 @@ static int __init acpi_init(void)
+ 	acpi_ec_init();
+ 	acpi_power_init();
+ 	acpi_sysfs_init();
+-	acpi_debug_init();
++	acpi_debugfs_init();
+ 	acpi_sleep_proc_init();
+ 	acpi_wakeup_device_init();
  	return result;
-Index: linux-2.6/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/acpi/Kconfig
-+++ linux-2.6/drivers/acpi/Kconfig
-@@ -55,11 +55,6 @@ config ACPI_PROCFS
- 	  The deprecated files (and their replacements) include:
- 
- 	  /proc/acpi/sleep (/sys/power/state)
--	  /proc/acpi/info (/sys/module/acpi/parameters/acpica_version)
--	  /proc/acpi/dsdt (/sys/firmware/acpi/tables/DSDT)
--	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
--	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
--	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
- 	  /proc/acpi/processor/*/power (/sys/devices/system/cpu/*/cpuidle/*)
- 	  /proc/acpi/processor/*/performance (/sys/devices/system/cpu/*/
- 		cpufreq/*)
 
 
