@@ -1,67 +1,47 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 3/5] ACPI: introduce drivers/acpi/sysfs.c
-Date: Sat, 12 Jun 2010 11:00:35 +0800
-Message-ID: <1276311635.19052.17243.camel@rzhang1-desktop>
-References: <1276235278.19052.15873.camel@rzhang1-desktop>
-	 <alpine.LFD.2.00.1006111156350.4096@localhost.localdomain>
+Subject: Re: [PATCH 4/5] ACPI: remove deprecated ACPI procfs I/F
+Date: Sat, 12 Jun 2010 11:04:55 +0800
+Message-ID: <1276311895.19052.17253.camel@rzhang1-desktop>
+References: <1276235281.19052.15874.camel@rzhang1-desktop>
+	 <alpine.LFD.2.00.1006111202430.4096@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:59537 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:5121 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213Ab0FLDAM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jun 2010 23:00:12 -0400
-In-Reply-To: <alpine.LFD.2.00.1006111156350.4096@localhost.localdomain>
+	id S1751982Ab0FLDEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jun 2010 23:04:32 -0400
+In-Reply-To: <alpine.LFD.2.00.1006111202430.4096@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, 2010-06-12 at 00:00 +0800, Len Brown wrote:
+On Sat, 2010-06-12 at 00:06 +0800, Len Brown wrote:
 > On Fri, 11 Jun 2010, Zhang Rui wrote:
 > 
 > > 
-> > Introduce driver/acpi/sysfs.c, which contains the code for ACPI sysfs I/F.
-> > 
-> > Remove driver/acpi/debug.c in this patch,
-> > the code for ACPI debug sysfs I/F is moved to driver/acpi/sysfs.c.
-> > 
-> > No function change in this patch.
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/Makefile |    2 
-> >  drivers/acpi/debug.c  |  198 --------------------------------------------------
-> >  drivers/acpi/sysfs.c  |  196 +++++++++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 197 insertions(+), 199 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/Makefile
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/Makefile
-> > +++ linux-2.6/drivers/acpi/Makefile
-> > @@ -39,7 +39,7 @@ acpi-y				+= pci_root.o pci_link.o pci_i
-> >  acpi-y				+= power.o
-> >  acpi-y				+= system.o event.o
-> >  acpi-y				+= debugfs.o
-> > -acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-> > +acpi-y				+= sysfs.o
+> > 1. Remove some deprecated ACPI procfs I/F, including
+> >    /proc/acpi/info, /proc/acpi/dsdt, /proc/acpi/fadt.
 > 
-> I do like the name change.
+> yay!
 > 
-> But here you are moving things from CONFIG_ACPI_DEBUG, to enabled always.
+> > 2. Move the code for sysfs I/F to driver/acpi/sysfs.c.
 > 
-No, we have #ifdef CONFIG_ACPI_DEBUG in sysfs.c, for the ACPI debug
-sysfs I/F.
-So I don't think this is a problem. :)
+> two patches please: the delete of a user visible function
+> in the first, and move the code in the second.
+> 
+Okay, further more, I'll re-generate the patch in this way,
+Patch 01. Remove all the deprecated procfs I/F.
+Patch 02. Introduce driver/acpi/sysfs.c and move the code for
+          ACPI sysfs I/F to this file.
+Patch 03. Introduce drivers/acpi/debugfs.c and remove
+          drivers/acpi/debug.c as it's NULL.
+Patch 04. Introduce the new module parameter.
+
+what do you think?
 
 thanks,
 rui
-> Are debug_layer and debug_level useful when CONFIG_ACPI_DEBUG=n?
-
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
-> 
-
 
