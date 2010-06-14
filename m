@@ -1,38 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: video: DMI workaround broken Acer 5710 BIOS
-	enabling display brightness
-Date: Mon, 14 Jun 2010 17:36:24 +0100
-Message-ID: <20100614163624.GA27141@srcf.ucam.org>
-References: <1276499864-7609-1-git-send-email-ozan@pardus.org.tr> <20100614142554.GA22158@srcf.ucam.org> <4C165684.1060609@pardus.org.tr>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PNPACPI: add support for remote wakeup
+Date: Mon, 14 Jun 2010 21:06:43 +0200
+Message-ID: <201006142106.43986.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1006071645090.18836-100000@iolanthe.rowland.org> <20100614150236.GA23339@srcf.ucam.org> <201006140905.49388.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:32987 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab0FNQg3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jun 2010 12:36:29 -0400
-Content-Disposition: inline
-In-Reply-To: <4C165684.1060609@pardus.org.tr>
+Received: from ogre.sisk.pl ([217.79.144.158]:35000 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882Ab0FNTIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jun 2010 15:08:14 -0400
+In-Reply-To: <201006140905.49388.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ozan =?utf-8?B?w4dhxJ9sYXlhbg==?= <ozan@pardus.org.tr>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, Jun 14, 2010 at 07:19:16PM +0300, Ozan =C3=87a=C4=9Flayan wrote=
-:
+On Monday, June 14, 2010, Bjorn Helgaas wrote:
+> On Monday, June 14, 2010 09:02:36 am Matthew Garrett wrote:
+> > On Sat, Jun 12, 2010 at 11:44:00PM +0200, Rafael J. Wysocki wrote:
+> > 
+> > > Len, Matthew, is anyone going to merge this patch?  It looks entirely correct
+> > > and useful.
+> > > 
+> > > Or should I take it?
+> > 
+> > Either Len, you or Bjorn would be my guesses.
+> 
+> I don't have a tree to merge anything myself.  I send PNP stuff through
+> Len (and I'm OK with this particular patch).
 
-> By *this* do you mean the specific quirk that I sent or the whole off=
-set workaround
-> suggested and upstreamed in the bug report?
+OK, I can take it.
 
-Sorry, yeah, the entire workaround. I'll look into producing something=20
-more generic. Right now the quirk is the only thing that'll work.
+Len, would you mind if I took this patch?
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
