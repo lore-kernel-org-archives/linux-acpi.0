@@ -1,37 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: video: DMI workaround broken Acer 5710 BIOS
-	enabling display brightness
-Date: Mon, 14 Jun 2010 15:25:54 +0100
-Message-ID: <20100614142554.GA22158@srcf.ucam.org>
-References: <1276499864-7609-1-git-send-email-ozan@pardus.org.tr>
+From: Paochinda Thaugsuban <levi087@gmail.com>
+Subject: Treat as urgent and important.
+Date: Mon, 14 Jun 2010 21:52:34 +0700
+Message-ID: <AANLkTilwqdChKbdBJ1syJRvtdOpzxLmHN4ra6Rv4rFjb@mail.gmail.com>
+Reply-To: paochinda@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:33751 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754144Ab0FNOZ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jun 2010 10:25:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1276499864-7609-1-git-send-email-ozan@pardus.org.tr>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:48735 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538Ab0FNOwh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jun 2010 10:52:37 -0400
+Received: by bwz7 with SMTP id 7so2132385bwz.19
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Jun 2010 07:52:34 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ozan =?utf-8?B?w4dhxJ9sYXlhbg==?= <ozan@pardus.org.tr>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jun 14, 2010 at 10:17:44AM +0300, Ozan =C3=87a=C4=9Flayan wrote=
-:
-> Acer Aspire 5710 suffers from a similar ACPI problem reported at:
->  http://bugzilla.kernel.org/show_bug.cgi?id=3D13121
+Dear Sir,
 
-Bleah. Is this really necessary? If we set maximum brightness and then=20
-read back something other than maximum brightness, then that gives us=20
-the offset.
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I received instruction from Mr. Suthachai Yimprasert to find someone,
+a foreigner who can assist him protect his remaining fund and
+investment in Thailand. Mr. Suthachai Yimprasert is presently under
+arrest in Thailand and some of his assets have been frozen by the
+Government of Thailand over his activities during the
+Government-Redshirts face off in Bangkok. He needs to transfer out of
+Thailand a total sum of US$6,457,000 in his secret account to an
+offshore non-resident bank account immediately.
+
+
+In order for him to do so he needs you to sign a document as "next to
+kin" agreement with his lawyer in Bangkok, Thailand to ensure the
+security of the fund in your hand.
+
+
+He claims that upon completion of the wire transfer to you, he will
+somehow find a way to escape Thailand and move to Korea with his
+family, at which time you will be entitled to 20%, for your troubles.
+He insists that as this is a life or death matter the entire
+transaction must be completed within two weeks. And heaven forbid he
+should be killed, leaving you with all the money he plead that you
+take care of his family. He said the lawyer shall provide you with
+copies of the Deposit Certificate and other documents between himself
+and the bank.
+
+
+If you agree, could you send me the following information?
+
+
+1. Your contact addresses and telephone number.
+
+2. Your bank information for wire instruction.
+
+
+Treat as urgent and important.
+
+
+Paochinda Thaugsuban
+
+paochinda@hotmail.com
