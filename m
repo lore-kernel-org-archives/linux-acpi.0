@@ -1,65 +1,46 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.35-rc2-git2: Reported regressions from 2.6.34
-Date: Wed, 16 Jun 2010 14:34:27 -0700
-Message-ID: <20100616143427.a0323701.akpm@linux-foundation.org>
-References: <Rlf_Qjov7bG.A.a8F.I8rDMB@chimera>
-	<AANLkTiksbL1qHg7Q0A-6TbX0uUrxra4jctUoIGVk5vnE@mail.gmail.com>
-	<201006091122.35304.rjw@sisk.pl>
-	<20100616134231.23ff30da.akpm@linux-foundation.org>
-	<AANLkTil-X5IMZMer7fHVPOMalsTJNliv-gMimzKmJ3Od@mail.gmail.com>
+From: Jan Pogadl <pogadl.jan@googlemail.com>
+Subject: [BUG, REGRESSION] ACPI: Set _PDC
+Date: Thu, 17 Jun 2010 00:40:24 +0200
+Message-ID: <201006170040.24736.pogadl.jan@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52194 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759510Ab0FPVfc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jun 2010 17:35:32 -0400
-In-Reply-To: <AANLkTil-X5IMZMer7fHVPOMalsTJNliv-gMimzKmJ3Od@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:34260 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754808Ab0FPWke (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jun 2010 18:40:34 -0400
+Received: by fxm10 with SMTP id 10so1184952fxm.19
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Jun 2010 15:40:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: Sedat Dilek <sedat.dilek@googlemail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>, dmonakhov@openvz.org
+To: linux-acpi@vger.kernel.org
+Cc: achiang@hp.com
 
-On Wed, 16 Jun 2010 23:00:37 +0200
-Sedat Dilek <sedat.dilek@googlemail.com> wrote:
+Hi,
 
-> On Wed, Jun 16, 2010 at 10:42 PM, Andrew Morton
-> <akpm@linux-foundation.org> wrote:
-> > On Wed, 9 Jun 2010 11:22:35 +0200
-> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> >
-> >> On Wednesday 09 June 2010, Sedat Dilek wrote:
-> >> > The patch from [1] is still missing.
-> >> >
-> >> > __ __"cpufreq-call-nr_iowait_cpu-with-disabled-preemption.patch" from
-> >> > Dmitry Monakhoc
-> >> >
-> >> > Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-> >> > Tested-by Maciej Rutecki <maciej.rutecki@gmail.com>
-> >> >
-> >> > I have already reported this issue on LKML [2] and cpufreq ML [3].
-> >> >
-> >> > - Sedat -
-> >> >
-> >> > [1] http://www.spinics.net/lists/cpufreq/msg01631.html
-> >> > [2] http://lkml.org/lkml/2010/5/31/77
-> >> > [3] http://www.spinics.net/lists/cpufreq/msg01637.html
-> >>
-> >> Thanks, added.
-> >
-> > I just merged a different patch whcih should address this:
->
-> How do cpu-freq related stuff find its way into mainline?
-> Is there a GIT repository/branch on <git.kernel.org> where you can pull from?
-> 
+with commit commit 5d554a7bb0643a6151a84319bfeba8270bf5269e (ACPI: processor: 
+add internal processor_physically_present()) a new function got introduced which 
+always fails on machines with CONFIG_SMP disabled. Thus _PDC will never be 
+initialized? set?. 
 
-(top-posting repaired.  Please don't)
+The problem of the processor_physically_present() is, that it calls the 
+acpi_get_cpuid(...) function which returns on NON-SMP machines always -1.
 
-Usually via the cpufreq git tree, mailing list and maintainer, as
-described in ./MAINTAINERS.
+Note that i don't have any real knowledge what _PDC actualy realy do, all i 
+gatherd so far is that its for switching C-Stats. I Stumbled across this by 
+bisecting the problem, that the undervolting patches from
+linux-phc.org aren't working anymore with 2.6.34 (2.6.35-rc3). Whereas they 
+worked fine with 2.6.33 on my  Samsung X20 Notebook with a Pentium M precossor. 
+The acpi-cpufreq is now using System-IO instead of MSR Registers. 
 
-But for a patch like this one, I'll just scoot it into mainline unless
-Dave happens to grab it before I do that.
+Since i don't know what should be the correct behaviour here i can't
+provide any patches. But i doub't it's the correct behaviour of 
+processor_physically_present() to always fail on non-SMP machines. 
+ 
+Deleting the function call, to this new function in early_init_pdc(...), 
+and i get back the old behaviour.
 
+cheers,
+jan
