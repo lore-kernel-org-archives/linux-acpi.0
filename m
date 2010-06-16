@@ -1,42 +1,33 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Please send DMI info if system does not work as expected boot
- with acpi=copy=dsdt
-Date: Wed, 16 Jun 2010 13:47:17 +0300
-Message-ID: <1276685237.9687.5.camel@maxim-laptop>
-References: <4C18A1DE.7040601@internode.on.net>
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Re: 2.6.35-rc3: Reported regressions 2.6.33 -> 2.6.34
+Date: Wed, 16 Jun 2010 14:30:51 -0400
+Message-ID: <20100616183051.GA19635@elliptictech.com>
+References: <g77CuMUl7QI.A.5wF.V5OFMB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:1917 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758789Ab0FPKrX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jun 2010 06:47:23 -0400
-Received: by fg-out-1718.google.com with SMTP id l26so1456201fgb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jun 2010 03:47:21 -0700 (PDT)
-In-Reply-To: <4C18A1DE.7040601@internode.on.net>
+Received: from mail.elliptictech.com ([209.217.122.41]:46350 "EHLO
+	emergent.ellipticsemi.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759029Ab0FPSb3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jun 2010 14:31:29 -0400
+Content-Disposition: inline
+In-Reply-To: <g77CuMUl7QI.A.5wF.V5OFMB@chimera>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: paulngen <paulngen@internode.on.net>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59-kernel@srcf.ucam.org>, lenb <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-On Wed, 2010-06-16 at 20:05 +1000, paulngen wrote: 
-> Hi,
-> 
-> I think I may have another satellite model to add to your list of 
-> toshiba machines that has dsdt problems when linux is run.
+On 16:45 Sun 13 Jun     , Rafael J. Wysocki wrote:
+>  * This report has been delayed, because I had to go through all of the
+>    entries and filter out the fixed ones, invalid ones etc.  Of course, I might
+>    have missed some, but hopefully not too many.
 
-The real question is, why not to make acpi=copy-dsdt default?
-Since this system I assume works with the other OS, its quite likely
-that it copies the DSDT.
-in fact I have seen in ACPI spec that it suggest to copy the ACPI
-tables.
-(It says that OS is free to reclaim memory used by ACPI tables as soon
-as it made copy if these).
+This regression from 2.6.33 still seems to be missing from the list, and
+is still present in 2.6.35-rc3.
 
-The only way to make ACPI robust on linux is unfortunately to reproduce
-the behavior of the other os bug to bug.
+  r600 CS checker rejects narrow FBO renderbuffers.
+  https://bugs.freedesktop.org/show_bug.cgi?id=27609
 
-Best regards,
-Maxim Levitsky
-
+-- 
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
