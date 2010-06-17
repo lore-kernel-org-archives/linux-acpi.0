@@ -1,40 +1,49 @@
-From: <Igor.Stoppa@nokia.com>
-Subject: RE: [linux-pm] RFC: /sys/power/policy_preference
-Date: Thu, 17 Jun 2010 08:03:50 +0200
-Message-ID: <D32AB456855CBD4987499F68AFA421F4299A56E336@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+From: Jan Pogadl <pogadl.jan@googlemail.com>
+Subject: Re: [BUG, REGRESSION] ACPI: Set _PDC
+Date: Thu, 17 Jun 2010 09:51:26 +0200
+Message-ID: <201006170951.26455.pogadl.jan@googlemail.com>
+References: <201006170040.24736.pogadl.jan@googlemail.com> <20100617032413.GC2138@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22331 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab0FQGXX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2010 02:23:23 -0400
-In-Reply-To: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
-Content-Language: en-GB
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57629 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756540Ab0FQHvg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jun 2010 03:51:36 -0400
+Received: by fxm10 with SMTP id 10so1340281fxm.19
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Jun 2010 00:51:34 -0700 (PDT)
+In-Reply-To: <20100617032413.GC2138@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-pm@lists.osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@canonical.com>
+Cc: linux-acpi@vger.kernel.org
 
-hi,
+On Thursday 17 June 2010 05:24:14 Alex Chiang wrote:
 
-> From:  Len Brown [lenb@kernel.org]
+> > with commit commit 5d554a7bb0643a6151a84319bfeba8270bf5269e (ACPI: processor: 
+> > add internal processor_physically_present()) a new function got introduced which 
+> > always fails on machines with CONFIG_SMP disabled. Thus _PDC will never be 
+> > initialized? set?. 
+ 
+> Does this patch fix it?
 
-policy_preference has 5 levels, from max_performance
-through max_powersave.  Here is how 4 parts of the kernel
-might respond to those 5 levels:
+works great 
+thanks
 
-[levels description]
-
-i do understand that you are mostly targetting acpi based systems, but even there, based on static leaks, it might not be always true that lower frequencies are correlated to higher power savings (or maybe i have misunderstood your draft - i am not so fluent in acpi)
-
-> it is likely
-> that some users would want to use "powersave" when on
-> battery and perhaps shift to "performance" on A/C.
-
-if we consider also the thermal envelope and the fact that "performance" might steal power from a charging battery, even ton A/C it might not be possible to settle down in one state permanently.
-
-Or do you expect other mechanisms to intervene?
-
-Cheers, igor
+> ---
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 5128435..bcf0cf8 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -223,7 +223,7 @@ static bool processor_physically_present(acpi_handle handle)
+>  	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+>  	cpuid = acpi_get_cpuid(handle, type, acpi_id);
+>  
+> -	if (cpuid == -1)
+> +	if ((cpuid == -1) && (num_online_cpus() > 1))
+>  		return false;
+>  
+>  	return true;
+> 
