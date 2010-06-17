@@ -1,128 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Do not enable GPEs for system wakeup in advance
-Date: Thu, 17 Jun 2010 17:40:57 +0200
-Message-ID: <201006171740.57315.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+From: Victor Lowther <victor.lowther@gmail.com>
+Subject: Re: [linux-pm] RFC: /sys/power/policy_preference
+Date: Thu, 17 Jun 2010 11:14:50 -0500
+Message-ID: <0F1C0B07-60D6-405B-890B-F9C320820CA5@gmail.com>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+Mime-Version: 1.0 (iPhone Mail 7D11)
+Content-Type: text/plain;
+	charset=us-ascii;
+	format=flowed;
+	delsp=yes
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49354 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754467Ab0FQPnB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jun 2010 11:43:01 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <len.brown@intel.com>, kernel list <linux-kernel@vger.kernel.org>, Michal Hocko <mhocko@suse.cz>
+Cc: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
 
-After commit 9630bdd9b15d2f489c646d8bc04b60e53eb5ec78
-(ACPI: Use GPE reference counting to support shared GPEs) the wakeup
-enable mask bits of GPEs are set as soon as the GPEs are enabled to
-wake up the system.  Unfortunately, this leads to a regression
-reported by Michal Hocko, where a system is woken up from ACPI S5 by
-a device that is not supposed to do that, because the wakeup enable
-mask bit of this device's GPE is always set when
-acpi_enter_sleep_state() calls acpi_hw_enable_all_wakeup_gpes(),
-although it should only be set if the device is supposed to wake up
-the system from the target state.
 
-To work around this issue, rework the ACPI power management code so
-that GPEs are not enabled to wake up the system upfront, but only
-during a system state transition when the target state of the system
-is known.  [Of course, this means that the reference counting of
-"wakeup" GPEs doesn't really make sense and it is sufficient to
-set/unset the wakeup mask bits for them during system sleep
-transitions.  This will allow us to simplify the GPE handling code
-quite a bit, but that change is too intrusive for 2.6.35.]
 
-Fixes https://bugzilla.kernel.org/show_bug.cgi?id=15951
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-tested-by: Michal Hocko <mhocko@suse.cz>
----
-Hi Len,
+On Jun 16, 2010, at 4:05 PM, Len Brown <lenb@kernel.org> wrote:
 
-This is on top of the GPE fixes I send before that are in your tree.
+> Create /sys/power/policy_preference, giving user-space
+> the ability to express its preference for kernel based
+> power vs. performance decisions in a single place.
+>
+> This gives kernel sub-systems and drivers a central place
+> to discover this system-wide policy preference.
+> It also allows user-space to not have to be updated
+> every time a sub-system or driver adds a new power/perf knob.
 
-Please apply.
+I would prefer documenting all the current knobs and adding them to pm- 
+utils so that pm-powersave knows about and can manage them. Once that  
+is done, creating arbitrary powersave levels should be fairly simple.
 
-Rafael
----
- drivers/acpi/button.c |    4 ++--
- drivers/acpi/wakeup.c |   20 +++++++-------------
- 2 files changed, 9 insertions(+), 15 deletions(-)
-
-Index: linux-2.6/drivers/acpi/button.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/button.c
-+++ linux-2.6/drivers/acpi/button.c
-@@ -425,7 +425,7 @@ static int acpi_button_add(struct acpi_d
- 		/* Button's GPE is run-wake GPE */
- 		acpi_enable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number,
--				ACPI_GPE_TYPE_WAKE_RUN);
-+				ACPI_GPE_TYPE_RUNTIME);
- 		device->wakeup.run_wake_count++;
- 		device->wakeup.state.enabled = 1;
- 	}
-@@ -449,7 +449,7 @@ static int acpi_button_remove(struct acp
- 	if (device->wakeup.flags.valid) {
- 		acpi_disable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number,
--				ACPI_GPE_TYPE_WAKE_RUN);
-+				ACPI_GPE_TYPE_RUNTIME);
- 		device->wakeup.run_wake_count--;
- 		device->wakeup.state.enabled = 0;
- 	}
-Index: linux-2.6/drivers/acpi/wakeup.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/wakeup.c
-+++ linux-2.6/drivers/acpi/wakeup.c
-@@ -64,16 +64,13 @@ void acpi_enable_wakeup_device(u8 sleep_
- 		struct acpi_device *dev =
- 			container_of(node, struct acpi_device, wakeup_list);
- 
--		if (!dev->wakeup.flags.valid)
--			continue;
--
--		if ((!dev->wakeup.state.enabled && !dev->wakeup.prepare_count)
-+		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled
- 		    || sleep_state > (u32) dev->wakeup.sleep_state)
- 			continue;
- 
- 		/* The wake-up power should have been enabled already. */
--		acpi_set_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
--				ACPI_GPE_ENABLE);
-+		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
-+				ACPI_GPE_TYPE_WAKE);
- 	}
- }
- 
-@@ -96,6 +93,8 @@ void acpi_disable_wakeup_device(u8 sleep
- 		    || (sleep_state > (u32) dev->wakeup.sleep_state))
- 			continue;
- 
-+		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
-+				ACPI_GPE_TYPE_WAKE);
- 		acpi_disable_wakeup_device_power(dev);
- 	}
- }
-@@ -109,13 +108,8 @@ int __init acpi_wakeup_device_init(void)
- 		struct acpi_device *dev = container_of(node,
- 						       struct acpi_device,
- 						       wakeup_list);
--		/* In case user doesn't load button driver */
--		if (!dev->wakeup.flags.always_enabled ||
--		    dev->wakeup.state.enabled)
--			continue;
-- 		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
-- 				ACPI_GPE_TYPE_WAKE);
--		dev->wakeup.state.enabled = 1;
-+		if (dev->wakeup.flags.always_enabled)
-+			dev->wakeup.state.enabled = 1;
- 	}
- 	mutex_unlock(&acpi_device_lock);
- 	return 0;
+> policy_preference has 5 levels, from max_performance
+> through max_powersave.  Here is how 4 parts of the kernel
+> might respond to those 5 levels:
+>
+> max_performance (unwilling to sacrifice any performance)
+>    scheduler: default (optimized for performance)
+>    cpuidle: disable all C-states except polling mode
+>    ondemand: disable all P-states except max perf
+>    msr_ia32_energy_perf_bias: 0 of 15
+>
+> performance (care primarily about performance)
+>    scheduler: default (optimized for performance)
+>    cpuidle: enable all C-states subject to QOS
+>    ondemand: all P-states, using no bias
+>    msr_ia32_energy_perf_bias: 3 of 15
+>
+> balanced (default)
+>    scheduler: enable sched_mc_power_savings
+>    cpuidle: enable all C-states subject to QOS
+>    ondemand: all P-states, powersave_bias=5
+>    msr_ia32_energy_perf_bias: 7 of 15
+>
+> powersave (can sacrifice measurable performance)
+>    scheduler: enable sched_smt_power_savings
+>    cpuidle: enable all C-states, subject to QOS
+>    ondemand: disable turbo mode, powersave_bias=10
+>    msr_ia32_energy_perf_bias: 11 of 15
+>
+> max_powersave (can sacrifice significant performance)
+>    scheduler: enable sched_smt_power_savings
+>    cpuidle: enable all C-states, subject to QOS
+>    ondemand: min P-state (do not invoke T-states)
+>    msr_ia32_energy_perf_bias: 15 of 15
+>
+> Note that today Linux is typically operating in the mode
+> called "performance" above, rather than "balanced",
+> which is proposed to be the default.  While a system
+> should work well if left in "balanced" mode, it is likely
+> that some users would want to use "powersave" when on
+> battery and perhaps shift to "performance" on A/C.
+>
+> Please let me know what you think.
+>
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
