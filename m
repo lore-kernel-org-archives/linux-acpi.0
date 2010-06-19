@@ -1,49 +1,70 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCI / PM: Do not use native PCIe PME by default
-Date: Fri, 18 Jun 2010 09:37:01 -0700
-Message-ID: <20100618093701.681dc238@virtuousgeek.org>
-References: <201006181704.22550.rjw@sisk.pl>
+From: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Subject: Re: [linux-pm] RFC: /sys/power/policy_preference
+Date: Sat, 19 Jun 2010 20:47:41 +0530
+Message-ID: <20100619151741.GA18201@dirshya.in.ibm.com>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+ <0F1C0B07-60D6-405B-890B-F9C320820CA5@gmail.com>
+Reply-To: svaidy@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201006181704.22550.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0F1C0B07-60D6-405B-890B-F9C320820CA5@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Victor Lowther <victor.lowther@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 18 Jun 2010 17:04:22 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+* Victor Lowther <victor.lowther@gmail.com> [2010-06-17 11:14:50]:
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-> Commit c7f486567c1d0acd2e4166c47069835b9f75e77b
-> (PCI PM: PCIe PME root port service driver) causes the native PCIe
-> PME signaling to be used by default, if the BIOS allows the kernel to
-> control the standard configuration registers of PCIe root ports.
-> However, the native PCIe PME is coupled to the native PCIe hotplug
-> and calling pcie_pme_acpi_setup() makes some BIOSes expect that
-> the native PCIe hotplug will be used as well.  That, in turn, causes
-> problems to appear on systems where the PCIe hotplug driver is not
-> loaded.  The usual symptom, as reported by Jaroslav Kamen=C3=ADk and
-> others, is that the ACPI GPE associated with PCIe hotplug keeps
-> firing continuously causing kacpid to take substantial percentage
-> of CPU time.
->=20
-> To work around this issue, change the default so that the native
-> PCIe PME signaling is only used if directly requested with the help
-> of the pcie_pme=3D command line switch.
->=20
-> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=3D15924 , which is
-> a listed regression from 2.6.33.
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Reported-by: Jaroslav Kamen=C3=ADk <jaroslav@kamenik.cz>
-> Tested-by: Antoni Grzymala <antekgrzymala@gmail.com>=20
-> ---
+> 
+> 
+> 
+> 
+> On Jun 16, 2010, at 4:05 PM, Len Brown <lenb@kernel.org> wrote:
+> 
+> >Create /sys/power/policy_preference, giving user-space
+> >the ability to express its preference for kernel based
+> >power vs. performance decisions in a single place.
+> >
+> >This gives kernel sub-systems and drivers a central place
+> >to discover this system-wide policy preference.
+> >It also allows user-space to not have to be updated
+> >every time a sub-system or driver adds a new power/perf knob.
+> 
+> I would prefer documenting all the current knobs and adding them to
+> pm-utils so that pm-powersave knows about and can manage them. Once
+> that is done, creating arbitrary powersave levels should be fairly
+> simple.
 
-Applied to my for-linus tree, thanks.
+Hi Len,
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
+Reading through this thread, I prefer the above recommendation.  We
+have three main dimensions of (power savings) control (cpufreq,
+cpuidle and scheduler) and you are combining them into a single policy
+in the kernel.  The challenges are as follows:
+
+* Number of policies will always limit flexibility
+* More dimensions of control will be added in future and your
+  intention is to transparently include them within these defined
+  polices
+* Even with the current implementations, power savings and performance
+  impact widely vary based on system topology and workload.  There is
+  no easy method to define modes such that one mode will _always_
+  consume less power than the other
+* Each subsystem can override the policy settings and create more
+  combinations anyway
+
+Your argument is that these modes can serve as a good default and allow
+the user to tune the knobs directly for more sophisticated policies.
+But in that case all kernel subsystem should default to the balanced
+policy and let the user tweak individual subsystems for other modes.
+
+On the other hand having the policy definitions in user space allows
+us to create more flexible policies by considering higher level
+factors like workload behavior, utilization, platform features,
+power/thermal constraints etc.
+
+--Vaidy
+
+[snip]
