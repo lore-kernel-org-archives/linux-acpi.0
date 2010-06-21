@@ -1,42 +1,60 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI video: fix string mismatch for Sony SR290 laptop
-Date: Mon, 21 Jun 2010 12:47:05 +0800
-Message-ID: <1277095625.1679.8559.camel@rzhang1-desktop>
+From: Frederik Gladhorn <gladhorn@kde.org>
+Subject: acer aspire 4820gt (timeline x) battery/temp cannot be read
+Date: Mon, 21 Jun 2010 14:04:04 +0200
+Message-ID: <201006211404.10654.gladhorn@kde.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed;
+  boundary="nextPart2657630.ubKKDl6LQe";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36110 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751202Ab0FUEqe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jun 2010 00:46:34 -0400
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:53370 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754184Ab0FUMER (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jun 2010 08:04:17 -0400
+Received: by wwb13 with SMTP id 13so378384wwb.19
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Jun 2010 05:04:13 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "melchior+kernel@cmu.edu" <melchior+kernel@cmu.edu>, "Zhang, Rui" <rui.zhang@intel.com>
+To: linux-acpi@vger.kernel.org
 
-From: Nik A. Melchior <melchior+kernel@cmu.edu>
+--nextPart2657630.ubKKDl6LQe
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Fix string mismatch for Sony SR290 laptop.
-https://bugzilla.kernel.org/show_bug.cgi?id=12904#c45
+Hi,
+on the Acer Aspire 4820 GT laptop the battery and temperature cannot be rea=
+d.
+I tested with kernel versions 2.6.32 (Ubuntu) and vanilla kernel 2.6.34/35-
+rc3.
+The battery is found as BAT1 but always shows 0% charge state.
+Temperature is always read as 40=B0C.
 
-Signed-off-by: Nik A. Melchior <melchior+kernel@cmu.edu>
----
- drivers/acpi/blacklist.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I suspect the acpi tables are at fault.
 
-Index: linux-2.6/drivers/acpi/blacklist.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/blacklist.c
-+++ linux-2.6/drivers/acpi/blacklist.c
-@@ -214,7 +214,7 @@ static struct dmi_system_id acpi_osi_dmi
- 	.ident = "Sony VGN-SR290J",
- 	.matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "Sony VGN-SR290J"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR290J"),
- 		},
- 	},
- 	{
+I filed a bug with the acpi dumps and dsl files here:
+https://bugzilla.kernel.org/show_bug.cgi?id=3D16218
+
+Any help in how to figure this out would be much appreciated. Not knowing t=
+he=20
+remaining battery charge is really annoying.
+
+Regards
+=46rederik
 
 
+--nextPart2657630.ubKKDl6LQe
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEABECAAYFAkwfVTUACgkQcZKJUyELiPd2JgCgjsBWHOP1xqmUo4DePYQxoog3
+Q9EAnAn5VfefNnutaC0yN7MgW+e3xE2P
+=OWnz
+-----END PGP SIGNATURE-----
+
+--nextPart2657630.ubKKDl6LQe--
