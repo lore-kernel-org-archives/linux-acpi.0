@@ -1,30 +1,76 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.35-rc3: Reported regressions from 2.6.34
-Date: Mon, 21 Jun 2010 20:56:08 +0200
-Message-ID: <201006212056.09000.rjw@sisk.pl>
-References: <lc60d4toGTL.A.QzD._LpHMB@chimera> <20100621135857.GA21159@elliptictech.com>
+From: Dipankar Sarma <dipankar@in.ibm.com>
+Subject: Re: [linux-pm] RFC: /sys/power/policy_preference
+Date: Tue, 22 Jun 2010 01:40:56 +0530
+Message-ID: <20100621201056.GE27750@in.ibm.com>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+Reply-To: dipankar@in.ibm.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100621135857.GA21159-7BP4RkwGw0uXmMXjJBpWqg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nick Bowler <nbowler-7BP4RkwGw0uXmMXjJBpWqg@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e23smtp06.au.ibm.com ([202.81.31.148]:34853 "EHLO
+	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752828Ab0FUULB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jun 2010 16:11:01 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Monday, June 21, 2010, Nick Bowler wrote:
-> On 00:11 Mon 21 Jun     , Rafael J. Wysocki wrote:
-> > If you know of any other unresolved regressions from 2.6.34, please let us
-> > know either and we'll add them to the list.  Also, please let us know
-> > if any of the entries below are invalid.
+On Wed, Jun 16, 2010 at 05:05:26PM -0400, Len Brown wrote:
+> Create /sys/power/policy_preference, giving user-space
+> the ability to express its preference for kernel based
+> power vs. performance decisions in a single place.
 > 
-> Didn't see this one in the list:
+> policy_preference has 5 levels, from max_performance
+> through max_powersave.  Here is how 4 parts of the kernel
+> might respond to those 5 levels:
+
+In theory this makes sense. We have been toying with something
+like this, but the difficulty is that outside of benchmarking
+environment, it is hard to figure out what mode to set when.
+Also, the impact could be different for different workloads.
+We should probably have a broader discussion around this
+with data - I will share some measurements on impact
+of such power modes.
+
+
+> max_performance (unwilling to sacrifice any performance)
+> 	scheduler: default (optimized for performance)
+> 	cpuidle: disable all C-states except polling mode
+> 	ondemand: disable all P-states except max perf
+> 	msr_ia32_energy_perf_bias: 0 of 15
 > 
->   Why is kslowd accumulating so much CPU time?
->   http://thread.gmane.org/gmane.linux.kernel/996907
+> performance (care primarily about performance)
+> 	scheduler: default (optimized for performance)
+> 	cpuidle: enable all C-states subject to QOS
+> 	ondemand: all P-states, using no bias
+> 	msr_ia32_energy_perf_bias: 3 of 15
+> 
+> balanced (default)
+> 	scheduler: enable sched_mc_power_savings
+> 	cpuidle: enable all C-states subject to QOS
+> 	ondemand: all P-states, powersave_bias=5
+> 	msr_ia32_energy_perf_bias: 7 of 15
 
-Thanks, I'm going to add it to the list.
+Would there be sufficient difference between performance
+and balanced ?
 
-Rafael
+
+> 
+> powersave (can sacrifice measurable performance)
+> 	scheduler: enable sched_smt_power_savings
+> 	cpuidle: enable all C-states, subject to QOS
+> 	ondemand: disable turbo mode, powersave_bias=10
+> 	msr_ia32_energy_perf_bias: 11 of 15
+> 
+> max_powersave (can sacrifice significant performance)
+> 	scheduler: enable sched_smt_power_savings
+> 	cpuidle: enable all C-states, subject to QOS
+> 	ondemand: min P-state (do not invoke T-states)
+> 	msr_ia32_energy_perf_bias: 15 of 15
+
+
+Thanks
+Dipankar
