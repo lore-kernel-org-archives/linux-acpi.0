@@ -1,130 +1,168 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: 2.6.35-rc3 regression: IBM Maia system is unbootable [ACPI
- related?]
-Date: Mon, 21 Jun 2010 12:26:06 -0500
-Message-ID: <1277141166.10998.79.camel@mulgrave.site>
-References: <1277136189.10998.63.camel@mulgrave.site>
-	 <87pqzkqrzq.fsf@basil.nowhere.org>
-	 <1277138034.10998.69.camel@mulgrave.site>
-	 <1277139286.10998.72.camel@mulgrave.site>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.35-rc3: Reported regressions from 2.6.34
+Date: Mon, 21 Jun 2010 20:54:45 +0200
+Message-ID: <201006212054.46055.rjw@sisk.pl>
+References: <lc60d4toGTL.A.QzD._LpHMB@chimera> <1277074706.21312.8.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bedivere.hansenpartnership.com ([66.63.167.143]:50464 "EHLO
-	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758016Ab0FUR0J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jun 2010 13:26:09 -0400
-In-Reply-To: <1277139286.10998.72.camel@mulgrave.site>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1277074706.21312.8.camel@maxim-laptop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 2010-06-21 at 11:54 -0500, James Bottomley wrote:
-> On Mon, 2010-06-21 at 11:33 -0500, James Bottomley wrote:
-> > On Mon, 2010-06-21 at 18:18 +0200, Andi Kleen wrote:
-> > > James Bottomley <James.Bottomley@HansenPartnership.com> writes:
-> > > 
-> > > > The system in question has a set of root bridges, with the CD rom (which
-> > > > is seen) being on bus 0 and the SCSI controller, which doesn't show up
-> > > > being on bus 1 (with several other things on busses > 1).
-> > > >
-> > > > The system uses ACPI to detect the multiple bridges, so it seems that
-> > > > this failure in 2.6.35-rc3:
-> > > >
-> > > > ACPI: Core revision 20100428
-> > > > ACPI Error: Hardware did not enter ACPI mode (20100428/evxfevnt-103)
-> > > > ACPI Warning: AcpiEnable failed (20100428/utxface-147)
-> > > > ACPI: Unable to enable ACPI
-> > > 
-> > > That probably causes all the other problems. Without ACPI enabled
-> > > modern systems generally do not work.
-> > > 
-> > > Just guessing, but maybe try to revert
-> > > 
-> > > b430acbd7c4b919886fa7fd92eeb7a695f1940d3
-> > > 
-> > > That was the last change in this area.
+On Monday, June 21, 2010, Maxim Levitsky wrote:
+> On Mon, 2010-06-21 at 00:11 +0200, Rafael J. Wysocki wrote: 
+> > This message contains a list of some regressions from 2.6.34,
+> > for which there are no fixes in the mainline known to the tracking team.
+> > If any of them have been fixed already, please let us know.
 > > 
-> > I can confirm that reverting this over a vanilla 2.6.35-rc3 fixes my
-> > boot problem.
+> > If you know of any other unresolved regressions from 2.6.34, please let us
+> > know either and we'll add them to the list.  Also, please let us know
+> > if any of the entries below are invalid.
+> > 
+> > Each entry from the list will be sent additionally in an automatic reply
+> > to this message with CCs to the people involved in reporting and handling
+> > the issue.
+> > 
+> > 
+> > Listed regressions statistics:
+> > 
+> >   Date          Total  Pending  Unresolved
+> >   ----------------------------------------
+> >   2010-06-21       46       37          26
+> >   2010-06-09       15       13          10
+> > 
+> > 
+> > Unresolved regressions
+> > ----------------------
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16255
+> > Subject		: 2.6.35-rc3 deadlocks on semaphore operations
+> > Submitter	: Christoph Lameter <cl@linux-foundation.org>
+> > Date		: 2010-06-18 14:49 (3 days old)
+> > Message-ID	: <alpine.DEB.2.00.1006180940140.11575@router.home>
+> > References	: http://marc.info/?l=linux-kernel&m=127687262727707&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16248
+> > Subject		: inconsistent lock state
+> > Submitter	: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+> > Date		: 2010-06-15 11:24 (6 days old)
+> > Message-ID	: <20100615112434.GA3967@swordfish.minsk.epam.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127660087625903&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16247
+> > Subject		: drm/i915 BUG with 2.6.35-rc
+> > Submitter	: Benny Halevy <bhalevy@panasas.com>
+> > Date		: 2010-06-14 22:38 (7 days old)
+> > Message-ID	: <4C16AF56.1040002@panasas.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127655510531367&w=2
 > 
-> Andi asked for the timings with the commit reverted, so here they are
-> (from ACPI version print to PCI root busses found):
 > 
-> [    0.084086] ACPI: Core revision 20100428
-> [    0.119779] Setting APIC routing to physical flat
-> [    0.124259] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-> [    0.128000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> [    0.128000] ...trying to set up timer (IRQ0) through the 8259A ...
-> [    0.128000] ..... (found apic 0 pin 2) ...
-> [    0.128000] ....... failed.
-> [    0.128000] ...trying to set up timer as Virtual Wire IRQ...
-> [    0.169681] ..... works.
-> [    0.172005] CPU0: Intel(R) Xeon(TM) MP CPU 3.16GHz stepping 01
-> [    0.188000] lockdep: fixing up alternatives.
-> [    0.188133] Booting Node   0, Processors  #1 Ok.
-> [    0.288089] Brought up 2 CPUs
-> [    0.292006] Total of 2 processors activated (12676.86 BogoMIPS).
-> [    0.300923] khelper used greatest stack depth: 5864 bytes left
-> [    0.305017] khelper used greatest stack depth: 5176 bytes left
-> [    0.325510] NET: Registered protocol family 16
-> [    0.341322] ACPI: bus type pci registered
-> [    0.344474] PCI: Using configuration type 1 for base access
-> [    0.359165] bio: create slab <bio-0> at 0
-> [    0.478153] ACPI: Interpreter enabled
-> [    0.488006] ACPI: (supports S0 S5)
-> [    0.497875] ACPI: Using IOAPIC for interrupt routing
-> [    0.548145] ACPI: No dock devices found.
-> [    0.552176] PCI: Ignoring host bridge windows from ACPI; if necessary, use "pci=use_crs" and report a bug
-> [    0.556263] ACPI: PCI Root Bridge [VP00] (domain 0000 [bus 00])
-> [    0.568051] ACPI: PCI Root Bridge [VP01] (domain 0000 [bus 01])
-> [    0.576336] ACPI: PCI Root Bridge [VP02] (domain 0000 [bus 02-03])
-> [    0.596889] ACPI: PCI Root Bridge [VP03] (domain 0000 [bus 04-05])
-> [    0.605222] ACPI: PCI Root Bridge [VP04] (domain 0000 [bus 06-07])
-> [    0.613530] ACPI: PCI Root Bridge [VP05] (domain 0000 [bus 08-09])
-> [    0.617658] ACPI: PCI Root Bridge [VP06] (domain 0000 [bus 0a-0b])
-> [    0.621672] ACPI: PCI Root Bridge [VP07] (domain 0000 [bus 0c-0d])
-> [    0.625948] HEST: Table is not found!
+> Don't have time to test, but I confirm that running compiz without
+> mode-setting (ubuntu 8.10) hangs the system. (device is i945)
+> It might be related to few intel regressions on this list.
+> 
+> 
+> 
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16235
+> > Subject		: [REGRESSION] [IWL3945] Broadcast is broken?
+> > Submitter	: Maciej Rutecki <maciej.rutecki@gmail.com>
+> > Date		: 2010-06-14 17:24 (7 days old)
+> > Message-ID	: <201006141924.24061.maciej.rutecki@gmail.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127653628301300&w=2
+> I was hit by this bug. Fix is now present in iwlwifi tree.
+> http://git.kernel.org/?p=linux/kernel/git/iwlwifi/iwlwifi-2.6.git;a=commit;h=4d23e4e5eb50431426facf192354ad2506e2dd40
+> 
+> 
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16234
+> > Subject		: [2.6.35-rc3] reboot mutex 'bug'...
+> > Submitter	: Daniel J Blueman <daniel.blueman@gmail.com>
+> > Date		: 2010-06-14 15:16 (7 days old)
+> > Message-ID	: <AANLkTimDcTnyEPmt2ZcCM1UWtn4AYKotiqyjobJApkO7@mail.gmail.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127652861118933&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16232
+> > Subject		: 2.6.35-rc3 - WARNING:iwl_set_dynamic_key
+> > Submitter	: Mario Guenterberg <mario.guenterberg@googlemail.com>
+> > Date		: 2010-06-14 11:55 (7 days old)
+> > Message-ID	: <20100614115510.GA7904@guenti-laptop>
+> > References	: http://marc.info/?l=linux-kernel&m=127651695627147&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16230
+> > Subject		: inconsistent IN-HARDIRQ-W -> HARDIRQ-ON-W usage: fasync, 2.6.35-rc3
+> > Submitter	: Dominik Brodowski <linux@dominikbrodowski.net>
+> > Date		: 2010-06-13 9:53 (8 days old)
+> > Message-ID	: <20100613095305.GA13231@comet.dominikbrodowski.net>
+> > References	: http://marc.info/?l=linux-kernel&m=127642282208277&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16228
+> > Subject		: BUG/boot failure on Dell Precision T3500 (pci/ahci_stop_engine)
+> > Submitter	: Brian Bloniarz <phunge0@hotmail.com>
+> > Date		: 2010-06-16 17:57 (5 days old)
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16222
+> > Subject		: 2.6.35-rc{12} regression: inactive console corrupted
+> > Submitter	: Pavel Machek <pavel@ucw.cz>
+> > Date		: 2010-06-12 10:33 (9 days old)
+> > Message-ID	: <20100612103321.GA1458@ucw.cz>
+> > References	: http://marc.info/?l=linux-kernel&m=127633882614501&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16221
+> > Subject		: 2.6.35-rc2-git5 -- [drm:drm_mode_getfb] *ERROR* invalid framebuffer id
+> > Submitter	: Miles Lane <miles.lane@gmail.com>
+> > Date		: 2010-06-11 20:31 (10 days old)
+> > Message-ID	: <AANLkTim0jVRyqkwlGOcrg_XTvUQwcBYfWJX-aRzkkrLG@mail.gmail.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127628828119623&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16205
+> > Subject		: acpi: freeing invalid memtype bf799000-bf79a000
+> > Submitter	: Marcin Slusarz <marcin.slusarz@gmail.com>
+> > Date		: 2010-06-09 20:09 (12 days old)
+> > Message-ID	: <20100609200910.GA2876@joi.lan>
+> > References	: http://marc.info/?l=linux-kernel&m=127611427029914&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16201
+> > Subject		: SIOCGIWFREQ ioctl fails to get frequency info
+> > Submitter	: nuh <nuh@mailinator.net>
+> > Date		: 2010-06-14 10:45 (7 days old)
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16199
+> > Subject		: 2.6.35-rc2-git1 - include/linux/cgroup.h:534 invoked rcu_dereference_check() without protection!
+> > Submitter	: Miles Lane <miles.lane@gmail.com>
+> > Date		: 2010-06-07 18:14 (14 days old)
+> > Message-ID	: <AANLkTin2pPqOUx--9fIX3BH3e-cU6oCRufijcx_4ozx5@mail.gmail.com>
+> > References	: http://marc.info/?l=linux-kernel&m=127593447812015&w=2
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16198
+> > Subject		: Running make install over sshfs is painful now
+> > Submitter	: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > Date		: 2010-06-07 6:53 (14 days old)
+> > Message-ID	: <20100607065324.GA25590@core.coreip.homeip.net>
+> > References	: http://marc.info/?l=linux-kernel&m=127589362011138&w=2
+> I confirm this.
+> Its direct result of adding '+' to kernel version.
+> This just causes only troubles.
+> I suggest to have a config option for it.
 
-Another update: It's clear the problem is the new expectation that the
-hardware sets ACPI mode instantly.  I applied the following patch on my
-system to see how long it actually takes.  I see a single loop:
+Thanks for the updates.
 
-[    0.084087] ACPI: Core revision 20100428
-[    0.119720] ACPI Error: Hardware did not enter ACPI mode, retry = 0 (20100428/evxfevnt-104)
-[    0.128240] Setting APIC routing to physical flat
-
-So it needs a delay of about 1ms (or one retry).
-
-James
-
----
-diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
-index d5a5efc..bace473 100644
---- a/drivers/acpi/acpica/evxfevnt.c
-+++ b/drivers/acpi/acpica/evxfevnt.c
-@@ -70,6 +70,7 @@ acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- acpi_status acpi_enable(void)
- {
- 	acpi_status status;
-+	int retry = 0;
- 
- 	ACPI_FUNCTION_TRACE(acpi_enable);
- 
-@@ -98,6 +99,11 @@ acpi_status acpi_enable(void)
- 
- 	/* Sanity check that transition succeeded */
- 
-+	while (acpi_hw_get_mode() != ACPI_SYS_MODE_ACPI && retry < 3000) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Hardware did not enter ACPI mode, retry = %d", retry++));
-+		acpi_os_stall(1000);
-+	}
- 	if (acpi_hw_get_mode() != ACPI_SYS_MODE_ACPI) {
- 		ACPI_ERROR((AE_INFO,
- 			    "Hardware did not enter ACPI mode"));
-
-
+Rafael
