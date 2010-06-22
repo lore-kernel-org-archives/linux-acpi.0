@@ -1,76 +1,64 @@
-From: Dipankar Sarma <dipankar@in.ibm.com>
-Subject: Re: [linux-pm] RFC: /sys/power/policy_preference
-Date: Tue, 22 Jun 2010 01:40:56 +0530
-Message-ID: <20100621201056.GE27750@in.ibm.com>
-References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
-Reply-To: dipankar@in.ibm.com
+From: Len Brown <lenb@kernel.org>
+Subject: Re: a question about lid input device
+Date: Mon, 21 Jun 2010 21:56:37 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006212156140.26824@localhost.localdomain>
+References: <1276412011.19052.19294.camel@rzhang1-desktop>
+ <20100614020127.GA30773@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp06.au.ibm.com ([202.81.31.148]:34853 "EHLO
-	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828Ab0FUULB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jun 2010 16:11:01 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:40220 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752899Ab0FVB47 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jun 2010 21:56:59 -0400
+Received: from localhost.localdomain ([unknown] [98.118.125.200])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L4E00L4C82O6XH5@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 21 Jun 2010 20:56:49 -0500 (CDT)
+In-reply-to: <20100614020127.GA30773@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Zhang Rui <rui.zhang@intel.com>, dmitry.torokhov@gmail.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Jun 16, 2010 at 05:05:26PM -0400, Len Brown wrote:
-> Create /sys/power/policy_preference, giving user-space
-> the ability to express its preference for kernel based
-> power vs. performance decisions in a single place.
+Dmitry,
+Is there a reason not to simply add a "state" attribute
+to a LID input device?
+
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+On Sun, 13 Jun 2010, Henrique de Moraes Holschuh wrote:
+
+> On Sun, 13 Jun 2010, Zhang Rui wrote:
+> > Then we update the lid switch status when a Lid notification comes.
+> > right?
 > 
-> policy_preference has 5 levels, from max_performance
-> through max_powersave.  Here is how 4 parts of the kernel
-> might respond to those 5 levels:
-
-In theory this makes sense. We have been toying with something
-like this, but the difficulty is that outside of benchmarking
-environment, it is hard to figure out what mode to set when.
-Also, the impact could be different for different workloads.
-We should probably have a broader discussion around this
-with data - I will share some measurements on impact
-of such power modes.
-
-
-> max_performance (unwilling to sacrifice any performance)
-> 	scheduler: default (optimized for performance)
-> 	cpuidle: disable all C-states except polling mode
-> 	ondemand: disable all P-states except max perf
-> 	msr_ia32_energy_perf_bias: 0 of 15
+> Yes.
 > 
-> performance (care primarily about performance)
-> 	scheduler: default (optimized for performance)
-> 	cpuidle: enable all C-states subject to QOS
-> 	ondemand: all P-states, using no bias
-> 	msr_ia32_energy_perf_bias: 3 of 15
+> > Then, IMO, userspace can get the lid status
+> > via /sys/class/input/inputX/uevent, right?
 > 
-> balanced (default)
-> 	scheduler: enable sched_mc_power_savings
-> 	cpuidle: enable all C-states subject to QOS
-> 	ondemand: all P-states, powersave_bias=5
-> 	msr_ia32_energy_perf_bias: 7 of 15
-
-Would there be sufficient difference between performance
-and balanced ?
-
-
+> No, only through an IOCTL.
 > 
-> powersave (can sacrifice measurable performance)
-> 	scheduler: enable sched_smt_power_savings
-> 	cpuidle: enable all C-states, subject to QOS
-> 	ondemand: disable turbo mode, powersave_bias=10
-> 	msr_ia32_energy_perf_bias: 11 of 15
+> > /sys/class/input/input1/uevent:EV==21
 > 
-> max_powersave (can sacrifice significant performance)
-> 	scheduler: enable sched_smt_power_savings
-> 	cpuidle: enable all C-states, subject to QOS
-> 	ondemand: min P-state (do not invoke T-states)
-> 	msr_ia32_energy_perf_bias: 15 of 15
+> That's an bitmap of al EV_EV it supports.
+> 
+> > /sys/class/input/input1/uevent:SW==1
+> 
+> That's an bitmap of al EV_SW it supports.
+> 
+> > Lid is opened but SW is set, I tried to close/open the lid and found
+> > that this bit never changes. is there something I misunderstand? can we
+> > get the lid status in userspace?
+> 
+> IOCTL(), only.
+> 
+> Since nobody got a input-utils standard package (or added something to
+> util-linux) yet to do that (AFAIK anyway), it is a MAJOR annoyance for
+> shell scripts that want to query EV_SW state...
+> 
 
-
-Thanks
-Dipankar
