@@ -1,456 +1,352 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/2] ACPI: Remove wakeup GPE reference counting which is not used
-Date: Wed, 23 Jun 2010 12:32:20 +0200
-Message-ID: <201006231232.20623.rjw@sisk.pl>
-References: <201006231228.36340.rjw@sisk.pl>
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH] ACPI, APEI, Manage GHES as platform devices
+Date: Thu, 24 Jun 2010 15:51:53 +0800
+Message-ID: <1277365913.3947.85.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41464 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:36335 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530Ab0FWKf0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jun 2010 06:35:26 -0400
-In-Reply-To: <201006231228.36340.rjw@sisk.pl>
+	id S1753789Ab0FXHwH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jun 2010 03:52:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Len Brown <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Register GHES during HEST initialization as platform devices. And make
+GHES driver into platform device driver. So that the GHES driver
+module can be loaded automatically when there are GHES available.
 
-After the previous patch that introduced acpi_gpe_wakeup() and
-modified the ACPI suspend and wakeup code to use it, the third
-argument of acpi_{enable|disable}_gpe() and the GPE wakeup
-reference counter are not necessary any more.  Remove them and
-modify all of the users of acpi_{enable|disable}_gpe()
-accordingly.  Also drop GPE type constants that aren't used
-any more.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/acpica/acevents.h  |    2 
- drivers/acpi/acpica/aclocal.h   |    1 
- drivers/acpi/acpica/evgpe.c     |   13 +---
- drivers/acpi/acpica/evgpeblk.c  |    3 -
- drivers/acpi/acpica/evgpeinit.c |    3 -
- drivers/acpi/acpica/evxfevnt.c  |  114 ++++++++--------------------------------
- drivers/acpi/button.c           |    6 --
- drivers/acpi/ec.c               |    6 +-
- drivers/acpi/system.c           |    6 --
- drivers/pci/pci-acpi.c          |    6 --
- include/acpi/acpixf.h           |    6 --
- include/acpi/actypes.h          |    6 --
- 12 files changed, 43 insertions(+), 129 deletions(-)
+ drivers/acpi/apei/ghes.c |  140 +++++++++++++++++++++++++----------------------
+ drivers/acpi/apei/hest.c |   76 +++++++++++++++++++++++--
+ 2 files changed, 145 insertions(+), 71 deletions(-)
 
-Index: linux-2.6/drivers/acpi/acpica/acevents.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/acevents.h
-+++ linux-2.6/drivers/acpi/acpica/acevents.h
-@@ -78,7 +78,7 @@ acpi_ev_queue_notify_request(struct acpi
- u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info *gpe_xrupt_list);
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -41,6 +41,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/cper.h>
+ #include <linux/kdebug.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+@@ -87,6 +89,7 @@ struct ghes {
+  * used for that.
+  */
+ static LIST_HEAD(ghes_sci);
++static DEFINE_MUTEX(ghes_list_mutex);
  
- acpi_status
--acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info);
-+acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info);
- 
- struct acpi_gpe_event_info *acpi_ev_get_gpe_event_info(acpi_handle gpe_device,
- 						       u32 gpe_number);
-Index: linux-2.6/drivers/acpi/acpica/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpe.c
-+++ linux-2.6/drivers/acpi/acpica/evgpe.c
-@@ -54,7 +54,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ev_update_gpe_enable_masks
-+ * FUNCTION:    acpi_ev_update_gpe_enable_mask
-  *
-  * PARAMETERS:  gpe_event_info          - GPE to update
-  *
-@@ -66,7 +66,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
-  ******************************************************************************/
- 
- acpi_status
--acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info)
-+acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
+ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
  {
- 	struct acpi_gpe_register_info *gpe_register_info;
- 	u32 register_bit;
-@@ -81,21 +81,16 @@ acpi_ev_update_gpe_enable_masks(struct a
- 	register_bit = acpi_hw_gpe_register_bit(gpe_event_info,
- 						gpe_register_info);
- 
--	/* Clear the wake/run bits up front */
-+	/* Clear the run bit up front */
- 
--	ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake, register_bit);
- 	ACPI_CLEAR_BIT(gpe_register_info->enable_for_run, register_bit);
- 
--	/* Set the mask bits only if there are references to this GPE */
-+	/* Set the mask bit only if there are references to this GPE */
- 
- 	if (gpe_event_info->runtime_count) {
- 		ACPI_SET_BIT(gpe_register_info->enable_for_run, register_bit);
- 	}
- 
--	if (gpe_event_info->wakeup_count) {
--		ACPI_SET_BIT(gpe_register_info->enable_for_wake, register_bit);
--	}
--
- 	return_ACPI_STATUS(AE_OK);
- }
- 
-Index: linux-2.6/drivers/acpi/acpica/evxfevnt.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evxfevnt.c
-+++ linux-2.6/drivers/acpi/acpica/evxfevnt.c
-@@ -373,17 +373,14 @@ ACPI_EXPORT_SYMBOL(acpi_set_gpe)
-  *
-  * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
-  *              gpe_number      - GPE level within the GPE block
-- *              gpe_type        - ACPI_GPE_TYPE_RUNTIME or ACPI_GPE_TYPE_WAKE
-- *                                or both
-  *
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Add a reference to a GPE. On the first reference, the GPE is
-- *              hardware-enabled (for runtime GPEs), or the GPE register mask
-- *              is updated (for wake GPEs).
-+ *              hardware-enabled.
-  *
-  ******************************************************************************/
--acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number, u8 gpe_type)
-+acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
- {
- 	acpi_status status = AE_OK;
- 	struct acpi_gpe_event_info *gpe_event_info;
-@@ -391,12 +388,6 @@ acpi_status acpi_enable_gpe(acpi_handle 
- 
- 	ACPI_FUNCTION_TRACE(acpi_enable_gpe);
- 
--	/* Parameter validation */
--
--	if (!gpe_type || (gpe_type & ~ACPI_GPE_TYPE_WAKE_RUN)) {
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
--	}
--
- 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
- 
- 	/* Ensure that we have a valid GPE number */
-@@ -407,46 +398,20 @@ acpi_status acpi_enable_gpe(acpi_handle 
- 		goto unlock_and_exit;
- 	}
- 
--	if (gpe_type & ACPI_GPE_TYPE_RUNTIME) {
--		if (gpe_event_info->runtime_count == ACPI_UINT8_MAX) {
--			status = AE_LIMIT;	/* Too many references */
--			goto unlock_and_exit;
--		}
--
--		gpe_event_info->runtime_count++;
--		if (gpe_event_info->runtime_count == 1) {
--			status = acpi_ev_update_gpe_enable_masks(gpe_event_info);
--			if (ACPI_SUCCESS(status)) {
--				status = acpi_clear_and_enable_gpe(gpe_event_info);
--			}
--
--			if (ACPI_FAILURE(status)) {
--				gpe_event_info->runtime_count--;
--				goto unlock_and_exit;
--			}
--		}
-+	if (gpe_event_info->runtime_count == ACPI_UINT8_MAX) {
-+		status = AE_LIMIT;	/* Too many references */
-+		goto unlock_and_exit;
- 	}
- 
--	if (gpe_type & ACPI_GPE_TYPE_WAKE) {
--		/* The GPE must have the ability to wake the system */
--
--		if (!(gpe_event_info->flags & ACPI_GPE_CAN_WAKE)) {
--			status = AE_TYPE;
--			goto unlock_and_exit;
-+	gpe_event_info->runtime_count++;
-+	if (gpe_event_info->runtime_count == 1) {
-+		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
-+		if (ACPI_SUCCESS(status)) {
-+			status = acpi_clear_and_enable_gpe(gpe_event_info);
- 		}
- 
--		if (gpe_event_info->wakeup_count == ACPI_UINT8_MAX) {
--			status = AE_LIMIT;	/* Too many references */
--			goto unlock_and_exit;
--		}
--
--		/*
--		 * Update the enable mask on the first wakeup reference. Wake GPEs
--		 * are only hardware-enabled just before sleeping.
--		 */
--		gpe_event_info->wakeup_count++;
--		if (gpe_event_info->wakeup_count == 1) {
--			status = acpi_ev_update_gpe_enable_masks(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			gpe_event_info->runtime_count--;
- 		}
- 	}
- 
-@@ -462,17 +427,14 @@ ACPI_EXPORT_SYMBOL(acpi_enable_gpe)
-  *
-  * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
-  *              gpe_number      - GPE level within the GPE block
-- *              gpe_type        - ACPI_GPE_TYPE_RUNTIME or ACPI_GPE_TYPE_WAKE
-- *                                or both
-  *
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Remove a reference to a GPE. When the last reference is
-- *              removed, only then is the GPE disabled (for runtime GPEs), or
-- *              the GPE mask bit disabled (for wake GPEs)
-+ *              removed, only then is the GPE disabled.
-  *
-  ******************************************************************************/
--acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number, u8 gpe_type)
-+acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number)
- {
- 	acpi_status status = AE_OK;
- 	struct acpi_gpe_event_info *gpe_event_info;
-@@ -480,12 +442,6 @@ acpi_status acpi_disable_gpe(acpi_handle
- 
- 	ACPI_FUNCTION_TRACE(acpi_disable_gpe);
- 
--	/* Parameter validation */
--
--	if (!gpe_type || (gpe_type & ~ACPI_GPE_TYPE_WAKE_RUN)) {
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
--	}
--
- 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
- 
- 	/* Ensure that we have a valid GPE number */
-@@ -498,41 +454,21 @@ acpi_status acpi_disable_gpe(acpi_handle
- 
- 	/* Hardware-disable a runtime GPE on removal of the last reference */
- 
--	if (gpe_type & ACPI_GPE_TYPE_RUNTIME) {
--		if (!gpe_event_info->runtime_count) {
--			status = AE_LIMIT;	/* There are no references to remove */
--			goto unlock_and_exit;
--		}
--
--		gpe_event_info->runtime_count--;
--		if (!gpe_event_info->runtime_count) {
--			status = acpi_ev_update_gpe_enable_masks(gpe_event_info);
--			if (ACPI_SUCCESS(status)) {
--				status = acpi_hw_low_set_gpe(gpe_event_info,
--							     ACPI_GPE_DISABLE);
--			}
--
--			if (ACPI_FAILURE(status)) {
--				gpe_event_info->runtime_count++;
--				goto unlock_and_exit;
--			}
--		}
-+	if (!gpe_event_info->runtime_count) {
-+		status = AE_LIMIT;	/* There are no references to remove */
-+		goto unlock_and_exit;
- 	}
- 
--	/*
--	 * Update masks for wake GPE on removal of the last reference.
--	 * No need to hardware-disable wake GPEs here, they are not currently
--	 * enabled.
--	 */
--	if (gpe_type & ACPI_GPE_TYPE_WAKE) {
--		if (!gpe_event_info->wakeup_count) {
--			status = AE_LIMIT;	/* There are no references to remove */
--			goto unlock_and_exit;
-+	gpe_event_info->runtime_count--;
-+	if (!gpe_event_info->runtime_count) {
-+		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
-+		if (ACPI_SUCCESS(status)) {
-+			status = acpi_hw_low_set_gpe(gpe_event_info,
-+						     ACPI_GPE_DISABLE);
- 		}
- 
--		gpe_event_info->wakeup_count--;
--		if (!gpe_event_info->wakeup_count) {
--			status = acpi_ev_update_gpe_enable_masks(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			gpe_event_info->runtime_count++;
- 		}
- 	}
- 
-Index: linux-2.6/include/acpi/actypes.h
-===================================================================
---- linux-2.6.orig/include/acpi/actypes.h
-+++ linux-2.6/include/acpi/actypes.h
-@@ -669,12 +669,6 @@ typedef u32 acpi_event_status;
- #define ACPI_GPE_DISABLE                1
- #define ACPI_GPE_COND_ENABLE            2
- 
--/* gpe_types for acpi_enable_gpe and acpi_disable_gpe */
--
--#define ACPI_GPE_TYPE_WAKE              (u8) 0x01
--#define ACPI_GPE_TYPE_RUNTIME           (u8) 0x02
--#define ACPI_GPE_TYPE_WAKE_RUN          (u8) 0x03
--
- /*
-  * GPE info flags - Per GPE
-  * +-------+---+-+-+
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -822,7 +822,7 @@ static int ec_install_handlers(struct ac
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	acpi_enable_gpe(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+	acpi_enable_gpe(NULL, ec->gpe);
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -839,7 +839,7 @@ static int ec_install_handlers(struct ac
- 		} else {
- 			acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler);
--			acpi_disable_gpe(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+			acpi_disable_gpe(NULL, ec->gpe);
- 			return -ENODEV;
- 		}
- 	}
-@@ -850,7 +850,7 @@ static int ec_install_handlers(struct ac
- 
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
--	acpi_disable_gpe(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+	acpi_disable_gpe(NULL, ec->gpe);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err(PREFIX "failed to remove space handler\n");
-Index: linux-2.6/drivers/acpi/system.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/system.c
-+++ linux-2.6/drivers/acpi/system.c
-@@ -388,12 +388,10 @@ static ssize_t counter_set(struct kobjec
- 	if (index < num_gpes) {
- 		if (!strcmp(buf, "disable\n") &&
- 				(status & ACPI_EVENT_FLAG_ENABLED))
--			result = acpi_disable_gpe(handle, index,
--						ACPI_GPE_TYPE_RUNTIME);
-+			result = acpi_disable_gpe(handle, index);
- 		else if (!strcmp(buf, "enable\n") &&
- 				!(status & ACPI_EVENT_FLAG_ENABLED))
--			result = acpi_enable_gpe(handle, index,
--						ACPI_GPE_TYPE_RUNTIME);
-+			result = acpi_enable_gpe(handle, index);
- 		else if (!strcmp(buf, "clear\n") &&
- 				(status & ACPI_EVENT_FLAG_SET))
- 			result = acpi_clear_gpe(handle, index);
-Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c
-+++ linux-2.6/drivers/acpi/acpica/evgpeinit.c
-@@ -482,8 +482,7 @@ acpi_ev_match_gpe_method(acpi_handle obj
- 				gpe_device = NULL;
- 			}
- 
--			status = acpi_enable_gpe(gpe_device, gpe_number,
--						 ACPI_GPE_TYPE_RUNTIME);
-+			status = acpi_enable_gpe(gpe_device, gpe_number);
- 			if (ACPI_FAILURE(status)) {
- 				ACPI_EXCEPTION((AE_INFO, status,
- 						"Could not enable GPE 0x%02X",
-Index: linux-2.6/drivers/acpi/acpica/evgpeblk.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpeblk.c
-+++ linux-2.6/drivers/acpi/acpica/evgpeblk.c
-@@ -529,8 +529,7 @@ acpi_ev_initialize_gpe_block(struct acpi
- 
- 			/* Enable this GPE */
- 
--			status = acpi_enable_gpe(gpe_device, gpe_number,
--						 ACPI_GPE_TYPE_RUNTIME);
-+			status = acpi_enable_gpe(gpe_device, gpe_number);
- 			if (ACPI_FAILURE(status)) {
- 				ACPI_EXCEPTION((AE_INFO, status,
- 						"Could not enable GPE 0x%02X",
-Index: linux-2.6/drivers/acpi/button.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/button.c
-+++ linux-2.6/drivers/acpi/button.c
-@@ -424,8 +424,7 @@ static int acpi_button_add(struct acpi_d
- 	if (device->wakeup.flags.valid) {
- 		/* Button's GPE is run-wake GPE */
- 		acpi_enable_gpe(device->wakeup.gpe_device,
--				device->wakeup.gpe_number,
--				ACPI_GPE_TYPE_RUNTIME);
-+				device->wakeup.gpe_number);
- 		device->wakeup.run_wake_count++;
- 		device->wakeup.state.enabled = 1;
- 	}
-@@ -448,8 +447,7 @@ static int acpi_button_remove(struct acp
- 
- 	if (device->wakeup.flags.valid) {
- 		acpi_disable_gpe(device->wakeup.gpe_device,
--				device->wakeup.gpe_number,
--				ACPI_GPE_TYPE_RUNTIME);
-+				device->wakeup.gpe_number);
- 		device->wakeup.run_wake_count--;
- 		device->wakeup.state.enabled = 0;
- 	}
-Index: linux-2.6/drivers/pci/pci-acpi.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pci-acpi.c
-+++ linux-2.6/drivers/pci/pci-acpi.c
-@@ -297,14 +297,12 @@ static int acpi_dev_run_wake(struct devi
- 		if (!dev->wakeup.run_wake_count++) {
- 			acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
- 			acpi_enable_gpe(dev->wakeup.gpe_device,
--					dev->wakeup.gpe_number,
--					ACPI_GPE_TYPE_RUNTIME);
-+					dev->wakeup.gpe_number);
- 		}
- 	} else if (dev->wakeup.run_wake_count > 0) {
- 		if (!--dev->wakeup.run_wake_count) {
- 			acpi_disable_gpe(dev->wakeup.gpe_device,
--					 dev->wakeup.gpe_number,
--					 ACPI_GPE_TYPE_RUNTIME);
-+					 dev->wakeup.gpe_number);
- 			acpi_disable_wakeup_device_power(dev);
- 		}
- 	} else {
-Index: linux-2.6/drivers/acpi/acpica/aclocal.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/aclocal.h
-+++ linux-2.6/drivers/acpi/acpica/aclocal.h
-@@ -428,7 +428,6 @@ struct acpi_gpe_event_info {
- 	u8 flags;		/* Misc info about this GPE */
- 	u8 gpe_number;		/* This GPE */
- 	u8 runtime_count;	/* References to a run GPE */
--	u8 wakeup_count;	/* References to a wake GPE */
+@@ -293,18 +296,15 @@ static struct notifier_block ghes_notifi
+ 	.notifier_call = ghes_notify_sci,
  };
  
- /* Information about a GPE register pair, one per each status/enable pair in an array */
-Index: linux-2.6/include/acpi/acpixf.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpixf.h
-+++ linux-2.6/include/acpi/acpixf.h
-@@ -285,11 +285,9 @@ acpi_status acpi_gpe_wakeup(acpi_handle 
+-static int hest_ghes_parse(struct acpi_hest_header *hest_hdr, void *data)
++static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ {
+ 	struct acpi_hest_generic *generic;
+ 	struct ghes *ghes = NULL;
+-	int rc = 0;
++	int rc = -EINVAL;
  
- acpi_status acpi_set_gpe(acpi_handle gpe_device, u32 gpe_number, u8 action);
+-	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+-		return 0;
+-
+-	generic = (struct acpi_hest_generic *)hest_hdr;
++	generic = ghes_dev->dev.platform_data;
+ 	if (!generic->enabled)
+-		return 0;
++		return -ENODEV;
  
--acpi_status
--acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number, u8 gpe_type);
-+acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number);
+ 	if (generic->error_block_length <
+ 	    sizeof(struct acpi_hest_generic_status)) {
+@@ -327,62 +327,91 @@ static int hest_ghes_parse(struct acpi_h
+ 		ghes = NULL;
+ 		goto err;
+ 	}
+-	switch (generic->notify.type) {
+-	case ACPI_HEST_NOTIFY_POLLED:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via POLL is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	case ACPI_HEST_NOTIFY_EXTERNAL:
+-	case ACPI_HEST_NOTIFY_LOCAL:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via IRQ is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	case ACPI_HEST_NOTIFY_SCI:
++	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
++		mutex_lock(&ghes_list_mutex);
+ 		if (list_empty(&ghes_sci))
+ 			register_acpi_hed_notifier(&ghes_notifier_sci);
+ 		list_add_rcu(&ghes->list, &ghes_sci);
+-		break;
+-	case ACPI_HEST_NOTIFY_NMI:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via NMI is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	default:
+-		pr_warning(FW_WARN GHES_PFX
+-	"Unknown notification type: %u for generic hardware error source: %d\n",
+-			   generic->notify.type, generic->header.source_id);
+-		break;
++		mutex_unlock(&ghes_list_mutex);
++	} else {
++		unsigned char *notify = NULL;
++
++		switch (generic->notify.type) {
++		case ACPI_HEST_NOTIFY_POLLED:
++			notify = "POLL";
++			break;
++		case ACPI_HEST_NOTIFY_EXTERNAL:
++		case ACPI_HEST_NOTIFY_LOCAL:
++			notify = "IRQ";
++			break;
++		case ACPI_HEST_NOTIFY_NMI:
++			notify = "NMI";
++			break;
++		}
++		if (notify) {
++			pr_warning(GHES_PFX
++"Generic hardware error source: %d notified via %s is not supported!\n",
++				   generic->header.source_id, notify);
++		} else {
++			pr_warning(FW_WARN GHES_PFX
++"Unknown notification type: %u for generic hardware error source: %d\n",
++			generic->notify.type, generic->header.source_id);
++		}
++		rc = -ENODEV;
++		goto err;
+ 	}
++	platform_set_drvdata(ghes_dev, ghes);
  
--acpi_status
--acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number, u8 gpe_type);
-+acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number);
+ 	return 0;
+ err:
+-	if (ghes)
++	if (ghes) {
+ 		ghes_fini(ghes);
++		kfree(ghes);
++	}
+ 	return rc;
+ }
  
- acpi_status acpi_clear_gpe(acpi_handle gpe_device, u32 gpe_number);
+-static void ghes_cleanup(void)
++static int __devexit ghes_remove(struct platform_device *ghes_dev)
+ {
+-	struct ghes *ghes, *nghes;
++	struct ghes *ghes;
++	struct acpi_hest_generic *generic;
  
+-	if (!list_empty(&ghes_sci))
+-		unregister_acpi_hed_notifier(&ghes_notifier_sci);
++	ghes = platform_get_drvdata(ghes_dev);
++	generic = ghes->generic;
++
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_SCI:
++		mutex_lock(&ghes_list_mutex);
++		list_del_rcu(&ghes->list);
++		if (list_empty(&ghes_sci))
++			unregister_acpi_hed_notifier(&ghes_notifier_sci);
++		mutex_unlock(&ghes_list_mutex);
++		break;
++	default:
++		BUG();
++		break;
++	}
+ 
+ 	synchronize_rcu();
++	ghes_fini(ghes);
++	kfree(ghes);
+ 
+-	list_for_each_entry_safe(ghes, nghes, &ghes_sci, list) {
+-		list_del(&ghes->list);
+-		ghes_fini(ghes);
+-		kfree(ghes);
+-	}
++	platform_set_drvdata(ghes_dev, NULL);
++
++	return 0;
+ }
+ 
++static struct platform_driver ghes_platform_driver = {
++	.driver		= {
++		.name	= "GHES",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ghes_probe,
++	.remove		= ghes_remove,
++};
++
+ static int __init ghes_init(void)
+ {
+-	int rc;
+-
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+@@ -391,32 +420,12 @@ static int __init ghes_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	rc = apei_hest_parse(hest_ghes_parse, NULL);
+-	if (rc) {
+-		pr_err(GHES_PFX
+-		"Error during parsing HEST generic hardware error sources.\n");
+-		goto err_cleanup;
+-	}
+-
+-	if (list_empty(&ghes_sci)) {
+-		pr_info(GHES_PFX
+-			"No functional generic hardware error sources.\n");
+-		rc = -ENODEV;
+-		goto err_cleanup;
+-	}
+-
+-	pr_info(GHES_PFX
+-		"Generic Hardware Error Source support is initialized.\n");
+-
+-	return 0;
+-err_cleanup:
+-	ghes_cleanup();
+-	return rc;
++	return platform_driver_register(&ghes_platform_driver);
+ }
+ 
+ static void __exit ghes_exit(void)
+ {
+-	ghes_cleanup();
++	platform_driver_unregister(&ghes_platform_driver);
+ }
+ 
+ module_init(ghes_init);
+@@ -425,3 +434,4 @@ module_exit(ghes_exit);
+ MODULE_AUTHOR("Huang Ying");
+ MODULE_DESCRIPTION("APEI Generic Hardware Error Source support");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:GHES");
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -34,6 +34,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/io.h>
++#include <linux/platform_device.h>
+ #include <acpi/apei.h>
+ 
+ #include "apei-internal.h"
+@@ -47,11 +48,6 @@ EXPORT_SYMBOL_GPL(hest_disable);
+ 
+ static struct acpi_table_hest *hest_tab;
+ 
+-static int hest_void_parse(struct acpi_hest_header *hest_hdr, void *data)
+-{
+-	return 0;
+-}
+-
+ static int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+ 	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
+ 	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
+@@ -125,6 +121,69 @@ int apei_hest_parse(apei_hest_func_t fun
+ }
+ EXPORT_SYMBOL_GPL(apei_hest_parse);
+ 
++struct ghes_arr {
++	struct platform_device **ghes_devs;
++	unsigned int count;
++};
++
++static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
++{
++	int *count = data;
++
++	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR)
++		(*count)++;
++	return 0;
++}
++
++static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
++{
++	struct acpi_hest_generic *generic;
++	struct platform_device *ghes_dev;
++	struct ghes_arr *ghes_arr = data;
++	int rc;
++
++	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
++		return 0;
++	generic = (struct acpi_hest_generic *)hest_hdr;
++	if (!generic->enabled)
++		return 0;
++	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
++	if (!ghes_dev)
++		return -ENOMEM;
++	ghes_dev->dev.platform_data = generic;
++	rc = platform_device_add(ghes_dev);
++	if (rc)
++		goto err;
++	ghes_arr->ghes_devs[ghes_arr->count++] = ghes_dev;
++
++	return 0;
++err:
++	platform_device_put(ghes_dev);
++	return rc;
++}
++
++static int hest_ghes_dev_register(unsigned int ghes_count)
++{
++	int rc, i;
++	struct ghes_arr ghes_arr;
++
++	ghes_arr.count = 0;
++	ghes_arr.ghes_devs = kmalloc(sizeof(void *) * ghes_count, GFP_KERNEL);
++	if (!ghes_arr.ghes_devs)
++		return -ENOMEM;
++
++	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
++	if (rc)
++		goto err;
++out:
++	kfree(ghes_arr.ghes_devs);
++	return rc;
++err:
++	for (i = 0; i < ghes_arr.count; i++)
++		platform_device_unregister(ghes_arr.ghes_devs[i]);
++	goto out;
++}
++
+ static int __init setup_hest_disable(char *str)
+ {
+ 	hest_disable = 1;
+@@ -137,6 +196,7 @@ static int __init hest_init(void)
+ {
+ 	acpi_status status;
+ 	int rc = -ENODEV;
++	unsigned int ghes_count = 0;
+ 
+ 	if (acpi_disabled)
+ 		goto err;
+@@ -158,7 +218,11 @@ static int __init hest_init(void)
+ 		goto err;
+ 	}
+ 
+-	rc = apei_hest_parse(hest_void_parse, NULL);
++	rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
++	if (rc)
++		goto err;
++
++	rc = hest_ghes_dev_register(ghes_count);
+ 	if (rc)
+ 		goto err;
+ 
+
 
