@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 4/6] ACPI / EC: Do not use acpi_set_gpe
-Date: Fri, 25 Jun 2010 01:21:42 +0200
-Message-ID: <201006250121.42506.rjw@sisk.pl>
+Subject: [PATCH 1/6] ACPI: Introduce acpi_gpe_wakeup()
+Date: Fri, 25 Jun 2010 01:18:39 +0200
+Message-ID: <201006250118.39553.rjw@sisk.pl>
 References: <201006250117.45148.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47189 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:47185 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918Ab0FXX0J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jun 2010 19:26:09 -0400
+	id S1753268Ab0FXX0I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jun 2010 19:26:08 -0400
 In-Reply-To: <201006250117.45148.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,47 +20,203 @@ Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.l
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The EC driver is the last user of acpi_set_gpe() and since it is
-guaranteed that the EC GPE will not be shared, acpi_disable_gpe()
-and acpi_enable_gpe() may be used for disabling the GPE temporarilty
-if a GPE storm is detected and re-enabling it during EC transactions.
+ACPICA uses reference counters to avoid disabling GPEs too early in
+case they have been enabled for many times.  This is done separately
+for runtime and for wakeup, but the wakeup GPE reference counter is
+not really necessary, because GPEs are only enabled to wake up the
+system at the hardware level by acpi_enter_sleep_state().  Thus it
+only is necessary to set the corresponding bits in the wakeup enable
+masks of these GPEs' registers right before the system enters a sleep
+state.  Moreover, the GPE wakeup enable bits can only be set when the
+target sleep state of the system is known and they need to be cleared
+immediately after wakeup regardless of how many wakeup devices are
+associated with a given GPE.
+
+On the basis of the above observations, introduce function
+acpi_gpe_wakeup() to be used for setting or clearing the enable bit
+corresponding to a given GPE in its enable register's enable_for_wake
+mask.  Modify the ACPI suspend and wakeup code the use
+acpi_gpe_wakeup() instead of acpi_{enable|disable}_gpe() to set
+and clear GPE enable bits in their registers' enable_for_wake masks
+during system transitions to a sleep state and back to the working
+state, respectively.  [This will allow us to drop the third
+argument of acpi_{enable|disable}_gpe() and simplify the GPE
+handling code.]
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/ec.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/acpi/acpica/evxfevnt.c |   61 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/sleep.c           |   15 ++--------
+ drivers/acpi/wakeup.c          |   18 +++++++-----
+ include/acpi/acpixf.h          |    2 +
+ include/acpi/actypes.h         |    2 -
+ 5 files changed, 78 insertions(+), 20 deletions(-)
 
-Index: linux-2.6/drivers/acpi/ec.c
+Index: linux-2.6/drivers/acpi/acpica/evxfevnt.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -313,11 +313,8 @@ static int acpi_ec_transaction(struct ac
- 	pr_debug(PREFIX "transaction start\n");
- 	/* disable GPE during transaction if storm is detected */
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
--		/*
--		 * It has to be disabled at the hardware level regardless of the
--		 * GPE reference counting, so that it doesn't trigger.
--		 */
--		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
-+		/* It has to be disabled, so that it doesn't trigger. */
-+		acpi_disable_gpe(NULL, ec->gpe);
+--- linux-2.6.orig/drivers/acpi/acpica/evxfevnt.c
++++ linux-2.6/drivers/acpi/acpica/evxfevnt.c
+@@ -208,6 +208,67 @@ acpi_status acpi_enable_event(u32 event,
+ 
+ ACPI_EXPORT_SYMBOL(acpi_enable_event)
+ 
++/******************************************************************************
++ *
++ * FUNCTION:    acpi_gpe_wakeup
++ *
++ * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
++ *              gpe_number      - GPE level within the GPE block
++ *              action          - Disable or enable
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Set or clear the GPE's wakeup enable mask bit.
++ *
++ ******************************************************************************/
++acpi_status acpi_gpe_wakeup(acpi_handle gpe_device, u32 gpe_number, u8 action)
++{
++	acpi_status status = AE_OK;
++	struct acpi_gpe_event_info *gpe_event_info;
++	struct acpi_gpe_register_info *gpe_register_info;
++	u32 register_bit;
++	acpi_cpu_flags flags;
++
++	ACPI_FUNCTION_TRACE(acpi_gpe_wakeup);
++
++	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
++
++	/* Ensure that we have a valid GPE number */
++
++	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
++	if (!gpe_event_info) {
++		status = AE_BAD_PARAMETER;
++		goto unlock_and_exit;
++	}
++
++	gpe_register_info = gpe_event_info->register_info;
++	if (!gpe_register_info) {
++		status = AE_NOT_EXIST;
++		goto unlock_and_exit;
++	}
++
++	register_bit = acpi_hw_gpe_register_bit(gpe_event_info,
++						gpe_register_info);
++	switch (action) {
++	case ACPI_GPE_ENABLE:
++		ACPI_SET_BIT(gpe_register_info->enable_for_wake, register_bit);
++		break;
++
++	case ACPI_GPE_DISABLE:
++		ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake, register_bit);
++		break;
++
++	default:
++		ACPI_ERROR((AE_INFO, "Invalid action\n"));
++		status = AE_BAD_PARAMETER;
++	}
++
++unlock_and_exit:
++	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++	return_ACPI_STATUS(status);
++}
++ACPI_EXPORT_SYMBOL(acpi_gpe_wakeup)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_clear_and_enable_gpe
+Index: linux-2.6/include/acpi/acpixf.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpixf.h
++++ linux-2.6/include/acpi/acpixf.h
+@@ -281,6 +281,8 @@ acpi_status acpi_get_event_status(u32 ev
+ /*
+  * GPE Interfaces
+  */
++acpi_status acpi_gpe_wakeup(acpi_handle gpe_device, u32 gpe_number, u8 action);
++
+ acpi_status acpi_set_gpe(acpi_handle gpe_device, u32 gpe_number, u8 action);
+ 
+ acpi_status
+Index: linux-2.6/drivers/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep.c
++++ linux-2.6/drivers/acpi/sleep.c
+@@ -664,18 +664,9 @@ int acpi_pm_device_sleep_wake(struct dev
+ 		return -ENODEV;
  	}
  
- 	status = acpi_ec_transaction_unlocked(ec, t);
-@@ -326,12 +323,8 @@ static int acpi_ec_transaction(struct ac
- 	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		msleep(1);
--		/*
--		 * It is safe to enable the GPE outside of the transaction.  Use
--		 * acpi_set_gpe() for that, since we used it to disable the GPE
--		 * above.
--		 */
--		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
-+		/* It is safe to enable the GPE outside of the transaction. */
-+		acpi_enable_gpe(NULL, ec->gpe);
- 	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
- 		pr_info(PREFIX "GPE storm detected, "
- 			"transactions will use polling mode\n");
+-	if (enable) {
+-		error = acpi_enable_wakeup_device_power(adev,
+-						acpi_target_sleep_state);
+-		if (!error)
+-			acpi_enable_gpe(adev->wakeup.gpe_device,
+-					adev->wakeup.gpe_number,
+-					ACPI_GPE_TYPE_WAKE);
+-	} else {
+-		acpi_disable_gpe(adev->wakeup.gpe_device, adev->wakeup.gpe_number,
+-				ACPI_GPE_TYPE_WAKE);
+-		error = acpi_disable_wakeup_device_power(adev);
+-	}
++	error = enable ?
++		acpi_enable_wakeup_device_power(adev, acpi_target_sleep_state) :
++		acpi_disable_wakeup_device_power(adev);
+ 	if (!error)
+ 		dev_info(dev, "wake-up capability %s by ACPI\n",
+ 				enable ? "enabled" : "disabled");
+Index: linux-2.6/drivers/acpi/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/wakeup.c
++++ linux-2.6/drivers/acpi/wakeup.c
+@@ -64,13 +64,14 @@ void acpi_enable_wakeup_device(u8 sleep_
+ 		struct acpi_device *dev =
+ 			container_of(node, struct acpi_device, wakeup_list);
+ 
+-		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled
++		if (!dev->wakeup.flags.valid
++		    || !(dev->wakeup.state.enabled || dev->wakeup.prepare_count)
+ 		    || sleep_state > (u32) dev->wakeup.sleep_state)
+ 			continue;
+ 
+ 		/* The wake-up power should have been enabled already. */
+-		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+-				ACPI_GPE_TYPE_WAKE);
++		acpi_gpe_wakeup(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
++				ACPI_GPE_ENABLE);
+ 	}
+ }
+ 
+@@ -89,13 +90,16 @@ void acpi_disable_wakeup_device(u8 sleep
+ 		struct acpi_device *dev =
+ 			container_of(node, struct acpi_device, wakeup_list);
+ 
+-		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled
++		if (!dev->wakeup.flags.valid
++		    || !(dev->wakeup.state.enabled || dev->wakeup.prepare_count)
+ 		    || (sleep_state > (u32) dev->wakeup.sleep_state))
+ 			continue;
+ 
+-		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+-				ACPI_GPE_TYPE_WAKE);
+-		acpi_disable_wakeup_device_power(dev);
++		acpi_gpe_wakeup(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
++				ACPI_GPE_DISABLE);
++
++		if (dev->wakeup.state.enabled)
++			acpi_disable_wakeup_device_power(dev);
+ 	}
+ }
+ 
+Index: linux-2.6/include/acpi/actypes.h
+===================================================================
+--- linux-2.6.orig/include/acpi/actypes.h
++++ linux-2.6/include/acpi/actypes.h
+@@ -663,7 +663,7 @@ typedef u32 acpi_event_status;
+ #define ACPI_GPE_MAX                    0xFF
+ #define ACPI_NUM_GPE                    256
+ 
+-/* Actions for acpi_set_gpe and acpi_hw_low_set_gpe */
++/* Actions for acpi_set_gpe, acpi_hw_low_set_gpe and acpi_gpe_wakeup */
+ 
+ #define ACPI_GPE_ENABLE                 0
+ #define ACPI_GPE_DISABLE                1
 
