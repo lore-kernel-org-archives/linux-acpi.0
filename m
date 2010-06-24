@@ -1,78 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Boston Linux Power Management Mini-summit - August 9th, 2010
-Date: Thu, 24 Jun 2010 16:13:46 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006241545550.4039@localhost.localdomain>
-References: <alpine.LFD.2.00.1001181311040.4030@localhost.localdomain>
+From: Tony Luck <tony.luck@intel.com>
+Subject: Re: [bug report ] hp's rx2860 (kernel is 2.6.27.19-5 in sles11 ia64)
+	power off failrue when "shutdown -h 0" .
+Date: Thu, 24 Jun 2010 15:08:27 -0700
+Message-ID: <AANLkTinT8YMKGw3obdbIMINkUGNUgfUQEOEzgHMOPOtt@mail.gmail.com>
+References: <201006242333018701088@tom.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:8289 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799Ab0FXUNw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jun 2010 16:13:52 -0400
-In-reply-to: <alpine.LFD.2.00.1001181311040.4030@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <201006242333018701088@tom.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: bob_zhang2004 <bob_zhang2004@tom.com>
+Cc: "len.brown" <len.brown@intel.com>, linux-ia64 <linux-ia64@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Power Management List <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-The Linux Foundation is graciously providing facilities for our
-2010 Linux Power Management Mini-Summit at LinuxCon Boston.
+2010/6/24 bob_zhang2004 <bob_zhang2004@tom.com>:
+> thanks much for comments, any idea is welcome!
 
-This is an opportunity for members of the Linux Power Management
-development community to meet face-to-face to discuss the future.
+Does this problem also appear in SLES11-SP1 ... which moved to
+kernel version 2.6.32, and thus includes some changes to
 
-We will meet on Monday, August 9th at LinuxCon Boston.
-http://events.linuxfoundation.org/
-I'd like to get started by 9am, if we can.
+drivers/acpi/acpica/hwsleep.c
 
-This forum is open to any registered attendee at LinuxCon.
-However, we will be limited to about 20 or so seats.
+Nothing obviously looks like it would cause this problem,
+but it would be nice to know if the problem has already
+been fixed.
 
-I'd like to get an idea of how many people will attend,
-as well as to get a list of topics on the table.
-The attendees will form the final agenda at the start
-of the session.
-
-So please let me know if you'd like to attend,
-and cc: linux-pm@lists.linux-foundation.org
-with the  topics that you'd like to discuss
-(or have somebody else discuss:-)
-
-While this is a discussion-centered forum,
-presentations are permitted to help guide discussion.
-
-There will be no recording or audio bridge,
-however written minutes will be published as in previous years:
-
-2009: http://lwn.net/Articles/345007/
-2008: http://lwn.net/Articles/292447
-2007: http://lwn.net/Articles/249019
-
-(If you have feedback on last year's meeting that
- we can use to improve this year's, please let me know.)
- 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-ps. A few have confirmed their attendance
-and suggested agenda topics already:
-
-Alan Stern
-	Runtime Power Management in the USB and SCSI Subsystems
-
-Rafael J. Wysocki
-	Review what has transpired on linux-pm since last mini-summit
-	PM_QOS
-	wakeup events
-
-Srinivas Kalaga:
-	ARM CPU power management and Linux power
-	management frameworks for ARM based platforms in general.
-
-Len Brown
-	cpuidle developments
-	kernel-userspace PM interfaces, etg performance policy proposal
-
-Matthew Garrett
-	The new runtime PM framework
-
+-Tony
