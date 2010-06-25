@@ -1,38 +1,48 @@
-From: "=?utf-8?B?Ym9iX3poYW5nMjAwNA==?=" <bob_zhang2004@tom.com>
-Subject: =?utf-8?B?UmU6IFJlOiBbYnVnIHJlcG9ydCBdIGhwJ3MgcngyODYwIChrZXJuZWwgaXMgMi42LjI3LjE5LTUgaW4gc2xlczExIGlhNjQpcG93ZXIgb2ZmIGZhaWxydWUgd2hlbiAic2h1dGRvd24gLWggMCIgLg==?=
-Date: Fri, 25 Jun 2010 10:39:42 +0800
-Message-ID: <201006251039387807492@tom.com>
-References: <201006242333018701088@tom.com>,
- <AANLkTinT8YMKGw3obdbIMINkUGNUgfUQEOEzgHMOPOtt@mail.gmail.com>
+From: "bob_zhang2004" <bob_zhang2004@tom.com>
+Subject: Re: Re: [bug report ] hp's rx2860 (kernel is 2.6.27.19-5 in sles11 ia64)power off failrue when "shutdown -h 0" .
+Date: Fri, 25 Jun 2010 14:43:07 +0800
+Message-ID: <201006251443030205791@tom.com>
+References: <201006242333018701088@tom.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
 Sender: linux-ia64-owner@vger.kernel.org
-To: =?utf-8?B?VG9ueSBMdWNr?= <tony.luck@intel.com>
-Cc: =?utf-8?B?bGVuLmJyb3du?= <len.brown@intel.com>, =?utf-8?B?bGludXgtaWE2NA==?= <linux-ia64@vger.kernel.org>, =?utf-8?B?bGludXgtYWNwaQ==?= <linux-acpi@vger.kernel.org>
+To: Tony Luck <tony.luck@intel.com>
+Cc: "len.brown" <len.brown@intel.com>, linux-ia64 <linux-ia64@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-DQp5ZXMsIEkgYmFzaWNseSBjb21wYXJlIGh3c2xlZXAuYyBzZXBlcmF0ZWx5IGxvY2F0ZWQgaW4g
-c2xlczExIGFuZCBzbGVzMTFzcDEgLg0KdGhleSBkb24ndCBoYXZlIG9idmlvdXMgZGlmZmVyZW5j
-ZSwgaG93ZXZlciAsIHNvbWUgYmFzaWMgZnVuY3Rpb25zIHR5cGUgY2hhbmdlZCBpbmRlZWQuIA0K
-S2V5IGNvZGUgaXMgdGhlIHNhbWUuICAgQW55d2F5ICwgSSBhbSB0ZXN0aW5nIHNsZXMxMXNwMSdz
-IDIuNi4zMiBrZXJuZWwuDQoNCkJvYg0KDQoNCg0KDQrlj5Hku7bkurrvvJogVG9ueSBMdWNrIA0K
-5Y+R6YCB5pe26Ze077yaIDIwMTAtMDYtMjUgIDA2OjA4OjU3IA0K5pS25Lu25Lq677yaIGJvYl96
-aGFuZzIwMDQgDQrmioTpgIHvvJogbGVuLmJyb3duOyBsaW51eC1pYTY0OyBsaW51eC1hY3BpIA0K
-5Li76aKY77yaIFJlOiBbYnVnIHJlcG9ydCBdIGhwJ3MgcngyODYwIChrZXJuZWwgaXMgMi42LjI3
-LjE5LTUgaW4gc2xlczExIGlhNjQpcG93ZXIgb2ZmIGZhaWxydWUgd2hlbiAic2h1dGRvd24gLWgg
-MCIgLiANCiANCjIwMTAvNi8yNCBib2JfemhhbmcyMDA0IDxib2JfemhhbmcyMDA0QHRvbS5jb20+
-Og0KPiB0aGFua3MgbXVjaCBmb3IgY29tbWVudHMsIGFueSBpZGVhIGlzIHdlbGNvbWUhDQpEb2Vz
-IHRoaXMgcHJvYmxlbSBhbHNvIGFwcGVhciBpbiBTTEVTMTEtU1AxIC4uLiB3aGljaCBtb3ZlZCB0
-bw0Ka2VybmVsIHZlcnNpb24gMi42LjMyLCBhbmQgdGh1cyBpbmNsdWRlcyBzb21lIGNoYW5nZXMg
-dG8NCmRyaXZlcnMvYWNwaS9hY3BpY2EvaHdzbGVlcC5jDQpOb3RoaW5nIG9idmlvdXNseSBsb29r
-cyBsaWtlIGl0IHdvdWxkIGNhdXNlIHRoaXMgcHJvYmxlbSwNCmJ1dCBpdCB3b3VsZCBiZSBuaWNl
-IHRvIGtub3cgaWYgdGhlIHByb2JsZW0gaGFzIGFscmVhZHkNCmJlZW4gZml4ZWQuDQotVG9ueQ0K
-LS0NClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNj
-cmliZSBsaW51eC1pYTY0IiBpbg0KdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
-Z2VyLmtlcm5lbC5vcmcNCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5l
-bC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+Hi, 
+
+	I have a queston not confirm, thanks for answering. 
+from acpi sepc 2.0a
+
+7.3.3 \_GTS (Going To Sleep)
+_GTS is an optional control method. If it exists, OSPM must execute the _GTS control method just prior to
+setting the sleep enable (SLP_EN) bit in the PM1 control register when entering the S1, S2, S3, and S4
+sleeping states and when entering S5 for orderly shutdown. _GTS allows ACPI system firmware to perform
+any required system specific functions prior to entering a system sleep state. OSPM will set the sleep
+enable (SLP_EN) bit in the PM1 control register immediately following the execution of the _GTS control
+method without performing any other physical I/O or allowing any interrupt servicing. The sleeping state
+value (1, 2, 3, 4, or 5) is passed as an argument to the _GTS control method. The _GTS method must not
+attempt to directly place the system into a sleeping state. OSPM performs this function by setting the sleep
+enable bit upon return from _GTS. In the case of entry into the S5 soft off state however, _GTS may indeed
+perform operations that place the system into the S5 state as OSPM will not regain control.
+The _GTS method must be self-contained (not call other methods). Additionally, _GTS may only access
+OpRegions that are currently available (see the _REG method for details).
+--------
+my questions are followings :
+
+1, 
+especially , this sentense ,
+
+ "OSPM will set the sleep enable (SLP_EN) bit in the PM1 control register immediately following the execution of the _GTS control
+method without performing any other physical I/O or allowing any interrupt servicing."
+
+in fact ,before power supply is off , linux kernel will shutdown all devices by calling driver->shutdown() function. 
+if shutdown () failure, device will not be power off state. in this case, after setting  the sleep enable (SLP_EN) bit   ,what will happen ? 
+Should the power supply be off ?  
+
 
 
