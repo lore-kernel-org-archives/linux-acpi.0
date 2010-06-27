@@ -1,46 +1,67 @@
-From: Francisco Garcia Perez <fgarpe@gmail.com>
-Subject: DMI info
-Date: Sat, 26 Jun 2010 00:13:41 +0200
-Message-ID: <AANLkTinw3zD0fSQJ8p6zIYJNHq2L-j1faHWF2QLfYy7t@mail.gmail.com>
-References: <AANLkTik5a3Amqb5hTZ2Oz9p-M4W0ScIE9tTI5h7UnsC2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Sun, 27 Jun 2010 23:21:19 +0200
+Message-ID: <1277673679-21458-1-git-send-email-jslaby@suse.cz>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:48722 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756714Ab0FYWNn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jun 2010 18:13:43 -0400
-Received: by iwn41 with SMTP id 41so2448527iwn.19
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jun 2010 15:13:42 -0700 (PDT)
-In-Reply-To: <AANLkTik5a3Amqb5hTZ2Oz9p-M4W0ScIE9tTI5h7UnsC2@mail.gmail.com>
+Received: from mail.pripojeni.net ([217.66.174.14]:60898 "EHLO
+	mail.pripojeni.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753265Ab0F0VVm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jun 2010 17:21:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jirislaby@gmail.com, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Hello,
-I think that this is for you :), thank you very much for all your work.
+On IBM Bartolo machines, cards in 00:09.0 are defunct (if use
+interrupts). DSDT says that this slot (with function 0, i.e. pin A) is
+routed to \_SB_.PCI0.PIB_.LNKB. But it's not, it's wired to LNKC, so
+interrupts are misrouted. Add a quirk for this to workaround the
+issue.
+
+This error was reported in suse bugzilla at:
+https://bugzilla.novell.com/show_bug.cgi?id=595683
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+---
+ drivers/acpi/pci_irq.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index e4804fb..8e054a4 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -125,6 +125,18 @@ static const struct dmi_system_id hp_t5710[] = {
+ 	{ }
+ };
+ 
++/* https://bugzilla.novell.com/show_bug.cgi?id=595683 */
++static const struct dmi_system_id ibm_bartolo[] = {
++	{
++		.ident = "IBM Bartolo",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "IBM CORPORATION"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "4810320"),
++		},
++	},
++	{ }
++};
++
+ struct prt_quirk {
+ 	const struct dmi_system_id *system;
+ 	unsigned int		segment;
+@@ -152,6 +164,9 @@ static const struct prt_quirk prt_quirks[] = {
+ 	{ hp_t5710, 0, 0, 1, PCI_INTX_PIN('A'),
+ 		"\\_SB_.PCI0.LNK1",
+ 		"\\_SB_.PCI0.LNK3"},
++	{ ibm_bartolo, 0, 0, 9, PCI_INTX_PIN('A'),
++		"\\_SB_.PCI0.PIB_.LNKB",
++		"\\_SB_.PCI0.PIB_.LNKC"},
+ };
+ 
+ static void do_prt_fixups(struct acpi_prt_entry *entry,
+-- 
+1.7.1
 
 
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.222169] ACPI: DMI System
-Vendor: CompuLab
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.222303] ACPI: DMI Product
-Name: CM-iAM/SBC-FITPC2i
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.222436] ACPI: DMI Product
-Version: Not Applicable
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.222571] ACPI: DMI Board N=
-ame:
-CM-iAM/SBC-FITPC2i
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.223140] ACPI: DMI BIOS Ve=
-ndor:
-Phoenix Technologies LTD
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.223140] ACPI: DMI BIOS Da=
-te: 02/16/2010
-Jun 25 23:38:09 fit-dom0 kernel: [=A0=A0=A0 1.223140] ACPI: Please send=
- DMI
-info above to linux-acpi@vger.kernel.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
