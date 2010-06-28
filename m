@@ -1,33 +1,28 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Mon, 28 Jun 2010 18:14:10 +0100
-Message-ID: <20100628171410.GA27367@srcf.ucam.org>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz> <4C27E965.80508@gmail.com> <4C283D84.6080504@suse.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/6] ACPI: Introduce acpi_gpe_wakeup()
+Date: Mon, 28 Jun 2010 14:16:50 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006281416430.16755@localhost.localdomain>
+References: <201006250117.45148.rjw@sisk.pl> <201006250118.39553.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41522 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712Ab0F1RO0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 13:14:26 -0400
-Content-Disposition: inline
-In-Reply-To: <4C283D84.6080504@suse.cz>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:39514 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808Ab0F1SRS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 14:17:18 -0400
+Received: from localhost.localdomain ([unknown] [64.140.212.33])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L4Q005SZLG7Y520@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 28 Jun 2010 13:17:09 -0500 (CDT)
+In-reply-to: <201006250118.39553.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: Robert Hancock <hancockrwd@gmail.com>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, len.brown@intel.com, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Mon, Jun 28, 2010 at 08:13:24AM +0200, Jiri Slaby wrote:
-> On 06/28/2010 02:14 AM, Robert Hancock wrote:
-> > That seems a rather serious DSDT flaw. Do devices in that slot work in
-> > Windows?
-> 
-> Yes, the DSDT is pretty broken this way there. Regarding Windows, I
-> don't know and I doubt anybody will ever try.
+applied
 
-http://www-07.ibm.com/hk/products/pos/300/specs.html indicates that 
-Windows is supported on this hardware. It would be good to verify that 
-it also fails before we try a model-specific quirk.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
