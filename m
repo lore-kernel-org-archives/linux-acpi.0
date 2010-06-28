@@ -1,22 +1,21 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 5/6] ACPI / ACPICA: Use low-level GPE enable during GPE
- block initialization
-Date: Mon, 28 Jun 2010 14:25:34 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006281425310.16755@localhost.localdomain>
-References: <201006250117.45148.rjw@sisk.pl> <201006250122.38904.rjw@sisk.pl>
+Subject: Re: [PATCH 6/6] ACPI / ACPICA: Drop acpi_set_gpe
+Date: Mon, 28 Jun 2010 14:25:43 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006281425400.16755@localhost.localdomain>
+References: <201006250117.45148.rjw@sisk.pl> <201006250123.41796.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:35201 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808Ab0F1SZs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 14:25:48 -0400
+Received: from vms173013pub.verizon.net ([206.46.173.13]:46645 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263Ab0F1S0B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 14:26:01 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173019.mailsrvcs.net
+ by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L4Q002XZLUNXZ30@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 28 Jun 2010 13:25:36 -0500 (CDT)
-In-reply-to: <201006250122.38904.rjw@sisk.pl>
+ with ESMTPA id <0L4Q00F60LUWS3J1@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 28 Jun 2010 13:25:50 -0500 (CDT)
+In-reply-to: <201006250123.41796.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
