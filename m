@@ -1,42 +1,37 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Mon, 28 Jun 2010 21:48:20 +0100
-Message-ID: <20100628204820.GA32503@srcf.ucam.org>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz> <4C27E965.80508@gmail.com> <4C283D84.6080504@suse.cz> <20100628171410.GA27367@srcf.ucam.org> <4C290245.2040001@suse.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PNPACPI: add support for remote wakeup
+Date: Mon, 28 Jun 2010 23:28:47 +0200
+Message-ID: <201006282328.47626.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1006071645090.18836-100000@iolanthe.rowland.org> <20100614150236.GA23339@srcf.ucam.org> <201006140905.49388.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36282 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115Ab0F1Us3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 16:48:29 -0400
-Content-Disposition: inline
-In-Reply-To: <4C290245.2040001@suse.cz>
+Received: from ogre.sisk.pl ([217.79.144.158]:57795 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753442Ab0F1VaN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jun 2010 17:30:13 -0400
+In-Reply-To: <201006140905.49388.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: Robert Hancock <hancockrwd@gmail.com>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, Jun 28, 2010 at 10:12:53PM +0200, Jiri Slaby wrote:
-> On 06/28/2010 07:14 PM, Matthew Garrett wrote:
-> > http://www-07.ibm.com/hk/products/pos/300/specs.html indicates that 
-> > Windows is supported on this hardware. It would be good to verify that 
-> > it also fails before we try a model-specific quirk.
+On Monday, June 14, 2010, Bjorn Helgaas wrote:
+> On Monday, June 14, 2010 09:02:36 am Matthew Garrett wrote:
+> > On Sat, Jun 12, 2010 at 11:44:00PM +0200, Rafael J. Wysocki wrote:
+> > 
+> > > Len, Matthew, is anyone going to merge this patch?  It looks entirely correct
+> > > and useful.
+> > > 
+> > > Or should I take it?
+> > 
+> > Either Len, you or Bjorn would be my guesses.
 > 
-> It would be good for what? I don't see the point, DSDT is broken on that
-> machine and the patch works this around. Why do we need testruns from
-> Windows? And why you think Windows will fail anyway, they can very have
-> the pretty same quirk there.
+> I don't have a tree to merge anything myself.  I send PNP stuff through
+> Len (and I'm OK with this particular patch).
 
-I can guarantee to you that a generic Windows install does not have a 
-quirk for an IBM PoS system released years after that CD was pressed. 
-The relevance is that if Windows works without a quirk, then somewhere 
-our behaviour diverges from that of Windows and it's likely that other 
-machines are also hit by the same issue. Users of those systems may not 
-have a support contract with a commercial Linux vendor and may just 
-decide to use Windows instead, so there's an incentive for us to 
-determine if that's the case and fix Linux's behaviour to match Windows 
-rather than to just quirk over it.
+I'm going to take it, then.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Rafael
