@@ -1,70 +1,40 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi/processor: fix for !CONFIG_CPU_IDLE
-Date: Mon, 28 Jun 2010 14:42:02 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006281440430.16755@localhost.localdomain>
-References: <4C238A8902000078000080B1@vpn.id2.novell.com>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Mon, 28 Jun 2010 22:12:53 +0200
+Message-ID: <4C290245.2040001@suse.cz>
+References: <1277673679-21458-1-git-send-email-jslaby@suse.cz> <4C27E965.80508@gmail.com> <4C283D84.6080504@suse.cz> <20100628171410.GA27367@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:50490 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab0F1SmJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 14:42:09 -0400
-Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L4Q003TNMM3I8G2@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 28 Jun 2010 13:42:05 -0500 (CDT)
-In-reply-to: <4C238A8902000078000080B1@vpn.id2.novell.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51301 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387Ab0F1UNB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 16:13:01 -0400
+In-Reply-To: <20100628171410.GA27367@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@novell.com>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Robert Hancock <hancockrwd@gmail.com>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Thu, 24 Jun 2010, Jan Beulich wrote:
+On 06/28/2010 07:14 PM, Matthew Garrett wrote:
+> On Mon, Jun 28, 2010 at 08:13:24AM +0200, Jiri Slaby wrote:
+>> On 06/28/2010 02:14 AM, Robert Hancock wrote:
+>>> That seems a rather serious DSDT flaw. Do devices in that slot work in
+>>> Windows?
+>>
+>> Yes, the DSDT is pretty broken this way there. Regarding Windows, I
+>> don't know and I doubt anybody will ever try.
+> 
+> http://www-07.ibm.com/hk/products/pos/300/specs.html indicates that 
+> Windows is supported on this hardware. It would be good to verify that 
+> it also fails before we try a model-specific quirk.
 
-> The conditional modified (to have an 'else' portion) in commit
-> 2671717265ae6e720a9ba5f13fbec3a718983b65 degenerates to an
-> unconditional NULL dereference when CONFIG_CPU_IDLE is off, as
-> cpuidle_register_driver() returns non-zero in this case, and
-> cpu_idle_get_driver() returns NULL. The simplest solution is to make
-> the whole construct depend on CONFIG_CPU_IDLE bein defined.
-> 
-> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+It would be good for what? I don't see the point, DSDT is broken on that
+machine and the patch works this around. Why do we need testruns from
+Windows? And why you think Windows will fail anyway, they can very have
+the pretty same quirk there.
 
-As CONFIG_ACPI selects CONFIG_CPU_IDLE,
-how were you able to provoke this issue?
-
-thanks,
--Len Brown, Intel Open Source Technology Center
-
-> ---
->  drivers/acpi/processor_driver.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> --- linux-2.6.35-rc3/drivers/acpi/processor_driver.c
-> +++ 2.6.35-rc3-acpi-no-cpuidle/drivers/acpi/processor_driver.c
-> @@ -922,6 +922,7 @@ static int __init acpi_processor_init(vo
->  		return -ENOMEM;
->  #endif
->  
-> +#ifdef CONFIG_CPU_IDLE
->  	if (!cpuidle_register_driver(&acpi_idle_driver)) {
->  		printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
->  			acpi_idle_driver.name);
-> @@ -929,6 +930,7 @@ static int __init acpi_processor_init(vo
->  		printk(KERN_DEBUG "ACPI: acpi_idle yielding to %s",
->  			cpuidle_get_driver()->name);
->  	}
-> +#endif
->  
->  	result = acpi_bus_register_driver(&acpi_processor_driver);
->  	if (result < 0)
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+js
+suse labs
