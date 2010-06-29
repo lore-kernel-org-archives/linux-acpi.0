@@ -1,82 +1,93 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not
- used
-Date: Mon, 28 Jun 2010 20:23:56 -0700
-Message-ID: <4C29674C.9070503@gmail.com>
-References: <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.35-rc3 regression: IBM Maia system is unbootable [ACPI
+ related?]
+Date: Mon, 28 Jun 2010 23:49:46 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006282346320.16755@localhost.localdomain>
+References: <1277136189.10998.63.camel@mulgrave.site>
+ <87pqzkqrzq.fsf@basil.nowhere.org>  <1277138034.10998.69.camel@mulgrave.site>
+ <1277139286.10998.72.camel@mulgrave.site>
+ <1277141166.10998.79.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:42361 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751298Ab0F2DXi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jun 2010 23:23:38 -0400
-In-Reply-To: <8066.1277750854@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <1277141166.10998.79.camel@mulgrave.site>
+Sender: linux-pci-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-o.k. after stepping out for a while.. I'm finally sitting down and 
-looking at this. below is what I came up with.. hopefully it's in the 
-area/vecinity of what might be a good idea for this(if not then let me know)
+From: Len Brown <len.brown@intel.com>
+Subject: [PATCH] ACPI: handle systems which asynchoronously enable ACPI mode
 
+Folklore suggested that such systems existed
+in the pre-history of ACPI.
 
+However, we removed the SCI_EN polling loop from
+acpi_hw_set_mode() in b430acbd7c4b919886fa7fd92eeb7a695f1940d3
+because it delayed resume by 3 seconds on boxes
+that refused to set SCI_EN.
 
- From da5cfa463f29ff3fe4af3874649db0809e50ab96 Mon Sep 17 00:00:00 2001
-From: Justin P. Mattock <justinmattock@gmail.com>
-Date: Mon, 28 Jun 2010 20:14:50 -0700
-Subject: [PATCH] glue.c
-  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+Matthew removed the call to acpi_enable() from
+the suspend resume path.
 
+James found a modern system that still needs to be polled
+upon boot.
+
+So here we restore the workaround, except that we
+put it in acpi_enable() rather than the low level
+acpi_hw_set_mode().
+
+https://bugzilla.kernel.org/show_bug.cgi?id=16271
+
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
-  drivers/acpi/glue.c |   12 +++++++++---
-  1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 4af6301..970d7f3 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -145,6 +145,7 @@ static int acpi_bind_one(struct device *dev, 
-acpi_handle handle)
-  {
-  	struct acpi_device *acpi_dev;
-  	acpi_status status;
-+	int fn, pn;
+James, What does the IBM system see with this patch?
 
-  	if (dev->archdata.acpi_handle) {
-  		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
-@@ -160,12 +161,17 @@ static int acpi_bind_one(struct device *dev, 
-acpi_handle handle)
+thanks,
+-Len
 
-  	status = acpi_bus_get_device(handle, &acpi_dev);
-  	if (!ACPI_FAILURE(status)) {
--		int ret;
+ drivers/acpi/acpica/evxfevnt.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
--		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
-+		fn = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
-  				"firmware_node");
--		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-+		pn = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-  				"physical_node");
-+	if (fn) {
-+ 			printk(KERN_WARNING "dev%d: Failed to create firmware_node: %d\n", 
-status, fn);
-+	}else if (pn) {
-+			printk(KERN_WARNING "dev%d: Failed to create physical_node: %d\n", 
-status, pn);
-+ 			return 0;
+diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
+index d97b8dc..18b3f14 100644
+--- a/drivers/acpi/acpica/evxfevnt.c
++++ b/drivers/acpi/acpica/evxfevnt.c
+@@ -70,6 +70,7 @@ acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ acpi_status acpi_enable(void)
+ {
+ 	acpi_status status;
++	int retry;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_enable);
+ 
+@@ -98,16 +99,18 @@ acpi_status acpi_enable(void)
+ 
+ 	/* Sanity check that transition succeeded */
+ 
+-	if (acpi_hw_get_mode() != ACPI_SYS_MODE_ACPI) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Hardware did not enter ACPI mode"));
+-		return_ACPI_STATUS(AE_NO_HARDWARE_RESPONSE);
++	for (retry = 0; retry < 30000; ++retry) {
++		if (acpi_hw_get_mode() == ACPI_SYS_MODE_ACPI) {
++			if (retry != 0)
++				ACPI_WARNING((AE_INFO,
++				"Platform took > %d00 usec to enter ACPI mode", retry));
++			return_ACPI_STATUS(AE_OK);
 +		}
-  		if (acpi_dev->wakeup.flags.valid) {
-  			device_set_wakeup_capable(dev, true);
-  			device_set_wakeup_enable(dev,
++		acpi_os_stall(100);	/* 100 usec */
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INIT,
+-			  "Transition to ACPI mode successful\n"));
+-
+-	return_ACPI_STATUS(AE_OK);
++	ACPI_ERROR((AE_INFO, "Hardware did not enter ACPI mode"));
++	return_ACPI_STATUS(AE_NO_HARDWARE_RESPONSE);
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_enable)
 -- 
-1.7.1.rc1.21.gf3bd6
-
-
-keep in mind Im not exactly sure what should go into the printk
-as for words to say, and functions, so I just used status, fn/pn
-for the two because I was getting a not enough function error.
-
-Justin P. Mattock
+1.7.2.rc0
