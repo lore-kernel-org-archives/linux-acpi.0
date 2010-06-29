@@ -1,37 +1,33 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Subject: Re: [PATCH] acpi/processor: fix for !CONFIG_CPU_IDLE
-Date: Tue, 29 Jun 2010 07:45:28 +0100
-Message-ID: <4C29B2A80200007800008850@vpn.id2.novell.com>
-References: <4C238A8902000078000080B1@vpn.id2.novell.com>
- <alpine.LFD.2.00.1006281440430.16755@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Stable inclusion request - NVS changes from Matthew
+Date: Tue, 29 Jun 2010 11:28:43 +0200
+Message-ID: <201006291128.44099.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1006281440430.16755@localhost.localdomain>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:59734 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752354Ab0F2JaR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jun 2010 05:30:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, stable@kernel.org
 
->>> On 28.06.10 at 20:42, Len Brown <lenb@kernel.org> wrote:
-> On Thu, 24 Jun 2010, Jan Beulich wrote:
-> 
->> The conditional modified (to have an 'else' portion) in commit
->> 2671717265ae6e720a9ba5f13fbec3a718983b65 degenerates to an
->> unconditional NULL dereference when CONFIG_CPU_IDLE is off, as
->> cpuidle_register_driver() returns non-zero in this case, and
->> cpu_idle_get_driver() returns NULL. The simplest solution is to make
->> the whole construct depend on CONFIG_CPU_IDLE bein defined.
->> 
->> Signed-off-by: Jan Beulich <jbeulich@novell.com>
-> 
-> As CONFIG_ACPI selects CONFIG_CPU_IDLE,
-> how were you able to provoke this issue?
+Hi Greg,
 
-Oh, indeed, I forgot that it's a specific of our kernels that the select
-is a conditional one. Sorry for the noise then.
+Please include
 
-Jan
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=dd4c4f17d722ffeb2515bf781400675a30fcead7
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=2a6b69765ad794389f2fc3e14a0afa1a995221c2
 
+(in this order) into the next 2.6.34.y release (and possibly older maintained
+-stable kernels where they apply).
+
+The first one requires a little fixup in kernel/power/Makefile , but apart from
+this they apply to 2.6.34 just fine.
+
+Thanks,
+Rafael
