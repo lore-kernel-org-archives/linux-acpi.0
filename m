@@ -1,57 +1,46 @@
-From: "Bob Zhang" <bob_zhang2004@tom.com>
-Subject: Re: [bug report ] hp's rx2860 (kernel is 2.6.27.19-5 in sles11 ia64)
- power off failrue when "shutdown -h 0" .
-Date: Tue, 29 Jun 2010 22:30:03 +0800
-Message-ID: <op.ve2fwdvf8m5662@bob-pc>
-References: <201006242333018701088@tom.com>
- <AANLkTinT8YMKGw3obdbIMINkUGNUgfUQEOEzgHMOPOtt@mail.gmail.com>
+From: Raz <raziebe@gmail.com>
+Subject: CRASH: core dump while bringing a processor online
+Date: Tue, 29 Jun 2010 18:17:35 +0300
+Message-ID: <AANLkTinvV6hRsIUDXNwF9gti6WgqYCUSZVwmmfBYoAoZ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gbk; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpr2.tom.com ([202.108.255.197]:54838 "HELO tom.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1756162Ab0F2OaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jun 2010 10:30:08 -0400
-In-Reply-To: <AANLkTinT8YMKGw3obdbIMINkUGNUgfUQEOEzgHMOPOtt@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:56734 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756484Ab0F2PR4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jun 2010 11:17:56 -0400
+Received: by fxm14 with SMTP id 14so1463056fxm.19
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Jun 2010 08:17:55 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@intel.com>
-Cc: "len.brown" <len.brown@intel.com>, linux-ia64 <linux-ia64@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com
 
-I finally found "S5" definition , details can got from my following reply.
-Next step, I will send this information to firmware engineer to verify
-SSDT17.dsl is right for our sentosa. Because same values into registers  
-every
-time, but got different hardware behaviors.
-So we must doubt hardware and firmware design.
-Now, from software point of view : acpi_enter_sleep_state() is the last
-function to run when shutdown machine , which write value into acpi  
-registers
-to tell hardware to enter S5 (SLP_TYPx and SLP_EN)  .Once written to these  
-two
-registers, software task has been over. The left things are hardware is to
-work. So I think Linux kernel is good, this issue is from related with
-kernel,at acpi driver's logic is right. I have printed values which will be
-written to acpi registers , those values are the same every time, but  
-hardware
-has different behaviors , so we need firmware engineer to help me check .
+Len Hello
 
-Maybe I need to ask firmware designer what is the meaning of this  
-definition:
-Where is {0x7,0x7} from ?? which datasheet ? which document ?
-In "SSDT17.dsl" .
-DefinitionBlock ("SSDT17.aml", "SSDT", 2, "HP    ", "RX2800-2", 0x00000007)
-{
-     Scope (\)
-     {
-         Name (\_S5, Package (0x03)
-         {
-             0x07,
-             0x07,
-             Zero
-         })
-     }
-This is equal of that return from acpi_get_sleep_type_data(5,&type_a,  
-&type_b)
+My program offline a processor and uses it as some sort of an engine (
+aka offline scheduler, if you recall).
+It seems that it is possible to hung the kernel when a huge core dump
+(40G) is been dumped while brining
+a processor online at the same time.
+I debugged the cpu_up code a bit and it seems that it hangs possibly
+around the bellow code.
 
+wakeup_secondary_via_INIT()
+....
+      for (j = 1; j <= num_starts; j++) {
+                Dprintk("Sending STARTUP #%d.\n",j);
+                apic_write(APIC_ESR, 0);
+                apic_read(APIC_ESR);
+                Dprintk("After apic_write.\n");
+....
+
+I am using redhat kernels. 2.6.18-164 ( redhat 5.4 ) or 2.6.18-8.el5 (
+reddhat 5.0 ).
+happens in both kernels.
+
+Is this a known issue ? Is there a patch somewhere ? if so, what is
+the problem ?
+
+thank you
+raz
