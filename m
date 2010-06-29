@@ -1,48 +1,113 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Tue, 29 Jun 2010 20:40:39 +0200
-Message-ID: <4C2A3E27.4060407@suse.cz>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>	<4C27E965.80508@gmail.com>	<4C283D84.6080504@suse.cz>	<20100628171410.GA27367@srcf.ucam.org>	<4C290245.2040001@suse.cz>	<20100628204820.GA32503@srcf.ucam.org> <AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not
+ used
+Date: Tue, 29 Jun 2010 14:53:48 -0700
+Message-ID: <4C2A6B6C.1000306@gmail.com>
+References: <4C29674C.9070503@gmail.com> <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com> <22319.1277826461@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38991 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755209Ab0F2Skb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jun 2010 14:40:31 -0400
-In-Reply-To: <AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:56405 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753414Ab0F2Vx2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jun 2010 17:53:28 -0400
+In-Reply-To: <22319.1277826461@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: David Howells <dhowells@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On 06/28/2010 11:37 PM, Robert Hancock wrote:
-> On Mon, Jun 28, 2010 at 2:48 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> I can guarantee to you that a generic Windows install does not have a
->> quirk for an IBM PoS system released years after that CD was pressed.
+On 06/29/2010 08:47 AM, David Howells wrote:
+> Justin P. Mattock<justinmattock@gmail.com>  wrote:
+>
+>> +	if (fn) {
+>> + 			printk(KERN_WARNING "dev%d: Failed to create
+>> firmware_node: %d\n", status, fn);
+>> +	}else if (pn) {
+>> +			printk(KERN_WARNING "dev%d: Failed to create
+>> physical_node: %d\n", status, pn);
+>> + 			return 0;
+>> +		}
+>
+> The if-statement should be correctly indented (it's inside another
+> if-body, so needs to be one more tab over) and there needs to be a space
+> before the else.
+>
+> You should probably split your printks up so they don't exceed 80 chars too,
+> for example:
+>
+> 			printk(KERN_WARNING
+> 			       "dev%d: Failed to create physical_node: %d\n",
+> 			       status, pn);
+>
+> Also 'status' is probably the wrong thing to print as the number in "dev%d".
+> If it worked, that should be unconditionally AE_OK, I think.  Can you not use
+> dev_warn() or similar instead or printk?
+>
+> David
+>
 
-The system in question is very old, any current Windows release is newer
-than that.
 
->> The relevance is that if Windows works without a quirk, then somewhere
->> our behaviour diverges from that of Windows and it's likely that other
->> machines are also hit by the same issue. Users of those systems may not
->> have a support contract with a commercial Linux vendor and may just
->> decide to use Windows instead, so there's an incentive for us to
->> determine if that's the case and fix Linux's behaviour to match Windows
->> rather than to just quirk over it.
-> 
-> Exactly, this seems like a pretty obvious failure, so either IBM's
-> testing on this machine under Windows was hopelessly inadequate and it
-> is broken there too, or else Windows is doing something different and
-> maybe we should be doing the same thing..
+o.k. heres another go at this.. this goes through, using dev_warn
+but am uncertain about using these three for the right info dev, %p, 
+dev_acpi
 
-The answer I got is "it works there with a driver" whatever it means
-(I'm no expert on windows drivers and have no idea what they can do and
-what quirks can be implemented that way).
+but give it a look whenever you have the time, and let me know
+then I'll go from there..
 
-regards,
+
+
+ From 34485b5709dc9ad18c57be8c672236580300e05c Mon Sep 17 00:00:00 2001
+From: Justin P. Mattock <justinmattock@gmail.com>
+Date: Tue, 29 Jun 2010 14:47:42 -0700
+Subject: [PATCH ]ACPI:glue.c
+  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+
+---
+  drivers/acpi/glue.c |   15 ++++++++++++---
+  1 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 4af6301..69ca24d 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -145,6 +145,7 @@ static int acpi_bind_one(struct device *dev, 
+acpi_handle handle)
+  {
+  	struct acpi_device *acpi_dev;
+  	acpi_status status;
++	int fn, pn;
+
+  	if (dev->archdata.acpi_handle) {
+  		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
+@@ -160,12 +161,20 @@ static int acpi_bind_one(struct device *dev, 
+acpi_handle handle)
+
+  	status = acpi_bus_get_device(handle, &acpi_dev);
+  	if (!ACPI_FAILURE(status)) {
+-		int ret;
+
+-		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
++		fn = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
+  				"firmware_node");
+-		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
++		pn = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+  				"physical_node");
++	if (fn) {
++		dev_warn(dev, "dev:%p Failed to create firmware_node: %d\n",
++			acpi_dev, fn);
++
++		} else if (pn) {
++		dev_warn(dev, "dev:%p Failed to create physical_node: %d\n",
++			acpi_dev, pn);
++			return AE_ERROR;
++		}
+  		if (acpi_dev->wakeup.flags.valid) {
+  			device_set_wakeup_capable(dev, true);
+  			device_set_wakeup_enable(dev,
 -- 
-js
-suse labs
+1.7.1.rc1.21.gf3bd6
+
+
+Justin P. Mattock
