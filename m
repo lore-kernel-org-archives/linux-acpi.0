@@ -1,46 +1,43 @@
-From: Raz <raziebe@gmail.com>
-Subject: CRASH: core dump while bringing a processor online
-Date: Tue, 29 Jun 2010 18:17:35 +0300
-Message-ID: <AANLkTinvV6hRsIUDXNwF9gti6WgqYCUSZVwmmfBYoAoZ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not used
+Date: Tue, 29 Jun 2010 16:47:41 +0100
+Message-ID: <22319.1277826461@redhat.com>
+References: <4C29674C.9070503@gmail.com> <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56734 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756484Ab0F2PR4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jun 2010 11:17:56 -0400
-Received: by fxm14 with SMTP id 14so1463056fxm.19
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Jun 2010 08:17:55 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:5982 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756587Ab0F2Prs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jun 2010 11:47:48 -0400
+In-Reply-To: <4C29674C.9070503@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Len Hello
+Justin P. Mattock <justinmattock@gmail.com> wrote:
 
-My program offline a processor and uses it as some sort of an engine (
-aka offline scheduler, if you recall).
-It seems that it is possible to hung the kernel when a huge core dump
-(40G) is been dumped while brining
-a processor online at the same time.
-I debugged the cpu_up code a bit and it seems that it hangs possibly
-around the bellow code.
+> +	if (fn) {
+> + 			printk(KERN_WARNING "dev%d: Failed to create
+> firmware_node: %d\n", status, fn);
+> +	}else if (pn) {
+> +			printk(KERN_WARNING "dev%d: Failed to create
+> physical_node: %d\n", status, pn);
+> + 			return 0;
+> +		}
 
-wakeup_secondary_via_INIT()
-....
-      for (j = 1; j <= num_starts; j++) {
-                Dprintk("Sending STARTUP #%d.\n",j);
-                apic_write(APIC_ESR, 0);
-                apic_read(APIC_ESR);
-                Dprintk("After apic_write.\n");
-....
+The if-statement should be correctly indented (it's inside another
+if-body, so needs to be one more tab over) and there needs to be a space
+before the else.
 
-I am using redhat kernels. 2.6.18-164 ( redhat 5.4 ) or 2.6.18-8.el5 (
-reddhat 5.0 ).
-happens in both kernels.
+You should probably split your printks up so they don't exceed 80 chars too,
+for example:
 
-Is this a known issue ? Is there a patch somewhere ? if so, what is
-the problem ?
+			printk(KERN_WARNING
+			       "dev%d: Failed to create physical_node: %d\n",
+			       status, pn);
 
-thank you
-raz
+Also 'status' is probably the wrong thing to print as the number in "dev%d".
+If it worked, that should be unconditionally AE_OK, I think.  Can you not use
+dev_warn() or similar instead or printk?
+
+David
