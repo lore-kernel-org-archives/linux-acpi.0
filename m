@@ -1,43 +1,67 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not used
-Date: Tue, 29 Jun 2010 16:47:41 +0100
-Message-ID: <22319.1277826461@redhat.com>
-References: <4C29674C.9070503@gmail.com> <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: 2.6.35-rc3 regression: IBM Maia system is unbootable [ACPI
+ related?]
+Date: Tue, 29 Jun 2010 11:49:08 -0500
+Message-ID: <1277830148.4379.14.camel@mulgrave.site>
+References: <1277136189.10998.63.camel@mulgrave.site>
+	 <87pqzkqrzq.fsf@basil.nowhere.org>
+	 <1277138034.10998.69.camel@mulgrave.site>
+	 <1277139286.10998.72.camel@mulgrave.site>
+	 <1277141166.10998.79.camel@mulgrave.site>
+	 <alpine.LFD.2.00.1006282346320.16755@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5982 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756587Ab0F2Prs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jun 2010 11:47:48 -0400
-In-Reply-To: <4C29674C.9070503@gmail.com>
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:34222 "EHLO
+	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755786Ab0F2QtL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jun 2010 12:49:11 -0400
+In-Reply-To: <alpine.LFD.2.00.1006282346320.16755@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Justin P. Mattock <justinmattock@gmail.com> wrote:
+On Mon, 2010-06-28 at 23:49 -0400, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> Subject: [PATCH] ACPI: handle systems which asynchoronously enable ACPI mode
+> 
+> Folklore suggested that such systems existed
+> in the pre-history of ACPI.
+> 
+> However, we removed the SCI_EN polling loop from
+> acpi_hw_set_mode() in b430acbd7c4b919886fa7fd92eeb7a695f1940d3
+> because it delayed resume by 3 seconds on boxes
+> that refused to set SCI_EN.
+> 
+> Matthew removed the call to acpi_enable() from
+> the suspend resume path.
+> 
+> James found a modern system that still needs to be polled
+> upon boot.
+> 
+> So here we restore the workaround, except that we
+> put it in acpi_enable() rather than the low level
+> acpi_hw_set_mode().
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=16271
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+> 
+> James, What does the IBM system see with this patch?
 
-> +	if (fn) {
-> + 			printk(KERN_WARNING "dev%d: Failed to create
-> firmware_node: %d\n", status, fn);
-> +	}else if (pn) {
-> +			printk(KERN_WARNING "dev%d: Failed to create
-> physical_node: %d\n", status, pn);
-> + 			return 0;
-> +		}
+The output is this:
 
-The if-statement should be correctly indented (it's inside another
-if-body, so needs to be one more tab over) and there needs to be a space
-before the else.
+[    0.084088] ACPI: Core revision 20100428
+[    0.119451] ACPI Warning: Platform took > 100 usec to enter ACPI mode (20100428/evxfevnt-106)
+[    0.128231] Setting APIC routing to physical flat
 
-You should probably split your printks up so they don't exceed 80 chars too,
-for example:
+So it's very fast ... actually it's behaving like there's some caching
+issue and it needs two reads to return the correct value
 
-			printk(KERN_WARNING
-			       "dev%d: Failed to create physical_node: %d\n",
-			       status, pn);
+James
 
-Also 'status' is probably the wrong thing to print as the number in "dev%d".
-If it worked, that should be unconditionally AE_OK, I think.  Can you not use
-dev_warn() or similar instead or printk?
 
-David
