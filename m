@@ -1,237 +1,58 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 5/6] X86 platform drivers: Remove EC dump
-	from thinkpad_acpi
-Date: Thu,  1 Jul 2010 17:02:49 +0200
-Message-ID: <1277996570-2686-6-git-send-email-trenn@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 6/6] X86 platform driver: Fix section mismatch in wmi.c
+Date: Thu,  1 Jul 2010 17:02:50 +0200
+Message-ID: <1277996570-2686-7-git-send-email-trenn@suse.de>
 References: <1277996570-2686-1-git-send-email-trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1277996570-2686-1-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, astarikovskiy-l3A5Bk7waGM@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:59216 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756554Ab0GAPCy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jul 2010 11:02:54 -0400
+In-Reply-To: <1277996570-2686-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, Thomas Renninger <trenn@suse.de>
 
-There is a general interface for that now (provided by
-other patches in this patch series):
-/sys/devices/system/ec/*/io
+The .add function must not be declared __init.
 
-Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-CC: Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
-CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-CC: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-CC: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-kernel@vger.kernel.org
+CC: linux-acpi@vger.kernel.org
+CC: platform-driver-x86@vger.kernel.org
 
 
-Index: linux-2.6.34-master/drivers/platform/x86/thinkpad_acpi.c
+Index: linux-2.6.34-master/drivers/platform/x86/wmi.c
 ===================================================================
 ---
- Documentation/laptops/thinkpad-acpi.txt |   75 -------------------------------
- drivers/platform/x86/thinkpad_acpi.c    |   73 ------------------------------
- 2 files changed, 0 insertions(+), 148 deletions(-)
+ drivers/platform/x86/wmi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index fc15538..85b1039 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -960,81 +960,6 @@ Sysfs notes:
- 	subsystem, and follow all of the hwmon guidelines at
- 	Documentation/hwmon.
- 
--
--EXPERIMENTAL: Embedded controller register dump -- /proc/acpi/ibm/ecdump
--------------------------------------------------------------------------
--
--This feature is marked EXPERIMENTAL because the implementation
--directly accesses hardware registers and may not work as expected. USE
--WITH CAUTION! To use this feature, you need to supply the
--experimental=1 parameter when loading the module.
--
--This feature dumps the values of 256 embedded controller
--registers. Values which have changed since the last time the registers
--were dumped are marked with a star:
--
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
--EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
--EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
--EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
--EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
--EC 0x30:  01  07  1a  00  30  04  00  00 *85  00  00  10  00  50  00  00
--EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
--EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03 *bc *02 *bc
--EC 0x60: *02 *bc *02  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0x70:  00  00  00  00  00  12  30  40 *24 *26 *2c *27 *20  80 *1f  80
--EC 0x80:  00  00  00  06 *37 *0e  03  00  00  00  0e  07  00  00  00  00
--EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xa0: *ff  09  ff  09  ff  ff *64  00 *00 *00 *a2  41 *ff *ff *e0  00
--EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
--EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
--
--This feature can be used to determine the register holding the fan
--speed on some models. To do that, do the following:
--
--	- make sure the battery is fully charged
--	- make sure the fan is running
--	- run 'cat /proc/acpi/ibm/ecdump' several times, once per second or so
--
--The first step makes sure various charging-related values don't
--vary. The second ensures that the fan-related values do vary, since
--the fan speed fluctuates a bit. The third will (hopefully) mark the
--fan register with a star:
--
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
--EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
--EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
--EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
--EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
--EC 0x30:  01  07  1a  00  30  04  00  00  85  00  00  10  00  50  00  00
--EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
--EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03  bc  02  bc
--EC 0x60:  02  bc  02  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0x70:  00  00  00  00  00  12  30  40  24  27  2c  27  21  80  1f  80
--EC 0x80:  00  00  00  06 *be  0d  03  00  00  00  0e  07  00  00  00  00
--EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xa0:  ff  09  ff  09  ff  ff  64  00  00  00  a2  41  ff  ff  e0  00
--EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
--EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
--
--Another set of values that varies often is the temperature
--readings. Since temperatures don't change vary fast, you can take
--several quick dumps to eliminate them.
--
--You can use a similar method to figure out the meaning of other
--embedded controller registers - e.g. make sure nothing else changes
--except the charging or discharging battery to determine which
--registers contain the current battery capacity, etc. If you experiment
--with this, do send me your results (including some complete dumps with
--a description of the conditions when they were taken.)
--
--
- LCD brightness control
- ----------------------
- 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 4bdb137..5d6119b 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -5838,75 +5838,6 @@ static struct ibm_struct thermal_driver_data = {
- };
- 
- /*************************************************************************
-- * EC Dump subdriver
-- */
--
--static u8 ecdump_regs[256];
--
--static int ecdump_read(struct seq_file *m)
--{
--	int i, j;
--	u8 v;
--
--	seq_printf(m, "EC      "
--		       " +00 +01 +02 +03 +04 +05 +06 +07"
--		       " +08 +09 +0a +0b +0c +0d +0e +0f\n");
--	for (i = 0; i < 256; i += 16) {
--		seq_printf(m, "EC 0x%02x:", i);
--		for (j = 0; j < 16; j++) {
--			if (!acpi_ec_read(i + j, &v))
--				break;
--			if (v != ecdump_regs[i + j])
--				seq_printf(m, " *%02x", v);
--			else
--				seq_printf(m, "  %02x", v);
--			ecdump_regs[i + j] = v;
--		}
--		seq_putc(m, '\n');
--		if (j != 16)
--			break;
--	}
--
--	/* These are way too dangerous to advertise openly... */
--#if 0
--	seq_printf(m, "commands:\t0x<offset> 0x<value>"
--		       " (<offset> is 00-ff, <value> is 00-ff)\n");
--	seq_printf(m, "commands:\t0x<offset> <value>  "
--		       " (<offset> is 00-ff, <value> is 0-255)\n");
--#endif
--	return 0;
--}
--
--static int ecdump_write(char *buf)
--{
--	char *cmd;
--	int i, v;
--
--	while ((cmd = next_cmd(&buf))) {
--		if (sscanf(cmd, "0x%x 0x%x", &i, &v) == 2) {
--			/* i and v set */
--		} else if (sscanf(cmd, "0x%x %u", &i, &v) == 2) {
--			/* i and v set */
--		} else
--			return -EINVAL;
--		if (i >= 0 && i < 256 && v >= 0 && v < 256) {
--			if (!acpi_ec_write(i, v))
--				return -EIO;
--		} else
--			return -EINVAL;
--	}
--
--	return 0;
--}
--
--static struct ibm_struct ecdump_driver_data = {
--	.name = "ecdump",
--	.read = ecdump_read,
--	.write = ecdump_write,
--	.flags.experimental = 1,
--};
--
--/*************************************************************************
-  * Backlight/brightness subdriver
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index e4eaa14..635ebb4 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -804,7 +804,7 @@ static bool guid_already_parsed(const char *guid_string)
+ /*
+  * Parse the _WDG method for the GUID data blocks
   */
+-static __init acpi_status parse_wdg(acpi_handle handle)
++static acpi_status parse_wdg(acpi_handle handle)
+ {
+ 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	union acpi_object *obj;
+@@ -947,7 +947,7 @@ static int acpi_wmi_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
  
-@@ -8883,9 +8814,6 @@ static struct ibm_init_struct ibms_init[] __initdata = {
- 		.data = &thermal_driver_data,
- 	},
- 	{
--		.data = &ecdump_driver_data,
--	},
--	{
- 		.init = brightness_init,
- 		.data = &brightness_driver_data,
- 	},
-@@ -8993,7 +8921,6 @@ TPACPI_PARAM(light);
- TPACPI_PARAM(cmos);
- TPACPI_PARAM(led);
- TPACPI_PARAM(beep);
--TPACPI_PARAM(ecdump);
- TPACPI_PARAM(brightness);
- TPACPI_PARAM(volume);
- TPACPI_PARAM(fan);
+-static int __init acpi_wmi_add(struct acpi_device *device)
++static int acpi_wmi_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+ 	int result = 0;
 -- 
 1.6.3
 
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Sprint
-What will you do first with EVO, the first 4G phone?
-Visit sprint.com/first -- http://p.sf.net/sfu/sprint-com-first
