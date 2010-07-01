@@ -1,168 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/5] ACPI / Wakeup: Simplify enabling of wakeup devices
-Date: Fri, 2 Jul 2010 00:13:26 +0200
-Message-ID: <201007020013.27000.rjw@sisk.pl>
-References: <201007020010.13755.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 5/6] X86 platform drivers: Remove EC dump from
+ thinkpad_acpi
+Date: Thu, 1 Jul 2010 20:26:03 -0300
+Message-ID: <20100701232603.GA15824@khazad-dum.debian.net>
+References: <1277996570-2686-1-git-send-email-trenn@suse.de>
+ <1277996570-2686-6-git-send-email-trenn@suse.de>
+ <20100701162741.GC4789@khazad-dum.debian.net>
+ <201007012131.20031.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42772 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932594Ab0GAWQ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 18:16:56 -0400
-In-Reply-To: <201007020010.13755.rjw@sisk.pl>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35726 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752493Ab0GAX0I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jul 2010 19:26:08 -0400
+Content-Disposition: inline
+In-Reply-To: <201007012131.20031.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@lists.linux-foundation.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, ibm-acpi-devel@lists.sourceforge.net
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Thu, 01 Jul 2010, Thomas Renninger wrote:
+> > Soes your helper userspace util do the "differential" analysis that
+> > thinkpad-acpi used to (the "*" after values that changed since last read)?
+> No.
+> But this should not be important enough to not get this removed.
 
-To simplify the enabling of wakeup devices during system suspend and
-hibernation, merge acpi_enable_wakeup_device_prep() with
-acpi_disable_wakeup_device() and remove unnecessary (and no longer
-valid) comments from the latter.  Rename acpi_enable_wakeup_device()
-to acpi_enable_wakeup_devices() and acpi_disable_wakeup_device()
-to acpi_disable_wakeup_devices(), because these functions usually
-operate on multiple device objects.
+Consider it a feature request ;-)
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep.c  |    5 ++---
- drivers/acpi/sleep.h  |    5 ++---
- drivers/acpi/wakeup.c |   50 +++++++++++---------------------------------------
- 3 files changed, 15 insertions(+), 45 deletions(-)
+> It's hard to re-implement the exact behaviour (which can be handy for
+> specific problems, I agree).
+> With:
+> watch -n1 ec_access -r
+> you can have a close look at specific registers and see them changing.
+> Whatabout:
+> ec_access -r -s time(s)
+> Reads the table once and again after "time" seconds with stars
+> where modifications happened. Then someone can plug AC or hit a button
+> and look at the diff in EC registers afterwards.
+> This should be sufficient?
 
-Index: linux-2.6/drivers/acpi/wakeup.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/wakeup.c
-+++ linux-2.6/drivers/acpi/wakeup.c
-@@ -21,46 +21,18 @@
- ACPI_MODULE_NAME("wakeup_devices")
- 
- /**
-- * acpi_enable_wakeup_device_prep - Prepare wake-up devices.
-+ * acpi_enable_wakeup_devices - Enable wake-up device GPEs.
-  * @sleep_state: ACPI system sleep state.
-  *
-- * Enable all wake-up devices' power, unless the requested system sleep state is
-- * too deep.
-+ * Enable wakeup device power of devices with the state.enable flag set and set
-+ * the wakeup enable mask bits in the GPE registers that correspond to wakeup
-+ * devices.
-  */
--void acpi_enable_wakeup_device_prep(u8 sleep_state)
-+void acpi_enable_wakeup_devices(u8 sleep_state)
- {
- 	struct list_head *node, *next;
- 
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
--		struct acpi_device *dev = container_of(node,
--						       struct acpi_device,
--						       wakeup_list);
--
--		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled
--		    || (sleep_state > (u32) dev->wakeup.sleep_state))
--			continue;
--
--		acpi_enable_wakeup_device_power(dev, sleep_state);
--	}
--}
--
--/**
-- * acpi_enable_wakeup_device - Enable wake-up device GPEs.
-- * @sleep_state: ACPI system sleep state.
-- *
-- * Enable all wake-up devices' GPEs, with the assumption that
-- * acpi_disable_all_gpes() was executed before, so we don't need to disable any
-- * GPEs here.
-- */
--void acpi_enable_wakeup_device(u8 sleep_state)
--{
--	struct list_head *node, *next;
--
--	/* 
--	 * Caution: this routine must be invoked when interrupt is disabled 
--	 * Refer ACPI2.0: P212
--	 */
--	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 			container_of(node, struct acpi_device, wakeup_list);
- 
-@@ -69,6 +41,9 @@ void acpi_enable_wakeup_device(u8 sleep_
- 		    || sleep_state > (u32) dev->wakeup.sleep_state)
- 			continue;
- 
-+		if (dev->wakeup.state.enabled)
-+			acpi_enable_wakeup_device_power(dev, sleep_state);
-+
- 		/* The wake-up power should have been enabled already. */
- 		acpi_gpe_wakeup(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
- 				ACPI_GPE_ENABLE);
-@@ -76,13 +51,10 @@ void acpi_enable_wakeup_device(u8 sleep_
- }
- 
- /**
-- * acpi_disable_wakeup_device - Disable devices' wakeup capability.
-+ * acpi_disable_wakeup_devices - Disable devices' wakeup capability.
-  * @sleep_state: ACPI system sleep state.
-- *
-- * This function only affects devices with wakeup.state.enabled set, which means
-- * that it reverses the changes made by acpi_enable_wakeup_device_prep().
-  */
--void acpi_disable_wakeup_device(u8 sleep_state)
-+void acpi_disable_wakeup_devices(u8 sleep_state)
- {
- 	struct list_head *node, *next;
- 
-@@ -92,7 +64,7 @@ void acpi_disable_wakeup_device(u8 sleep
- 
- 		if (!dev->wakeup.flags.valid
- 		    || !(dev->wakeup.state.enabled || dev->wakeup.prepare_count)
--		    || (sleep_state > (u32) dev->wakeup.sleep_state))
-+		    || sleep_state > (u32) dev->wakeup.sleep_state)
- 			continue;
- 
- 		acpi_gpe_wakeup(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
-Index: linux-2.6/drivers/acpi/sleep.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.h
-+++ linux-2.6/drivers/acpi/sleep.h
-@@ -2,9 +2,8 @@
- extern u8 sleep_states[];
- extern int acpi_suspend(u32 state);
- 
--extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
--extern void acpi_enable_wakeup_device(u8 sleep_state);
--extern void acpi_disable_wakeup_device(u8 sleep_state);
-+extern void acpi_enable_wakeup_devices(u8 sleep_state);
-+extern void acpi_disable_wakeup_devices(u8 sleep_state);
- 
- extern struct list_head acpi_wakeup_device_list;
- extern struct mutex acpi_device_lock;
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -73,8 +73,7 @@ static int acpi_sleep_prepare(u32 acpi_s
- #endif
- 	printk(KERN_INFO PREFIX "Preparing to enter system sleep state S%d\n",
- 		acpi_state);
--	acpi_enable_wakeup_device_prep(acpi_state);
--	acpi_enable_wakeup_device(acpi_state);
-+	acpi_enable_wakeup_devices(acpi_state);
- 	acpi_enter_sleep_state_prep(acpi_state);
- 	return 0;
- }
-@@ -154,7 +153,7 @@ static void acpi_pm_finish(void)
- 
- 	printk(KERN_INFO PREFIX "Waking up from system sleep state S%d\n",
- 		acpi_state);
--	acpi_disable_wakeup_device(acpi_state);
-+	acpi_disable_wakeup_devices(acpi_state);
- 	acpi_leave_sleep_state(acpi_state);
- 
- 	/* reset firmware waking vector */
+Yes.
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
