@@ -1,20 +1,28 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 6/6] X86 platform driver: Fix section mismatch in wmi.c
-Date: Thu,  1 Jul 2010 17:02:50 +0200
-Message-ID: <1277996570-2686-7-git-send-email-trenn@suse.de>
+Subject: [PATCH 3/6] ACPI: Register EC io ports in /proc/ioports
+Date: Thu,  1 Jul 2010 17:02:47 +0200
+Message-ID: <1277996570-2686-4-git-send-email-trenn@suse.de>
 References: <1277996570-2686-1-git-send-email-trenn@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59216 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756554Ab0GAPCy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 11:02:54 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1277996570-2686-1-git-send-email-trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The .add function must not be declared __init.
+Formerly these have been exposed through /proc/..
+Better register them where all IO ports should get registered
+and scream loud if someone else claims to use them.
+
+EC data and command port typically should show up like this
+then:
+...
+  0060-0060 : keyboard
+  0062-0062 : EC data
+  0064-0064 : keyboard
+  0066-0066 : EC command
+  0070-0071 : rtc0
+...
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 
@@ -22,37 +30,39 @@ CC: Alexey Starikovskiy <astarikovskiy@suse.de>
 CC: Len Brown <lenb@kernel.org>
 CC: linux-kernel@vger.kernel.org
 CC: linux-acpi@vger.kernel.org
+CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
 CC: platform-driver-x86@vger.kernel.org
 
-
-Index: linux-2.6.34-master/drivers/platform/x86/wmi.c
+Index: linux-2.6.34-master/drivers/acpi/ec.c
 ===================================================================
 ---
- drivers/platform/x86/wmi.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/ec.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index e4eaa14..635ebb4 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -804,7 +804,7 @@ static bool guid_already_parsed(const char *guid_string)
- /*
-  * Parse the _WDG method for the GUID data blocks
-  */
--static __init acpi_status parse_wdg(acpi_handle handle)
-+static acpi_status parse_wdg(acpi_handle handle)
- {
- 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
- 	union acpi_object *obj;
-@@ -947,7 +947,7 @@ static int acpi_wmi_remove(struct acpi_device *device, int type)
- 	return 0;
- }
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 4b6759f..f95fa9f 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -927,10 +927,18 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
+ 	 * the second address region returned is the status/command
+ 	 * port.
+ 	 */
+-	if (ec->data_addr == 0)
++	if (ec->data_addr == 0) {
+ 		ec->data_addr = resource->data.io.minimum;
+-	else if (ec->command_addr == 0)
++		WARN(!request_region(ec->data_addr, 1, "EC data"),
++		     "Could not request EC data io port %lu",
++		     ec->data_addr);
++	}
++	else if (ec->command_addr == 0) {
+ 		ec->command_addr = resource->data.io.minimum;
++		WARN(!request_region(ec->command_addr, 1, "EC command"),
++		     "Could not request EC command io port %lu",
++		     ec->command_addr);
++	}
+ 	else
+ 		return AE_CTRL_TERMINATE;
  
--static int __init acpi_wmi_add(struct acpi_device *device)
-+static int acpi_wmi_add(struct acpi_device *device)
- {
- 	acpi_status status;
- 	int result = 0;
 -- 
 1.6.3
-
