@@ -1,126 +1,43 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX 2/2] ACPI, APEI, Rename CPER and GHES severity constants
-Date: Thu,  1 Jul 2010 16:29:03 +0800
-Message-ID: <1277972943-1475-3-git-send-email-ying.huang@intel.com>
-References: <1277972943-1475-1-git-send-email-ying.huang@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: Bug 16210 -  BUG: scheduling while atomic:
+	swapper/0/0x10000002 when ACPI is initialised
+Date: Thu, 01 Jul 2010 16:45:57 +0800
+Message-ID: <1277973957.4144.14.camel@minggr.sh.intel.com>
+References: <1277973846.4144.11.camel@minggr.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34253 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:11033 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753203Ab0GAI3J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 04:29:09 -0400
-In-Reply-To: <1277972943-1475-1-git-send-email-ying.huang@intel.com>
+	id S1751963Ab0GAIpN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jul 2010 04:45:13 -0400
+In-Reply-To: <1277973846.4144.11.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>
+To: francois.valenduc@tvcablenet.be
+Cc: astarikovskiy@suse.de, fengguang.wu@intel.com, dfeng@redhat.com, "Moore, Robert" <robert.moore@intel.com>, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-The abbreviation of severity should be SEV instead of SER, so the CPER
-severity constants are renamed accordingly. GHES severity constants
-are renamed in the same way too.
+(CC linux-acpi list)
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- arch/x86/kernel/cpu/mcheck/mce-apei.c |    4 ++--
- drivers/acpi/apei/ghes.c              |   32 ++++++++++++++++----------------
- include/linux/cper.h                  |    8 ++++----
- 3 files changed, 22 insertions(+), 22 deletions(-)
+On Thu, 2010-07-01 at 16:44 +0800, Lin Ming wrote:
+> Hi,
+> 
+> Alexy, Fengguang, Xiaotian,
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=16210
+> 
+> This bug is about the ACPICA preemption point, would you guys please
+> have a look at it?
+> 
+> /* Used within ACPICA to show where it is safe to preempt execution */
+> #include <linux/hardirq.h>
+> #define ACPI_PREEMPTION_POINT() \
+>         do { \
+>                 if (!in_atomic_preempt_off() && !irqs_disabled()) \
+>                         cond_resched(); \
+>         } while (0)
+> 
+> Thanks,
+> Lin Ming
 
---- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
-@@ -80,7 +80,7 @@ int apei_write_mce(struct mce *m)
- 	rcd.hdr.revision = CPER_RECORD_REV;
- 	rcd.hdr.signature_end = CPER_SIG_END;
- 	rcd.hdr.section_count = 1;
--	rcd.hdr.error_severity = CPER_SER_FATAL;
-+	rcd.hdr.error_severity = CPER_SEV_FATAL;
- 	/* timestamp, platform_id, partition_id are all invalid */
- 	rcd.hdr.validation_bits = 0;
- 	rcd.hdr.record_length = sizeof(rcd);
-@@ -96,7 +96,7 @@ int apei_write_mce(struct mce *m)
- 	rcd.sec_hdr.validation_bits = 0;
- 	rcd.sec_hdr.flags = CPER_SEC_PRIMARY;
- 	rcd.sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
--	rcd.sec_hdr.section_severity = CPER_SER_FATAL;
-+	rcd.sec_hdr.section_severity = CPER_SEV_FATAL;
- 
- 	memcpy(&rcd.mce, m, sizeof(*m));
- 
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -132,26 +132,26 @@ static void ghes_fini(struct ghes *ghes)
- }
- 
- enum {
--	GHES_SER_NO = 0x0,
--	GHES_SER_CORRECTED = 0x1,
--	GHES_SER_RECOVERABLE = 0x2,
--	GHES_SER_PANIC = 0x3,
-+	GHES_SEV_NO = 0x0,
-+	GHES_SEV_CORRECTED = 0x1,
-+	GHES_SEV_RECOVERABLE = 0x2,
-+	GHES_SEV_PANIC = 0x3,
- };
- 
- static inline int ghes_severity(int severity)
- {
- 	switch (severity) {
--	case CPER_SER_INFORMATIONAL:
--		return GHES_SER_NO;
--	case CPER_SER_CORRECTED:
--		return GHES_SER_CORRECTED;
--	case CPER_SER_RECOVERABLE:
--		return GHES_SER_RECOVERABLE;
--	case CPER_SER_FATAL:
--		return GHES_SER_PANIC;
-+	case CPER_SEV_INFORMATIONAL:
-+		return GHES_SEV_NO;
-+	case CPER_SEV_CORRECTED:
-+		return GHES_SEV_CORRECTED;
-+	case CPER_SEV_RECOVERABLE:
-+		return GHES_SEV_RECOVERABLE;
-+	case CPER_SEV_FATAL:
-+		return GHES_SEV_PANIC;
- 	default:
- 		/* Unkown, go panic */
--		return GHES_SER_PANIC;
-+		return GHES_SEV_PANIC;
- 	}
- }
- 
-@@ -237,16 +237,16 @@ static void ghes_clear_estatus(struct gh
- 
- static void ghes_do_proc(struct ghes *ghes)
- {
--	int ser, processed = 0;
-+	int sev, processed = 0;
- 	struct acpi_hest_generic_data *gdata;
- 
--	ser = ghes_severity(ghes->estatus->error_severity);
-+	sev = ghes_severity(ghes->estatus->error_severity);
- 	apei_estatus_for_each_section(ghes->estatus, gdata) {
- #ifdef CONFIG_X86_MCE
- 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
- 			apei_mce_report_mem_error(
--				ser == GHES_SER_CORRECTED,
-+				sev == GHES_SEV_CORRECTED,
- 				(struct cper_sec_mem_err *)(gdata+1));
- 			processed = 1;
- 		}
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -39,10 +39,10 @@
-  * Severity difinition for error_severity in struct cper_record_header
-  * and section_severity in struct cper_section_descriptor
-  */
--#define CPER_SER_RECOVERABLE			0x0
--#define CPER_SER_FATAL				0x1
--#define CPER_SER_CORRECTED			0x2
--#define CPER_SER_INFORMATIONAL			0x3
-+#define CPER_SEV_RECOVERABLE			0x0
-+#define CPER_SEV_FATAL				0x1
-+#define CPER_SEV_CORRECTED			0x2
-+#define CPER_SEV_INFORMATIONAL			0x3
- 
- /*
-  * Validation bits difinition for validation_bits in struct
