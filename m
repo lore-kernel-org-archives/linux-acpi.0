@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 5/5] ACPI / Sleep: Drop acpi_suspend_finish()
-Date: Fri, 2 Jul 2010 00:14:57 +0200
-Message-ID: <201007020014.57877.rjw@sisk.pl>
+Subject: [PATCH 2/5] ACPI / Sleep: Rework enabling wakeup devices
+Date: Fri, 2 Jul 2010 00:12:26 +0200
+Message-ID: <201007020012.27005.rjw@sisk.pl>
 References: <201007020010.13755.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42774 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:42768 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932556Ab0GAWQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 18:16:58 -0400
+	id S932585Ab0GAWQy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jul 2010 18:16:54 -0400
 In-Reply-To: <201007020010.13755.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,46 +20,56 @@ Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The function acpi_suspend_finish() is not necessary any more, because
-acpi_pm_finish() can be used instead of it just fine.  Remove it.
+There is no reason why acpi_enable_wakeup_device() should be called
+with interrupts disabled, because it doesn't access hardware.  Thus
+it is possible to move it next to acpi_enable_wakeup_device_prep()
+and make the ACPI suspend, hibernate and poweroff code more
+straightforward.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/acpi/sleep.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 Index: linux-2.6/drivers/acpi/sleep.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/sleep.c
 +++ linux-2.6/drivers/acpi/sleep.c
-@@ -285,11 +285,6 @@ static int acpi_suspend_enter(suspend_st
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+@@ -70,10 +70,11 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
+-	acpi_enable_wakeup_device_prep(acpi_state);
+ #endif
+ 	printk(KERN_INFO PREFIX "Preparing to enter system sleep state S%d\n",
+ 		acpi_state);
++	acpi_enable_wakeup_device_prep(acpi_state);
++	acpi_enable_wakeup_device(acpi_state);
+ 	acpi_enter_sleep_state_prep(acpi_state);
+ 	return 0;
+ }
+@@ -233,7 +234,6 @@ static int acpi_suspend_enter(suspend_st
+ 	}
+ 
+ 	local_irq_save(flags);
+-	acpi_enable_wakeup_device(acpi_state);
+ 	switch (acpi_state) {
+ 	case ACPI_STATE_S1:
+ 		barrier();
+@@ -437,7 +437,6 @@ static int acpi_hibernation_enter(void)
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
+ 	local_irq_save(flags);
+-	acpi_enable_wakeup_device(ACPI_STATE_S4);
+ 	/* This shouldn't return.  If it returns, we have a problem */
+ 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
+ 	/* Reprogram control registers and execute _BFS */
+@@ -682,7 +681,6 @@ static void acpi_power_off(void)
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk(KERN_DEBUG "%s called\n", __func__);
+ 	local_irq_disable();
+-	acpi_enable_wakeup_device(ACPI_STATE_S5);
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
  }
  
--static void acpi_suspend_finish(void)
--{
--	acpi_pm_finish();
--}
--
- static int acpi_suspend_state_valid(suspend_state_t pm_state)
- {
- 	u32 acpi_state;
-@@ -311,7 +306,7 @@ static struct platform_suspend_ops acpi_
- 	.begin = acpi_suspend_begin,
- 	.prepare_late = acpi_pm_prepare,
- 	.enter = acpi_suspend_enter,
--	.wake = acpi_suspend_finish,
-+	.wake = acpi_pm_finish,
- 	.end = acpi_pm_end,
- };
- 
-@@ -339,7 +334,7 @@ static struct platform_suspend_ops acpi_
- 	.begin = acpi_suspend_begin_old,
- 	.prepare_late = acpi_pm_pre_suspend,
- 	.enter = acpi_suspend_enter,
--	.wake = acpi_suspend_finish,
-+	.wake = acpi_pm_finish,
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
 
