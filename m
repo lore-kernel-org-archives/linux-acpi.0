@@ -1,48 +1,44 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Provide /sys/../ec with read/write access and some cleanups
-Date: Thu, 01 Jul 2010 23:47:13 +0300
-Message-ID: <1278017233.7029.7.camel@localhost.localdomain>
-References: <1277996570-2686-1-git-send-email-trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/3] PM / Hibernate: Fix hibernation_platform_enter()
+Date: Thu, 1 Jul 2010 23:58:15 +0200
+Message-ID: <201007012358.15229.rjw@sisk.pl>
+References: <201007012356.44690.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36737 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754911Ab0GAUrR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jul 2010 16:47:17 -0400
-In-Reply-To: <1277996570-2686-1-git-send-email-trenn@suse.de>
+Received: from ogre.sisk.pl ([217.79.144.158]:42605 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756466Ab0GAWCR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jul 2010 18:02:17 -0400
+In-Reply-To: <201007012356.44690.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de
+To: linux-pm@lists.linux-foundation.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>
 
-On Thu, 2010-07-01 at 17:02 +0200, Thomas Renninger wrote:
-> These patches are diffed against the test branch of the ACPI tree, but also
-> patch fine with 2.6.35-rc3.
-> 
-> I thought about tainting the kernel if someone writes to the EC, but as
-> userspace can also write to graphics IO, PCI config or MSRs, it shouldn't
-> matter that much.
-> Eventually this should still be added (by a separate patch), one can easily
-> confuse the EC to not switch on the fans anymore.
-> 
-> A small tool to read out and write to /sys/devices/system/ec/*/io can be
-> found here:
-> ftp://ftp.suse.com/pub/people/trenn/sources/ec/ec_access.c
-> 
-> Len: Can you apply these into your test branch and schedule them for linux-next
-> and 2.6.36 if there are no objections, please.
-> 
-> Thanks,
-> 
->      Thomas
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This is great patchset, I was even thinking doing that myself.
+The hibernation_platform_enter() function calls dpm_suspend_noirq()
+instead of dpm_resume_noirq() by mistake.  Fix this.
 
-While at it, could you also provide a broken down table of EC GPEs like
-the one in /sys/firmware/acpi/interrupts/ ?
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ kernel/power/hibernate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best regards,
-	Maxim Levitsky
+Index: linux-2.6/kernel/power/hibernate.c
+===================================================================
+--- linux-2.6.orig/kernel/power/hibernate.c
++++ linux-2.6/kernel/power/hibernate.c
+@@ -530,7 +530,7 @@ int hibernation_platform_enter(void)
+  Platform_finish:
+ 	hibernation_ops->finish();
+ 
+-	dpm_suspend_noirq(PMSG_RESTORE);
++	dpm_resume_noirq(PMSG_RESTORE);
+ 
+  Resume_devices:
+ 	entering_platform_hibernation = false;
 
