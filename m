@@ -1,257 +1,237 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/6] ACPI: Provide /sys/devices/system/ec/
-Date: Thu,  1 Jul 2010 17:02:45 +0200
-Message-ID: <1277996570-2686-2-git-send-email-trenn@suse.de>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH 5/6] X86 platform drivers: Remove EC dump
+	from thinkpad_acpi
+Date: Thu,  1 Jul 2010 17:02:49 +0200
+Message-ID: <1277996570-2686-6-git-send-email-trenn@suse.de>
 References: <1277996570-2686-1-git-send-email-trenn@suse.de>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1277996570-2686-1-git-send-email-trenn@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1277996570-2686-1-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, astarikovskiy-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch provides the same information through sysfs, which previously was
-provided through /proc/acpi/embedded_controller/*/info
+There is a general interface for that now (provided by
+other patches in this patch series):
+/sys/devices/system/ec/*/io
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 
-CC: Alexey Starikovskiy <astarikovskiy@suse.de>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-kernel@vger.kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: platform-driver-x86@vger.kernel.org
+CC: Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
+CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+CC: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+CC: platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+CC: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+CC: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 
-Index: linux-2.6.34-master/drivers/acpi/Kconfig
+
+Index: linux-2.6.34-master/drivers/platform/x86/thinkpad_acpi.c
 ===================================================================
 ---
- drivers/acpi/Kconfig    |   13 +++++++
- drivers/acpi/Makefile   |    1 +
- drivers/acpi/ec.c       |   18 +++-------
- drivers/acpi/ec_sys.c   |   92 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |   24 ++++++++++++
- 5 files changed, 135 insertions(+), 13 deletions(-)
- create mode 100644 drivers/acpi/ec_sys.c
+ Documentation/laptops/thinkpad-acpi.txt |   75 -------------------------------
+ drivers/platform/x86/thinkpad_acpi.c    |   73 ------------------------------
+ 2 files changed, 0 insertions(+), 148 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 7464115..f13708a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -104,6 +104,19 @@ config ACPI_SYSFS_POWER
- 	help
- 	  Say N to disable power /sys interface
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index fc15538..85b1039 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -960,81 +960,6 @@ Sysfs notes:
+ 	subsystem, and follow all of the hwmon guidelines at
+ 	Documentation/hwmon.
  
-+config ACPI_EC_SYSFS
-+	tristate "EC read/write access through sysfs"
-+	default y
-+	help
-+	  Say N to disable Embedded Controller /sys interface
-+
-+	  An Embedded Controller typically is available on laptops and reads
-+	  sensor values like battery state and temperature.
-+	  The kernel access the EC through ACPI parsed code provided by BIOS
-+	  tables.
-+	  Thus this option is a debug option that helps to write ACPI drivers
-+	  and which can be used to identify ACPI code or EC firmware bugs.
-+
- config ACPI_PROC_EVENT
- 	bool "Deprecated /proc/acpi/event support"
- 	depends on PROC_FS
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 6ee3316..a33a2ef 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -60,6 +60,7 @@ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
- obj-$(CONFIG_ACPI_POWER_METER)	+= power_meter.o
- obj-$(CONFIG_ACPI_HED)		+= hed.o
-+obj-$(CONFIG_ACPI_EC_SYSFS)     += ec_sys.o
+-
+-EXPERIMENTAL: Embedded controller register dump -- /proc/acpi/ibm/ecdump
+-------------------------------------------------------------------------
+-
+-This feature is marked EXPERIMENTAL because the implementation
+-directly accesses hardware registers and may not work as expected. USE
+-WITH CAUTION! To use this feature, you need to supply the
+-experimental=1 parameter when loading the module.
+-
+-This feature dumps the values of 256 embedded controller
+-registers. Values which have changed since the last time the registers
+-were dumped are marked with a star:
+-
+-[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
+-EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
+-EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
+-EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
+-EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
+-EC 0x30:  01  07  1a  00  30  04  00  00 *85  00  00  10  00  50  00  00
+-EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
+-EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03 *bc *02 *bc
+-EC 0x60: *02 *bc *02  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0x70:  00  00  00  00  00  12  30  40 *24 *26 *2c *27 *20  80 *1f  80
+-EC 0x80:  00  00  00  06 *37 *0e  03  00  00  00  0e  07  00  00  00  00
+-EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xa0: *ff  09  ff  09  ff  ff *64  00 *00 *00 *a2  41 *ff *ff *e0  00
+-EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
+-EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
+-
+-This feature can be used to determine the register holding the fan
+-speed on some models. To do that, do the following:
+-
+-	- make sure the battery is fully charged
+-	- make sure the fan is running
+-	- run 'cat /proc/acpi/ibm/ecdump' several times, once per second or so
+-
+-The first step makes sure various charging-related values don't
+-vary. The second ensures that the fan-related values do vary, since
+-the fan speed fluctuates a bit. The third will (hopefully) mark the
+-fan register with a star:
+-
+-[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
+-EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
+-EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
+-EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
+-EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
+-EC 0x30:  01  07  1a  00  30  04  00  00  85  00  00  10  00  50  00  00
+-EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
+-EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03  bc  02  bc
+-EC 0x60:  02  bc  02  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0x70:  00  00  00  00  00  12  30  40  24  27  2c  27  21  80  1f  80
+-EC 0x80:  00  00  00  06 *be  0d  03  00  00  00  0e  07  00  00  00  00
+-EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xa0:  ff  09  ff  09  ff  ff  64  00  00  00  a2  41  ff  ff  e0  00
+-EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+-EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
+-EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
+-
+-Another set of values that varies often is the temperature
+-readings. Since temperatures don't change vary fast, you can take
+-several quick dumps to eliminate them.
+-
+-You can use a similar method to figure out the meaning of other
+-embedded controller registers - e.g. make sure nothing else changes
+-except the charging or discharging battery to determine which
+-registers contain the current battery capacity, etc. If you experiment
+-with this, do send me your results (including some complete dumps with
+-a description of the conditions when they were taken.)
+-
+-
+ LCD brightness control
+ ----------------------
  
- # processor has its own "processor." module_param namespace
- processor-y			:= processor_driver.o processor_throttling.o
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 1e6d418..4b6759f 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -45,10 +45,13 @@
- #include <acpi/acpi_drivers.h>
- #include <linux/dmi.h>
- 
-+#include "internal.h"
-+
- #define ACPI_EC_CLASS			"embedded_controller"
- #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
- #define ACPI_EC_FILE_INFO		"info"
- 
-+#undef PREFIX
- #define PREFIX				"ACPI: EC: "
- 
- /* EC status register */
-@@ -106,19 +109,8 @@ struct transaction {
- 	bool done;
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 4bdb137..5d6119b 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -5838,75 +5838,6 @@ static struct ibm_struct thermal_driver_data = {
  };
  
--static struct acpi_ec {
--	acpi_handle handle;
--	unsigned long gpe;
--	unsigned long command_addr;
--	unsigned long data_addr;
--	unsigned long global_lock;
--	unsigned long flags;
--	struct mutex lock;
--	wait_queue_head_t wait;
--	struct list_head list;
--	struct transaction *curr;
--	spinlock_t curr_lock;
--} *boot_ec, *first_ec;
-+struct acpi_ec *boot_ec, *first_ec;
-+EXPORT_SYMBOL(first_ec);
- 
- static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
- static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
-diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
-new file mode 100644
-index 0000000..c64236f
---- /dev/null
-+++ b/drivers/acpi/ec_sys.c
-@@ -0,0 +1,92 @@
-+#include <linux/kernel.h>
-+#include <linux/sysdev.h>
-+#include <linux/acpi.h>
-+
-+#include "internal.h"
-+
-+MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
-+MODULE_DESCRIPTION("ACPI EC sysfs access driver");
-+MODULE_LICENSE("GPL");
-+
-+struct sysdev_class acpi_ec_sysdev_class = {
-+	.name = "ec",
-+};
-+
-+/* sys_dev -> per EC device stuff */
-+static ssize_t show_ec_gpe(struct sys_device *dev,
-+			   struct sysdev_attribute *attr,
-+			   char *buf)
-+{
-+	struct acpi_ec *ec = container_of(dev, struct acpi_ec, sysdev);
-+	return sprintf(buf, "%lu\n", ec->gpe);
-+}
-+
-+static ssize_t show_ec_global_lock(struct sys_device *dev,
-+				   struct sysdev_attribute *attr,
-+				   char *buf)
-+{
-+	struct acpi_ec *ec = container_of(dev, struct acpi_ec, sysdev);
-+	return sprintf(buf, "%s\n", ec->global_lock ? "yes" : "no");
-+}
-+
-+SYSDEV_ATTR(gpe, 0444, show_ec_gpe, NULL);
-+SYSDEV_ATTR(use_global_lock, 0444, show_ec_global_lock, NULL);
-+
-+int acpi_ec_add_sysfs(struct acpi_ec *ec, int ec_device_count)
-+{
-+	int err = 0;
-+
-+	if (ec_device_count == 0) {
-+		err = sysdev_class_register(&acpi_ec_sysdev_class);
-+		if (err)
-+			return err;
-+	}
-+
-+	ec->sysdev.id = ec_device_count;
-+	ec->sysdev.cls = &acpi_ec_sysdev_class;
-+	err = sysdev_register(&ec->sysdev);
-+	if (err)
-+		goto sysdev_err;
-+	err = sysdev_create_file(&ec->sysdev, &attr_use_global_lock);
-+	if (err)
-+		goto file_err_1;
-+	err = sysdev_create_file(&ec->sysdev, &attr_gpe);
-+	if (err)
-+		goto file_err_2;
-+	return err;
-+
-+ file_err_2:
-+	sysdev_remove_file(&ec->sysdev, &attr_use_global_lock);
-+ file_err_1:
-+	sysdev_class_unregister(&acpi_ec_sysdev_class);
-+ sysdev_err:
-+	sysdev_class_register(&acpi_ec_sysdev_class);
-+	return err;
-+}
-+
-+void acpi_ec_remove_sysfs(struct acpi_ec *ec)
-+{
-+	sysdev_remove_file(&ec->sysdev, &attr_use_global_lock);
-+	sysdev_remove_file(&ec->sysdev, &attr_gpe);
-+
-+	sysdev_unregister(&ec->sysdev);
-+	sysdev_class_unregister(&acpi_ec_sysdev_class);
-+}
-+
-+static int __init acpi_ec_sys_init(void)
-+{
-+	int err = 0;
-+	if (first_ec)
-+		err = acpi_ec_add_sysfs(first_ec, 0);
-+	else
-+		err = -ENODEV;
-+	return err;
-+}
-+
-+static void __exit acpi_ec_sys_exit(void)
-+{
-+	acpi_ec_remove_sysfs(first_ec);
-+}
-+
-+module_init(acpi_ec_sys_init);
-+module_exit(acpi_ec_sys_exit);
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index f8f190e..8ae2726 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -18,6 +18,11 @@
-  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+ /*************************************************************************
+- * EC Dump subdriver
+- */
+-
+-static u8 ecdump_regs[256];
+-
+-static int ecdump_read(struct seq_file *m)
+-{
+-	int i, j;
+-	u8 v;
+-
+-	seq_printf(m, "EC      "
+-		       " +00 +01 +02 +03 +04 +05 +06 +07"
+-		       " +08 +09 +0a +0b +0c +0d +0e +0f\n");
+-	for (i = 0; i < 256; i += 16) {
+-		seq_printf(m, "EC 0x%02x:", i);
+-		for (j = 0; j < 16; j++) {
+-			if (!acpi_ec_read(i + j, &v))
+-				break;
+-			if (v != ecdump_regs[i + j])
+-				seq_printf(m, " *%02x", v);
+-			else
+-				seq_printf(m, "  %02x", v);
+-			ecdump_regs[i + j] = v;
+-		}
+-		seq_putc(m, '\n');
+-		if (j != 16)
+-			break;
+-	}
+-
+-	/* These are way too dangerous to advertise openly... */
+-#if 0
+-	seq_printf(m, "commands:\t0x<offset> 0x<value>"
+-		       " (<offset> is 00-ff, <value> is 00-ff)\n");
+-	seq_printf(m, "commands:\t0x<offset> <value>  "
+-		       " (<offset> is 00-ff, <value> is 0-255)\n");
+-#endif
+-	return 0;
+-}
+-
+-static int ecdump_write(char *buf)
+-{
+-	char *cmd;
+-	int i, v;
+-
+-	while ((cmd = next_cmd(&buf))) {
+-		if (sscanf(cmd, "0x%x 0x%x", &i, &v) == 2) {
+-			/* i and v set */
+-		} else if (sscanf(cmd, "0x%x %u", &i, &v) == 2) {
+-			/* i and v set */
+-		} else
+-			return -EINVAL;
+-		if (i >= 0 && i < 256 && v >= 0 && v < 256) {
+-			if (!acpi_ec_write(i, v))
+-				return -EIO;
+-		} else
+-			return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+-static struct ibm_struct ecdump_driver_data = {
+-	.name = "ecdump",
+-	.read = ecdump_read,
+-	.write = ecdump_write,
+-	.flags.experimental = 1,
+-};
+-
+-/*************************************************************************
+  * Backlight/brightness subdriver
   */
  
-+#ifndef _ACPI_INTERNAL_H_
-+#define _ACPI_INTERNAL_H_
-+
-+#include <linux/sysdev.h>
-+
- #define PREFIX "ACPI: "
- 
- int init_acpi_device_notify(void);
-@@ -46,6 +51,23 @@ void acpi_early_processor_set_pdc(void);
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
-+struct acpi_ec {
-+	acpi_handle handle;
-+	unsigned long gpe;
-+	unsigned long command_addr;
-+	unsigned long data_addr;
-+	unsigned long global_lock;
-+	unsigned long flags;
-+	struct mutex lock;
-+	wait_queue_head_t wait;
-+	struct list_head list;
-+	struct transaction *curr;
-+	spinlock_t curr_lock;
-+	struct sys_device sysdev;
-+};
-+
-+extern struct acpi_ec *first_ec;
-+
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
- int acpi_boot_ec_enable(void);
-@@ -63,3 +85,5 @@ int acpi_sleep_proc_init(void);
- #else
- static inline int acpi_sleep_proc_init(void) { return 0; }
- #endif
-+
-+#endif /* _ACPI_INTERNAL_H_ */
+@@ -8883,9 +8814,6 @@ static struct ibm_init_struct ibms_init[] __initdata = {
+ 		.data = &thermal_driver_data,
+ 	},
+ 	{
+-		.data = &ecdump_driver_data,
+-	},
+-	{
+ 		.init = brightness_init,
+ 		.data = &brightness_driver_data,
+ 	},
+@@ -8993,7 +8921,6 @@ TPACPI_PARAM(light);
+ TPACPI_PARAM(cmos);
+ TPACPI_PARAM(led);
+ TPACPI_PARAM(beep);
+-TPACPI_PARAM(ecdump);
+ TPACPI_PARAM(brightness);
+ TPACPI_PARAM(volume);
+ TPACPI_PARAM(fan);
 -- 
 1.6.3
+
+
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Sprint
+What will you do first with EVO, the first 4G phone?
+Visit sprint.com/first -- http://p.sf.net/sfu/sprint-com-first
