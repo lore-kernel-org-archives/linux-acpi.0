@@ -1,43 +1,52 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: Bug 16210 -  BUG: scheduling while atomic:
-	swapper/0/0x10000002 when ACPI is initialised
-Date: Thu, 01 Jul 2010 16:45:57 +0800
-Message-ID: <1277973957.4144.14.camel@minggr.sh.intel.com>
-References: <1277973846.4144.11.camel@minggr.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not used
+Date: Thu, 01 Jul 2010 10:31:46 +0100
+Message-ID: <16513.1277976706@redhat.com>
+References: <4C2B9F49.8090304@gmail.com> <4C2A6B6C.1000306@gmail.com> <4C29674C.9070503@gmail.com> <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com> <22319.1277826461@redhat.com> <25800.1277889215@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11033 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43157 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963Ab0GAIpN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 04:45:13 -0400
-In-Reply-To: <1277973846.4144.11.camel@minggr.sh.intel.com>
+	id S1751545Ab0GAJb7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jul 2010 05:31:59 -0400
+In-Reply-To: <4C2B9F49.8090304@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: francois.valenduc@tvcablenet.be
-Cc: astarikovskiy@suse.de, fengguang.wu@intel.com, dfeng@redhat.com, "Moore, Robert" <robert.moore@intel.com>, rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-(CC linux-acpi list)
+Justin P. Mattock <justinmattock@gmail.com> wrote:
 
-On Thu, 2010-07-01 at 16:44 +0800, Lin Ming wrote:
-> Hi,
-> 
-> Alexy, Fengguang, Xiaotian,
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=16210
-> 
-> This bug is about the ACPICA preemption point, would you guys please
-> have a look at it?
-> 
-> /* Used within ACPICA to show where it is safe to preempt execution */
-> #include <linux/hardirq.h>
-> #define ACPI_PREEMPTION_POINT() \
->         do { \
->                 if (!in_atomic_preempt_off() && !irqs_disabled()) \
->                         cond_resched(); \
->         } while (0)
-> 
-> Thanks,
-> Lin Ming
+> +		if (fn) {
+> +			dev_warn(&acpi_dev->dev,
+> +				"Failed to create firmware_node link to %s %s: %d\n",
+> +				dev_driver_string(dev), dev_name(dev), fn);
+> +		} else if (pn) {
+> +			dev_warn(&acpi_dev->dev,
+> +				"Failed to create physical_node link to %s %s: %d\n",
+> +				dev_driver_string(dev), dev_name(dev), pn);
+> +				return AE_ERROR;
+> +		}			
 
+There's one more question to ask yourself: do you really need two dev_warn()
+statements?  You could have just one that prints both error values:
+
+		if (fn || pn)
+			dev_warn(&acpi_dev->dev,
+				 "Failed to create link(s) to %s %s:"
+				 " fn=%d pn=%d\n",
+				 dev_driver_string(dev), dev_name(dev),
+				 fn, pn);
+
+Not sure it's worth going that far.  You could reduce it still further:
+
+		if (fn || pn)
+			dev_warn(&acpi_dev->dev,
+				 "Failed to create link(s) to %s %s:"
+				 " %d\n",
+				 dev_driver_string(dev), dev_name(dev),
+				 fn ?: pn);
+
+Is it that important to know which failed to be created, or that both failed
+to be created?
+
+David
