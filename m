@@ -1,81 +1,38 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: "acpi_apic_instance=2" works better
-Date: Fri, 02 Jul 2010 08:59:52 +0800
-Message-ID: <1278032392.4537.1473.camel@rzhang1-desktop>
-References: <AANLkTikdLXKwmD8LmIR0YJNmWTUiuVIit8TwJMrMeUP4@mail.gmail.com>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH 3/5]acpi:glue.c Fix warning: variable 'ret' set but not
+ used
+Date: Thu, 01 Jul 2010 17:59:09 -0700
+Message-ID: <4C2D39DD.6010305@gmail.com>
+References: <4C2CF400.20507@gmail.com> <4C2B9F49.8090304@gmail.com> <4C2A6B6C.1000306@gmail.com> <4C29674C.9070503@gmail.com> <4C28E14D.5050701@gmail.com> <1277621246-10960-4-git-send-email-justinmattock@gmail.com> <1277621246-10960-1-git-send-email-justinmattock@gmail.com> <7214.1277729293@redhat.com> <8066.1277750854@redhat.com> <22319.1277826461@redhat.com> <25800.1277889215@redhat.com> <16513.1277976706@redhat.com> <19422.1278029445@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44885 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756827Ab0GBA6p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jul 2010 20:58:45 -0400
-In-Reply-To: <AANLkTikdLXKwmD8LmIR0YJNmWTUiuVIit8TwJMrMeUP4@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <19422.1278029445@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Serg Alexv." <agel.selena@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-please file a bug report at 
-https://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-if the problem still exists in the latest upstream kernel,
-and attach the acpidump output and full dmesg output there.
+On 07/01/2010 05:10 PM, David Howells wrote:
+> Justin P. Mattock<justinmattock@gmail.com>  wrote:
+>
+>> a bit confused with the whole:  "?:" though
+>> *condition ? value if true : value if false* (what if both are true
+>> what if both are false or does it matter?)
+>
+> If you say:
+>
+> 	cond ?: false_value
+>
+> then you'll get cond if cond is non-zero and false_value if it isn't.
+>
+> I suspect it's a gccism.
+>
+> David
+>
 
-thanks,
-rui
+I'll have to experiment with this one..
+?:
 
-On Thu, 2010-07-01 at 18:36 +0800, Serg Alexv. wrote:
-> "acpi_apic_instance=2" works just awesome (-:
-> 
-> Except i still have this:
-> 
-> $ dmesg |grep Error
-> [    0.206631] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.206796] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.214270] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.214434] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.300734] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.300896] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.301174] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.301339] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.301607] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.301770] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.302037] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.302200] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.302486] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.302647] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.302931] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.303093] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.303357] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.303519] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [    0.303787] ACPI Error (psargs-0359): [CDW1] Namespace lookup
-> failure, AE_NOT_FOUND
-> [    0.303948] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0._OSC] (Node f7013270), AE_NOT_FOUND
-> [23364.464085] iwl3945 0000:06:00.0: Error sending REPLY_LEDS_CMD:
-> enqueue_hcmd failed: -5
-> 
-> Linux opengee 2.6.32-23-generic #37-Ubuntu SMP Fri Jun 11 07:54:58 UTC
-> 2010 i686 GNU/Linux
-> 
-
-
+Justin P. Mattock
