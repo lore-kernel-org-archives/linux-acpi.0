@@ -1,59 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 5/6] X86 platform drivers: Remove EC dump from
- thinkpad_acpi
-Date: Fri, 2 Jul 2010 12:58:52 -0300
-Message-ID: <20100702155852.GA11697@khazad-dum.debian.net>
-References: <1277996570-2686-1-git-send-email-trenn@suse.de>
- <20100701162741.GC4789@khazad-dum.debian.net>
- <201007012131.20031.trenn@suse.de>
- <201007021114.00982.trenn@suse.de>
+From: Alexey Fisher <bug-track@fisher-privat.net>
+Subject: trouble to bisect current acpi-pm regression
+Date: Sat, 03 Jul 2010 22:47:09 +0200
+Message-ID: <1278190029.5209.26.camel@zwerg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201007021114.00982.trenn@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, astarikovskiy@suse.de, ibm-acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:53599 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754447Ab0GCUrL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Jul 2010 16:47:11 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, kernel-testers@vger.kernel.org
 
-On Fri, 02 Jul 2010, Thomas Renninger wrote:
-> On Thursday 01 July 2010 21:31:18 Thomas Renninger wrote:
-> > On Thursday 01 July 2010 06:27:41 pm Henrique de Moraes Holschuh wrote:
-> > > On Thu, 01 Jul 2010, Thomas Renninger wrote:
-> > ...
-> > > I'd prefer if the above text gets replaced by something that adds a pointer
-> > > to the new facility, instead of being just outright removed.  Also, the
-> > > text about how to use the facility to detect tachometers and thermometers
-> > > should be retained, if at all possible.
-> > I agree. I'll repost this one in some days.
-> Hmm, I take that back.
-> This still should get removed completely from:
-> Documentation/laptops/thinkpad-acpi.txt
-> 
-> These problems apply to all laptops and instead of adding pointers to all
-> Documentation/laptop/${vendor} files,
-> a separate file should be added. This should then be more about thermal
-> management problems in general and pointers to:
-> Documentation/acpi/ec_sysfs
-> and
-> Documentation/acpi/debug.txt
-> Documentation/acpi/*
-> added there looks like the appropriate solution to me.
+Hallo all,
+i have regression in current master HEAD wich i can't properly bisect,
+so i need your help. Please point me if i make some mistake or you have
+some other ideas.
 
-And a pointer to the new docs added to thinkpad-acpi.txt in place of the
-text you're removing, please.
+Regression: Standby do not working with newest linus/master.git .
+To reproduce i use plain: "echo mem > /sys/power/state"
+After this, standby initiated, but will freeze with black screen and
+cursors on the left top corner. Nothing other is working, power button
+will not return it to normals state. So i need to hard reset it.
 
-> If people agree:
->   - This patch is still fine and should get applied as it is
->   - I will send another patch adding some more documentation
->     in some days
+For bisect i used two points: v2.6.35-rc2 - good; and HEAD - bad.
+A result i get:
+commit 7c8d20d40f29e7c08332d406d7a65678dece4627
+Merge: 63a07cb 9a40ac8
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu Jun 10 07:35:41 2010 -0700
 
-I'm ok with this, as long as you add a pointer in thinkpad-acpi.txt to the
-new docs in the future documentation patch.
+    Merge master.kernel.org:/home/rmk/linux-2.6-arm
+    
+    * master.kernel.org:/home/rmk/linux-2.6-arm:
+      ARM: 6164/1: Add kto and kfrom to input operands list.
+      ARM: 6166/1: Proper prefetch abort handling on pre-ARMv6
+      ARM: 6165/1: trap overflows on highmem pages from kmap_atomic when
+debuggi
+      ARM: 6152/1: ux500 make it possible to disable localtimers
+      [ARM] pxa/spitz: Correctly register WM8750
+      [ARM] pxa/palmtc: storage class should be before const qualifier
+      ARM: 6146/1: sa1111: Prevent deadlock in resume path
+      ARM: 6145/1: ux500 MTU clockrate correction
+      ARM: 6144/1: TCM memory bug freeing bug
+      ARM: VFP: Fix vfp_put_double() for d16-d31
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+what can't be true. I double checked it and steel get same result. This
+commit, is currently first commit, where i can reproduce this
+regression.
+
+Is it possible git bisect miss some branch? Any tips to find real patch?
+
+Regards,
+Alexey
+
