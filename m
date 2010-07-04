@@ -1,101 +1,76 @@
-From: malattia@linux.it
-Subject: [patch 1/5] allow overriding only some of the CFLAGS
-Date: Sun, 04 Jul 2010 13:43:33 +0900
-Message-ID: <20100704044450.507083526@linux.it>
-References: <20100704044332.573836359@linux.it>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: a question about lid input device
+Date: Sun, 4 Jul 2010 01:35:53 -0700
+Message-ID: <20100704083553.GE32427@core.coreip.homeip.net>
+References: <1276412011.19052.19294.camel@rzhang1-desktop>
+ <20100614020127.GA30773@khazad-dum.debian.net>
+ <alpine.LFD.2.00.1006212156140.26824@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:45891
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752607Ab0GDE4B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jul 2010 00:56:01 -0400
-Content-Disposition: inline; filename=overridable_cflags.patch
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:51511 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755847Ab0GDIgK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jul 2010 04:36:10 -0400
+Received: by pwi5 with SMTP id 5so1128612pwi.19
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Jul 2010 01:36:09 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1006212156140.26824@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <Robert.Moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+To: Len Brown <lenb@kernel.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- compiler/Makefile         |    6 +++++-
- tools/acpiexec/Makefile   |    6 +++++-
- tools/acpisrc/Makefile    |    5 ++++-
- tools/acpixtract/Makefile |    5 ++++-
- 4 files changed, 18 insertions(+), 4 deletions(-)
+On Mon, Jun 21, 2010 at 09:56:37PM -0400, Len Brown wrote:
+> Dmitry,
+> Is there a reason not to simply add a "state" attribute
+> to a LID input device?
+> 
 
-Index: b/compiler/Makefile
-===================================================================
---- a/compiler/Makefile	2010-07-02 21:42:26.849349488 +0900
-+++ b/compiler/Makefile	2010-07-04 11:18:15.830519370 +0900
-@@ -125,7 +125,8 @@
- 	../osunixxf.c
- 
- NOMAN=	YES
--CFLAGS+= -Wall -O2 -Wstrict-prototypes -D_LINUX -DACPI_ASL_COMPILER -I../include -I../compiler
-+MK_CFLAGS = -DACPI_ASL_COMPILER -I../include -I../compiler
-+CFLAGS= -Wall -Wstrict-prototypes -O2
- 
- #YACC=	yacc
- YACC=	bison
-@@ -141,6 +142,9 @@
- 
- LDLIBS = -lpthread -lrt
- 
-+%.o: %.c
-+	$(CC) $(MK_CFLAGS) $(CFLAGS) -c -o $@ $<
-+
- aslmain : $(patsubst %.c,%.o, $(SRCS))
- 	$(CC) $(LDFLAGS) $(patsubst %.c,%.o, $(SRCS)) \
- 		$(LOADLIBES) $(LDLIBS) -o iasl
-Index: b/tools/acpiexec/Makefile
-===================================================================
---- a/tools/acpiexec/Makefile	2010-07-02 21:42:26.893349116 +0900
-+++ b/tools/acpiexec/Makefile	2010-07-04 11:18:15.830519370 +0900
-@@ -139,8 +139,12 @@
- 	../../osunixxf.c
- 
- 
--CFLAGS+= -Wall -g -D_LINUX -DNDEBUG -D_CONSOLE -DACPI_EXEC_APP -D_MULTI_THREADED -Wstrict-prototypes -I../../include 
-+MK_CFLAGS = -DNDEBUG -D_CONSOLE -DACPI_EXEC_APP -D_MULTI_THREADED \
-+            -I../../include
-+CFLAGS = -Wall -Wstrict-prototypes -O2 -g
- 
-+%.o: %.c
-+	$(CC) $(MK_CFLAGS) $(CFLAGS) -c -o $@ $<
- 
- acpiexec : $(patsubst %.c,%.o, $(SRCS))
- 	$(CC) $(LDFLAGS) $(patsubst %.c,%.o, $(SRCS)) -lrt -lpthread -o $(PROG)
-Index: b/tools/acpisrc/Makefile
-===================================================================
---- a/tools/acpisrc/Makefile	2010-07-02 21:42:26.877349353 +0900
-+++ b/tools/acpisrc/Makefile	2010-07-04 11:18:15.838518967 +0900
-@@ -4,8 +4,11 @@
- SRCS=	ascase.c asconvrt.c asfile.c asmain.c asremove.c astable.c \
-         asutils.c osunixdir.c ../../common/getopt.c
- 
--CFLAGS+= -Wall -O2 -D_LINUX -DACPI_APPLICATION -Wstrict-prototypes -I../../include 
-+MK_CFLAGS= -DACPI_APPLICATION -I../../include
-+CFLAGS= -Wall -Wstrict-prototypes -O2
- 
-+%.o: %.c
-+	$(CC) $(MK_CFLAGS) $(CFLAGS) -c -o $@ $<
- 
- aslmain : $(patsubst %.c,%.o, $(SRCS))
- 	$(CC) $(LDFLAGS) $(patsubst %.c,%.o, $(SRCS)) -o $(PROG)
-Index: b/tools/acpixtract/Makefile
-===================================================================
---- a/tools/acpixtract/Makefile	2010-07-02 21:42:26.861349031 +0900
-+++ b/tools/acpixtract/Makefile	2010-07-04 11:18:15.838518967 +0900
-@@ -3,8 +3,11 @@
- PROG=	acpixtract
- SRCS=	acpixtract.c
- 
--CFLAGS+= -Wall -O2 -D_LINUX -DACPI_APPLICATION -Wstrict-prototypes -I../../include 
-+MK_CFLAGS= -DACPI_APPLICATION -I../../include
-+CFLAGS= -Wall -Wstrict-prototypes -O2
- 
-+%.o: %.c
-+	$(CC) $(MK_CFLAGS) $(CFLAGS) -c -o $@ $<
- 
- acpixtract : $(patsubst %.c,%.o, $(SRCS))
- 	$(CC) $(LDFLAGS) $(patsubst %.c,%.o, $(SRCS)) -o $(PROG)
+Len,
 
+There is no LED input device, there is an input device that happens to
+report EV_SW/SW_LID state. If we did that we'd need to add attributes
+for all types of switches, keys, current values of REL and ABS axis,
+min/max/fuzz/flat settings of ABS axis and so forth that input device
+might report. I do not think it is a good idea.
+
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> On Sun, 13 Jun 2010, Henrique de Moraes Holschuh wrote:
+> 
+> > On Sun, 13 Jun 2010, Zhang Rui wrote:
+> > > Then we update the lid switch status when a Lid notification comes.
+> > > right?
+> > 
+> > Yes.
+> > 
+> > > Then, IMO, userspace can get the lid status
+> > > via /sys/class/input/inputX/uevent, right?
+> > 
+> > No, only through an IOCTL.
+> > 
+> > > /sys/class/input/input1/uevent:EV==21
+> > 
+> > That's an bitmap of al EV_EV it supports.
+> > 
+> > > /sys/class/input/input1/uevent:SW==1
+> > 
+> > That's an bitmap of al EV_SW it supports.
+> > 
+> > > Lid is opened but SW is set, I tried to close/open the lid and found
+> > > that this bit never changes. is there something I misunderstand? can we
+> > > get the lid status in userspace?
+> > 
+> > IOCTL(), only.
+> > 
+> > Since nobody got a input-utils standard package (or added something to
+> > util-linux) yet to do that (AFAIK anyway), it is a MAJOR annoyance for
+> > shell scripts that want to query EV_SW state...
+> > 
+> 
+
+-- 
+Dmitry
