@@ -1,30 +1,43 @@
-From: "Sullivan, Sully" <Sully.Sullivan@philips.com>
-Subject: Greeting from Hong Kong
-Date: Sun, 4 Jul 2010 22:50:46 +0200
-Message-ID: <21F2A383F059F948A0E0F01FFD9091FA8D2105839C@NLCLUEXM10.connect1.local>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/3] ACPI / ACPICA: Avoid executing _PRW twice for all devices
+Date: Mon, 5 Jul 2010 00:56:22 +0200
+Message-ID: <201007050056.22705.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpx.philips.com ([168.87.56.20]:15726 "EHLO smtpx.philips.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:50849 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757979Ab0GDU4I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jul 2010 16:56:08 -0400
-Content-Language: en-US
+	id S1750733Ab0GDXDs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 4 Jul 2010 19:03:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-Greeting from Hong Kong
+Hi,
 
-An arab made a fixed deposit of $24,500.000.00 in my bank branch  where am a
-director and he died with his entire family in the war leaving behind no next of
-kin,if you choose to stand as my deceased client's next of kin. if interested
-mail me at the address below:
-yang.gnim@yahoo.com.hk
+Following our recent IRC discussion I thought I'd bite the bullet and prepare
+a patch to remove the execution of _PRW from ACPICA and there it goes.
 
+The series is on top of the patch I sent a couple of days ago:
+https://patchwork.kernel.org/patch/110076/
 
+[1/3] - Drops the code to walk the namespace in search of _PRW and adds
+        acpi_gpe_can_wake() so that the host OS can disable wakeup GPEs
+        previously enabled unconditionally by the ACPICA initialization code.
+        This basically reproduces the current behavior except that the GPEs
+        are temporarily enabled before acpi_bus_extract_wakeup_device_power_package()
+        runs for all devices with _PRW referring to them.
 
-Yours Truly,
-Ming Yang
+[2/3] - Simplifies code in acpi_ev_initialize_gpe_block(), which only is a
+        cosmetic thing, but worth doing IMO.
 
-The information contained in this message may be confidential and legally protected under applicable law. The message is intended solely for the addressee(s). If you are not the intended recipient, you are hereby notified that any use, forwarding, dissemination, or reproduction of this message is strictly prohibited and may be unlawful. If you are not the intended recipient, please contact the sender by return e-mail and destroy all copies of the original message.
+[3/3] - Changes acpi_gpe_wakeup() to return error code for the GPEs whose
+        ACPI_GPE_CAN_WAKE flags are not set.
+
+Please apply.
+
+Rafael
+
