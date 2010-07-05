@@ -1,59 +1,42 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: a question about lid input device
-Date: Mon, 05 Jul 2010 09:47:24 +0800
-Message-ID: <1278294444.4537.6134.camel@rzhang1-desktop>
-References: <1276412011.19052.19294.camel@rzhang1-desktop>
-	 <20100614020127.GA30773@khazad-dum.debian.net>
-	 <alpine.LFD.2.00.1006212156140.26824@localhost.localdomain>
-	 <20100704083553.GE32427@core.coreip.homeip.net>
-	 <1278292140.4537.6088.camel@rzhang1-desktop>
-	 <C5204E20-E9CE-40D7-9398-A32D6E993EE0@gmail.com>
+From: "malattia@linux.it" <malattia@linux.it>
+Subject: Re: [patch 0/5] iASL patches in Debian
+Date: Mon, 5 Jul 2010 20:49:31 +0900
+Message-ID: <20100705114930.GA11462@kamineko.org>
+References: <20100704044332.573836359@linux.it>
+ <1278291699.9540.7.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:23497 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758097Ab0GEBqj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Jul 2010 21:46:39 -0400
-In-Reply-To: <C5204E20-E9CE-40D7-9398-A32D6E993EE0@gmail.com>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:41989
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008Ab0GELtc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jul 2010 07:49:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1278291699.9540.7.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: devel@acpica.org, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2010-07-05 at 09:28 +0800, Dmitry Torokhov wrote:
-> On Jul 4, 2010, at 6:09 PM, Zhang Rui <rui.zhang@intel.com> wrote:
+On Mon, Jul 05, 2010 at 09:01:39AM +0800, Lin Ming wrote:
+> On Sun, 2010-07-04 at 12:43 +0800, malattia@linux.it wrote:
+> > Hi Robert,
+> > 
+> > Here is a series of patches that I've been carrying in the iasl Debian
+> > package for some time. They are all refreshed and reworked to apply
+> > cleanly on top of acpica-unix-20100528.
+...
+> Hi,
 > 
-> > On Sun, 2010-07-04 at 16:35 +0800, Dmitry Torokhov wrote:
-> >> On Mon, Jun 21, 2010 at 09:56:37PM -0400, Len Brown wrote:
-> >>> Dmitry,
-> >>> Is there a reason not to simply add a "state" attribute
-> >>> to a LID input device?
-> >>>
-> >>
-> >> Len,
-> >>
-> >> There is no LED input device, there is an input device that happens  
-> >> to
-> >> report EV_SW/SW_LID state. If we did that we'd need to add attributes
-> >> for all types of switches, keys, current values of REL and ABS axis,
-> >> min/max/fuzz/flat settings of ABS axis and so forth that input device
-> >> might report. I do not think it is a good idea.
-> >>
-> > I agree.
-> > How about adding a field in uevent file that reports the switch  
-> > status?
-> >
+> Thanks for the patches.
 > 
+> (linux-acpi@vger.kernel.org is for linux-specific acpi dicussion. Better
+> to post these patches to ACPICA maillist devel@acpica.org)
 > 
-> I think if you can listen to uevents you can just as easily open /dev/ 
-> input/eventX and listen to proper input events.
-> 
-the question is users may want to get the lid switch STATUS,
-asynchronously.
+> I read these patches but not clear what the problem they solved.
+> Could you add info in the log of each patch?
 
-thank,
-rui
-
-
+Sure, thanks for the ML pointer too.
+-- 
+mattia
+:wq!
