@@ -1,42 +1,34 @@
-From: "malattia@linux.it" <malattia@linux.it>
-Subject: Re: [patch 0/5] iASL patches in Debian
-Date: Mon, 5 Jul 2010 20:49:31 +0900
-Message-ID: <20100705114930.GA11462@kamineko.org>
-References: <20100704044332.573836359@linux.it>
- <1278291699.9540.7.camel@minggr.sh.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: a question about lid input device
+Date: Mon, 5 Jul 2010 16:49:45 -0300
+Message-ID: <20100705194945.GA11096@khazad-dum.debian.net>
+References: <1276412011.19052.19294.camel@rzhang1-desktop> <20100614020127.GA30773@khazad-dum.debian.net> <alpine.LFD.2.00.1006212156140.26824@localhost.localdomain> <20100704083553.GE32427@core.coreip.homeip.net> <1278292140.4537.6088.camel@rzhang1-desktop> <C5204E20-E9CE-40D7-9398-A32D6E993EE0@gmail.com> <1278294444.4537.6134.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:41989
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008Ab0GELtc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jul 2010 07:49:32 -0400
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:36921 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753740Ab0GETtz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jul 2010 15:49:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1278291699.9540.7.camel@minggr.sh.intel.com>
+In-Reply-To: <1278294444.4537.6134.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: devel@acpica.org, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Jul 05, 2010 at 09:01:39AM +0800, Lin Ming wrote:
-> On Sun, 2010-07-04 at 12:43 +0800, malattia@linux.it wrote:
-> > Hi Robert,
+On Mon, 05 Jul 2010, Zhang Rui wrote:
+> > I think if you can listen to uevents you can just as easily open /dev/ 
+> > input/eventX and listen to proper input events.
 > > 
-> > Here is a series of patches that I've been carrying in the iasl Debian
-> > package for some time. They are all refreshed and reworked to apply
-> > cleanly on top of acpica-unix-20100528.
-...
-> Hi,
-> 
-> Thanks for the patches.
-> 
-> (linux-acpi@vger.kernel.org is for linux-specific acpi dicussion. Better
-> to post these patches to ACPICA maillist devel@acpica.org)
-> 
-> I read these patches but not clear what the problem they solved.
-> Could you add info in the log of each patch?
+> the question is users may want to get the lid switch STATUS,
+> asynchronously.
 
-Sure, thanks for the ML pointer too.
+More often than not, you need to know the current state when dealing
+with EV_SW, to be able to do anything sensbile with it in GUIs, etc.
+
 -- 
-mattia
-:wq!
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
