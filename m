@@ -1,73 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 1/5] ACPI / Sleep: Do not allocate memory for saving NVS in advance
-Date: Tue, 6 Jul 2010 20:12:34 +0200
-Message-ID: <201007062012.34965.rjw@sisk.pl>
-References: <201007020010.13755.rjw@sisk.pl> <201007020011.22118.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/3] ACPI / ACPICA: Avoid executing _PRW twice for all
+ devices
+Date: Tue, 06 Jul 2010 18:20:48 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007061812250.10181@localhost.localdomain>
+References: <201007050056.22705.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56407 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753948Ab0GFSN6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Jul 2010 14:13:58 -0400
-In-Reply-To: <201007020011.22118.rjw@sisk.pl>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:65022 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754510Ab0GFWVJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jul 2010 18:21:09 -0400
+Received: from localhost.localdomain ([unknown] [64.140.212.33])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L5500L0VQ2RT181@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 06 Jul 2010 17:20:59 -0500 (CDT)
+In-reply-to: <201007050056.22705.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Moore, Robert" <robert.moore@intel.com>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Friday, July 02, 2010, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> We only can try to allocate memory for saving the NVS region if it
-> is known that the target system sleep state is valid.  Otherwise
-> we will leak memory if suspend_nvs_alloc() is successful and the
-> target state is invalid, because suspend_nvs_free() will not be
-> called in that case.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+series applied to acpi-test
 
-Well, the $subject patch doesn't cover a real problem where the suspending
-of devices fails (or suspend is tested in the "devices" mode) and
-acpi_pm_finish() is not called at all.  So, the appended patch should be used
-instead.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Rafael
-
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / Sleep: Free NVS copy if suspending of devices fails
-
-If suspending of devices fails or system suspend is tested in the
-"devices" mode, the memory allocated for storing a copy of the ACPI
-NVS area will not be freed, because acpi_pm_finish() is not called
-in that case.  Fix this by moving the suspend_nvs_free() call to
-acpi_pm_end().
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -145,7 +145,6 @@ static void acpi_pm_finish(void)
- {
- 	u32 acpi_state = acpi_target_sleep_state;
- 
--	suspend_nvs_free();
- 	acpi_ec_unblock_transactions();
- 
- 	if (acpi_state == ACPI_STATE_S0)
-@@ -167,6 +166,7 @@ static void acpi_pm_finish(void)
-  */
- static void acpi_pm_end(void)
- {
-+	suspend_nvs_free();
- 	/*
- 	 * This is necessary in case acpi_pm_finish() is not called during a
- 	 * failing transition to a sleep state.
