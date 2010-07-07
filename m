@@ -1,27 +1,26 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [linux-pm] [PATCH 3/5] ACPI / Wakeup: Simplify enabling of wakeup
- devices
-Date: Tue, 06 Jul 2010 22:13:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007062213160.2700@localhost.localdomain>
-References: <201007020010.13755.rjw@sisk.pl> <201007020013.27000.rjw@sisk.pl>
- <201007070117.16557.rjw@sisk.pl>
+Subject: Re: [PATCH 4/5] ACPI / Sleep: Consolidate suspend and hibernation
+ routines
+Date: Tue, 06 Jul 2010 22:14:47 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007062214440.2700@localhost.localdomain>
+References: <201007020010.13755.rjw@sisk.pl> <201007020014.09639.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:36300 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab0GGCNj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jul 2010 22:13:39 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:42295 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751348Ab0GGCOu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jul 2010 22:14:50 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173017.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L5600I010U9KUL3@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 06 Jul 2010 21:13:28 -0500 (CDT)
-In-reply-to: <201007070117.16557.rjw@sisk.pl>
+ with ESMTPA id <0L5600E0O0WO3W16@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 06 Jul 2010 21:14:49 -0500 (CDT)
+In-reply-to: <201007020014.09639.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@lists.linux-foundation.org
 
 applied
 
