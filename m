@@ -1,43 +1,29 @@
-From: Luis Henriques <luis.henrix@gmail.com>
-Subject: [PATCH 1/1] ACPI: fan: Fix more unbalanced code block
-Date: Wed, 7 Jul 2010 19:30:15 +0100
-Message-ID: <20100707183015.GA27757@hades>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/3] PM: Suspend and hibernate error paths fixes
+Date: Wed, 7 Jul 2010 20:35:14 +0200
+Message-ID: <201007072035.14250.rjw@sisk.pl>
+References: <201007012356.44690.rjw@sisk.pl> <alpine.LFD.2.00.1007062219500.2700@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58088 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753980Ab0GGSeS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jul 2010 14:34:18 -0400
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:60466 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756691Ab0GGSg6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Jul 2010 14:36:58 -0400
+In-Reply-To: <alpine.LFD.2.00.1007062219500.2700@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-commit 934231de706d2579fae14f5857fcd8de991009ff fixes an unbalanced
-CONFIG_ACPI_PROCFS code block during module initialisation.  This
-patch fixes similar issue but for the module exit.
+On Wednesday, July 07, 2010, Len Brown wrote:
+> Acked-by: Len Brown <len.brown@intel.com>
+> 
+> I assume you'll send these up via your suspend tree.
 
-Signed-off-by: Luis Henriques <luis.henrix@gmail.com>
----
- drivers/acpi/fan.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Yes, I will.
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 8a3b840..d94d295 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -369,7 +369,9 @@ static void __exit acpi_fan_exit(void)
- 
- 	acpi_bus_unregister_driver(&acpi_fan_driver);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-+#endif
- 
- 	return;
- }
--- 
-1.7.1
-
+Thanks,
+Rafael
