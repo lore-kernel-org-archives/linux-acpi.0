@@ -1,59 +1,63 @@
-From: Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Frederic Weisbecker <fweisbec@gmail.com>
 Subject: Re: 2.6.35-rc4-git3: Reported regressions from 2.6.34
-Date: Fri, 9 Jul 2010 04:04:42 +0200
-Message-ID: <20100709020440.GJ6405@nowhere>
+Date: Fri, 9 Jul 2010 04:56:30 +0200
+Message-ID: <20100709025628.GK6405@nowhere>
 References: <-IGZ64uxA6G.A.P0H.bLmNMB@chimera> <AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, Jesse Barnes <jbarnes-Y1mF5jBUw70BENJcbMCuUQ@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>, Al Viro <viro@zeniv.linux.org.uk>, Shawn Starr <shawn.starr@rogers.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Dave Airlie <airlied@redhat.com>, "David S. Miller" <davem@davemloft.net>, Patrick McHardy <kaber@trash.net>, Jens Axboe <axboe@kernel.dk>
 List-Id: linux-acpi@vger.kernel.org
 
 On Thu, Jul 08, 2010 at 06:34:25PM -0700, Linus Torvalds wrote:
-> On Thu, Jul 8, 2010 at 4:33 PM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote=
+> On Thu, Jul 8, 2010 at 4:33 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote=
 :
 > > Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D=
-16284
-> > Subject =A0 =A0 =A0 =A0 : Hitting WARN_ON in hw_breakpoint code
-> > Submitter =A0 =A0 =A0 : Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-> > Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-06-23 12:57 (16 days old)
-> > Message-ID =A0 =A0 =A0: <20100623125740.GA3368-oklZEfemRj05kJ7NmlRacFaTQe2KTcn/@public.gmane.org=
->
-> > References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D1277=
-29789113432&w=3D2
+16334
+> > Subject =A0 =A0 =A0 =A0 : reiserfs locking (v2)
+> > Submitter =A0 =A0 =A0 : Sergey Senozhatsky <sergey.senozhatsky@gmai=
+l.com>
+> > Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-07-02 9:34 (7 days old)
+> > Message-ID =A0 =A0 =A0: <20100702093451.GA3973@swordfish.minsk.epam=
+=2Ecom>
+> > References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D1278=
+06306303590&w=3D2
 >=20
-> This has "I have a fix, will post it very soon." in the thread from
-> Frederic, but I'm not seeing anything else. Frederic?
+> Frederic? Al? I assume this is some late fallout from the BKL removal
+> ages ago.. It's the old filldir-vs-mmap crud, but normally it should
+> be impossible to trigger because the inode for a directory should
+> never be mmap'able, so we should never have the same i_mutex lock use=
+d
+> for both mmap and for filldir protection.
+>=20
+> We saw some of that oddity long ago, I wonder if it's lockdep being
+> confused about some inodes.
 
 
 
-Right. In fact it wasn't a regression. The per task breakpoint reservat=
-ion
-design was broken from the beginning and this warning has revealed the
-problem. This only touched perf, and it did since perf support breakpoi=
-nts.
-=46ortunately ptrace wasn't concerned by this problem, even not by side=
- effects
-of this.
+I think it has been there from the beginning. At least it was there bef=
+ore
+the reiserfs bkl removal in .32.
 
-The fix is invasive as it's a rewrite of a (little) part of the breakpo=
-int
-reservation. And since the symptom is only a warning and also breakpoin=
-ts
-never released from the constraint table (just a counter, no memory lea=
-k),
-the fix is headed for 2.6.36.
 
-It is ready in tip:/perf/core:
+Indeed the readdir <-> unmap/release inversion problem can not happen.
+But Al said that can happen between write and release. (Although I don'=
+t see
+where write takes the inode mutex).
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/tip/linux-2.6-tip.git;a=3Dc=
-ommitdiff;h=3D45a73372efe4a63f44aa2e1125d4a777c2fdc8d8
+He also highlighted the fact that reiserfs refcounting based on i_count
+was totally broken.
 
-I think this ticket can be safely closed.
+He has a fix the whole in the vfs tree, in the for-next branch on commi=
+t
+6c2bdaf089a3876226893fab00dd83596c465ad2
+"Fix reiserfs_file_release()"
 
-Thanks.
+No more uses of the i_mutex on release after that, nor i_count, but a p=
+rivate
+openers refcount and a tailpack mutex per reiserfs inode.
