@@ -1,101 +1,89 @@
-From: Jesse Barnes <jbarnes-Y1mF5jBUw70BENJcbMCuUQ@public.gmane.org>
+From: Norbert Preining <preining@logic.at>
 Subject: Re: 2.6.35-rc4-git3: Reported regressions from 2.6.34
-Date: Fri, 9 Jul 2010 08:12:39 -0700
-Message-ID: <20100709081239.4eb8fddd@virtuousgeek.org>
-References: <-IGZ64uxA6G.A.P0H.bLmNMB@chimera>
-	<AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G@mail.gmail.com>
+Date: Sat, 10 Jul 2010 01:04:08 +0900
+Message-ID: <20100709160408.GU30043@gamma.logic.tuwien.ac.at>
+References: <-IGZ64uxA6G.A.P0H.bLmNMB@chimera> <AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G@mail.gmail.com> <20100709081239.4eb8fddd@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTiknnzWyVpqnPCpyiEVHLgkewd0zaGzLInABRe2G-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Enrico Bandiello <enban-c0jvKHQHzSzx4jp4WZvp5g@public.gmane.org>, Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100709081239.4eb8fddd@virtuousgeek.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 8 Jul 2010 18:34:25 -0700
-Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
+Hi Jesse,
 
-> > Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bu=
-g.cgi?id=3D16307
-> > Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : i915 in kernel 2.6.35-rc3, hi=
-gh number of wakeups
-> > Submitter =C2=A0 =C2=A0 =C2=A0 : Enrico Bandiello <enban-c0jvKHQHzSy7MTZChrCvtQ@public.gmane.org=
-es>
-> > Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-06-26 16:57 (1=
-3 days old)
-> > Message-ID =C2=A0 =C2=A0 =C2=A0: <4C26317A.5070309-c0jvKHQHzSzx4jp4WZvp5g@public.gmane.org>
-> > References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel=
-&m=3D127757403404259&w=3D2 =20
+(stripping some people from Cc, hopefully not too many)
+
+On Fr, 09 Jul 2010, Jesse Barnes wrote:
+> > > Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?i=
+d=3D16179
+> > > Subject =A0 =A0 =A0 =A0 : 2.6.35-rc2 completely hosed on intel gf=
+x?
+> > > Submitter =A0 =A0 =A0 : Norbert Preining <preining@logic.at>
+> > > Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-06-06 11:55 (33 days old)
+> > > Message-ID =A0 =A0 =A0: <20100606115534.GA9399@gamma.logic.tuwien=
+=2Eac.at>
+> > > References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D12=
+7582534931581&w=3D2 =20
+> >=20
+> > Hmm. That one is the vt.c bug coupled with another problem, which i=
+n
+> > turn got opened as a separate bugzilla entry:
+> >=20
+> >    http://bugzilla.kernel.org/show_bug.cgi?id=3D16252
+> >=20
+> > which in turn then got closed. I dunno.
 >=20
-> I don't think anybody noticed this one. Jesse?
+> Yeah, this is weird.  Norbert, do you still see this?  Have you tried
+> to bisect it?
 
-Oh I hadn't seen that...  Enrico, can you bisect this issue?  It could
-be some spurious hotplug events or possibly a stuck vblank interrupt...
+I wrote in my last comment of this bug that in *most* of the cases
+the=20
+	echo "mem" > /sys/power/state
+works perfectly, and I'm using it permanently now.
 
-> > Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bu=
-g.cgi?id=3D16265
-> > Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : Why is kslowd accumulating so=
- much CPU time?
-> > Submitter =C2=A0 =C2=A0 =C2=A0 : Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
-> > Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-06-09 18:36 (3=
-0 days old)
-> > First-Bad-Commit: http://git.kernel.org/linus/fbf81762e385d3d45acad=
-057b654d56972acf58c
-> > Message-ID =C2=A0 =C2=A0 =C2=A0: <E1OMQ88-0002a1-Gb-UK71uKi2zitAjzmPenPY9A@public.gmane.org=
-rg>
-> > References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel=
-&m=3D127610857819033&w=3D4 =20
->=20
-> Dave, Jesse?
+The problem seems to be in combination with some pm-utils scripts.
+I still haven't been able to pin-point the actual pm-utils script that
+causes the problem, since that is something not 100% reproducible.
 
-I haven't looked at the switchable graphics stuff, hopefully Dave has
-an idea here.
+=46uthermore, *once* (only once!) the echo mem > method failed as writt=
+en in
+the bug report with :
+[16273.....] PM: resume of devices complete after 2115.046 msecs
+[16273.....] Restarting tasks ... done
+[16273.....] video LNXVIDEO:00: Restoring backlight state
+hanging here, but only once, not any time again.
 
-> Fixed by commit f4985dc714d7.
->=20
-> > Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bu=
-g.cgi?id=3D16228
-> > Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : BUG/boot failure on Dell Prec=
-ision T3500 (pci/ahci_stop_engine)
-> > Submitter =C2=A0 =C2=A0 =C2=A0 : Brian Bloniarz <phunge0-PkbjNfxxIASIwRZHo2/mJg@public.gmane.org=
-m>
-> > Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-06-16 17:57 (2=
-3 days old)
-> > Handled-By =C2=A0 =C2=A0 =C2=A0: Bjorn Helgaas <bjorn.helgaas-zDltkPw22Qs@public.gmane.org=
-m> =20
->=20
-> This has a butt-ugly suggested patch that certainly won't be applied.
-> I saw the thread, but lost sight of it. Jesse, did that end up with
-> some resolution?
+It is hard to say what the culprit is, some new pm-utils script maybe,
+since it happens even when I switch pm-utils to use the kernel method
+(echo mem) to suspend, and not uswsusp (s2ram prog).
 
-I'll follow up with Yinghai, we were pretty clear about what we wanted
-from that patch.
+I would suggest keeping that bug closed until I have found the pm-utils
+or a specific culprit, then I can reopen it or open a new bug.
 
-> > Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bu=
-g.cgi?id=3D16179
-> > Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : 2.6.35-rc2 completely hosed o=
-n intel gfx?
-> > Submitter =C2=A0 =C2=A0 =C2=A0 : Norbert Preining <preining@logic.a=
-t>
-> > Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-06-06 11:55 (3=
-3 days old)
-> > Message-ID =C2=A0 =C2=A0 =C2=A0: <20100606115534.GA9399-DqSSrKF0TaxD4ZLkIoI8Yg@public.gmane.org=
-=2Etuwien.ac.at>
-> > References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel=
-&m=3D127582534931581&w=3D2 =20
->=20
-> Hmm. That one is the vt.c bug coupled with another problem, which in
-> turn got opened as a separate bugzilla entry:
->=20
->    http://bugzilla.kernel.org/show_bug.cgi?id=3D16252
->=20
-> which in turn then got closed. I dunno.
+(more disturbing are iwlagn bugs, they are a PITA without any progress)
 
-Yeah, this is weird.  Norbert, do you still see this?  Have you tried
-to bisect it?
+Best wishes
 
-
---=20
-Jesse Barnes, Intel Open Source Technology Center
+Norbert
+-----------------------------------------------------------------------=
+-
+Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org=
+}
+JAIST, Japan                                 TeX Live & Debian Develope=
+r
+DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B09=
+4
+-----------------------------------------------------------------------=
+-
+BLEAN
+Scientific measure of luminosity : 1 glimmer =3D 100,000
+bleans. Usherettes' torches are designed to produce between 2.5 and 4
+bleans, enabling them to assist you in falling downstairs, treading on
+people or putting your hand into a Neapolitan tub when reaching for
+change.
+			--- Douglas Adams, The Meaning of Liff
