@@ -1,18 +1,16 @@
 From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
 Subject: [PATCH] Add intel drm blacklist to intel_opregion_present detect
-Date: Sun, 11 Jul 2010 08:29:17 +0800
-Message-ID: <1278808157-6441-1-git-send-email-jlee@novell.com>
+Date: Sun, 11 Jul 2010 08:30:44 +0800
+Message-ID: <1278808244-6547-1-git-send-email-jlee@novell.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:49238 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753453Ab0GKA3g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Jul 2010 20:29:36 -0400
-Received: by pvc7 with SMTP id 7so1347743pvc.19
-        for <linux-acpi@vger.kernel.org>; Sat, 10 Jul 2010 17:29:35 -0700 (PDT)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:47554 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab0GKAbE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Jul 2010 20:31:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Lee, Chun-Yi" <jlee@novell.com>
+To: linux-kernel@vger.kernel.org
+Cc: mjg@redhat.com, gregkh@suse.de, jlee@novell.com, Dennis.Jansen@web.de, linux-acpi@vger.kernel.org
 
 There have some machines not support by i915 drm driver, e.g. MSI U110/U150,
 there are use poulsbo chip and drm driver not support it because legal issue.
