@@ -1,42 +1,87 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: "Joey Lee" <jlee@novell.com>
 Subject: Re: [PATCH] Add intel drm blacklist to intel_opregion_present
-	detect
-Date: Mon, 12 Jul 2010 03:27:09 +0100
-Message-ID: <20100712022709.GA2695@srcf.ucam.org>
-References: <4C3B06C9020000230001CC2C@novprvlin0050.provo.novell.com>
+ detect
+Date: Mon, 12 Jul 2010 09:12:13 -0600
+Message-ID: <4C3BBD6D020000230001CD30@novprvlin0050.provo.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36615 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755203Ab0GLC1Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Jul 2010 22:27:16 -0400
 Content-Disposition: inline
-In-Reply-To: <4C3B06C9020000230001CC2C@novprvlin0050.provo.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joey Lee <jlee@novell.com>
-Cc: linux-acpi@vger.kernel.org, Dennis.Jansen@web.de
+To: mjg59@srcf.ucam.org
+Cc: dri-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de
 
-On Sun, Jul 11, 2010 at 08:12:57PM -0600, Joey Lee wrote:
+Hi Mattew,=20
 
-> He tested the drm blacklist patch can works fine on his computer, it's
-> also works on VESA mode because the acpi _BCM, _BQC direct change
-> brightness by opregion.
-> 
-> What can we do for this situtation? I mean if the BIOS have opregion
-> implementation but there have no opensource drm driver or native video
-> driver support opregion on Linux?
+=E6=96=BC =E4=B8=80=EF=BC=8C2010-07-12 =E6=96=BC 03:27 +0100=EF=BC=8CMa=
+tthew Garrett =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Sun, Jul 11, 2010 at 08:12:57PM -0600, Joey Lee wrote:
+>=20
+> > He tested the drm blacklist patch can works fine on his computer, i=
+t's
+> > also works on VESA mode because the acpi _BCM, _BQC direct change
+> > brightness by opregion.
+> >=20
 
-The cleanest way would be to implement a stub backlight control driver 
-for the chip - there should be enough information in the source of the 
-poulsbo drm to do that. The main problem with the blacklist approach is 
-that there's no guarantee that all poulsbo systems will have a working 
-acpi method, and I /think/ there's a couple more PCI IDs that ought to 
-be covered in any case. On the other hand doing it properly does involve 
-writing rather a lot more code, and the fact that Intel have shown 
-absolutely no interest in making their hardware work means that the 
-quick hack might be the most reasonable thing to do.
+Sorry, I write a wrong information, the MSI poulsbo netbook change
+brightness by ec command in _BCM, _BQC, not opregion.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> > What can we do for this situtation? I mean if the BIOS have opregio=
+n
+> > implementation but there have no opensource drm driver or native vi=
+deo
+> > driver support opregion on Linux?
+>=20
+> The cleanest way would be to implement a stub backlight control drive=
+r=20
+> for the chip - there should be enough information in the source of th=
+e=20
+> poulsbo drm to do that.=20
+
+M... Follow your suggestion, I am tracing the i915 drm driver and
+Poulsbo drm driver from here:
+
+http://sourceforge.net/mailarchive/message.php?msg_name=3D49C2ADA8.2090=
+405%40shipmail.org
+
+I am not sure fully understood your suggestion... Did you mean we can
+extract some parts from Poulsbo drm driver and put it to a stub
+backlight control driver for Poulsbo? Where can we put the stub driver?
+Do we still put it in i915 drm?=20
+
+On the other hand, the Poulsbo is a old and stop ship chip, do we still
+want to add a special driver for it?
+
+> The main problem with the blacklist approach is=20
+> that there's no guarantee that all poulsbo systems will have a workin=
+g=20
+> acpi method, and I /think/ there's a couple more PCI IDs that ought t=
+o=20
+> be covered in any case. On the other hand doing it properly does invo=
+lve=20
+> writing rather a lot more code, and the fact that Intel have shown=20
+> absolutely no interest in making their hardware work means that the=20
+> quick hack might be the most reasonable thing to do.
+>=20
+
+Thank's for your remind, I fully agreed cann't guarantee all poulsbo
+systems have working acpi method. But, I am sure the MSI U110/U115 have
+workable acpi backlight method.
+Do you think it's good to put the special DMI detection in msi-laptop
+driver to enable the the acpi backlight control by call
+acpi_video_register in acpi video? But will cause msi-laptop driver
+dependency to acpi video driver.
+
+Need your kindly suggestion!
+
+
+Thank's a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
