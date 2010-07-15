@@ -1,157 +1,104 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 6/9] ACPI power_resource: remove unused procfs I/F
-Date: Thu, 15 Jul 2010 10:46:38 +0800
-Message-ID: <1279161999.4537.8519.camel@rzhang1-desktop>
+Subject: [PATCH 5/9] ACPI EC: remove deprecated procfs I/F
+Date: Thu, 15 Jul 2010 10:46:36 +0800
+Message-ID: <1279161996.4537.8518.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:22437 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:58806 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932128Ab0GOCod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Jul 2010 22:44:33 -0400
+	id S932128Ab0GOCoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Jul 2010 22:44:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-Remove unused ACPI power procfs I/F.
+Remove deprecated EC procfs I/F as the same info can be got in dmesg.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/power.c |  128 ---------------------------------------------------
- 1 file changed, 1 insertion(+), 127 deletions(-)
+ drivers/acpi/ec.c |   86 ------------------------------------------------------
+ 1 file changed, 1 insertion(+), 85 deletions(-)
 
-Index: linux-2.6/drivers/acpi/power.c
+Index: linux-2.6/drivers/acpi/ec.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/power.c
-+++ linux-2.6/drivers/acpi/power.c
-@@ -40,8 +40,6 @@
+--- linux-2.6.orig/drivers/acpi/ec.c
++++ linux-2.6/drivers/acpi/ec.c
+@@ -34,8 +34,6 @@
  #include <linux/init.h>
  #include <linux/types.h>
- #include <linux/slab.h>
+ #include <linux/delay.h>
 -#include <linux/proc_fs.h>
 -#include <linux/seq_file.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include "sleep.h"
-@@ -64,7 +62,6 @@ module_param_named(power_nocheck, acpi_p
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
--static int acpi_power_open_fs(struct inode *inode, struct file *file);
- 
- static const struct acpi_device_id power_device_ids[] = {
- 	{ACPI_POWER_HID, 0},
-@@ -99,14 +96,6 @@ struct acpi_power_resource {
- 
- static struct list_head acpi_power_resource_list;
- 
--static const struct file_operations acpi_power_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_power_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
- /* --------------------------------------------------------------------------
-                              Power Resource Management
-    -------------------------------------------------------------------------- */
-@@ -542,102 +531,6 @@ int acpi_power_transition(struct acpi_de
+ #include <linux/interrupt.h>
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+@@ -672,72 +670,6 @@ acpi_ec_space_handler(u32 function, acpi
  }
  
  /* --------------------------------------------------------------------------
 -                              FS Interface (/proc)
 -   -------------------------------------------------------------------------- */
 -
--static struct proc_dir_entry *acpi_power_dir;
+-static struct proc_dir_entry *acpi_ec_dir;
 -
--static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+-static int acpi_ec_read_info(struct seq_file *seq, void *offset)
 -{
--	int count = 0;
--	int result = 0, state;
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
+-	struct acpi_ec *ec = seq->private;
 -
--
--	resource = seq->private;
--
--	if (!resource)
+-	if (!ec)
 -		goto end;
 -
--	result = acpi_power_get_state(resource->device->handle, &state);
--	if (result)
--		goto end;
--
--	seq_puts(seq, "state:                   ");
--	switch (state) {
--	case ACPI_POWER_RESOURCE_STATE_ON:
--		seq_puts(seq, "on\n");
--		break;
--	case ACPI_POWER_RESOURCE_STATE_OFF:
--		seq_puts(seq, "off\n");
--		break;
--	default:
--		seq_puts(seq, "unknown\n");
--		break;
--	}
--
--	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		count++;
--	}
--	mutex_unlock(&resource->resource_lock);
--
--	seq_printf(seq, "system level:            S%d\n"
--		   "order:                   %d\n"
--		   "reference count:         %d\n",
--		   resource->system_level,
--		   resource->order, count);
--
+-	seq_printf(seq, "gpe:\t\t\t0x%02x\n", (u32) ec->gpe);
+-	seq_printf(seq, "ports:\t\t\t0x%02x, 0x%02x\n",
+-		   (unsigned)ec->command_addr, (unsigned)ec->data_addr);
+-	seq_printf(seq, "use global lock:\t%s\n",
+-		   ec->global_lock ? "yes" : "no");
 -      end:
 -	return 0;
 -}
 -
--static int acpi_power_open_fs(struct inode *inode, struct file *file)
+-static int acpi_ec_info_open_fs(struct inode *inode, struct file *file)
 -{
--	return single_open(file, acpi_power_seq_show, PDE(inode)->data);
+-	return single_open(file, acpi_ec_read_info, PDE(inode)->data);
 -}
 -
--static int acpi_power_add_fs(struct acpi_device *device)
+-static const struct file_operations acpi_ec_info_ops = {
+-	.open = acpi_ec_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
+-
+-static int acpi_ec_add_fs(struct acpi_device *device)
 -{
 -	struct proc_dir_entry *entry = NULL;
 -
--
--	if (!device)
--		return -EINVAL;
--
 -	if (!acpi_device_dir(device)) {
 -		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
--						     acpi_power_dir);
+-						     acpi_ec_dir);
 -		if (!acpi_device_dir(device))
 -			return -ENODEV;
 -	}
 -
--	/* 'status' [R] */
--	entry = proc_create_data(ACPI_POWER_FILE_STATUS,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_power_fops, acpi_driver_data(device));
+-	entry = proc_create_data(ACPI_EC_FILE_INFO, S_IRUGO,
+-				 acpi_device_dir(device),
+-				 &acpi_ec_info_ops, acpi_driver_data(device));
 -	if (!entry)
--		return -EIO;
+-		return -ENODEV;
 -	return 0;
 -}
 -
--static int acpi_power_remove_fs(struct acpi_device *device)
+-static int acpi_ec_remove_fs(struct acpi_device *device)
 -{
 -
 -	if (acpi_device_dir(device)) {
--		remove_proc_entry(ACPI_POWER_FILE_STATUS,
--				  acpi_device_dir(device));
--		remove_proc_entry(acpi_device_bid(device), acpi_power_dir);
+-		remove_proc_entry(ACPI_EC_FILE_INFO, acpi_device_dir(device));
+-		remove_proc_entry(acpi_device_bid(device), acpi_ec_dir);
 -		acpi_device_dir(device) = NULL;
 -	}
 -
@@ -159,49 +106,55 @@ Index: linux-2.6/drivers/acpi/power.c
 -}
 -
 -/* --------------------------------------------------------------------------
-                                 Driver Interface
+                                Driver Interface
     -------------------------------------------------------------------------- */
+ static acpi_status
+@@ -887,7 +819,6 @@ static int acpi_ec_add(struct acpi_devic
+ 	if (!first_ec)
+ 		first_ec = ec;
+ 	device->driver_data = ec;
+-	acpi_ec_add_fs(device);
+ 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
  
-@@ -690,10 +583,6 @@ static int acpi_power_add(struct acpi_de
- 		break;
+@@ -914,7 +845,6 @@ static int acpi_ec_remove(struct acpi_de
+ 		kfree(handler);
  	}
+ 	mutex_unlock(&ec->lock);
+-	acpi_ec_remove_fs(device);
+ 	device->driver_data = NULL;
+ 	if (ec == first_ec)
+ 		first_ec = NULL;
+@@ -1093,20 +1023,8 @@ static struct acpi_driver acpi_ec_driver
  
--	result = acpi_power_add_fs(device);
--	if (result)
--		goto end;
--
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
- 	       acpi_device_bid(device), state ? "on" : "off");
- 
-@@ -715,8 +604,6 @@ static int acpi_power_remove(struct acpi
- 
- 	resource = acpi_driver_data(device);
- 
--	acpi_power_remove_fs(device);
--
- 	mutex_lock(&resource->resource_lock);
- 	list_for_each_safe(node, next, &resource->reference) {
- 		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
-@@ -760,19 +647,6 @@ static int acpi_power_resume(struct acpi
- 
- int __init acpi_power_init(void)
+ int __init acpi_ec_init(void)
  {
 -	int result = 0;
 -
- 	INIT_LIST_HEAD(&acpi_power_resource_list);
--
--	acpi_power_dir = proc_mkdir(ACPI_POWER_CLASS, acpi_root_dir);
--	if (!acpi_power_dir)
+-	acpi_ec_dir = proc_mkdir(ACPI_EC_CLASS, acpi_root_dir);
+-	if (!acpi_ec_dir)
 -		return -ENODEV;
 -
--	result = acpi_bus_register_driver(&acpi_power_driver);
+ 	/* Now register the driver for the EC */
+-	result = acpi_bus_register_driver(&acpi_ec_driver);
 -	if (result < 0) {
--		remove_proc_entry(ACPI_POWER_CLASS, acpi_root_dir);
+-		remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
 -		return -ENODEV;
 -	}
 -
--	return 0;
-+	return acpi_bus_register_driver(&acpi_power_driver);
+-	return result;
++	return acpi_bus_register_driver(&acpi_ec_driver);
  }
+ 
+ /* EC driver currently not unloadable */
+@@ -1116,8 +1034,6 @@ static void __exit acpi_ec_exit(void)
+ 
+ 	acpi_bus_unregister_driver(&acpi_ec_driver);
+ 
+-	remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
+-
+ 	return;
+ }
+ #endif	/* 0 */
 
 
