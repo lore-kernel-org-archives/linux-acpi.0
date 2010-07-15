@@ -1,103 +1,58 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH_v7 2/2] ACPI/IPMI: Add the IPMI opregion driver to enable ACPI to access BMC controller
-Date: Thu, 15 Jul 2010 10:27:29 -0600
-Message-ID: <201007151027.30025.bjorn.helgaas@hp.com>
-References: <1279112094-16749-1-git-send-email-yakui.zhao@intel.com> <201007141124.57495.bjorn.helgaas@hp.com> <1279157466.3660.52.camel@localhost.localdomain>
+From: "malattia@linux.it" <malattia@linux.it>
+Subject: Re: [patch 0/5] iASL patches in Debian
+Date: Fri, 16 Jul 2010 06:29:57 +0900
+Message-ID: <20100715212956.GA28893@kamineko.org>
+References: <20100704044332.573836359@linux.it>
+ <4911F71203A09E4D9981D27F9D830858A10EFE10@orsmsx503.amr.corp.intel.com>
+ <20100707220736.GD5635@kamineko.org>
+ <1278550164.3638.12.camel@minggr.sh.intel.com>
+ <20100708134928.GD1909@kamineko.org>
+ <1278626807.2164.17.camel@localhost>
+ <20100708144026.GE1909@kamineko.org>
+ <1279071763.4404.5.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:32668 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933677Ab0GOQ1d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jul 2010 12:27:33 -0400
-In-Reply-To: <1279157466.3660.52.camel@localhost.localdomain>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:51503
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933759Ab0GOV37 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jul 2010 17:29:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1279071763.4404.5.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, July 14, 2010 07:31:06 pm ykzhao wrote:
-> On Thu, 2010-07-15 at 01:24 +0800, Bjorn Helgaas wrote:
-> Will you please look at this thread
-> http://marc.info/?l=linux-acpi&m=127608894610765&w=4?
-> 
-> Before this patch, I followed your comment and put the ACPI IPMI
-> opregion code into the IPMI_SI module. 
-> 
-> But in fact the IPMI opregion code has nothing to do with the ipmi
-> system interface. It is enough to use the IPMI API interface. In such
-> case maybe it is a better choice to put the IPMI opregion code into the
-> separate file. (In fact Corey suggests that the IPMI opregion code be
-> put into the separate file). 
-
-The ACPI IPMI opregion code deals with an ACPI device, and the
-obvious place where you have that device is the driver "add"
-function, i.e., ipmi_pnp_probe().  That's the point where the
-PNP core will help you out by matching device IDs and handling
-hotplug for you.
-
-You can kludge around and do it elsewhere, but it's going to be
-more work.
-
-> > But I don't think this is the right design.  I think it's fine to
-> > put all this code in a separate file and have a separate config
-> > option for it.
+On Wed, Jul 14, 2010 at 09:42:43AM +0800, Lin Ming wrote:
+> On Thu, 2010-07-08 at 22:40 +0800, malattia@linux.it wrote:
+> > On Thu, Jul 08, 2010 at 10:06:47PM +0000, Lin Ming wrote:
+...
+> > > >  Compilation complete. 0 Errors, 83 Warnings, 18 Remarks, 0 Optimizations
+> > > >  ASL Input:  MAIN.asl - 62 lines, 962044 bytes, 20265 keywords
+> > > > -AML Output: oconst.aml - 255557 bytes, 862 named objects, 19403 executable opcodes
+> > > > +AML Output: oconst.aml - 255575 bytes, 862 named objects, 19403 executable opcodes
+> > > 
+> > > Why do the aml files have different size?
+> > > Is it caused by big/small endian?
 > > 
-> > However, I don't think acpi_ipmi and ipmi_si should be different
-> > modules, because they both want to be connected to the same ACPI
-> > device.  Making acpi_ipmi a separate module means you have to
-> > mess around with PNP core things that drivers shouldn't be using.
-> > For example, you have match_device(), pnp_ipmi_match(), and
-> > acpi_add_ipmi_devices() below.  These all reimplement things
-> > the PNP core already does.
+> > They should be identical, possibly my patch is incomplete or not
+> > correct. Out of the ~180 tests only the ones in the diff show
+> > differences.
+> > I'll have to check what is wrong on sparc64 for them.
 > 
-> If we decide to put the IPMI opregion code into the separate file, the
-> next is how to *correctly* create the IPMI user interface between ACPI
-> subsystem and the corresponding BMC controller.The user interface is the
-> communication channel used to send/receive IPMI message to/from the BMC
-> controller. 
-> In such case we will use the IPMI smi watcher to create/destroy the IPMI
-> user interface between ACPI and the corresponding BMC controller. But it
-> is noted that we should assure whether the corresponding IPMI BMC
-> controller is registered by using ACPI detection mechanism when creating
-> the relationship between ACPI and IPMI BMC controller. This is realized
-> by comparing the "device handle". And before comparing the "device
-> handle", maybe we will have to get the corresponding device lists with
-> the device id "IPI0001".
+> Hi, 
 > 
-> Do you have other idea about how to *correctly* create the user
-> interface between ACPI and IPMI BMC controller?
-
-I don't have time right now to design something new for this.
-
-You should handle hotplug of IPI0001 devices, but you call
-acpi_add_ipmi_devices() only once, at module-load time.  That
-makes me think the sequence "load ipmi_si, load acpi_ipmi,
-hot-add IPI0001" will not work.  I think ipmi_si will see the
-new device, but I don't think acpi_ipmi will.
-
-We should not export pnp_bus_type.  Maybe you can avoid this by
-maintaining some sort of list in ipmi_si, although then you're back
-to having to deal with hotplug yourself.  You'd have to have
-coordinate ipmi_pnp_probe() and ipmi_pnp_remove() events between
-ipmi_si and acpi_ipmi.
-
-> > > +static void ipmi_bmc_gone(int iface)
-> > > +{
-> > > +	struct acpi_ipmi_device *ipmi_device, *temp;
-> > > +
-> > > +	if (list_empty(&driver_data.ipmi_devices))
-> > > +		return;
-> > 
-> > You don't need to test for list_empty before using
-> > list_for_each_entry_safe()
+> Did you find out why they are different?
 > 
-> IMO it is needed as it does the operation of list deletion.
+> You can disassemble the aml files and see what the differences are.
 
-I don't think so:
+haven't had the time to go after it yet. apologies.
 
- * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
+But on a separate note, I assume there is interest in applying the
+patches to the upstream tree (at least once they are complete).
 
-Bjorn
+Thanks!
+-- 
+mattia
+:wq!
