@@ -1,49 +1,33 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 6/7] X86 platform driver: Fix section mismatch in wmi.c
-Date: Fri, 16 Jul 2010 13:11:36 +0200
-Message-ID: <1279278697-3694-7-git-send-email-trenn@suse.de>
-References: <1279278697-3694-1-git-send-email-trenn@suse.de>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1279278697-3694-1-git-send-email-trenn@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Version 2: Provide /sys/../ec with read/write access and some cleanups
+Date: Fri, 16 Jul 2010 13:11:30 +0200
+Message-ID: <1279278697-3694-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:59078 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965143Ab0GPLLm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Jul 2010 07:11:42 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-The .add function must not be declared __init.
+This patchset is againt the acpi test branch.
+It would be great if these can be applied there.
+Patches are test compiled, booted and I played a bit with reading
+writing...
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Changes to the previous patchset:
+    - Use debugfs /sys/kernel/debug/ec/* instead of /sys/devices/...
+    - Keep some EC Documentation in the thinkpad driver
+    - Add Documentation/ABI describing the new interface
 
-CC: Alexey Starikovskiy <astarikovskiy@suse.de>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-kernel@vger.kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: platform-driver-x86@vger.kernel.org
----
- drivers/platform/x86/wmi.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Possible further enhancements:
+    - Expose EC Fields and make them read/writable
+    - Allow userspace to switch on burst mode to be able to test
+      EC burst transitions in userspace
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index e4eaa14..635ebb4 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -804,7 +804,7 @@ static bool guid_already_parsed(const char *guid_string)
- /*
-  * Parse the _WDG method for the GUID data blocks
-  */
--static __init acpi_status parse_wdg(acpi_handle handle)
-+static acpi_status parse_wdg(acpi_handle handle)
- {
- 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
- 	union acpi_object *obj;
-@@ -947,7 +947,7 @@ static int acpi_wmi_remove(struct acpi_device *device, int type)
- 	return 0;
- }
- 
--static int __init acpi_wmi_add(struct acpi_device *device)
-+static int acpi_wmi_add(struct acpi_device *device)
- {
- 	acpi_status status;
- 	int result = 0;
--- 
-1.6.3
+Thanks,
+
+       Thomas
+
