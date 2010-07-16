@@ -1,233 +1,144 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 5/7] X86 platform drivers: Remove EC dump
-	from thinkpad_acpi
-Date: Fri, 16 Jul 2010 13:11:35 +0200
-Message-ID: <1279278697-3694-6-git-send-email-trenn@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 2/7] ACPI: Provide /sys/kernel/debug//ec/ec0/io for binary access to the EC
+Date: Fri, 16 Jul 2010 13:11:32 +0200
+Message-ID: <1279278697-3694-3-git-send-email-trenn@suse.de>
 References: <1279278697-3694-1-git-send-email-trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1279278697-3694-1-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1279278697-3694-1-git-send-email-trenn@suse.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-There is a general interface for that now (provided by
-other patches in this patch series):
-/sys/kernel/debug/ec/*/io
+A userspace app to easily read/write the EC can be found here:
+ftp://ftp.suse.com/pub/people/trenn/sources/ec/ec_access.c
 
-Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Multiple ECs are not supported, but shouldn't be hard to add as soon
+as the ec driver itself will support them.
 
-CC: Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
-CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-CC: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-CC: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-kernel@vger.kernel.org
+CC: linux-acpi@vger.kernel.org
+CC: platform-driver-x86@vger.kernel.org
 ---
- Documentation/laptops/thinkpad-acpi.txt |   71 +++++-------------------------
- drivers/platform/x86/thinkpad_acpi.c    |   73 -------------------------------
- 2 files changed, 11 insertions(+), 133 deletions(-)
+ drivers/acpi/ec_sys.c |   86 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 86 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index fc15538..f6f8025 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -960,70 +960,21 @@ Sysfs notes:
- 	subsystem, and follow all of the hwmon guidelines at
- 	Documentation/hwmon.
- 
-+EXPERIMENTAL: Embedded controller register dump
-+-----------------------------------------------
- 
--EXPERIMENTAL: Embedded controller register dump -- /proc/acpi/ibm/ecdump
--------------------------------------------------------------------------
--
--This feature is marked EXPERIMENTAL because the implementation
--directly accesses hardware registers and may not work as expected. USE
--WITH CAUTION! To use this feature, you need to supply the
--experimental=1 parameter when loading the module.
--
--This feature dumps the values of 256 embedded controller
--registers. Values which have changed since the last time the registers
--were dumped are marked with a star:
--
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
--EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
--EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
--EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
--EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
--EC 0x30:  01  07  1a  00  30  04  00  00 *85  00  00  10  00  50  00  00
--EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
--EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03 *bc *02 *bc
--EC 0x60: *02 *bc *02  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0x70:  00  00  00  00  00  12  30  40 *24 *26 *2c *27 *20  80 *1f  80
--EC 0x80:  00  00  00  06 *37 *0e  03  00  00  00  0e  07  00  00  00  00
--EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xa0: *ff  09  ff  09  ff  ff *64  00 *00 *00 *a2  41 *ff *ff *e0  00
--EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
--EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
--
--This feature can be used to determine the register holding the fan
--speed on some models. To do that, do the following:
-+This feature is not included in the thinkpad driver anymore.
-+Instead the EC can be accessed through /sys/kernel/debug/ec with
-+a userspace tool which can be found here:
-+ftp://ftp.suse.com/pub/people/trenn/sources/ec
- 
-+Use it to determine the register holding the fan
-+speed on some models. To do that, do the following:
- 	- make sure the battery is fully charged
- 	- make sure the fan is running
--	- run 'cat /proc/acpi/ibm/ecdump' several times, once per second or so
--
--The first step makes sure various charging-related values don't
--vary. The second ensures that the fan-related values do vary, since
--the fan speed fluctuates a bit. The third will (hopefully) mark the
--fan register with a star:
--
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
--EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
--EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
--EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
--EC 0x20:  00  00  00  00  00  00  00  00  00  00  00  03  43  00  00  80
--EC 0x30:  01  07  1a  00  30  04  00  00  85  00  00  10  00  50  00  00
--EC 0x40:  00  00  00  00  00  00  14  01  00  04  00  00  00  00  00  00
--EC 0x50:  00  c0  02  0d  00  01  01  02  02  03  03  03  03  bc  02  bc
--EC 0x60:  02  bc  02  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0x70:  00  00  00  00  00  12  30  40  24  27  2c  27  21  80  1f  80
--EC 0x80:  00  00  00  06 *be  0d  03  00  00  00  0e  07  00  00  00  00
--EC 0x90:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xa0:  ff  09  ff  09  ff  ff  64  00  00  00  a2  41  ff  ff  e0  00
--EC 0xb0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xc0:  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xd0:  03  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
--EC 0xe0:  00  00  00  00  00  00  00  00  11  20  49  04  24  06  55  03
--EC 0xf0:  31  55  48  54  35  38  57  57  08  2f  45  73  07  65  6c  1a
--
--Another set of values that varies often is the temperature
-+	- use above mentioned tool to read out the EC
+diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+index 834c21a..3ef9781 100644
+--- a/drivers/acpi/ec_sys.c
++++ b/drivers/acpi/ec_sys.c
+@@ -1,3 +1,13 @@
++/*
++ * ec_sys.c
++ *
++ * Copyright (C) 2010 SUSE Products GmbH/Novell
++ * Author:
++ *      Thomas Renninger <trenn@suse.de>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
 +
-+Often fan and temperature values vary between
- readings. Since temperatures don't change vary fast, you can take
- several quick dumps to eliminate them.
+ #include <linux/kernel.h>
+ #include <linux/acpi.h>
+ #include <linux/debugfs.h>
+@@ -7,12 +17,87 @@ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
+ MODULE_DESCRIPTION("ACPI EC sysfs access driver");
+ MODULE_LICENSE("GPL");
  
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 4bdb137..5d6119b 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -5838,75 +5838,6 @@ static struct ibm_struct thermal_driver_data = {
++#define EC_SPACE_SIZE 256
++
+ struct sysdev_class acpi_ec_sysdev_class = {
+ 	.name = "ec",
  };
  
- /*************************************************************************
-- * EC Dump subdriver
-- */
--
--static u8 ecdump_regs[256];
--
--static int ecdump_read(struct seq_file *m)
--{
--	int i, j;
--	u8 v;
--
--	seq_printf(m, "EC      "
--		       " +00 +01 +02 +03 +04 +05 +06 +07"
--		       " +08 +09 +0a +0b +0c +0d +0e +0f\n");
--	for (i = 0; i < 256; i += 16) {
--		seq_printf(m, "EC 0x%02x:", i);
--		for (j = 0; j < 16; j++) {
--			if (!acpi_ec_read(i + j, &v))
--				break;
--			if (v != ecdump_regs[i + j])
--				seq_printf(m, " *%02x", v);
--			else
--				seq_printf(m, "  %02x", v);
--			ecdump_regs[i + j] = v;
--		}
--		seq_putc(m, '\n');
--		if (j != 16)
--			break;
--	}
--
--	/* These are way too dangerous to advertise openly... */
--#if 0
--	seq_printf(m, "commands:\t0x<offset> 0x<value>"
--		       " (<offset> is 00-ff, <value> is 00-ff)\n");
--	seq_printf(m, "commands:\t0x<offset> <value>  "
--		       " (<offset> is 00-ff, <value> is 0-255)\n");
--#endif
--	return 0;
--}
--
--static int ecdump_write(char *buf)
--{
--	char *cmd;
--	int i, v;
--
--	while ((cmd = next_cmd(&buf))) {
--		if (sscanf(cmd, "0x%x 0x%x", &i, &v) == 2) {
--			/* i and v set */
--		} else if (sscanf(cmd, "0x%x %u", &i, &v) == 2) {
--			/* i and v set */
--		} else
--			return -EINVAL;
--		if (i >= 0 && i < 256 && v >= 0 && v < 256) {
--			if (!acpi_ec_write(i, v))
--				return -EIO;
--		} else
--			return -EINVAL;
--	}
--
--	return 0;
--}
--
--static struct ibm_struct ecdump_driver_data = {
--	.name = "ecdump",
--	.read = ecdump_read,
--	.write = ecdump_write,
--	.flags.experimental = 1,
--};
--
--/*************************************************************************
-  * Backlight/brightness subdriver
-  */
+ static struct dentry *acpi_ec_debugfs_dir;
  
-@@ -8883,9 +8814,6 @@ static struct ibm_init_struct ibms_init[] __initdata = {
- 		.data = &thermal_driver_data,
- 	},
- 	{
--		.data = &ecdump_driver_data,
--	},
--	{
- 		.init = brightness_init,
- 		.data = &brightness_driver_data,
- 	},
-@@ -8993,7 +8921,6 @@ TPACPI_PARAM(light);
- TPACPI_PARAM(cmos);
- TPACPI_PARAM(led);
- TPACPI_PARAM(beep);
--TPACPI_PARAM(ecdump);
- TPACPI_PARAM(brightness);
- TPACPI_PARAM(volume);
- TPACPI_PARAM(fan);
++static int acpi_ec_open_io(struct inode *i, struct file *f)
++{
++	f->private_data = i->i_private;
++	return 0;
++}
++
++static ssize_t acpi_ec_read_io(struct file *f, char __user *buf,
++			       size_t count, loff_t *off)
++{
++	/* Use this if support reading/writing multiple ECs exists in ec.c:
++	 * struct acpi_ec *ec = ((struct seq_file *)f->private_data)->private;
++	 */
++	unsigned int size = EC_SPACE_SIZE;
++	u8 *data = (u8 *) buf;
++	loff_t init_off = *off;
++	int err = 0;
++
++	if (*off >= size)
++		return 0;
++	if (*off + count >= size) {
++		size -= *off;
++		count = size;
++	} else
++		size = count;
++
++	while (size) {
++		err = ec_read(*off, &data[*off - init_off]);
++		if (err)
++			return err;
++		*off += 1;
++		size--;
++	}
++	return count;
++}
++
++static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
++				size_t count, loff_t *off)
++{
++	/* Use this if support reading/writing multiple ECs exists in ec.c:
++	 * struct acpi_ec *ec = ((struct seq_file *)f->private_data)->private;
++	 */
++
++	unsigned int size = count;
++	loff_t init_off = *off;
++	u8 *data = (u8 *) buf;
++	int err = 0;
++
++	if (*off >= EC_SPACE_SIZE)
++		return 0;
++	if (*off + count >= EC_SPACE_SIZE) {
++		size = EC_SPACE_SIZE - *off;
++		count = size;
++	}
++
++	while (size) {
++		u8 byte_write = data[*off - init_off];
++		err = ec_write(*off, byte_write);
++		if (err)
++			return err;
++
++		*off += 1;
++		size--;
++	}
++	return count;
++}
++
++static struct file_operations acpi_ec_io_ops = {
++	.owner = THIS_MODULE,
++	.open  = acpi_ec_open_io,
++	.read  = acpi_ec_read_io,
++	.write = acpi_ec_write_io,
++};
++
+ int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+ {
+ 	struct dentry *dev_dir;
+@@ -35,6 +120,7 @@ int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+ 	debugfs_create_x32("gpe", 0444, dev_dir, (u32 *)&first_ec->gpe);
+ 	debugfs_create_bool("use_global_lock", 0444, dev_dir,
+ 			    (u32 *)&first_ec->global_lock);
++	debugfs_create_file("io", 0666, dev_dir, ec, &acpi_ec_io_ops);
+ 	return 0;
+ }
+ 
 -- 
 1.6.3
-
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Sprint
-What will you do first with EVO, the first 4G phone?
-Visit sprint.com/first -- http://p.sf.net/sfu/sprint-com-first
