@@ -1,60 +1,55 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH_v7 2/2] ACPI/IPMI: Add the IPMI opregion driver to enable ACPI to access BMC controller
-Date: Mon, 19 Jul 2010 08:54:36 -0600
-Message-ID: <201007190854.36340.bjorn.helgaas@hp.com>
-References: <1279112094-16749-1-git-send-email-yakui.zhao@intel.com> <201007161001.21956.bjorn.helgaas@hp.com> <1279504348.3660.140.camel@localhost.localdomain>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Mon, 19 Jul 2010 18:29:33 +0200
+Message-ID: <4C447D6D.5060801@suse.cz>
+References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>	<4C27E965.80508@gmail.com>	<4C283D84.6080504@suse.cz>	<20100628171410.GA27367@srcf.ucam.org>	<4C290245.2040001@suse.cz>	<20100628204820.GA32503@srcf.ucam.org>	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>	<4C2A3E27.4060407@suse.cz> <AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com> <4C2B0C73.9050200@suse.cz> <4C3278C8.60503@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:13549 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933554Ab0GSOyn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jul 2010 10:54:43 -0400
-In-Reply-To: <1279504348.3660.140.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4C3278C8.60503@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Robert Hancock <hancockrwd@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>
 
-On Sunday, July 18, 2010 07:52:28 pm ykzhao wrote:
-> On Sat, 2010-07-17 at 00:01 +0800, Bjorn Helgaas wrote:
-> > On Thursday, July 15, 2010 08:34:35 pm ykzhao wrote:
-> > > On Fri, 2010-07-16 at 00:27 +0800, Bjorn Helgaas wrote:
-> > > > The ACPI IPMI opregion code deals with an ACPI device, and the
-> > > > obvious place where you have that device is the driver "add"
-> > > > function, i.e., ipmi_pnp_probe().  That's the point where the
-> > > > PNP core will help you out by matching device IDs and handling
-> > > > hotplug for you.
-=2E..
-> > > Yes. The hotplug scenario should be considered. This will be hand=
-led
-> > > under two places:
-> > >    a. the IPMI pnp detection:=20
-> > >    b. install opregion handle for the hotplug IPI0001 device
-> > >=20
-> > > But in fact the acpi_pnp device is enumerated only once at the bo=
-ot
-> > > time.
-> >=20
-> > Drivers cannot rely on anything like "the acpi_pnp device is
-> > enumerated only once at boot-time."  Device enumeration happens
-> > in the ACPI core and PNP core, not in drivers, and drivers can't
-> > assume anything about when it happens.
->=20
-> =EF=BB=BFYes. But in fact the ACPI pnp device is enumerated only once=
- at the
-> boot time.
+On 07/06/2010 02:28 AM, Robert Hancock wrote:
+> On 06/30/2010 03:20 AM, Jiri Slaby wrote:
+>> On 06/30/2010 01:23 AM, Robert Hancock wrote:
+>>> What kind of slot is it, and what kind of device was being used,
+>>> something designed for this machine or just some random card?
+>>
+>> It's a netmos 9835 serial card with 2 ports. PCI, there is no PCIe in
+>> the machine as far as I can see.
+>>
+>>> Can they
+>>> tell what IRQ the device is reportedly using in Windows and if it
+>>> matches what Linux reports?
+>>
+>> I can ask them. What I know is that with acpi=noirq (or with the quirk)
+>> the IRQ number is 10, with acpi without the quirk, it's 11:
+>>
+>> PCI: setting IRQ 2 as level-triggered
+>> serial 0000:00:09.0: found PCI INT A ->  IRQ 2
+>> 0000:00:09.0: ttyS4 at I/O 0x1898 (irq = 10) is a 16550A
+>> 0000:00:09.0: ttyS5 at I/O 0x1890 (irq = 10) is a 16550A
+>>
+>> ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
+>> PCI: setting IRQ 11 as level-triggered
+>> serial 0000:00:09.0: PCI INT A ->  Link[LNKB] ->  GSI 11 (level, low) ->
+>> IRQ 11
+>> 0000:00:09.0: ttyS4 at I/O 0x1898 (irq = 11) is a 16550A
+>> 0000:00:09.0: ttyS5 at I/O 0x1890 (irq = 11) is a 16550A
+>>
+>> I still no point in comparing this to Windows' setup. We can't find out
+>> whether it is quirked or better (without some bug) handled there.
+> 
+> Well, you can see if Windows shows IRQ 10 or 11 for that device..
 
-NO!  You can NOT assume the ACPI PNP device is enumerated once at
-boot time.
+But how can I find out which link it is routed to in Windows? Without
+that information the number is meaningless, no?
 
-That may be the way the current implementation behaves, but the
-driver interface does not specify that, and it is likely to change.
-
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-- 
+js
+suse labs
