@@ -1,76 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 22/26] acer-wmi: fix memory leaks in WMID_set_capabilities and get_wmid_devices
-Date: Tue, 20 Jul 2010 15:19:52 -0700
-Message-ID: <201007202219.o6KMJqnl021089@imap1.linux-foundation.org>
+Subject: [patch 13/26] classmate-laptop: make needlessly global symbols static
+Date: Tue, 20 Jul 2010 15:19:44 -0700
+Message-ID: <201007202219.o6KMJi6H021037@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, axel.lin@gmail.com, carlos@strangeworlds.co.uk, mjg@redhat.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51368 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932733Ab0GTWk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jul 2010 18:40:27 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mjg59@srcf.ucam.org
+Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, axel.lin@gmail.com, cascardo@holoscopio.com, don@syst.com.br, mjg@redhat.com
 
 From: Axel Lin <axel.lin@gmail.com>
 
-When acpi_evaluate_object() is passed ACPI_ALLOCATE_BUFFER, the caller
-must kfree the returned buffer if AE_OK is returned.
-
-The callers of wmi_query_block() pass ACPI_ALLOCATE_BUFFER, and thus must
-check its return value before accessing or kfree() on the buffer.
-
-This patch adds a missing kfree(out.pointer) before exit
-WMID_set_capabilities() and get_wmid_devices().
+cmpc_accel_sensitivity_attr is needlessly defined global.
+This patch makes the symbol static.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Acked-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Daniel Oliveira Nascimento <don@syst.com.br>
 Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acer-wmi.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/platform/x86/classmate-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices drivers/platform/x86/acer-wmi.c
---- a/drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices
-+++ a/drivers/platform/x86/acer-wmi.c
-@@ -772,6 +772,7 @@ static acpi_status WMID_set_capabilities
- 		obj->buffer.length == sizeof(u32)) {
- 		devices = *((u32 *) obj->buffer.pointer);
- 	} else {
-+		kfree(out.pointer);
- 		return AE_ERROR;
- 	}
- 
-@@ -788,6 +789,7 @@ static acpi_status WMID_set_capabilities
- 	if (!(devices & 0x20))
- 		max_brightness = 0x9;
- 
-+	kfree(out.pointer);
- 	return status;
+diff -puN drivers/platform/x86/classmate-laptop.c~classmate-laptop-make-needlessly-global-symbols-static drivers/platform/x86/classmate-laptop.c
+--- a/drivers/platform/x86/classmate-laptop.c~classmate-laptop-make-needlessly-global-symbols-static
++++ a/drivers/platform/x86/classmate-laptop.c
+@@ -208,7 +208,7 @@ static ssize_t cmpc_accel_sensitivity_st
+ 	return strnlen(buf, count);
  }
  
-@@ -1094,6 +1096,7 @@ static u32 get_wmid_devices(void)
- 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
- 	union acpi_object *obj;
- 	acpi_status status;
-+	u32 devices = 0;
- 
- 	status = wmi_query_block(WMID_GUID2, 1, &out);
- 	if (ACPI_FAILURE(status))
-@@ -1102,10 +1105,11 @@ static u32 get_wmid_devices(void)
- 	obj = (union acpi_object *) out.pointer;
- 	if (obj && obj->type == ACPI_TYPE_BUFFER &&
- 		obj->buffer.length == sizeof(u32)) {
--		return *((u32 *) obj->buffer.pointer);
--	} else {
--		return 0;
-+		devices = *((u32 *) obj->buffer.pointer);
- 	}
-+
-+	kfree(out.pointer);
-+	return devices;
- }
- 
- /*
+-struct device_attribute cmpc_accel_sensitivity_attr = {
++static struct device_attribute cmpc_accel_sensitivity_attr = {
+ 	.attr = { .name = "sensitivity", .mode = 0660 },
+ 	.show = cmpc_accel_sensitivity_show,
+ 	.store = cmpc_accel_sensitivity_store
 _
