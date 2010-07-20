@@ -1,73 +1,27 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH_v7 2/2] ACPI/IPMI: Add the IPMI opregion driver to
-	enable ACPI to access BMC controller
-Date: Tue, 20 Jul 2010 08:09:27 +0800
-Message-ID: <1279584567.3660.143.camel@localhost.localdomain>
-References: <1279112094-16749-1-git-send-email-yakui.zhao@intel.com>
-	 <201007161001.21956.bjorn.helgaas@hp.com>
-	 <1279504348.3660.140.camel@localhost.localdomain>
-	 <201007190854.36340.bjorn.helgaas@hp.com>
+From: "Sonia Porter" <sporter@jusd.k12.ca.us>
+Subject: Dear Webmail User
+Date: Mon, 19 Jul 2010 18:26:37 -0700
+Message-ID: <8A78544F83994B468EAC5A3D242C1E34C79054@exchsrv02.jusd.dom>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9405 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754365Ab0GTANL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Jul 2010 20:13:11 -0400
-In-Reply-To: <201007190854.36340.bjorn.helgaas@hp.com>
+Received: from mail.jusd.k12.ca.us ([204.100.155.6]:43451 "EHLO
+	mail.jusd.k12.ca.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932088Ab0GTBma convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jul 2010 21:42:30 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>
+To: info@upgrade.com
 
-On Mon, 2010-07-19 at 22:54 +0800, Bjorn Helgaas wrote:
-> On Sunday, July 18, 2010 07:52:28 pm ykzhao wrote:
-> > On Sat, 2010-07-17 at 00:01 +0800, Bjorn Helgaas wrote:
-> > > On Thursday, July 15, 2010 08:34:35 pm ykzhao wrote:
-> > > > On Fri, 2010-07-16 at 00:27 +0800, Bjorn Helgaas wrote:
-> > > > > The ACPI IPMI opregion code deals with an ACPI device, and th=
-e
-> > > > > obvious place where you have that device is the driver "add"
-> > > > > function, i.e., ipmi_pnp_probe().  That's the point where the
-> > > > > PNP core will help you out by matching device IDs and handlin=
-g
-> > > > > hotplug for you.
-> ...
-> > > > Yes. The hotplug scenario should be considered. This will be ha=
-ndled
-> > > > under two places:
-> > > >    a. the IPMI pnp detection:=20
-> > > >    b. install opregion handle for the hotplug IPI0001 device
-> > > >=20
-> > > > But in fact the acpi_pnp device is enumerated only once at the =
-boot
-> > > > time.
-> > >=20
-> > > Drivers cannot rely on anything like "the acpi_pnp device is
-> > > enumerated only once at boot-time."  Device enumeration happens
-> > > in the ACPI core and PNP core, not in drivers, and drivers can't
-> > > assume anything about when it happens.
-> >=20
-> > =EF=BB=BFYes. But in fact the ACPI pnp device is enumerated only on=
-ce at the
-> > boot time.
->=20
-> NO!  You can NOT assume the ACPI PNP device is enumerated once at
-> boot time.
->=20
-> That may be the way the current implementation behaves, but the
-> driver interface does not specify that, and it is likely to change.
+This message was sent automatically by a program on Web mail which periodically checks the size of in boxes, where new messages are received.The program is run weekly to ensure no one's in box grows too large. If your in box becomes too large,you will be unable to receive new email. Just before this message was sent,you had 18 Mega bytes (MB) or more of messages stored in your in box on your Web mail. To help's re-set your SPACE on our database prior to maintain your IN BOX.
+ 
+YOU MUST COPY AND PAST THE BELOW LINK TO INCREASE YOUR INBOX QUOTA AND UPGRADE YOUR WEBMAIL ACCOUNT
 
-Ok. I will try to use the hook to implement it.
-
-thanks.
-	Yakui
->=20
-> Bjorn
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.eformit.com/eform.aspx?webmasterupgradesystem 
+ 
+ You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your in box size grows to 20MB,then a program on the Web mail will move your oldest email to a folder in your home directory to ensure that you will continue to be able to receive incoming email. You will be notified by email that this has taken place. If your in box grows to 25 MB, you will be unable to receive new email as it will be returned to the sender.After you read a message,it is best to REPLY and SAVE a copy.
+ 
+Thanks.
+Web mail Help Desk
