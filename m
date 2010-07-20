@@ -1,27 +1,194 @@
-From: "Sonia Porter" <sporter@jusd.k12.ca.us>
-Subject: Dear Webmail User
-Date: Mon, 19 Jul 2010 18:26:37 -0700
-Message-ID: <8A78544F83994B468EAC5A3D242C1E34C79054@exchsrv02.jusd.dom>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH net-next] drivers/acpi/acpica/utmisc.c: Use printk
+ extension %pV
+Date: Mon, 19 Jul 2010 22:06:07 -0700
+Message-ID: <1279602367.19374.20.camel@Joe-Laptop.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.jusd.k12.ca.us ([204.100.155.6]:43451 "EHLO
-	mail.jusd.k12.ca.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088Ab0GTBma convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jul 2010 21:42:30 -0400
-Content-class: urn:content-classes:message
+Received: from mail.perches.com ([173.55.12.10]:1968 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753198Ab0GTFGK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jul 2010 01:06:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: info@upgrade.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, netdev <netdev@vger.kernel.org>, David Miller <davem@davemloft.net>
 
-This message was sent automatically by a program on Web mail which periodically checks the size of in boxes, where new messages are received.The program is run weekly to ensure no one's in box grows too large. If your in box becomes too large,you will be unable to receive new email. Just before this message was sent,you had 18 Mega bytes (MB) or more of messages stored in your in box on your Web mail. To help's re-set your SPACE on our database prior to maintain your IN BOX.
- 
-YOU MUST COPY AND PAST THE BELOW LINK TO INCREASE YOUR INBOX QUOTA AND UPGRADE YOUR WEBMAIL ACCOUNT
+Consolidates the printk messages to a single
+call so the messages can not be interleaved.
 
-http://www.eformit.com/eform.aspx?webmasterupgradesystem 
+Reduces text a bit.
+
+$ size drivers/acpi/acpica/utmisc.o.*
+   text	   data	    bss	    dec	    hex	filename
+   7822	     56	   1832	   9710	   25ee	drivers/acpi/acpica/utmisc.o.old
+   7748	     56	   1736	   9540	   2544	drivers/acpi/acpica/utmisc.o.new
+
+Depends on net-next commit 7db6f5fb65a82af03229eef104dc9899c5eecf33
+(vsprintf: Recursive vsnprintf: Add "%pV", struct va_format)
+
+Compile tested only
+
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/acpi/acpica/utmisc.c |   78 ++++++++++++++++++++++++++++--------------
+ 1 files changed, 52 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+index e8d0724..d9a4a64 100644
+--- a/drivers/acpi/acpica/utmisc.c
++++ b/drivers/acpi/acpica/utmisc.c
+@@ -53,8 +53,8 @@ ACPI_MODULE_NAME("utmisc")
+ /*
+  * Common suffix for messages
+  */
+-#define ACPI_COMMON_MSG_SUFFIX \
+-	acpi_os_printf(" (%8.8X/%s-%u)\n", ACPI_CA_VERSION, module_name, line_number)
++#define ACPI_COMMON_MSG_SUFFIX_FMT  " (%8.8X/%s-%u)"
++#define ACPI_COMMON_MSG_SUFFIX_ARGS ACPI_CA_VERSION, module_name, line_number
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_validate_exception
+@@ -1063,12 +1063,16 @@ void ACPI_INTERNAL_VAR_XFACE
+ acpi_error(const char *module_name, u32 line_number, const char *format, ...)
+ {
+ 	va_list args;
+-
+-	acpi_os_printf("ACPI Error: ");
++	struct va_format vaf;
  
- You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your in box size grows to 20MB,then a program on the Web mail will move your oldest email to a folder in your home directory to ensure that you will continue to be able to receive incoming email. You will be notified by email that this has taken place. If your in box grows to 25 MB, you will be unable to receive new email as it will be returned to the sender.After you read a message,it is best to REPLY and SAVE a copy.
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	ACPI_COMMON_MSG_SUFFIX;
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI Error: %pV" ACPI_COMMON_MSG_SUFFIX_FMT "\n",
++		       &vaf, ACPI_COMMON_MSG_SUFFIX_ARGS);
++
+ 	va_end(args);
+ }
  
-Thanks.
-Web mail Help Desk
+@@ -1077,12 +1081,18 @@ acpi_exception(const char *module_name,
+ 	       u32 line_number, acpi_status status, const char *format, ...)
+ {
+ 	va_list args;
+-
+-	acpi_os_printf("ACPI Exception: %s, ", acpi_format_exception(status));
++	struct va_format vaf;
+ 
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	ACPI_COMMON_MSG_SUFFIX;
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI Exception: %s, %pV"
++		       ACPI_COMMON_MSG_SUFFIX_FMT "\n",
++		       acpi_format_exception(status), &vaf,
++		       ACPI_COMMON_MSG_SUFFIX_ARGS);
++
+ 	va_end(args);
+ }
+ 
+@@ -1090,12 +1100,16 @@ void ACPI_INTERNAL_VAR_XFACE
+ acpi_warning(const char *module_name, u32 line_number, const char *format, ...)
+ {
+ 	va_list args;
+-
+-	acpi_os_printf("ACPI Warning: ");
++	struct va_format vaf;
+ 
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	ACPI_COMMON_MSG_SUFFIX;
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI Warning: %pV" ACPI_COMMON_MSG_SUFFIX_FMT "\n",
++		       &vaf, ACPI_COMMON_MSG_SUFFIX_ARGS);
++
+ 	va_end(args);
+ }
+ 
+@@ -1103,12 +1117,15 @@ void ACPI_INTERNAL_VAR_XFACE
+ acpi_info(const char *module_name, u32 line_number, const char *format, ...)
+ {
+ 	va_list args;
+-
+-	acpi_os_printf("ACPI: ");
++	struct va_format vaf;
+ 
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	acpi_os_printf("\n");
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI: %pV\n", &vaf);
++
+ 	va_end(args);
+ }
+ 
+@@ -1143,6 +1160,7 @@ acpi_ut_predefined_warning(const char *module_name,
+ 			   u8 node_flags, const char *format, ...)
+ {
+ 	va_list args;
++	struct va_format vaf;
+ 
+ 	/*
+ 	 * Warning messages for this method/object will be disabled after the
+@@ -1152,11 +1170,15 @@ acpi_ut_predefined_warning(const char *module_name,
+ 		return;
+ 	}
+ 
+-	acpi_os_printf("ACPI Warning for %s: ", pathname);
+-
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	ACPI_COMMON_MSG_SUFFIX;
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI Warning for %s: %pV"
++		       ACPI_COMMON_MSG_SUFFIX_FMT "\n",
++		       pathname, &vaf, ACPI_COMMON_MSG_SUFFIX_ARGS);
++
+ 	va_end(args);
+ }
+ 
+@@ -1185,6 +1207,7 @@ acpi_ut_predefined_info(const char *module_name,
+ 			char *pathname, u8 node_flags, const char *format, ...)
+ {
+ 	va_list args;
++	struct va_format vaf;
+ 
+ 	/*
+ 	 * Warning messages for this method/object will be disabled after the
+@@ -1194,10 +1217,13 @@ acpi_ut_predefined_info(const char *module_name,
+ 		return;
+ 	}
+ 
+-	acpi_os_printf("ACPI Info for %s: ", pathname);
+-
+ 	va_start(args, format);
+-	acpi_os_vprintf(format, args);
+-	ACPI_COMMON_MSG_SUFFIX;
++
++	vaf.fmt = format;
++	vaf.va = &args;
++
++	acpi_os_printf("ACPI Info for %s: %pV" ACPI_COMMON_MSG_SUFFIX_FMT "\n",
++		       pathname, &vaf, ACPI_COMMON_MSG_SUFFIX_ARGS);
++
+ 	va_end(args);
+ }
+
+
