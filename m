@@ -1,85 +1,177 @@
-From: akpm@linux-foundation.org
-Subject: [patch 20/26] toshiba_acpi: rename add_device() and remove_device() to create_toshiba_proc_entries() and remove_toshiba_proc_entries()
-Date: Tue, 20 Jul 2010 15:19:51 -0700
-Message-ID: <201007202219.o6KMJpb2021082@imap1.linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / Sleep: Allow the NVS saving to be skipped during suspend to RAM
+Date: Wed, 21 Jul 2010 00:35:02 +0200
+Message-ID: <201007210035.02688.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43522 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932070Ab0GTWZ6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jul 2010 18:25:58 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:42174 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932733Ab0GTWh0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jul 2010 18:37:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, axel.lin@gmail.com, mjg@redhat.com, nm127@freemail.hu
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Matthew Garrett <mjg@redhat.com>, Linux-kernel <linux-kernel@vger.kernel.org>, tomas m <tmezzadra@gmail.com>
 
-=46rom: Axel Lin <axel.lin@gmail.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-To improve readability rename add_device() to
-create_toshiba_proc_entries() and rename remove_device() to
-remove_toshiba_proc_entries().
+Commit 2a6b69765ad794389f2fc3e14a0afa1a995221c2
+(ACPI: Store NVS state even when entering suspend to RAM) caused the
+ACPI suspend code to save the NVS area during suspend and restore it
+during resume unconditionally, although it is known that some systems
+need to use acpi_sleep=s4_nonvs for hibernation to work.  To allow
+the affected systems to avoid saving and restoring the NVS area
+during suspend to RAM and resume, introduce kernel command line
+option acpi_sleep=nonvs and make acpi_sleep=s4_nonvs work as its
+alias temporarily (add acpi_sleep=s4_nonvs to the feature removal
+file).
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: M=E1rton N=E9meth <nm127@freemail.hu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16396 .
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-tested-by: tomas m <tmezzadra@gmail.com>
 ---
+ Documentation/feature-removal-schedule.txt |    8 ++++++
+ Documentation/kernel-parameters.txt        |    4 +--
+ arch/x86/kernel/acpi/sleep.c               |    4 ++-
+ drivers/acpi/sleep.c                       |   35 ++++++++++++++---------------
+ include/linux/acpi.h                       |    2 -
+ 5 files changed, 31 insertions(+), 22 deletions(-)
 
- drivers/platform/x86/toshiba_acpi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff -puN drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-rename-add_d=
-evice-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshi=
-ba_proc_entries drivers/platform/x86/toshiba_acpi.c
---- a/drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-rename-add_devic=
-e-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_p=
-roc_entries
-+++ a/drivers/platform/x86/toshiba_acpi.c
-@@ -720,7 +720,7 @@ static const struct file_operations vers
-=20
- #define PROC_TOSHIBA		"toshiba"
-=20
--static void __init add_device(void)
-+static void __init create_toshiba_proc_entries(void)
+Index: linux-2.6/drivers/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep.c
++++ linux-2.6/drivers/acpi/sleep.c
+@@ -82,6 +82,20 @@ static int acpi_sleep_prepare(u32 acpi_s
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+ 
+ /*
++ * The ACPI specification wants us to save NVS memory regions during hibernation
++ * and to restore them during the subsequent resume.  Windows does that also for
++ * suspend to RAM.  However, it is known that this mechanism does not work on
++ * all machines, so we allow the user to disable it with the help of the
++ * 'acpi_sleep=nonvs' kernel command line option.
++ */
++static bool nvs_nosave;
++
++void __init acpi_nvs_nosave(void)
++{
++	nvs_nosave = true;
++}
++
++/*
+  * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
+  * user to request that behavior by using the 'acpi_old_suspend_ordering'
+  * kernel command line option that causes the following variable to be set.
+@@ -204,8 +218,7 @@ static int acpi_suspend_begin(suspend_st
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 	int error = 0;
+ 
+-	error = suspend_nvs_alloc();
+-
++	error = nvs_nosave ? 0 : suspend_nvs_alloc();
+ 	if (error)
+ 		return error;
+ 
+@@ -389,20 +402,6 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
+-/*
+- * The ACPI specification wants us to save NVS memory regions during hibernation
+- * and to restore them during the subsequent resume.  However, it is not certain
+- * if this mechanism is going to work on all machines, so we allow the user to
+- * disable this mechanism using the 'acpi_sleep=s4_nonvs' kernel command line
+- * option.
+- */
+-static bool s4_no_nvs;
+-
+-void __init acpi_s4_no_nvs(void)
+-{
+-	s4_no_nvs = true;
+-}
+-
+ static unsigned long s4_hardware_signature;
+ static struct acpi_table_facs *facs;
+ static bool nosigcheck;
+@@ -416,7 +415,7 @@ static int acpi_hibernation_begin(void)
  {
- 	proc_create("lcd", S_IRUGO | S_IWUSR, toshiba_proc_dir, &lcd_proc_fop=
-s);
- 	proc_create("video", S_IRUGO | S_IWUSR, toshiba_proc_dir, &video_proc=
-_fops);
-@@ -729,7 +729,7 @@ static void __init add_device(void)
- 	proc_create("version", S_IRUGO, toshiba_proc_dir, &version_proc_fops)=
-;
- }
-=20
--static void remove_device(void)
-+static void remove_toshiba_proc_entries(void)
- {
- 	remove_proc_entry("lcd", toshiba_proc_dir);
- 	remove_proc_entry("video", toshiba_proc_dir);
-@@ -903,7 +903,7 @@ static void toshiba_acpi_exit(void)
- 	if (toshiba_backlight_device)
- 		backlight_device_unregister(toshiba_backlight_device);
-=20
--	remove_device();
-+	remove_toshiba_proc_entries();
-=20
- 	if (toshiba_proc_dir)
- 		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
-@@ -965,7 +965,7 @@ static int __init toshiba_acpi_init(void
- 		toshiba_acpi_exit();
- 		return -ENODEV;
- 	} else {
--		add_device();
-+		create_toshiba_proc_entries();
- 	}
-=20
- 	props.max_brightness =3D HCI_LCD_BRIGHTNESS_LEVELS - 1;
-_
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	int error;
+ 
+-	error = s4_no_nvs ? 0 : suspend_nvs_alloc();
++	error = nvs_nosave ? 0 : suspend_nvs_alloc();
+ 	if (!error) {
+ 		acpi_target_sleep_state = ACPI_STATE_S4;
+ 		acpi_sleep_tts_switch(acpi_target_sleep_state);
+@@ -500,7 +499,7 @@ static int acpi_hibernation_begin_old(vo
+ 	error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 
+ 	if (!error) {
+-		if (!s4_no_nvs)
++		if (!nvs_nosave)
+ 			error = suspend_nvs_alloc();
+ 		if (!error)
+ 			acpi_target_sleep_state = ACPI_STATE_S4;
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -158,8 +158,10 @@ static int __init acpi_sleep_setup(char 
+ 		if (strncmp(str, "s4_nohwsig", 10) == 0)
+ 			acpi_no_s4_hw_signature();
+ 		if (strncmp(str, "s4_nonvs", 8) == 0)
+-			acpi_s4_no_nvs();
++			acpi_nvs_nosave();
+ #endif
++		if (strncmp(str, "nonvs", 5) == 0)
++			acpi_nvs_nosave();
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
+ 		str = strchr(str, ',');
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -253,7 +253,7 @@ int acpi_resources_are_enforced(void);
+ #ifdef CONFIG_PM_SLEEP
+ void __init acpi_no_s4_hw_signature(void);
+ void __init acpi_old_suspend_ordering(void);
+-void __init acpi_s4_no_nvs(void);
++void __init acpi_nvs_nosave(void);
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ struct acpi_osc_context {
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -254,8 +254,8 @@ and is between 256 and 4096 characters. 
+ 			control method, with respect to putting devices into
+ 			low power states, to be enforced (the ACPI 2.0 ordering
+ 			of _PTS is used by default).
+-			s4_nonvs prevents the kernel from saving/restoring the
+-			ACPI NVS memory during hibernation.
++			nonvs prevents the kernel from saving/restoring the
++			ACPI NVS memory during suspend/hibernation and resume.
+ 			sci_force_enable causes the kernel to set SCI_EN directly
+ 			on resume from S1/S3 (which is against the ACPI spec,
+ 			but some broken systems don't work without it).
+Index: linux-2.6/Documentation/feature-removal-schedule.txt
+===================================================================
+--- linux-2.6.orig/Documentation/feature-removal-schedule.txt
++++ linux-2.6/Documentation/feature-removal-schedule.txt
+@@ -647,3 +647,11 @@ Who:	Stefan Richter <stefanr@s5r6.in-ber
+ 
+ ----------------------------
+ 
++What:	The acpi_sleep=s4_nonvs command line option
++When:	2.6.37
++Files:	arch/x86/kernel/acpi/sleep.c
++Why:	superseded by acpi_sleep=nonvs
++Who:	Rafael J. Wysocki <rjw@sisk.pl>
++
++----------------------------
++
