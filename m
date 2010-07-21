@@ -1,35 +1,66 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+From: Alok Kataria <akataria@vmware.com>
 Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Wed, 21 Jul 2010 13:58:16 +0900
-Message-ID: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
+Date: Wed, 21 Jul 2010 10:13:34 -0700
+Message-ID: <1279732414.10874.6.camel@ank32.eng.vmware.com>
 References: <20100316124556.GA25340@phenom.dumpdata.com>
-	<1268866113.20507.26.camel@ank32>
-	<1279664097.21596.43.camel@ank32.eng.vmware.com>
+	 <1268866113.20507.26.camel@ank32>
+	 <1279664097.21596.43.camel@ank32.eng.vmware.com>
+	 <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:38240 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933495Ab0GUFDA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jul 2010 01:03:00 -0400
-In-Reply-To: <1279664097.21596.43.camel@ank32.eng.vmware.com>
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:33334 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751707Ab0GURNe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jul 2010 13:13:34 -0400
+In-Reply-To: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akataria@vmware.com
-Cc: konrad.wilk@oracle.com, fujita.tomonori@lab.ntt.co.jp, ak@linux.intel.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>, "ak@linux.intel.com" <ak@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
 
-On Tue, 20 Jul 2010 15:14:57 -0700
-Alok Kataria <akataria@vmware.com> wrote:
 
-> Reviving a 4 month old thread. 
-> I am still waiting for any clues on this question below. 
+On Tue, 2010-07-20 at 21:58 -0700, FUJITA Tomonori wrote:
+> On Tue, 20 Jul 2010 15:14:57 -0700
+> Alok Kataria <akataria@vmware.com> wrote:
+> 
+> > Reviving a 4 month old thread. 
+> > I am still waiting for any clues on this question below. 
+> 
+> Basically, you want to add hot-plug memory and enable swiotlb, right?
 
-Basically, you want to add hot-plug memory and enable swiotlb, right?
+Not really, I am planning to do something like this, 
 
-We can't start swiotlb reliably after a system starts.
+@@ -52,7 +52,7 @@ int __init pci_swiotlb_detect(void)
+ 
+ 	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
+ #ifdef CONFIG_X86_64
+-	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
++	if (!no_iommu && (max_pfn > MAX_DMA32_PFN || hotplug_possible()))
+ 		swiotlb = 1;
+ #endif
+ 	if (swiotlb_force)
 
-See dma32_reserve_boatmen() and dma32_free_bootmem(). What we do is
-reserving huge memory in DMA32 zone for swiotlb and releasing it if we
-find that we don't need swiotlb. We can't find enough memory for
-swiotlb in dma32 after a system starts.
+BUT, I don't know how that hotplug_possible function will look like or
+if such an interface already exists in the kernel (my search didn't turn
+up any) ?
+
+IMO, it should be possible to go read the SRAT to see if this system has
+support for hotplug memory and then enable swiotlb if it does.
+
+Sounds right ?
+
+Thanks,
+Alok
+
+> 
+> We can't start swiotlb reliably after a system starts.
+> 
+> See dma32_reserve_boatmen() and dma32_free_bootmem(). What we do is
+> reserving huge memory in DMA32 zone for swiotlb and releasing it if we
+> find that we don't need swiotlb. We can't find enough memory for
+> swiotlb in dma32 after a system starts.
+
