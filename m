@@ -1,56 +1,35 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: Add the check of ADR flag in course of finding
-	ACPI handle for PCI device
-Date: Wed, 21 Jul 2010 10:15:46 +0800
-Message-ID: <1279678546.13929.0.camel@localhost.localdomain>
-References: <1278992168-7457-1-git-send-email-yakui.zhao@intel.com>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: swiotlb detection should be memory hotplug aware ?
+Date: Wed, 21 Jul 2010 13:58:16 +0900
+Message-ID: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
+References: <20100316124556.GA25340@phenom.dumpdata.com>
+	<1268866113.20507.26.camel@ank32>
+	<1279664097.21596.43.camel@ank32.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34845 "EHLO mga01.intel.com"
+Received: from sh.osrg.net ([192.16.179.4]:38240 "EHLO sh.osrg.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932963Ab0GUCTe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jul 2010 22:19:34 -0400
-In-Reply-To: <1278992168-7457-1-git-send-email-yakui.zhao@intel.com>
+	id S933495Ab0GUFDA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jul 2010 01:03:00 -0400
+In-Reply-To: <1279664097.21596.43.camel@ank32.eng.vmware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: akataria@vmware.com
+Cc: konrad.wilk@oracle.com, fujita.tomonori@lab.ntt.co.jp, ak@linux.intel.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
 
-On Tue, 2010-07-13 at 11:36 +0800, Zhao, Yakui wrote:
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
-> The _ADR object is used to provide OSPM with the address of one device on its
-> parent bus. In course of finding ACPI handle for the corresponding PCI device,
-> we will firstly evaluate the _ADR object and then compare the two addresses to
-> see whether it is the target ACPI device. But for one PCI device(0000:00:00.0)
-> under the PCI root bridge, the corresponding address will be constructed as
-> zero.In such case maybe the ACPI device without _ADR object will be misdetected
-> and then be used to create the relationship between PCI device and ACPI device.
+On Tue, 20 Jul 2010 15:14:57 -0700
+Alok Kataria <akataria@vmware.com> wrote:
 
-This patch is to fix the following bug:
+> Reviving a 4 month old thread. 
+> I am still waiting for any clues on this question below. 
 
-https://bugzilla.kernel.org/show_bug.cgi?id=16422
+Basically, you want to add hot-plug memory and enable swiotlb, right?
 
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  drivers/acpi/glue.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 4af6301..78b0164 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -100,7 +100,8 @@ do_acpi_find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
->  
->  	status = acpi_get_object_info(handle, &info);
->  	if (ACPI_SUCCESS(status)) {
-> -		if (info->address == find->address)
-> +		if ((info->address == find->address)
-> +			&& (info->valid & ACPI_VALID_ADR))
->  			find->handle = handle;
->  		kfree(info);
->  	}
+We can't start swiotlb reliably after a system starts.
 
+See dma32_reserve_boatmen() and dma32_free_bootmem(). What we do is
+reserving huge memory in DMA32 zone for swiotlb and releasing it if we
+find that we don't need swiotlb. We can't find enough memory for
+swiotlb in dma32 after a system starts.
