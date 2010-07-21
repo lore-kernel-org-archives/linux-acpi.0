@@ -1,115 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: make acpi_idle Nehalem-aware
-Date: Wed, 21 Jul 2010 17:31:27 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
-References: <alpine.LFD.2.00.1002051238280.4050@localhost.localdomain>
- <20100426194002.586fbaa5@fido5> <20100427124703.GA16706@jgarrett.org>
- <alpine.LFD.2.00.1004301218280.2489@sony>
- <20100430174447.GA14889@srcf.ucam.org>
- <d7f2dd35a4361e5156079278543769a0@localhost>
- <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
- <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
- <20100525124325.GC7876@srcf.ucam.org>
- <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
- <20100525185507.GA15997@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Bugme-new] [Bug 16387] New: system freezes when dvd starts to spin for playback
+Date: Wed, 21 Jul 2010 23:43:34 +0200
+Message-ID: <201007212343.34643.rjw@sisk.pl>
+References: <bug-16387-10286@https.bugzilla.kernel.org/> <20100721140408.44f97af4.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:64734 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754991Ab0GUVbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jul 2010 17:31:46 -0400
-In-reply-to: <20100525185507.GA15997@srcf.ucam.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:45753 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756832Ab0GUVp3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jul 2010 17:45:29 -0400
+In-Reply-To: <20100721140408.44f97af4.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Andi Kleen <andi@firstfloor.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@kernel.org, Greg KH <gregkh@suse.de>
 
-From: Len Brown <len.brown@intel.com>
+On Wednesday, July 21, 2010, Andrew Morton wrote:
+> On Wed, 14 Jul 2010 12:18:31 GMT
+> bugzilla-daemon@bugzilla.kernel.org wrote:
+> 
+> > https://bugzilla.kernel.org/show_bug.cgi?id=16387
+> > 
+> >            Summary: system freezes when dvd starts to spin for playback
+> >            Product: IO/Storage
+> >            Version: 2.5
+> >     Kernel Version: 2.6.35-rc5
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: Other
+> >         AssignedTo: io_other@kernel-bugs.osdl.org
+> >         ReportedBy: mehmet@giritli.eu
+> >         Regression: No
+> > 
+> > 
+> > In 2.6.35 rcs, I get frequent freezes of my computer when I put a DVD (its a DL
+> > DVD-Video, if matters) in for playback. I do not know how to get any data out
+> > of the computer in this situation, nothing works (not even the caps lock). So I
+> > turn it off and restart to use it again.
+> > 
+> > 2.6.33 kernels do not have this problem and I have not tried .34 yet as those
+> > kernels have a nasty acpi bug on my computer
+> > (https://bugzilla.kernel.org/show_bug.cgi?id=16040).
+> > 
+> > Could someone instruct me how to debug this please?
+> 
+> Len, the patches in https://bugzilla.kernel.org/show_bug.cgi?id=16040
+> don't appear to have made it into 2.6.34.1, even though they were
+> written a month earlier.  This 2.6.34 regression is preventing at least
+> one tester from testing 2.6.34.x kernels for a different regression.
+> 
+> Did we forget to backport those fixes into -stable?
 
-The BIOS exports deep C-states on modern Intel processors
-as "C3-type" to satisfy various legacy Operating Systems.
+No, we didn't.  I sent -stable requests to stable & Greg several days ago.
 
-However, the hardware actually supports C2-type, and does
-not require the extra costs of C3-type.
-
-One of the costs is to check the BM_STS (Bus Master Status)
-bit before entering C3, and instead choose a shallower C-state
-if there was "recent bus master activity".
-
-We have found a number of systems in the field that erroneously
-set BM_STS and prevent entry into deep C-states.
-Re-define BIOS presented C3-type states as C2-type states
-on modern processors to avoid this issue.
-
-If a device in the system really does want to prevent use
-of a deep C-state, its Linux driver should register its
-constraints via pm_qos_add_request().
-
-https://bugzilla.kernel.org/show_bug.cgi?id=15886
-
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_idle.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index b1b3856..14d1a0c 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -607,6 +607,38 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
- 	return;
- }
- 
-+/*
-+ * Modern Intel processors support only ACPI C2-type C-states.
-+ * But the BIOS tends to report its deepest C-state as C3-type
-+ * to satisfy various old operating systems.  We can skip
-+ * C3 OS overhead by treating the deep-states as C2-type.
-+ * Also, we can avoid checking BM_STS, which on some systems
-+ * erroneously prevents entry into C3-type states.
-+ */
-+static int acpi_c3type_is_really_c2type(void) {
-+
-+	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
-+		return 0;
-+
-+	if (boot_cpu_data.x86 != 6)
-+		return 0;
-+
-+	switch(boot_cpu_data.x86_model) {
-+	case 0x1A:	/* Core i7, Xeon 5500 series */
-+	case 0x1E:	/* Core i7 and i5 Processor */
-+	case 0x1F:	/* Core i7 and i5 Processor */
-+	case 0x2E:	/* NHM-EX Xeon */
-+	case 0x2F:	/* WSM-EX Xeon */
-+	case 0x25:	/* WSM */
-+	case 0x2C:	/* WSM */
-+	case 0x2A:	/* SNB */
-+	case 0x2D:	/* SNB Xeon */
-+		return 1;
-+	default:
-+		return 0;
-+	}
-+}
-+
- static int acpi_processor_power_verify(struct acpi_processor *pr)
- {
- 	unsigned int i;
-@@ -617,6 +649,12 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
- 
-+		if ((cx->type == ACPI_STATE_C3)
-+			&& acpi_c3type_is_really_c2type()) {
-+				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Redefining C3-type to C2\n"));
-+				cx->type = ACPI_STATE_C2;
-+		}
-+
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
--- 
-1.7.2.rc3.43.g24e7a
-
-
+Rafael
