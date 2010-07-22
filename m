@@ -1,71 +1,215 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Thu, 22 Jul 2010 11:34:40 -0700
-Message-ID: <1279823680.31733.20.camel@ank32.eng.vmware.com>
-References: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
-	 <1279732414.10874.6.camel@ank32.eng.vmware.com>
-	 <20100722084413I.fujita.tomonori@lab.ntt.co.jp>
-	 <20100722090329O.fujita.tomonori@lab.ntt.co.jp>
-Reply-To: akataria@vmware.com
+From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
+Subject: Strange CPU load - acpi_os_read_port
+Date: Thu, 22 Jul 2010 21:44:14 +0200
+Message-ID: <4C489F8E.6010002@itcare.pl>
+References: <4C489E58.7020604@itcare.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:43545 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750776Ab0GVSek (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jul 2010 14:34:40 -0400
-In-Reply-To: <20100722090329O.fujita.tomonori@lab.ntt.co.jp>
+Received: from smtp.iq.pl ([86.111.241.19]:47646 "EHLO smtp.iq.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751555Ab0GVToJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jul 2010 15:44:09 -0400
+Received: from unknown (HELO [192.168.1.101]) (itcare_pstaszewski@[95.48.69.173])
+          (envelope-sender <pstaszewski@itcare.pl>)
+          by smtp.iq.pl with AES256-SHA encrypted SMTP
+          for <linux-acpi@vger.kernel.org>; 22 Jul 2010 19:44:05 -0000
+In-Reply-To: <4C489E58.7020604@itcare.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>, "ak@linux.intel.com" <ak@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
+To: linux-acpi@vger.kernel.org
 
-Hi,
+Hello
 
-On Wed, 2010-07-21 at 17:03 -0700, FUJITA Tomonori wrote:
-> On Thu, 22 Jul 2010 08:44:42 +0900
-> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> 
-> > On Wed, 21 Jul 2010 10:13:34 -0700
-> > Alok Kataria <akataria@vmware.com> wrote:
-> > 
-> > > > Basically, you want to add hot-plug memory and enable swiotlb, right?
-> > > 
-> > > Not really, I am planning to do something like this, 
-> > > 
-> > > @@ -52,7 +52,7 @@ int __init pci_swiotlb_detect(void)
-> > >  
-> > >  	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
-> > >  #ifdef CONFIG_X86_64
-> > > -	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
-> > > +	if (!no_iommu && (max_pfn > MAX_DMA32_PFN || hotplug_possible()))
-> > >  		swiotlb = 1;
-> > 
-> > Always enable swiotlb with memory hotplug enabled?
+I have strange problem with cpu load and acpi_os_read_port
+please look at
+perf top - output:
+    PerfTop:    1852 irqs/sec  kernel:99.4%  exact:  0.0% [1000Hz 
+cycles],  (all, 16 CPUs)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
 
-yep though only on systems which have hotpluggable memory support.
 
->  Wasting 64MB on a
-> > x86_64 system with 128MB doesn't look to be a good idea. I don't think
-> > that there is an easy solution for this issue though.
+              samples  pcnt function                        DSO
+              _______ _____ _______________________________ 
+_________________
 
-Good now that you agree that, that's the only feasible solution, do you
-have any suggestions for any interfaces that are available from SRAT for
-implementing hotplug_possible ?
+              2217.00 13.7% acpi_os_read_port               
+[kernel.kallsyms]
+               613.00  3.8% igb_poll                        
+[kernel.kallsyms]
+               546.00  3.4% acpi_idle_enter_bm              
+[kernel.kallsyms]
+               482.00  3.0% _raw_spin_lock                  
+[kernel.kallsyms]
+               469.00  2.9% ipt_do_table                    
+[kernel.kallsyms]
+               415.00  2.6% find_busiest_group              
+[kernel.kallsyms]
+               341.00  2.1% tick_dev_program_event          
+[kernel.kallsyms]
+               299.00  1.9% u32_classify                    
+[kernel.kallsyms]
+               299.00  1.9% __slab_free                     
+[kernel.kallsyms]
+               294.00  1.8% timer_stats_update_stats        
+[kernel.kallsyms]
+               235.00  1.5% leave_mm                        
+[kernel.kallsyms]
+               231.00  1.4% skb_release_data                
+[kernel.kallsyms]
+               227.00  1.4% __hrtimer_start_range_ns        
+[kernel.kallsyms]
+               220.00  1.4% tick_program_event              
+[kernel.kallsyms]
+               211.00  1.3% irq_entries_start               
+[kernel.kallsyms]
+               206.00  1.3% cpuidle_idle_call               
+[kernel.kallsyms]
+               181.00  1.1% acpi_hw_validate_io_request     
+[kernel.kallsyms]
+               178.00  1.1% apic_timer_interrupt            
+[kernel.kallsyms]
+               172.00  1.1% consume_skb                     
+[kernel.kallsyms]
+               162.00  1.0% getnstimeofday                  
+[kernel.kallsyms]
+               162.00  1.0% rb_erase                        
+[kernel.kallsyms]
+               161.00  1.0% read_tsc                        
+[kernel.kallsyms]
+               154.00  1.0% hrtimer_interrupt               
+[kernel.kallsyms]
+               148.00  0.9% _raw_spin_unlock_irqrestore     
+[kernel.kallsyms]
+               148.00  0.9% napi_schedule                   
+[kernel.kallsyms]
+               136.00  0.8% __do_softirq                    
+[kernel.kallsyms]
+               135.00  0.8% dma_issue_pending_all           
+[kernel.kallsyms]
+               130.00  0.8% virt_to_head_page               
+[kernel.kallsyms]
+               125.00  0.8% clockevents_program_event       
+[kernel.kallsyms]
+               118.00  0.7% ladder_select_state             
+[kernel.kallsyms]
+               114.00  0.7% hrtimer_force_reprogram         
+[kernel.kallsyms]
+               108.00  0.7% timekeeping_get_ns              
+[kernel.kallsyms]
+               107.00  0.7% __dma_has_cap                   
+[kernel.kallsyms]
+               105.00  0.7% dev_queue_xmit                  
+[kernel.kallsyms]
+               103.00  0.6% acpi_idle_do_entry              
+[kernel.kallsyms]
+               102.00  0.6% kfree                           
+[kernel.kallsyms]
+                98.00  0.6% sched_clock                     
+[kernel.kallsyms]
+                95.00  0.6% load_balance                    
+[kernel.kallsyms]
+                95.00  0.6% pskb_expand_head                
+[kernel.kallsyms]
+                88.00  0.5% kmem_cache_free                 
+[kernel.kallsyms]
+                86.00  0.5% run_timer_softirq               
+[kernel.kallsyms]
+                84.00  0.5% __rcu_pending                   
+[kernel.kallsyms]
+                82.00  0.5% acpi_processor_ffh_cstate_enter 
+[kernel.kallsyms]
+                80.00  0.5% notifier_call_chain             
+[kernel.kallsyms]
+                80.00  0.5% acpi_hw_read_port               
+[kernel.kallsyms]
+                79.00  0.5% nf_iterate                      
+[kernel.kallsyms]
+                77.00  0.5% dev_gro_receive                 
+[kernel.kallsyms]
+                77.00  0.5% rb_insert_color                 
+[kernel.kallsyms]
+                75.00  0.5% find_next_bit                   
+[kernel.kallsyms]
+                74.00  0.5% skb_header_pointer              
+[kernel.kallsyms]
+                72.00  0.4% run_posix_cpu_timers            
+[kernel.kallsyms]
+                72.00  0.4% hfsc_enqueue                    
+[kernel.kallsyms]
+                69.00  0.4% run_rebalance_domains           
+[kernel.kallsyms]
+                68.00  0.4% __napi_complete                 
+[kernel.kallsyms]
+                67.00  0.4% ktime_get                       
+[kernel.kallsyms]
+                67.00  0.4% scheduler_tick                  
+[kernel.kallsyms]
+                66.00  0.4% skb_release_head_state          
+[kernel.kallsyms]
+                64.00  0.4% __run_hrtimer                   
+[kernel.kallsyms]
+                64.00  0.4% acpi_hw_validate_register       
+[kernel.kallsyms]
+                62.00  0.4% ip_route_input_common           
+[kernel.kallsyms]
 
-> 
-> btw, you need more work to enable switch on the fly.
-> 
-> You need to change the dma_ops pointer (see get_dma_ops()). It means
-> that you need to track outstanding dma operations per device, locking,
-> etc.
 
-Yeah though if we are doing this during swiotlb_init time i.e. at bootup
-as suggested in the pseudo patch, we don't need to worry about all this,
-right ? 
+mpstat -P 1,2 1 10
+Linux 2.6.35-rc5 (eP-RTR-IX-01)         07/22/10        _x86_64_        
+(16 CPU)
 
-Thanks,
-Alok
+23:39:26     CPU    %usr   %nice    %sys %iowait    %irq   %soft  
+%steal  %guest   %idle
+23:39:27       1    0.00    0.00    0.00    0.00    0.00   52.00    
+0.00    0.00   48.00
+23:39:27       2    0.00    0.00    0.00    0.00    0.00   17.00    
+0.00    0.00   83.00
+23:39:28       1    0.00    0.00    0.00    0.00    0.00   39.00    
+0.00    0.00   61.00
+23:39:28       2    0.00    0.00    0.00    0.00    0.00    8.00    
+0.00    0.00   92.00
+23:39:29       1    0.00    0.00    0.00    0.00    0.00   47.00    
+0.00    0.00   53.00
+23:39:29       2    0.00    0.00    0.00    0.00    0.00    9.00    
+0.00    0.00   91.00
+23:39:30       1   58.00    0.00    0.00    0.00    0.00   42.00    
+0.00    0.00    0.00
+23:39:30       2    0.00    0.00    0.00    0.00    0.00   18.00    
+0.00    0.00   82.00
+23:39:31       1    9.00    0.00    0.00    0.00    0.00   51.00    
+0.00    0.00   40.00
+23:39:31       2    2.00    0.00    0.00    0.00    0.00   18.00    
+0.00    0.00   80.00
+23:39:32       1    0.00    0.00    0.00    0.00    0.00   39.00    
+0.00    0.00   61.00
+23:39:32       2    2.00    0.00    0.00    0.00    0.00   20.00    
+0.00    0.00   78.00
+23:39:33       1    0.00    0.00    0.00    0.00    0.00   48.00    
+0.00    0.00   52.00
+23:39:33       2    0.00    0.00    0.00    0.00    0.00   13.00    
+0.00    0.00   87.00
+23:39:34       1    0.00    0.00    0.00    0.00    0.00   52.00    
+0.00    0.00   48.00
+23:39:34       2    0.00    0.00    0.00    0.00    0.00    9.00    
+0.00    0.00   91.00
+23:39:35       1    0.00    0.00    0.00    0.00    0.00   52.00    
+0.00    0.00   48.00
+23:39:35       2    0.00    0.00    0.00    0.00    0.00   18.00    
+0.00    0.00   82.00
+23:39:36       1    0.00    0.00    0.00    0.00    0.00   50.00    
+0.00    0.00   50.00
+23:39:36       2    0.00    0.00    0.00    0.00    0.00    9.00    
+0.00    0.00   91.00
+Average:       1    6.70    0.00    0.00    0.00    0.00   47.20    
+0.00    0.00   46.10
+Average:       2    0.40    0.00    0.00    0.00    0.00   13.90    
+0.00    0.00   85.70
 
+Server is acting as a bgp router - 500Mbit/s RX / 500Mbit/s TX traffic.
+But the topper of cpu load is acpi_os_read_port - why ?
+
+
+Thanks
+Pawel
