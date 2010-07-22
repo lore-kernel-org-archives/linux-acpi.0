@@ -1,51 +1,71 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: make acpi_idle Nehalem-aware
-Date: Thu, 22 Jul 2010 11:57:53 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
-References: <20100427124703.GA16706@jgarrett.org>
- <alpine.LFD.2.00.1004301218280.2489@sony>
- <20100430174447.GA14889@srcf.ucam.org>
- <d7f2dd35a4361e5156079278543769a0@localhost>
- <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
- <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
- <20100525124325.GC7876@srcf.ucam.org>
- <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
- <20100525185507.GA15997@srcf.ucam.org>
- <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
- <20100722074750.GA22520@one.firstfloor.org>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: swiotlb detection should be memory hotplug aware ?
+Date: Thu, 22 Jul 2010 11:34:40 -0700
+Message-ID: <1279823680.31733.20.camel@ank32.eng.vmware.com>
+References: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
+	 <1279732414.10874.6.camel@ank32.eng.vmware.com>
+	 <20100722084413I.fujita.tomonori@lab.ntt.co.jp>
+	 <20100722090329O.fujita.tomonori@lab.ntt.co.jp>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:36059 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743Ab0GVP6N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jul 2010 11:58:13 -0400
-In-reply-to: <20100722074750.GA22520@one.firstfloor.org>
+Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:43545 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750776Ab0GVSek (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jul 2010 14:34:40 -0400
+In-Reply-To: <20100722090329O.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>, "ak@linux.intel.com" <ak@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
 
-This patch is kaput.
+Hi,
 
-As detailed in the bug report
-https://bugzilla.kernel.org/show_bug.cgi?id=15886
-we should be able to fix some of these boxes
-by paying attention to an ACPI flag we didn't
-realize  existed until yesterday.
+On Wed, 2010-07-21 at 17:03 -0700, FUJITA Tomonori wrote:
+> On Thu, 22 Jul 2010 08:44:42 +0900
+> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
+> 
+> > On Wed, 21 Jul 2010 10:13:34 -0700
+> > Alok Kataria <akataria@vmware.com> wrote:
+> > 
+> > > > Basically, you want to add hot-plug memory and enable swiotlb, right?
+> > > 
+> > > Not really, I am planning to do something like this, 
+> > > 
+> > > @@ -52,7 +52,7 @@ int __init pci_swiotlb_detect(void)
+> > >  
+> > >  	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
+> > >  #ifdef CONFIG_X86_64
+> > > -	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
+> > > +	if (!no_iommu && (max_pfn > MAX_DMA32_PFN || hotplug_possible()))
+> > >  		swiotlb = 1;
+> > 
+> > Always enable swiotlb with memory hotplug enabled?
 
-I'll follow-up with a new patch today.
+yep though only on systems which have hotpluggable memory support.
 
-However, we'll still have issues with systems
-like the HP DL360 G6 which explicity set the
-flag to ask for BM_STS checking and configure
-the chipset such that BM_STS is active.
-That may require a BIOS fix, or we may
-have to run intel_idle on that box --
-since intel_idle ignores BM_STS always
-and instead relies on drivers to use pm_qos
-to register device latency constraints.
+>  Wasting 64MB on a
+> > x86_64 system with 128MB doesn't look to be a good idea. I don't think
+> > that there is an easy solution for this issue though.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Good now that you agree that, that's the only feasible solution, do you
+have any suggestions for any interfaces that are available from SRAT for
+implementing hotplug_possible ?
+
+> 
+> btw, you need more work to enable switch on the fly.
+> 
+> You need to change the dma_ops pointer (see get_dma_ops()). It means
+> that you need to track outstanding dma operations per device, locking,
+> etc.
+
+Yeah though if we are doing this during swiotlb_init time i.e. at bootup
+as suggested in the pseudo patch, we don't need to worry about all this,
+right ? 
+
+Thanks,
+Alok
 
