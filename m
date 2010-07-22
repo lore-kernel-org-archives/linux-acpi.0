@@ -1,63 +1,85 @@
-From: Iain <selsinork@gmail.com>
-Subject: Re: [PATCH] ACPI: make acpi_idle Nehalem-aware
-Date: Thu, 22 Jul 2010 22:25:04 +0100
-Message-ID: <4C48B730.30708@gmail.com>
-References: <20100427124703.GA16706@jgarrett.org> <alpine.LFD.2.00.1004301218280.2489@sony> <20100430174447.GA14889@srcf.ucam.org> <d7f2dd35a4361e5156079278543769a0@localhost> <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain> <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com> <20100525124325.GC7876@srcf.ucam.org> <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain> <20100525185507.GA15997@srcf.ucam.org> <alpine.LFD.2.00.1007211729550.409@localhost.localdomain> <20100722074750.GA22520@one.firstfloor.org> <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: create "processor.bm_check_disable" boot param
+Date: Thu, 22 Jul 2010 17:40:02 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
+References: <20100427124703.GA16706@jgarrett.org>
+ <alpine.LFD.2.00.1004301218280.2489@sony>
+ <20100430174447.GA14889@srcf.ucam.org>
+ <d7f2dd35a4361e5156079278543769a0@localhost>
+ <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
+ <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
+ <20100525124325.GC7876@srcf.ucam.org>
+ <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
+ <20100525185507.GA15997@srcf.ucam.org>
+ <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
+ <20100722074750.GA22520@one.firstfloor.org>
+ <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
+ <alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33011 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734Ab0GVVZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jul 2010 17:25:08 -0400
-In-Reply-To: <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:49734 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759731Ab0GVVkW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jul 2010 17:40:22 -0400
+In-reply-to: <alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
 
-Len Brown wrote:
-> However, we'll still have issues with systems
-> like the HP DL360 G6 which explicity set the
-> flag to ask for BM_STS checking and configure
-> the chipset such that BM_STS is active.
-> That may require a BIOS fix, or we may
-> have to run intel_idle on that box --
-> since intel_idle ignores BM_STS always
-> and instead relies on drivers to use pm_qos
-> to register device latency constraints.
+From: Len Brown <len.brown@intel.com>
 
-I'm curious as to why you see a problem with the DL380G6 as the one I have here happily sits in C6 when idle.
+processor.bm_check_disable=1" prevents Linux from checking BM_STS
+before entering C3-type cpu power states.
 
-your turbostat util shows:
+This may be useful for a system running acpi_idle
+where the BIOS exports FADT C-states, _CST IO C-states,
+or _CST FFH C-states with the BM_STS bit set;
+while configuring the chipset to set BM_STS
+more frequently than perhaps is optimal.
 
-  CPU  GHz  TSC   %c0    %c1    %c3    %c6   %pc3   %pc6
-  avg 1.64 2.27   0.16   0.12   0.00  99.71   0.00  90.15
+Note that such systems may have been developed
+using a tickful OS that would quickly clear BM_STS,
+rather than a tickless OS that may go for some time
+between checking and clearing BM_STS.
 
-and powertop has results like:
+Note also that an alternative for newer systems
+is to use the intel_idle driver, which always
+ignores BM_STS, relying Linux device drivers
+to register constraints explicitly via PM_QOS.
 
-Cn                Avg residency       P-states (frequencies)
-C0 (cpu running)        ( 0,1%)       Turbo Mode     0,0%
-polling           0,0ms ( 0,0%)         2,27 Ghz     0,0%
-C1 mwait          0,1ms ( 0,0%)         2,13 Ghz     0,0%
-C2 mwait          1,0ms ( 0,0%)         2,00 Ghz     0,0%
-C3 mwait         90,4ms (99,9%)         1,60 Ghz   100,0%
+https://bugzilla.kernel.org/show_bug.cgi?id=15886
 
-this is with v2.6.35-rc5-176-gcd5b8f8 and using acpi_idle. I've deliberately disabled intel_idle to test, however using intel_idle 
-gives almost identical results.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Looking at the bug 15886, the Access Size 0x03 entries you mentioned are all 0x01 on this system. I've also uploaded the acpidump 
-from this DL380G6 to that bug so that you can check I've not just looked in the wrong place.
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index b351342..1d41048 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -76,6 +76,8 @@ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+ module_param(max_cstate, uint, 0000);
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
++static int bm_check_disable __read_mostly;
++module_param(bm_check_disable, uint, 0000);
+ 
+ static unsigned int latency_factor __read_mostly = 2;
+ module_param(latency_factor, uint, 0644);
+@@ -763,6 +765,9 @@ static int acpi_idle_bm_check(void)
+ {
+ 	u32 bm_status = 0;
+ 
++	if (bm_check_disable)
++		return 0;
++
+ 	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
+ 	if (bm_status)
+ 		acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_STATUS, 1);
+-- 
+1.7.2
 
-Did the first acpidump come from a system with the 'HP Power Regulator' setting in the bios set to OS Control mode ?  My system is 
-set this way and it seems to work as expected.
-The other settings for this option appear to be designed to override OS power management controls, for example the description of 
-the 'Static High Performance' option suggests it'll somehow force the CPU to operate in the highest performance mode all of the 
-time: "HP Static High Performance Mode: Processors will run in their maximum power/performance state at all times regardless of the 
-OS power management policy".
 
-If this does turn out to be as simple as a bios setting, should we really be trying to workaround what may be a legitimate decision 
-by the servers admin ?
-
-Iain
