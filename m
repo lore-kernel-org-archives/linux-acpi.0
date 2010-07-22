@@ -1,21 +1,19 @@
 From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
 Subject: Strange CPU load - acpi_os_read_port
-Date: Thu, 22 Jul 2010 21:44:14 +0200
-Message-ID: <4C489F8E.6010002@itcare.pl>
-References: <4C489E58.7020604@itcare.pl>
+Date: Thu, 22 Jul 2010 21:39:04 +0200
+Message-ID: <4C489E58.7020604@itcare.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.iq.pl ([86.111.241.19]:47646 "EHLO smtp.iq.pl"
+Received: from smtp.iq.pl ([86.111.241.19]:60005 "EHLO smtp.iq.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555Ab0GVToJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jul 2010 15:44:09 -0400
+	id S1755705Ab0GVTph (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jul 2010 15:45:37 -0400
 Received: from unknown (HELO [192.168.1.101]) (itcare_pstaszewski@[95.48.69.173])
           (envelope-sender <pstaszewski@itcare.pl>)
           by smtp.iq.pl with AES256-SHA encrypted SMTP
-          for <linux-acpi@vger.kernel.org>; 22 Jul 2010 19:44:05 -0000
-In-Reply-To: <4C489E58.7020604@itcare.pl>
+          for <linux-acpi@vger.kernel.org>; 22 Jul 2010 19:38:55 -0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -27,8 +25,7 @@ please look at
 perf top - output:
     PerfTop:    1852 irqs/sec  kernel:99.4%  exact:  0.0% [1000Hz 
 cycles],  (all, 16 CPUs)
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
-
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
               samples  pcnt function                        DSO
               _______ _____ _______________________________ 
