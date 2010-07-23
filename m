@@ -1,58 +1,38 @@
-From: Iain <selsinork@gmail.com>
-Subject: Re: [PATCH] ACPI: make acpi_idle Nehalem-aware
-Date: Fri, 23 Jul 2010 13:40:50 +0100
-Message-ID: <4C498DD2.1040002@gmail.com>
-References: <20100427124703.GA16706@jgarrett.org> <alpine.LFD.2.00.1004301218280.2489@sony> <20100430174447.GA14889@srcf.ucam.org> <d7f2dd35a4361e5156079278543769a0@localhost> <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain> <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com> <20100525124325.GC7876@srcf.ucam.org> <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain> <20100525185507.GA15997@srcf.ucam.org> <alpine.LFD.2.00.1007211729550.409@localhost.localdomain> <20100722074750.GA22520@one.firstfloor.org> <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain> <4C48B730.30708@gmail.com> <alpine.LFD.2.00.1007221751550.13016@localhost.localdomain>
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: Re: 2.6.35-rc6: Reported regressions from 2.6.34
+Date: Fri, 23 Jul 2010 09:21:43 -0500
+Message-ID: <4C49A577.3020306@lwfinger.net>
+References: <Lupw7pePXBO.A.fZH.G2XSMB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62820 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab0GWMkz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jul 2010 08:40:55 -0400
-In-Reply-To: <alpine.LFD.2.00.1007221751550.13016@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Lupw7pePXBO.A.fZH.G2XSMB@chimera>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
 
-Len Brown wrote:
-> You read it correctly, your BIOS does not request BM_STS, mjg59's does.
+On 07/23/2010 06:42 AM, Rafael J. Wysocki wrote:
+> This message contains a list of some regressions from 2.6.34,
+> for which there are no fixes in the mainline known to the tracking team.
+> If any of them have been fixed already, please let us know.
 
-Right, and on a DL360 G6 with the 07-24-2009 bios version I saw the same.
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16312
+> Subject		: WARNING: at fs/fs-writeback.c:1127 __mark_inode_dirty
+> Submitter	: Zdenek Kabelac<zdenek.kabelac@gmail.com>
+> Date		: 2010-06-28 9:40 (26 days old)
+> Message-ID	:<AANLkTin24fr5O4_q5Xbo9Y_NKkEmtcp6Hgmr9_4qXaFz@mail.gmail.com>
+> References	: http://marc.info/?l=linux-kernel&m=127771804806465&w=2
 
-> I expect that is to enable PCC, which would change P-states,
-> but unlikely would have an effect on C-states.
+I still have this in 2.6.35-rc5.
 
-I found another option in the bios to limit or disable the C-states today, so plenty of opportunity to configure the system into an 
-odd state.
-
-> If you can try it both ways that might be good to know.
-> (include powertop display once again)
-> Of course, the default setting is what 99% of customers use...
-
-I'll upload an archive to the bugzilla entry with the details. What seems to happen is that when you set the default Balanced Power 
-and Performance mode the CST code vanishes completely and the processor manages to get to c6 some of the time. Enable OS Control 
-mode and the bad CST code appears.
-
-> This is BIOS writer "value add".
-> Unclear how it migh be an improvement over what Linux has been shipping 
-> for years.
-
-Well yes, having Linux and the bios fighting for control probably isn't going to help.
-
-> Please upload the output from dmidecode to the bug report.
-> I am hopeful that you have a current BIOS and that
-> Matthew may have an pre-production BIOS.
-
-I've uploaded an archive with dmidecode, turbostat and powertop dumps. There are dumps with the bios set to the default, and to OS 
-Control mode.
-The original bios on my DL360G6 was 07-24-2009 and has the same issue as Matthew. I upgraded the machine to the latest 2010.05.15 
-and repeated the tests.
-Good news is that the new bios has fixed the CST code so that the Access length values are all 0x01 when they're present and the 
-dumps show the processor getting into c6 much more.
-
-So you were correct, bios fix was needed.
-
-Iain
+Larry
