@@ -1,100 +1,86 @@
-From: Jack Steiner <steiner@sgi.com>
-Subject: Re: [RFC] - Mapping ACPI tables as CACHED
-Date: Fri, 23 Jul 2010 11:38:27 -0500
-Message-ID: <20100723163827.GB17159@sgi.com>
-References: <20100722152220.GA18290@sgi.com> <alpine.LFD.2.00.1007221150360.3164@localhost.localdomain>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] acpi: fix apei related table size checking
+Date: Fri, 23 Jul 2010 10:39:17 -0700
+Message-ID: <4C49D3C5.4000007@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.179.29]:50953 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125Ab0GWQid (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Jul 2010 12:38:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1007221150360.3164@localhost.localdomain>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:40390 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644Ab0GWRkV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jul 2010 13:40:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: mingo@elte.hu, tglx@linutronix.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-On Thu, Jul 22, 2010 at 11:52:02AM -0400, Len Brown wrote:
-> > The following experimental patch changes the kernel mapping for ACPI tables
-> > to CACHED. This eliminates the page attibute conflict & allows users to map
-> > the tables CACHEABLE. This significantly speeds up boot:
-> > 
-> > 	38 minutes without the patch
-> > 	27 minutes with the patch
-> > 		~30% improvement
-> > 
-> > Time to run ACPIDUMP on a large system:
-> > 	527 seconds without the patch
-> > 	  8 seconds with the patch
-> 
-> Interesting.
-> 
-> Can you detect a performance differene on a 1-node machine
-> that doesn't magnify the penalty of the remote uncached access?
+To: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>, Daniel J Blueman <daniel.blueman@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-I timed acpidump on a smaller system running from both node 0 & a higher
-node.
-        Serial number: UV-00000041
-        Partition number: 0
-        4 Blades
-        8 Nodes (Nehalem-EX sockets)
-        64 CPUs
-        60.87 Gb Memory Total
+also check if we can find right action in apei.
 
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
-Times to run acpidump are (aver of 100 runs) show that cached runs 4X to 14X
-faster than uncached, depending on the node it is running from. Since the
-system is small, the total runtime is small.
+---
+ drivers/acpi/apei/apei-base.c |    5 +++++
+ drivers/acpi/apei/einj.c      |    3 ++-
+ drivers/acpi/apei/erst.c      |    3 ++-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-        baseline
-                .143 sec node 0
-                .479 sec node 7
-
-        ACPI tables mapped cached
-                .034 sec node 0
-                .037 sec node 7
-
-
-I added trace code to remap_pfn_range() to see what ranges are mmapped.
-The ranges are (first number is the number of times the range was mapped):
-
-      2 : paddr 0x78d1c000 - 0x79d1c000         DSDT @ 0x78d1c000
-      2 : paddr 0x78d1c000 - 0x9bd1c000         DSDT @ 0x78d1c000 << ???
-      4 : paddr 0x78d3f000 - 0x79d3f000         FACS @ 0x78d3f000
-      4 : paddr 0x78d6f000 - 0x79d6f000         DMAR @ 0x78d6f000
-      4 : paddr 0x78d70000 - 0x79d70000         SPCR @ 0x78d70000
-      4 : paddr 0x78d71000 - 0x79d71000         MCFG @ 0x78d71000
-      4 : paddr 0x78d72000 - 0x79d72000         SRAT @ 0x78d72000
-      4 : paddr 0x78d74000 - 0x79d74000         APIC @ 0x78d74000
-      4 : paddr 0x78d76000 - 0x79d76000         SLIT @ 0x78d76000
-      4 : paddr 0x78d78000 - 0x79d78000         HPET @ 0x78d78000
-      2 : paddr 0x78d79000 - 0x79d79000         SSDT @ 0x78d79000
-      2 : paddr 0x78d79000 - 0x7ed79000         SSDT @ 0x78d79000
-      4 : paddr 0x78d7f000 - 0x79d7f000         FACP @ 0x78d7f000
-      5 : paddr 0x78d80000 - 0x79d80000         ???
-
-
-
-These ranges correspond to the following E820 entries
-
-[    0.000000]  BIOS-e820: 000000000008f000 - 0000000000090000 (ACPI NVS)
-[    0.000000]  BIOS-e820: 0000000078c61000 - 0000000078cd6000 (ACPI NVS)
-[    0.000000]  BIOS-e820: 0000000078cd6000 - 0000000078d3f000 (ACPI data)
-[    0.000000]  BIOS-e820: 0000000078d3f000 - 0000000078d61000 (ACPI NVS)
-[    0.000000]  BIOS-e820: 0000000078d61000 - 0000000078d81000 (ACPI data)
-[    0.000000]  BIOS-e820: 0000000078d81000 - 000000007cde1000 (usable)
-
-and EFI entries:
-[    0.000000] EFI: mem136: type=9, attr=0xf, range=[0x0000000078cd6000-0x0000000078d3f000) (0MB)
-[    0.000000] EFI: mem137: type=10, attr=0xf, range=[0x0000000078d3f000-0x0000000078d61000) (0MB)
-[    0.000000] EFI: mem138: type=9, attr=0xf, range=[0x0000000078d61000-0x0000000078d6f000) (0MB)
-[    0.000000] EFI: mem139: type=9, attr=0xf, range=[0x0000000078d6f000-0x0000000078d81000) (0MB)
-
-        attr = 0xf  ==> WB memory (UC WC WT also supported)
-        type  9     ==> EFI_ACPI_RECLAIM_MEMORY
-        type 10     ==> EFI_ACPI_MEMORY_NVS
-
+Index: linux-2.6/drivers/acpi/apei/einj.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/apei/einj.c
++++ linux-2.6/drivers/acpi/apei/einj.c
+@@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fop
+ 
+ static int einj_check_table(struct acpi_table_einj *einj_tab)
+ {
+-	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
++	if (einj_tab->header_length !=
++	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
+ 		return -EINVAL;
+ 	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
+ 		return -EINVAL;
+Index: linux-2.6/drivers/acpi/apei/erst.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/apei/erst.c
++++ linux-2.6/drivers/acpi/apei/erst.c
+@@ -749,7 +749,8 @@ __setup("erst_disable", setup_erst_disab
+ 
+ static int erst_check_table(struct acpi_table_erst *erst_tab)
+ {
+-	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
++	if (erst_tab->header_length !=
++	    (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+ 		return -EINVAL;
+ 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+ 		return -EINVAL;
+Index: linux-2.6/drivers/acpi/apei/apei-base.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/apei/apei-base.c
++++ linux-2.6/drivers/acpi/apei/apei-base.c
+@@ -163,6 +163,7 @@ int apei_exec_run(struct apei_exec_conte
+ 	u32 i, ip;
+ 	struct acpi_whea_header *entry;
+ 	apei_exec_ins_func_t run;
++	bool found_action = false;
+ 
+ 	ctx->ip = 0;
+ 
+@@ -178,6 +179,7 @@ rewind:
+ 		entry = &ctx->action_table[i];
+ 		if (entry->action != action)
+ 			continue;
++		found_action = true;
+ 		if (ip == ctx->ip) {
+ 			if (entry->instruction >= ctx->instructions ||
+ 			    !ctx->ins_table[entry->instruction].run) {
+@@ -198,6 +200,9 @@ rewind:
+ 			goto rewind;
+ 	}
+ 
++	if (!found_action)
++		return -ENODEV;
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(apei_exec_run);
