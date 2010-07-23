@@ -1,86 +1,68 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Fri, 23 Jul 2010 10:22:08 -0400
-Message-ID: <20100723142208.GA4008@phenom.dumpdata.com>
-References: <20100721135750Z.fujita.tomonori@lab.ntt.co.jp>
- <1279732414.10874.6.camel@ank32.eng.vmware.com>
- <20100722084413I.fujita.tomonori@lab.ntt.co.jp>
- <20100722090329O.fujita.tomonori@lab.ntt.co.jp>
- <1279823680.31733.20.camel@ank32.eng.vmware.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [RFC] - Mapping ACPI tables as CACHED
+Date: Fri, 23 Jul 2010 22:26:05 +0800
+Message-ID: <1279895165.13929.61.camel@localhost.localdomain>
+References: <20100722152220.GA18290@sgi.com>
+	 <1279849573.13929.28.camel@localhost.localdomain>
+	 <20100723072301.GC23461@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:36087 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892Ab0GWOY2 (ORCPT
-	<rfc822;<linux-acpi@vger.kernel.org>>);
-	Fri, 23 Jul 2010 10:24:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1279823680.31733.20.camel@ank32.eng.vmware.com>
+Received: from mga11.intel.com ([192.55.52.93]:37686 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760146Ab0GWO3v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Jul 2010 10:29:51 -0400
+In-Reply-To: <20100723072301.GC23461@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alok Kataria <akataria@vmware.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "ak@linux.intel.com" <ak@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Petr Vandrovec <petr@vmware.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jack Steiner <steiner@sgi.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Thu, Jul 22, 2010 at 11:34:40AM -0700, Alok Kataria wrote:
-> Hi,
+On Fri, 2010-07-23 at 15:23 +0800, Ingo Molnar wrote:
+> * ykzhao <yakui.zhao@intel.com> wrote:
 > 
-> On Wed, 2010-07-21 at 17:03 -0700, FUJITA Tomonori wrote:
-> > On Thu, 22 Jul 2010 08:44:42 +0900
-> > FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> > 
-> > > On Wed, 21 Jul 2010 10:13:34 -0700
-> > > Alok Kataria <akataria@vmware.com> wrote:
-> > > 
-> > > > > Basically, you want to add hot-plug memory and enable swiotlb, right?
-> > > > 
-> > > > Not really, I am planning to do something like this, 
-> > > > 
-> > > > @@ -52,7 +52,7 @@ int __init pci_swiotlb_detect(void)
-> > > >  
-> > > >  	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
-> > > >  #ifdef CONFIG_X86_64
-> > > > -	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
-> > > > +	if (!no_iommu && (max_pfn > MAX_DMA32_PFN || hotplug_possible()))
-> > > >  		swiotlb = 1;
-> > > 
-> > > Always enable swiotlb with memory hotplug enabled?
+> > From the above description maybe the E820_ACPI region can be mapped as 
+> > cached. But this still depends on the BIOS. If the some shared data resides 
+> > in the E820_ACPI region on some BIOS, maybe we can't map the E820_ACPI 
+> > region as cached again.
 > 
-> yep though only on systems which have hotpluggable memory support.
+> I dont think we can do this safely unless some other OS (Windows) does it as 
+> well. (the reason is that if some BIOS messes this up then it will cause nasty 
+> bugs/problems only on Linux.)
+> 
 
-What machines are there that have hotplug support and no hardware IOMMU?
-I know of the IBM ones - but they use the Calgary IOMMU.
-> 
-> >  Wasting 64MB on a
-> > > x86_64 system with 128MB doesn't look to be a good idea. I don't think
-> > > that there is an easy solution for this issue though.
-> 
-> Good now that you agree that, that's the only feasible solution, do you
-> have any suggestions for any interfaces that are available from SRAT for
-> implementing hotplug_possible ?
+Yes. We can't map the corresponding ACPI region as cached under the
+following case:
+    >No E820_ACPI region is reported by BIOS. In such case the ACPI
+table resides in the NVS region     
 
-I thought SRAT has NUMA affinity information - so for example my AMD
-desktop box has that, but it does not support hotplug capability.
+But if the BIOS can follow the spec and report the separated
+E820_ACPI/E820_NVS region, maybe we can give a try to map the E820_ACPI
+region as cached type. For example: the server machine.(The spec
+describes the E820_ACPI region as reclaimed memory, which means that it
+can be managed by OS after ACPI table is loaded).
 
-I think first your 'hotplug_possible' code needs to be more specific -
-not just check if SRAT exists, but also if there are swaths of memory
-that are non-populated. It would also help if there was some indication
-of whether the box truly does a hardware hotplug - is there a way to do
-this?
+Can we add a boot option to control whether the E820_ACPI region can be
+mapped as cached type?
 
+> But the benefits of caching are very clear and well measured by Jack, so we 
+> want the feature. What we can do is to add an exception for 'known good' hw 
+> vendors - i.e. something quite close to Jack's RFC patch, but implemented a 
+> bit more cleanly:
 > 
-> > 
-> > btw, you need more work to enable switch on the fly.
-> > 
-> > You need to change the dma_ops pointer (see get_dma_ops()). It means
-> > that you need to track outstanding dma operations per device, locking,
-> > etc.
-> 
-> Yeah though if we are doing this during swiotlb_init time i.e. at bootup
-> as suggested in the pseudo patch, we don't need to worry about all this,
-> right ? 
+> Exposing x86_platform and e820 details to generic ACPI code isnt particularly 
+> clean - there should be an ACPI accessor function for that or so: a new 
+> acpi_table_can_be_cached(table) function or so.
 
-Right..
+Agree. The function of acpi_os_map_memory will also be used on IA64
+platform. It seems more reasonable to use a wrapper function to check
+whether the corresponding region can be mapped as cached type. 
+> 
+> In fact since __acpi_map_table(addr,size) is defined by architectures already, 
+> this could be done purely within x86 code.
 > 
 > Thanks,
-> Alok
+> 
+> 	Ingo
+
