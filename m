@@ -1,65 +1,50 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH] fix warning: us_to_pm_timer_ticks defined but not used
-Date: Sat, 24 Jul 2010 10:57:17 +0200
-Message-ID: <20100724105717.430d0ae6@schatten.dmk.lab>
-References: <1279900743-4733-1-git-send-email-florian@mickler.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] - Mapping ACPI tables as CACHED
+Date: Sat, 24 Jul 2010 09:26:52 -0300
+Message-ID: <20100724122652.GE7868@khazad-dum.debian.net>
+References: <20100722152220.GA18290@sgi.com>
+ <20100724001449.GA9618@khazad-dum.debian.net>
+ <20100724004532.GA9240@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:44374 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751625Ab0GXI53 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Jul 2010 04:57:29 -0400
-In-Reply-To: <1279900743-4733-1-git-send-email-florian@mickler.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56274 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755435Ab0GXM0z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Jul 2010 08:26:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20100724004532.GA9240@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: florian@mickler.org
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Venkatesh Pallipadi <venki@google.com>, Suresh Siddha <suresh.b.siddha@intel.com>, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jack Steiner <steiner@sgi.com>, mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 23 Jul 2010 17:59:02 +0200
-florian@mickler.org wrote:
-
-> Move it under the same ifdef as its sole caller is.
+On Sat, 24 Jul 2010, Matthew Garrett wrote:
+> On Fri, Jul 23, 2010 at 09:14:50PM -0300, Henrique de Moraes Holschuh wrote:
+> > Well, as it was raised in this thread, ACPI tables are likely to be near RAM
+> > regions used for IPC with the firmware or SMBIOS, and we have no idea of the
+> > kind of crap that could happen if we enable caching on those areas.
+> > 
+> > OTOH, we *know* of systems that force us to copy the ACPI tables to regular
+> > RAM, otherwise, the utterly broken BIOS corrupts the ACPI tables after the
+> > kernel has loaded.
+> >
+> > Couldn't we simply always copy all tables to regular RAM and mark THAT as
+> > cacheable (since there will be no IPC regions in it)?  For the tables that
+> > are only used once, we can free the RAM later.
 > 
-> Signed-off-by: Florian Mickler <florian@mickler.org>
-> ---
->  drivers/acpi/processor_idle.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index b1b3856..8525070 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -80,10 +80,6 @@ module_param(nocst, uint, 0000);
->  static unsigned int latency_factor __read_mostly = 2;
->  module_param(latency_factor, uint, 0644);
->  
-> -static u64 us_to_pm_timer_ticks(s64 t)
-> -{
-> -	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
-> -}
->  /*
->   * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
->   * For now disable this. Probably a bug somewhere else.
-> @@ -685,6 +681,12 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
->  }
->  
->  #ifdef CONFIG_ACPI_PROCFS
-> +
-> +static u64 us_to_pm_timer_ticks(s64 t)
-> +{
-> +	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
-> +}
-> +
->  static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
->  {
->  	struct acpi_processor *pr = seq->private;
+> I think this is reasonable. There's an argument that we shouldn't cache 
+> operation regions that may be sitting next to the ACPI tables, but I 
+> can't see any problems being caused by copying the tables to RAM.
 
-Ah, I just saw the Patch from KOSAKI Motohiro ([patch 1/2] acpi: fix
-unused function warning) to the same effect. 
-I should have checked the mailinglist before sending this :)
+Yes.  And well-engineered platforms that are known to be safe (such as UV)
+could just opt-out of that and mark the ACPI tables directly as cachable if
+they want, if the penalty for an unecessary copy-to-RAM [on these systems]
+is high enough to merit it.
 
-Sorry for the noise,
-
-Flo
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
