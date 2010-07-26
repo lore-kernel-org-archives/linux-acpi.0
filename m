@@ -1,30 +1,51 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH] acpi: fix apei related table size checking
-Date: Mon, 26 Jul 2010 09:13:17 +0200
-Message-ID: <4C4D358D.8070709@linux.intel.com>
-References: <4C49D3C5.4000007@kernel.org> <201007252223.32671.bjorn.helgaas@hp.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH] ACPI: create "processor.bm_check_disable" boot param
+Date: Mon, 26 Jul 2010 09:24:02 +0200
+Message-ID: <87k4oiiu3x.fsf@basil.nowhere.org>
+References: <20100427124703.GA16706@jgarrett.org>
+	<alpine.LFD.2.00.1004301218280.2489@sony>
+	<20100430174447.GA14889@srcf.ucam.org>
+	<d7f2dd35a4361e5156079278543769a0@localhost>
+	<alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
+	<CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
+	<20100525124325.GC7876@srcf.ucam.org>
+	<alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
+	<20100525185507.GA15997@srcf.ucam.org>
+	<alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
+	<20100722074750.GA22520@one.firstfloor.org>
+	<alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
+	<alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
+	<alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:40720 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753335Ab0GZHNW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Jul 2010 03:13:22 -0400
-In-Reply-To: <201007252223.32671.bjorn.helgaas@hp.com>
+Received: from one.firstfloor.org ([213.235.205.2]:44314 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753591Ab0GZHYK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 03:24:10 -0400
+In-Reply-To: <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain> (Len
+	Brown's message of "Thu, 22 Jul 2010 17:40:02 -0400 (EDT)")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>, Daniel J Blueman <daniel.blueman@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
 
-  On 7/26/2010 6:23 AM, Bjorn Helgaas wrote:
-> On Friday, July 23, 2010 11:39:17 am Yinghai Lu wrote:
->> also check if we can find right action in apei.
->>
->> Signed-off-by: Yinghai Lu<yinghai@kernel.org>
-> This should be split into two patches that each fix one thing.
+Len Brown <lenb@kernel.org> writes:
+>
+> Note also that an alternative for newer systems
+> is to use the intel_idle driver, which always
+> ignores BM_STS, relying Linux device drivers
+> to register constraints explicitly via PM_QOS.
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=15886
 
-... and the description actually describe what it is supposed to fix.
+Thanks.  I don't fully understand why the check for this option
+is in a different place than the register check in the earlier patch? 
+
+This needs to be also documented in Documentation/kernel-parameters.txt
+
+Other than that it looks good.
 
 -Andi
-
+-- 
+ak@linux.intel.com -- Speaking for myself only.
