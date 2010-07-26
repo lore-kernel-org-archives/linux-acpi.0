@@ -1,97 +1,30 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Andi Kleen <ak@linux.intel.com>
 Subject: Re: [PATCH] acpi: fix apei related table size checking
-Date: Sun, 25 Jul 2010 22:23:32 -0600
-Message-ID: <201007252223.32671.bjorn.helgaas@hp.com>
-References: <4C49D3C5.4000007@kernel.org>
+Date: Mon, 26 Jul 2010 09:13:17 +0200
+Message-ID: <4C4D358D.8070709@linux.intel.com>
+References: <4C49D3C5.4000007@kernel.org> <201007252223.32671.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0186.atlanta.hp.com ([15.193.32.63]:23589 "EHLO
-	g6t0186.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698Ab0GZEXP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 00:23:15 -0400
-In-Reply-To: <4C49D3C5.4000007@kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:40720 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753335Ab0GZHNW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jul 2010 03:13:22 -0400
+In-Reply-To: <201007252223.32671.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>, Daniel J Blueman <daniel.blueman@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>, Daniel J Blueman <daniel.blueman@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, July 23, 2010 11:39:17 am Yinghai Lu wrote:
-> 
-> also check if we can find right action in apei.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+  On 7/26/2010 6:23 AM, Bjorn Helgaas wrote:
+> On Friday, July 23, 2010 11:39:17 am Yinghai Lu wrote:
+>> also check if we can find right action in apei.
+>>
+>> Signed-off-by: Yinghai Lu<yinghai@kernel.org>
+> This should be split into two patches that each fix one thing.
 
-This should be split into two patches that each fix one thing.
+... and the description actually describe what it is supposed to fix.
 
-> ---
->  drivers/acpi/apei/apei-base.c |    5 +++++
->  drivers/acpi/apei/einj.c      |    3 ++-
->  drivers/acpi/apei/erst.c      |    3 ++-
->  3 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/apei/einj.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/apei/einj.c
-> +++ linux-2.6/drivers/acpi/apei/einj.c
-> @@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fop
->  
->  static int einj_check_table(struct acpi_table_einj *einj_tab)
->  {
-> -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
-> +	if (einj_tab->header_length !=
-> +	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
->  		return -EINVAL;
->  	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
->  		return -EINVAL;
-> Index: linux-2.6/drivers/acpi/apei/erst.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/apei/erst.c
-> +++ linux-2.6/drivers/acpi/apei/erst.c
-> @@ -749,7 +749,8 @@ __setup("erst_disable", setup_erst_disab
->  
->  static int erst_check_table(struct acpi_table_erst *erst_tab)
->  {
-> -	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
-> +	if (erst_tab->header_length !=
-> +	    (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
->  		return -EINVAL;
->  	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
->  		return -EINVAL;
-> Index: linux-2.6/drivers/acpi/apei/apei-base.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/apei/apei-base.c
-> +++ linux-2.6/drivers/acpi/apei/apei-base.c
-> @@ -163,6 +163,7 @@ int apei_exec_run(struct apei_exec_conte
->  	u32 i, ip;
->  	struct acpi_whea_header *entry;
->  	apei_exec_ins_func_t run;
-> +	bool found_action = false;
->  
->  	ctx->ip = 0;
->  
-> @@ -178,6 +179,7 @@ rewind:
->  		entry = &ctx->action_table[i];
->  		if (entry->action != action)
->  			continue;
-> +		found_action = true;
->  		if (ip == ctx->ip) {
->  			if (entry->instruction >= ctx->instructions ||
->  			    !ctx->ins_table[entry->instruction].run) {
-> @@ -198,6 +200,9 @@ rewind:
->  			goto rewind;
->  	}
->  
-> +	if (!found_action)
-> +		return -ENODEV;
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(apei_exec_run);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-Andi
+
