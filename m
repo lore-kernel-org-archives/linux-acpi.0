@@ -1,51 +1,80 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] ACPI: create "processor.bm_check_disable" boot param
-Date: Mon, 26 Jul 2010 09:24:02 +0200
-Message-ID: <87k4oiiu3x.fsf@basil.nowhere.org>
-References: <20100427124703.GA16706@jgarrett.org>
-	<alpine.LFD.2.00.1004301218280.2489@sony>
-	<20100430174447.GA14889@srcf.ucam.org>
-	<d7f2dd35a4361e5156079278543769a0@localhost>
-	<alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
-	<CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
-	<20100525124325.GC7876@srcf.ucam.org>
-	<alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
-	<20100525185507.GA15997@srcf.ucam.org>
-	<alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
-	<20100722074750.GA22520@one.firstfloor.org>
-	<alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
-	<alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
-	<alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] acpi: fix apei related table size checking
+Date: Mon, 26 Jul 2010 15:41:39 +0800
+Message-ID: <1280130099.2771.150.camel@yhuang-dev>
+References: <4C49D3C5.4000007@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:44314 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753591Ab0GZHYK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 03:24:10 -0400
-In-Reply-To: <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain> (Len
-	Brown's message of "Thu, 22 Jul 2010 17:40:02 -0400 (EDT)")
+Received: from mga09.intel.com ([134.134.136.24]:21852 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752727Ab0GZHlm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jul 2010 03:41:42 -0400
+In-Reply-To: <4C49D3C5.4000007@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>, Daniel J Blueman <daniel.blueman@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Len Brown <lenb@kernel.org> writes:
->
-> Note also that an alternative for newer systems
-> is to use the intel_idle driver, which always
-> ignores BM_STS, relying Linux device drivers
-> to register constraints explicitly via PM_QOS.
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=15886
+On Sat, 2010-07-24 at 01:39 +0800, Yinghai Lu wrote: 
+> also check if we can find right action in apei.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  drivers/acpi/apei/apei-base.c |    5 +++++
+>  drivers/acpi/apei/einj.c      |    3 ++-
+>  drivers/acpi/apei/erst.c      |    3 ++-
+>  3 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/apei/einj.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/apei/einj.c
+> +++ linux-2.6/drivers/acpi/apei/einj.c
+> @@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fop
+>  
+>  static int einj_check_table(struct acpi_table_einj *einj_tab)
+>  {
+> -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
+> +	if (einj_tab->header_length !=
+> +	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
+>  		return -EINVAL;
 
-Thanks.  I don't fully understand why the check for this option
-is in a different place than the register check in the earlier patch? 
+It seems that the header_length field is not set properly by BIOS on my
+testing machine which I used to develop the original code. Will try to
+contact BIOS guys to make sure.
 
-This needs to be also documented in Documentation/kernel-parameters.txt
+> Index: linux-2.6/drivers/acpi/apei/apei-base.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/apei/apei-base.c
+> +++ linux-2.6/drivers/acpi/apei/apei-base.c
+> @@ -163,6 +163,7 @@ int apei_exec_run(struct apei_exec_conte
+>  	u32 i, ip;
+>  	struct acpi_whea_header *entry;
+>  	apei_exec_ins_func_t run;
+> +	bool found_action = false;
+>  
+>  	ctx->ip = 0;
+>  
+> @@ -178,6 +179,7 @@ rewind:
+>  		entry = &ctx->action_table[i];
+>  		if (entry->action != action)
+>  			continue;
+> +		found_action = true;
+>  		if (ip == ctx->ip) {
+>  			if (entry->instruction >= ctx->instructions ||
+>  			    !ctx->ins_table[entry->instruction].run) {
+> @@ -198,6 +200,9 @@ rewind:
+>  			goto rewind;
+>  	}
+>  
+> +	if (!found_action)
+> +		return -ENODEV;
 
-Other than that it looks good.
+-ENOENT is better here?
 
--Andi
--- 
-ak@linux.intel.com -- Speaking for myself only.
+Best Regards,
+Huang Ying
+
+
