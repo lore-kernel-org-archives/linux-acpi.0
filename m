@@ -1,295 +1,221 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 8/9] ACPI video: make procfs I/F depend on
+Subject: Re: [PATCH 9/9] ACPI thermal: make procfs I/F depend on
  CONFIG_ACPI_PROCFS
-Date: Tue, 27 Jul 2010 11:17:29 +0800
-Message-ID: <1280200649.4537.13117.camel@rzhang1-desktop>
-References: <1279162003.4537.8521.camel@rzhang1-desktop>
+Date: Tue, 27 Jul 2010 11:19:45 +0800
+Message-ID: <1280200785.4537.13120.camel@rzhang1-desktop>
+References: <1279162004.4537.8522.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:65177 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:16242 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586Ab0G0DOf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Jul 2010 23:14:35 -0400
-In-Reply-To: <1279162003.4537.8521.camel@rzhang1-desktop>
+	id S1751586Ab0G0DQv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jul 2010 23:16:51 -0400
+In-Reply-To: <1279162004.4537.8522.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 On Thu, 2010-07-15 at 10:46 +0800, Zhang, Rui wrote:
-> Make ACPI video driver procfs I/F depend on CONFIG_ACPI_PROCFS.
+> Make ACPI thermal driver procfs I/F depend on CONFIG_ACPI_PROCFS.
 > 
-> For backlight control, users should use /sys/class/backlight/ instead.
-> The other procfs I/F should not be used by any users, so that we can
-> remove them safely.
+> Users should use /sys/class/thermal/ instead.
 > 
 new changelog:
 
-Mark ACPI video driver procfs I/F deprecated, including:
-/proc/acpi/video/*/info
-/proc/acpi/video/*/DOS
-/proc/acpi/video/*/ROM
-/proc/acpi/video/*/POST
-/proc/acpi/video/*/POST_info
-/proc/acpi/video/*/*/info
-/proc/acpi/video/*/*/state
-/proc/acpi/video/*/*/EDID
-and
-/proc/acpi/video/*/*/brightness, because
-1. we already have the sysfs I/F /sysclass/backlight/ as the replacement
-of /proc/acpi/video/*/*/brightness.
-2. the other procfs I/F is not useful for userspace.
+Mark the ACPI thermal procfs I/F deprecated, because /sys/class/thermal/
+is already available and has been working for years w/o any problem.
 
-All these procfs I/F should be removed in 2.6.36.
+The ACPI thermal procfs I/F will be removed in 2.6.37.
 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/Kconfig |    1 
->  drivers/acpi/video.c |  131 +++++++++++++++++++++++++++++++--------------------
->  2 files changed, 82 insertions(+), 50 deletions(-)
+>  drivers/acpi/Kconfig   |    1 
+>  drivers/acpi/thermal.c |   86 ++++++++++++++++++++++++++++++-------------------
+>  2 files changed, 54 insertions(+), 33 deletions(-)
 > 
-> Index: linux-2.6/drivers/acpi/video.c
+> Index: linux-2.6/drivers/acpi/thermal.c
 > ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -152,7 +152,9 @@ struct acpi_video_bus {
->  	struct acpi_video_bus_flags flags;
->  	struct list_head video_device_list;
->  	struct mutex device_list_lock;	/* protects video_device_list */
+> --- linux-2.6.orig/drivers/acpi/thermal.c
+> +++ linux-2.6/drivers/acpi/thermal.c
+> @@ -37,10 +37,14 @@
+>  #include <linux/init.h>
+>  #include <linux/slab.h>
+>  #include <linux/types.h>
+> +
 > +#ifdef CONFIG_ACPI_PROCFS
->  	struct proc_dir_entry *dir;
+>  #include <linux/proc_fs.h>
+> +#include <linux/seq_file.h>
 > +#endif
->  	struct input_dev *input;
->  	char phys[32];	/* for input device */
->  	struct notifier_block pm_nb;
-> @@ -208,6 +210,7 @@ struct acpi_video_device {
->  	struct output_device *output_dev;
+> +
+>  #include <linux/jiffies.h>
+>  #include <linux/kmod.h>
+> -#include <linux/seq_file.h>
+>  #include <linux/reboot.h>
+>  #include <linux/device.h>
+>  #include <asm/uaccess.h>
+> @@ -102,16 +106,6 @@ static int acpi_thermal_add(struct acpi_
+>  static int acpi_thermal_remove(struct acpi_device *device, int type);
+>  static int acpi_thermal_resume(struct acpi_device *device);
+>  static void acpi_thermal_notify(struct acpi_device *device, u32 event);
+> -static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
+> -static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
+> -static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
+> -static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
+> -static ssize_t acpi_thermal_write_cooling_mode(struct file *,
+> -					       const char __user *, size_t,
+> -					       loff_t *);
+> -static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
+> -static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+> -					  size_t, loff_t *);
+>  
+>  static const struct acpi_device_id  thermal_device_ids[] = {
+>  	{ACPI_THERMAL_HID, 0},
+> @@ -201,6 +195,18 @@ struct acpi_thermal {
+>  	struct mutex lock;
 >  };
 >  
 > +#ifdef CONFIG_ACPI_PROCFS
->  /* bus */
->  static int acpi_video_bus_info_open_fs(struct inode *inode, struct file *file);
->  static const struct file_operations acpi_video_bus_info_fops = {
-> @@ -307,6 +310,7 @@ static const struct file_operations acpi
+> +static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
+> +static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
+> +static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
+> +static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
+> +static ssize_t acpi_thermal_write_cooling_mode(struct file *,
+> +					       const char __user *, size_t,
+> +					       loff_t *);
+> +static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
+> +static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+> +					  size_t, loff_t *);
+> +
+>  static const struct file_operations acpi_thermal_state_fops = {
+>  	.owner = THIS_MODULE,
+>  	.open = acpi_thermal_state_open_fs,
+> @@ -242,6 +248,7 @@ static const struct file_operations acpi
 >  	.llseek = seq_lseek,
 >  	.release = single_release,
 >  };
-> +#endif /* CONFIG_ACPI_PROCFS */
+> +#endif /* CONFIG_ACPI_PROCFS*/
 >  
->  static const char device_decode[][30] = {
->  	"motherboard VGA device",
-> @@ -450,16 +454,6 @@ static struct thermal_cooling_device_ops
->  /* device */
+>  /* --------------------------------------------------------------------------
+>                               Thermal Zone Management
+> @@ -287,26 +294,6 @@ static int acpi_thermal_get_polling_freq
+>  	return 0;
+>  }
 >  
->  static int
-> -acpi_video_device_query(struct acpi_video_device *device, unsigned long long *state)
+> -static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
 > -{
-> -	int status;
 > -
-> -	status = acpi_evaluate_integer(device->dev->handle, "_DGS", NULL, state);
+> -	if (!tz)
+> -		return -EINVAL;
 > -
-> -	return status;
+> -	tz->polling_frequency = seconds * 10;	/* Convert value to deci-seconds */
+> -
+> -	tz->thermal_zone->polling_delay = seconds * 1000;
+> -
+> -	if (tz->tz_enabled)
+> -		thermal_zone_device_update(tz->thermal_zone);
+> -
+> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -			  "Polling frequency set to %lu seconds\n",
+> -			  tz->polling_frequency/10));
+> -
+> -	return 0;
 > -}
 > -
-> -static int
->  acpi_video_device_get_state(struct acpi_video_device *device,
->  			    unsigned long long *state)
+>  static int acpi_thermal_set_cooling_mode(struct acpi_thermal *tz, int mode)
 >  {
-> @@ -698,46 +692,6 @@ acpi_video_device_EDID(struct acpi_video
->  
->  /* bus */
->  
-> -static int
-> -acpi_video_bus_set_POST(struct acpi_video_bus *video, unsigned long option)
-> -{
-> -	int status;
-> -	unsigned long long tmp;
-> -	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-> -	struct acpi_object_list args = { 1, &arg0 };
-> -
-> -
-> -	arg0.integer.value = option;
-> -
-> -	status = acpi_evaluate_integer(video->device->handle, "_SPD", &args, &tmp);
-> -	if (ACPI_SUCCESS(status))
-> -		status = tmp ? (-EINVAL) : (AE_OK);
-> -
-> -	return status;
-> -}
-> -
-> -static int
-> -acpi_video_bus_get_POST(struct acpi_video_bus *video, unsigned long long *id)
-> -{
-> -	int status;
-> -
-> -	status = acpi_evaluate_integer(video->device->handle, "_GPD", NULL, id);
-> -
-> -	return status;
-> -}
-> -
-> -static int
-> -acpi_video_bus_POST_options(struct acpi_video_bus *video,
-> -			    unsigned long long *options)
-> -{
-> -	int status;
-> -
-> -	status = acpi_evaluate_integer(video->device->handle, "_VPO", NULL, options);
-> -	*options &= 3;
-> -
-> -	return status;
-> -}
-> -
->  /*
->   *  Arg:
->   *  	video		: video bus device pointer
-> @@ -1159,6 +1113,7 @@ static int acpi_video_bus_check(struct a
+>  	acpi_status status = AE_OK;
+> @@ -973,7 +960,7 @@ static void acpi_thermal_unregister_ther
 >  /* --------------------------------------------------------------------------
 >                                FS Interface (/proc)
 >     -------------------------------------------------------------------------- */
+> -
 > +#ifdef CONFIG_ACPI_PROCFS
+>  static struct proc_dir_entry *acpi_thermal_dir;
 >  
->  static struct proc_dir_entry *acpi_video_dir;
->  
-> @@ -1198,6 +1153,18 @@ acpi_video_device_info_open_fs(struct in
+>  static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+> @@ -1187,6 +1174,26 @@ static int acpi_thermal_polling_open_fs(
 >  			   PDE(inode)->data);
 >  }
 >  
-> +static int
-> +acpi_video_device_query(struct acpi_video_device *device,
-> +			unsigned long long *state)
+> +static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
 > +{
-> +	int status;
+> +	if (!tz)
+> +		return -EINVAL;
 > +
-> +	status = acpi_evaluate_integer(device->dev->handle, "_DGS",
-> +				       NULL, state);
+> +	/* Convert value to deci-seconds */
+> +	tz->polling_frequency = seconds * 10;
 > +
-> +	return status;
-> +}
+> +	tz->thermal_zone->polling_delay = seconds * 1000;
 > +
->  static int acpi_video_device_state_seq_show(struct seq_file *seq, void *offset)
->  {
->  	int status;
-> @@ -1492,6 +1459,19 @@ static int acpi_video_bus_ROM_open_fs(st
->  	return single_open(file, acpi_video_bus_ROM_seq_show, PDE(inode)->data);
->  }
->  
-> +static int
-> +acpi_video_bus_POST_options(struct acpi_video_bus *video,
-> +			    unsigned long long *options)
-> +{
-> +	int status;
+> +	if (tz->tz_enabled)
+> +		thermal_zone_device_update(tz->thermal_zone);
 > +
-> +	status = acpi_evaluate_integer(video->device->handle, "_VPO",
-> +				       NULL, options);
-> +	*options &= 3;
+> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +			  "Polling frequency set to %lu seconds\n",
+> +			  tz->polling_frequency/10));
 > +
-> +	return status;
-> +}
-> +
->  static int acpi_video_bus_POST_info_seq_show(struct seq_file *seq, void *offset)
->  {
->  	struct acpi_video_bus *video = seq->private;
-> @@ -1530,6 +1510,16 @@ acpi_video_bus_POST_info_open_fs(struct 
->  			   PDE(inode)->data);
->  }
->  
-> +static int
-> +acpi_video_bus_get_POST(struct acpi_video_bus *video, unsigned long long *id)
-> +{
-> +	int status;
-> +
-> +	status = acpi_evaluate_integer(video->device->handle, "_GPD", NULL, id);
-> +
-> +	return status;
-> +}
-> +
->  static int acpi_video_bus_POST_seq_show(struct seq_file *seq, void *offset)
->  {
->  	struct acpi_video_bus *video = seq->private;
-> @@ -1572,6 +1562,25 @@ static int acpi_video_bus_DOS_open_fs(st
->  	return single_open(file, acpi_video_bus_DOS_seq_show, PDE(inode)->data);
->  }
->  
-> +static int
-> +acpi_video_bus_set_POST(struct acpi_video_bus *video, unsigned long option)
-> +{
-> +	int status;
-> +	unsigned long long tmp;
-> +	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-> +	struct acpi_object_list args = { 1, &arg0 };
-> +
-> +
-> +	arg0.integer.value = option;
-> +
-> +	status = acpi_evaluate_integer(video->device->handle, "_SPD",
-> +				       &args, &tmp);
-> +	if (ACPI_SUCCESS(status))
-> +		status = tmp ? (-EINVAL) : (AE_OK);
-> +
-> +	return status;
+> +	return 0;
 > +}
 > +
 >  static ssize_t
->  acpi_video_bus_write_POST(struct file *file,
->  			  const char __user * buffer,
-> @@ -1722,6 +1731,24 @@ static int acpi_video_bus_remove_fs(stru
+>  acpi_thermal_write_polling(struct file *file,
+>  			   const char __user * buffer,
+> @@ -1295,7 +1302,13 @@ static int acpi_thermal_remove_fs(struct
 >  
 >  	return 0;
 >  }
+> -
 > +#else
-> +static inline int acpi_video_device_add_fs(struct acpi_device *device)
-> +{
-> +	return 0;
-> +}
-> +static inline int acpi_video_device_remove_fs(struct acpi_device *device)
-> +{
-> +	return 0;
-> +}
-> +static inline int acpi_video_bus_add_fs(struct acpi_device *device)
-> +{
-> +	return 0;
-> +}
-> +static inline int acpi_video_bus_remove_fs(struct acpi_device *device)
+> +static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
+> +static inline int acpi_thermal_remove_fs(struct acpi_device *device)
 > +{
 > +	return 0;
 > +}
 > +#endif /* CONFIG_ACPI_PROCFS */
->  
 >  /* --------------------------------------------------------------------------
 >                                   Driver Interface
-> @@ -2557,9 +2584,11 @@ int acpi_video_register(void)
->  		return 0;
+>     -------------------------------------------------------------------------- */
+> @@ -1566,13 +1579,18 @@ static int __init acpi_thermal_init(void
+>  		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+>  		return -ENODEV;
 >  	}
->  
+> +
 > +#ifdef CONFIG_ACPI_PROCFS
->  	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
->  	if (!acpi_video_dir)
+>  	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
+>  	if (!acpi_thermal_dir)
 >  		return -ENODEV;
 > +#endif
 >  
->  	result = acpi_bus_register_driver(&acpi_video_bus);
+>  	result = acpi_bus_register_driver(&acpi_thermal_driver);
 >  	if (result < 0) {
-> @@ -2588,7 +2617,9 @@ void acpi_video_unregister(void)
+> +#ifdef CONFIG_ACPI_PROCFS
+>  		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
+> +#endif
+>  		return -ENODEV;
 >  	}
->  	acpi_bus_unregister_driver(&acpi_video_bus);
+>  
+> @@ -1584,7 +1602,9 @@ static void __exit acpi_thermal_exit(voi
+>  
+>  	acpi_bus_unregister_driver(&acpi_thermal_driver);
 >  
 > +#ifdef CONFIG_ACPI_PROCFS
->  	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+>  	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
 > +#endif
 >  
->  	register_count = 0;
->  
+>  	return;
+>  }
 > Index: linux-2.6/drivers/acpi/Kconfig
 > ===================================================================
 > --- linux-2.6.orig/drivers/acpi/Kconfig
 > +++ linux-2.6/drivers/acpi/Kconfig
-> @@ -56,6 +56,7 @@ config ACPI_PROCFS
->  
+> @@ -57,6 +57,7 @@ config ACPI_PROCFS
 >  	  /proc/acpi/processor/*/throttling (/sys/class/thermal/
 >  		cooling_device*/*)
-> +	  /proc/acpi/video/*/brightness (/sys/class/backlight/)
+>  	  /proc/acpi/video/*/brightness (/sys/class/backlight/)
+> +	  /proc/acpi/thermal_zone/*/* (/sys/class/thermal/)
 >  	  This option has no effect on /proc/acpi/ files
 >  	  and functions which do not yet exist in /sys.
 >  
