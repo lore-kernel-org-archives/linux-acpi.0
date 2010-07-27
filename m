@@ -1,26 +1,24 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Add the check of ADR flag in course of finding ACPI
- handle for PCI device
-Date: Mon, 26 Jul 2010 22:33:45 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007262233370.28026@localhost.localdomain>
-References: <1278992168-7457-1-git-send-email-yakui.zhao@intel.com>
- <1279678546.13929.0.camel@localhost.localdomain>
+Subject: Re: [PATCH 1/9] ACPI: introduce drivers/acpi/debugfs.c
+Date: Mon, 26 Jul 2010 22:43:06 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007262243020.28026@localhost.localdomain>
+References: <1279161975.4537.8514.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:40787 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751430Ab0G0CeP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 22:34:15 -0400
+Received: from vms173013pub.verizon.net ([206.46.173.13]:62102 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584Ab0G0CnM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 22:43:12 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173015.mailsrvcs.net
+ by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L670029P34LSBF7@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 26 Jul 2010 21:34:05 -0500 (CDT)
-In-reply-to: <1279678546.13929.0.camel@localhost.localdomain>
+ with ESMTPA id <0L6700DUO3JXS5I0@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 26 Jul 2010 21:43:11 -0500 (CDT)
+In-reply-to: <1279161975.4537.8514.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 applied
