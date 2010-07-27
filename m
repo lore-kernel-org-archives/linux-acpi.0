@@ -1,64 +1,42 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH] PCI / PCIe: Ask BIOS for control of all native
-	services simultaneously
-Date: Tue, 27 Jul 2010 19:56:28 +0100
-Message-ID: <20100727185628.GA17903@srcf.ucam.org>
-References: <201007250105.23610.rjw@sisk.pl> <4C4E2BBD.7080003@jp.fujitsu.com> <20100727171842.GB7324@srcf.ucam.org> <201007272042.39269.rjw@sisk.pl>
+From: "PROF.MAURICE IWU" <profmauriceiwu2221@yahoo.co.jp>
+Subject: Equity Business Investment .,
+Date: Tue, 27 Jul 2010 18:07:29 +0100
+Message-ID: <20100727180729.setdwhj11k4k4cgw@mail.ipimar.pt>
+Reply-To: iwumaurice900@sify.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52800 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080Ab0G0S4j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jul 2010 14:56:39 -0400
+Received: from neptuno.ipimar.pt ([193.137.95.209]:60802 "EHLO
+	neptuno.ipimar.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752845Ab0G0Uog (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jul 2010 16:44:36 -0400
 Content-Disposition: inline
-In-Reply-To: <201007272042.39269.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Tue, Jul 27, 2010 at 08:42:39PM +0200, Rafael J. Wysocki wrote:
-> On Tuesday, July 27, 2010, Matthew Garrett wrote:
-> > I've done some more testing of this and found that my intial belief 
-> > (supported by Microsoft's documentation...) that all PCIe support had to 
-> > be handed over for any to be used is incorrect. It turns out that the 
-> > firmware must support native hotplug, native power management and PCI 
-> > express capability structure control - ie, SHPC and AER aren't required.
-> 
-> But the ACPI spec says quite explicitly that PCIe capability control is
-> necessary for AER as well.
+Equity Business Investment
+ From Prof. Maurice M. Iwu
 
-I may not have been clear. If the firmware doesn't report AER, Windows 
-will use PME and hotplug. If the firmware doesn't support hotplug, 
-Windows will *not* use PME or AER, and ditto if it doesn't support PME.
+Dear Friend
 
-> > (2) If any of bits 0, 2 and 4 are unsupported, disable all PCIe support 
-> > via _OSC
-> 
-> I guess you mean "don't request control of that services at all"?
+I am Prof. Maurice M. Iwu, Former Chairman Independent Electoral Commission
+(INEC).Currently, I am on compulsory terminal leave leading up to my final
+retirement from public service.
 
-I mean pass 0 as the third dword in our _OSC call.
+I am seeking your partnership in a mutual benefit project involving reparation
+of funds amount in millions of United States Dollars out from my country for
+our mutual benefit of Equity Investment,The sum to be expended was  
+derived from
+an allocation given to my commission during the 2007 General Elections which
+took place in my country.
 
-> > (3) Ask for the set of supported bits & 0x1d
-> 
-> Really, if we try to treat native PME, native hot-plug and AER separately
-> (which is our current approach), we fall into a Catch 22 situation where
-> each of them needs PCIe capability control and once we've received the
-> control of that, we have no choice but to use the other native sevices as well.
+Sincerely.
+Prof. Maurice M. Iwu.
 
-It seems that it's valid to have hotplug and PME without AER. The 
-behaviour of Windows for each bit is:
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
-0 Hotplug             Required
-1 SHPHC               Will never request
-2 PME                 Required
-3 AER                 Optional
-4 capability control  Required
-
-So firmware can refuse to support SHPHC and AER and still get PCIe 
-support, but if any of the required bits aren't available Windows won't 
-use *any* of the _OSC-provided functions.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
