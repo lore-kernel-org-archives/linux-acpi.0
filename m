@@ -1,76 +1,136 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: create "processor.bm_check_disable" boot param
-Date: Mon, 26 Jul 2010 20:19:10 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007262007550.5292@localhost.localdomain>
-References: <20100427124703.GA16706@jgarrett.org>
- <alpine.LFD.2.00.1004301218280.2489@sony>
- <20100430174447.GA14889@srcf.ucam.org>
- <d7f2dd35a4361e5156079278543769a0@localhost>
- <alpine.LFD.2.00.1005250125590.20648@localhost.localdomain>
- <CE761E84DADF2947A4AF22FB8D97A4731E0366B5@shsmsx501.ccr.corp.intel.com>
- <20100525124325.GC7876@srcf.ucam.org>
- <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
- <20100525185507.GA15997@srcf.ucam.org>
- <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
- <20100722074750.GA22520@one.firstfloor.org>
- <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
- <alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
- <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
- <87k4oiiu3x.fsf@basil.nowhere.org>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH_v8 1/2] IPMI/ACPI: Define acpi_ipmi
+	notifier hook	functions
+Date: Tue, 27 Jul 2010 08:35:00 +0800
+Message-ID: <1280190900.13929.84.camel@localhost.localdomain>
+References: <1280155565-2938-1-git-send-email-yakui.zhao@intel.com>
+	<1280155565-2938-2-git-send-email-yakui.zhao@intel.com>
+	<201007261052.04772.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <87k4oiiu3x.fsf@basil.nowhere.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <201007261052.04772.bjorn.helgaas@hp.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-> > Note also that an alternative for newer systems
-> > is to use the intel_idle driver, which always
-> > ignores BM_STS, relying Linux device drivers
-> > to register constraints explicitly via PM_QOS.
-> >
-> > https://bugzilla.kernel.org/show_bug.cgi?id=15886
-> 
-> Thanks.  I don't fully understand why the check for this option
-> is in a different place than the register check in the earlier patch? 
-
-Technically, it could have been.
-
-There are a comple of constraints in the layout of this code.
-
-The _CST flag is x86 (actually Intel) specific -- so the detection
-went into arch/x86/kernel/acpi/cstate.c
-
-However, the operation of the that flag is per C-state,
-not necessarily per system -- so we remember the flag
-in in a cx->bm_sts_skip flag and check it in the 
-'acpi generic' drivers/acpi/processor_idle.c
-
-But we can't test a per cx flag inside acpi_idle_bm_check()
-because it doesn't have access to the cx, so i put that
-test at the site of its only caller.
-
-In this 2nd patch...
-we added a 'generic' ACPI bootparam that applies
-to all C-states.  So it overrides any per-cstate flag
-and it is static to the processor_idle.c file,
-so it seemed cleanest (to me)
-to push it down inside acpi_idle_bm_check()
-rather than in its only caller.
-
-> This needs to be also documented in Documentation/kernel-parameters.txt
-
-I thought about that and decided against it.
-While we do document some driver specific modparams
-in kernel-parameters.txt, I do not expect this one to
-be used that often -- mostly for diagnosis of BIOS bugs.
-I know of two machines that need it,
-and both of those machines have a BIOS update
-or a BIOS update in progress that make it unnecessary.
-
-thanks for caring.
-
-Len Brown, Intel Open Source Technology Center.
+T24gVHVlLCAyMDEwLTA3LTI3IGF0IDAwOjUyICswODAwLCBCam9ybiBIZWxnYWFzIHdyb3RlOgo+
+IE9uIE1vbmRheSwgSnVseSAyNiwgMjAxMCAwODo0NjowNCBhbSB5YWt1aS56aGFvQGludGVsLmNv
+bSB3cm90ZToKPiA+IEZyb206IFpoYW8geWFrdWkgPHlha3VpLnpoYW9AaW50ZWwuY29tPgo+ID4g
+Cj4gCj4gVGhpcyBuZWVkcyBhIGNoYW5nZWxvZy4KCk9LLiBJIHdpbGwgdHJ5IHRvIGFkZCBtb3Jl
+IGNoYW5nZWxvZyBhYm91dCB0aGlzIHBhdGNoLgoKPiAKPiBUaGlzIHNlZW1zIGxpa2UgYSBjb21w
+bGljYXRlZCBzb2x1dGlvbiB0byBhIHNpbXBsZSBwcm9ibGVtLgoKRG8geW91IGhhdmUgYW55IHNp
+bXBsZSBpZGVhIHRvIGZpeCB0aGUgaXNzdWU/CgpZZXMuIEl0IHdpbGwgYmUgdmVyeSBzaW1wbGUg
+dG8gbWVyZ2UgdGhlIElQTUkgb3ByZWdpb24gaW50byB0aGUKZHJpdmVycy9jaGFyL2lwbWkvaXBt
+aV9zaV9pbnRmLmMgCkJ1dCBpbiBmYWN0IHRoZSBhIGxvdCBvZiBJUE1JIG9wcmVnaW9uIGNvZGUg
+aGFzIG5vdGhpbmcgcmVsYXRlZCB3aXRoIHRoZQpJUE1JIGRldGVjdGlvbi4gTWF5YmUgaXQgaXMg
+YXBwcm9wcmlhdGUgdG8gc2VwYXJhdGUgdGhlIElQTUkgb3ByZWdpb24KY29kZSBpbnRvIHRoZSBz
+ZXBhcmF0ZWQgZmlsZS4gQlRXOiBUaGlzIGlzIGFsc28gdGhlIENvcmV5J3Mgdmlld3BvaW50LgoK
+U28gSU1PIHRoZSBuZXh0IGRpc2N1c3Npb24gaGFkIGJldHRlciBiZSBiYXNlZCBvbiB0aGUgY29u
+ZGl0aW9uIHRoYXQgdGhlCklQTUkgb3ByZWdpb24gY29kZSBpcyBwdXQgaW50byB0aGUgc2VwYXJh
+dGVkIGZpbGUuCgo+IAo+IEkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkgdGhlIEFDUEkgSVBNSSBvcHJl
+Z2lvbiBzdHVmZiBjYW4ndCBiZSBtYWRlIGFuCj4gb3B0aW9uYWwgZmVhdHVyZSBvZiB0aGUgQUNQ
+SSBJUE1JIGRyaXZlci4gIFRyeWluZyB0byBjb21wbGV0ZWx5IGRlY291cGxlCj4gdGhpbmdzIGlz
+IGp1c3QgZ29pbmcgdG8gYWRkIGNvcm5lciBjYXNlcyBhbmQgd2VpcmQgZGVwZW5kZW5jaWVzLgoK
+77u/Q2FuIHRoZSBmb2xsb3dpbmcgcGF0Y2ggaGFuZGxlIHRoZSAiaG90LXBsdWciIGNhc2Ugb2Yg
+UE5QIElQSTAwMDEgYXMKd2hhdCB5b3UgbWVudGlvbmVkIGluIGxhc3QgdGhyZWFkPwoKPiAKPiBC
+am9ybgo+IAo+ID4gU2lnbmVkLW9mZi1ieTogWmhhbyB5YWt1aSA8eWFrdWkuemhhb0BpbnRlbC5j
+b20+Cj4gPiBjYzogQmpvcm4gSGVsZ2FhcyA8Ympvcm4uaGVsZ2Fhc0BocC5jb20+Cj4gPiAtLS0K
+PiA+ICBkcml2ZXJzL2NoYXIvaXBtaS9pcG1pX3NpX2ludGYuYyB8ICAgNjMgKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+ICBpbmNsdWRlL2xpbnV4L2lwbWkuaCAgICAg
+ICAgICAgICB8ICAgIDggKysrKysKPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDcxIGluc2VydGlvbnMo
+KyksIDAgZGVsZXRpb25zKC0pCj4gPiAKPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2NoYXIvaXBt
+aS9pcG1pX3NpX2ludGYuYyBiL2RyaXZlcnMvY2hhci9pcG1pL2lwbWlfc2lfaW50Zi5jCj4gPiBp
+bmRleCAwOTRiZGMzLi45MWM1ZDM3IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9jaGFyL2lwbWkv
+aXBtaV9zaV9pbnRmLmMKPiA+ICsrKyBiL2RyaXZlcnMvY2hhci9pcG1pL2lwbWlfc2lfaW50Zi5j
+Cj4gPiBAQCAtNjUsNiArNjUsNyBAQAo+ID4gICNpbmNsdWRlIDxsaW51eC9zdHJpbmcuaD4KPiA+
+ICAjaW5jbHVkZSA8bGludXgvY3R5cGUuaD4KPiA+ICAjaW5jbHVkZSA8bGludXgvcG5wLmg+Cj4g
+PiArI2luY2x1ZGUgPGxpbnV4L2lwbWkuaD4KPiA+ICAKPiA+ICAjaWZkZWYgQ09ORklHX1BQQ19P
+Rgo+ID4gICNpbmNsdWRlIDxsaW51eC9vZl9kZXZpY2UuaD4KPiA+IEBAIC0xOTA3LDYgKzE5MDgs
+MTMgQEAgc3RhdGljIF9fZGV2aW5pdCB2b2lkIGhhcmRjb2RlX2ZpbmRfYm1jKHZvaWQpCj4gPiAg
+ICovCj4gPiAgc3RhdGljIGludCBhY3BpX2ZhaWx1cmU7Cj4gPiAgCj4gPiArc3RhdGljIEJMT0NL
+SU5HX05PVElGSUVSX0hFQUQocG5wX2lwbWlfbm90aWZpZXIpOwo+ID4gK3N0YXRpYyBMSVNUX0hF
+QUQocG5wX2lwbWlfbGlzdCk7Cj4gPiArc3RydWN0IHBucF9pcG1pX2RldmljZSB7Cj4gPiArCXN0
+cnVjdCBsaXN0X2hlYWQgaGVhZDsKPiA+ICsJc3RydWN0IHBucF9kZXYgKnBucF9kZXY7Cj4gPiAr
+fTsKPiA+ICsKPiA+ICAvKiBGb3IgR1BFLXR5cGUgaW50ZXJydXB0cy4gKi8KPiA+ICBzdGF0aWMg
+dTMyIGlwbWlfYWNwaV9ncGUodm9pZCAqY29udGV4dCkKPiA+ICB7Cj4gPiBAQCAtMjEyNCw2ICsy
+MTMyLDcgQEAgc3RhdGljIGludCBfX2RldmluaXQgaXBtaV9wbnBfcHJvYmUoc3RydWN0IHBucF9k
+ZXYgKmRldiwKPiA+ICAJYWNwaV9oYW5kbGUgaGFuZGxlOwo+ID4gIAlhY3BpX3N0YXR1cyBzdGF0
+dXM7Cj4gPiAgCXVuc2lnbmVkIGxvbmcgbG9uZyB0bXA7Cj4gPiArCXN0cnVjdCBwbnBfaXBtaV9k
+ZXZpY2UgKnBucF9pcG1pOwo+ID4gIAo+ID4gIAlhY3BpX2RldiA9IHBucF9hY3BpX2RldmljZShk
+ZXYpOwo+ID4gIAlpZiAoIWFjcGlfZGV2KQo+ID4gQEAgLTIxMzMsNiArMjE0MiwxMSBAQCBzdGF0
+aWMgaW50IF9fZGV2aW5pdCBpcG1pX3BucF9wcm9iZShzdHJ1Y3QgcG5wX2RldiAqZGV2LAo+ID4g
+IAlpZiAoIWluZm8pCj4gPiAgCQlyZXR1cm4gLUVOT01FTTsKPiA+ICAKPiA+ICsJcG5wX2lwbWkg
+PSBremFsbG9jKHNpemVvZigqcG5wX2lwbWkpLCBHRlBfS0VSTkVMKTsKPiA+ICsJaWYgKCFwbnBf
+aXBtaSkgewo+ID4gKwkJa2ZyZWUoaW5mbyk7Cj4gPiArCQlyZXR1cm4gLUVOT01FTTsKPiA+ICsJ
+fQo+ID4gIAlpbmZvLT5hZGRyX3NvdXJjZSA9IFNJX0FDUEk7Cj4gPiAgCXByaW50ayhLRVJOX0lO
+Rk8gUEZYICJwcm9iaW5nIHZpYSBBQ1BJXG4iKTsKPiA+ICAKPiA+IEBAIC0yMTk2LDIwICsyMjEw
+LDY5IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IGlwbWlfcG5wX3Byb2JlKHN0cnVjdCBwbnBfZGV2
+ICpkZXYsCj4gPiAgCQkgcmVzLCBpbmZvLT5pby5yZWdzaXplLCBpbmZvLT5pby5yZWdzcGFjaW5n
+LAo+ID4gIAkJIGluZm8tPmlycSk7Cj4gPiAgCj4gPiArCXBucF9pcG1pLT5wbnBfZGV2ID0gZGV2
+Owo+ID4gKwlsaXN0X2FkZF90YWlsKCZwbnBfaXBtaS0+aGVhZCwgJnBucF9pcG1pX2xpc3QpOwo+
+ID4gKwlibG9ja2luZ19ub3RpZmllcl9jYWxsX2NoYWluKCZwbnBfaXBtaV9ub3RpZmllciwgSVBN
+SV9QTlBfQURELAo+ID4gKwkJCQkodm9pZCAqKWRldik7Cj4gPiArCj4gPiAgCXJldHVybiBhZGRf
+c21pKGluZm8pOwo+ID4gIAo+ID4gIGVycl9mcmVlOgo+ID4gIAlrZnJlZShpbmZvKTsKPiA+ICsJ
+a2ZyZWUocG5wX2lwbWkpOwo+ID4gIAlyZXR1cm4gLUVJTlZBTDsKPiA+ICB9Cj4gPiAgCj4gPiAg
+c3RhdGljIHZvaWQgX19kZXZleGl0IGlwbWlfcG5wX3JlbW92ZShzdHJ1Y3QgcG5wX2RldiAqZGV2
+KQo+ID4gIHsKPiA+ICAJc3RydWN0IHNtaV9pbmZvICppbmZvID0gcG5wX2dldF9kcnZkYXRhKGRl
+dik7Cj4gPiArCXN0cnVjdCBwbnBfaXBtaV9kZXZpY2UgKnBucF9pcG1pOwo+ID4gKwo+ID4gKwls
+aXN0X2Zvcl9lYWNoX2VudHJ5KHBucF9pcG1pLCAmcG5wX2lwbWlfbGlzdCwgaGVhZCkgewo+ID4g
+KwkJaWYgKHBucF9pcG1pLT5wbnBfZGV2ID09IGRldikgewo+ID4gKwkJCWxpc3RfZGVsKCZwbnBf
+aXBtaS0+aGVhZCk7Cj4gPiArCQkJYmxvY2tpbmdfbm90aWZpZXJfY2FsbF9jaGFpbigmcG5wX2lw
+bWlfbm90aWZpZXIsCj4gPiArCQkJCUlQTUlfUE5QX1JFTU9WRSwgKHZvaWQgKilkZXYpOwo+ID4g
+KwkJCWJyZWFrOwo+ID4gKwkJfQo+ID4gKwl9Cj4gPiAgCj4gPiAgCWNsZWFudXBfb25lX3NpKGlu
+Zm8pOwo+ID4gIH0KPiA+ICAKPiA+ICtpbnQgYWNwaV9pcG1pX25vdGlmaWVyX3JlZ2lzdGVyKHN0
+cnVjdCBub3RpZmllcl9ibG9jayAqbmIpCj4gPiArewo+ID4gKwlpbnQgcmV0Owo+ID4gKwlzdHJ1
+Y3QgcG5wX2lwbWlfZGV2aWNlICpwbnBfaXBtaTsKPiA+ICsKPiA+ICsJcmV0ID0gYmxvY2tpbmdf
+bm90aWZpZXJfY2hhaW5fcmVnaXN0ZXIoJnBucF9pcG1pX25vdGlmaWVyLCBuYik7Cj4gPiArCWlm
+IChyZXQgPT0gMCkgewo+ID4gKwkJLyoKPiA+ICsJCSAqIE1heWJlIHdlIGFscmVhZHkgZ2V0IHRo
+ZSBjb3JyZXNwb25kaW5nIHBucF9pcG1pX2xpc3QgYmVmb3JlCj4gPiArCQkgKiByZWdpc3Rlcmlu
+ZyB0aGUgbm90aWZpZXIgY2hhaW4uIFNvIGNhbGwgdGhlIG5vdGlmZXIKPiA+ICsJCSAqIGNoYWlu
+IGxpc3QgZm9yIGV2ZXJ5IHBucF9pcG1pIGRldmljZS4KPiA+ICsJCSAqLwo+ID4gKwkJbGlzdF9m
+b3JfZWFjaF9lbnRyeShwbnBfaXBtaSwgJnBucF9pcG1pX2xpc3QsIGhlYWQpIHsKPiA+ICsJCQli
+bG9ja2luZ19ub3RpZmllcl9jYWxsX2NoYWluKCZwbnBfaXBtaV9ub3RpZmllciwKPiA+ICsJCQkJ
+SVBNSV9QTlBfQURELCAodm9pZCAqKShwbnBfaXBtaS0+cG5wX2RldikpOwo+ID4gKwkJfQo+ID4g
+Kwl9Cj4gPiArCXJldHVybiByZXQ7Cj4gPiArfQo+ID4gK0VYUE9SVF9TWU1CT0woYWNwaV9pcG1p
+X25vdGlmaWVyX3JlZ2lzdGVyKTsKPiA+ICsKPiA+ICtpbnQgYWNwaV9pcG1pX25vdGlmaWVyX3Vu
+cmVnaXN0ZXIoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYikKPiA+ICt7Cj4gPiArCXN0cnVjdCBw
+bnBfaXBtaV9kZXZpY2UgKnBucF9pcG1pOwo+ID4gKwo+ID4gKwlsaXN0X2Zvcl9lYWNoX2VudHJ5
+KHBucF9pcG1pLCAmcG5wX2lwbWlfbGlzdCwgaGVhZCkgewo+ID4gKwkJYmxvY2tpbmdfbm90aWZp
+ZXJfY2FsbF9jaGFpbigmcG5wX2lwbWlfbm90aWZpZXIsCj4gPiArCQkJCUlQTUlfUE5QX1JFTU9W
+RSwgKHZvaWQgKikocG5wX2lwbWktPnBucF9kZXYpKTsKPiA+ICsJfQo+ID4gKwlyZXR1cm4gYmxv
+Y2tpbmdfbm90aWZpZXJfY2hhaW5fdW5yZWdpc3RlcigmcG5wX2lwbWlfbm90aWZpZXIsIG5iKTsK
+PiA+ICt9Cj4gPiArRVhQT1JUX1NZTUJPTChhY3BpX2lwbWlfbm90aWZpZXJfdW5yZWdpc3Rlcik7
+Cj4gPiArCj4gPiAgc3RhdGljIGNvbnN0IHN0cnVjdCBwbnBfZGV2aWNlX2lkIHBucF9kZXZfdGFi
+bGVbXSA9IHsKPiA+ICAJeyJJUEkwMDAxIiwgMH0sCj4gPiAgCXsiIiwgMH0sCj4gPiBkaWZmIC0t
+Z2l0IGEvaW5jbHVkZS9saW51eC9pcG1pLmggYi9pbmNsdWRlL2xpbnV4L2lwbWkuaAo+ID4gaW5k
+ZXggNjVhYWUzNC4uNGVhMmE2OSAxMDA2NDQKPiA+IC0tLSBhL2luY2x1ZGUvbGludXgvaXBtaS5o
+Cj4gPiArKysgYi9pbmNsdWRlL2xpbnV4L2lwbWkuaAo+ID4gQEAgLTY5NCw0ICs2OTQsMTIgQEAg
+c3RydWN0IGlwbWlfdGltaW5nX3Bhcm1zIHsKPiA+ICAjZGVmaW5lIElQTUlDVExfR0VUX01BSU5U
+RU5BTkNFX01PREVfQ01ECV9JT1IoSVBNSV9JT0NfTUFHSUMsIDMwLCBpbnQpCj4gPiAgI2RlZmlu
+ZSBJUE1JQ1RMX1NFVF9NQUlOVEVOQU5DRV9NT0RFX0NNRAlfSU9XKElQTUlfSU9DX01BR0lDLCAz
+MSwgaW50KQo+ID4gIAo+ID4gKyNpZmRlZiBDT05GSUdfQUNQSQo+ID4gKyNkZWZpbmUgSVBNSV9Q
+TlBfQURECQkxCj4gPiArI2RlZmluZSBJUE1JX1BOUF9SRU1PVkUJCTIKPiA+ICtleHRlcm4gaW50
+IGFjcGlfaXBtaV9ub3RpZmllcl9yZWdpc3RlcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iKTsK
+PiA+ICtleHRlcm4gaW50IGFjcGlfaXBtaV9ub3RpZmllcl91bnJlZ2lzdGVyKHN0cnVjdCBub3Rp
+Zmllcl9ibG9jayAqbmIpOwo+ID4gKwo+ID4gKyNlbmRpZgo+ID4gKwo+ID4gICNlbmRpZiAvKiBf
+X0xJTlVYX0lQTUlfSCAqLwo+ID4gCgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoZSBQYWxtIFBE
+SyBIb3QgQXBwcyBQcm9ncmFtIG9mZmVycyBkZXZlbG9wZXJzIHdobyB1c2UgdGhlClBsdWctSW4g
+RGV2ZWxvcG1lbnQgS2l0IHRvIGJyaW5nIHRoZWlyIEMvQysrIGFwcHMgdG8gUGFsbSBmb3IgYSBz
+aGFyZSAKb2YgJDEgTWlsbGlvbiBpbiBjYXNoIG9yIEhQIFByb2R1Y3RzLiBWaXNpdCB1cyBoZXJl
+IGZvciBtb3JlIGRldGFpbHM6Cmh0dHA6Ly9hZC5kb3VibGVjbGljay5uZXQvY2xrOzIyNjg3OTMz
+OTsxMzUwMzAzODtsPwpodHRwOi8vY2xrLmF0ZG10LmNvbS9DUlMvZ28vMjQ3NzY1NTMyL2RpcmVj
+dC8wMS8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KT3Bl
+bmlwbWktZGV2ZWxvcGVyIG1haWxpbmcgbGlzdApPcGVuaXBtaS1kZXZlbG9wZXJAbGlzdHMuc291
+cmNlZm9yZ2UubmV0Cmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZv
+L29wZW5pcG1pLWRldmVsb3Blcgo=
