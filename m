@@ -1,703 +1,677 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [RFC][PATCH] PCI / PCIe: Ask BIOS for control of all native services
- simultaneously
-Date: Tue, 27 Jul 2010 09:43:41 +0900
-Message-ID: <4C4E2BBD.7080003@jp.fujitsu.com>
-References: <201007250105.23610.rjw@sisk.pl>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH_v8 2/2] ACPI: Add the IPMI opregion driver to enable
+	ACPI to access BMC controller
+Date: Tue, 27 Jul 2010 08:53:12 +0800
+Message-ID: <1280191992.13929.101.camel@localhost.localdomain>
+References: <1280155565-2938-1-git-send-email-yakui.zhao@intel.com>
+	 <1280155565-2938-2-git-send-email-yakui.zhao@intel.com>
+	 <1280155565-2938-3-git-send-email-yakui.zhao@intel.com>
+	 <201007261054.01705.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:56383 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877Ab0G0AoU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jul 2010 20:44:20 -0400
-In-Reply-To: <201007250105.23610.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:8578 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752245Ab0G0A4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jul 2010 20:56:53 -0400
+In-Reply-To: <201007261054.01705.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-Hi,
+On Tue, 2010-07-27 at 00:54 +0800, Bjorn Helgaas wrote:
+> On Monday, July 26, 2010 08:46:05 am yakui.zhao@intel.com wrote:
+> >
+> >         To compile this driver as a module, choose M here:
+> >         the module will be called processor.
+> > +config ACPI_IPMI
+> > +     tristate "IPMI"
+> > +     depends on EXPERIMENTAL && IPMI_SI && IPMI_HANDLER
+> > +     default n
+> > +     help
+> > +       This driver enables the ACPI to access the BMC controller. And it
+> > +       uses the IPMI request/response message to communicate with BMC
+> > +       controller, which can be found on on the server.
+> > +
+> > +       To compile this driver as a module, choose M here:
+> 
+> I've mentioned this three times already.  Will you please fix it?
+> The sentence above is not complete.  It needs to say something like
+> this:
 
-If I understand your patch correctly, the PCIe port services work
-only when firmware grants all the controls for port services with
-your patch. Correct?
+Sorry that I miss the above comment as I am focused on the discussion of
+hook function.
 
-I think this will break PCIe services currently working. For example,
-firmware doesn't grant PCIe AER control on my hardware. On the other
-hand, firmware grants PCIe native hot-plug control on the same machine.
-So I think PCIe hot-plug will not work with your patch. Another example,
-what would happen on the platform that doesn't have any PCIe hot-plug
-slot? I guess firmware doesn't grant PCIe native hot-plug control on
-that environment. So I think all the other PCIe port services would
-not work on such platform.
+> 
+>         To compile this driver as a module, choose M here:
+>         the module will be called acpi_ipmi.
+> 
+> There are a couple other comments below that I've mentioned in the
+> past, too, so don't stop reading here :-)
+> 
+> >  config ACPI_HOTPLUG_CPU
+> >       bool
+> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > index 6ee3316..5ca31f1 100644
+> > --- a/drivers/acpi/Makefile
+> > +++ b/drivers/acpi/Makefile
+> > @@ -67,5 +67,6 @@ processor-y                 += processor_idle.o processor_thermal.o
+> >  processor-$(CONFIG_CPU_FREQ) += processor_perflib.o
+> >
+> >  obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
+> > +obj-$(CONFIG_ACPI_IPMI)              += acpi_ipmi.o
+> >
+> >  obj-$(CONFIG_ACPI_APEI)              += apei/
+> > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> > new file mode 100644
+> > index 0000000..f5a9412
+> > --- /dev/null
+> > +++ b/drivers/acpi/acpi_ipmi.c
+> > @@ -0,0 +1,548 @@
+> > +/*
+> > + *  ipmi.c - ACPI IPMI opregion
+> > + *
+> > + *  Copyright (C) 2010 Intel Corporation
+> > + *  Copyright (C) 2010 Zhao Yakui <yakui.zhao@intel.com>
+> > + *
+> > + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > + *
+> > + *  This program is free software; you can redistribute it and/or modify
+> > + *  it under the terms of the GNU General Public License as published by
+> > + *  the Free Software Foundation; either version 2 of the License, or (at
+> > + *  your option) any later version.
+> > + *
+> > + *  This program is distributed in the hope that it will be useful, but
+> > + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + *  General Public License for more details.
+> > + *
+> > + *  You should have received a copy of the GNU General Public License along
+> > + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> > + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> > + *
+> > + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > + */
+> > +
+> > +#include <linux/kernel.h>
+> > +#include <linux/module.h>
+> > +#include <linux/init.h>
+> > +#include <linux/types.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/proc_fs.h>
+> > +#include <linux/seq_file.h>
+> > +#include <linux/interrupt.h>
+> > +#include <linux/list.h>
+> > +#include <linux/spinlock.h>
+> > +#include <linux/io.h>
+> > +#include <acpi/acpi_bus.h>
+> > +#include <acpi/acpi_drivers.h>
+> > +#include <linux/ipmi.h>
+> > +#include <linux/device.h>
+> > +#include <linux/pnp.h>
+> > +
+> > +MODULE_AUTHOR("Zhao Yakui");
+> > +MODULE_DESCRIPTION("ACPI IPMI Opregion driver");
+> > +MODULE_LICENSE("GPL");
+> > +
+> > +#define IPMI_FLAGS_HANDLER_INSTALL   0
+> > +
+> > +#define ACPI_IPMI_OK                 0
+> > +#define ACPI_IPMI_TIMEOUT            0x10
+> > +#define ACPI_IPMI_UNKNOWN            0x07
+> > +/* the IPMI timeout is 5s */
+> > +#define IPMI_TIMEOUT                 (5 * HZ)
+> > +
+> > +struct acpi_ipmi_device {
+> > +     /* the device list attached to driver_data.ipmi_devices */
+> > +     struct list_head head;
+> > +     /* the IPMI request message list */
+> > +     struct list_head tx_msg_list;
+> > +     acpi_handle handle;
+> > +     struct pnp_dev  *pnp_dev;
+> > +     ipmi_user_t     user_interface;
+> > +     struct mutex    mutex_lock;
+> > +     int ipmi_ifnum; /* IPMI interface number */
+> > +     long curr_msgid;
+> > +     unsigned long flags;
+> > +};
+> > +
+> > +struct ipmi_driver_data {
+> > +     int device_count;
+> > +     struct list_head        ipmi_devices;
+> > +     struct ipmi_smi_watcher bmc_events;
+> > +     struct ipmi_user_hndl   ipmi_hndlrs;
+> > +};
+> > +
+> > +struct acpi_ipmi_msg {
+> > +     struct list_head head;
+> > +     /*
+> > +      * General speaking the addr type should be SI_ADDR_TYPE. And
+> > +      * the addr channel should be BMC.
+> > +      * In fact it can also be IPMB type. But we will have to
+> > +      * parse it from the Netfn command buffer. It is so complex
+> > +      * that it is skipped.
+> > +      */
+> > +     struct ipmi_addr addr;
+> > +     long tx_msgid;
+> > +     /* it is used to track whether the IPMI message is finished */
+> > +     struct completion tx_complete;
+> > +     struct kernel_ipmi_msg tx_message;
+> > +     int     msg_done;
+> > +     /* tx data . And copy it from ACPI object buffer */
+> > +     u8      tx_data[64];
+> > +     int     tx_len;
+> > +     u8      rx_data[64];
+> > +     int     rx_len;
+> > +     struct acpi_ipmi_device *device;
+> > +};
+> > +
+> > +/* IPMI request/response buffer per ACPI 4.0, sec 5.5.2.4.3.2 */
+> > +struct acpi_ipmi_buffer {
+> > +     u8 status;
+> > +     u8 length;
+> > +     u8 data[64];
+> > +};
+> > +
+> > +static void ipmi_register_bmc(int iface, struct device *dev);
+> > +static void ipmi_bmc_gone(int iface);
+> > +static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
+> 
+> Please reorder the function definitions below so you don't need
+> these forward declarations (if possible).
 
-My suggestion is that
+thanks for the comment. 
 
-(1) Query all controls for PCIe port services and see what controls
-     will be granted to OS by firmware.
-(2) Request all the controls acquired in step (1) at the same time.
-(3) Create PCIe port services for those controls.
+I tried what you mentioned. But it will fail in compilation without the
+forward declarations. So I use the forward declaration as used in other
+code.(For example: drivers/hwmon/ibmaem.c)
 
-What do you think about this?
+> 
+> > +
+> > +static struct ipmi_driver_data driver_data = {
+> > +     .ipmi_devices = LIST_HEAD_INIT(driver_data.ipmi_devices),
+> > +     .bmc_events = {
+> > +             .owner = THIS_MODULE,
+> > +             .new_smi = ipmi_register_bmc,
+> > +             .smi_gone = ipmi_bmc_gone,
+> > +     },
+> > +     .ipmi_hndlrs = {
+> > +             .ipmi_recv_hndl = ipmi_msg_handler,
+> > +     },
+> > +};
+> > +
+> > +struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
+> > +{
+> > +     struct acpi_ipmi_msg *ipmi_msg;
+> > +     struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> > +
+> > +     ipmi_msg = kzalloc(sizeof(struct acpi_ipmi_msg), GFP_KERNEL);
+> > +     if (!ipmi_msg)  {
+> > +             dev_warn(&pnp_dev->dev, "Can't allocate memory for ipmi_msg\n");
+> > +             return NULL;
+> > +     }
+> > +     init_completion(&ipmi_msg->tx_complete);
+> > +     INIT_LIST_HEAD(&ipmi_msg->head);
+> > +     ipmi_msg->device = ipmi;
+> > +     return ipmi_msg;
+> > +}
+> > +
+> > +#define              IPMI_OP_RGN_NETFN(offset)       ((offset >> 8) & 0xff)
+> > +#define              IPMI_OP_RGN_CMD(offset)         (offset & 0xff)
+> > +static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
+> > +                             acpi_physical_address address,
+> > +                             acpi_integer *value)
+> > +{
+> > +     struct kernel_ipmi_msg *msg;
+> > +     struct acpi_ipmi_buffer *buffer;
+> > +     struct acpi_ipmi_device *device;
+> > +
+> > +     msg = &tx_msg->tx_message;
+> > +     /*
+> > +      * IPMI network function and command are encoded in the address
+> > +      * within the IPMI OpRegion; see ACPI 4.0, sec 5.5.2.4.3.
+> > +      */
+> > +     msg->netfn = IPMI_OP_RGN_NETFN(address);
+> > +     msg->cmd = IPMI_OP_RGN_CMD(address);
+> > +     msg->data = tx_msg->tx_data;
+> > +     /*
+> > +      * value is the parameter passed by the IPMI opregion space handler.
+> > +      * It points to the IPMI request message buffer
+> > +      */
+> > +     buffer = (struct acpi_ipmi_buffer *)value;
+> > +     /* copy the tx message data */
+> > +     msg->data_len = buffer->length;
+> > +     memcpy(tx_msg->tx_data, buffer->data, msg->data_len);
+> > +     /*
+> > +      * now the default type is SYSTEM_INTERFACE and channel type is BMC.
+> > +      * If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE,
+> > +      * the addr type should be changed to IPMB. Then we will have to parse
+> > +      * the IPMI request message buffer to get the IPMB address.
+> > +      * If so, please fix me.
+> > +      */
+> > +     tx_msg->addr.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
+> > +     tx_msg->addr.channel = IPMI_BMC_CHANNEL;
+> > +     tx_msg->addr.data[0] = 0;
+> > +
+> > +     /* Get the msgid */
+> > +     device = tx_msg->device;
+> > +     mutex_lock(&device->mutex_lock);
+> > +     device->curr_msgid++;
+> > +     tx_msg->tx_msgid = device->curr_msgid;
+> > +     mutex_unlock(&device->mutex_lock);
+> > +}
+> > +
+> > +static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
+> > +             acpi_integer *value, int rem_time)
+> > +{
+> > +     struct acpi_ipmi_buffer *buffer;
+> > +
+> > +     /*
+> > +      * value is also used as output parameter. It represents the response
+> > +      * IPMI message returned by IPMI command.
+> > +      */
+> > +     buffer = (struct acpi_ipmi_buffer *)value;
+> > +     if (!rem_time && !msg->msg_done) {
+> > +             buffer->status = ACPI_IPMI_TIMEOUT;
+> > +             return;
+> > +     }
+> > +     /*
+> > +      * If the flag of msg_done is not set or the recv length is zero, it
+> > +      * means that the IPMI command is not executed correctly.
+> > +      * The status code will be ACPI_IPMI_UNKNOWN.
+> > +      */
+> > +     if (!msg->msg_done || !msg->rx_len) {
+> > +             buffer->status = ACPI_IPMI_UNKNOWN;
+> > +             return;
+> > +     }
+> > +     /*
+> > +      * If the IPMI response message is obtained correctly, the status code
+> > +      * will be ACPI_IPMI_OK
+> > +      */
+> > +     buffer->status = ACPI_IPMI_OK;
+> > +     buffer->length = msg->rx_len;
+> > +     memcpy(buffer->data, msg->rx_data, msg->rx_len);
+> > +}
+> > +
+> > +static void ipmi_destroy_tx_msg(struct acpi_ipmi_device *ipmi)
+> > +{
+> > +     struct acpi_ipmi_msg *tx_msg, *temp;
+> > +     int count = 20;
+> > +     struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> > +
+> > +     list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
+> > +             /* wake up the sleep thread on the Tx msg */
+> > +             complete(&tx_msg->tx_complete);
+> > +     }
+> > +
+> > +     /* wait for about 20 ticks to flush the tx message list */
+> > +     while (count--) {
+> > +             if (list_empty(&ipmi->tx_msg_list))
+> > +                     break;
+> > +             schedule_timeout(1);
+> 
+> I mentioned this before, too.  This timeout is meaningless because
+> you don't know how long a tick is.  Please change this to something
+> that is related to the tick length.  For example, compute the number
+> of ticks using HZ or msec_to_jiffies().
+> 
 
-I think there is still a problem that needs to be addressed. The problem
-is that if ACPIPHP (ACPI based hot-plug driver) is required for PCIe hot-
-plug, all the PCIe port services needs to be disabled. I don't think it
-is acceptable for ACPIPHP users.
-
-Thanks,
-Kenji Kaneshige
+OK. I will add one time definition and then transfer it to the
+corresponding jiffies.
 
 
+> > +     }
+> > +     if (!list_empty(&ipmi->tx_msg_list))
+> > +             dev_warn(&pnp_dev->dev, "tx msg list is not NULL\n");
+> > +
+> 
+> Remove this blank line.
+> 
+> > +}
+> > +
+> > +static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+> > +{
+> > +     struct acpi_ipmi_device *ipmi_device =
+> > +                     (struct acpi_ipmi_device *)user_msg_data;
+> 
+> You don't need a cast here because "user_msg_data" is a "void *".
+> 
+> > +     int msg_found = 0;
+> > +     struct acpi_ipmi_msg *tx_msg;
+> > +     struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
+> > +
+> > +     if (msg->user != ipmi_device->user_interface) {
+> > +             dev_warn(&pnp_dev->dev, "Incorrect IPMI user\n");
+> > +             ipmi_free_recv_msg(msg);
+> > +             return;
+> > +     }
+> > +     mutex_lock(&ipmi_device->mutex_lock);
+> > +     list_for_each_entry(tx_msg, &ipmi_device->tx_msg_list, head) {
+> > +             if (msg->msgid == tx_msg->tx_msgid) {
+> > +                     /* find the message id */
+> > +                     msg_found = 1;
+> > +                     break;
+> > +             }
+> > +     }
+> > +
+> > +     mutex_unlock(&ipmi_device->mutex_lock);
+> > +     if (!msg_found) {
+> > +             /* no matched msg is found . But we should free it */
+> > +             ipmi_free_recv_msg(msg);
+> > +             dev_warn(&pnp_dev->dev, "Incorrect MSG is found\n");
+> 
+> Is there a MSG ID or something you can include in the warning message?
+> 
+> > +             return;
+> > +     }
+> > +
+> > +     if (msg->msg.data_len) {
+> > +             /* copy the response data to Rx_data buffer */
+> > +             memcpy(tx_msg->rx_data, msg->msg_data, msg->msg.data_len);
+> > +             tx_msg->rx_len = msg->msg.data_len;
+> > +             tx_msg->msg_done = 1;
+> > +     }
+> > +     complete(&tx_msg->tx_complete);
+> > +     ipmi_free_recv_msg(msg);
+> > +};
+> > +
+> > +static void ipmi_register_bmc(int iface, struct device *dev)
+> > +{
+> > +     struct acpi_ipmi_device *ipmi_device;
+> > +     struct pnp_dev *device;
+> > +     ipmi_user_t             user;
+> > +     int err;
+> > +
+> > +     if (list_empty(&driver_data.ipmi_devices))
+> > +             return;
+> 
+> You don't need to check the list for empty before using
+> list_for_each_entry().
 
-(2010/07/25 8:05), Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki<rjw@sisk.pl>
->
-> It turns out that asking ACPI BIOS, through _OSC, for control of each
-> PCIe port native service individually sometimes confuses the BIOS if
-> one sevice is requested while the others are not (eg. requesting
-> control of the native PCIe PME without requesting control of the
-> native PCIe hot-plug at the same time leads to interrupt storms on
-> some systems).
->
-> For this reason rework the PCIe port driver so that control of all
-> native services is requested simultaneously and pcie_portdrv_probe()
-> fails if the BIOS refuses to satisfy that request.  Make it possible
-> to override this behavior using a new command line switch pcie_ports=
-> that can be set to 'auto' (ask the BIOS, the default), 'native'
-> (use the PCIe native services regardless of the BIOS response the
-> the control request), or 'compat' (do not use the PCIe native
-> services at all).
->
-> Accordingly, rework the existing PCIe port service drivers so that
-> they don't request control of the services directly.
->
-> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
-> ---
->
-> Hi,
->
-> This is a total RFC, I didn't have the time to really test it.  Also, it's
-> missing documentation updates related to the added/changed command line
-> options.
->
-> Comments welcome.
->
-> Rafael
->
-> ---
->   drivers/acpi/pci_root.c              |    5 +-
->   drivers/pci/hotplug/acpi_pcihp.c     |    4 --
->   drivers/pci/hotplug/pciehp.h         |   12 ------
->   drivers/pci/hotplug/pciehp_core.c    |    9 ----
->   drivers/pci/pcie/Makefile            |    3 +
->   drivers/pci/pcie/aer/aerdrv_acpi.c   |   36 -------------------
->   drivers/pci/pcie/aer/aerdrv_core.c   |    3 -
->   drivers/pci/pcie/pme/Makefile        |    8 ----
->   drivers/pci/pcie/pme/pcie_pme.c      |   64 ++---------------------------------
->   drivers/pci/pcie/pme/pcie_pme.h      |   28 ---------------
->   drivers/pci/pcie/pme/pcie_pme_acpi.c |   54 -----------------------------
->   drivers/pci/pcie/portdrv.h           |   19 ++++++++++
->   drivers/pci/pcie/portdrv_acpi.c      |   47 +++++++++++++++++++++++++
->   drivers/pci/pcie/portdrv_core.c      |   20 +++++++++-
->   drivers/pci/pcie/portdrv_pci.c       |   41 ++++++++++++++++++----
->   15 files changed, 129 insertions(+), 224 deletions(-)
->
-> Index: linux-2.6/drivers/pci/pcie/portdrv_pci.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/portdrv_pci.c
-> +++ linux-2.6/drivers/pci/pcie/portdrv_pci.c
-> @@ -29,6 +29,32 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
->   MODULE_DESCRIPTION(DRIVER_DESC);
->   MODULE_LICENSE("GPL");
->
-> +/*
-> + * If this switch is set, ACPI _OSC will be used to determine whether or not to
-> + * enable PCIe port native services.
-> + */
-> +static bool pcie_ports_auto = true;
-> +
-> +/* If this switch is set, PCIe port native services should not be enabled. */
-> +static bool pcie_ports_disabled;
-> +
-> +static int __init pcie_port_setup(char *str)
-> +{
-> +	if (!strncmp(str, "auto", 4)) {
-> +		pcie_ports_disabled = false;
-> +		pcie_ports_auto = true;
-> +	} else if (!strncmp(str, "native", 6)) {
-> +		pcie_ports_disabled = false;
-> +		pcie_ports_auto = false;
-> +	} else if (!strncmp(str, "compat", 6)) {
-> +		pcie_ports_disabled = true;
-> +		pcie_ports_auto = false;
-> +	}
-> +
-> +	return 1;
-> +}
-> +__setup("pcie_ports=", pcie_port_setup);
-> +
->   /* global data */
->
->   static int pcie_portdrv_restore_config(struct pci_dev *dev)
-> @@ -82,6 +108,11 @@ static int __devinit pcie_portdrv_probe(
->   		dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
->   			 "check vendor BIOS\n", dev->vendor, dev->device);
->   	}
-> +
-> +	status = pcie_port_platform_notify(dev);
-> +	if (status&&  pcie_ports_auto)
-> +			return status;
-> +
->   	status = pcie_port_device_register(dev);
->   	if (status)
->   		return status;
-> @@ -301,6 +332,9 @@ static int __init pcie_portdrv_init(void
->   {
->   	int retval;
->
-> +	if (pcie_ports_disabled)
-> +		return -EACCES;
-> +
->   	dmi_check_system(pcie_portdrv_dmi_table);
->
->   	retval = pcie_port_bus_register();
-> @@ -315,11 +349,4 @@ static int __init pcie_portdrv_init(void
->   	return retval;
->   }
->
-> -static void __exit pcie_portdrv_exit(void)
-> -{
-> -	pci_unregister_driver(&pcie_portdriver);
-> -	pcie_port_bus_unregister();
-> -}
-> -
->   module_init(pcie_portdrv_init);
-> -module_exit(pcie_portdrv_exit);
-> Index: linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-> ===================================================================
-> --- /dev/null
-> +++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-> @@ -0,0 +1,47 @@
-> +/*
-> + * PCIe Port Native Services Support, ACPI-Related Part
-> + *
-> + * Copyright (C) 2010 Rafael J. Wysocki<rjw@sisk.pl>, Novell Inc.
-> + *
-> + * This file is subject to the terms and conditions of the GNU General Public
-> + * License V2.  See the file "COPYING" in the main directory of this archive
-> + * for more details.
-> + */
-> +
-> +#include<linux/pci.h>
-> +#include<linux/kernel.h>
-> +#include<linux/errno.h>
-> +#include<linux/acpi.h>
-> +#include<linux/pci-acpi.h>
-> +
-> +/**
-> + * pcie_port_acpi_setup - Request the BIOS to release control of PCIe services.
-> + * @port - PCIe Port service for a root port or event collector.
-> + *
-> + * Invoked when @port is identified as a PCIe port device.  To avoid conflicts
-> + * with the BIOS PCIe port native services support requires the BIOS to yield
-> + * PCIe control of these services to the kernel.
-> + *
-> + * NOTE: It turns out that we cannot do that for individual port services
-> + * separately, because that would make some systems work incorrectly.
-> + */
-> +int pcie_port_acpi_setup(struct pci_dev *port)
-> +{
-> +	acpi_status status = AE_NOT_FOUND;
-> +	acpi_handle handle;
-> +
-> +	if (acpi_pci_disabled)
-> +		return -ENOSYS;
-> +
-> +	handle = acpi_find_root_bridge_handle(port);
-> +	if (!handle)
-> +		return -EINVAL;
-> +
-> +	status = acpi_pci_osc_control_set(handle,
-> +			OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL |
-> +			OSC_PCI_EXPRESS_AER_CONTROL |
-> +			OSC_PCI_EXPRESS_NATIVE_HP_CONTROL |
-> +			OSC_PCI_EXPRESS_PME_CONTROL);
-> +
-> +	return ACPI_FAILURE(status) ? -ENODEV : 0;
-> +}
-> Index: linux-2.6/drivers/pci/pcie/portdrv.h
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/portdrv.h
-> +++ linux-2.6/drivers/pci/pcie/portdrv.h
-> @@ -30,6 +30,8 @@ extern void pcie_port_device_remove(stru
->   extern int __must_check pcie_port_bus_register(void);
->   extern void pcie_port_bus_unregister(void);
->
-> +struct pci_dev;
-> +
->   #ifdef CONFIG_PCIE_PME
->   extern bool pcie_pme_msi_disabled;
->
-> @@ -42,9 +44,26 @@ static inline bool pcie_pme_no_msi(void)
->   {
->   	return pcie_pme_msi_disabled;
->   }
-> +
-> +extern void pcie_pme_interrupt_enable(struct pci_dev *dev, bool enable);
->   #else /* !CONFIG_PCIE_PME */
->   static inline void pcie_pme_disable_msi(void) {}
->   static inline bool pcie_pme_no_msi(void) { return false; }
-> +static inline void pcie_pme_interrupt_enable(struct pci_dev *dev, bool en) {}
->   #endif /* !CONFIG_PCIE_PME */
->
-> +#ifdef CONFIG_ACPI
-> +extern int pcie_port_acpi_setup(struct pci_dev *port);
-> +
-> +static inline int pcie_port_platform_notify(struct pci_dev *port)
-> +{
-> +	return pcie_port_acpi_setup(port);
-> +}
-> +#else /* !CONFIG_ACPI */
-> +static inline int pcie_port_platform_notify(struct pci_dev *port)
-> +{
-> +	return 0;
-> +}
-> +#endif /* !CONFIG_ACPI */
-> +
->   #endif /* _PORTDRV_H_ */
-> Index: linux-2.6/drivers/pci/pcie/Makefile
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/Makefile
-> +++ linux-2.6/drivers/pci/pcie/Makefile
-> @@ -6,10 +6,11 @@
->   obj-$(CONFIG_PCIEASPM)		+= aspm.o
->
->   pcieportdrv-y			:= portdrv_core.o portdrv_pci.o portdrv_bus.o
-> +pcieportdrv-$(CONFIG_ACPI)	+= portdrv_acpi.o
->
->   obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv.o
->
->   # Build PCI Express AER if needed
->   obj-$(CONFIG_PCIEAER)		+= aer/
->
-> -obj-$(CONFIG_PCIE_PME) += pme/
-> +obj-$(CONFIG_PCIE_PME) += pme/pcie_pme.o
-> Index: linux-2.6/drivers/pci/pcie/portdrv_core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/portdrv_core.c
-> +++ linux-2.6/drivers/pci/pcie/portdrv_core.c
-> @@ -14,6 +14,7 @@
->   #include<linux/string.h>
->   #include<linux/slab.h>
->   #include<linux/pcieport_if.h>
-> +#include<linux/aer.h>
->
->   #include "../pci.h"
->   #include "portdrv.h"
-> @@ -242,18 +243,31 @@ static int get_port_device_capability(st
->   	/* Hot-Plug Capable */
->   	if (reg16&  PCI_EXP_FLAGS_SLOT) {
->   		pci_read_config_dword(dev, pos + PCI_EXP_SLTCAP,&reg32);
-> -		if (reg32&  PCI_EXP_SLTCAP_HPC)
-> +		if (reg32&  PCI_EXP_SLTCAP_HPC) {
->   			services |= PCIE_PORT_SERVICE_HP;
-> +			/*
-> +			 * Disable hot-plug interrupts in case the hot-plug
-> +			 * service driver is not loaded.
-> +			 */
-> +			pos += PCI_EXP_SLTCTL;
-> +			pci_read_config_word(dev, pos,&reg16);
-> +			reg16&= ~(PCI_EXP_SLTCTL_CCIE | PCI_EXP_SLTCTL_HPIE);
-> +			pci_write_config_word(dev, pos, reg16);
-> +		}
->   	}
->   	/* AER capable */
-> -	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR))
-> +	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR)) {
->   		services |= PCIE_PORT_SERVICE_AER;
-> +		pci_disable_pcie_error_reporting(dev);
-> +	}
->   	/* VC support */
->   	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_VC))
->   		services |= PCIE_PORT_SERVICE_VC;
->   	/* Root ports are capable of generating PME too */
-> -	if (dev->pcie_type == PCI_EXP_TYPE_ROOT_PORT)
-> +	if (dev->pcie_type == PCI_EXP_TYPE_ROOT_PORT) {
->   		services |= PCIE_PORT_SERVICE_PME;
-> +		pcie_pme_interrupt_enable(dev, false);
-> +	}
->
->   	return services;
->   }
-> Index: linux-2.6/drivers/acpi/pci_root.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -401,8 +401,9 @@ acpi_status acpi_pci_osc_control_set(acp
->   			goto out;
->   	}
->   	if ((root->osc_control_qry&  control_req) != control_req) {
-> -		printk(KERN_DEBUG
-> -		       "Firmware did not grant requested _OSC control\n");
-> +		printk(KERN_INFO
-> +		       "Firmware does not grant _OSC control for mask 0x%02x\n",
-> +		       control_req);
->   		status = AE_SUPPORT;
->   		goto out;
->   	}
-> Index: linux-2.6/drivers/pci/pcie/pme/pcie_pme.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/pme/pcie_pme.c
-> +++ linux-2.6/drivers/pci/pcie/pme/pcie_pme.c
-> @@ -24,37 +24,12 @@
->   #include<linux/pm_runtime.h>
->
->   #include "../../pci.h"
-> -#include "pcie_pme.h"
-> +#include "../portdrv.h"
->
->   #define PCI_EXP_RTSTA_PME	0x10000 /* PME status */
->   #define PCI_EXP_RTSTA_PENDING	0x20000 /* PME pending */
->
->   /*
-> - * If set, this switch will prevent the PCIe root port PME service driver from
-> - * being registered.  Consequently, the interrupt-based PCIe PME signaling will
-> - * not be used by any PCIe root ports in that case.
-> - */
-> -static bool pcie_pme_disabled = true;
-> -
-> -/*
-> - * The PCI Express Base Specification 2.0, Section 6.1.8, states the following:
-> - * "In order to maintain compatibility with non-PCI Express-aware system
-> - * software, system power management logic must be configured by firmware to use
-> - * the legacy mechanism of signaling PME by default.  PCI Express-aware system
-> - * software must notify the firmware prior to enabling native, interrupt-based
-> - * PME signaling."  However, if the platform doesn't provide us with a suitable
-> - * notification mechanism or the notification fails, it is not clear whether or
-> - * not we are supposed to use the interrupt-based PCIe PME signaling.  The
-> - * switch below can be used to indicate the desired behaviour.  When set, it
-> - * will make the kernel use the interrupt-based PCIe PME signaling regardless of
-> - * the platform notification status, although the kernel will attempt to notify
-> - * the platform anyway.  When unset, it will prevent the kernel from using the
-> - * the interrupt-based PCIe PME signaling if the platform notification fails,
-> - * which is the default.
-> - */
-> -static bool pcie_pme_force_enable;
-> -
-> -/*
->    * If this switch is set, MSI will not be used for PCIe PME signaling.  This
->    * causes the PCIe port driver to use INTx interrupts only, but it turns out
->    * that using MSI for PCIe PME signaling doesn't play well with PCIe PME-based
-> @@ -64,38 +39,13 @@ bool pcie_pme_msi_disabled;
->
->   static int __init pcie_pme_setup(char *str)
->   {
-> -	if (!strncmp(str, "auto", 4))
-> -		pcie_pme_disabled = false;
-> -	else if (!strncmp(str, "force", 5))
-> -		pcie_pme_force_enable = true;
-> -
-> -	str = strchr(str, ',');
-> -	if (str) {
-> -		str++;
-> -		str += strspn(str, " \t");
-> -		if (*str&&  !strcmp(str, "nomsi"))
-> -			pcie_pme_msi_disabled = true;
-> -	}
-> +	if (!strncmp(str, "nomsi", 5))
-> +		pcie_pme_msi_disabled = true;
->
->   	return 1;
->   }
->   __setup("pcie_pme=", pcie_pme_setup);
->
-> -/**
-> - * pcie_pme_platform_setup - Ensure that the kernel controls the PCIe PME.
-> - * @srv: PCIe PME root port service to use for carrying out the check.
-> - *
-> - * Notify the platform that the native PCIe PME is going to be used and return
-> - * 'true' if the control of the PCIe PME registers has been acquired from the
-> - * platform.
-> - */
-> -static bool pcie_pme_platform_setup(struct pcie_device *srv)
-> -{
-> -	if (!pcie_pme_platform_notify(srv))
-> -		return true;
-> -	return pcie_pme_force_enable;
-> -}
-> -
->   struct pcie_pme_service_data {
->   	spinlock_t lock;
->   	struct pcie_device *srv;
-> @@ -108,7 +58,7 @@ struct pcie_pme_service_data {
->    * @dev: PCIe root port or event collector.
->    * @enable: Enable or disable the interrupt.
->    */
-> -static void pcie_pme_interrupt_enable(struct pci_dev *dev, bool enable)
-> +void pcie_pme_interrupt_enable(struct pci_dev *dev, bool enable)
->   {
->   	int rtctl_pos;
->   	u16 rtctl;
-> @@ -417,9 +367,6 @@ static int pcie_pme_probe(struct pcie_de
->   	struct pcie_pme_service_data *data;
->   	int ret;
->
-> -	if (!pcie_pme_platform_setup(srv))
-> -		return -EACCES;
-> -
->   	data = kzalloc(sizeof(*data), GFP_KERNEL);
->   	if (!data)
->   		return -ENOMEM;
-> @@ -509,8 +456,7 @@ static struct pcie_port_service_driver p
->    */
->   static int __init pcie_pme_service_init(void)
->   {
-> -	return pcie_pme_disabled ?
-> -		-ENODEV : pcie_port_service_register(&pcie_pme_driver);
-> +	return pcie_port_service_register(&pcie_pme_driver);
->   }
->
->   module_init(pcie_pme_service_init);
-> Index: linux-2.6/drivers/pci/pcie/pme/pcie_pme.h
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/pme/pcie_pme.h
-> +++ /dev/null
-> @@ -1,28 +0,0 @@
-> -/*
-> - * drivers/pci/pcie/pme/pcie_pme.h
-> - *
-> - * PCI Express Root Port PME signaling support
-> - *
-> - * Copyright (C) 2009 Rafael J. Wysocki<rjw@sisk.pl>, Novell Inc.
-> - */
-> -
-> -#ifndef _PCIE_PME_H_
-> -#define _PCIE_PME_H_
-> -
-> -struct pcie_device;
-> -
-> -#ifdef CONFIG_ACPI
-> -extern int pcie_pme_acpi_setup(struct pcie_device *srv);
-> -
-> -static inline int pcie_pme_platform_notify(struct pcie_device *srv)
-> -{
-> -	return pcie_pme_acpi_setup(srv);
-> -}
-> -#else /* !CONFIG_ACPI */
-> -static inline int pcie_pme_platform_notify(struct pcie_device *srv)
-> -{
-> -	return 0;
-> -}
-> -#endif /* !CONFIG_ACPI */
-> -
-> -#endif
-> Index: linux-2.6/drivers/pci/pcie/pme/pcie_pme_acpi.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/pme/pcie_pme_acpi.c
-> +++ /dev/null
-> @@ -1,54 +0,0 @@
-> -/*
-> - * PCIe Native PME support, ACPI-related part
-> - *
-> - * Copyright (C) 2009 Rafael J. Wysocki<rjw@sisk.pl>, Novell Inc.
-> - *
-> - * This file is subject to the terms and conditions of the GNU General Public
-> - * License V2.  See the file "COPYING" in the main directory of this archive
-> - * for more details.
-> - */
-> -
-> -#include<linux/pci.h>
-> -#include<linux/kernel.h>
-> -#include<linux/errno.h>
-> -#include<linux/acpi.h>
-> -#include<linux/pci-acpi.h>
-> -#include<linux/pcieport_if.h>
-> -
-> -/**
-> - * pcie_pme_acpi_setup - Request the ACPI BIOS to release control over PCIe PME.
-> - * @srv - PCIe PME service for a root port or event collector.
-> - *
-> - * Invoked when the PCIe bus type loads PCIe PME service driver.  To avoid
-> - * conflict with the BIOS PCIe support requires the BIOS to yield PCIe PME
-> - * control to the kernel.
-> - */
-> -int pcie_pme_acpi_setup(struct pcie_device *srv)
-> -{
-> -	acpi_status status = AE_NOT_FOUND;
-> -	struct pci_dev *port = srv->port;
-> -	acpi_handle handle;
-> -	int error = 0;
-> -
-> -	if (acpi_pci_disabled)
-> -		return -ENOSYS;
-> -
-> -	dev_info(&port->dev, "Requesting control of PCIe PME from ACPI BIOS\n");
-> -
-> -	handle = acpi_find_root_bridge_handle(port);
-> -	if (!handle)
-> -		return -EINVAL;
-> -
-> -	status = acpi_pci_osc_control_set(handle,
-> -			OSC_PCI_EXPRESS_PME_CONTROL |
-> -			OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-> -	if (ACPI_FAILURE(status)) {
-> -		dev_info(&port->dev,
-> -			"Failed to receive control of PCIe PME service: %s\n",
-> -			(status == AE_SUPPORT || status == AE_NOT_FOUND) ?
-> -			"no _OSC support" : "ACPI _OSC failed");
-> -		error = -ENODEV;
-> -	}
-> -
-> -	return error;
-> -}
-> Index: linux-2.6/drivers/pci/pcie/pme/Makefile
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/pme/Makefile
-> +++ /dev/null
-> @@ -1,8 +0,0 @@
-> -#
-> -# Makefile for PCI-Express Root Port PME signaling driver
-> -#
-> -
-> -obj-$(CONFIG_PCIE_PME) += pmedriver.o
-> -
-> -pmedriver-objs := pcie_pme.o
-> -pmedriver-$(CONFIG_ACPI) += pcie_pme_acpi.o
-> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv_acpi.c
-> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> @@ -19,42 +19,6 @@
->   #include<acpi/apei.h>
->   #include "aerdrv.h"
->
-> -/**
-> - * aer_osc_setup - run ACPI _OSC method
-> - * @pciedev: pcie_device which AER is being enabled on
-> - *
-> - * @return: Zero on success. Nonzero otherwise.
-> - *
-> - * Invoked when PCIe bus loads AER service driver. To avoid conflict with
-> - * BIOS AER support requires BIOS to yield AER control to OS native driver.
-> - **/
-> -int aer_osc_setup(struct pcie_device *pciedev)
-> -{
-> -	acpi_status status = AE_NOT_FOUND;
-> -	struct pci_dev *pdev = pciedev->port;
-> -	acpi_handle handle = NULL;
-> -
-> -	if (acpi_pci_disabled)
-> -		return -1;
-> -
-> -	handle = acpi_find_root_bridge_handle(pdev);
-> -	if (handle) {
-> -		status = acpi_pci_osc_control_set(handle,
-> -					OSC_PCI_EXPRESS_AER_CONTROL |
-> -					OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-> -	}
-> -
-> -	if (ACPI_FAILURE(status)) {
-> -		dev_printk(KERN_DEBUG,&pciedev->device, "AER service couldn't "
-> -			   "init device: %s\n",
-> -			   (status == AE_SUPPORT || status == AE_NOT_FOUND) ?
-> -			   "no _OSC support" : "_OSC failed");
-> -		return -1;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
->   #ifdef CONFIG_ACPI_APEI
->   static inline int hest_match_pci(struct acpi_hest_aer_common *p,
->   				 struct pci_dev *pci)
-> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv_core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv_core.c
-> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv_core.c
-> @@ -777,9 +777,6 @@ int aer_init(struct pcie_device *dev)
->   		goto out;
->   	}
->
-> -	if (aer_osc_setup(dev))
-> -		goto out;
-> -
->   	return 0;
->   out:
->   	if (forceload) {
-> Index: linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/hotplug/acpi_pcihp.c
-> +++ linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
-> @@ -338,9 +338,7 @@ int acpi_get_hp_hw_control_from_firmware
->   	acpi_handle chandle, handle;
->   	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
->
-> -	flags&= (OSC_PCI_EXPRESS_NATIVE_HP_CONTROL |
-> -		  OSC_SHPC_NATIVE_HP_CONTROL |
-> -		  OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-> +	flags&= OSC_SHPC_NATIVE_HP_CONTROL;
->   	if (!flags) {
->   		err("Invalid flags %u specified!\n", flags);
->   		return -EINVAL;
-> Index: linux-2.6/drivers/pci/hotplug/pciehp.h
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/hotplug/pciehp.h
-> +++ linux-2.6/drivers/pci/hotplug/pciehp.h
-> @@ -176,19 +176,7 @@ static inline void pciehp_firmware_init(
->   {
->   	pciehp_acpi_slot_detection_init();
->   }
-> -
-> -static inline int pciehp_get_hp_hw_control_from_firmware(struct pci_dev *dev)
-> -{
-> -	int retval;
-> -	u32 flags = (OSC_PCI_EXPRESS_NATIVE_HP_CONTROL |
-> -		     OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-> -	retval = acpi_get_hp_hw_control_from_firmware(dev, flags);
-> -	if (retval)
-> -		return retval;
-> -	return pciehp_acpi_slot_detection_check(dev);
-> -}
->   #else
->   #define pciehp_firmware_init()				do {} while (0)
-> -#define pciehp_get_hp_hw_control_from_firmware(dev) 	0
->   #endif 				/* CONFIG_ACPI */
->   #endif				/* _PCIEHP_H */
-> Index: linux-2.6/drivers/pci/hotplug/pciehp_core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/hotplug/pciehp_core.c
-> +++ linux-2.6/drivers/pci/hotplug/pciehp_core.c
-> @@ -59,7 +59,7 @@ module_param(pciehp_force, bool, 0644);
->   MODULE_PARM_DESC(pciehp_debug, "Debugging mode enabled or not");
->   MODULE_PARM_DESC(pciehp_poll_mode, "Using polling mechanism for hot-plug events or not");
->   MODULE_PARM_DESC(pciehp_poll_time, "Polling mechanism frequency, in seconds");
-> -MODULE_PARM_DESC(pciehp_force, "Force pciehp, even if _OSC and OSHP are missing");
-> +MODULE_PARM_DESC(pciehp_force, "Force pciehp, even if OSHP is missing");
->
->   #define PCIE_MODULE_NAME "pciehp"
->
-> @@ -231,13 +231,6 @@ static int pciehp_probe(struct pcie_devi
->   	struct slot *slot;
->   	u8 occupied, poweron;
->
-> -	if (pciehp_force)
-> -		dev_info(&dev->device,
-> -			 "Bypassing BIOS check for pciehp use on %s\n",
-> -			 pci_name(dev->port));
-> -	else if (pciehp_get_hp_hw_control_from_firmware(dev->port))
-> -		goto err_out_none;
-> -
->   	ctrl = pcie_init(dev);
->   	if (!ctrl) {
->   		dev_err(&dev->device, "Controller initialization failed\n");
+OK. I will delete it.
+
+> 
+> > +
+> > +     list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
+> > +             if (ipmi_device->user_interface) {
+> > +                     /*
+> > +                      * Only one user interface is allowed to be registered
+> > +                      * for one IPMI device.
+> > +                      * If we already create the user interface for
+> > +                      * one IPMI device, skip it
+> > +                      */
+> > +                     continue;
+> > +             }
+> > +             device = ipmi_device->pnp_dev;
+> > +             if (dev == &device->dev) {
+> > +                     /*
+> > +                      * If the dev is identical to the ACPI device,
+> > +                      * create the user interface.
+> > +                      */
+> > +                     err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
+> > +                                             ipmi_device, &user);
+> > +                     if (err == 0) {
+> > +                             ipmi_device->user_interface = user;
+> > +                             ipmi_device->ipmi_ifnum = iface;
+> > +                     }
+> > +
+> > +                     break;
+> > +             }
+> > +     }
+> > +}
+> > +
+> > +static void ipmi_bmc_gone(int iface)
+> > +{
+> > +     struct acpi_ipmi_device *ipmi_device, *temp;
+> > +
+> > +     list_for_each_entry_safe(ipmi_device, temp,
+> > +                             &driver_data.ipmi_devices, head) {
+> > +             if (ipmi_device->user_interface &&
+> > +                     (ipmi_device->ipmi_ifnum == iface)) {
+> > +                     ipmi_destroy_user(ipmi_device->user_interface);
+> > +                     ipmi_device->user_interface = NULL;
+> > +                     ipmi_destroy_tx_msg(ipmi_device);
+> > +                     break;
+> > +             }
+> > +     }
+> > +}
+> > +/* --------------------------------------------------------------------------
+> > + *                   Address Space Management
+> > +   -------------------------------------------------------------------------- */
+> > +/*
+> > + * This is the IPMI opregion space handler.
+> > + * @function: indicates the read/write. In fact as the IPMI message is driven
+> > + * by command, only write is meaningful.
+> > + * @address: This contains the netfn/command of IPMI request message.
+> > + * @bits   : not used.
+> > + * @value  : it is an in/out parameter. It points to the IPMI message buffer.
+> > + *        Before the IPMI message is sent, it represents the actual request
+> > + *        IPMI message. After the IPMI message is finished, it represents
+> > + *        the response IPMI message returned by IPMI command.
+> > + * @handler_context: IPMI device context.
+> > + */
+> > +
+> > +static acpi_status
+> > +acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
+> > +                   u32 bits, acpi_integer *value,
+> > +                   void *handler_context, void *region_context)
+> > +{
+> > +     struct acpi_ipmi_msg *tx_msg;
+> > +     struct acpi_ipmi_device *ipmi_device =
+> > +                     (struct acpi_ipmi_device *) handler_context;
+> 
+> You don't need a cast here, since "handler_context" is a "void *".
+
+OK. I can delete the redundant cast transform. In fact IMO it will be
+easy to understand. 
+
+> 
+> > +     int err;
+> > +     acpi_status status;
+> > +     /*
+> > +      * IPMI opregion message.
+> > +      * IPMI message is firstly written to the BMC and system software
+> > +      * can get the respsonse. So it is unmeaningful for the IPMI read
+> > +      * access.
+> > +      */
+> > +     if ((function & ACPI_IO_MASK) == ACPI_READ)
+> > +             return AE_TYPE;
+> > +
+> > +     if (!ipmi_device->user_interface)
+> > +             return AE_NOT_EXIST;
+> > +
+> > +     tx_msg = acpi_alloc_ipmi_msg(ipmi_device);
+> > +     if (!tx_msg)
+> > +             return AE_NO_MEMORY;
+> > +
+> > +     acpi_format_ipmi_msg(tx_msg, address, value);
+> > +     mutex_lock(&ipmi_device->mutex_lock);
+> > +     list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
+> > +     mutex_unlock(&ipmi_device->mutex_lock);
+> > +     err = ipmi_request_settime(ipmi_device->user_interface,
+> > +                                     &tx_msg->addr,
+> > +                                     tx_msg->tx_msgid,
+> > +                                     &tx_msg->tx_message,
+> > +                                     NULL, 0, 0, 0);
+> > +     if (err) {
+> > +             status = AE_ERROR;
+> > +             goto end_label;
+> > +     }
+> > +     err = wait_for_completion_timeout(&tx_msg->tx_complete, IPMI_TIMEOUT);
+> > +     acpi_format_ipmi_response(tx_msg, value, err);
+> > +     status = AE_OK;
+> > +
+> > +end_label:
+> > +     mutex_lock(&ipmi_device->mutex_lock);
+> > +     list_del(&tx_msg->head);
+> > +     mutex_unlock(&ipmi_device->mutex_lock);
+> > +     kfree(tx_msg);
+> > +     return status;
+> > +}
+> > +
+> > +static void ipmi_remove_handler(struct acpi_ipmi_device *ipmi)
+> > +{
+> > +     if (!test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
+> > +             return;
+> > +
+> > +     acpi_remove_address_space_handler(ipmi->handle,
+> > +                             ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
+> > +
+> > +     clear_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
+> > +}
+> > +
+> > +static int ipmi_install_handler(struct acpi_ipmi_device *ipmi)
+> > +{
+> > +     acpi_status status;
+> > +
+> > +     if (test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
+> > +             return 0;
+> > +
+> > +     status = acpi_install_address_space_handler(ipmi->handle,
+> > +                                                 ACPI_ADR_SPACE_IPMI,
+> > +                                                 &acpi_ipmi_space_handler,
+> > +                                                 NULL, ipmi);
+> > +     if (ACPI_FAILURE(status)) {
+> > +             struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> > +             dev_warn(&pnp_dev->dev, "Can't register IPMI opregion for %s\n",
+> > +                                     pnp_dev_name(pnp_dev));
+> > +             return -EINVAL;
+> > +     }
+> > +     set_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
+> > +     return 0;
+> > +}
+> > +
+> > +
+> > +static int acpi_add_ipmi_device(struct pnp_dev *pnp_dev)
+> > +{
+> > +     struct acpi_ipmi_device *ipmi_device;
+> > +     struct acpi_device *acpi_dev;
+> > +
+> > +     /* check whether it is already registered */
+> > +     list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
+> > +             if (ipmi_device->pnp_dev == pnp_dev) {
+> > +                     dev_warn(&pnp_dev->dev,
+> > +                             "device is already installed\n");
+> > +                     return NOTIFY_DONE;
+> > +             }
+> > +     }
+> > +
+> > +     ipmi_device = kzalloc(sizeof(*ipmi_device), GFP_KERNEL);
+> > +     if (!ipmi_device)
+> > +             return NOTIFY_DONE;
+> > +
+> > +     acpi_dev = pnp_acpi_device(pnp_dev);
+> > +     INIT_LIST_HEAD(&ipmi_device->head);
+> > +     ipmi_device->pnp_dev = pnp_dev;
+> > +     ipmi_device->handle = acpi_dev->handle;
+> > +     list_add_tail(&ipmi_device->head, &driver_data.ipmi_devices);
+> > +
+> > +     mutex_init(&ipmi_device->mutex_lock);
+> > +     INIT_LIST_HEAD(&ipmi_device->tx_msg_list);
+> > +     ipmi_install_handler(ipmi_device);
+> > +
+> > +     return NOTIFY_OK;
+> > +}
+> > +
+> > +static int acpi_remove_ipmi_device(struct pnp_dev *pnp_dev)
+> > +{
+> > +     struct acpi_ipmi_device *ipmi_device, *temp;
+> > +     int ret = NOTIFY_DONE;
+> > +
+> > +     list_for_each_entry_safe(ipmi_device, temp, &driver_data.ipmi_devices,
+> > +                                     head) {
+> > +             if (ipmi_device->pnp_dev != pnp_dev)
+> > +                     continue;
+> > +
+> > +             /*
+> > +              * If the IPMI user interface is created, it should be
+> > +              * destroyed.
+> > +              */
+> > +             if (ipmi_device->user_interface) {
+> > +                     ipmi_destroy_user(ipmi_device->user_interface);
+> > +                     ipmi_device->user_interface = NULL;
+> > +             }
+> > +             list_del(&ipmi_device->head);
+> > +
+> > +             /* destroy the Tx_msg list */
+> > +             if (!list_empty(&ipmi_device->tx_msg_list))
+> > +                     ipmi_destroy_tx_msg(ipmi_device);
+> > +
+> > +             ipmi_remove_handler(ipmi_device);
+> > +             kfree(ipmi_device);
+> > +             ret = NOTIFY_OK;
+> > +             break;
+> > +     }
+> > +     return ret;
+> > +}
+> > +
+> > +
+> > +static int acpi_ipmi_notifier(struct notifier_block *nb,
+> > +                                    unsigned long event, void *data)
+> > +{
+> > +     struct pnp_dev *pnp_dev = data;
+> > +     int ret = NOTIFY_DONE;
+> > +
+> > +     switch (event) {
+> > +     case IPMI_PNP_ADD:
+> > +             ret = acpi_add_ipmi_device(pnp_dev);
+> > +             break;
+> > +     case IPMI_PNP_REMOVE:
+> > +             ret = acpi_remove_ipmi_device(pnp_dev);
+> > +             break;
+> > +     default:
+> > +             dev_warn(&pnp_dev->dev, "Incorrect event\n");
+> 
+> Please print the invalid event value here.
+
+OK. I will add it.
+
+> 
+> > +             break;
+> > +     }
+> > +     return ret;
+> > +}
+> > +
+> > +static struct notifier_block acpi_ipmi_notifier_block = {
+> > +     .notifier_call = acpi_ipmi_notifier,
+> > +};
+> > +
+> > +static int __init acpi_ipmi_init(void)
+> > +{
+> > +     int result = 0;
+> > +
+> > +     if (acpi_disabled)
+> > +             return result;
+> > +
+> > +     result = acpi_ipmi_notifier_register(&acpi_ipmi_notifier_block);
+> > +     if (result)
+> > +             return result;
+> > +
+> > +     result = ipmi_smi_watcher_register(&driver_data.bmc_events);
+> > +
+> > +     if (result)
+> > +             acpi_ipmi_notifier_unregister(&acpi_ipmi_notifier_block);
+> > +
+> > +     return result;
+> > +}
+> > +
+> > +static void __exit acpi_ipmi_exit(void)
+> > +{
+> > +     if (acpi_disabled)
+> > +             return;
+> > +
+> > +     ipmi_smi_watcher_unregister(&driver_data.bmc_events);
+> > +
+> > +     acpi_ipmi_notifier_unregister(&acpi_ipmi_notifier_block);
+> > +}
+> > +
+> > +module_init(acpi_ipmi_init);
+> > +module_exit(acpi_ipmi_exit);
+> >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-
 
