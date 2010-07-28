@@ -1,61 +1,57 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Wed, 28 Jul 2010 19:10:19 +0900
-Message-ID: <20100728190939D.fujita.tomonori@lab.ntt.co.jp>
-References: <4C49A83C.8070203@linux.intel.com>
-	<20100723145945.GA31857@phenom.dumpdata.com>
-	<4C49B3F5.3030904@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH] PCI / PCIe: Ask BIOS for control of all native services simultaneously
+Date: Wed, 28 Jul 2010 12:49:56 +0200
+Message-ID: <201007281249.56722.rjw@sisk.pl>
+References: <201007250105.23610.rjw@sisk.pl> <4C4FA663.9090204@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:55619 "EHLO sh.osrg.net"
+Received: from ogre.sisk.pl ([217.79.144.158]:38631 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752934Ab0G1KKh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jul 2010 06:10:37 -0400
-In-Reply-To: <4C49B3F5.3030904@linux.intel.com>
+	id S1754397Ab0G1Kvo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jul 2010 06:51:44 -0400
+In-Reply-To: <4C4FA663.9090204@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ak@linux.intel.com
-Cc: konrad.wilk@oracle.com, akataria@vmware.com, fujita.tomonori@lab.ntt.co.jp, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
+To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Fri, 23 Jul 2010 17:23:33 +0200
-Andi Kleen <ak@linux.intel.com> wrote:
-
+On Wednesday, July 28, 2010, Hidetoshi Seto wrote:
+> Hi,
 > 
-> > I was thinking about this at some point. I think the first step is to
-> > make SWIOTLB use the debugfs to actually print out how much of its
-> > buffers are used - and see if the 64MB is a good fit.
+> (2010/07/25 8:05), Rafael J. Wysocki wrote:
+> > It turns out that asking ACPI BIOS, through _OSC, for control of each
+> > PCIe port native service individually sometimes confuses the BIOS if
+> > one sevice is requested while the others are not (eg. requesting
+> > control of the native PCIe PME without requesting control of the
+> > native PCIe hot-plug at the same time leads to interrupt storms on
+> > some systems).
 > 
-> swiotlb is near always wrongly sized. For most system it's far too much, 
-> but for some
-> not enough. I have some systemtap scripts around to instrument it.
+> Then why not invent quirks or something for such systems?
+> 
+> IMHO it sounds like a BIOS bug since it should grant PME control to
+> OS only when both of PME and pciehp (plus PCIe caps) are requested
+> at same time.
+> 
+> Did you confirm that the system also confuses when pciehp is requested
+> without requesting PME?
+> e.g. assume that some BIOS might behave:
+>   _OSC(pciehp)         =>  OK
+>   _OSC(PME)            =>  NG (bugs on shared interrupt?)
+>   _OSC(pciehp|PME)     =>  OK
+>   _OSC(SHPC)           =>  OK
+>   _OSC(pciehp|SHPC)    =>  NG (must choose one, not both)
+>   _OSC(AER|SHPC)       =>  OK
 
-True, it's impossible to preallocate the best iotlb size statically.
+The problem is the PCIe capability structure that is requested by each of
+them (except for SHPC).  After granting it, the BIOS can't legitimately write
+to the PCIe standard config registers, so it's reasonable to assume the kernel
+will configure them from its perspective.
 
- 
-> Also it depends on the IO load, so if you size it reasonable you
-> risk overflow on large IO (however these days this very rarely happens 
-> because
-> all "serious" IO devices don't need swiotlb anymore)
+> I don't doubt that handling of _OSC needs some improvement...
 
-Yeah, nowadays it's pointless to try to get the good performance with
-swiotlb.
+Good. :-)
 
-
-> The other problem is that using only  two bits for the needed address 
-> space is also extremly
-> inefficient (4GB and 16MB on x86). Really want masks everywhere and 
-> optimize for the
-> actual requirements.
-
-swiotlb doesn't allocate GFP_DMA memory. It handles only GFP_DMA32.
-
-swiotlb doesn't work for drivers with some odd dma mask (non 32bit)
-but we have been lived with it so I don't think that it's a big issue.
-
-
-I think, supporting expanding swiotlb dynamically is enough. The
-default swiotlb size, 64MB is too large for majority.
-
-I have a half-baked patch for it. I'll send it later.
+Rafael
