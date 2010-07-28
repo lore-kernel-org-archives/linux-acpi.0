@@ -1,56 +1,140 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: swiotlb detection should be memory hotplug aware ?
-Date: Wed, 28 Jul 2010 23:20:59 +0900
-Message-ID: <20100728232026V.fujita.tomonori@lab.ntt.co.jp>
-References: <4C49B3F5.3030904@linux.intel.com>
-	<20100728190939D.fujita.tomonori@lab.ntt.co.jp>
-	<8739v3kgl6.fsf@basil.nowhere.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [RFC PATCH 2/2] x86: Prefer TSC Deadline Timer over LAPIC timer
+Date: Wed, 28 Jul 2010 00:37:24 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007280035480.28038@localhost.localdomain>
+References: <alpine.LFD.2.00.1007280033370.28038@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:59656 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752309Ab0G1OVc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jul 2010 10:21:32 -0400
-In-Reply-To: <8739v3kgl6.fsf@basil.nowhere.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:57210 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754479Ab0G1O3Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jul 2010 10:29:24 -0400
+In-reply-to: <alpine.LFD.2.00.1007280033370.28038@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andi@firstfloor.org
-Cc: fujita.tomonori@lab.ntt.co.jp, ak@linux.intel.com, konrad.wilk@oracle.com, akataria@vmware.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
+To: x86@kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, venki@google.com
 
-On Wed, 28 Jul 2010 13:09:57 +0200
-Andi Kleen <andi@firstfloor.org> wrote:
+From: Len Brown <len.brown@intel.com>
 
-> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> writes:
-> >
-> >> The other problem is that using only  two bits for the needed address 
-> >> space is also extremly
-> >> inefficient (4GB and 16MB on x86). Really want masks everywhere and 
-> >> optimize for the
-> >> actual requirements.
-> >
-> > swiotlb doesn't allocate GFP_DMA memory. It handles only GFP_DMA32.
-> 
-> I was lumping GFP_DMA and swiotlb together here. The
-> pci_alloc_consistent() function uses both interchangedly.
-> They really effectively are the same thing these days
-> and just separated by historical accident.
+The LOCAL APIC on new processors has a mode where
+its underlying hardware timer can now be accessed
+via the non-serializing IA32_TSC_DEADLINE_MSR in TSC tick units.
 
-Sorry, I meant to ZONE_DMA.
+If this mode is present, prefer it over the
+traditional LAPIC timer mode.  KERN_DEBUG dmesg
+will print "TSC deadline timer enabled" when TDT is used.
 
-You are talking about your dma mask allocation patchset, right?
+Bootparam "tdt_off" is available to revert to LAPIC timer mode.
 
-I meant that swiotlb doesn't need to handle ZONE_DMA. It handles only
-devices that can handle ZONE_DMA32.
+This patch is based on original work by Venkatesh Pallipadi.
+
+cc: Venkatesh Pallipadi <venki@google.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ Documentation/kernel-parameters.txt |    3 ++
+ arch/x86/kernel/apic/apic.c         |   44 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 46 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 2b2407d..73ec308 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -2596,6 +2596,9 @@ and is between 256 and 4096 characters. It is defined in the file
+ 
+ 	tdfx=		[HW,DRM]
+ 
++	tdt_off		[APIC,X86]
++			Disable TSC Deadline Timer, default back to LAPIC timer.
++
+ 	test_suspend=	[SUSPEND]
+ 			Specify "mem" (for Suspend-to-RAM) or "standby" (for
+ 			standby suspend) as the system sleep state to briefly
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index a96489e..64069ae 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -53,6 +53,15 @@
+ #include <asm/kvm_para.h>
+ #include <asm/tsc.h>
+ 
++#define APIC_TIMER_MODE_ONESHOT		(0 << 17)
++#define APIC_TIMER_MODE_PERIODIC	(1 << 17)
++#define APIC_TIMER_MODE_TSC_DEADLINE	(2 << 17)
++#define APIC_TIMER_MODE_MASK		(3 << 17)
++
++static unsigned long tsc_per_apic_clock;
++static int tdt_enabled;
++static int tdt_disable;
++
+ unsigned int num_processors;
+ 
+ unsigned disabled_cpus __cpuinitdata;
+@@ -355,6 +364,14 @@ static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
+ 	if (!irqen)
+ 		lvtt_value |= APIC_LVT_MASKED;
+ 
++	if (oneshot && !tdt_disable &&
++	    boot_cpu_has(X86_FEATURE_TSC_DEADLINE)) {
++		printk_once(KERN_DEBUG "TSC deadline timer enabled\n");
++		tdt_enabled = 1;
++		lvtt_value &= (~APIC_TIMER_MODE_MASK);
++		lvtt_value |= APIC_TIMER_MODE_TSC_DEADLINE;
++	}
++
+ 	apic_write(APIC_LVTT, lvtt_value);
+ 
+ 	/*
+@@ -409,7 +426,20 @@ EXPORT_SYMBOL_GPL(setup_APIC_eilvt_ibs);
+ static int lapic_next_event(unsigned long delta,
+ 			    struct clock_event_device *evt)
+ {
+-	apic_write(APIC_TMICT, delta);
++	if (tdt_enabled) {
++		u64 tsc;
++		u64 delta_tsc;
++
++		delta_tsc = delta * tsc_per_apic_clock;
++		/* Just a safety check, should never get used */
++		if (delta_tsc < 2000000)
++			delta_tsc = 2000000;
++
++		rdtscll(tsc);
++		wrmsrl(MSR_IA32_TSC_DEADLINE, tsc + delta_tsc);
++	} else {
++		apic_write(APIC_TMICT, delta);
++	}
+ 	return 0;
+ }
+ 
+@@ -627,6 +657,11 @@ static int __init calibrate_APIC_clock(void)
+ 
+ 	deltatsc = (long)(lapic_cal_tsc2 - lapic_cal_tsc1);
+ 
++	tsc_per_apic_clock = (lapic_cal_tsc2 - lapic_cal_tsc1) /
++				(lapic_cal_t1 - lapic_cal_t2);
++	apic_printk(APIC_VERBOSE, "TSCs per APIC clocktick %lu\n",
++		tsc_per_apic_clock);
++
+ 	/* we trust the PM based calibration if possible */
+ 	pm_referenced = !calibrate_by_pmtimer(lapic_cal_pm2 - lapic_cal_pm1,
+ 					&delta, &deltatsc);
+@@ -2314,6 +2349,13 @@ static int __init apic_set_verbosity(char *arg)
+ }
+ early_param("apic", apic_set_verbosity);
+ 
++static int __init tdt_off(char *str)
++{
++	tdt_disable = 1;
++	return 1;
++}
++__setup("tdt_off", tdt_off);
++
+ static int __init lapic_insert_resource(void)
+ {
+ 	if (!apic_phys)
+-- 
+1.7.2
 
 
-> > I have a half-baked patch for it. I'll send it later.
-> 
-> The problem are still the *_map users which usually cannot sleep,
-> and then it's difficult to grow.
-
-Why we can't use GFP_NOWAIT?
-
-My approach is starting with small (like 4MB) and increasing io_tbl by
-chunk such as 4MB.
