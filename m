@@ -1,66 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 1/2] [PATCH] x86: Look for TSC Deadline Timer
-Date: Wed, 28 Jul 2010 00:35:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007280033370.28038@localhost.localdomain>
+Subject: Re: [PATCH] ACPI: create "processor.bm_check_disable" boot param
+Date: Wed, 28 Jul 2010 14:58:51 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007281456350.26093@localhost.localdomain>
+References: <20100525124325.GC7876@srcf.ucam.org>
+ <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
+ <20100525185507.GA15997@srcf.ucam.org>
+ <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
+ <20100722074750.GA22520@one.firstfloor.org>
+ <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
+ <alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
+ <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
+ <87k4oiiu3x.fsf@basil.nowhere.org>
+ <alpine.LFD.2.00.1007262007550.5292@localhost.localdomain>
+ <20100727112841.GC7813@basil.fritz.box>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:56264 "EHLO
+Received: from vms173009pub.verizon.net ([206.46.173.9]:36034 "EHLO
 	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754479Ab0G1O31 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jul 2010 10:29:27 -0400
+	with ESMTP id S1750939Ab0G1S7K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jul 2010 14:59:10 -0400
+In-reply-to: <20100727112841.GC7813@basil.fritz.box>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, venki@google.com
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
 
-From: Len Brown <len.brown@intel.com>
 
-The new TSC Deadline Timer offers system software a low overhead
-per-logical-thread deadline timer in TSC units.
+On Tue, 27 Jul 2010, Andi Kleen wrote:
 
-The timer is implemented via a new architectural 64-bit register,
-IA32_TSC_DEADLINE_MSR. Reads and writes of this MSR occur in program
-order, but are non-serializing.
+> > > This needs to be also documented in Documentation/kernel-parameters.txt
+> > 
+> > I thought about that and decided against it.
+> > While we do document some driver specific modparams
+> > in kernel-parameters.txt, I do not expect this one to
+> > be used that often -- mostly for diagnosis of BIOS bugs.
+> > I know of two machines that need it,
+> > and both of those machines have a BIOS update
+> > or a BIOS update in progress that make it unnecessary.
+> 
+> I think even obscure parameters should be documented.
 
-The support for this feature is indicated by CPUID.01H:ECX.TSC_Deadline[bit 24] = 1
-as documented in the Intel Architectures Software Developer's Manual.
+Where?
 
-This patch discovers support of this feature and displays it
-as "tdt" in /proc/cpuinfo, and enumeratese the new
-IA32_TSC_DEADLINE_MSR in kernel headers.
+kernel-parameters.txt seems to be mostly about core kernel parameters.
+While there are some key driver parameters in there, they
+appear to be the exception.
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/x86/include/asm/cpufeature.h |    1 +
- arch/x86/include/asm/msr-index.h  |    2 ++
- 2 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/arch/x86/include/asm/cpufeature.h b/arch/x86/include/asm/cpufeature.h
-index 4681459..b2a47e6 100644
---- a/arch/x86/include/asm/cpufeature.h
-+++ b/arch/x86/include/asm/cpufeature.h
-@@ -120,6 +120,7 @@
- #define X86_FEATURE_X2APIC	(4*32+21) /* x2APIC */
- #define X86_FEATURE_MOVBE	(4*32+22) /* MOVBE instruction */
- #define X86_FEATURE_POPCNT      (4*32+23) /* POPCNT instruction */
-+#define X86_FEATURE_TSC_DEADLINE      (4*32+24) /* "tdt" TSC Deadline Timer */
- #define X86_FEATURE_AES		(4*32+25) /* AES instructions */
- #define X86_FEATURE_XSAVE	(4*32+26) /* XSAVE/XRSTOR/XSETBV/XGETBV */
- #define X86_FEATURE_OSXSAVE	(4*32+27) /* "" XSAVE enabled in the OS */
-diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
-index 8c7ae43..78d0d5b 100644
---- a/arch/x86/include/asm/msr-index.h
-+++ b/arch/x86/include/asm/msr-index.h
-@@ -268,6 +268,8 @@
- #define MSR_IA32_MISC_ENABLE_TURBO_DISABLE	(1ULL << 38)
- #define MSR_IA32_MISC_ENABLE_IP_PREF_DISABLE	(1ULL << 39)
- 
-+#define MSR_IA32_TSC_DEADLINE		0x000006E0
-+
- /* P4/Xeon+ specific */
- #define MSR_IA32_MCG_EAX		0x00000180
- #define MSR_IA32_MCG_EBX		0x00000181
--- 
-1.7.2
+-Len
 
