@@ -1,40 +1,56 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] ACPI: create "processor.bm_check_disable" boot param
-Date: Tue, 27 Jul 2010 13:28:41 +0200
-Message-ID: <20100727112841.GC7813@basil.fritz.box>
-References: <20100525124325.GC7876@srcf.ucam.org>
- <alpine.LFD.2.00.1005251114420.4114@localhost.localdomain>
- <20100525185507.GA15997@srcf.ucam.org>
- <alpine.LFD.2.00.1007211729550.409@localhost.localdomain>
- <20100722074750.GA22520@one.firstfloor.org>
- <alpine.LFD.2.00.1007221153120.3164@localhost.localdomain>
- <alpine.LFD.2.00.1007221720270.7970@localhost.localdomain>
- <alpine.LFD.2.00.1007221739260.7970@localhost.localdomain>
- <87k4oiiu3x.fsf@basil.nowhere.org>
- <alpine.LFD.2.00.1007262007550.5292@localhost.localdomain>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: swiotlb detection should be memory hotplug aware ?
+Date: Wed, 28 Jul 2010 23:20:59 +0900
+Message-ID: <20100728232026V.fujita.tomonori@lab.ntt.co.jp>
+References: <4C49B3F5.3030904@linux.intel.com>
+	<20100728190939D.fujita.tomonori@lab.ntt.co.jp>
+	<8739v3kgl6.fsf@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1007262007550.5292@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Philip Langdale <philipl@overt.org>, Jeff Garrett <jeff@jgarrett.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "venki@google.com" <venki@google.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sh.osrg.net ([192.16.179.4]:59656 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752309Ab0G1OVc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jul 2010 10:21:32 -0400
+In-Reply-To: <8739v3kgl6.fsf@basil.nowhere.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: andi@firstfloor.org
+Cc: fujita.tomonori@lab.ntt.co.jp, ak@linux.intel.com, konrad.wilk@oracle.com, akataria@vmware.com, lenb@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, petr@vmware.com
 
-> > This needs to be also documented in Documentation/kernel-parameters.txt
+On Wed, 28 Jul 2010 13:09:57 +0200
+Andi Kleen <andi@firstfloor.org> wrote:
+
+> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> writes:
+> >
+> >> The other problem is that using only  two bits for the needed address 
+> >> space is also extremly
+> >> inefficient (4GB and 16MB on x86). Really want masks everywhere and 
+> >> optimize for the
+> >> actual requirements.
+> >
+> > swiotlb doesn't allocate GFP_DMA memory. It handles only GFP_DMA32.
 > 
-> I thought about that and decided against it.
-> While we do document some driver specific modparams
-> in kernel-parameters.txt, I do not expect this one to
-> be used that often -- mostly for diagnosis of BIOS bugs.
-> I know of two machines that need it,
-> and both of those machines have a BIOS update
-> or a BIOS update in progress that make it unnecessary.
+> I was lumping GFP_DMA and swiotlb together here. The
+> pci_alloc_consistent() function uses both interchangedly.
+> They really effectively are the same thing these days
+> and just separated by historical accident.
 
-I think even obscure parameters should be documented.
+Sorry, I meant to ZONE_DMA.
 
--Andi
+You are talking about your dma mask allocation patchset, right?
 
--- 
-ak@linux.intel.com -- Speaking for myself only.
+I meant that swiotlb doesn't need to handle ZONE_DMA. It handles only
+devices that can handle ZONE_DMA32.
+
+
+> > I have a half-baked patch for it. I'll send it later.
+> 
+> The problem are still the *_map users which usually cannot sleep,
+> and then it's difficult to grow.
+
+Why we can't use GFP_NOWAIT?
+
+My approach is starting with small (like 4MB) and increasing io_tbl by
+chunk such as 4MB.
