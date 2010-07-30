@@ -1,100 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/7] ACPI / PCI: Make acpi_pci_run_osc() use capbuf to return the result
-Date: Sat, 31 Jul 2010 00:24:09 +0200
-Message-ID: <201007310024.10174.rjw@sisk.pl>
-References: <201007310020.56546.rjw@sisk.pl>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] acpi ec_sys: Export fields of all regions from the EC
+ to debugfs readable
+Date: Fri, 30 Jul 2010 16:30:53 -0700
+Message-ID: <20100730163053.bff43f26.akpm@linux-foundation.org>
+References: <1280504824-8134-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49423 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755583Ab0G3Wke (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Jul 2010 18:40:34 -0400
-In-Reply-To: <201007310020.56546.rjw@sisk.pl>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44652 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753074Ab0G3XbF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Jul 2010 19:31:05 -0400
+In-Reply-To: <1280504824-8134-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pci@vger.kernel.org, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Fri, 30 Jul 2010 17:47:04 +0200
+Thomas Renninger <trenn@suse.de> wrote:
 
-There is no reason why acpi_pci_run_osc() should use a separate
-argument to return the _OSC result, since there is a place for it
-in the buffer passed via capbuf, as none of the callers needs to
-preserve the original contents of that buffer, so drop the third
-argument of acpi_pci_run_osc() and modify the callers accordingly.
+> -static int acpi_ec_open_io(struct inode *i, struct file *f)
+> +static int acpi_ec_open(struct inode *i, struct file *f)
+>  {
+>  	f->private_data = i->i_private;
+> +	if (mutex_trylock(&ec_fs_lock))
+> +		return 0;
+> +	else
+> +		return -EBUSY;
+> +}
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/pci_root.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+Well that sucks - a userspace interface which is _designed_ to randomly
+and rarely fail?
 
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -206,8 +206,7 @@ static void acpi_pci_bridge_scan(struct 
- 
- static u8 pci_osc_uuid_str[] = "33DB4D5B-1FF7-401C-9657-7441C03DD766";
- 
--static acpi_status acpi_pci_run_osc(acpi_handle handle,
--				    const u32 *capbuf, u32 *retval)
-+static acpi_status acpi_pci_run_osc(acpi_handle handle, u32 *capbuf)
- {
- 	struct acpi_osc_context context = {
- 		.uuid_str = pci_osc_uuid_str,
-@@ -219,7 +218,7 @@ static acpi_status acpi_pci_run_osc(acpi
- 
- 	status = acpi_run_osc(handle, &context);
- 	if (ACPI_SUCCESS(status)) {
--		*retval = *((u32 *)(context.ret.pointer + 8));
-+		capbuf[OSC_CONTROL_TYPE] = ((u32 *)context.ret.pointer)[2];
- 		kfree(context.ret.pointer);
- 	}
- 	return status;
-@@ -228,7 +227,7 @@ static acpi_status acpi_pci_run_osc(acpi
- static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root, u32 flags)
- {
- 	acpi_status status;
--	u32 support_set, result, capbuf[3];
-+	u32 support_set, capbuf[3];
- 
- 	/* do _OSC query for all possible controls */
- 	support_set = root->osc_support_set | (flags & OSC_PCI_SUPPORT_MASKS);
-@@ -236,10 +235,10 @@ static acpi_status acpi_pci_query_osc(st
- 	capbuf[OSC_SUPPORT_TYPE] = support_set;
- 	capbuf[OSC_CONTROL_TYPE] = OSC_PCI_CONTROL_MASKS;
- 
--	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-+	status = acpi_pci_run_osc(root->device->handle, capbuf);
- 	if (ACPI_SUCCESS(status)) {
- 		root->osc_support_set = support_set;
--		root->osc_control_qry = result;
-+		root->osc_control_qry = capbuf[OSC_CONTROL_TYPE];
- 		root->osc_queried = 1;
- 	}
- 	return status;
-@@ -373,7 +372,7 @@ EXPORT_SYMBOL_GPL(acpi_get_pci_dev);
- acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 flags)
- {
- 	acpi_status status;
--	u32 control_req, result, capbuf[3];
-+	u32 control_req, capbuf[3];
- 	acpi_handle tmp;
- 	struct acpi_pci_root *root;
- 
-@@ -410,9 +409,9 @@ acpi_status acpi_pci_osc_control_set(acp
- 	capbuf[OSC_QUERY_TYPE] = 0;
- 	capbuf[OSC_SUPPORT_TYPE] = root->osc_support_set;
- 	capbuf[OSC_CONTROL_TYPE] = root->osc_control_set | control_req;
--	status = acpi_pci_run_osc(handle, capbuf, &result);
-+	status = acpi_pci_run_osc(handle, capbuf);
- 	if (ACPI_SUCCESS(status))
--		root->osc_control_set = result;
-+		root->osc_control_set = capbuf[OSC_CONTROL_TYPE];
- out:
- 	mutex_unlock(&osc_lock);
- 	return status;
+An application tries to open the thing and gets -EBUSY, what's it
+supposed to do?  Sleep and try again?  Crash and dump core?
 
+Also the code's uncommented, so the reader has no clue why a trylock
+was used.  There are very few circumstances where any trylock can
+acceptably be left uncommented.
+
+afacit we can use mutex_lock() here and the implementation would be
+heaps better.
