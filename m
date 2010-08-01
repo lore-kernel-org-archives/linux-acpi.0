@@ -1,35 +1,61 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] acpi ec_sys: Be more cautious about ec write access
-Date: Sun, 1 Aug 2010 02:13:55 +0200
-Message-ID: <201008010213.56501.trenn@suse.de>
-References: <201007292216.13568.trenn@suse.de> <1280435424-19656-1-git-send-email-trenn@suse.de> <20100730163717.GB32120@khazad-dum.debian.net>
+Subject: Re: [PATCH] acpi ec_sys: Export fields of all regions from the EC to debugfs readable
+Date: Sun, 1 Aug 2010 02:36:29 +0200
+Message-ID: <201008010236.30739.trenn@suse.de>
+References: <1280504824-8134-1-git-send-email-trenn@suse.de> <20100730163053.bff43f26.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20100730163717.GB32120@khazad-dum.debian.net>
+In-Reply-To: <20100730163053.bff43f26.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Andrew Morton <akpm@linux-foundation.org>
 Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 30 July 2010 06:37:17 pm Henrique de Moraes Holschuh wrote:
-> On Thu, 29 Jul 2010, Thomas Renninger wrote:
-> > - Only allow root to read/write io file (sever bug!)
+On Saturday 31 July 2010 01:30:53 am Andrew Morton wrote:
+> On Fri, 30 Jul 2010 17:47:04 +0200
 >
-> I'd go further, and only allow CAP_SYS_RAWIO.
-I'll have a look and eventually come up with something on-top.
-
-> > +	  The kernel accesses the EC through ACPI parsed code provided by BIOS
-> > +	  tables. This option allows to access the EC directly without ACPI
-> > +	  code being involved.
+> Thomas Renninger <trenn@suse.de> wrote:
+> > -static int acpi_ec_open_io(struct inode *i, struct file *f)
+> > +static int acpi_ec_open(struct inode *i, struct file *f)
+> >  {
+> >  	f->private_data = i->i_private;
+> > +	if (mutex_trylock(&ec_fs_lock))
+> > +		return 0;
+> > +	else
+> > +		return -EBUSY;
+> > +}
 >
-> This is not really true.  Kernel drivers can, and do access the EC without
-> help from the AML firmware (DSDT, SSDT...).
-Yes, the native laptop driver hacks which should not exist...
-Generally the EC should only be accessed via ACPI interpreted code, is it 
-really worth to mention these exceptions at this point?
+> Well that sucks - a userspace interface which is _designed_ to randomly
+> and rarely fail?
 
-   Thomas
+> An application tries to open the thing and gets -EBUSY, what's it
+> supposed to do?  Sleep and try again?  Crash and dump core?
+This is  a debug interface nobody should rely on or use in real applications.
+There should only exist one app which dumps the EC or write modify single
+bytes/fields and this one shouldn't be called twice in parallel.
+My idea was: if someone accesses this file simultaneously, something is
+wrong in userspace and it's even safer...
+
+On the other hand side, the ec.c code should already parallelize register 
+accesses  and the whole lock should not be needed at all.
+Someone might want to check whether the locks
+in ec.c really do what they should and could use this as a stress test if the 
+lock is simply removed.
+
+> Also the code's uncommented,
+/* Only allow one user to access any EC io/field file at a time */
+static DEFINE_MUTEX(ec_fs_lock);
+> so the reader has no clue why a trylock 
+> was used.  There are very few circumstances where any trylock can
+> acceptably be left uncommented.
+>
+> afacit we can use mutex_lock() here and the implementation would be
+> heaps better.
+Not sure it really matters. But removing it altogether might be even better.
+Waiting for some more comments...
+
+       Thomas
