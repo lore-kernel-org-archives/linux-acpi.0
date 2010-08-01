@@ -1,61 +1,106 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] acpi ec_sys: Export fields of all regions from the EC to debugfs readable
-Date: Sun, 1 Aug 2010 02:36:29 +0200
-Message-ID: <201008010236.30739.trenn@suse.de>
-References: <1280504824-8134-1-git-send-email-trenn@suse.de> <20100730163053.bff43f26.akpm@linux-foundation.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] drivers/acpi: call rcu_read_unlock in default case
+Date: Sat, 31 Jul 2010 21:46:08 -0700
+Message-ID: <20100801044608.GG2470@linux.vnet.ibm.com>
+References: <Pine.LNX.4.64.1007312234590.12199@ask.diku.dk>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20100730163053.bff43f26.akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e7.ny.us.ibm.com ([32.97.182.137]:40872 "EHLO e7.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750918Ab0HAEqN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Aug 2010 00:46:13 -0400
 Content-Disposition: inline
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
+In-Reply-To: <Pine.LNX.4.64.1007312234590.12199@ask.diku.dk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Julia Lawall <julia@diku.dk>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Saturday 31 July 2010 01:30:53 am Andrew Morton wrote:
-> On Fri, 30 Jul 2010 17:47:04 +0200
->
-> Thomas Renninger <trenn@suse.de> wrote:
-> > -static int acpi_ec_open_io(struct inode *i, struct file *f)
-> > +static int acpi_ec_open(struct inode *i, struct file *f)
-> >  {
-> >  	f->private_data = i->i_private;
-> > +	if (mutex_trylock(&ec_fs_lock))
-> > +		return 0;
-> > +	else
-> > +		return -EBUSY;
-> > +}
->
-> Well that sucks - a userspace interface which is _designed_ to randomly
-> and rarely fail?
+On Sat, Jul 31, 2010 at 10:35:28PM +0200, Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> Adjust the default case so that it benefits from the call to rcu_read_unlock.
+> 
+> The semantic match that finds this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @rcu@
+> position p1;
+> @@
+> 
+> rcu_read_lock@p1();
+> ...
+> rcu_read_unlock();
+> 
+> @@
+> position rcu.p1;
+> @@
+> 
+> *rcu_read_lock@p1();
+> ... when != rcu_read_unlock();
+> // </smpl>
 
-> An application tries to open the thing and gets -EBUSY, what's it
-> supposed to do?  Sleep and try again?  Crash and dump core?
-This is  a debug interface nobody should rely on or use in real applications.
-There should only exist one app which dumps the EC or write modify single
-bytes/fields and this one shouldn't be called twice in parallel.
-My idea was: if someone accesses this file simultaneously, something is
-wrong in userspace and it's even safer...
+I don't claim to understand the SmPL above, but I do like the patch.
 
-On the other hand side, the ec.c code should already parallelize register 
-accesses  and the whole lock should not be needed at all.
-Someone might want to check whether the locks
-in ec.c really do what they should and could use this as a stress test if the 
-lock is simply removed.
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-> Also the code's uncommented,
-/* Only allow one user to access any EC io/field file at a time */
-static DEFINE_MUTEX(ec_fs_lock);
-> so the reader has no clue why a trylock 
-> was used.  There are very few circumstances where any trylock can
-> acceptably be left uncommented.
->
-> afacit we can use mutex_lock() here and the implementation would be
-> heaps better.
-Not sure it really matters. But removing it altogether might be even better.
-Waiting for some more comments...
-
-       Thomas
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> 
+> ---
+>  drivers/acpi/atomicio.c             |   10 ++++++----
+>  1 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+> index 8f8bd73..f426010 100644
+> --- a/drivers/acpi/atomicio.c
+> +++ b/drivers/acpi/atomicio.c
+> @@ -267,6 +267,7 @@ EXPORT_SYMBOL_GPL(acpi_post_unmap_gar);
+>  static int acpi_atomic_read_mem(u64 paddr, u64 *val, u32 width)
+>  {
+>  	void __iomem *addr;
+> +	int res = 0;
+> 
+>  	rcu_read_lock();
+>  	addr = __acpi_ioremap_fast(paddr, width);
+> @@ -284,16 +285,17 @@ static int acpi_atomic_read_mem(u64 paddr, u64 *val, u32 width)
+>  		*val = readq(addr);
+>  		break;
+>  	default:
+> -		return -EINVAL;
+> +		res = -EINVAL;
+>  	}
+>  	rcu_read_unlock();
+> 
+> -	return 0;
+> +	return res;
+>  }
+> 
+>  static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
+>  {
+>  	void __iomem *addr;
+> +	int res = 0;
+> 
+>  	rcu_read_lock();
+>  	addr = __acpi_ioremap_fast(paddr, width);
+> @@ -311,11 +313,11 @@ static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
+>  		writeq(val, addr);
+>  		break;
+>  	default:
+> -		return -EINVAL;
+> +		res = -EINVAL;
+>  	}
+>  	rcu_read_unlock();
+> 
+> -	return 0;
+> +	return res;
+>  }
+> 
+>  /* GAR accessing in atomic (including NMI) or process context */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
