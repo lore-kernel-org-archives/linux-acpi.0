@@ -1,91 +1,35 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH] drivers/acpi: call rcu_read_unlock in default case
-Date: Sat, 31 Jul 2010 22:35:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1007312234590.12199@ask.diku.dk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] acpi ec_sys: Be more cautious about ec write access
+Date: Sun, 1 Aug 2010 02:13:55 +0200
+Message-ID: <201008010213.56501.trenn@suse.de>
+References: <201007292216.13568.trenn@suse.de> <1280435424-19656-1-git-send-email-trenn@suse.de> <20100730163717.GB32120@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:42323 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752391Ab0GaUfa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 31 Jul 2010 16:35:30 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20100730163717.GB32120@khazad-dum.debian.net>
+Content-Disposition: inline
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Friday 30 July 2010 06:37:17 pm Henrique de Moraes Holschuh wrote:
+> On Thu, 29 Jul 2010, Thomas Renninger wrote:
+> > - Only allow root to read/write io file (sever bug!)
+>
+> I'd go further, and only allow CAP_SYS_RAWIO.
+I'll have a look and eventually come up with something on-top.
 
-Adjust the default case so that it benefits from the call to rcu_read_unlock.
+> > +	  The kernel accesses the EC through ACPI parsed code provided by BIOS
+> > +	  tables. This option allows to access the EC directly without ACPI
+> > +	  code being involved.
+>
+> This is not really true.  Kernel drivers can, and do access the EC without
+> help from the AML firmware (DSDT, SSDT...).
+Yes, the native laptop driver hacks which should not exist...
+Generally the EC should only be accessed via ACPI interpreted code, is it 
+really worth to mention these exceptions at this point?
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@rcu@
-position p1;
-@@
-
-rcu_read_lock@p1();
-...
-rcu_read_unlock();
-
-@@
-position rcu.p1;
-@@
-
-*rcu_read_lock@p1();
-... when != rcu_read_unlock();
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/acpi/atomicio.c             |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
-index 8f8bd73..f426010 100644
---- a/drivers/acpi/atomicio.c
-+++ b/drivers/acpi/atomicio.c
-@@ -267,6 +267,7 @@ EXPORT_SYMBOL_GPL(acpi_post_unmap_gar);
- static int acpi_atomic_read_mem(u64 paddr, u64 *val, u32 width)
- {
- 	void __iomem *addr;
-+	int res = 0;
- 
- 	rcu_read_lock();
- 	addr = __acpi_ioremap_fast(paddr, width);
-@@ -284,16 +285,17 @@ static int acpi_atomic_read_mem(u64 paddr, u64 *val, u32 width)
- 		*val = readq(addr);
- 		break;
- 	default:
--		return -EINVAL;
-+		res = -EINVAL;
- 	}
- 	rcu_read_unlock();
- 
--	return 0;
-+	return res;
- }
- 
- static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
- {
- 	void __iomem *addr;
-+	int res = 0;
- 
- 	rcu_read_lock();
- 	addr = __acpi_ioremap_fast(paddr, width);
-@@ -311,11 +313,11 @@ static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
- 		writeq(val, addr);
- 		break;
- 	default:
--		return -EINVAL;
-+		res = -EINVAL;
- 	}
- 	rcu_read_unlock();
- 
--	return 0;
-+	return res;
- }
- 
- /* GAR accessing in atomic (including NMI) or process context */
+   Thomas
