@@ -1,63 +1,39 @@
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Subject: Re: [PATCH 7/7] ACPI / PCI: Reorder checks in acpi_pci_osc_control_set()
-Date: Mon, 02 Aug 2010 18:23:55 +0900
-Message-ID: <4C568EAB.5040600@jp.fujitsu.com>
-References: <201007310020.56546.rjw@sisk.pl> <201007310037.36543.rjw@sisk.pl>
+From: Harald Dunkel <harald.dunkel@aixigo.de>
+Subject: reset on loading processor acpi module
+Date: Mon, 02 Aug 2010 14:08:24 +0200
+Message-ID: <4C56B538.6090901@aixigo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201007310037.36543.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pci@vger.kernel.org, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.aixigo.de ([195.14.232.227]:19334 "EHLO mail.aixigo.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752889Ab0HBMW4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Aug 2010 08:22:56 -0400
+Received: from srvl003.ac.aixigo.de (srvl003.ac.aixigo.de [172.19.96.13])
+	by mail.aixigo.com (8.14.1/8.14.1) with ESMTP id o72C8OE7008943
+	for <linux-acpi@vger.kernel.org>; Mon, 2 Aug 2010 14:08:24 +0200 (CEST)
+Received: from [172.19.97.183] (localhost [127.0.0.1])
+	by srvl003.ac.aixigo.de (8.12.6/8.12.6/SuSE Linux 0.6) with ESMTP id o72C8Ydu005325
+	for <linux-acpi@vger.kernel.org>; Mon, 2 Aug 2010 14:08:34 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-(2010/07/31 7:37), Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Make acpi_pci_osc_control_set() attempt to find the handle of the
-> _OSC object under the given PCI root bridge object after verifying
-> that its second argument is correct and that there is a struct
-> acpi_pci_root object for the given root bridge handle.  This is
-> more logical than the old code and it matches the code ordering
-> in acpi_pci_root_osc_query().
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/pci_root.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/pci_root.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -414,10 +414,6 @@ acpi_status acpi_pci_osc_control_set(acp
->  	acpi_handle tmp;
->  	struct acpi_pci_root *root;
->  
-> -	status = acpi_get_handle(handle, "_OSC", &tmp);
-> -	if (ACPI_FAILURE(status))
-> -		return status;
-> -
->  	control_req = (flags & OSC_PCI_CONTROL_MASKS);
->  	if (!control_req)
->  		return AE_TYPE;
-> @@ -426,6 +422,10 @@ acpi_status acpi_pci_osc_control_set(acp
->  	if (!root)
->  		return AE_NOT_EXIST;
->  
-> +	status = acpi_get_handle(handle, "_OSC", &tmp);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
->  	mutex_lock(&osc_lock);
->  	/* No need to evaluate _OSC if the control was already granted. */
->  	if ((root->osc_control_set & control_req) == control_req)
-> 
+Hi folks,
 
-Description is better than Kaneshige-san's [3/6].
+I've got a Samsung P460 Laptop (model AA03DE). Problem: It
+does a reset as soon as the processor acpi module is loaded.
+There is no crashdump or anything like this. If I blacklist
+this module, then the kernel boots fine.
 
-And it seems that this patch can be applied alone too.
+I could reproduce it with 2.6.34, 2.6.35 and Debian's current
+kernel (2.6.32 + patches)
 
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Any helpful hint would be highly appreciated. Of course I
+would be glad to help to track this down.
+
+
+Regards
+
+Harri
