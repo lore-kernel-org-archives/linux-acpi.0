@@ -1,59 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/7] PCI / PCIe: Remove the port driver module exit routine
-Date: Mon, 2 Aug 2010 16:18:37 +0200
-Message-ID: <201008021618.37552.rjw@sisk.pl>
-References: <201007310020.56546.rjw@sisk.pl> <201007310035.14232.rjw@sisk.pl> <4C568E34.5080206@jp.fujitsu.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: 2.6.35-rc6-git6: Reported regressions from 2.6.34
+Date: Mon, 02 Aug 2010 18:32:13 +0200
+Message-ID: <4C56F30D.3020304@kernel.org>
+References: <2dWFdr9kTFM.A.P0D.spXVMB@chimera> <AANLkTimcH7+Bq1UEbaSU7SQpzArPgmSLegiqE13V8=CF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56343 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763Ab0HBOUX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Aug 2010 10:20:23 -0400
-In-Reply-To: <4C568E34.5080206@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimcH7+Bq1UEbaSU7SQpzArPgmSLegiqE13V8=CF@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jens Axboe <jaxboe@fusionio.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pci@vger.kernel.org, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Monday, August 02, 2010, Hidetoshi Seto wrote:
-> (2010/07/31 7:35), Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: PCI / PCIe: Remove the port driver module exit routine
-> > 
-> > The PCIe port driver's module exit routine is never used, so drop it.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/pci/pcie/portdrv_pci.c |    7 -------
-> >  1 file changed, 7 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/pci/pcie/portdrv_pci.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/pci/pcie/portdrv_pci.c
-> > +++ linux-2.6/drivers/pci/pcie/portdrv_pci.c
-> > @@ -345,11 +345,4 @@ static int __init pcie_portdrv_init(void
-> >  	return retval;
-> >  }
-> >  
-> > -static void __exit pcie_portdrv_exit(void)
-> > -{
-> > -	pci_unregister_driver(&pcie_portdriver);
-> > -	pcie_port_bus_unregister();
-> > -}
-> > -
-> >  module_init(pcie_portdrv_init);
-> > -module_exit(pcie_portdrv_exit);
+Hello, Linus.
+
+On 08/01/2010 08:01 PM, Linus Torvalds wrote:
+> This has a proposed patch. I don't know what the status of it is, though. Jens?
 > 
-> This is exactly Kaneshige-san's [6/6].
-
-You're right, sorry for not getting the sign-offs right.
-
-> And it seems that this patch can be applied alone.
+>    http://marc.info/?l=linux-kernel&m=127950018204029&w=2
 > 
-> Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+>> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=16393
+>> Subject         : kernel BUG at fs/block_dev.c:765!
+>> Submitter       : Markus Trippelsdorf <markus@trippelsdorf.de>
+>> Date            : 2010-07-14 13:52 (19 days old)
+>> Message-ID      : <20100714135217.GA1797@arch.tripp.de>
+>> References      : http://marc.info/?l=linux-kernel&m=127911564213748&w=2
+> 
+> This one is interesting. And I think I perhaps see where it's coming from.
+> 
+> bd_start_claiming() (through bd_prepare_to_claim()) has two separate
+> success cases: either there was no holder (bd_claiming is NULL) or the
+> new holder was already claiming it (bd_claiming == holder).
+> 
+> Note in particular the case of the holder _already_ holding it. What happens is:
+> 
+>  - bd_start_claiming() succeeds because we had _already_ claimed it
+> with the same holder
+> 
+>  - then some error happens, and we call bd_abort_claiming(), which
+> does whole->bd_claiming = NULL;
+> 
+>  - the original holder thinks it still holds the bd, but it has been released!
+> 
+>  - a new claimer comes in, and succeeds because bd_claiming is now NULL.
+> 
+>  - we now have two "owners" of the bd, but bd_claiming only points to
+> the second one.
+> 
+> I think bd_start_claiming() needs to do some kind of refcount for the
+> nested holder case, and bd_abort_claiming() needs to decrement the
+> refcount and only clear the bd_claiming field when it goes down to
+> zero.
+> 
+> I dunno. Maybe there's something else going on, but it does look
+> suspicious, and the above would explain the BUG_ON().
 
-Thanks,
-Rafael
+Yeah, that definitely sounds plausible.  I think the condition check
+in bd_prepare_to_claim() should have been "if (whole->bd_claiming)"
+instead of "if (whole->bd_claiming && whole->bd_claiming != holder)".
+It doesn't make much sense to allow multiple parallel claiming
+operations anyway and the comment above already says - "This function
+fails if @bdev is already claimed by another holder and waits if
+another claiming is in progress."
+
+I'll try to build a test case and verify it.
+
+Thank you.
+
+-- 
+tejun
