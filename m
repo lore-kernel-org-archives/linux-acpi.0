@@ -1,74 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/8] PCI / PCIe/ AER: Introduce pci_aer_available()
-Date: Mon, 2 Aug 2010 23:54:46 +0200
-Message-ID: <201008022354.46369.rjw@sisk.pl>
+Subject: [PATCH 8/8] ACPI / PCI: Reorder checks in acpi_pci_osc_control_set()
+Date: Tue, 3 Aug 2010 00:00:44 +0200
+Message-ID: <201008030000.44558.rjw@sisk.pl>
 References: <201008022351.31406.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57754 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755422Ab0HBWCw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Aug 2010 18:02:52 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <201008022351.31406.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce a function allowing the caller to check if PCIe AER should
-be enabled.
+Make acpi_pci_osc_control_set() attempt to find the handle of the
+_OSC object under the given PCI root bridge object after verifying
+that its second argument is correct and that there is a struct
+acpi_pci_root object for the given root bridge handle.  This is
+more logical than the old code and it matches the code ordering
+in acpi_pci_osc_control_query().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 ---
- drivers/pci/pci.h             |    2 ++
- drivers/pci/pcie/aer/aerdrv.c |    9 ++++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/acpi/pci_root.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Index: linux-2.6/drivers/pci/pci.h
+Index: linux-2.6/drivers/acpi/pci_root.c
 ===================================================================
---- linux-2.6.orig/drivers/pci/pci.h
-+++ linux-2.6/drivers/pci/pci.h
-@@ -131,8 +131,10 @@ static inline void pci_msi_init_pci_dev(
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -415,10 +415,6 @@ acpi_status acpi_pci_osc_control_set(acp
+ 	acpi_handle tmp;
+ 	struct acpi_pci_root *root;
  
- #ifdef CONFIG_PCIEAER
- void pci_no_aer(void);
-+bool pci_aer_available(void);
- #else
- static inline void pci_no_aer(void) { }
-+static inline bool pci_aer_available(void) { return false; }
- #endif
+-	status = acpi_get_handle(handle, "_OSC", &tmp);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-
+ 	control_req = (flags & OSC_PCI_CONTROL_MASKS);
+ 	if (!control_req)
+ 		return AE_TYPE;
+@@ -427,6 +423,10 @@ acpi_status acpi_pci_osc_control_set(acp
+ 	if (!root)
+ 		return AE_NOT_EXIST;
  
- static inline int pci_no_d1d2(struct pci_dev *dev)
-Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.c
-+++ linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-@@ -72,6 +72,11 @@ void pci_no_aer(void)
- 	pcie_aer_disable = 1;	/* has priority over 'forceload' */
- }
- 
-+bool pci_aer_available(void)
-+{
-+	return !pcie_aer_disable && pci_msi_enabled();
-+}
++	status = acpi_get_handle(handle, "_OSC", &tmp);
++	if (ACPI_FAILURE(status))
++		return status;
 +
- static int set_device_error_reporting(struct pci_dev *dev, void *data)
- {
- 	bool enable = *((bool *)data);
-@@ -411,9 +416,7 @@ static void aer_error_resume(struct pci_
-  */
- static int __init aer_service_init(void)
- {
--	if (pcie_aer_disable)
--		return -ENXIO;
--	if (!pci_msi_enabled())
-+	if (pci_aer_available())
- 		return -ENXIO;
- 	return pcie_port_service_register(&aerdriver);
- }
-
+ 	mutex_lock(&osc_lock);
+ 	/* No need to evaluate _OSC if the control was already granted. */
+ 	if ((root->osc_control_set & control_req) == control_req)
