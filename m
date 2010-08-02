@@ -1,72 +1,66 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: 2.6.35-rc6-git6: Reported regressions from 2.6.34
-Date: Mon, 02 Aug 2010 18:32:13 +0200
-Message-ID: <4C56F30D.3020304@kernel.org>
-References: <2dWFdr9kTFM.A.P0D.spXVMB@chimera> <AANLkTimcH7+Bq1UEbaSU7SQpzArPgmSLegiqE13V8=CF@mail.gmail.com>
+From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: Re: [PATCH] acpi: x2apic entry with uid < 255 could use processor
+ statement
+Date: Mon, 02 Aug 2010 12:06:54 -0700
+Message-ID: <1280776014.2703.9.camel@sbsiddha-MOBL3.sc.intel.com>
+References: <4C53C7E7.4040204@kernel.org>
+Reply-To: Suresh Siddha <suresh.b.siddha@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimcH7+Bq1UEbaSU7SQpzArPgmSLegiqE13V8=CF@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jens Axboe <jaxboe@fusionio.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:56657 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753537Ab0HBTHY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Aug 2010 15:07:24 -0400
+In-Reply-To: <4C53C7E7.4040204@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
 
-Hello, Linus.
+On Sat, 2010-07-31 at 07:51 +0100, Yinghai Lu wrote:
+> According to Intel x2apic spec page 46
+> 
+> " The hand-off to
+> OSPM will have processor IDs in the range of 0 to 254 for xAPIC/x2APIC and 0 to 255
+> for SAPIC declared as either Processor() or Device() objects, but not both. Processor
+> IDs outside these ranges must be declared as Device() objects."
+> 
+> So only check if Device is used when acpi_id >=255.
+> 
+> that will help system with less 255 cpus, but some cpus apic id > 255,
+> still can use Processor statement instead of Device() objects.
 
-On 08/01/2010 08:01 PM, Linus Torvalds wrote:
-> This has a proposed patch. I don't know what the status of it is, though. Jens?
-> 
->    http://marc.info/?l=linux-kernel&m=127950018204029&w=2
-> 
->> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=16393
->> Subject         : kernel BUG at fs/block_dev.c:765!
->> Submitter       : Markus Trippelsdorf <markus@trippelsdorf.de>
->> Date            : 2010-07-14 13:52 (19 days old)
->> Message-ID      : <20100714135217.GA1797@arch.tripp.de>
->> References      : http://marc.info/?l=linux-kernel&m=127911564213748&w=2
-> 
-> This one is interesting. And I think I perhaps see where it's coming from.
-> 
-> bd_start_claiming() (through bd_prepare_to_claim()) has two separate
-> success cases: either there was no holder (bd_claiming is NULL) or the
-> new holder was already claiming it (bd_claiming == holder).
-> 
-> Note in particular the case of the holder _already_ holding it. What happens is:
-> 
->  - bd_start_claiming() succeeds because we had _already_ claimed it
-> with the same holder
-> 
->  - then some error happens, and we call bd_abort_claiming(), which
-> does whole->bd_claiming = NULL;
-> 
->  - the original holder thinks it still holds the bd, but it has been released!
-> 
->  - a new claimer comes in, and succeeds because bd_claiming is now NULL.
-> 
->  - we now have two "owners" of the bd, but bd_claiming only points to
-> the second one.
-> 
-> I think bd_start_claiming() needs to do some kind of refcount for the
-> nested holder case, and bd_abort_claiming() needs to decrement the
-> refcount and only clear the bd_claiming field when it goes down to
-> zero.
-> 
-> I dunno. Maybe there's something else going on, but it does look
-> suspicious, and the above would explain the BUG_ON().
+But the entries with apic_id < 255 are supposed to use local APIC
+structure and not local x2apic structure. So entries with apic id < 255
+must be processed using map_lapic_id() which doesn't have any
+device_declaration checks.
 
-Yeah, that definitely sounds plausible.  I think the condition check
-in bd_prepare_to_claim() should have been "if (whole->bd_claiming)"
-instead of "if (whole->bd_claiming && whole->bd_claiming != holder)".
-It doesn't make much sense to allow multiple parallel claiming
-operations anyway and the comment above already says - "This function
-fails if @bdev is already claimed by another holder and waits if
-another claiming is in progress."
+Only for apic ids > 255, we use map_x2apic_id() which needs device
+declaration. So this patch is not needed. or Am I missing something?
 
-I'll try to build a test case and verify it.
+thanks,
+suresh
 
-Thank you.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  drivers/acpi/processor_core.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: linux-2.6/drivers/acpi/processor_core.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_core.c
+> +++ linux-2.6/drivers/acpi/processor_core.c
+> @@ -69,7 +69,7 @@ static int map_x2apic_id(struct acpi_sub
+>  	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
+>  		return 0;
+>  
+> -	if (device_declaration && (apic->uid == acpi_id)) {
+> +	if ((device_declaration || (acpi_id < 255)) && (apic->uid == acpi_id)) {
+>  		*apic_id = apic->local_apic_id;
+>  		return 1;
+>  	}
 
--- 
-tejun
