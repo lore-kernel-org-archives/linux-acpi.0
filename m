@@ -1,46 +1,120 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 1/8] ACPI / PCI: Introduce acpi_pci_osc_control_query()
-Date: Tue, 03 Aug 2010 14:04:06 +0900
-Message-ID: <4C57A346.6020003@jp.fujitsu.com>
-References: <201008022351.31406.rjw@sisk.pl> <201008022353.04353.rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2.6.{32, 33, 34}.stable] ACPI: skip checking BM_STS if
+ the BIOS doesn't ask for it
+Date: Tue, 3 Aug 2010 08:54:03 +0200
+Message-ID: <20100803065403.GD3344@ucw.cz>
+References: <alpine.LFD.2.00.1007261945260.5292@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:32873 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574Ab0HCFEY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2010 01:04:24 -0400
-In-Reply-To: <201008022353.04353.rjw@sisk.pl>
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:36711 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755238Ab0HCGyV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2010 02:54:21 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1007261945260.5292@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Len Brown <lenb@kernel.org>
+Cc: stable@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-(2010/08/03 6:53), Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki<rjw@sisk.pl>
+On Mon 2010-07-26 19:51:29, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> 
+> upstream 718be4aaf3613cf7c2d097f925abc3d3553c0605
+> 
+> It turns out that there is a bit in the _CST for Intel FFH C3
+> that tells the OS if we should be checking BM_STS or not.
+> 
+> Linux has been unconditionally checking BM_STS.
+> If the chip-set is configured to enable BM_STS,
+> it can retard or completely prevent entry into
+> deep C-states -- as illustrated by turbostat:
+> 
+> http://userweb.kernel.org/~lenb/acpi/utils/pmtools/turbostat/
+> 
+> ref: Intel Processor Vendor-Specific ACPI Interface Specification
+> table 4 "_CST FFH GAS Field Encoding"
+> Bit 1: Set to 1 if OSPM should use Bus Master avoidance for this C-state
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=15886
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-<snip.>
+This is better than cpu whitelist. Thanks!
 
-> +	mutex_lock(&osc_lock);
-> +	status = acpi_pci_query_osc(root, root->osc_support_set, ctrl_mask);
-> +	mutex_unlock(&osc_lock);
+
+> ---
+> 
+> this backport applies cleanly to 2.6.32.y.
+> It applies w/ a small offset to 2.6.33.y and 2.34.y
+> 
+> 
+>  arch/x86/kernel/acpi/cstate.c |    9 +++++++++
+>  drivers/acpi/processor_idle.c |    2 +-
+>  include/acpi/processor.h      |    3 ++-
+>  3 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6.32.y/arch/x86/kernel/acpi/cstate.c
+> ===================================================================
+> --- linux-2.6.32.y.orig/arch/x86/kernel/acpi/cstate.c
+> +++ linux-2.6.32.y/arch/x86/kernel/acpi/cstate.c
+> @@ -145,6 +145,15 @@ int acpi_processor_ffh_cstate_probe(unsi
+>  		percpu_entry->states[cx->index].eax = cx->address;
+>  		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
+>  	}
 > +
+> +	/*
+> +	 * For _CST FFH on Intel, if GAS.access_size bit 1 is cleared,
+> +	 * then we should skip checking BM_STS for this C-state.
+> +	 * ref: "Intel Processor Vendor-Specific ACPI Interface Specification"
+> +	 */
+> +	if ((c->x86_vendor == X86_VENDOR_INTEL) && !(reg->access_size & 0x2))
+> +		cx->bm_sts_skip = 1;
+> +
+>  	return retval;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_probe);
+> Index: linux-2.6.32.y/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.32.y.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6.32.y/drivers/acpi/processor_idle.c
+> @@ -962,7 +962,7 @@ static int acpi_idle_enter_bm(struct cpu
+>  	if (acpi_idle_suspend)
+>  		return(acpi_idle_enter_c1(dev, state));
+>  
+> -	if (acpi_idle_bm_check()) {
+> +	if (!cx->bm_sts_skip && acpi_idle_bm_check()) {
+>  		if (dev->safe_state) {
+>  			dev->last_state = dev->safe_state;
+>  			return dev->safe_state->enter(dev, dev->safe_state);
+> Index: linux-2.6.32.y/include/acpi/processor.h
+> ===================================================================
+> --- linux-2.6.32.y.orig/include/acpi/processor.h
+> +++ linux-2.6.32.y/include/acpi/processor.h
+> @@ -48,7 +48,7 @@ struct acpi_power_register {
+>  	u8 space_id;
+>  	u8 bit_width;
+>  	u8 bit_offset;
+> -	u8 reserved;
+> +	u8 access_size;
+>  	u64 address;
+>  } __attribute__ ((packed));
+>  
+> @@ -74,6 +74,7 @@ struct acpi_processor_cx {
+>  	u32 power;
+>  	u32 usage;
+>  	u64 time;
+> +	u8 bm_sts_skip;
+>  	struct acpi_processor_cx_policy promotion;
+>  	struct acpi_processor_cx_policy demotion;
+>  	char desc[ACPI_CX_DESC_LEN];
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-One more comment here.
-
-I think we can skip acpi_pci_query_osc() if all of queried controls are
-already granted to OS. Please see below
-
-	mutex_lock(&osc_lock);
-	if ((root->osc_control_set & *ctrl_mask) == *ctrl_mask) {
-		*ctrl_mask = root->osc_control_set;
-		goto out;
-	}
-	status = acpi_pci_query_osc(root, root->osc_support_set, ctrl_mask);
-	mutex_unlock(&osc_lock);
-out:
-
-Thanks,
-Kenji Kaneshige
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
