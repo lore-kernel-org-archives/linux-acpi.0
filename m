@@ -1,57 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 8/8] ACPI / PCI: Reorder checks in acpi_pci_osc_control_set()
-Date: Tue, 3 Aug 2010 00:00:44 +0200
-Message-ID: <201008030000.44558.rjw@sisk.pl>
-References: <201008022351.31406.rjw@sisk.pl>
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Subject: Re: [PATCH 2/8] PCI / PCIe/ AER: Introduce pci_aer_available()
+Date: Tue, 03 Aug 2010 09:46:42 +0900
+Message-ID: <4C5766F2.4010605@jp.fujitsu.com>
+References: <201008022351.31406.rjw@sisk.pl> <201008022354.46369.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008022351.31406.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:50798 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143Ab0HCAr5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Aug 2010 20:47:57 -0400
+In-Reply-To: <201008022354.46369.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+(2010/08/03 6:54), Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Introduce a function allowing the caller to check if PCIe AER should
+> be enabled.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+(snip)
+> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.c
+> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv.c
+> @@ -72,6 +72,11 @@ void pci_no_aer(void)
+>  	pcie_aer_disable = 1;	/* has priority over 'forceload' */
+>  }
+>  
+> +bool pci_aer_available(void)
+> +{
+> +	return !pcie_aer_disable && pci_msi_enabled();
+> +}
+> +
+>  static int set_device_error_reporting(struct pci_dev *dev, void *data)
+>  {
+>  	bool enable = *((bool *)data);
+> @@ -411,9 +416,7 @@ static void aer_error_resume(struct pci_
+>   */
+>  static int __init aer_service_init(void)
+>  {
+> -	if (pcie_aer_disable)
+> -		return -ENXIO;
+> -	if (!pci_msi_enabled())
+> +	if (pci_aer_available())
+>  		return -ENXIO;
+>  	return pcie_port_service_register(&aerdriver);
+>  }
 
-Make acpi_pci_osc_control_set() attempt to find the handle of the
-_OSC object under the given PCI root bridge object after verifying
-that its second argument is correct and that there is a struct
-acpi_pci_root object for the given root bridge handle.  This is
-more logical than the old code and it matches the code ordering
-in acpi_pci_osc_control_query().
+Breaking a big lump into small pieces often makes things clear.
+You should return error when AER is _NOT_ available.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
----
- drivers/acpi/pci_root.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+if (!pci_aer_available())
+	return -ENXIO;
 
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -415,10 +415,6 @@ acpi_status acpi_pci_osc_control_set(acp
- 	acpi_handle tmp;
- 	struct acpi_pci_root *root;
- 
--	status = acpi_get_handle(handle, "_OSC", &tmp);
--	if (ACPI_FAILURE(status))
--		return status;
--
- 	control_req = (flags & OSC_PCI_CONTROL_MASKS);
- 	if (!control_req)
- 		return AE_TYPE;
-@@ -427,6 +423,10 @@ acpi_status acpi_pci_osc_control_set(acp
- 	if (!root)
- 		return AE_NOT_EXIST;
- 
-+	status = acpi_get_handle(handle, "_OSC", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
- 	mutex_lock(&osc_lock);
- 	/* No need to evaluate _OSC if the control was already granted. */
- 	if ((root->osc_control_set & control_req) == control_req)
+Be careful...
+
+Thanks,
+H.Seto
+
