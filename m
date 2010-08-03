@@ -1,52 +1,55 @@
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Subject: Re: [PATCH 4/8] PCI / PCIe: Ask BIOS for control of all native services
- at once (v6)
-Date: Tue, 03 Aug 2010 10:14:08 +0900
-Message-ID: <4C576D60.1070404@jp.fujitsu.com>
-References: <201008022351.31406.rjw@sisk.pl> <201008022356.31166.rjw@sisk.pl>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 0/8] ACPI / PCI / PCIe: Rework _OSC handling (v2)
+Date: Tue, 03 Aug 2010 13:51:16 +0900
+Message-ID: <4C57A044.2020706@jp.fujitsu.com>
+References: <201008022351.31406.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008022356.31166.rjw@sisk.pl>
+In-Reply-To: <201008022351.31406.rjw@sisk.pl>
 Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-(2010/08/03 6:56), Rafael J. Wysocki wrote:
-> +int pcie_port_acpi_setup(struct pci_dev *port, int *srv_mask)
-> +{
-> +	acpi_status status;
-> +	acpi_handle handle;
-> +	u32 flags;
-> +
-> +	if (acpi_pci_disabled)
-> +		return 0;
-> +
-> +	handle = acpi_find_root_bridge_handle(port);
-> +	if (!handle)
-> +		return -EINVAL;
-> +
-> +	flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
-> +		| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
-> +		| OSC_PCI_EXPRESS_PME_CONTROL;
-> +
-> +	if (pcie_aer_get_firmware_first(port))
-> +		dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
-> +	else if (pci_aer_available())
-> +		flags |= OSC_PCI_EXPRESS_AER_CONTROL;
+(2010/08/03 6:51), Rafael J. Wysocki wrote:
+> Hi,
+>
+> This is the second iteration of the patchset based on
+> https://patchwork.kernel.org/patch/114917/ and the comments I received on that
+> patch.  Hopefully, I took all of the comments into account this time.
+>
+> [1/8] - Introduce acpi_pci_osc_control_query() allowing the caller to get a
+>          mask of _OSC control bits the BIOS allows the kernel to control
+>          for a given PCI root bridge.
+>
+> [2/8] - Introduce pci_aer_available() allowing the caller to check if the
+>          AER service driver should be enabled.
+>
+> [3/8] - Introduce kernel command line switch pcie_ports=.
+>
+> [4/8] - Rework the PCIe port driver to request _OSC control for all serives at
+>          once.
+>
+> [5/8] - Disable PCIe port services (that might be enabled by the BIOS) during
+>          initialization.
+>
+> [6/8] - Remove the PCIe port driver modules exit function.
+>
+> [7/8] - Rework acpi_pci_osc_control_set() so that it doesn't use cached
+>          result of a query and remove the fields of struct acpi_pci_root that
+>         aren't used any more.
+>
+> [8/8] - Reorder checks in acpi_pci_osc_control_set()
+>
 
-Is the debug message necessary even when AER is not available?
-At least current code doesn't output such strings when pci=noaer,
-since AER service driver is not loaded.
+Hi Rafael,
 
-if (pci_aer_available()) {
-	if (pcie_aer_get_firmware_first(port))
-		dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
-	else
-		flags |= OSC_PCI_EXPRESS_AER_CONTROL;
-}
+I'm sorry for delayed responding.
+
+Your latest patchset looks much clearer than mine.
+I have comments on [1/8] and [7/8]. I'll send comment for each patch.
 
 Thanks,
-H.Seto
+Kenji Kaneshige
