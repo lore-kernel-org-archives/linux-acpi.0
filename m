@@ -1,37 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/8] PCI / PCIe/ AER: Introduce pci_aer_available()
-Date: Tue, 3 Aug 2010 21:50:28 +0200
-Message-ID: <201008032150.28626.rjw@sisk.pl>
-References: <201008022351.31406.rjw@sisk.pl> <201008022354.46369.rjw@sisk.pl> <AANLkTimZV8KSkAR5Tc0nDK=TmzX1edKiJ9qSSgZ8v0h9@mail.gmail.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [linux-pm] Power management minisummit at Linux Plumbers Conference
+ (November	3-5)
+Date: Tue, 03 Aug 2010 15:30:56 -0500
+Message-ID: <4C587C80.3040207@ti.com>
+References: <20100803182746.GA32276@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33591 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932069Ab0HCTwO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Aug 2010 15:52:14 -0400
-In-Reply-To: <AANLkTimZV8KSkAR5Tc0nDK=TmzX1edKiJ9qSSgZ8v0h9@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57151 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757705Ab0HCUbe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2010 16:31:34 -0400
+In-Reply-To: <20100803182746.GA32276@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jike Song <albcamus@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "linux-pm@lists.osdl.org" <linux-pm@lists.osdl.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tuesday, August 03, 2010, Jike Song wrote:
-> On Tue, Aug 3, 2010 at 5:54 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >
-> > Introduce a function allowing the caller to check if PCIe AER should
-> > be enabled.
-> >
-> 
-> Maybe it's misnamed?  How about pcie_aer_disable is not set and MSI is
-> enabled, but there is not AER capability implemented at all?
+Matthew Garrett wrote:
+> I'm planning on finalising the schedule for the power management 
+> minisummit at the Linux Plumbers Conference by the end of this week. If 
+> anyone has topics that they'd like to discuss (or be discussed, if you 
+> can't make it) then please let me know or register at 
+> http://www.linuxplumbersconf.org/2010/ocw/events/proposals/ and file a 
 
-The BIOS is supposed to tell us about that or we will find out from the
-registers contents.  This function tells us whether to _try_ to enable AER
-(ie. ask the BIOS and so on).
+That link did not really work for me, but I think I found the right 
+place after a few clicks.
 
-Thanks,
-Rafael
+> proposal there. We're likely to be concentrating on userspace/kernel 
+> interaction rather than pure kernel topics, so if you've got anything to 
+> say about how we can handle application requirements without 
+> compromising on our power savings then we'd love to hear from you.
+
+Just FYI, I proposed a discussion on the issues that create such a large 
+power gap between a CPUIdle-only system and a system with suspend (with 
+the assumption that the lowest C-state can be hit by both).
+
+I don't really want to present a formal lecture on it, but it would be 
+nice to discuss with the group what can be done to shrink that gap a 
+little in kernel space (badly behaving timers in platform-independent 
+code) and in userspace (power-aware timers, coalescing timers, etc).
+
+This is not intended to be another suspend-blocker discussion, but more 
+of a discussion on what it takes to get CPUIdle to be more effective.
+
+Regards,
+Mike
