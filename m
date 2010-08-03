@@ -1,126 +1,443 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 7/8] ACPI / PCI: Do not preserve _OSC control bits returned by a query (v2)
-Date: Tue, 3 Aug 2010 23:02:33 +0200
-Message-ID: <201008032302.33778.rjw@sisk.pl>
-References: <201008022351.31406.rjw@sisk.pl> <4C57C182.7060407@jp.fujitsu.com> <201008031133.37471.rjw@sisk.pl>
+Subject: [Resend][PATCH] ACPI / ACPICA: Fix reference counting problems with GPE handlers
+Date: Tue, 3 Aug 2010 23:55:14 +0200
+Message-ID: <201008032355.14414.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008031133.37471.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-pci@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:33948 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757820Ab0HCV5a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Aug 2010 17:57:30 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>
 
-On Tuesday, August 03, 2010, Rafael J. Wysocki wrote:
-> On Tuesday, August 03, 2010, Hidetoshi Seto wrote:
-> > (2010/08/03 13:52), Kenji Kaneshige wrote:
-> > > (2010/08/03 6:59), Rafael J. Wysocki wrote:
-> > >> @@ -434,19 +432,6 @@ acpi_status acpi_pci_osc_control_set(acp
-> > >>       if ((root->osc_control_set&  control_req) == control_req)
-> > >>           goto out;
-> > >>
-> > >> -    /* Need to query controls first before requesting them */
-> > >> -    if (!root->osc_queried) {
-> > >> -        status = acpi_pci_query_osc(root, root->osc_support_set, NULL);
-> > >> -        if (ACPI_FAILURE(status))
-> > >> -            goto out;
-> > >> -    }
-> > >> -    if ((root->osc_control_qry&  control_req) != control_req) {
-> > >> -        printk(KERN_DEBUG
-> > >> -               "Firmware did not grant requested _OSC control\n");
-> > >> -        status = AE_SUPPORT;
-> > >> -        goto out;
-> > >> -    }
-> > > 
-> > > I think acpi_pci_osc_control_set() still need to query before commit
-> > > to ensure all the requested controls are granted to OS.
-> > > 
-> > > So the code needs to be
-> > > 
-> > >     status = acpi_pci_query_osc(root, root->osc_support_set, &control_req);
-> > >     if (ACPI_FAILURE(status))
-> > >         goto out;
-> > 
-> > Hum, since acpi_status acpi_pci_osc_control_set() is an exported
-> > function, we cannot be too careful here. 
-> > 
-> > OTOH, I think this second query should be done in caller too,
-> > i.e. pcie_port_acpi_setup() in patch [4/8].
-> > 
-> > Now:
-> >   pcie_port_acpi_setup()
-> >   {
-> >     flags = A|B|C|D;
-> >     acpi_pci_osc_control_query(handle, &flags);
-> >     /* note: flags might be changed after query */
-> >     acpi_pci_osc_control_set(handle, flags);
-> >   }
-> > 
-> > Strictly, it could be like:
-> > 
-> > New:
-> >   pcie_port_acpi_setup()
-> >   {
-> >     flags = A|B|C|D;
-> >     do {
-> >       pre_flags = flags;
-> >       acpi_pci_osc_control_query(handle, &flags);
-> >     } while (flags && pre_flags != flags);
-> >     if (flags)
-> >       acpi_pci_osc_control_set(handle, flags);
-> >   }
-> > 
-> > IMHO these checks are kind of preventive guard for corner cases,
-> > and I suppose it can be implemented by an incremental patch later.
-> 
-> OK
-> 
-> The assumption here is that the BIOS would only mask the bits it's not
-> going to grant control of and will do it in a consistent way.  So, I guess the
-> purpose of the change above would be to protect us from buggy BIOSes.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-What about the appended patch (on top of 4/8)?
+If a handler is installed for a GPE associated with an AML method and
+such that it cannot wake up the system from sleep states, the GPE
+remains enabled after the handler has been installed, although it
+should be disabled in that case to avoid spurious execution of the
+handler.
 
+Fix this issue by making acpi_install_gpe_handler() disable GPEs
+that were previously associated with AML methods and cannot wake up
+the system from sleep states.
+
+Analogously, make acpi_remove_gpe_handler() enable the GPEs that
+are associated with AML methods after their handlers have been
+removed and cannot wake up the system from sleep states.  In addition
+to that, fix a code ordering issue in acpi_remove_gpe_handler() that
+renders the locking ineffective (ACPI_MTX_EVENTS is released
+temporarily in the middle of the routine to wait for the completion
+of events already in progress).
+
+For this purpose introduce acpi_raw_disable_gpe() and
+acpi_raw_enable_gpe() to be called with acpi_gbl_gpe_lock held
+and rework acpi_disable_gpe() and acpi_enable_gpe(), respectively, to
+use them.  Also rework acpi_gpe_can_wake() to use
+acpi_raw_disable_gpe() instead of calling acpi_disable_gpe() after
+releasing the lock to avoid the possible theoretical race with
+acpi_install_gpe_handler().
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>
+---
+
+Hi Len,
+
+This patch has been rebased on top of the current 'test' branch of the
+linux-acpi-2.6 tree.
+
+Please apply.
+
+Thanks,
 Rafael
 
-
 ---
- drivers/pci/pcie/portdrv_acpi.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/acevents.h |    4 ++
+ drivers/acpi/acpica/aclocal.h  |    1 
+ drivers/acpi/acpica/evgpe.c    |   73 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/evxface.c  |   77 +++++++++++++++++++++++++++--------------
+ drivers/acpi/acpica/evxfevnt.c |   62 ++++-----------------------------
+ 5 files changed, 139 insertions(+), 78 deletions(-)
 
-Index: linux-2.6/drivers/pci/pcie/portdrv_acpi.c
+Index: linux-2.6/drivers/acpi/acpica/evxface.c
 ===================================================================
---- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
-+++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-@@ -35,7 +35,7 @@ int pcie_port_acpi_setup(struct pci_dev 
- {
- 	acpi_status status;
- 	acpi_handle handle;
--	u32 flags;
-+	u32 flags, prev_flags = 0;
- 
- 	if (acpi_pci_disabled)
- 		return 0;
-@@ -55,11 +55,14 @@ int pcie_port_acpi_setup(struct pci_dev 
- 			flags |= OSC_PCI_EXPRESS_AER_CONTROL;
+--- linux-2.6.orig/drivers/acpi/acpica/evxface.c
++++ linux-2.6/drivers/acpi/acpica/evxface.c
+@@ -691,12 +691,22 @@ acpi_install_gpe_handler(acpi_handle gpe
+ 		return_ACPI_STATUS(status);
  	}
  
--	status = acpi_pci_osc_control_query(handle, &flags);
++	/* Allocate memory for the handler object */
++
++	handler = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_handler_info));
++	if (!handler) {
++		status = AE_NO_MEMORY;
++		goto unlock_and_exit;
++	}
++
++	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
++
+ 	/* Ensure that we have a valid GPE number */
+ 
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+ 	if (!gpe_event_info) {
+ 		status = AE_BAD_PARAMETER;
+-		goto unlock_and_exit;
++		goto free_and_exit;
+ 	}
+ 
+ 	/* Make sure that there isn't a handler there already */
+@@ -704,24 +714,30 @@ acpi_install_gpe_handler(acpi_handle gpe
+ 	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+ 	    ACPI_GPE_DISPATCH_HANDLER) {
+ 		status = AE_ALREADY_EXISTS;
+-		goto unlock_and_exit;
++		goto free_and_exit;
+ 	}
+ 
+ 	/* Allocate and init handler object */
+ 
+-	handler = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_handler_info));
+-	if (!handler) {
+-		status = AE_NO_MEMORY;
+-		goto unlock_and_exit;
+-	}
+-
+ 	handler->address = address;
+ 	handler->context = context;
+ 	handler->method_node = gpe_event_info->dispatch.method_node;
++	handler->orig_flags = gpe_event_info->flags &
++			(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
++
++	/*
++	 * If the GPE is associated with a method and it cannot wake up the
++	 * system from sleep states, it was enabled automatically during
++	 * initialization, so it has to be disabled now to avoid spurious
++	 * execution of the handler.
++	 */
++
++	if ((handler->orig_flags & ACPI_GPE_DISPATCH_METHOD)
++	    && !(gpe_event_info->flags & ACPI_GPE_CAN_WAKE))
++		(void)acpi_raw_disable_gpe(gpe_event_info);
+ 
+ 	/* Install the handler */
+ 
+-	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 	gpe_event_info->dispatch.handler = handler;
+ 
+ 	/* Setup up dispatch flags to indicate handler (vs. method) */
+@@ -735,6 +751,11 @@ acpi_install_gpe_handler(acpi_handle gpe
+ unlock_and_exit:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+ 	return_ACPI_STATUS(status);
++
++free_and_exit:
++	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++	ACPI_FREE(handler);
++	goto unlock_and_exit;
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_install_gpe_handler)
+@@ -770,11 +791,17 @@ acpi_remove_gpe_handler(acpi_handle gpe_
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
++	/* Make sure all deferred tasks are completed */
++
++	acpi_os_wait_events_complete(NULL);
++
+ 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
++	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
++
+ 	/* Ensure that we have a valid GPE number */
+ 
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+@@ -798,34 +825,34 @@ acpi_remove_gpe_handler(acpi_handle gpe_
+ 		goto unlock_and_exit;
+ 	}
+ 
+-	/* Make sure all deferred tasks are completed */
+-
+-	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+-	acpi_os_wait_events_complete(NULL);
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
 -	if (ACPI_FAILURE(status)) {
--		dev_dbg(&port->dev, "ACPI _OSC query failed (code %d)\n",
--			status);
--		return -ENODEV;
-+	while (flags != prev_flags) {
-+		prev_flags = flags;
-+		status = acpi_pci_osc_control_query(handle, &flags);
-+		if (ACPI_FAILURE(status)) {
-+			dev_dbg(&port->dev,
-+				"ACPI _OSC query failed (code %d)\n", status);
-+			return -ENODEV;
+-		return_ACPI_STATUS(status);
+-	}
+-
+ 	/* Remove the handler */
+ 
+-	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 	handler = gpe_event_info->dispatch.handler;
+ 
+ 	/* Restore Method node (if any), set dispatch flags */
+ 
+ 	gpe_event_info->dispatch.method_node = handler->method_node;
+-	gpe_event_info->flags &= ~ACPI_GPE_DISPATCH_MASK;	/* Clear bits */
+-	if (handler->method_node) {
+-		gpe_event_info->flags |= ACPI_GPE_DISPATCH_METHOD;
+-	}
+-	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++	gpe_event_info->flags &=
++		~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
++	gpe_event_info->flags |= handler->orig_flags;
++
++	/*
++	 * If the GPE was previously associated with a method and it cannot wake
++	 * up the system from sleep states, it should be enabled at this point
++	 * to restore the post-initialization configuration.
++	 */
++
++	if ((handler->orig_flags & ACPI_GPE_DISPATCH_METHOD)
++	    && !(gpe_event_info->flags & ACPI_GPE_CAN_WAKE))
++		(void)acpi_raw_enable_gpe(gpe_event_info);
+ 
+ 	/* Now we can free the handler object */
+ 
+ 	ACPI_FREE(handler);
+ 
+-      unlock_and_exit:
++unlock_and_exit:
++	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+ 	return_ACPI_STATUS(status);
+ }
+Index: linux-2.6/drivers/acpi/acpica/aclocal.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/aclocal.h
++++ linux-2.6/drivers/acpi/acpica/aclocal.h
+@@ -412,6 +412,7 @@ struct acpi_handler_info {
+ 	acpi_event_handler address;	/* Address of handler, if any */
+ 	void *context;		/* Context to be passed to handler */
+ 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level (saved) */
++	u8 orig_flags;		/* Original misc info about this GPE */
+ };
+ 
+ union acpi_gpe_dispatch_info {
+Index: linux-2.6/drivers/acpi/acpica/evgpe.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/evgpe.c
++++ linux-2.6/drivers/acpi/acpica/evgpe.c
+@@ -137,6 +137,79 @@ acpi_ev_enable_gpe(struct acpi_gpe_event
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_raw_enable_gpe
++ *
++ * PARAMETERS:  gpe_event_info  - GPE to enable
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Add a reference to a GPE. On the first reference, the GPE is
++ *              hardware-enabled.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_raw_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
++{
++	acpi_status status = AE_OK;
++
++	if (gpe_event_info->runtime_count == ACPI_UINT8_MAX) {
++		return_ACPI_STATUS(AE_LIMIT);
++	}
++
++	gpe_event_info->runtime_count++;
++	if (gpe_event_info->runtime_count == 1) {
++		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
++		if (ACPI_SUCCESS(status)) {
++			status = acpi_ev_enable_gpe(gpe_event_info);
 +		}
++
++		if (ACPI_FAILURE(status)) {
++			gpe_event_info->runtime_count--;
++		}
++	}
++
++	return_ACPI_STATUS(status);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_raw_disable_gpe
++ *
++ * PARAMETERS:  gpe_event_info  - GPE to disable
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Remove a reference to a GPE. When the last reference is
++ *              removed, the GPE is hardware-disabled.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_raw_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
++{
++	acpi_status status = AE_OK;
++
++	if (!gpe_event_info->runtime_count) {
++		return_ACPI_STATUS(AE_LIMIT);
++	}
++
++	gpe_event_info->runtime_count--;
++	if (!gpe_event_info->runtime_count) {
++		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
++		if (ACPI_SUCCESS(status)) {
++			status = acpi_hw_low_set_gpe(gpe_event_info,
++						     ACPI_GPE_DISABLE);
++		}
++
++		if (ACPI_FAILURE(status)) {
++			gpe_event_info->runtime_count++;
++		}
++	}
++
++	return_ACPI_STATUS(status);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ev_low_get_gpe_info
+  *
+  * PARAMETERS:  gpe_number          - Raw GPE number
+Index: linux-2.6/drivers/acpi/acpica/acevents.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/acevents.h
++++ linux-2.6/drivers/acpi/acpica/acevents.h
+@@ -82,6 +82,10 @@ acpi_ev_update_gpe_enable_mask(struct ac
+ 
+ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info);
+ 
++acpi_status acpi_raw_enable_gpe(struct acpi_gpe_event_info *gpe_event_info);
++
++acpi_status acpi_raw_disable_gpe(struct acpi_gpe_event_info *gpe_event_info);
++
+ struct acpi_gpe_event_info *acpi_ev_get_gpe_event_info(acpi_handle gpe_device,
+ 						       u32 gpe_number);
+ 
+Index: linux-2.6/drivers/acpi/acpica/evxfevnt.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/evxfevnt.c
++++ linux-2.6/drivers/acpi/acpica/evxfevnt.c
+@@ -294,7 +294,7 @@ ACPI_EXPORT_SYMBOL(acpi_gpe_wakeup)
+  ******************************************************************************/
+ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
+ {
+-	acpi_status status = AE_OK;
++	acpi_status status = AE_BAD_PARAMETER;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 	acpi_cpu_flags flags;
+ 
+@@ -305,28 +305,10 @@ acpi_status acpi_enable_gpe(acpi_handle 
+ 	/* Ensure that we have a valid GPE number */
+ 
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+-	if (!gpe_event_info) {
+-		status = AE_BAD_PARAMETER;
+-		goto unlock_and_exit;
++	if (gpe_event_info) {
++		status = acpi_raw_enable_gpe(gpe_event_info);
  	}
  
- 	if (!(flags & OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL)) {
+-	if (gpe_event_info->runtime_count == ACPI_UINT8_MAX) {
+-		status = AE_LIMIT;	/* Too many references */
+-		goto unlock_and_exit;
+-	}
+-
+-	gpe_event_info->runtime_count++;
+-	if (gpe_event_info->runtime_count == 1) {
+-		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
+-		if (ACPI_SUCCESS(status)) {
+-			status = acpi_ev_enable_gpe(gpe_event_info);
+-		}
+-		if (ACPI_FAILURE(status)) {
+-			gpe_event_info->runtime_count--;
+-		}
+-	}
+-
+-unlock_and_exit:
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+ 	return_ACPI_STATUS(status);
+ }
+@@ -348,7 +330,7 @@ ACPI_EXPORT_SYMBOL(acpi_enable_gpe)
+  ******************************************************************************/
+ acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number)
+ {
+-	acpi_status status = AE_OK;
++	acpi_status status = AE_BAD_PARAMETER;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 	acpi_cpu_flags flags;
+ 
+@@ -359,32 +341,10 @@ acpi_status acpi_disable_gpe(acpi_handle
+ 	/* Ensure that we have a valid GPE number */
+ 
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+-	if (!gpe_event_info) {
+-		status = AE_BAD_PARAMETER;
+-		goto unlock_and_exit;
+-	}
+-
+-	/* Hardware-disable a runtime GPE on removal of the last reference */
+-
+-	if (!gpe_event_info->runtime_count) {
+-		status = AE_LIMIT;	/* There are no references to remove */
+-		goto unlock_and_exit;
++	if (gpe_event_info) {
++		status = acpi_raw_disable_gpe(gpe_event_info) ;
+ 	}
+ 
+-	gpe_event_info->runtime_count--;
+-	if (!gpe_event_info->runtime_count) {
+-		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
+-		if (ACPI_SUCCESS(status)) {
+-			status =
+-			    acpi_hw_low_set_gpe(gpe_event_info,
+-						ACPI_GPE_DISABLE);
+-		}
+-		if (ACPI_FAILURE(status)) {
+-			gpe_event_info->runtime_count++;
+-		}
+-	}
+-
+-unlock_and_exit:
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+ 	return_ACPI_STATUS(status);
+ }
+@@ -411,7 +371,6 @@ acpi_status acpi_gpe_can_wake(acpi_handl
+ 	acpi_status status = AE_OK;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 	acpi_cpu_flags flags;
+-	u8 disable = 0;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_gpe_can_wake);
+ 
+@@ -430,15 +389,12 @@ acpi_status acpi_gpe_can_wake(acpi_handl
+ 	}
+ 
+ 	gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
+-	disable = (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)
+-		&& gpe_event_info->runtime_count;
++	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD) {
++		(void)acpi_raw_disable_gpe(gpe_event_info);
++	}
+ 
+ unlock_and_exit:
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+-
+-	if (disable)
+-		status = acpi_disable_gpe(gpe_device, gpe_number);
+-
+ 	return_ACPI_STATUS(status);
+ }
+ ACPI_EXPORT_SYMBOL(acpi_gpe_can_wake)
