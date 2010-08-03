@@ -1,89 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 7/8] ACPI / PCI: Do not preserve _OSC control bits returned by a query (v2)
-Date: Tue, 3 Aug 2010 11:33:37 +0200
-Message-ID: <201008031133.37471.rjw@sisk.pl>
-References: <201008022351.31406.rjw@sisk.pl> <4C57A09B.9070206@jp.fujitsu.com> <4C57C182.7060407@jp.fujitsu.com>
+From: Jike Song <albcamus@gmail.com>
+Subject: Re: [PATCH 2/8] PCI / PCIe/ AER: Introduce pci_aer_available()
+Date: Tue, 3 Aug 2010 17:41:38 +0800
+Message-ID: <AANLkTimZV8KSkAR5Tc0nDK=TmzX1edKiJ9qSSgZ8v0h9@mail.gmail.com>
+References: <201008022351.31406.rjw@sisk.pl>
+	<201008022354.46369.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59684 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752651Ab0HCJel (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Aug 2010 05:34:41 -0400
-In-Reply-To: <4C57C182.7060407@jp.fujitsu.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:60303 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755535Ab0HCJlk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Aug 2010 05:41:40 -0400
+In-Reply-To: <201008022354.46369.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tuesday, August 03, 2010, Hidetoshi Seto wrote:
-> (2010/08/03 13:52), Kenji Kaneshige wrote:
-> > (2010/08/03 6:59), Rafael J. Wysocki wrote:
-> >> @@ -434,19 +432,6 @@ acpi_status acpi_pci_osc_control_set(acp
-> >>       if ((root->osc_control_set&  control_req) == control_req)
-> >>           goto out;
-> >>
-> >> -    /* Need to query controls first before requesting them */
-> >> -    if (!root->osc_queried) {
-> >> -        status = acpi_pci_query_osc(root, root->osc_support_set, NULL);
-> >> -        if (ACPI_FAILURE(status))
-> >> -            goto out;
-> >> -    }
-> >> -    if ((root->osc_control_qry&  control_req) != control_req) {
-> >> -        printk(KERN_DEBUG
-> >> -               "Firmware did not grant requested _OSC control\n");
-> >> -        status = AE_SUPPORT;
-> >> -        goto out;
-> >> -    }
-> > 
-> > I think acpi_pci_osc_control_set() still need to query before commit
-> > to ensure all the requested controls are granted to OS.
-> > 
-> > So the code needs to be
-> > 
-> >     status = acpi_pci_query_osc(root, root->osc_support_set, &control_req);
-> >     if (ACPI_FAILURE(status))
-> >         goto out;
-> 
-> Hum, since acpi_status acpi_pci_osc_control_set() is an exported
-> function, we cannot be too careful here. 
-> 
-> OTOH, I think this second query should be done in caller too,
-> i.e. pcie_port_acpi_setup() in patch [4/8].
-> 
-> Now:
->   pcie_port_acpi_setup()
->   {
->     flags = A|B|C|D;
->     acpi_pci_osc_control_query(handle, &flags);
->     /* note: flags might be changed after query */
->     acpi_pci_osc_control_set(handle, flags);
->   }
-> 
-> Strictly, it could be like:
-> 
-> New:
->   pcie_port_acpi_setup()
->   {
->     flags = A|B|C|D;
->     do {
->       pre_flags = flags;
->       acpi_pci_osc_control_query(handle, &flags);
->     } while (flags && pre_flags != flags);
->     if (flags)
->       acpi_pci_osc_control_set(handle, flags);
->   }
-> 
-> IMHO these checks are kind of preventive guard for corner cases,
-> and I suppose it can be implemented by an incremental patch later.
+On Tue, Aug 3, 2010 at 5:54 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+> Introduce a function allowing the caller to check if PCIe AER should
+> be enabled.
+>
 
-OK
+Maybe it's misnamed?  How about pcie_aer_disable is not set and MSI is
+enabled, but there is not AER capability implemented at all?
 
-The assumption here is that the BIOS would only mask the bits it's not
-going to grant control of and will do it in a consistent way.  So, I guess the
-purpose of the change above would be to protect us from buggy BIOSes.
-
+-- 
 Thanks,
-Rafael
+Jike
