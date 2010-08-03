@@ -1,79 +1,73 @@
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Subject: Re: [PATCH 7/8] ACPI / PCI: Do not preserve _OSC control bits returned
- by a query (v2)
-Date: Tue, 03 Aug 2010 16:13:06 +0900
-Message-ID: <4C57C182.7060407@jp.fujitsu.com>
-References: <201008022351.31406.rjw@sisk.pl> <201008022359.33177.rjw@sisk.pl> <4C57A09B.9070206@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/8] ACPI / PCI: Introduce acpi_pci_osc_control_query()
+Date: Tue, 3 Aug 2010 11:24:56 +0200
+Message-ID: <201008031124.56735.rjw@sisk.pl>
+References: <201008022351.31406.rjw@sisk.pl> <201008022353.04353.rjw@sisk.pl> <4C57A071.2090902@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4C57A09B.9070206@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:59578 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754079Ab0HCJ0m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Aug 2010 05:26:42 -0400
+In-Reply-To: <4C57A071.2090902@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-(2010/08/03 13:52), Kenji Kaneshige wrote:
-> (2010/08/03 6:59), Rafael J. Wysocki wrote:
->> @@ -434,19 +432,6 @@ acpi_status acpi_pci_osc_control_set(acp
->>       if ((root->osc_control_set&  control_req) == control_req)
->>           goto out;
->>
->> -    /* Need to query controls first before requesting them */
->> -    if (!root->osc_queried) {
->> -        status = acpi_pci_query_osc(root, root->osc_support_set, NULL);
->> -        if (ACPI_FAILURE(status))
->> -            goto out;
->> -    }
->> -    if ((root->osc_control_qry&  control_req) != control_req) {
->> -        printk(KERN_DEBUG
->> -               "Firmware did not grant requested _OSC control\n");
->> -        status = AE_SUPPORT;
->> -        goto out;
->> -    }
+On Tuesday, August 03, 2010, Kenji Kaneshige wrote:
+> (2010/08/03 6:53), Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki<rjw@sisk.pl>
+> >
+> > Introduce a function allowing the caller to obtain a mask of _OSC
+> > control bits the BIOS will allow the kernel to control for a given
+> > PCI root bridge.
+> >
+> > Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
+> > ---
+> >   drivers/acpi/pci_root.c |   58 ++++++++++++++++++++++++++++++++++++++++--------
+> >   include/linux/acpi.h    |    1
+> >   2 files changed, 50 insertions(+), 9 deletions(-)
+> >
+> > Index: linux-2.6/drivers/acpi/pci_root.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/pci_root.c
+> > +++ linux-2.6/drivers/acpi/pci_root.c
+> > @@ -225,21 +225,32 @@ static acpi_status acpi_pci_run_osc(acpi
+> >   	return status;
+> >   }
+> >
+> > -static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root, u32 flags)
+> > +static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root,
+> > +					u32 support,
+> > +					u32 *control)
+> >   {
+> >   	acpi_status status;
+> > -	u32 support_set, result, capbuf[3];
+> > +	u32 result, capbuf[3];
+> > +
+> > +	support&= OSC_PCI_SUPPORT_MASKS;
+> > +	support |= root->osc_support_set;
+> >
+> > -	/* do _OSC query for all possible controls */
+> > -	support_set = root->osc_support_set | (flags&  OSC_PCI_SUPPORT_MASKS);
+> >   	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
+> > -	capbuf[OSC_SUPPORT_TYPE] = support_set;
+> > -	capbuf[OSC_CONTROL_TYPE] = OSC_PCI_CONTROL_MASKS;
+> > +	capbuf[OSC_SUPPORT_TYPE] = support;
+> > +	if (control) {
+> > +		*control&= OSC_PCI_CONTROL_MASKS;
+> > +		capbuf[OSC_CONTROL_TYPE] = *control;
 > 
-> I think acpi_pci_osc_control_set() still need to query before commit
-> to ensure all the requested controls are granted to OS.
+> I think controls that are already granted to OS need to be ORed here.
+> I.e.
 > 
-> So the code needs to be
-> 
->     status = acpi_pci_query_osc(root, root->osc_support_set, &control_req);
->     if (ACPI_FAILURE(status))
->         goto out;
+> 		capbuf[OSC_CONTROL_TYPE] = root->osc_control_set | *control;
 
-Hum, since acpi_status acpi_pci_osc_control_set() is an exported
-function, we cannot be too careful here. 
-
-OTOH, I think this second query should be done in caller too,
-i.e. pcie_port_acpi_setup() in patch [4/8].
-
-Now:
-  pcie_port_acpi_setup()
-  {
-    flags = A|B|C|D;
-    acpi_pci_osc_control_query(handle, &flags);
-    /* note: flags might be changed after query */
-    acpi_pci_osc_control_set(handle, flags);
-  }
-
-Strictly, it could be like:
-
-New:
-  pcie_port_acpi_setup()
-  {
-    flags = A|B|C|D;
-    do {
-      pre_flags = flags;
-      acpi_pci_osc_control_query(handle, &flags);
-    } while (flags && pre_flags != flags);
-    if (flags)
-      acpi_pci_osc_control_set(handle, flags);
-  }
-
-IMHO these checks are kind of preventive guard for corner cases,
-and I suppose it can be implemented by an incremental patch later.
-
+That's correct.
 
 Thanks,
-H.Seto
+Rafael
