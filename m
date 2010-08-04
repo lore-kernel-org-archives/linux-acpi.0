@@ -1,114 +1,33 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [linux-pm] [PATCH 7/8] ACPI / PCI: Do not preserve _OSC control
- bits returned by a query (v2)
-Date: Wed, 04 Aug 2010 14:46:02 +0900
-Message-ID: <4C58FE9A.1040607@jp.fujitsu.com>
-References: <201008022351.31406.rjw@sisk.pl> <4C57C182.7060407@jp.fujitsu.com> <201008031133.37471.rjw@sisk.pl> <201008032302.33778.rjw@sisk.pl>
+From: Harald Dunkel <harald.dunkel@aixigo.de>
+Subject: Re: reset on loading processor acpi module
+Date: Wed, 04 Aug 2010 09:24:55 +0200
+Message-ID: <4C5915C7.2060307@aixigo.de>
+References: <4C56B538.6090901@aixigo.de> <20100803144654.GA27190@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008032302.33778.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-pci@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.aixigo.de ([195.14.232.227]:7428 "EHLO mail.aixigo.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756835Ab0HDHY7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Aug 2010 03:24:59 -0400
+In-Reply-To: <20100803144654.GA27190@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-(2010/08/04 6:02), Rafael J. Wysocki wrote:
-> On Tuesday, August 03, 2010, Rafael J. Wysocki wrote:
->> On Tuesday, August 03, 2010, Hidetoshi Seto wrote:
->>> (2010/08/03 13:52), Kenji Kaneshige wrote:
->>>> (2010/08/03 6:59), Rafael J. Wysocki wrote:
->>>>> @@ -434,19 +432,6 @@ acpi_status acpi_pci_osc_control_set(acp
->>>>>        if ((root->osc_control_set&   control_req) == control_req)
->>>>>            goto out;
->>>>>
->>>>> -    /* Need to query controls first before requesting them */
->>>>> -    if (!root->osc_queried) {
->>>>> -        status = acpi_pci_query_osc(root, root->osc_support_set, NULL);
->>>>> -        if (ACPI_FAILURE(status))
->>>>> -            goto out;
->>>>> -    }
->>>>> -    if ((root->osc_control_qry&   control_req) != control_req) {
->>>>> -        printk(KERN_DEBUG
->>>>> -               "Firmware did not grant requested _OSC control\n");
->>>>> -        status = AE_SUPPORT;
->>>>> -        goto out;
->>>>> -    }
->>>>
->>>> I think acpi_pci_osc_control_set() still need to query before commit
->>>> to ensure all the requested controls are granted to OS.
->>>>
->>>> So the code needs to be
->>>>
->>>>      status = acpi_pci_query_osc(root, root->osc_support_set,&control_req);
->>>>      if (ACPI_FAILURE(status))
->>>>          goto out;
->>>
+On 08/03/10 16:46, Matthew Garrett wrote:
+> Could you provide the output of the acpidump command?
+> 
 
-Sorry, that should have been
+There is a bug report:
 
-	query = control_req;
-	status = acpi_pci_query_osc(root, root->osc_support_set, &query);
-	if (ACPI_FAILURE(status))
-		goto out;
-	if ((query & control_req) != control_req) {
-		printk_(KERN_DEBUG
-			"Firmware did not grant requested _OSC control\n");
-		status = AE_SUPPORT;
-		goto out;
-	}
+https://bugzilla.kernel.org/show_bug.cgi?id=16097
 
-I know current pcie_port_acpi_setup() queries the requesting controls
-before acpi_pci_osc_control_set() and only one control is requested
-in the other code. However, I think acpi_pci_osc_control_set() still
-need to query the requested controls to ensure all the requested
-controls, in case someone calls this function without querying the
-requesting controls. In other words, I think it must be ensured that
-any controls are never granted to OS when acpi_pci_osc_control_set()
-returns error.
-
->>>>      status = acpi_pci_query_osc(root, root->osc_support_set,&control_req);
->>>>      if (ACPI_FAILURE(status))
->>>>          goto out;
-
-By the way, I think it is getting confusing regarding who query the
-controls. IMO, querying controls to ensure all the requested controls
-are granted to OS should be done in acpi_pci_osc_control_set(), as
-I said above. On the other hand, PCIe port driver need to query
-controls for other reason... Now I think it might be better to change
-acpi_pci_osc_control_set() like below instead of introducing
-acpi_pci_osc_control_query().
-
-acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *flags)
-{
-	...
-	query = control_req;
-	status = acpi_pci_query_osc(root, root->osc_support_set, &query);
-	if (ACPI_FAILURE(status))
-		goto out;
-	if ((query & control_req) != control_req) {
-		printk_(KERN_DEBUG
-			"Firmware did not grant requested _OSC control\n");
-		status = AE_SUPPORT;
-		*flags = (query & control_req);
-		goto out;
-	}
-	...
-}
-
-And do as follows in pcie_port_acpi_setup()
-
-	status = acpi_pci_osc_control_set(handle, &flags);
-	if (status == AE_SUPPORT)  {
-		/* 2nd try */
-		status = acpi_pci_osc_control_set(handle, &flags);
-	}
-	if (ACPI_FAILURE(status)) {
-	...
-
-What do you think about this?
+I have added the acpidump to it. Hope this is OK?
 
 
-Thanks,
-Kenji Kaneshige
+Regards
+
+Harri
