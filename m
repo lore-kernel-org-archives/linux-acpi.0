@@ -1,86 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] PM updates for 2.6.36
-Date: Wed, 4 Aug 2010 00:24:22 +0200
-Message-ID: <201008040024.22222.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI / PM: Traverse video_device_list for backlight
+ restoration
+Date: Wed, 04 Aug 2010 09:27:29 +0800
+Message-ID: <1280885249.1779.97.camel@rui>
+References: <20100803100505.GA26948@suse.de>
+	 <20100803101157.GA29721@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.osdl.org" <linux-pm@lists.osdl.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:52674 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756799Ab0HDBYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Aug 2010 21:24:01 -0400
+In-Reply-To: <20100803101157.GA29721@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthias Hopf <mhopf@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Julia Lawall <julia@diku.dk>, Oliver Neukum <oneukum@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Tue, 2010-08-03 at 18:11 +0800, Matthias Hopf wrote:
+> A bit of background about this patch:
+> 
+> 
+> acpi_video_bus_get_devices() explicitly calls acpi_video_device_enumerate()
+> before acpi_video_bus_get_one_device(), which does acpi_video_device_bind().
+> 
+> In _enumerate(), active_list[] is created, with .bind_info explicitly set to
+> NULL, while the related .bind_info entry in video_device_list is set to the
+> acpi_video_device ptr in _bind().
+> 
+> The .bind_info is later used in acpi_video_resume() to re-set the backlight
+> - but it's only evaluated on the active_list[], on which all .bind_info are
+> NULL by construction.
 
-Please pull power management updates for 2.6.36 from:
+why? .bind_info in active_list is initialized in acpi_video_device_bind.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git for-linus
+>   This results in backlight not being restored, if the
+> BIOS doesn't do this by itself already.
+> 
+> 
+> The patch resolves this by replacing the active_list[] traversal by a
+> video_device_list traversal,
 
-They include:
-
- * Runtime PM framework updates from Alan Stern and Arjan.
-
- * Hibernate and suspend fixes.
-
- * PM QoS update from James.
-
- * New mechanism for avoiding races between wakeup and system sleep.
+>  but due to the nature of the issue I'm unsure
+> whether the original issue isn't of more principal quality.
 
 
- Documentation/ABI/testing/sysfs-power  |   15 ++
- drivers/base/power/Makefile            |    2 +-
- drivers/base/power/main.c              |    1 +
- drivers/base/power/runtime.c           |   54 ++++++-
- drivers/base/power/sysfs.c             |   98 ++++++++++---
- drivers/base/power/wakeup.c            |  247 ++++++++++++++++++++++++++++++++
- drivers/net/e1000e/netdev.c            |   17 +--
- drivers/net/igbvf/netdev.c             |    9 +-
- drivers/net/wireless/ipw2x00/ipw2100.c |   12 +-
- drivers/pci/pci-acpi.c                 |    1 +
- drivers/pci/pci.c                      |   20 +++-
- drivers/pci/pci.h                      |    1 +
- drivers/pci/pcie/pme/pcie_pme.c        |    5 +-
- drivers/pnp/core.c                     |    3 +
- drivers/pnp/pnpacpi/core.c             |   23 +++
- include/linux/netdevice.h              |    2 +-
- include/linux/plist.h                  |   29 ++++
- include/linux/pm.h                     |   16 ++
- include/linux/pm_qos_params.h          |   13 ++-
- include/linux/pm_wakeup.h              |   10 +-
- include/linux/pnp.h                    |    1 +
- include/linux/suspend.h                |   17 ++-
- include/sound/pcm.h                    |    2 +-
- kernel/pm_qos_params.c                 |  215 +++++++++++++++-------------
- kernel/power/hibernate.c               |   24 ++-
- kernel/power/main.c                    |   55 +++++++
- kernel/power/suspend.c                 |   13 +-
- kernel/power/swap.c                    |    4 +-
- sound/core/pcm_native.c                |   13 +-
- 29 files changed, 734 insertions(+), 188 deletions(-)
+> I don't understand
+> why the list is (partially) transformed into an array in the first place,
+> especially as both the array *and* the list are used in the code...
+> 
+no, the active_list is an array in fact, which equals
+acpi_video_bus->attached_array. Maybe we need to change it to a more
+proper name.
 
----------------
+I'm still wondering why the patch works for you.
+could you please attach the acpidump output of this laptop?
 
-Alan Stern (3):
-      PM: describe kernel policy regarding wakeup defaults (v. 2)
-      PNPACPI: Add support for remote wakeup
-      PM / Runtime: Make runtime_status attribute not debug-only (v. 2)
+please rebuild your kernel with CONFIG_ACPI_DEBUG=y, and reboot with
+kernel parameter "acpi.debug_layer=0x10 acpi.debug_level=0x400".
+and attach the dmesg output after resume, both w/ and w/o the patch you
+attached.
 
-Arjan van de Ven (1):
-      PM / Runtime: Add runtime PM statistics (v3)
+thanks,
+rui
 
-Cesar Eduardo Barros (1):
-      PM / Hibernate: Fix typos in comments in kernel/power/swap.c
 
-James Bottomley (3):
-      plist: Add plist_last
-      pm_qos: Reimplement using plists
-      pm_qos: Get rid of the allocation in pm_qos_add_request()
-
-Rafael J. Wysocki (5):
-      PM: Make it possible to avoid races between wakeup and system sleep
-      PM / Hibernate: Fix hibernation_platform_enter()
-      PM / Hibernate: Fix snapshot error code path
-      PM / Suspend: Fix ordering of calls in suspend error paths
-      PM: Do not use dynamically allocated objects in pm_wakeup_event()
