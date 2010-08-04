@@ -1,41 +1,39 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: acpi_os_read_memory() from interrupt context
-Date: Wed, 4 Aug 2010 11:19:23 -0600
-Message-ID: <201008041119.23633.bjorn.helgaas@hp.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Question regarding linux acpi
+Date: Wed, 4 Aug 2010 21:22:32 +0100
+Message-ID: <20100804202232.GA4276@srcf.ucam.org>
+References: <20100804170236.GA32073@srcf.ucam.org> <BLU102-W81BE50E68610AAA92C33AEBAF0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0186.atlanta.hp.com ([15.193.32.63]:2734 "EHLO
-	g6t0186.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755361Ab0HDRTs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 13:19:48 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:60222 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758817Ab0HDUWf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 16:22:35 -0400
+Content-Disposition: inline
+In-Reply-To: <BLU102-W81BE50E68610AAA92C33AEBAF0@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devel@acpica.org
+To: Raj Kumar <rajkumar278@hotmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Linux reads some ACPI registers from interrupt context.  For example,
-we read the PM1 Status register in the SCI interrupt handler via
-this path:
+On Thu, Aug 05, 2010 at 01:44:21AM +0530, Raj Kumar wrote:
 
-    acpi_irq
-      acpi_ev_sci_xrupt_handler
-        acpi_ev_fixed_event_detect
-          acpi_hw_register_read
-            acpi_hw_read_multiple
-              acpi_read
+>    Does it mean that only bus driver code will handle all low power mode
+>    requests?
 
-But acpi_read() takes a generic address structure, and if that
-address happens to be in memory space (not I/O port space), we use
-acpi_os_read_memory().  In Linux, that uses ioremap() to map the
-address, and that doesn't work from interrupt context.
+The bus code is responsible for calling the device-specific methods, but 
+the device-specific drivers will typically know nothing about ACPI. 
+They'll only know that the bus code asked them to enter a low-power mode 
+or that they got a wakeup event.
 
-I can imagine fixing this by doing the ioremap() at boot-time
-rather than at interrupt-time, but most of this interrupt path
-is in the ACPI CA, not in Linux itself, so it would probably
-require some redesign in the CA.
+>    peripherals are idle but not all peripherals belonging to bus then in that
+>    case
+> 
+>    does the bus handle the low power modes of peripherals? 
 
-Any suggestions?
+Yes. All determination is done per-device. Check 
+Documentation/power/runtime_pm.txt.
 
-Bjorn
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
