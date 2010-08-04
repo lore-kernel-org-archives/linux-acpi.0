@@ -1,130 +1,123 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 1/2] x86, acpi: merge two register_lapic_address()
-Date: Wed, 04 Aug 2010 14:58:57 -0700
-Message-ID: <4C59E2A1.4060203@kernel.org>
-References: <201008031028.57263.tvrtko.ursulin@sophos.com>	<20100804093623.GE10499@redhat.com> <m1fwyuacjs.fsf@fess.ebiederm.org>	<201008041146.56406.tvrtko.ursulin@sophos.com> <m1eiee86jg.fsf_-_@fess.ebiederm.org>
+Subject: [PATCH 2/2] x86: remove early_init_lapic_mapping
+Date: Wed, 04 Aug 2010 15:00:42 -0700
+Message-ID: <4C59E30A.4000004@kernel.org>
+References: <201008031028.57263.tvrtko.ursulin@sophos.com>	<20100804093623.GE10499@redhat.com> <m1fwyuacjs.fsf@fess.ebiederm.org>	<201008041146.56406.tvrtko.ursulin@sophos.com> <m1eiee86jg.fsf_-_@fess.ebiederm.org> <4C59E2A1.4060203@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:36616 "EHLO
+Received: from rcsinet10.oracle.com ([148.87.113.121]:38270 "EHLO
 	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855Ab0HDV7U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 17:59:20 -0400
-In-Reply-To: <m1eiee86jg.fsf_-_@fess.ebiederm.org>
+	with ESMTP id S1751686Ab0HDWBP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 18:01:15 -0400
+In-Reply-To: <4C59E2A1.4060203@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
-They are the same, move it to apic.c
+It is almost the same as smp_register_lapic_addr()
+
+Just need to make smp_read_mpc() call smp_register_lapic_addr when early==1.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
 ---
- arch/x86/include/asm/apic.h |    1 +
- arch/x86/kernel/acpi/boot.c |   16 ++--------------
- arch/x86/kernel/apic/apic.c |   12 ++++++++++++
- arch/x86/kernel/mpparse.c   |   12 ------------
- 4 files changed, 15 insertions(+), 26 deletions(-)
+ arch/x86/include/asm/apic.h |    1 -
+ arch/x86/kernel/apic/apic.c |   24 ++----------------------
+ arch/x86/kernel/mpparse.c   |    8 ++------
+ arch/x86/mm/k8topology_64.c |    1 -
+ 4 files changed, 4 insertions(+), 30 deletions(-)
 
-Index: linux-2.6/arch/x86/include/asm/apic.h
+Index: linux-2.6/arch/x86/mm/k8topology_64.c
 ===================================================================
---- linux-2.6.orig/arch/x86/include/asm/apic.h
-+++ linux-2.6/arch/x86/include/asm/apic.h
-@@ -234,6 +234,7 @@ extern void init_bsp_APIC(void);
- extern void setup_local_APIC(void);
- extern void end_local_APIC_setup(void);
- extern void init_apic_mappings(void);
-+void smp_register_lapic_address(unsigned long address);
- extern void setup_boot_APIC_clock(void);
- extern void setup_secondary_APIC_clock(void);
- extern int APIC_init_uniprocessor(void);
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -820,18 +820,6 @@ static int __init acpi_parse_fadt(struct
-  * returns 0 on success, < 0 on error
-  */
- 
--static void __init acpi_register_lapic_address(unsigned long address)
--{
--	mp_lapic_addr = address;
--
--	set_fixmap_nocache(FIX_APIC_BASE, address);
--	if (boot_cpu_physical_apicid == -1U) {
--		boot_cpu_physical_apicid  = read_apic_id();
--		apic_version[boot_cpu_physical_apicid] =
--			 GET_APIC_VERSION(apic_read(APIC_LVR));
--	}
--}
--
- static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
- {
- 	int count;
-@@ -853,7 +841,7 @@ static int __init early_acpi_parse_madt_
- 		return count;
- 	}
- 
--	acpi_register_lapic_address(acpi_lapic_addr);
-+	smp_register_lapic_address(acpi_lapic_addr);
- 
- 	return count;
+--- linux-2.6.orig/arch/x86/mm/k8topology_64.c
++++ linux-2.6/arch/x86/mm/k8topology_64.c
+@@ -64,7 +64,6 @@ static __init void early_get_boot_cpu_id
+ 	if (smp_found_config)
+ 		early_get_smp_config();
+ #endif
+-	early_init_lapic_mapping();
  }
-@@ -880,7 +868,7 @@ static int __init acpi_parse_madt_lapic_
- 		return count;
- 	}
  
--	acpi_register_lapic_address(acpi_lapic_addr);
-+	smp_register_lapic_address(acpi_lapic_addr);
- 
- 	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
- 				      acpi_parse_sapic, MAX_APICS);
+ int __init k8_get_nodes(struct bootnode *physnodes)
 Index: linux-2.6/arch/x86/kernel/apic/apic.c
 ===================================================================
 --- linux-2.6.orig/arch/x86/kernel/apic/apic.c
 +++ linux-2.6/arch/x86/kernel/apic/apic.c
-@@ -1632,6 +1632,18 @@ void __init init_apic_mappings(void)
- 	}
+@@ -1560,28 +1560,6 @@ no_apic:
  }
+ #endif
  
-+void __init smp_register_lapic_address(unsigned long address)
-+{
-+	mp_lapic_addr = address;
-+
-+	set_fixmap_nocache(FIX_APIC_BASE, address);
-+	if (boot_cpu_physical_apicid == -1U) {
-+		boot_cpu_physical_apicid  = read_apic_id();
-+		apic_version[boot_cpu_physical_apicid] =
-+			 GET_APIC_VERSION(apic_read(APIC_LVR));
-+	}
-+}
-+
- /*
-  * This initializes the IO-APIC and APIC hardware if this is
-  * a UP kernel.
+-#ifdef CONFIG_X86_64
+-void __init early_init_lapic_mapping(void)
+-{
+-	/*
+-	 * If no local APIC can be found then go out
+-	 * : it means there is no mpatable and MADT
+-	 */
+-	if (!smp_found_config)
+-		return;
+-
+-	set_fixmap_nocache(FIX_APIC_BASE, mp_lapic_addr);
+-	apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
+-		    APIC_BASE, mp_lapic_addr);
+-
+-	/*
+-	 * Fetch the APIC ID of the BSP in case we have a
+-	 * default configuration (or the MP table is broken).
+-	 */
+-	boot_cpu_physical_apicid = read_apic_id();
+-}
+-#endif
+-
+ /**
+  * init_apic_mappings - initialize APIC mappings
+  */
+@@ -1637,6 +1615,8 @@ void __init smp_register_lapic_address(u
+ 	mp_lapic_addr = address;
+ 
+ 	set_fixmap_nocache(FIX_APIC_BASE, address);
++	apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
++		    APIC_BASE, mp_lapic_addr);
+ 	if (boot_cpu_physical_apicid == -1U) {
+ 		boot_cpu_physical_apicid  = read_apic_id();
+ 		apic_version[boot_cpu_physical_apicid] =
 Index: linux-2.6/arch/x86/kernel/mpparse.c
 ===================================================================
 --- linux-2.6.orig/arch/x86/kernel/mpparse.c
 +++ linux-2.6/arch/x86/kernel/mpparse.c
-@@ -274,18 +274,6 @@ static void __init smp_dump_mptable(stru
+@@ -288,17 +288,13 @@ static int __init smp_read_mpc(struct mp
+ #ifdef CONFIG_X86_32
+ 	generic_mps_oem_check(mpc, oem, str);
+ #endif
+-	/* save the local APIC address, it might be non-default */
++	/* Initialize the lapic mapping */
+ 	if (!acpi_lapic)
+-		mp_lapic_addr = mpc->lapic;
++		smp_register_lapic_address(mpc->lapic);
  
- void __init default_smp_read_mpc_oem(struct mpc_table *mpc) { }
+ 	if (early)
+ 		return 1;
  
--static void __init smp_register_lapic_address(unsigned long address)
--{
--	mp_lapic_addr = address;
+-	/* Initialize the lapic mapping */
+-	if (!acpi_lapic)
+-		smp_register_lapic_address(mpc->lapic);
 -
--	set_fixmap_nocache(FIX_APIC_BASE, address);
--	if (boot_cpu_physical_apicid == -1U) {
--		boot_cpu_physical_apicid  = read_apic_id();
--		apic_version[boot_cpu_physical_apicid] =
--			 GET_APIC_VERSION(apic_read(APIC_LVR));
--	}
--}
--
- static int __init smp_read_mpc(struct mpc_table *mpc, unsigned early)
- {
- 	char str[16];
+ 	if (mpc->oemptr)
+ 		x86_init.mpparse.smp_read_mpc_oem(mpc);
+ 
+Index: linux-2.6/arch/x86/include/asm/apic.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/apic.h
++++ linux-2.6/arch/x86/include/asm/apic.h
+@@ -244,7 +244,6 @@ extern void enable_NMI_through_LVT0(void
+  * On 32bit this is mach-xxx local
+  */
+ #ifdef CONFIG_X86_64
+-extern void early_init_lapic_mapping(void);
+ extern int apic_is_clustered_box(void);
+ #else
+ static inline int apic_is_clustered_box(void)
