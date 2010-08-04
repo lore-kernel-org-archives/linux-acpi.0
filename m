@@ -1,67 +1,122 @@
-From: Matthias Hopf <mhopf@suse.de>
-Subject: Re: [PATCH] ACPI / PM: Traverse video_device_list for backlight
-	restoration
-Date: Wed, 4 Aug 2010 13:00:23 +0200
-Message-ID: <20100804110023.GA17385@suse.de>
-References: <20100803100505.GA26948@suse.de> <20100803101157.GA29721@suse.de> <1280885249.1779.97.camel@rui>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 7/8] ACPI / PCI: Do not preserve _OSC control
+	bits returned by a query (v2)
+Date: Wed, 4 Aug 2010 14:15:23 +0200
+Message-ID: <201008041415.23248.rjw@sisk.pl>
+References: <201008022351.31406.rjw@sisk.pl> <4C59284F.9080808@jp.fujitsu.com>
+	<4C593547.2040700@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:36283 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755789Ab0HDLA0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Aug 2010 07:00:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1280885249.1779.97.camel@rui>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4C593547.2040700@jp.fujitsu.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Julia Lawall <julia@diku.dk>, Oliver Neukum <oneukum@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Aug 04, 10 09:27:29 +0800, Zhang Rui wrote:
-> On Tue, 2010-08-03 at 18:11 +0800, Matthias Hopf wrote:
-> > The .bind_info is later used in acpi_video_resume() to re-set the backlight
-> > - but it's only evaluated on the active_list[], on which all .bind_info are
-> > NULL by construction.
-> why? .bind_info in active_list is initialized in acpi_video_device_bind.
-
-Hm. Right. acpi_video_bus_get_one_device() is called after _enumerate().
-Dunno why I didn't read this correctly.
-
-> > I don't understand
-> > why the list is (partially) transformed into an array in the first place,
-> > especially as both the array *and* the list are used in the code...
+On Wednesday, August 04, 2010, Kenji Kaneshige wrote:
+> (2010/08/04 17:43), Hidetoshi Seto wrote:
+> > (2010/08/04 14:46), Kenji Kaneshige wrote:
+> >> By the way, I think it is getting confusing regarding who query the
+> >> controls. IMO, querying controls to ensure all the requested controls
+> >> are granted to OS should be done in acpi_pci_osc_control_set(), as
+> >> I said above. On the other hand, PCIe port driver need to query
+> >> controls for other reason... Now I think it might be better to change
+> >> acpi_pci_osc_control_set() like below instead of introducing
+> >> acpi_pci_osc_control_query().
+> >>
+> >> acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *flags)
+> >> {
+> >>      ...
+> >>      query = control_req;
+> >>      status = acpi_pci_query_osc(root, root->osc_support_set,&query);
+> >>      if (ACPI_FAILURE(status))
+> >>          goto out;
+> >>      if ((query&  control_req) != control_req) {
+> >>          printk_(KERN_DEBUG
+> >>              "Firmware did not grant requested _OSC control\n");
+> >>          status = AE_SUPPORT;
+> >>          *flags = (query&  control_req);
+> >>          goto out;
+> >>      }
+> >>      ...
+> >> }
+> >>
+> >> And do as follows in pcie_port_acpi_setup()
+> >>
+> >>      status = acpi_pci_osc_control_set(handle,&flags);
+> >>      if (status == AE_SUPPORT)  {
+> >>          /* 2nd try */
+> >>          status = acpi_pci_osc_control_set(handle,&flags);
+> >>      }
+> >>      if (ACPI_FAILURE(status)) {
+> >>      ...
+> >>
+> >> What do you think about this?
 > > 
-> no, the active_list is an array in fact, which equals
-> acpi_video_bus->attached_array. Maybe we need to change it to a more
-> proper name.
+> > I think it makes sense, though some minor cares are required.
+> > 
+> > Does this incremental patch (apply after [8/8]) looks good?
+> > If it is OK, I'll test these 8+1 patches within the next 2days.
+> > 
+> > Thanks,
+> > H.Seto
+> > 
+> > =====
+> > Subject: ACPI/PCI: Unify acpi_pci_osc_control_*()
+> > 
+> > Now AE_SUPPORT of acpi_pci_osc_control_set() tells not only
+> > that query fails with the requested control bits but also that
+> > the result of query is stored into the pointed place.
+> > 
+> > This allow user to retry acpi_pci_osc_control_set() with the
+> > result of query.
+> > 
+> > Signed-off-by: Hidetoshi Seto<seto.hidetoshi@jp.fujitsu.com>
+> > ---
+> >   drivers/acpi/pci_root.c          |   54 +++++++++++--------------------------
+> >   drivers/pci/hotplug/acpi_pcihp.c |    2 +-
+> >   drivers/pci/pcie/portdrv_acpi.c  |   23 +++++++---------
+> >   include/linux/acpi.h             |    3 +-
+> >   4 files changed, 28 insertions(+), 54 deletions(-)
+> 
+> <snip.>
+> 
+> >   /**
+> >    * acpi_pci_osc_control_set - commit requested control to Firmware
+> >    * @handle: acpi_handle for the target ACPI object
+> > @@ -411,14 +379,17 @@ acpi_status acpi_pci_osc_control_query(acpi_handle handle, u32 *mask)
+> >    *
+> >    * Attempt to take control from Firmware on requested control bits.
+> >    **/
+> 
+> Updating description of this function would be appreciated.
+> 
+> <snip.>
+> 
+> > @@ -452,7 +427,10 @@ acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 flags)
+> >   	capbuf[OSC_CONTROL_TYPE] = root->osc_control_set | control_req;
+> >   	status = acpi_pci_run_osc(handle, capbuf,&result);
+> >   	if (ACPI_SUCCESS(status))
+> > -		root->osc_control_set = result;
+> > +		root->osc_control_set = *flags = result;
+> 
+> I don't think we need to update *flags here, though it depends on the design
+> of this function interface.
+> IMHO, updating *flags only when AE_SUPPORT is returned is easy to understand.
 
-:-)
+I think the patch is correct.  We should update *flags in any case so that the
+caller can check what's the full mask of granted controls even if it asked for
+fewer control bits.
 
-> I'm still wondering why the patch works for you.
-
-Same to me.
-
-> could you please attach the acpidump output of this laptop?
-
-Will do.
-
-> please rebuild your kernel with CONFIG_ACPI_DEBUG=y, and reboot with
-> kernel parameter "acpi.debug_layer=0x10 acpi.debug_level=0x400".
-> and attach the dmesg output after resume, both w/ and w/o the patch you
-> attached.
-
-The most intriguing thing here is that the system starts writing to
-/var/log/messages continuously, thus dmesg output is sort-of worthless.
-This might be a reasonable side effect, it might be an indication of the
-original issue.
-I'll try to compile something for you.
-
-Thanks
-
-Matthias
-
--- 
-Matthias Hopf <mhopf@suse.de>      __        __   __
-Maxfeldstr. 5 / 90409 Nuernberg   (_   | |  (_   |__          mat@mshopf.de
-Phone +49-911-74053-715           __)  |_|  __)  |__  R & D   www.mshopf.de
+Thanks,
+Rafael
