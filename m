@@ -1,39 +1,130 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Question regarding linux acpi
-Date: Wed, 4 Aug 2010 21:22:32 +0100
-Message-ID: <20100804202232.GA4276@srcf.ucam.org>
-References: <20100804170236.GA32073@srcf.ucam.org> <BLU102-W81BE50E68610AAA92C33AEBAF0@phx.gbl>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 1/2] x86, acpi: merge two register_lapic_address()
+Date: Wed, 04 Aug 2010 14:58:57 -0700
+Message-ID: <4C59E2A1.4060203@kernel.org>
+References: <201008031028.57263.tvrtko.ursulin@sophos.com>	<20100804093623.GE10499@redhat.com> <m1fwyuacjs.fsf@fess.ebiederm.org>	<201008041146.56406.tvrtko.ursulin@sophos.com> <m1eiee86jg.fsf_-_@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60222 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758817Ab0HDUWf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 16:22:35 -0400
-Content-Disposition: inline
-In-Reply-To: <BLU102-W81BE50E68610AAA92C33AEBAF0@phx.gbl>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:36616 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855Ab0HDV7U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 17:59:20 -0400
+In-Reply-To: <m1eiee86jg.fsf_-_@fess.ebiederm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Raj Kumar <rajkumar278@hotmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thu, Aug 05, 2010 at 01:44:21AM +0530, Raj Kumar wrote:
 
->    Does it mean that only bus driver code will handle all low power mode
->    requests?
+They are the same, move it to apic.c
 
-The bus code is responsible for calling the device-specific methods, but 
-the device-specific drivers will typically know nothing about ACPI. 
-They'll only know that the bus code asked them to enter a low-power mode 
-or that they got a wakeup event.
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
->    peripherals are idle but not all peripherals belonging to bus then in that
->    case
-> 
->    does the bus handle the low power modes of peripherals? 
+---
+ arch/x86/include/asm/apic.h |    1 +
+ arch/x86/kernel/acpi/boot.c |   16 ++--------------
+ arch/x86/kernel/apic/apic.c |   12 ++++++++++++
+ arch/x86/kernel/mpparse.c   |   12 ------------
+ 4 files changed, 15 insertions(+), 26 deletions(-)
 
-Yes. All determination is done per-device. Check 
-Documentation/power/runtime_pm.txt.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Index: linux-2.6/arch/x86/include/asm/apic.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/apic.h
++++ linux-2.6/arch/x86/include/asm/apic.h
+@@ -234,6 +234,7 @@ extern void init_bsp_APIC(void);
+ extern void setup_local_APIC(void);
+ extern void end_local_APIC_setup(void);
+ extern void init_apic_mappings(void);
++void smp_register_lapic_address(unsigned long address);
+ extern void setup_boot_APIC_clock(void);
+ extern void setup_secondary_APIC_clock(void);
+ extern int APIC_init_uniprocessor(void);
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
++++ linux-2.6/arch/x86/kernel/acpi/boot.c
+@@ -820,18 +820,6 @@ static int __init acpi_parse_fadt(struct
+  * returns 0 on success, < 0 on error
+  */
+ 
+-static void __init acpi_register_lapic_address(unsigned long address)
+-{
+-	mp_lapic_addr = address;
+-
+-	set_fixmap_nocache(FIX_APIC_BASE, address);
+-	if (boot_cpu_physical_apicid == -1U) {
+-		boot_cpu_physical_apicid  = read_apic_id();
+-		apic_version[boot_cpu_physical_apicid] =
+-			 GET_APIC_VERSION(apic_read(APIC_LVR));
+-	}
+-}
+-
+ static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
+ {
+ 	int count;
+@@ -853,7 +841,7 @@ static int __init early_acpi_parse_madt_
+ 		return count;
+ 	}
+ 
+-	acpi_register_lapic_address(acpi_lapic_addr);
++	smp_register_lapic_address(acpi_lapic_addr);
+ 
+ 	return count;
+ }
+@@ -880,7 +868,7 @@ static int __init acpi_parse_madt_lapic_
+ 		return count;
+ 	}
+ 
+-	acpi_register_lapic_address(acpi_lapic_addr);
++	smp_register_lapic_address(acpi_lapic_addr);
+ 
+ 	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
+ 				      acpi_parse_sapic, MAX_APICS);
+Index: linux-2.6/arch/x86/kernel/apic/apic.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/apic/apic.c
++++ linux-2.6/arch/x86/kernel/apic/apic.c
+@@ -1632,6 +1632,18 @@ void __init init_apic_mappings(void)
+ 	}
+ }
+ 
++void __init smp_register_lapic_address(unsigned long address)
++{
++	mp_lapic_addr = address;
++
++	set_fixmap_nocache(FIX_APIC_BASE, address);
++	if (boot_cpu_physical_apicid == -1U) {
++		boot_cpu_physical_apicid  = read_apic_id();
++		apic_version[boot_cpu_physical_apicid] =
++			 GET_APIC_VERSION(apic_read(APIC_LVR));
++	}
++}
++
+ /*
+  * This initializes the IO-APIC and APIC hardware if this is
+  * a UP kernel.
+Index: linux-2.6/arch/x86/kernel/mpparse.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/mpparse.c
++++ linux-2.6/arch/x86/kernel/mpparse.c
+@@ -274,18 +274,6 @@ static void __init smp_dump_mptable(stru
+ 
+ void __init default_smp_read_mpc_oem(struct mpc_table *mpc) { }
+ 
+-static void __init smp_register_lapic_address(unsigned long address)
+-{
+-	mp_lapic_addr = address;
+-
+-	set_fixmap_nocache(FIX_APIC_BASE, address);
+-	if (boot_cpu_physical_apicid == -1U) {
+-		boot_cpu_physical_apicid  = read_apic_id();
+-		apic_version[boot_cpu_physical_apicid] =
+-			 GET_APIC_VERSION(apic_read(APIC_LVR));
+-	}
+-}
+-
+ static int __init smp_read_mpc(struct mpc_table *mpc, unsigned early)
+ {
+ 	char str[16];
