@@ -1,58 +1,59 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] acpi_os_read_memory() from interrupt context
-Date: Wed, 4 Aug 2010 15:26:15 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AC59CF57@orsmsx503.amr.corp.intel.com>
-References: <201008041119.23633.bjorn.helgaas@hp.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Question regarding linux acpi
+Date: Thu, 5 Aug 2010 00:34:18 +0100
+Message-ID: <20100804233418.GA8167@srcf.ucam.org>
+References: <20100804170236.GA32073@srcf.ucam.org> <BLU102-W14E1E8D6FA2F2A23C56E84EBAF0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:33011 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754213Ab0HDW03 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 18:26:29 -0400
-In-Reply-To: <201008041119.23633.bjorn.helgaas@hp.com>
-Content-Language: en-US
+Received: from cavan.codon.org.uk ([93.93.128.6]:49597 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933049Ab0HDXeV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Aug 2010 19:34:21 -0400
+Content-Disposition: inline
+In-Reply-To: <BLU102-W14E1E8D6FA2F2A23C56E84EBAF0@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Raj Kumar <rajkumar278@hotmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-If you need to pre-map the ACPI registers, I would expect the host to build a list of these during initialization as you mention, then lookup and use the appropriate mapping in acpi_os_read_memory.  The acpi_os memory interfaces are not generic memory interfaces; they are only used for memory-mapped ACPI registers, so it is entirely appropriate to do whatever you need to do to obtain a mapping for the registers when at interrupt level.
+On Thu, Aug 05, 2010 at 04:13:42AM +0530, Raj Kumar wrote:
 
+>    I have implemented run time power management in my drivers. Do you mean to
+>    say
+>    In case of ACPI also, again run time power management will get to device
+>    in low
+>    power mode or full working mode.
 
+Unless you're coding for an ACPIPNP device, you don't need to care about 
+ACPI at all in your driver. The code in 2.6.35 and higher will handle 
+that for you.
 
->-----Original Message-----
->From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
->Of Bjorn Helgaas
->Sent: Wednesday, August 04, 2010 10:19 AM
->To: linux-acpi@vger.kernel.org; devel@acpica.org
->Subject: [Devel] acpi_os_read_memory() from interrupt context
->
->Linux reads some ACPI registers from interrupt context.  For example,
->we read the PM1 Status register in the SCI interrupt handler via
->this path:
->
->    acpi_irq
->      acpi_ev_sci_xrupt_handler
->        acpi_ev_fixed_event_detect
->          acpi_hw_register_read
->            acpi_hw_read_multiple
->              acpi_read
->
->But acpi_read() takes a generic address structure, and if that
->address happens to be in memory space (not I/O port space), we use
->acpi_os_read_memory().  In Linux, that uses ioremap() to map the
->address, and that doesn't work from interrupt context.
->
->I can imagine fixing this by doing the ioremap() at boot-time
->rather than at interrupt-time, but most of this interrupt path
->is in the ACPI CA, not in Linux itself, so it would probably
->require some redesign in the CA.
->
->Any suggestions?
->
->Bjorn
->_______________________________________________
->Devel mailing list
->Devel@acpica.org
->http://lists.acpica.org/listinfo/devel
+>    The another thing is suppose BIOS is ACPI based, ok as you told that bus
+>    will handle
+>    all the things do you mean ACPI driver will notify the bus about various
+>    device states?
+
+The core ACPI code will inform the PCI code (for instance) that a wakeup 
+event has been generated, or the PCI code (for instance) will call the 
+appropraite ACPI functions while putting the device in a low power 
+state.
+
+>    If yes then what the standard interface between bus driver  and device
+>    driver?
+
+It's documented in the runtime pm document I pointed you at.
+
+>    Do you mean if there is ACPI, still ACPI is hooked with standard linux
+>    static power management
+>    core and run time power management core?
+
+Yes.
+
+>    I mean to say ACPI notify the bus via linux power management core (static
+>    and run time)?
+
+Yes.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
