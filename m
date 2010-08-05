@@ -1,54 +1,110 @@
-From: Jens Axboe <jaxboe-5c4llco8/ftWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RESEND block#for-2.6.36] block_dev: always serialize
- exclusive open attempts
-Date: Thu, 5 Aug 2010 11:20:51 +0200
-Message-ID: <4C5A8273.2010803@fusionio.com>
-References: <2dWFdr9kTFM.A.P0D.spXVMB@chimera> <AANLkTimcH7+Bq1UEbaSU7SQpzArPgmSLegiqE13V8=CF@mail.gmail.com> <4C56F30D.3020304@kernel.org> <4C598E6B.7050405@gmail.com> <4C5A7E33.3060101@fusionio.com> <20100805091704.GA1772@arch.tripp.de>
+From: Raj Kumar <rajkumar278@hotmail.com>
+Subject: RE: Question regarding linux acpi
+Date: Thu, 5 Aug 2010 16:21:36 +0530
+Message-ID: <BLU102-W143744C8470E5E9C2F4B8EEB900@phx.gbl>
+References: <20100804170236.GA32073@srcf.ucam.org>
+ <BLU102-W14E1E8D6FA2F2A23C56E84EBAF0@phx.gbl>,<20100804233418.GA8167@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100805091704.GA1772-joY5NpejW+Hx3b7vapvTcQ@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Trippelsdorf <markus-xp2qqqlHh3xzoYq+O6RWwA@public.gmane.org>
-Cc: Tejun Heo <htejun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from blu0-omc2-s11.blu0.hotmail.com ([65.55.111.86]:5053 "EHLO
+	blu0-omc2-s11.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755581Ab0HEKvh convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Aug 2010 06:51:37 -0400
+In-Reply-To: <20100804233418.GA8167@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On 2010-08-05 11:17, Markus Trippelsdorf wrote:
-> On Thu, Aug 05, 2010 at 11:02:43AM +0200, Jens Axboe wrote:
->> On 2010-08-04 17:59, Tejun Heo wrote:
->>> bd_prepare_to_claim() incorrectly allowed multiple attempts for
->>> exclusive open to progress in parallel if the attempting holders are
->>> identical.  This triggered BUG_ON() as reported in the following bug.
->>>
->>>   https://bugzilla.kernel.org/show_bug.cgi?id=16393
->>>
->>> __bd_abort_claiming() is used to finish claiming blocks and doesn't
->>> work if multiple openers are inside a claiming block.  Allowing
->>> multiple parallel open attempts to continue doesn't gain anything as
->>> those are serialized down in the call chain anyway.  Fix it by always
->>> allowing only single open attempt in a claiming block.
->>>
->>> This problem can easily be reproduced by adding a delay after
->>> bd_prepare_to_claim() and attempting to mount two partitions of a
->>> disk.
->>>
->>> stable: only applicable to v2.6.35
->>>
->>> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>> Reported-by: Markus Trippelsdorf <markus-xp2qqqlHh3xzoYq+O6RWwA@public.gmane.org>
->>> Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
->>
->> Thanks Tejun, applied.
-> 
-> It's already in mainline:
-> e75aa85892b2ee78c79edac720868cbef16e62eb
-
-Irk, had not noticed yet, my for-2.6.36 branch isn't fully merged
-up yet. Thanks for the heads-up.
-
--- 
-Jens Axboe
+To: mjg59@srcf.ucam.org
+Cc: linux-acpi@vger.kernel.org
 
 
-Confidentiality Notice: This e-mail message, its contents and any attachments to it are confidential to the intended recipient, and may contain information that is privileged and/or exempt from disclosure under applicable law. If you are not the intended recipient, please immediately notify the sender and destroy the original e-mail message and any attachments (and any copies that may have been made) from your system or otherwise. Any unauthorized use, copying, disclosure or distribution of this information is strictly prohibited.
+ 
+Hi Matthew,
+ 
+First very thanks for quick responses. But now i have one more
+question regarding the ACPI.
+ 
+As you mentioned " The core ACPI code will inform the PCI code (for instance) that a wakeup
+event has been generated, or the PCI code (for instance) will call the
+appropraite ACPI functions while putting the device in a low power
+state"
+ 
+{RAJ}: Does it mean then PCI bus driver code and ACPI driver will directly communicate
+with each other without any linux power management core?
+ 
+Please see if my understanding is correct:
+ 
+{RAJ}: If system suspend/resumes and runtime_suspend/runtime_resume happens, as linux power management core(static/runtime)
+calls the bus driver code so when ACPI will be there, the bus driver will directly call the ACPI driver APIs.
+ 
+But still device driver's suspend and resume(static and runtime) calls will be called by bus driver as normal behaviour
+and if ACPI is there, then bus driver will inform the device driver and then inform the device power status to ACPI driver?
+ 
+correct?
+ 
+{RAJ}: Will the ACPI driver code also call the linux power management functions directly?
+ 
+ 
+ 
+ 
+Regards
+Raj.
+ 
+ 
+ 
+ 
+
+
+----------------------------------------
+> Date: Thu, 5 Aug 2010 00:34:18 +0100
+> From: mjg59@srcf.ucam.org
+> To: rajkumar278@hotmail.com
+> CC: linux-acpi@vger.kernel.org
+> Subject: Re: Question regarding linux acpi
+>
+> On Thu, Aug 05, 2010 at 04:13:42AM +0530, Raj Kumar wrote:
+>
+>> I have implemented run time power management in my drivers. Do you mean to
+>> say
+>> In case of ACPI also, again run time power management will get to device
+>> in low
+>> power mode or full working mode.
+>
+> Unless you're coding for an ACPIPNP device, you don't need to care about
+> ACPI at all in your driver. The code in 2.6.35 and higher will handle
+> that for you.
+>
+>> The another thing is suppose BIOS is ACPI based, ok as you told that bus
+>> will handle
+>> all the things do you mean ACPI driver will notify the bus about various
+>> device states?
+>
+> The core ACPI code will inform the PCI code (for instance) that a wakeup
+> event has been generated, or the PCI code (for instance) will call the
+> appropraite ACPI functions while putting the device in a low power
+> state.
+>
+>> If yes then what the standard interface between bus driver and device
+>> driver?
+>
+> It's documented in the runtime pm document I pointed you at.
+>
+>> Do you mean if there is ACPI, still ACPI is hooked with standard linux
+>> static power management
+>> core and run time power management core?
+>
+> Yes.
+>
+>> I mean to say ACPI notify the bus via linux power management core (static
+>> and run time)?
+>
+> Yes.
+>
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html 		 	   		  
