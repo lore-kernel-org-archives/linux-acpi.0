@@ -1,95 +1,123 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/8] PCI / PCIe: Ask BIOS for control of all
-	native services at once (v6)
-Date: Fri, 6 Aug 2010 12:47:23 +0200
-Message-ID: <201008061247.23581.rjw@sisk.pl>
-References: <201008022351.31406.rjw@sisk.pl> <201008022356.31166.rjw@sisk.pl>
-	<4C5B6660.9030507@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4C5B6660.9030507@jp.fujitsu.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, linux-pm@lists.linux-foundation.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 3/4] Dynamic Debug: Initialize dynamic debug earlier via arch_initcall
+Date: Fri,  6 Aug 2010 16:11:03 +0200
+Message-ID: <1281103864-18860-4-git-send-email-trenn@suse.de>
+References: <1281103864-18860-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:55013 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756861Ab0HFOLo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Aug 2010 10:11:44 -0400
+In-Reply-To: <1281103864-18860-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: penberg@cs.helsinki.fi, jbaron@redhat.com
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, greg@kroah.com
 
-On Friday, August 06, 2010, Hidetoshi Seto wrote:
-> Rafael,
-> 
-> I found that following 2 hunks break kernel build with O= option. 
-> 
-> (2010/08/03 6:56), Rafael J. Wysocki wrote:
-> > Index: linux-2.6/drivers/pci/pcie/Makefile
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/pci/pcie/Makefile
-> > +++ linux-2.6/drivers/pci/pcie/Makefile
-> > @@ -6,10 +6,11 @@
-> >  obj-$(CONFIG_PCIEASPM)		+= aspm.o
-> >  
-> >  pcieportdrv-y			:= portdrv_core.o portdrv_pci.o portdrv_bus.o
-> > +pcieportdrv-$(CONFIG_ACPI)	+= portdrv_acpi.o
-> >  
-> >  obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv.o
-> >  
-> >  # Build PCI Express AER if needed
-> >  obj-$(CONFIG_PCIEAER)		+= aer/
-> >  
-> > -obj-$(CONFIG_PCIE_PME) += pme/
-> > +obj-$(CONFIG_PCIE_PME) += pme/pcie_pme.o
-> 
-> and
-> 
-> > Index: linux-2.6/drivers/pci/pcie/pme/Makefile
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/pci/pcie/pme/Makefile
-> > +++ /dev/null
-> > @@ -1,8 +0,0 @@
-> > -#
-> > -# Makefile for PCI-Express Root Port PME signaling driver
-> > -#
-> > -
-> > -obj-$(CONFIG_PCIE_PME) += pmedriver.o
-> > -
-> > -pmedriver-objs := pcie_pme.o
-> > -pmedriver-$(CONFIG_ACPI) += pcie_pme_acpi.o
-> 
-> $ make -j12 O=../gitbuild/
->   GEN     /home/seto/gitbuild/Makefile
->   CHK     include/linux/version.h
->   Using /home/seto/GIT-linux as source for kernel
->   CHK     include/generated/utsrelease.h
->   CALL    /home/seto/GIT-linux/scripts/checksyscalls.sh
->   CHK     include/generated/compile.h
->   CC      drivers/pci/pcie/pme/pcie_pme.o
-> Assembler messages:
-> Fatal error: can't create drivers/pci/pcie/pme/.tmp_pcie_pme.o: No such file or directory
-> make[4]: *** [drivers/pci/pcie/pme/pcie_pme.o] Error 2
-> make[3]: *** [drivers/pci/pcie] Error 2
-> make[2]: *** [drivers/pci] Error 2
-> make[1]: *** [drivers] Error 2
-> make: *** [sub-make] Error 2
-> $
-> 
-> It seems that the error is because directory pme/ is not created
-> in the working tree.
+Having the ddebug_query= boot parameter it makes sense to set up
+dynamic debug as soon as possible.
 
-Hmm.  That seems to be correct, but I'm not sure how to resolve it.
+I expect sysfs files cannot be set up via an arch_initcall, because
+this one is even before fs_initcall. Therefore I splitted the
+dynamic_debug_init function into an early one and a later one providing
+/sys/../dynamic_debug/control file.
 
-If I move pcie_pme.c to pcie/ in the same patch, the changes in that file
-will not be clearly visible.
+Possibly dynamic_debug can be initialized even earlier, not sure whether
+this still makes sense then. I picked up arch_initcall as it covers
+quite a lot already.
 
-Perhaps I'll add a separate patch that will remove the Makefile from
-pme/ and move pcie_pme.c to pcie/.
+Dynamic debug needs to allocate memory, therefore it's not easily possible to
+set it up even before the command line gets parsed.
+Therefore the boot param query string is stored in a temp string which is
+applied when dynamic debug gets set up.
 
-Thanks,
-Rafael
+This has been tested with ddebug_query="file ec.c +p"
+and I could retrieve pr_debug() messages early at boot during ACPI setup:
+ACPI: EC: Look up EC in DSDT
+ACPI: EC: ---> status = 0x08
+ACPI: EC: transaction start
+ACPI: EC: <--- command = 0x80
+ACPI: EC: ~~~> interrupt
+ACPI: EC: ---> status = 0x08
+ACPI: EC: <--- data = 0xa4
+...
+ACPI: Interpreter enabled
+ACPI: (supports S0 S3 S4 S5)
+ACPI: Using IOAPIC for interrupt routing
+ACPI: EC: ---> status = 0x00
+ACPI: EC: transaction start
+ACPI: EC: <--- command = 0x80
+
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Acked-by: jbaron@redhat.com
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+CC: linux-acpi@vger.kernel.org
+CC: greg@kroah.com
+---
+ lib/dynamic_debug.c |   33 +++++++++++++++++++++++----------
+ 1 files changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/lib/dynamic_debug.c b/lib/dynamic_debug.c
+index 44ce66b..a687d90 100644
+--- a/lib/dynamic_debug.c
++++ b/lib/dynamic_debug.c
+@@ -748,13 +748,14 @@ static void ddebug_remove_all_tables(void)
+ 	mutex_unlock(&ddebug_lock);
+ }
+ 
+-static int __init dynamic_debug_init(void)
++static __initdata int ddebug_init_success;
++
++static int __init dynamic_debug_init_debugfs(void)
+ {
+ 	struct dentry *dir, *file;
+-	struct _ddebug *iter, *iter_start;
+-	const char *modname = NULL;
+-	int ret = 0;
+-	int n = 0;
++
++	if (!ddebug_init_success)
++		return -ENODEV;
+ 
+ 	dir = debugfs_create_dir("dynamic_debug", NULL);
+ 	if (!dir)
+@@ -765,6 +766,16 @@ static int __init dynamic_debug_init(void)
+ 		debugfs_remove(dir);
+ 		return -ENOMEM;
+ 	}
++	return 0;
++}
++
++static int __init dynamic_debug_init(void)
++{
++	struct _ddebug *iter, *iter_start;
++	const char *modname = NULL;
++	int ret = 0;
++	int n = 0;
++
+ 	if (__start___verbose != __stop___verbose) {
+ 		iter = __start___verbose;
+ 		modname = iter->modname;
+@@ -795,11 +806,13 @@ static int __init dynamic_debug_init(void)
+ 	}
+ 
+ out_free:
+-	if (ret) {
++	if (ret)
+ 		ddebug_remove_all_tables();
+-		debugfs_remove(dir);
+-		debugfs_remove(file);
+-	}
++	else
++		ddebug_init_success = 1;
+ 	return 0;
+ }
+-module_init(dynamic_debug_init);
++/* Allow early initialization for boot messages via boot param */
++arch_initcall(dynamic_debug_init);
++/* Debugfs setup must be done later */
++module_init(dynamic_debug_init_debugfs);
+-- 
+1.6.3
+
