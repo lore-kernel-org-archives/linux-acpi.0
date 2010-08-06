@@ -1,56 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 7/10] PCI / Hot-plug: Query _OSC before requesting controls
-Date: Fri, 6 Aug 2010 03:11:33 +0200
-Message-ID: <201008060311.33359.rjw@sisk.pl>
+Subject: [PATCH 9/10] ACPI / PCI: Reorder checks in acpi_pci_osc_control_set()
+Date: Fri, 6 Aug 2010 03:13:38 +0200
+Message-ID: <201008060313.38590.rjw@sisk.pl>
 References: <201008060303.51224.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43668 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934289Ab0HFBRp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Aug 2010 21:17:45 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <201008060303.51224.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-It generally is unsafe to call acpi_pci_osc_control_set() without
-checking what _OSC bits the BIOS is willing to grant control of,
-because control of some _OSC bits may be granted even if
-acpi_pci_osc_control_set() returns AE_SUPPORT.  Therefore make
-acpi_get_hp_hw_control_from_firmware() use
-acpi_pci_osc_control_query() to check if the BIOS will grant
-OSC_SHPC_NATIVE_HP_CONTROL before calling acpi_pci_osc_control_set().
+Make acpi_pci_osc_control_set() attempt to find the handle of the
+_OSC object under the given PCI root bridge object after verifying
+that its second argument is correct and that there is a struct
+acpi_pci_root object for the given root bridge handle.  This is
+more logical than the old code and it matches the code ordering
+in acpi_pci_osc_control_query().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 ---
- drivers/pci/hotplug/acpi_pcihp.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/pci_root.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Index: linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
+Index: linux-2.6/drivers/acpi/pci_root.c
 ===================================================================
---- linux-2.6.orig/drivers/pci/hotplug/acpi_pcihp.c
-+++ linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
-@@ -358,11 +358,13 @@ int acpi_get_hp_hw_control_from_firmware
- 		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
- 		dbg("Trying to get hotplug control for %s\n",
- 				(char *)string.pointer);
-+		status = acpi_pci_osc_control_query(handle, &flags);
-+		if (ACPI_FAILURE(status)
-+		    || !(flags & OSC_SHPC_NATIVE_HP_CONTROL))
-+			goto no_control;
- 		status = acpi_pci_osc_control_set(handle, flags);
- 		if (ACPI_SUCCESS(status))
- 			goto got_one;
--		if (status == AE_SUPPORT)
--			goto no_control;
- 		kfree(string.pointer);
- 		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
- 	}
-
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -428,10 +428,6 @@ acpi_status acpi_pci_osc_control_set(acp
+ 	acpi_handle tmp;
+ 	struct acpi_pci_root *root;
+ 
+-	status = acpi_get_handle(handle, "_OSC", &tmp);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-
+ 	control_req = (flags & OSC_PCI_CONTROL_MASKS);
+ 	if (!control_req)
+ 		return AE_TYPE;
+@@ -440,6 +436,10 @@ acpi_status acpi_pci_osc_control_set(acp
+ 	if (!root)
+ 		return AE_NOT_EXIST;
+ 
++	status = acpi_get_handle(handle, "_OSC", &tmp);
++	if (ACPI_FAILURE(status))
++		return status;
++
+ 	mutex_lock(&osc_lock);
+ 	/* No need to evaluate _OSC if the control was already granted. */
+ 	if ((root->osc_control_set & control_req) == control_req)
