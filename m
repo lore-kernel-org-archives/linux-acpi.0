@@ -1,24 +1,83 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 3/4] ACPI, APEI, Manage GHES as platform devices
-Date: Sun, 08 Aug 2010 15:07:26 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1008081507230.32022@localhost.localdomain>
-References: <1280735305-15379-1-git-send-email-ying.huang@intel.com>
- <1280735305-15379-4-git-send-email-ying.huang@intel.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 7/10] PCI / Hot-plug: Query _OSC before requesting controls
+Date: Mon, 09 Aug 2010 10:22:18 +0900
+Message-ID: <4C5F584A.3050009@jp.fujitsu.com>
+References: <201008060303.51224.rjw@sisk.pl> <201008060311.33359.rjw@sisk.pl> <4C5B7181.3010602@jp.fujitsu.com> <201008061234.46493.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:57384 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754527Ab0HHTHp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Aug 2010 15:07:45 -0400
-In-reply-to: <1280735305-15379-4-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201008061234.46493.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 
-applied
+(2010/08/06 19:34), Rafael J. Wysocki wrote:
+> On Friday, August 06, 2010, Hidetoshi Seto wrote:
+>> (2010/08/06 10:11), Rafael J. Wysocki wrote:
+>>> From: Rafael J. Wysocki<rjw@sisk.pl>
+>>>
+>>> It generally is unsafe to call acpi_pci_osc_control_set() without
+>>> checking what _OSC bits the BIOS is willing to grant control of,
+>>> because control of some _OSC bits may be granted even if
+>>> acpi_pci_osc_control_set() returns AE_SUPPORT.  Therefore make
+>>> acpi_get_hp_hw_control_from_firmware() use
+>>> acpi_pci_osc_control_query() to check if the BIOS will grant
+>>> OSC_SHPC_NATIVE_HP_CONTROL before calling acpi_pci_osc_control_set().
+>>>
+>>> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
+>>> ---
+>>>   drivers/pci/hotplug/acpi_pcihp.c |    6 ++++--
+>>>   1 file changed, 4 insertions(+), 2 deletions(-)
+>>>
+>>> Index: linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
+>>> ===================================================================
+>>> --- linux-2.6.orig/drivers/pci/hotplug/acpi_pcihp.c
+>>> +++ linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
+>>> @@ -358,11 +358,13 @@ int acpi_get_hp_hw_control_from_firmware
+>>>   		acpi_get_name(handle, ACPI_FULL_PATHNAME,&string);
+>>>   		dbg("Trying to get hotplug control for %s\n",
+>>>   				(char *)string.pointer);
+>>> +		status = acpi_pci_osc_control_query(handle,&flags);
+>>> +		if (ACPI_FAILURE(status)
+>>> +		    || !(flags&  OSC_SHPC_NATIVE_HP_CONTROL))
+>>> +			goto no_control;
+>>>   		status = acpi_pci_osc_control_set(handle, flags);
+>>>   		if (ACPI_SUCCESS(status))
+>>>   			goto got_one;
+>>> -		if (status == AE_SUPPORT)
+>>> -			goto no_control;
+>>>   		kfree(string.pointer);
+>>>   		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
+>>>   	}
+>>
+>> This breaks fallback mechanism for OSHP, doesn't it?
+>
+> Hmm, well.  Can you please elaborate a bit?
+>
+> I guess you mean that the last two statements should be executed if
+> acpi_pci_osc_control_query() returns error code, is that correct?
+>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+On legacy platform, firmware provides OSHP method instead of _OSC method
+to grant native hot-plug control to OS. For this reason, current code
+evaluates OSHP method if _OSC evaluation failed with error code other
+than AE_SUPPORT (ex. "AE_NOT_FOUND" would be returned on the legacy
+platform that provides OSHP instead of _OSC).
 
+So I think Hidetoshi meant that
+
+>>> +		status = acpi_pci_osc_control_query(handle,&flags);
+>>> +		if (ACPI_FAILURE(status)
+>>> +		    || !(flags&  OSC_SHPC_NATIVE_HP_CONTROL))
+>>> +			goto no_control;
+
+should be
+
+	status = acpi_pci_osc_control_query(handle,&flags);
+	if (status == AE_SUPPORT)
+		goto no_control;
+
+Thanks,
+Kenji Kaneshige
