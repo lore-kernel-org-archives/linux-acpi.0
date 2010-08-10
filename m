@@ -1,83 +1,54 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 7/10] PCI / Hot-plug: Query _OSC before requesting controls
-Date: Mon, 09 Aug 2010 10:22:18 +0900
-Message-ID: <4C5F584A.3050009@jp.fujitsu.com>
-References: <201008060303.51224.rjw@sisk.pl> <201008060311.33359.rjw@sisk.pl> <4C5B7181.3010602@jp.fujitsu.com> <201008061234.46493.rjw@sisk.pl>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Fan runs full speed after S3 sometimes (regression)
+Date: Tue, 10 Aug 2010 13:20:57 +0200
+Message-ID: <4C613619.30309@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008061234.46493.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55462 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756168Ab0HJLVB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Aug 2010 07:21:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-(2010/08/06 19:34), Rafael J. Wysocki wrote:
-> On Friday, August 06, 2010, Hidetoshi Seto wrote:
->> (2010/08/06 10:11), Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki<rjw@sisk.pl>
->>>
->>> It generally is unsafe to call acpi_pci_osc_control_set() without
->>> checking what _OSC bits the BIOS is willing to grant control of,
->>> because control of some _OSC bits may be granted even if
->>> acpi_pci_osc_control_set() returns AE_SUPPORT.  Therefore make
->>> acpi_get_hp_hw_control_from_firmware() use
->>> acpi_pci_osc_control_query() to check if the BIOS will grant
->>> OSC_SHPC_NATIVE_HP_CONTROL before calling acpi_pci_osc_control_set().
->>>
->>> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
->>> ---
->>>   drivers/pci/hotplug/acpi_pcihp.c |    6 ++++--
->>>   1 file changed, 4 insertions(+), 2 deletions(-)
->>>
->>> Index: linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
->>> ===================================================================
->>> --- linux-2.6.orig/drivers/pci/hotplug/acpi_pcihp.c
->>> +++ linux-2.6/drivers/pci/hotplug/acpi_pcihp.c
->>> @@ -358,11 +358,13 @@ int acpi_get_hp_hw_control_from_firmware
->>>   		acpi_get_name(handle, ACPI_FULL_PATHNAME,&string);
->>>   		dbg("Trying to get hotplug control for %s\n",
->>>   				(char *)string.pointer);
->>> +		status = acpi_pci_osc_control_query(handle,&flags);
->>> +		if (ACPI_FAILURE(status)
->>> +		    || !(flags&  OSC_SHPC_NATIVE_HP_CONTROL))
->>> +			goto no_control;
->>>   		status = acpi_pci_osc_control_set(handle, flags);
->>>   		if (ACPI_SUCCESS(status))
->>>   			goto got_one;
->>> -		if (status == AE_SUPPORT)
->>> -			goto no_control;
->>>   		kfree(string.pointer);
->>>   		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
->>>   	}
->>
->> This breaks fallback mechanism for OSHP, doesn't it?
->
-> Hmm, well.  Can you please elaborate a bit?
->
-> I guess you mean that the last two statements should be executed if
-> acpi_pci_osc_control_query() returns error code, is that correct?
->
+Hi,
 
-On legacy platform, firmware provides OSHP method instead of _OSC method
-to grant native hot-plug control to OS. For this reason, current code
-evaluates OSHP method if _OSC evaluation failed with error code other
-than AE_SUPPORT (ex. "AE_NOT_FOUND" would be returned on the legacy
-platform that provides OSHP instead of _OSC).
+till I was running on 2.6.34-rc5-mm1 (mmotm) and earlier everything was
+fine. Now, I'm running 2.6.35-rc6-mm1 (.35-rc5-mm1 was the same) and
+sometimes when the computer (desktop) returns from S3, the CPU fan is
+running at full speed making a big noise.
 
-So I think Hidetoshi meant that
+I don't know how to debug that. Bisection is out of question -- it
+happens once in 10 or 20 cases. There are no fan entries in /sys.
 
->>> +		status = acpi_pci_osc_control_query(handle,&flags);
->>> +		if (ACPI_FAILURE(status)
->>> +		    || !(flags&  OSC_SHPC_NATIVE_HP_CONTROL))
->>> +			goto no_control;
+The load is as follows:
+$ while :; do cat /proc/loadavg; sleep 3; done
+0.37 0.33 0.32 1/325 21358
+0.42 0.34 0.32 1/325 21362
+0.42 0.34 0.32 1/326 21366
+0.38 0.33 0.32 1/330 21386
+0.38 0.33 0.32 1/331 21391
+0.35 0.33 0.32 1/331 21394
+0.32 0.32 0.32 1/331 21397
+0.32 0.32 0.32 1/331 21400
+0.30 0.32 0.32 1/331 21403
+...
 
-should be
+I can boot into 34-rc5 to compare that if this is of relevance.
 
-	status = acpi_pci_osc_control_query(handle,&flags);
-	if (status == AE_SUPPORT)
-		goto no_control;
+290 kB kernel log since boot over several S3 sleep till now where the
+fan is noisy:
+http://www.fi.muni.cz/~xslaby/sklad/panics/boot.msg-fan_fullspeed
 
-Thanks,
-Kenji Kaneshige
+Should you need DSDT, it's there too:
+http://www.fi.muni.cz/~xslaby/sklad/panics/DSDT
+
+Any ideas what could have caused this?
+
+thanks,
+-- 
+js
