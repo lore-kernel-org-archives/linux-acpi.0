@@ -1,75 +1,53 @@
-From: Piotr Hosowicz <piotr@hosowicz.com>
-Subject: Re: BUG: scheduling while atomic: swapper/0/0x10000002
-Date: Tue, 10 Aug 2010 17:36:28 +0200
-Message-ID: <4C6171FC.6060305@example.com>
-References: <20100810142951.GA7156@arch.tripp.de> <4C616DF9.1070309@example.com> <20100810153538.GB5466@swordfish.minsk.epam.com>
-Reply-To: piotr@hosowicz.com
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for August 10 (acpi/apei)
+Date: Tue, 10 Aug 2010 10:02:28 -0700
+Message-ID: <20100810100228.525d952e.randy.dunlap@oracle.com>
+References: <20100810135601.4777e310.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 70.mail-out.ovh.net ([91.121.185.63]:41498 "HELO
-	70.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932156Ab0HJPgd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Aug 2010 11:36:33 -0400
-In-Reply-To: <20100810153538.GB5466@swordfish.minsk.epam.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100810135601.4777e310.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Markus Trippelsdorf <markus@trippelsdorf.de>, Heinz Diehl <htd@fancy-poultry.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 10.08.2010 17:35, Sergey Senozhatsky wrote:
-> On (08/10/10 17:19), Piotr Hosowicz wrote:
->> None of them works for me. I do:
->>
->> cat patch.txt | patch -p1
->>
->> And get:
->>
->> aapi205:/usr/src/linux# cat ../smp-bug.txt | patch -p1
->> patching file include/acpi/platform/aclinux.h
->> Hunk #1 FAILED at 152.
->> 1 out of 1 hunk FAILED -- saving rejects to file
->> include/acpi/platform/aclinux.h.rej
->>
->> Help me please.
->>
->
-> Can we see your:
-> include/acpi/platform/aclinux.h(.rej)
->
-> ?
+On Tue, 10 Aug 2010 13:56:01 +1000 Stephen Rothwell wrote:
 
-aapi205:/usr/src/linux# cat include/acpi/platform/aclinux.h.rej
---- include/acpi/platform/aclinux.h
-+++ include/acpi/platform/aclinux.h
-@@ -152,7 +152,7 @@
-  #include <linux/hardirq.h>
-  #define ACPI_PREEMPTION_POINT() \
-         do { \
--               if (!in_atomic_preempt_off() && !irqs_disabled()) \
-+               if (!in_atomic() && !irqs_disabled()) \
-                         cond_resched(); \
-         } while (0)
+> Hi all,
+> 
+> As the merge window is open, please do not add 2.6.37 material to your
+> linux-next included trees until after 2.6.36-rc1.
+> 
+> Changes since 20100809:
 
-> (did you `git pull`?)
 
-No, I just downloaded bz2 patch from kernel.org.
+on 32-bit i386:
 
-Regards,
+drivers/acpi/apei/erst-dbg.c:106: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'ssize_t'
+erst-dbg.c:(.text+0xede6d): undefined reference to `__get_user_X'
 
-Piotr Hosowicz
+For the __get_user_X() call, in erst-dbg.c::erst_dbg_ioctl():
 
---=20
-Z cyklu "Uroki demokracji", czyli pytania i odpowiedzi w teledurniejach=
-:
-- W kt=F3rym mie=B6cie europejskim powsta=B3a pierwsza opera?
-- Sydney.
-NP: Peter Green Splinter Group - Heart Of Stone
-NB: 2.6.35-git9
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	case APEI_ERST_CLEAR_RECORD:
+		rc = get_user(record_id, (u64 __user *)arg);
+
+-> arch/x86/include/asm/uaccess.h:
+
+#ifdef CONFIG_X86_32
+#define __get_user_8(__ret_gu, __val_gu, ptr)				\
+		__get_user_x(X, __ret_gu, __val_gu, ptr)
+#else
+#define __get_user_8(__ret_gu, __val_gu, ptr)				\
+		__get_user_x(8, __ret_gu, __val_gu, ptr)
+#endif
+
+
+so is __get_user_8() not supported on X86_32?
+or is this something else?
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
