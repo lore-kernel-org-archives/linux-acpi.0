@@ -1,72 +1,58 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: BUG: scheduling while atomic: swapper/0/0x10000002
-Date: Tue, 10 Aug 2010 15:38:07 +0300
-Message-ID: <20100810123807.GA5338@swordfish.minsk.epam.com>
+From: Markus Trippelsdorf <markus@trippelsdorf.de>
+Subject: Re: BUG: scheduling while atomic: swapper/0/0x10000002
+Date: Tue, 10 Aug 2010 16:29:51 +0200
+Message-ID: <20100810142951.GA7156@arch.tripp.de>
+References: <20100810140748.GA29878@fancy-poultry.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:61435 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757542Ab0HJMdf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Aug 2010 08:33:35 -0400
+Received: from smtp-out-182.synserver.de ([212.40.180.182]:1213 "HELO
+	smtp-out-178.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with SMTP id S1757589Ab0HJOaI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Aug 2010 10:30:08 -0400
 Content-Disposition: inline
+In-Reply-To: <20100810140748.GA29878@fancy-poultry.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Lin Ming <ming.m.lin@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Heinz Diehl <htd@fancy-poultry.org>
+Cc: linux-kernel@vger.kernel.org, Piotr Hosowicz <piotr@hosowicz.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, linux-acpi@vger.kernel.org
 
+On Tue, Aug 10, 2010 at 04:07:48PM +0200, Heinz Diehl wrote:
+> +1
+>=20
+> [....]
+> ACPI: Core revision 20100702
+> BUG: scheduling while atomic: swapper/0/0x10000002
+> Modules linked in:
+> Pid: 0, comm: swapper Not tainted 2.6.35-git8 #1
+> Call Trace:
+> [<ffffffff81441be8>] ? schedule+0x518/0x9a0
+> [<ffffffff812e4262>] ? acpi_os_release_object+0x9/0xd
+> [<ffffffff8103dcfd>] ? __cond_resched+0x1d/0x30
+> [<ffffffff814421dd>] ? _cond_resched+0x2d/0x40
+> [<ffffffff81300ca0>] ? acpi_ps_complete_op+0x24c/0x260
+> [<ffffffff813014c9>] ? acpi_ps_parse_loop+0x815/0x970
+> [<ffffffff813005d8>] ? acpi_ps_parse_aml+0x8f/0x2aa
+> [<ffffffff812fee85>] ? acpi_ns_one_complete_parse+0xfd/0x118
+> [<ffffffff812feeba>] ? acpi_ns_parse_table+0x1a/0x34
+> [<ffffffff812fc685>] ? acpi_ns_load_table+0x3d/0x7c
+> [<ffffffff81303321>] ? acpi_load_tables+0x9b/0x156
+> [<ffffffff81798d87>] ? acpi_early_init+0x6c/0xf7
+> [<ffffffff81771cf5>] ? start_kernel+0x368/0x436
+> [<ffffffff81771382>] ? x86_64_start_kernel+0xe1/0xf2
 
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This bug already has two patches available to fix it:
+=20
+http://lkml.org/lkml/2010/8/6/672
+https://patchwork.kernel.org/patch/113092/
 
-Hello,
-
-Hardware: ACER Aspire 5741G
-kernel: 2.6.35-git9-06241-g2ba110e-dirty
-
-[    0.003982] ACPI: Core revision 20100702
-[    0.010045] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.010140] no locks held by swapper/0.
-[    0.010219] Modules linked in:
-[    0.010356] Pid: 0, comm: swapper Not tainted 2.6.36-rc0-git9-06241-g2ba110e-dirty #99
-[    0.010455] Call Trace:
-[    0.010535]  [<ffffffff8102e368>] __schedule_bug+0x72/0x77
-[    0.010622]  [<ffffffff8136b010>] schedule+0xdc/0x8f2
-[    0.010707]  [<ffffffff810351ab>] __cond_resched+0x13/0x1f
-[    0.010792]  [<ffffffff8136b945>] _cond_resched+0x29/0x30
-[    0.010878]  [<ffffffff81242372>] acpi_ps_complete_op+0x2c6/0x2db
-[    0.010965]  [<ffffffff8122de31>] ? acpi_ds_load1_end_op+0x51/0x249
-[    0.011052]  [<ffffffff81242c3f>] acpi_ps_parse_loop+0x8b8/0xa55
-[    0.011139]  [<ffffffff81061987>] ? trace_hardirqs_on+0xd/0xf
-[    0.011224]  [<ffffffff81241dec>] acpi_ps_parse_aml+0x104/0x3c4
-[    0.011310]  [<ffffffff8123fff9>] acpi_ns_one_complete_parse+0x125/0x142
-[    0.011399]  [<ffffffff81220368>] ? acpi_os_signal_semaphore+0x5f/0x6f
-[    0.011482]  [<ffffffff8124005f>] acpi_ns_parse_table+0x49/0x8e
-[    0.011567]  [<ffffffff8123c42c>] acpi_ns_load_table+0x78/0x114
-[    0.011652]  [<ffffffff81244f6e>] acpi_load_tables+0xa1/0x18e
-[    0.011736]  [<ffffffff816b70f2>] acpi_early_init+0x6c/0xf7
-[    0.011821]  [<ffffffff81692c1f>] start_kernel+0x3fd/0x40d
-[    0.011905]  [<ffffffff816922aa>] x86_64_start_reservations+0xb1/0xb5
-[    0.011990]  [<ffffffff816923a6>] x86_64_start_kernel+0xf8/0x107
-
-
-
-	Sergey
-
---82I3+IH0IqGh5yIs
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iJwEAQECAAYFAkxhSC8ACgkQfKHnntdSXjSQZwP/QpbQNhQGow3VGagow8juUDur
-sQhZEqb8DRxK5wuAvRLWl7iGUsaN5EHOTIlsC6Y7OAcATheap4kOeiss2uM+go7p
-JUshOyLTFt8hQpULeLgio0HoUAPt4xJIRShhjR3duCOLQz74O6S7NEfB0q/qXIo7
-6Ld0+A+RXfgkZ6fTLRc=
-=9T/s
------END PGP SIGNATURE-----
-
---82I3+IH0IqGh5yIs--
+--=20
+=BBA man who doesn't know he is in prison can never escape.=AB
+William S. Burroughs
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
