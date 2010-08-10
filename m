@@ -1,49 +1,68 @@
-From: Piotr Hosowicz <piotr@hosowicz.com>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Subject: Re: BUG: scheduling while atomic: swapper/0/0x10000002
-Date: Tue, 10 Aug 2010 17:19:21 +0200
-Message-ID: <4C616DF9.1070309@example.com>
+Date: Tue, 10 Aug 2010 18:35:38 +0300
+Message-ID: <20100810153538.GB5466@swordfish.minsk.epam.com>
 References: <20100810142951.GA7156@arch.tripp.de>
-Reply-To: piotr@hosowicz.com
+ <4C616DF9.1070309@example.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100810142951.GA7156@arch.tripp.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Markus Trippelsdorf <markus@trippelsdorf.de>
-Cc: Heinz Diehl <htd@fancy-poultry.org>, linux-kernel@vger.kernel.org, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, linux-acpi@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62810 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757572Ab0HJPbI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Aug 2010 11:31:08 -0400
+Content-Disposition: inline
+In-Reply-To: <4C616DF9.1070309@example.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Piotr Hosowicz <piotr@hosowicz.com>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>, Heinz Diehl <htd@fancy-poultry.org>, linux-kernel@vger.kernel.org, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, linux-acpi@vger.kernel.org
 
-On 10.08.2010 16:29, Markus Trippelsdorf wrote:
 
-> This bug already has two patches available to fix it:
->
-> http://lkml.org/lkml/2010/8/6/672
-> https://patchwork.kernel.org/patch/113092/
+--DKU6Jbt7q3WqK7+M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-None of them works for me. I do:
+On (08/10/10 17:19), Piotr Hosowicz wrote:
+> None of them works for me. I do:
+>=20
+> cat patch.txt | patch -p1
+>=20
+> And get:
+>=20
+> aapi205:/usr/src/linux# cat ../smp-bug.txt | patch -p1
+> patching file include/acpi/platform/aclinux.h
+> Hunk #1 FAILED at 152.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> include/acpi/platform/aclinux.h.rej
+>=20
+> Help me please.
+>=20
 
-cat patch.txt | patch -p1
+Can we see your:
+include/acpi/platform/aclinux.h(.rej)
 
-And get:
+?
 
-aapi205:/usr/src/linux# cat ../smp-bug.txt | patch -p1
-patching file include/acpi/platform/aclinux.h
-Hunk #1 FAILED at 152.
-1 out of 1 hunk FAILED -- saving rejects to file=20
-include/acpi/platform/aclinux.h.rej
+(did you `git pull`?)
 
-Help me please.
 
-Regards,
+	Sergey
 
-Piotr Hosowicz
+--DKU6Jbt7q3WqK7+M
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---=20
-Zatrzymuje si=EA samoch=F3d na sejmowym parkingu. Podchodzi do niego=20
-ochroniarz i m=F3wi:
-- Pan tu parkuje?! Tu Sejm ... Ministrowie, politycy, pos=B3owiei ...
-- Dzi=EAki, w=B3=B1cz=EA alarm.
-NP: Peter Green Splinter Group - There's A River
-NB: 2.6.35-git9
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iJwEAQECAAYFAkxhccoACgkQfKHnntdSXjQ3twP/Y1d+NREvt0x0zZA0JJsZ5B/V
+P37MRvxW7H5hBhGulPrS3VY6mvFc4h4XkIfyLNmVDT5DDhFLkixtcOssKuVhNF80
+NtTCfqJ358kUNmoBS6UsdPtgCcRWQXK0eb/7JHxK6LP3GNFoTKdtJhIUHDVV2Xbc
+Z4RzArahZR9zncFkysM=
+=bFdp
+-----END PGP SIGNATURE-----
+
+--DKU6Jbt7q3WqK7+M--
