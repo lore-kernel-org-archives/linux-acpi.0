@@ -1,60 +1,61 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: Fan runs full speed after S3 sometimes (regression)
-Date: Tue, 10 Aug 2010 20:39:44 +0200
-Message-ID: <4C619CF0.30609@gmail.com>
-References: <4C613619.30309@gmail.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: linux-next: Tree for August 10 (acpi/apei)
+Date: Wed, 11 Aug 2010 09:32:01 +0800
+Message-ID: <1281490321.2744.1325.camel@yhuang-dev>
+References: <20100810135601.4777e310.sfr@canb.auug.org.au>
+	 <20100810100228.525d952e.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59712 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932504Ab0HJSjt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Aug 2010 14:39:49 -0400
-In-Reply-To: <4C613619.30309@gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:57720 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720Ab0HKBcE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Aug 2010 21:32:04 -0400
+In-Reply-To: <20100810100228.525d952e.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 08/10/2010 01:20 PM, Jiri Slaby wrote:
-> Hi,
+On Wed, 2010-08-11 at 01:02 +0800, Randy Dunlap wrote:
+> On Tue, 10 Aug 2010 13:56:01 +1000 Stephen Rothwell wrote:
 > 
-> till I was running on 2.6.34-rc5-mm1 (mmotm) and earlier everything was
-> fine. Now, I'm running 2.6.35-rc6-mm1 (.35-rc5-mm1 was the same) and
-> sometimes when the computer (desktop) returns from S3, the CPU fan is
-> running at full speed making a big noise.
+> > Hi all,
+> > 
+> > As the merge window is open, please do not add 2.6.37 material to your
+> > linux-next included trees until after 2.6.36-rc1.
+> > 
+> > Changes since 20100809:
+> 
+> 
+> on 32-bit i386:
+> 
+> drivers/acpi/apei/erst-dbg.c:106: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'ssize_t'
+> erst-dbg.c:(.text+0xede6d): undefined reference to `__get_user_X'
+> 
+> For the __get_user_X() call, in erst-dbg.c::erst_dbg_ioctl():
+> 
+> 	case APEI_ERST_CLEAR_RECORD:
+> 		rc = get_user(record_id, (u64 __user *)arg);
+> 
+> -> arch/x86/include/asm/uaccess.h:
+> 
+> #ifdef CONFIG_X86_32
+> #define __get_user_8(__ret_gu, __val_gu, ptr)				\
+> 		__get_user_x(X, __ret_gu, __val_gu, ptr)
+> #else
+> #define __get_user_8(__ret_gu, __val_gu, ptr)				\
+> 		__get_user_x(8, __ret_gu, __val_gu, ptr)
+> #endif
+> 
+> 
+> so is __get_user_8() not supported on X86_32?
+> or is this something else?
 
-Just to add, full power cycle is needed to get rid of that. Warm reboot
-is not enough.
+Will fix that via replacing get_user with copy_from_user for u64.
 
-> I don't know how to debug that. Bisection is out of question -- it
-> happens once in 10 or 20 cases. There are no fan entries in /sys.
-> 
-> The load is as follows:
-> $ while :; do cat /proc/loadavg; sleep 3; done
-> 0.37 0.33 0.32 1/325 21358
-> 0.42 0.34 0.32 1/325 21362
-> 0.42 0.34 0.32 1/326 21366
-> 0.38 0.33 0.32 1/330 21386
-> 0.38 0.33 0.32 1/331 21391
-> 0.35 0.33 0.32 1/331 21394
-> 0.32 0.32 0.32 1/331 21397
-> 0.32 0.32 0.32 1/331 21400
-> 0.30 0.32 0.32 1/331 21403
-> ...
-> 
-> I can boot into 34-rc5 to compare that if this is of relevance.
-> 
-> 290 kB kernel log since boot over several S3 sleep till now where the
-> fan is noisy:
-> http://www.fi.muni.cz/~xslaby/sklad/panics/boot.msg-fan_fullspeed
-> 
-> Should you need DSDT, it's there too:
-> http://www.fi.muni.cz/~xslaby/sklad/panics/DSDT
-> 
-> Any ideas what could have caused this?
-> 
-> thanks,
--- 
-js
+Best Regards,
+Huang Ying
+
+
