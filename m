@@ -1,57 +1,62 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH -v2] ACPI, APEI, ERST debug support
-Date: Wed, 11 Aug 2010 08:13:49 -0700
-Message-ID: <4C62BE2D.3030609@oracle.com>
-References: <1281490670.2744.1331.camel@yhuang-dev>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch for 2.6.35 1/1] acpi: fix bogus preemption logic
+Date: Wed, 11 Aug 2010 11:13:39 -0700
+Message-ID: <20100811111339.513c335d.akpm@linux-foundation.org>
+References: <201007202216.o6KMGpHD020818@imap1.linux-foundation.org>
+	<20100802125357.433f5845.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:18370 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825Ab0HKPQv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Aug 2010 11:16:51 -0400
-In-Reply-To: <1281490670.2744.1331.camel@yhuang-dev>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47485 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752617Ab0HKSMF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Aug 2010 14:12:05 -0400
+In-Reply-To: <20100802125357.433f5845.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, francois.valenduc@tvcablenet.be, ming.m.lin@intel.com
 
-On 08/10/10 18:37, Huang Ying wrote:
-> Hi, Len,
-> 
-> There is build error on i386 in the previous version. This new version fixed
-> it, please replace it in acpi-test.git.
-> 
-> Best Regards,
-> Huang Ying
-> ------------------------------->
-> This patch adds debugging/testing support to ERST. A misc device is
-> implemented to export raw ERST read/write/clear etc operations to user
-> space. With this patch, we can add ERST testing support to
-> linuxfirmwarekit ISO (linuxfirmwarekit.org) to verify the kernel
-> support and the firmware implementation.
-> 
-> v2:
-> 
-> - Fix build error on i386
-> 
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> Signed-off-by: Andi Kleen <ak@linux.intel.com>
-> ---
->  drivers/acpi/apei/Kconfig    |    9 +
->  drivers/acpi/apei/Makefile   |    1 
->  drivers/acpi/apei/erst-dbg.c |  207 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 217 insertions(+)
->  create mode 100644 drivers/acpi/apei/erst-dbg.c
+On Mon, 2 Aug 2010 12:53:57 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
 
-A patch against linux-next (or some acpi tree) would have been better
-for testing, but anyway, I fixed that little problem.
+> On Tue, 20 Jul 2010 15:16:51 -0700
+> akpm@linux-foundation.org wrote:
+> 
+> > From: Thomas Gleixner <tglx@linutronix.de>
+> > 
+> > The ACPI_PREEMPTION_POINT() logic was introduced in commit 8bd108d
+> > (ACPICA: add preemption point after each opcode parse).  The follow up
+> > commits abe1dfab6, 138d15692, c084ca70 tried to fix the preemption logic
+> > back and forth, but nobody noticed that the usage of
+> > in_atomic_preempt_off() in that context is wrong.
+> > 
+> > The check which guards the call of cond_resched() is:
+> > 
+> >     if (!in_atomic_preempt_off() && !irqs_disabled())
+> > 
+> > in_atomic_preempt_off() is not intended for general use as the comment
+> > above the macro definition clearly says:
+> > 
+> >  * Check whether we were atomic before we did preempt_disable():
+> >  * (used by the scheduler, *after* releasing the kernel lock)
+> > 
+> > On a CONFIG_PREEMPT=n kernel the usage of in_atomic_preempt_off() works by
+> > accident, but with CONFIG_PREEMPT=y it's just broken.
+> > 
+> > The whole purpose of the ACPI_PREEMPTION_POINT() is to reduce the latency
+> > on a CONFIG_PREEMPT=n kernel, so make ACPI_PREEMPTION_POINT() depend on
+> > CONFIG_PREEMPT=n and remove the in_atomic_preempt_off() check.
+> > 
+> > Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16210
+> > 
+> 
+> Why was this simply ignored?
+> 
+> I shall now add a cc:stable to my copy of the patch.  Please don't
+> merge the old version which is missing that cc.
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+And now people are reporting the regression in 2.6.35
+(https://bugzilla.kernel.org/show_bug.cgi?id=16564).
 
-Thanks.
-
--- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+I'll merge the patch.
