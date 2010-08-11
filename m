@@ -1,62 +1,66 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch for 2.6.35 1/1] acpi: fix bogus preemption logic
-Date: Wed, 11 Aug 2010 11:13:39 -0700
-Message-ID: <20100811111339.513c335d.akpm@linux-foundation.org>
-References: <201007202216.o6KMGpHD020818@imap1.linux-foundation.org>
-	<20100802125357.433f5845.akpm@linux-foundation.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH] ACPI: Add Toshiba Satellite C650D to DMI
+ blacklist for corrupting DSDT
+Date: Wed, 11 Aug 2010 12:50:41 -0700
+Message-ID: <20100811195041.GE23566@kroah.com>
+References: <1281112818-19388-1-git-send-email-anisse@astier.eu>
+ <20100806190618.78d061bd@destiny.ordissimo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47485 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752617Ab0HKSMF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Aug 2010 14:12:05 -0400
-In-Reply-To: <20100802125357.433f5845.akpm@linux-foundation.org>
+Received: from kroah.org ([198.145.64.141]:49344 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758502Ab0HKT7i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Aug 2010 15:59:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20100806190618.78d061bd@destiny.ordissimo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, francois.valenduc@tvcablenet.be, ming.m.lin@intel.com
+To: Anisse Astier <anisse@astier.eu>
+Cc: linux-acpi@vger.kernel.org, stable@kernel.org, Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
 
-On Mon, 2 Aug 2010 12:53:57 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> On Tue, 20 Jul 2010 15:16:51 -0700
-> akpm@linux-foundation.org wrote:
+On Fri, Aug 06, 2010 at 07:06:18PM +0200, Anisse Astier wrote:
+> On Fri,  6 Aug 2010 18:40:18 +0200, Anisse Astier <anisse@astier.eu>
+> wrote :
 > 
-> > From: Thomas Gleixner <tglx@linutronix.de>
+> > This machine has a BIOS that corrupts the DSDT, and adding
+> > acpi=copy_dsdt on cmdline fixes it. This feature and the corresponding
+> > blacklist was added in commit aa2110cb1a7510f9b834adfb39b05d4843a35d35
 > > 
-> > The ACPI_PREEMPTION_POINT() logic was introduced in commit 8bd108d
-> > (ACPICA: add preemption point after each opcode parse).  The follow up
-> > commits abe1dfab6, 138d15692, c084ca70 tried to fix the preemption logic
-> > back and forth, but nobody noticed that the usage of
-> > in_atomic_preempt_off() in that context is wrong.
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Lin Ming <ming.m.lin@intel.com>
+> > ---
+> >  drivers/acpi/bus.c |    8 ++++++++
+> >  1 files changed, 8 insertions(+), 0 deletions(-)
 > > 
-> > The check which guards the call of cond_resched() is:
-> > 
-> >     if (!in_atomic_preempt_off() && !irqs_disabled())
-> > 
-> > in_atomic_preempt_off() is not intended for general use as the comment
-> > above the macro definition clearly says:
-> > 
-> >  * Check whether we were atomic before we did preempt_disable():
-> >  * (used by the scheduler, *after* releasing the kernel lock)
-> > 
-> > On a CONFIG_PREEMPT=n kernel the usage of in_atomic_preempt_off() works by
-> > accident, but with CONFIG_PREEMPT=y it's just broken.
-> > 
-> > The whole purpose of the ACPI_PREEMPTION_POINT() is to reduce the latency
-> > on a CONFIG_PREEMPT=n kernel, so make ACPI_PREEMPTION_POINT() depend on
-> > CONFIG_PREEMPT=n and remove the in_atomic_preempt_off() check.
-> > 
-> > Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16210
-> > 
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index c1d23cd..fe7d7b9 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -99,6 +99,14 @@ static struct dmi_system_id dsdt_dmi_table[] __initdata = {
+> >  		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite L505D"),
+> >  		},
+> >  	},
+> > +	{
+> > +	 .callback = set_copy_dsdt,
+> > +	 .ident = "TOSHIBA Satellite C650D",
+> > +	 .matches = {
+> > +		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+> > +		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite C650D"),
+> > +		},
+> > +	},
+> >  	{}
+> >  };
+> >  #else
 > 
-> Why was this simply ignored?
+> Other users experiencing problems as reference:
+> https://bugs.launchpad.net/ubuntu/+bug/612341
 > 
-> I shall now add a cc:stable to my copy of the patch.  Please don't
-> merge the old version which is missing that cc.
+> Also, I'm cc-ing stable as it might interest Greg for 35.1 (not earlier
+> versions since the feature was added by Lin Ming in .35).
 
-And now people are reporting the regression in 2.6.35
-(https://bugzilla.kernel.org/show_bug.cgi?id=16564).
+What is the git commit id of this patch in Linus's tree?
 
-I'll merge the patch.
+thanks,
+
+greg k-h
