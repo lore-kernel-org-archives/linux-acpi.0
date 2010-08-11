@@ -1,42 +1,454 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [RFC][PATCH 0/4] ACPICA: New OSI interfaces
-Date: Wed, 11 Aug 2010 10:31:09 +0800
-Message-ID: <1281493869.2372.10.camel@minggr.sh.intel.com>
-References: <1280298463.20797.67.camel@minggr.sh.intel.com>
+Subject: ACPICA release 20100806 linuxized patches
+Date: Wed, 11 Aug 2010 10:42:35 +0800
+Message-ID: <1281494555.2372.21.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-6INNdQMn71h5udvvjFA0"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37112 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:52175 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757928Ab0HKCbJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Aug 2010 22:31:09 -0400
-In-Reply-To: <1280298463.20797.67.camel@minggr.sh.intel.com>
+	id S1758030Ab0HKCme (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Aug 2010 22:42:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb <lenb@kernel.org>
 Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, 2010-07-28 at 14:27 +0800, Lin Ming wrote:
-> Hi, all
-> 
-> http://www.acpica.org/bugzilla/show_bug.cgi?id=836
-> 
-> This patch series is to implement new OSI interfaces to dynamically
-> install/remove _OSI entries.
-> 
-> Thanks for any comment.
-> Lin Ming 
 
-Below is the updated version.
-The ACPICA part change has been merged into ACPICA git repository.
+--=-6INNdQMn71h5udvvjFA0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Please have a look at the Linux OSL _OSI code change, say
-drivers/acpi/osl.c.
+Len,
 
-Thanks.
+ACPICA release 20100806 linuxized patches attached.
+Build and tested OK on 32 and 64 bit machines.
+Applied cleanly on top of Linus' tree(f5fc216).
 
-Subject: [PATCH] ACPICA/ACPI: Add new host interfaces for _OSI support
+Note that patch 3 includes Linux OSL _OSI code
+change(drivers/acpi/osl.c). See
+https://patchwork.kernel.org/patch/118729/
+
+[PATCH 1/4] ACPICA: Fix acpi_os_read_pci_configuration prototype
+[PATCH 2/4] ACPICA: Revert "Revert "Enable multi-byte EC transfers
+[PATCH 3/4] ACPICA/ACPI: Add new host interfaces for _OSI support
+[PATCH 4/4] ACPICA: Update version to 20100806
+
+Thanks,
+Lin Ming
+
+--=-6INNdQMn71h5udvvjFA0
+Content-Type: application/mbox; name="acpica-v20100806.mbox"
+Content-Disposition: attachment; filename="acpica-v20100806.mbox"
+Content-Transfer-Encoding: 7bit
+
+>From 764c582617fc3f262f9be6f625cbb4a987728736 Mon Sep 17 00:00:00 2001
+From: Bob Moore <robert.moore@intel.com>
+Date: Fri, 6 Aug 2010 08:57:53 +0800
+Subject: [PATCH 1/4] ACPICA: Fix acpi_os_read_pci_configuration prototype
+
+Prototype in acpiosxf.h had the output value pointer as a (u32 *).
+Should be a (u64 *).
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/acpica/exregion.c |    4 +---
+ drivers/acpi/osl.c             |    8 +++++---
+ include/acpi/acpiosxf.h        |    2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
+index 8819d2a..de17e10 100644
+--- a/drivers/acpi/acpica/exregion.c
++++ b/drivers/acpi/acpica/exregion.c
+@@ -353,7 +353,6 @@ acpi_ex_pci_config_space_handler(u32 function,
+ 	acpi_status status = AE_OK;
+ 	struct acpi_pci_id *pci_id;
+ 	u16 pci_register;
+-	u32 value32;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_pci_config_space_handler);
+ 
+@@ -381,8 +380,7 @@ acpi_ex_pci_config_space_handler(u32 function,
+ 	case ACPI_READ:
+ 
+ 		status = acpi_os_read_pci_configuration(pci_id, pci_register,
+-							&value32, bit_width);
+-		*value = value32;
++							value, bit_width);
+ 		break;
+ 
+ 	case ACPI_WRITE:
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f14d3f2..3fd6747 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -548,9 +548,10 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
+ 
+ acpi_status
+ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+-			       u32 *value, u32 width)
++			       u64 *value, u32 width)
+ {
+ 	int result, size;
++	u32 value32;
+ 
+ 	if (!value)
+ 		return AE_BAD_PARAMETER;
+@@ -571,7 +572,8 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 
+ 	result = raw_pci_read(pci_id->segment, pci_id->bus,
+ 				PCI_DEVFN(pci_id->device, pci_id->function),
+-				reg, size, value);
++				reg, size, &value32);
++	*value = value32;
+ 
+ 	return (result ? AE_ERROR : AE_OK);
+ }
+@@ -627,7 +629,7 @@ static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	/* upper bound  */
+ 		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
+ 					  &temp);
+ 		if (ACPI_SUCCESS(status)) {
+-			u32 val;
++			u64 val;
+ 			pci_id->device = ACPI_HIWORD(ACPI_LODWORD(temp));
+ 			pci_id->function = ACPI_LOWORD(ACPI_LODWORD(temp));
+ 
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 29bf945..5e22577 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -223,7 +223,7 @@ acpi_os_write_memory(acpi_physical_address address, u32 value, u32 width);
+  */
+ acpi_status
+ acpi_os_read_pci_configuration(struct acpi_pci_id *pci_id,
+-			       u32 reg, u32 *value, u32 width);
++			       u32 reg, u64 *value, u32 width);
+ 
+ acpi_status
+ acpi_os_write_pci_configuration(struct acpi_pci_id *pci_id,
+
+>From ff81c55973711e8c64d9433eab6fc19c4a2a4ad9 Mon Sep 17 00:00:00 2001
+From: Bob Moore <robert.moore@intel.com>
+Date: Fri, 6 Aug 2010 09:09:33 +0800
+Subject: [PATCH 2/4] ACPICA: Revert "Revert "Enable multi-byte EC transfers
+
+This reverts commit f23b9c7(http://git.moblin.org/cgit.cgi/acpica/commit/?id=f23b9c7)
+The problem with this change was determined to be a problem with
+the FreeBSD host OSL (OS services layer), not with this patch
+itself. Therefore, re-introducing this change into the main ACPICA
+code. See ACPICA bugzilla 863.
+
+http://www.acpica.org/bugzilla/show_bug.cgi?id=863
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/acpica/acobject.h |    2 +-
+ drivers/acpi/acpica/exfldio.c  |   75 ++++++++++++++++++++++++++-------------
+ drivers/acpi/acpica/exprep.c   |   42 ++++++++++------------
+ 3 files changed, 70 insertions(+), 49 deletions(-)
+
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 54857fa..bdbfaf2 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -248,7 +248,7 @@ ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
+ 	u32                             base_byte_offset;   /* Byte offset within containing object */\
+ 	u32                             value;              /* Value to store into the Bank or Index register */\
+ 	u8                              start_field_bit_offset;/* Bit offset within first field datum (0-63) */\
+-	u8                              access_bit_width;	/* Read/Write size in bits (8-64) */
++
+ 
+ struct acpi_object_field_common {	/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
+ 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_FIELD_INFO union acpi_operand_object *region_obj;	/* Parent Operation Region object (REGION/BANK fields only) */
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index 0472173..38293fd 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -119,8 +119,8 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 	}
+ 
+ 	/*
+-	 * Exit now for SMBus or IPMI address space, it has a non-linear address space
+-	 * and the request cannot be directly validated
++	 * Exit now for SMBus or IPMI address space, it has a non-linear
++	 * address space and the request cannot be directly validated
+ 	 */
+ 	if (rgn_desc->region.space_id == ACPI_ADR_SPACE_SMBUS ||
+ 	    rgn_desc->region.space_id == ACPI_ADR_SPACE_IPMI) {
+@@ -147,8 +147,7 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 	 * (Region length is specified in bytes)
+ 	 */
+ 	if (rgn_desc->region.length <
+-	    (obj_desc->common_field.base_byte_offset +
+-	     field_datum_byte_offset +
++	    (obj_desc->common_field.base_byte_offset + field_datum_byte_offset +
+ 	     obj_desc->common_field.access_byte_width)) {
+ 		if (acpi_gbl_enable_interpreter_slack) {
+ 			/*
+@@ -680,6 +679,7 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 	u32 buffer_tail_bits;
+ 	u32 datum_count;
+ 	u32 field_datum_count;
++	u32 access_bit_width;
+ 	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_extract_from_field);
+@@ -694,16 +694,36 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 
+ 		return_ACPI_STATUS(AE_BUFFER_OVERFLOW);
+ 	}
++
+ 	ACPI_MEMSET(buffer, 0, buffer_length);
++	access_bit_width = ACPI_MUL_8(obj_desc->common_field.access_byte_width);
++
++	/* Handle the simple case here */
++
++	if ((obj_desc->common_field.start_field_bit_offset == 0) &&
++	    (obj_desc->common_field.bit_length == access_bit_width)) {
++		status = acpi_ex_field_datum_io(obj_desc, 0, buffer, ACPI_READ);
++		return_ACPI_STATUS(status);
++	}
++
++/* TBD: Move to common setup code */
++
++	/* Field algorithm is limited to sizeof(u64), truncate if needed */
++
++	if (obj_desc->common_field.access_byte_width > sizeof(u64)) {
++		obj_desc->common_field.access_byte_width = sizeof(u64);
++		access_bit_width = sizeof(u64) * 8;
++	}
+ 
+ 	/* Compute the number of datums (access width data items) */
+ 
+-	datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length,
+-				       obj_desc->common_field.access_bit_width);
++	datum_count =
++	    ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length,
++			     access_bit_width);
++
+ 	field_datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length +
+ 					     obj_desc->common_field.
+ 					     start_field_bit_offset,
+-					     obj_desc->common_field.
+ 					     access_bit_width);
+ 
+ 	/* Priming read from the field */
+@@ -738,12 +758,11 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 		 * This avoids the differences in behavior between different compilers
+ 		 * concerning shift values larger than the target data width.
+ 		 */
+-		if ((obj_desc->common_field.access_bit_width -
+-		     obj_desc->common_field.start_field_bit_offset) <
++		if (access_bit_width -
++		    obj_desc->common_field.start_field_bit_offset <
+ 		    ACPI_INTEGER_BIT_SIZE) {
+ 			merged_datum |=
+-			    raw_datum << (obj_desc->common_field.
+-					  access_bit_width -
++			    raw_datum << (access_bit_width -
+ 					  obj_desc->common_field.
+ 					  start_field_bit_offset);
+ 		}
+@@ -765,8 +784,7 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 
+ 	/* Mask off any extra bits in the last datum */
+ 
+-	buffer_tail_bits = obj_desc->common_field.bit_length %
+-	    obj_desc->common_field.access_bit_width;
++	buffer_tail_bits = obj_desc->common_field.bit_length % access_bit_width;
+ 	if (buffer_tail_bits) {
+ 		merged_datum &= ACPI_MASK_BITS_ABOVE(buffer_tail_bits);
+ 	}
+@@ -798,6 +816,7 @@ acpi_status
+ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 			  void *buffer, u32 buffer_length)
+ {
++	void *new_buffer;
+ 	acpi_status status;
+ 	u64 mask;
+ 	u64 width_mask;
+@@ -808,9 +827,9 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 	u32 buffer_tail_bits;
+ 	u32 datum_count;
+ 	u32 field_datum_count;
+-	u32 i;
++	u32 access_bit_width;
+ 	u32 required_length;
+-	void *new_buffer;
++	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_insert_into_field);
+ 
+@@ -844,17 +863,24 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 		buffer_length = required_length;
+ 	}
+ 
++/* TBD: Move to common setup code */
++
++	/* Algo is limited to sizeof(u64), so cut the access_byte_width */
++	if (obj_desc->common_field.access_byte_width > sizeof(u64)) {
++		obj_desc->common_field.access_byte_width = sizeof(u64);
++	}
++
++	access_bit_width = ACPI_MUL_8(obj_desc->common_field.access_byte_width);
++
+ 	/*
+ 	 * Create the bitmasks used for bit insertion.
+ 	 * Note: This if/else is used to bypass compiler differences with the
+ 	 * shift operator
+ 	 */
+-	if (obj_desc->common_field.access_bit_width == ACPI_INTEGER_BIT_SIZE) {
++	if (access_bit_width == ACPI_INTEGER_BIT_SIZE) {
+ 		width_mask = ACPI_UINT64_MAX;
+ 	} else {
+-		width_mask =
+-		    ACPI_MASK_BITS_ABOVE(obj_desc->common_field.
+-					 access_bit_width);
++		width_mask = ACPI_MASK_BITS_ABOVE(access_bit_width);
+ 	}
+ 
+ 	mask = width_mask &
+@@ -863,12 +889,11 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 	/* Compute the number of datums (access width data items) */
+ 
+ 	datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length,
+-				       obj_desc->common_field.access_bit_width);
++				       access_bit_width);
+ 
+ 	field_datum_count = ACPI_ROUND_UP_TO(obj_desc->common_field.bit_length +
+ 					     obj_desc->common_field.
+ 					     start_field_bit_offset,
+-					     obj_desc->common_field.
+ 					     access_bit_width);
+ 
+ 	/* Get initial Datum from the input buffer */
+@@ -905,12 +930,11 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 		 * This avoids the differences in behavior between different compilers
+ 		 * concerning shift values larger than the target data width.
+ 		 */
+-		if ((obj_desc->common_field.access_bit_width -
++		if ((access_bit_width -
+ 		     obj_desc->common_field.start_field_bit_offset) <
+ 		    ACPI_INTEGER_BIT_SIZE) {
+ 			merged_datum =
+-			    raw_datum >> (obj_desc->common_field.
+-					  access_bit_width -
++			    raw_datum >> (access_bit_width -
+ 					  obj_desc->common_field.
+ 					  start_field_bit_offset);
+ 		} else {
+@@ -929,6 +953,7 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 		ACPI_MEMCPY(&raw_datum, ((char *)buffer) + buffer_offset,
+ 			    ACPI_MIN(obj_desc->common_field.access_byte_width,
+ 				     buffer_length - buffer_offset));
++
+ 		merged_datum |=
+ 		    raw_datum << obj_desc->common_field.start_field_bit_offset;
+ 	}
+@@ -937,7 +962,7 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
+ 
+ 	buffer_tail_bits = (obj_desc->common_field.bit_length +
+ 			    obj_desc->common_field.start_field_bit_offset) %
+-	    obj_desc->common_field.access_bit_width;
++	    access_bit_width;
+ 	if (buffer_tail_bits) {
+ 		mask &= ACPI_MASK_BITS_ABOVE(buffer_tail_bits);
+ 	}
+diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
+index 98a331d..5366a48 100644
+--- a/drivers/acpi/acpica/exprep.c
++++ b/drivers/acpi/acpica/exprep.c
+@@ -355,12 +355,10 @@ acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
+ 		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
+ 	}
+ 
+-	/* Setup width (access granularity) fields */
++	/* Setup width (access granularity) fields (values are: 1, 2, 4, 8) */
+ 
+ 	obj_desc->common_field.access_byte_width = (u8)
+-	    ACPI_DIV_8(access_bit_width);	/* 1,  2,  4,  8 */
+-
+-	obj_desc->common_field.access_bit_width = (u8) access_bit_width;
++	    ACPI_DIV_8(access_bit_width);
+ 
+ 	/*
+ 	 * base_byte_offset is the address of the start of the field within the
+@@ -405,8 +403,9 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+ {
+ 	union acpi_operand_object *obj_desc;
+ 	union acpi_operand_object *second_desc = NULL;
+-	u32 type;
+ 	acpi_status status;
++	u32 access_byte_width;
++	u32 type;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_prep_field_value);
+ 
+@@ -421,8 +420,8 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+ 		type = acpi_ns_get_type(info->region_node);
+ 		if (type != ACPI_TYPE_REGION) {
+ 			ACPI_ERROR((AE_INFO,
+-				    "Needed Region, found type 0x%X (%s)",
+-				    type, acpi_ut_get_type_name(type)));
++				    "Needed Region, found type 0x%X (%s)", type,
++				    acpi_ut_get_type_name(type)));
+ 
+ 			return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
+ 		}
+@@ -438,7 +437,8 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+ 	/* Initialize areas of the object that are common to all fields */
+ 
+ 	obj_desc->common_field.node = info->field_node;
+-	status = acpi_ex_prep_common_field_object(obj_desc, info->field_flags,
++	status = acpi_ex_prep_common_field_object(obj_desc,
++						  info->field_flags,
+ 						  info->attribute,
+ 						  info->field_bit_position,
+ 						  info->field_bit_length);
+@@ -455,24 +455,20 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+ 		obj_desc->field.region_obj =
+ 		    acpi_ns_get_attached_object(info->region_node);
+ 
+-		/* An additional reference for the container */
++		/* Allow full data read from EC address space */
++
++		if ((obj_desc->field.region_obj->region.space_id ==
++		     ACPI_ADR_SPACE_EC)
++		    && (obj_desc->common_field.bit_length > 8)) {
++			access_byte_width =
++			    ACPI_ROUND_BITS_UP_TO_BYTES(obj_desc->common_field.
++							bit_length);
+ 
+-		acpi_ut_add_reference(obj_desc->field.region_obj);
++			/* Maximum byte width supported is 255 */
+ 
+-		/* allow full data read from EC address space */
+-		if (obj_desc->field.region_obj->region.space_id ==
+-			ACPI_ADR_SPACE_EC) {
+-			if (obj_desc->common_field.bit_length > 8) {
+-				unsigned width =
+-					ACPI_ROUND_BITS_UP_TO_BYTES(
+-					obj_desc->common_field.bit_length);
+-				// access_bit_width is u8, don't overflow it
+-				if (width > 8)
+-					width = 8;
++			if (access_byte_width < 256) {
+ 				obj_desc->common_field.access_byte_width =
+-							width;
+-				obj_desc->common_field.access_bit_width =
+-							8 * width;
++				    (u8)access_byte_width;
+ 			}
+ 		}
+ 
+
+>From 2021225e2e938f08c0139f3ddf59cc3202ab5a29 Mon Sep 17 00:00:00 2001
+From: Lin Ming <ming.m.lin@intel.com>
+Date: Fri, 6 Aug 2010 09:35:51 +0800
+Subject: [PATCH 3/4] ACPICA/ACPI: Add new host interfaces for _OSI support
 
 Adds install/remove interfaces so that the host can dynamically
 alter the global _OSI table. Also adds support for _OSI handlers.
@@ -1125,4 +1537,33 @@ index 5db8f47..332d076 100644
  
  #define ACPI_INTERRUPT_NOT_HANDLED      0x00
 
+>From 18496c5e0a37bb00139c84f38892d3937b0ddce1 Mon Sep 17 00:00:00 2001
+From: Bob Moore <robert.moore@intel.com>
+Date: Wed, 11 Aug 2010 10:14:35 +0800
+Subject: [PATCH 4/4] ACPICA: Update version to 20100806
+
+Version 20100806.
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ include/acpi/acpixf.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 55164c7..8a2d2cf 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -47,7 +47,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20100702
++#define ACPI_CA_VERSION                 0x20100806
+ 
+ #include "actypes.h"
+ #include "actbl.h"
+
+
+--=-6INNdQMn71h5udvvjFA0--
 
