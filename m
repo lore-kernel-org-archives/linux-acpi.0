@@ -1,85 +1,475 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [REGRESSION 2.6.35+]  another smp_processor_id bug
-Date: Fri, 13 Aug 2010 00:11:47 +0300
-Message-ID: <1281647507.2712.1.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61075 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760599Ab0HLVLx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Aug 2010 17:11:53 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: [PATCH] ideapad-laptop: add new driver
+Date: Fri, 13 Aug 2010 12:08:02 +0800
+Message-ID: <1281672482-10909-1-git-send-email-ike.pan@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Corentin Chary <corentincj@iksaif.net>, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@linux.intel.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi,
+ideapad-laptop is a new driver which enable hotkeys on Lenovo Ideapad laptops
 
-I am getting a bunch of these on suspend/resume.
+The driver will bind on ACPI HID:VPC2004. When hotkey pressed, the notify
+function will be called and query EC to tell which key pressed.
 
-[  345.254162] BUG: using smp_processor_id() in preemptible [00000000] code: pm-hibernate/2933
-[  345.254294] caller is touch_nmi_watchdog+0x15/0x30
-[  345.254310] Pid: 2933, comm: pm-hibernate Tainted: P            2.6.35-rc0+ #108
-[  345.254330] Call Trace:
-[  345.254344]  [<ffffffff811ddcd2>] debug_smp_processor_id+0xd2/0xf0
-[  345.254364]  [<ffffffff81095955>] touch_nmi_watchdog+0x15/0x30
-[  345.254384]  [<ffffffff8121332d>] acpi_os_stall+0x34/0x41
-[  345.254403]  [<ffffffff8122a546>] acpi_ex_system_do_stall+0x34/0x38
-[  345.254423]  [<ffffffff81229999>] acpi_ex_opcode_1A_0T_0R+0x6d/0xa1
-[  345.254444]  [<ffffffff8121f0d3>] acpi_ds_exec_end_op+0xef/0x570
-[  345.254465]  [<ffffffff812364cd>] acpi_ps_parse_loop+0x8b2/0xa69
-[  345.254487]  [<ffffffff81235469>] acpi_ps_parse_aml+0x10a/0x3c1
-[  345.254508]  [<ffffffff81236e09>] acpi_ps_execute_method+0x213/0x322
-[  345.254530]  [<ffffffff81230ea0>] acpi_ns_evaluate+0x18c/0x2c9
-[  345.254550]  [<ffffffff8123073c>] acpi_evaluate_object+0x1ad/0x2f1
-[  345.254571]  [<ffffffff8122ecd6>] ? acpi_get_sleep_type_data+0x212/0x22c
-[  345.254594]  [<ffffffff8122e6bf>] acpi_enter_sleep_state_prep+0x61/0xe4
-[  345.254616]  [<ffffffff812145c6>] acpi_sleep_prepare+0x4a/0x51
-[  345.254636]  [<ffffffff81214629>] __acpi_pm_prepare+0x13/0x2e
-[  345.254655]  [<ffffffff812147cf>] acpi_pm_prepare+0xe/0x1f
-[  345.254675]  [<ffffffff812147ed>] acpi_hibernation_pre_snapshot+0xd/0x1e
-[  345.254696]  [<ffffffff810808b7>] hibernation_snapshot+0x187/0x250
-[  345.254717]  [<ffffffff81080a54>] hibernate+0xd4/0x220
-[  345.254734]  [<ffffffff8107f30c>] state_store+0xec/0x100
-[  345.254754]  [<ffffffff811cf577>] kobj_attr_store+0x17/0x20
-[  345.254772]  [<ffffffff81148a52>] sysfs_write_file+0xf2/0x170
-[  345.254793]  [<ffffffff810debb8>] vfs_write+0xc8/0x190
-[  345.254811]  [<ffffffff810ded5c>] sys_write+0x4c/0x80
-[  345.254830]  [<ffffffff81002deb>] system_call_fastpath+0x16/0x1b
-[  345.254849] BUG: using smp_processor_id() in preemptible [00000000] code: pm-hibernate/2933
-[  345.254980] caller is touch_softlockup_watchdog+0x15/0x30
-[  345.254997] Pid: 2933, comm: pm-hibernate Tainted: P            2.6.35-rc0+ #108
-[  345.255017] Call Trace:
-[  345.255030]  [<ffffffff811ddcd2>] debug_smp_processor_id+0xd2/0xf0
-[  345.255052]  [<ffffffff81095925>] touch_softlockup_watchdog+0x15/0x30
-[  345.255074]  [<ffffffff81095968>] touch_nmi_watchdog+0x28/0x30
-[  345.255095]  [<ffffffff8121332d>] acpi_os_stall+0x34/0x41
-[  345.255114]  [<ffffffff8122a546>] acpi_ex_system_do_stall+0x34/0x38
-[  345.255135]  [<ffffffff81229999>] acpi_ex_opcode_1A_0T_0R+0x6d/0xa1
-[  345.255157]  [<ffffffff8121f0d3>] acpi_ds_exec_end_op+0xef/0x570
-[  345.255180]  [<ffffffff812364cd>] acpi_ps_parse_loop+0x8b2/0xa69
-[  345.255202]  [<ffffffff81235469>] acpi_ps_parse_aml+0x10a/0x3c1
-[  345.255225]  [<ffffffff81236e09>] acpi_ps_execute_method+0x213/0x322
-[  345.255247]  [<ffffffff81230ea0>] acpi_ns_evaluate+0x18c/0x2c9
-[  345.255268]  [<ffffffff8123073c>] acpi_evaluate_object+0x1ad/0x2f1
-[  345.255290]  [<ffffffff8122ecd6>] ? acpi_get_sleep_type_data+0x212/0x22c
-[  345.255314]  [<ffffffff8122e6bf>] acpi_enter_sleep_state_prep+0x61/0xe4
-[  345.255337]  [<ffffffff812145c6>] acpi_sleep_prepare+0x4a/0x51
-[  345.255358]  [<ffffffff81214629>] __acpi_pm_prepare+0x13/0x2e
-[  345.255379]  [<ffffffff812147cf>] acpi_pm_prepare+0xe/0x1f
-[  345.255399]  [<ffffffff812147ed>] acpi_hibernation_pre_snapshot+0xd/0x1e
-[  345.255422]  [<ffffffff810808b7>] hibernation_snapshot+0x187/0x250
-[  345.255443]  [<ffffffff81080a54>] hibernate+0xd4/0x220
-[  345.255461]  [<ffffffff8107f30c>] state_store+0xec/0x100
-[  345.255481]  [<ffffffff811cf577>] kobj_attr_store+0x17/0x20
-[  345.255501]  [<ffffffff81148a52>] sysfs_write_file+0xf2/0x170
-[  345.255523]  [<ffffffff810debb8>] vfs_write+0xc8/0x190
-[  345.255542]  [<ffffffff810ded5c>] sys_write+0x4c/0x80
-[  345.255561]  [<ffffffff81002deb>] system_call_fastpath+0x16/0x1b
+Hotkeys enabled listed below:
+ * LCD backlight switch - reports KEY_DISPLAY_OFF
+ * One key restore - reports KEY_PROG1
+ * Brightness Up/down - reports KEY_BRIGHTNESS_CYCLE
+   Both up/down keys reports the same event. Need to find other way to detect
+ * Touchpad switch - reports KEY_F13
+ * Video output switch - reports KEY_SWITCHVIDEOMODE
+ * Camera switch - reports KEY_CAMERA
+ * Video resolution switch - reports KEY_VIDEO_NEXT
+ * S/W rfkill key - reports KEY_WLAN
 
+The developing git tree as reference:
+  git://kernel.ubuntu.com/ikepanhc/ideapad-laptop.git
 
-Best regards,
-	Maxim Levitsky
+This patch made against current checkout of mainline kernel.
 
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+---
+ drivers/platform/x86/Kconfig          |   11 +
+ drivers/platform/x86/Makefile         |    1 +
+ drivers/platform/x86/ideapad-laptop.c |  398 +++++++++++++++++++++++++++++++++
+ 3 files changed, 410 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/platform/x86/ideapad-laptop.c
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 79baa63..e9a203d 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -581,4 +581,15 @@ config INTEL_IPS
+ 	  functionality.  If in doubt, say Y here; it will only load on
+ 	  supported platforms.
+ 
++config IDEAPAD_LAPTOP
++	tristate "Ideapad Laptop Extras"
++	depends on ACPI
++	depends on INPUT
++	select INPUT_SPARSEKMAP
++	---help---
++	  This is the ACPI extra Linux driver for ideapad laptops which enable
++	  ACPI event based hotkey.
++
++	  If you have an Ideapad laptop, say Y or M here.
++
+ endif # X86_PLATFORM_DEVICES
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 4744c77..47ca2b9 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -29,4 +29,5 @@ obj-$(CONFIG_INTEL_SCU_IPC)	+= intel_scu_ipc.o
+ obj-$(CONFIG_RAR_REGISTER)	+= intel_rar_register.o
+ obj-$(CONFIG_INTEL_IPS)		+= intel_ips.o
+ obj-$(CONFIG_GPIO_INTEL_PMIC)	+= intel_pmic_gpio.o
++obj-$(CONFIG_IDEAPAD_LAPTOP)	+= ideapad-laptop.o
+ 
+diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
+new file mode 100644
+index 0000000..d666d24
+--- /dev/null
++++ b/drivers/platform/x86/ideapad-laptop.c
+@@ -0,0 +1,398 @@
++/*
++ *  ideapad-laptop.c: ACPI extra driver for ideapad series laptop
++ *
++ *  This driver is based on eeepc-laptop.c
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <acpi/acpi_drivers.h>
++#include <acpi/acpi_bus.h>
++#include <linux/uaccess.h>
++#include <linux/input.h>
++#include <linux/input/sparse-keymap.h>
++
++#define IDEAPAD_LAPTOP_NAME	"Ideapad ACPI extra driver"
++#define IDEAPAD_LAPTOP_FILE	"ideapad"
++
++#define IDEAPAD_ACPI_CLASS		"hotkey"
++#define IDEAPAD_ACPI_DEVICE_NAME	"Hotkey"
++#define IDEAPAD_ACPI_HID		"VPC2004"
++
++#define IDEAPAD_EC_TIMEOUT	(25)
++
++MODULE_AUTHOR("Ike Panhc");
++MODULE_DESCRIPTION(IDEAPAD_LAPTOP_NAME);
++MODULE_LICENSE("GPL");
++
++/*
++ * This is the main structure, we can use it to store useful information
++ */
++struct ideapad_laptop {
++	acpi_handle handle;		/* the handle of the acpi device */
++	u32 cm_supported;		/* the control methods supported
++					   by this BIOS */
++	u16 event_count[128];		/* count for each event */
++
++	struct platform_device *platform_device;
++	struct input_dev *inputdev;
++
++	int cfg;
++};
++
++/*
++ * ACPI Helpers
++ */
++static int read_method_int(acpi_handle handle, const char *method, int *val)
++{
++	acpi_status status;
++	unsigned long long result;
++
++	status = acpi_evaluate_integer(handle, (char *)method, NULL, &result);
++	if (ACPI_FAILURE(status)) {
++		*val = -1;
++		return -1;
++	} else {
++		*val = result;
++		return 0;
++	}
++}
++
++static int method_vpcr(acpi_handle handle, int cmd, int *ret)
++{
++	acpi_status status;
++	unsigned long long result;
++	struct acpi_object_list params;
++	union acpi_object in_obj;
++
++	params.count = 1;
++	params.pointer = &in_obj;
++	in_obj.type = ACPI_TYPE_INTEGER;
++	in_obj.integer.value = cmd;
++
++	status = acpi_evaluate_integer(handle, "VPCR", &params, &result);
++
++	if (ACPI_FAILURE(status)) {
++		*ret = -1;
++		return -1;
++	} else {
++		*ret = result;
++		return 0;
++	}
++}
++
++static int method_vpcw(acpi_handle handle, int cmd, int data)
++{
++	struct acpi_object_list params;
++	union acpi_object in_obj[2];
++	acpi_status status;
++
++	params.count = 2;
++	params.pointer = in_obj;
++	in_obj[0].type = ACPI_TYPE_INTEGER;
++	in_obj[0].integer.value = cmd;
++	in_obj[1].type = ACPI_TYPE_INTEGER;
++	in_obj[1].integer.value = data;
++	status = acpi_evaluate_object(handle, "VPCW", &params, NULL);
++	if (status != AE_OK)
++		return -1;
++	return 0;
++}
++
++static int read_ec_data(acpi_handle handle, int cmd, unsigned long *data)
++{
++	int val;
++	unsigned long int start_jiffies, now_jiffies;
++
++	if (method_vpcw(handle, 1, cmd))
++		return -1;
++
++	for (start_jiffies = jiffies;; ) {
++		if (method_vpcr(handle, 1, &val))
++			return -1;
++		if (val == 0) {
++			if (method_vpcr(handle, 0, &val))
++				return -1;
++			*data = val;
++			return 0;
++		}
++		now_jiffies = jiffies;
++		if ((now_jiffies-start_jiffies) > (HZ)/IDEAPAD_EC_TIMEOUT+1) {
++			pr_err("timeout in read_ec_cmd\n");
++			return -1;
++		}
++	}
++}
++
++/*
++ * Platform driver
++ */
++static struct platform_driver platform_driver = {
++	.driver = {
++		.name = IDEAPAD_LAPTOP_FILE,
++		.owner = THIS_MODULE,
++	}
++};
++
++static int ideapad_platform_init(struct ideapad_laptop *ideapad)
++{
++	int result;
++
++	ideapad->platform_device = platform_device_alloc(IDEAPAD_LAPTOP_FILE,
++							-1);
++	if (!ideapad->platform_device)
++		return -ENOMEM;
++	platform_set_drvdata(ideapad->platform_device, ideapad);
++
++	result = platform_device_add(ideapad->platform_device);
++	if (result)
++		goto fail_platform_device;
++
++	return 0;
++
++fail_platform_device:
++	platform_device_put(ideapad->platform_device);
++	return result;
++}
++
++static void ideapad_platform_exit(struct ideapad_laptop *ideapad)
++{
++	platform_device_unregister(ideapad->platform_device);
++}
++
++/*
++ * Input device
++ */
++static const struct key_entry ideapad_keymap[] = {
++	{ KE_KEY, 0x02, { KEY_DISPLAY_OFF } },
++	{ KE_KEY, 0x03, { KEY_PROG1 } },
++	{ KE_KEY, 0x04, { KEY_BRIGHTNESS_CYCLE } },
++	{ KE_KEY, 0x05, { KEY_F13 } },
++	{ KE_KEY, 0x06, { KEY_SWITCHVIDEOMODE } },
++	{ KE_KEY, 0x07, { KEY_CAMERA } },
++	{ KE_KEY, 0x0B, { KEY_VIDEO_NEXT } },
++	{ KE_KEY, 0x0D, { KEY_WLAN } },
++	{ KE_END, 0},
++};
++
++static int ideapad_input_init(struct ideapad_laptop *ideapad)
++{
++	struct input_dev *input;
++	int error;
++
++	input = input_allocate_device();
++	if (!input) {
++		pr_info("Unable to allocate input device\n");
++		return -ENOMEM;
++	}
++
++	input->name = "Lenovo Ideapad Hotkeys";
++	input->phys = IDEAPAD_LAPTOP_FILE "/input0";
++	input->id.bustype = BUS_HOST;
++	input->dev.parent = &ideapad->platform_device->dev;
++
++	error = sparse_keymap_setup(input, ideapad_keymap, NULL);
++	if (error) {
++		pr_err("Unable to setup input device keymap\n");
++		goto err_free_dev;
++	}
++
++	error = input_register_device(input);
++	if (error) {
++		pr_err("Unable to register input device\n");
++		goto err_free_keymap;
++	}
++
++	ideapad->inputdev = input;
++	return 0;
++
++err_free_keymap:
++	sparse_keymap_free(input);
++err_free_dev:
++	input_free_device(input);
++	return error;
++}
++
++static void ideapad_input_exit(struct ideapad_laptop *ideapad)
++{
++	if (ideapad->inputdev)
++		input_unregister_device(ideapad->inputdev);
++}
++
++/*
++ * ACPI driver
++ */
++static void ideapad_acpi_notify(struct acpi_device *device, u32 event)
++{
++	struct ideapad_laptop *ideapad = device->driver_data;
++	acpi_handle handle = ideapad->handle;
++	unsigned long vpc1, vpc2, vpc_bit;
++
++	if (read_ec_data(handle, 0x10, &vpc1))
++		return;
++	if (read_ec_data(handle, 0x1A, &vpc2))
++		return;
++
++	vpc1 = (vpc2 << 8) | vpc1;
++	for (vpc_bit = 0; vpc_bit < 16; vpc_bit++) {
++		if (test_bit(vpc_bit, &vpc1)) {
++			if (vpc_bit == 9)
++				continue;
++			sparse_keymap_report_event(ideapad->inputdev, event, 1,
++						true);
++		}
++	}
++}
++
++static int ideapad_acpi_init(struct ideapad_laptop *ideapad,
++			   struct acpi_device *device)
++{
++	int result;
++	acpi_handle handle = ideapad->handle;
++
++	result = acpi_bus_get_status(device);
++	if (result)
++		return result;
++	if (!device->status.present) {
++		pr_err("Hotkey device not present, aborting\n");
++		return -ENODEV;
++	}
++
++	if (read_method_int(handle, "_STA", &result)) {
++		pr_err("Access _STA failed\n");
++		return -ENODEV;
++	}
++	if (result != 0x0F) {
++		pr_err("_STA return unknown value: 0x%X\n", result);
++		return -ENODEV;
++	}
++
++	if (read_method_int(handle, "_CFG", &result)) {
++		pr_err("Access _CFG failed\n");
++		return -ENODEV;
++	}
++	ideapad->cfg = result;
++
++	return 0;
++}
++
++static bool ideapad_device_present;
++
++static int __devinit ideapad_acpi_add(struct acpi_device *device)
++{
++	struct ideapad_laptop *ideapad;
++	int result;
++
++	ideapad = kzalloc(sizeof(struct ideapad_laptop), GFP_KERNEL);
++	if (!ideapad)
++		return -ENOMEM;
++	ideapad->handle = device->handle;
++	strcpy(acpi_device_name(device), IDEAPAD_ACPI_DEVICE_NAME);
++	strcpy(acpi_device_class(device), IDEAPAD_ACPI_CLASS);
++	device->driver_data = ideapad;
++
++	result = ideapad_acpi_init(ideapad, device);
++	if (result)
++		goto fail_platform;
++
++	result = ideapad_platform_init(ideapad);
++	if (result)
++		goto fail_platform;
++
++	result = ideapad_input_init(ideapad);
++	if (result)
++		goto fail_input;
++
++	ideapad_device_present = true;
++	return 0;
++
++fail_input:
++	ideapad_platform_exit(ideapad);
++fail_platform:
++	kfree(ideapad);
++
++	return result;
++}
++
++static int ideapad_acpi_remove(struct acpi_device *device, int type)
++{
++	struct ideapad_laptop *ideapad = acpi_driver_data(device);
++
++	ideapad_input_exit(ideapad);
++	ideapad_platform_exit(ideapad);
++
++	kfree(ideapad);
++	return 0;
++}
++
++
++static const struct acpi_device_id ideapad_device_ids[] = {
++	{IDEAPAD_ACPI_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, ideapad_device_ids);
++
++static struct acpi_driver ideapad_acpi_driver = {
++	.name = IDEAPAD_LAPTOP_NAME,
++	.class = IDEAPAD_ACPI_CLASS,
++	.owner = THIS_MODULE,
++	.ids = ideapad_device_ids,
++	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
++	.ops = {
++		.add = ideapad_acpi_add,
++		.remove = ideapad_acpi_remove,
++		.notify = ideapad_acpi_notify,
++	},
++};
++
++
++static int __init ideapad_laptop_init(void)
++{
++	int result;
++
++	result = platform_driver_register(&platform_driver);
++	if (result < 0)
++		return result;
++
++	result = acpi_bus_register_driver(&ideapad_acpi_driver);
++	if (result < 0)
++		goto fail_acpi_driver;
++
++	if (!ideapad_device_present) {
++		result = -ENODEV;
++		goto fail_no_device;
++	}
++
++	return 0;
++
++fail_no_device:
++	acpi_bus_unregister_driver(&ideapad_acpi_driver);
++fail_acpi_driver:
++	platform_driver_unregister(&platform_driver);
++	return result;
++}
++
++static void __exit ideapad_laptop_exit(void)
++{
++	acpi_bus_unregister_driver(&ideapad_acpi_driver);
++	platform_driver_unregister(&platform_driver);
++}
++
++module_init(ideapad_laptop_init);
++module_exit(ideapad_laptop_exit);
+-- 
+1.7.0.4
