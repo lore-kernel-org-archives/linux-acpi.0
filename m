@@ -1,37 +1,52 @@
-From: Ike Panhc <ike.pan@canonical.com>
+From: David Woodhouse <dwmw2@infradead.org>
 Subject: Re: [PATCH] ideapad-laptop: add new driver
-Date: Fri, 13 Aug 2010 15:15:30 +0800
-Message-ID: <4C64F112.8050504@canonical.com>
-References: <1281672482-10909-1-git-send-email-ike.pan@canonical.com>	<AANLkTikBZ2SmqWavZ8bw69yQ_A5GTTcB13RKEzUuUcx3@mail.gmail.com>	<4C64EC01.9040103@canonical.com> <AANLkTim9jcbRwZt7E0gwVwQyETAEhe-tKP3NvGSAPknX@mail.gmail.com>
+Date: Fri, 13 Aug 2010 10:14:53 +0100
+Message-ID: <1281690893.23680.475.camel@localhost>
+References: <1281672482-10909-1-git-send-email-ike.pan@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:54324 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640Ab0HMHPn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Aug 2010 03:15:43 -0400
-In-Reply-To: <AANLkTim9jcbRwZt7E0gwVwQyETAEhe-tKP3NvGSAPknX@mail.gmail.com>
+Received: from casper.infradead.org ([85.118.1.10]:33558 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761379Ab0HMJO7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Aug 2010 05:14:59 -0400
+In-Reply-To: <1281672482-10909-1-git-send-email-ike.pan@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@linux.intel.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Corentin Chary <corentincj@iksaif.net>, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@linux.intel.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
 
-On 08/13/2010 03:01 PM, Corentin Chary wrote:
->> Could you point me where is the rfkill driver? Sorry I do not find it.
->>
->> I will see what I can do.
->>
->> Thanks.
->>
+On Fri, 2010-08-13 at 12:08 +0800, Ike Panhc wrote:
 > 
-> Here is the thread
-> http://thread.gmane.org/gmane.linux.drivers.platform.x86.devel/471
+> The driver will bind on ACPI HID:VPC2004. When hotkey pressed, the
+> notify
+> function will be called and query EC to tell which key pressed.
 > 
-Yes, I believe I can. will read patch from David and merge.
+> Hotkeys enabled listed below:
+>  * LCD backlight switch - reports KEY_DISPLAY_OFF
+>  * One key restore - reports KEY_PROG1
+>  * Brightness Up/down - reports KEY_BRIGHTNESS_CYCLE
+>    Both up/down keys reports the same event. Need to find other way to
+> detect
+>  * Touchpad switch - reports KEY_F13
+>  * Video output switch - reports KEY_SWITCHVIDEOMODE
+>  * Camera switch - reports KEY_CAMERA
+>  * Video resolution switch - reports KEY_VIDEO_NEXT
+>  * S/W rfkill key - reports KEY_WLAN 
 
-But I think i will not use \_SB_.SECN as major interface. I know there is
-another command code of EC that can access HW switch status and shutdown
-the interface.
+Hm, interesting. What model (and BIOS version) are you testing with?
 
+On my S10-3, (DMI BIOS version 2ACN23WW, date 03/12/2010), I get these
+keys through the normal keyboard controller -- and we can tell the
+brightness up/down apart, too.
+
+http://git.kernel.org/?p=linux/hotplug/udev.git;a=commitdiff;h=9cd075e3
+
+Do you see those keycodes too... and do they *stop* arriving through the
+keyboard controller when you load your driver?
+
+-- 
+David Woodhouse                            Open Source Technology Centre
+David.Woodhouse@intel.com                              Intel Corporation
 
