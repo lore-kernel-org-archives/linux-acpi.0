@@ -1,21 +1,21 @@
-From: Florian Echtler <echtler@in.tum.de>
+From: Florian Echtler <floe@butterbrot.org>
 Subject: Re: [PATCH] ideapad-laptop: add new driver
-Date: Sun, 15 Aug 2010 10:14:06 +0200
-Message-ID: <1281860046.24589.2.camel@flunder>
+Date: Sun, 15 Aug 2010 10:20:44 +0200
+Message-ID: <1281860444.24589.3.camel@flunder>
 References: <1281672482-10909-1-git-send-email-ike.pan@canonical.com>
 	 <1281690893.23680.475.camel@localhost>  <4C650FFB.7090602@canonical.com>
 	 <1281692078.23680.487.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-SYCCzAFn6Ysqn2Un1Lmt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="=-di2gq180LuCD4z5rNHR8"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1281692078.23680.487.camel@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: David Woodhouse <dwmw2@infradead.org>
 Cc: Ike Panhc <ike.pan@canonical.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Corentin Chary <corentincj@iksaif.net>, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@linux.intel.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-SYCCzAFn6Ysqn2Un1Lmt
+--=-di2gq180LuCD4z5rNHR8
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 
@@ -31,7 +31,8 @@ here. I hope it helps you in some way.
 
 Florian
 
---=-SYCCzAFn6Ysqn2Un1Lmt
+
+--=-di2gq180LuCD4z5rNHR8
 Content-Disposition: attachment; filename="lenovo_ec.c"
 Content-Type: text/x-csrc; name="lenovo_ec.c"; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -974,4 +975,4 @@ module_init(lenovo_ec_init);
 module_exit(lenovo_ec_exit);
 
 
---=-SYCCzAFn6Ysqn2Un1Lmt--
+--=-di2gq180LuCD4z5rNHR8--
