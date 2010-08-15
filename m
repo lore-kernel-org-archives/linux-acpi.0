@@ -1,146 +1,103 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/20] ACPI, APEI, Rename CPER and GHES severity constants
-Date: Sun, 15 Aug 2010 01:23:13 -0400
-Message-ID: <ad4ecef2f13c790f95b55320f2925c205d8f971f.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 13/20] ACPI: introduce module parameter acpi.aml_debug_output
+Date: Sun, 15 Aug 2010 01:23:17 -0400
+Message-ID: <c637e4861c7db8165d0f438db3829e7878c96059.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:40668 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019Ab0HOFXe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:23:34 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:57554 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933Ab0HOFaH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:07 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173011.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L760080PHN870R2@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:23:34 -0500 (CDT)
+ with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:07 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Huang Ying <ying.huang@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-The abbreviation of severity should be SEV instead of SER, so the CPER
-severity constants are renamed accordingly. GHES severity constants
-are renamed in the same way too.
+Introduce module parameter acpi.aml_debug_output.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+With acpi.aml_debug_output set, we can get AML debug object output
+(Store (AAA, Debug)), even with CONFIG_ACPI_DEBUG cleared.
+
+Together with the runtime custom method mechanism,
+we can debug AML code problems without rebuilding the kernel.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/cpu/mcheck/mce-apei.c |    4 ++--
- drivers/acpi/apei/ghes.c              |   32 ++++++++++++++++----------------
- include/linux/cper.h                  |    8 ++++----
- 3 files changed, 22 insertions(+), 22 deletions(-)
+ Documentation/acpi/method-customizing.txt |    2 ++
+ drivers/acpi/acpica/acglobal.h            |    2 +-
+ drivers/acpi/debugfs.c                    |    8 ++++++++
+ include/acpi/acpixf.h                     |    2 +-
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cpu/mcheck/mce-apei.c
-index 745b54f..8209472 100644
---- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
-@@ -80,7 +80,7 @@ int apei_write_mce(struct mce *m)
- 	rcd.hdr.revision = CPER_RECORD_REV;
- 	rcd.hdr.signature_end = CPER_SIG_END;
- 	rcd.hdr.section_count = 1;
--	rcd.hdr.error_severity = CPER_SER_FATAL;
-+	rcd.hdr.error_severity = CPER_SEV_FATAL;
- 	/* timestamp, platform_id, partition_id are all invalid */
- 	rcd.hdr.validation_bits = 0;
- 	rcd.hdr.record_length = sizeof(rcd);
-@@ -96,7 +96,7 @@ int apei_write_mce(struct mce *m)
- 	rcd.sec_hdr.validation_bits = 0;
- 	rcd.sec_hdr.flags = CPER_SEC_PRIMARY;
- 	rcd.sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
--	rcd.sec_hdr.section_severity = CPER_SER_FATAL;
-+	rcd.sec_hdr.section_severity = CPER_SEV_FATAL;
+diff --git a/Documentation/acpi/method-customizing.txt b/Documentation/acpi/method-customizing.txt
+index e628cd2..3e1d25a 100644
+--- a/Documentation/acpi/method-customizing.txt
++++ b/Documentation/acpi/method-customizing.txt
+@@ -19,6 +19,8 @@ Note: Only ACPI METHOD can be overridden, any other object types like
+       "Device", "OperationRegion", are not recognized.
+ Note: The same ACPI control method can be overridden for many times,
+       and it's always the latest one that used by Linux/kernel.
++Note: To get the ACPI debug object output (Store (AAAA, Debug)),
++      please run "echo 1 > /sys/module/acpi/parameters/aml_debug_output".
  
- 	memcpy(&rcd.mce, m, sizeof(*m));
- 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index fd0cc01..c76aff6 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -132,26 +132,26 @@ static void ghes_fini(struct ghes *ghes)
- }
- 
- enum {
--	GHES_SER_NO = 0x0,
--	GHES_SER_CORRECTED = 0x1,
--	GHES_SER_RECOVERABLE = 0x2,
--	GHES_SER_PANIC = 0x3,
-+	GHES_SEV_NO = 0x0,
-+	GHES_SEV_CORRECTED = 0x1,
-+	GHES_SEV_RECOVERABLE = 0x2,
-+	GHES_SEV_PANIC = 0x3,
- };
- 
- static inline int ghes_severity(int severity)
- {
- 	switch (severity) {
--	case CPER_SER_INFORMATIONAL:
--		return GHES_SER_NO;
--	case CPER_SER_CORRECTED:
--		return GHES_SER_CORRECTED;
--	case CPER_SER_RECOVERABLE:
--		return GHES_SER_RECOVERABLE;
--	case CPER_SER_FATAL:
--		return GHES_SER_PANIC;
-+	case CPER_SEV_INFORMATIONAL:
-+		return GHES_SEV_NO;
-+	case CPER_SEV_CORRECTED:
-+		return GHES_SEV_CORRECTED;
-+	case CPER_SEV_RECOVERABLE:
-+		return GHES_SEV_RECOVERABLE;
-+	case CPER_SEV_FATAL:
-+		return GHES_SEV_PANIC;
- 	default:
- 		/* Unkown, go panic */
--		return GHES_SER_PANIC;
-+		return GHES_SEV_PANIC;
- 	}
- }
- 
-@@ -237,16 +237,16 @@ static void ghes_clear_estatus(struct ghes *ghes)
- 
- static void ghes_do_proc(struct ghes *ghes)
- {
--	int ser, processed = 0;
-+	int sev, processed = 0;
- 	struct acpi_hest_generic_data *gdata;
- 
--	ser = ghes_severity(ghes->estatus->error_severity);
-+	sev = ghes_severity(ghes->estatus->error_severity);
- 	apei_estatus_for_each_section(ghes->estatus, gdata) {
- #ifdef CONFIG_X86_MCE
- 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
- 			apei_mce_report_mem_error(
--				ser == GHES_SER_CORRECTED,
-+				sev == GHES_SEV_CORRECTED,
- 				(struct cper_sec_mem_err *)(gdata+1));
- 			processed = 1;
- 		}
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 4b38f90..bf972f8 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -39,10 +39,10 @@
-  * Severity difinition for error_severity in struct cper_record_header
-  * and section_severity in struct cper_section_descriptor
+ 1. override an existing method
+    a) get the ACPI table via ACPI sysfs I/F. e.g. to get the DSDT,
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 899d68a..9212229 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -115,7 +115,7 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_use_default_register_widths, TRUE);
+ /*
+  * Optionally enable output from the AML Debug Object.
   */
--#define CPER_SER_RECOVERABLE			0x0
--#define CPER_SER_FATAL				0x1
--#define CPER_SER_CORRECTED			0x2
--#define CPER_SER_INFORMATIONAL			0x3
-+#define CPER_SEV_RECOVERABLE			0x0
-+#define CPER_SEV_FATAL				0x1
-+#define CPER_SEV_CORRECTED			0x2
-+#define CPER_SEV_INFORMATIONAL			0x3
+-u8 ACPI_INIT_GLOBAL(acpi_gbl_enable_aml_debug_object, FALSE);
++u32 ACPI_INIT_GLOBAL(acpi_gbl_enable_aml_debug_object, FALSE);
  
  /*
-  * Validation bits difinition for validation_bits in struct
+  * Optionally copy the entire DSDT to local memory (instead of simply
+diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+index abfcf9f..7de27d4 100644
+--- a/drivers/acpi/debugfs.c
++++ b/drivers/acpi/debugfs.c
+@@ -12,6 +12,14 @@
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debugfs");
+ 
++
++/* /sys/modules/acpi/parameters/aml_debug_output */
++
++module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
++		   bool, 0644);
++MODULE_PARM_DESC(aml_debug_output,
++		 "To enable/disable the ACPI Debug Object output.");
++
+ /* /sys/kernel/debug/acpi/custom_method */
+ 
+ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 1371cc9..a6ea2ac 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -67,7 +67,7 @@ extern u8 acpi_gbl_leave_wake_gpes_disabled;
+ extern u8 acpi_gbl_use_default_register_widths;
+ extern acpi_name acpi_gbl_trace_method_name;
+ extern u32 acpi_gbl_trace_flags;
+-extern u8 acpi_gbl_enable_aml_debug_object;
++extern u32 acpi_gbl_enable_aml_debug_object;
+ extern u8 acpi_gbl_copy_dsdt_locally;
+ extern u8 acpi_gbl_truncate_io_addresses;
+ 
 -- 
 1.7.2.1.95.g3d045
 
