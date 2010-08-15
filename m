@@ -1,367 +1,627 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/20] ACPI, APEI, Manage GHES as platform devices
-Date: Sun, 15 Aug 2010 01:23:14 -0400
-Message-ID: <7ad6e9435596f692ff65f399da12816c94960185.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 15/20] ACPI: remove deprecated ACPI procfs I/F
+Date: Sun, 15 Aug 2010 01:23:19 -0400
+Message-ID: <47f5c892b06797336a34f1096b4b617623aa1960.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:57585 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab0HOFaP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:15 -0400
+	with ESMTP id S1751991Ab0HOFaO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:14 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:14 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:12 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Huang Ying <ying.huang@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-Register GHES during HEST initialization as platform devices. And make
-GHES driver into platform device driver. So that the GHES driver
-module can be loaded automatically when there are GHES available.
+Rmove deprecated ACPI procfs I/F, including
+/proc/acpi/debug_layer
+/proc/acpi/debug_level
+/proc/acpi/info
+/proc/acpi/dsdt
+/proc/acpi/fadt
+/proc/acpi/sleep
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+because the sysfs I/F is already available
+and has been working well for years.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/apei/ghes.c |  140 ++++++++++++++++++++++++---------------------
- drivers/acpi/apei/hest.c |   76 +++++++++++++++++++++++--
- 2 files changed, 145 insertions(+), 71 deletions(-)
+ drivers/acpi/Kconfig    |    6 --
+ drivers/acpi/Makefile   |    3 +-
+ drivers/acpi/bus.c      |    2 -
+ drivers/acpi/debug.c    |  227 -----------------------------------------------
+ drivers/acpi/internal.h |    7 --
+ drivers/acpi/proc.c     |   70 ---------------
+ drivers/acpi/system.c   |  170 -----------------------------------
+ 7 files changed, 1 insertions(+), 484 deletions(-)
+ delete mode 100644 drivers/acpi/debug.c
+ delete mode 100644 drivers/acpi/system.c
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index c76aff6..385a605 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -41,6 +41,8 @@
- #include <linux/interrupt.h>
- #include <linux/cper.h>
- #include <linux/kdebug.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -87,6 +89,7 @@ struct ghes {
-  * used for that.
-  */
- static LIST_HEAD(ghes_sci);
-+static DEFINE_MUTEX(ghes_list_mutex);
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 7464115..d77d9c2 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -54,12 +54,6 @@ config ACPI_PROCFS
+ 	  they have been replaced by functions in /sys.
+ 	  The deprecated files (and their replacements) include:
  
- static struct ghes *ghes_new(struct acpi_hest_generic *generic)
- {
-@@ -293,18 +296,15 @@ static struct notifier_block ghes_notifier_sci = {
- 	.notifier_call = ghes_notify_sci,
- };
- 
--static int hest_ghes_parse(struct acpi_hest_header *hest_hdr, void *data)
-+static int __devinit ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
- 	struct ghes *ghes = NULL;
--	int rc = 0;
-+	int rc = -EINVAL;
- 
--	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
--		return 0;
+-	  /proc/acpi/sleep (/sys/power/state)
+-	  /proc/acpi/info (/sys/module/acpi/parameters/acpica_version)
+-	  /proc/acpi/dsdt (/sys/firmware/acpi/tables/DSDT)
+-	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
+-	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
+-	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
+ 	  /proc/acpi/processor/*/power (/sys/devices/system/cpu/*/cpuidle/*)
+ 	  /proc/acpi/processor/*/performance (/sys/devices/system/cpu/*/
+ 		cpufreq/*)
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 03a81a8..3f04496 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -37,9 +37,8 @@ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+ acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
+ acpi-y				+= power.o
+-acpi-y				+= system.o event.o
++acpi-y				+= event.o
+ acpi-y				+= sysfs.o
+-acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index bd9708b..5c221ab 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1034,8 +1034,6 @@ static int __init acpi_init(void)
+ 	acpi_scan_init();
+ 	acpi_ec_init();
+ 	acpi_power_init();
+-	acpi_system_init();
+-	acpi_debug_init();
+ 	acpi_sysfs_init();
+ 	acpi_debugfs_init();
+ 	acpi_sleep_proc_init();
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+deleted file mode 100644
+index f82240d..0000000
+--- a/drivers/acpi/debug.c
++++ /dev/null
+@@ -1,227 +0,0 @@
+-/*
+- * debug.c - ACPI debug interface to userspace.
+- */
 -
--	generic = (struct acpi_hest_generic *)hest_hdr;
-+	generic = ghes_dev->dev.platform_data;
- 	if (!generic->enabled)
--		return 0;
-+		return -ENODEV;
- 
- 	if (generic->error_block_length <
- 	    sizeof(struct acpi_hest_generic_status)) {
-@@ -327,62 +327,91 @@ static int hest_ghes_parse(struct acpi_hest_header *hest_hdr, void *data)
- 		ghes = NULL;
- 		goto err;
- 	}
--	switch (generic->notify.type) {
--	case ACPI_HEST_NOTIFY_POLLED:
--		pr_warning(GHES_PFX
--"Generic hardware error source: %d notified via POLL is not supported!\n",
--			   generic->header.source_id);
--		break;
--	case ACPI_HEST_NOTIFY_EXTERNAL:
--	case ACPI_HEST_NOTIFY_LOCAL:
--		pr_warning(GHES_PFX
--"Generic hardware error source: %d notified via IRQ is not supported!\n",
--			   generic->header.source_id);
--		break;
--	case ACPI_HEST_NOTIFY_SCI:
-+	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
-+		mutex_lock(&ghes_list_mutex);
- 		if (list_empty(&ghes_sci))
- 			register_acpi_hed_notifier(&ghes_notifier_sci);
- 		list_add_rcu(&ghes->list, &ghes_sci);
--		break;
--	case ACPI_HEST_NOTIFY_NMI:
--		pr_warning(GHES_PFX
--"Generic hardware error source: %d notified via NMI is not supported!\n",
--			   generic->header.source_id);
--		break;
--	default:
--		pr_warning(FW_WARN GHES_PFX
--	"Unknown notification type: %u for generic hardware error source: %d\n",
--			   generic->notify.type, generic->header.source_id);
--		break;
-+		mutex_unlock(&ghes_list_mutex);
-+	} else {
-+		unsigned char *notify = NULL;
-+
-+		switch (generic->notify.type) {
-+		case ACPI_HEST_NOTIFY_POLLED:
-+			notify = "POLL";
-+			break;
-+		case ACPI_HEST_NOTIFY_EXTERNAL:
-+		case ACPI_HEST_NOTIFY_LOCAL:
-+			notify = "IRQ";
-+			break;
-+		case ACPI_HEST_NOTIFY_NMI:
-+			notify = "NMI";
-+			break;
-+		}
-+		if (notify) {
-+			pr_warning(GHES_PFX
-+"Generic hardware error source: %d notified via %s is not supported!\n",
-+				   generic->header.source_id, notify);
-+		} else {
-+			pr_warning(FW_WARN GHES_PFX
-+"Unknown notification type: %u for generic hardware error source: %d\n",
-+			generic->notify.type, generic->header.source_id);
-+		}
-+		rc = -ENODEV;
-+		goto err;
- 	}
-+	platform_set_drvdata(ghes_dev, ghes);
- 
- 	return 0;
- err:
--	if (ghes)
-+	if (ghes) {
- 		ghes_fini(ghes);
-+		kfree(ghes);
-+	}
- 	return rc;
- }
- 
--static void ghes_cleanup(void)
-+static int __devexit ghes_remove(struct platform_device *ghes_dev)
- {
--	struct ghes *ghes, *nghes;
-+	struct ghes *ghes;
-+	struct acpi_hest_generic *generic;
- 
--	if (!list_empty(&ghes_sci))
--		unregister_acpi_hed_notifier(&ghes_notifier_sci);
-+	ghes = platform_get_drvdata(ghes_dev);
-+	generic = ghes->generic;
-+
-+	switch (generic->notify.type) {
-+	case ACPI_HEST_NOTIFY_SCI:
-+		mutex_lock(&ghes_list_mutex);
-+		list_del_rcu(&ghes->list);
-+		if (list_empty(&ghes_sci))
-+			unregister_acpi_hed_notifier(&ghes_notifier_sci);
-+		mutex_unlock(&ghes_list_mutex);
-+		break;
-+	default:
-+		BUG();
-+		break;
-+	}
- 
- 	synchronize_rcu();
-+	ghes_fini(ghes);
-+	kfree(ghes);
- 
--	list_for_each_entry_safe(ghes, nghes, &ghes_sci, list) {
--		list_del(&ghes->list);
--		ghes_fini(ghes);
--		kfree(ghes);
--	}
-+	platform_set_drvdata(ghes_dev, NULL);
-+
-+	return 0;
- }
- 
-+static struct platform_driver ghes_platform_driver = {
-+	.driver		= {
-+		.name	= "GHES",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ghes_probe,
-+	.remove		= ghes_remove,
-+};
-+
- static int __init ghes_init(void)
- {
--	int rc;
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/moduleparam.h>
+-#include <linux/debugfs.h>
+-#include <linux/slab.h>
+-#include <asm/uaccess.h>
+-#include <acpi/acpi_drivers.h>
 -
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
-@@ -391,32 +420,12 @@ static int __init ghes_init(void)
- 		return -EINVAL;
- 	}
- 
--	rc = apei_hest_parse(hest_ghes_parse, NULL);
--	if (rc) {
--		pr_err(GHES_PFX
--		"Error during parsing HEST generic hardware error sources.\n");
--		goto err_cleanup;
--	}
+-#define _COMPONENT		ACPI_SYSTEM_COMPONENT
+-ACPI_MODULE_NAME("debug");
 -
--	if (list_empty(&ghes_sci)) {
--		pr_info(GHES_PFX
--			"No functional generic hardware error sources.\n");
--		rc = -ENODEV;
--		goto err_cleanup;
--	}
+-struct acpi_dlayer {
+-	const char *name;
+-	unsigned long value;
+-};
+-struct acpi_dlevel {
+-	const char *name;
+-	unsigned long value;
+-};
+-#define ACPI_DEBUG_INIT(v)	{ .name = #v, .value = v }
 -
--	pr_info(GHES_PFX
--		"Generic Hardware Error Source support is initialized.\n");
+-static const struct acpi_dlayer acpi_debug_layers[] = {
+-	ACPI_DEBUG_INIT(ACPI_UTILITIES),
+-	ACPI_DEBUG_INIT(ACPI_HARDWARE),
+-	ACPI_DEBUG_INIT(ACPI_EVENTS),
+-	ACPI_DEBUG_INIT(ACPI_TABLES),
+-	ACPI_DEBUG_INIT(ACPI_NAMESPACE),
+-	ACPI_DEBUG_INIT(ACPI_PARSER),
+-	ACPI_DEBUG_INIT(ACPI_DISPATCHER),
+-	ACPI_DEBUG_INIT(ACPI_EXECUTER),
+-	ACPI_DEBUG_INIT(ACPI_RESOURCES),
+-	ACPI_DEBUG_INIT(ACPI_CA_DEBUGGER),
+-	ACPI_DEBUG_INIT(ACPI_OS_SERVICES),
+-	ACPI_DEBUG_INIT(ACPI_CA_DISASSEMBLER),
+-	ACPI_DEBUG_INIT(ACPI_COMPILER),
+-	ACPI_DEBUG_INIT(ACPI_TOOLS),
 -
--	return 0;
--err_cleanup:
--	ghes_cleanup();
--	return rc;
-+	return platform_driver_register(&ghes_platform_driver);
- }
- 
- static void __exit ghes_exit(void)
- {
--	ghes_cleanup();
-+	platform_driver_unregister(&ghes_platform_driver);
- }
- 
- module_init(ghes_init);
-@@ -425,3 +434,4 @@ module_exit(ghes_exit);
- MODULE_AUTHOR("Huang Ying");
- MODULE_DESCRIPTION("APEI Generic Hardware Error Source support");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:GHES");
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index e7f40d3..343168d 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -34,6 +34,7 @@
- #include <linux/kdebug.h>
- #include <linux/highmem.h>
- #include <linux/io.h>
-+#include <linux/platform_device.h>
- #include <acpi/apei.h>
- 
- #include "apei-internal.h"
-@@ -47,11 +48,6 @@ EXPORT_SYMBOL_GPL(hest_disable);
- 
- static struct acpi_table_hest *hest_tab;
- 
--static int hest_void_parse(struct acpi_hest_header *hest_hdr, void *data)
+-	ACPI_DEBUG_INIT(ACPI_BUS_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_AC_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_BATTERY_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_BUTTON_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_SBS_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_FAN_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_PCI_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_POWER_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_CONTAINER_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_SYSTEM_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_THERMAL_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_MEMORY_DEVICE_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_VIDEO_COMPONENT),
+-	ACPI_DEBUG_INIT(ACPI_PROCESSOR_COMPONENT),
+-};
+-
+-static const struct acpi_dlevel acpi_debug_levels[] = {
+-	ACPI_DEBUG_INIT(ACPI_LV_INIT),
+-	ACPI_DEBUG_INIT(ACPI_LV_DEBUG_OBJECT),
+-	ACPI_DEBUG_INIT(ACPI_LV_INFO),
+-
+-	ACPI_DEBUG_INIT(ACPI_LV_INIT_NAMES),
+-	ACPI_DEBUG_INIT(ACPI_LV_PARSE),
+-	ACPI_DEBUG_INIT(ACPI_LV_LOAD),
+-	ACPI_DEBUG_INIT(ACPI_LV_DISPATCH),
+-	ACPI_DEBUG_INIT(ACPI_LV_EXEC),
+-	ACPI_DEBUG_INIT(ACPI_LV_NAMES),
+-	ACPI_DEBUG_INIT(ACPI_LV_OPREGION),
+-	ACPI_DEBUG_INIT(ACPI_LV_BFIELD),
+-	ACPI_DEBUG_INIT(ACPI_LV_TABLES),
+-	ACPI_DEBUG_INIT(ACPI_LV_VALUES),
+-	ACPI_DEBUG_INIT(ACPI_LV_OBJECTS),
+-	ACPI_DEBUG_INIT(ACPI_LV_RESOURCES),
+-	ACPI_DEBUG_INIT(ACPI_LV_USER_REQUESTS),
+-	ACPI_DEBUG_INIT(ACPI_LV_PACKAGE),
+-
+-	ACPI_DEBUG_INIT(ACPI_LV_ALLOCATIONS),
+-	ACPI_DEBUG_INIT(ACPI_LV_FUNCTIONS),
+-	ACPI_DEBUG_INIT(ACPI_LV_OPTIMIZATIONS),
+-
+-	ACPI_DEBUG_INIT(ACPI_LV_MUTEX),
+-	ACPI_DEBUG_INIT(ACPI_LV_THREADS),
+-	ACPI_DEBUG_INIT(ACPI_LV_IO),
+-	ACPI_DEBUG_INIT(ACPI_LV_INTERRUPTS),
+-
+-	ACPI_DEBUG_INIT(ACPI_LV_AML_DISASSEMBLE),
+-	ACPI_DEBUG_INIT(ACPI_LV_VERBOSE_INFO),
+-	ACPI_DEBUG_INIT(ACPI_LV_FULL_TABLES),
+-	ACPI_DEBUG_INIT(ACPI_LV_EVENTS),
+-};
+-
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_PROCFS
+-#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
+-#define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
+-
+-static int acpi_system_debug_proc_show(struct seq_file *m, void *v)
 -{
+-	unsigned int i;
+-
+-	seq_printf(m, "%-25s\tHex        SET\n", "Description");
+-
+-	switch ((unsigned long)m->private) {
+-	case 0:
+-		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
+-			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
+-				     acpi_debug_layers[i].name,
+-				     acpi_debug_layers[i].value,
+-				     (acpi_dbg_layer & acpi_debug_layers[i].
+-				      value) ? '*' : ' ');
+-		}
+-		seq_printf(m, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
+-			     ACPI_ALL_DRIVERS,
+-			     (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
+-			     ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
+-						       ACPI_ALL_DRIVERS) ==
+-			     0 ? ' ' : '-');
+-		seq_printf(m,
+-			     "--\ndebug_layer = 0x%08X (* = enabled, - = partial)\n",
+-			     acpi_dbg_layer);
+-		break;
+-	case 1:
+-		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
+-			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
+-				     acpi_debug_levels[i].name,
+-				     acpi_debug_levels[i].value,
+-				     (acpi_dbg_level & acpi_debug_levels[i].
+-				      value) ? '*' : ' ');
+-		}
+-		seq_printf(m, "--\ndebug_level = 0x%08X (* = enabled)\n",
+-			     acpi_dbg_level);
+-		break;
+-	}
 -	return 0;
 -}
 -
- static int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
- 	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
- 	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
-@@ -125,6 +121,69 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
- }
- EXPORT_SYMBOL_GPL(apei_hest_parse);
+-static int acpi_system_debug_proc_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_system_debug_proc_show, PDE(inode)->data);
+-}
+-
+-static ssize_t acpi_system_debug_proc_write(struct file *file,
+-			const char __user * buffer,
+-			size_t count, loff_t *pos)
+-{
+-	char debug_string[12] = { '\0' };
+-
+-
+-	if (count > sizeof(debug_string) - 1)
+-		return -EINVAL;
+-
+-	if (copy_from_user(debug_string, buffer, count))
+-		return -EFAULT;
+-
+-	debug_string[count] = '\0';
+-
+-	switch ((unsigned long)PDE(file->f_path.dentry->d_inode)->data) {
+-	case 0:
+-		acpi_dbg_layer = simple_strtoul(debug_string, NULL, 0);
+-		break;
+-	case 1:
+-		acpi_dbg_level = simple_strtoul(debug_string, NULL, 0);
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return count;
+-}
+-
+-static const struct file_operations acpi_system_debug_proc_fops = {
+-	.owner		= THIS_MODULE,
+-	.open		= acpi_system_debug_proc_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= single_release,
+-	.write		= acpi_system_debug_proc_write,
+-};
+-#endif
+-
+-int __init acpi_procfs_init(void)
+-{
+-#ifdef CONFIG_ACPI_PROCFS
+-	struct proc_dir_entry *entry;
+-	int error = 0;
+-	char *name;
+-
+-	/* 'debug_layer' [R/W] */
+-	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
+-	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
+-				 acpi_root_dir, &acpi_system_debug_proc_fops,
+-				 (void *)0);
+-	if (!entry)
+-		goto Error;
+-
+-	/* 'debug_level' [R/W] */
+-	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
+-	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
+-				 acpi_root_dir, &acpi_system_debug_proc_fops,
+-				 (void *)1);
+-	if (!entry)
+-		goto Error;
+-
+-      Done:
+-	return error;
+-
+-      Error:
+-	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LEVEL, acpi_root_dir);
+-	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
+-	error = -ENODEV;
+-	goto Done;
+-#else
+-	return 0;
+-#endif
+-}
+-
+-int __init acpi_debug_init(void)
+-{
+-	acpi_procfs_init();
+-	return 0;
+-}
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index eed8234..e379644 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -22,15 +22,8 @@
  
-+struct ghes_arr {
-+	struct platform_device **ghes_devs;
-+	unsigned int count;
-+};
-+
-+static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+	int *count = data;
-+
-+	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR)
-+		(*count)++;
-+	return 0;
-+}
-+
-+static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+	struct acpi_hest_generic *generic;
-+	struct platform_device *ghes_dev;
-+	struct ghes_arr *ghes_arr = data;
-+	int rc;
-+
-+	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
-+		return 0;
-+	generic = (struct acpi_hest_generic *)hest_hdr;
-+	if (!generic->enabled)
-+		return 0;
-+	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
-+	if (!ghes_dev)
-+		return -ENOMEM;
-+	ghes_dev->dev.platform_data = generic;
-+	rc = platform_device_add(ghes_dev);
-+	if (rc)
-+		goto err;
-+	ghes_arr->ghes_devs[ghes_arr->count++] = ghes_dev;
-+
-+	return 0;
-+err:
-+	platform_device_put(ghes_dev);
-+	return rc;
-+}
-+
-+static int hest_ghes_dev_register(unsigned int ghes_count)
-+{
-+	int rc, i;
-+	struct ghes_arr ghes_arr;
-+
-+	ghes_arr.count = 0;
-+	ghes_arr.ghes_devs = kmalloc(sizeof(void *) * ghes_count, GFP_KERNEL);
-+	if (!ghes_arr.ghes_devs)
-+		return -ENOMEM;
-+
-+	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
-+	if (rc)
-+		goto err;
-+out:
-+	kfree(ghes_arr.ghes_devs);
-+	return rc;
-+err:
-+	for (i = 0; i < ghes_arr.count; i++)
-+		platform_device_unregister(ghes_arr.ghes_devs[i]);
-+	goto out;
-+}
-+
- static int __init setup_hest_disable(char *str)
+ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
+-int acpi_system_init(void);
+ int acpi_sysfs_init(void);
+ 
+-#ifdef CONFIG_ACPI_DEBUG
+-int acpi_debug_init(void);
+-#else
+-static inline int acpi_debug_init(void) { return 0; }
+-#endif
+-
+ #ifdef CONFIG_DEBUG_FS
+ int acpi_debugfs_init(void);
+ #else
+diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+index 1ac678d..afad677 100644
+--- a/drivers/acpi/proc.c
++++ b/drivers/acpi/proc.c
+@@ -17,64 +17,11 @@
+ 
+ /*
+  * this file provides support for:
+- * /proc/acpi/sleep
+  * /proc/acpi/alarm
+  * /proc/acpi/wakeup
+  */
+ 
+ ACPI_MODULE_NAME("sleep")
+-#ifdef	CONFIG_ACPI_PROCFS
+-static int acpi_system_sleep_seq_show(struct seq_file *seq, void *offset)
+-{
+-	int i;
+-
+-	for (i = 0; i <= ACPI_STATE_S5; i++) {
+-		if (sleep_states[i]) {
+-			seq_printf(seq, "S%d ", i);
+-		}
+-	}
+-
+-	seq_puts(seq, "\n");
+-
+-	return 0;
+-}
+-
+-static int acpi_system_sleep_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_system_sleep_seq_show, PDE(inode)->data);
+-}
+-
+-static ssize_t
+-acpi_system_write_sleep(struct file *file,
+-			const char __user * buffer, size_t count, loff_t * ppos)
+-{
+-	char str[12];
+-	u32 state = 0;
+-	int error = 0;
+-
+-	if (count > sizeof(str) - 1)
+-		goto Done;
+-	memset(str, 0, sizeof(str));
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	/* Check for S4 bios request */
+-	if (!strcmp(str, "4b")) {
+-		error = acpi_suspend(4);
+-		goto Done;
+-	}
+-	state = simple_strtoul(str, NULL, 0);
+-#ifdef CONFIG_HIBERNATION
+-	if (state == 4) {
+-		error = hibernate();
+-		goto Done;
+-	}
+-#endif
+-	error = acpi_suspend(state);
+-      Done:
+-	return error ? error : count;
+-}
+-#endif				/* CONFIG_ACPI_PROCFS */
+ 
+ #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || !defined(CONFIG_X86)
+ /* use /sys/class/rtc/rtcX/wakealarm instead; it's not ACPI-specific */
+@@ -463,17 +410,6 @@ static const struct file_operations acpi_system_wakeup_device_fops = {
+ 	.release = single_release,
+ };
+ 
+-#ifdef	CONFIG_ACPI_PROCFS
+-static const struct file_operations acpi_system_sleep_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_system_sleep_open_fs,
+-	.read = seq_read,
+-	.write = acpi_system_write_sleep,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-#endif				/* CONFIG_ACPI_PROCFS */
+-
+ #ifdef	HAVE_ACPI_LEGACY_ALARM
+ static const struct file_operations acpi_system_alarm_fops = {
+ 	.owner = THIS_MODULE,
+@@ -495,12 +431,6 @@ static u32 rtc_handler(void *context)
+ 
+ int __init acpi_sleep_proc_init(void)
  {
- 	hest_disable = 1;
-@@ -137,6 +196,7 @@ static int __init hest_init(void)
- {
- 	acpi_status status;
- 	int rc = -ENODEV;
-+	unsigned int ghes_count = 0;
- 
- 	if (acpi_disabled)
- 		goto err;
-@@ -158,7 +218,11 @@ static int __init hest_init(void)
- 		goto err;
- 	}
- 
--	rc = apei_hest_parse(hest_void_parse, NULL);
-+	rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-+	if (rc)
-+		goto err;
-+
-+	rc = hest_ghes_dev_register(ghes_count);
- 	if (rc)
- 		goto err;
- 
+-#ifdef	CONFIG_ACPI_PROCFS
+-	/* 'sleep' [R/W] */
+-	proc_create("sleep", S_IFREG | S_IRUGO | S_IWUSR,
+-		    acpi_root_dir, &acpi_system_sleep_fops);
+-#endif				/* CONFIG_ACPI_PROCFS */
+-
+ #ifdef	HAVE_ACPI_LEGACY_ALARM
+ 	/* 'alarm' [R/W] */
+ 	proc_create("alarm", S_IFREG | S_IRUGO | S_IWUSR,
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+deleted file mode 100644
+index d70481f..0000000
+--- a/drivers/acpi/system.c
++++ /dev/null
+@@ -1,170 +0,0 @@
+-/*
+- *  acpi_system.c - ACPI System Driver ($Revision: 63 $)
+- *
+- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or (at
+- *  your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful, but
+- *  WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- *  General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License along
+- *  with this program; if not, write to the Free Software Foundation, Inc.,
+- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- */
+-
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/slab.h>
+-#include <linux/init.h>
+-#include <linux/string.h>
+-#include <asm/uaccess.h>
+-
+-#include <acpi/acpi_drivers.h>
+-
+-#define PREFIX "ACPI: "
+-
+-#define _COMPONENT		ACPI_SYSTEM_COMPONENT
+-ACPI_MODULE_NAME("system");
+-
+-#define ACPI_SYSTEM_CLASS		"system"
+-#define ACPI_SYSTEM_DEVICE_NAME		"System"
+-
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_PROCFS
+-#define ACPI_SYSTEM_FILE_INFO		"info"
+-#define ACPI_SYSTEM_FILE_EVENT		"event"
+-#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
+-#define ACPI_SYSTEM_FILE_FADT		"fadt"
+-
+-static int acpi_system_read_info(struct seq_file *seq, void *offset)
+-{
+-
+-	seq_printf(seq, "version:                 %x\n", ACPI_CA_VERSION);
+-	return 0;
+-}
+-
+-static int acpi_system_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_system_read_info, PDE(inode)->data);
+-}
+-
+-static const struct file_operations acpi_system_info_ops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_system_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
+-				     loff_t *);
+-
+-static const struct file_operations acpi_system_dsdt_ops = {
+-	.owner = THIS_MODULE,
+-	.read = acpi_system_read_dsdt,
+-};
+-
+-static ssize_t
+-acpi_system_read_dsdt(struct file *file,
+-		      char __user * buffer, size_t count, loff_t * ppos)
+-{
+-	acpi_status status = AE_OK;
+-	struct acpi_table_header *dsdt = NULL;
+-	ssize_t res;
+-
+-	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
+-
+-	return res;
+-}
+-
+-static ssize_t acpi_system_read_fadt(struct file *, char __user *, size_t,
+-				     loff_t *);
+-
+-static const struct file_operations acpi_system_fadt_ops = {
+-	.owner = THIS_MODULE,
+-	.read = acpi_system_read_fadt,
+-};
+-
+-static ssize_t
+-acpi_system_read_fadt(struct file *file,
+-		      char __user * buffer, size_t count, loff_t * ppos)
+-{
+-	acpi_status status = AE_OK;
+-	struct acpi_table_header *fadt = NULL;
+-	ssize_t res;
+-
+-	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
+-
+-	return res;
+-}
+-
+-static int acpi_system_procfs_init(void)
+-{
+-	struct proc_dir_entry *entry;
+-	int error = 0;
+-
+-	/* 'info' [R] */
+-	entry = proc_create(ACPI_SYSTEM_FILE_INFO, S_IRUGO, acpi_root_dir,
+-			    &acpi_system_info_ops);
+-	if (!entry)
+-		goto Error;
+-
+-	/* 'dsdt' [R] */
+-	entry = proc_create(ACPI_SYSTEM_FILE_DSDT, S_IRUSR, acpi_root_dir,
+-			    &acpi_system_dsdt_ops);
+-	if (!entry)
+-		goto Error;
+-
+-	/* 'fadt' [R] */
+-	entry = proc_create(ACPI_SYSTEM_FILE_FADT, S_IRUSR, acpi_root_dir,
+-			    &acpi_system_fadt_ops);
+-	if (!entry)
+-		goto Error;
+-
+-      Done:
+-	return error;
+-
+-      Error:
+-	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
+-	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
+-	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
+-
+-	error = -EFAULT;
+-	goto Done;
+-}
+-#else
+-static int acpi_system_procfs_init(void)
+-{
+-	return 0;
+-}
+-#endif
+-
+-int __init acpi_system_init(void)
+-{
+-	int result;
+-
+-	result = acpi_system_procfs_init();
+-
+-	return result;
+-}
 -- 
 1.7.2.1.95.g3d045
 
