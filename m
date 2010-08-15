@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/20] ACPI, APEI, ERST debug support
-Date: Sun, 15 Aug 2010 01:23:15 -0400
-Message-ID: <2ff729d506e8db82d76a93bc963df4d0a4d46b57.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 10/20] ACPI, APEI, Manage GHES as platform devices
+Date: Sun, 15 Aug 2010 01:23:14 -0400
+Message-ID: <7ad6e9435596f692ff65f399da12816c94960185.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:57585 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab0HOFaP (ORCPT
+	with ESMTP id S1752723Ab0HOFaP (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:15 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:13 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:14 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
@@ -23,264 +23,345 @@ Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brow
 
 From: Huang Ying <ying.huang@intel.com>
 
-This patch adds debugging/testing support to ERST. A misc device is
-implemented to export raw ERST read/write/clear etc operations to user
-space. With this patch, we can add ERST testing support to
-linuxfirmwarekit ISO (linuxfirmwarekit.org) to verify the kernel
-support and the firmware implementation.
+Register GHES during HEST initialization as platform devices. And make
+GHES driver into platform device driver. So that the GHES driver
+module can be loaded automatically when there are GHES available.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/apei/Kconfig    |    9 ++
- drivers/acpi/apei/Makefile   |    1 +
- drivers/acpi/apei/erst-dbg.c |  207 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 217 insertions(+), 0 deletions(-)
- create mode 100644 drivers/acpi/apei/erst-dbg.c
+ drivers/acpi/apei/ghes.c |  140 ++++++++++++++++++++++++---------------------
+ drivers/acpi/apei/hest.c |   76 +++++++++++++++++++++++--
+ 2 files changed, 145 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index f8c668f..907e350 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -28,3 +28,12 @@ config ACPI_APEI_EINJ
- 	  EINJ provides a hardware error injection mechanism, it is
- 	  mainly used for debugging and testing the other parts of
- 	  APEI and some other RAS features.
-+
-+config ACPI_APEI_ERST_DEBUG
-+	tristate "APEI Error Record Serialization Table (ERST) Debug Support"
-+	depends on ACPI_APEI
-+	help
-+	  ERST is a way provided by APEI to save and retrieve hardware
-+	  error infomation to and from a persistent store. Enable this
-+	  if you want to debugging and testing the ERST kernel support
-+	  and firmware implementation.
-diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
-index b13b03a..d1d1bc0 100644
---- a/drivers/acpi/apei/Makefile
-+++ b/drivers/acpi/apei/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_ACPI_APEI)		+= apei.o
- obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
- obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
-+obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index c76aff6..385a605 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -41,6 +41,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/cper.h>
+ #include <linux/kdebug.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+@@ -87,6 +89,7 @@ struct ghes {
+  * used for that.
+  */
+ static LIST_HEAD(ghes_sci);
++static DEFINE_MUTEX(ghes_list_mutex);
  
- apei-y := apei-base.o hest.o cper.o erst.o
-diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-new file mode 100644
-index 0000000..5281ddd
---- /dev/null
-+++ b/drivers/acpi/apei/erst-dbg.c
-@@ -0,0 +1,207 @@
-+/*
-+ * APEI Error Record Serialization Table debug support
-+ *
-+ * ERST is a way provided by APEI to save and retrieve hardware error
-+ * infomation to and from a persistent store. This file provide the
-+ * debugging/testing support for ERST kernel support and firmware
-+ * implementation.
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/uaccess.h>
-+#include <acpi/apei.h>
-+#include <linux/miscdevice.h>
-+
-+#include "apei-internal.h"
-+
-+#define ERST_DBG_PFX			"ERST DBG: "
-+
-+#define ERST_DBG_RECORD_LEN_MAX		4096
-+
-+static void *erst_dbg_buf;
-+static unsigned int erst_dbg_buf_len;
-+
-+/* Prevent erst_dbg_read/write from being invoked concurrently */
-+static DEFINE_MUTEX(erst_dbg_mutex);
-+
-+static int erst_dbg_open(struct inode *inode, struct file *file)
-+{
-+	if (erst_disable)
+ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+ {
+@@ -293,18 +296,15 @@ static struct notifier_block ghes_notifier_sci = {
+ 	.notifier_call = ghes_notify_sci,
+ };
+ 
+-static int hest_ghes_parse(struct acpi_hest_header *hest_hdr, void *data)
++static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ {
+ 	struct acpi_hest_generic *generic;
+ 	struct ghes *ghes = NULL;
+-	int rc = 0;
++	int rc = -EINVAL;
+ 
+-	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+-		return 0;
+-
+-	generic = (struct acpi_hest_generic *)hest_hdr;
++	generic = ghes_dev->dev.platform_data;
+ 	if (!generic->enabled)
+-		return 0;
 +		return -ENODEV;
+ 
+ 	if (generic->error_block_length <
+ 	    sizeof(struct acpi_hest_generic_status)) {
+@@ -327,62 +327,91 @@ static int hest_ghes_parse(struct acpi_hest_header *hest_hdr, void *data)
+ 		ghes = NULL;
+ 		goto err;
+ 	}
+-	switch (generic->notify.type) {
+-	case ACPI_HEST_NOTIFY_POLLED:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via POLL is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	case ACPI_HEST_NOTIFY_EXTERNAL:
+-	case ACPI_HEST_NOTIFY_LOCAL:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via IRQ is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	case ACPI_HEST_NOTIFY_SCI:
++	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
++		mutex_lock(&ghes_list_mutex);
+ 		if (list_empty(&ghes_sci))
+ 			register_acpi_hed_notifier(&ghes_notifier_sci);
+ 		list_add_rcu(&ghes->list, &ghes_sci);
+-		break;
+-	case ACPI_HEST_NOTIFY_NMI:
+-		pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via NMI is not supported!\n",
+-			   generic->header.source_id);
+-		break;
+-	default:
+-		pr_warning(FW_WARN GHES_PFX
+-	"Unknown notification type: %u for generic hardware error source: %d\n",
+-			   generic->notify.type, generic->header.source_id);
+-		break;
++		mutex_unlock(&ghes_list_mutex);
++	} else {
++		unsigned char *notify = NULL;
 +
-+	return nonseekable_open(inode, file);
-+}
++		switch (generic->notify.type) {
++		case ACPI_HEST_NOTIFY_POLLED:
++			notify = "POLL";
++			break;
++		case ACPI_HEST_NOTIFY_EXTERNAL:
++		case ACPI_HEST_NOTIFY_LOCAL:
++			notify = "IRQ";
++			break;
++		case ACPI_HEST_NOTIFY_NMI:
++			notify = "NMI";
++			break;
++		}
++		if (notify) {
++			pr_warning(GHES_PFX
++"Generic hardware error source: %d notified via %s is not supported!\n",
++				   generic->header.source_id, notify);
++		} else {
++			pr_warning(FW_WARN GHES_PFX
++"Unknown notification type: %u for generic hardware error source: %d\n",
++			generic->notify.type, generic->header.source_id);
++		}
++		rc = -ENODEV;
++		goto err;
+ 	}
++	platform_set_drvdata(ghes_dev, ghes);
+ 
+ 	return 0;
+ err:
+-	if (ghes)
++	if (ghes) {
+ 		ghes_fini(ghes);
++		kfree(ghes);
++	}
+ 	return rc;
+ }
+ 
+-static void ghes_cleanup(void)
++static int __devexit ghes_remove(struct platform_device *ghes_dev)
+ {
+-	struct ghes *ghes, *nghes;
++	struct ghes *ghes;
++	struct acpi_hest_generic *generic;
+ 
+-	if (!list_empty(&ghes_sci))
+-		unregister_acpi_hed_notifier(&ghes_notifier_sci);
++	ghes = platform_get_drvdata(ghes_dev);
++	generic = ghes->generic;
 +
-+static long erst_dbg_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
-+{
-+	int rc;
-+	u64 record_id;
-+	u32 record_count;
-+
-+	switch (cmd) {
-+	case APEI_ERST_CLEAR_RECORD:
-+		rc = copy_from_user(&record_id, (void __user *)arg,
-+				    sizeof(record_id));
-+		if (rc)
-+			return -EFAULT;
-+		return erst_clear(record_id);
-+	case APEI_ERST_GET_RECORD_COUNT:
-+		rc = erst_get_record_count();
-+		if (rc < 0)
-+			return rc;
-+		record_count = rc;
-+		rc = put_user(record_count, (u32 __user *)arg);
-+		if (rc)
-+			return rc;
-+		return 0;
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_SCI:
++		mutex_lock(&ghes_list_mutex);
++		list_del_rcu(&ghes->list);
++		if (list_empty(&ghes_sci))
++			unregister_acpi_hed_notifier(&ghes_notifier_sci);
++		mutex_unlock(&ghes_list_mutex);
++		break;
 +	default:
-+		return -ENOTTY;
++		BUG();
++		break;
 +	}
+ 
+ 	synchronize_rcu();
++	ghes_fini(ghes);
++	kfree(ghes);
+ 
+-	list_for_each_entry_safe(ghes, nghes, &ghes_sci, list) {
+-		list_del(&ghes->list);
+-		ghes_fini(ghes);
+-		kfree(ghes);
+-	}
++	platform_set_drvdata(ghes_dev, NULL);
++
++	return 0;
+ }
+ 
++static struct platform_driver ghes_platform_driver = {
++	.driver		= {
++		.name	= "GHES",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ghes_probe,
++	.remove		= ghes_remove,
++};
++
+ static int __init ghes_init(void)
+ {
+-	int rc;
+-
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+@@ -391,32 +420,12 @@ static int __init ghes_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	rc = apei_hest_parse(hest_ghes_parse, NULL);
+-	if (rc) {
+-		pr_err(GHES_PFX
+-		"Error during parsing HEST generic hardware error sources.\n");
+-		goto err_cleanup;
+-	}
+-
+-	if (list_empty(&ghes_sci)) {
+-		pr_info(GHES_PFX
+-			"No functional generic hardware error sources.\n");
+-		rc = -ENODEV;
+-		goto err_cleanup;
+-	}
+-
+-	pr_info(GHES_PFX
+-		"Generic Hardware Error Source support is initialized.\n");
+-
+-	return 0;
+-err_cleanup:
+-	ghes_cleanup();
+-	return rc;
++	return platform_driver_register(&ghes_platform_driver);
+ }
+ 
+ static void __exit ghes_exit(void)
+ {
+-	ghes_cleanup();
++	platform_driver_unregister(&ghes_platform_driver);
+ }
+ 
+ module_init(ghes_init);
+@@ -425,3 +434,4 @@ module_exit(ghes_exit);
+ MODULE_AUTHOR("Huang Ying");
+ MODULE_DESCRIPTION("APEI Generic Hardware Error Source support");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:GHES");
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index e7f40d3..343168d 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -34,6 +34,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/io.h>
++#include <linux/platform_device.h>
+ #include <acpi/apei.h>
+ 
+ #include "apei-internal.h"
+@@ -47,11 +48,6 @@ EXPORT_SYMBOL_GPL(hest_disable);
+ 
+ static struct acpi_table_hest *hest_tab;
+ 
+-static int hest_void_parse(struct acpi_hest_header *hest_hdr, void *data)
+-{
+-	return 0;
+-}
+-
+ static int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+ 	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
+ 	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
+@@ -125,6 +121,69 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+ }
+ EXPORT_SYMBOL_GPL(apei_hest_parse);
+ 
++struct ghes_arr {
++	struct platform_device **ghes_devs;
++	unsigned int count;
++};
++
++static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
++{
++	int *count = data;
++
++	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR)
++		(*count)++;
++	return 0;
 +}
 +
-+static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
-+			     size_t usize, loff_t *off)
++static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
 +{
++	struct acpi_hest_generic *generic;
++	struct platform_device *ghes_dev;
++	struct ghes_arr *ghes_arr = data;
 +	int rc;
-+	ssize_t len = 0;
-+	u64 id;
 +
-+	if (*off != 0)
-+		return -EINVAL;
-+
-+	if (mutex_lock_interruptible(&erst_dbg_mutex) != 0)
-+		return -EINTR;
-+
-+retry_next:
-+	rc = erst_get_next_record_id(&id);
++	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
++		return 0;
++	generic = (struct acpi_hest_generic *)hest_hdr;
++	if (!generic->enabled)
++		return 0;
++	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
++	if (!ghes_dev)
++		return -ENOMEM;
++	ghes_dev->dev.platform_data = generic;
++	rc = platform_device_add(ghes_dev);
 +	if (rc)
-+		goto out;
-+	/* no more record */
-+	if (id == APEI_ERST_INVALID_RECORD_ID)
-+		goto out;
-+retry:
-+	rc = len = erst_read(id, erst_dbg_buf, erst_dbg_buf_len);
-+	/* The record may be cleared by others, try read next record */
-+	if (rc == -ENOENT)
-+		goto retry_next;
-+	if (rc < 0)
-+		goto out;
-+	if (len > ERST_DBG_RECORD_LEN_MAX) {
-+		pr_warning(ERST_DBG_PFX
-+			   "Record (ID: 0x%llx) length is too long: %zd\n",
-+			   id, len);
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (len > erst_dbg_buf_len) {
-+		kfree(erst_dbg_buf);
-+		rc = -ENOMEM;
-+		erst_dbg_buf = kmalloc(len, GFP_KERNEL);
-+		if (!erst_dbg_buf)
-+			goto out;
-+		erst_dbg_buf_len = len;
-+		goto retry;
-+	}
++		goto err;
++	ghes_arr->ghes_devs[ghes_arr->count++] = ghes_dev;
 +
-+	rc = -EINVAL;
-+	if (len > usize)
-+		goto out;
++	return 0;
++err:
++	platform_device_put(ghes_dev);
++	return rc;
++}
 +
-+	rc = -EFAULT;
-+	if (copy_to_user(ubuf, erst_dbg_buf, len))
-+		goto out;
-+	rc = 0;
++static int hest_ghes_dev_register(unsigned int ghes_count)
++{
++	int rc, i;
++	struct ghes_arr ghes_arr;
++
++	ghes_arr.count = 0;
++	ghes_arr.ghes_devs = kmalloc(sizeof(void *) * ghes_count, GFP_KERNEL);
++	if (!ghes_arr.ghes_devs)
++		return -ENOMEM;
++
++	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
++	if (rc)
++		goto err;
 +out:
-+	mutex_unlock(&erst_dbg_mutex);
-+	return rc ? rc : len;
++	kfree(ghes_arr.ghes_devs);
++	return rc;
++err:
++	for (i = 0; i < ghes_arr.count; i++)
++		platform_device_unregister(ghes_arr.ghes_devs[i]);
++	goto out;
 +}
 +
-+static ssize_t erst_dbg_write(struct file *filp, const char __user *ubuf,
-+			      size_t usize, loff_t *off)
-+{
-+	int rc;
-+	struct cper_record_header *rcd;
+ static int __init setup_hest_disable(char *str)
+ {
+ 	hest_disable = 1;
+@@ -137,6 +196,7 @@ static int __init hest_init(void)
+ {
+ 	acpi_status status;
+ 	int rc = -ENODEV;
++	unsigned int ghes_count = 0;
+ 
+ 	if (acpi_disabled)
+ 		goto err;
+@@ -158,7 +218,11 @@ static int __init hest_init(void)
+ 		goto err;
+ 	}
+ 
+-	rc = apei_hest_parse(hest_void_parse, NULL);
++	rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
++	if (rc)
++		goto err;
 +
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	if (usize > ERST_DBG_RECORD_LEN_MAX) {
-+		pr_err(ERST_DBG_PFX "Too long record to be written\n");
-+		return -EINVAL;
-+	}
-+
-+	if (mutex_lock_interruptible(&erst_dbg_mutex))
-+		return -EINTR;
-+	if (usize > erst_dbg_buf_len) {
-+		kfree(erst_dbg_buf);
-+		rc = -ENOMEM;
-+		erst_dbg_buf = kmalloc(usize, GFP_KERNEL);
-+		if (!erst_dbg_buf)
-+			goto out;
-+		erst_dbg_buf_len = usize;
-+	}
-+	rc = copy_from_user(erst_dbg_buf, ubuf, usize);
-+	if (rc) {
-+		rc = -EFAULT;
-+		goto out;
-+	}
-+	rcd = erst_dbg_buf;
-+	rc = -EINVAL;
-+	if (rcd->record_length != usize)
-+		goto out;
-+
-+	rc = erst_write(erst_dbg_buf);
-+
-+out:
-+	mutex_unlock(&erst_dbg_mutex);
-+	return rc < 0 ? rc : usize;
-+}
-+
-+static const struct file_operations erst_dbg_ops = {
-+	.owner		= THIS_MODULE,
-+	.open		= erst_dbg_open,
-+	.read		= erst_dbg_read,
-+	.write		= erst_dbg_write,
-+	.unlocked_ioctl	= erst_dbg_ioctl,
-+};
-+
-+static struct miscdevice erst_dbg_dev = {
-+	.minor	= MISC_DYNAMIC_MINOR,
-+	.name	= "erst_dbg",
-+	.fops	= &erst_dbg_ops,
-+};
-+
-+static __init int erst_dbg_init(void)
-+{
-+	return misc_register(&erst_dbg_dev);
-+}
-+
-+static __exit void erst_dbg_exit(void)
-+{
-+	misc_deregister(&erst_dbg_dev);
-+	kfree(erst_dbg_buf);
-+}
-+
-+module_init(erst_dbg_init);
-+module_exit(erst_dbg_exit);
-+
-+MODULE_AUTHOR("Huang Ying");
-+MODULE_DESCRIPTION("APEI Error Record Serialization Table debug support");
-+MODULE_LICENSE("GPL");
++	rc = hest_ghes_dev_register(ghes_count);
+ 	if (rc)
+ 		goto err;
+ 
 -- 
 1.7.2.1.95.g3d045
 
