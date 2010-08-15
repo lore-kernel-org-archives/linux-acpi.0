@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/20] ACPI: introduce drivers/acpi/debugfs.c
-Date: Sun, 15 Aug 2010 01:23:16 -0400
-Message-ID: <a25ee9200eef07377e1703697afbb5d81f89e500.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 16/20] ACPI power_resource: remove unused procfs I/F
+Date: Sun, 15 Aug 2010 01:23:20 -0400
+Message-ID: <06af7eb043c02822072cea862fce1b7c74115e8f.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:57561 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab0HOFaI (ORCPT
+	with ESMTP id S1751991Ab0HOFaI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:08 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:08 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:07 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
@@ -23,256 +23,194 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Introduce drivers/acpi/debugfs.c.
-
-Code for ACPI debugfs I/F,
-i.e. /sys/kernel/debug/acpi/custom_method,
-is moved to this file.
-
-And make ACPI debugfs always built in,
-even if CONFIG_ACPI_DEBUG is cleared.
-
-BTW:this adds about 400bytes code to ACPI, when
-CONFIG_ACPI_DEBUG is cleared.
-
-[uaccess.h build fix from Andrew Morton <akpm@linux-foundation.org>]
+Remove unused ACPI power procfs I/F.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Makefile   |    1 +
- drivers/acpi/bus.c      |    1 +
- drivers/acpi/debug.c    |   75 -----------------------------------------
- drivers/acpi/debugfs.c  |   85 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |    6 +++
- 5 files changed, 93 insertions(+), 75 deletions(-)
- create mode 100644 drivers/acpi/debugfs.c
+ drivers/acpi/power.c |  128 +-------------------------------------------------
+ 1 files changed, 1 insertions(+), 127 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 6ee3316..7891904 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -39,6 +39,7 @@ acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- acpi-y				+= power.o
- acpi-y				+= system.o event.o
- acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
- acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
- acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- ifdef CONFIG_ACPI_VIDEO
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c1d23cd..7136f24 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1036,6 +1036,7 @@ static int __init acpi_init(void)
- 	acpi_power_init();
- 	acpi_system_init();
- 	acpi_debug_init();
-+	acpi_debugfs_init();
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	return result;
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
-index 146135e..22476ea 100644
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -198,80 +198,6 @@ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
- 		  NULL, 0644);
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index f74d3b3..4fe5018 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -40,8 +40,6 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include "sleep.h"
+@@ -64,7 +62,6 @@ module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+ static int acpi_power_add(struct acpi_device *device);
+ static int acpi_power_remove(struct acpi_device *device, int type);
+ static int acpi_power_resume(struct acpi_device *device);
+-static int acpi_power_open_fs(struct inode *inode, struct file *file);
  
- /* --------------------------------------------------------------------------
--				DebugFS Interface
--   -------------------------------------------------------------------------- */
--
--static ssize_t cm_write(struct file *file, const char __user *user_buf,
--			size_t count, loff_t *ppos)
--{
--	static char *buf;
--	static int uncopied_bytes;
--	struct acpi_table_header table;
--	acpi_status status;
--
--	if (!(*ppos)) {
--		/* parse the table header to get the table length */
--		if (count <= sizeof(struct acpi_table_header))
--			return -EINVAL;
--		if (copy_from_user(&table, user_buf,
--			sizeof(struct acpi_table_header)))
--			return -EFAULT;
--		uncopied_bytes = table.length;
--		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
--		if (!buf)
--			return -ENOMEM;
--	}
--
--	if (uncopied_bytes < count) {
--		kfree(buf);
--		return -EINVAL;
--	}
--
--	if (copy_from_user(buf + (*ppos), user_buf, count)) {
--		kfree(buf);
--		return -EFAULT;
--	}
--
--	uncopied_bytes -= count;
--	*ppos += count;
--
--	if (!uncopied_bytes) {
--		status = acpi_install_method(buf);
--		kfree(buf);
--		if (ACPI_FAILURE(status))
--			return -EINVAL;
--		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
--	}
--
--	return count;
--}
--
--static const struct file_operations cm_fops = {
--	.write = cm_write,
+ static const struct acpi_device_id power_device_ids[] = {
+ 	{ACPI_POWER_HID, 0},
+@@ -99,14 +96,6 @@ struct acpi_power_resource {
+ 
+ static struct list_head acpi_power_resource_list;
+ 
+-static const struct file_operations acpi_power_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_power_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
 -};
 -
--static int acpi_debugfs_init(void)
+ /* --------------------------------------------------------------------------
+                              Power Resource Management
+    -------------------------------------------------------------------------- */
+@@ -542,102 +531,6 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ }
+ 
+ /* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-
+-static struct proc_dir_entry *acpi_power_dir;
+-
+-static int acpi_power_seq_show(struct seq_file *seq, void *offset)
 -{
--	struct dentry *acpi_dir, *cm_dentry;
+-	int count = 0;
+-	int result = 0, state;
+-	struct acpi_power_resource *resource = NULL;
+-	struct list_head *node, *next;
+-	struct acpi_power_reference *ref;
 -
--	acpi_dir = debugfs_create_dir("acpi", NULL);
--	if (!acpi_dir)
--		goto err;
 -
--	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
--					acpi_dir, NULL, &cm_fops);
--	if (!cm_dentry)
--		goto err;
+-	resource = seq->private;
+-
+-	if (!resource)
+-		goto end;
+-
+-	result = acpi_power_get_state(resource->device->handle, &state);
+-	if (result)
+-		goto end;
+-
+-	seq_puts(seq, "state:                   ");
+-	switch (state) {
+-	case ACPI_POWER_RESOURCE_STATE_ON:
+-		seq_puts(seq, "on\n");
+-		break;
+-	case ACPI_POWER_RESOURCE_STATE_OFF:
+-		seq_puts(seq, "off\n");
+-		break;
+-	default:
+-		seq_puts(seq, "unknown\n");
+-		break;
+-	}
+-
+-	mutex_lock(&resource->resource_lock);
+-	list_for_each_safe(node, next, &resource->reference) {
+-		ref = container_of(node, struct acpi_power_reference, node);
+-		count++;
+-	}
+-	mutex_unlock(&resource->resource_lock);
+-
+-	seq_printf(seq, "system level:            S%d\n"
+-		   "order:                   %d\n"
+-		   "reference count:         %d\n",
+-		   resource->system_level,
+-		   resource->order, count);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_power_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_power_seq_show, PDE(inode)->data);
+-}
+-
+-static int acpi_power_add_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *entry = NULL;
+-
+-
+-	if (!device)
+-		return -EINVAL;
+-
+-	if (!acpi_device_dir(device)) {
+-		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+-						     acpi_power_dir);
+-		if (!acpi_device_dir(device))
+-			return -ENODEV;
+-	}
+-
+-	/* 'status' [R] */
+-	entry = proc_create_data(ACPI_POWER_FILE_STATUS,
+-				 S_IRUGO, acpi_device_dir(device),
+-				 &acpi_power_fops, acpi_driver_data(device));
+-	if (!entry)
+-		return -EIO;
+-	return 0;
+-}
+-
+-static int acpi_power_remove_fs(struct acpi_device *device)
+-{
+-
+-	if (acpi_device_dir(device)) {
+-		remove_proc_entry(ACPI_POWER_FILE_STATUS,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(acpi_device_bid(device), acpi_power_dir);
+-		acpi_device_dir(device) = NULL;
+-	}
 -
 -	return 0;
--
--err:
--	if (acpi_dir)
--		debugfs_remove(acpi_dir);
--	return -EINVAL;
 -}
 -
 -/* --------------------------------------------------------------------------
-                               FS Interface (/proc)
+                                 Driver Interface
     -------------------------------------------------------------------------- */
- #ifdef CONFIG_ACPI_PROCFS
-@@ -400,7 +326,6 @@ int __init acpi_procfs_init(void)
  
- int __init acpi_debug_init(void)
+@@ -690,10 +583,6 @@ static int acpi_power_add(struct acpi_device *device)
+ 		break;
+ 	}
+ 
+-	result = acpi_power_add_fs(device);
+-	if (result)
+-		goto end;
+-
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
+ 	       acpi_device_bid(device), state ? "on" : "off");
+ 
+@@ -715,8 +604,6 @@ static int acpi_power_remove(struct acpi_device *device, int type)
+ 
+ 	resource = acpi_driver_data(device);
+ 
+-	acpi_power_remove_fs(device);
+-
+ 	mutex_lock(&resource->resource_lock);
+ 	list_for_each_safe(node, next, &resource->reference) {
+ 		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
+@@ -760,19 +647,6 @@ static int acpi_power_resume(struct acpi_device *device)
+ 
+ int __init acpi_power_init(void)
  {
--	acpi_debugfs_init();
- 	acpi_procfs_init();
- 	return 0;
+-	int result = 0;
+-
+ 	INIT_LIST_HEAD(&acpi_power_resource_list);
+-
+-	acpi_power_dir = proc_mkdir(ACPI_POWER_CLASS, acpi_root_dir);
+-	if (!acpi_power_dir)
+-		return -ENODEV;
+-
+-	result = acpi_bus_register_driver(&acpi_power_driver);
+-	if (result < 0) {
+-		remove_proc_entry(ACPI_POWER_CLASS, acpi_root_dir);
+-		return -ENODEV;
+-	}
+-
+-	return 0;
++	return acpi_bus_register_driver(&acpi_power_driver);
  }
-diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-new file mode 100644
-index 0000000..abfcf9f
---- /dev/null
-+++ b/drivers/acpi/debugfs.c
-@@ -0,0 +1,85 @@
-+/*
-+ * debugfs.c - ACPI debugfs interface to userspace.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/uaccess.h>
-+#include <linux/debugfs.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define _COMPONENT		ACPI_SYSTEM_COMPONENT
-+ACPI_MODULE_NAME("debugfs");
-+
-+/* /sys/kernel/debug/acpi/custom_method */
-+
-+static ssize_t cm_write(struct file *file, const char __user * user_buf,
-+			size_t count, loff_t *ppos)
-+{
-+	static char *buf;
-+	static int uncopied_bytes;
-+	struct acpi_table_header table;
-+	acpi_status status;
-+
-+	if (!(*ppos)) {
-+		/* parse the table header to get the table length */
-+		if (count <= sizeof(struct acpi_table_header))
-+			return -EINVAL;
-+		if (copy_from_user(&table, user_buf,
-+				   sizeof(struct acpi_table_header)))
-+			return -EFAULT;
-+		uncopied_bytes = table.length;
-+		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
-+		if (!buf)
-+			return -ENOMEM;
-+	}
-+
-+	if (uncopied_bytes < count) {
-+		kfree(buf);
-+		return -EINVAL;
-+	}
-+
-+	if (copy_from_user(buf + (*ppos), user_buf, count)) {
-+		kfree(buf);
-+		return -EFAULT;
-+	}
-+
-+	uncopied_bytes -= count;
-+	*ppos += count;
-+
-+	if (!uncopied_bytes) {
-+		status = acpi_install_method(buf);
-+		kfree(buf);
-+		if (ACPI_FAILURE(status))
-+			return -EINVAL;
-+		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
-+	}
-+
-+	return count;
-+}
-+
-+static const struct file_operations cm_fops = {
-+	.write = cm_write,
-+};
-+
-+int __init acpi_debugfs_init(void)
-+{
-+	struct dentry *acpi_dir, *cm_dentry;
-+
-+	acpi_dir = debugfs_create_dir("acpi", NULL);
-+	if (!acpi_dir)
-+		goto err;
-+
-+	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
-+					acpi_dir, NULL, &cm_fops);
-+	if (!cm_dentry)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	if (acpi_dir)
-+		debugfs_remove(acpi_dir);
-+	return -EINVAL;
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index f8f190e..0650e34 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -30,6 +30,12 @@ int acpi_debug_init(void);
- static inline int acpi_debug_init(void) { return 0; }
- #endif
- 
-+#ifdef CONFIG_DEBUG_FS
-+int acpi_debugfs_init(void);
-+#else
-+static inline int acpi_debugfs_init(void) { return 0; }
-+#endif
-+
- /* --------------------------------------------------------------------------
-                                   Power Resource
-    -------------------------------------------------------------------------- */
 -- 
 1.7.2.1.95.g3d045
 
