@@ -1,224 +1,286 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/20] ACPI thermal: make procfs I/F depend on
- CONFIG_ACPI_PROCFS
-Date: Sun, 15 Aug 2010 01:23:23 -0400
-Message-ID: <43d9f87b79804f2d75d9d8a81c862b179f055a15.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 11/20] ACPI, APEI, ERST debug support
+Date: Sun, 15 Aug 2010 01:23:15 -0400
+Message-ID: <2ff729d506e8db82d76a93bc963df4d0a4d46b57.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:57583 "EHLO
+Received: from vms173005pub.verizon.net ([206.46.173.5]:57585 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991Ab0HOFaJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:09 -0400
+	with ESMTP id S1752524Ab0HOFaP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:15 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:09 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:13 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Huang Ying <ying.huang@intel.com>
 
-Mark the ACPI thermal procfs I/F deprecated, because /sys/class/thermal/
-is already available and has been working for years w/o any problem.
+This patch adds debugging/testing support to ERST. A misc device is
+implemented to export raw ERST read/write/clear etc operations to user
+space. With this patch, we can add ERST testing support to
+linuxfirmwarekit ISO (linuxfirmwarekit.org) to verify the kernel
+support and the firmware implementation.
 
-The ACPI thermal procfs I/F will be removed in 2.6.37.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig   |    1 +
- drivers/acpi/thermal.c |   86 +++++++++++++++++++++++++++++------------------
- 2 files changed, 54 insertions(+), 33 deletions(-)
+ drivers/acpi/apei/Kconfig    |    9 ++
+ drivers/acpi/apei/Makefile   |    1 +
+ drivers/acpi/apei/erst-dbg.c |  207 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 217 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/acpi/apei/erst-dbg.c
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 354e613..5ed51b3 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -57,6 +57,7 @@ config ACPI_PROCFS
- 	  /proc/acpi/processor/*/throttling (/sys/class/thermal/
- 		cooling_device*/*)
- 	  /proc/acpi/video/*/brightness (/sys/class/backlight/)
-+	  /proc/acpi/thermal_zone/*/* (/sys/class/thermal/)
- 	  This option has no effect on /proc/acpi/ files
- 	  and functions which do not yet exist in /sys.
- 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index efad1f3..2f8f171 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -37,10 +37,14 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/types.h>
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index f8c668f..907e350 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -28,3 +28,12 @@ config ACPI_APEI_EINJ
+ 	  EINJ provides a hardware error injection mechanism, it is
+ 	  mainly used for debugging and testing the other parts of
+ 	  APEI and some other RAS features.
 +
-+#ifdef CONFIG_ACPI_PROCFS
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#endif
++config ACPI_APEI_ERST_DEBUG
++	tristate "APEI Error Record Serialization Table (ERST) Debug Support"
++	depends on ACPI_APEI
++	help
++	  ERST is a way provided by APEI to save and retrieve hardware
++	  error infomation to and from a persistent store. Enable this
++	  if you want to debugging and testing the ERST kernel support
++	  and firmware implementation.
+diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
+index b13b03a..d1d1bc0 100644
+--- a/drivers/acpi/apei/Makefile
++++ b/drivers/acpi/apei/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_ACPI_APEI)		+= apei.o
+ obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
+ obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
++obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
+ 
+ apei-y := apei-base.o hest.o cper.o erst.o
+diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
+new file mode 100644
+index 0000000..5281ddd
+--- /dev/null
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -0,0 +1,207 @@
++/*
++ * APEI Error Record Serialization Table debug support
++ *
++ * ERST is a way provided by APEI to save and retrieve hardware error
++ * infomation to and from a persistent store. This file provide the
++ * debugging/testing support for ERST kernel support and firmware
++ * implementation.
++ *
++ * Copyright 2010 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
- #include <linux/jiffies.h>
- #include <linux/kmod.h>
--#include <linux/seq_file.h>
- #include <linux/reboot.h>
- #include <linux/device.h>
- #include <asm/uaccess.h>
-@@ -102,16 +106,6 @@ static int acpi_thermal_add(struct acpi_device *device);
- static int acpi_thermal_remove(struct acpi_device *device, int type);
- static int acpi_thermal_resume(struct acpi_device *device);
- static void acpi_thermal_notify(struct acpi_device *device, u32 event);
--static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_cooling_mode(struct file *,
--					       const char __user *, size_t,
--					       loff_t *);
--static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
--					  size_t, loff_t *);
- 
- static const struct acpi_device_id  thermal_device_ids[] = {
- 	{ACPI_THERMAL_HID, 0},
-@@ -201,6 +195,18 @@ struct acpi_thermal {
- 	struct mutex lock;
- };
- 
-+#ifdef CONFIG_ACPI_PROCFS
-+static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
-+static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
-+static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
-+static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
-+static ssize_t acpi_thermal_write_cooling_mode(struct file *,
-+					       const char __user *, size_t,
-+					       loff_t *);
-+static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
-+static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
-+					  size_t, loff_t *);
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/uaccess.h>
++#include <acpi/apei.h>
++#include <linux/miscdevice.h>
 +
- static const struct file_operations acpi_thermal_state_fops = {
- 	.owner = THIS_MODULE,
- 	.open = acpi_thermal_state_open_fs,
-@@ -242,6 +248,7 @@ static const struct file_operations acpi_thermal_polling_fops = {
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif /* CONFIG_ACPI_PROCFS*/
- 
- /* --------------------------------------------------------------------------
-                              Thermal Zone Management
-@@ -287,26 +294,6 @@ static int acpi_thermal_get_polling_frequency(struct acpi_thermal *tz)
- 	return 0;
- }
- 
--static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
--{
--
--	if (!tz)
--		return -EINVAL;
--
--	tz->polling_frequency = seconds * 10;	/* Convert value to deci-seconds */
--
--	tz->thermal_zone->polling_delay = seconds * 1000;
--
--	if (tz->tz_enabled)
--		thermal_zone_device_update(tz->thermal_zone);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Polling frequency set to %lu seconds\n",
--			  tz->polling_frequency/10));
--
--	return 0;
--}
--
- static int acpi_thermal_set_cooling_mode(struct acpi_thermal *tz, int mode)
- {
- 	acpi_status status = AE_OK;
-@@ -973,7 +960,7 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
--
-+#ifdef CONFIG_ACPI_PROCFS
- static struct proc_dir_entry *acpi_thermal_dir;
- 
- static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
-@@ -1187,6 +1174,26 @@ static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file)
- 			   PDE(inode)->data);
- }
- 
-+static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
++#include "apei-internal.h"
++
++#define ERST_DBG_PFX			"ERST DBG: "
++
++#define ERST_DBG_RECORD_LEN_MAX		4096
++
++static void *erst_dbg_buf;
++static unsigned int erst_dbg_buf_len;
++
++/* Prevent erst_dbg_read/write from being invoked concurrently */
++static DEFINE_MUTEX(erst_dbg_mutex);
++
++static int erst_dbg_open(struct inode *inode, struct file *file)
 +{
-+	if (!tz)
++	if (erst_disable)
++		return -ENODEV;
++
++	return nonseekable_open(inode, file);
++}
++
++static long erst_dbg_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
++{
++	int rc;
++	u64 record_id;
++	u32 record_count;
++
++	switch (cmd) {
++	case APEI_ERST_CLEAR_RECORD:
++		rc = copy_from_user(&record_id, (void __user *)arg,
++				    sizeof(record_id));
++		if (rc)
++			return -EFAULT;
++		return erst_clear(record_id);
++	case APEI_ERST_GET_RECORD_COUNT:
++		rc = erst_get_record_count();
++		if (rc < 0)
++			return rc;
++		record_count = rc;
++		rc = put_user(record_count, (u32 __user *)arg);
++		if (rc)
++			return rc;
++		return 0;
++	default:
++		return -ENOTTY;
++	}
++}
++
++static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
++			     size_t usize, loff_t *off)
++{
++	int rc;
++	ssize_t len = 0;
++	u64 id;
++
++	if (*off != 0)
 +		return -EINVAL;
 +
-+	/* Convert value to deci-seconds */
-+	tz->polling_frequency = seconds * 10;
++	if (mutex_lock_interruptible(&erst_dbg_mutex) != 0)
++		return -EINTR;
 +
-+	tz->thermal_zone->polling_delay = seconds * 1000;
++retry_next:
++	rc = erst_get_next_record_id(&id);
++	if (rc)
++		goto out;
++	/* no more record */
++	if (id == APEI_ERST_INVALID_RECORD_ID)
++		goto out;
++retry:
++	rc = len = erst_read(id, erst_dbg_buf, erst_dbg_buf_len);
++	/* The record may be cleared by others, try read next record */
++	if (rc == -ENOENT)
++		goto retry_next;
++	if (rc < 0)
++		goto out;
++	if (len > ERST_DBG_RECORD_LEN_MAX) {
++		pr_warning(ERST_DBG_PFX
++			   "Record (ID: 0x%llx) length is too long: %zd\n",
++			   id, len);
++		rc = -EIO;
++		goto out;
++	}
++	if (len > erst_dbg_buf_len) {
++		kfree(erst_dbg_buf);
++		rc = -ENOMEM;
++		erst_dbg_buf = kmalloc(len, GFP_KERNEL);
++		if (!erst_dbg_buf)
++			goto out;
++		erst_dbg_buf_len = len;
++		goto retry;
++	}
 +
-+	if (tz->tz_enabled)
-+		thermal_zone_device_update(tz->thermal_zone);
++	rc = -EINVAL;
++	if (len > usize)
++		goto out;
 +
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "Polling frequency set to %lu seconds\n",
-+			  tz->polling_frequency/10));
-+
-+	return 0;
++	rc = -EFAULT;
++	if (copy_to_user(ubuf, erst_dbg_buf, len))
++		goto out;
++	rc = 0;
++out:
++	mutex_unlock(&erst_dbg_mutex);
++	return rc ? rc : len;
 +}
 +
- static ssize_t
- acpi_thermal_write_polling(struct file *file,
- 			   const char __user * buffer,
-@@ -1295,7 +1302,13 @@ static int acpi_thermal_remove_fs(struct acpi_device *device)
- 
- 	return 0;
- }
--
-+#else
-+static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
-+static inline int acpi_thermal_remove_fs(struct acpi_device *device)
++static ssize_t erst_dbg_write(struct file *filp, const char __user *ubuf,
++			      size_t usize, loff_t *off)
 +{
-+	return 0;
-+}
-+#endif /* CONFIG_ACPI_PROCFS */
- /* --------------------------------------------------------------------------
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
-@@ -1566,13 +1579,18 @@ static int __init acpi_thermal_init(void)
- 		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
- 		return -ENODEV;
- 	}
++	int rc;
++	struct cper_record_header *rcd;
 +
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
- 	if (!acpi_thermal_dir)
- 		return -ENODEV;
-+#endif
- 
- 	result = acpi_bus_register_driver(&acpi_thermal_driver);
- 	if (result < 0) {
-+#ifdef CONFIG_ACPI_PROCFS
- 		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
-+#endif
- 		return -ENODEV;
- 	}
- 
-@@ -1584,7 +1602,9 @@ static void __exit acpi_thermal_exit(void)
- 
- 	acpi_bus_unregister_driver(&acpi_thermal_driver);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
-+#endif
- 
- 	return;
- }
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	if (usize > ERST_DBG_RECORD_LEN_MAX) {
++		pr_err(ERST_DBG_PFX "Too long record to be written\n");
++		return -EINVAL;
++	}
++
++	if (mutex_lock_interruptible(&erst_dbg_mutex))
++		return -EINTR;
++	if (usize > erst_dbg_buf_len) {
++		kfree(erst_dbg_buf);
++		rc = -ENOMEM;
++		erst_dbg_buf = kmalloc(usize, GFP_KERNEL);
++		if (!erst_dbg_buf)
++			goto out;
++		erst_dbg_buf_len = usize;
++	}
++	rc = copy_from_user(erst_dbg_buf, ubuf, usize);
++	if (rc) {
++		rc = -EFAULT;
++		goto out;
++	}
++	rcd = erst_dbg_buf;
++	rc = -EINVAL;
++	if (rcd->record_length != usize)
++		goto out;
++
++	rc = erst_write(erst_dbg_buf);
++
++out:
++	mutex_unlock(&erst_dbg_mutex);
++	return rc < 0 ? rc : usize;
++}
++
++static const struct file_operations erst_dbg_ops = {
++	.owner		= THIS_MODULE,
++	.open		= erst_dbg_open,
++	.read		= erst_dbg_read,
++	.write		= erst_dbg_write,
++	.unlocked_ioctl	= erst_dbg_ioctl,
++};
++
++static struct miscdevice erst_dbg_dev = {
++	.minor	= MISC_DYNAMIC_MINOR,
++	.name	= "erst_dbg",
++	.fops	= &erst_dbg_ops,
++};
++
++static __init int erst_dbg_init(void)
++{
++	return misc_register(&erst_dbg_dev);
++}
++
++static __exit void erst_dbg_exit(void)
++{
++	misc_deregister(&erst_dbg_dev);
++	kfree(erst_dbg_buf);
++}
++
++module_init(erst_dbg_init);
++module_exit(erst_dbg_exit);
++
++MODULE_AUTHOR("Huang Ying");
++MODULE_DESCRIPTION("APEI Error Record Serialization Table debug support");
++MODULE_LICENSE("GPL");
 -- 
 1.7.2.1.95.g3d045
 
