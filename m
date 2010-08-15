@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/20] ACPI power_resource: remove unused procfs I/F
-Date: Sun, 15 Aug 2010 01:23:20 -0400
-Message-ID: <06af7eb043c02822072cea862fce1b7c74115e8f.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 19/20] ACPI thermal: make procfs I/F depend on
+ CONFIG_ACPI_PROCFS
+Date: Sun, 15 Aug 2010 01:23:23 -0400
+Message-ID: <43d9f87b79804f2d75d9d8a81c862b179f055a15.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:57561 "EHLO
+Received: from vms173005pub.verizon.net ([206.46.173.5]:57583 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991Ab0HOFaI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:08 -0400
+	with ESMTP id S1751991Ab0HOFaJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:09 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:07 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:09 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
@@ -23,193 +24,200 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Remove unused ACPI power procfs I/F.
+Mark the ACPI thermal procfs I/F deprecated, because /sys/class/thermal/
+is already available and has been working for years w/o any problem.
+
+The ACPI thermal procfs I/F will be removed in 2.6.37.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/power.c |  128 +-------------------------------------------------
- 1 files changed, 1 insertions(+), 127 deletions(-)
+ drivers/acpi/Kconfig   |    1 +
+ drivers/acpi/thermal.c |   86 +++++++++++++++++++++++++++++------------------
+ 2 files changed, 54 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index f74d3b3..4fe5018 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -40,8 +40,6 @@
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 354e613..5ed51b3 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -57,6 +57,7 @@ config ACPI_PROCFS
+ 	  /proc/acpi/processor/*/throttling (/sys/class/thermal/
+ 		cooling_device*/*)
+ 	  /proc/acpi/video/*/brightness (/sys/class/backlight/)
++	  /proc/acpi/thermal_zone/*/* (/sys/class/thermal/)
+ 	  This option has no effect on /proc/acpi/ files
+ 	  and functions which do not yet exist in /sys.
+ 
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index efad1f3..2f8f171 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -37,10 +37,14 @@
  #include <linux/init.h>
- #include <linux/types.h>
  #include <linux/slab.h>
--#include <linux/proc_fs.h>
+ #include <linux/types.h>
++
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#endif
++
+ #include <linux/jiffies.h>
+ #include <linux/kmod.h>
 -#include <linux/seq_file.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include "sleep.h"
-@@ -64,7 +62,6 @@ module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
--static int acpi_power_open_fs(struct inode *inode, struct file *file);
+ #include <linux/reboot.h>
+ #include <linux/device.h>
+ #include <asm/uaccess.h>
+@@ -102,16 +106,6 @@ static int acpi_thermal_add(struct acpi_device *device);
+ static int acpi_thermal_remove(struct acpi_device *device, int type);
+ static int acpi_thermal_resume(struct acpi_device *device);
+ static void acpi_thermal_notify(struct acpi_device *device, u32 event);
+-static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_thermal_write_cooling_mode(struct file *,
+-					       const char __user *, size_t,
+-					       loff_t *);
+-static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+-					  size_t, loff_t *);
  
- static const struct acpi_device_id power_device_ids[] = {
- 	{ACPI_POWER_HID, 0},
-@@ -99,14 +96,6 @@ struct acpi_power_resource {
+ static const struct acpi_device_id  thermal_device_ids[] = {
+ 	{ACPI_THERMAL_HID, 0},
+@@ -201,6 +195,18 @@ struct acpi_thermal {
+ 	struct mutex lock;
+ };
  
- static struct list_head acpi_power_resource_list;
++#ifdef CONFIG_ACPI_PROCFS
++static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
++static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
++static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
++static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
++static ssize_t acpi_thermal_write_cooling_mode(struct file *,
++					       const char __user *, size_t,
++					       loff_t *);
++static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
++static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
++					  size_t, loff_t *);
++
+ static const struct file_operations acpi_thermal_state_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = acpi_thermal_state_open_fs,
+@@ -242,6 +248,7 @@ static const struct file_operations acpi_thermal_polling_fops = {
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif /* CONFIG_ACPI_PROCFS*/
  
--static const struct file_operations acpi_power_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_power_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
  /* --------------------------------------------------------------------------
-                              Power Resource Management
-    -------------------------------------------------------------------------- */
-@@ -542,102 +531,6 @@ int acpi_power_transition(struct acpi_device *device, int state)
+                              Thermal Zone Management
+@@ -287,26 +294,6 @@ static int acpi_thermal_get_polling_frequency(struct acpi_thermal *tz)
+ 	return 0;
  }
  
- /* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--
--static struct proc_dir_entry *acpi_power_dir;
--
--static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+-static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
 -{
--	int count = 0;
--	int result = 0, state;
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
 -
--
--	resource = seq->private;
--
--	if (!resource)
--		goto end;
--
--	result = acpi_power_get_state(resource->device->handle, &state);
--	if (result)
--		goto end;
--
--	seq_puts(seq, "state:                   ");
--	switch (state) {
--	case ACPI_POWER_RESOURCE_STATE_ON:
--		seq_puts(seq, "on\n");
--		break;
--	case ACPI_POWER_RESOURCE_STATE_OFF:
--		seq_puts(seq, "off\n");
--		break;
--	default:
--		seq_puts(seq, "unknown\n");
--		break;
--	}
--
--	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		count++;
--	}
--	mutex_unlock(&resource->resource_lock);
--
--	seq_printf(seq, "system level:            S%d\n"
--		   "order:                   %d\n"
--		   "reference count:         %d\n",
--		   resource->system_level,
--		   resource->order, count);
--
--      end:
--	return 0;
--}
--
--static int acpi_power_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_power_seq_show, PDE(inode)->data);
--}
--
--static int acpi_power_add_fs(struct acpi_device *device)
--{
--	struct proc_dir_entry *entry = NULL;
--
--
--	if (!device)
+-	if (!tz)
 -		return -EINVAL;
 -
--	if (!acpi_device_dir(device)) {
--		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
--						     acpi_power_dir);
--		if (!acpi_device_dir(device))
--			return -ENODEV;
--	}
+-	tz->polling_frequency = seconds * 10;	/* Convert value to deci-seconds */
 -
--	/* 'status' [R] */
--	entry = proc_create_data(ACPI_POWER_FILE_STATUS,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_power_fops, acpi_driver_data(device));
--	if (!entry)
--		return -EIO;
--	return 0;
--}
+-	tz->thermal_zone->polling_delay = seconds * 1000;
 -
--static int acpi_power_remove_fs(struct acpi_device *device)
--{
+-	if (tz->tz_enabled)
+-		thermal_zone_device_update(tz->thermal_zone);
 -
--	if (acpi_device_dir(device)) {
--		remove_proc_entry(ACPI_POWER_FILE_STATUS,
--				  acpi_device_dir(device));
--		remove_proc_entry(acpi_device_bid(device), acpi_power_dir);
--		acpi_device_dir(device) = NULL;
--	}
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			  "Polling frequency set to %lu seconds\n",
+-			  tz->polling_frequency/10));
 -
 -	return 0;
 -}
 -
--/* --------------------------------------------------------------------------
-                                 Driver Interface
+ static int acpi_thermal_set_cooling_mode(struct acpi_thermal *tz, int mode)
+ {
+ 	acpi_status status = AE_OK;
+@@ -973,7 +960,7 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
     -------------------------------------------------------------------------- */
+-
++#ifdef CONFIG_ACPI_PROCFS
+ static struct proc_dir_entry *acpi_thermal_dir;
  
-@@ -690,10 +583,6 @@ static int acpi_power_add(struct acpi_device *device)
- 		break;
+ static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+@@ -1187,6 +1174,26 @@ static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file)
+ 			   PDE(inode)->data);
+ }
+ 
++static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
++{
++	if (!tz)
++		return -EINVAL;
++
++	/* Convert value to deci-seconds */
++	tz->polling_frequency = seconds * 10;
++
++	tz->thermal_zone->polling_delay = seconds * 1000;
++
++	if (tz->tz_enabled)
++		thermal_zone_device_update(tz->thermal_zone);
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "Polling frequency set to %lu seconds\n",
++			  tz->polling_frequency/10));
++
++	return 0;
++}
++
+ static ssize_t
+ acpi_thermal_write_polling(struct file *file,
+ 			   const char __user * buffer,
+@@ -1295,7 +1302,13 @@ static int acpi_thermal_remove_fs(struct acpi_device *device)
+ 
+ 	return 0;
+ }
+-
++#else
++static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
++static inline int acpi_thermal_remove_fs(struct acpi_device *device)
++{
++	return 0;
++}
++#endif /* CONFIG_ACPI_PROCFS */
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -1566,13 +1579,18 @@ static int __init acpi_thermal_init(void)
+ 		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+ 		return -ENODEV;
+ 	}
++
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
+ 	if (!acpi_thermal_dir)
+ 		return -ENODEV;
++#endif
+ 
+ 	result = acpi_bus_register_driver(&acpi_thermal_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
++#endif
+ 		return -ENODEV;
  	}
  
--	result = acpi_power_add_fs(device);
--	if (result)
--		goto end;
--
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
- 	       acpi_device_bid(device), state ? "on" : "off");
+@@ -1584,7 +1602,9 @@ static void __exit acpi_thermal_exit(void)
  
-@@ -715,8 +604,6 @@ static int acpi_power_remove(struct acpi_device *device, int type)
+ 	acpi_bus_unregister_driver(&acpi_thermal_driver);
  
- 	resource = acpi_driver_data(device);
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
++#endif
  
--	acpi_power_remove_fs(device);
--
- 	mutex_lock(&resource->resource_lock);
- 	list_for_each_safe(node, next, &resource->reference) {
- 		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
-@@ -760,19 +647,6 @@ static int acpi_power_resume(struct acpi_device *device)
- 
- int __init acpi_power_init(void)
- {
--	int result = 0;
--
- 	INIT_LIST_HEAD(&acpi_power_resource_list);
--
--	acpi_power_dir = proc_mkdir(ACPI_POWER_CLASS, acpi_root_dir);
--	if (!acpi_power_dir)
--		return -ENODEV;
--
--	result = acpi_bus_register_driver(&acpi_power_driver);
--	if (result < 0) {
--		remove_proc_entry(ACPI_POWER_CLASS, acpi_root_dir);
--		return -ENODEV;
--	}
--
--	return 0;
-+	return acpi_bus_register_driver(&acpi_power_driver);
+ 	return;
  }
 -- 
 1.7.2.1.95.g3d045
