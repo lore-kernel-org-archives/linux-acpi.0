@@ -1,190 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 20/20] gcc-4.6: ACPI: fix unused but set variables in ACPI
-Date: Sun, 15 Aug 2010 01:23:24 -0400
-Message-ID: <cfa806f059801dbe7e435745eb2e187c8bfe1e7f.1281849737.git.len.brown@intel.com>
-References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:57637 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753123Ab0HOFaU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:20 -0400
-Received: from localhost.localdomain ([unknown] [64.140.212.33])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:17 -0500 (CDT)
-In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
-In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
-References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sedat Dilek <sedat.dilek@googlemail.com>
+Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
+Date: Sun, 15 Aug 2010 13:13:07 +0200
+Message-ID: <AANLkTinzB=y4ntchu9fDeJ7XCkG9OJanvQUbMqtdWUrR@mail.gmail.com>
+References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0015175cd592ed909b048ddaccb6
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Andi Kleen <andi@firstfloor.org>, Andi Kleen <ak@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Andi Kleen <andi@firstfloor.org>
+--0015175cd592ed909b048ddaccb6
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Some minor improvements in error handling, but overall it was mostly dead
-code.
+On Sun, Aug 15, 2010 at 12:41 PM, Sedat Dilek
+<sedat.dilek@googlemail.com> wrote:
+> I pulled in release GIT-branch on top of 2.6.35-git16 (commit
+> 5d7cb157025b3b4852f38e6e5e97d06ef12c1d78)
+>
+> =C2=A0 $ git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.=
+6.git
+> release
+>
+> Unfortunately, the build breaks:
+>
+> [ build.log ]
+> drivers/acpi/power.c: In function =E2=80=98acpi_power_off_device=E2=80=99=
+:
+> drivers/acpi/power.c:252: error: =E2=80=98ref=E2=80=99 undeclared (first =
+use in this function)
+> drivers/acpi/power.c:252: error: (Each undeclared identifier is
+> reported only once
+> drivers/acpi/power.c:252: error: for each function it appears in.)
+> make[5]: *** [drivers/acpi/power.o] Error 1
+> make[4]: *** [drivers/acpi] Error 2
+> make[3]: *** [drivers] Error 2
+>
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/acpica/utmutex.c |    5 +----
- drivers/acpi/numa.c           |    4 +---
- drivers/acpi/osl.c            |    7 +++----
- drivers/acpi/power.c          |    2 --
- drivers/acpi/processor_idle.c |    3 +--
- drivers/acpi/video.c          |   10 +++++-----
- drivers/ata/libata-acpi.c     |    6 ------
- 7 files changed, 11 insertions(+), 26 deletions(-)
+Attached patch is fixing the issue here.
 
-diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
-index 058b3df..f5cca3a 100644
---- a/drivers/acpi/acpica/utmutex.c
-+++ b/drivers/acpi/acpica/utmutex.c
-@@ -279,13 +279,10 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
- 
- acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
- {
--	acpi_thread_id this_thread_id;
--
- 	ACPI_FUNCTION_NAME(ut_release_mutex);
- 
--	this_thread_id = acpi_os_get_thread_id();
- 	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Thread %p releasing Mutex [%s]\n",
--			  ACPI_CAST_PTR(void, this_thread_id),
-+			  ACPI_CAST_PTR(void, acpi_os_get_thread_id()),
- 			  acpi_ut_get_mutex_name(mutex_id)));
- 
- 	if (mutex_id > ACPI_MAX_MUTEX) {
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index b0337d3..5718566 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -255,12 +255,10 @@ acpi_parse_memory_affinity(struct acpi_subtable_header * header,
- 
- static int __init acpi_parse_srat(struct acpi_table_header *table)
- {
--	struct acpi_table_srat *srat;
--
- 	if (!table)
- 		return -EINVAL;
- 
--	srat = (struct acpi_table_srat *)table;
-+	/* Real work done in acpi_table_parse_srat below. */
- 
- 	return 0;
- }
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 44bddc5..03017b1 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -141,15 +141,14 @@ static struct osi_linux {
- static void __init acpi_request_region (struct acpi_generic_address *addr,
- 	unsigned int length, char *desc)
- {
--	struct resource *res;
--
- 	if (!addr->address || !length)
- 		return;
- 
-+	/* Resources are never freed */
- 	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
--		res = request_region(addr->address, length, desc);
-+		request_region(addr->address, length, desc);
- 	else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
--		res = request_mem_region(addr->address, length, desc);
-+		request_mem_region(addr->address, length, desc);
- }
- 
- static int __init acpi_reserve_resources(void)
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 4fe5018..cf073aa 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -242,8 +242,6 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
- 	acpi_status status = AE_OK;
- 	struct acpi_power_resource *resource = NULL;
- 	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
--
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 5cbc0cb..07bc74d 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -722,13 +722,12 @@ static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
- 	} else if (cx->entry_method == ACPI_CSTATE_HALT) {
- 		acpi_safe_halt();
- 	} else {
--		int unused;
- 		/* IO port based C-state */
- 		inb(cx->address);
- 		/* Dummy wait op - must do something useless after P_LVL2 read
- 		   because chipsets cannot guarantee that STPCLK# signal
- 		   gets asserted in time to freeze execution properly. */
--		unused = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		inl(acpi_gbl_FADT.xpm_timer_block.address);
- 	}
- 	start_critical_timings();
- }
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 909ae7b..67dec0c 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -2167,7 +2167,7 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
- 		status = acpi_video_bus_get_one_device(dev, video);
- 		if (ACPI_FAILURE(status)) {
- 			printk(KERN_WARNING PREFIX
--					"Cant attach device");
-+					"Cant attach device\n");
- 			continue;
- 		}
- 	}
-@@ -2177,19 +2177,19 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
- static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
- {
- 	acpi_status status;
--	struct acpi_video_bus *video;
--
- 
- 	if (!device || !device->video)
- 		return -ENOENT;
- 
--	video = device->video;
--
- 	acpi_video_device_remove_fs(device->dev);
- 
- 	status = acpi_remove_notify_handler(device->dev->handle,
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_WARNING PREFIX
-+		       "Cant remove video notify handler\n");
-+	}
- 	if (device->backlight) {
- 		sysfs_remove_link(&device->backlight->dev.kobj, "device");
- 		backlight_device_unregister(device->backlight);
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index 7b5eea7..8b5ea39 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -145,12 +145,6 @@ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_device *dev,
- 	struct ata_eh_info *ehi = &ap->link.eh_info;
- 	int wait = 0;
- 	unsigned long flags;
--	acpi_handle handle;
--
--	if (dev)
--		handle = dev->acpi_handle;
--	else
--		handle = ap->acpi_handle;
- 
- 	spin_lock_irqsave(ap->lock, flags);
- 	/*
--- 
-1.7.2.1.95.g3d045
+- Sedat -
 
+--0015175cd592ed909b048ddaccb6
+Content-Type: text/x-diff; charset=US-ASCII;
+	name="ACPI-Fix-undeclared-ref-in-acpi_power_off_device.patch"
+Content-Disposition: attachment;
+	filename="ACPI-Fix-undeclared-ref-in-acpi_power_off_device.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gcvsqbm00
+
+ZGlmZiAtcmR1cCBsaW51eC0yLjYub3JpZy9kcml2ZXJzL2FjcGkvcG93ZXIuYyBsaW51eC0yLjYv
+ZHJpdmVycy9hY3BpL3Bvd2VyLmMKLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMvYWNwaS9wb3dl
+ci5jCisrKyBsaW51eC0yLjYvZHJpdmVycy9hY3BpL3Bvd2VyLmMKQEAgLTI0Miw2ICsyNDIsNyBA
+QCBzdGF0aWMgaW50IGFjcGlfcG93ZXJfb2ZmX2RldmljZShhY3BpX2hhCiAJYWNwaV9zdGF0dXMg
+c3RhdHVzID0gQUVfT0s7CiAJc3RydWN0IGFjcGlfcG93ZXJfcmVzb3VyY2UgKnJlc291cmNlID0g
+TlVMTDsKIAlzdHJ1Y3QgbGlzdF9oZWFkICpub2RlLCAqbmV4dDsKKwlzdHJ1Y3QgYWNwaV9wb3dl
+cl9yZWZlcmVuY2UgKnJlZjsKIAogCXJlc3VsdCA9IGFjcGlfcG93ZXJfZ2V0X2NvbnRleHQoaGFu
+ZGxlLCAmcmVzb3VyY2UpOwogCWlmIChyZXN1bHQpCg==
+--0015175cd592ed909b048ddaccb6--
