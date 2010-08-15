@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 15/20] ACPI: remove deprecated ACPI procfs I/F
-Date: Sun, 15 Aug 2010 01:23:19 -0400
-Message-ID: <47f5c892b06797336a34f1096b4b617623aa1960.1281849737.git.len.brown@intel.com>
+Subject: [PATCH 17/20] ACPI processor: remove deprecated ACPI procfs I/F
+Date: Sun, 15 Aug 2010 01:23:21 -0400
+Message-ID: <d09fe55510257f1acd21ea80a9bdd7c72b5895b3.1281849737.git.len.brown@intel.com>
 References: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:57585 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991Ab0HOFaO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:14 -0400
+	with ESMTP id S1752524Ab0HOFaM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Aug 2010 01:30:12 -0400
 Received: from localhost.localdomain ([unknown] [64.140.212.33])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0L7600HN2HY5RHB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:12 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Sun, 15 Aug 2010 00:30:11 -0500 (CDT)
 In-reply-to: <1281849804-7455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
 References: <e96c4b081df0991a57b244f68c3955a9ea00bd0a.1281849737.git.len.brown@intel.com>
@@ -23,605 +23,476 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Rmove deprecated ACPI procfs I/F, including
-/proc/acpi/debug_layer
-/proc/acpi/debug_level
-/proc/acpi/info
-/proc/acpi/dsdt
-/proc/acpi/fadt
-/proc/acpi/sleep
+Remove deprecated ACPI processor procfs I/F, including:
+/proc/acpi/processor/CPUX/power
+/proc/acpi/processor/CPUX/limit
+/proc/acpi/processor/CPUX/info
 
-because the sysfs I/F is already available
-and has been working well for years.
+/proc/acpi/processor/CPUX/throttling still exists,
+as we don't have sysfs I/F available for now.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig    |    6 --
- drivers/acpi/Makefile   |    3 +-
- drivers/acpi/bus.c      |    2 -
- drivers/acpi/debug.c    |  227 -----------------------------------------------
- drivers/acpi/internal.h |    7 --
- drivers/acpi/proc.c     |   70 ---------------
- drivers/acpi/system.c   |  170 -----------------------------------
- 7 files changed, 1 insertions(+), 484 deletions(-)
- delete mode 100644 drivers/acpi/debug.c
- delete mode 100644 drivers/acpi/system.c
+ drivers/acpi/Kconfig                |    3 -
+ drivers/acpi/processor_driver.c     |   85 ------------------------------
+ drivers/acpi/processor_idle.c       |   99 -----------------------------------
+ drivers/acpi/processor_thermal.c    |   83 -----------------------------
+ drivers/acpi/processor_throttling.c |    2 -
+ include/acpi/processor.h            |    1 -
+ 6 files changed, 0 insertions(+), 273 deletions(-)
 
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 7464115..d77d9c2 100644
+index d77d9c2..6f66a93 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
-@@ -54,12 +54,6 @@ config ACPI_PROCFS
+@@ -54,9 +54,6 @@ config ACPI_PROCFS
  	  they have been replaced by functions in /sys.
  	  The deprecated files (and their replacements) include:
  
--	  /proc/acpi/sleep (/sys/power/state)
--	  /proc/acpi/info (/sys/module/acpi/parameters/acpica_version)
--	  /proc/acpi/dsdt (/sys/firmware/acpi/tables/DSDT)
--	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
--	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
--	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
- 	  /proc/acpi/processor/*/power (/sys/devices/system/cpu/*/cpuidle/*)
- 	  /proc/acpi/processor/*/performance (/sys/devices/system/cpu/*/
- 		cpufreq/*)
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 03a81a8..3f04496 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -37,9 +37,8 @@ acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- acpi-y				+= power.o
--acpi-y				+= system.o event.o
-+acpi-y				+= event.o
- acpi-y				+= sysfs.o
--acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
- acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
- acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
- acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index bd9708b..5c221ab 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1034,8 +1034,6 @@ static int __init acpi_init(void)
- 	acpi_scan_init();
- 	acpi_ec_init();
- 	acpi_power_init();
--	acpi_system_init();
--	acpi_debug_init();
- 	acpi_sysfs_init();
- 	acpi_debugfs_init();
- 	acpi_sleep_proc_init();
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
-deleted file mode 100644
-index f82240d..0000000
---- a/drivers/acpi/debug.c
-+++ /dev/null
-@@ -1,227 +0,0 @@
--/*
-- * debug.c - ACPI debug interface to userspace.
-- */
--
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/moduleparam.h>
--#include <linux/debugfs.h>
--#include <linux/slab.h>
--#include <asm/uaccess.h>
--#include <acpi/acpi_drivers.h>
--
--#define _COMPONENT		ACPI_SYSTEM_COMPONENT
--ACPI_MODULE_NAME("debug");
--
--struct acpi_dlayer {
--	const char *name;
--	unsigned long value;
+-	  /proc/acpi/processor/*/power (/sys/devices/system/cpu/*/cpuidle/*)
+-	  /proc/acpi/processor/*/performance (/sys/devices/system/cpu/*/
+-		cpufreq/*)
+ 	  /proc/acpi/processor/*/throttling (/sys/class/thermal/
+ 		cooling_device*/*)
+ 	  This option has no effect on /proc/acpi/ files
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 38ea0cc..1560218 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -83,9 +83,6 @@ MODULE_LICENSE("GPL");
+ 
+ static int acpi_processor_add(struct acpi_device *device);
+ static int acpi_processor_remove(struct acpi_device *device, int type);
+-#ifdef CONFIG_ACPI_PROCFS
+-static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+-#endif
+ static void acpi_processor_notify(struct acpi_device *device, u32 event);
+ static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+@@ -113,15 +110,6 @@ static struct acpi_driver acpi_processor_driver = {
+ 
+ #define INSTALL_NOTIFY_HANDLER		1
+ #define UNINSTALL_NOTIFY_HANDLER	2
+-#ifdef CONFIG_ACPI_PROCFS
+-static const struct file_operations acpi_processor_info_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_processor_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
 -};
--struct acpi_dlevel {
--	const char *name;
--	unsigned long value;
--};
--#define ACPI_DEBUG_INIT(v)	{ .name = #v, .value = v }
--
--static const struct acpi_dlayer acpi_debug_layers[] = {
--	ACPI_DEBUG_INIT(ACPI_UTILITIES),
--	ACPI_DEBUG_INIT(ACPI_HARDWARE),
--	ACPI_DEBUG_INIT(ACPI_EVENTS),
--	ACPI_DEBUG_INIT(ACPI_TABLES),
--	ACPI_DEBUG_INIT(ACPI_NAMESPACE),
--	ACPI_DEBUG_INIT(ACPI_PARSER),
--	ACPI_DEBUG_INIT(ACPI_DISPATCHER),
--	ACPI_DEBUG_INIT(ACPI_EXECUTER),
--	ACPI_DEBUG_INIT(ACPI_RESOURCES),
--	ACPI_DEBUG_INIT(ACPI_CA_DEBUGGER),
--	ACPI_DEBUG_INIT(ACPI_OS_SERVICES),
--	ACPI_DEBUG_INIT(ACPI_CA_DISASSEMBLER),
--	ACPI_DEBUG_INIT(ACPI_COMPILER),
--	ACPI_DEBUG_INIT(ACPI_TOOLS),
--
--	ACPI_DEBUG_INIT(ACPI_BUS_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_AC_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_BATTERY_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_BUTTON_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_SBS_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_FAN_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_PCI_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_POWER_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_CONTAINER_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_SYSTEM_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_THERMAL_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_MEMORY_DEVICE_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_VIDEO_COMPONENT),
--	ACPI_DEBUG_INIT(ACPI_PROCESSOR_COMPONENT),
--};
--
--static const struct acpi_dlevel acpi_debug_levels[] = {
--	ACPI_DEBUG_INIT(ACPI_LV_INIT),
--	ACPI_DEBUG_INIT(ACPI_LV_DEBUG_OBJECT),
--	ACPI_DEBUG_INIT(ACPI_LV_INFO),
--
--	ACPI_DEBUG_INIT(ACPI_LV_INIT_NAMES),
--	ACPI_DEBUG_INIT(ACPI_LV_PARSE),
--	ACPI_DEBUG_INIT(ACPI_LV_LOAD),
--	ACPI_DEBUG_INIT(ACPI_LV_DISPATCH),
--	ACPI_DEBUG_INIT(ACPI_LV_EXEC),
--	ACPI_DEBUG_INIT(ACPI_LV_NAMES),
--	ACPI_DEBUG_INIT(ACPI_LV_OPREGION),
--	ACPI_DEBUG_INIT(ACPI_LV_BFIELD),
--	ACPI_DEBUG_INIT(ACPI_LV_TABLES),
--	ACPI_DEBUG_INIT(ACPI_LV_VALUES),
--	ACPI_DEBUG_INIT(ACPI_LV_OBJECTS),
--	ACPI_DEBUG_INIT(ACPI_LV_RESOURCES),
--	ACPI_DEBUG_INIT(ACPI_LV_USER_REQUESTS),
--	ACPI_DEBUG_INIT(ACPI_LV_PACKAGE),
--
--	ACPI_DEBUG_INIT(ACPI_LV_ALLOCATIONS),
--	ACPI_DEBUG_INIT(ACPI_LV_FUNCTIONS),
--	ACPI_DEBUG_INIT(ACPI_LV_OPTIMIZATIONS),
--
--	ACPI_DEBUG_INIT(ACPI_LV_MUTEX),
--	ACPI_DEBUG_INIT(ACPI_LV_THREADS),
--	ACPI_DEBUG_INIT(ACPI_LV_IO),
--	ACPI_DEBUG_INIT(ACPI_LV_INTERRUPTS),
--
--	ACPI_DEBUG_INIT(ACPI_LV_AML_DISASSEMBLE),
--	ACPI_DEBUG_INIT(ACPI_LV_VERBOSE_INFO),
--	ACPI_DEBUG_INIT(ACPI_LV_FULL_TABLES),
--	ACPI_DEBUG_INIT(ACPI_LV_EVENTS),
--};
--
+-#endif
+ 
+ DEFINE_PER_CPU(struct acpi_processor *, processors);
+ EXPORT_PER_CPU_SYMBOL(processors);
+@@ -256,44 +244,8 @@ static int acpi_processor_errata(struct acpi_processor *pr)
+ 	return result;
+ }
+ 
 -/* --------------------------------------------------------------------------
 -                              FS Interface (/proc)
 -   -------------------------------------------------------------------------- */
+-
 -#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
--#define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
--
--static int acpi_system_debug_proc_show(struct seq_file *m, void *v)
+ static struct proc_dir_entry *acpi_processor_dir = NULL;
+ 
+-static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
 -{
--	unsigned int i;
+-	struct acpi_processor *pr = seq->private;
 -
--	seq_printf(m, "%-25s\tHex        SET\n", "Description");
 -
--	switch ((unsigned long)m->private) {
--	case 0:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
--			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_layers[i].name,
--				     acpi_debug_layers[i].value,
--				     (acpi_dbg_layer & acpi_debug_layers[i].
--				      value) ? '*' : ' ');
--		}
--		seq_printf(m, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
--			     ACPI_ALL_DRIVERS,
--			     (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
--			     ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
--						       ACPI_ALL_DRIVERS) ==
--			     0 ? ' ' : '-');
--		seq_printf(m,
--			     "--\ndebug_layer = 0x%08X (* = enabled, - = partial)\n",
--			     acpi_dbg_layer);
--		break;
--	case 1:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
--			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_levels[i].name,
--				     acpi_debug_levels[i].value,
--				     (acpi_dbg_level & acpi_debug_levels[i].
--				      value) ? '*' : ' ');
--		}
--		seq_printf(m, "--\ndebug_level = 0x%08X (* = enabled)\n",
--			     acpi_dbg_level);
--		break;
--	}
+-	if (!pr)
+-		goto end;
+-
+-	seq_printf(seq, "processor id:            %d\n"
+-		   "acpi id:                 %d\n"
+-		   "bus mastering control:   %s\n"
+-		   "power management:        %s\n"
+-		   "throttling control:      %s\n"
+-		   "limit interface:         %s\n",
+-		   pr->id,
+-		   pr->acpi_id,
+-		   pr->flags.bm_control ? "yes" : "no",
+-		   pr->flags.power ? "yes" : "no",
+-		   pr->flags.throttling ? "yes" : "no",
+-		   pr->flags.limit ? "yes" : "no");
+-
+-      end:
 -	return 0;
 -}
 -
--static int acpi_system_debug_proc_open(struct inode *inode, struct file *file)
+-static int acpi_processor_info_open_fs(struct inode *inode, struct file *file)
 -{
--	return single_open(file, acpi_system_debug_proc_show, PDE(inode)->data);
+-	return single_open(file, acpi_processor_info_seq_show,
+-			   PDE(inode)->data);
 -}
 -
--static ssize_t acpi_system_debug_proc_write(struct file *file,
--			const char __user * buffer,
--			size_t count, loff_t *pos)
+ static int __cpuinit acpi_processor_add_fs(struct acpi_device *device)
+ {
+ 	struct proc_dir_entry *entry = NULL;
+@@ -306,14 +258,6 @@ static int __cpuinit acpi_processor_add_fs(struct acpi_device *device)
+ 			return -ENODEV;
+ 	}
+ 
+-	/* 'info' [R] */
+-	entry = proc_create_data(ACPI_PROCESSOR_FILE_INFO,
+-				 S_IRUGO, acpi_device_dir(device),
+-				 &acpi_processor_info_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -EIO;
+-
+ 	/* 'throttling' [R/W] */
+ 	entry = proc_create_data(ACPI_PROCESSOR_FILE_THROTTLING,
+ 				 S_IFREG | S_IRUGO | S_IWUSR,
+@@ -322,43 +266,20 @@ static int __cpuinit acpi_processor_add_fs(struct acpi_device *device)
+ 				 acpi_driver_data(device));
+ 	if (!entry)
+ 		return -EIO;
+-
+-	/* 'limit' [R/W] */
+-	entry = proc_create_data(ACPI_PROCESSOR_FILE_LIMIT,
+-				 S_IFREG | S_IRUGO | S_IWUSR,
+-				 acpi_device_dir(device),
+-				 &acpi_processor_limit_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -EIO;
+ 	return 0;
+ }
+ static int acpi_processor_remove_fs(struct acpi_device *device)
+ {
+ 
+ 	if (acpi_device_dir(device)) {
+-		remove_proc_entry(ACPI_PROCESSOR_FILE_INFO,
+-				  acpi_device_dir(device));
+ 		remove_proc_entry(ACPI_PROCESSOR_FILE_THROTTLING,
+ 				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_PROCESSOR_FILE_LIMIT,
+-				  acpi_device_dir(device));
+ 		remove_proc_entry(acpi_device_bid(device), acpi_processor_dir);
+ 		acpi_device_dir(device) = NULL;
+ 	}
+ 
+ 	return 0;
+ }
+-#else
+-static inline int acpi_processor_add_fs(struct acpi_device *device)
 -{
--	char debug_string[12] = { '\0' };
+-	return 0;
+-}
+-static inline int acpi_processor_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-#endif
+ 
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+@@ -921,11 +842,9 @@ static int __init acpi_processor_init(void)
+ 
+ 	memset(&errata, 0, sizeof(errata));
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+ 		return -ENOMEM;
+-#endif
+ 
+ 	if (!cpuidle_register_driver(&acpi_idle_driver)) {
+ 		printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
+@@ -952,9 +871,7 @@ static int __init acpi_processor_init(void)
+ out_cpuidle:
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-#endif
+ 
+ 	return result;
+ }
+@@ -974,9 +891,7 @@ static void __exit acpi_processor_exit(void)
+ 
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-#endif
+ 
+ 	return;
+ }
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e9a8026..5cbc0cb 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -33,8 +33,6 @@
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+ #include <linux/slab.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
+ #include <linux/moduleparam.h>
+@@ -82,13 +80,6 @@ module_param(bm_check_disable, uint, 0000);
+ static unsigned int latency_factor __read_mostly = 2;
+ module_param(latency_factor, uint, 0644);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-static u64 us_to_pm_timer_ticks(s64 t)
+-{
+-	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
+-}
+-#endif
+-
+ /*
+  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+  * For now disable this. Probably a bug somewhere else.
+@@ -689,78 +680,6 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_processor *pr = seq->private;
+-	unsigned int i;
 -
 -
--	if (count > sizeof(debug_string) - 1)
--		return -EINVAL;
+-	if (!pr)
+-		goto end;
 -
--	if (copy_from_user(debug_string, buffer, count))
--		return -EFAULT;
+-	seq_printf(seq, "active state:            C%zd\n"
+-		   "max_cstate:              C%d\n"
+-		   "maximum allowed latency: %d usec\n",
+-		   pr->power.state ? pr->power.state - pr->power.states : 0,
+-		   max_cstate, pm_qos_request(PM_QOS_CPU_DMA_LATENCY));
 -
--	debug_string[count] = '\0';
+-	seq_puts(seq, "states:\n");
 -
--	switch ((unsigned long)PDE(file->f_path.dentry->d_inode)->data) {
--	case 0:
--		acpi_dbg_layer = simple_strtoul(debug_string, NULL, 0);
--		break;
--	case 1:
--		acpi_dbg_level = simple_strtoul(debug_string, NULL, 0);
--		break;
--	default:
+-	for (i = 1; i <= pr->power.count; i++) {
+-		seq_printf(seq, "   %cC%d:                  ",
+-			   (&pr->power.states[i] ==
+-			    pr->power.state ? '*' : ' '), i);
+-
+-		if (!pr->power.states[i].valid) {
+-			seq_puts(seq, "<not supported>\n");
+-			continue;
+-		}
+-
+-		switch (pr->power.states[i].type) {
+-		case ACPI_STATE_C1:
+-			seq_printf(seq, "type[C1] ");
+-			break;
+-		case ACPI_STATE_C2:
+-			seq_printf(seq, "type[C2] ");
+-			break;
+-		case ACPI_STATE_C3:
+-			seq_printf(seq, "type[C3] ");
+-			break;
+-		default:
+-			seq_printf(seq, "type[--] ");
+-			break;
+-		}
+-
+-		seq_puts(seq, "promotion[--] ");
+-
+-		seq_puts(seq, "demotion[--] ");
+-
+-		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020Lu]\n",
+-			   pr->power.states[i].latency,
+-			   pr->power.states[i].usage,
+-			   us_to_pm_timer_ticks(pr->power.states[i].time));
+-	}
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_processor_power_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_processor_power_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static const struct file_operations acpi_processor_power_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_processor_power_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-#endif
+-
+ /**
+  * acpi_idle_bm_check - checks if bus master activity was detected
+  */
+@@ -1172,9 +1091,6 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ {
+ 	acpi_status status = 0;
+ 	static int first_run;
+-#ifdef CONFIG_ACPI_PROCFS
+-	struct proc_dir_entry *entry = NULL;
+-#endif
+ 
+ 	if (boot_option_idle_override)
+ 		return 0;
+@@ -1223,15 +1139,6 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ 		if (cpuidle_register_device(&pr->power.dev))
+ 			return -EIO;
+ 	}
+-#ifdef CONFIG_ACPI_PROCFS
+-	/* 'power' [R] */
+-	entry = proc_create_data(ACPI_PROCESSOR_FILE_POWER,
+-				 S_IRUGO, acpi_device_dir(device),
+-				 &acpi_processor_power_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -EIO;
+-#endif
+ 	return 0;
+ }
+ 
+@@ -1244,11 +1151,5 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 	cpuidle_unregister_device(&pr->power.dev);
+ 	pr->flags.power_setup_done = 0;
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-	if (acpi_device_dir(device))
+-		remove_proc_entry(ACPI_PROCESSOR_FILE_POWER,
+-				  acpi_device_dir(device));
+-#endif
+-
+ 	return 0;
+ }
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 6deafb4..953b25f 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -30,8 +30,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+ #include <linux/sysdev.h>
+ 
+ #include <asm/uaccess.h>
+@@ -438,84 +436,3 @@ struct thermal_cooling_device_ops processor_cooling_ops = {
+ 	.get_cur_state = processor_get_cur_state,
+ 	.set_cur_state = processor_set_cur_state,
+ };
+-
+-/* /proc interface */
+-#ifdef CONFIG_ACPI_PROCFS
+-static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_processor *pr = seq->private;
+-
+-	if (!pr)
+-		goto end;
+-
+-	if (!pr->flags.limit) {
+-		seq_puts(seq, "<not supported>\n");
+-		goto end;
+-	}
+-
+-	seq_printf(seq, "active limit:            P%d:T%d\n"
+-		   "user limit:              P%d:T%d\n"
+-		   "thermal limit:           P%d:T%d\n",
+-		   pr->limit.state.px, pr->limit.state.tx,
+-		   pr->limit.user.px, pr->limit.user.tx,
+-		   pr->limit.thermal.px, pr->limit.thermal.tx);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_processor_limit_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_processor_limit_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static ssize_t acpi_processor_write_limit(struct file * file,
+-					  const char __user * buffer,
+-					  size_t count, loff_t * data)
+-{
+-	int result = 0;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_processor *pr = m->private;
+-	char limit_string[25] = { '\0' };
+-	int px = 0;
+-	int tx = 0;
+-
+-
+-	if (!pr || (count > sizeof(limit_string) - 1)) {
 -		return -EINVAL;
 -	}
+-
+-	if (copy_from_user(limit_string, buffer, count)) {
+-		return -EFAULT;
+-	}
+-
+-	limit_string[count] = '\0';
+-
+-	if (sscanf(limit_string, "%d:%d", &px, &tx) != 2) {
+-		printk(KERN_ERR PREFIX "Invalid data format\n");
+-		return -EINVAL;
+-	}
+-
+-	if (pr->flags.throttling) {
+-		if ((tx < 0) || (tx > (pr->throttling.state_count - 1))) {
+-			printk(KERN_ERR PREFIX "Invalid tx\n");
+-			return -EINVAL;
+-		}
+-		pr->limit.user.tx = tx;
+-	}
+-
+-	result = acpi_processor_apply_limit(pr);
 -
 -	return count;
 -}
 -
--static const struct file_operations acpi_system_debug_proc_fops = {
--	.owner		= THIS_MODULE,
--	.open		= acpi_system_debug_proc_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--	.write		= acpi_system_debug_proc_write,
+-const struct file_operations acpi_processor_limit_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_processor_limit_open_fs,
+-	.read = seq_read,
+-	.write = acpi_processor_write_limit,
+-	.llseek = seq_lseek,
+-	.release = single_release,
 -};
 -#endif
--
--int __init acpi_procfs_init(void)
--{
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 9ade1a5..7308638 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -1215,7 +1215,6 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ }
+ 
+ /* proc interface */
 -#ifdef CONFIG_ACPI_PROCFS
--	struct proc_dir_entry *entry;
--	int error = 0;
--	char *name;
--
--	/* 'debug_layer' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
--	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_root_dir, &acpi_system_debug_proc_fops,
--				 (void *)0);
--	if (!entry)
--		goto Error;
--
--	/* 'debug_level' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
--	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_root_dir, &acpi_system_debug_proc_fops,
--				 (void *)1);
--	if (!entry)
--		goto Error;
--
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LEVEL, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
--	error = -ENODEV;
--	goto Done;
--#else
--	return 0;
--#endif
--}
--
--int __init acpi_debug_init(void)
--{
--	acpi_procfs_init();
--	return 0;
--}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index eed8234..e379644 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -22,15 +22,8 @@
- 
- int init_acpi_device_notify(void);
- int acpi_scan_init(void);
--int acpi_system_init(void);
- int acpi_sysfs_init(void);
- 
--#ifdef CONFIG_ACPI_DEBUG
--int acpi_debug_init(void);
--#else
--static inline int acpi_debug_init(void) { return 0; }
--#endif
--
- #ifdef CONFIG_DEBUG_FS
- int acpi_debugfs_init(void);
- #else
-diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
-index 1ac678d..afad677 100644
---- a/drivers/acpi/proc.c
-+++ b/drivers/acpi/proc.c
-@@ -17,64 +17,11 @@
- 
- /*
-  * this file provides support for:
-- * /proc/acpi/sleep
-  * /proc/acpi/alarm
-  * /proc/acpi/wakeup
-  */
- 
- ACPI_MODULE_NAME("sleep")
--#ifdef	CONFIG_ACPI_PROCFS
--static int acpi_system_sleep_seq_show(struct seq_file *seq, void *offset)
--{
--	int i;
--
--	for (i = 0; i <= ACPI_STATE_S5; i++) {
--		if (sleep_states[i]) {
--			seq_printf(seq, "S%d ", i);
--		}
--	}
--
--	seq_puts(seq, "\n");
--
--	return 0;
--}
--
--static int acpi_system_sleep_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_system_sleep_seq_show, PDE(inode)->data);
--}
--
--static ssize_t
--acpi_system_write_sleep(struct file *file,
--			const char __user * buffer, size_t count, loff_t * ppos)
--{
--	char str[12];
--	u32 state = 0;
--	int error = 0;
--
--	if (count > sizeof(str) - 1)
--		goto Done;
--	memset(str, 0, sizeof(str));
--	if (copy_from_user(str, buffer, count))
--		return -EFAULT;
--
--	/* Check for S4 bios request */
--	if (!strcmp(str, "4b")) {
--		error = acpi_suspend(4);
--		goto Done;
--	}
--	state = simple_strtoul(str, NULL, 0);
--#ifdef CONFIG_HIBERNATION
--	if (state == 4) {
--		error = hibernate();
--		goto Done;
--	}
--#endif
--	error = acpi_suspend(state);
--      Done:
--	return error ? error : count;
--}
--#endif				/* CONFIG_ACPI_PROCFS */
- 
- #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || !defined(CONFIG_X86)
- /* use /sys/class/rtc/rtcX/wakealarm instead; it's not ACPI-specific */
-@@ -463,17 +410,6 @@ static const struct file_operations acpi_system_wakeup_device_fops = {
+ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+ 					      void *offset)
+ {
+@@ -1323,4 +1322,3 @@ const struct file_operations acpi_processor_throttling_fops = {
+ 	.llseek = seq_lseek,
  	.release = single_release,
  };
- 
--#ifdef	CONFIG_ACPI_PROCFS
--static const struct file_operations acpi_system_sleep_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_system_sleep_open_fs,
--	.read = seq_read,
--	.write = acpi_system_write_sleep,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--#endif				/* CONFIG_ACPI_PROCFS */
--
- #ifdef	HAVE_ACPI_LEGACY_ALARM
- static const struct file_operations acpi_system_alarm_fops = {
- 	.owner = THIS_MODULE,
-@@ -495,12 +431,6 @@ static u32 rtc_handler(void *context)
- 
- int __init acpi_sleep_proc_init(void)
- {
--#ifdef	CONFIG_ACPI_PROCFS
--	/* 'sleep' [R/W] */
--	proc_create("sleep", S_IFREG | S_IRUGO | S_IWUSR,
--		    acpi_root_dir, &acpi_system_sleep_fops);
--#endif				/* CONFIG_ACPI_PROCFS */
--
- #ifdef	HAVE_ACPI_LEGACY_ALARM
- 	/* 'alarm' [R/W] */
- 	proc_create("alarm", S_IFREG | S_IRUGO | S_IWUSR,
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-deleted file mode 100644
-index d70481f..0000000
---- a/drivers/acpi/system.c
-+++ /dev/null
-@@ -1,170 +0,0 @@
--/*
-- *  acpi_system.c - ACPI System Driver ($Revision: 63 $)
-- *
-- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-- *
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or (at
-- *  your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful, but
-- *  WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- *  General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License along
-- *  with this program; if not, write to the Free Software Foundation, Inc.,
-- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-- *
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- */
--
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/slab.h>
--#include <linux/init.h>
--#include <linux/string.h>
--#include <asm/uaccess.h>
--
--#include <acpi/acpi_drivers.h>
--
--#define PREFIX "ACPI: "
--
--#define _COMPONENT		ACPI_SYSTEM_COMPONENT
--ACPI_MODULE_NAME("system");
--
--#define ACPI_SYSTEM_CLASS		"system"
--#define ACPI_SYSTEM_DEVICE_NAME		"System"
--
--/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_INFO		"info"
--#define ACPI_SYSTEM_FILE_EVENT		"event"
--#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
--#define ACPI_SYSTEM_FILE_FADT		"fadt"
--
--static int acpi_system_read_info(struct seq_file *seq, void *offset)
--{
--
--	seq_printf(seq, "version:                 %x\n", ACPI_CA_VERSION);
--	return 0;
--}
--
--static int acpi_system_info_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_system_read_info, PDE(inode)->data);
--}
--
--static const struct file_operations acpi_system_info_ops = {
--	.owner = THIS_MODULE,
--	.open = acpi_system_info_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_dsdt_ops = {
--	.owner = THIS_MODULE,
--	.read = acpi_system_read_dsdt,
--};
--
--static ssize_t
--acpi_system_read_dsdt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *dsdt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
--
--	return res;
--}
--
--static ssize_t acpi_system_read_fadt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_fadt_ops = {
--	.owner = THIS_MODULE,
--	.read = acpi_system_read_fadt,
--};
--
--static ssize_t
--acpi_system_read_fadt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *fadt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
--
--	return res;
--}
--
--static int acpi_system_procfs_init(void)
--{
--	struct proc_dir_entry *entry;
--	int error = 0;
--
--	/* 'info' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_INFO, S_IRUGO, acpi_root_dir,
--			    &acpi_system_info_ops);
--	if (!entry)
--		goto Error;
--
--	/* 'dsdt' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_DSDT, S_IRUSR, acpi_root_dir,
--			    &acpi_system_dsdt_ops);
--	if (!entry)
--		goto Error;
--
--	/* 'fadt' [R] */
--	entry = proc_create(ACPI_SYSTEM_FILE_FADT, S_IRUSR, acpi_root_dir,
--			    &acpi_system_fadt_ops);
--	if (!entry)
--		goto Error;
--
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
--
--	error = -EFAULT;
--	goto Done;
--}
--#else
--static int acpi_system_procfs_init(void)
--{
--	return 0;
--}
 -#endif
--
--int __init acpi_system_init(void)
--{
--	int result;
--
--	result = acpi_system_procfs_init();
--
--	return result;
--}
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index a68ca8a..1b62102 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -338,7 +338,6 @@ extern struct cpuidle_driver acpi_idle_driver;
+ 
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
+-extern const struct file_operations acpi_processor_limit_fops;
+ extern struct thermal_cooling_device_ops processor_cooling_ops;
+ #ifdef CONFIG_CPU_FREQ
+ void acpi_thermal_cpufreq_init(void);
 -- 
 1.7.2.1.95.g3d045
 
