@@ -1,66 +1,55 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
-Date: Sun, 15 Aug 2010 18:35:22 -0700
-Message-ID: <AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
+Date: Mon, 16 Aug 2010 12:43:00 +1000
+Message-ID: <20100816124300.e72258c9.sfr@canb.auug.org.au>
 References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
- <AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
- <20100815133015.883c7069.akpm@linux-foundation.org> <AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
- <20100815182153.994179c1.akpm@linux-foundation.org>
+	<AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
+	<20100815133015.883c7069.akpm@linux-foundation.org>
+	<AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
+	<20100815182153.994179c1.akpm@linux-foundation.org>
+	<AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46654 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751891Ab0HPBgN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Aug 2010 21:36:13 -0400
-In-Reply-To: <20100815182153.994179c1.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Sun, Aug 15, 2010 at 6:21 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
+--Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, 15 Aug 2010 18:35:22 -0700 Linus Torvalds <torvalds@linux-foundatio=
+n.org> wrote:
 >
-> The patch I sent Len patched acpi_power_seq_show().
->
->> What does that say about the _rest_ of the patches?
->
-> Not tested in combination?
+> It's that simple. It clearly never ever saw -next, because it _cannot_
+> have seen next. That particular commit can never have compiled.
 
-Not tested at all. They were apparently just applied from some other
-source. And not even safely, but with "they can apply with fuzz",
-which is downright dangerous. And then the result saw neither a
-compiler nor a boot.
+Yeah, it turned up in Len's tree that I fetch over the weekend.
 
->> What does that say about (lack of) -next testing?
->
-> That code compiled OK in -mm which includes linux-next. =A0I assume t=
-hat
-> some last-minute merging broke things.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-There are _zero_ merge errors there. Go take a look at Len's tree.
-It's a linear progression of patches AND THE PATCH IN LEN'S TREE IS
-BUGGY.
+--Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E
+Content-Type: application/pgp-signature
 
-It's that simple. It clearly never ever saw -next, because it _cannot_
-have seen next. That particular commit can never have compiled.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-Now, if you sent a patch that touched acpi_power_seq_show(), then the
-error happened at Len's side. He took a patch, applied it with fuzz at
-the wrong place, and sent the result to me without ever even compiling
-it. And that doesn't make me happy.
+iQEcBAEBAgAGBQJMaKW0AAoJEDMEi1NhKgbspAYH/ixCgkYI1G1CgASPQ3vb6DdC
+85OLIAuaCDlJmncf6+mr4I6fdo8Z+9g4QPL8MzE5NRSHAlYZgWUiOk1ZcPqIEX7q
+WMYnnkdnTGTqbBO2m0CUqQKHvsZ2atDFT0YRqBLizf2Minz94UU0watdPLPjZdUR
+ihycQ22rVB+NsCmOR3Ab8rqe2OKEaofS3w6v8YvlFgkSDoOcW1irAiz5P/FFeodZ
+dtMnpwWlEMqtG6n6r128TFA+zRUue59snzTSy4IIoxZWEjqBzgFHzHjZn6Jjp9RT
+eAVZrkUx8NP+B5YeT7Fc2aMLJzaq1b0NnXe55zFFb1nrz3+j+FUBvOwFhyfVH9w=
+=Yac+
+-----END PGP SIGNATURE-----
 
-I decided I should probably pull anyway, because at least the reason
-for the bug was explained. And I want to get -rc1 out today. But I'm
-grumbling, and judging from your emails, you didn't even look at what
-Len sent me. There really are _no_ excuses.
-
-                       Linus
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E--
