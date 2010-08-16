@@ -1,55 +1,97 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
-Date: Mon, 16 Aug 2010 12:43:00 +1000
-Message-ID: <20100816124300.e72258c9.sfr@canb.auug.org.au>
-References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
-	<AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
-	<20100815133015.883c7069.akpm@linux-foundation.org>
-	<AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
-	<20100815182153.994179c1.akpm@linux-foundation.org>
-	<AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] acpi: Update battery information on notification 0x81
+Date: Mon, 16 Aug 2010 16:32:19 -0400
+Message-ID: <1281990739-17912-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52984 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754842Ab0HPUcd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Aug 2010 16:32:33 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
---Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+A notification event 0x81 from an ACPI battery device requires us to
+re-read the battery information structure. Do so, and if the battery's
+reporting units have changed (as is the case on some Thinkpads) destroy
+and recreate the battery in order to populate the fields correctly.
 
-On Sun, 15 Aug 2010 18:35:22 -0700 Linus Torvalds <torvalds@linux-foundatio=
-n.org> wrote:
->
-> It's that simple. It clearly never ever saw -next, because it _cannot_
-> have seen next. That particular commit can never have compiled.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/battery.c |   22 +++++++++++++++++-----
+ 1 files changed, 17 insertions(+), 5 deletions(-)
 
-Yeah, it turned up in Len's tree that I fetch over the weekend.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index dc58402..69638c4 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -562,9 +562,10 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 	}
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery)
++static int acpi_battery_update(struct acpi_battery *battery, bool get_info)
+ {
+ 	int result, old_present = acpi_battery_present(battery);
++	int old_power_unit = battery->power_unit;
+ 	result = acpi_battery_get_status(battery);
+ 	if (result)
+ 		return result;
+@@ -587,6 +588,16 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	if (!battery->bat.dev)
+ 		sysfs_add_battery(battery);
+ #endif
++	if (get_info) {
++		acpi_battery_get_info(battery);
++#ifdef CONFIG_ACPI_SYSFS_POWER
++		if (old_power_unit != battery->power_unit) {
++			/* The battery has changed its reporting units */
++			sysfs_remove_battery(battery);
++			sysfs_add_battery(battery);
++		}
++#endif
++	}
+ 	return acpi_battery_get_state(battery);
+ }
+ 
+@@ -762,7 +773,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
+ static int acpi_battery_read(int fid, struct seq_file *seq)
+ {
+ 	struct acpi_battery *battery = seq->private;
+-	int result = acpi_battery_update(battery);
++	int result = acpi_battery_update(battery, false);
+ 	return acpi_print_funcs[fid](seq, result);
+ }
+ 
+@@ -877,7 +888,8 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+ 	old = battery->bat.dev;
+ #endif
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, (event == ACPI_BATTERY_NOTIFY_INFO ? true
++				      : false));
+ 	acpi_bus_generate_proc_event(device, event,
+ 				     acpi_battery_present(battery));
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+@@ -908,7 +920,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
+ 			"_BIX", &handle)))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, false);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+ #endif
+@@ -951,7 +963,7 @@ static int acpi_battery_resume(struct acpi_device *device)
+ 		return -EINVAL;
+ 	battery = acpi_driver_data(device);
+ 	battery->update_time = 0;
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, true);
+ 	return 0;
+ }
+ 
+-- 
+1.7.2.1
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEcBAEBAgAGBQJMaKW0AAoJEDMEi1NhKgbspAYH/ixCgkYI1G1CgASPQ3vb6DdC
-85OLIAuaCDlJmncf6+mr4I6fdo8Z+9g4QPL8MzE5NRSHAlYZgWUiOk1ZcPqIEX7q
-WMYnnkdnTGTqbBO2m0CUqQKHvsZ2atDFT0YRqBLizf2Minz94UU0watdPLPjZdUR
-ihycQ22rVB+NsCmOR3Ab8rqe2OKEaofS3w6v8YvlFgkSDoOcW1irAiz5P/FFeodZ
-dtMnpwWlEMqtG6n6r128TFA+zRUue59snzTSy4IIoxZWEjqBzgFHzHjZn6Jjp9RT
-eAVZrkUx8NP+B5YeT7Fc2aMLJzaq1b0NnXe55zFFb1nrz3+j+FUBvOwFhyfVH9w=
-=Yac+
------END PGP SIGNATURE-----
-
---Signature=_Mon__16_Aug_2010_12_43_00_+1000_P0iKKu9weEjU4+8E--
