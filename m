@@ -1,97 +1,59 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] acpi: Update battery information on notification 0x81
-Date: Mon, 16 Aug 2010 16:32:19 -0400
-Message-ID: <1281990739-17912-1-git-send-email-mjg@redhat.com>
+From: Peter Denison <lkml@marshadder.org>
+Subject: (unknown)
+Date: Mon, 16 Aug 2010 23:16:13 +0100 (BST)
+Message-ID: <Pine.LNX.4.64.1008162059410.10248@marshadder.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52984 "EHLO mx1.redhat.com"
+Received: from mail3.uklinux.net ([80.84.72.33]:57406 "EHLO mail3.uklinux.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754842Ab0HPUcd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Aug 2010 16:32:33 -0400
+	id S1756457Ab0HPWtV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Aug 2010 18:49:21 -0400
+Received: from marshadder.org (cpc1-oxfd5-0-0-cust228.oxfd.cable.virginmedia.com [86.2.116.229])
+	by mail3.uklinux.net (Postfix) with ESMTP id DF58E1F66C5
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Aug 2010 23:16:17 +0100 (BST)
+Received: by marshadder.org (Exim) with esmtp id 1Ol7yZ-0002g1-IN
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Aug 2010 23:16:16 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-A notification event 0x81 from an ACPI battery device requires us to
-re-read the battery information structure. Do so, and if the battery's
-reporting units have changed (as is the case on some Thinkpads) destroy
-and recreate the battery in order to populate the fields correctly.
+Following the change to strict ACPI resource checking, I'm getting error 
+messages about the i2c_i801 driver conflicting:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/battery.c |   22 +++++++++++++++++-----
- 1 files changed, 17 insertions(+), 5 deletions(-)
+[    5.892659] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) -> IRQ 18
+[    5.892711] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
+[    5.892755] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index dc58402..69638c4 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -562,9 +562,10 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	}
- }
- 
--static int acpi_battery_update(struct acpi_battery *battery)
-+static int acpi_battery_update(struct acpi_battery *battery, bool get_info)
- {
- 	int result, old_present = acpi_battery_present(battery);
-+	int old_power_unit = battery->power_unit;
- 	result = acpi_battery_get_status(battery);
- 	if (result)
- 		return result;
-@@ -587,6 +588,16 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	if (!battery->bat.dev)
- 		sysfs_add_battery(battery);
- #endif
-+	if (get_info) {
-+		acpi_battery_get_info(battery);
-+#ifdef CONFIG_ACPI_SYSFS_POWER
-+		if (old_power_unit != battery->power_unit) {
-+			/* The battery has changed its reporting units */
-+			sysfs_remove_battery(battery);
-+			sysfs_add_battery(battery);
-+		}
-+#endif
-+	}
- 	return acpi_battery_get_state(battery);
- }
- 
-@@ -762,7 +773,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
- static int acpi_battery_read(int fid, struct seq_file *seq)
- {
- 	struct acpi_battery *battery = seq->private;
--	int result = acpi_battery_update(battery);
-+	int result = acpi_battery_update(battery, false);
- 	return acpi_print_funcs[fid](seq, result);
- }
- 
-@@ -877,7 +888,8 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 	old = battery->bat.dev;
- #endif
--	acpi_battery_update(battery);
-+	acpi_battery_update(battery, (event == ACPI_BATTERY_NOTIFY_INFO ? true
-+				      : false));
- 	acpi_bus_generate_proc_event(device, event,
- 				     acpi_battery_present(battery));
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
-@@ -908,7 +920,7 @@ static int acpi_battery_add(struct acpi_device *device)
- 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
- 			"_BIX", &handle)))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
--	acpi_battery_update(battery);
-+	acpi_battery_update(battery, false);
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
- #endif
-@@ -951,7 +963,7 @@ static int acpi_battery_resume(struct acpi_device *device)
- 		return -EINVAL;
- 	battery = acpi_driver_data(device);
- 	battery->update_time = 0;
--	acpi_battery_update(battery);
-+	acpi_battery_update(battery, true);
- 	return 0;
- }
- 
+Clearly the resource checking is the right way to go, so I started to 
+investigate an ACPI-capable driver for the i801 I2C bus. The i2c-scmi 
+driver looks plausible, but doesn't work immediately. (Note that the 
+asus_atk0110 driver works fine for the sensors via ACPI, but there are 
+other devices on the I2C bus e.g. DIMM SPDs)
+
+The ACPI tables on this box (ASUS P5K-E) don't have a defined EC, or any 
+device with PNP0C09, ACPI0001 or ACPI0005 HIDs. They do however, define 
+the SMRG region and a series of methods to access the I2C bus.
+
+I'd like some recommendation for the best approach:
+
+a) Tweak the DSDT for myself to provide a device which will conform to a 
+standard, then use a standard driver. Obviously not a very palatable 
+solution for others.
+
+b) Some form of automatic fixup when the ACPI tables are parsed, although 
+the method names appear a little arbitrary - it's not simply a case of a 
+missing _HID.
+
+c) Forget about it, use acpi_enforce_resources=lax, and just hope I never 
+get an unlocked race (not preferred!)
+
+d) Something else I clearly haven't thought of (most likely)
+
+Clearly the ACPI tables lacking the bus device is a problem fairly 
+particular to this hardware, and the fix is likely to be targetted, but 
+I'd like to make it as universal as possible. If I can get an ACPI driver 
+working, and fix this for more than just myself, then brilliant.
+
 -- 
-1.7.2.1
-
+Peter Denison <peterd at marshadder dot org>
