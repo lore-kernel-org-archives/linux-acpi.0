@@ -1,60 +1,55 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
-Date: Sun, 15 Aug 2010 14:04:09 -0700
-Message-ID: <AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
+Date: Sun, 15 Aug 2010 18:21:53 -0700
+Message-ID: <20100815182153.994179c1.akpm@linux-foundation.org>
 References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
- <AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com> <20100815133015.883c7069.akpm@linux-foundation.org>
+	<AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
+	<20100815133015.883c7069.akpm@linux-foundation.org>
+	<AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750785Ab0HOVEb convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1751891Ab0HPBWX convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Aug 2010 17:04:31 -0400
-In-Reply-To: <20100815133015.883c7069.akpm@linux-foundation.org>
+	Sun, 15 Aug 2010 21:22:23 -0400
+In-Reply-To: <AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Sun, Aug 15, 2010 at 1:30 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
+On Sun, 15 Aug 2010 14:04:09 -0700 Linus Torvalds <torvalds@linux-found=
+ation.org> wrote:
+
+> On Sun, Aug 15, 2010 at 1:30 PM, Andrew Morton
+> <akpm@linux-foundation.org> wrote:
+> >
+> > I'd be suspecting that we have two patches both of which worked
+> > separately but which broke when combined. =A0Is there some other pa=
+tch in
+> > that tree which adds a new reference to `ref' in acpi_power_seq_sho=
+w()?
+>=20
+> The offending patch isn't about acpi_power_seq_show(), it's about
+> acpi_power_off_device().
+
+The patch I sent Len patched acpi_power_seq_show().
+
+>=20
+> ...
 >
-> I'd be suspecting that we have two patches both of which worked
-> separately but which broke when combined. =A0Is there some other patc=
-h in
-> that tree which adds a new reference to `ref' in acpi_power_seq_show(=
-)?
+> What does that say about the _rest_ of the patches?
 
-The offending patch isn't about acpi_power_seq_show(), it's about
-acpi_power_off_device().
+Not tested in combination?
 
-But that may well explain the breakage: there does seem to be an
-unused ref in acpi_power_seq_show() (around line 556). It's just that
-the patch in question doesn't remove that one, it removes the
-very-much-used one in acpi_power_off_device() (line 256 or so).
+> What does that say about (lack of) -next testing?
 
-And the contexts don't even match. Well, they do match to 2 lines. But
-they're not very close. However, Len's tree does have a patch to just
-remove all the procfs crap, so acpi_power_seq_show() has gone away,
-which I guess explains how the subsequent patch was then applied to
-something it should never have been applied to. Probably with GNU
-patch that doesn't mind the fact that it doesn't match exactly (or
-somebody used git and explicitly said "apply it with fuzz").
+That code compiled OK in -mm which includes linux-next.  I assume that
+some last-minute merging broke things.
 
-So that seems to explain how the patch got corrupted.
-
-But nothing explains the fact that clearly _zero_ testing was done.
-The tree was clearly never even compiled. Len apparently did a blind
-patch application (or rebase, or whatever), and never bothered to
-compile the end result afterwards, just sent it to me sight-unseen.
-
-What does that say about the _rest_ of the patches? What does that say
-about (lack of) -next testing?
-
-                         Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
