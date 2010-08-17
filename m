@@ -1,52 +1,52 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPI video: fix a poor error message
-Date: Tue, 17 Aug 2010 08:46:13 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AE61F4BA@orsmsx503.amr.corp.intel.com>
-References: <1282012975.5181.16.camel@rui>
- <20100817133458.GA22699@srcf.ucam.org>
- <4911F71203A09E4D9981D27F9D830858AE61F464@orsmsx503.amr.corp.intel.com>
- <20100817152755.GA25805@srcf.ucam.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [RFC] - Mapping ACPI tables as CACHED
+Date: Tue, 17 Aug 2010 08:51:41 -0700
+Message-ID: <4C6AB00D.8020901@zytor.com>
+References: <20100722152220.GA18290@sgi.com>	 <1279849573.13929.28.camel@localhost.localdomain>	 <20100723072301.GC23461@elte.hu> <1279895165.13929.61.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6553 "EHLO mga01.intel.com"
+Received: from terminus.zytor.com ([198.137.202.10]:48868 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750713Ab0HQPqZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 11:46:25 -0400
-In-Reply-To: <20100817152755.GA25805@srcf.ucam.org>
-Content-Language: en-US
+	id S1751468Ab0HQPwg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Aug 2010 11:52:36 -0400
+In-Reply-To: <1279895165.13929.61.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>
+To: ykzhao <yakui.zhao@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Jack Steiner <steiner@sgi.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-I like this much better. Probably should drop the colon, so it looks something like:
+On 07/23/2010 07:26 AM, ykzhao wrote:
+>
+> Yes. We can't map the corresponding ACPI region as cached under the
+> following case:
+>      >No E820_ACPI region is reported by BIOS. In such case the ACPI
+> table resides in the NVS region
+>
 
-[Firmware Bug]: ACPI: No _BQC method, cannot determine initial brightness
+Why could we not map the NVS region as cached?  That doesn't seem to 
+make sense.  In practice, at least, on all BIOSes I've seen the NVS 
+region is just another hunk of RAM.
 
-I leave the question as to whether this is an actual firmware bug to you guys.
+Sample from a real system:
 
-Bob
+  BIOS-e820: 000000007d6b0000 - 000000007d6cc000 (ACPI data)
+  BIOS-e820: 000000007d6cc000 - 000000007d700000 (ACPI NVS)
 
->-----Original Message-----
->From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
->Sent: Tuesday, August 17, 2010 8:28 AM
->To: Moore, Robert
->Cc: Zhang, Rui; Brown, Len; linux-acpi@vger.kernel.org; Thomas Renninger
->Subject: Re: [PATCH] ACPI video: fix a poor error message
->
->On Tue, Aug 17, 2010 at 08:24:25AM -0700, Moore, Robert wrote:
->> Do we agree that the original message is unclear?
->>
->> I'm not even sure that ACPI requires this method.
->
->Indeed, it's not actually on the list of required methods.
->
->> Perhaps the message should describe what won't happen because of the
->missing _BQC method.
->
->Perhaps just "No _BQC method: Unable to determine initial brightness"?
->
->--
->Matthew Garrett | mjg59@srcf.ucam.org
+Both are clearly RAM.
+
+If you're not talking about the e820 NVS region, that might be a 
+different thing, but for the ROM region in the legacy area, the fixed 
+MTRRs are often set up to allow caching, and we should be able to map 
+them cacheable, e.g. on this system:
+
+   00000-9FFFF write-back
+   A0000-BFFFF uncachable
+   C0000-CFFFF write-protect
+   D0000-DFFFF uncachable
+   E0000-FFFFF write-protect
+
+Clearly cacheable.
+
+	-hpa
