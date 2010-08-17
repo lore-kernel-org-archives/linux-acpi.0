@@ -1,59 +1,69 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [RFC] - Mapping ACPI tables as CACHED
-Date: Tue, 17 Aug 2010 09:02:21 -0700
-Message-ID: <AANLkTinM7U-Vb0h5De9W54mHkBby7LZNztxLLQ=HuYdh@mail.gmail.com>
-References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net>
- <20100817144917.GD14091@sgi.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: [PATCH 1/2] [Patch-next -v2] ACPI, APEI Fix the return value(==NULL)
+ of acpi_pre_map().
+Date: Wed, 18 Aug 2010 08:46:43 +0900
+Message-ID: <4C6B1F63.9050703@np.css.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40848 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750961Ab0HQQDP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Aug 2010 12:03:15 -0400
-In-Reply-To: <20100817144917.GD14091@sgi.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:54234 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751179Ab0HQXqt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 19:46:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Steiner <steiner@sgi.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, LKLM <linux-kernel@vger.kernel.org>, ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 17, 2010 at 7:49 AM, Jack Steiner <steiner@sgi.com> wrote:
->
-> I'm certainly not suggesting that ALL platforms map ACPI tables as WB=
-=2E That
-> would be a disaster. Only platforms where BIOS specifically reports t=
-hat
-> that tables are in WB memory should be mapped as MB.
+acpi_pre_map() is used for remapping the physical address of I/O, so
+it should be return NULL or remapped virtual address. The problem is
+that when (paddr - pg_off) equals 0, no matter whether I/O remapping is
+successful or not, the function returns NULL.
 
-Hmm. I actually suspect we _should_ map ACPI tables as WB all the
-time. I'm not actually seeing any reason why we should ever map them
-uncacheable, because as far as I can tell there are exactly two
-realistic situations:
+In acpi_pre_map(), after the physical address is remapped sucessfully,
+it will check whether the physical address has been added into acpi_iomaps
+list again.
+   - If the physical address has beed added into acpi_iomaps, the virtual
+     address will be saved in vaddr.
+   - Otherwise, NULL be saved in vaddr.
 
- - they are in RAM to begin with. I would pretty much expect this to
-be true 99.9% of the time. Everybody uses compressed BIOS flash images
-and uncompresses the image into RAM anyway, because (a) bigger flash
-chips are another 25=A2, so nobody can afford that on a PC motherboard
-(b) the flash interface is ridiculously slow anyway, and you don't
-want to execute your BIOS off it, and (c) the BIOS almost always
-actually _changes_ the tables depending on various BIOS settings, so
-mapping the tables as anything but RAM wouldn't work _anyway_.
+So if the physical address is the first time to be remapped, vaddr will be
+NULL always.
 
- - even if they aren't in RAM, it's likely fine to let the dang things
-be in the cache. On at least some platforms (old ones), if they aren't
-in RAM, the system logic will override any MTRR/pageattribute issues
-anyway.
+In many cases, (paddr - pg_off) may not equal 0. So the function could work
+well. In our machine, (paddr - pg_off) equals 0, so the return value of
+acpi_pre_map() is NULL.
 
-So I think we should just map those things WB by default. Maybe with
-some way to override it (possibly automatically). It sounds like it's
-a big enough performance issue even on smaller systems (0.1 seconds is
-quite a bit of the boot time on some systems).
+This patch fixed it and I confirmed it on x86_64 next-tree.
 
-                                    Linus
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+---
+ drivers/acpi/atomicio.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+index 8f8bd73..1bc2614 100644
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -133,7 +133,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
+ 
+ 	spin_lock_irqsave(&acpi_iomaps_lock, flags);
+ 	vaddr = __acpi_try_ioremap(paddr, size);
+-	if (vaddr) {
++	if (unlikely(vaddr)) {
+ 		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+ 		iounmap(map->vaddr);
+ 		kfree(map);
+@@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
+ 	list_add_tail_rcu(&map->list, &acpi_iomaps);
+ 	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+ 
+-	return vaddr + (paddr - pg_off);
++	return map->vaddr + (paddr - pg_off);
+ err_unmap:
+ 	iounmap(vaddr);
+ 	return NULL;
+-- 
+1.7.1.1
+
