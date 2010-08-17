@@ -1,98 +1,127 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 4/4] [Patch-next] ACPI, APEI, HEST Fix the unsuitable
- usage of platform_data.
-Date: Tue, 17 Aug 2010 09:39:48 +0800
-Message-ID: <1282009188.2744.1498.camel@yhuang-dev>
-References: <4C69DEA5.1020902@np.css.fujitsu.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong checking
+ of Serialization Header's length
+Date: Tue, 17 Aug 2010 11:14:44 +0900
+Message-ID: <4C69F094.1040607@np.css.fujitsu.com>
+References: <4C69DDB5.6060103@np.css.fujitsu.com> <1282008836.2744.1490.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40757 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752657Ab0HQBjv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Aug 2010 21:39:51 -0400
-In-Reply-To: <4C69DEA5.1020902@np.css.fujitsu.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:60828 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753528Ab0HQCOT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Aug 2010 22:14:19 -0400
+In-Reply-To: <1282008836.2744.1490.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+To: Huang Ying <ying.huang@intel.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-On Tue, 2010-08-17 at 08:58 +0800, Jin Dongming wrote:
-> platform_data in hest_parse_ghes() is used for saving the address of entry
-> information of erst_tab. When the device is failed to be added, platform_data
-> will be freed by platform_device_put(). But the value saved in platform_data
-> should not be freed here. If it is done, it will make system panic.
-
-Good catch. Thanks.
-
-> So I think platform_data should save the address of allocated memory
-> which saves entry information of erst_tab.
+(2010/08/17 10:33), Huang Ying wrote:
+> On Tue, 2010-08-17 at 08:54 +0800, Jin Dongming wrote:
+>> header_length in struct acpi_table_erst is not the length of struct
+>> acpi_table_erst, but the length of Serialization Header.
+>>
+>> In erst_check_table(), header_length is used for checking the length
+>> of struct acpi_table_erst. So I think it is wrong.
 > 
-> This patch fixed it and I confirmed it on x86_64 next-tree.
-> 
-> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-> ---
->  drivers/acpi/apei/ghes.c |    2 +-
->  drivers/acpi/apei/hest.c |   19 ++++++++++++++-----
->  2 files changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 385a605..b35c622 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -302,7 +302,7 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
->  	struct ghes *ghes = NULL;
->  	int rc = -EINVAL;
->  
-> -	generic = ghes_dev->dev.platform_data;
-> +	generic = *(struct acpi_hest_generic **)(ghes_dev->dev.platform_data);
->  	if (!generic->enabled)
->  		return -ENODEV;
->  
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 343168d..5a65e2a 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -137,20 +137,29 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
->  
->  static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
->  {
-> -	struct acpi_hest_generic *generic;
-> +	void **platform_data;
->  	struct platform_device *ghes_dev;
->  	struct ghes_arr *ghes_arr = data;
->  	int rc;
->  
->  	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
->  		return 0;
-> -	generic = (struct acpi_hest_generic *)hest_hdr;
-> -	if (!generic->enabled)
-> +
-> +	platform_data = kmalloc(sizeof(void *), GFP_KERNEL);
-> +	if (!platform_data)
-> +		return -ENOMEM;
-> +
-> +	*platform_data = hest_hdr;
-> +	if (!((struct acpi_hest_generic *)*platform_data)->enabled)
->  		return 0;
-> +
->  	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
-> -	if (!ghes_dev)
-> +	if (!ghes_dev) {
-> +		kfree(platform_data);
->  		return -ENOMEM;
-> -	ghes_dev->dev.platform_data = generic;
-> +	}
-> +
-> +	ghes_dev->dev.platform_data = platform_data;
->  	rc = platform_device_add(ghes_dev);
->  	if (rc)
->  		goto err;
+> Why "think"? Do you have a machine with header_length set as you said?
 
-Why not use platform_device_add_data?
+I have such machine, and I confirmed that the header_length returned by firmware
+is same as what I described in the above description.
 
-Best Regards,
-Huang Ying
+And further more, according to the spec document of ACPI 4.0(page 515),
+it is written like following.
+
+  Field                      Byte length   Byte offset   Description
+  Serialization Header Size  4             0x24          Length in bytes of
+                                                         the serialization header.
+
+> 
+>> This patch fixed it and I confirmed it on x86_64 next-tree.
+>>
+>> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+>> ---
+>>  drivers/acpi/apei/erst.c |   13 ++++++++-----
+>>  include/acpi/actbl1.h    |   14 +++++++++++---
+>>  2 files changed, 19 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+>> index 864dd46..28a5caf 100644
+>> --- a/drivers/acpi/apei/erst.c
+>> +++ b/drivers/acpi/apei/erst.c
+>> @@ -358,7 +358,8 @@ static struct apei_exec_ins_type erst_ins_type[] = {
+>>  static inline void erst_exec_ctx_init(struct apei_exec_context *ctx)
+>>  {
+>>  	apei_exec_ctx_init(ctx, erst_ins_type, ARRAY_SIZE(erst_ins_type),
+>> -			   ERST_TAB_ENTRY(erst_tab), erst_tab->entries);
+>> +			   ERST_TAB_ENTRY(erst_tab),
+>> +			   erst_tab->seri_header.entries);
+>>  }
+>>  
+>>  static int erst_get_erange(struct erst_erange *range)
+>> @@ -749,12 +750,14 @@ __setup("erst_disable", setup_erst_disable);
+>>  
+>>  static int erst_check_table(struct acpi_table_erst *erst_tab)
+>>  {
+>> -	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
+>> +	if (erst_tab->common_header.length < sizeof(struct acpi_table_erst))
+>>  		return -EINVAL;
+>> -	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+>> +
+>> +	if (erst_tab->seri_header.length != sizeof(struct acpi_erst_header))
+>>  		return -EINVAL;
+>> -	if (erst_tab->entries !=
+>> -	    (erst_tab->header.length - sizeof(struct acpi_table_erst)) /
+>> +
+>> +	if (erst_tab->seri_header.entries !=
+>> +	    (erst_tab->common_header.length - sizeof(struct acpi_table_erst)) /
+>>  	    sizeof(struct acpi_erst_entry))
+>>  		return -EINVAL;
+>>  
+>> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+>> index c637b75..821f8ac 100644
+>> --- a/include/acpi/actbl1.h
+>> +++ b/include/acpi/actbl1.h
+>> @@ -283,13 +283,21 @@ enum acpi_einj_command_status {
+>>   *
+>>   ******************************************************************************/
+>>  
+>> -struct acpi_table_erst {
+>> -	struct acpi_table_header header;	/* Common ACPI table header */
+>> -	u32 header_length;
+>> +/* ERST Serialization Header */
+>> +
+>> +struct acpi_erst_header {
+>> +	u32 length;
+>>  	u32 reserved;
+>>  	u32 entries;
+>>  };
+>>  
+>> +/* ERST Header */
+>> +
+>> +struct acpi_table_erst {
+>> +	struct acpi_table_header common_header;	/* Common ACPI table header */
+>> +	struct acpi_erst_header seri_header;	/* ERST Serialization Header */
+>> +};
+> 
+> I don't think it is necessary to change the header definition, and
+> seri_header is not a good name for me.
+Why I added this structure here is that I don't want to do following checking.
+For example,
+	if (header_length != 0x0c) {
+		...
+	}
+
+Though it is simple, it is really difficult for us to understand the real meaning
+of the code.
+> 
+> Best Regards,
+> Huang Ying
+> 
+> 
+> 
+> 
 
 
