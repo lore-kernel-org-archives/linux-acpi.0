@@ -1,29 +1,29 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong
- checking of Serialization Header's length
-Date: Tue, 17 Aug 2010 09:33:56 +0800
-Message-ID: <1282008836.2744.1490.camel@yhuang-dev>
-References: <4C69DDB5.6060103@np.css.fujitsu.com>
+Subject: Re: [PATCH 2/4] [Patch-next] ACPI, APEI, EINJ Fix the wrong
+ checking of Injection Header's length
+Date: Tue, 17 Aug 2010 09:35:25 +0800
+Message-ID: <1282008925.2744.1492.camel@yhuang-dev>
+References: <4C69DE4B.4090904@np.css.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2187 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:47678 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745Ab0HQBeC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Aug 2010 21:34:02 -0400
-In-Reply-To: <4C69DDB5.6060103@np.css.fujitsu.com>
+	id S1751898Ab0HQBf1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Aug 2010 21:35:27 -0400
+In-Reply-To: <4C69DE4B.4090904@np.css.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-On Tue, 2010-08-17 at 08:54 +0800, Jin Dongming wrote:
-> header_length in struct acpi_table_erst is not the length of struct
-> acpi_table_erst, but the length of Serialization Header.
+On Tue, 2010-08-17 at 08:56 +0800, Jin Dongming wrote:
+> header_length in struct acpi_table_einj is not the length of struct
+> acpi_table_einj, but the length of Injection Header.
 > 
-> In erst_check_table(), header_length is used for checking the length
-> of struct acpi_table_erst. So I think it is wrong.
+> In einj_check_table(), header_length is used for checking the length
+> of struct acpi_table_einj. So I think it is wrong.
 
 Why "think"? Do you have a machine with header_length set as you said?
 
@@ -31,71 +31,82 @@ Why "think"? Do you have a machine with header_length set as you said?
 > 
 > Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 > ---
->  drivers/acpi/apei/erst.c |   13 ++++++++-----
->  include/acpi/actbl1.h    |   14 +++++++++++---
->  2 files changed, 19 insertions(+), 8 deletions(-)
+>  drivers/acpi/apei/einj.c |   15 +++++++++------
+>  include/acpi/actbl1.h    |   17 ++++++++++++-----
+>  2 files changed, 21 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 864dd46..28a5caf 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -358,7 +358,8 @@ static struct apei_exec_ins_type erst_ins_type[] = {
->  static inline void erst_exec_ctx_init(struct apei_exec_context *ctx)
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index 465c885..5fe876c 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -104,7 +104,8 @@ static struct einj_parameter *einj_param;
+>  static void einj_exec_ctx_init(struct apei_exec_context *ctx)
 >  {
->  	apei_exec_ctx_init(ctx, erst_ins_type, ARRAY_SIZE(erst_ins_type),
-> -			   ERST_TAB_ENTRY(erst_tab), erst_tab->entries);
-> +			   ERST_TAB_ENTRY(erst_tab),
-> +			   erst_tab->seri_header.entries);
+>  	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
+> -			   EINJ_TAB_ENTRY(einj_tab), einj_tab->entries);
+> +			   EINJ_TAB_ENTRY(einj_tab),
+> +			   einj_tab->inje_header.entries);
 >  }
 >  
->  static int erst_get_erange(struct erst_erange *range)
-> @@ -749,12 +750,14 @@ __setup("erst_disable", setup_erst_disable);
+>  static int __einj_get_available_error_type(u32 *type)
+> @@ -153,7 +154,7 @@ static u64 einj_get_parameter_address(void)
+>  	struct acpi_whea_header *entry;
 >  
->  static int erst_check_table(struct acpi_table_erst *erst_tab)
+>  	entry = EINJ_TAB_ENTRY(einj_tab);
+> -	for (i = 0; i < einj_tab->entries; i++) {
+> +	for (i = 0; i < einj_tab->inje_header.entries; i++) {
+>  		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE &&
+>  		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+>  		    entry->register_region.space_id ==
+> @@ -426,12 +427,14 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
+>  
+>  static int einj_check_table(struct acpi_table_einj *einj_tab)
 >  {
-> -	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
-> +	if (erst_tab->common_header.length < sizeof(struct acpi_table_erst))
+> -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
+> +	if (einj_tab->common_header.length < sizeof(struct acpi_table_einj))
 >  		return -EINVAL;
-> -	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+> -	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
 > +
-> +	if (erst_tab->seri_header.length != sizeof(struct acpi_erst_header))
+> +	if (einj_tab->inje_header.length != sizeof(struct acpi_einj_header))
 >  		return -EINVAL;
-> -	if (erst_tab->entries !=
-> -	    (erst_tab->header.length - sizeof(struct acpi_table_erst)) /
+> -	if (einj_tab->entries !=
+> -	    (einj_tab->header.length - sizeof(struct acpi_table_einj)) /
 > +
-> +	if (erst_tab->seri_header.entries !=
-> +	    (erst_tab->common_header.length - sizeof(struct acpi_table_erst)) /
->  	    sizeof(struct acpi_erst_entry))
+> +	if (einj_tab->inje_header.entries !=
+> +	    (einj_tab->common_header.length - sizeof(struct acpi_table_einj)) /
+>  	    sizeof(struct acpi_einj_entry))
 >  		return -EINVAL;
 >  
 > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-> index c637b75..821f8ac 100644
+> index 821f8ac..e586c30 100644
 > --- a/include/acpi/actbl1.h
 > +++ b/include/acpi/actbl1.h
-> @@ -283,13 +283,21 @@ enum acpi_einj_command_status {
+> @@ -199,14 +199,21 @@ struct acpi_table_ecdt {
 >   *
 >   ******************************************************************************/
 >  
-> -struct acpi_table_erst {
+> -struct acpi_table_einj {
 > -	struct acpi_table_header header;	/* Common ACPI table header */
 > -	u32 header_length;
-> +/* ERST Serialization Header */
-> +
-> +struct acpi_erst_header {
+> -	u8 flags;
+> -	u8 reserved[3];
+> +/* EINJ Injection Header */
+> +struct acpi_einj_header {
 > +	u32 length;
->  	u32 reserved;
+> +	u8  flags;
+> +	u8  reserved[3];
 >  	u32 entries;
 >  };
 >  
-> +/* ERST Header */
+> +/* EINJ Header */
 > +
-> +struct acpi_table_erst {
+> +struct acpi_table_einj {
 > +	struct acpi_table_header common_header;	/* Common ACPI table header */
-> +	struct acpi_erst_header seri_header;	/* ERST Serialization Header */
+> +	struct acpi_einj_header inje_header;	/* Injection Header */
 > +};
 
 I don't think it is necessary to change the header definition, and
-seri_header is not a good name for me.
+inje_header is not a good name for me.
 
 Best Regards,
 Huang Ying
