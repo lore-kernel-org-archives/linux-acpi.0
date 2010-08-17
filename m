@@ -1,53 +1,86 @@
 From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong checking
- of Serialization Header's length
-Date: Tue, 17 Aug 2010 13:44:13 +0900
-Message-ID: <4C6A139D.20507@np.css.fujitsu.com>
-References: <4C69DDB5.6060103@np.css.fujitsu.com>	 <1282008836.2744.1490.camel@yhuang-dev>	 <4C69F094.1040607@np.css.fujitsu.com> <1282015344.2744.1500.camel@yhuang-dev>
+Subject: Re: [PATCH 3/4] [Patch-next] ACPI, APEI Fix the return value(==NULL)
+ of acpi_pre_map always.
+Date: Tue, 17 Aug 2010 13:47:40 +0900
+Message-ID: <4C6A146C.5030807@np.css.fujitsu.com>
+References: <4C69DE57.9070608@np.css.fujitsu.com>	 <1282009063.2744.1495.camel@yhuang-dev>	 <4C69F758.5030300@np.css.fujitsu.com> <1282018540.2744.1505.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:50743 "EHLO
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:50854 "EHLO
 	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799Ab0HQEob (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 00:44:31 -0400
-In-Reply-To: <1282015344.2744.1500.camel@yhuang-dev>
+	with ESMTP id S1752139Ab0HQErP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 00:47:15 -0400
+In-Reply-To: <1282018540.2744.1505.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>, Lu Yinghai <yinghai@kernel.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-(2010/08/17 12:22), Huang Ying wrote:
-> On Tue, 2010-08-17 at 10:14 +0800, Jin Dongming wrote:
->>> I don't think it is necessary to change the header definition, and
->>> seri_header is not a good name for me.
->> Why I added this structure here is that I don't want to do following checking.
->> For example,
->> 	if (header_length != 0x0c) {
->> 		...
->> 	}
+(2010/08/17 13:15), Huang Ying wrote:
+> On Tue, 2010-08-17 at 10:43 +0800, Jin Dongming wrote:
+>> (2010/08/17 10:37), Huang Ying wrote:
+>>> On Tue, 2010-08-17 at 08:56 +0800, Jin Dongming wrote:
+>>>> acpi_pre_map() is used for remapping the physical address of I/O, so
+>>>> it should be return NULL or remapped virtual address. The problem
+>>>> is whether I/O remapping is successful or not, the function returns
+>>>> NULL always.
+>>>
+>>> No. NULL is returned for error path only. Please check the code again.
+>>
+>> There three places used the local variable vaddr in acpi_pre_map() in next-tree.
+>>    1. 115         vaddr = __acpi_try_ioremap(paddr, size);
+>>    2. 122         vaddr = ioremap(pg_off, pg_sz);
+>>    3. 135         vaddr = __acpi_try_ioremap(paddr, size);
+>>
+>> Let's think about the following statement.
+>>    Assumption: the physical address has never been remapped.
+>>    Step:
+>>        1. vaddr == NULL
+>>           Because the physical address is not registered in the acpi_iomaps,
+>>           it should be returned NULL from __acpi_try_ioremap().
+>>
+>>        2. vaddr == the virtual address of the physical address.
+>>           Here if ioremap is successful, the value of vaddr should be 
+>>           the virtual address returned from ioremap().
+>>
+>>        3. vaddr == NULL                <== IMPORTANT
+>>           Here it is because the physical address has not been registered
+>>           in the acpi_iomaps yet, it still return NULL from __acpi_try_ioremap().
+>>           So it is why vaddr == NULL, even if the physical address has never
+>>           been remapped.
+>>
+>>     Result: vaddr == NULL.
 > 
-> This can be:
+> return vaddr + (paddr - pg_off), is not NULL for common cases.
 > 
->  static int erst_check_table(struct acpi_table_erst *erst_tab)
->  {
-> -       if (erst_tab->header_length != sizeof(struct acpi_table_erst))
-> +       if (erst_tab->header_length !=
-> +           (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+>> And if the vaddr is not NULL, it could not be added into acpi_iomaps.
+>> Codes in acpi_pre_map() is like following.
+>>
+>> 134         spin_lock_irqsave(&acpi_iomaps_lock, flags);
+>> 135         vaddr = __acpi_try_ioremap(paddr, size);           <== the 3rd step
+>> 136         if (vaddr) {
+>> 137                 spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+>> 138                 iounmap(map->vaddr);
+>> 139                 kfree(map);
+>> 140                 return vaddr;
+>> 141         }
+>> 142         list_add_tail_rcu(&map->list, &acpi_iomaps);      <== add into acpi_iomaps.
+>> 143         spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
 > 
-> like Yinghai has been done.
+> Oops, this is a bug, and your patch really fix it. But I think you
+> should change the patch description. NULL is not returned in almost all
+> cases. Because (paddr - pg_off) is not zero in common cases.
 > 
-Yes. It looks good. And I am sorry I am unaware of Yinghai' patch. 
-
 > Best Regards,
 > Huang Ying
 > 
-> 
+OK. I will modify the description of this patch and resend it.
 
 Best Regards,
 Jin Dongming
-
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
