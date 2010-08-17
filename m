@@ -1,51 +1,32 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: Re: [PATCH 4/4] [Patch-next] ACPI, APEI, HEST Fix the unsuitable
- usage of platform_data.
-Date: Tue, 17 Aug 2010 18:18:31 +0900
-Message-ID: <4C6A53E7.3090301@np.css.fujitsu.com>
-References: <4C69DEA5.1020902@np.css.fujitsu.com>	 <1282009188.2744.1498.camel@yhuang-dev>	 <4C69FB32.4000802@np.css.fujitsu.com> <1282018698.2744.1508.camel@yhuang-dev>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI video: fix a poor error message
+Date: Tue, 17 Aug 2010 14:34:58 +0100
+Message-ID: <20100817133458.GA22699@srcf.ucam.org>
+References: <1282012975.5181.16.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:42609 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443Ab0HQJSR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 05:18:17 -0400
-In-Reply-To: <1282018698.2744.1508.camel@yhuang-dev>
+Received: from cavan.codon.org.uk ([93.93.128.6]:56390 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738Ab0HQNfN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 09:35:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1282012975.5181.16.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>
 
-(2010/08/17 13:18), Huang Ying wrote:
-> On Tue, 2010-08-17 at 11:00 +0800, Jin Dongming wrote:
->>> Why not use platform_device_add_data?
->> Here what should be done is to transport the pointer of hest_hdr to platform_data,
->> so I think that it could be done successfully by allocating 8byte of memory.
->> If the platform_device_add_data() is used, the more memory will be allocated. 
->>
->> So I think this method is better than using platform_device_add_data().
-> 
-> You can specify allocation size for platform_device_add_data(), so no
-> more memory will be allocated.
-> 
-> Best Regards,
-> Huang Ying
+On Tue, Aug 17, 2010 at 10:42:55AM +0800, Zhang Rui wrote:
+>  		*cap |= ACPI_VIDEO_BACKLIGHT;
+>  		if (ACPI_FAILURE(acpi_get_handle(handle, "_BQC", &h_dummy)))
+> -			printk(KERN_WARNING FW_BUG PREFIX "ACPI brightness "
+> -					"control misses _BQC function\n");
+> +			printk(KERN_WARNING FW_BUG PREFIX "could not find "
+> +					"required _BQC function\n");
 
-I am sorry for replying late.
-I will modify my patch and resend it again.
+I don't really like the "required". It's a spec requirement but the 
+driver will work fine (if suboptimally) without it.
 
-Best Regards,
-Jin Dongming
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
