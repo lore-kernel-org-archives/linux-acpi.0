@@ -1,83 +1,48 @@
-From: Jack Steiner <steiner@sgi.com>
-Subject: Re: [RFC] - Mapping ACPI tables as CACHED
-Date: Tue, 17 Aug 2010 09:49:17 -0500
-Message-ID: <20100817144917.GD14091@sgi.com>
-References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI video: fix a poor error message
+Date: Tue, 17 Aug 2010 08:24:25 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858AE61F464@orsmsx503.amr.corp.intel.com>
+References: <1282012975.5181.16.camel@rui>
+ <20100817133458.GA22699@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay3.sgi.com ([192.48.152.1]:48923 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752380Ab0HQOtS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Aug 2010 10:49:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20100724001449.GA9618@khazad-dum.debian.net>
+Received: from mga14.intel.com ([143.182.124.37]:19939 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757619Ab0HQPY1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Aug 2010 11:24:27 -0400
+In-Reply-To: <20100817133458.GA22699@srcf.ucam.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>
 
-On Fri, Jul 23, 2010 at 09:14:50PM -0300, Henrique de Moraes Holschuh wrote:
-> On Thu, 22 Jul 2010, Jack Steiner wrote:
-> > Large SGI UV systems (3072p, 5TB) take a long time to boot. A significant
-> > part of the boot time is scanning ACPI tables. ACPI tables on UV systems
-> > are located in RAM memory that is physically attached to node 0.
-> > 
-> > User programs (ex., acpidump) read the ACPI tables by mapping them thru
-> > /dev/mem.  Although mmap tries to map the tables as CACHED, there are
-> > existing kernel UNCACHED mapping that conflict and the tables end up as
-> > being mapped UNCACHED.  (See the call to track_pfn_vma_new() in
-> > remap_pfn_range()).
-> 
-> Well, as it was raised in this thread, ACPI tables are likely to be near RAM
-> regions used for IPC with the firmware or SMBIOS, and we have no idea of the
-> kind of crap that could happen if we enable caching on those areas.
+Do we agree that the original message is unclear?
 
-I'm certainly not suggesting that ALL platforms map ACPI tables as WB. That
-would be a disaster. Only platforms where BIOS specifically reports that
-that tables are in WB memory should be mapped as MB.
+I'm not even sure that ACPI requires this method.
+
+Perhaps the message should describe what won't happen because of the missing _BQC method.
 
 
-> 
-> OTOH, we *know* of systems that force us to copy the ACPI tables to regular
-> RAM, otherwise, the utterly broken BIOS corrupts the ACPI tables after the
-> kernel has loaded.
-> 
-> Couldn't we simply always copy all tables to regular RAM and mark THAT as
-> cacheable (since there will be no IPC regions in it)?  For the tables that
-> are only used once, we can free the RAM later.
-
-I'm really out of the area of the kernel that I understand   :-)
-
-What are the implications of copying the ACPI tables to another location?
-Does BIOS ever make changes to their tables that would make it necessary
-to update the OS copy?
-
-While copying tables might sound attractive, it seems like there is a
-ripple effect.  For example, acpidump does the following:
-
-        - opens /sys/firmware/efi/systable
-        - reads the physical address of the ACPI20 table
-                (strace)
-                open("/sys/firmware/efi/systab", O_RDONLY) = 3
-                read(3, "MPS=0x0\nACPI20=0x78d76014\nACPI=0"..., 4096) = 83
-                (contents)
-                ACPI20=0x78d76014
-                SMBIOS=0x78c33000
-
-        - opens /dev/mem
-                (strace)
-                open("/dev/mem", O_RDONLY) = 4
-                mmap(NULL, 396, PROT_READ, MAP_PRIVATE, 4, 0x78d76000)
-
-        - mmaps the physical address of the ACPI20 table
-        - reads the table
-
-If the ACPI tables are copied to a different location, I don't see a
-clean/simple way to make this work.
-
-It seems like the best approach would to provide platform specific hooks
-in ACPI to map the tables as WB in the first place - IF the platform supports it.
-
-
---- jack
+>-----Original Message-----
+>From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
+>Sent: Tuesday, August 17, 2010 6:35 AM
+>To: Zhang, Rui
+>Cc: Brown, Len; linux-acpi@vger.kernel.org; Moore, Robert; Thomas Renninger
+>Subject: Re: [PATCH] ACPI video: fix a poor error message
+>
+>On Tue, Aug 17, 2010 at 10:42:55AM +0800, Zhang Rui wrote:
+>>  		*cap |= ACPI_VIDEO_BACKLIGHT;
+>>  		if (ACPI_FAILURE(acpi_get_handle(handle, "_BQC", &h_dummy)))
+>> -			printk(KERN_WARNING FW_BUG PREFIX "ACPI brightness "
+>> -					"control misses _BQC function\n");
+>> +			printk(KERN_WARNING FW_BUG PREFIX "could not find "
+>> +					"required _BQC function\n");
+>
+>I don't really like the "required". It's a spec requirement but the
+>driver will work fine (if suboptimally) without it.
+>
+>--
+>Matthew Garrett | mjg59@srcf.ucam.org
