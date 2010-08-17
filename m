@@ -1,121 +1,45 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: Re: [PATCH 2/4] [Patch-next] ACPI, APEI, EINJ Fix the wrong checking
- of Injection Header's length
-Date: Tue, 17 Aug 2010 11:15:38 +0900
-Message-ID: <4C69F0CA.9030409@np.css.fujitsu.com>
-References: <4C69DE4B.4090904@np.css.fujitsu.com> <1282008925.2744.1492.camel@yhuang-dev>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI video: fix a poor error message
+Date: Tue, 17 Aug 2010 10:42:55 +0800
+Message-ID: <1282012975.5181.16.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:45208 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753528Ab0HQCPO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Aug 2010 22:15:14 -0400
-In-Reply-To: <1282008925.2744.1492.camel@yhuang-dev>
+Received: from mga14.intel.com ([143.182.124.37]:62977 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754191Ab0HQCjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Aug 2010 22:39:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
+To: "Brown, Len" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
 
-(2010/08/17 10:35), Huang Ying wrote:
-> On Tue, 2010-08-17 at 08:56 +0800, Jin Dongming wrote:
->> header_length in struct acpi_table_einj is not the length of struct
->> acpi_table_einj, but the length of Injection Header.
->>
->> In einj_check_table(), header_length is used for checking the length
->> of struct acpi_table_einj. So I think it is wrong.
-> 
-> Why "think"? Do you have a machine with header_length set as you said?
-> 
-Here it is same as [Patch 1/4].
 
->> This patch fixed it and I confirmed it on x86_64 next-tree.
->>
->> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
->> ---
->>  drivers/acpi/apei/einj.c |   15 +++++++++------
->>  include/acpi/actbl1.h    |   17 ++++++++++++-----
->>  2 files changed, 21 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
->> index 465c885..5fe876c 100644
->> --- a/drivers/acpi/apei/einj.c
->> +++ b/drivers/acpi/apei/einj.c
->> @@ -104,7 +104,8 @@ static struct einj_parameter *einj_param;
->>  static void einj_exec_ctx_init(struct apei_exec_context *ctx)
->>  {
->>  	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
->> -			   EINJ_TAB_ENTRY(einj_tab), einj_tab->entries);
->> +			   EINJ_TAB_ENTRY(einj_tab),
->> +			   einj_tab->inje_header.entries);
->>  }
->>  
->>  static int __einj_get_available_error_type(u32 *type)
->> @@ -153,7 +154,7 @@ static u64 einj_get_parameter_address(void)
->>  	struct acpi_whea_header *entry;
->>  
->>  	entry = EINJ_TAB_ENTRY(einj_tab);
->> -	for (i = 0; i < einj_tab->entries; i++) {
->> +	for (i = 0; i < einj_tab->inje_header.entries; i++) {
->>  		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE &&
->>  		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
->>  		    entry->register_region.space_id ==
->> @@ -426,12 +427,14 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
->>  
->>  static int einj_check_table(struct acpi_table_einj *einj_tab)
->>  {
->> -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
->> +	if (einj_tab->common_header.length < sizeof(struct acpi_table_einj))
->>  		return -EINVAL;
->> -	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
->> +
->> +	if (einj_tab->inje_header.length != sizeof(struct acpi_einj_header))
->>  		return -EINVAL;
->> -	if (einj_tab->entries !=
->> -	    (einj_tab->header.length - sizeof(struct acpi_table_einj)) /
->> +
->> +	if (einj_tab->inje_header.entries !=
->> +	    (einj_tab->common_header.length - sizeof(struct acpi_table_einj)) /
->>  	    sizeof(struct acpi_einj_entry))
->>  		return -EINVAL;
->>  
->> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
->> index 821f8ac..e586c30 100644
->> --- a/include/acpi/actbl1.h
->> +++ b/include/acpi/actbl1.h
->> @@ -199,14 +199,21 @@ struct acpi_table_ecdt {
->>   *
->>   ******************************************************************************/
->>  
->> -struct acpi_table_einj {
->> -	struct acpi_table_header header;	/* Common ACPI table header */
->> -	u32 header_length;
->> -	u8 flags;
->> -	u8 reserved[3];
->> +/* EINJ Injection Header */
->> +struct acpi_einj_header {
->> +	u32 length;
->> +	u8  flags;
->> +	u8  reserved[3];
->>  	u32 entries;
->>  };
->>  
->> +/* EINJ Header */
->> +
->> +struct acpi_table_einj {
->> +	struct acpi_table_header common_header;	/* Common ACPI table header */
->> +	struct acpi_einj_header inje_header;	/* Injection Header */
->> +};
-> 
-> I don't think it is necessary to change the header definition, and
-> inje_header is not a good name for me.
-> 
-> Best Regards,
-> Huang Ying
-> 
-> 
-> 
-> 
+Fix a poor error message, according to comment
+https://bugzilla.kernel.org/show_bug.cgi?id=16599#c3
+
+CC: Robert Moore <robert.moore@intel.com>
+CC: Thomas Renninger <trenn@suse.de> 
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video_detect.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/video_detect.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video_detect.c
++++ linux-2.6/drivers/acpi/video_detect.c
+@@ -59,8 +59,8 @@ acpi_backlight_cap_match(acpi_handle han
+ 				  "support\n"));
+ 		*cap |= ACPI_VIDEO_BACKLIGHT;
+ 		if (ACPI_FAILURE(acpi_get_handle(handle, "_BQC", &h_dummy)))
+-			printk(KERN_WARNING FW_BUG PREFIX "ACPI brightness "
+-					"control misses _BQC function\n");
++			printk(KERN_WARNING FW_BUG PREFIX "could not find "
++					"required _BQC function\n");
+ 		/* We have backlight support, no need to scan further */
+ 		return AE_CTRL_TERMINATE;
+ 	}
 
 
