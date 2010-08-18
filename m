@@ -1,37 +1,37 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
- power
-Date: Wed, 18 Aug 2010 21:04:46 +0800
-Message-ID: <4C6BDA6E.1060300@canonical.com>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com> <1282127719.2747.211.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1282127719.2747.211.camel@localhost>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+From: Andrea Gelmini <andrea.gelmini@gelma.net>
+Subject: [PATCH 1/2] Drivers: ACPI: Kconfig: fix typo.
+Date: Wed, 18 Aug 2010 15:22:10 +0200
+Message-ID: <1282137731-10469-1-git-send-email-andrea.gelmini@gelma.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38699 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331Ab0HRNWf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Aug 2010 09:22:35 -0400
+Received: by bwz11 with SMTP id 11so183240bwz.19
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Aug 2010 06:22:33 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gelma@gelma.net
+Cc: Andrea Gelmini <andrea.gelmini@gelma.net>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Huang Ying <ying.huang@intel.com>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On 08/18/2010 06:35 PM, David Woodhouse wrote:
-> On Wed, 2010-08-18 at 09:36 +0100, Ike Panhc wrote:
->>
->> Once the rfkill of a laptop is set to block, it is no way to unblock with Linux
->> without driver. Thanks for David Woodhouse wrote the first driver solving this.
->>
->> But the \_SB_.GECN and \_SB_.DECN are only available on Lenovo ideapad S10-3.
->> Using EC command to control rf/camera power is better because I believe every
->> ideapads which has VPC2004 device in its DSDT has this common method.
->>
->> This driver is tested and work fine on Lenovo ideapad B550 and ideapad S10-3.
-> 
-> Works for me too (on S10-3); thanks.
-> 
-> It all looks good, although should we have a delay or a schedule or at
-> least a cpu_relax() in the read_ec_data() and write_ec_cmd() loops?
-> Those loops should be using time_before() too, rather than open-coding
-> the comparison.
-> 
-yeah, agree. polling from ec makes cpu busy, although its usually less then 10ms
-a yield or relax will be good.
+"power of" -> "power off"
+---
+ drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index b811f21..88681ac 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -105,7 +105,7 @@ config ACPI_EC_DEBUGFS
+ 
+ 	  Be aware that using this interface can confuse your Embedded
+ 	  Controller in a way that a normal reboot is not enough. You then
+-	  have to power of your system, and remove the laptop battery for
++	  have to power off your system, and remove the laptop battery for
+ 	  some seconds.
+ 	  An Embedded Controller typically is available on laptops and reads
+ 	  sensor values like battery state and temperature.
+-- 
+1.7.2.1.138.g54ed9
+
