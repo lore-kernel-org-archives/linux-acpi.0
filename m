@@ -1,48 +1,51 @@
 From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH 2/8] ideapad: check VPC bit before sync rfkill hw status
-Date: Wed, 18 Aug 2010 16:37:17 +0800
-Message-ID: <1282120637-11398-1-git-send-email-ike.pan@canonical.com>
+Subject: [PATCH 3/8] ideapad: make sure we bind on the correct device
+Date: Wed, 18 Aug 2010 16:37:33 +0800
+Message-ID: <1282120653-11434-1-git-send-email-ike.pan@canonical.com>
 References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:51146 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752240Ab0HRIhj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Aug 2010 04:37:39 -0400
 In-Reply-To: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, David Woodhouse <David.Woodhouse@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Check VPC bit to make sure the HW rfkill is touched.
+By reading from method _STA and _CFG to make sure we bind on the correct
+VPC2004 device.
 
 Signed-off-by: Ike Panhc <ike.pan@canonical.com>
 ---
- drivers/platform/x86/ideapad_acpi.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
+ drivers/platform/x86/ideapad_acpi.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/platform/x86/ideapad_acpi.c b/drivers/platform/x86/ideapad_acpi.c
-index af630e2..6176597 100644
+index 6176597..c1eec70 100644
 --- a/drivers/platform/x86/ideapad_acpi.c
 +++ b/drivers/platform/x86/ideapad_acpi.c
-@@ -381,7 +381,21 @@ static int ideapad_acpi_remove(struct acpi_device *adevice, int type)
+@@ -328,10 +328,18 @@ MODULE_DEVICE_TABLE(acpi, ideapad_device_ids);
  
- static void ideapad_acpi_notify(struct acpi_device *adevice, u32 event)
+ static int ideapad_acpi_add(struct acpi_device *adevice)
  {
--	ideapad_sync_rfk_state(adevice);
-+	acpi_handle handle = adevice->handle;
-+	unsigned long vpc1, vpc2, vpc_bit;
-+
-+	if (read_ec_data(handle, 0x10, &vpc1))
-+		return;
-+	if (read_ec_data(handle, 0x1A, &vpc2))
-+		return;
-+
-+	vpc1 = (vpc2 << 8) | vpc1;
-+	for (vpc_bit = 0; vpc_bit < 16; vpc_bit++) {
-+		if (test_bit(vpc_bit, &vpc1)) {
-+			if (vpc_bit == 9)
-+				ideapad_sync_rfk_state(adevice);
-+		}
-+	}
- }
+-	int i;
++	int i, cfg;
+ 	int devs_present[5];
+ 	struct ideapad_private *priv;
  
- static struct acpi_driver ideapad_acpi_driver = {
++	if (read_method_int(adevice->handle, "_STA", &i))
++		return -ENODEV;
++	if (i != 0x0F)
++		return -ENODEV;
++
++	if (read_method_int(adevice->handle, "_CFG", &cfg))
++		return -ENODEV;
++
+ 	for (i = IDEAPAD_DEV_CAMERA; i < IDEAPAD_DEV_KILLSW; i++) {
+ 		devs_present[i] = ideapad_dev_exists(i);
+ 		if (devs_present[i] < 0)
 -- 
 1.7.0.4
+
