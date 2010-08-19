@@ -1,160 +1,219 @@
-From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
-Subject: Re: Strange CPU load - acpi_os_read_port
-Date: Thu, 19 Aug 2010 11:11:50 +0200
-Message-ID: <4C6CF556.7030301@itcare.pl>
-References: <4C489E58.7020604@itcare.pl> <alpine.LFD.2.00.1008142331000.2294@localhost.localdomain> <4C67C092.8060808@itcare.pl> <alpine.LFD.2.00.1008150958320.2313@localhost.localdomain>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: HPET+PAT causes "bad page state"
+Date: Thu, 19 Aug 2010 11:50:48 +0200
+Message-ID: <4C6CFE78.7030809@suse.cz>
+References: <4C68FCBC.5020208@suse.cz> <4C691837.9060106@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from r242-33.iq.pl ([86.111.242.33]:34706 "EHLO smtp.iq.pl"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751895Ab0HSJS2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Aug 2010 05:18:28 -0400
-In-Reply-To: <alpine.LFD.2.00.1008150958320.2313@localhost.localdomain>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:47404 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902Ab0HSJux (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Aug 2010 05:50:53 -0400
+Received: by bwz11 with SMTP id 11so1010201bwz.19
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Aug 2010 02:50:52 -0700 (PDT)
+In-Reply-To: <4C691837.9060106@suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: "x86@kernel.org" <x86@kernel.org>, clemens@ladisch.de, venki@google.com, bob.picco@hp.com, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-W dniu 2010-08-15 16:05, Len Brown pisze:
->>>>                2217.00 13.7% acpi_os_read_port
->>>>
->>>>          
->>> curious.
->>> does /proc/interrupts show you are receiving acpi interrupts?
->>> if yes, what do you see with 'grep . /sys/firmware/acpi/interrupts/*'?
->>>
->>>        
-cat /proc/interrupts | grep acpi
-    9:          0          0          0          0          0          
-0          0          0          0          0          0          
-0          0          0          0          0   IO-APIC-fasteoi   acpi
-
-No interrupts
-
-/sys/firmware/acpi/interrupts/error:       0
-/sys/firmware/acpi/interrupts/ff_gbl_lock:       0      enabled
-/sys/firmware/acpi/interrupts/ff_pmtimer:       0       invalid
-/sys/firmware/acpi/interrupts/ff_pwr_btn:       0       enabled
-/sys/firmware/acpi/interrupts/ff_rt_clk:       0        disabled
-/sys/firmware/acpi/interrupts/ff_slp_btn:       0       invalid
-/sys/firmware/acpi/interrupts/gpe00:       0    invalid
-/sys/firmware/acpi/interrupts/gpe01:       0    invalid
-/sys/firmware/acpi/interrupts/gpe02:       0    disabled
-/sys/firmware/acpi/interrupts/gpe03:       0    disabled
-/sys/firmware/acpi/interrupts/gpe04:       0    disabled
-/sys/firmware/acpi/interrupts/gpe05:       0    disabled
-/sys/firmware/acpi/interrupts/gpe06:       0    enabled
-/sys/firmware/acpi/interrupts/gpe07:       0    invalid
-/sys/firmware/acpi/interrupts/gpe08:       0    enabled
-/sys/firmware/acpi/interrupts/gpe09:       0    disabled
-/sys/firmware/acpi/interrupts/gpe0A:       0    enabled
-/sys/firmware/acpi/interrupts/gpe0B:       0    disabled
-/sys/firmware/acpi/interrupts/gpe0C:       0    disabled
-/sys/firmware/acpi/interrupts/gpe0D:       0    disabled
-/sys/firmware/acpi/interrupts/gpe0E:       0    disabled
-/sys/firmware/acpi/interrupts/gpe0F:       0    invalid
-/sys/firmware/acpi/interrupts/gpe10:       0    invalid
-/sys/firmware/acpi/interrupts/gpe11:       0    invalid
-/sys/firmware/acpi/interrupts/gpe12:       0    invalid
-/sys/firmware/acpi/interrupts/gpe13:       0    invalid
-/sys/firmware/acpi/interrupts/gpe14:       0    invalid
-/sys/firmware/acpi/interrupts/gpe15:       0    invalid
-/sys/firmware/acpi/interrupts/gpe16:       0    invalid
-/sys/firmware/acpi/interrupts/gpe17:       0    invalid
-/sys/firmware/acpi/interrupts/gpe18:       0    invalid
-/sys/firmware/acpi/interrupts/gpe19:       0    invalid
-/sys/firmware/acpi/interrupts/gpe1A:       0    invalid
-/sys/firmware/acpi/interrupts/gpe1B:       0    invalid
-/sys/firmware/acpi/interrupts/gpe1C:       0    invalid
-/sys/firmware/acpi/interrupts/gpe1D:       0    invalid
-/sys/firmware/acpi/interrupts/gpe1E:       0    enabled
-/sys/firmware/acpi/interrupts/gpe1F:       0    invalid
-/sys/firmware/acpi/interrupts/gpe20:       0    disabled
-/sys/firmware/acpi/interrupts/gpe21:       0    invalid
-/sys/firmware/acpi/interrupts/gpe22:       0    invalid
-/sys/firmware/acpi/interrupts/gpe23:       0    invalid
-/sys/firmware/acpi/interrupts/gpe24:       0    invalid
-/sys/firmware/acpi/interrupts/gpe25:       0    invalid
-/sys/firmware/acpi/interrupts/gpe26:       0    invalid
-/sys/firmware/acpi/interrupts/gpe27:       0    invalid
-/sys/firmware/acpi/interrupts/gpe28:       0    invalid
-/sys/firmware/acpi/interrupts/gpe29:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2A:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2B:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2C:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2D:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2E:       0    invalid
-/sys/firmware/acpi/interrupts/gpe2F:       0    invalid
-/sys/firmware/acpi/interrupts/gpe30:       0    invalid
-/sys/firmware/acpi/interrupts/gpe31:       0    invalid
-/sys/firmware/acpi/interrupts/gpe32:       0    invalid
-/sys/firmware/acpi/interrupts/gpe33:       0    invalid
-/sys/firmware/acpi/interrupts/gpe34:       0    invalid
-/sys/firmware/acpi/interrupts/gpe35:       0    invalid
-/sys/firmware/acpi/interrupts/gpe36:       0    invalid
-/sys/firmware/acpi/interrupts/gpe37:       0    invalid
-/sys/firmware/acpi/interrupts/gpe38:       0    invalid
-/sys/firmware/acpi/interrupts/gpe39:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3A:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3B:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3C:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3D:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3E:       0    invalid
-/sys/firmware/acpi/interrupts/gpe3F:       0    invalid
-/sys/firmware/acpi/interrupts/gpe_all:       0
-/sys/firmware/acpi/interrupts/sci:       0
-/sys/firmware/acpi/interrupts/sci_not:       0
-
->>> what do you see with
->>> grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*
->>>
->>>        
-ls /sys/devices/system/cpu/cpu0/
-cache  crash_notes  node0  thermal_throttle  topology
-
-no cpuidle dir.
-grep . /sys/devices/system/cpu/cpuidle/*
-/sys/devices/system/cpu/cpuidle/current_driver:acpi_idle
-/sys/devices/system/cpu/cpuidle/current_governor_ro:ladder
-
->>> and if there are IO states, any change if you boot with "idle=halt" or
->>> "idle=mwait"?
->>>        
->    
->> I can try to reproduce this again but it will take some time.
+On 08/16/2010 12:51 PM, Jiri Slaby wrote:
+> On 08/16/2010 10:54 AM, Jiri Slaby wrote:
+>> Hi,
 >>
->> For now the solution for me was:
+>> with 2.6.35.1, there is an opensuse user who gets the following BUG:
+>> BUG: Bad page state in process md5sum  pfn:3ed00
+>> page:ffffea0000dbd800 count:0 mapcount:0 mapping:(null) index:0x0
+>> page flags: 0x20000000800000(uncached)
+>> Pid: 2515, comm: md5sum Not tainted 2.6.35.1-1-vanilla #1
 >>
->> Change configuration for this host and boot with processor.max_cstate=0
->>      
-> likely it will come back when you remove processor.max_cstate=0,
-> and it will go away if you use either idle=halt or idle=mwait or
-> processor.max_cstate=1, which are effectively the same.
-> (and all preferable to processor.max_cstate-0 from a power
-> saving point of view)
->
-> If this is true, then you should try processor.max_cstate=N
-> where N is 2, 3 etc, depending on the states shown in the
-> cpuidle grep above.
->
-> If you open a bugzilla and attach the output from acpidump,
-> that may also be helpful.  If this is due to c-states, the question
-> is if for some reason we are not using them optimally.
-> If we already are doing what the platform allows, the
-> route might be to use PM_QOS to disable states that
-> are too expensive.
-> (Documentation/power/pm_qos_interface.txt)
->
-> cheers,
-> Len Brown, Intel Open Source Technology Center.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->    
+>> I have also a backtrace (from older, non-vanilla kernel):
+>> BUG: Bad page state in process md5sum  pfn:3ed00
+>> page:ffffea0000dbd800 count:0 mapcount:0 mapping:(null) index:0x0
+>> page flags: 0x20000001000000(uncached)
+>> Pid: 7956, comm: md5sum Not tainted 2.6.34-12-desktop #1
+>> Call Trace:
+>>  [<ffffffff81005ca9>] dump_trace+0x79/0x340
+>>  [<ffffffff8149e612>] dump_stack+0x69/0x6f
+>>  [<ffffffff810df851>] bad_page+0xb1/0x100
+>>  [<ffffffff810dfa45>] prep_new_page+0x1a5/0x1c0
+>>  [<ffffffff810dfe01>] get_page_from_freelist+0x3a1/0x640
+>>  [<ffffffff810e01af>] __alloc_pages_nodemask+0x10f/0x6b0
+>>  [<ffffffff810e35a4>] __do_page_cache_readahead+0x114/0x290
+>>  [<ffffffff810e389c>] ra_submit+0x1c/0x30
+>>  [<ffffffff810e3c38>] page_cache_async_readahead+0x98/0xe0
+>>  [<ffffffff810d95bb>] do_generic_file_read.clone.0+0x25b/0x440
+>>  [<ffffffff810daf94>] generic_file_aio_read+0xb4/0x1c0
+>>  [<ffffffff8112426f>] do_sync_read+0xbf/0x100
+>>  [<ffffffff81124a53>] vfs_read+0xb3/0x190
+>>  [<ffffffff81124b7e>] sys_read+0x4e/0x90
+>>  [<ffffffff81002ffb>] system_call_fastpath+0x16/0x1b
+>>  [<00007f51336f03e0>] 0x7f51336f03e0
+>>
+>>
+>> Obviously if he disables PAT by nopat parameter, it goes away. The p=
+age
+>> is always the same (0x3ed00000). I asked for pat_memtype_list, so I'=
+ll
+>> attach that later.
+>=20
+> Here it is, as promised:
+> uncached-minus @ 0xafdc4000-0xafdc5000
+> uncached-minus @ 0xafe7e000-0xafe7f000
+> uncached-minus @ 0xafe7f000-0xafe80000
+> uncached-minus @ 0xafe81000-0xafe82000
+> uncached-minus @ 0xafe83000-0xafe84000
+> uncached-minus @ 0xafeda000-0xafedb000
+> uncached-minus @ 0xafedb000-0xafedc000
+> uncached-minus @ 0xafedc000-0xafedd000
+> uncached-minus @ 0xafedd000-0xafede000
+> uncached-minus @ 0xafede000-0xafefa000
+> uncached-minus @ 0xafefa000-0xafefb000
+> uncached-minus @ 0xafefb000-0xafefc000
+> uncached-minus @ 0xafefc000-0xafefd000
+> uncached-minus @ 0xafefd000-0xafefe000
+> uncached-minus @ 0xc0040000-0xc0140000
+> uncached-minus @ 0xc0141000-0xc06c0000
+> uncached-minus @ 0xd4100000-0xd4101000
+> uncached-minus @ 0xd4103000-0xd4104000
+> uncached-minus @ 0xd5200000-0xd5204000
+> uncached-minus @ 0xd6400000-0xd6410000
+> uncached-minus @ 0xd6410000-0xd6414000
+> uncached-minus @ 0xd6500000-0xd6504000
+> uncached-minus @ 0xd6504000-0xd6505000
+> uncached-minus @ 0xd6505000-0xd6506000
+> uncached-minus @ 0xd6506000-0xd6507000
+> uncached-minus @ 0xd6507000-0xd6508000
+> uncached-minus @ 0xd6508000-0xd6509000
+> uncached-minus @ 0xd6509000-0xd650a000
+> uncached-minus @ 0xd650a000-0xd650b000
+> uncached-minus @ 0xd650b000-0xd650c000
+> uncached-minus @ 0xe0000000-0xf0000000
+> uncached-minus @ 0xe0088000-0xe0089000
+> uncached-minus @ 0xe00c3000-0xe00c4000
+> uncached-minus @ 0xfed00000-0xfed01000
+> uncached-minus @ 0xfed40000-0xfed45000
+> uncached-minus @ 0xfed40000-0xfed41000
+> uncached-minus @ 0xfed80000-0xfed81000
+>=20
+>> The original bugreport is at:
+>> https://bugzilla.novell.com/show_bug.cgi?id=3D629908
+>>
+>> Any idea what's going on?
 
+Nevermind, I found the root cause. It is caused by code in hpet.c. Ther=
+e
+is a HPET device in DSDT which body contains:
+
+    Method (GHPA, 0, Serialized)
+    {
+        Store (0x00, Local0)
+        If (\HPDE)
+        {
+            Multiply (\HPEA, 0x0100, Local0)
+        }
+
+        Return (Local0)
+    }
+=2E..
+    Method (_CRS, 0, Serialized)
+    {
+        Name (CRES, ResourceTemplate ()
+        {
+            Memory32Fixed (ReadOnly,
+                0xFED00000,         // Address Base
+                0x00000400,         // Address Length
+                _Y04)
+        })
+        Store (GHPA (), Local1)
+        If (Local1)
+        {
+            CreateDWordField (CRES, \_SB.PCI0.LPCB.HPET._CRS._Y04._BAS,
+HPEB)
+            Store (Local1, HPEB)
+        }
+
+        Return (CRES)
+    }
+
+HPEA seems to be 3ed000. So the base of memory resource is set to
+0x3ed00000. The problem is
+1) it is not in reserved ranges reported by the BIOS (the modified
+variant contains only the protection hole at 0-10000):
+modified physical RAM map:
+ modified: 0000000000000000 - 0000000000010000 (reserved)
+ modified: 0000000000010000 - 000000000009fc00 (usable)
+ modified: 000000000009fc00 - 00000000000a0000 (reserved)
+ modified: 00000000000ef000 - 0000000000100000 (reserved)
+ modified: 0000000000100000 - 00000000af6cf000 (usable)
+ modified: 00000000af6cf000 - 00000000afdcf000 (reserved)
+ modified: 00000000afdcf000 - 00000000afecf000 (ACPI NVS)
+ modified: 00000000afecf000 - 00000000afeff000 (ACPI data)
+ modified: 00000000afeff000 - 00000000aff00000 (usable)
+ modified: 00000000e0000000 - 00000000f0000000 (reserved)
+ modified: 00000000fec00000 - 00000000fec01000 (reserved)
+ modified: 00000000fec10000 - 00000000fec11000 (reserved)
+ modified: 00000000fee00000 - 00000000fee01000 (reserved)
+ modified: 00000000ffe00000 - 0000000100000000 (reserved)
+ modified: 0000000100000000 - 0000000240000000 (usable)
+
+so allocator treats the page as normal ram page. Hence the warning in
+the original report.
+
+2) there is only memory resource without any IRQ resources in _CRS
+method of HPET. Then we do not unmap space in hpet_acpi_add in 'if
+(!data.hd_address || !data.hd_nirqs)' branch. Technically we cannot do
+that, the intel HPET specs (1.0a) says (3.2.5.1):
+_CRS (
+  // Report 1K of memory consumed by this Timer Block
+  memory range consumed
+  // Optional: only used if BIOS allocates Interrupts [1]
+  IRQs consumed
+)
+
+[1] For case where Timer Block is configured to consume IRQ0/IRQ8 AND
+Legacy 8254/Legacy RTC hardware still exists, the device objects
+associated with 8254 & RTC devices should not report IRQ0/IRQ8 as
+=E2=80=9Cconsumed resources.=E2=80=9D
+
+
+
+In this particular case, the address reported by the BIOS seems to be
+bogus anyway, so non-presence of IRQ doesn't mean the "optional" part i=
+n
+point 2). So my question is whether the fix below [*] is enough or you
+want me to implement the "optional" part and then add a DMI quirk for
+this machine.
+
+[*] It would probably be more safe to walk the resources again and unma=
+p
+appropriately depending on type. But as we now use only ioremap for bot=
+h
+2 memory resource types, it is not necessarily needed right now.
+
+--- a/drivers/char/hpet.c
++++ b/drivers/char/hpet.c
+@@ -1017,6 +1017,8 @@ static int hpet_acpi_add(struct acpi_device *devi=
+ce)
+                return -ENODEV;
+
+        if (!data.hd_address || !data.hd_nirqs) {
++               if (data.hd_address)
++                       iounmap(data.hd_address);
+                printk("%s: no address or irqs in _CRS\n", __func__);
+                return -ENODEV;
+        }
+
+
+
+
+thanks,
+--=20
+js
+suse labs
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
