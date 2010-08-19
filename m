@@ -1,90 +1,160 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
- power
-Date: Thu, 19 Aug 2010 11:21:01 +0800
-Message-ID: <4C6CA31D.6030407@canonical.com>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com> <1282127719.2747.211.camel@localhost> <20100818155128.GA24363@darkside.kls.lan>
+From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
+Subject: Re: Strange CPU load - acpi_os_read_port
+Date: Thu, 19 Aug 2010 11:11:50 +0200
+Message-ID: <4C6CF556.7030301@itcare.pl>
+References: <4C489E58.7020604@itcare.pl> <alpine.LFD.2.00.1008142331000.2294@localhost.localdomain> <4C67C092.8060808@itcare.pl> <alpine.LFD.2.00.1008150958320.2313@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:47638 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab0HSDVN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Aug 2010 23:21:13 -0400
-In-Reply-To: <20100818155128.GA24363@darkside.kls.lan>
+Received: from r242-33.iq.pl ([86.111.242.33]:34706 "EHLO smtp.iq.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751895Ab0HSJS2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Aug 2010 05:18:28 -0400
+In-Reply-To: <alpine.LFD.2.00.1008150958320.2313@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On 08/18/2010 11:51 PM, Mario 'BitKoenig' Holbe wrote:
-> On Wed, Aug 18, 2010 at 11:35:19AM +0100, David Woodhouse wrote:
->> On Wed, 2010-08-18 at 09:36 +0100, Ike Panhc wrote:
->>> This driver is tested and work fine on Lenovo ideapad B550 and ideapad S10-3.
->> Works for me too (on S10-3); thanks.
-> 
-> It works for me too on S12 w/ VIA Nano - at least somehow... I have two
-> issues with it:
-> 
-> 1st: the camera is not detected:
-> 
-> $ dmesg | grep -i cam
-> [    3.062601] usb 1-4: Product: Lenovo EasyCamera
-> [    7.828202] uvcvideo: Found UVC 1.00 device Lenovo EasyCamera (5986:0241)
-> [    7.842987] input: Lenovo EasyCamera as /devices/pci0000:00/0000:00:10.4/usb1/1-4/1-4:1.0/input/input6
-> $ lsusb | grep -i cam
-> Bus 001 Device 002: ID 5986:0241 Acer, Inc BisonCam, NB Pro
-> $ rfkill list
-> 0: ideapad_wlan: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 1: ideapad_bluetooth: Bluetooth
->         Soft blocked: no
->         Hard blocked: no
-> 2: ideapad_killsw: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 3: hci0: Bluetooth
->         Soft blocked: no
->         Hard blocked: no
-> 4: phy0: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 
-> Fn-Esc switches the Camera off and on, but there seems to be no soft
-> killswitch for it. I have no idea how to parse through acpidump to find
-> out whether there is some similar device listed or not.
-rfkill for RF devices only. This driver will create an entry on sysfs to
-control the camera power
+W dniu 2010-08-15 16:05, Len Brown pisze:
+>>>>                2217.00 13.7% acpi_os_read_port
+>>>>
+>>>>          
+>>> curious.
+>>> does /proc/interrupts show you are receiving acpi interrupts?
+>>> if yes, what do you see with 'grep . /sys/firmware/acpi/interrupts/*'?
+>>>
+>>>        
+cat /proc/interrupts | grep acpi
+    9:          0          0          0          0          0          
+0          0          0          0          0          0          
+0          0          0          0          0   IO-APIC-fasteoi   acpi
 
-You can find the entry by "find /sys/devices -name 'camera_power'"
+No interrupts
 
-> 
-> 
-> 2nd: both Bluetooth killswitches reproducibly disappear when I block
-> ideapad_bluetooth either via Gnome bluetooth-applet or via rfkill block
-> 1 and subsequently reboot. After the reboot rfkill list shows:
-> 
-> 0: ideapad_wlan: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 1: ideapad_killsw: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 2: phy0: Wireless LAN
->         Soft blocked: no
->         Hard blocked: no
-> 
-> Powering the machine off and on again restores both killswitches.
-> Interesting is: this does not happen when I boot into single-user mode,
-> rfkill block 1 there and reboot. In this case, both killswitches are
-> back.
-This is interesting. looks like the cfgbit will change on S12 if BIOS
-remember it has to shutdown when booting. I will try if the same problem
-happen on my ideapads.
+/sys/firmware/acpi/interrupts/error:       0
+/sys/firmware/acpi/interrupts/ff_gbl_lock:       0      enabled
+/sys/firmware/acpi/interrupts/ff_pmtimer:       0       invalid
+/sys/firmware/acpi/interrupts/ff_pwr_btn:       0       enabled
+/sys/firmware/acpi/interrupts/ff_rt_clk:       0        disabled
+/sys/firmware/acpi/interrupts/ff_slp_btn:       0       invalid
+/sys/firmware/acpi/interrupts/gpe00:       0    invalid
+/sys/firmware/acpi/interrupts/gpe01:       0    invalid
+/sys/firmware/acpi/interrupts/gpe02:       0    disabled
+/sys/firmware/acpi/interrupts/gpe03:       0    disabled
+/sys/firmware/acpi/interrupts/gpe04:       0    disabled
+/sys/firmware/acpi/interrupts/gpe05:       0    disabled
+/sys/firmware/acpi/interrupts/gpe06:       0    enabled
+/sys/firmware/acpi/interrupts/gpe07:       0    invalid
+/sys/firmware/acpi/interrupts/gpe08:       0    enabled
+/sys/firmware/acpi/interrupts/gpe09:       0    disabled
+/sys/firmware/acpi/interrupts/gpe0A:       0    enabled
+/sys/firmware/acpi/interrupts/gpe0B:       0    disabled
+/sys/firmware/acpi/interrupts/gpe0C:       0    disabled
+/sys/firmware/acpi/interrupts/gpe0D:       0    disabled
+/sys/firmware/acpi/interrupts/gpe0E:       0    disabled
+/sys/firmware/acpi/interrupts/gpe0F:       0    invalid
+/sys/firmware/acpi/interrupts/gpe10:       0    invalid
+/sys/firmware/acpi/interrupts/gpe11:       0    invalid
+/sys/firmware/acpi/interrupts/gpe12:       0    invalid
+/sys/firmware/acpi/interrupts/gpe13:       0    invalid
+/sys/firmware/acpi/interrupts/gpe14:       0    invalid
+/sys/firmware/acpi/interrupts/gpe15:       0    invalid
+/sys/firmware/acpi/interrupts/gpe16:       0    invalid
+/sys/firmware/acpi/interrupts/gpe17:       0    invalid
+/sys/firmware/acpi/interrupts/gpe18:       0    invalid
+/sys/firmware/acpi/interrupts/gpe19:       0    invalid
+/sys/firmware/acpi/interrupts/gpe1A:       0    invalid
+/sys/firmware/acpi/interrupts/gpe1B:       0    invalid
+/sys/firmware/acpi/interrupts/gpe1C:       0    invalid
+/sys/firmware/acpi/interrupts/gpe1D:       0    invalid
+/sys/firmware/acpi/interrupts/gpe1E:       0    enabled
+/sys/firmware/acpi/interrupts/gpe1F:       0    invalid
+/sys/firmware/acpi/interrupts/gpe20:       0    disabled
+/sys/firmware/acpi/interrupts/gpe21:       0    invalid
+/sys/firmware/acpi/interrupts/gpe22:       0    invalid
+/sys/firmware/acpi/interrupts/gpe23:       0    invalid
+/sys/firmware/acpi/interrupts/gpe24:       0    invalid
+/sys/firmware/acpi/interrupts/gpe25:       0    invalid
+/sys/firmware/acpi/interrupts/gpe26:       0    invalid
+/sys/firmware/acpi/interrupts/gpe27:       0    invalid
+/sys/firmware/acpi/interrupts/gpe28:       0    invalid
+/sys/firmware/acpi/interrupts/gpe29:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2A:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2B:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2C:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2D:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2E:       0    invalid
+/sys/firmware/acpi/interrupts/gpe2F:       0    invalid
+/sys/firmware/acpi/interrupts/gpe30:       0    invalid
+/sys/firmware/acpi/interrupts/gpe31:       0    invalid
+/sys/firmware/acpi/interrupts/gpe32:       0    invalid
+/sys/firmware/acpi/interrupts/gpe33:       0    invalid
+/sys/firmware/acpi/interrupts/gpe34:       0    invalid
+/sys/firmware/acpi/interrupts/gpe35:       0    invalid
+/sys/firmware/acpi/interrupts/gpe36:       0    invalid
+/sys/firmware/acpi/interrupts/gpe37:       0    invalid
+/sys/firmware/acpi/interrupts/gpe38:       0    invalid
+/sys/firmware/acpi/interrupts/gpe39:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3A:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3B:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3C:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3D:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3E:       0    invalid
+/sys/firmware/acpi/interrupts/gpe3F:       0    invalid
+/sys/firmware/acpi/interrupts/gpe_all:       0
+/sys/firmware/acpi/interrupts/sci:       0
+/sys/firmware/acpi/interrupts/sci_not:       0
 
-> 
-> 
-> regards
->    Mario
+>>> what do you see with
+>>> grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*
+>>>
+>>>        
+ls /sys/devices/system/cpu/cpu0/
+cache  crash_notes  node0  thermal_throttle  topology
+
+no cpuidle dir.
+grep . /sys/devices/system/cpu/cpuidle/*
+/sys/devices/system/cpu/cpuidle/current_driver:acpi_idle
+/sys/devices/system/cpu/cpuidle/current_governor_ro:ladder
+
+>>> and if there are IO states, any change if you boot with "idle=halt" or
+>>> "idle=mwait"?
+>>>        
+>    
+>> I can try to reproduce this again but it will take some time.
+>>
+>> For now the solution for me was:
+>>
+>> Change configuration for this host and boot with processor.max_cstate=0
+>>      
+> likely it will come back when you remove processor.max_cstate=0,
+> and it will go away if you use either idle=halt or idle=mwait or
+> processor.max_cstate=1, which are effectively the same.
+> (and all preferable to processor.max_cstate-0 from a power
+> saving point of view)
+>
+> If this is true, then you should try processor.max_cstate=N
+> where N is 2, 3 etc, depending on the states shown in the
+> cpuidle grep above.
+>
+> If you open a bugzilla and attach the output from acpidump,
+> that may also be helpful.  If this is due to c-states, the question
+> is if for some reason we are not using them optimally.
+> If we already are doing what the platform allows, the
+> route might be to use PM_QOS to disable states that
+> are too expensive.
+> (Documentation/power/pm_qos_interface.txt)
+>
+> cheers,
+> Len Brown, Intel Open Source Technology Center.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>    
 
