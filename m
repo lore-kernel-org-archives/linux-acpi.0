@@ -1,128 +1,90 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: Re: [PATCH] fix BUG using smp_processor_id() in touch_nmi_watchdog
- and touch_softlockup_watchdog
-Date: Fri, 20 Aug 2010 23:02:31 +0800
-Message-ID: <20100820150231.GA8628@zhy>
-References: <AANLkTikdng247Fct0ANXiitC3ja98_ee3-fUVDGraEwo@mail.gmail.com>
- <20100817083945.GA12022@swordfish.minsk.epam.com>
- <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
- <20100817092407.GB12022@swordfish.minsk.epam.com>
- <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
- <20100817103948.GA5352@swordfish.minsk.epam.com>
- <20100817131320.GX4879@redhat.com>
- <20100818024802.GA24748@nowhere>
- <20100818130156.43a183d9.akpm@linux-foundation.org>
- <20100820025749.GB4879@redhat.com>
-Reply-To: Yong Zhang <yong.zhang0@gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong checking
+ of Serialization Header's length
+Date: Fri, 20 Aug 2010 12:26:05 -0700
+Message-ID: <4C6ED6CD.4010002@kernel.org>
+References: <4C69DDB5.6060103@np.css.fujitsu.com>	 <1282008836.2744.1490.camel@yhuang-dev>	 <4C69F094.1040607@np.css.fujitsu.com>	 <1282015344.2744.1500.camel@yhuang-dev> <4C6A139D.20507@np.css.fujitsu.com> <1282109696.2744.1553.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:41695 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200Ab0HTPCl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Aug 2010 11:02:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20100820025749.GB4879@redhat.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:28552 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050Ab0HTT1Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Aug 2010 15:27:24 -0400
+In-Reply-To: <1282109696.2744.1553.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Don Zickus <dzickus@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-On Thu, Aug 19, 2010 at 10:57:49PM -0400, Don Zickus wrote:
-> On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
-> > The surprise new requirement that touch_nmi_watchdog() be called from
-> > non-preemptible code does seem to make sense IMO.  It's hard to see why
-> > anyone would be touching the watchdog unless he's spinning in irqs-off
-> > code.  Except, of course, when we have a utility function which can be
-> > called from wither irqs-on or irqs-off: acpi_os_stall().
-> > 
-> > That being said, it's not good to introduce new API requirements by
-> > accident!  An audit of all callers should first be performed, at least.
-> > 
-> > 
-> > The surprise new requirement that touch_softlockup_watchdog() be called
-> > from non-preemptible code doesn't make sense IMO.  If I have a piece of
-> > code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
-> > for three minutes waiting for my egg to boil, I should be able to do
-> > that and I should be able to touch the softlockup detector without
-> > needing to go non-preemptible.
+On 08/17/2010 10:34 PM, Huang Ying wrote:
+> On Tue, 2010-08-17 at 12:44 +0800, Jin Dongming wrote:
+>> (2010/08/17 12:22), Huang Ying wrote:
+>>> On Tue, 2010-08-17 at 10:14 +0800, Jin Dongming wrote:
+>>>>> I don't think it is necessary to change the header definition, and
+>>>>> seri_header is not a good name for me.
+>>>> Why I added this structure here is that I don't want to do following checking.
+>>>> For example,
+>>>> 	if (header_length != 0x0c) {
+>>>> 		...
+>>>> 	}
+>>>
+>>> This can be:
+>>>
+>>>  static int erst_check_table(struct acpi_table_erst *erst_tab)
+>>>  {
+>>> -       if (erst_tab->header_length != sizeof(struct acpi_table_erst))
+>>> +       if (erst_tab->header_length !=
+>>> +           (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+>>>
+>>> like Yinghai has been done.
+>>>
+>> Yes. It looks good. And I am sorry I am unaware of Yinghai' patch. 
 > 
-> Ok, so here is my patch that syncs the touch_*_watchdog back in line with
-> the old semantics.  Hopefully this will undo any harm I caused.
+> Maybe you can help push this fix in, it seems that Yinghai is busy on
+> something else?
 > 
-> ------------cut -->---------------------------
+> Hi, Yinghai,
 > 
-> >From b372e821c804982438db090db6b4a2f753c78091 Mon Sep 17 00:00:00 2001
-> From: Don Zickus <dzickus@redhat.com>
-> Date: Thu, 19 Aug 2010 22:48:26 -0400
-> Subject: [PATCH] [lockup detector] sync touch_*_watchdog back to old semantics
+> Do you mind for Dongming to push this fix?
 > 
-> During my rewrite, the semantics of touch_nmi_watchdog and
-> touch_softlockup_watchdog changed enough to break some drivers
-> (mostly over preemptable regions).
-> 
-> This change brings those touch_*_watchdog functions back in line
-> to how they used to work.
+do you mean this one?
 
-This one looks good to me.
-Thank you Don.
+[PATCH] acpi: fix apei related table size checking
 
--Yong
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
-> 
-> Signed-off-by: Don Zickus <dzickus@redhat.com>
-> ---
->  kernel/watchdog.c |   17 ++++++++++++-----
->  1 files changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> index 613bc1f..99e35a2 100644
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -122,7 +122,7 @@ static void __touch_watchdog(void)
->  
->  void touch_softlockup_watchdog(void)
->  {
-> -	__get_cpu_var(watchdog_touch_ts) = 0;
-> +	__raw_get_cpu_var(watchdog_touch_ts) = 0;
->  }
->  EXPORT_SYMBOL(touch_softlockup_watchdog);
->  
-> @@ -142,7 +142,14 @@ void touch_all_softlockup_watchdogs(void)
->  #ifdef CONFIG_HARDLOCKUP_DETECTOR
->  void touch_nmi_watchdog(void)
->  {
-> -	__get_cpu_var(watchdog_nmi_touch) = true;
-> +	if (watchdog_enabled) {
-> +		unsigned cpu;
-> +
-> +		for_each_present_cpu(cpu) {
-> +			if (per_cpu(watchdog_nmi_touch, cpu) != true)
-> +				per_cpu(watchdog_nmi_touch, cpu) = true;
-> +		}
-> +	}
->  	touch_softlockup_watchdog();
->  }
->  EXPORT_SYMBOL(touch_nmi_watchdog);
-> @@ -430,6 +437,9 @@ static int watchdog_enable(int cpu)
->  		wake_up_process(p);
->  	}
->  
-> +	/* if any cpu succeeds, watchdog is considered enabled for the system */
-> +	watchdog_enabled = 1;
-> +
->  	return 0;
->  }
->  
-> @@ -452,9 +462,6 @@ static void watchdog_disable(int cpu)
->  		per_cpu(softlockup_watchdog, cpu) = NULL;
->  		kthread_stop(p);
->  	}
-> -
-> -	/* if any cpu succeeds, watchdog is considered enabled for the system */
-> -	watchdog_enabled = 1;
->  }
->  
->  static void watchdog_enable_all_cpus(void)
-> -- 
-> 1.7.2.1
+---
+ drivers/acpi/apei/einj.c |    3 ++-
+ drivers/acpi/apei/erst.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/apei/einj.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/apei/einj.c
++++ linux-2.6/drivers/acpi/apei/einj.c
+@@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fop
+ 
+ static int einj_check_table(struct acpi_table_einj *einj_tab)
+ {
+-	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
++	if (einj_tab->header_length !=
++	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
+ 		return -EINVAL;
+ 	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
+ 		return -EINVAL;
+Index: linux-2.6/drivers/acpi/apei/erst.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/apei/erst.c
++++ linux-2.6/drivers/acpi/apei/erst.c
+@@ -750,7 +750,8 @@ __setup("erst_disable", setup_erst_disab
+ 
+ static int erst_check_table(struct acpi_table_erst *erst_tab)
+ {
+-	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
++	if (erst_tab->header_length !=
++	    (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+ 		return -EINVAL;
+ 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+ 		return -EINVAL;
