@@ -1,75 +1,140 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: System time drifts when processor idle.
-Date: Fri, 20 Aug 2010 10:55:07 +0200
-Message-ID: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
+From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
+ rf/camera power
+Date: Fri, 20 Aug 2010 11:08:24 +0200
+Message-ID: <20100820090824.GA23186@darkside.kls.lan>
+References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
+ <1282127719.2747.211.camel@localhost>
+ <20100818155128.GA24363@darkside.kls.lan>
+ <4C6CA31D.6030407@canonical.com>
+ <20100819193146.GB32665@darkside.kls.lan>
+ <4C6E2833.6080407@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:36533 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab0HTIzK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Aug 2010 04:55:10 -0400
-Received: by vws3 with SMTP id 3so2821364vws.19
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Aug 2010 01:55:09 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4C6E2833.6080407@canonical.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
 
-Please correct me if I am sending this to the wrong list.
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I would like to debug the following issue, which I suspect is related
-to cpu losing track of time when going idle.
+On Fri, Aug 20, 2010 at 03:01:07PM +0800, Ike Panhc wrote:
+> Could you attach or upload the DSDT of S12 somewhere I can reach?
 
-When I run the following script :
+http://sandbox.fem.tu-ilmenau.de/s12/dsdt-s12-via.dsl
 
-#!/bin/bash
-# set hwclock to system clock to start
-# the log file with the same time
-hwclock -w
-#start with a fresh logfile
-touch clocktest.log
-echo START > clocktest.log
-while [[ true ]]
-do
-    systime=$(date)
-    hwtime=$(hwclock -r)
-    echo "$systime | $hwtime" >> clocktest.log
-    sleep 20
-done
+> I check DSDT for S10-3 and B550, return value of _CFG is fixed.
+> [Ref: http://people.ubuntu.com/~ikepanhc/DSDTs]
 
-Expected output :
-On each line, the system time (left) and hardware time (right)
-should be roughly the same. Time delta between each line should be
-around 20 seconds
+Looks more fixed than on my S12, indeed.
+I don't really speak AML, but while S10-3 ILDD (called from _CFG) seems
+to read fixed values only, here on S12 PHSR (called from _CFG) seems to
+do some kind of I/O operation. I'm not sure about this, but it somehow
+looks like.
 
-Observed output :
-This is an edited version of the real logfile  so that it fits on one
-line. the date was removed.
-START
-15:09:43 (UTC+0200) |  15:09:44 CEST -0.500555 secondes
-15:10:04 (UTC+0200) |  15:10:05 CEST -1.001562 secondes
-15:10:25 (UTC+0200) |  15:10:26 CEST -0.985944 secondes
-15:10:46 (UTC+0200) |  15:15:46 CEST -0.032792 secondes <-- 5 minute lag !
-15:11:06 (UTC+0200) |  15:16:07 CEST -0.985926 secondes
-15:11:27 (UTC+0200) |  15:16:28 CEST -1.001539 secondes
-15:11:48 (UTC+0200) |  15:16:49 CEST -0.985969 secondes
-15:12:09 (UTC+0200) |  15:17:10 CEST -0.985977 secondes
-15:12:30 (UTC+0200) |  15:17:31 CEST -1.001544 secondes
-15:12:51 (UTC+0200) |  15:17:52 CEST -0.985920 secondes
-15:13:12 (UTC+0200) |  15:18:13 CEST -0.985939 secondes
-15:13:33 (UTC+0200) |  15:18:34 CEST -1.001581 secondes
-15:13:54 (UTC+0200) |  15:18:55 CEST -0.985917 secondes
-15:14:15 (UTC+0200) |  15:29:15 CEST -0.079685 secondes <-- add
-another 10 minute
-15:14:35 (UTC+0200) |  15:29:36 CEST -1.001568 secondes
-15:14:56 (UTC+0200) |  15:29:57 CEST -0.985952 secondes
+> On 08/20/2010 03:31 AM, Mario 'BitKoenig' Holbe wrote:
+> > Once the cfgbit is 0xc0000 it's stable, i.e. modprobe -r ideapad-laptop;
+> > modprobe ideapad-laptop doesn't change anything.
+> sounds like we need an exception handle for detecting camera
 
-As you can see, after 20 minutes without touching the computer, the
-system time is late by 15 minutes.
-This was tested on ubuntu 10.04 with a 2.6.32  "vanilla" kernel where
-"vanilla" means ubuntu packaged
-upstream kernel  closest to the distribution shipped kernel.
+Why? The camera is always detected - bit 19 is always set, 0xc0000 and
+0xd0000 only differ in bit 16. Bit 19 btw. seems to be the only fixed
+bit in S12-VIA _CFG :)
 
-How can I debug and possibly fix this issue ?
+> > [  682.260288] ideapad_acpi_add(): cfg=3D0xc0000
+> As I know the cfgbit for lower 16bit shall not be all zero.
+
+Mh, judging from S12-VIA _CFG they definitely are zero here.
+
+> > So, forcing the existence of the killswitch enables the bluetooth
+> > device. I'm also able to switch if off again - the bluetooth device
+> > disappears. Trying to switch it back on then fails - the bluetooth
+> > device does not appear again. But this case doesn't work all that well
+> > anyways even with cfgbit 0xd0000:
+> bluetooth device shall disappear after disable from EC. But if can not be=
+ enabled
+> again, ahh.....
+
+> > [  155.628052] usb 4-1: new full speed USB device using uhci_hcd and ad=
+dress 4
+> > [  170.740049] usb 4-1: device descriptor read/64, error -110
+> > [  185.956033] usb 4-1: device descriptor read/64, error -110
+> This looks like the device is power up, but usb host unable to recognize..
+
+The bluetooth device seems not to initialize well enough to answer (110
+is ETIMEDOUT).
+
+> > Sometimes it doesn't even come back at all on unblock. Seems like the
+> > bluetooth device doesn't really like to be powered off and on that way.
+> did you see any kernel message said timeout when it does not come back at=
+ all?
+
+No, when I said "does not appear again" and "it does not come back at
+all" I meant I see not a single message in dmesg about anything
+happening.
+
+> If the rfkill for the whole bluetooth module makes trouble, I prefer not =
+to
+> do it. User will feel confused if the device does not come back and the
+> rfkill of hci0 offers the function user need.
+
+Hmmm, maybe provide a module parm to block rfkill devices and default it
+to 1 on S12? Users would not need to care too much then but can change
+it if they like...
+
+> > Please let me know if I can provide more testing - and what kind of :)
+
+Okay, did some more...
+
+I played with the hardware killswitch under Linux. The bluetooth device
+disappears and re-appears there and always seems to initialize
+correctly. No USB read errors this way.
+
+I also played with the soft killswitch under Windows. The bluetooth
+device disappears from device manager and re-appears on unblock
+(together with the Windows device plug sounds). This looks to me like
+the ACPI killswitch is used for it.
+No initialization-problems here, the device always comes back fully
+operational. So, Windows doesn't seem to suffer from a bad
+initialization.
+
+I'm not exactly sure what this means - especially because I don't know
+how the hardware killswitch works internally.
+It *could* mean, the initialization problem is proably something that
+could be dealt with in the USB layer long term (and would then probably
+not have to be worked around anymore in ideapad_laptop). I'm not sure
+about this, because this would mean the hard killswitch power-cut
+somehow differs from the soft killswitch power-cut.
+
+
+Mario
+--=20
+As a rule, the more bizarre a thing is, the less mysterious it proves to be.
+                                    -- Sherlock Holmes by Arthur Conan Doyle
+
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEUAwUBTG5GCBS+e2HeSPbpAQKD2Af4nJEK4Oi0XK9QSu9m2REcA/DB6ZBEyieU
+mXZHGgrsgSSChG7ea7N3slaY6He5KJswgc+eiqxARaipjr+UZq3Aj80/N0QYYbz/
+Gqf6Hudsu0fRNq2SPMEiNfs7K76hPWYsCUvyquw5DF5ZEm9gHePJqHIi80O/isbQ
+NqEQB3q6iosh3VQTmkBbBkSKvY6MTGHUQB4pNig49Mxt/s2ulVahzqHzZyhZJQKc
+8GAuRP3fEPtllRhhFlbM7yjpWY5OjxH4xJoFNyH6e38R6T+Gal7CaAiBww9NH7Nd
+SupkQsapFmg//Dpsh69ht2YZ92OH1Mjz1PgnoVLF1k+LYKJz/SiL
+=gStn
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
