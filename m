@@ -1,90 +1,55 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong checking
- of Serialization Header's length
-Date: Fri, 20 Aug 2010 12:26:05 -0700
-Message-ID: <4C6ED6CD.4010002@kernel.org>
-References: <4C69DDB5.6060103@np.css.fujitsu.com>	 <1282008836.2744.1490.camel@yhuang-dev>	 <4C69F094.1040607@np.css.fujitsu.com>	 <1282015344.2744.1500.camel@yhuang-dev> <4C6A139D.20507@np.css.fujitsu.com> <1282109696.2744.1553.camel@yhuang-dev>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Fan runs full speed after S3 sometimes (regression)
+Date: Sat, 21 Aug 2010 01:30:03 +0200
+Message-ID: <201008210130.03280.rjw@sisk.pl>
+References: <4C613619.30309@gmail.com> <20100820063107.GB1607@ucw.cz> <4C6E233A.5000209@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:28552 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab0HTT1Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Aug 2010 15:27:24 -0400
-In-Reply-To: <1282109696.2744.1553.camel@yhuang-dev>
+Received: from ogre.sisk.pl ([217.79.144.158]:59376 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751003Ab0HTXbC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Aug 2010 19:31:02 -0400
+In-Reply-To: <4C6E233A.5000209@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 08/17/2010 10:34 PM, Huang Ying wrote:
-> On Tue, 2010-08-17 at 12:44 +0800, Jin Dongming wrote:
->> (2010/08/17 12:22), Huang Ying wrote:
->>> On Tue, 2010-08-17 at 10:14 +0800, Jin Dongming wrote:
->>>>> I don't think it is necessary to change the header definition, and
->>>>> seri_header is not a good name for me.
->>>> Why I added this structure here is that I don't want to do following checking.
->>>> For example,
->>>> 	if (header_length != 0x0c) {
->>>> 		...
->>>> 	}
->>>
->>> This can be:
->>>
->>>  static int erst_check_table(struct acpi_table_erst *erst_tab)
->>>  {
->>> -       if (erst_tab->header_length != sizeof(struct acpi_table_erst))
->>> +       if (erst_tab->header_length !=
->>> +           (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
->>>
->>> like Yinghai has been done.
->>>
->> Yes. It looks good. And I am sorry I am unaware of Yinghai' patch. 
+On Friday, August 20, 2010, Jiri Slaby wrote:
+> On 08/20/2010 08:31 AM, Pavel Machek wrote:
+> > On Tue 2010-08-10 20:39:44, Jiri Slaby wrote:
+> >> On 08/10/2010 01:20 PM, Jiri Slaby wrote:
+> >>> Hi,
+> >>>
+> >>> till I was running on 2.6.34-rc5-mm1 (mmotm) and earlier everything was
+> >>> fine. Now, I'm running 2.6.35-rc6-mm1 (.35-rc5-mm1 was the same) and
+> >>> sometimes when the computer (desktop) returns from S3, the CPU fan is
+> >>> running at full speed making a big noise.
+> >>
+> >> Just to add, full power cycle is needed to get rid of that. Warm reboot
+> >> is not enough.
+> > 
+> > Seems like bios problem... Update bios?
 > 
-> Maybe you can help push this fix in, it seems that Yinghai is busy on
-> something else?
+> I don't think so, it had been working for more than 2 years before this
+> issue appeared.
 > 
-> Hi, Yinghai,
+> >>> I don't know how to debug that. Bisection is out of question -- it
+> >>> happens once in 10 or 20 cases. There are no fan entries in /sys.
+> > 
+> > Well, doing 20 suspends in a row from a script should not be too bad.
 > 
-> Do you mind for Dongming to push this fix?
+> 20 is just a guess. I haven't seen it for pretty few days until the day
+> before yesterday. And it looks like CPU1 is brought up a half way. When
+> the fan was at full speed I tried:
+> echo 0 > /sys/devices/system/cpu/cpu1/online
+> and whole system freezed. Otherwise this commands succeeds.
 > 
-do you mean this one?
+> I'll load a crash kernel prior turning the CPU off next time.
 
-[PATCH] acpi: fix apei related table size checking
+You can also try to use RTC wakealarm to run suspend/resume in a tight loop.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- drivers/acpi/apei/einj.c |    3 ++-
- drivers/acpi/apei/erst.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/apei/einj.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/apei/einj.c
-+++ linux-2.6/drivers/acpi/apei/einj.c
-@@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fop
- 
- static int einj_check_table(struct acpi_table_einj *einj_tab)
- {
--	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
-+	if (einj_tab->header_length !=
-+	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
- 		return -EINVAL;
- 	if (einj_tab->header.length < sizeof(struct acpi_table_einj))
- 		return -EINVAL;
-Index: linux-2.6/drivers/acpi/apei/erst.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/apei/erst.c
-+++ linux-2.6/drivers/acpi/apei/erst.c
-@@ -750,7 +750,8 @@ __setup("erst_disable", setup_erst_disab
- 
- static int erst_check_table(struct acpi_table_erst *erst_tab)
- {
--	if (erst_tab->header_length != sizeof(struct acpi_table_erst))
-+	if (erst_tab->header_length !=
-+	    (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
- 		return -EINVAL;
- 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
- 		return -EINVAL;
+Rafael
