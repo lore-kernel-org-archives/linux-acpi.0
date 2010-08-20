@@ -1,56 +1,122 @@
-From: trapDoor <trapdoor6@gmail.com>
-Subject: Re: [REGRESSION] [SUSPEND] Opps during suspend to disk (probably also
- during to ram)
-Date: Thu, 19 Aug 2010 20:35:31 +0100
-Message-ID: <AANLkTin-rTo2Kn9Udoxb7NJQt0Fmbf8yJ1iuJMM0T3aK@mail.gmail.com>
-References: <201008182102.03201.maciej.rutecki@gmail.com>
-	<AANLkTik3S91w+92rz-KdHd_U=yfuSPbDWWhD_Vu_rDR9@mail.gmail.com>
-	<AANLkTik4=_3wSNpkfqssWsmG_yCYOPFsA-cMDBaVU4BB@mail.gmail.com>
-	<201008191707.52057.maciej.rutecki@gmail.com>
-Reply-To: trapdoor6@gmail.com
+From: Don Zickus <dzickus@redhat.com>
+Subject: Re: [PATCH] fix BUG using smp_processor_id() in touch_nmi_watchdog
+ and touch_softlockup_watchdog
+Date: Thu, 19 Aug 2010 22:57:49 -0400
+Message-ID: <20100820025749.GB4879@redhat.com>
+References: <20100817025954.GA12366@nowhere>
+ <AANLkTikdng247Fct0ANXiitC3ja98_ee3-fUVDGraEwo@mail.gmail.com>
+ <20100817083945.GA12022@swordfish.minsk.epam.com>
+ <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
+ <20100817092407.GB12022@swordfish.minsk.epam.com>
+ <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
+ <20100817103948.GA5352@swordfish.minsk.epam.com>
+ <20100817131320.GX4879@redhat.com>
+ <20100818024802.GA24748@nowhere>
+ <20100818130156.43a183d9.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49231 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333Ab0HSTfe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Aug 2010 15:35:34 -0400
-In-Reply-To: <201008191707.52057.maciej.rutecki@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:18709 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751242Ab0HTC6n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Aug 2010 22:58:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20100818130156.43a183d9.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: maciej.rutecki@gmail.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Yong Zhang <yong.zhang0@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>
 
-On Thu, Aug 19, 2010 at 4:07 PM, Maciej Rutecki
-<maciej.rutecki@gmail.com> wrote:
-> On =C5=9Broda, 18 sierpnia 2010 o 23:27:14 trapDoor wrote:
->
->>
->> Maciej,
->> Just FYI I have updated the bugzilla entry
->> (https://bugzilla.kernel.org/show_bug.cgi?id=3D16615) with relevant
->> details.
->
-> Patch works also on my machine, but I found another problem [1].
->
-> Thanks!
-> --
-> Maciej Rutecki
-> http://www.maciek.unixy.pl
->
-> [1] https://bugzilla.kernel.org/show_bug.cgi?id=3D16629
->
+On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
+> The surprise new requirement that touch_nmi_watchdog() be called from
+> non-preemptible code does seem to make sense IMO.  It's hard to see why
+> anyone would be touching the watchdog unless he's spinning in irqs-off
+> code.  Except, of course, when we have a utility function which can be
+> called from wither irqs-on or irqs-off: acpi_os_stall().
+> 
+> That being said, it's not good to introduce new API requirements by
+> accident!  An audit of all callers should first be performed, at least.
+> 
+> 
+> The surprise new requirement that touch_softlockup_watchdog() be called
+> from non-preemptible code doesn't make sense IMO.  If I have a piece of
+> code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
+> for three minutes waiting for my egg to boil, I should be able to do
+> that and I should be able to touch the softlockup detector without
+> needing to go non-preemptible.
 
-Just FYI, regarding the suspend issue, that HID patch was included in
-yesterday's pull request [http://lkml.org/lkml/2010/8/18/225] and it's
-upstream now ..
+Ok, so here is my patch that syncs the touch_*_watchdog back in line with
+the old semantics.  Hopefully this will undo any harm I caused.
 
---=20
-Regards
-Tomasz B.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+------------cut -->---------------------------
+
+>From b372e821c804982438db090db6b4a2f753c78091 Mon Sep 17 00:00:00 2001
+From: Don Zickus <dzickus@redhat.com>
+Date: Thu, 19 Aug 2010 22:48:26 -0400
+Subject: [PATCH] [lockup detector] sync touch_*_watchdog back to old semantics
+
+During my rewrite, the semantics of touch_nmi_watchdog and
+touch_softlockup_watchdog changed enough to break some drivers
+(mostly over preemptable regions).
+
+This change brings those touch_*_watchdog functions back in line
+to how they used to work.
+
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+---
+ kernel/watchdog.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 613bc1f..99e35a2 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -122,7 +122,7 @@ static void __touch_watchdog(void)
+ 
+ void touch_softlockup_watchdog(void)
+ {
+-	__get_cpu_var(watchdog_touch_ts) = 0;
++	__raw_get_cpu_var(watchdog_touch_ts) = 0;
+ }
+ EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 
+@@ -142,7 +142,14 @@ void touch_all_softlockup_watchdogs(void)
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ void touch_nmi_watchdog(void)
+ {
+-	__get_cpu_var(watchdog_nmi_touch) = true;
++	if (watchdog_enabled) {
++		unsigned cpu;
++
++		for_each_present_cpu(cpu) {
++			if (per_cpu(watchdog_nmi_touch, cpu) != true)
++				per_cpu(watchdog_nmi_touch, cpu) = true;
++		}
++	}
+ 	touch_softlockup_watchdog();
+ }
+ EXPORT_SYMBOL(touch_nmi_watchdog);
+@@ -430,6 +437,9 @@ static int watchdog_enable(int cpu)
+ 		wake_up_process(p);
+ 	}
+ 
++	/* if any cpu succeeds, watchdog is considered enabled for the system */
++	watchdog_enabled = 1;
++
+ 	return 0;
+ }
+ 
+@@ -452,9 +462,6 @@ static void watchdog_disable(int cpu)
+ 		per_cpu(softlockup_watchdog, cpu) = NULL;
+ 		kthread_stop(p);
+ 	}
+-
+-	/* if any cpu succeeds, watchdog is considered enabled for the system */
+-	watchdog_enabled = 1;
+ }
+ 
+ static void watchdog_enable_all_cpus(void)
+-- 
+1.7.2.1
+
+
