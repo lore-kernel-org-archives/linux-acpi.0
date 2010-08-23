@@ -1,27 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Add intel drm blacklist to intel_opregion_present
-	detect
-Date: Mon, 23 Aug 2010 18:51:18 +0100
-Message-ID: <20100823175118.GA28319@srcf.ucam.org>
-References: <1282563648-21935-1-git-send-email-jlee@novell.com> <20100823114938.GA19879@srcf.ucam.org> <201008231953.22459.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201008231953.22459.trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-kernel@vger.kernel.org, gregkh@suse.de, jlee@novell.com, Dennis.Jansen@web.de, linux-acpi@vger.kernel.org
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] ACPI: Don't report current_now if battery reports in mWh
+Date: Mon, 23 Aug 2010 16:25:32 -0400
+Message-ID: <1282595132-5026-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:16555 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752155Ab0HWU0X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Aug 2010 16:26:23 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, cbou@mail.ru, dwmw2@infradead.org, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>, Arjan van de Ven <arjan@linux.intel.com>
 
-On Mon, Aug 23, 2010 at 07:53:21PM +0200, Thomas Renninger wrote:
+ACPI batteries can report in units of either current or energy. Right
+now we expose the current_now file even if the battery is reporting
+energy units, resulting in a file that should contain mA instead
+containing mW. Don't expose this value unless the battery is reporting
+current.
 
-> Hm, needing a module option to get a system running is not what the user expects.
-> By default, the system should run fine and a module option should be added
-> as a workaround or for debugging only.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+---
+ drivers/acpi/battery.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-How about we do this instead: add a psb stub driver that does nothing 
-other than call acpi_backlight_register()?
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index dc58402..9841720 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -273,7 +273,6 @@ static enum power_supply_property energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_CYCLE_COUNT,
+ 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+ 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+-	POWER_SUPPLY_PROP_CURRENT_NOW,
+ 	POWER_SUPPLY_PROP_POWER_NOW,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL,
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.7.2.1
+
