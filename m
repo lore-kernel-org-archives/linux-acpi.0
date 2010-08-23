@@ -1,142 +1,111 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Updated changelog][PATCH 5/10] ACPI / PCI: Do not preserve _OSC control bits returned by a query (v4)
-Date: Mon, 23 Aug 2010 23:55:59 +0200
-Message-ID: <201008232356.00066.rjw@sisk.pl>
-References: <201008060303.51224.rjw@sisk.pl> <201008210149.39576.rjw@sisk.pl> <201008210154.41507.rjw@sisk.pl>
+From: john stultz <johnstul@us.ibm.com>
+Subject: Re: System time drifts when processor idle.
+Date: Mon, 23 Aug 2010 15:17:39 -0700
+Message-ID: <AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
+References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
+	<AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
+	<AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201008210154.41507.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-pci@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:57871 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754824Ab0HWWRk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Aug 2010 18:17:40 -0400
+In-Reply-To: <AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: Lin Ming <lin@ming.vg>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Saturday, August 21, 2010, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> There is the assumption in acpi_pci_osc_control_set() that it is
-> always sufficient to compare the mask of _OSC control bits to be
-> requested with the result of an _OSC query where all of the known
-> control bits have been checked.  However, in general, that need not
-> be the case.  For example, if an _OSC feature A depends on an _OSC
-> feature B and control of A, B plus another _OSC feature C is
-> requested simultaneously, the BIOS may return A, B, C, while it would
-> only return C if A and C were requested without B.
-> 
-> That may result in passing a wrong mask of _OSC control bits to an
-> _OSC control request, in which case the BIOS may only grant control
-> of a subset of the requested features.  Moreover, acpi_pci_run_osc()
-> will return error code if that happens and the caller of
-> acpi_pci_osc_control_set() will not know that it's been granted
-> control of some _OSC features.  Consequently, the system will
-> generally not work as expected.
-> 
-> For this reason, make acpi_pci_osc_control_set() always check if
-> control of the requested _OSC features will be granted before making
-> the final control request.  As a result, the osc_control_qry and
-> osc_queried members of struct acpi_pci_root are not necessary any
-> more, so drop them and remove the remaining code referring to them.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+On Mon, Aug 23, 2010 at 1:46 AM, jean-philippe francois
+<jp.francois@cynove.com> wrote:
+> 2010/8/21 Lin Ming <lin@ming.vg>:
+>> On Fri, Aug 20, 2010 at 8:55 AM, jean-philippe francois
+>> <jp.francois@cynove.com> wrote:
+>>> Hi,
+>>>
+>>> Please correct me if I am sending this to the wrong list.
+>>
+>> LKML is better for this issue. Added.
+>>
+>
+> Thank you. I have been looking at the ML archives, and it seems there
+> has been issue related to timekeeping lately. So I tested my script
+> with a decently recent kernel : 2.6.36-rc1.
+>
+> The timekeeping bug described below still exists.
+>>>
+>>> I would like to debug the following issue, which I suspect is relat=
+ed
+>>> to cpu losing track of time when going idle.
+>>>
+>>> When I run the following script :
+>>>
+>>> #!/bin/bash
+>>> # set hwclock to system clock to start
+>>> # the log file with the same time
+>>> hwclock -w
+>>> #start with a fresh logfile
+>>> touch clocktest.log
+>>> echo START > clocktest.log
+>>> while [[ true ]]
+>>> do
+>>> =A0 =A0systime=3D$(date)
+>>> =A0 =A0hwtime=3D$(hwclock -r)
+>>> =A0 =A0echo "$systime | $hwtime" >> clocktest.log
+>>> =A0 =A0sleep 20
+>>> done
+>>>
+>>> Expected output :
+>>> On each line, the system time (left) and hardware time (right)
+>>> should be roughly the same. Time delta between each line should be
+>>> around 20 seconds
+>>>
+>>> Observed output :
+>>> This is an edited version of the real logfile =A0so that it fits on=
+ one
+>>> line. the date was removed.
+>>> START
+>>> 15:09:43 (UTC+0200) | =A015:09:44 CEST -0.500555 secondes
+>>> 15:10:04 (UTC+0200) | =A015:10:05 CEST -1.001562 secondes
+>>> 15:10:25 (UTC+0200) | =A015:10:26 CEST -0.985944 secondes
+>>> 15:10:46 (UTC+0200) | =A015:15:46 CEST -0.032792 secondes <-- 5 min=
+ute lag !
+>>> 15:11:06 (UTC+0200) | =A015:16:07 CEST -0.985926 secondes
+>>> 15:11:27 (UTC+0200) | =A015:16:28 CEST -1.001539 secondes
+>>> 15:11:48 (UTC+0200) | =A015:16:49 CEST -0.985969 secondes
+>>> 15:12:09 (UTC+0200) | =A015:17:10 CEST -0.985977 secondes
+>>> 15:12:30 (UTC+0200) | =A015:17:31 CEST -1.001544 secondes
+>>> 15:12:51 (UTC+0200) | =A015:17:52 CEST -0.985920 secondes
+>>> 15:13:12 (UTC+0200) | =A015:18:13 CEST -0.985939 secondes
+>>> 15:13:33 (UTC+0200) | =A015:18:34 CEST -1.001581 secondes
+>>> 15:13:54 (UTC+0200) | =A015:18:55 CEST -0.985917 secondes
+>>> 15:14:15 (UTC+0200) | =A015:29:15 CEST -0.079685 secondes <-- add
+>>> another 10 minute
+>>> 15:14:35 (UTC+0200) | =A015:29:36 CEST -1.001568 secondes
+>>> 15:14:56 (UTC+0200) | =A015:29:57 CEST -0.985952 secondes
+>>>
+>>> As you can see, after 20 minutes without touching the computer, the
+>>> system time is late by 15 minutes.
+>>> This was tested on ubuntu 10.04 with a 2.6.32 =A0"vanilla" kernel w=
+here
+>>> "vanilla" means ubuntu packaged
+>>> upstream kernel =A0closest to the distribution shipped kernel.
 
-I have a new version of the changelog due to a discovery I made while testing
-the patchset, but the patch is not too big, so appended is the entire thing.
+Could you provide the output of:
+cat /sys/devices/system/clocksource/clocksource0/available_clocksource
+cat /sys/devices/system/clocksource/clocksource0/current_clocksource
 
-Thanks,
-Rafael
+I assume you're using the TSC, and hitting the halt-in-c3 issue, but
+I'm curious why the clocksource watchdog isn't catching this and
+dropping you back to a more stable clocksource.
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / PCI: Do not preserve _OSC control bits returned by a query (v4)
-
-There is the assumption in acpi_pci_osc_control_set() that it is
-always sufficient to compare the mask of _OSC control bits to be
-requested with the result of an _OSC query where all of the known
-control bits have been checked.  However, in general, that need not
-be the case.  For example, if an _OSC feature A depends on an _OSC
-feature B and control of A, B plus another _OSC feature C is
-requested simultaneously, the BIOS may return A, B, C, while it would
-only return C if A and C were requested without B.
-
-That may result in passing a wrong mask of _OSC control bits to an
-_OSC control request, in which case the BIOS may only grant control
-of a subset of the requested features.  Moreover, acpi_pci_run_osc()
-will return error code if that happens and the caller of
-acpi_pci_osc_control_set() will not know that it's been granted
-control of some _OSC features.  Consequently, the system will
-generally not work as expected.
-
-Apart from this acpi_pci_osc_control_set() always uses the mask
-of _OSC control bits returned by the very first invocation of
-acpi_pci_query_osc(), but that is done with the second argument
-equal to OSC_PCI_SEGMENT_GROUPS_SUPPORT which generally happens
-to affect the returned _OSC control bits.
-
-For these reasons, make acpi_pci_osc_control_set() always check if
-control of the requested _OSC features will be granted before making
-the final control request.  As a result, the osc_control_qry and
-osc_queried members of struct acpi_pci_root are not necessary any
-more, so drop them and remove the remaining code referring to them.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/pci_root.c |   20 +++++++-------------
- include/acpi/acpi_bus.h |    3 ---
- 2 files changed, 7 insertions(+), 16 deletions(-)
-
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -249,12 +249,8 @@ static acpi_status acpi_pci_query_osc(st
- 	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
- 	if (ACPI_SUCCESS(status)) {
- 		root->osc_support_set = support;
--		if (control) {
-+		if (control)
- 			*control = result;
--		} else {
--			root->osc_control_qry = result;
--			root->osc_queried = 1;
--		}
- 	}
- 	return status;
- }
-@@ -409,14 +405,12 @@ acpi_status acpi_pci_osc_control_set(acp
- 		goto out;
- 
- 	/* Need to query controls first before requesting them */
--	if (!root->osc_queried) {
--		status = acpi_pci_query_osc(root, root->osc_support_set, NULL);
--		if (ACPI_FAILURE(status))
--			goto out;
--	}
--	if ((root->osc_control_qry & control_req) != control_req) {
--		printk(KERN_DEBUG
--		       "Firmware did not grant requested _OSC control\n");
-+	flags = control_req;
-+	status = acpi_pci_query_osc(root, root->osc_support_set, &flags);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	if (flags != control_req) {
- 		status = AE_SUPPORT;
- 		goto out;
- 	}
-Index: linux-2.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -377,9 +377,6 @@ struct acpi_pci_root {
- 
- 	u32 osc_support_set;	/* _OSC state of support bits */
- 	u32 osc_control_set;	/* _OSC state of control bits */
--	u32 osc_control_qry;	/* the latest _OSC query result */
--
--	u32 osc_queried:1;	/* has _OSC control been queried? */
- };
- 
- /* helper */
+thanks
+-john
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
