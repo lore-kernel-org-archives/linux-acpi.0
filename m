@@ -1,100 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 7/10] PCI / PCIe: Ask BIOS for control of all native services at once (v7)
-Date: Sat, 21 Aug 2010 22:02:38 +0200
-Message-ID: <201008212202.39084.rjw@sisk.pl>
-References: <201008060303.51224.rjw@sisk.pl> <201008210149.39576.rjw@sisk.pl> <201008210156.45644.rjw@sisk.pl>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 1/4] [Patch-next] ACPI, APEI, ERST Fix the wrong
+ checking of Serialization Header's length
+Date: Mon, 23 Aug 2010 08:26:32 +0800
+Message-ID: <1282523192.2744.1609.camel@yhuang-dev>
+References: <4C69DDB5.6060103@np.css.fujitsu.com>
+	 <1282008836.2744.1490.camel@yhuang-dev>
+	 <4C69F094.1040607@np.css.fujitsu.com>
+	 <1282015344.2744.1500.camel@yhuang-dev> <4C6A139D.20507@np.css.fujitsu.com>
+	 <1282109696.2744.1553.camel@yhuang-dev>  <4C6ED6CD.4010002@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:32816 "EHLO ogre.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:12324 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751887Ab0HUUEU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Aug 2010 16:04:20 -0400
-In-Reply-To: <201008210156.45644.rjw@sisk.pl>
+	id S1751249Ab0HWA0f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Aug 2010 20:26:35 -0400
+In-Reply-To: <4C6ED6CD.4010002@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-pci@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg@redhat.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andi Kleen <andi@firstfloor.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-On Saturday, August 21, 2010, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Sat, 2010-08-21 at 03:26 +0800, Yinghai Lu wrote:
+> On 08/17/2010 10:34 PM, Huang Ying wrote:
+> > On Tue, 2010-08-17 at 12:44 +0800, Jin Dongming wrote:
+> >> (2010/08/17 12:22), Huang Ying wrote:
+> >>> On Tue, 2010-08-17 at 10:14 +0800, Jin Dongming wrote:
+> >>>>> I don't think it is necessary to change the header definition, and
+> >>>>> seri_header is not a good name for me.
+> >>>> Why I added this structure here is that I don't want to do following checking.
+> >>>> For example,
+> >>>> 	if (header_length != 0x0c) {
+> >>>> 		...
+> >>>> 	}
+> >>>
+> >>> This can be:
+> >>>
+> >>>  static int erst_check_table(struct acpi_table_erst *erst_tab)
+> >>>  {
+> >>> -       if (erst_tab->header_length != sizeof(struct acpi_table_erst))
+> >>> +       if (erst_tab->header_length !=
+> >>> +           (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+> >>>
+> >>> like Yinghai has been done.
+> >>>
+> >> Yes. It looks good. And I am sorry I am unaware of Yinghai' patch. 
+> > 
+> > Maybe you can help push this fix in, it seems that Yinghai is busy on
+> > something else?
+> > 
+> > Hi, Yinghai,
+> > 
+> > Do you mind for Dongming to push this fix?
+> > 
+> do you mean this one?
 > 
-> PCIe port service drivers ask the BIOS, through _OSC, for control of
-> the services they handle.  Unfortunately, each of them individually
-> asks for control of the PCIe capability structure and if that is
-> granted, some BIOSes expect that the other PCIe port services will be
-> configured and handled by the kernel as well.  If that is not the
-> case (eg. one of the PCIe port service drivers is not loaded), the
-> BIOS may be confused and may cause the system as a whole to misbehave
-> (eg. on one of such systems enabling the native PCIe PME service
-> without loading the native PCIe hot-plug service driver causes a
-> storm of ACPI notify requests to appear).
+> [PATCH] acpi: fix apei related table size checking
 > 
-> For this reason rework the PCIe port driver so that (1) it checks
-> which native PCIe port services can be enabled, according to the
-> BIOS, and (2) it requests control of all these services
-> simultaneously.  In particular, this causes pcie_portdrv_probe() to
-> fail if the BIOS refuses to grant control of the PCIe capability
-> structure, which means that no native PCIe port services can be
-> enabled for the PCIe root complex the given port belongs to.
-> 
-> Make it possible to override this behavior using 'pcie_ports=native'
-> (use the PCIe native services regardless of the BIOS response to the
-> control request), or 'pcie_ports=compat' (do not use the PCIe native
-> services at all).
-> 
-> Accordingly, rework the existing PCIe port service drivers so that
-> they don't request control of the services directly.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Huang Ying <ying.huang@intel.com>
 
-Well, yesterday I thought the old changelog would be fine, but I guess I was
-too tired, because I really should have changed it.  Below is the new
-changelong, but the patch itself is unmodified.
 
-Thanks,
-Rafael
-
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: PCI / PCIe: Ask BIOS for control of all native services at once (v7)
-
-After commit 852972acff8f10f3a15679be2059bb94916cba5d (ACPI: Disable
-ASPM if the platform won't provide _OSC control for PCIe) control of
-the PCIe Capability Structure is unconditionally requested by
-acpi_pci_root_add(), which in principle may cause problems to
-happen in two ways.  First, the BIOS may refuse to give control of
-the PCIe Capability Structure if it is not asked for any of the
-_OSC features depending on it at the same time.  Second, the BIOS may
-assume that control of the _OSC features depending on the PCIe
-Capability Structure will be requested in the future and may behave
-incorrectly if that doesn't happen.  For this reason, control of
-the PCIe Capability Structure should always be requested along with
-control of any other _OSC features that may depend on it (ie. PCIe
-native PME, PCIe native hot-plug, PCIe AER).
-
-Rework the PCIe port driver so that (1) it checks which native PCIe
-port services can be enabled, according to the BIOS, and (2) it
-requests control of all these services simultaneously.  In
-particular, this causes pcie_portdrv_probe() to fail if the BIOS
-refuses to grant control of the PCIe Capability Structure, which
-means that no native PCIe port services can be enabled for the PCIe
-Root Complex the given port belongs to.  If that happens, ASPM is
-disabled to avoid problems with mishandling it by the part of the
-PCIe hierarchy for which control of the PCIe Capability Structure
-has not been received.
-
-Make it possible to override this behavior using 'pcie_ports=native'
-(use the PCIe native services regardless of the BIOS response to the
-control request), or 'pcie_ports=compat' (do not use the PCIe native
-services at all).
-
-Accordingly, rework the existing PCIe port service drivers so that
-they don't request control of the services directly.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- 
