@@ -1,98 +1,111 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: System time drifts when processor idle.
-Date: Mon, 23 Aug 2010 10:46:03 +0200
-Message-ID: <AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
-References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
-	<AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] Add intel drm blacklist to intel_opregion_present detect
+Date: Mon, 23 Aug 2010 19:40:48 +0800
+Message-ID: <1282563648-21935-1-git-send-email-jlee@novell.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43497 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751641Ab0HWIqE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Aug 2010 04:46:04 -0400
-In-Reply-To: <AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:63646 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447Ab0HWLmh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Aug 2010 07:42:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <lin@ming.vg>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: mjg@redhat.com
+Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, jlee@novell.com, Dennis.Jansen@web.de, linux-acpi@vger.kernel.org, trenn@suse.de
 
-2010/8/21 Lin Ming <lin@ming.vg>:
-> On Fri, Aug 20, 2010 at 8:55 AM, jean-philippe francois
-> <jp.francois@cynove.com> wrote:
->> Hi,
->>
->> Please correct me if I am sending this to the wrong list.
->
-> LKML is better for this issue. Added.
->
+There have some machines not support by i915 drm driver, e.g. MSI U110/U150,
+there are use poulsbo chip and drm driver not support it because legal issue.
+Those machines's acpi backlight control actually work fine and don't need apply
+the intel opregion support.
+So, add intel drm blacklist to intel_opregion_present, it can enable the acpi
+brightness interface on Poulsbo/Morrestown.
 
-Thank you. I have been looking at the ML archives, and it seems there
-has been issue related to timekeeping lately. So I tested my script
-with a decently recent kernel : 2.6.36-rc1.
+Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+---
+ drivers/acpi/video.c    |   26 +++++++++++++++++++++++++-
+ include/linux/pci_ids.h |   10 ++++++++++
+ 2 files changed, 35 insertions(+), 1 deletions(-)
 
-The timekeeping bug described below still exists.
->>
->> I would like to debug the following issue, which I suspect is relate=
-d
->> to cpu losing track of time when going idle.
->>
->> When I run the following script :
->>
->> #!/bin/bash
->> # set hwclock to system clock to start
->> # the log file with the same time
->> hwclock -w
->> #start with a fresh logfile
->> touch clocktest.log
->> echo START > clocktest.log
->> while [[ true ]]
->> do
->> =A0 =A0systime=3D$(date)
->> =A0 =A0hwtime=3D$(hwclock -r)
->> =A0 =A0echo "$systime | $hwtime" >> clocktest.log
->> =A0 =A0sleep 20
->> done
->>
->> Expected output :
->> On each line, the system time (left) and hardware time (right)
->> should be roughly the same. Time delta between each line should be
->> around 20 seconds
->>
->> Observed output :
->> This is an edited version of the real logfile =A0so that it fits on =
-one
->> line. the date was removed.
->> START
->> 15:09:43 (UTC+0200) | =A015:09:44 CEST -0.500555 secondes
->> 15:10:04 (UTC+0200) | =A015:10:05 CEST -1.001562 secondes
->> 15:10:25 (UTC+0200) | =A015:10:26 CEST -0.985944 secondes
->> 15:10:46 (UTC+0200) | =A015:15:46 CEST -0.032792 secondes <-- 5 minu=
-te lag !
->> 15:11:06 (UTC+0200) | =A015:16:07 CEST -0.985926 secondes
->> 15:11:27 (UTC+0200) | =A015:16:28 CEST -1.001539 secondes
->> 15:11:48 (UTC+0200) | =A015:16:49 CEST -0.985969 secondes
->> 15:12:09 (UTC+0200) | =A015:17:10 CEST -0.985977 secondes
->> 15:12:30 (UTC+0200) | =A015:17:31 CEST -1.001544 secondes
->> 15:12:51 (UTC+0200) | =A015:17:52 CEST -0.985920 secondes
->> 15:13:12 (UTC+0200) | =A015:18:13 CEST -0.985939 secondes
->> 15:13:33 (UTC+0200) | =A015:18:34 CEST -1.001581 secondes
->> 15:13:54 (UTC+0200) | =A015:18:55 CEST -0.985917 secondes
->> 15:14:15 (UTC+0200) | =A015:29:15 CEST -0.079685 secondes <-- add
->> another 10 minute
->> 15:14:35 (UTC+0200) | =A015:29:36 CEST -1.001568 secondes
->> 15:14:56 (UTC+0200) | =A015:29:57 CEST -0.985952 secondes
->>
->> As you can see, after 20 minutes without touching the computer, the
->> system time is late by 15 minutes.
->> This was tested on ubuntu 10.04 with a 2.6.32 =A0"vanilla" kernel wh=
-ere
->> "vanilla" means ubuntu packaged
->> upstream kernel =A0closest to the distribution shipped kernel.
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 67dec0c..de16769 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -88,6 +88,20 @@ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+ static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+ 
++static const struct pci_device_id intel_drm_blacklist[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_SCH_VGA_0) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_SCH_VGA_1) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_0) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_1) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_2) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_3) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_4) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_5) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_6) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRST_VGA_7) },
++	{ } /* Terminating entry */
++};
++
+ static const struct acpi_device_id video_device_ids[] = {
+ 	{ACPI_VIDEO_HID, 0},
+ 	{"", 0},
+@@ -2558,8 +2572,11 @@ static int __init intel_opregion_present(void)
+ #if defined(CONFIG_DRM_I915) || defined(CONFIG_DRM_I915_MODULE)
+ 	struct pci_dev *dev = NULL;
+ 	u32 address;
++	int i;
++	bool in_blacklist;
+ 
+ 	for_each_pci_dev(dev) {
++		in_blacklist = 0;
+ 		if ((dev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
+ 			continue;
+ 		if (dev->vendor != PCI_VENDOR_ID_INTEL)
+@@ -2567,7 +2584,14 @@ static int __init intel_opregion_present(void)
+ 		pci_read_config_dword(dev, 0xfc, &address);
+ 		if (!address)
+ 			continue;
+-		return 1;
++		for (i = 0; intel_drm_blacklist[i].device != 0; i++) {
++			if (dev->device == intel_drm_blacklist[i].device) {
++				in_blacklist = 1;
++				break;
++			}
++		}
++		if (!in_blacklist)
++			return 1;
+ 	}
+ #endif
+ 	return 0;
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index f6a3b2d..d7866d0 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -2675,6 +2675,8 @@
+ #define PCI_DEVICE_ID_INTEL_82443GX_0	0x71a0
+ #define PCI_DEVICE_ID_INTEL_82443GX_2	0x71a2
+ #define PCI_DEVICE_ID_INTEL_82372FB_1	0x7601
++#define PCI_DEVICE_ID_INTEL_SCH_VGA_0	0x8108
++#define PCI_DEVICE_ID_INTEL_SCH_VGA_1	0x8109
+ #define PCI_DEVICE_ID_INTEL_SCH_LPC	0x8119
+ #define PCI_DEVICE_ID_INTEL_SCH_IDE	0x811a
+ #define PCI_DEVICE_ID_INTEL_82454GX	0x84c4
+@@ -2685,6 +2687,14 @@
+ #define PCI_DEVICE_ID_INTEL_IXP4XX	0x8500
+ #define PCI_DEVICE_ID_INTEL_IXP2800	0x9004
+ #define PCI_DEVICE_ID_INTEL_S21152BB	0xb152
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_0	0x4100
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_1	0x4101
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_2	0x4102
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_3	0x4103
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_4	0x4104
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_5	0x4105
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_6	0x4106
++#define PCI_DEVICE_ID_INTEL_MRST_VGA_7	0x4107
+ 
+ #define PCI_VENDOR_ID_SCALEMP		0x8686
+ #define PCI_DEVICE_ID_SCALEMP_VSMP_CTL	0x1010
+-- 
+1.6.0.2
+
