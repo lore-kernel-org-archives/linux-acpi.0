@@ -1,42 +1,72 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
-Date: Tue, 24 Aug 2010 18:35:30 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1008241815120.29078@localhost.localdomain>
-References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
- <AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
- <20100815133015.883c7069.akpm@linux-foundation.org>
- <AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
- <20100815182153.994179c1.akpm@linux-foundation.org>
- <AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
- <20100816124300.e72258c9.sfr@canb.auug.org.au>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Tue, 24 Aug 2010 17:25:02 -0600
+Message-ID: <AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>
+References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>
+	<4C27E965.80508@gmail.com>
+	<4C283D84.6080504@suse.cz>
+	<20100628171410.GA27367@srcf.ucam.org>
+	<4C290245.2040001@suse.cz>
+	<20100628204820.GA32503@srcf.ucam.org>
+	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>
+	<4C2A3E27.4060407@suse.cz>
+	<AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com>
+	<4C2B0C73.9050200@suse.cz>
+	<4C3278C8.60503@gmail.com>
+	<4C447D6D.5060801@suse.cz>
+	<AANLkTin9_yEyMZImRbtKTvTeokks8dz0htQCu0B3RqXH@mail.gmail.com>
+	<4C456C69.60606@suse.cz>
+	<4C737E9F.7060107@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20100816124300.e72258c9.sfr@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4C737E9F.7060107@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
 
-My bad.
+On Tue, Aug 24, 2010 at 2:11 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 07/20/2010 11:29 AM, Jiri Slaby wrote:
+>> On 07/19/2010 09:19 PM, Robert Hancock wrote:
+>>> On Mon, Jul 19, 2010 at 10:29 AM, Jiri Slaby <jslaby@suse.cz> wrote:
+>>>>>> I still no point in comparing this to Windows' setup. We can't find out
+>>>>>> whether it is quirked or better (without some bug) handled there.
+>>>>>
+>>>>> Well, you can see if Windows shows IRQ 10 or 11 for that device..
+>>>>
+>>>> But how can I find out which link it is routed to in Windows? Without
+>>>> that information the number is meaningless, no?
+>>>
+>>> If you look at the pattern of which IRQs are shared by what devices in
+>>> Linux and compare it to Windows you can get a good idea. Normally the
+>>> assignment of devices to interrupt lines is hard-wired on the
+>>> motherboard and doesn't change.
+>>
+>> Ok, thanks for the hint.
+>>
+>> What we've found out is that it works on 2.6.27 (with slightly changed
+>> configuration).
+>
+> No, this was a false alarm. It never worked with acpi irq routing on
+> older kernels in this HW configuration.
+>
+> So, to sum up:
+> 1) acpi routing enabled (no kernel parameter) => ports 4+5 defunct.
+> ports 4+5+6+7 are all on irq 11
+>
+> 2) acpi routing disabled (acpi=noirq) => all ports working, 4+5 on irq
+> 10, 6+7 on irq 11
+>
+> 3) with the quirk [1] and acpi routing enabled => all ports working,
+> ports 4+5 on irq 10, 6+7 on irq 11
+>
+> 4) in windows => 4+5+6+7 are all on irq 9 and the ports are all working.
+>
+> Any ideas what this means? Especially point 4)?
+>
+> [1] http://lkml.org/lkml/2010/6/27/85
 
-Andrew was right -- I botched a modify/delete
-merge conflict of two correct patches.
-I did it at the last minute and then fed the wrong branch
-("idle-release" instead of "release") to my build test,
-send the code, and dropped of the net.  multiple mistakes.
-
-Sorry for the sloppiness, I'll do better.
-
-Upon the git merge conflict, it looks like I resorted to
-pulling andi's original patch out of git, pushing it into
-quilt on top of rui's delete; and then got fooled
-by the refresh.  Should have caught that both by inspection
-and by build...
-
-On a positive note, the underlying reason for the conflict
-was that we are succeeding in deleting a bunch of crufty code
-that should not need to be maintained at all:-)
-
-thanks,
-Len Brown, Intel Open Source Technology Center
+I think that's the key question. Is Windows actually using ACPI on
+that machine at all? (Check the computer type in Device Manager and
+see if it mentions ACPI.)
