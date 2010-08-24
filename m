@@ -1,44 +1,42 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [RFC] - Mapping ACPI tables as CACHED
-Date: Tue, 24 Aug 2010 14:39:27 -0700
-Message-ID: <4C743C0F.2010101@zytor.com>
-References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [git pull request] ACPI patches for 2.6.36.merge
+Date: Tue, 24 Aug 2010 18:35:30 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1008241815120.29078@localhost.localdomain>
+References: <AANLkTikV2eVo6KM5dSqfDwAwT=bVxnuWSpBE7F+JQU+_@mail.gmail.com>
+ <AANLkTi=vngT_5XYz1=3P6GjExFNtCVCdBMhaz4Sc4oEk@mail.gmail.com>
+ <20100815133015.883c7069.akpm@linux-foundation.org>
+ <AANLkTi=Ok3NH3k5EF1Da2Z3xA7uahABRtH7pEdOEuZH2@mail.gmail.com>
+ <20100815182153.994179c1.akpm@linux-foundation.org>
+ <AANLkTinBAgk_Ay4vCcTxTEsq-uwn=RwQpTA6O86JXGCM@mail.gmail.com>
+ <20100816124300.e72258c9.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:48068 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755993Ab0HXVjx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Aug 2010 17:39:53 -0400
-In-Reply-To: <20100724001449.GA9618@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20100816124300.e72258c9.sfr@canb.auug.org.au>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, sedat.dilek@gmail.com, Andi Kleen <ak@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jack Steiner <steiner@sgi.com>, mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/23/2010 05:14 PM, Henrique de Moraes Holschuh wrote:
-> 
-> Well, as it was raised in this thread, ACPI tables are likely to be near RAM
-> regions used for IPC with the firmware or SMBIOS, and we have no idea of the
-> kind of crap that could happen if we enable caching on those areas.
-> 
+My bad.
 
-I'm really not sure I buy that argument -- at least not on x86: if that
-is the case, then when PAT is off (and we fall down to MTRR-only
-control) then we'd have the same failures.  If we mark them cacheable
-and the MTRRs say uncachable, then we will *still* not cache them (since
-MTRR UC overrides PAT WB -- in fact "PAT off" really just means ALL the
-pagetables are marked WB.)
+Andrew was right -- I botched a modify/delete
+merge conflict of two correct patches.
+I did it at the last minute and then fed the wrong branch
+("idle-release" instead of "release") to my build test,
+send the code, and dropped of the net.  multiple mistakes.
 
-In that sense it is probably *safer* to map them WB, since the firmware
-if it uses page tables at all is extremely likely to have all the cache
-control bits at zero (meaning WB) -- and if it doesn't use page tables,
-they are functionally zero by default (MTRR control only.)
+Sorry for the sloppiness, I'll do better.
 
-So I think it'd be safer to map them cacheable -- regardless of if we
-want to copy them to RAM or not.
+Upon the git merge conflict, it looks like I resorted to
+pulling andi's original patch out of git, pushing it into
+quilt on top of rui's delete; and then got fooled
+by the refresh.  Should have caught that both by inspection
+and by build...
 
-	-hpa
+On a positive note, the underlying reason for the conflict
+was that we are succeeding in deleting a bunch of crufty code
+that should not need to be maintained at all:-)
 
-
+thanks,
+Len Brown, Intel Open Source Technology Center
