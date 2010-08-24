@@ -1,45 +1,44 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH] Add intel drm blacklist to intel_opregion_present
- detect
-Date: Tue, 24 Aug 2010 14:35:19 -0700
-Message-ID: <20100824213519.GD4979@suse.de>
-References: <4C7426DB020000230001F3A8@novprvlin0050.provo.novell.com>
- <20100824142219.GB16200@srcf.ucam.org>
- <20100824145130.GA26232@suse.de>
- <20100824145803.GB17629@srcf.ucam.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [RFC] - Mapping ACPI tables as CACHED
+Date: Tue, 24 Aug 2010 14:39:27 -0700
+Message-ID: <4C743C0F.2010101@zytor.com>
+References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100824145803.GB17629@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Joey Lee <jlee@novell.com>, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from terminus.zytor.com ([198.137.202.10]:48068 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755993Ab0HXVjx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Aug 2010 17:39:53 -0400
+In-Reply-To: <20100724001449.GA9618@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jack Steiner <steiner@sgi.com>, mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Aug 24, 2010 at 03:58:03PM +0100, Matthew Garrett wrote:
-> On Tue, Aug 24, 2010 at 07:51:30AM -0700, Greg KH wrote:
-> > On Tue, Aug 24, 2010 at 03:22:19PM +0100, Matthew Garrett wrote:
-> > > Erm. Sorry about that - I just realised that there's actually a fairly 
-> > > significant problem with it :) Right now you'll perform the register 
-> > > call unconditionally on module load. You need to make sure that there's 
-> > > actually Poulsbo hardware in the system, either by registering as a 
-> > > proper PCI driver and calling acpi_video_register in your probe function 
-> > > (and unregister in your remove function) or walking the PCI device list 
-> > > looking for a psb device.
-> > 
-> > Ick, don't walk the pci device list, just register a "real" pci device
-> > and do it that way, it's much simpler and plays nicer with the driver
-> > model and the rest of the kernel.
+On 07/23/2010 05:14 PM, Henrique de Moraes Holschuh wrote:
 > 
-> My only concern with that (and it's not a strong one) is that it'll 
-> block the psb driver from binding. Of course, the psb driver should be 
-> doing the acpi handling itself anyway, so...
+> Well, as it was raised in this thread, ACPI tables are likely to be near RAM
+> regions used for IPC with the firmware or SMBIOS, and we have no idea of the
+> kind of crap that could happen if we enable caching on those areas.
+> 
 
-If a system really does have this type of driver on it, it can unbind
-this driver and then bind itself, from userspace, so I don't see a
-problem with this.
+I'm really not sure I buy that argument -- at least not on x86: if that
+is the case, then when PAT is off (and we fall down to MTRR-only
+control) then we'd have the same failures.  If we mark them cacheable
+and the MTRRs say uncachable, then we will *still* not cache them (since
+MTRR UC overrides PAT WB -- in fact "PAT off" really just means ALL the
+pagetables are marked WB.)
 
-thanks,
+In that sense it is probably *safer* to map them WB, since the firmware
+if it uses page tables at all is extremely likely to have all the cache
+control bits at zero (meaning WB) -- and if it doesn't use page tables,
+they are functionally zero by default (MTRR control only.)
 
-greg k-h
+So I think it'd be safer to map them cacheable -- regardless of if we
+want to copy them to RAM or not.
+
+	-hpa
+
+
