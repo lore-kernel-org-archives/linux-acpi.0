@@ -1,108 +1,127 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: [PATCH] Add intel drm blacklist to intel_opregion_present
- detect
-Date: Wed, 25 Aug 2010 03:52:43 -0600
-Message-ID: <4C75748B020000230001F4F0@novprvlin0050.provo.novell.com>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
+ power
+Date: Wed, 25 Aug 2010 19:59:30 +0800
+Message-ID: <4C7505A2.3000402__3611.54292845658$1282737589$gmane$org@canonical.com>
+References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com> <1282127719.2747.211.camel@localhost> <20100818155128.GA24363@darkside.kls.lan> <4C6CA31D.6030407@canonical.com> <20100819193146.GB32665@darkside.kls.lan> <4C6E2833.6080407@canonical.com> <20100820090824.GA23186@darkside.kls.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=__Part4C6179FB.2__="
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:52749 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab0HYL7m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Aug 2010 07:59:42 -0400
+In-Reply-To: <20100820090824.GA23186@darkside.kls.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org, gregkh@suse.de
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de
+To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
 
-This is a MIME message. If you are reading this text, you may want to 
-consider changing to a mail reader or gateway that understands how to 
-properly handle MIME multipart messages.
+On 08/20/2010 05:08 PM, Mario 'BitKoenig' Holbe wrote:
+> On Fri, Aug 20, 2010 at 03:01:07PM +0800, Ike Panhc wrote:
+>> Could you attach or upload the DSDT of S12 somewhere I can reach?
+> 
+> http://sandbox.fem.tu-ilmenau.de/s12/dsdt-s12-via.dsl
+> 
+>> I check DSDT for S10-3 and B550, return value of _CFG is fixed.
+>> [Ref: http://people.ubuntu.com/~ikepanhc/DSDTs]
+> 
+> Looks more fixed than on my S12, indeed.
+> I don't really speak AML, but while S10-3 ILDD (called from _CFG) seems
+> to read fixed values only, here on S12 PHSR (called from _CFG) seems to
+> do some kind of I/O operation. I'm not sure about this, but it somehow
+> looks like.
+> 
+It accesses something in system memory, but I have no idea what will happen
+after writing..
 
---=__Part4C6179FB.2__=
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+>> On 08/20/2010 03:31 AM, Mario 'BitKoenig' Holbe wrote:
+>>> Once the cfgbit is 0xc0000 it's stable, i.e. modprobe -r ideapad-laptop;
+>>> modprobe ideapad-laptop doesn't change anything.
+>> sounds like we need an exception handle for detecting camera
+> 
+> Why? The camera is always detected - bit 19 is always set, 0xc0000 and
+> 0xd0000 only differ in bit 16. Bit 19 btw. seems to be the only fixed
+> bit in S12-VIA _CFG :)
+> 
+That's my misunderstanding.
 
-Hi Matthew, Greg,=20
+>>> [  682.260288] ideapad_acpi_add(): cfg=0xc0000
+>> As I know the cfgbit for lower 16bit shall not be all zero.
+> 
+> Mh, judging from S12-VIA _CFG they definitely are zero here.
+> 
+>>> So, forcing the existence of the killswitch enables the bluetooth
+>>> device. I'm also able to switch if off again - the bluetooth device
+>>> disappears. Trying to switch it back on then fails - the bluetooth
+>>> device does not appear again. But this case doesn't work all that well
+>>> anyways even with cfgbit 0xd0000:
+>> bluetooth device shall disappear after disable from EC. But if can not be enabled
+>> again, ahh.....
+> 
+>>> [  155.628052] usb 4-1: new full speed USB device using uhci_hcd and address 4
+>>> [  170.740049] usb 4-1: device descriptor read/64, error -110
+>>> [  185.956033] usb 4-1: device descriptor read/64, error -110
+>> This looks like the device is power up, but usb host unable to recognize..
+> 
+> The bluetooth device seems not to initialize well enough to answer (110
+> is ETIMEDOUT).
+> 
+There are two variables need to be written for turning on/off bluetooth. They are
+BTST(in memory) and BTEN(is EC register). I will guess there are some sync failed
+when enable bluetooth.
 
-The attached file is new patch to add Intel Poulsbo Stub driver.
-Follow your suggestion, I changed:=20
- - Add pci id list and direct register it as a pci driver.
- - Removed printk in init/exit functions.
- - Change the wording in Kconfig.
- - Modified the Copyright. Removed "or any later version" and 2=20
-   redundant paragraphs.
+>>> Sometimes it doesn't even come back at all on unblock. Seems like the
+>>> bluetooth device doesn't really like to be powered off and on that way.
+>> did you see any kernel message said timeout when it does not come back at all?
+> 
+> No, when I said "does not appear again" and "it does not come back at
+> all" I meant I see not a single message in dmesg about anything
+> happening.
+> 
+>> If the rfkill for the whole bluetooth module makes trouble, I prefer not to
+>> do it. User will feel confused if the device does not come back and the
+>> rfkill of hci0 offers the function user need.
+> 
+> Hmmm, maybe provide a module parm to block rfkill devices and default it
+> to 1 on S12? Users would not need to care too much then but can change
+> it if they like...
+This could be a plan. I have several idea to go and need your help.
+- Add some debug message to read BTST/BTEN when turning on/off bluetooth.
+- Force to set BTST/BTEN before reading _CFG
+- Provide a module parm to force enable rf devices.
 
-Please kindly help to review the patch again. Appreciate for any
-suggestions.
+Will have the drivers and please test it and let me know the result.
 
+> 
+>>> Please let me know if I can provide more testing - and what kind of :)
+> 
+> Okay, did some more...
+> 
+> I played with the hardware killswitch under Linux. The bluetooth device
+> disappears and re-appears there and always seems to initialize
+> correctly. No USB read errors this way.
+> 
+> I also played with the soft killswitch under Windows. The bluetooth
+> device disappears from device manager and re-appears on unblock
+> (together with the Windows device plug sounds). This looks to me like
+> the ACPI killswitch is used for it.
+> No initialization-problems here, the device always comes back fully
+> operational. So, Windows doesn't seem to suffer from a bad
+> initialization.
+> 
+> I'm not exactly sure what this means - especially because I don't know
+> how the hardware killswitch works internally.
+> It *could* mean, the initialization problem is proably something that
+> could be dealt with in the USB layer long term (and would then probably
+> not have to be worked around anymore in ideapad_laptop). I'm not sure
+> about this, because this would mean the hard killswitch power-cut
+> somehow differs from the soft killswitch power-cut.
+Usually the hw rf switch turning off PHY only. When turning off, device and
+its driver is still there. I believe S12 is designed in this way after
+reading your test result.
 
-Thank's a lot!
-Joey Lee
+> 
+> 
+> Mario
 
-
---=__Part4C6179FB.2__=
-Content-Type: text/plain; name="0001-Add-Intel-Poulsbo-Stub-Driver.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename="0001-Add-Intel-Poulsbo-Stub-Driver.patch"
-
->From cd5bc5c3d4f7c614a706152d248466bc72b03f99 Mon Sep 17 00:00:00 =
-2001=0AFrom: Lee, Chun-Yi <jlee@novell.com>=0ADate: Wed, 25 Aug 2010 =
-16:28:04 +0800=0ASubject: [PATCH] Add Intel Poulsbo Stub Driver=0A=0ACurren=
-tly, there have no Poulsbo native video driver to support=0Aintel =
-opregion. So, use this stub driver to enable the acpi backlight=0Acontrol =
-sysfs entry files by requrest acpi_video_register.=0A=0ASigned-off-by: =
-Lee, Chun-Yi <jlee@novell.com>=0A---=0A drivers/gpu/Makefile       |    2 =
-+-=0A drivers/gpu/stub/Kconfig   |   13 +++++++++=0A drivers/gpu/stub/Makef=
-ile  |    1 +=0A drivers/gpu/stub/poulsbo.c |   64 ++++++++++++++++++++++++=
-++++++++++++++++++++=0A drivers/video/Kconfig      |    2 +=0A 5 files =
-changed, 81 insertions(+), 1 deletions(-)=0A create mode 100644 drivers/gpu=
-/stub/Kconfig=0A create mode 100644 drivers/gpu/stub/Makefile=0A create =
-mode 100644 drivers/gpu/stub/poulsbo.c=0A=0Adiff --git a/drivers/gpu/Makefi=
-le b/drivers/gpu/Makefile=0Aindex 30879df..cc92778 100644=0A--- a/drivers/g=
-pu/Makefile=0A+++ b/drivers/gpu/Makefile=0A@@ -1 +1 @@=0A-obj-y			=
-+=3D drm/ vga/=0A+obj-y			+=3D drm/ vga/ stub/=0Adiff --git =
-a/drivers/gpu/stub/Kconfig b/drivers/gpu/stub/Kconfig=0Anew file mode =
-100644=0Aindex 0000000..c564140=0A--- /dev/null=0A+++ b/drivers/gpu/stub/Kc=
-onfig=0A@@ -0,0 +1,13 @@=0A+config STUB_POULSBO=0A+	tristate "Intel =
-Poulsbo Stub Driver"=0A+        default m=0A+        # Poulsbo stub =
-depends on ACPI_VIDEO when ACPI is enabled=0A+        # but for select to =
-work, need to select ACPI_VIDEO's dependencies, ick=0A+        select =
-ACPI_VIDEO if ACPI=0A+	help=0A+	  Choose this option if you have a =
-system that has Intel Poulsbo=0A+	  integrated graphics. If M is =
-selected, the module will be called=0A+	  Poulsbo. This driver is a stub =
-driver for Poulsbo that will call=0A+	  poulsbo.ko to enable the acpi =
-backlight control sysfs entry file=0A+	  because there have no poulsbo =
-native driver can support intel=0A+	  opregion.=0Adiff --git a/drivers/=
-gpu/stub/Makefile b/drivers/gpu/stub/Makefile=0Anew file mode 100644=0Ainde=
-x 0000000..cd940cc=0A--- /dev/null=0A+++ b/drivers/gpu/stub/Makefile=0A@@ =
--0,0 +1 @@=0A+obj-$(CONFIG_STUB_POULSBO) +=3D poulsbo.o=0Adiff --git =
-a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c=0Anew file mode =
-100644=0Aindex 0000000..e18dc24=0A--- /dev/null=0A+++ b/drivers/gpu/stub/po=
-ulsbo.c=0A@@ -0,0 +1,64 @@=0A+/*=0A+ * Intel Poulsbo Stub driver=0A+ *=0A+ =
-* Copyright (C) 2010 Novell <jlee@novell.com>=0A+ *=0A+ * This program is =
-free software; you can redistribute it and/or modify it=0A+ * under the =
-terms of the GNU General Public License version 2 as published by=0A+ * =
-the Free Software Foundation.=0A+ *=0A+ */=0A+=0A+#include <linux/module.h>=
-=0A+#include <linux/pci.h>=0A+#include <acpi/video.h>=0A+=0A+#define =
-DRIVER_NAME "poulsbo"=0A+=0A+enum {=0A+	CHIP_PSB_8108 =3D 0,=0A+	=
-CHIP_PSB_8109 =3D 1,=0A+};=0A+=0A+static struct pci_device_id pciidlist[] =
-=3D {=0A+	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_810=
-8}, \=0A+	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_810=
-9}, \=0A+	{0, 0, 0}=0A+};=0A+=0A+static int poulsbo_probe(struct =
-pci_dev *pdev, const struct pci_device_id *id)=0A+{=0A+	return acpi_video_r=
-egister();=0A+}=0A+=0A+static void poulsbo_remove(struct pci_dev *pdev)=0A+=
-{=0A+	acpi_video_unregister();=0A+}=0A+=0A+static struct pci_driver =
-poulsbo_driver =3D {=0A+	.name =3D DRIVER_NAME,=0A+	.id_table =
-=3D pciidlist,=0A+	.probe =3D poulsbo_probe,=0A+	.remove =3D =
-poulsbo_remove,=0A+};=0A+=0A+static int __init poulsbo_init(void)=0A+{=0A+	=
-return pci_register_driver(&poulsbo_driver);=0A+}=0A+=0A+static void =
-__exit poulsbo_exit(void)=0A+{=0A+	pci_unregister_driver(&poulsbo_driv=
-er);=0A+}=0A+=0A+module_init(poulsbo_init);=0A+module_exit(poulsbo_exit);=
-=0A+=0A+MODULE_AUTHOR("Lee, Chun-Yi <jlee@novell.com>");=0A+MODULE_DESCRIPT=
-ION("Poulsbo Stub Driver");=0A+MODULE_LICENSE("GPL");=0A+=0A+MODULE_ALIAS("=
-pci:v00008086d00008108sv*sd*bc*sc*i*");=0A+MODULE_ALIAS("pci:v00008086d0000=
-8109sv*sd*bc*sc*i*");=0Adiff --git a/drivers/video/Kconfig b/drivers/video/=
-Kconfig=0Aindex 8b31fdf..8807ae5 100644=0A--- a/drivers/video/Kconfig=0A+++=
- b/drivers/video/Kconfig=0A@@ -17,6 +17,8 @@ source "drivers/gpu/vga/Kconfi=
-g"=0A =0A source "drivers/gpu/drm/Kconfig"=0A =0A+source "drivers/gpu/stub/=
-Kconfig"=0A+=0A config VGASTATE=0A        tristate=0A        default =
-n=0A-- =0A1.6.0.2=0A=0A
---=__Part4C6179FB.2__=--
