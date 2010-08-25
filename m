@@ -1,22 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 8/8] ideapad: Change the driver name to ideapad_laptop
-Date: Wed, 25 Aug 2010 16:56:53 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1008251656090.3037@localhost.localdomain>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
- <1282120734-11635-1-git-send-email-ike.pan@canonical.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] watchdog: Allow touch_nmi_watchdog() to be called by acpi_os_stall()
+Date: Thu, 26 Aug 2010 00:58:17 +0200
+Message-ID: <201008260058.17876.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-reply-to: <1282120734-11635-1-git-send-email-ike.pan@canonical.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, David Woodhouse <David.Woodhouse@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:45848 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751984Ab0HYXA2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Aug 2010 19:00:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
->  drivers/platform/x86/ideapad_acpi.c   |  381 ---------------------------------
->  drivers/platform/x86/ideapad_laptop.c |  381 +++++++++++++++++++++++++++++++++
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Acked-by: Len Brown <len.brown@intel.com>
+acpi_os_stall() executes touch_nmi_watchdog() that, if
+CONFIG_HARDLOCKUP_DETECTOR is set,
+uses __get_cpu_var() to access per-CPU variables.  This triggers the
+stack dump in debug_smp_processor_id().
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+One way to avoid that is to use __raw_get_cpu_var() to access the
+per-CPU variables in touch_nmi_watchdog().
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ kernel/watchdog.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/kernel/watchdog.c
+===================================================================
+--- linux-2.6.orig/kernel/watchdog.c
++++ linux-2.6/kernel/watchdog.c
+@@ -142,8 +142,8 @@ void touch_all_softlockup_watchdogs(void
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ void touch_nmi_watchdog(void)
+ {
+-	__get_cpu_var(watchdog_nmi_touch) = true;
+-	touch_softlockup_watchdog();
++	__raw_get_cpu_var(watchdog_nmi_touch) = true;
++	__raw_get_cpu_var(watchdog_touch_ts) = 0;
+ }
+ EXPORT_SYMBOL(touch_nmi_watchdog);
+ 
