@@ -1,51 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: acpi_os_stall() and touch_nmi_watchdog() (was Re: [PATCH] fix BUG
- using smp_processor_id() in touch_nmi_watchdog and touch_softlockup_watchdog)
-Date: Thu, 26 Aug 2010 13:17:39 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1008261210420.4686@localhost.localdomain>
-References: <20100817025954.GA12366@nowhere>
- <AANLkTikdng247Fct0ANXiitC3ja98_ee3-fUVDGraEwo@mail.gmail.com>
- <20100817083945.GA12022@swordfish.minsk.epam.com>
- <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
- <20100817092407.GB12022@swordfish.minsk.epam.com>
- <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
- <20100817103948.GA5352@swordfish.minsk.epam.com>
- <20100817131320.GX4879@redhat.com> <20100818024802.GA24748@nowhere>
- <20100818130156.43a183d9.akpm@linux-foundation.org>
- <20100820025749.GB4879@redhat.com>
- <20100819204256.3380bf6f.akpm@linux-foundation.org>
+Subject: Re: [RFC] - Mapping ACPI tables as CACHED
+Date: Thu, 26 Aug 2010 13:47:55 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1008261338230.2062@localhost.localdomain>
+References: <20100722152220.GA18290@sgi.com> <20100817155939.GA4354@sgi.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20100819204256.3380bf6f.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Don Zickus <dzickus@redhat.com>, Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Yong Zhang <yong.zhang0@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>, "H. Peter Anvin" <hpa@zytor.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:41730 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157Ab0HZRsR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2010 13:48:17 -0400
+In-reply-to: <20100817155939.GA4354@sgi.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jack Steiner <steiner@sgi.com>
+Cc: mingo@elte.hu, tglx@linutronix.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-acpi_os_stall() is used in two ways.
+On Tue, 17 Aug 2010, Jack Steiner wrote:
 
-The typical way is what triggered this e-mail thread.
-It implements the AML "Stall()" operator, and is called
-with interrupts enabled with durations <= 100 usec.
-So one would expect it to be identical to udelay().
+> On EFI-enabled systems (like UV), the ACPI tables are already mapped as
+> WB memory. This is done in the EFI function efi_enter_virtual_mode().
+> 
+> The E820_ACPI & E820_NVS regions will be mapped as WB memory if the BIOS
+> sets the WB attribute in the EFI memmap entry for the chunk of memory.
+> 
+> The ACPI code in acpi_os_map_memory() is not currently aware of the EFI mapping
+> & currently maps the memory as UC. This seems like a bug.
+> 
+> In order to prevent attribute aliasing, I think the ACPI mapping needs to
+> be consistent with the EFI mapping.  Otherwise, we will have the OS
+> referencing the memory as UC at the same time BIOS is referencing it as WB.
 
-The exception case is when ACPICA calls it with interrupts off
-and huge durations when we wrote the poweroff or sleep
-register, yet we find outselves still running...
+When would the firmware touch those tables after booting the OS?
 
-Apparently akpm added touch_nmi_watchdog() to keep the
-watchdog from firing in this exception case.
+We once found a Toshiba laptop where the BIOS
+scribbles on the DSDT at run-time.
+We presumed from this that Windows
+must snapshot the tables at boot and run from a copy.
 
-Is it useful to have the watchdog running when
-we are waiting for firmware to poweroff the machine?
-If no, maybe we should turn it off as part of the shutdown
-process rather than using yet another invocation
-of touch_nmi_watchdog()?
-
-Is calling delay() with IRQs disabled the best thing
-we can do after we ask the firmware to cut power
-and it takes a long time?
+We decided not to copy the tables, but to use them in-place.
+So we added a check for run-time corruption of the tables
+and we've seen it fire only on that one Toshiba box
+(which now boots with "acpi=copy_dsdt").
 
 thanks,
 Len Brown, Intel Open Source Technology Center
+
+
+
