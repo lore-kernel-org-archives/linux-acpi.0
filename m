@@ -1,124 +1,108 @@
-From: Don Zickus <dzickus@redhat.com>
-Subject: Re: [PATCH] fix BUG using smp_processor_id() in touch_nmi_watchdog
- and touch_softlockup_watchdog
-Date: Thu, 26 Aug 2010 10:40:18 -0400
-Message-ID: <20100826144018.GL4879@redhat.com>
-References: <20100817083945.GA12022@swordfish.minsk.epam.com>
- <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
- <20100817092407.GB12022@swordfish.minsk.epam.com>
- <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
- <20100817103948.GA5352@swordfish.minsk.epam.com>
- <20100817131320.GX4879@redhat.com>
- <20100818024802.GA24748@nowhere>
- <20100818130156.43a183d9.akpm@linux-foundation.org>
- <20100820025749.GB4879@redhat.com>
- <1282817671.4338.0.camel@maxim-laptop>
+From: Jack Steiner <steiner@sgi.com>
+Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
+Date: Thu, 26 Aug 2010 12:17:04 -0500
+Message-ID: <20100826171704.GA21584@sgi.com>
+References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay2.sgi.com ([192.48.179.30]:46510 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751714Ab0HZRRI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Aug 2010 13:17:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1282817671.4338.0.camel@maxim-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Yong Zhang <yong.zhang0@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>
+In-Reply-To: <4C743C0F.2010101@zytor.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>, hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, lenb@kernel.org, tony.luck@gmail.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 26, 2010 at 01:14:31PM +0300, Maxim Levitsky wrote:
-> On Thu, 2010-08-19 at 22:57 -0400, Don Zickus wrote: 
-> > On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
-> > > The surprise new requirement that touch_nmi_watchdog() be called from
-> > > non-preemptible code does seem to make sense IMO.  It's hard to see why
-> > > anyone would be touching the watchdog unless he's spinning in irqs-off
-> > > code.  Except, of course, when we have a utility function which can be
-> > > called from wither irqs-on or irqs-off: acpi_os_stall().
-> > > 
-> > > That being said, it's not good to introduce new API requirements by
-> > > accident!  An audit of all callers should first be performed, at least.
-> > > 
-> > > 
-> > > The surprise new requirement that touch_softlockup_watchdog() be called
-> > > from non-preemptible code doesn't make sense IMO.  If I have a piece of
-> > > code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
-> > > for three minutes waiting for my egg to boil, I should be able to do
-> > > that and I should be able to touch the softlockup detector without
-> > > needing to go non-preemptible.
-> > 
-> > Ok, so here is my patch that syncs the touch_*_watchdog back in line with
-> > the old semantics.  Hopefully this will undo any harm I caused.
-> 
-> Was this patch forgotten?
-
-Hm, apparently it was separated out by the mail server.  Here it is again
-with some of the headers removed I guess.
-
-Cheers,
-Don
+Map ACPI tables as WB on x86_64. No substantive changes to IA64.
 
 
-From: Don Zickus <dzickus@redhat.com>
-Date: Thu, 19 Aug 2010 22:48:26 -0400
-Subject: [PATCH] [lockup detector] sync touch_*_watchdog back to old semantics
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 
-During my rewrite, the semantics of touch_nmi_watchdog and
-touch_softlockup_watchdog changed enough to break some drivers
-(mostly over preemptable regions).
-
-This change brings those touch_*_watchdog functions back in line
-to how they used to work.
-
-Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- kernel/watchdog.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+V2 - Change the patch to unconditionally map ACPI tables as WB on x86_64.
+     I'm still some paranoid about this because of the potential imapct on
+     some platforms with weird BIOSs. However, note that on EFI-enabled
+     systems (like UV), the ACPI tables are already mapped as WB memory.
+     This is done in the EFI function efi_enter_virtual_mode().
+     The ACPI code in acpi_os_map_memory() is not currently aware of the
+     EFI mapping & currently maps the memory as UC. This seems like a bug.
 
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 613bc1f..99e35a2 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -122,7 +122,7 @@ static void __touch_watchdog(void)
- 
- void touch_softlockup_watchdog(void)
- {
--	__get_cpu_var(watchdog_touch_ts) = 0;
-+	__raw_get_cpu_var(watchdog_touch_ts) = 0;
+
+
+
+ arch/ia64/kernel/acpi.c     |    5 +++++
+ arch/x86/kernel/acpi/boot.c |   14 ++++++++++++++
+ drivers/acpi/osl.c          |    2 +-
+ include/linux/acpi.h        |    1 +
+ 4 files changed, 21 insertions(+), 1 deletion(-)
+
+Index: linux/arch/ia64/kernel/acpi.c
+===================================================================
+--- linux.orig/arch/ia64/kernel/acpi.c	2010-08-26 09:32:46.000000000 -0500
++++ linux/arch/ia64/kernel/acpi.c	2010-08-26 11:51:05.544732478 -0500
+@@ -172,6 +172,11 @@ char *__init __acpi_map_table(unsigned l
+ 	return __va(phys_addr);
  }
- EXPORT_SYMBOL(touch_softlockup_watchdog);
  
-@@ -142,7 +142,14 @@ void touch_all_softlockup_watchdogs(void)
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
- void touch_nmi_watchdog(void)
- {
--	__get_cpu_var(watchdog_nmi_touch) = true;
-+	if (watchdog_enabled) {
-+		unsigned cpu;
++char *__init __acpi_map_table_permanent(unsigned long phys_addr, unsigned long size)
++{
++	return ioremap(phys_addr, size);
++}
 +
-+		for_each_present_cpu(cpu) {
-+			if (per_cpu(watchdog_nmi_touch, cpu) != true)
-+				per_cpu(watchdog_nmi_touch, cpu) = true;
-+		}
-+	}
- 	touch_softlockup_watchdog();
+ void __init __acpi_unmap_table(char *map, unsigned long size)
+ {
  }
- EXPORT_SYMBOL(touch_nmi_watchdog);
-@@ -430,6 +437,9 @@ static int watchdog_enable(int cpu)
- 		wake_up_process(p);
- 	}
+Index: linux/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux.orig/arch/x86/kernel/acpi/boot.c	2010-08-26 09:32:48.000000000 -0500
++++ linux/arch/x86/kernel/acpi/boot.c	2010-08-26 11:57:27.408724846 -0500
+@@ -167,6 +167,20 @@ void __init __acpi_unmap_table(char *map
+ 	early_iounmap(map, size);
+ }
  
-+	/* if any cpu succeeds, watchdog is considered enabled for the system */
-+	watchdog_enabled = 1;
++/*
++ * Permanently map memory for ACPI. Map ACPI tables and RAM as WB,
++ * other regions as UC.
++ */
++char *__init __acpi_map_table_permanent(unsigned long phys, unsigned long size)
++{
++	if (e820_all_mapped(phys, phys + size, E820_RAM) ||
++	    		e820_all_mapped(phys, phys + size, E820_ACPI) ||
++			e820_all_mapped(phys, phys + size, E820_NVS))
++		return ioremap_cache((unsigned long)phys, size);
++	else
++		return ioremap(phys, size);
++}
 +
- 	return 0;
+ #ifdef CONFIG_X86_LOCAL_APIC
+ static int __init acpi_parse_madt(struct acpi_table_header *table)
+ {
+Index: linux/drivers/acpi/osl.c
+===================================================================
+--- linux.orig/drivers/acpi/osl.c	2010-08-26 09:32:48.276653117 -0500
++++ linux/drivers/acpi/osl.c	2010-08-26 11:45:33.488606489 -0500
+@@ -271,7 +271,7 @@ acpi_os_map_memory(acpi_physical_address
+ 		/*
+ 		* ioremap checks to ensure this is in reserved space
+ 		*/
+-		return ioremap((unsigned long)phys, size);
++		return __acpi_map_table_permanent((unsigned long)phys, size);
+ 	else
+ 		return __acpi_map_table((unsigned long)phys, size);
  }
+Index: linux/include/linux/acpi.h
+===================================================================
+--- linux.orig/include/linux/acpi.h	2010-08-26 09:32:51.000000000 -0500
++++ linux/include/linux/acpi.h	2010-08-26 11:41:14.484709188 -0500
+@@ -77,6 +77,7 @@ typedef int (*acpi_table_handler) (struc
+ typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
  
-@@ -452,9 +462,6 @@ static void watchdog_disable(int cpu)
- 		per_cpu(softlockup_watchdog, cpu) = NULL;
- 		kthread_stop(p);
- 	}
--
--	/* if any cpu succeeds, watchdog is considered enabled for the system */
--	watchdog_enabled = 1;
- }
- 
- static void watchdog_enable_all_cpus(void)
--- 
-1.7.2.1
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
++char * __acpi_map_table_permanent (unsigned long phys_addr, unsigned long size);
+ void __acpi_unmap_table(char *map, unsigned long size);
+ int early_acpi_boot_init(void);
+ int acpi_boot_init (void);
