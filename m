@@ -1,56 +1,124 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+From: Don Zickus <dzickus@redhat.com>
 Subject: Re: [PATCH] fix BUG using smp_processor_id() in touch_nmi_watchdog
  and touch_softlockup_watchdog
-Date: Thu, 26 Aug 2010 13:14:31 +0300
-Message-ID: <1282817671.4338.0.camel@maxim-laptop>
-References: <20100817025954.GA12366@nowhere>
-	 <AANLkTikdng247Fct0ANXiitC3ja98_ee3-fUVDGraEwo@mail.gmail.com>
-	 <20100817083945.GA12022@swordfish.minsk.epam.com>
-	 <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
-	 <20100817092407.GB12022@swordfish.minsk.epam.com>
-	 <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
-	 <20100817103948.GA5352@swordfish.minsk.epam.com>
-	 <20100817131320.GX4879@redhat.com> <20100818024802.GA24748@nowhere>
-	 <20100818130156.43a183d9.akpm@linux-foundation.org>
-	 <20100820025749.GB4879@redhat.com>
+Date: Thu, 26 Aug 2010 10:40:18 -0400
+Message-ID: <20100826144018.GL4879@redhat.com>
+References: <20100817083945.GA12022@swordfish.minsk.epam.com>
+ <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
+ <20100817092407.GB12022@swordfish.minsk.epam.com>
+ <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
+ <20100817103948.GA5352@swordfish.minsk.epam.com>
+ <20100817131320.GX4879@redhat.com>
+ <20100818024802.GA24748@nowhere>
+ <20100818130156.43a183d9.akpm@linux-foundation.org>
+ <20100820025749.GB4879@redhat.com>
+ <1282817671.4338.0.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64532 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000Ab0HZKOj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2010 06:14:39 -0400
-In-Reply-To: <20100820025749.GB4879@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Don Zickus <dzickus@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1282817671.4338.0.camel@maxim-laptop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Maxim Levitsky <maximlevitsky@gmail.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Yong Zhang <yong.zhang0@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2010-08-19 at 22:57 -0400, Don Zickus wrote: 
-> On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
-> > The surprise new requirement that touch_nmi_watchdog() be called from
-> > non-preemptible code does seem to make sense IMO.  It's hard to see why
-> > anyone would be touching the watchdog unless he's spinning in irqs-off
-> > code.  Except, of course, when we have a utility function which can be
-> > called from wither irqs-on or irqs-off: acpi_os_stall().
+On Thu, Aug 26, 2010 at 01:14:31PM +0300, Maxim Levitsky wrote:
+> On Thu, 2010-08-19 at 22:57 -0400, Don Zickus wrote: 
+> > On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
+> > > The surprise new requirement that touch_nmi_watchdog() be called from
+> > > non-preemptible code does seem to make sense IMO.  It's hard to see why
+> > > anyone would be touching the watchdog unless he's spinning in irqs-off
+> > > code.  Except, of course, when we have a utility function which can be
+> > > called from wither irqs-on or irqs-off: acpi_os_stall().
+> > > 
+> > > That being said, it's not good to introduce new API requirements by
+> > > accident!  An audit of all callers should first be performed, at least.
+> > > 
+> > > 
+> > > The surprise new requirement that touch_softlockup_watchdog() be called
+> > > from non-preemptible code doesn't make sense IMO.  If I have a piece of
+> > > code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
+> > > for three minutes waiting for my egg to boil, I should be able to do
+> > > that and I should be able to touch the softlockup detector without
+> > > needing to go non-preemptible.
 > > 
-> > That being said, it's not good to introduce new API requirements by
-> > accident!  An audit of all callers should first be performed, at least.
-> > 
-> > 
-> > The surprise new requirement that touch_softlockup_watchdog() be called
-> > from non-preemptible code doesn't make sense IMO.  If I have a piece of
-> > code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
-> > for three minutes waiting for my egg to boil, I should be able to do
-> > that and I should be able to touch the softlockup detector without
-> > needing to go non-preemptible.
+> > Ok, so here is my patch that syncs the touch_*_watchdog back in line with
+> > the old semantics.  Hopefully this will undo any harm I caused.
 > 
-> Ok, so here is my patch that syncs the touch_*_watchdog back in line with
-> the old semantics.  Hopefully this will undo any harm I caused.
+> Was this patch forgotten?
 
-Was this patch forgotten?
+Hm, apparently it was separated out by the mail server.  Here it is again
+with some of the headers removed I guess.
 
-Best regards,
-Maxim Levitsky
+Cheers,
+Don
 
+
+From: Don Zickus <dzickus@redhat.com>
+Date: Thu, 19 Aug 2010 22:48:26 -0400
+Subject: [PATCH] [lockup detector] sync touch_*_watchdog back to old semantics
+
+During my rewrite, the semantics of touch_nmi_watchdog and
+touch_softlockup_watchdog changed enough to break some drivers
+(mostly over preemptable regions).
+
+This change brings those touch_*_watchdog functions back in line
+to how they used to work.
+
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+---
+ kernel/watchdog.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 613bc1f..99e35a2 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -122,7 +122,7 @@ static void __touch_watchdog(void)
+ 
+ void touch_softlockup_watchdog(void)
+ {
+-	__get_cpu_var(watchdog_touch_ts) = 0;
++	__raw_get_cpu_var(watchdog_touch_ts) = 0;
+ }
+ EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 
+@@ -142,7 +142,14 @@ void touch_all_softlockup_watchdogs(void)
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ void touch_nmi_watchdog(void)
+ {
+-	__get_cpu_var(watchdog_nmi_touch) = true;
++	if (watchdog_enabled) {
++		unsigned cpu;
++
++		for_each_present_cpu(cpu) {
++			if (per_cpu(watchdog_nmi_touch, cpu) != true)
++				per_cpu(watchdog_nmi_touch, cpu) = true;
++		}
++	}
+ 	touch_softlockup_watchdog();
+ }
+ EXPORT_SYMBOL(touch_nmi_watchdog);
+@@ -430,6 +437,9 @@ static int watchdog_enable(int cpu)
+ 		wake_up_process(p);
+ 	}
+ 
++	/* if any cpu succeeds, watchdog is considered enabled for the system */
++	watchdog_enabled = 1;
++
+ 	return 0;
+ }
+ 
+@@ -452,9 +462,6 @@ static void watchdog_disable(int cpu)
+ 		per_cpu(softlockup_watchdog, cpu) = NULL;
+ 		kthread_stop(p);
+ 	}
+-
+-	/* if any cpu succeeds, watchdog is considered enabled for the system */
+-	watchdog_enabled = 1;
+ }
+ 
+ static void watchdog_enable_all_cpus(void)
+-- 
+1.7.2.1
