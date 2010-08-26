@@ -1,75 +1,56 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 8/8] ideapad: Change the driver name to ideapad_laptop
-Date: Thu, 26 Aug 2010 09:43:19 +0200
-Message-ID: <AANLkTik5jZ69_=yzQaheUrxPvnnFFdyysjxndVKfdh1d@mail.gmail.com>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
-	<1282120734-11635-1-git-send-email-ike.pan@canonical.com>
-	<alpine.LFD.2.00.1008251656090.3037@localhost.localdomain>
-	<AANLkTi=STq=_K2NPnK4GM+XwruaR09m6QJ7nkuCJVQvB@mail.gmail.com>
-	<4C7606A9.40103@canonical.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [PATCH] fix BUG using smp_processor_id() in touch_nmi_watchdog
+ and touch_softlockup_watchdog
+Date: Thu, 26 Aug 2010 13:14:31 +0300
+Message-ID: <1282817671.4338.0.camel@maxim-laptop>
+References: <20100817025954.GA12366@nowhere>
+	 <AANLkTikdng247Fct0ANXiitC3ja98_ee3-fUVDGraEwo@mail.gmail.com>
+	 <20100817083945.GA12022@swordfish.minsk.epam.com>
+	 <AANLkTik-4S_=L5FLhMfommf5Umd0xO+h4QP9uoxwrgFE@mail.gmail.com>
+	 <20100817092407.GB12022@swordfish.minsk.epam.com>
+	 <AANLkTikjR1nC3DYdvSw=FEmAVZ98=ju2RNq-MF1L7U3u@mail.gmail.com>
+	 <20100817103948.GA5352@swordfish.minsk.epam.com>
+	 <20100817131320.GX4879@redhat.com> <20100818024802.GA24748@nowhere>
+	 <20100818130156.43a183d9.akpm@linux-foundation.org>
+	 <20100820025749.GB4879@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:47873 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437Ab0HZHnU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2010 03:43:20 -0400
-In-Reply-To: <4C7606A9.40103@canonical.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:64532 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000Ab0HZKOj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Aug 2010 06:14:39 -0400
+In-Reply-To: <20100820025749.GB4879@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, David Woodhouse <David.Woodhouse@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Don Zickus <dzickus@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Len Brown <len.brown@intel.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Yong Zhang <yong.zhang0@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Grover <andy.grover@oracle.com>
 
-On Thu, Aug 26, 2010 at 8:16 AM, Ike Panhc <ike.pan@canonical.com> wrot=
-e:
-> On 08/26/2010 01:43 PM, Corentin Chary wrote:
->> On Wed, Aug 25, 2010 at 10:56 PM, Len Brown <lenb@kernel.org> wrote:
->>>> =A0drivers/platform/x86/ideapad_acpi.c =A0 | =A0381 --------------=
--------------------
->>>> =A0drivers/platform/x86/ideapad_laptop.c | =A0381 ++++++++++++++++=
-+++++++++++++++++
->>>
->>> Acked-by: Len Brown <len.brown@intel.com>
->>>
->>> thanks,
->>> Len Brown, Intel Open Source Technology Center
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acp=
-i" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>>
->>
->> Probably not very important .. but .. other drivers are called *-lap=
-top.c, not
->> *_laptop.c ..
->>
->> asus-laptop.c classmate-laptop.c compal-laptop.c dell-laptop.c eeepc=
--laptop.c
->> fujitsu-laptop.c msi-laptop.c panasonic-laptop.c sony-laptop.c topst=
-ar-laptop.c
->>
-> I choose _laptop.c not -laptop.c because when modprobe. We are using
-> "modprobe asus-laptop", but when removing, using "modprobe asus_lapto=
-p".
->
+On Thu, 2010-08-19 at 22:57 -0400, Don Zickus wrote: 
+> On Wed, Aug 18, 2010 at 01:01:56PM -0700, Andrew Morton wrote:
+> > The surprise new requirement that touch_nmi_watchdog() be called from
+> > non-preemptible code does seem to make sense IMO.  It's hard to see why
+> > anyone would be touching the watchdog unless he's spinning in irqs-off
+> > code.  Except, of course, when we have a utility function which can be
+> > called from wither irqs-on or irqs-off: acpi_os_stall().
+> > 
+> > That being said, it's not good to introduce new API requirements by
+> > accident!  An audit of all callers should first be performed, at least.
+> > 
+> > 
+> > The surprise new requirement that touch_softlockup_watchdog() be called
+> > from non-preemptible code doesn't make sense IMO.  If I have a piece of
+> > code in the kernel which I expect to sit in TASK_UNINTERRUPTIBLE state
+> > for three minutes waiting for my egg to boil, I should be able to do
+> > that and I should be able to touch the softlockup detector without
+> > needing to go non-preemptible.
+> 
+> Ok, so here is my patch that syncs the touch_*_watchdog back in line with
+> the old semantics.  Hopefully this will undo any harm I caused.
 
-Hum, that's a "bug" in asus-laptop, because I used KBUILD_MODNAME
-(asus_laptop) instead
-of "asus-laptop" as the driver name. And I don't know if I can change
-that now without breaking
-backward compatibility.
+Was this patch forgotten?
 
-But other drivers should work (I tested sony-laptop).
+Best regards,
+Maxim Levitsky
 
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
