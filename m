@@ -1,98 +1,50 @@
-From: jean-philippe francois <jp.francois@cynove.com>
+From: john stultz <johnstul@us.ibm.com>
 Subject: Re: System time drifts when processor idle.
-Date: Fri, 27 Aug 2010 16:12:27 +0200
-Message-ID: <AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
+Date: Fri, 27 Aug 2010 11:11:48 -0700
+Message-ID: <1282932708.1946.8.camel@work-vm>
 References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
-	<AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
-	<AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
-	<AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
-	<AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
+	 <AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
+	 <AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
+	 <AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
+	 <AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
+	 <AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001636283bde6e2f57048eceb4df
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:40190 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753667Ab0H0OM3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Aug 2010 10:12:29 -0400
-In-Reply-To: <AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
+Received: from e1.ny.us.ibm.com ([32.97.182.141]:52720 "EHLO e1.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392Ab0H0SLz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Aug 2010 14:11:55 -0400
+In-Reply-To: <AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: john stultz <johnstul@us.ibm.com>
-Cc: Lin Ming <lin@ming.vg>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: Lin Ming <lin@ming.vg>, venki@google.com, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, jslaby@suse.cz
 
---001636283bde6e2f57048eceb4df
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Fri, 2010-08-27 at 16:12 +0200, jean-philippe francois wrote:
+> My Timekeeping bug is still present, here is an updated script and log.
+> I am willing to make test, but I don't know what kind of debugging
+> info is needed.
+>
+> cat /sys/devices/system/clocksource/clocksource0/available_clocksource
+> hpet acpi_pm 
+> cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+> hpet
 
-Hi,
+Huh. hpet was not what I would have expected.
 
-My Timekeeping bug is still present, here is an updated script and log.
-I am willing to make test, but I don't know what kind of debugging
-info is needed.
 
-I am all eyes to any advice that could help solve this BUG.
+So first, two experiments: 
 
-Thank you,
-Jean-Philippe Fran=E7ois
+1) Does booting with "clock=acpi_pm" cause the issue to disappear?
 
---001636283bde6e2f57048eceb4df
-Content-Type: application/x-sh; name="clocktest.sh"
-Content-Disposition: attachment; filename="clocktest.sh"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gdd47yk81
+2) Does booting with "nohz=off" cause the issue to disappear?
 
-IyEvYmluL2Jhc2gKIyBzZXQgaHdjbG9jayB0byBzeXN0ZW0gY2xvY2sgdG8gc3RhcnQKIyB0aGUg
-bG9nIGZpbGUgd2l0aCB0aGUgc2FtZSB0aW1lIApod2Nsb2NrIC13CiNzb21lIGluZm8gYXNrZWQg
-b24gbGttbAp1bmFtZSAtYQplY2hvICJjYXQgL3N5cy9kZXZpY2VzL3N5c3RlbS9jbG9ja3NvdXJj
-ZS9jbG9ja3NvdXJjZTAvYXZhaWxhYmxlX2Nsb2Nrc291cmNlIiAKY2F0IC9zeXMvZGV2aWNlcy9z
-eXN0ZW0vY2xvY2tzb3VyY2UvY2xvY2tzb3VyY2UwL2F2YWlsYWJsZV9jbG9ja3NvdXJjZSAKZWNo
-byAiY2F0IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY2xvY2tzb3VyY2UvY2xvY2tzb3VyY2UwL2N1cnJl
-bnRfY2xvY2tzb3VyY2UiCmNhdCAvc3lzL2RldmljZXMvc3lzdGVtL2Nsb2Nrc291cmNlL2Nsb2Nr
-c291cmNlMC9jdXJyZW50X2Nsb2Nrc291cmNlCmVjaG8gIl9fX19fX19fX19fX19fX19fX19fX19f
-XyIKZWNobyAiICBzeXN0ZW0gfCBoYXJkd2FyZShSVEMpIgp3aGlsZSBbWyB0cnVlIF1dCmRvIAoJ
-c3lzdGltZT0kKGRhdGUgKyVIOiVNOiVTKQoJaHd0aW1lPSQoaHdjbG9jayAtcikKCWVjaG8gIiRz
-eXN0aW1lIHwgJGh3dGltZSIgCglzbGVlcCAyMApkb25lCgo=
---001636283bde6e2f57048eceb4df
-Content-Type: text/x-log; charset=UTF-8; name="clocktest.log"
-Content-Disposition: attachment; filename="clocktest.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gdd48fjy2
 
-TGludXgganAgMi42LjM2LTAyMDYzNnJjMS1nZW5lcmljICMyMDEwMDgxNzEzMDYgU01QIFR1ZSBB
-dWcgMTcgMTQ6MTY6MjggVVRDIDIwMTAgaTY4NiBHTlUvTGludXgKY2F0IC9zeXMvZGV2aWNlcy9z
-eXN0ZW0vY2xvY2tzb3VyY2UvY2xvY2tzb3VyY2UwL2F2YWlsYWJsZV9jbG9ja3NvdXJjZQpocGV0
-IGFjcGlfcG0gCmNhdCAvc3lzL2RldmljZXMvc3lzdGVtL2Nsb2Nrc291cmNlL2Nsb2Nrc291cmNl
-MC9jdXJyZW50X2Nsb2Nrc291cmNlCmhwZXQKX19fX19fX19fX19fX19fX19fX19fX19fCiAgc3lz
-dGVtIHwgaGFyZHdhcmUoUlRDKQoxNTo0NjozNyB8IHZlbi4gMjcgYW/Du3QgMjAxMCAxNTo0Njoz
-OCBDRVNUICAtMC41MDA1NTAgc2Vjb25kZXMKMTU6NDY6NTggfCB2ZW4uIDI3IGFvw7t0IDIwMTAg
-MTU6NDY6NTkgQ0VTVCAgLTAuOTg1OTUzIHNlY29uZGVzCjE1OjQ3OjE5IHwgdmVuLiAyNyBhb8O7
-dCAyMDEwIDE1OjQ3OjIwIENFU1QgIC0xLjAwMTU5MSBzZWNvbmRlcwoxNTo0Nzo0MCB8IHZlbi4g
-MjcgYW/Du3QgMjAxMCAxNTo0Nzo0MSBDRVNUICAtMC45ODU5MzIgc2Vjb25kZXMKMTU6NDg6MDEg
-fCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTU6NDg6MDIgQ0VTVCAgLTAuOTg1OTYxIHNlY29uZGVzCjE1
-OjQ4OjIyIHwgdmVuLiAyNyBhb8O7dCAyMDEwIDE1OjQ4OjIzIENFU1QgIC0xLjAwMTU1OCBzZWNv
-bmRlcwoxNTo0ODo0MyB8IHZlbi4gMjcgYW/Du3QgMjAxMCAxNTo0ODo0NCBDRVNUICAtMC45ODU5
-MDggc2Vjb25kZXMKMTU6NDk6MDQgfCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTU6NTQ6MDQgQ0VTVCAg
-LTAuMDMyODAwIHNlY29uZGVzCjE1OjQ5OjI0IHwgdmVuLiAyNyBhb8O7dCAyMDEwIDE1OjU0OjI1
-IENFU1QgIC0wLjk4NTkyMCBzZWNvbmRlcwoxNTo0OTo0NSB8IHZlbi4gMjcgYW/Du3QgMjAxMCAx
-NTo1NDo0NiBDRVNUICAtMS4wMDE1NzQgc2Vjb25kZXMKMTU6NTA6MDYgfCB2ZW4uIDI3IGFvw7t0
-IDIwMTAgMTU6NTU6MDcgQ0VTVCAgLTAuOTg1OTM5IHNlY29uZGVzCjE1OjUwOjI3IHwgdmVuLiAy
-NyBhb8O7dCAyMDEwIDE1OjU1OjI4IENFU1QgIC0wLjk4NTkyMyBzZWNvbmRlcwoxNTo1MDo0OCB8
-IHZlbi4gMjcgYW/Du3QgMjAxMCAxNTo1NTo0OSBDRVNUICAtMS4wMDE1NTQgc2Vjb25kZXMKMTU6
-NTE6MDkgfCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTU6NTY6MTAgQ0VTVCAgLTAuOTg1OTM2IHNlY29u
-ZGVzCjE1OjUxOjMwIHwgdmVuLiAyNyBhb8O7dCAyMDEwIDE1OjU2OjMxIENFU1QgIC0wLjk4NTky
-OCBzZWNvbmRlcwoxNTo1MTo1MSB8IHZlbi4gMjcgYW/Du3QgMjAxMCAxNTo1Njo1MiBDRVNUICAt
-MC45ODU5NTIgc2Vjb25kZXMKMTU6NTI6MTIgfCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTU6NTc6MTMg
-Q0VTVCAgLTEuMDAxNTM4IHNlY29uZGVzCjE1OjUyOjMzIHwgdmVuLiAyNyBhb8O7dCAyMDEwIDE1
-OjU3OjM0IENFU1QgIC0wLjk4NTkzNiBzZWNvbmRlcwoxNTo1Mjo1NCB8IHZlbi4gMjcgYW/Du3Qg
-MjAxMCAxNTo1Nzo1NSBDRVNUICAtMS4wMDU4NjEgc2Vjb25kZXMKMTU6NTM6MTUgfCB2ZW4uIDI3
-IGFvw7t0IDIwMTAgMTU6NTg6MTYgQ0VTVCAgLTAuOTkwMTkyIHNlY29uZGVzCjE1OjUzOjM2IHwg
-dmVuLiAyNyBhb8O7dCAyMDEwIDE1OjU4OjM3IENFU1QgIC0wLjk5MDE4NSBzZWNvbmRlcwoxNTo1
-Mzo1NyB8IHZlbi4gMjcgYW/Du3QgMjAxMCAxNTo1ODo1OCBDRVNUICAtMC45ODU5MzMgc2Vjb25k
-ZXMKMTU6NTQ6MTggfCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTU6NTk6MTkgQ0VTVCAgLTAuOTg1OTMx
-IHNlY29uZGVzCjE1OjU0OjM5IHwgdmVuLiAyNyBhb8O7dCAyMDEwIDE1OjU5OjQwIENFU1QgIC0w
-Ljk4NTkzOCBzZWNvbmRlcwoxNTo1NTowMCB8IHZlbi4gMjcgYW/Du3QgMjAxMCAxNjowMDowMSBD
-RVNUICAtMS4wMDU4MTMgc2Vjb25kZXMKMTU6NTU6MjEgfCB2ZW4uIDI3IGFvw7t0IDIwMTAgMTY6
-MDA6MjIgQ0VTVCAgLTAuOTkwMTgyIHNlY29uZGVzCjE1OjU1OjQyIHwgdmVuLiAyNyBhb8O7dCAy
-MDEwIDE2OjAwOjQzIENFU1QgIC0wLjk4NTkzMiBzZWNvbmRlcwoxNTo1NjowMyB8IHZlbi4gMjcg
-YW/Du3QgMjAxMCAxNjowMTowNCBDRVNUICAtMC45ODU5MjUgc2Vjb25kZXMK
---001636283bde6e2f57048eceb4df--
+Venkatesh: You have any experience with HPETs that halt in idle?
+
+thanks
+-john
+
+
