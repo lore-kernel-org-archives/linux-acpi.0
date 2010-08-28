@@ -1,48 +1,24 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: Toshiba Satellite L650D-10J only boots with acpi=off
-Date: Sat, 28 Aug 2010 11:24:28 -0700
-Message-ID: <AANLkTimaCQP61iDSHCAqBRZcEr3QQnfg1UdrHXzZ9xF4@mail.gmail.com>
-References: <20100828192538.666c34c4.frank@61924.nl>
+From: Ana Morrison <ana@lotto649.ca>
+Subject: Good News!!!
+Date: Sat, 28 Aug 2010 23:25:20 +0300
+Message-ID: <122644d76d6d605ad50baa286734d3f3__6444.04621930352$1283027136$gmane$org@127.0.0.1>
+Reply-To: datsongalleon649@24.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100828192538.666c34c4.frank@61924.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frank <frank@61924.nl>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Barnes, Jesse" <jesse.barnes@intel.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.interbgc.com ([217.9.224.122]:43450 "EHLO
+	mail.interbgc.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996Ab0H1UZb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Aug 2010 16:25:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 28, 2010 at 10:25 AM, Frank <frank@61924.nl> wrote:
-> Hello,
->
-> I purchased a Toshiba Satellite L650D-10J a few days ago and when I
-> wanted to install Archlinux I was only able to boot the installer with
-> acpi=off. The same goes for the installed OS.
->
-> I asked on ##kernel on freenode and one guy said I should mail this
-> issue to this mailing list. And include all the information I have.
->
-> This is what I get when I boot without acpi=off:
-> http://i.imagehost.org/view/0872/DSC00071
-> http://a.imagehost.org/view/0172/DSC00069
->
-> The system boots normally when I use acpi=off, but the dual-core CPU is
-> seen as a CPU with one core. And X is slow with starting up and doesn't
-> shutdown when I close Openbox, but I'm not sure if that's even related.
->
-> Here's the dmesg:
-> http://codepad.org/W7EzULKf
->
-> And the lspci:
-> http://codepad.org/ce1boP3r
->
-> I'm using the stock Archlinux x86_64 kernel (the latest is 2.6.35.3-1
-> at this moment) and the config files can be found here:
-> http://repos.archlinux.org/wsvn/packages/kernel26/repos/core-x86_64/
->
-> If more information is needed, I'll glady provide it.
->
 
-Can you try to boot with "pci=nocrs" instead of "acpi=off"?
+You have won 2,500,000GBP from the Lotto 649. Contact our British Agent
+for more details.  Mr. Datson Galleon via e-mail:
+datsongalleon649@24.com , Tel: +447031979972.
 
-Yinghai
+Rita jonhson 
+Lotto649 
