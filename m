@@ -1,54 +1,190 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Another bad usage of smp_processor_id
-Date: Sun, 29 Aug 2010 13:26:19 +0300
-Message-ID: <1283077579.5529.2.camel@maxim-laptop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: 2.6.36-rc3: Reported regressions from 2.6.35
+Date: Mon, 30 Aug 2010 00:24:40 +0200 (CEST)
+Message-ID: <4LwrqITm-eJ.A.r8G.eFueMB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40338 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab0H2K0Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Aug 2010 06:26:24 -0400
-Received: by bwz11 with SMTP id 11so3046540bwz.19
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Aug 2010 03:26:23 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
+This message contains a list of some regressions from 2.6.35,
+for which there are no fixes in the mainline known to the tracking team.
+If any of them have been fixed already, please let us know.
 
-Now that I applied the patch that makes NMI watchdog not trigger this,
-the amount of backtraces reduced, so I finally notice that on resume:
+If you know of any other unresolved regressions from 2.6.35, please let us
+know either and we'll add them to the list.  Also, please let us know
+if any of the entries below are invalid.
 
-[ 3226.997285] Back to C!
-[ 3226.997285] PM: Restoring platform NVS memory
-[ 3226.997285] CPU0: Thermal monitoring handled by SMI
-[ 3226.997285] Enabling non-boot CPUs ...
-[ 3227.000076] BUG: using smp_processor_id() in preemptible [00000000] code: pm-suspend/5185
-[ 3227.000085] caller is thermal_throttle_add_dev+0x20/0xa4
-[ 3227.000091] Pid: 5185, comm: pm-suspend Tainted: P            2.6.36-rc2+ #132
-[ 3227.000096] Call Trace:
-[ 3227.000104]  [<ffffffff811e6242>] debug_smp_processor_id+0xd2/0xf0
-[ 3227.000110]  [<ffffffff813a0174>] thermal_throttle_add_dev+0x20/0xa4
-[ 3227.000117]  [<ffffffff813a0244>] thermal_throttle_cpu_callback+0x4c/0xb7
-[ 3227.000123]  [<ffffffff81063c61>] notifier_call_chain+0x51/0x80
-[ 3227.000130]  [<ffffffff810425d2>] ? cpu_maps_update_begin+0x12/0x20
-[ 3227.000136]  [<ffffffff81063d19>] __raw_notifier_call_chain+0x9/0x10
-[ 3227.000141]  [<ffffffff8104258b>] __cpu_notify+0x1b/0x30
-[ 3227.000147]  [<ffffffff813a29d4>] _cpu_up+0x6e/0x10d
-[ 3227.000153]  [<ffffffff81396335>] enable_nonboot_cpus+0x95/0xc0
-[ 3227.000160]  [<ffffffff8107ffcc>] suspend_devices_and_enter+0x10c/0x1e0
-[ 3227.000166]  [<ffffffff810801bc>] enter_state+0x11c/0x190
-[ 3227.000172]  [<ffffffff8107f821>] state_store+0x91/0x100
-[ 3227.000179]  [<ffffffff811d7a87>] kobj_attr_store+0x17/0x20
-[ 3227.000185]  [<ffffffff8114a392>] sysfs_write_file+0xf2/0x170
-[ 3227.000192]  [<ffffffff810df658>] vfs_write+0xc8/0x190
-[ 3227.000198]  [<ffffffff810df7ff>] sys_write+0x4f/0x90
-[ 3227.000205]  [<ffffffff81002deb>] system_call_fastpath+0x16/0x1b
-[ 3227.000328] lockdep: fixing up alternatives.
-[ 3227.000332] SMP alternatives: switching to SMP code
+Each entry from the list will be sent additionally in an automatic reply
+to this message with CCs to the people involved in reporting and handling
+the issue.
 
-Best regards,
-	Maxim Levitsky
+
+Listed regressions statistics:
+
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2010-08-30       21       16          15
+
+
+Unresolved regressions
+----------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17341
+Subject		: kdump regression compared to v2.6.35
+Submitter	: CAI Qian <caiqian@redhat.com>
+Date		: 2010-08-27 12:35 (3 days old)
+Message-ID	: <2136707099.1405541282912500148.JavaMail.root@zmail06.collab.prod.int.phx2.redhat.com>
+References	: http://marc.info/?l=linux-kernel&m=128291252612135&w=2
+Handled-By	: Tejun Heo <tj@kernel.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17331
+Subject		: BUG: scheduling while atomic
+Submitter	: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Date		: 2010-08-27 7:59 (3 days old)
+Message-ID	: <20100827075911.GA5966@swordfish.minsk.epam.com>
+References	: http://marc.info/?l=linux-kernel&m=128289602925505&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17321
+Subject		: i386 WARNING: at kernel/softirq.c:143 _local_bh_enable_ip+0x2f/0x7e
+Submitter	: Arno Schuring <aelschuring@hotmail.com>
+Date		: 2010-08-27 20:04 (3 days old)
+Message-ID	: <4C781A3A.4010707@hotmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128294076822387&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17311
+Subject		: 2.6.36-rc2-git4 - INFO: possible circular locking dependency detected
+Submitter	: Miles Lane <miles.lane@gmail.com>
+Date		: 2010-08-27 1:56 (3 days old)
+First-Bad-Commit: http://git.kernel.org/linus/5a652052fedbd7869572c757dd2ffc2ed420c69d
+Message-ID	: <AANLkTinHbEW36D5R9NSrGgfbOC0Hri3Tg-fA0iR92Udi@mail.gmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128287422106267&w=2
+Handled-By	: Johannes Berg <johannes@sipsolutions.net>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17301
+Subject		: i915: 2.6.36-rc2 wrong resolution on gdm start
+Submitter	: Ivan Bulatovic <combuster@gmx.com>
+Date		: 2010-08-24 1:00 (6 days old)
+First-Bad-Commit: http://git.kernel.org/linus/9d0498a2bf7455159b317f19531a3e5db2ecc9c4
+Message-ID	: <1282611655.2177.19.camel@localhost.localdomain>
+References	: http://marc.info/?l=linux-kernel&m=128261168202306&w=2
+Handled-By	: Chris Wilson <chris@chris-wilson.co.uk>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17151
+Subject		: i915: 2.6.36-rc2 hoses my Intel display
+Submitter	: Jonathan Corbet <corbet@lwn.net>
+Date		: 2010-08-23 17:01 (7 days old)
+First-Bad-Commit: http://git.kernel.org/linus/32aad86fe88e7323d4fc5e9e423abcee0d55a03d
+Message-ID	: <20100823110145.08eb72fd@bike.lwn.net>
+References	: http://marc.info/?l=linux-kernel&m=128258293327326&w=2
+Handled-By	: Chris Wilson <chris@chris-wilson.co.uk>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17131
+Subject		: WARN with 3c905 boomerang NIC
+Submitter	: Doug Nazar <nazard.lkml@gmail.com>
+Date		: 2010-08-22 6:35 (8 days old)
+Message-ID	: <4C70C516.5020404@gmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128245894300623&w=2
+Handled-By	: David Miller <davem@davemloft.net>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17061
+Subject		: 2.6.36-rc1 on zaurus: bluetooth regression
+Submitter	: Pavel Machek <pavel@ucw.cz>
+Date		: 2010-08-21 15:24 (9 days old)
+Message-ID	: <20100821152445.GA1536@ucw.cz>
+References	: http://marc.info/?l=linux-kernel&m=128240433828087&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17041
+Subject		: 2.6.36-rc1 hangs during XFS barrier test for /
+Submitter	: Torsten Kaiser <just.for.lkml@googlemail.com>
+Date		: 2010-08-20 (10 days old)
+Message-ID	: <AANLkTim1PXibiY98GUdMj-UZLTav+n7GAnJ0Mjn6_5a3@mail.gmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128231691708710&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17021
+Subject		: [REGRESSION] [2.6.36-rc1] [DRM INTEL] [drm:intel_calculate_wm] *ERROR* Insufficient FIFO for plane, expect flickering: entries required = 36, available = 28.
+Submitter	: Maciej Rutecki <maciej.rutecki@gmail.com>
+Date		: 2010-08-18 18:46 (12 days old)
+Message-ID	: <201008182046.37732.maciej.rutecki@gmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128215721507666&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16971
+Subject		: qla4xxx compile failure on 32-bit PowerPC: missing readq and writeq
+Submitter	: Meelis Roos <mroos@linux.ee>
+Date		: 2010-08-19 21:03 (11 days old)
+Message-ID	: <alpine.SOC.1.00.1008192359310.19654@math.ut.ee>
+References	: http://marc.info/?l=linux-kernel&m=128225184900892&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16961
+Subject		: kernel BUG at arch/x86/kvm/../../../virt/kvm/kvm_main.c:1978
+Submitter	: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Date		: 2010-08-19 9:54 (11 days old)
+Message-ID	: <20100819095429.GA5201@swordfish.minsk.epam.com>
+References	: http://marc.info/?l=linux-kernel&m=128221169606214&w=2
+Handled-By	: Avi Kivity <avi@redhat.com>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16951
+Subject		: hackbench regression with 2.6.36-rc1
+Submitter	: Zhang, Yanmin <yanmin_zhang@linux.intel.com>
+Date		: 2010-08-18 6:18 (12 days old)
+Message-ID	: <1282112318.21202.8.camel@ymzhang.sh.intel.com>
+References	: http://marc.info/?l=linux-kernel&m=128211235904910&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16881
+Subject		: [REGRESSION, Radeon-KMS] 2.6.36-rc1,2 - missing textures in 0 A.D.
+Submitter	:  <trapdoor6@gmail.com>
+Date		: 2010-08-24 12:20 (6 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16626
+Subject		: Machine hangs with EIP at skb_copy_and_csum_dev
+Submitter	: Plamen Petrov <pvp-lsts@fs.uni-ruse.bg>
+Date		: 2010-08-19 09:57 (11 days old)
+Handled-By	:  Eric Dumazet <eric.dumazet@gmail.com>
+
+
+Regressions with patches
+------------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16629
+Subject		: fix BUG: using smp_processor_id() in preemptible code (resend)
+Submitter	: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Date		: 2010-08-18 9:11 (12 days old)
+Message-ID	: <20100818091157.GA5238@swordfish.minsk.epam.com>
+References	: http://marc.info/?l=linux-kernel&m=128212276618793&w=2
+Handled-By	: H. Peter Anvin <hpa@zytor.com>
+Patch		: http://marc.info/?l=linux-kernel&m=128212276618793&w=2
+
+
+For details, please visit the bug entries and follow the links given in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regressions.
+There also is a Bugzilla entry used for tracking the regressions from 2.6.35,
+unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=16444
+
+Please let the tracking team know if there are any Bugzilla entries that
+should be added to the list in there.
+
+Thanks!
 
