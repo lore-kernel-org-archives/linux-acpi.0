@@ -1,37 +1,73 @@
-From: Frank <frank@61924.nl>
-Subject: Re: Toshiba Satellite L650D-10J only boots with acpi=off
-Date: Mon, 30 Aug 2010 14:26:18 +0200
-Message-ID: <20100830142618.ef9876aa.frank@61924.nl>
-References: <20100828192538.666c34c4.frank@61924.nl>
-	<1283127802.3707.163.camel@rui>
+From: Martin Pirker <lkml.collector@gmail.com>
+Subject: ACPI(?) stuck for 45s at boot
+Date: Mon, 30 Aug 2010 14:56:12 +0200
+Message-ID: <4C7BAA6C.1090909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail6.webfaction.com ([74.55.86.74]:42857 "EHLO
-	smtp.webfaction.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752091Ab0H3Mcy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 08:32:54 -0400
-In-Reply-To: <1283127802.3707.163.camel@rui>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:35081 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab0H3MzZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 08:55:25 -0400
+Received: by fxm13 with SMTP id 13so3167640fxm.19
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Aug 2010 05:55:23 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "linux.acpi" <linux-acpi@vger.kernel.org>
 
-It works, it sees the two cores of my CPU and I the acpi command gives
-me info about the CPU, temperature, battery and cooling. The laptop
-also shutsdown by itself when I execute the shutdown command.
+[reposted from LKML as nobody responded there... :-/ ]
 
-Here's the output from 'dmesg | grep -i ACPI':
-http://codepad.org/KcqZMvCa
 
-The only problem left is that X starts slowly and doesn't shutdown when
-I exit Openbox, but that's has probably to do with the video driver.
+Hi..
+My kernel (2.6.35) gets stuck at boot, as dmesg documents:
+....
+[ 0.006590] ACPI: Core revision 20100121
+[ 45.278951] DMAR: Host address width 36
+...
 
-Regards,
-Frank
 
-> Hi, Frank,
-> 
-> could you please check if boot option acpi=copy_dsdt helps?
-> Note, please do this test in the latest kernel.
+Setting acpi debugging to give-me-all-you-can produces ~120Mb dump.
+The interesting part appears to be:
+
+.....
+[ 36.016976] Table [SSDT](id 0006) - 28 Objects with 0 Devices 21 Methods 0 Regions
+[ 36.017120] dsinit-0214 [ffffffff81a32020] [00] ds_initialize_objects : 21 Methods, 0 Regions
+[ 36.017292] nsload-0136 [ffffffff81a32020] [00] ns_load_table : **** Completed Table Method Parsing and Object Initialization
+[ 36.017477] utmutex-0247 [ffffffff81a32020] [00] ut_acquire_mutex : Thread ffffffff81a32020 attempting to acquire Mutex [ACPI_MTX_Tables]
+[ 36.017666] osl-0879 [ffffffff81a32020] [00] os_wait_semaphore : Waiting for semaphore[ffff88013341e120|1|65535]
+[ 36.017848] osl-0898 [ffffffff81a32020] [00] os_wait_semaphore : Acquired semaphore[ffff88013341e120|1|65535] utmutex-0255
+[ffffffff81a32020] [00] ut_acquire_mutex : Thread ffffffff81a32020 acquired Mutex [ACPI_MTX_Tables]
+[ 36.018189] tbxface-0610 [ffffffff81a32020] [00] tb_load_namespace : ACPI Tables successfully acquired
+[ 36.018366] utmutex-0289 [ffffffff81a32020] [00] ut_release_mutex : Thread ffffffff81a32020 releasing Mutex [ACPI_MTX_Tables]
+[ 36.018552] osl-0918 [ffffffff81a32020] [00] os_signal_semaphore : Signaling semaphore[ffff88013341e120|1]
+[ 36.018733] utxface-0141 [ffffffff81a32020] [00] enable_subsystem : [Init] Going into ACPI mode
+[ 36.018912] hwvalid-0147 [ffffffff81a32020] [00] hw_validate_io_request: Address 0000000000001004 LastAddress 0000000000001005 Length 2 hwregs-0188 [ffffffff81a32020] [00] hw_read : Read: 00001C00 
+width 16 from 0000000000001004 (SystemIO)
+[ 36.019290] hwxface-0344 [ffffffff81a32020] [00] read_bit_register : BitReg E, ParentReg 3, Actual 00001C00, ReturnValue 00000000
+[ 36.019477] hwvalid-0147 [ffffffff81a32020] [00] hw_validate_io_request: Address 0000000000001004 LastAddress 0000000000001005 Length 2 hwregs-0188 [ffffffff81a32020] [00] hw_read : Read: 00001C00 
+width 16 from 0000000000001004 (SystemIO)
+[ 36.019849] hwxface-0344 [ffffffff81a32020] [00] read_bit_register : BitReg E, ParentReg 3, Actual 00001C00, ReturnValue 00000000
+[ 36.020036] hwvalid-0147 [ffffffff81a32020] [00] hw_validate_io_request: Address 00000000000000b2 LastAddress 00000000000000b2 Length 1 hwacpi-0101 [ffffffff81a32020] [00] hw_set_mode : Attempting to 
+enable ACPI mode
+[ 81.259054] hwvalid-0147 [ffffffff81a32020] [00] hw_validate_io_request: Address 0000000000001004 LastAddress 0000000000001005 Length 2 hwregs-0188 [ffffffff81a32020] [00] hw_read : Read: 00001C01 
+width 16 from 0000000000001004 (SystemIO)
+[ 81.259418] hwxface-0344 [ffffffff81a32020] [00] read_bit_register : BitReg E, ParentReg 3, Actual 00001C01, ReturnValue 00000001
+[ 81.259604] utmutex-0247 [ffffffff81a32020] [00] ut_acquire_mutex : Thread ffffffff81a32020 attempting to acquire Mutex [ACPI_MTX_Tables]
+[ 81.259794] osl-0879 [ffffffff81a32020] [00] os_wait_semaphore : Waiting for semaphore[ffff88013341e120|1|65535]
+[ 81.259976] osl-0898 [ffffffff81a32020] [00] os_wait_semaphore : Acquired semaphore[ffff88013341e120|1|65535] utmutex-0255 [ffffffff81a32020] [00] ut_acquire_mutex : Thread ffffffff81a32020 acquired 
+Mutex [ACPI_MTX_Tables]
+[ 81.260336] utmutex-0289 [ffffffff81a32020] [00] ut_release_mutex : Thread ffffffff81a32020 releasing Mutex [ACPI_MTX_Tables]
+[ 81.260523] osl-0918 [ffffffff81a32020] [00] os_signal_semaphore : Signaling semaphore[ffff88013341e120|1]
+[ 81.260704] ftrace: converting mcount calls to 0f 1f 44 00 00
+[ 81.260771] ftrace: allocating 21295 entries in 84 pages
+[ 81.268939] DMAR: Host address width 36
+.....
+
+
+So....
+What is happening here and whose fault is it?
+Is it a Linux kernel or ACPI firmware problem?
+
+Thanks for any pointers,
+Martin
