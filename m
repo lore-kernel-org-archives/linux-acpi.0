@@ -1,65 +1,70 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Toshiba Satellite L650D-10J only boots with acpi=off
-Date: Mon, 30 Aug 2010 08:23:22 +0800
-Message-ID: <1283127802.3707.163.camel@rui>
-References: <20100828192538.666c34c4.frank@61924.nl>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Re: BUG: scheduling while atomic
+Date: Mon, 30 Aug 2010 10:29:00 +0300
+Message-ID: <20100830072900.GA11606@swordfish.minsk.epam.com>
+References: <20100827075911.GA5966@swordfish.minsk.epam.com>
+ <201008272102.52041.rjw@sisk.pl>
+ <20100828064254.GA2128@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5651 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753816Ab0H3AUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Aug 2010 20:20:04 -0400
-In-Reply-To: <20100828192538.666c34c4.frank@61924.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100828064254.GA2128@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Jiri Slaby <jslaby@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Frank <frank@61924.nl>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-Hi, Frank,
-
-could you please check if boot option acpi=copy_dsdt helps?
-Note, please do this test in the latest kernel.
-
-thanks,
-rui
-
-On Sun, 2010-08-29 at 01:25 +0800, Frank wrote:
-> Hello,
-> 
-> I purchased a Toshiba Satellite L650D-10J a few days ago and when I
-> wanted to install Archlinux I was only able to boot the installer with
-> acpi=off. The same goes for the installed OS.
-> 
-> I asked on ##kernel on freenode and one guy said I should mail this
-> issue to this mailing list. And include all the information I have.
-> 
-> This is what I get when I boot without acpi=off:
-> http://i.imagehost.org/view/0872/DSC00071
-> http://a.imagehost.org/view/0172/DSC00069
-> 
-> The system boots normally when I use acpi=off, but the dual-core CPU is
-> seen as a CPU with one core. And X is slow with starting up and doesn't
-> shutdown when I close Openbox, but I'm not sure if that's even related.
-> 
-> Here's the dmesg:
-> http://codepad.org/W7EzULKf
-> 
-> And the lspci:
-> http://codepad.org/ce1boP3r
-> 
-> I'm using the stock Archlinux x86_64 kernel (the latest is 2.6.35.3-1
-> at this moment) and the config files can be found here:
-> http://repos.archlinux.org/wsvn/packages/kernel26/repos/core-x86_64/
-> 
-> If more information is needed, I'll glady provide it.
-> 
-> Regards,
-> Frank
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On (08/28/10 08:42), Pavel Machek wrote:
+> On Fri 2010-08-27 21:02:51, Rafael J. Wysocki wrote:
+> > On Friday, August 27, 2010, Sergey Senozhatsky wrote:
+> > > Hello,
+> > >=20
+> > > .36-rc2-git4
+> >=20
+> > Well, that looks like an ACPI battery driver issue.
+> >=20
+> > What was the last know good kernel?
+>=20
+> Also you might want to see if unloading battery driver before hibernation
+> allows you do proceed...
+> 									Pavel
+
+Hello,
+Sorry for the delay.
+Last known good was .36-rc2-git3 (if I'm not mistaken).
+
+Sure, will try with unloaded battery driver.
+
+
+	Sergey=20
+
+
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
+>=20
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iJwEAQECAAYFAkx7XbwACgkQfKHnntdSXjTV0wQAtFwpJzjTWJd5pau5rVajcccJ
+rAvd1kjSLcAM1M62CrMb3Ty3emZBx606wH7OmCUO6QoSx2slbfZrxqb5lBRD6Ko4
++PTPxxuL5qG0Vy1B//mZs/hxavIAQLkv0hEs1WQRE74SIOe0muLBSOYf43oqlkXS
+EQvI0Ots0zWsCy+4EbQ=
+=B42C
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
