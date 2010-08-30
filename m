@@ -1,47 +1,130 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Mon, 30 Aug 2010 09:36:04 +0200
-Message-ID: <4C7B5F64.30205@suse.cz>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>	<4C27E965.80508@gmail.com>	<4C283D84.6080504@suse.cz>	<20100628171410.GA27367@srcf.ucam.org>	<4C290245.2040001@suse.cz>	<20100628204820.GA32503@srcf.ucam.org>	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>	<4C2A3E27.4060407@suse.cz>	<AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com>	<4C2B0C73.9050200@suse.cz>	<4C3278C8.60503@gmail.com>	<4C447D6D.5060801@suse.cz>	<AANLkTin9_yEyMZImRbtKTvTeokks8dz0htQCu0B3RqXH@mail.gmail.com>	<4C456C69.60606@suse.cz>	<4C737E9F.7060107@gmail.com> <AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: System time drifts when processor idle.
+Date: Mon, 30 Aug 2010 10:03:53 +0200
+Message-ID: <AANLkTin2VLXw0dVetq0_fYQ_a_nsmHq10byyMs1e4DZX@mail.gmail.com>
+References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
+	<AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
+	<AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
+	<AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
+	<AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
+	<AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
+	<1282932708.1946.8.camel@work-vm>
+	<AANLkTi=8MXx9L0+V-JqXoO5PCWq5EPRW9fqpr913OTyC@mail.gmail.com>
+	<1282957741.1946.27.camel@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=0016e64cad1ecf161e048f05e7ec
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53782 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab0H3HgK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 03:36:10 -0400
-In-Reply-To: <AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38898 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754330Ab0H3IDz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 04:03:55 -0400
+In-Reply-To: <1282957741.1946.27.camel@work-vm>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: john stultz <johnstul@us.ibm.com>
+Cc: Venkatesh Pallipadi <venki@google.com>, Lin Ming <lin@ming.vg>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, jslaby@suse.cz
 
-On 08/25/2010 01:25 AM, Robert Hancock wrote:
-> On Tue, Aug 24, 2010 at 2:11 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
->> So, to sum up:
->> 1) acpi routing enabled (no kernel parameter) => ports 4+5 defunct.
->> ports 4+5+6+7 are all on irq 11
->>
->> 2) acpi routing disabled (acpi=noirq) => all ports working, 4+5 on irq
->> 10, 6+7 on irq 11
->>
->> 3) with the quirk [1] and acpi routing enabled => all ports working,
->> ports 4+5 on irq 10, 6+7 on irq 11
->>
->> 4) in windows => 4+5+6+7 are all on irq 9 and the ports are all working.
->>
->> Any ideas what this means? Especially point 4)?
->>
->> [1] http://lkml.org/lkml/2010/6/27/85
-> 
-> I think that's the key question. Is Windows actually using ACPI on
-> that machine at all? (Check the computer type in Device Manager and
-> see if it mentions ACPI.)
+--0016e64cad1ecf161e048f05e7ec
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Yes, there is Computer->ACPI PC.
+>
+> jean-philippe: Is the drift always in 5 minute increments? Can you leave
+> it idle for 3 minutes and see a similar 3 minute delay, or is it always
+> in units of 5 ?
+>
 
-thanks,
--- 
-js
-suse labs
+It looks like it is always a 5 minute delay, or sometimes 10.
+Attached is an edited version with the interesting bits of a test running
+for 8 hours
+
+Jean-Philippe Fran=E7ois
+
+--0016e64cad1ecf161e048f05e7ec
+Content-Type: text/x-log; charset=UTF-8; name="longrun_edited.log"
+Content-Disposition: attachment; filename="longrun_edited.log"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gdh1lhuw0
+
+TGludXgganAgMi42LjM2LTAyMDYzNnJjMS1nZW5lcmljICMyMDEwMDgxNzEzMDYgU01QIFR1ZSBB
+dWcgMTcgMTQ6MTY6MjggVVRDIDIwMTAgaTY4NiBHTlUvTGludXgKY2F0IC9zeXMvZGV2aWNlcy9z
+eXN0ZW0vY2xvY2tzb3VyY2UvY2xvY2tzb3VyY2UwL2F2YWlsYWJsZV9jbG9ja3NvdXJjZQpocGV0
+IGFjcGlfcG0gCmNhdCAvc3lzL2RldmljZXMvc3lzdGVtL2Nsb2Nrc291cmNlL2Nsb2Nrc291cmNl
+MC9jdXJyZW50X2Nsb2Nrc291cmNlCmhwZXQKX19fX19fX19fX19fX19fX19fX19fX19fCiAgc3lz
+dGVtIHwgaGFyZHdhcmUoUlRDKQoxNDo0Nzo0NSB8IHNhbS4gMjggYW/Du3QgMjAxMCAxNDo0Nzo0
+NiBDRVNUICAtMC41MDA1NTUgc2Vjb25kZXMKMTQ6NDg6MDYgfCBzYW0uIDI4IGFvw7t0IDIwMTAg
+MTQ6NDg6MDcgQ0VTVCAgLTAuOTcwMzYyIHNlY29uZGVzCgouLi4KCjE0OjU5OjE4IHwgc2FtLiAy
+OCBhb8O7dCAyMDEwIDE0OjU5OjE5IENFU1QgIC0xLjAwMTU1MSBzZWNvbmRlcwoxNDo1OTozOSB8
+IHNhbS4gMjggYW/Du3QgMjAxMCAxNTowOTozOSBDRVNUICAtMC4wNjQwNjEgc2Vjb25kZXMKMTQ6
+NTk6NTkgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTU6MTA6MDAgQ0VTVCAgLTEuMDAxNTc3IHNlY29u
+ZGVzCgouLi4KCjE1OjA3OjQxIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE1OjE3OjQyIENFU1QgIC0w
+Ljk4NTk0MCBzZWNvbmRlcwoxNTowODowMiB8IHNhbS4gMjggYW/Du3QgMjAxMCAxNToyMzowMiBD
+RVNUICAtMC4wMzI4MDIgc2Vjb25kZXMKMTU6MDg6MjIgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTU6
+MjM6MjMgQ0VTVCAgLTEuMDA1ODE3IHNlY29uZGVzCgouLi4KCjE1OjEwOjA3IHwgc2FtLiAyOCBh
+b8O7dCAyMDEwIDE1OjI1OjA4IENFU1QgIC0wLjk4NTk2MCBzZWNvbmRlcwoxNToxMDoyOCB8IHNh
+bS4gMjggYW/Du3QgMjAxMCAxNTozMDoyOCBDRVNUICAtMC4wNTI3NTYgc2Vjb25kZXMKMTU6MTA6
+NDggfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTU6MzA6NDkgQ0VTVCAgLTAuOTkwMjM2IHNlY29uZGVz
+CgouLi4KCjE1OjE4OjMwIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE1OjM4OjMxIENFU1QgIC0wLjk4
+NTk1MSBzZWNvbmRlcwoxNToxODo1MSB8IHNhbS4gMjggYW/Du3QgMjAxMCAxNTo0Mzo1MSBDRVNU
+ICAtMC4wMzI4MDcgc2Vjb25kZXMKMTU6MTk6MTEgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTU6NDQ6
+MTIgQ0VTVCAgLTAuOTg1OTQxIHNlY29uZGVzCgouLi4KCjE1OjM0OjU2IHwgc2FtLiAyOCBhb8O7
+dCAyMDEwIDE1OjU5OjU3IENFU1QgIC0wLjk5MDE3NyBzZWNvbmRlcwoxNTozNToxNyB8IHNhbS4g
+MjggYW/Du3QgMjAxMCAxNjowNToxNyBDRVNUICAtMC4wMzI4MDYgc2Vjb25kZXMKMTU6MzU6Mzcg
+fCBzYW0uIDI4IGFvw7t0IDIwMTAgMTY6MDU6MzggQ0VTVCAgLTAuOTkwMjk0IHNlY29uZGVzCgou
+Li4KCjE1OjM3OjQzIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE2OjA3OjQ0IENFU1QgIC0wLjk4NTk0
+NyBzZWNvbmRlcwoxNTozODowNCB8IHNhbS4gMjggYW/Du3QgMjAxMCAxNjoxMzowNCBDRVNUICAt
+MC4wMzI4MzIgc2Vjb25kZXMKMTU6Mzg6MjQgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTY6MTM6MjUg
+Q0VTVCAgLTAuOTg1OTIzIHNlY29uZGVzCgouLi4KCjE2OjEyOjIxIHwgc2FtLiAyOCBhb8O7dCAy
+MDEwIDE2OjQ3OjIyIENFU1QgIC0wLjk4NTkyMiBzZWNvbmRlcwoxNjoxMjo0MiB8IHNhbS4gMjgg
+YW/Du3QgMjAxMCAxNjo1Mjo0MiBDRVNUICAtMC4wMzI4MjMgc2Vjb25kZXMKMTY6MTM6MDIgfCBz
+YW0uIDI4IGFvw7t0IDIwMTAgMTY6NTM6MDMgQ0VTVCAgLTEuMDAxNTU5IHNlY29uZGVzCgouLi4K
+CjE2OjM0OjIzIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE3OjE0OjI0IENFU1QgIC0wLjk4NTk3MyBz
+ZWNvbmRlcwoxNjozNDo0NCB8IHNhbS4gMjggYW/Du3QgMjAxMCAxNzoxOTo0NCBDRVNUICAtMC4w
+MzI4MzAgc2Vjb25kZXMKMTY6MzU6MDQgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTc6MjA6MDUgQ0VT
+VCAgLTAuOTg1OTM3IHNlY29uZGVzCgouLi4KCjE3OjAxOjQwIHwgc2FtLiAyOCBhb8O7dCAyMDEw
+IDE3OjQ2OjQxIENFU1QgIC0wLjk4NTkyOSBzZWNvbmRlcwoxNzowMjowMSB8IHNhbS4gMjggYW/D
+u3QgMjAxMCAxNzo1MjowMSBDRVNUICAtMC4wMzI4MDQgc2Vjb25kZXMKMTc6MDI6MjEgfCBzYW0u
+IDI4IGFvw7t0IDIwMTAgMTc6NTI6MjIgQ0VTVCAgLTEuMDA1ODA2IHNlY29uZGVzCgouLi4KCjE3
+OjMwOjQyIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE4OjIwOjQzIENFU1QgIC0wLjk4NTkzMSBzZWNv
+bmRlcwoxNzozMTowMyB8IHNhbS4gMjggYW/Du3QgMjAxMCAxODoyNjowMyBDRVNUICAtMC4wMzI4
+MTMgc2Vjb25kZXMKMTc6MzE6MjMgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTg6MjY6MjQgQ0VTVCAg
+LTAuOTg1OTMzIHNlY29uZGVzCgouLi4KCjE3OjM5OjQ3IHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE4
+OjM0OjQ4IENFU1QgIC0wLjk5MDIxMSBzZWNvbmRlcwoxNzo0MDowOCB8IHNhbS4gMjggYW/Du3Qg
+MjAxMCAxODo0MDowOCBDRVNUICAtMC4wMzI4MjYgc2Vjb25kZXMKMTc6NDA6MjggfCBzYW0uIDI4
+IGFvw7t0IDIwMTAgMTg6NDA6MjkgQ0VTVCAgLTAuOTkwMjMxIHNlY29uZGVzCjE3OjQwOjQ5IHwg
+c2FtLiAyOCBhb8O7dCAyMDEwIDE4OjQwOjUwIENFU1QgIC0wLjk4NDkyNiBzZWNvbmRlcwoxNzo0
+MToxMCB8IHNhbS4gMjggYW/Du3QgMjAxMCAxODo0MToxMSBDRVNUICAtMC45ODU5NDkgc2Vjb25k
+ZXMKMTc6NDE6MzEgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTg6NDE6MzIgQ0VTVCAgLTAuOTg1OTc3
+IHNlY29uZGVzCjE3OjQxOjUyIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE4OjQ2OjUyIENFU1QgIC0w
+LjAzMjgyNyBzZWNvbmRlcwoxNzo0MjoxMiB8IHNhbS4gMjggYW/Du3QgMjAxMCAxODo0NzoxMyBD
+RVNUICAtMS4wMDE1Njcgc2Vjb25kZXMKMTc6NDI6MzMgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTg6
+NDc6MzQgQ0VTVCAgLTAuOTg1OTI3IHNlY29uZGVzCgouLi4KCjE4OjA1OjE4IHwgc2FtLiAyOCBh
+b8O7dCAyMDEwIDE5OjEwOjE5IENFU1QgIC0wLjk4NTk1MiBzZWNvbmRlcwoxODowNTozOSB8IHNh
+bS4gMjggYW/Du3QgMjAxMCAxOToxNTozOSBDRVNUICAtMC4wMzI4NTQgc2Vjb25kZXMKMTg6MDU6
+NTkgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTk6MTY6MDAgQ0VTVCAgLTAuOTg1OTM0IHNlY29uZGVz
+CgouLi4KCjE4OjE5OjM4IHwgc2FtLiAyOCBhb8O7dCAyMDEwIDE5OjI5OjM5IENFU1QgIC0wLjk5
+MDE2MyBzZWNvbmRlcwoxODoxOTo1OSB8IHNhbS4gMjggYW/Du3QgMjAxMCAxOTozNDo1OSBDRVNU
+ICAtMC4wMzE4MTQgc2Vjb25kZXMKMTg6MjA6MTkgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMTk6MzU6
+MjAgQ0VTVCAgLTAuOTg1OTUzIHNlY29uZGVzCgouLi4KCjE4OjM3OjI4IHwgc2FtLiAyOCBhb8O7
+dCAyMDEwIDE5OjUyOjI5IENFU1QgIC0wLjk5MDE4MyBzZWNvbmRlcwoxODozNzo0OSB8IHNhbS4g
+MjggYW/Du3QgMjAxMCAxOTo1Nzo0OSBDRVNUICAtMC4wMzI4NDQgc2Vjb25kZXMKMTg6Mzg6MTAg
+fCBzYW0uIDI4IGFvw7t0IDIwMTAgMTk6NTg6MTAgQ0VTVCAgLTAuOTkwMzQ5IHNlY29uZGVzCgou
+Li4KCjE4OjQ4OjE5IHwgc2FtLiAyOCBhb8O7dCAyMDEwIDIwOjA4OjE5IENFU1QgIC0wLjk4NTkx
+MCBzZWNvbmRlcwoxODo0ODo0MCB8IHNhbS4gMjggYW/Du3QgMjAxMCAyMDoxMzozOSBDRVNUICAt
+MC4wMzI4MjIgc2Vjb25kZXMKMTg6NDk6MDAgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMjA6MTQ6MDAg
+Q0VTVCAgLTEuMDAxNTU3IHNlY29uZGVzCgouLi4KCjE5OjA2OjA5IHwgc2FtLiAyOCBhb8O7dCAy
+MDEwIDIwOjMxOjA5IENFU1QgIC0wLjk5MDIwNCBzZWNvbmRlcwoxOTowNjozMCB8IHNhbS4gMjgg
+YW/Du3QgMjAxMCAyMDozNjoyOSBDRVNUICAtMC4wMzI4NDAgc2Vjb25kZXMKMTk6MDY6NTAgfCBz
+YW0uIDI4IGFvw7t0IDIwMTAgMjA6MzY6NTAgQ0VTVCAgLTAuOTkwMTc1IHNlY29uZGVzCgouLi4K
+CjE5OjMxOjIwIHwgc2FtLiAyOCBhb8O7dCAyMDEwIDIxOjAxOjIwIENFU1QgIC0wLjk5MDEzNSBz
+ZWNvbmRlcwoxOTozMTo0MSB8IHNhbS4gMjggYW/Du3QgMjAxMCAyMTowNjo0MCBDRVNUICAtMC4w
+MzI4MDYgc2Vjb25kZXMKMTk6MzI6MDEgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMjE6MDc6MDEgQ0VT
+VCAgLTAuOTg1OTI5IHNlY29uZGVzCgouLi4KCjIwOjA3OjAxIHwgc2FtLiAyOCBhb8O7dCAyMDEw
+IDIxOjQyOjAxIENFU1QgIC0wLjk4NTkzMSBzZWNvbmRlcwoyMDowNzoyMiB8IHNhbS4gMjggYW/D
+u3QgMjAxMCAyMTo0NzoyMSBDRVNUICAtMC4wMzI4MDAgc2Vjb25kZXMKMjA6MDc6NDIgfCBzYW0u
+IDI4IGFvw7t0IDIwMTAgMjE6NDc6NDIgQ0VTVCAgLTEuMDA1Nzk5IHNlY29uZGVzCgouLi4KCjIw
+OjEyOjU2IHwgc2FtLiAyOCBhb8O7dCAyMDEwIDIxOjU3OjU2IENFU1QgIC0wLjk4NTk0MSBzZWNv
+bmRlcwoyMDoxMzoxNyB8IHNhbS4gMjggYW/Du3QgMjAxMCAyMjowMzoxNiBDRVNUICAtMC4wMzI4
+Mzggc2Vjb25kZXMKMjA6MTM6MzcgfCBzYW0uIDI4IGFvw7t0IDIwMTAgMjI6MDg6MzYgQ0VTVCAg
+LTAuMDMyODA2IHNlY29uZGVzCg==
+--0016e64cad1ecf161e048f05e7ec--
