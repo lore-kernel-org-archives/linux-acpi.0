@@ -1,334 +1,488 @@
-From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
- rf/camera power
-Date: Mon, 30 Aug 2010 20:19:54 +0200
-Message-ID: <20100830181954.GE31068@darkside.kls.lan>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
- <1282127719.2747.211.camel@localhost>
- <20100818155128.GA24363@darkside.kls.lan>
- <4C6CA31D.6030407@canonical.com>
- <20100819193146.GB32665@darkside.kls.lan>
- <4C6E2833.6080407@canonical.com>
- <20100820090824.GA23186@darkside.kls.lan>
- <4C7505A2.3000402@canonical.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] ACPI / ACPICA: Defer enabling of runtime GPEs
+Date: Mon, 30 Aug 2010 14:00:40 -0600
+Message-ID: <201008301400.45591.bjorn.helgaas@hp.com>
+References: <201008290110.56740.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hoZxPH4CaxYzWscb"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from piggy.rz.tu-ilmenau.de ([141.24.4.8]:45226 "EHLO
-	piggy.rz.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470Ab0H3SVO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 14:21:14 -0400
-Content-Disposition: inline
-In-Reply-To: <4C7505A2.3000402@canonical.com>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:40065 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338Ab0H3UBK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Aug 2010 16:01:10 -0400
+In-Reply-To: <201008290110.56740.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+On Saturday, August 28, 2010 05:10:56 pm Rafael J. Wysocki wrote:
+> Bob, Matthew,
+> 
+> The patch below implements the idea we've been recently discussing off-list,
+> to only enable "runtime" GPEs after the ACPI namespace have been scanned and
+> we know what GPEs are pointed to by _PRW methods.
+> 
+> It is on top of the current mainline Linux kernel (2.6.36-rc2+) which contains
+> my patches that removed the _PRW scan from the ACPICA code and modified
+> the GPE handler installation/removal.
+> 
+> Fortunately, the patch turns out to be rather straightforward, although I have
+> one reservation.  Namely, I'm not sure if any GPEs can be added after
+> acpi_scan_init() has returned, in which case we may want to enable them
+> as soon as they are found and some code to do that will be necessary.
 
---hoZxPH4CaxYzWscb
-Content-Type: multipart/mixed; boundary="iFRdW5/EC4oqxDHL"
-Content-Disposition: inline
+Isn't it possible (at least in theory) to hot-add an ACPI0006 GPE Block
+Device after acpi_scan_init()?
 
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> Subject: ACPI / ACPICA: Defer enabling of runtime GPEs
+> 
+> The current ACPI GPEs initialization code has a problem that it
+> enables some GPEs pointed to by device _PRW methods and are generally
+> intended for signaling wakeup events (system or device wakeup).
+> These GPEs are then almost immediately disabled by the ACPI namespace
+> scanning code with the help of acpi_gpe_can_wake(), but it would be
+> better no to enable them at all until really necessary.
 
---iFRdW5/EC4oqxDHL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Typo:    ^ I think you meant "not"
 
-Hello Ike,
+> Modify the initialization of GPEs so that the ones that have
+> associated _Lxx or _Exx methods and are not pointed to by any _PRW
+> methods will be enabled after the namespace scan is complete.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/acpica/acevents.h  |    5 ++-
+>  drivers/acpi/acpica/aclocal.h   |    2 -
+>  drivers/acpi/acpica/evevent.c   |   41 -----------------------------
+>  drivers/acpi/acpica/evgpeblk.c  |   34 ++++++++----------------
+>  drivers/acpi/acpica/evgpeinit.c |   28 --------------------
+>  drivers/acpi/acpica/evxface.c   |   19 +++++++------
+>  drivers/acpi/acpica/evxfevnt.c  |   55 +++++++++++++++++++++++++++-------------
+>  drivers/acpi/acpica/utxface.c   |   13 ---------
+>  drivers/acpi/bus.c              |    1 
+>  include/acpi/acpixf.h           |    2 +
+>  10 files changed, 66 insertions(+), 134 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/acpica/evxfevnt.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evxfevnt.c
+> +++ linux-2.6/drivers/acpi/acpica/evxfevnt.c
+> @@ -379,21 +379,12 @@ acpi_status acpi_gpe_can_wake(acpi_handl
 
-On Wed, Aug 25, 2010 at 07:59:30PM +0800, Ike Panhc wrote:
-> On 08/20/2010 05:08 PM, Mario 'BitKoenig' Holbe wrote:
-> > On Fri, Aug 20, 2010 at 03:01:07PM +0800, Ike Panhc wrote:
-> >> Could you attach or upload the DSDT of S12 somewhere I can reach?
-> >=20
-> > http://sandbox.fem.tu-ilmenau.de/s12/dsdt-s12-via.dsl
-> >=20
-> >> I check DSDT for S10-3 and B550, return value of _CFG is fixed.
-> >> [Ref: http://people.ubuntu.com/~ikepanhc/DSDTs]
-> >=20
-> > Looks more fixed than on my S12, indeed.
-> > I don't really speak AML, but while S10-3 ILDD (called from _CFG) seems
-> > to read fixed values only, here on S12 PHSR (called from _CFG) seems to
-> > do some kind of I/O operation. I'm not sure about this, but it somehow
-> > looks like.
-> >=20
-> It accesses something in system memory, but I have no idea what will happ=
-en
-> after writing..
+I suspect the function comment no longer matches the code.
 
-Well, the pattern looks like I/O - mmapped I/O.
-        Store (Arg1, \_SB.INF0)
-        Store (Arg0, \_SB.BCMD)
-        Store (Zero, \_SB.SMIC)
-        Store (\_SB.INF0, Local0)
-
-Note that INF0 is written before and read after writing SMIC. Hence,
-for this to be useful, something must have happened inbetween, i.e.
-I/O :)
-
-> There are two variables need to be written for turning on/off bluetooth. =
-They are
-> BTST(in memory) and BTEN(is EC register). I will guess there are some syn=
-c failed
-> when enable bluetooth.
-
-What exactly do you mean with "there are some sync failed"? I don't see
-anything like that in the logs.
-
-> This could be a plan. I have several idea to go and need your help.
-> - Add some debug message to read BTST/BTEN when turning on/off bluetooth.
-> - Force to set BTST/BTEN before reading _CFG
-> - Provide a module parm to force enable rf devices.
->=20
-> Will have the drivers and please test it and let me know the result.
-
-Hmmm, I don't know if I got you right. I didn't find any new drivers to
-test, so I tried to add some more debug code myself. Hope this helps.
-I added some code to show_ideapad_cam() to be able to asynchronously
-trigger reading of BTST, BTEN, and BTPS. As before: the patch attached
-is not for inclusion but to show what I did. I'm usually not a kernel
-hacker, so please take a serious look at what I did before trusting the
-results :)
-
-I attached a full protocol of actions I performed including kernel
-dmesges. Typed commands are prepended by #, manual actions and comments
-are enclosed in <>, kernel messages are timestamped, the rest is output
-of the commands.
-Basically I did the following:
-0. I started with a fresh powered up system, all RF devices powered on.
-1. I hw-switched RF off and back on, which went okay.
-2. I sw-switched BT off and back on, which resulted in erroneous
-initialization.
-3. I again sw-switched BT off and back on, which resulted in BT being
-completely gone.
-4. I hw-switched RF off and back on, which brought BT back and
-operational.
-
-> > I played with the hardware killswitch under Linux. The bluetooth device
-> > disappears and re-appears there and always seems to initialize
-> > correctly. No USB read errors this way.
-=2E..
-> > I'm not exactly sure what this means - especially because I don't know
-> > how the hardware killswitch works internally.
-> > It *could* mean, the initialization problem is proably something that
-> > could be dealt with in the USB layer long term (and would then probably
-> > not have to be worked around anymore in ideapad_laptop). I'm not sure
-> > about this, because this would mean the hard killswitch power-cut
-> > somehow differs from the soft killswitch power-cut.
-> Usually the hw rf switch turning off PHY only. When turning off, device a=
-nd
-> its driver is still there. I believe S12 is designed in this way after
-> reading your test result.
-
-Hmmm, I don't understand your reasoning here.
-I said the device disappears and re-appears when using the hw rf switch,
-this doesn't look like it would turn off PHY only.
-
-
-best regards
-   Mario
---=20
-We know that communication is a problem, but the company is not going to
-discuss it with the employees.
-                       -- Switching supervisor, AT&T Long Lines Division
-
---iFRdW5/EC4oqxDHL
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="ideapad_laptop.diff"
-Content-Transfer-Encoding: quoted-printable
-
---- ideapad_laptop.c.orig	2010-08-18 13:35:36.087735426 +0200
-+++ ideapad_laptop.c	2010-08-30 19:05:53.116031145 +0200
-@@ -170,6 +170,18 @@ static ssize_t show_ideapad_cam(struct d
- 	struct ideapad_private *priv =3D dev_get_drvdata(dev);
- 	acpi_handle handle =3D priv->handle;
- 	unsigned long result;
-+	acpi_status res;
-+	u64 res64;
-+
-+	res =3D acpi_evaluate_integer(handle, "\\_SB.BTST", NULL, &res64);
-+	if(!ACPI_FAILURE(res))
-+		printk(KERN_INFO "BTST: 0x%llx\n", res64);
-+	res =3D acpi_evaluate_integer(handle, "\\_SB.BTPS", NULL, &res64);
-+	if(!ACPI_FAILURE(res))
-+		printk(KERN_INFO "BTPS: 0x%llx\n", res64);
-+	res =3D acpi_evaluate_integer(handle, "\\_SB.PCI0.PIB.EC0.BTEN", NULL, &r=
-es64);
-+	if(!ACPI_FAILURE(res))
-+		printk(KERN_INFO "BTEN: 0x%llx\n", res64);
-=20
- 	if (read_ec_data(handle, 0x1D, &result))
- 		return sprintf(buf, "-1\n");
-@@ -279,11 +291,19 @@ static int ideapad_acpi_add(struct acpi_
- 	if (read_method_int(adevice->handle, "_CFG", &cfg))
- 		return -ENODEV;
-=20
-+	printk(KERN_INFO "ideapad_acpi_add(): cfg=3D0x%x\n", cfg);
-+
- 	for (i =3D IDEAPAD_DEV_CAMERA; i < IDEAPAD_DEV_KILLSW; i++) {
--		if (test_bit(ideapad_rfk_data[i].cfgbit, (unsigned long *)&cfg))
-+		if (test_bit(ideapad_rfk_data[i].cfgbit, (unsigned long *)&cfg)) {
- 			devs_present[i] =3D 1;
--		else
--			devs_present[i] =3D 0;
-+			printk(KERN_INFO "ideapad_acpi_add(): found: %s\n", ideapad_rfk_data[i]=
-=2Ename);
-+		} else {
-+			if(ideapad_rfk_data[i].type =3D=3D RFKILL_TYPE_BLUETOOTH) {
-+				devs_present[i] =3D 1;
-+				printk(KERN_INFO "ideapad_acpi_add(): forced: %s\n", ideapad_rfk_data[=
-i].name);
-+			} else
-+				devs_present[i] =3D 0;
-+		}
- 	}
-=20
- 	/* The hardware switch is always present */
-
---iFRdW5/EC4oqxDHL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=protocol
-
-<fresh powered up system>
-# cat $(find /sys -name camera_power)
-[  140.121467] BTST: 0x1
-[  140.121475] BTPS: 0x1
-[  140.122378] BTEN: 0x1
-1
-<hw killswitch off>
-[  199.296090] usb 4-1: USB disconnect, address 2
-[  199.296789] btusb_intr_complete: hci0 urb f6990300 failed to resubmit (19)
-[  199.296808] btusb_bulk_complete: hci0 urb f6990380 failed to resubmit (19)
-[  199.297789] btusb_bulk_complete: hci0 urb f6990000 failed to resubmit (19)
-[  199.297991] btusb_send_frame: hci0 urb f6766200 submission failed
-[  199.784704] wlan0: deauthenticating from 00:1c:f0:e4:3d:a9 by local choice (reason=3)
-[  199.786981] cfg80211: Calling CRDA to update world regulatory domain
-[  200.852176] b43-phy0: Radio hardware status changed to DISABLED
-# cat $(find /sys -name camera_power)
-[  219.129098] BTST: 0x1
-[  219.129105] BTPS: 0x1
-[  219.130017] BTEN: 0x1
-1
-<hw killswitch on>
-[  257.968055] usb 4-1: new full speed USB device using uhci_hcd and address 3
-[  258.141407] usb 4-1: New USB device found, idVendor=0a5c, idProduct=2150
-[  258.141420] usb 4-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[  258.141431] usb 4-1: Product: BCM2046 Bluetooth Device
-[  258.141440] usb 4-1: Manufacturer: Broadcom Corp
-[  258.141448] usb 4-1: SerialNumber: 0C6076DC9FD0
-[  260.852114] b43-phy0: Radio hardware status changed to ENABLED
-[  261.076117] b43-phy0: Loading firmware version 410.2160 (2007-05-26 15:32:10)
-[  266.592252] b43-pci-bridge 0000:02:00.0: PCI: Disallowing DAC for device
-[  266.592264] b43-phy0: DMA mask fallback from 64-bit to 32-bit
-[  266.633509] ADDRCONF(NETDEV_UP): wlan0: link is not ready
-[  269.380720] wlan0: authenticate with 00:1c:f0:e4:3d:a9 (try 1)
-[  269.382273] wlan0: authenticated
-[  269.382689] wlan0: associate with 00:1c:f0:e4:3d:a9 (try 1)
-[  269.385522] wlan0: RX AssocResp from 00:1c:f0:e4:3d:a9 (capab=0x431 status=0 aid=1)
-[  269.385534] wlan0: associated
-[  269.392770] ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
-[  279.928033] wlan0: no IPv6 routers present
-# cat $(find /sys -name camera_power)
-[  291.431607] BTST: 0x1
-[  291.431614] BTPS: 0x1
-[  291.433096] BTEN: 0x1
-1
-# rfkill block $(rfkill list | awk -F: '/ideapad_bluetooth/{print $1}')
-[  341.416077] usb 4-1: USB disconnect, address 3
-[  341.416547] btusb_intr_complete: hci0 urb f6747b80 failed to resubmit (19)
-[  341.416559] btusb_bulk_complete: hci0 urb f6798300 failed to resubmit (19)
-[  341.417546] btusb_bulk_complete: hci0 urb f674e080 failed to resubmit (19)
-[  341.417944] btusb_send_frame: hci0 urb f67e5500 submission failed
-# cat $(find /sys -name camera_power)
-[  364.592492] BTST: 0x0
-[  364.592499] BTPS: 0x1
-[  364.593586] BTEN: 0x0
-1
-# rfkill unblock $(rfkill list | awk -F: '/ideapad_bluetooth/{print $1}')
-[  392.192070] usb 4-1: new full speed USB device using uhci_hcd and address 4
-[  392.312040] usb 4-1: device descriptor read/64, error -71
-[  392.536066] usb 4-1: device descriptor read/64, error -71
-[  392.752073] usb 4-1: new full speed USB device using uhci_hcd and address 5
-[  392.872077] usb 4-1: device descriptor read/64, error -71
-[  393.096059] usb 4-1: device descriptor read/64, error -71
-[  393.312043] usb 4-1: new full speed USB device using uhci_hcd and address 6
-[  393.720143] usb 4-1: device not accepting address 6, error -71
-[  393.832051] usb 4-1: new full speed USB device using uhci_hcd and address 7
-[  394.240083] usb 4-1: device not accepting address 7, error -71
-[  394.240105] hub 4-0:1.0: unable to enumerate USB device on port 1
-# cat $(find /sys -name camera_power)
-[  458.669365] BTST: 0x1
-[  458.669372] BTPS: 0x1
-[  458.670744] BTEN: 0x1
-1
-# rfkill block $(rfkill list | awk -F: '/ideapad_bluetooth/{print $1}')
-<absolutely no messages, no errors, nothing>
-# cat $(find /sys -name camera_power)
-[  576.981559] BTST: 0x0
-[  576.981567] BTPS: 0x1
-[  576.982900] BTEN: 0x0
-1
-# rfkill unblock $(rfkill list | awk -F: '/ideapad_bluetooth/{print $1}')
-<absolutely no messages, device does not appear, no errors, nothing>
-# cat $(find /sys -name camera_power)
-[  652.939495] BTST: 0x1
-[  652.939503] BTPS: 0x1
-[  652.941192] BTEN: 0x1
-1
-<hw killswitch off>
-[  701.234772] wlan0: deauthenticating from 00:1c:f0:e4:3d:a9 by local choice (reason=3)
-[  701.237446] cfg80211: Calling CRDA to update world regulatory domain
-[  702.036108] b43-phy0: Radio hardware status changed to DISABLED
-# cat $(find /sys -name camera_power)
-[  722.962717] BTST: 0x1
-[  722.962724] BTPS: 0x1
-[  722.964822] BTEN: 0x1
-1
-<hw killswitch on>
-[  757.028180] b43-phy0: Radio hardware status changed to ENABLED
-[  757.379142] usb 4-1: new full speed USB device using uhci_hcd and address 8
-[  757.432136] b43-phy0: Loading firmware version 410.2160 (2007-05-26 15:32:10)
-[  757.552383] usb 4-1: New USB device found, idVendor=0a5c, idProduct=2150
-[  757.552396] usb 4-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[  757.552407] usb 4-1: Product: BCM2046 Bluetooth Device
-[  757.552415] usb 4-1: Manufacturer: Broadcom Corp
-[  757.552423] usb 4-1: SerialNumber: 0C6076DC9FD0
-[  762.952258] b43-pci-bridge 0000:02:00.0: PCI: Disallowing DAC for device
-[  762.952271] b43-phy0: DMA mask fallback from 64-bit to 32-bit
-[  762.985688] ADDRCONF(NETDEV_UP): wlan0: link is not ready
-[  765.728762] wlan0: authenticate with 00:1c:f0:e4:3d:a9 (try 1)
-[  765.730314] wlan0: authenticated
-[  765.730738] wlan0: associate with 00:1c:f0:e4:3d:a9 (try 1)
-[  765.734126] wlan0: RX AssocResp from 00:1c:f0:e4:3d:a9 (capab=0x431 status=0 aid=1)
-[  765.734137] wlan0: associated
-[  765.738373] ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
-[  775.760029] wlan0: no IPv6 routers present
-# cat $(find /sys -name camera_power)
-[  797.842123] BTST: 0x1
-[  797.842131] BTPS: 0x1
-[  797.843030] BTEN: 0x1
-1
-
---iFRdW5/EC4oqxDHL--
-
---hoZxPH4CaxYzWscb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEVAwUBTHv2ShS+e2HeSPbpAQKQ1gf+OD9akiQduPq/yeNSTdJ3sxSZVA9pie+6
-lIPa0oQtt9oL95f/6vgv8uL63wL+wXSgr/GolFTRmRohfBmDfKs4+d6XcVvkk1ep
-daYalGqa82V+5DOtNIHNFUoNuQTIcBHrMf1DELB3wt5DXmVNqsvTV9cdq67pq7T9
-KYYTNcVjA3DRheNSd2PTIAEGO9Isdt05YIhCU6WXAqiJRe+l8KHLpYioZvUjPBQv
-7aRfvnWnaUZTHKn/J1CcBVAGzFaTSBwDFYOrl8QRz4gZseA8f/CEVCcOmVxWXV6L
-aVwsHedvAHaU8LAURtAa6aBFeE+fPCB0Cko1SVioRj5Qm2DgWmytOA==
-=hphH
------END PGP SIGNATURE-----
-
---hoZxPH4CaxYzWscb--
+>  	/* Ensure that we have a valid GPE number */
+>  
+>  	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+> -	if (!gpe_event_info) {
+> +	if (gpe_event_info) {
+> +		gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
+> +	} else {
+>  		status = AE_BAD_PARAMETER;
+> -		goto unlock_and_exit;
+> -	}
+> -
+> -	if (gpe_event_info->flags & ACPI_GPE_CAN_WAKE) {
+> -		goto unlock_and_exit;
+>  	}
+>  
+> -	gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
+> -	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD) {
+> -		(void)acpi_raw_disable_gpe(gpe_event_info);
+> -	}
+> -
+> -unlock_and_exit:
+>  	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+>  	return_ACPI_STATUS(status);
+>  }
+> @@ -651,7 +642,7 @@ acpi_install_gpe_block(acpi_handle gpe_d
+>  		       struct acpi_generic_address *gpe_block_address,
+>  		       u32 register_count, u32 interrupt_number)
+>  {
+> -	acpi_status status;
+> +	acpi_status status = AE_OK;
+>  	union acpi_operand_object *obj_desc;
+>  	struct acpi_namespace_node *node;
+>  	struct acpi_gpe_block_info *gpe_block;
+> @@ -715,10 +706,6 @@ acpi_install_gpe_block(acpi_handle gpe_d
+>  
+>  	obj_desc->device.gpe_block = gpe_block;
+>  
+> -	/* Enable the runtime GPEs in the new block */
+> -
+> -	status = acpi_ev_initialize_gpe_block(node, gpe_block);
+> -
+>        unlock_and_exit:
+>  	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+>  	return_ACPI_STATUS(status);
+> @@ -924,3 +911,37 @@ acpi_status acpi_enable_all_runtime_gpes
+>  
+>  	return_ACPI_STATUS(status);
+>  }
+> +
+> +/******************************************************************************
+> + *
+> + * FUNCTION:    acpi_complete_gpe_initialization
+> + *
+> + * PARAMETERS:  None
+> + *
+> + * RETURN:      None
+> + *
+> + * DESCRIPTION: Enable all GPEs that have associated _Lxx or _Exx methods and
+> + *              are not pointed to by any device _PRW methods indicating that
+> + *              these GPEs are generally intended for system or device wakeup
+> + *              (such GPEs have to be enabled directly when the devices whose
+> + *              _PRW methods point to them are set up for wakeup signaling).
+> + *
+> + ******************************************************************************/
+> +
+> +acpi_status acpi_complete_gpe_initialization(void)
+> +{
+> +	acpi_status status;
+> +
+> +	ACPI_FUNCTION_TRACE(acpi_complete_gpe_initialization);
+> +
+> +	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+> +	if (ACPI_FAILURE(status)) {
+> +		return_ACPI_STATUS(status);
+> +	}
+> +
+> +	status = acpi_ev_walk_gpe_list(acpi_ev_initialize_gpe_block, NULL);
+> +
+> +	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+> +
+> +	return_ACPI_STATUS(status);
+> +}
+> Index: linux-2.6/drivers/acpi/acpica/acevents.h
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/acevents.h
+> +++ linux-2.6/drivers/acpi/acpica/acevents.h
+> @@ -105,8 +105,9 @@ acpi_ev_create_gpe_block(struct acpi_nam
+>  			 struct acpi_gpe_block_info **return_gpe_block);
+>  
+>  acpi_status
+> -acpi_ev_initialize_gpe_block(struct acpi_namespace_node *gpe_device,
+> -			     struct acpi_gpe_block_info *gpe_block);
+> +acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+> +			     struct acpi_gpe_block_info *gpe_block,
+> +			     void *ignored);
+>  
+>  acpi_status acpi_ev_delete_gpe_block(struct acpi_gpe_block_info *gpe_block);
+>  
+> Index: linux-2.6/drivers/acpi/acpica/evgpeblk.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evgpeblk.c
+> +++ linux-2.6/drivers/acpi/acpica/evgpeblk.c
+> @@ -389,7 +389,6 @@ acpi_ev_create_gpe_block(struct acpi_nam
+>  
+>  	walk_info.gpe_block = gpe_block;
+>  	walk_info.gpe_device = gpe_device;
+> -	walk_info.enable_this_gpe = FALSE;
+>  	walk_info.execute_by_owner_id = FALSE;
+>  
+>  	status = acpi_ns_walk_namespace(ACPI_TYPE_METHOD, gpe_device,
+> @@ -434,14 +433,14 @@ acpi_ev_create_gpe_block(struct acpi_nam
+>   ******************************************************************************/
+>  
+>  acpi_status
+> -acpi_ev_initialize_gpe_block(struct acpi_namespace_node *gpe_device,
+> -			     struct acpi_gpe_block_info *gpe_block)
+> +acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+> +			     struct acpi_gpe_block_info *gpe_block,
+> +			     void *ignored)
+>  {
+>  	acpi_status status;
+>  	struct acpi_gpe_event_info *gpe_event_info;
+>  	u32 gpe_enabled_count;
+>  	u32 gpe_index;
+> -	u32 gpe_number;
+>  	u32 i;
+>  	u32 j;
+>  
+> @@ -454,15 +453,12 @@ acpi_ev_initialize_gpe_block(struct acpi
+>  	}
+>  
+>  	/*
+> -	 * Enable all GPEs that have a corresponding method.  Any other GPEs
+> -	 * within this block must be enabled via the acpi_enable_gpe interface.
+> +	 * Enable all GPEs that have a corresponding method and have the
+> +	 * ACPI_GPE_CAN_WAKE flag unset.  Any other GPEs within this block must
+> +	 * be enabled via the acpi_enable_gpe() interface.
+>  	 */
+>  	gpe_enabled_count = 0;
+>  
+> -	if (gpe_device == acpi_gbl_fadt_gpe_device) {
+> -		gpe_device = NULL;
+> -	}
+> -
+>  	for (i = 0; i < gpe_block->register_count; i++) {
+>  		for (j = 0; j < ACPI_GPE_REGISTER_WIDTH; j++) {
+>  
+> @@ -470,27 +466,19 @@ acpi_ev_initialize_gpe_block(struct acpi
+>  
+>  			gpe_index = (i * ACPI_GPE_REGISTER_WIDTH) + j;
+>  			gpe_event_info = &gpe_block->event_info[gpe_index];
+> -			gpe_number = gpe_index + gpe_block->block_base_number;
+>  
+>  			/* Ignore GPEs that have no corresponding _Lxx/_Exx method */
+>  
+> -			if (!(gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)) {
+> +			if (!(gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)
+> +			    || (gpe_event_info->flags & ACPI_GPE_CAN_WAKE)) {
+>  				continue;
+>  			}
+>  
+> -			/*
+> -			 * If the GPE has already been enabled for runtime
+> -			 * signaling, make sure it remains enabled, but do not
+> -			 * increment its reference counter.
+> -			 */
+> -			status = gpe_event_info->runtime_count ?
+> -				acpi_ev_enable_gpe(gpe_event_info) :
+> -				acpi_enable_gpe(gpe_device, gpe_number);
+> -
+> +			status = acpi_raw_enable_gpe(gpe_event_info);
+>  			if (ACPI_FAILURE(status)) {
+>  				ACPI_EXCEPTION((AE_INFO, status,
+> -						"Could not enable GPE 0x%02X",
+> -						gpe_number));
+> +					"Could not enable GPE 0x%02X",
+> +					gpe_index + gpe_block->block_base_number));
+>  				continue;
+>  			}
+>  
+> Index: linux-2.6/include/acpi/acpixf.h
+> ===================================================================
+> --- linux-2.6.orig/include/acpi/acpixf.h
+> +++ linux-2.6/include/acpi/acpixf.h
+> @@ -308,6 +308,8 @@ acpi_install_gpe_block(acpi_handle gpe_d
+>  
+>  acpi_status acpi_remove_gpe_block(acpi_handle gpe_device);
+>  
+> +acpi_status acpi_complete_gpe_initialization(void);
+> +
+>  /*
+>   * Resource interfaces
+>   */
+> Index: linux-2.6/drivers/acpi/acpica/aclocal.h
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/aclocal.h
+> +++ linux-2.6/drivers/acpi/acpica/aclocal.h
+> @@ -413,6 +413,7 @@ struct acpi_handler_info {
+>  	void *context;		/* Context to be passed to handler */
+>  	struct acpi_namespace_node *method_node;	/* Method node for this GPE level (saved) */
+>  	u8 orig_flags;		/* Original misc info about this GPE */
+> +	u8 orig_enabled;	/* Set if the GPE was originally enabled */
+>  };
+>  
+>  union acpi_gpe_dispatch_info {
+> @@ -473,7 +474,6 @@ struct acpi_gpe_walk_info {
+>  	struct acpi_gpe_block_info *gpe_block;
+>  	u16 count;
+>  	acpi_owner_id owner_id;
+> -	u8 enable_this_gpe;
+>  	u8 execute_by_owner_id;
+>  };
+>  
+> Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c
+> +++ linux-2.6/drivers/acpi/acpica/evgpeinit.c
+> @@ -239,7 +239,6 @@ void acpi_ev_update_gpes(acpi_owner_id t
+>  	walk_info.owner_id = table_owner_id;
+>  	walk_info.execute_by_owner_id = TRUE;
+>  	walk_info.count = 0;
+> -	walk_info.enable_this_gpe = TRUE;
+>  
+>  	/* Walk the interrupt level descriptor list */
+>  
+> @@ -301,8 +300,6 @@ void acpi_ev_update_gpes(acpi_owner_id t
+>   *
+>   * If walk_info->execute_by_owner_id is TRUE, we only execute examine GPE methods
+>   *    with that owner.
+> - * If walk_info->enable_this_gpe is TRUE, the GPE that is referred to by a GPE
+> - *    method is immediately enabled (Used for Load/load_table operators)
+>   *
+>   ******************************************************************************/
+>  
+> @@ -315,8 +312,6 @@ acpi_ev_match_gpe_method(acpi_handle obj
+>  	struct acpi_gpe_walk_info *walk_info =
+>  	    ACPI_CAST_PTR(struct acpi_gpe_walk_info, context);
+>  	struct acpi_gpe_event_info *gpe_event_info;
+> -	struct acpi_namespace_node *gpe_device;
+> -	acpi_status status;
+>  	u32 gpe_number;
+>  	char name[ACPI_NAME_SIZE + 1];
+>  	u8 type;
+> @@ -421,29 +416,6 @@ acpi_ev_match_gpe_method(acpi_handle obj
+>  	gpe_event_info->flags |= (u8)(type | ACPI_GPE_DISPATCH_METHOD);
+>  	gpe_event_info->dispatch.method_node = method_node;
+>  
+> -	/*
+> -	 * Enable this GPE if requested. This only happens when during the
+> -	 * execution of a Load or load_table operator. We have found a new
+> -	 * GPE method and want to immediately enable the GPE if it is a
+> -	 * runtime GPE.
+> -	 */
+> -	if (walk_info->enable_this_gpe) {
+> -
+> -		walk_info->count++;
+> -		gpe_device = walk_info->gpe_device;
+> -
+> -		if (gpe_device == acpi_gbl_fadt_gpe_device) {
+> -			gpe_device = NULL;
+> -		}
+> -
+> -		status = acpi_enable_gpe(gpe_device, gpe_number);
+> -		if (ACPI_FAILURE(status)) {
+> -			ACPI_EXCEPTION((AE_INFO, status,
+> -					"Could not enable GPE 0x%02X",
+> -					gpe_number));
+> -		}
+> -	}
+> -
+>  	ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
+>  			  "Registered GPE method %s as GPE number 0x%.2X\n",
+>  			  name, gpe_number));
+> Index: linux-2.6/drivers/acpi/acpica/evevent.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evevent.c
+> +++ linux-2.6/drivers/acpi/acpica/evevent.c
+> @@ -95,47 +95,6 @@ acpi_status acpi_ev_initialize_events(vo
+>  
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_ev_install_fadt_gpes
+> - *
+> - * PARAMETERS:  None
+> - *
+> - * RETURN:      Status
+> - *
+> - * DESCRIPTION: Completes initialization of the FADT-defined GPE blocks
+> - *              (0 and 1). The HW must be fully initialized at this point,
+> - *              including global lock support.
+> - *
+> - ******************************************************************************/
+> -
+> -acpi_status acpi_ev_install_fadt_gpes(void)
+> -{
+> -	acpi_status status;
+> -
+> -	ACPI_FUNCTION_TRACE(ev_install_fadt_gpes);
+> -
+> -	/* Namespace must be locked */
+> -
+> -	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+> -	if (ACPI_FAILURE(status)) {
+> -		return (status);
+> -	}
+> -
+> -	/* FADT GPE Block 0 */
+> -
+> -	(void)acpi_ev_initialize_gpe_block(acpi_gbl_fadt_gpe_device,
+> -					   acpi_gbl_gpe_fadt_blocks[0]);
+> -
+> -	/* FADT GPE Block 1 */
+> -
+> -	(void)acpi_ev_initialize_gpe_block(acpi_gbl_fadt_gpe_device,
+> -					   acpi_gbl_gpe_fadt_blocks[1]);
+> -
+> -	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+> -	return_ACPI_STATUS(AE_OK);
+> -}
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_ev_install_xrupt_handlers
+>   *
+>   * PARAMETERS:  None
+> Index: linux-2.6/drivers/acpi/acpica/utxface.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/utxface.c
+> +++ linux-2.6/drivers/acpi/acpica/utxface.c
+> @@ -290,19 +290,6 @@ acpi_status acpi_initialize_objects(u32 
+>  	}
+>  
+>  	/*
+> -	 * Complete the GPE initialization for the GPE blocks defined in the FADT
+> -	 * (GPE block 0 and 1).
+> -	 *
+> -	 * NOTE: Currently, there seems to be no need to run the _REG methods
+> -	 * before enabling the GPEs.
+> -	 */
+> -	if (!(flags & ACPI_NO_EVENT_INIT)) {
+> -		status = acpi_ev_install_fadt_gpes();
+> -		if (ACPI_FAILURE(status))
+> -			return (status);
+> -	}
+> -
+> -	/*
+>  	 * Empty the caches (delete the cached objects) on the assumption that
+>  	 * the table load filled them up more than they will be at runtime --
+>  	 * thus wasting non-paged memory.
+> Index: linux-2.6/drivers/acpi/bus.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/bus.c
+> +++ linux-2.6/drivers/acpi/bus.c
+> @@ -1032,6 +1032,7 @@ static int __init acpi_init(void)
+>  	dmi_check_system(power_nocheck_dmi_table);
+>  
+>  	acpi_scan_init();
+> +	acpi_complete_gpe_initialization();
+>  	acpi_ec_init();
+>  	acpi_power_init();
+>  	acpi_sysfs_init();
+> Index: linux-2.6/drivers/acpi/acpica/evxface.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evxface.c
+> +++ linux-2.6/drivers/acpi/acpica/evxface.c
+> @@ -793,15 +793,16 @@ acpi_install_gpe_handler(acpi_handle gpe
+>  			(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
+>  
+>  	/*
+> -	 * If the GPE is associated with a method and it cannot wake up the
+> -	 * system from sleep states, it was enabled automatically during
+> -	 * initialization, so it has to be disabled now to avoid spurious
+> -	 * execution of the handler.
+> +	 * If the GPE is associated with a method, it might have been enabled
+> +	 * automatically during initialization, in which case it has to be
+> +	 * disabled now to avoid spurious execution of the handler.
+>  	 */
+>  
+>  	if ((handler->orig_flags & ACPI_GPE_DISPATCH_METHOD)
+> -	    && !(gpe_event_info->flags & ACPI_GPE_CAN_WAKE))
+> +	    && gpe_event_info->runtime_count) {
+> +		handler->orig_enabled = 1;
+>  		(void)acpi_raw_disable_gpe(gpe_event_info);
+> +	}
+>  
+>  	/* Install the handler */
+>  
+> @@ -904,13 +905,13 @@ acpi_remove_gpe_handler(acpi_handle gpe_
+>  	gpe_event_info->flags |= handler->orig_flags;
+>  
+>  	/*
+> -	 * If the GPE was previously associated with a method and it cannot wake
+> -	 * up the system from sleep states, it should be enabled at this point
+> -	 * to restore the post-initialization configuration.
+> +	 * If the GPE was previously associated with a method and it was
+> +	 * enabled, it should be enabled at this point to restore the
+> +	 * post-initialization configuration.
+>  	 */
+>  
+>  	if ((handler->orig_flags & ACPI_GPE_DISPATCH_METHOD)
+> -	    && !(gpe_event_info->flags & ACPI_GPE_CAN_WAKE))
+> +	    && handler->orig_enabled)
+>  		(void)acpi_raw_enable_gpe(gpe_event_info);
+>  
+>  	/* Now we can free the handler object */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
