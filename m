@@ -1,31 +1,44 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [PATCH] acpi: Update battery information on notification 0x81
-Date: Tue, 31 Aug 2010 10:06:02 +0100
-Message-ID: <AANLkTik620+_nBE+24-ausDet_uhRZD9JmfEV20vy8TU@mail.gmail.com>
-References: <1281990739-17912-1-git-send-email-mjg@redhat.com>
+From: Frank <frank@61924.nl>
+Subject: Re: Toshiba Satellite L650D-10J only boots with acpi=off
+Date: Tue, 31 Aug 2010 12:44:03 +0200
+Message-ID: <20100831124403.79be2f2f.frank@61924.nl>
+References: <20100828192538.666c34c4.frank@61924.nl>
+	<1283127802.3707.163.camel@rui>
+	<20100830142618.ef9876aa.frank@61924.nl>
+	<1283216239.3707.170.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:46834 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756649Ab0HaJGE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Aug 2010 05:06:04 -0400
-In-Reply-To: <1281990739-17912-1-git-send-email-mjg@redhat.com>
+Received: from mail6.webfaction.com ([74.55.86.74]:51818 "EHLO
+	smtp.webfaction.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757147Ab0HaKum (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Aug 2010 06:50:42 -0400
+In-Reply-To: <1283216239.3707.170.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 16 August 2010 21:32, Matthew Garrett <mjg@redhat.com> wrote:
-> A notification event 0x81 from an ACPI battery device requires us to
-> re-read the battery information structure. Do so, and if the battery's
-> reporting units have changed (as is the case on some Thinkpads) destroy
-> and recreate the battery in order to populate the fields correctly.
+> > It works, it sees the two cores of my CPU and I the acpi command gives
+> > me info about the CPU, temperature, battery and cooling. The laptop
+> > also shutsdown by itself when I execute the shutdown command.
+> > 
+> > Here's the output from 'dmesg | grep -i ACPI':
+> > http://codepad.org/KcqZMvCa
+> > 
+> so it seems like we need to add another dmi entry for this laptop.
+> please attach the dmidecode output.
 
-I've had three reports in upower of this bug (the units changing) so
-users are really hitting this in real world usage. As soon as this
-kernel fix gets released in a new kernel version I'll remove the
-upower workaround. I can't reproduce this myself, so I've not tested
-the patch, although the logic is solid in my opinion.
+Here is the dmidecode output:
+http://codepad.org/RBiPnsxf
 
-Richard.
+> > The only problem left is that X starts slowly and doesn't shutdown when
+> > I exit Openbox, but that's has probably to do with the video driver.
+> 
+> please attach the dmesg output after boot.
+
+Sorry, it was a typo in .xserverrc. It's solved now.
+
+Regards,
+Frank
