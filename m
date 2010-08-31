@@ -1,7 +1,8 @@
 From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] ACPI/HEST: adjust section selection
-Date: Tue, 31 Aug 2010 14:21:14 +0100
-Message-ID: <4C7D1DEA0200007800013301@vpn.id2.novell.com>
+Subject: [PATCH] ACPI/HEST: fix boot failure when encountering
+	 duplicate source IDs
+Date: Tue, 31 Aug 2010 14:16:00 +0100
+Message-ID: <4C7D1CB002000078000132F3@vpn.id2.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
@@ -12,55 +13,34 @@ List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
-Properly const-, __init-, and __read_mostly-annotate this code.
+While they should be unique, boot certainly shouldn't fail if the HEST
+table isn't sane. The problem is that platform_device_release() wants
+to kfree() ->dev.platform_data, which gets set to point into the
+middle of some (allocated or mapped) enclosing table.
+
+It appears safe to simply create a copy of the table (no data in there
+should change post-boot); if it isn't, the pointer would need to be
+cleared before dropping the device.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 
 ---
- drivers/acpi/apei/hest.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/apei/hest.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 --- linux-2.6.36-rc3/drivers/acpi/apei/hest.c
-+++ 2.6.36-rc3-acpi-hest-sections/drivers/acpi/apei/hest.c
-@@ -46,9 +46,9 @@ EXPORT_SYMBOL_GPL(hest_disable);
- 
- /* HEST table parsing */
- 
--static struct acpi_table_hest *hest_tab;
-+static struct acpi_table_hest *__read_mostly hest_tab;
- 
--static int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
-+static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
- 	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
- 	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
- 	[ACPI_HEST_TYPE_IA32_NMI] = sizeof(struct acpi_hest_ia_nmi),
-@@ -126,7 +126,7 @@ struct ghes_arr {
- 	unsigned int count;
- };
- 
--static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
-+static int __init hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
- {
- 	int *count = data;
- 
-@@ -135,7 +135,7 @@ static int hest_parse_ghes_count(struct 
- 	return 0;
- }
- 
--static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
-+static int __init hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
- {
- 	struct acpi_hest_generic *generic;
- 	struct platform_device *ghes_dev;
-@@ -162,7 +162,7 @@ err:
- 	return rc;
- }
- 
--static int hest_ghes_dev_register(unsigned int ghes_count)
-+static int __init hest_ghes_dev_register(unsigned int ghes_count)
- {
- 	int rc, i;
- 	struct ghes_arr ghes_arr;
++++ 2.6.36-rc3-acpi-hest-error-path/drivers/acpi/apei/hest.c
+@@ -150,7 +150,9 @@ static int hest_parse_ghes(struct acpi_h
+ 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
+ 	if (!ghes_dev)
+ 		return -ENOMEM;
+-	ghes_dev->dev.platform_data = generic;
++	rc = platform_device_add_data(ghes_dev, generic, sizeof(*generic));
++	if (rc)
++		goto err;
+ 	rc = platform_device_add(ghes_dev);
+ 	if (rc)
+ 		goto err;
 
 
 
