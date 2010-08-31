@@ -1,8 +1,8 @@
 From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] ACPI/HEST: fix boot failure when encountering
+Subject: [PATCH] ACPI/HEST: avoid stack traces when encountering
 	 duplicate source IDs
-Date: Tue, 31 Aug 2010 14:16:00 +0100
-Message-ID: <4C7D1CB002000078000132F3@vpn.id2.novell.com>
+Date: Tue, 31 Aug 2010 14:19:51 +0100
+Message-ID: <4C7D1D9702000078000132F6@vpn.id2.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
@@ -13,34 +13,48 @@ List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
-While they should be unique, boot certainly shouldn't fail if the HEST
-table isn't sane. The problem is that platform_device_release() wants
-to kfree() ->dev.platform_data, which gets set to point into the
-middle of some (allocated or mapped) enclosing table.
+Rather than trying to create duplicate platform devices, check for
+duplication up front.
 
-It appears safe to simply create a copy of the table (no data in there
-should change post-boot); if it isn't, the pointer would need to be
-cleared before dropping the device.
+Generally the kernel doesn't require uniqueness of the source IDs
+other than for obtaining unique platform device names (and making log
+message non-ambiguous) - therefore, it would be possible to simply
+replace eventual duplicate IDs with kernel assigned ones.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 
 ---
- drivers/acpi/apei/hest.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/apei/hest.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 --- linux-2.6.36-rc3/drivers/acpi/apei/hest.c
-+++ 2.6.36-rc3-acpi-hest-error-path/drivers/acpi/apei/hest.c
-@@ -150,7 +150,9 @@ static int hest_parse_ghes(struct acpi_h
++++ 2.6.36-rc3-acpi-hest-duplicate-source/drivers/acpi/apei/hest.c
+@@ -140,6 +140,7 @@ static int hest_parse_ghes(struct acpi_h
+ 	struct acpi_hest_generic *generic;
+ 	struct platform_device *ghes_dev;
+ 	struct ghes_arr *ghes_arr = data;
++	unsigned int i;
+ 	int rc;
+ 
+ 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+@@ -147,6 +148,17 @@ static int hest_parse_ghes(struct acpi_h
+ 	generic = (struct acpi_hest_generic *)hest_hdr;
+ 	if (!generic->enabled)
+ 		return 0;
++	for (i = 0; i < ghes_arr->count; ++i) {
++		const struct acpi_hest_generic *g;
++
++		g = ghes_arr->ghes_devs[i]->dev.platform_data;
++		if (hest_hdr->source_id == g->header.source_id) {
++			printk(KERN_WARNING
++			       "Duplicate generic error source ID %#x\n",
++			       hest_hdr->source_id);
++			return -EEXIST;
++		}
++	}
  	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
  	if (!ghes_dev)
  		return -ENOMEM;
--	ghes_dev->dev.platform_data = generic;
-+	rc = platform_device_add_data(ghes_dev, generic, sizeof(*generic));
-+	if (rc)
-+		goto err;
- 	rc = platform_device_add(ghes_dev);
- 	if (rc)
- 		goto err;
 
 
 
