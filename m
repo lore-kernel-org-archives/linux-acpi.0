@@ -1,39 +1,46 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH] Add Intel Poulsbo Stub Driver
-Date: Wed, 1 Sep 2010 08:00:52 -0700
-Message-ID: <20100901150052.GA26036@suse.de>
-References: <1283332119-26352-1-git-send-email-jlee@novell.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI / ACPICA: Defer enabling of runtime GPEs (v2)
+Date: Wed, 1 Sep 2010 09:17:13 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858AEE0B9B3@orsmsx503.amr.corp.intel.com>
+References: <201008290110.56740.rjw@sisk.pl>
+ <201008301400.45591.bjorn.helgaas@hp.com> <201008302309.11082.rjw@sisk.pl>
+ <201008312235.49410.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:40744 "EHLO mx1.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:24397 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754953Ab0IAPAk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Sep 2010 11:00:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1283332119-26352-1-git-send-email-jlee@novell.com>
+	id S1752244Ab0IAQRP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Sep 2010 12:17:15 -0400
+In-Reply-To: <201008312235.49410.rjw@sisk.pl>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: mjg59@srcf.ucam.org, linux-kernel@vger.kernel.org, mjg@redhat.com, jlee@novell.com, Dennis.Jansen@web.de, linux-acpi@vger.kernel.org, trenn@suse.de
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Sep 01, 2010 at 05:08:39PM +0800, Lee, Chun-Yi wrote:
-> +static struct pci_device_id pciidlist[] = {
-> +	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8108}, \
-> +	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8109}, \
-> +	{0, 0, 0}
-> +};
+Rafael,
 
-Now that you have this, just use:
-	MODULE_DEVICE_TABLE(pci, pciidlist);
-instead of:
+The wake/runtime GPE issue has stirred up some interest with our BIOS team. I'm working on that right now, will begin to look at your changes soon.
 
-> +MODULE_ALIAS("pci:v00008086d00008108sv*sd*bc*sc*i*");
-> +MODULE_ALIAS("pci:v00008086d00008109sv*sd*bc*sc*i*");
+Thanks,
+Bob
 
-As the proper alias will automatically get generated from the
-MODULE_DEVICE_TABLE() macro.
 
-thanks,
+>-----Original Message-----
+>From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>Sent: Tuesday, August 31, 2010 1:36 PM
+>To: Moore, Robert
+>Cc: Bjorn Helgaas; Matthew Garrett; Brown, Len; Len Brown; Lin, Ming M;
+>ACPI Devel Maling List
+>Subject: [PATCH] ACPI / ACPICA: Defer enabling of runtime GPEs (v2)
+>
+>On Monday, August 30, 2010, Rafael J. Wysocki wrote:
+>> On Monday, August 30, 2010, Bjorn Helgaas wrote:
+>> > On Saturday, August 28, 2010 05:10:56 pm Rafael J. Wysocki wrote:
+>> > > Bob, Matthew,
+>> > >
+>> > > The patch below implements the idea we've been recently discussing
+>off-list,
 
-greg k-h
