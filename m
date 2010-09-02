@@ -1,75 +1,86 @@
 From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: [PATCH 1/2] [Patch-next] ACPI, APEI Fix the return value(==NULL)
- of acpi_pre_map().
-Date: Thu, 02 Sep 2010 16:20:18 +0900
-Message-ID: <4C7F5032.70108@np.css.fujitsu.com>
+Subject: [PATCH 2/2][Patch-next] ACPI, APEI, HEST Fix the unsuitable usage
+ of platform_data.
+Date: Thu, 02 Sep 2010 16:20:34 +0900
+Message-ID: <4C7F5042.8070006@np.css.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58774 "EHLO
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58787 "EHLO
 	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752754Ab0IBHTl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2010 03:19:41 -0400
+	with ESMTP id S1754023Ab0IBHTy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2010 03:19:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: APEI-lenb <lenb@kernel.org>
 Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-acpi_pre_map() is used for remapping the physical address of I/O, so
-it should be return NULL or remapped virtual address. The problem is
-that when (paddr - pg_off) equals 0, no matter whether I/O remapping is
-successful or not, the function returns NULL.
+platform_data in hest_parse_ghes() is used for saving the address of entry
+information of erst_tab. When the device is failed to be added, platform_data
+will be freed by platform_device_put(). But the value saved in platform_data
+should not be freed here. If it is done, it will make system panic.
 
-In acpi_pre_map(), after the physical address is remapped successfully,
-it will check whether the physical address has been added into acpi_iomaps
-list again.
-   - If the physical address has been added into acpi_iomaps, the virtual
-     address will be saved in vaddr.
-   - Otherwise, NULL be saved in vaddr.
-
-So if the physical address is the first time to be remapped, vaddr will be
-NULL always.
-
-In many cases, (paddr - pg_off) may not equal 0. So the function could work
-well. In our machine, (paddr - pg_off) equals 0, so the return value of
-acpi_pre_map() is NULL.
+So I think platform_data should save the address of allocated memory
+which saves entry information of erst_tab.
 
 This patch fixed it and I confirmed it on x86_64 next-tree.
 
 v2:
-    Modified the unsuitable description of patch.
-
-v3:
-    Modified the wrong words in the description of patch.   
+    Transport the pointer of hest_hdr to platform_data using
+    platform_device_add_data()
 
 Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Acked-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/atomicio.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/apei/ghes.c |    2 +-
+ drivers/acpi/apei/hest.c |   11 +++++++----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
-index 8f8bd73..1bc2614 100644
---- a/drivers/acpi/atomicio.c
-+++ b/drivers/acpi/atomicio.c
-@@ -133,7 +133,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 385a605..0d505e5 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -302,7 +302,7 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ 	struct ghes *ghes = NULL;
+ 	int rc = -EINVAL;
  
- 	spin_lock_irqsave(&acpi_iomaps_lock, flags);
- 	vaddr = __acpi_try_ioremap(paddr, size);
--	if (vaddr) {
-+	if (unlikely(vaddr)) {
- 		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
- 		iounmap(map->vaddr);
- 		kfree(map);
-@@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
- 	list_add_tail_rcu(&map->list, &acpi_iomaps);
- 	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+-	generic = ghes_dev->dev.platform_data;
++	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
+ 	if (!generic->enabled)
+ 		return -ENODEV;
  
--	return vaddr + (paddr - pg_off);
-+	return map->vaddr + (paddr - pg_off);
- err_unmap:
- 	iounmap(vaddr);
- 	return NULL;
--- 1.7.1.
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 343168d..1a3508a 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
+ 
+ static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
+ {
+-	struct acpi_hest_generic *generic;
+ 	struct platform_device *ghes_dev;
+ 	struct ghes_arr *ghes_arr = data;
+ 	int rc;
+ 
+ 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+ 		return 0;
+-	generic = (struct acpi_hest_generic *)hest_hdr;
+-	if (!generic->enabled)
++
++	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
+ 		return 0;
+ 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
+ 	if (!ghes_dev)
+ 		return -ENOMEM;
+-	ghes_dev->dev.platform_data = generic;
++
++	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
++	if (rc)
++		goto err;
++
+ 	rc = platform_device_add(ghes_dev);
+ 	if (rc)
+ 		goto err;
+-- 1.7.1.1 
 
