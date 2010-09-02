@@ -1,132 +1,68 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX for 2.6.36] ACPI, APEI, Fix error path for memory
- allocation
-Date: Thu, 02 Sep 2010 09:49:01 +0800
-Message-ID: <1283392141.13175.45.camel@yhuang-dev>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: [PATCH 1/2] [Patch-next -v2] ACPI, APEI Fix the return value(==NULL)
+ of acpi_pre_map().
+Date: Thu, 02 Sep 2010 11:31:21 +0900
+Message-ID: <4C7F0C79.3060506@np.css.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4853 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752834Ab0IBBtD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Sep 2010 21:49:03 -0400
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:47247 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718Ab0IBCan (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Sep 2010 22:30:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>
+To: APEI-lenb <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
-In ERST debug/test support patch, a dynamic allocated buffer is
-used. The may-failed memory allocation should be tried firstly before
-free the previous buffer.
+acpi_pre_map() is used for remapping the physical address of I/O, so
+it should be return NULL or remapped virtual address. The problem is
+that when (paddr - pg_off) equals 0, no matter whether I/O remapping is
+successful or not, the function returns NULL.
 
-APEI resource management memory allocation related error path is fixed
-too.
+In acpi_pre_map(), after the physical address is remapped sucessfully,
+it will check whether the physical address has been added into acpi_iomaps
+list again.
+   - If the physical address has beed added into acpi_iomaps, the virtual
+     address will be saved in vaddr.
+   - Otherwise, NULL be saved in vaddr.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
+So if the physical address is the first time to be remapped, vaddr will be
+NULL always.
+
+In many cases, (paddr - pg_off) may not equal 0. So the function could work
+well. In our machine, (paddr - pg_off) equals 0, so the return value of
+acpi_pre_map() is NULL.
+
+This patch fixed it and I confirmed it on x86_64 next-tree.
+
+Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 ---
- drivers/acpi/apei/apei-base.c |   25 ++++++++++++++++++++-----
- drivers/acpi/apei/erst-dbg.c  |   16 ++++++++++------
- 2 files changed, 30 insertions(+), 11 deletions(-)
+ drivers/acpi/atomicio.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -445,11 +445,15 @@ EXPORT_SYMBOL_GPL(apei_resources_sub);
- int apei_resources_request(struct apei_resources *resources,
- 			   const char *desc)
- {
--	struct apei_res *res, *res_bak;
-+	struct apei_res *res, *res_bak = NULL;
- 	struct resource *r;
-+	int rc;
+diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+index 8f8bd73..1bc2614 100644
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -133,7 +133,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
  
--	apei_resources_sub(resources, &apei_resources_all);
-+	rc = apei_resources_sub(resources, &apei_resources_all);
-+	if (rc)
-+		return rc;
+ 	spin_lock_irqsave(&acpi_iomaps_lock, flags);
+ 	vaddr = __acpi_try_ioremap(paddr, size);
+-	if (vaddr) {
++	if (unlikely(vaddr)) {
+ 		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+ 		iounmap(map->vaddr);
+ 		kfree(map);
+@@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
+ 	list_add_tail_rcu(&map->list, &acpi_iomaps);
+ 	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
  
-+	rc = -EINVAL;
- 	list_for_each_entry(res, &resources->iomem, list) {
- 		r = request_mem_region(res->start, res->end - res->start,
- 				       desc);
-@@ -475,7 +479,13 @@ int apei_resources_request(struct apei_r
- 		}
- 	}
- 
--	apei_resources_merge(&apei_resources_all, resources);
-+	rc = apei_resources_merge(&apei_resources_all, resources);
-+	if (rc) {
-+		pr_err(APEI_PFX
-+"Error in APEI internal resource management, there may be inconsistent "
-+"between APEI internal and system resource management.");
-+		goto err_unmap_ioport;
-+	}
- 
- 	return 0;
- err_unmap_ioport:
-@@ -491,12 +501,13 @@ err_unmap_iomem:
- 			break;
- 		release_mem_region(res->start, res->end - res->start);
- 	}
--	return -EINVAL;
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(apei_resources_request);
- 
- void apei_resources_release(struct apei_resources *resources)
- {
-+	int rc;
- 	struct apei_res *res;
- 
- 	list_for_each_entry(res, &resources->iomem, list)
-@@ -504,7 +515,11 @@ void apei_resources_release(struct apei_
- 	list_for_each_entry(res, &resources->ioport, list)
- 		release_region(res->start, res->end - res->start);
- 
--	apei_resources_sub(&apei_resources_all, resources);
-+	rc = apei_resources_sub(&apei_resources_all, resources);
-+	if (rc)
-+		pr_err(APEI_PFX
-+"Error in APEI internal resource management, there may be inconsistent "
-+"between APEI internal and system resource management.");
- }
- EXPORT_SYMBOL_GPL(apei_resources_release);
- 
---- a/drivers/acpi/apei/erst-dbg.c
-+++ b/drivers/acpi/apei/erst-dbg.c
-@@ -111,11 +111,13 @@ retry:
- 		goto out;
- 	}
- 	if (len > erst_dbg_buf_len) {
--		kfree(erst_dbg_buf);
-+		void *p;
- 		rc = -ENOMEM;
--		erst_dbg_buf = kmalloc(len, GFP_KERNEL);
--		if (!erst_dbg_buf)
-+		p = kmalloc(len, GFP_KERNEL);
-+		if (!p)
- 			goto out;
-+		kfree(erst_dbg_buf);
-+		erst_dbg_buf = p;
- 		erst_dbg_buf_len = len;
- 		goto retry;
- 	}
-@@ -150,11 +152,13 @@ static ssize_t erst_dbg_write(struct fil
- 	if (mutex_lock_interruptible(&erst_dbg_mutex))
- 		return -EINTR;
- 	if (usize > erst_dbg_buf_len) {
--		kfree(erst_dbg_buf);
-+		void *p;
- 		rc = -ENOMEM;
--		erst_dbg_buf = kmalloc(usize, GFP_KERNEL);
--		if (!erst_dbg_buf)
-+		p = kmalloc(usize, GFP_KERNEL);
-+		if (!p)
- 			goto out;
-+		kfree(erst_dbg_buf);
-+		erst_dbg_buf = p;
- 		erst_dbg_buf_len = usize;
- 	}
- 	rc = copy_from_user(erst_dbg_buf, ubuf, usize);
-
+-	return vaddr + (paddr - pg_off);
++	return map->vaddr + (paddr - pg_off);
+ err_unmap:
+ 	iounmap(vaddr);
+ 	return NULL;
+-- 1.7.1.1 
 
