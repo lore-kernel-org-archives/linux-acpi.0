@@ -1,118 +1,64 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: ACPI stuck for 45s at boot
-Date: Thu, 2 Sep 2010 11:09:19 -0700
-Message-ID: <20100902110919.a247d287.akpm@linux-foundation.org>
-References: <AANLkTimSKenWEDkMZ-MAHGWMyGvq9+MGXtNqHAZHM_oE@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45169 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356Ab0IBSEx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2010 14:04:53 -0400
-In-Reply-To: <AANLkTimSKenWEDkMZ-MAHGWMyGvq9+MGXtNqHAZHM_oE@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ralf Thielow <ralf.thielow@googlemail.com>
+Subject: [PATCH] acpi: numa: fixed white space and line length issue
+Date: Thu,  2 Sep 2010 22:27:47 +0200
+Message-ID: <1283459267-6171-1-git-send-email-ralf.thielow@googlemail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rientjes@google.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ralf Thielow <ralf.thielow@googlemail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Pirker <lkml.collector@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-(cc linux-acpi)
+Fixed a coding style issue.
 
-Probably raising a report against acpi at bugzilla.kernel.org would be
-the best way to handle this, please.  The ACPI guys use bugzilla very
-well.
+Signed-off-by: Ralf Thielow <ralf.thielow@googlemail.com>
+---
+ drivers/acpi/numa.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-
-On Mon, 23 Aug 2010 15:42:25 +0200 Martin Pirker <lkml.collector@gmail.com> wrote:
-
-> Hi..
-> My kernel (2.6.35) gets stuck at boot, as dmesg documents:
-> ....
-> [    0.006590] ACPI: Core revision 20100121
-> [   45.278951] DMAR: Host address width 36
-> ...
-> 
-> 
-> Setting acpi debugging to give-me-all-you-can produces ~120Mb dump.
-> The interesting part appears to be:
-> 
-> .....
-> [   36.016976] Table [SSDT](id 0006) - 28 Objects with 0 Devices 21
-> Methods 0 Regions
-> [   36.017120]   dsinit-0214 [ffffffff81a32020] [00]
-> ds_initialize_objects : 21 Methods, 0 Regions
-> [   36.017292]   nsload-0136 [ffffffff81a32020] [00] ns_load_table
->     : **** Completed Table Method Parsing and Object Initialization
-> [   36.017477]  utmutex-0247 [ffffffff81a32020] [00] ut_acquire_mutex
->     : Thread ffffffff81a32020 attempting to acquire Mutex
-> [ACPI_MTX_Tables]
-> [   36.017666]      osl-0879 [ffffffff81a32020] [00] os_wait_semaphore
->     : Waiting for semaphore[ffff88013341e120|1|65535]
-> [   36.017848]      osl-0898 [ffffffff81a32020] [00] os_wait_semaphore
->     : Acquired semaphore[ffff88013341e120|1|65535] utmutex-0255
-> [ffffffff81a32020] [00] ut_acquire_mutex      : Thread
-> ffffffff81a32020 acquired Mutex [ACPI_MTX_Tables]
-> [   36.018189]  tbxface-0610 [ffffffff81a32020] [00] tb_load_namespace
->     : ACPI Tables successfully acquired
-> [   36.018366]  utmutex-0289 [ffffffff81a32020] [00] ut_release_mutex
->     : Thread ffffffff81a32020 releasing Mutex [ACPI_MTX_Tables]
-> [   36.018552]      osl-0918 [ffffffff81a32020] [00]
-> os_signal_semaphore   : Signaling semaphore[ffff88013341e120|1]
-> [   36.018733]  utxface-0141 [ffffffff81a32020] [00] enable_subsystem
->     : [Init] Going into ACPI mode
-> [   36.018912]  hwvalid-0147 [ffffffff81a32020] [00]
-> hw_validate_io_request: Address 0000000000001004 LastAddress
-> 0000000000001005 Length 2  hwregs-0188 [ffffffff81a32020] [00] hw_read
->               : Read:  00001C00 width 16 from 0000000000001004
-> (SystemIO)
-> [   36.019290]  hwxface-0344 [ffffffff81a32020] [00] read_bit_register
->     : BitReg E, ParentReg 3, Actual 00001C00, ReturnValue 00000000
-> [   36.019477]  hwvalid-0147 [ffffffff81a32020] [00]
-> hw_validate_io_request: Address 0000000000001004 LastAddress
-> 0000000000001005 Length 2  hwregs-0188 [ffffffff81a32020] [00] hw_read
->               : Read:  00001C00 width 16 from 0000000000001004
-> (SystemIO)
-> [   36.019849]  hwxface-0344 [ffffffff81a32020] [00] read_bit_register
->     : BitReg E, ParentReg 3, Actual 00001C00, ReturnValue 00000000
-> [   36.020036]  hwvalid-0147 [ffffffff81a32020] [00]
-> hw_validate_io_request: Address 00000000000000b2 LastAddress
-> 00000000000000b2 Length 1  hwacpi-0101 [ffffffff81a32020] [00]
-> hw_set_mode           : Attempting to enable ACPI mode
-> [   81.259054]  hwvalid-0147 [ffffffff81a32020] [00]
-> hw_validate_io_request: Address 0000000000001004 LastAddress
-> 0000000000001005 Length 2  hwregs-0188 [ffffffff81a32020] [00] hw_read
->               : Read:  00001C01 width 16 from 0000000000001004
-> (SystemIO)
-> [   81.259418]  hwxface-0344 [ffffffff81a32020] [00] read_bit_register
->     : BitReg E, ParentReg 3, Actual 00001C01, ReturnValue 00000001
-> [   81.259604]  utmutex-0247 [ffffffff81a32020] [00] ut_acquire_mutex
->     : Thread ffffffff81a32020 attempting to acquire Mutex
-> [ACPI_MTX_Tables]
-> [   81.259794]      osl-0879 [ffffffff81a32020] [00] os_wait_semaphore
->     : Waiting for semaphore[ffff88013341e120|1|65535]
-> [   81.259976]      osl-0898 [ffffffff81a32020] [00] os_wait_semaphore
->     : Acquired semaphore[ffff88013341e120|1|65535] utmutex-0255
-> [ffffffff81a32020] [00] ut_acquire_mutex      : Thread
-> ffffffff81a32020 acquired Mutex [ACPI_MTX_Tables]
-> [   81.260336]  utmutex-0289 [ffffffff81a32020] [00] ut_release_mutex
->     : Thread ffffffff81a32020 releasing Mutex [ACPI_MTX_Tables]
-> [   81.260523]      osl-0918 [ffffffff81a32020] [00]
-> os_signal_semaphore   : Signaling semaphore[ffff88013341e120|1]
-> [   81.260704] ftrace: converting mcount calls to 0f 1f 44 00 00
-> [   81.260771] ftrace: allocating 21295 entries in 84 pages
-> [   81.268939] DMAR: Host address width 36
-> .....
-> 
-> 
-> So....
-> What is happening here and whose fault is it?
-> Is it a Linux kernel or ACPI firmware problem?
-> 
-> Thanks for any pointers,
-> Martin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 5718566..9864c5b 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -102,7 +102,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 					  "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
+ 					  p->apic_id, p->local_sapic_eid,
+ 					  p->proximity_domain_lo,
+-					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
++					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
+ 					  "enabled" : "disabled"));
+ 		}
+ #endif				/* ACPI_DEBUG_OUTPUT */
+@@ -118,9 +118,10 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 					  (unsigned long)p->base_address,
+ 					  (unsigned long)p->length,
+ 					  p->proximity_domain,
+-					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
++					  (p->flags & ACPI_SRAT_MEM_ENABLED) ?
+ 					  "enabled" : "disabled",
+-					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
++					  (p->flags &
++						ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
+ 					  " hot-pluggable" : ""));
+ 		}
+ #endif				/* ACPI_DEBUG_OUTPUT */
+@@ -236,7 +237,7 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
+ }
+ 
+ static int __init
+-acpi_parse_memory_affinity(struct acpi_subtable_header * header,
++acpi_parse_memory_affinity(struct acpi_subtable_header *header,
+ 			   const unsigned long end)
+ {
+ 	struct acpi_srat_mem_affinity *memory_affinity;
+@@ -265,7 +266,8 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
+ 
+ static int __init
+ acpi_table_parse_srat(enum acpi_srat_type id,
+-		      acpi_table_entry_handler handler, unsigned int max_entries)
++		      acpi_table_entry_handler handler,
++		      unsigned int max_entries)
+ {
+ 	return acpi_table_parse_entries(ACPI_SIG_SRAT,
+ 					    sizeof(struct acpi_table_srat), id,
+-- 
+1.7.0.4
