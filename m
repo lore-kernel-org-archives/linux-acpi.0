@@ -1,81 +1,49 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: [PATCH 2/2][Patch-next -v2] ACPI, APEI, HEST Fix the unsuitable usage
- of platform_data.
-Date: Thu, 02 Sep 2010 11:31:48 +0900
-Message-ID: <4C7F0C94.8090802@np.css.fujitsu.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 1/2] [Patch-next -v2] ACPI, APEI Fix the return
+ value(==NULL) of acpi_pre_map().
+Date: Thu, 02 Sep 2010 10:33:22 +0800
+Message-ID: <1283394802.13175.47.camel@yhuang-dev>
+References: <4C7F0C79.3060506@np.css.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41450 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab0IBCbM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Sep 2010 22:31:12 -0400
+Received: from mga14.intel.com ([143.182.124.37]:40552 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314Ab0IBCdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Sep 2010 22:33:38 -0400
+In-Reply-To: <4C7F0C79.3060506@np.css.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: APEI-lenb <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Randy Dunlap <randy.dunlap@oracle.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Cc: APEI-lenb <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
-platform_data in hest_parse_ghes() is used for saving the address of entry
-information of erst_tab. When the device is failed to be added, platform_data
-will be freed by platform_device_put(). But the value saved in platform_data
-should not be freed here. If it is done, it will make system panic.
+On Thu, 2010-09-02 at 10:31 +0800, Jin Dongming wrote:
+> acpi_pre_map() is used for remapping the physical address of I/O, so
+> it should be return NULL or remapped virtual address. The problem is
+> that when (paddr - pg_off) equals 0, no matter whether I/O remapping is
+> successful or not, the function returns NULL.
+> 
+> In acpi_pre_map(), after the physical address is remapped sucessfully,
+> it will check whether the physical address has been added into acpi_iomaps
+> list again.
+>    - If the physical address has beed added into acpi_iomaps, the virtual
+>      address will be saved in vaddr.
+>    - Otherwise, NULL be saved in vaddr.
+> 
+> So if the physical address is the first time to be remapped, vaddr will be
+> NULL always.
+> 
+> In many cases, (paddr - pg_off) may not equal 0. So the function could work
+> well. In our machine, (paddr - pg_off) equals 0, so the return value of
+> acpi_pre_map() is NULL.
+> 
+> This patch fixed it and I confirmed it on x86_64 next-tree.
+> 
+> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Acked-by: Huang Ying <ying.huang@intel.com>
 
-So I think platform_data should save the address of allocated memory
-which saves entry information of erst_tab.
+Best Regards,
+Huang Ying
 
-This patch fixed it and I confirmed it on x86_64 next-tree.
-
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
----
- drivers/acpi/apei/ghes.c |    2 +-
- drivers/acpi/apei/hest.c |   11 +++++++----
- 2 files changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 385a605..0d505e5 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -302,7 +302,7 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
- 	struct ghes *ghes = NULL;
- 	int rc = -EINVAL;
- 
--	generic = ghes_dev->dev.platform_data;
-+	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
- 	if (!generic->enabled)
- 		return -ENODEV;
- 
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 343168d..1a3508a 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
- 
- static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
- {
--	struct acpi_hest_generic *generic;
- 	struct platform_device *ghes_dev;
- 	struct ghes_arr *ghes_arr = data;
- 	int rc;
- 
- 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
- 		return 0;
--	generic = (struct acpi_hest_generic *)hest_hdr;
--	if (!generic->enabled)
-+
-+	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
- 		return 0;
- 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
- 	if (!ghes_dev)
- 		return -ENOMEM;
--	ghes_dev->dev.platform_data = generic;
-+
-+	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
-+	if (rc)
-+		goto err;
-+
- 	rc = platform_device_add(ghes_dev);
- 	if (rc)
- 		goto err;
--- 1.7.1.1 
 
