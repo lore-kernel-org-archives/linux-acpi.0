@@ -1,86 +1,21 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: [PATCH 2/2][Patch-next] ACPI, APEI, HEST Fix the unsuitable usage
- of platform_data.
-Date: Thu, 02 Sep 2010 16:20:34 +0900
-Message-ID: <4C7F5042.8070006@np.css.fujitsu.com>
+From: "=?UTF-8?B?QUFBLVBSQVdLTw==?=" <aaa-prawko@aaa-prawko.home.pl>
+Subject: Prawo Jazdy dla kazdego
+Date: Thu, 02 Sep 2010 13:30:08 +0200
+Message-ID: <049264df8c09b0d0f902f0d8750f97e5.qmail@poczta.home.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58787 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023Ab0IBHTy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2010 03:19:54 -0400
+Received: from v009361.home.net.pl ([62.129.196.217]:58932 "HELO
+	v009361.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751147Ab0IBLgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Sep 2010 07:36:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: APEI-lenb <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-platform_data in hest_parse_ghes() is used for saving the address of entry
-information of erst_tab. When the device is failed to be added, platform_data
-will be freed by platform_device_put(). But the value saved in platform_data
-should not be freed here. If it is done, it will make system panic.
+Wmd1YmnFgmXFmyAvIG5pZSBtYXN6IHByYXdvIGphemR5PyAtIFByYXdvIEphemR5IGJleiBFZ3ph
+bWludSAtIE1pxJlkenluYXJvZG93ZSANClByYXdvIEphemR5IGRsYSBrYcW8ZGVnbywgd3lkYXdh
+bmUgdyBVU0EsIHdhxbxuZSB3IHBvbmFkIDIwMCBrcmFqYWNoIMWbd2lhdGEsIAp3acSZY2VqIGlu
+Zm9ybWFjamkgbmEgc3Ryb25pZSAKCnd3dy5BQUEtcHJhd2tvLnBs
 
-So I think platform_data should save the address of allocated memory
-which saves entry information of erst_tab.
-
-This patch fixed it and I confirmed it on x86_64 next-tree.
-
-v2:
-    Transport the pointer of hest_hdr to platform_data using
-    platform_device_add_data()
-
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Acked-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/ghes.c |    2 +-
- drivers/acpi/apei/hest.c |   11 +++++++----
- 2 files changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 385a605..0d505e5 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -302,7 +302,7 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
- 	struct ghes *ghes = NULL;
- 	int rc = -EINVAL;
- 
--	generic = ghes_dev->dev.platform_data;
-+	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
- 	if (!generic->enabled)
- 		return -ENODEV;
- 
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 343168d..1a3508a 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
- 
- static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
- {
--	struct acpi_hest_generic *generic;
- 	struct platform_device *ghes_dev;
- 	struct ghes_arr *ghes_arr = data;
- 	int rc;
- 
- 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
- 		return 0;
--	generic = (struct acpi_hest_generic *)hest_hdr;
--	if (!generic->enabled)
-+
-+	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
- 		return 0;
- 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
- 	if (!ghes_dev)
- 		return -ENOMEM;
--	ghes_dev->dev.platform_data = generic;
-+
-+	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
-+	if (rc)
-+		goto err;
-+
- 	rc = platform_device_add(ghes_dev);
- 	if (rc)
- 		goto err;
--- 1.7.1.1 
 
