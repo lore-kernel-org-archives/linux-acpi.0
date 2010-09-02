@@ -1,94 +1,132 @@
-From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
- rf/camera power
-Date: Wed, 1 Sep 2010 21:56:17 +0200
-Message-ID: <20100901195617.GD32589@darkside.kls.lan>
-References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com>
- <1282127719.2747.211.camel@localhost>
- <20100818155128.GA24363@darkside.kls.lan>
- <4C6CA31D.6030407@canonical.com>
- <20100819193146.GB32665@darkside.kls.lan>
- <4C6E2833.6080407@canonical.com>
- <20100820090824.GA23186@darkside.kls.lan>
- <4C7505A2.3000402@canonical.com>
- <20100830181954.GE31068@darkside.kls.lan>
- <4C7E3DE0.7030209@canonical.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: [BUGFIX for 2.6.36] ACPI, APEI, Fix error path for memory
+ allocation
+Date: Thu, 02 Sep 2010 09:49:01 +0800
+Message-ID: <1283392141.13175.45.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2JFBq9zoW8cOFH7v"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from piggy.rz.tu-ilmenau.de ([141.24.4.8]:35745 "EHLO
-	piggy.rz.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab0IAT5z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Sep 2010 15:57:55 -0400
-Content-Disposition: inline
-In-Reply-To: <4C7E3DE0.7030209@canonical.com>
+Received: from mga09.intel.com ([134.134.136.24]:4853 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752834Ab0IBBtD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Sep 2010 21:49:03 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>
+
+In ERST debug/test support patch, a dynamic allocated buffer is
+used. The may-failed memory allocation should be tried firstly before
+free the previous buffer.
+
+APEI resource management memory allocation related error path is fixed
+too.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+---
+ drivers/acpi/apei/apei-base.c |   25 ++++++++++++++++++++-----
+ drivers/acpi/apei/erst-dbg.c  |   16 ++++++++++------
+ 2 files changed, 30 insertions(+), 11 deletions(-)
+
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -445,11 +445,15 @@ EXPORT_SYMBOL_GPL(apei_resources_sub);
+ int apei_resources_request(struct apei_resources *resources,
+ 			   const char *desc)
+ {
+-	struct apei_res *res, *res_bak;
++	struct apei_res *res, *res_bak = NULL;
+ 	struct resource *r;
++	int rc;
+ 
+-	apei_resources_sub(resources, &apei_resources_all);
++	rc = apei_resources_sub(resources, &apei_resources_all);
++	if (rc)
++		return rc;
+ 
++	rc = -EINVAL;
+ 	list_for_each_entry(res, &resources->iomem, list) {
+ 		r = request_mem_region(res->start, res->end - res->start,
+ 				       desc);
+@@ -475,7 +479,13 @@ int apei_resources_request(struct apei_r
+ 		}
+ 	}
+ 
+-	apei_resources_merge(&apei_resources_all, resources);
++	rc = apei_resources_merge(&apei_resources_all, resources);
++	if (rc) {
++		pr_err(APEI_PFX
++"Error in APEI internal resource management, there may be inconsistent "
++"between APEI internal and system resource management.");
++		goto err_unmap_ioport;
++	}
+ 
+ 	return 0;
+ err_unmap_ioport:
+@@ -491,12 +501,13 @@ err_unmap_iomem:
+ 			break;
+ 		release_mem_region(res->start, res->end - res->start);
+ 	}
+-	return -EINVAL;
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(apei_resources_request);
+ 
+ void apei_resources_release(struct apei_resources *resources)
+ {
++	int rc;
+ 	struct apei_res *res;
+ 
+ 	list_for_each_entry(res, &resources->iomem, list)
+@@ -504,7 +515,11 @@ void apei_resources_release(struct apei_
+ 	list_for_each_entry(res, &resources->ioport, list)
+ 		release_region(res->start, res->end - res->start);
+ 
+-	apei_resources_sub(&apei_resources_all, resources);
++	rc = apei_resources_sub(&apei_resources_all, resources);
++	if (rc)
++		pr_err(APEI_PFX
++"Error in APEI internal resource management, there may be inconsistent "
++"between APEI internal and system resource management.");
+ }
+ EXPORT_SYMBOL_GPL(apei_resources_release);
+ 
+--- a/drivers/acpi/apei/erst-dbg.c
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -111,11 +111,13 @@ retry:
+ 		goto out;
+ 	}
+ 	if (len > erst_dbg_buf_len) {
+-		kfree(erst_dbg_buf);
++		void *p;
+ 		rc = -ENOMEM;
+-		erst_dbg_buf = kmalloc(len, GFP_KERNEL);
+-		if (!erst_dbg_buf)
++		p = kmalloc(len, GFP_KERNEL);
++		if (!p)
+ 			goto out;
++		kfree(erst_dbg_buf);
++		erst_dbg_buf = p;
+ 		erst_dbg_buf_len = len;
+ 		goto retry;
+ 	}
+@@ -150,11 +152,13 @@ static ssize_t erst_dbg_write(struct fil
+ 	if (mutex_lock_interruptible(&erst_dbg_mutex))
+ 		return -EINTR;
+ 	if (usize > erst_dbg_buf_len) {
+-		kfree(erst_dbg_buf);
++		void *p;
+ 		rc = -ENOMEM;
+-		erst_dbg_buf = kmalloc(usize, GFP_KERNEL);
+-		if (!erst_dbg_buf)
++		p = kmalloc(usize, GFP_KERNEL);
++		if (!p)
+ 			goto out;
++		kfree(erst_dbg_buf);
++		erst_dbg_buf = p;
+ 		erst_dbg_buf_len = usize;
+ 	}
+ 	rc = copy_from_user(erst_dbg_buf, ubuf, usize);
 
 
---2JFBq9zoW8cOFH7v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Sep 01, 2010 at 07:49:52PM +0800, Ike Panhc wrote:
-> Your log tells a lot. It tells me if the bluetooth init failed. Then we
-> have to turning off and power on again by hw switch to make it alive agai=
-n.
->=20
-> So, I believe we have two issue here.
-> * when rfkill unblock, sometimes bluetooth init failed.
-
-Yes.
-
-> * power up system after rfkill block bluetooth, sometimes the cfgbit =3D =
-0xc0000
-> Am I correct?
-
-Not completely.
-
-* reboot system after rfkill block bluetooth, sometimes the cfgbit =3D 0xc0=
-000
-
-I never had cfgbit =3D 0xc0000 when I power-cycled the system, only when I
-rebooted it.
-This is why I belive the second point has virtually the same reason as
-the first point: bluetooth device initialization fails and thus its
-detection by BIOS fails and thus ACPI returns 0xc0000 cfg.
-Hence, I belive chances are high that solving the first point does also
-solve the second.
-
-While thinking about it... the init problems persisting a reboot could
-also mean that not the unblock operation is the real issue but the block
-operation - which probably leaves the bluetooth device in kind of a
-semi-disabled state or something like that.
-
-
-regards
-   Mario
---=20
-Do I contradict myself?
-Very well, then I contradict myself, I am large, I contain multitudes.
-                                                       -- Walt Whitman
-
---2JFBq9zoW8cOFH7v
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEVAwUBTH6v4RS+e2HeSPbpAQJcIgf9Fb9gg0wHorstDFb2khVF9kDP0CKfv8JJ
-7AY+qGgz0Mk3TJhAb0p6mCb3YqUIWxnWfILGmamgyLOvTy/4l0BA7JH4FJxv6VK1
-9gBMtPSU8DL7VlsKCv+8TwDbEyCtyIjTf1KpBOBF4AY1ojpAQVhTbh6TqsKYuWXn
-qk/hopjtY5t1Y3ipcWsGrDdJMw9zgHHMh0KfUjQpWR3USDVi3wXYSieWPCOpy95f
-iC/ja+9w/CGnQGyM+ZL3K60sgm1uoWl77Ti4g3eTkiK0XojmX6a0qjg/cs1kP4/L
-oBJkhFcZgmI63UCufVFvozbJhl/RpYFkmrmqNsFHR5g4Z4PAAQcusw==
-=sdGT
------END PGP SIGNATURE-----
-
---2JFBq9zoW8cOFH7v--
