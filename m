@@ -1,124 +1,73 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: Re: [PATCH 1/2] [Patch-next] ACPI, APEI Fix the return value(==NULL)
- of acpi_pre_map().
-Date: Fri, 03 Sep 2010 17:37:22 +0900
-Message-ID: <4C80B3C2.7030500@np.css.fujitsu.com>
-References: <4C7F5032.70108@np.css.fujitsu.com> <201009020947.44090.bjorn.helgaas@hp.com>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
+ power
+Date: Fri, 03 Sep 2010 17:06:09 +0800
+Message-ID: <4C80BA81.20701__27495.9430950277$1283504796$gmane$org@canonical.com>
+References: <1282120564-11324-1-git-send-email-ike.pan@canonical.com> <1282127719.2747.211.camel@localhost> <20100818155128.GA24363@darkside.kls.lan> <4C6CA31D.6030407@canonical.com> <20100819193146.GB32665@darkside.kls.lan> <4C6E2833.6080407@canonical.com> <20100820090824.GA23186@darkside.kls.lan> <4C7505A2.3000402@canonical.com> <20100830181954.GE31068@darkside.kls.lan> <4C7E3DE0.7030209@canonical.com> <20100901195617.GD32589@darkside.kls.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45580 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755409Ab0ICIgy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Sep 2010 04:36:54 -0400
-In-Reply-To: <201009020947.44090.bjorn.helgaas@hp.com>
+Received: from adelie.canonical.com ([91.189.90.139]:33302 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab0ICJGY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Sep 2010 05:06:24 -0400
+In-Reply-To: <20100901195617.GD32589@darkside.kls.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: APEI-lenb <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
+To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
 
-Hi, Bjorn Helgaas
+Hi Mario,
 
-I will modify this patch and resend it as soon as possible in next week.
+I look at the DSDT again and again but unfortunately can not find anything
+may cause the bluetooth device initial failed. BTEN looks like the switch
+for EC to turn on/off bluetooth, BTST records the status of BTEN and BTPS
+means bluetooth present. But no idea why initial failed after BTEN=1
 
-Best Regards,
-Jin Dongming
+So I fall back to your suggestion. Have a module parameter to tell module
+not to register rfkill for bluetooth.
 
-(2010/09/03 0:47), Bjorn Helgaas wrote:
-> On Thursday, September 02, 2010 01:20:18 am Jin Dongming wrote:
->> acpi_pre_map() is used for remapping the physical address of I/O, so
->> it should be return NULL or remapped virtual address. The problem is
->> that when (paddr - pg_off) equals 0, no matter whether I/O remapping is
->> successful or not, the function returns NULL.
->>
->> In acpi_pre_map(), after the physical address is remapped successfully,
->> it will check whether the physical address has been added into acpi_iomaps
->> list again.
->>    - If the physical address has been added into acpi_iomaps, the virtual
->>      address will be saved in vaddr.
->>    - Otherwise, NULL be saved in vaddr.
->>
->> So if the physical address is the first time to be remapped, vaddr will be
->> NULL always.
->>
->> In many cases, (paddr - pg_off) may not equal 0. So the function could work
->> well. In our machine, (paddr - pg_off) equals 0, so the return value of
->> acpi_pre_map() is NULL.
->>
->> This patch fixed it and I confirmed it on x86_64 next-tree.
-> 
-> This description is complicated and obscures the very simple bug
-> you are fixing.  I suggest something like this:
-> 
->   ACPI: fix acpi_pre_map() return value
-> 
->   After we ioremap() a new region, we call __acpi_try_ioremap() to
->   see whether another thread has already mapped the same region.
->   This check clobbers "vaddr", so compute the return value using
->   the ioremap() result "map->vaddr" instead.
-> 
->> v2:
->>     Modified the unsuitable description of patch.
->>
->> v3:
->>     Modified the wrong words in the description of patch.   
->>
->> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
->> Acked-by: Huang Ying <ying.huang@intel.com>
->> ---
->>  drivers/acpi/atomicio.c |    4 ++--
->>  1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
->> index 8f8bd73..1bc2614 100644
->> --- a/drivers/acpi/atomicio.c
->> +++ b/drivers/acpi/atomicio.c
->> @@ -133,7 +133,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
->>  
->>  	spin_lock_irqsave(&acpi_iomaps_lock, flags);
->>  	vaddr = __acpi_try_ioremap(paddr, size);
->> -	if (vaddr) {
->> +	if (unlikely(vaddr)) {
-> 
-> This "unlikely" addition also obscures things.  It's completely
-> unrelated to the bug you're fixing, so it should be in a different
-> patch, and I'm dubious that there's enough performance advantage to
-> compensate for the decreased code readability.  I wouldn't make this
-> change unless you can measure a performance improvement.
-> 
->>  		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
->>  		iounmap(map->vaddr);
->>  		kfree(map);
->> @@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
->>  	list_add_tail_rcu(&map->list, &acpi_iomaps);
->>  	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
->>  
->> -	return vaddr + (paddr - pg_off);
->> +	return map->vaddr + (paddr - pg_off);
-> 
-> Since you're changing this line anyway, I think you should change it to:
-> 
->   return map->vaddr + (paddr - map->paddr);
-> 
-> so it matches __acpi_try_ioremap().
-> 
->>  err_unmap:
->>  	iounmap(vaddr);
->>  	return NULL;
->> -- 1.7.1.
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+I prepare the driver and please spend some time testing. Driver is at
 
+http://kernel.ubuntu.com/git?p=ikepanhc/ideapad-laptop.git;a=blob;f=drivers/platform/x86/ideapad-laptop.c;h=c4cf46a363f3f72d6db5339ec326d282d7e58183;hb=26a58948693b7d25960299a8025e569e68f28937
+
+and you may use "insmod ideapad-laptop.ko no_bt_rfkill=1" for your S12.
+
+For more information, please see the following link:
+
+http://kernel.ubuntu.com/git?p=ikepanhc/ideapad-laptop.git;a=commit;h=26a58948693b7d25960299a8025e569e68f28937
+
+On 09/02/2010 03:56 AM, Mario 'BitKoenig' Holbe wrote:
+> On Wed, Sep 01, 2010 at 07:49:52PM +0800, Ike Panhc wrote:
+>> Your log tells a lot. It tells me if the bluetooth init failed. Then we
+>> have to turning off and power on again by hw switch to make it alive again.
+>>
+>> So, I believe we have two issue here.
+>> * when rfkill unblock, sometimes bluetooth init failed.
+> 
+> Yes.
+> 
+>> * power up system after rfkill block bluetooth, sometimes the cfgbit = 0xc0000
+>> Am I correct?
+> 
+> Not completely.
+> 
+> * reboot system after rfkill block bluetooth, sometimes the cfgbit = 0xc0000
+> 
+> I never had cfgbit = 0xc0000 when I power-cycled the system, only when I
+> rebooted it.
+> This is why I belive the second point has virtually the same reason as
+> the first point: bluetooth device initialization fails and thus its
+> detection by BIOS fails and thus ACPI returns 0xc0000 cfg.
+> Hence, I belive chances are high that solving the first point does also
+> solve the second.
+> 
+> While thinking about it... the init problems persisting a reboot could
+> also mean that not the unblock operation is the real issue but the block
+> operation - which probably leaves the bluetooth device in kind of a
+> semi-disabled state or something like that.
+> 
+> 
+> regards
+>    Mario
 
