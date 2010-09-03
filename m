@@ -1,51 +1,77 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: System time drifts when processor idle.
-Date: Fri, 3 Sep 2010 14:23:32 +0200
-Message-ID: <AANLkTina8xAwnGVuPKywsf1qEzpu+rWNbv7JjqAgLqp1@mail.gmail.com>
-References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
-	<AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
-	<AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
-	<AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
-	<AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
-	<AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
-	<1282932708.1946.8.camel@work-vm>
+From: =?iso-8859-1?b?TWFzdGVyQ2FyZK4=?= International /
+	 =?iso-8859-1?b?TWljcm9zb2Z0rg==?= Corporation UK
+	<info@mastercard.co.uk>
+Subject: Estimado Ganador en efectivo
+Date: Fri, 03 Sep 2010 07:54:54 -0300
+Message-ID: <20100903075454.115468zvilpnpy4g@correo.fmed.edu.uy>
+Reply-To: helen-thomason@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1;
+	DelSp=Yes	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1282932708.1946.8.camel@work-vm>
-Sender: linux-kernel-owner@vger.kernel.org
-To: john stultz <johnstul@us.ibm.com>
-Cc: Lin Ming <lin@ming.vg>, venki@google.com, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, jslaby@suse.cz
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from minerva.fmed.edu.uy ([164.73.144.2]:34317 "EHLO
+	minerva.fmed.edu.uy" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751593Ab0ICMlz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Sep 2010 08:41:55 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-2010/8/27 john stultz <johnstul@us.ibm.com>:
-> On Fri, 2010-08-27 at 16:12 +0200, jean-philippe francois wrote:
->> My Timekeeping bug is still present, here is an updated script and l=
-og.
->> I am willing to make test, but I don't know what kind of debugging
->> info is needed.
->>
->> cat /sys/devices/system/clocksource/clocksource0/available_clocksour=
-ce
->> hpet acpi_pm
->> cat /sys/devices/system/clocksource/clocksource0/current_clocksource
->> hpet
->
-> Huh. hpet was not what I would have expected.
->
->
-> So first, two experiments:
->
-> 1) Does booting with "clock=3Dacpi_pm" cause the issue to disappear?
->
 
-Hi,
 
-The same bug happens with clock=3Dacpi_pm.
-My apologies for a previous mail where I said it was not hapenning with=
- acpi_pm.
+MASTERCARD =AE / MICROSOFT =AE MEGA JACKPOT INTERNACIONAL.
+Director Ejecutivo: Sr. Chris Monteiro.
 
-With both clock, the timekeeping gap augments by amount of 5 minutes.
 
-Jean-Philippe Fran=E7ois
+Estimado Ganador en efectivo,
+
+
+Su direcci=F3n de correo electr=F3nico fue seleccionado y confirmado po=
+r =20
+nuestro copatrocinador Microsoft Internacional, a trav=E9s de su =20
+software m=E1s reciente de Internet. Usted tiene por lo tanto sido =20
+aprobado por MasterCard =AE Internacional / Microsoft =AE Corporation d=
+el =20
+Reino Unido la suma de =A3 952,000.00 GBP (novecientos cincuenta y dos =
+=20
+mil libras esterlinas Grande). Estos fondos son en efectivo, mediante =20
+abono en un cheque v=E1lido, con una Reg. ganar. MCIMJ N =BA: 36925/075=
+1. =20
+Estar informado de que su premio ha sido asegurado y listo para =20
+entregar el dinero a usted. Usted est=E1 en contacto con el asignado =20
+oficial de reclamaciones con su informaci=F3n requerida es:
+
+
+Nombre: Sra. Helen Thomason
+E-mail: helenthomasson@live.com
+Departamento de Reclamaciones de Verificaci=F3n.
+
+
+No enviar por encima de Administrador de Reclamaciones, a la vez con =20
+este Reclamaciones Requisitos: 1. Nombre completo: 2. Direcci=F3n: 3. =20
+Nacionalidad: 4. Edad: 5.Ocupaci=F3n: Naturaleza del Trabajo: 6. =20
+Tel=E9fono: Fax: 7. Estado de origen: Pa=EDs: 8.Sexo: 9. Ganar Email =20
+Direcci=F3n:
+
+
+Modo de env=EDo de remesas Premio: Entrega mensajero de su cheque =20
+certificado ganadora y otros documentos de manera segura ganadora a =20
+usted.
+
+
+
+Le saluda atentamente,
+El Dr. Mu=F1oz Margarita.
+Servicio de Atenci=F3n al Cliente Jefe.
+Copyright =A9 2010 MasterCard Inc Reino Unido.
+
+----------------------------------------------------------------
+=46acultad de Medicina - Universidad de la Rep=C3=BAblica
+Montevideo Uruguay
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
