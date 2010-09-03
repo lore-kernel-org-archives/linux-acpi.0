@@ -1,77 +1,39 @@
-From: =?iso-8859-1?b?TWFzdGVyQ2FyZK4=?= International /
-	 =?iso-8859-1?b?TWljcm9zb2Z0rg==?= Corporation UK
-	<info@mastercard.co.uk>
-Subject: Estimado Ganador en efectivo
-Date: Fri, 03 Sep 2010 07:54:54 -0300
-Message-ID: <20100903075454.115468zvilpnpy4g@correo.fmed.edu.uy>
-Reply-To: helen-thomason@live.com
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: acpi_atomic_read() requirements
+Date: Fri, 3 Sep 2010 09:00:33 -0600
+Message-ID: <201009030900.33581.bjorn.helgaas@hp.com>
+References: <201009021934.52861.bjorn.helgaas@hp.com> <201009022232.45290.bjorn.helgaas@hp.com> <20100903111705.3ae78159@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from minerva.fmed.edu.uy ([164.73.144.2]:34317 "EHLO
-	minerva.fmed.edu.uy" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593Ab0ICMlz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Sep 2010 08:41:55 -0400
-Content-Disposition: inline
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:10964 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab0ICPBC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Sep 2010 11:01:02 -0400
+In-Reply-To: <20100903111705.3ae78159@basil.nowhere.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+On Friday, September 03, 2010 03:17:05 am Andi Kleen wrote:
+> > Good.  Unless there's a spec requirement for 64-bit accesses in this
+> > area, I think it's better to do it the same way as acpi_read(), just
+> > so we're as consistent as possible.
+> 
+> I'm not sure if the spec explicit asks for it, but doing a full
+> 64bit access would be in the spirit of it at least.
 
+It would, and I hoped the spec would clarify that, but I didn't
+see anything.
 
-MASTERCARD =AE / MICROSOFT =AE MEGA JACKPOT INTERNACIONAL.
-Director Ejecutivo: Sr. Chris Monteiro.
+If there's a reason to have acpi_atomic_read() work differently
+than acpi_read() in this respect, that's fine.  I just don't see
+it yet.  If they *can* be made similar in this, I think we might
+be able to collapse them into a single, smaller implementation.
 
-
-Estimado Ganador en efectivo,
-
-
-Su direcci=F3n de correo electr=F3nico fue seleccionado y confirmado po=
-r =20
-nuestro copatrocinador Microsoft Internacional, a trav=E9s de su =20
-software m=E1s reciente de Internet. Usted tiene por lo tanto sido =20
-aprobado por MasterCard =AE Internacional / Microsoft =AE Corporation d=
-el =20
-Reino Unido la suma de =A3 952,000.00 GBP (novecientos cincuenta y dos =
-=20
-mil libras esterlinas Grande). Estos fondos son en efectivo, mediante =20
-abono en un cheque v=E1lido, con una Reg. ganar. MCIMJ N =BA: 36925/075=
-1. =20
-Estar informado de que su premio ha sido asegurado y listo para =20
-entregar el dinero a usted. Usted est=E1 en contacto con el asignado =20
-oficial de reclamaciones con su informaci=F3n requerida es:
-
-
-Nombre: Sra. Helen Thomason
-E-mail: helenthomasson@live.com
-Departamento de Reclamaciones de Verificaci=F3n.
-
-
-No enviar por encima de Administrador de Reclamaciones, a la vez con =20
-este Reclamaciones Requisitos: 1. Nombre completo: 2. Direcci=F3n: 3. =20
-Nacionalidad: 4. Edad: 5.Ocupaci=F3n: Naturaleza del Trabajo: 6. =20
-Tel=E9fono: Fax: 7. Estado de origen: Pa=EDs: 8.Sexo: 9. Ganar Email =20
-Direcci=F3n:
-
-
-Modo de env=EDo de remesas Premio: Entrega mensajero de su cheque =20
-certificado ganadora y otros documentos de manera segura ganadora a =20
-usted.
-
-
-
-Le saluda atentamente,
-El Dr. Mu=F1oz Margarita.
-Servicio de Atenci=F3n al Cliente Jefe.
-Copyright =A9 2010 MasterCard Inc Reino Unido.
-
-----------------------------------------------------------------
-=46acultad de Medicina - Universidad de la Rep=C3=BAblica
-Montevideo Uruguay
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On the other hand I would expect hardware that really requires 64bit
+> to be rare because 32bit OS would always have some trouble with
+> it.
