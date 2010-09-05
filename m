@@ -1,27 +1,23 @@
-From: "desk@live.com" <autocicognara@fastwebnet.it>
-Subject: Mutual Support
-Date: Sat, 4 Sep 2010 17:40:03 +0200 (CEST)
-Message-ID: <9230417.1223821283614803164.JavaMail.defaultUser__42132.6909483925$1283616402$gmane$org@defaultHost>
-Reply-To: JU4343@ymail.com
+From: "rose isaac" <roseling55isaac@gmx.com>
+Subject: Hello
+Date: Sun, 5 Sep 2010 14:54:38 -0500
+Message-ID: <69b340816e06b7027704e37a1bac35e6.squirrel__46717.354868497$1283716488$gmane$org@josematt.x10.mx>
+Reply-To: roseling55isaac@gmx.com
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:41496 "EHLO
-	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082Ab0IDQG0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Sep 2010 12:06:26 -0400
+Received: from outgoing.x10hosting.com ([173.236.28.162]:40985 "HELO
+	outgoing.x10hosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751779Ab0IETyj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Sep 2010 15:54:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sir/Madam,
 
-  I am Judith Johnson a solicitor at law, i have a proposal for you kindle get b
-ack to me for more information on my private email address at:judith4343@hotmail
-.com
 
-God Bless you and you Family.
 
-Sincerely,
-Judith Johnson
+please how are you! hope you are fine  and in good condition of please
+will like you to  write me back because i have something VERY important to
+tell you, i hope to hear from you soon!Rose
 
