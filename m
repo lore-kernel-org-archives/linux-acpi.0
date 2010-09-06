@@ -1,51 +1,123 @@
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Subject: [Patch-next] ACPI, APEI: fix acpi_pre_map() return value.
-Date: Mon, 06 Sep 2010 10:10:47 +0900
-Message-ID: <4C843F97.70608@np.css.fujitsu.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Speedstep on Celeron SU2300 - 20% more battery
+	lifetime on Windows
+Date: Mon, 6 Sep 2010 10:35:03 +0200
+Message-ID: <201009061035.03727.trenn@suse.de>
+References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com>
+	<201009020152.37466.trenn@suse.de>
+	<AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:36270 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921Ab0IFBKY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Sep 2010 21:10:24 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org>
+In-Reply-To: <AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.lesswatts.org/options/discuss>,
+	<mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.lesswatts.org/pipermail/discuss>
+List-Post: <mailto:discuss-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org>
+List-Help: <mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.lesswatts.org/listinfo/discuss>,
+	<mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=subscribe>
+Sender: discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org
+Errors-To: discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org
+To: Tiago Marques <tiagomnm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: discuss-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, cpufreq-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, APEI-lenb <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, ACPI <linux-acpi@vger.kernel.org>, LKLM <linux-kernel@vger.kernel.org>
 
-After we ioremap() a new region, we call __acpi_try_ioremap() to
-see whether another thread has already mapped the same region.
-This check clobbers "vaddr",  so compute the return value of
-acpi_pre_map() using the ioremap() result "map->vaddr" instead.
+Hi,
 
-v2:
-    Modified the unsuitable description of patch.
+I am adding lesswatts.org and linux-pm list.
+I expect you found out why you do not get frequency/P- states and it
+seem to be correct. On these lists, people can help you further
+to find out Linux vs Windows battery drain differences.
 
-v3:
-    Removed unlikely() check and made description simpler.
+If you have the same backlight settings, I expect C-state or graphics
+card must be the reason. There is nothing else than CPU or GPU
+that drains so much energy for being the reason of
+20% more battery life time.
+Which graphics card and driver do you use (for nvidia/ati, trying the
+binary one for comparison, might show a big difference on a recent
+card)?
+Which C-state driver do you use (there is an acpi and intel_idle one
+with latest kernels):
+cat /sys/devices/system/cpu/cpuidle/current_driver
+I hope to be able to provide a c-state tool soon, for now you have to
+go through:
+cat /sys/devices/system/cpu/cpu*/cpuidle/state*
+to check which and how often/efficient C-states are used.
 
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Acked-by: Huang Ying <ying.huang@intel.com>
+Some background (and a comment in the end):
 
----
- drivers/acpi/atomicio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Saturday 04 September 2010 13:33:26 Tiago Marques wrote:
+> On Thu, Sep 2, 2010 at 12:52 AM, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org> wrote:
+> > On Thursday 02 September 2010 01:17:14 Tiago Marques wrote:
+> >> Hi Thomas. Thanks for the message.
+> >>
+> >> On Wed, Sep 1, 2010 at 11:40 PM, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org> wrote:
+> >> > On Sunday 29 August 2010 06:54:44 Tiago Marques wrote:
+> >> >> Hi,
+> >> >> I'm having a problem with this processor not having frequency steps
+> >> >> and apparently only voltage steps. I find it very strange but that's
+> >> >> what Intel's documentation suggests. I can't load acpi-cpufreq because
+> >> >> it doesn't find any device and battery life in linux is suffering
+> >> >> around 20% less due to this.
+> >> > Where do you have the 20% info from, I doubt you verified it?
+> >>
+> >> Yes. Since it seems no one can't return Windows licenses for refunds
+> >> anymore, I have went ahead and booted windows on it, without any
+> >> driver installed and just configured it to have frequency scaling
+> >> working, which in this case is only voltage scaling.
+> >> I measured almost 6 hours of battery life and the processor & chipset
+> >> frequently had the fan stop when idling.
+> >>
+> >> In linux, in the same conditions, I got less than 4 hours and the fan
+> >> never stops. I configured a PCI-express power saving feature on the
+> >> kernel and it seems to have dropped noise a bit. Battery life is still
+> >> not great and the fan still never stops. I'm trying to find something
+> >> with which I can measure the actual power going through the AC adapter
+> >> but for now battery life tests is pretty much all I can do.
+> > There is current battery power drain somehwere in
+> > /proc/acpi/battery/*/*
+> > It normally updates not that often, but may be better and accurate enough if you
+> > take several values, than waiting for the battery got drained.
+> 
+> Thanks, I'll look into that for kernel tuning. I just can't use to
+> compare with windows because I don't think I have similar information
+> there.
+Best is you get or buy a cheap measure device, in which you can plug
+your AC adapter in and remove the battery.
+Some electricity company borrow one for free, at least in Germany.
+It needs not to be very accurate, you are hunting far above 1Watt drain
+differences... Could cost about 10-20 Euro and you can measure your
+fridge and other things as well for your overall monthly electricity bill.
 
-diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
-index 8f8bd73..542e539 100644
---- a/drivers/acpi/atomicio.c
-+++ b/drivers/acpi/atomicio.c
-@@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
- 	list_add_tail_rcu(&map->list, &acpi_iomaps);
- 	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
- 
--	return vaddr + (paddr - pg_off);
-+	return map->vaddr + (paddr - map->paddr);
- err_unmap:
- 	iounmap(vaddr);
- 	return NULL;
--- 
-1.7.1.1
+... <cut out frequency discussion, see below> ...
+> >> I can't seem to find the lowest multiplier available on these
+> >> platforms, CrystalCPUID lists mine as 6x, hence 1200MHz. I thought
+> >> Core 2's could idle at something like 800MHz and I find it strange
+> >> that this one can't also.
+> > Interesting. Possibly you have luck finding a document from Intel about
+> > this CPU describing this a bit. I'd be interested in the outcome, but don't
+> > have to time to dig for it.
+> 
+> http://www.intel.com/design/mobile/datashts/321111.pdf
+> 
+> Please have a look at this document, page 30, note 10, at the top of the page.
+> 
+> Do you have any experience with SU processors?
+Not really, but other reports of SU processors without P-states and this info
+from the paper you point to:
+"The Highest Frequency Mode (HFM) and Lowest Frequency Mode (LFM) refer to the highest
+and lowest core operating frequencies supported on the Genuine Intel Processor."
+...
+"10. SU2300 processor operates at same core frequency in HFM and LFM."
 
+explain the lack of P-states.
+> I have no idea of idle
+> clock of the Core 2 SU CPUs, perhaps it is also 1200MHz, hence the
+> limitation on idle clock? Could be the lowest multiplier available.
+I expect lowering power on this kind of CPU is all about C-states.
+Possibly these need some special treatment, no idea.
+Hopefully one of the Intel guys jump into this thread...
+
+        Thomas
