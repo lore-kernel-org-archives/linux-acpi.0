@@ -1,47 +1,44 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: getting new hardware (arbor M1526) buttons to work w/ acpi
-Date: Mon, 6 Sep 2010 13:43:32 +0200
-Message-ID: <201009061343.32919.trenn@suse.de>
-References: <AANLkTinTLAhRL48sP=B86RMEahx2dg_aczuwS+vn78js@mail.gmail.com> <AANLkTikuQjDQGt1Ppm5u6PPkk_-CBM7_sUL=asgAneJb@mail.gmail.com> <1282872611.3707.103.camel@rui>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: [Discuss] Speedstep on Celeron SU2300 - 20% more battery	lifetime
+ on Windows
+Date: Mon, 06 Sep 2010 08:47:28 -0700
+Message-ID: <4C850D10.2050801@linux.intel.com>
+References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com>	<201009020152.37466.trenn@suse.de>	<AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY@mail.gmail.com> <201009061035.03727.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48728 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056Ab0IFLng (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Sep 2010 07:43:36 -0400
-In-Reply-To: <1282872611.3707.103.camel@rui>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <201009061035.03727.trenn@suse.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Tiago Marques <tiagomnm@gmail.com>, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Yedidia Klein <yedidia@atarplpl.co.il>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday 27 August 2010 03:30:11 Zhang Rui wrote:
-> On Thu, 2010-08-26 at 17:17 +0800, Yedidia Klein wrote:
-> > here is my acpidump output.
-> > 
-> hmmm, please attach the output of "cat /proc/interrupts" and
-> "grep . /sys/firmware/acpi/interrupts/*", both before and after pressing
-> the hotkey.
-Yep.
-You could also try to load the wmi driver with:
-debug_event=1
-e.g. adding this line:
-options wmi debug_event=1
-in
-/etc/modprobe.d/99-local.conf or /etc/modprobe.conf.local
-(the first is the new the latter the older interface, depends on your
-userspace versions)
-Then hit the button and check syslog.
+  On 9/6/2010 1:35 AM, Thomas Renninger wrote:
+> Hi,
+>
+> I am adding lesswatts.org and linux-pm list.
+> I expect you found out why you do not get frequency/P- states and it
+> seem to be correct. On these lists, people can help you further
+> to find out Linux vs Windows battery drain differences.
+>
+> If you have the same backlight settings, I expect C-state or graphics
+> card must be the reason. There is nothing else than CPU or GPU
+> that drains so much energy for being the reason of
+> 20% more battery life time.
+> Which graphics card and driver do you use (for nvidia/ati, trying the
+> binary one for comparison, might show a big difference on a recent
+> card)?
+> Which C-state driver do you use (there is an acpi and intel_idle one
+> with latest kernels):
+> cat /sys/devices/system/cpu/cpuidle/current_driver
+> I hope to be able to provide a c-state tool soon, for now you have to
+> go through:
+> cat /sys/devices/system/cpu/cpu*/cpuidle/state*
+> to check which and how often/efficient C-states are used.
 
-It might also be served by a Windows spec called "hot start" for which
-I sent a driver which would still need some polishing some weeks ago.
-The device for these is:
-PNP0C32
+powertop will tell you exactly this
 
-Please add me to CC if you open bug at bugzilla.kernel.org. I won't
-have time to code, but I can help a bit.
+(and the next version will provide much much more detail)
 
-      Thomas
+
