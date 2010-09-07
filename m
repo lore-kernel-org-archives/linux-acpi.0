@@ -1,46 +1,61 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Speedstep on Celeron SU2300 - 20% more battery lifetime on Windows
-Date: Tue, 7 Sep 2010 13:47:13 +0200
-Message-ID: <201009071347.13509.trenn@suse.de>
-References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com> <201009061035.03727.trenn@suse.de> <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Tue, 7 Sep 2010 08:40:18 -0600
+Message-ID: <AANLkTi=bnr-tnTkCWuSqYhLkfnXhJQjSyLDTt_5RyiAN@mail.gmail.com>
+References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>
+	<4C27E965.80508@gmail.com>
+	<4C283D84.6080504@suse.cz>
+	<20100628171410.GA27367@srcf.ucam.org>
+	<4C290245.2040001@suse.cz>
+	<20100628204820.GA32503@srcf.ucam.org>
+	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>
+	<4C2A3E27.4060407@suse.cz>
+	<AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com>
+	<4C2B0C73.9050200@suse.cz>
+	<4C3278C8.60503@gmail.com>
+	<4C447D6D.5060801@suse.cz>
+	<AANLkTin9_yEyMZImRbtKTvTeokks8dz0htQCu0B3RqXH@mail.gmail.com>
+	<4C456C69.60606@suse.cz>
+	<4C737E9F.7060107@gmail.com>
+	<AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>
+	<4C7B5F64.30205@suse.cz>
+	<4C861BB9.2000707@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56765 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756515Ab0IGLrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Sep 2010 07:47:16 -0400
-In-Reply-To: <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C861BB9.2000707@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tiago Marques <tiagomnm@gmail.com>
-Cc: cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Monday 06 September 2010 23:47:58 Tiago Marques wrote:
-> On Mon, Sep 6, 2010 at 9:35 AM, Thomas Renninger <trenn@suse.de> wrote:
-..
-> C states seem ok...ish. I get C0, C1 and C4, though not anything in
-> between. Don't know how to check in windows and usually it shouldn't
-> in leaps, right? That might be a problem. I'm getting around 75% in
-> C4, the rest almost exclusively in C0. Perhaps the transitions are the
-> problem? I think I previously saw normal rates of closer to 98% so
-> I'll have to check what's going now. Too many wakeups from i915, usb
-> and wlan.
-> Powertop shows that the BIOS reports C1 and C4 support, hence only
-> these C-stats.
-Yep, I'd concentrate on this first. If idle, the system should be in deepest
-C-state (nearly) all of the time. Perfect tool for this is powertop.
-You could also boot into runlevel S. If the system is much more idle
-there you could load drivers one by one to find out whether there is a bad
-one keeping your cpu busy/awake.
+On Tue, Sep 7, 2010 at 5:02 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 08/30/2010 09:36 AM, Jiri Slaby wrote:
+>> On 08/25/2010 01:25 AM, Robert Hancock wrote:
+>>> On Tue, Aug 24, 2010 at 2:11 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
+>>>> So, to sum up:
+>>>> 1) acpi routing enabled (no kernel parameter) => ports 4+5 defunct.
+>>>> ports 4+5+6+7 are all on irq 11
+>>>>
+>>>> 2) acpi routing disabled (acpi=noirq) => all ports working, 4+5 on irq
+>>>> 10, 6+7 on irq 11
+>>>>
+>>>> 3) with the quirk [1] and acpi routing enabled => all ports working,
+>>>> ports 4+5 on irq 10, 6+7 on irq 11
+>>>>
+>>>> 4) in windows => 4+5+6+7 are all on irq 9 and the ports are all working.
+>>>>
+>>>> Any ideas what this means? Especially point 4)?
+>>>>
+>>>> [1] http://lkml.org/lkml/2010/6/27/85
+>>>
+>>> I think that's the key question. Is Windows actually using ACPI on
+>>> that machine at all? (Check the computer type in Device Manager and
+>>> see if it mentions ACPI.)
+>>
+>> Yes, there is Computer->ACPI PC.
+>
+> Any ideas here, please? Is there anything what I might try?
 
-C-states also should "rule-out" P-states. If you are in C4 it shouldn't matter
-whether your freq is up or down, the core's freq and voltage should be
-ramped down to a minimum on latest processors (I've never measured that,
-but this is what I've heard from Intel guys themselves...).
-
-Good luck,
-
-    Thomas
+I'd suggest opening a report on kernel.org bugzilla under ACPI and
+attach the acpidump output..
