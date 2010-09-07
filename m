@@ -1,61 +1,37 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Tue, 7 Sep 2010 08:40:18 -0600
-Message-ID: <AANLkTi=bnr-tnTkCWuSqYhLkfnXhJQjSyLDTt_5RyiAN@mail.gmail.com>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>
-	<4C27E965.80508@gmail.com>
-	<4C283D84.6080504@suse.cz>
-	<20100628171410.GA27367@srcf.ucam.org>
-	<4C290245.2040001@suse.cz>
-	<20100628204820.GA32503@srcf.ucam.org>
-	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>
-	<4C2A3E27.4060407@suse.cz>
-	<AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com>
-	<4C2B0C73.9050200@suse.cz>
-	<4C3278C8.60503@gmail.com>
-	<4C447D6D.5060801@suse.cz>
-	<AANLkTin9_yEyMZImRbtKTvTeokks8dz0htQCu0B3RqXH@mail.gmail.com>
-	<4C456C69.60606@suse.cz>
-	<4C737E9F.7060107@gmail.com>
-	<AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>
-	<4C7B5F64.30205@suse.cz>
-	<4C861BB9.2000707@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Speedstep on Celeron SU2300 - 20% more battery lifetime on
+	Windows
+Date: Tue, 7 Sep 2010 16:22:46 +0100
+Message-ID: <20100907152246.GA12326@srcf.ucam.org>
+References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com> <201009020152.37466.trenn@suse.de> <AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY@mail.gmail.com> <201009061035.03727.trenn@suse.de> <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4C861BB9.2000707@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Tiago Marques <tiagomnm@gmail.com>
+Cc: Thomas Renninger <trenn@suse.de>, cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 7, 2010 at 5:02 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
-> On 08/30/2010 09:36 AM, Jiri Slaby wrote:
->> On 08/25/2010 01:25 AM, Robert Hancock wrote:
->>> On Tue, Aug 24, 2010 at 2:11 AM, Jiri Slaby <jirislaby@gmail.com> wrote:
->>>> So, to sum up:
->>>> 1) acpi routing enabled (no kernel parameter) => ports 4+5 defunct.
->>>> ports 4+5+6+7 are all on irq 11
->>>>
->>>> 2) acpi routing disabled (acpi=noirq) => all ports working, 4+5 on irq
->>>> 10, 6+7 on irq 11
->>>>
->>>> 3) with the quirk [1] and acpi routing enabled => all ports working,
->>>> ports 4+5 on irq 10, 6+7 on irq 11
->>>>
->>>> 4) in windows => 4+5+6+7 are all on irq 9 and the ports are all working.
->>>>
->>>> Any ideas what this means? Especially point 4)?
->>>>
->>>> [1] http://lkml.org/lkml/2010/6/27/85
->>>
->>> I think that's the key question. Is Windows actually using ACPI on
->>> that machine at all? (Check the computer type in Device Manager and
->>> see if it mentions ACPI.)
->>
->> Yes, there is Computer->ACPI PC.
->
-> Any ideas here, please? Is there anything what I might try?
+On Mon, Sep 06, 2010 at 10:47:58PM +0100, Tiago Marques wrote:
 
-I'd suggest opening a report on kernel.org bugzilla under ACPI and
-attach the acpidump output..
+> Yes, but shouldn't it detect P-States with different voltages, as in
+> windows? (even as stupid as this sounds) I sure loved to get it always
+> stuck at the lower clock, given that I usually perform maintenance on
+> PCs I highly doubt the fan would get dust clogged to the point of
+> taking the CPU to temperatures that would cause problems.
+> This looks like it doesn't support Speedstep even though Intel says it
+> does but the fact is that Windows can work with two voltages, which
+> always improves power.
+
+If there's only one frequency then there's no reason to have multiple 
+voltages - the voltage will already be at the minimum possible for the 
+core to be stable at that frequency. Entering C4 will typically result 
+in the voltage dropping as parts of the core are disabled.
+
+Does your chip have the "est" flag in /proc/cpuinfo? If not, it doesn't 
+support speedstep.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
