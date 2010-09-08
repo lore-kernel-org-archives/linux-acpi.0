@@ -1,25 +1,45 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [PATCH 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
-Date: Wed, 08 Sep 2010 17:05:18 +0200
-Message-ID: <4C87A62E.30108@gmail.com>
-References: <1277673679-21458-1-git-send-email-jslaby@suse.cz>	<4C27E965.80508@gmail.com>	<4C283D84.6080504@suse.cz>	<20100628171410.GA27367@srcf.ucam.org>	<4C290245.2040001@suse.cz>	<20100628204820.GA32503@srcf.ucam.org>	<AANLkTil-sdbojCXBp6sR_4xL3JIe6ZENqXuueB61VJ8c@mail.gmail.com>	<4C2A3E27.4060407@suse.cz>	<AANLkTimkElR1u-iRyFfCEQR5VTZvcyEIGQodfmFNtbC_@mail.gmail.com>	<4C2B0C73.9050200@suse.cz>	<4C3278C8.60503@gmail.com>	<4C447D6D.5060801@suse.cz>	<AANLkTin9_yEyMZImRbtKTvTeokks8dz0htQCu0B3RqXH@mail.gmail.com>	<4C456C69.60606@suse.cz>	<4C737E9F.7060107@gmail.com>	<AANLkTin7eUS7_y9J8iY1XFi2bRnpm+WqFNT_tBopwyCK@mail.gmail.com>	<4C7B5F64.30205@suse.cz>	<4C861BB9.2000707@gmail.com> <AANLkTi=bnr-tnTkCWuSqYhLkfnXhJQjSyLDTt_5RyiAN@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Fan runs full speed after S3 sometimes (regression)
+Date: Wed, 8 Sep 2010 22:26:24 +0200
+Message-ID: <201009082226.24953.rjw@sisk.pl>
+References: <4C613619.30309@gmail.com> <20100821170551.GA27159@elf.ucw.cz> <4C878F24.9010004@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=bnr-tnTkCWuSqYhLkfnXhJQjSyLDTt_5RyiAN@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:34862 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754141Ab0IHU1O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Sep 2010 16:27:14 -0400
+In-Reply-To: <4C878F24.9010004@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 09/07/2010 04:40 PM, Robert Hancock wrote:
-> I'd suggest opening a report on kernel.org bugzilla under ACPI and
-> attach the acpidump output..
+On Wednesday, September 08, 2010, Jiri Slaby wrote:
+> Hi.
+> 
+> On 08/21/2010 07:05 PM, Pavel Machek wrote:
+> >>>>> I don't know how to debug that. Bisection is out of question -- it
+> >>>>> happens once in 10 or 20 cases. There are no fan entries in /sys.
+> >>>
+> >>> Well, doing 20 suspends in a row from a script should not be too bad.
+> >>
+> >> 20 is just a guess. I haven't seen it for pretty few days until the day
+> >> before yesterday. And it looks like CPU1 is brought up a half way. When
+> >> the fan was at full speed I tried:
+> >> echo 0 > /sys/devices/system/cpu/cpu1/online
+> >> and whole system freezed. Otherwise this commands succeeds.
+> > 
+> > Ok, so this looks like the kernel problem, on the other hand. Two
+> > different problems?
+> 
+> Actually, I haven't seen it after an upgrade to the next -mm kernel.
+> Consider it as closed as WORKSFORME for now.
 
-Done:
-https://bugzilla.kernel.org/show_bug.cgi?id=18092
+Great, thanks fot the update.  Let's hope it was a temporary glitch.
 
-thanks,
--- 
-js
+Thanks,
+Rafael
