@@ -1,44 +1,62 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: Toshiba Satellite L650D-10J only boots with acpi=off
-Date: Thu, 9 Sep 2010 11:37:01 +0200
-Message-ID: <20100909113701.50ad47b2@destiny.ordissimo>
-References: <20100828192538.666c34c4.frank@61924.nl>
-	<1283127802.3707.163.camel@rui>
-	<20100830142618.ef9876aa.frank@61924.nl>
-	<1283216239.3707.170.camel@rui>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] ACPI: Tie ACPI backlight devices to PCI devices if possible
+Date: Thu,  9 Sep 2010 13:39:45 -0400
+Message-ID: <1284053985-11254-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:47010 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab0IIJhH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Sep 2010 05:37:07 -0400
-Received: by ewy23 with SMTP id 23so672741ewy.19
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Sep 2010 02:37:05 -0700 (PDT)
-In-Reply-To: <1283216239.3707.170.camel@rui>
+Received: from mx1.redhat.com ([209.132.183.28]:10947 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752106Ab0IIRkC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Sep 2010 13:40:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Frank <frank@61924.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On Tue, 31 Aug 2010 08:57:19 +0800, Zhang Rui <rui.zhang@intel.com> wrote :
+Dual-GPU machines may provide more than one ACPI backlight interface. Tie
+the backlight device to the GPU in order to allow userspace to identify
+the correct interface.
 
-> On Mon, 2010-08-30 at 20:26 +0800, Frank wrote:
-> > It works, it sees the two cores of my CPU and I the acpi command gives
-> > me info about the CPU, temperature, battery and cooling. The laptop
-> > also shutsdown by itself when I execute the shutdown command.
-> > 
-> > Here's the output from 'dmesg | grep -i ACPI':
-> > http://codepad.org/KcqZMvCa
-> > 
-> so it seems like we need to add another dmi entry for this laptop.
-> please attach the dmidecode output.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/video.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-I sent a patch for a similar model recently:
-http://www.spinics.net/lists/linux-acpi/msg29761.html
-Except it's a C650D instead of the L650D here.
-It appears this patch hasn't been merged yet.
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index fbae6f5..8c45980 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -950,6 +950,9 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 
+ 	if (acpi_video_backlight_support()) {
+ 		struct backlight_properties props;
++		struct pci_dev *pdev;
++		acpi_handle acpi_parent;
++		struct device *parent = NULL;
+ 		int result;
+ 		static int count = 0;
+ 		char *name;
+@@ -962,10 +965,20 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 			return;
+ 		count++;
+ 
++		acpi_get_parent(device->dev->handle, &acpi_parent);
++
++		pdev = acpi_get_pci_dev(acpi_parent);
++		if (pdev) {
++			parent = &pdev->dev;
++			pci_dev_put(pdev);
++		}
++
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_FIRMWARE;
+ 		props.max_brightness = device->brightness->count - 3;
+-		device->backlight = backlight_device_register(name, NULL, device,
++		device->backlight = backlight_device_register(name,
++							      parent,
++							      device,
+ 							      &acpi_backlight_ops,
+ 							      &props);
+ 		kfree(name);
+-- 
+1.7.2.1
 
-Regards,
-Anisse
