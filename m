@@ -1,65 +1,90 @@
-From: john stultz <johnstul@us.ibm.com>
-Subject: Re: System time drifts when processor idle.
-Date: Thu, 09 Sep 2010 10:42:05 -0700
-Message-ID: <1284054125.2762.47.camel@localhost.localdomain>
-References: <AANLkTi=ivkOHRYwLy5FDg3RnK18+opjGd9XsxC7yZqi7@mail.gmail.com>
-	 <AANLkTik0ZGs3i_mHtB0s6iT6X0cLgxMjRN7Hi9FK_ZLF@mail.gmail.com>
-	 <AANLkTikTF9uvKw+48_jJKLAwqp7MJnypvvUsHN3qQ58+@mail.gmail.com>
-	 <AANLkTin80q4tGPZ1FefWCUMmhpNKj3_-KZZB12gZvwSA@mail.gmail.com>
-	 <AANLkTin5cLQG9ApxhCs92Twm958MP0J+u4GdBysJ3aNk@mail.gmail.com>
-	 <AANLkTikWTLeDLbWWi-LJDD5SRAFN60v5065Vc_wGoY5N@mail.gmail.com>
-	 <1282932708.1946.8.camel@work-vm>
-	 <AANLkTina8xAwnGVuPKywsf1qEzpu+rWNbv7JjqAgLqp1@mail.gmail.com>
+From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
+ rf/camera power
+Date: Thu, 9 Sep 2010 20:17:15 +0200
+Message-ID: <20100909181714.GA14951@darkside.kls.lan>
+References: <20100818155128.GA24363@darkside.kls.lan>
+ <4C6CA31D.6030407@canonical.com>
+ <20100819193146.GB32665@darkside.kls.lan>
+ <4C6E2833.6080407@canonical.com>
+ <20100820090824.GA23186@darkside.kls.lan>
+ <4C7505A2.3000402@canonical.com>
+ <20100830181954.GE31068@darkside.kls.lan>
+ <4C7E3DE0.7030209@canonical.com>
+ <20100901195617.GD32589@darkside.kls.lan>
+ <4C80BA81.20701@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:58993 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101Ab0IIRmN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Sep 2010 13:42:13 -0400
-In-Reply-To: <AANLkTina8xAwnGVuPKywsf1qEzpu+rWNbv7JjqAgLqp1@mail.gmail.com>
+Received: from piggy.rz.tu-ilmenau.de ([141.24.4.8]:49597 "EHLO
+	piggy.rz.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003Ab0IISSv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Sep 2010 14:18:51 -0400
+Content-Disposition: inline
+In-Reply-To: <4C80BA81.20701@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: Lin Ming <lin@ming.vg>, venki@google.com, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, jslaby@suse.cz
-
-On Fri, 2010-09-03 at 14:23 +0200, jean-philippe francois wrote:
-> 2010/8/27 john stultz <johnstul@us.ibm.com>:
-> > On Fri, 2010-08-27 at 16:12 +0200, jean-philippe francois wrote:
-> >> My Timekeeping bug is still present, here is an updated script and log.
-> >> I am willing to make test, but I don't know what kind of debugging
-> >> info is needed.
-> >>
-> >> cat /sys/devices/system/clocksource/clocksource0/available_clocksource
-> >> hpet acpi_pm
-> >> cat /sys/devices/system/clocksource/clocksource0/current_clocksource
-> >> hpet
-> >
-> > Huh. hpet was not what I would have expected.
-> >
-> >
-> > So first, two experiments:
-> >
-> > 1) Does booting with "clock=acpi_pm" cause the issue to disappear?
-> >
-> 
-> Hi,
-> 
-> The same bug happens with clock=acpi_pm.
-> My apologies for a previous mail where I said it was not hapenning with acpi_pm.
-> 
-> With both clock, the timekeeping gap augments by amount of 5 minutes.
-
-Huh. So this still seems strange, but assuming we're still using the
-hpet for irqs, its possible the event somehow gets pushed back 5 minutes
-and we miss an timekeeping interval accumulation (with acpi_pm, the
-counter wraps ever 5 seconds or so, so we could miss many accumulation
-intervals and still be 5 minutes off if the tick timer was late).
-
-Again, seeing if the issue goes away with nohz=off would be helpful.
-
-thanks
--john
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 
 
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Sep 03, 2010 at 05:06:09PM +0800, Ike Panhc wrote:
+> I look at the DSDT again and again but unfortunately can not find anything
+> may cause the bluetooth device initial failed. BTEN looks like the switch
+> for EC to turn on/off bluetooth, BTST records the status of BTEN and BTPS
+> means bluetooth present. But no idea why initial failed after BTEN=3D1
+
+Is there some way to trace ACPI calls under Windows (XP Home)?
+I could then have a look at what happens when I Fn-F5 BT off.
+
+> So I fall back to your suggestion. Have a module parameter to tell module
+> not to register rfkill for bluetooth.
+> I prepare the driver and please spend some time testing. Driver is at
+> http://kernel.ubuntu.com/git?p=3Dikepanhc/ideapad-laptop.git;a=3Dblob;f=
+=3Ddrivers/platform/x86/ideapad-laptop.c;h=3Dc4cf46a363f3f72d6db5339ec326d2=
+82d7e58183;hb=3D26a58948693b7d25960299a8025e569e68f28937
+> and you may use "insmod ideapad-laptop.ko no_bt_rfkill=3D1" for your S12.
+
+Hmmm, with this version and no_bt_rfkill=3D1 I run into the same problem
+as without the ideapad module: If I switch BT off in Windows and reboot
+to Linux, the device remains invisible and I have no chance to switch it
+back on again :/
+I guess this is because the initial device activation does currently
+only happen in ideapad_register_rfkill() via rfkill_init_sw_state()
+which is not called if no_bt_rfkill=3D1.
+A manual call to ideapad_rfk_set() (or ideapad_sync_rfk_state()?) in the
+no_bt_rfkill=3D1 case would very likely solve this, but I don't know how
+to provide this call with the correct arguments.
+
+
+regards
+   Mario
+--=20
+=2E.. aber nur deshalb blueht Autoritaet, weil die meisten Menschen
+Feiglinge und manche Menschen Diebe sind.
+                                              -- Robert A. Wilson
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEVAwUBTIkkqhS+e2HeSPbpAQKunwf+MvdUpXe+MG+Fr0U4YMnvy4R9LOKAZfxj
+Yh7G7LKcg5O+c3vPsXlTc49zp4soO/jkuxtN/ewrcbM/PzC1ifnNpv1e8UdYk/zN
+O/RD36NB9fhxhHKBEeET6ZRJ5d5jG+MbxkbQ3WttbeVscJGvWP50dYHaqRAka9Ym
+72qkGview7kp0jipxtyseJrOhtsbhowFUp8oC0YsySQGzN+med7MJ8XOdaLlgpis
+JFpOkfD5DtTTFgZQjz8SWhMSVMQgBlhrg0o9jvNDpR58fJivtGpp01HprRJ+t8O9
+OHMMjjCSemWsML3TVotCQOBMO65dBGZpq2+Qnu1dQYTQQE44R4Cq6w==
+=zHzK
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
