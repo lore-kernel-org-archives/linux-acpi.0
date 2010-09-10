@@ -1,55 +1,102 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH] Add Intel Poulsbo Stub Driver
-Date: Fri, 10 Sep 2010 08:02:09 -0700
-Message-ID: <4C8A4871.9040103@oracle.com>
-References: <4C8A4285020000230002020B@novprvlin0050.provo.novell.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Devel] False positive iasl compiler error on resource object?
+Date: Fri, 10 Sep 2010 08:04:34 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858AF0CA981@orsmsx503.amr.corp.intel.com>
+References: <201009101133.31663.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:60886 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753670Ab0IJPDs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 11:03:48 -0400
-In-Reply-To: <4C8A4285020000230002020B@novprvlin0050.provo.novell.com>
+Received: from mga09.intel.com ([134.134.136.24]:20821 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753670Ab0IJPEj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 11:04:39 -0400
+In-Reply-To: <201009101133.31663.trenn@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joey Lee <jlee@novell.com>
-Cc: mjg@redhat.com, mjg59@srcf.ucam.org, gregkh@suse.de, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de
+To: Thomas Renninger <trenn@suse.de>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>
 
-On 09/09/10 21:36, Joey Lee wrote:
->>> +        # Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
->>> +        # but for select to work, need to select ACPI_VIDEO's dependencies, ick
->>> +        select ACPI_VIDEO if ACPI
->>
->> What does it do when ACPI is not enabled?  Does the driver even build
->> when APCI is not enabled?  (given the acpi_video* calls in it)
->>
-> 
-> This driver will not do anything if API is not enabled. It only call
-> acpi_video_register/acpi_video_unregister, and acpi/video.h handle it
-> like the following:
-> 
-> #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-> extern int acpi_video_register(void);
-> extern void acpi_video_unregister(void);
-> extern int acpi_video_get_edid(struct acpi_device *device, int type,
->                                int device_id, void **edid);
-> #else
-> static inline int acpi_video_register(void) { return 0; }
-> static inline void acpi_video_unregister(void) { return; }
-> static inline int acpi_video_get_edid(struct acpi_device *device, int
-> type,
->                                       int device_id, void **edid)
-> {
->         return -ENODEV;
-> }
-> #endif
-> 
-> So, I think don't need add "depends on ACPI_VIDEO". How do you think?
+We've provided the -cr option to disable the resource descriptor error checking.
 
-Yes, OK, I see.  Thanks.
+This is an interesting problem. On one hand, we would like to provide static (compile time) error checking as much as possible. On the other hand, the resource descriptors (as well as most any other ASL/AML object) can be dynamically changed.
 
--- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+We've seen many ACPI tables with invalid resource descriptors (at both compile time and runtime), and that is the reason the resource descriptor validation was added to the compiler in the first place.
+
+I don't want to just remove this validation, but yes, perhaps iASL should be able to recognize that this descriptor may be modified at runtime and therefore a static validation cannot be performed.
+
+There are at least a few indicators:
+
+1) The descriptor is basically all zeroes
+2) There is a CreateXxxField reference to the descriptor
+3) There is a Store to the created field
+
+So, perhaps we could detect the above conditions and then disable validation for this particular descriptor. Note, conditions (2) and (3) may be difficult to detect.
+
+I'm open to suggestions.
+
+Bob
+
+
+>-----Original Message-----
+>From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
+>Of Thomas Renninger
+>Sent: Friday, September 10, 2010 2:34 AM
+>To: devel@acpica.org
+>Cc: linux-acpi@vger.kernel.org; bjorn.helgaas@hp.com
+>Subject: [Devel] False positive iasl compiler error on resource object?
+>
+>I have a machine with a _CRS function which shows:
+>
+>Method (_CRS, 0, NotSerialized)
+>{
+>    Name (XY0, ResourceTemplate ()
+>    {
+>             WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+>EntireRange,
+>                        0x0000,             // Granularity
+>                        0x0000,             // Range Minimum
+>                        0x0000,             // Range Maximum
+>                        0x0000,             // Translation Offset
+>                        0x0000,             // Length
+>                        ,, _Y10, TypeStatic)
+>     }
+>This produces the compiler error:
+>DSDT.dsl.orig  2364:                         0x0000,             // Length
+>Error    4122 -                                   ^ Invalid combination of
+>Length and Min/Max fixed flags
+>
+>Because iasl thinks this hits this condition:
+>Advanced Configuration and Power Interface Specification
+>Revision 3.0b October 10, 2006
+>6.4.3.5 Address Space Resource Descriptors
+>Table 6-38 Valid combination of Address Space Descriptors fields
+>..
+>_LEN   _MIF      _MAF           Definition
+>0           1            1             (Illegal combination)
+>
+>But the _CRS function can still fill up the length of this resource object
+>parts while _CRS gets executed (and the compiler probably does not
+>take this into account), by e.g.:
+>                CreateWordField (XY0, \_SB.PCI0._CRS._Y10._LEN, LEN9)
+>                Store (Local0, LEN9)
+>and the resource, returned to OS, might fulfill the ACPI specification and
+>return a valid length, _MIF, _MAF combination:
+>_LEN   _MIF      _MAF           Definition
+>  >0       1           1              Fixed size, fixed location resource
+>descriptor.
+>                                          _GRA must be 0 and _LEN must be
+>(_MAX - _MIN +1).
+>
+>I wonder whether my above assumptions are correct and the
+>Error 4122 should get removed from the iasl compiler, at least in this
+>case?
+>
+>Thanks,
+>
+>       Thomas
+>_______________________________________________
+>Devel mailing list
+>Devel@acpica.org
+>http://lists.acpica.org/listinfo/devel
