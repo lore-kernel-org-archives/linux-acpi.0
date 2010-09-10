@@ -1,102 +1,62 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] False positive iasl compiler error on resource object?
-Date: Fri, 10 Sep 2010 08:04:34 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AF0CA981@orsmsx503.amr.corp.intel.com>
-References: <201009101133.31663.trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] acpi: handle ACPI0007 Device in acpi_early_set_pdc
+Date: Fri, 10 Sep 2010 12:10:31 -0600
+Message-ID: <201009101210.31942.bjorn.helgaas@hp.com>
+References: <4C89906B.1050406@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20821 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670Ab0IJPEj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 11:04:39 -0400
-In-Reply-To: <201009101133.31663.trenn@suse.de>
-Content-Language: en-US
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:20716 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455Ab0IJSLH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 14:11:07 -0400
+In-Reply-To: <4C89906B.1050406@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-We've provided the -cr option to disable the resource descriptor error checking.
+On Thursday, September 09, 2010 07:56:59 pm Yinghai Lu wrote:
+> 
+> When bios switch to use Device object instead of Processor statement.
+> 
+> the SSDT for Pstate/Cstate/Tstate can not be loaded dynamically.
+> 
+> So try to scan ACPI0007 in addition to Processor.
+> 
+> this fix regression: 2.6.32 is ok.
 
-This is an interesting problem. On one hand, we would like to provide static (compile time) error checking as much as possible. On the other hand, the resource descriptors (as well as most any other ASL/AML object) can be dynamically changed.
+Can you include the URL of the regression bug report?  And maybe
+the commit that introduced the regression?
 
-We've seen many ACPI tables with invalid resource descriptors (at both compile time and runtime), and that is the reason the resource descriptor validation was added to the compiler in the first place.
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  drivers/acpi/processor_core.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> Index: linux-2.6/drivers/acpi/processor_core.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_core.c
+> +++ linux-2.6/drivers/acpi/processor_core.c
+> @@ -352,4 +352,5 @@ void __init acpi_early_processor_set_pdc
+>  	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>  			    ACPI_UINT32_MAX,
+>  			    early_init_pdc, NULL, NULL, NULL);
+> +	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
 
-I don't want to just remove this validation, but yes, perhaps iASL should be able to recognize that this descriptor may be modified at runtime and therefore a static validation cannot be performed.
+I hate having to walk the namespace.  Usually that's a clue that
+there's something wrong with our ACPI device model, because it'd
+be better to handle everything in a driver .add() method.  But
+maybe this early _PDC thing is so special that it can't be helped
+in this case.
 
-There are at least a few indicators:
+But I do think you could probably fix this to walk the namespace
+once rather than twice.  Maybe you could use something like
+acpi_walk_namespace(ACPI_TYPE_ANY, ...) with a callback that
+recognizes both ACPI_TYPE_PROCESSOR and "ACPI_TYPE_DEVICE with
+HID ACPI0007".
 
-1) The descriptor is basically all zeroes
-2) There is a CreateXxxField reference to the descriptor
-3) There is a Store to the created field
-
-So, perhaps we could detect the above conditions and then disable validation for this particular descriptor. Note, conditions (2) and (3) may be difficult to detect.
-
-I'm open to suggestions.
-
-Bob
-
-
->-----Original Message-----
->From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf
->Of Thomas Renninger
->Sent: Friday, September 10, 2010 2:34 AM
->To: devel@acpica.org
->Cc: linux-acpi@vger.kernel.org; bjorn.helgaas@hp.com
->Subject: [Devel] False positive iasl compiler error on resource object?
->
->I have a machine with a _CRS function which shows:
->
->Method (_CRS, 0, NotSerialized)
->{
->    Name (XY0, ResourceTemplate ()
->    {
->             WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
->EntireRange,
->                        0x0000,             // Granularity
->                        0x0000,             // Range Minimum
->                        0x0000,             // Range Maximum
->                        0x0000,             // Translation Offset
->                        0x0000,             // Length
->                        ,, _Y10, TypeStatic)
->     }
->This produces the compiler error:
->DSDT.dsl.orig  2364:                         0x0000,             // Length
->Error    4122 -                                   ^ Invalid combination of
->Length and Min/Max fixed flags
->
->Because iasl thinks this hits this condition:
->Advanced Configuration and Power Interface Specification
->Revision 3.0b October 10, 2006
->6.4.3.5 Address Space Resource Descriptors
->Table 6-38 Valid combination of Address Space Descriptors fields
->..
->_LEN   _MIF      _MAF           Definition
->0           1            1             (Illegal combination)
->
->But the _CRS function can still fill up the length of this resource object
->parts while _CRS gets executed (and the compiler probably does not
->take this into account), by e.g.:
->                CreateWordField (XY0, \_SB.PCI0._CRS._Y10._LEN, LEN9)
->                Store (Local0, LEN9)
->and the resource, returned to OS, might fulfill the ACPI specification and
->return a valid length, _MIF, _MAF combination:
->_LEN   _MIF      _MAF           Definition
->  >0       1           1              Fixed size, fixed location resource
->descriptor.
->                                          _GRA must be 0 and _LEN must be
->(_MAX - _MIN +1).
->
->I wonder whether my above assumptions are correct and the
->Error 4122 should get removed from the iasl compiler, at least in this
->case?
->
->Thanks,
->
->       Thomas
->_______________________________________________
->Devel mailing list
->Devel@acpica.org
->http://lists.acpica.org/listinfo/devel
+Bjorn
