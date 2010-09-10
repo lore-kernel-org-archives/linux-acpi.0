@@ -1,91 +1,57 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] acpi: handle ACPI0007 Device in acpi_early_set_pdc
-Date: Fri, 10 Sep 2010 12:20:36 -0700
-Message-ID: <4C8A8504.9000606@kernel.org>
-References: <4C89906B.1050406@kernel.org> <201009101210.31942.bjorn.helgaas@hp.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [Devel] False positive iasl compiler error on resource object?
+Date: Fri, 10 Sep 2010 22:19:23 +0200
+Message-ID: <201009102219.23520.trenn@suse.de>
+References: <201009101133.31663.trenn@suse.de> <4911F71203A09E4D9981D27F9D830858AF0CA981@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:38617 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab0IJTWG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 15:22:06 -0400
-In-Reply-To: <201009101210.31942.bjorn.helgaas@hp.com>
+Received: from cantor.suse.de ([195.135.220.2]:52657 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755233Ab0IJUTo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Sep 2010 16:19:44 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858AF0CA981@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>
 
-On 09/10/2010 11:10 AM, Bjorn Helgaas wrote:
-> On Thursday, September 09, 2010 07:56:59 pm Yinghai Lu wrote:
->>
->> When bios switch to use Device object instead of Processor statement.
->>
->> the SSDT for Pstate/Cstate/Tstate can not be loaded dynamically.
->>
->> So try to scan ACPI0007 in addition to Processor.
->>
->> this fix regression: 2.6.32 is ok.
+On Friday 10 September 2010 17:04:34 Moore, Robert wrote:
+> We've provided the -cr option to disable the resource descriptor error
+> checking.
+AFAIK, these zeroed resources that get filled up dynamically later are a 
+rather common construct. If below additional checks cannot be added
+this (these?) specific resource checks should better get disabled.
+
+> This is an interesting problem. On one hand, we would like to provide
+> static (compile time) error checking as much as possible. On the other
+> hand, the resource descriptors (as well as most any other ASL/AML
+> object) can be dynamically changed.
 > 
-> Can you include the URL of the regression bug report?  And maybe
-> the commit that introduced the regression?
-
-the commit should be
-
-commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
-Author: Alex Chiang <achiang@hp.com>
-Date:   Mon Feb 22 12:11:39 2010 -0700
-
-    ACPI: processor: driver doesn't need to evaluate _PDC
-    
-    Now that the early _PDC evaluation path knows how to correctly
-    evaluate _PDC on only physically present processors, there's no
-    need for the processor driver to evaluate it later when it loads.
-    
-    To cover the hotplug case, push _PDC evaluation down into the
-    hotplug paths.
-    
-    Cc: x86@kernel.org
-    Cc: Tony Luck <tony.luck@intel.com>
-    Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Alex Chiang <achiang@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-that is between 2.6.34-rc1 and 2.6.34-rc2.
-
-So we need put this patch in stable tree for 2.6.34, .35, .36
-
-Yinghai
-
+> We've seen many ACPI tables with invalid resource descriptors (at both
+> compile time and runtime), and that is the reason the resource
+> descriptor validation was added to the compiler in the first place.
 > 
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->>
->> ---
->>  drivers/acpi/processor_core.c |    1 +
->>  1 file changed, 1 insertion(+)
->>
->> Index: linux-2.6/drivers/acpi/processor_core.c
->> ===================================================================
->> --- linux-2.6.orig/drivers/acpi/processor_core.c
->> +++ linux-2.6/drivers/acpi/processor_core.c
->> @@ -352,4 +352,5 @@ void __init acpi_early_processor_set_pdc
->>  	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
->>  			    ACPI_UINT32_MAX,
->>  			    early_init_pdc, NULL, NULL, NULL);
->> +	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
+> I don't want to just remove this validation, but yes, perhaps iASL
+> should be able to recognize that this descriptor may be modified at
+> runtime and therefore a static validation cannot be performed.
 > 
-> I hate having to walk the namespace.  Usually that's a clue that
-> there's something wrong with our ACPI device model, because it'd
-> be better to handle everything in a driver .add() method.  But
-> maybe this early _PDC thing is so special that it can't be helped
-> in this case.
+> There are at least a few indicators:
 > 
-> But I do think you could probably fix this to walk the namespace
-> once rather than twice.  Maybe you could use something like
-> acpi_walk_namespace(ACPI_TYPE_ANY, ...) with a callback that
-> recognizes both ACPI_TYPE_PROCESSOR and "ACPI_TYPE_DEVICE with
-> HID ACPI0007".
+> 1) The descriptor is basically all zeroes
+> 2) There is a CreateXxxField reference to the descriptor
+> 3) There is a Store to the created field
 > 
-> Bjorn
+> So, perhaps we could detect the above conditions and then disable
+> validation for this particular descriptor. Note, conditions (2) and
+> (3) may be difficult to detect.
+> 
+> I'm open to suggestions.
+Not sure whether runtime checks for this exist already.
+Bjorn has done some great work there in the past.
+If not, that should be by far easier, the so called "low hanging 
+fruit"...
 
+    Thomas
