@@ -1,45 +1,62 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] Change MSI LAPTOP driver maintainer to Lee, Chun-Yi
-Date: Fri, 10 Sep 2010 16:04:19 +0800
-Message-ID: <1284105859-10010-1-git-send-email-jlee@novell.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: False positive iasl compiler error on resource object?
+Date: Fri, 10 Sep 2010 11:33:31 +0200
+Message-ID: <201009101133.31663.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:57962 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab0IJIGg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 04:06:36 -0400
+Received: from cantor.suse.de ([195.135.220.2]:59757 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751262Ab0IJJde (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Sep 2010 05:33:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org, mjg@redhat.com
-Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, jlee@novell.com, mzxreary@0pointer.de, linux-acpi@vger.kernel.org
+To: devel@acpica.org
+Cc: linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com
 
-Change MSI LAPTOP driver maintainer from Lennart Poettering to Lee, Chun-Yi.
+I have a machine with a _CRS function which shows:
 
-MSI is a Taiwan OEM company, Lee, Chun-Yi can more easy to contact with MSI
-and maintain msi-laptop driver.
-Thank's for Lennart Poettering's contribute, Lee, Chun-Yi will base on his
-article to continue maintain the msi-laptop driver.
+Method (_CRS, 0, NotSerialized)
+{
+    Name (XY0, ResourceTemplate ()
+    {
+             WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+                        0x0000,             // Granularity
+                        0x0000,             // Range Minimum
+                        0x0000,             // Range Maximum
+                        0x0000,             // Translation Offset
+                        0x0000,             // Length
+                        ,, _Y10, TypeStatic)
+     }
+This produces the compiler error:
+DSDT.dsl.orig  2364:                         0x0000,             // Length
+Error    4122 -                                   ^ Invalid combination of Length and Min/Max fixed flags
 
-Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
----
- MAINTAINERS |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+Because iasl thinks this hits this condition:
+Advanced Configuration and Power Interface Specification
+Revision 3.0b October 10, 2006
+6.4.3.5 Address Space Resource Descriptors
+Table 6-38 Valid combination of Address Space Descriptors fields
+..
+_LEN   _MIF      _MAF           Definition
+0           1            1             (Illegal combination)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 5fa8451..d3996e6 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3879,10 +3879,8 @@ F:	Documentation/serial/moxa-smartio
- F:	drivers/char/mxser.*
- 
- MSI LAPTOP SUPPORT
--M:	Lennart Poettering <mzxreary@0pointer.de>
-+M:	Lee, Chun-Yi <jlee@novell.com>
- L:	platform-driver-x86@vger.kernel.org
--W:	https://tango.0pointer.de/mailman/listinfo/s270-linux
--W:	http://0pointer.de/lennart/tchibo.html
- S:	Maintained
- F:	drivers/platform/x86/msi-laptop.c
- 
--- 
-1.6.0.2
+But the _CRS function can still fill up the length of this resource object
+parts while _CRS gets executed (and the compiler probably does not
+take this into account), by e.g.:
+                CreateWordField (XY0, \_SB.PCI0._CRS._Y10._LEN, LEN9)
+                Store (Local0, LEN9)
+and the resource, returned to OS, might fulfill the ACPI specification and
+return a valid length, _MIF, _MAF combination:
+_LEN   _MIF      _MAF           Definition
+  >0       1           1              Fixed size, fixed location resource descriptor.
+                                          _GRA must be 0 and _LEN must be (_MAX - _MIN +1).
 
+I wonder whether my above assumptions are correct and the
+Error 4122 should get removed from the iasl compiler, at least in this case?
+
+Thanks,
+
+       Thomas
