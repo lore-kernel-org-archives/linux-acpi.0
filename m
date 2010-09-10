@@ -1,70 +1,98 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] False positive iasl compiler error on resource object?
-Date: Fri, 10 Sep 2010 13:32:22 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AF0D8262@orsmsx503.amr.corp.intel.com>
-References: <201009101133.31663.trenn@suse.de>
- <4911F71203A09E4D9981D27F9D830858AF0CA981@orsmsx503.amr.corp.intel.com>
- <201009102219.23520.trenn@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] acpi: handle ACPI0007 Device in acpi_early_set_pdc
+Date: Fri, 10 Sep 2010 16:45:56 -0700
+Message-ID: <20100910164556.b72d848e.akpm@linux-foundation.org>
+References: <4C89906B.1050406@kernel.org>
+	<201009101210.31942.bjorn.helgaas@hp.com>
+	<4C8A8504.9000606@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:41008 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754059Ab0IJUcY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Sep 2010 16:32:24 -0400
-In-Reply-To: <201009102219.23520.trenn@suse.de>
-Content-Language: en-US
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33286 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755007Ab0IJXqO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Sep 2010 19:46:14 -0400
+In-Reply-To: <4C8A8504.9000606@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Suresh Siddha <suresh.b.siddha@intel.com>, "Brown, Len" <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-I'd also like to catch the case where a resource descriptor is created with all zeroes, then never referenced.
+On Fri, 10 Sep 2010 12:20:36 -0700
+Yinghai Lu <yinghai@kernel.org> wrote:
 
+> On 09/10/2010 11:10 AM, Bjorn Helgaas wrote:
+> > On Thursday, September 09, 2010 07:56:59 pm Yinghai Lu wrote:
+> >>
+> >> When bios switch to use Device object instead of Processor statement.
+> >>
+> >> the SSDT for Pstate/Cstate/Tstate can not be loaded dynamically.
+> >>
+> >> So try to scan ACPI0007 in addition to Processor.
+> >>
+> >> this fix regression: 2.6.32 is ok.
+> > 
+> > Can you include the URL of the regression bug report?  And maybe
+> > the commit that introduced the regression?
+> 
+> the commit should be
+> 
+> commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
+> Author: Alex Chiang <achiang@hp.com>
+> Date:   Mon Feb 22 12:11:39 2010 -0700
+> 
+>     ACPI: processor: driver doesn't need to evaluate _PDC
+>     
+>     Now that the early _PDC evaluation path knows how to correctly
+>     evaluate _PDC on only physically present processors, there's no
+>     need for the processor driver to evaluate it later when it loads.
+>     
+>     To cover the hotplug case, push _PDC evaluation down into the
+>     hotplug paths.
+>     
+>     Cc: x86@kernel.org
+>     Cc: Tony Luck <tony.luck@intel.com>
+>     Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+>     Signed-off-by: Alex Chiang <achiang@hp.com>
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> that is between 2.6.34-rc1 and 2.6.34-rc2.
+> 
+> So we need put this patch in stable tree for 2.6.34, .35, .36
+> 
 
+Maybe.  But first can you please address Bjorn's suggestions below?
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de]
->Sent: Friday, September 10, 2010 1:19 PM
->To: Moore, Robert
->Cc: devel@acpica.org; linux-acpi@vger.kernel.org; bjorn.helgaas@hp.com
->Subject: Re: [Devel] False positive iasl compiler error on resource object?
->
->On Friday 10 September 2010 17:04:34 Moore, Robert wrote:
->> We've provided the -cr option to disable the resource descriptor error
->> checking.
->AFAIK, these zeroed resources that get filled up dynamically later are a
->rather common construct. If below additional checks cannot be added
->this (these?) specific resource checks should better get disabled.
->
->> This is an interesting problem. On one hand, we would like to provide
->> static (compile time) error checking as much as possible. On the other
->> hand, the resource descriptors (as well as most any other ASL/AML
->> object) can be dynamically changed.
->>
->> We've seen many ACPI tables with invalid resource descriptors (at both
->> compile time and runtime), and that is the reason the resource
->> descriptor validation was added to the compiler in the first place.
->>
->> I don't want to just remove this validation, but yes, perhaps iASL
->> should be able to recognize that this descriptor may be modified at
->> runtime and therefore a static validation cannot be performed.
->>
->> There are at least a few indicators:
->>
->> 1) The descriptor is basically all zeroes
->> 2) There is a CreateXxxField reference to the descriptor
->> 3) There is a Store to the created field
->>
->> So, perhaps we could detect the above conditions and then disable
->> validation for this particular descriptor. Note, conditions (2) and
->> (3) may be difficult to detect.
->>
->> I'm open to suggestions.
->Not sure whether runtime checks for this exist already.
->Bjorn has done some great work there in the past.
->If not, that should be by far easier, the so called "low hanging
->fruit"...
->
->    Thomas
+> 
+> > 
+> >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> >>
+> >> ---
+> >>  drivers/acpi/processor_core.c |    1 +
+> >>  1 file changed, 1 insertion(+)
+> >>
+> >> Index: linux-2.6/drivers/acpi/processor_core.c
+> >> ===================================================================
+> >> --- linux-2.6.orig/drivers/acpi/processor_core.c
+> >> +++ linux-2.6/drivers/acpi/processor_core.c
+> >> @@ -352,4 +352,5 @@ void __init acpi_early_processor_set_pdc
+> >>  	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+> >>  			    ACPI_UINT32_MAX,
+> >>  			    early_init_pdc, NULL, NULL, NULL);
+> >> +	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
+> > 
+> > I hate having to walk the namespace.  Usually that's a clue that
+> > there's something wrong with our ACPI device model, because it'd
+> > be better to handle everything in a driver .add() method.  But
+> > maybe this early _PDC thing is so special that it can't be helped
+> > in this case.
+> > 
+> > But I do think you could probably fix this to walk the namespace
+> > once rather than twice.  Maybe you could use something like
+> > acpi_walk_namespace(ACPI_TYPE_ANY, ...) with a callback that
+> > recognizes both ACPI_TYPE_PROCESSOR and "ACPI_TYPE_DEVICE with
+> > HID ACPI0007".
+> > 
+> > Bjorn
