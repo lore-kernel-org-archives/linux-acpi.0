@@ -1,24 +1,25 @@
-From: "Yahoo Msn International Awareness Promo 2010"
-	<awardpromotional2010@email.com>
-Subject: -Congratulation!!!
-Date: Mon, 13 Sep 2010 18:18:20 +0100
-Message-ID: <auto-000019572899__16359.311893075$1284355157$gmane$org@mailfe06.swip.net>
-Reply-To: <yaho-msn@cx.tc>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: intel_idle
+Date: Mon, 13 Sep 2010 16:25:51 +0800
+Message-ID: <4C8DE00F.7070801@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailfe06.swip.net ([212.247.154.161]:37138 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750744Ab0IMFTA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Sep 2010 01:19:00 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Recipient,
-Your internet address has been selected for payment of 250,000GBP. for collection reply with Your Names, 2.Address, 3.Mobile No, 4.Age, 5.Sex,
-Regards,
-Mr. Lisen Rush
-Yahoo Msn U.K Promo Coordinator 2010
-Tel:00448719960855
+Hi,
+
+I test myself which says when CONFIG_CPU_IDLE=y, Lenovo ideapad S10-3 can
+not boot. The CPU is Atom N450, and I also find the report[2] that says intel_idle
+works fine with N450.
+
+I do not have much knowledge about intel_idle. is there any similar report that on
+some machine intel_idle halt the system or any suggestion for next step debug?
+
+
+[1] http://launchpad.net/bugs/634702
+[2] http://www.spinics.net/lists/linux-pm/msg21334.html
