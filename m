@@ -1,59 +1,75 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/1] acpi: Fix warning: 'num_cpus' may be used
- uninitialized in this function
-Date: Mon, 13 Sep 2010 18:01:27 -0300
-Message-ID: <20100913210127.GA7679@khazad-dum.debian.net>
-References: <20100911062254.GA18705@mail.gmail.com>
- <20100911062437.GA18711@mail.gmail.com>
- <20100911164037.GB12989@khazad-dum.debian.net>
- <20100913003937.GA1457@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: GA-MA69VM-S2 requires pci=nocrs with 2.6.35.4
+Date: Mon, 13 Sep 2010 17:16:15 -0600
+Message-ID: <201009131716.18197.bjorn.helgaas@hp.com>
+References: <de55082de958760245f23930b79ab42b7c54c838@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:60170 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751895Ab0IMVBb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Sep 2010 17:01:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20100913003937.GA1457@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <de55082de958760245f23930b79ab42b7c54c838@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+Sender: linux-pci-owner@vger.kernel.org
+To: Simon Arlott <simon@fire.lp0.eu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jordan Crouse <jordan.crouse@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Sacren <sakiwit@gmail.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sun, 12 Sep 2010, Jean Sacren wrote:
-> On Sat, Sep 11, 2010 at 01:40:37PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Sat, 11 Sep 2010, Jean Sacren wrote:
-> > > warning: 'num_cpus' may be used uninitialized in this function
-> > > 
-> > > Initialize 'num_cpus' variable to zero so that gcc doesn't complain.
-> > 
-> > acpi_pad_pur() is referenced only once, so it should end up inlined, at
-> > which point gcc really has no excuse to not determine with perfect
-> > confidence whether num_cpus is being used unitialized or not.
-> >
-> If acpi_pad_pur() is called and returns with non-zero value,
-> acpi_pad_handle_notify() happily returns, but num_cpus is referenced by
-> address without being initialized, so gcc gives the warning.
-> > 
-> > Looking at the code, it realy does look like a false positive.
-> >
-> Unfortunately it is _not_ a false positive. Here gcc does what it's
-> supposed to do. Therefore, the patch is correct.
+On Thursday, September 09, 2010 06:16:33 am Simon Arlott wrote:
+> With a Gigabyte GA-MA69VM-S2 690V motherboard, it stalls in
+> qurk_usb_early_handoff unless pci=nocrs is used:
 
-It will be a false positive if the variable is NOT used unitialized.
-Passing a reference does not access the object, and acpi_pad_pur() is not a
-black box to the optimizer (all static, all in the same file, and it is
-being inlined even...)
+Huh.  It looks like the HPET appears as a PCI device, in addition to
+being described in the HPET table (and possibly in the ACPI namespace):
 
-I don't think num_cpus is being used unitialized, so, as far as I can tell,
-it is a false positive.  gcc should not have issued that warning.
+[    0.000000] ACPI: HPET id: 0x10b9a201 base: 0xfed00000
+[    0.454232] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.461348] pci_root PNP0A03:00: host bridge window [io  0x0000-0x0cf7]
+[    0.468004] pci_root PNP0A03:00: host bridge window [io  0x0d00-0xffff]
+[    0.474004] pci_root PNP0A03:00: host bridge window [mem 0x000a0000-0x000bffff]
+[    0.481004] pci_root PNP0A03:00: host bridge window [mem 0x000c0000-0x000dffff]
+[    0.489004] pci_root PNP0A03:00: host bridge window [mem 0x80000000-0xfebfffff]
+[    1.034049] pci 0000:00:14.0: no compatible bridge window for [mem 0xfed00000-0xfed003ff]
+[    1.651998] pci 0000:00:14.0: BAR 1: assigned [mem 0x80000000-0x800003ff]
 
-I don't object to the patch, btw.
+Since the 00:14.0 BAR looks invalid (it's outside all the host bridge
+windows), we moved it to 0x80000000, and that probably broke the HPET
+driver, which still thinks it's at 0xfed00000.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I've heard about this problem, but I haven't ever looked into it in
+detail.  The best way to handle this would be to figure out why Windows
+doesn't have this problem, since it also moves PCI devices in this
+situation.
+
+Simon, if you have a way to boot Windows, the output of Everest (free
+trial at http://www.lavalys.com/) would be a great help.
+
+I can see from the stalled.txt log that we did call sb600_disable_hpet_bar(),
+and it *looks* like that should have disabled BAR 1.  But apparently it
+didn't.  Would you mind collecting another log with the patch below?
+
+Bjorn
+
+
+diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
+index 6dd8955..f793efd 100644
+--- a/arch/x86/pci/fixup.c
++++ b/arch/x86/pci/fixup.c
+@@ -510,6 +510,7 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
+ 	 */
+ 
+ 	pci_read_config_byte(dev, 0x08, &val);
++	dev_info(&dev->dev, "read %#02x\n", val);
+ 
+ 	if (val < 0x2F) {
+ 		outb(0x55, 0xCD6);
+@@ -517,7 +518,9 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
+ 
+ 		/* Set bit 7 in PM register 0x55 */
+ 		outb(0x55, 0xCD6);
+-		outb(val | 0x80, 0xCD7);
++		outb(val | 0x7f, 0xCD7);
++		dev_info(&dev->dev, "disabled BAR 1 (%pR)\n",
++			 &dev->resource[1]);
+ 	}
+ }
+ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_ATI, 0x4385, sb600_disable_hpet_bar);
