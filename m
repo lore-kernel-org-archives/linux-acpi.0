@@ -1,45 +1,24 @@
-From: Jean Sacren <sakiwit@gmail.com>
-Subject: Re: [PATCH 1/1] acpi: Fix warning: 'num_cpus' may be used
- uninitialized in this function
-Date: Sun, 12 Sep 2010 18:39:37 -0600
-Message-ID: <20100913003937.GA1457@mail.gmail.com>
-References: <20100911062254.GA18705@mail.gmail.com>
- <20100911062437.GA18711@mail.gmail.com>
- <20100911164037.GB12989@khazad-dum.debian.net>
+From: "Yahoo Msn International Awareness Promo 2010"
+	<awardpromotional2010@email.com>
+Subject: -Congratulation!!!
+Date: Mon, 13 Sep 2010 18:18:20 +0100
+Message-ID: <auto-000019572899__16359.311893075$1284355157$gmane$org@mailfe06.swip.net>
+Reply-To: <yaho-msn@cx.tc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:60052 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab0IMAjh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Sep 2010 20:39:37 -0400
-Received: by pvg2 with SMTP id 2so1934558pvg.19
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Sep 2010 17:39:37 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20100911164037.GB12989@khazad-dum.debian.net>
+Received: from mailfe06.swip.net ([212.247.154.161]:37138 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750744Ab0IMFTA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Sep 2010 01:19:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sat, Sep 11, 2010 at 01:40:37PM -0300, Henrique de Moraes Holschuh wrote:
-> On Sat, 11 Sep 2010, Jean Sacren wrote:
-> > warning: 'num_cpus' may be used uninitialized in this function
-> > 
-> > Initialize 'num_cpus' variable to zero so that gcc doesn't complain.
-> 
-> acpi_pad_pur() is referenced only once, so it should end up inlined, at
-> which point gcc really has no excuse to not determine with perfect
-> confidence whether num_cpus is being used unitialized or not.
->
-If acpi_pad_pur() is called and returns with non-zero value,
-acpi_pad_handle_notify() happily returns, but num_cpus is referenced by
-address without being initialized, so gcc gives the warning.
-> 
-> Looking at the code, it realy does look like a false positive.
->
-Unfortunately it is _not_ a false positive. Here gcc does what it's
-supposed to do. Therefore, the patch is correct.
-
--- 
-Jean Sacren
-Bring LAMP To People
+Dear Recipient,
+Your internet address has been selected for payment of 250,000GBP. for collection reply with Your Names, 2.Address, 3.Mobile No, 4.Age, 5.Sex,
+Regards,
+Mr. Lisen Rush
+Yahoo Msn U.K Promo Coordinator 2010
+Tel:00448719960855
