@@ -1,62 +1,59 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] ACPI: apei: Cast u64 to unsigned long, fix compile
- warning
-Date: Mon, 13 Sep 2010 13:00:35 -0700
-Message-ID: <20100913130035.decb0d44.akpm@linux-foundation.org>
-References: <1284299305.7239.4.camel@lenovo>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/1] acpi: Fix warning: 'num_cpus' may be used
+ uninitialized in this function
+Date: Mon, 13 Sep 2010 18:01:27 -0300
+Message-ID: <20100913210127.GA7679@khazad-dum.debian.net>
+References: <20100911062254.GA18705@mail.gmail.com>
+ <20100911062437.GA18711@mail.gmail.com>
+ <20100911164037.GB12989@khazad-dum.debian.net>
+ <20100913003937.GA1457@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60123 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754473Ab0IMUAp (ORCPT
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:60170 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751895Ab0IMVBb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Sep 2010 16:00:45 -0400
-In-Reply-To: <1284299305.7239.4.camel@lenovo>
+	Mon, 13 Sep 2010 17:01:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20100913003937.GA1457@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Andi Kleen <ak@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Jean Sacren <sakiwit@gmail.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sun, 12 Sep 2010 09:48:25 -0400
-Javier Martinez Canillas <martinez.javier@gmail.com> wrote:
+On Sun, 12 Sep 2010, Jean Sacren wrote:
+> On Sat, Sep 11, 2010 at 01:40:37PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Sat, 11 Sep 2010, Jean Sacren wrote:
+> > > warning: 'num_cpus' may be used uninitialized in this function
+> > > 
+> > > Initialize 'num_cpus' variable to zero so that gcc doesn't complain.
+> > 
+> > acpi_pad_pur() is referenced only once, so it should end up inlined, at
+> > which point gcc really has no excuse to not determine with perfect
+> > confidence whether num_cpus is being used unitialized or not.
+> >
+> If acpi_pad_pur() is called and returns with non-zero value,
+> acpi_pad_handle_notify() happily returns, but num_cpus is referenced by
+> address without being initialized, so gcc gives the warning.
+> > 
+> > Looking at the code, it realy does look like a false positive.
+> >
+> Unfortunately it is _not_ a false positive. Here gcc does what it's
+> supposed to do. Therefore, the patch is correct.
 
-> In today linux-net I got a compile warning in acpi/apei
-> 
-> drivers/acpi/apei/erst.c: In function ___erst_exec_move_data___:
-> drivers/acpi/apei/erst.c:273: warning: cast to pointer from integer of different size
-> drivers/acpi/apei/erst.c:274: warning: cast to pointer from integer of different size
-> 
-> The problem is that apei_exec_context->dst_base type is u64.
-> But in 32 bits architecture void * is 32 bits long. 
-> Casting it to unsigned long solves the issue
-> 
-> Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
-> ---
->  drivers/acpi/apei/erst.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index a4904f1..37d7a05 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -270,8 +270,8 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
->  	rc = __apei_exec_read_register(entry, &offset);
->  	if (rc)
->  		return rc;
-> -	memmove((void *)ctx->dst_base + offset,
-> -		(void *)ctx->src_base + offset,
-> +	memmove((void *)(unsigned long)ctx->dst_base + offset,
-> +		(void *)(unsigned long)ctx->src_base + offset,
->  		ctx->var2);
->  
->  	return 0;
+It will be a false positive if the variable is NOT used unitialized.
+Passing a reference does not access the object, and acpi_pad_pur() is not a
+black box to the optimizer (all static, all in the same file, and it is
+being inlined even...)
 
-This might indicate that the incorrect types were used within the
-`struct apei_exec_context'.  I can't tell (or can't be bothered working
-it out), because whoever wrote that didn't bother documenting any of it
-at all.
+I don't think num_cpus is being used unitialized, so, as far as I can tell,
+it is a false positive.  gcc should not have issued that warning.
 
-Are those things kernel virtual addresses?  If so, a pointer type
-should have been used.
+I don't object to the patch, btw.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
