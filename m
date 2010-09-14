@@ -1,75 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: GA-MA69VM-S2 requires pci=nocrs with 2.6.35.4
-Date: Mon, 13 Sep 2010 17:16:15 -0600
-Message-ID: <201009131716.18197.bjorn.helgaas@hp.com>
-References: <de55082de958760245f23930b79ab42b7c54c838@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] ACPI: apei: Cast u64 to unsigned long, fix compile
+ warning
+Date: Tue, 14 Sep 2010 08:54:53 +0800
+Message-ID: <1284425693.2256.12.camel@yhuang-dev.sh.intel.com>
+References: <1284299305.7239.4.camel@lenovo>
+	 <20100913130035.decb0d44.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <de55082de958760245f23930b79ab42b7c54c838@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
-Sender: linux-pci-owner@vger.kernel.org
-To: Simon Arlott <simon@fire.lp0.eu>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jordan Crouse <jordan.crouse@amd.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:37359 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752103Ab0INAy5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Sep 2010 20:54:57 -0400
+In-Reply-To: <20100913130035.decb0d44.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Len Brown <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 
-On Thursday, September 09, 2010 06:16:33 am Simon Arlott wrote:
-> With a Gigabyte GA-MA69VM-S2 690V motherboard, it stalls in
-> qurk_usb_early_handoff unless pci=nocrs is used:
+Hi, Andrew,
 
-Huh.  It looks like the HPET appears as a PCI device, in addition to
-being described in the HPET table (and possibly in the ACPI namespace):
+On Tue, 2010-09-14 at 04:00 +0800, Andrew Morton wrote:
+> On Sun, 12 Sep 2010 09:48:25 -0400
+> Javier Martinez Canillas <martinez.javier@gmail.com> wrote:
+> 
+> > In today linux-net I got a compile warning in acpi/apei
+> > 
+> > drivers/acpi/apei/erst.c: In function ___erst_exec_move_data___:
+> > drivers/acpi/apei/erst.c:273: warning: cast to pointer from integer of different size
+> > drivers/acpi/apei/erst.c:274: warning: cast to pointer from integer of different size
+> > 
+> > The problem is that apei_exec_context->dst_base type is u64.
+> > But in 32 bits architecture void * is 32 bits long. 
+> > Casting it to unsigned long solves the issue
+> > 
+> > Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
+> > ---
+> >  drivers/acpi/apei/erst.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+> > index a4904f1..37d7a05 100644
+> > --- a/drivers/acpi/apei/erst.c
+> > +++ b/drivers/acpi/apei/erst.c
+> > @@ -270,8 +270,8 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
+> >  	rc = __apei_exec_read_register(entry, &offset);
+> >  	if (rc)
+> >  		return rc;
+> > -	memmove((void *)ctx->dst_base + offset,
+> > -		(void *)ctx->src_base + offset,
+> > +	memmove((void *)(unsigned long)ctx->dst_base + offset,
+> > +		(void *)(unsigned long)ctx->src_base + offset,
+> >  		ctx->var2);
+> >  
+> >  	return 0;
+> 
+> This might indicate that the incorrect types were used within the
+> `struct apei_exec_context'.  I can't tell (or can't be bothered working
+> it out), because whoever wrote that didn't bother documenting any of it
+> at all.
 
-[    0.000000] ACPI: HPET id: 0x10b9a201 base: 0xfed00000
-[    0.454232] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
-[    0.461348] pci_root PNP0A03:00: host bridge window [io  0x0000-0x0cf7]
-[    0.468004] pci_root PNP0A03:00: host bridge window [io  0x0d00-0xffff]
-[    0.474004] pci_root PNP0A03:00: host bridge window [mem 0x000a0000-0x000bffff]
-[    0.481004] pci_root PNP0A03:00: host bridge window [mem 0x000c0000-0x000dffff]
-[    0.489004] pci_root PNP0A03:00: host bridge window [mem 0x80000000-0xfebfffff]
-[    1.034049] pci 0000:00:14.0: no compatible bridge window for [mem 0xfed00000-0xfed003ff]
-[    1.651998] pci 0000:00:14.0: BAR 1: assigned [mem 0x80000000-0x800003ff]
+Sorry about lacking the document. All these code are based on ACPI
+specification 4.0a, section 17.5 "Error Serialization". The fields in
+struct apei_exec_context such as var1, var2, src_base, dst_base, etc
+come from there too. I will add some document for it.
 
-Since the 00:14.0 BAR looks invalid (it's outside all the host bridge
-windows), we moved it to 0x80000000, and that probably broke the HPET
-driver, which still thinks it's at 0xfed00000.
+> Are those things kernel virtual addresses?  If so, a pointer type
+> should have been used.
 
-I've heard about this problem, but I haven't ever looked into it in
-detail.  The best way to handle this would be to figure out why Windows
-doesn't have this problem, since it also moves PCI devices in this
-situation.
+Sorry, I found another bug here. These should be physical memory and
+should be ioremapped before accessing. I will fix it as soon as
+possible.
 
-Simon, if you have a way to boot Windows, the output of Everest (free
-trial at http://www.lavalys.com/) would be a great help.
-
-I can see from the stalled.txt log that we did call sb600_disable_hpet_bar(),
-and it *looks* like that should have disabled BAR 1.  But apparently it
-didn't.  Would you mind collecting another log with the patch below?
-
-Bjorn
+Best Regards,
+Huang Ying
 
 
-diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
-index 6dd8955..f793efd 100644
---- a/arch/x86/pci/fixup.c
-+++ b/arch/x86/pci/fixup.c
-@@ -510,6 +510,7 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
- 	 */
- 
- 	pci_read_config_byte(dev, 0x08, &val);
-+	dev_info(&dev->dev, "read %#02x\n", val);
- 
- 	if (val < 0x2F) {
- 		outb(0x55, 0xCD6);
-@@ -517,7 +518,9 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
- 
- 		/* Set bit 7 in PM register 0x55 */
- 		outb(0x55, 0xCD6);
--		outb(val | 0x80, 0xCD7);
-+		outb(val | 0x7f, 0xCD7);
-+		dev_info(&dev->dev, "disabled BAR 1 (%pR)\n",
-+			 &dev->resource[1]);
- 	}
- }
- DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_ATI, 0x4385, sb600_disable_hpet_bar);
