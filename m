@@ -1,53 +1,54 @@
-From: Valdis.Kletnieks@vt.edu
+From: "Joey Lee" <jlee@novell.com>
 Subject: Re: [PATCH] Add Intel Poulsbo Stub Driver
-Date: Tue, 14 Sep 2010 13:10:17 -0400
-Message-ID: <14640.1284484217@localhost>
-References: <1284431982-7750-1-git-send-email-jlee@novell.com>
+Date: Tue, 14 Sep 2010 12:07:48 -0600
+Message-ID: <4C90469402000023000205B8@novprvlin0050.provo.novell.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1284484217_4681P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:35776 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab0INRKk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Sep 2010 13:10:40 -0400
-In-Reply-To: Your message of "Tue, 14 Sep 2010 10:39:42 +0800."
-             <1284431982-7750-1-git-send-email-jlee@novell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: mjg59@srcf.ucam.org, randy.dunlap@oracle.com, mjg@redhat.com, gregkh@suse.de, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de, "Lee, Chun-Yi" <jlee@novell.com>
+To: Valdis.Kletnieks@vt.edu
+Cc: randy.dunlap@oracle.com, mjg@redhat.com, mjg59@srcf.ucam.org, gregkh@suse.de, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dennis.Jansen@web.de
 
---==_Exmh_1284484217_4681P
-Content-Type: text/plain; charset=us-ascii
+Hi Valdis,=20
 
-On Tue, 14 Sep 2010 10:39:42 +0800, "Lee, Chun-Yi" said:
-> 
-> +        select ACPI_VIDEO if ACPI
-> +	help
-> +	  Choose this option if you have a system that has Intel Poulsbo
-> +	  integrated graphics.
+Thank's for your kindly review.
 
-Can we have a part number or something here?  When I buy a system from Dell or
-someplace, the spec sheet doesn't say 'Poulsbo', it says 'i945' or 'i987' or
-something like that.
+=E6=96=BC =E4=BA=8C=EF=BC=8C2010-09-14 =E6=96=BC 13:10 -0400=EF=BC=8CVa=
+ldis.Kletnieks@vt.edu =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Tue, 14 Sep 2010 10:39:42 +0800, "Lee, Chun-Yi" said:
+> >=20
+> > +        select ACPI_VIDEO if ACPI
+> > +	help
+> > +	  Choose this option if you have a system that has Intel Poulsbo
+> > +	  integrated graphics.
+>=20
+> Can we have a part number or something here?  When I buy a system fro=
+m Dell or
+> someplace, the spec sheet doesn't say 'Poulsbo', it says 'i945' or 'i=
+987' or
+> something like that.
+>=20
+> (If this is a not-yet-escaped-from-engineering new part, maybe a foll=
+ow-up patch
+> when the part is officially named/announced?)
+>=20
 
-(If this is a not-yet-escaped-from-engineering new part, maybe a follow-up patch
-when the part is officially named/announced?)
+I just google the MSI U110/U115 poulsbo netbook on my hand, it's a Inte=
+l
+Menlow netbook.
+I am not sure _Menlow_ is a more popular name compare with _Poulsbo_,
+how do you think about that?
+Should I put the _Menlow_ in config help ?
 
 
---==_Exmh_1284484217_4681P
-Content-Type: application/pgp-signature
+Thank's a lot!
+Joey Lee
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFMj6x5cC3lWbTT17ARAi1ZAKDlPv9TzTbaTPFFKnrXmYwO+BMh2QCgifvz
-t/HuFh82oUpQTPlmpV1iyu0=
-=9v27
------END PGP SIGNATURE-----
-
---==_Exmh_1284484217_4681P--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
