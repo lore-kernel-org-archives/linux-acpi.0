@@ -1,44 +1,90 @@
-From: David Howells <dhowells@redhat.com>
-Subject: (unknown)
-Date: Tue, 14 Sep 2010 10:14:45 +0100
-Message-ID: <28081.1284455685@redhat.com>
-References: <cover.1284406638.git.joe@perches.com>
+From: "Simon Arlott" <simon@fire.lp0.eu>
+Subject: Re: GA-MA69VM-S2 requires pci=nocrs with 2.6.35.4
+Date: Tue, 14 Sep 2010 12:38:49 +0100
+Message-ID: <f041c95ed553edce2bb319fd31a9dc5402863437@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+References: <de55082de958760245f23930b79ab42b7c54c838@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+    <201009131716.18197.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <cover.1284406638.git.joe@perches.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Sender: devel-bounces@linuxdriverproject.org
-Errors-To: devel-bounces@linuxdriverproject.org
-To: Joe Perches <joe@perches.com>
-Cc: Amit Kumar Salecha <amit.salecha@qlogic.com>, linux-fbdev@vger.kernel.org, linux-usb@vger.kernel.org, Karsten Keil <isdn@linux-pingi.de>, James Smart <james.smart@emulex.com>, linux-mips@linux-mips.org, "VMware,
-	Inc." <pv-drivers@vmware.com>, Bruce Allan <bruce.w.allan@intel.com>, PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>, Shreyas Bhatewara <sbhatewara@vmware.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, dhowells@redhat.com, "James E.J. Bottomley" <James.Bottomley@suse.de>, Paul Mackerras <paulus@samba.org>, linux-i2c@vger.kernel.org, Brett Rudley <brudley@broadcom.com>, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, e1000-devel@lists.sourceforge.net, Jesse Brandeburg <jesse.brandeburg@intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201009131716.18197.bjorn.helgaas@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jordan Crouse <jordan.crouse@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Joe Perches <joe@perches.com> wrote:
+On Tue, September 14, 2010 00:16, Bjorn Helgaas wrote:
+> On Thursday, September 09, 2010 06:16:33 am Simon Arlott wrote:
+>> With a Gigabyte GA-MA69VM-S2 690V motherboard, it stalls in
+>> qurk_usb_early_handoff unless pci=nocrs is used:
+>
+> Huh.  It looks like the HPET appears as a PCI device, in addition to
+> being described in the HPET table (and possibly in the ACPI namespace):
+>
+> [    0.000000] ACPI: HPET id: 0x10b9a201 base: 0xfed00000
+> [    0.454232] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+> [    0.461348] pci_root PNP0A03:00: host bridge window [io  0x0000-0x0cf7]
+> [    0.468004] pci_root PNP0A03:00: host bridge window [io  0x0d00-0xffff]
+> [    0.474004] pci_root PNP0A03:00: host bridge window [mem 0x000a0000-0x000bffff]
+> [    0.481004] pci_root PNP0A03:00: host bridge window [mem 0x000c0000-0x000dffff]
+> [    0.489004] pci_root PNP0A03:00: host bridge window [mem 0x80000000-0xfebfffff]
+> [    1.034049] pci 0000:00:14.0: no compatible bridge window for [mem 0xfed00000-0xfed003ff]
+> [    1.651998] pci 0000:00:14.0: BAR 1: assigned [mem 0x80000000-0x800003ff]
+>
+> Since the 00:14.0 BAR looks invalid (it's outside all the host bridge
+> windows), we moved it to 0x80000000, and that probably broke the HPET
+> driver, which still thinks it's at 0xfed00000.
+>
+> I've heard about this problem, but I haven't ever looked into it in
+> detail.  The best way to handle this would be to figure out why Windows
+> doesn't have this problem, since it also moves PCI devices in this
+> situation.
 
-> Using static const char foo[] = "bar" can save some
-> code and text space, so change the places where it's possible.
+You're assuming Windows works on this hardware.
 
-That's reasonable.
+> Simon, if you have a way to boot Windows, the output of Everest (free
+> trial at http://www.lavalys.com/) would be a great help.
 
-> Also change the places that use
-> 	char foo[] = "barX";
-> 	...
-> 	foo[3] = value + '0';
-> where X is typically changed
-> 	char foo[sizeof("barX")];
-> 	...
-> 	sprintf(foo, "bar%c", value + '0');
+Windows would take too long to install to try this.
 
-You haven't said what this gains.  I can see what it may cost, though
-(depending on how gcc loads foo[]).
+> I can see from the stalled.txt log that we did call sb600_disable_hpet_bar(),
+> and it *looks* like that should have disabled BAR 1.  But apparently it
+> didn't.  Would you mind collecting another log with the patch below?
 
-David
+Whenever I next need to reboot, I can try the patch, but that won't be soon...
+
+> Bjorn
+>
+>
+> diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
+> index 6dd8955..f793efd 100644
+> --- a/arch/x86/pci/fixup.c
+> +++ b/arch/x86/pci/fixup.c
+> @@ -510,6 +510,7 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
+>  	 */
+>
+>  	pci_read_config_byte(dev, 0x08, &val);
+> +	dev_info(&dev->dev, "read %#02x\n", val);
+>
+>  	if (val < 0x2F) {
+>  		outb(0x55, 0xCD6);
+> @@ -517,7 +518,9 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
+>
+>  		/* Set bit 7 in PM register 0x55 */
+>  		outb(0x55, 0xCD6);
+> -		outb(val | 0x80, 0xCD7);
+> +		outb(val | 0x7f, 0xCD7);
+
+?
+
+> +		dev_info(&dev->dev, "disabled BAR 1 (%pR)\n",
+> +			 &dev->resource[1]);
+>  	}
+>  }
+>  DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_ATI, 0x4385, sb600_disable_hpet_bar);
+>
+
+
+-- 
+Simon Arlott
