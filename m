@@ -1,148 +1,207 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] Add Intel Poulsbo Stub Driver
-Date: Wed, 15 Sep 2010 22:24:39 +0800
-Message-ID: <1284560679-19907-1-git-send-email-jlee@novell.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH 2/5] libata: Bind the Linux device tree to the ACPI device tree
+Date: Wed, 15 Sep 2010 15:58:00 -0400
+Message-ID: <1284580683-2386-2-git-send-email-mjg@redhat.com>
+References: <1284580683-2386-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55402 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154Ab0IOO1U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Sep 2010 10:27:20 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:51293 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753203Ab0IOT6b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Sep 2010 15:58:31 -0400
+In-Reply-To: <1284580683-2386-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: linux-kernel@vger.kernel.org, mjg@redhat.com, gregkh@suse.de, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, randy.dunlap@oracle.com, linux-acpi@vger.kernel.org, trenn@suse.de, "Lee, Chun-Yi" <jlee@novell.com>
+To: linux-acpi@vger.kernel.org
+Cc: linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, lenb@kernel.org, James.Bottomley@suse.de, jgarzik@pobox.com, Matthew Garrett <mjg@redhat.com>
 
-Currently, there have no GMA500(Poulsbo) native video driver to support
-intel opregion. So, use this stub driver to enable the acpi backlight
-control sysfs entry files by requrest acpi_video_register.
+We want to be able to express the dependencies between ACPI dock
+devices and their children. This requires us to be able to associate
+the ACPI device tree and libata devices. This patch uses the generic
+ACPI glue framework to do so.
 
-Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/gpu/Makefile       |    2 +-
- drivers/gpu/stub/Kconfig   |   13 +++++++++
- drivers/gpu/stub/Makefile  |    1 +
- drivers/gpu/stub/poulsbo.c |   63 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/video/Kconfig      |    2 +
- 5 files changed, 80 insertions(+), 1 deletions(-)
- create mode 100644 drivers/gpu/stub/Kconfig
- create mode 100644 drivers/gpu/stub/Makefile
- create mode 100644 drivers/gpu/stub/poulsbo.c
+ drivers/ata/libata-acpi.c |  118 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/ata/libata-core.c |    3 +
+ drivers/ata/libata.h      |    4 ++
+ 3 files changed, 125 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
-index 30879df..cc92778 100644
---- a/drivers/gpu/Makefile
-+++ b/drivers/gpu/Makefile
-@@ -1 +1 @@
--obj-y			+= drm/ vga/
-+obj-y			+= drm/ vga/ stub/
-diff --git a/drivers/gpu/stub/Kconfig b/drivers/gpu/stub/Kconfig
-new file mode 100644
-index 0000000..8f5a540
---- /dev/null
-+++ b/drivers/gpu/stub/Kconfig
-@@ -0,0 +1,13 @@
-+config STUB_POULSBO
-+	tristate "Intel GMA500 Stub Driver"
-+	depends on PCI
-+        # Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
-+        # but for select to work, need to select ACPI_VIDEO's dependencies, ick
-+        select ACPI_VIDEO if ACPI
-+	help
-+	  Choose this option if you have a system that has Intel GMA500
-+	  (Poulsbo) integrated graphics. If M is selected, the module will
-+	  be called Poulsbo. This driver is a stub driver for Poulsbo that
-+	  will call poulsbo.ko to enable the acpi backlight control sysfs
-+	  entry file because there have no poulsbo native driver can support
-+	  intel opregion.
-diff --git a/drivers/gpu/stub/Makefile b/drivers/gpu/stub/Makefile
-new file mode 100644
-index 0000000..cd940cc
---- /dev/null
-+++ b/drivers/gpu/stub/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_STUB_POULSBO) += poulsbo.o
-diff --git a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c
-new file mode 100644
-index 0000000..d8aa636
---- /dev/null
-+++ b/drivers/gpu/stub/poulsbo.c
-@@ -0,0 +1,63 @@
-+/*
-+ * Intel Poulsbo Stub driver
-+ *
-+ * Copyright (C) 2010 Novell <jlee@novell.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <acpi/video.h>
-+
-+#define DRIVER_NAME "poulsbo"
-+
-+enum {
-+	CHIP_PSB_8108 = 0,
-+	CHIP_PSB_8109 = 1,
-+};
-+
-+static struct pci_device_id pciidlist[] = {
-+	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8108}, \
-+	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8109}, \
-+	{0, 0, 0}
-+};
-+
-+static int poulsbo_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-+{
-+	return acpi_video_register();
-+}
-+
-+static void poulsbo_remove(struct pci_dev *pdev)
-+{
-+	acpi_video_unregister();
-+}
-+
-+static struct pci_driver poulsbo_driver = {
-+	.name = DRIVER_NAME,
-+	.id_table = pciidlist,
-+	.probe = poulsbo_probe,
-+	.remove = poulsbo_remove,
-+};
-+
-+static int __init poulsbo_init(void)
-+{
-+	return pci_register_driver(&poulsbo_driver);
-+}
-+
-+static void __exit poulsbo_exit(void)
-+{
-+	pci_unregister_driver(&poulsbo_driver);
-+}
-+
-+module_init(poulsbo_init);
-+module_exit(poulsbo_exit);
-+
-+MODULE_AUTHOR("Lee, Chun-Yi <jlee@novell.com>");
-+MODULE_DESCRIPTION("Poulsbo Stub Driver");
-+MODULE_LICENSE("GPL");
-+
-+MODULE_DEVICE_TABLE(pci, pciidlist);
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 8b31fdf..8807ae5 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -17,6 +17,8 @@ source "drivers/gpu/vga/Kconfig"
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index 8b5ea39..277f102 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -47,6 +47,31 @@ static void ata_acpi_clear_gtf(struct ata_device *dev)
+ 	dev->gtf_cache = NULL;
+ }
  
- source "drivers/gpu/drm/Kconfig"
- 
-+source "drivers/gpu/stub/Kconfig"
++static acpi_handle ap_acpi_handle(struct ata_port *ap)
++{
++	if (ap->flags & ATA_FLAG_ACPI_SATA)
++		return NULL;
++	return DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev);
++}
 +
- config VGASTATE
-        tristate
-        default n
++static acpi_handle dev_acpi_handle(struct ata_device *dev)
++{
++	acpi_integer adr;
++	struct ata_port *ap = dev->link->ap;
++
++	if (dev->sdev)
++		return DEVICE_ACPI_HANDLE(&dev->sdev->sdev_gendev);
++
++	if (ap->flags & ATA_FLAG_ACPI_SATA) {
++		if (!sata_pmp_attached(ap))
++			adr = SATA_ADR(ap->port_no, NO_PORT_MULT);
++		else
++			adr = SATA_ADR(ap->port_no, dev->link->pmp);
++		return acpi_get_child(DEVICE_ACPI_HANDLE(ap->host->dev), adr);
++	} else
++		return acpi_get_child(ap_acpi_handle(ap), dev->devno);
++}
++
+ /**
+  * ata_acpi_associate_sata_port - associate SATA port with ACPI objects
+  * @ap: target SATA port
+@@ -1029,3 +1054,96 @@ void ata_acpi_on_disable(struct ata_device *dev)
+ {
+ 	ata_acpi_clear_gtf(dev);
+ }
++
++static int is_pci_ata(struct device *dev)
++{
++	struct pci_dev *pdev;
++
++	if (!is_pci_dev(dev))
++		return 0;
++
++	pdev = to_pci_dev(dev);
++
++	if ((pdev->class >> 8) != PCI_CLASS_STORAGE_SATA &&
++	    (pdev->class >> 8) != PCI_CLASS_STORAGE_IDE)
++		return 0;
++
++	return 1;
++}
++
++static int ata_acpi_bind_host(struct device *dev, int host, acpi_handle *handle)
++{
++	struct Scsi_Host *shost = dev_to_shost(dev);
++	struct ata_port *ap = ata_shost_to_port(shost);
++
++	if (ap->flags & ATA_FLAG_ACPI_SATA)
++		return -ENODEV;
++
++	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), ap->port_no);
++
++	if (!*handle)
++		return -ENODEV;
++
++	return 0;
++}
++
++static int ata_acpi_bind_device(struct device *dev, int channel, int id,
++				acpi_handle *handle)
++{
++	struct device *host = dev->parent->parent;
++	struct Scsi_Host *shost = dev_to_shost(host);
++	struct ata_port *ap = ata_shost_to_port(shost);
++	struct ata_device *ata_dev;
++
++	if (ap->flags & ATA_FLAG_ACPI_SATA)
++		ata_dev = &ap->link.device[channel];
++	else
++		ata_dev = &ap->link.device[id];
++
++	*handle = dev_acpi_handle(ata_dev);
++
++	if (!*handle)
++		return -ENODEV;
++
++	return 0;
++}
++
++static int ata_acpi_find_device(struct device *dev, acpi_handle *handle)
++{
++	unsigned int host, channel, id, lun;
++
++	if (sscanf(dev_name(dev), "host%u", &host) == 1) {
++		if (!is_pci_ata(dev->parent))
++			return -ENODEV;
++
++		return ata_acpi_bind_host(dev, host, handle);
++	} else if (sscanf(dev_name(dev), "%d:%d:%d:%d",
++			&host, &channel, &id, &lun) == 4) {
++		if (!is_pci_ata(dev->parent->parent->parent))
++			return -ENODEV;
++
++		return ata_acpi_bind_device(dev, channel, id, handle);
++	} else
++		return -ENODEV;
++}
++
++static int ata_acpi_find_dummy(struct device *dev, acpi_handle *handle)
++{
++	return -ENODEV;
++}
++
++static struct acpi_bus_type ata_acpi_bus = {
++	.bus = &scsi_bus_type,
++	.find_bridge = ata_acpi_find_dummy,
++	.find_device = ata_acpi_find_device,
++};
++
++int ata_acpi_register(void)
++{
++	return register_acpi_bus_type(&ata_acpi_bus);
++}
++
++void ata_acpi_unregister(void)
++{
++	unregister_acpi_bus_type(&ata_acpi_bus);
++}
+diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+index 932eaee..4978b7a 100644
+--- a/drivers/ata/libata-core.c
++++ b/drivers/ata/libata-core.c
+@@ -6546,6 +6546,8 @@ static int __init ata_init(void)
+ 
+ 	ata_parse_force_param();
+ 
++	ata_acpi_register();
++
+ 	rc = ata_sff_init();
+ 	if (rc) {
+ 		kfree(ata_force_tbl);
+@@ -6559,6 +6561,7 @@ static int __init ata_init(void)
+ static void __exit ata_exit(void)
+ {
+ 	ata_sff_exit();
++	ata_acpi_unregister();
+ 	kfree(ata_force_tbl);
+ }
+ 
+diff --git a/drivers/ata/libata.h b/drivers/ata/libata.h
+index 9ce1ecc..16061fb 100644
+--- a/drivers/ata/libata.h
++++ b/drivers/ata/libata.h
+@@ -115,6 +115,8 @@ extern void ata_acpi_on_resume(struct ata_port *ap);
+ extern int ata_acpi_on_devcfg(struct ata_device *dev);
+ extern void ata_acpi_on_disable(struct ata_device *dev);
+ extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
++extern int ata_acpi_register(void);
++extern void ata_acpi_unregister(void);
+ #else
+ static inline void ata_acpi_associate_sata_port(struct ata_port *ap) { }
+ static inline void ata_acpi_associate(struct ata_host *host) { }
+@@ -125,6 +127,8 @@ static inline int ata_acpi_on_devcfg(struct ata_device *dev) { return 0; }
+ static inline void ata_acpi_on_disable(struct ata_device *dev) { }
+ static inline void ata_acpi_set_state(struct ata_port *ap,
+ 				      pm_message_t state) { }
++static inline int ata_acpi_register(void) { return 0; }
++static void ata_acpi_unregister(void) { }
+ #endif
+ 
+ /* libata-scsi.c */
 -- 
-1.6.0.2
+1.7.1
 
