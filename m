@@ -1,50 +1,47 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
- power
-Date: Wed, 15 Sep 2010 20:39:59 +0800
-Message-ID: <4C90BE9F.5050007@canonical.com>
-References: <20100820090824.GA23186@darkside.kls.lan> <4C7505A2.3000402@canonical.com> <20100830181954.GE31068@darkside.kls.lan> <4C7E3DE0.7030209@canonical.com> <20100901195617.GD32589@darkside.kls.lan> <4C80BA81.20701@canonical.com> <20100909181714.GA14951@darkside.kls.lan> <4C89D3C0.7040105@canonical.com> <20100910071155.GA1263@darkside.kls.lan> <4C909C57.5030107@canonical.com> <20100915114820.GA22415@darkside.kls.lan>
+From: Aki Tuomi <cmouse@youzen.ext.b2.fi>
+Subject: DMI information as requested
+Date: Wed, 15 Sep 2010 15:45:45 +0300
+Message-ID: <20100915124544.GA26854@pi.ip.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:45924 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab0IOMkQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Sep 2010 08:40:16 -0400
-In-Reply-To: <20100915114820.GA22415@darkside.kls.lan>
+Received: from mx11.tdc.fi ([80.64.7.196]:11536 "EHLO mx11.tdc.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752983Ab0IOMz6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Sep 2010 08:55:58 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
+To: linux-acpi@vger.kernel.org
 
-On 09/15/2010 07:48 PM, Mario 'BitKoenig' Holbe wrote:
-> On Wed, Sep 15, 2010 at 06:13:43PM +0800, Ike Panhc wrote:
->> On 09/10/2010 03:11 PM, Mario 'BitKoenig' Holbe wrote:
->>> 	rfkill_init_sw_state(priv->rfk[dev], 0);
->> eh.. after review the code, the rfkill_init_sw_state shall not give 0 as the default
->> value. I shall read the value from EC and set reasonable value.
-> 
-> Well - probably :)
-> The current behaviour results in each device becoming unblocked no
-> matter what state it had before.
-> 
->>> 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type == RFKILL_TYPE_BLUETOOTH))
->>> 		ideapad_rfk_set(???, 0);
->> Do you mean driver still setup the rfkill for bluetooth, but we can not block
->> bluetooth when module parameter set to 1? This idea is better then no_bt_rfkill.
->> Will modify the driver.
-> 
-> Well, not really... I mean: in the no_bt_rfkill=1 case the driver should
-> (try to) unblock the bluetooth device in order to activate it to make it
-> further manageable via it's own (hci) rfkill switch.
-> I don't think setting up the ideapad_bluetooth rfkill is necessary for
-> that. Not setting it up is IMHO the right direction. Just the device
-> activation is missing.
 
-This sounds even better, will modify the driver in this way - force enable
-bluetooth and no setup rfkill for bluetooth when no_bt_rfkill.
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> 
-> 
-> Mario
+[    0.188011] ACPI: EC: Look up EC in DSDT
+[    0.260979] ACPI: BIOS _OSI(Linux) query ignored
+[    0.261995] ACPI: DMI System Vendor: VMware, Inc.
+[    0.268016] ACPI: DMI Product Name: VMware Virtual Platform
+[    0.268016] ACPI: DMI Product Version: None
+[    0.269001] ACPI: DMI Board Name: 440BX Desktop Reference Platform
+[    0.276017] ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
+[    0.276017] ACPI: DMI BIOS Date: 09/22/2009
+[    0.276017] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkyQv/gACgkQahHbMDrZuj74NACfQ29HOg0MLMGVqpyhM9WNmqaz
+n8EAmgKOdw0hgxZn+a2jqonw+OcAjuOX
+=27jh
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
