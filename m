@@ -1,56 +1,88 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
- power
-Date: Wed, 15 Sep 2010 18:13:43 +0800
-Message-ID: <4C909C57.5030107__11578.4858041026$1284545645$gmane$org@canonical.com>
-References: <20100819193146.GB32665@darkside.kls.lan> <4C6E2833.6080407@canonical.com> <20100820090824.GA23186@darkside.kls.lan> <4C7505A2.3000402@canonical.com> <20100830181954.GE31068@darkside.kls.lan> <4C7E3DE0.7030209@canonical.com> <20100901195617.GD32589@darkside.kls.lan> <4C80BA81.20701@canonical.com> <20100909181714.GA14951@darkside.kls.lan> <4C89D3C0.7040105@canonical.com> <20100910071155.GA1263@darkside.kls.lan>
+From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
+ rf/camera power
+Date: Wed, 15 Sep 2010 13:48:20 +0200
+Message-ID: <20100915114820.GA22415@darkside.kls.lan>
+References: <20100820090824.GA23186@darkside.kls.lan>
+ <4C7505A2.3000402@canonical.com>
+ <20100830181954.GE31068@darkside.kls.lan>
+ <4C7E3DE0.7030209@canonical.com>
+ <20100901195617.GD32589@darkside.kls.lan>
+ <4C80BA81.20701@canonical.com>
+ <20100909181714.GA14951@darkside.kls.lan>
+ <4C89D3C0.7040105@canonical.com>
+ <20100910071155.GA1263@darkside.kls.lan>
+ <4C909C57.5030107@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60822 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615Ab0IOKN4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Sep 2010 06:13:56 -0400
-In-Reply-To: <20100910071155.GA1263@darkside.kls.lan>
+Received: from piggy.rz.tu-ilmenau.de ([141.24.4.8]:43473 "EHLO
+	piggy.rz.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750844Ab0IOLtv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Sep 2010 07:49:51 -0400
+Content-Disposition: inline
+In-Reply-To: <4C909C57.5030107@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On 09/10/2010 03:11 PM, Mario 'BitKoenig' Holbe wrote:
-> 
-> ideapad_rfk_set is also called in ideapad_register_rfkill:
-> 
-> static int ideapad_register_rfkill(struct acpi_device *adevice, int dev)
-> {
-> ...
-> 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type == RFKILL_TYPE_BLUETOOTH))
-> 		return 0;
-> ...
-> 	rfkill_init_sw_state(priv->rfk[dev], 0);
-> }
 
-eh.. after review the code, the rfkill_init_sw_state shall not give 0 as the default
-value. I shall read the value from EC and set reasonable value.
+--Q68bSM7Ycu6FN28Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> The rfkill_init_sw_state call to unblock the device finally calls
-> ideapad_rfk_set. In the no_bt_rfkill=1 case rfkill_init_sw_state isn't
-> called, thus the device is not unblocked if it was blocked before.
-> Hence, if I prior disabled BT in Windows, the device remains invisible.
-> This is why I think a manual call to ideapad_rfk_set in the
-> no_bt_rfkill=1 case would make the BT device visible.
-> 
-> "manual" in terms of:
-> 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type == RFKILL_TYPE_BLUETOOTH))
-> 	{
-> 		ideapad_rfk_set(???, 0);
-> 		return 0;
-> 	}
-> 
-> But I don't know what to provide as "???".
+On Wed, Sep 15, 2010 at 06:13:43PM +0800, Ike Panhc wrote:
+> On 09/10/2010 03:11 PM, Mario 'BitKoenig' Holbe wrote:
+> > 	rfkill_init_sw_state(priv->rfk[dev], 0);
+> eh.. after review the code, the rfkill_init_sw_state shall not give 0 as =
+the default
+> value. I shall read the value from EC and set reasonable value.
 
-Do you mean driver still setup the rfkill for bluetooth, but we can not block
-bluetooth when module parameter set to 1? This idea is better then no_bt_rfkill.
-Will modify the driver.
+Well - probably :)
+The current behaviour results in each device becoming unblocked no
+matter what state it had before.
 
+> > 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type =3D=3D RFKILL_TYPE_BLU=
+ETOOTH))
+> > 		ideapad_rfk_set(???, 0);
+> Do you mean driver still setup the rfkill for bluetooth, but we can not b=
+lock
+> bluetooth when module parameter set to 1? This idea is better then no_bt_=
+rfkill.
+> Will modify the driver.
+
+Well, not really... I mean: in the no_bt_rfkill=3D1 case the driver should
+(try to) unblock the bluetooth device in order to activate it to make it
+further manageable via it's own (hci) rfkill switch.
+I don't think setting up the ideapad_bluetooth rfkill is necessary for
+that. Not setting it up is IMHO the right direction. Just the device
+activation is missing.
+
+
+Mario
+--=20
+Tower: "Say fuelstate." Pilot: "Fuelstate."
+Tower: "Say again." Pilot: "Again."
+Tower: "Arghl, give me your fuel!" Pilot: "Sorry, need it by myself..."
+
+--Q68bSM7Ycu6FN28Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEVAwUBTJCyhBS+e2HeSPbpAQKllgf/a37tMSBXNoEgyUayAp7cn5/vt/wMUSTs
+dJHRZiJb4Mvp1m+/7v41+TOW8HAMEqFfuCv8WgVugE027BbVS7yNWRAJuJJuoaMW
+7obwBYsLM6PyqCyAOQ/L/y4L3mg+Grfw+PF1rsqxMlLKqU4rx9j1BWlNxjcObrEw
+oi2naSaRw1MzzA690HEDyXlNtE4ZLc9iOKQek3SNFy76u5tOqTFn+G1IlGRQfpAf
+4hgYwIi2yOCXDk7KdvP9fihgkmyAZg9pKlbCzzlvEtkyublsg9eNWcyE6DfWOCVI
+QJWpAeYXKkbtq5zRvqqrlvq5CmgoAIZKpaGVnAz52I9EG2cvLyrqwg==
+=TJAN
+-----END PGP SIGNATURE-----
+
+--Q68bSM7Ycu6FN28Q--
