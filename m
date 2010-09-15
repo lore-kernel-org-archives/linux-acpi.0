@@ -1,63 +1,56 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX] ACPI, APEI, Fix ERST MOVE_DATA instruction implementation
-Date: Wed, 15 Sep 2010 17:00:57 +0800
-Message-ID: <1284541257.2754.15.camel@yhuang-dev>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control rf/camera
+ power
+Date: Wed, 15 Sep 2010 18:13:43 +0800
+Message-ID: <4C909C57.5030107__11578.4858041026$1284545645$gmane$org@canonical.com>
+References: <20100819193146.GB32665@darkside.kls.lan> <4C6E2833.6080407@canonical.com> <20100820090824.GA23186@darkside.kls.lan> <4C7505A2.3000402@canonical.com> <20100830181954.GE31068@darkside.kls.lan> <4C7E3DE0.7030209@canonical.com> <20100901195617.GD32589@darkside.kls.lan> <4C80BA81.20701@canonical.com> <20100909181714.GA14951@darkside.kls.lan> <4C89D3C0.7040105@canonical.com> <20100910071155.GA1263@darkside.kls.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39207 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409Ab0IOJBA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Sep 2010 05:01:00 -0400
+Received: from adelie.canonical.com ([91.189.90.139]:60822 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615Ab0IOKN4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Sep 2010 06:13:56 -0400
+In-Reply-To: <20100910071155.GA1263@darkside.kls.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>
+To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>, David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-kerne
 
-The src_base and dst_base fields in apei_exec_context are physical
-address, so they should be ioremaped before being used in ERST
-MOVE_DATA instruction.
+On 09/10/2010 03:11 PM, Mario 'BitKoenig' Holbe wrote:
+> 
+> ideapad_rfk_set is also called in ideapad_register_rfkill:
+> 
+> static int ideapad_register_rfkill(struct acpi_device *adevice, int dev)
+> {
+> ...
+> 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type == RFKILL_TYPE_BLUETOOTH))
+> 		return 0;
+> ...
+> 	rfkill_init_sw_state(priv->rfk[dev], 0);
+> }
 
-Reported-by: Javier Martinez Canillas <martinez.javier@gmail.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/erst.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+eh.. after review the code, the rfkill_init_sw_state shall not give 0 as the default
+value. I shall read the value from EC and set reasonable value.
 
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -266,13 +266,27 @@ static int erst_exec_move_data(struct ap
- {
- 	int rc;
- 	u64 offset;
-+	void *src, *dst;
-+
-+	/* ioremap does not work in interrupt context */
-+	if (in_interrupt())
-+		return -EBUSY;
- 
- 	rc = __apei_exec_read_register(entry, &offset);
- 	if (rc)
- 		return rc;
--	memmove((void *)ctx->dst_base + offset,
--		(void *)ctx->src_base + offset,
--		ctx->var2);
-+
-+	src = ioremap(ctx->src_base + offset, ctx->var2);
-+	if (!src)
-+		return -ENOMEM;
-+	dst = ioremap(ctx->dst_base + offset, ctx->var2);
-+	if (!dst)
-+		return -ENOMEM;
-+
-+	memmove(dst, src, ctx->var2);
-+
-+	iounmap(src);
-+	iounmap(dst);
- 
- 	return 0;
- }
+> 
+> The rfkill_init_sw_state call to unblock the device finally calls
+> ideapad_rfk_set. In the no_bt_rfkill=1 case rfkill_init_sw_state isn't
+> called, thus the device is not unblocked if it was blocked before.
+> Hence, if I prior disabled BT in Windows, the device remains invisible.
+> This is why I think a manual call to ideapad_rfk_set in the
+> no_bt_rfkill=1 case would make the BT device visible.
+> 
+> "manual" in terms of:
+> 	if (no_bt_rfkill && (ideapad_rfk_data[dev].type == RFKILL_TYPE_BLUETOOTH))
+> 	{
+> 		ideapad_rfk_set(???, 0);
+> 		return 0;
+> 	}
+> 
+> But I don't know what to provide as "???".
 
+Do you mean driver still setup the rfkill for bluetooth, but we can not block
+bluetooth when module parameter set to 1? This idea is better then no_bt_rfkill.
+Will modify the driver.
 
