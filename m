@@ -1,52 +1,110 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] acpi: handle ACPI0007 Device in acpi_early_set_pdc
-Date: Fri, 17 Sep 2010 11:37:21 -0700
-Message-ID: <4C93B561.2040902@kernel.org>
-References: <4C89906B.1050406@kernel.org> <201009131128.42519.bjorn.helgaas@hp.com> <4C931714.2080905@kernel.org> <201009170756.53100.bjorn.helgaas@hp.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 1/2] PNPACPI: cope with invalid device IDs
+Date: Fri, 17 Sep 2010 16:37:31 -0600
+Message-ID: <201009171637.32127.bjorn.helgaas@hp.com>
+References: <20100605022058.25768.77560.stgit@localhost.localdomain> <20100605022404.25768.77841.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:20219 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755162Ab0IQSik (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Sep 2010 14:38:40 -0400
-In-Reply-To: <201009170756.53100.bjorn.helgaas@hp.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:4225 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754380Ab0IQWiP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Sep 2010 18:38:15 -0400
+In-Reply-To: <20100605022404.25768.77841.stgit@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, Suresh Siddha <suresh.b.siddha@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 09/17/2010 06:56 AM, Bjorn Helgaas wrote:
-> On Friday, September 17, 2010 01:21:56 am Yinghai Lu wrote:
->> On 09/13/2010 10:28 AM, Bjorn Helgaas wrote:
->>> On Friday, September 10, 2010 08:06:26 pm Yinghai Lu wrote:
->>>
->>> I timed the original on a 64-CPU box where the namespace walk cost
->>> should be relatively high, and the walk you added takes about 0.01
->>> seconds.  The one already there took about 0.03 seconds, so neither
->>> costs very much.
->>>
->>> And I don't like the fact that the patch below changes the ACPI CA
->>> and it only partly implements acpi_get_devices(), since it ignores
->>> _CID and _STA.
->>
->> please check this one. it still keep _STA etc.
+On Friday, June 04, 2010 08:24:04 pm Dmitry Torokhov wrote:
+> If primary ID (HID) is invalid try locating first valid ID on compatible
+> ID list before giving up.
 > 
-> I think you missed this line in my previous response:
-> 
->>> But I do see your point, and having seen the patch
->>> below, I prefer the original one-line version.
-> 
-> The patch below is better, because it doesn't reimplement quite
-> so much stuff, but it still changes the CA,
-not sure.
-> and I think the end
-> result is still quite confusing to read.
-yeah, it is confusing to read.... callback with callback.
-> 
-> So I still prefer the original one-line version.
+> This helps, for example, to recognize i8042 AUX port on Sony Vaio VPCZ1
+> which uses SNYSYN0003 as HID. Without the patch users are forced to
+> boot with i8042.nopnp to make use of their touchpads.
 
-ok, Will resend out original one with updated changelog.
+Sorry, we seem to have dropped the ball on this.  Looking at it again,
+I have another question below:
 
-Yinghai
+>  drivers/pnp/pnpacpi/core.c |   29 ++++++++++++++++++++++++-----
+>  1 files changed, 24 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index f7ff628..2029cb5 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -28,7 +28,7 @@
+>  #include "../base.h"
+>  #include "pnpacpi.h"
+>  
+> -static int num = 0;
+> +static int num;
+>  
+>  /* We need only to blacklist devices that have already an acpi driver that
+>   * can't use pnp layer. We don't need to blacklist device that are directly
+> @@ -157,11 +157,24 @@ struct pnp_protocol pnpacpi_protocol = {
+>  };
+>  EXPORT_SYMBOL(pnpacpi_protocol);
+>  
+> +static char *pnpacpi_get_id(struct acpi_device *device)
+> +{
+> +	struct acpi_hardware_id *id;
+> +
+> +	list_for_each_entry(id, &device->pnp.ids, list) {
+> +		if (ispnpidacpi(id->id))
+> +			return id->id;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+>  static int __init pnpacpi_add_device(struct acpi_device *device)
+>  {
+>  	acpi_handle temp = NULL;
+>  	acpi_status status;
+>  	struct pnp_dev *dev;
+> +	char *pnpid;
+>  	struct acpi_hardware_id *id;
+>  
+>  	/*
+> @@ -169,11 +182,17 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>  	 * driver should not be loaded.
+>  	 */
+>  	status = acpi_get_handle(device->handle, "_CRS", &temp);
+> -	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+> -	    is_exclusive_device(device) || (!device->status.present))
+> +	if (ACPI_FAILURE(status))
+> +		return 0;
+> +
+> +	pnpid = pnpacpi_get_id(device);
+> +	if (!pnpid)
+> +		return 0;
+> +
+> +	if (!is_exclusive_device(device) || !device->status.present)
+>  		return 0;
+
+Doesn't this change the sense of the is_exclusive_device() test?
+
+Looks good to me otherwise.
+
+Bjorn
+
+> -	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
+> +	dev = pnp_alloc_dev(&pnpacpi_protocol, num, pnpid);
+>  	if (!dev)
+>  		return -ENOMEM;
+>  
+> @@ -204,7 +223,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>  		pnpacpi_parse_resource_option_data(dev);
+>  
+>  	list_for_each_entry(id, &device->pnp.ids, list) {
+> -		if (!strcmp(id->id, acpi_device_hid(device)))
+> +		if (!strcmp(id->id, pnpid))
+>  			continue;
+>  		if (!ispnpidacpi(id->id))
+>  			continue;
+> 
+> 
