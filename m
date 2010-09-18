@@ -1,220 +1,109 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] PNPACPI: cope with invalid device IDs
-Date: Sat, 18 Sep 2010 10:11:09 -0700
-Message-ID: <20100918171109.GA6563@core.coreip.homeip.net>
-References: <20100605022058.25768.77560.stgit@localhost.localdomain>
- <201009171637.32127.bjorn.helgaas@hp.com>
- <201009171549.42276.dmitry.torokhov@gmail.com>
- <201009171656.11239.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Fw: Kernel panic in 2.6.36-rc4 after suspend/resume
+Date: Sat, 18 Sep 2010 23:44:12 +0200
+Message-ID: <201009182344.12498.rjw@sisk.pl>
+References: <20100918214733.GA5223@kryptos.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:55333 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753066Ab0IRRLP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Sep 2010 13:11:15 -0400
-Content-Disposition: inline
-In-Reply-To: <201009171656.11239.bjorn.helgaas@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100918214733.GA5223@kryptos.lan>
+Sender: netdev-owner@vger.kernel.org
+To: vaibhav_agrwal@yahoo.co.in
+Cc: Johannes Berg <johannes@sipsolutions.net>, "John W. Linville" <linville@tuxdriver.com>, "David S. Miller" <davem@davemloft.net>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Fri, Sep 17, 2010 at 04:56:08PM -0600, Bjorn Helgaas wrote:
-> On Friday, September 17, 2010 04:49:39 pm Dmitry Torokhov wrote:
-> > On Friday, September 17, 2010 03:37:31 pm Bjorn Helgaas wrote:
-> > > On Friday, June 04, 2010 08:24:04 pm Dmitry Torokhov wrote:
-> > > > If primary ID (HID) is invalid try locating first valid ID on compatible
-> > > > ID list before giving up.
-> > > > 
-> > > > This helps, for example, to recognize i8042 AUX port on Sony Vaio VPCZ1
-> > > > which uses SNYSYN0003 as HID. Without the patch users are forced to
-> > > > boot with i8042.nopnp to make use of their touchpads.
-> > > 
-> > > Sorry, we seem to have dropped the ball on this.  Looking at it again,
-> > > 
-> > > I have another question below:
-> > > >  drivers/pnp/pnpacpi/core.c |   29 ++++++++++++++++++++++++-----
-> > > >  1 files changed, 24 insertions(+), 5 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> > > > index f7ff628..2029cb5 100644
-> > > > --- a/drivers/pnp/pnpacpi/core.c
-> > > > +++ b/drivers/pnp/pnpacpi/core.c
-> > > > @@ -28,7 +28,7 @@
-> > > > 
-> > > >  #include "../base.h"
-> > > >  #include "pnpacpi.h"
-> > > > 
-> > > > -static int num = 0;
-> > > > +static int num;
-> > > > 
-> > > >  /* We need only to blacklist devices that have already an acpi driver
-> > > >  that
-> > > >  
-> > > >   * can't use pnp layer. We don't need to blacklist device that are
-> > > >   directly
-> > > > 
-> > > > @@ -157,11 +157,24 @@ struct pnp_protocol pnpacpi_protocol = {
-> > > > 
-> > > >  };
-> > > >  EXPORT_SYMBOL(pnpacpi_protocol);
-> > > > 
-> > > > +static char *pnpacpi_get_id(struct acpi_device *device)
-> > > > +{
-> > > > +	struct acpi_hardware_id *id;
-> > > > +
-> > > > +	list_for_each_entry(id, &device->pnp.ids, list) {
-> > > > +		if (ispnpidacpi(id->id))
-> > > > +			return id->id;
-> > > > +	}
-> > > > +
-> > > > +	return NULL;
-> > > > +}
-> > > > +
-> > > > 
-> > > >  static int __init pnpacpi_add_device(struct acpi_device *device)
-> > > >  {
-> > > >  
-> > > >  	acpi_handle temp = NULL;
-> > > >  	acpi_status status;
-> > > >  	struct pnp_dev *dev;
-> > > > 
-> > > > +	char *pnpid;
-> > > > 
-> > > >  	struct acpi_hardware_id *id;
-> > > >  	
-> > > >  	/*
-> > > > 
-> > > > @@ -169,11 +182,17 @@ static int __init pnpacpi_add_device(struct
-> > > > acpi_device *device)
-> > > > 
-> > > >  	 * driver should not be loaded.
-> > > >  	 */
-> > > >  	
-> > > >  	status = acpi_get_handle(device->handle, "_CRS", &temp);
-> > > > 
-> > > > -	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
-> > > > -	    is_exclusive_device(device) || (!device->status.present))
-> > > > +	if (ACPI_FAILURE(status))
-> > > > +		return 0;
-> > > > +
-> > > > +	pnpid = pnpacpi_get_id(device);
-> > > > +	if (!pnpid)
-> > > > +		return 0;
-> > > > +
-> > > > +	if (!is_exclusive_device(device) || !device->status.present)
-> > > > 
-> > > >  		return 0;
-> > > 
-> > > Doesn't this change the sense of the is_exclusive_device() test?
-> > 
-> > Yes, it does, "!" shoudl be dropped.
-> > 
-> > OTOH maybe we should keep the "primary" ID as is (so SYNSYN0003 would
-> > still be _the_ id) but only refuse device if none of it's IDs (neither
-> > _HID nor _CID) satisfy ispnpidacpi() requirements.
+On Saturday, September 18, 2010, Josh Cartwright wrote:
+> <Forwarding to relevant maintainers (get_maintainer.pl -f net/mac80211/agg-tx.c)>
 > 
-> I think we *should* keep the entire SYNSYN0003 ID, but I don't think
-> we currently can because we use a fixed-length array to store it.
-> I haven't had time or motivation to fix that yet.
+> From: vaibhav agarwal <vaibhav_agrwal@yahoo.co.in>
+> Subject: Re: Kernel panic in 2.6.36-rc4 after suspend/resume
+> Date: Sat, 18 Sep 2010 15:09:29 +0530 (IST)
+> To: linux-kernel@vger.kernel.org
+> X-Mailer: YahooMailRC/497 YahooMailWebService/0.8.105.279950
 > 
-
-Ah, right...
-
-> Do you want to post an update fixing the is_exclusive_device() thing?
+> Hi,
 > 
+> I am using kernel 2.6.34-rc4 directly taken from kernel.org. After suspend to 
+> ram if I leave it for few hours and resume then kernel panic happens (screen of 
+> death). If I suspend and resume immediately then it works fine.
+> 
+> I have hand copied the message and attached in this mail. Let me know what other 
+> 
+> 
+> information is needed from my side.
+> I can file bug in kernel bugzilla if needed.
 
-Here it is.
+Yes, please.
 
--- 
-Dmitry
+> As per kernel oops docs, I am sending a mail here.
+> 
+> (Its a intel Dual Core machine)
 
+I think that sta_addba_resp_timer_expired() is a red herring.  More likely the
+problem is related to cpuidle.  Apparently, the suspend-resume cycle causes
+the ACPI cpuidle driver to malfunction.
 
-PNPACPI: cope with invalid device IDs
+Thanks,
+Rafael
 
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-
-If primary ID (HID) is invalid try locating first valid ID on compatible
-ID list before giving up.
-
-This helps, for example, to recognize i8042 AUX port on Sony Vaio VPCZ1
-which uses SNYSYN0003 as HID. Without the patch users are forced to
-boot with i8042.nopnp to make use of their touchpads.
-
-Tested-by: Jan-Hendrik Zab <jan@jhz.name>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
-
- drivers/pnp/pnpacpi/core.c |   29 ++++++++++++++++++++++++-----
- 1 files changed, 24 insertions(+), 5 deletions(-)
-
-
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index dc4e32e..0d943ee 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -28,7 +28,7 @@
- #include "../base.h"
- #include "pnpacpi.h"
  
--static int num = 0;
-+static int num;
- 
- /* We need only to blacklist devices that have already an acpi driver that
-  * can't use pnp layer. We don't need to blacklist device that are directly
-@@ -180,11 +180,24 @@ struct pnp_protocol pnpacpi_protocol = {
- };
- EXPORT_SYMBOL(pnpacpi_protocol);
- 
-+static char *pnpacpi_get_id(struct acpi_device *device)
-+{
-+	struct acpi_hardware_id *id;
-+
-+	list_for_each_entry(id, &device->pnp.ids, list) {
-+		if (ispnpidacpi(id->id))
-+			return id->id;
-+	}
-+
-+	return NULL;
-+}
-+
- static int __init pnpacpi_add_device(struct acpi_device *device)
- {
- 	acpi_handle temp = NULL;
- 	acpi_status status;
- 	struct pnp_dev *dev;
-+	char *pnpid;
- 	struct acpi_hardware_id *id;
- 
- 	/*
-@@ -192,11 +205,17 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	 * driver should not be loaded.
- 	 */
- 	status = acpi_get_handle(device->handle, "_CRS", &temp);
--	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
--	    is_exclusive_device(device) || (!device->status.present))
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+
-+	pnpid = pnpacpi_get_id(device);
-+	if (!pnpid)
-+		return 0;
-+
-+	if (is_exclusive_device(device) || !device->status.present)
- 		return 0;
- 
--	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
-+	dev = pnp_alloc_dev(&pnpacpi_protocol, num, pnpid);
- 	if (!dev)
- 		return -ENOMEM;
- 
-@@ -227,7 +246,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 		pnpacpi_parse_resource_option_data(dev);
- 
- 	list_for_each_entry(id, &device->pnp.ids, list) {
--		if (!strcmp(id->id, acpi_device_hid(device)))
-+		if (!strcmp(id->id, pnpid))
- 			continue;
- 		if (!ispnpidacpi(id->id))
- 			continue;
+> Modules linked in: btusb i915 drm_kms_helper drm i2c_algo_bit sco acpi_cpufreq 
+> mperf rfcomm bnep cpufreq_powersave l2cap crc16 bluetooth cpufreq_userspace 
+> cpufreq_conservative cpufreq_stats nfsd exportfs nfs lockd fscache nfs_acl 
+> auth_rpcgss sunrpc aes_1586 aes_generic fuse loop arc4 ecb ath9k mac80211 
+> snd_hda_codec_intelhdmi ath9k common snd_hda_codec_realtek ath9k_hw ath 
+> snd_hda_codec snd_hwdep cfg90211 snd_pcm_oss snd_mixer_oss snd_pcm intel_agp 
+> snd_seq_midi jmb38x_ms uvcvideo videodev snd_rawmidi snd_seq_midi_event joydev 
+> v4l1_compat rfkill memstick snd_seq shpchp evdev tpm_tis tpm agppart tpm_bios 
+> video battery processor ac snd_timer snd_seq_device psmouse snd serio_raw pcspkr 
+> i2c_i801 i2c_core soundcore pci_hotplug output snd_page_alloc wmi button ext3 
+> jbd mbcache sg sr_mod cdrom crc_t10dif uhci_hcd ahci libahci libata ehci_hcd 
+> sdhci_pci sdhci atl1e thermal mmc_core led_class scsi_mod thermal_sys usbcore 
+> nls_base [last unloaded: scsi_wait_scan]
+> 
+> Pid: 0, comm: swapper Not tainted 2.6.36-rc4-custom #18 Aspire 4736Z    /Aspire 
+> 4736Z
+> EIP: 0060:[<f83de653>] Eflags: 00010206 CPU: 0
+> EIP is ay sta_addba_resp_timer_expired+0x17/0x28 [max80211]
+> EAX: f4b8ff6c EBS: f36b7848 ECX: 052f0000 EDX: 00000094
+> ESI: c04fd340 EDI: 00000001 EBP: 00000100 ESP: c0431eec
+>  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> Process swapper (pid: 0, ti=c0430000 task=c043ff20 task.ti=c0430000)
+> Stack:
+>  c013908f c0431f0c f83de63c c04fdb50 c04fdd50 c04fdf50 c04fe150 f4b901a0
+> <0> c0431f0c c0431f0c 00000046 00000004 00000001 00000100 c0133eb4 00000001
+> <0> 0000000a c0435a04 c04c1dec 00000000 00000046 00000000 00000000 c0431f70
+> Call Trace:
+>  [<c013908f>] ? run_timer_softirq+0x16f/0x213
+>  [<f83de63c>] ? sta_addba_resp_timer_expired+0x0/0x28 [mac80211]
+>  [<c0133eb4>] ? __do_softirq+0xb1/0x156
+>  [<c0133f87>] ? do_softirq+0x2e/0x38
+>  [<c0134085>] ? irq_exit+0x26/0x58
+>  [<c01043d0>] ? do_IRQ+0x7d/0x8e
+>  [<c01033a9>] ? common_interrupt+0x29/0x30
+>  [<f8534f9d>] ? acpi_idle_enter_simple+0xec/0x129 [processor]
+>  [<c02b34ae>] ? cpuidle_idle_call+0x77/0xd5
+>  [<c01021c6>] ? cpu_idle+0x49/0x8b
+>  [<c046883e>] ? start_kernel+0x2d4/0x2d7
+> Code: e8 2f c4 f7 c7 eb 05 bd ea ff ff ff 5e 89 e8 5b 5e 5f 5d c3 0f b6 10 29 d0 
+> 2d a0 01 00 00 8d 8c 90 4c 01 00 00 8b 09 85 c9 74 10 <f6> 41 4c 02 75 0a 05 b0 
+> 01 00 00 e9 5f ff ff ff c3 55 89 cd 57
+> EIP: [<f83de653>] sta_addba_resp_expired+0x17/0x28 [max80211] SS:ESP 
+> 0068:c0431eec
+> CR2: 00000000052f004c
+> ---[ end trace c7cc1d8c9381c37c ]---
+> Kernel panic - not syncing: Fatal exception in interrupt
+> Pid: 0, comm: swapper Tainted: G        D       2.6.36-rc4-custom #18
+> Call Trace:
+>  [<c03591ba>] ? panic+0x4d/0x13a
+>  [<c0105692>] ? oops_end+0x8e/0x99
+>  [<c011d6c4>] ? no_context+0x10d/0x116
+>  [<c011da13>] ? do_page_fault+0x0/0x24d
+>  [<c011d7d2>] ? bad_area_nosemaphore+0xa/0xc
+>  [<c035b316>] ? error_code+0x5a/0x60
+>  [<c011da13>] ? do_page_fault+0x0/0x24d
+>  [<f83de653>] ? sta_addba_resp_timer_expired+0x17/0x28 [mac80211]
+>  [<c013908f>] ? run_timer_softirq+0x16f/0x213
+> 
