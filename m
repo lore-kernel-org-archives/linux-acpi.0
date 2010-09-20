@@ -1,244 +1,168 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PCI / PCIe / AER: Disable native AER service if BIOS has precedence (v2) (was: Re: [PATCH]  PCI / PCIe / AER ...)
-Date: Mon, 20 Sep 2010 18:50:00 +0200
-Message-ID: <201009201850.00626.rjw@sisk.pl>
-References: <201009200002.15609.rjw@sisk.pl> <4C96FCA3.2060704@linux.intel.com>
+Subject: 2.6.36-rc4-git5: Reported regressions from 2.6.35
+Date: Mon, 20 Sep 2010 20:47:53 +0200 (CEST)
+Message-ID: <1fwtoy8sG5H.A.veG.9D7lMB@chimera>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50804 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753317Ab0ITQvE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2010 12:51:04 -0400
-In-Reply-To: <4C96FCA3.2060704@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday, September 20, 2010, Chen Gong wrote:
-> =E4=BA=8E 9/20/2010 6:02 AM, Rafael J. Wysocki =E5=86=99=E9=81=93:
-> > From: Rafael J. Wysocki<rjw@sisk.pl>
-> >
-> > There is a design issue related to PCIe AER and _OSC that the BIOS
-> > may be asked to grant control of the AER service even if some
-> > Hardware Error Source Table (HEST) entries contain information
-> > meaning that the BIOS really should control it.  Namely,
-> > pcie_port_acpi_setup() calls pcie_aer_get_firmware_first() that
-> > determines whether or not the AER service should be controlled by
-> > the BIOS on the basis of the HEST information for the given PCIe
-> > port.  The BIOS is asked to grant control of the AER service for
-> > a PCIe Root Complex if pcie_aer_get_firmware_first() returns 'false=
-'
-> > for at least one root port in that complex, even if all of the othe=
-r
-> > root ports' HEST entries have the FIRMWARE_FIRST flag set (and none
-> > of them has the GLOBAL flag set).  However, if the AER service is
-> > controlled by the kernel, that may interfere with the BIOS' handlin=
-g
-> > of the error sources having the FIRMWARE_FIRST flag.  Moreover,
-> > there may be PCIe endpoints that have the FIRMWARE_FIRST flag set i=
-n
-> > HEST and are attached to the root ports in question, in which case =
-it
-> > also may be unsafe to ask the BIOS for control of the AER service.
-> >
-> > For this reason, introduce a function checking if there's at least
-> > one PCIe-related HEST entry with the FIRMWARE_FIRST flag set and
-> > disable the native AER service altogether if this function returns
-> > 'true'.
-> >
-> > Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
-> > ---
-> >   drivers/pci/pcie/aer/aerdrv.c      |    2 +-
-> >   drivers/pci/pcie/aer/aerdrv.h      |    3 +++
-> >   drivers/pci/pcie/aer/aerdrv_acpi.c |   31 +++++++++++++++++++++++=
-++++++++
-> >   drivers/pci/pcie/portdrv_acpi.c    |    2 +-
-> >   4 files changed, 36 insertions(+), 2 deletions(-)
-> >
-> > Index: linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > +++ linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > @@ -93,4 +93,35 @@ int pcie_aer_get_firmware_first(struct p
-> >   		aer_set_firmware_first(dev);
-> >   	return dev->__aer_firmware_first;
-> >   }
-> > +
-> > +static bool aer_firmware_first;
-> > +
-> > +static int aer_hest_parse_aff(struct acpi_hest_header *hest_hdr, v=
-oid *data)
-> > +{
-> > +	if (aer_firmware_first)
-> > +		return 0;
-> > +
-> > +	switch (hest_hdr->type) {
-> > +	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-> > +	case ACPI_HEST_TYPE_AER_ENDPOINT:
-> > +	case ACPI_HEST_TYPE_AER_BRIDGE:
-> > +		aer_firmware_first =3D !!(p->flags&  ACPI_HEST_FIRMWARE_FIRST);
->=20
-> Where "p" comes from ? Maybe it points to "struct acpi_hest_aer_commo=
-n *p;"
+This message contains a list of some regressions from 2.6.35,
+for which there are no fixes in the mainline known to the tracking team.
+If any of them have been fixed already, please let us know.
 
-My bad, terribly sorry.
+If you know of any other unresolved regressions from 2.6.35, please let us
+know either and we'll add them to the list.  Also, please let us know
+if any of the entries below are invalid.
 
-I must have posted a wrong version of the patch. :-(
-=46ixed patch is appended.
+Each entry from the list will be sent additionally in an automatic reply
+to this message with CCs to the people involved in reporting and handling
+the issue.
 
-Thanks,
-Rafael
 
----
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: PCI / PCIe / AER: Disable native AER service if BIOS has prece=
-dence (v2)
+Listed regressions statistics:
 
-There is a design issue related to PCIe AER and _OSC that the BIOS
-may be asked to grant control of the AER service even if some
-Hardware Error Source Table (HEST) entries contain information
-meaning that the BIOS really should control it.  Namely,
-pcie_port_acpi_setup() calls pcie_aer_get_firmware_first() that
-determines whether or not the AER service should be controlled by
-the BIOS on the basis of the HEST information for the given PCIe
-port.  The BIOS is asked to grant control of the AER service for
-a PCIe Root Complex if pcie_aer_get_firmware_first() returns 'false'
-for at least one root port in that complex, even if all of the other
-root ports' HEST entries have the FIRMWARE_FIRST flag set (and none
-of them has the GLOBAL flag set).  However, if the AER service is
-controlled by the kernel, that may interfere with the BIOS' handling
-of the error sources having the FIRMWARE_FIRST flag.  Moreover,
-there may be PCIe endpoints that have the FIRMWARE_FIRST flag set in
-HEST and are attached to the root ports in question, in which case it
-also may be unsafe to ask the BIOS for control of the AER service.
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2010-09-20       38       15          15
+  2010-09-12       28       14          13
+  2010-08-30       21       16          15
 
-=46or this reason, introduce a function checking if there's at least
-one PCIe-related HEST entry with the FIRMWARE_FIRST flag set and
-disable the native AER service altogether if this function returns
-'true'.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+Unresolved regressions
+----------------------
 
-Changes since v1:
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18872
+Subject		: Radeon KMS r100 and STR problems
+Submitter	: Richard Mittendorfer <delist@gmx.net>
+Date		: 2010-09-17 18:26 (4 days old)
+Message-ID	: <20100917202647.aa4b6300.delist@gmx.net>
+References	: http://marc.info/?l=linux-kernel&m=128474802809779&w=2
 
- * Fix compilation problem with undefined p in aer_hest_parse_aff().
 
----
- drivers/pci/pcie/aer/aerdrv.c      |    2 +-
- drivers/pci/pcie/aer/aerdrv.h      |    3 +++
- drivers/pci/pcie/aer/aerdrv_acpi.c |   34 ++++++++++++++++++++++++++++=
-++++++
- drivers/pci/pcie/portdrv_acpi.c    |    2 +-
- 4 files changed, 39 insertions(+), 2 deletions(-)
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18862
+Subject		: [BUG]Kernel 2.6.36rc4 crash when rmmod pm8001
+Submitter	: Jack Wang <jack_wang@usish.com>
+Date		: 2010-09-17 10:11 (4 days old)
+Message-ID	: <3219F4D1734640238A632382C50F633E@usish.com.cn>
+References	: http://marc.info/?l=linux-kernel&m=128471846828998&w=2
 
-Index: linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -93,4 +93,38 @@ int pcie_aer_get_firmware_first(struct p
- 		aer_set_firmware_first(dev);
- 	return dev->__aer_firmware_first;
- }
-+
-+static bool aer_firmware_first;
-+
-+static int aer_hest_parse_aff(struct acpi_hest_header *hest_hdr, void =
-*data)
-+{
-+	struct acpi_hest_aer_common *p;
-+
-+	if (aer_firmware_first)
-+		return 0;
-+
-+	switch (hest_hdr->type) {
-+	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+	case ACPI_HEST_TYPE_AER_ENDPOINT:
-+	case ACPI_HEST_TYPE_AER_BRIDGE:
-+		p =3D (struct acpi_hest_aer_common *)(hest_hdr + 1);
-+		aer_firmware_first =3D !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	default:
-+		return 0;
-+	}
-+}
-+
-+/**
-+ * aer_acpi_firmware_first - Check if APEI should control AER.
-+ */
-+bool aer_acpi_firmware_first(void)
-+{
-+	static bool parsed =3D false;
-+
-+	if (!parsed) {
-+		apei_hest_parse(aer_hest_parse_aff, NULL);
-+		parsed =3D true;
-+	}
-+	return aer_firmware_first;
-+}
- #endif
-Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.h
-+++ linux-2.6/drivers/pci/pcie/aer/aerdrv.h
-@@ -132,6 +132,7 @@ static inline int aer_osc_setup(struct p
-=20
- #ifdef CONFIG_ACPI_APEI
- extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
-+extern bool aer_acpi_firmware_first(void);
- #else
- static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_dev)
- {
-@@ -139,6 +140,8 @@ static inline int pcie_aer_get_firmware_
- 		return pci_dev->__aer_firmware_first;
- 	return 0;
- }
-+
-+static inline bool aer_acpi_firmware_first(void) { return false; }
- #endif
-=20
- static inline void pcie_aer_force_firmware_first(struct pci_dev *pci_d=
-ev,
-Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.c
-+++ linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-@@ -416,7 +416,7 @@ static void aer_error_resume(struct pci_
-  */
- static int __init aer_service_init(void)
- {
--	if (!pci_aer_available())
-+	if (!pci_aer_available() || aer_acpi_firmware_first())
- 		return -ENXIO;
- 	return pcie_port_service_register(&aerdriver);
- }
-Index: linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
-+++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-@@ -49,7 +49,7 @@ int pcie_port_acpi_setup(struct pci_dev=20
- 		| OSC_PCI_EXPRESS_PME_CONTROL;
-=20
- 	if (pci_aer_available()) {
--		if (pcie_aer_get_firmware_first(port))
-+		if (aer_acpi_firmware_first())
- 			dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
- 		else
- 			flags |=3D OSC_PCI_EXPRESS_AER_CONTROL;
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18742
+Subject		: PROBLEM: Kernel panic on 2.6.36-rc4 when loading intel_ips on Core i3 laptop
+Submitter	: infernix <infernix@infernix.net>
+Date		: 2010-09-15 14:35 (6 days old)
+Message-ID	: <4C90D998.6050103@infernix.net>
+References	: http://marc.info/?l=linux-kernel&m=128456187928496&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18692
+Subject		: 2.6.36-rc4/iwl: warning triggered in net/mac80211/scan.c:266
+Submitter	: Michael S. Tsirkin <mst@redhat.com>
+Date		: 2010-09-14 14:28 (7 days old)
+Message-ID	: <20100914142814.GA8744@redhat.com>
+References	: http://marc.info/?l=linux-kernel&m=128447487918792&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18432
+Subject		: radeon kms freezes on boot with video= option
+Submitter	: Jose Marino <braket@hotmail.com>
+Date		: 2010-09-13 22:28 (8 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18402
+Subject		: 2.6.36-rc4 KPs whenever booting on a Pentium 4 HT system
+Submitter	: Michael Marley <michael@michaelmarley.com>
+Date		: 2010-09-13 15:07 (8 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18342
+Subject		: [regression] i915 incorrectly detects bogus LVDS connection instead of LVDS1
+Submitter	: Woody Suwalski <terraluna977@gmail.com>
+Date		: 2010-09-08 15:10 (13 days old)
+Message-ID	: <AANLkTim2mrVRCKg-2couMTFV7krHQp0+2e_cbaiT_KYW@mail.gmail.com>
+References	: http://marc.info/?l=linux-kernel&m=128395866331382&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=18332
+Subject		: [regression] *ERROR* timed out waiting for FORCE_DETECT in 36rc3 on i915
+Submitter	: Andi Kleen <andi@firstfloor.org>
+Date		: 2010-09-08 13:53 (13 days old)
+Message-ID	: <87mxrswddf.fsf@basil.nowhere.org>
+References	: http://marc.info/?l=linux-kernel&m=128395400624946&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17752
+Subject		: 2.6.36-rc3: inconsistent lock state (iprune_sem, shrink_icache_memory)
+Submitter	: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Date		: 2010-09-01 6:37 (20 days old)
+Message-ID	: <tkrat.ed8eda6bc8ffe64e@s5r6.in-berlin.de>
+References	: http://marc.info/?l=linux-kernel&m=128332308528119&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17722
+Subject		: 2.6.36-rc3: WARNING: at net/mac80211/scan.c:269 ieee80211_scan_completed
+Submitter	: Thomas Meyer <thomas@m3y3r.de>
+Date		: 2010-08-31 20:14 (21 days old)
+Message-ID	: <201008312214.52473.thomas@m3y3r.de>
+References	: http://marc.info/?l=linux-kernel&m=128328580504227&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17361
+Subject		: Watchdog detected hard LOCKUP in jbd2_journal_get_write_access
+Submitter	: Christian Casteyde <casteyde.christian@free.fr>
+Date		: 2010-08-29 19:59 (23 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17341
+Subject		: kdump regression compared to v2.6.35
+Submitter	: CAI Qian <caiqian@redhat.com>
+Date		: 2010-08-27 12:35 (25 days old)
+Message-ID	: <2136707099.1405541282912500148.JavaMail.root@zmail06.collab.prod.int.phx2.redhat.com>
+References	: http://marc.info/?l=linux-kernel&m=128291252612135&w=2
+Handled-By	: Tejun Heo <tj@kernel.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=17061
+Subject		: 2.6.36-rc1 on zaurus: bluetooth regression
+Submitter	: Pavel Machek <pavel@ucw.cz>
+Date		: 2010-08-21 15:24 (31 days old)
+Message-ID	: <20100821152445.GA1536@ucw.cz>
+References	: http://marc.info/?l=linux-kernel&m=128240433828087&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16971
+Subject		: qla4xxx compile failure on 32-bit PowerPC: missing readq and writeq
+Submitter	: Meelis Roos <mroos@linux.ee>
+Date		: 2010-08-19 21:03 (33 days old)
+Message-ID	: <alpine.SOC.1.00.1008192359310.19654@math.ut.ee>
+References	: http://marc.info/?l=linux-kernel&m=128225184900892&w=2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=16951
+Subject		: hackbench regression with 2.6.36-rc1
+Submitter	: Zhang, Yanmin <yanmin_zhang@linux.intel.com>
+Date		: 2010-08-18 6:18 (34 days old)
+Message-ID	: <1282112318.21202.8.camel@ymzhang.sh.intel.com>
+References	: http://marc.info/?l=linux-kernel&m=128211235904910&w=2
+
+
+For details, please visit the bug entries and follow the links given in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regressions.
+There also is a Bugzilla entry used for tracking the regressions from 2.6.35,
+unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=16444
+
+Please let the tracking team know if there are any Bugzilla entries that
+should be added to the list in there.
+
+Thanks!
+
