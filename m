@@ -1,160 +1,58 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH]  PCI / PCIe / AER: Disable native AER service if BIOS
- has precedence
-Date: Mon, 20 Sep 2010 14:18:11 +0800
-Message-ID: <4C96FCA3.2060704@linux.intel.com>
-References: <201009200002.15609.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Why is Scope(_TZ_) defined as ACPI_TYPE_THERMAL rather than
+ ACPI_TYPE_LOCAL_SCOPE
+Date: Mon, 20 Sep 2010 15:08:17 +0800
+Message-ID: <1284966497.2111.3460.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201009200002.15609.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:42160 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752887Ab0ITHHm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Sep 2010 03:07:42 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>, "Brown, Len" <lenb@kernel.org>
 
-=E4=BA=8E 9/20/2010 6:02 AM, Rafael J. Wysocki =E5=86=99=E9=81=93:
-> From: Rafael J. Wysocki<rjw@sisk.pl>
->
-> There is a design issue related to PCIe AER and _OSC that the BIOS
-> may be asked to grant control of the AER service even if some
-> Hardware Error Source Table (HEST) entries contain information
-> meaning that the BIOS really should control it.  Namely,
-> pcie_port_acpi_setup() calls pcie_aer_get_firmware_first() that
-> determines whether or not the AER service should be controlled by
-> the BIOS on the basis of the HEST information for the given PCIe
-> port.  The BIOS is asked to grant control of the AER service for
-> a PCIe Root Complex if pcie_aer_get_firmware_first() returns 'false'
-> for at least one root port in that complex, even if all of the other
-> root ports' HEST entries have the FIRMWARE_FIRST flag set (and none
-> of them has the GLOBAL flag set).  However, if the AER service is
-> controlled by the kernel, that may interfere with the BIOS' handling
-> of the error sources having the FIRMWARE_FIRST flag.  Moreover,
-> there may be PCIe endpoints that have the FIRMWARE_FIRST flag set in
-> HEST and are attached to the root ports in question, in which case it
-> also may be unsafe to ask the BIOS for control of the AER service.
->
-> For this reason, introduce a function checking if there's at least
-> one PCIe-related HEST entry with the FIRMWARE_FIRST flag set and
-> disable the native AER service altogether if this function returns
-> 'true'.
->
-> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
-> ---
->   drivers/pci/pcie/aer/aerdrv.c      |    2 +-
->   drivers/pci/pcie/aer/aerdrv.h      |    3 +++
->   drivers/pci/pcie/aer/aerdrv_acpi.c |   31 +++++++++++++++++++++++++=
-++++++
->   drivers/pci/pcie/portdrv_acpi.c    |    2 +-
->   4 files changed, 36 insertions(+), 2 deletions(-)
->
-> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv_acpi.c
-> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv_acpi.c
-> @@ -93,4 +93,35 @@ int pcie_aer_get_firmware_first(struct p
->   		aer_set_firmware_first(dev);
->   	return dev->__aer_firmware_first;
->   }
-> +
-> +static bool aer_firmware_first;
-> +
-> +static int aer_hest_parse_aff(struct acpi_hest_header *hest_hdr, voi=
-d *data)
-> +{
-> +	if (aer_firmware_first)
-> +		return 0;
-> +
-> +	switch (hest_hdr->type) {
-> +	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-> +	case ACPI_HEST_TYPE_AER_ENDPOINT:
-> +	case ACPI_HEST_TYPE_AER_BRIDGE:
-> +		aer_firmware_first =3D !!(p->flags&  ACPI_HEST_FIRMWARE_FIRST);
+Hi, Bob,
 
-Where "p" comes from ? Maybe it points to "struct acpi_hest_aer_common =
-*p;"
+this is the code in utglobal.c,
+/*
+ * Predefined ACPI Names (Built-in to the Interpreter)
+ *
+ * NOTES:
+ * 1) _SB_ is defined to be a device to allow \_SB_._INI to be run
+ *    during the initialization sequence.
+ * 2) _TZ_ is defined to be a thermal zone in order to allow ASL code to
+ *    perform a Notify() operation on it.
+ */
+const struct acpi_predefined_names acpi_gbl_pre_defined_names[] = {
+        {"_GPE", ACPI_TYPE_LOCAL_SCOPE, NULL},
+        {"_PR_", ACPI_TYPE_LOCAL_SCOPE, NULL},
+        {"_SB_", ACPI_TYPE_DEVICE, NULL},
+        {"_SI_", ACPI_TYPE_LOCAL_SCOPE, NULL},
+        {"_TZ_", ACPI_TYPE_THERMAL, NULL},
+        {"_REV", ACPI_TYPE_INTEGER, (char *)ACPI_CA_SUPPORT_LEVEL},
+        {"_OS_", ACPI_TYPE_STRING, ACPI_OS_NAME},
+        {"_GL_", ACPI_TYPE_MUTEX, (char *)1},
 
-> +	default:
-> +		return 0;
-> +	}
-> +}
-> +
-> +/**
-> + * aer_acpi_firmware_first - Check if APEI should control AER.
-> + */
-> +bool aer_acpi_firmware_first(void)
-> +{
-> +	static bool parsed =3D false;
-> +
-> +	if (!parsed) {
-> +		apei_hest_parse(aer_hest_parse_aff, NULL);
-> +		parsed =3D true;
-> +	}
-> +	return aer_firmware_first;
-> +}
->   #endif
-> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.h
-> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv.h
-> @@ -132,6 +132,7 @@ static inline int aer_osc_setup(struct p
->
->   #ifdef CONFIG_ACPI_APEI
->   extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
-> +extern bool aer_acpi_firmware_first(void);
->   #else
->   static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_d=
-ev)
->   {
-> @@ -139,6 +140,8 @@ static inline int pcie_aer_get_firmware_
->   		return pci_dev->__aer_firmware_first;
->   	return 0;
->   }
-> +
-> +static inline bool aer_acpi_firmware_first(void) { return false; }
->   #endif
->
->   static inline void pcie_aer_force_firmware_first(struct pci_dev *pc=
-i_dev,
-> Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.c
-> +++ linux-2.6/drivers/pci/pcie/aer/aerdrv.c
-> @@ -416,7 +416,7 @@ static void aer_error_resume(struct pci_
->    */
->   static int __init aer_service_init(void)
->   {
-> -	if (!pci_aer_available())
-> +	if (!pci_aer_available() || aer_acpi_firmware_first())
->   		return -ENXIO;
->   	return pcie_port_service_register(&aerdriver);
->   }
-> Index: linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
-> +++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-> @@ -49,7 +49,7 @@ int pcie_port_acpi_setup(struct pci_dev
->   		| OSC_PCI_EXPRESS_PME_CONTROL;
->
->   	if (pci_aer_available()) {
-> -		if (pcie_aer_get_firmware_first(port))
-> +		if (aer_acpi_firmware_first())
->   			dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
->   		else
->   			flags |=3D OSC_PCI_EXPRESS_AER_CONTROL;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I found a problem that Linux thermal driver tries to probe _TZ_ because
+the _TZ_ ACPI namespace node type suggests it's a thermal device.
+
+I'm wondering why it's a device rather than a scope.
+The comment above says ASL code may perform a Notify() operation on it,
+but IMO, this notification is meaningless on its own, because _TZ_ can
+neither detect the temperature, nor cool the system down, i.e. no action
+should be taken on this notification.
+
+So I think we should change the type to ACPI_TYPE_LOCAL_SCOPE, just like
+_PR_, _GPE.
+
+BTW: yes, we can do the tricks in Linux/ACPI code, but it's more likely
+an ACPICA problem. what do you think?
+
+thanks,
+rui
+
