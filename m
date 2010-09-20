@@ -1,17 +1,17 @@
 From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: Why is Scope(_TZ_) defined as ACPI_TYPE_THERMAL rather than
  ACPI_TYPE_LOCAL_SCOPE
-Date: Mon, 20 Sep 2010 13:17:42 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AF29BF45@orsmsx503.amr.corp.intel.com>
+Date: Mon, 20 Sep 2010 13:29:01 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858AF29BF79@orsmsx503.amr.corp.intel.com>
 References: <1284966497.2111.3460.camel@rui>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10720 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:8558 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756778Ab0ITUR4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2010 16:17:56 -0400
+	id S1757543Ab0ITU3E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2010 16:29:04 -0400
 In-Reply-To: <1284966497.2111.3460.camel@rui>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,7 +19,15 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Brown, Len" <lenb@kernel.org>
 
-I don't remember all of the details on this, but I will look at it and get back to you.
+The comment appears to be correct as far as notifies on _TZ. I easily found a couple machines:
+
+C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Benq-Joybook_6000-017-original.asl(3652):                            Notify (\_TZ, 0x80)
+C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Benq-Joybook_7000-R202-custom.asl(3247):                            Notify (\_TZ, 0x80)
+C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-custom.asl(708):                        Notify (\_TZ, 0x80)
+C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-custom.asl(723):                        Notify (\_TZ, 0x80)
+C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-custom.asl(3560):                        Notify (\_TZ, 0x80)
+
+
 
 
 >-----Original Message-----
