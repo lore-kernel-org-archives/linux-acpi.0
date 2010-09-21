@@ -1,28 +1,52 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPICA release 20100915 linuxized patches
-Date: Tue, 21 Sep 2010 04:40:09 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009210440040.14602@localhost.localdomain>
-References: <1284683278.29775.27.camel@minggr.sh.intel.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 1/5] ACPI, APEI, Fix APEI related table size checking
+Date: Tue, 21 Sep 2010 14:39:45 +0200
+Message-ID: <20100921123945.GB18991@one.firstfloor.org>
+References: <1284865235-29920-1-git-send-email-ying.huang@intel.com> <1284865235-29920-2-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:55325 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756488Ab0IUIkP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 04:40:15 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9300AP59F05QHO@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 21 Sep 2010 03:40:15 -0500 (CDT)
-In-reply-to: <1284683278.29775.27.camel@minggr.sh.intel.com>
+Received: from one.firstfloor.org ([213.235.205.2]:42701 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767Ab0IUMju (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 08:39:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1284865235-29920-2-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-applied to acpica branch
+On Sun, Sep 19, 2010 at 11:00:31AM +0800, Huang Ying wrote:
+> From: Yinghai Lu <yinghai@kernel.org>
+> 
+> Both ERST and EINJ table size checking is fixed.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Needs a better description.
+> ---
+>  drivers/acpi/apei/einj.c |    3 ++-
+>  drivers/acpi/apei/erst.c |    3 ++-
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index 465c885..b184baa 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
+>  
+>  static int einj_check_table(struct acpi_table_einj *einj_tab)
+>  {
+> -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
+> +	if (einj_tab->header_length !=
+> +	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
 
+I don't understand these changes. So on any system where the old check worked
+before it won't work anymore?  Since the code has been presumably tested
+before this would break systems, won't it?
+
+Same with the other changes.
+
+-Andi
+
+-- 
+ak@linux.intel.com -- Speaking for myself only.
