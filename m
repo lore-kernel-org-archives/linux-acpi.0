@@ -1,55 +1,69 @@
-From: Gleb Natapov <gleb@redhat.com>
-Subject: how CPU hot-plug is suppose to work on Linux?
-Date: Tue, 21 Sep 2010 15:41:09 +0200
-Message-ID: <20100921134109.GC11145@redhat.com>
+From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
+Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
+ rf/camera power
+Date: Tue, 21 Sep 2010 15:47:21 +0200
+Message-ID: <20100921134720.GA19078@darkside.kls.lan>
+References: <20100830181954.GE31068@darkside.kls.lan>
+ <4C7E3DE0.7030209@canonical.com>
+ <20100901195617.GD32589@darkside.kls.lan>
+ <4C80BA81.20701@canonical.com>
+ <20100909181714.GA14951@darkside.kls.lan>
+ <4C89D3C0.7040105@canonical.com>
+ <20100910071155.GA1263@darkside.kls.lan>
+ <4C909C57.5030107@canonical.com>
+ <20100915114820.GA22415@darkside.kls.lan>
+ <4C920684.7080000@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40148 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754417Ab0IUNlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Sep 2010 09:41:11 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <4C920684.7080000@canonical.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: kvm@vger.kernel.org
 
-Hello,
 
-We are trying to add CPU hot-plug/unplug capability to KVM. We want to
-be able to initiate hot-plug/unplug from a host. Our current schema
-works like this:
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We have Processor object in DSDT for each potentially available CPU.
-Each Processor object has _MAD, _STA, _EJ0. _MAD of present CPU returns
-enabled LAPIC structure. _STA of present CPU return 0xf. _MADT of non
-present CPU returns disabled LAPIC. _STA returns 0x0. _EJ0 does nothing.
+Hi Ike,
 
-When CPU is hot plugged:
+On Thu, Sep 16, 2010 at 07:59:00PM +0800, Ike Panhc wrote:
+> I have modified the driver[1]. Please kindly have a test and see if it is=
+ ok for you.
 
- 1. Bit is set in sts register of gpe
- 2. acpi interrupt is sent
- 3. Linux ACPI evaluates corespondent gpe's _L() method
- 4. _L() method determines which CPU's status is changed
- 5. For each CPU that changed status from not present to present
-    call Notify(1) to corespondent Processor() object.
+This new driver works well for me. Forced enable works well with
+no_bt_rfkill=3D1 and keeping the state does also work well without
+no_bt_rfkill.
 
-When CPU is hot unplugged:
+Sorry for the delay and thanks for your work.
 
- 1. Bit is set in sts register of gpe
- 2. acpi interrupt is sent
- 3. Linux ACPI evaluates corespondent gpe's _L() method
- 4. _L() method determines which CPU's status is changed
- 5. For each CPU that changed status from present to non present
-    call Notify(3) to corespondent Processor() object.
 
-Now, CPU hot plug appears to be working. But CPU hot unplug does
-nothing. I expect that Linux will offline CPU and eject it after
-evaluating Notify(3) and seeing that _STA of ejected CPU returns
-0x0 now.
+best regards
+   Mario
+--=20
+<Sique> Huch? 802.1q? Was sucht das denn hier? Wie kommt das ans TAGgeslich=
+t?
 
-Any ideas how it is suppose to work?
+--huq684BweRXVnRxX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
---
-			Gleb.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEVAwUBTJi3aBS+e2HeSPbpAQIBFQgAhGV0556YTcTdhKebPhKZI1sYyj/eufOU
+3+Ph/7xhwfkrF+WT/dFSMkKHOwyG8LEqlmC4Qse+K7lurqA+UZ935uG0EtLBCXUz
+TNNKxjvUl+mClikciTgcei9cfkMLYs03HIm5L37u2aO723QByVxIJYnAn/bzI1ab
+7Whcq8wEEvX6FuyEcWo1ZgoTb9nXtNrevLccKRLeHX3v1Vo3xgn4JH7OBuaKeouf
+0orV4M11bRzlegJfiKVih5fmoEbbJgxjZQdbrNH9L/qc6rbiO/Q5ZFqqFAPcbbAi
+NQ7qicFSDbKoxho7cVUwkpmsV4azXo6NVAJIEqTBjAzySmbyExmVbg==
+=7uqS
+-----END PGP SIGNATURE-----
+
+--huq684BweRXVnRxX--
