@@ -1,100 +1,28 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: 2.6.36-rc4-git5: Reported regressions from 2.6.35
-Date: Tue, 21 Sep 2010 00:05:15 -0400
-Message-ID: <AANLkTikNm90F6rpi7u=XUOG-Ga6F0+h=bFwkC-sKaO4j@mail.gmail.com>
-References: <1fwtoy8sG5H.A.veG.9D7lMB@chimera>
-	<AANLkTinLR0Js0ueVOGEkbs27d4FEH14c=1wuhUqPsiHx@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA release 20100806 linuxized patches
+Date: Tue, 21 Sep 2010 04:39:29 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1009210439230.14602@localhost.localdomain>
+References: <1281494555.2372.21.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:44593 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735Ab0IUEFR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 00:05:17 -0400
-In-Reply-To: <AANLkTinLR0Js0ueVOGEkbs27d4FEH14c=1wuhUqPsiHx@mail.gmail.com>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:59928 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463Ab0IUIjf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 04:39:35 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L93005J39DWUSXQ@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 21 Sep 2010 03:39:35 -0500 (CDT)
+In-reply-to: <1281494555.2372.21.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, harn-solo@gmx.de, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, Sep 20, 2010 at 3:19 PM, Sedat Dilek <sedat.dilek@googlemail.co=
-m> wrote:
-> Hi Rafael,
->
-> can you please add the following, Thanks in advance.
->> Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D=
-18872
->> Subject =A0 =A0 =A0 =A0 : Radeon KMS r100 and STR problems
->> Submitter =A0 =A0 =A0 : Richard Mittendorfer <delist@gmx.net>
->> Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-09-17 18:26 (4 days old)
->> Message-ID =A0 =A0 =A0: <20100917202647.aa4b6300.delist@gmx.net>
->> References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D12847=
-4802809779&w=3D2
->
-> On Mon, Sep 20, 2010 at 8:47 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
-e:
->> This message contains a list of some regressions from 2.6.35,
->> for which there are no fixes in the mainline known to the tracking t=
-eam.
->> If any of them have been fixed already, please let us know.
->>
->> If you know of any other unresolved regressions from 2.6.35, please =
-let us
->> know either and we'll add them to the list. =A0Also, please let us k=
-now
->> if any of the entries below are invalid.
->>
->> Each entry from the list will be sent additionally in an automatic r=
-eply
->> to this message with CCs to the people involved in reporting and han=
-dling
->> the issue.
->>
->>
->> Listed regressions statistics:
->>
->> =A0Date =A0 =A0 =A0 =A0 =A0Total =A0Pending =A0Unresolved
->> =A0----------------------------------------
->> =A02010-09-20 =A0 =A0 =A0 38 =A0 =A0 =A0 15 =A0 =A0 =A0 =A0 =A015
->> =A02010-09-12 =A0 =A0 =A0 28 =A0 =A0 =A0 14 =A0 =A0 =A0 =A0 =A013
->> =A02010-08-30 =A0 =A0 =A0 21 =A0 =A0 =A0 16 =A0 =A0 =A0 =A0 =A015
->>
->>
->> Unresolved regressions
->
-> Hi Rafael,
->
-> can you please add the following Bug, Thanks in advance.
->
-> Bug-Entry =A0 =A0 =A0 : https://bugzilla.kernel.org/show_bug.cgi?id=3D=
-16140
-> Subject =A0 =A0 =A0 =A0 : Suspend To RAM/ Resume broken - Radeon KMS =
-on RV250
-> Submitter =A0 =A0 =A0 : Michael Long <harn-solo@gmx.de>
-> Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-06-06 09:52
-> Message-ID =A0 =A0 =A0: ???
-> References =A0 =A0 =A0: ???
->
-> What is with "Regression: =A0 =A0 =A0 No" in the BR? Change?
+applied to acpica branch
 
-This isn't a regression as according to your bug report, s/r has never
-worked on your board with kms.  The kms and ums drm components are
-completely different drivers even though they are compiled into the
-same binary.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Alex
-
->
-> Regards,
-> - Sedat -
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
