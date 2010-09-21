@@ -1,45 +1,48 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 3/5] ACPI, APEI, HEST Fix the unsuitable usage of platform_data
-Date: Tue, 21 Sep 2010 14:43:08 +0200
-Message-ID: <20100921124308.GC18991@one.firstfloor.org>
-References: <1284865235-29920-1-git-send-email-ying.huang@intel.com> <1284865235-29920-4-git-send-email-ying.huang@intel.com>
+Subject: Re: [PATCH 4/5] ACPI, APEI, Fix error path for memory allocation
+Date: Tue, 21 Sep 2010 14:45:52 +0200
+Message-ID: <20100921124552.GD18991@one.firstfloor.org>
+References: <1284865235-29920-1-git-send-email-ying.huang@intel.com> <1284865235-29920-5-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:42710 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:56884 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872Ab0IUMnJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 08:43:09 -0400
+	with ESMTP id S1751313Ab0IUMpx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 08:45:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1284865235-29920-4-git-send-email-ying.huang@intel.com>
+In-Reply-To: <1284865235-29920-5-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
 
-On Sun, Sep 19, 2010 at 11:00:33AM +0800, Huang Ying wrote:
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 343168d..1a3508a 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
+On Sun, Sep 19, 2010 at 11:00:34AM +0800, Huang Ying wrote:
+> @@ -475,7 +479,13 @@ int apei_resources_request(struct apei_resources *resources,
+>  		}
+>  	}
 >  
->  static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
+> -	apei_resources_merge(&apei_resources_all, resources);
+> +	rc = apei_resources_merge(&apei_resources_all, resources);
+> +	if (rc) {
+> +		pr_err(APEI_PFX
+> +"Error in APEI internal resource management, there may be inconsistent "
+> +"between APEI internal and system resource management.");
 
-hest_hdr is a local variable on the stack.
+Please fix the English. This will wrap in the syslog without \ns no?
+Kernel messges should be not wider than 80 characters.
 
-
-> +
-> +	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
+> +	rc = apei_resources_sub(&apei_resources_all, resources);
 > +	if (rc)
-> +		goto err;
+> +		pr_err(APEI_PFX
+> +"Error in APEI internal resource management, there may be inconsistent "
+> +"between APEI internal and system resource management.");
 
-Now you put the address of that local variable in some global data structure.
+Same.
 
-And then you likely return and later the access accesses random stack space? 
+Also instead of Error it would be better just say what is wrong and don't
+try to analyze the problem.
 
 -Andi
-
-
 -- 
 ak@linux.intel.com -- Speaking for myself only.
