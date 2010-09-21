@@ -1,114 +1,100 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Why is Scope(_TZ_) defined as ACPI_TYPE_THERMAL rather than
- ACPI_TYPE_LOCAL_SCOPE
-Date: Mon, 20 Sep 2010 17:56:09 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858AF29C3E4@orsmsx503.amr.corp.intel.com>
-References: <1284966497.2111.3460.camel@rui>
-	 <4911F71203A09E4D9981D27F9D830858AF29BF79@orsmsx503.amr.corp.intel.com>
- <1285028191.2111.3472.camel@rui>
+From: Alex Deucher <alexdeucher@gmail.com>
+Subject: Re: 2.6.36-rc4-git5: Reported regressions from 2.6.35
+Date: Tue, 21 Sep 2010 00:05:15 -0400
+Message-ID: <AANLkTikNm90F6rpi7u=XUOG-Ga6F0+h=bFwkC-sKaO4j@mail.gmail.com>
+References: <1fwtoy8sG5H.A.veG.9D7lMB@chimera>
+	<AANLkTinLR0Js0ueVOGEkbs27d4FEH14c=1wuhUqPsiHx@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51798 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751865Ab0IUA4M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Sep 2010 20:56:12 -0400
-In-Reply-To: <1285028191.2111.3472.camel@rui>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44593 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735Ab0IUEFR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 00:05:17 -0400
+In-Reply-To: <AANLkTinLR0Js0ueVOGEkbs27d4FEH14c=1wuhUqPsiHx@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Brown, Len" <lenb@kernel.org>
+To: sedat.dilek@gmail.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, harn-solo@gmx.de, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 
-Yes, perhaps it should be type Device.
+On Mon, Sep 20, 2010 at 3:19 PM, Sedat Dilek <sedat.dilek@googlemail.co=
+m> wrote:
+> Hi Rafael,
+>
+> can you please add the following, Thanks in advance.
+>> Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D=
+18872
+>> Subject =A0 =A0 =A0 =A0 : Radeon KMS r100 and STR problems
+>> Submitter =A0 =A0 =A0 : Richard Mittendorfer <delist@gmx.net>
+>> Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-09-17 18:26 (4 days old)
+>> Message-ID =A0 =A0 =A0: <20100917202647.aa4b6300.delist@gmx.net>
+>> References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D12847=
+4802809779&w=3D2
+>
+> On Mon, Sep 20, 2010 at 8:47 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
+e:
+>> This message contains a list of some regressions from 2.6.35,
+>> for which there are no fixes in the mainline known to the tracking t=
+eam.
+>> If any of them have been fixed already, please let us know.
+>>
+>> If you know of any other unresolved regressions from 2.6.35, please =
+let us
+>> know either and we'll add them to the list. =A0Also, please let us k=
+now
+>> if any of the entries below are invalid.
+>>
+>> Each entry from the list will be sent additionally in an automatic r=
+eply
+>> to this message with CCs to the people involved in reporting and han=
+dling
+>> the issue.
+>>
+>>
+>> Listed regressions statistics:
+>>
+>> =A0Date =A0 =A0 =A0 =A0 =A0Total =A0Pending =A0Unresolved
+>> =A0----------------------------------------
+>> =A02010-09-20 =A0 =A0 =A0 38 =A0 =A0 =A0 15 =A0 =A0 =A0 =A0 =A015
+>> =A02010-09-12 =A0 =A0 =A0 28 =A0 =A0 =A0 14 =A0 =A0 =A0 =A0 =A013
+>> =A02010-08-30 =A0 =A0 =A0 21 =A0 =A0 =A0 16 =A0 =A0 =A0 =A0 =A015
+>>
+>>
+>> Unresolved regressions
+>
+> Hi Rafael,
+>
+> can you please add the following Bug, Thanks in advance.
+>
+> Bug-Entry =A0 =A0 =A0 : https://bugzilla.kernel.org/show_bug.cgi?id=3D=
+16140
+> Subject =A0 =A0 =A0 =A0 : Suspend To RAM/ Resume broken - Radeon KMS =
+on RV250
+> Submitter =A0 =A0 =A0 : Michael Long <harn-solo@gmx.de>
+> Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-06-06 09:52
+> Message-ID =A0 =A0 =A0: ???
+> References =A0 =A0 =A0: ???
+>
+> What is with "Regression: =A0 =A0 =A0 No" in the BR? Change?
 
+This isn't a regression as according to your bug report, s/r has never
+worked on your board with kms.  The kms and ums drm components are
+completely different drivers even though they are compiled into the
+same binary.
 
->-----Original Message-----
->From: Zhang, Rui
->Sent: Monday, September 20, 2010 5:17 PM
->To: Moore, Robert
->Cc: linux-acpi@vger.kernel.org; Lin, Ming M; Brown, Len
->Subject: RE: Why is Scope(_TZ_) defined as ACPI_TYPE_THERMAL rather than
->ACPI_TYPE_LOCAL_SCOPE
->
->Hi, bob,
->
->On Tue, 2010-09-21 at 04:29 +0800, Moore, Robert wrote:
->> The comment appears to be correct as far as notifies on _TZ. I easily
->found a couple machines:
->>
->> C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Benq-Joybook_6000-017-
->original.asl(3652):                            Notify (\_TZ, 0x80)
->> C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Benq-Joybook_7000-R202-
->custom.asl(3247):                            Notify (\_TZ, 0x80)
->> C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-
->custom.asl(708):                        Notify (\_TZ, 0x80)
->> C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-
->custom.asl(723):                        Notify (\_TZ, 0x80)
->> C:\ACPI_PREVIOUS\ASLFILES\DSDT DATABASE\Toshiba-Tecra_S1-2.30-
->custom.asl(3560):                        Notify (\_TZ, 0x80)
->>
->
->what does Notify (\_TZ, 0x80) mean?
->_TZ doesn't have _TMP method as it's not an thermal zone actually.
->So what action should be taken when evaluating this ASL code?
->
->Plus, if we really want "Notify(\_TZ, 0x80)", we can use
->ACPI_TYPE_DEVICE rather than ACPI_TYPE_THERMAL, right?
->
->thanks,
->rui
->>
->>
->>
->> >-----Original Message-----
->> >From: Zhang, Rui
->> >Sent: Monday, September 20, 2010 12:08 AM
->> >To: Moore, Robert
->> >Cc: linux-acpi@vger.kernel.org; Lin, Ming M; Brown, Len
->> >Subject: Why is Scope(_TZ_) defined as ACPI_TYPE_THERMAL rather than
->> >ACPI_TYPE_LOCAL_SCOPE
->> >
->> >Hi, Bob,
->> >
->> >this is the code in utglobal.c,
->> >/*
->> > * Predefined ACPI Names (Built-in to the Interpreter)
->> > *
->> > * NOTES:
->> > * 1) _SB_ is defined to be a device to allow \_SB_._INI to be run
->> > *    during the initialization sequence.
->> > * 2) _TZ_ is defined to be a thermal zone in order to allow ASL code to
->> > *    perform a Notify() operation on it.
->> > */
->> >const struct acpi_predefined_names acpi_gbl_pre_defined_names[] = {
->> >        {"_GPE", ACPI_TYPE_LOCAL_SCOPE, NULL},
->> >        {"_PR_", ACPI_TYPE_LOCAL_SCOPE, NULL},
->> >        {"_SB_", ACPI_TYPE_DEVICE, NULL},
->> >        {"_SI_", ACPI_TYPE_LOCAL_SCOPE, NULL},
->> >        {"_TZ_", ACPI_TYPE_THERMAL, NULL},
->> >        {"_REV", ACPI_TYPE_INTEGER, (char *)ACPI_CA_SUPPORT_LEVEL},
->> >        {"_OS_", ACPI_TYPE_STRING, ACPI_OS_NAME},
->> >        {"_GL_", ACPI_TYPE_MUTEX, (char *)1},
->> >
->> >I found a problem that Linux thermal driver tries to probe _TZ_ because
->> >the _TZ_ ACPI namespace node type suggests it's a thermal device.
->> >
->> >I'm wondering why it's a device rather than a scope.
->> >The comment above says ASL code may perform a Notify() operation on it,
->> >but IMO, this notification is meaningless on its own, because _TZ_ can
->> >neither detect the temperature, nor cool the system down, i.e. no action
->> >should be taken on this notification.
->> >
->> >So I think we should change the type to ACPI_TYPE_LOCAL_SCOPE, just like
->> >_PR_, _GPE.
->> >
->> >BTW: yes, we can do the tricks in Linux/ACPI code, but it's more likely
->> >an ACPICA problem. what do you think?
->> >
->> >thanks,
->> >rui
->>
->
+Alex
 
+>
+> Regards,
+> - Sedat -
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
