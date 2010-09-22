@@ -1,46 +1,45 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [2.6.35-rc5] hp-wmi patch missed .35 merge window, requesting
- addition to next rc
-Date: Tue, 21 Sep 2010 19:08:16 -0700
-Message-ID: <20100921190816.e6ca6a72.akpm@linux-foundation.org>
-References: <AANLkTimOVY+iOOMKhwFfX5Wcw1y_PcvoCCfEcjoPmj3J@mail.gmail.com>
+From: Marc Ferland <marc.ferland@gmail.com>
+Subject: sysfs interface not updating when inserting/removing new battery
+Date: Wed, 22 Sep 2010 10:37:32 -0400
+Message-ID: <AANLkTi=JyFAbwzb3jBqEJ9=WnTFDQqE8Ay1pfSNBd7c2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38514 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752517Ab0IVCIh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Sep 2010 22:08:37 -0400
-In-Reply-To: <AANLkTimOVY+iOOMKhwFfX5Wcw1y_PcvoCCfEcjoPmj3J@mail.gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33547 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505Ab0IVOhc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Sep 2010 10:37:32 -0400
+Received: by pvg2 with SMTP id 2so139612pvg.19
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Sep 2010 07:37:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Hill <joshua.hill@gmail.com>
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, alan@redhat.com, stable@kernel.org, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-(cc's added)
+Hi,
 
-On Tue, 21 Sep 2010 10:23:57 -0700 Josh Hill <joshua.hill@gmail.com> wrote:
+I'm currently running Linux 2.6.35.4 on a COMexpress module made by
+Kontron. I am having problems getting events about newly
+inserted/removed batteries on the sysfs interface. The module has 2
+battery slots and one AC/DC adapter (which are correctly detected by
+the kernel at boot time).
 
-> please cc as i'm unsubscribed
-> as reported in this bug: https://bugzilla.kernel.org/show_bug.cgi?id=15344
-> and the patch: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=751ae808f6b29803228609f51aa1ae057f5c576e
-> 
-> the backlight on this laptop goes down one level whenever
-> /proc/acpi/ac_adapter/*/status is read.
-> i've been told the patch missed the .35 merge window, and is going to
-> be in .36, but ubuntu is
-> going to release 10.10 soon with .35 in it, and if this patch doesn't
-> make it into .35 my laptop
-> will be doing this for its (10.10) entire lifetime. i didn't know who
-> to really contact and request this sort
-> of thing so i'm doing it here.
+Everything is correctly detected at boot time, problems appear when
+removing or inserting a battery in one of the two slots once the
+system is up and running.
 
-The suggestion is that mainline's
-751ae808f6b29803228609f51aa1ae057f5c576e ("x86 platform drivers: hp-wmi
-Reorder event id processing") be backported into 2.6.35.x to fix the
-post-2.6.32 regression described in
-https://bugzilla.kernel.org/show_bug.cgi?id=15344
+First, if I remove a battery that was present at boot time, it's sysfs
+interface isn't removed (it stays there with the last info that was
+read from the battery) and second, if I add a new battery it's sysfs
+interface is not created.
 
+I also noticed that reading the battery state from procfs
+(/proc/acpi/battery/BAT[12]/state) seems to trigger the update of both
+the procfs and sysfs interface. So previously undetected batteries now
+appear in sysfs and absent batteries are removed.
 
+So, is there a way to update the batteries sysfs interface without
+having someone poking at procfs all the time?
+
+Regards,
+
+Marc
