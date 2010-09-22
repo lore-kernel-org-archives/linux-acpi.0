@@ -1,69 +1,57 @@
-From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
-Subject: Re: [PATCH 0/8] [Resend] ideapad: using EC command to control
- rf/camera power
-Date: Tue, 21 Sep 2010 15:47:21 +0200
-Message-ID: <20100921134720.GA19078@darkside.kls.lan>
-References: <20100830181954.GE31068@darkside.kls.lan>
- <4C7E3DE0.7030209@canonical.com>
- <20100901195617.GD32589@darkside.kls.lan>
- <4C80BA81.20701@canonical.com>
- <20100909181714.GA14951@darkside.kls.lan>
- <4C89D3C0.7040105@canonical.com>
- <20100910071155.GA1263@darkside.kls.lan>
- <4C909C57.5030107@canonical.com>
- <20100915114820.GA22415@darkside.kls.lan>
- <4C920684.7080000@canonical.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: Re: [PATCH 3/5] ACPI, APEI, HEST Fix the unsuitable usage of platform_data
+Date: Wed, 22 Sep 2010 10:05:14 +0900
+Message-ID: <4C99564A.5000209@np.css.fujitsu.com>
+References: <1284865235-29920-1-git-send-email-ying.huang@intel.com> <1284865235-29920-4-git-send-email-ying.huang@intel.com> <20100921124308.GC18991@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4C920684.7080000@canonical.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: David Woodhouse <dwmw2@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Alan Cox <alan@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:60080 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755604Ab0IVBEW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Sep 2010 21:04:22 -0400
+In-Reply-To: <20100921124308.GC18991@one.firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+
+Hi, Andi
+(2010/09/21 21:43), Andi Kleen wrote:
+> On Sun, Sep 19, 2010 at 11:00:33AM +0800, Huang Ying wrote:
+>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>> index 343168d..1a3508a 100644
+>> --- a/drivers/acpi/apei/hest.c
+>> +++ b/drivers/acpi/apei/hest.c
+>> @@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void *data)
+>>  
+>>  static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
+> 
+> hest_hdr is a local variable on the stack.
+> 
+Yes, you are right. Exactly what hest_hdr pointed is ghes address of 
+global static variable hest_tab.
+> 
+>> +
+>> +	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
+>> +	if (rc)
+>> +		goto err;
+> 
+> Now you put the address of that local variable in some global data structure.
+> 
+> And then you likely return and later the access accesses random stack space? 
+> 
+No, I don't think so.
+
+Here the value(ghes address) of hest_hdr is saved into the private area of ghes_dev,
+not the address of hest_hdr itself. So what you described will not happen.
+
+Best Regards,
+Jin Dongming
+
+> -Andi
+> 
+> 
 
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Ike,
-
-On Thu, Sep 16, 2010 at 07:59:00PM +0800, Ike Panhc wrote:
-> I have modified the driver[1]. Please kindly have a test and see if it is=
- ok for you.
-
-This new driver works well for me. Forced enable works well with
-no_bt_rfkill=3D1 and keeping the state does also work well without
-no_bt_rfkill.
-
-Sorry for the delay and thanks for your work.
-
-
-best regards
-   Mario
---=20
-<Sique> Huch? 802.1q? Was sucht das denn hier? Wie kommt das ans TAGgeslich=
-t?
-
---huq684BweRXVnRxX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEVAwUBTJi3aBS+e2HeSPbpAQIBFQgAhGV0556YTcTdhKebPhKZI1sYyj/eufOU
-3+Ph/7xhwfkrF+WT/dFSMkKHOwyG8LEqlmC4Qse+K7lurqA+UZ935uG0EtLBCXUz
-TNNKxjvUl+mClikciTgcei9cfkMLYs03HIm5L37u2aO723QByVxIJYnAn/bzI1ab
-7Whcq8wEEvX6FuyEcWo1ZgoTb9nXtNrevLccKRLeHX3v1Vo3xgn4JH7OBuaKeouf
-0orV4M11bRzlegJfiKVih5fmoEbbJgxjZQdbrNH9L/qc6rbiO/Q5ZFqqFAPcbbAi
-NQ7qicFSDbKoxho7cVUwkpmsV4azXo6NVAJIEqTBjAzySmbyExmVbg==
-=7uqS
------END PGP SIGNATURE-----
-
---huq684BweRXVnRxX--
