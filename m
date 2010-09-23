@@ -1,41 +1,55 @@
-From: Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
-Subject: SMP affinity MSI-X interrupts
-Date: Wed, 22 Sep 2010 09:18:00 -0700 (PDT)
-Message-ID: <alpine.LNX.1.10.1009220902530.28792@rslab235.pmc-sierra.bc.ca>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [2.6.35-rc5] hp-wmi patch missed .35 merge window, requesting addition to next rc
+Date: Thu, 23 Sep 2010 10:37:08 +0200
+Message-ID: <201009231037.09097.trenn@suse.de>
+References: <AANLkTimOVY+iOOMKhwFfX5Wcw1y_PcvoCCfEcjoPmj3J@mail.gmail.com> <20100921190816.e6ca6a72.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: anil_ravindranath@pmc-sierra.com
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:48691 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751791Ab0IWIhM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Sep 2010 04:37:12 -0400
+In-Reply-To: <20100921190816.e6ca6a72.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Josh Hill <joshua.hill@gmail.com>, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, alan@redhat.com, stable@kernel.org, Matthew Garrett <mjg@redhat.com>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
 Hi,
 
-I have a Dual Core(and also Quad core) system and a controller which has 
-MSI-X interrupts.
+I didn't know about this one.
+Can people please add me to CC list on hp-wmi specific bug
+reports (for existing and new ones), thanks.
 
-What I noticied is that all interrupts coming only on CPU0. The 
-system/config is SMP aware.
+On Wednesday 22 September 2010 04:08:16 Andrew Morton wrote:
+> (cc's added)
+> The suggestion is that mainline's
+> 751ae808f6b29803228609f51aa1ae057f5c576e ("x86 platform drivers: hp-wmi
+> Reorder event id processing") be backported into 2.6.35.x to fix the
+> post-2.6.32 regression described in
+> https://bugzilla.kernel.org/show_bug.cgi?id=15344
+Hmm, the bug is still in "open" state, there is no statement that anything
+is found yet fixing the issue.
 
-As we undestand, I try to modify /proc/irq/num/smp_affinity settings to 
-get the interrupts for more than one core, what I noticied is if I change 
-it to lets say "2", I start getting interrupts only on CPU1. Now I change it 
-to "3", but I don't getting interrupts on CPU0 and CPU1. Its not taking 
-more than one CPU mask value.
+Could you please update the bug report if you verified and are sure
+the patch helps.
 
-I checked the irq_set_affinity() function and found that it need couple 
-of config settings like CONFIG_SMP and CONFIG_GENERIC_PENDING_IRQ and both 
-are set in my config.
+The patch is a cleanup, has some functional change, but should
+do things correctly now. As long as no special case was handled
+by always calling:
+hp_wmi_get_entry_by_scancode(eventcode);
+even it was not a hotkey event, this is a straight forward fix and
+if no one else complains, you have my vote for adding this to
+stable kernel(s).
 
-Looks like, the function irq_affinity_write_proc( ) is also taking "3" 
-(more than one CPU mask) correctly.
+about:
+> if this patch doesn't make it into .35 my laptop
+> will be doing this for its (10.10) entire lifetime.
+Isn't Ubuntu following stable 2.6.35.X kernels and you would get this with
+an update if it's pushed into stable kernels?
+I expect they do follow and there is no need to hurry?
 
-The irqbalancer is ON . Is there anyother CONFIG setting I am 
-missing?
-
-I am using a Distro kernel very latest (2.6.32 based). I can try on a 
-latest kernel as well.
-
-with regards,
-  Anil
+     Thomas
