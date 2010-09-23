@@ -1,58 +1,61 @@
 From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH 4/5] ACPI, APEI, Fix error path for memory allocation
-Date: Thu, 23 Sep 2010 16:53:11 +0800
-Message-ID: <AANLkTinkmCJpyj2j2yi3Lj9h2q0mFcWbS4y=AKxerYkz@mail.gmail.com>
+Subject: Re: [PATCH 5/5] ACPI, APEI, Fix ERST MOVE_DATA instruction implementation
+Date: Thu, 23 Sep 2010 17:04:31 +0800
+Message-ID: <AANLkTi=-LzZSgk9BYg8z6i5QrbRWPVBYtpqdkvsTc_E_@mail.gmail.com>
 References: <1284865235-29920-1-git-send-email-ying.huang@intel.com>
-	<1284865235-29920-5-git-send-email-ying.huang@intel.com>
-	<20100921124552.GD18991@one.firstfloor.org>
+	<1284865235-29920-6-git-send-email-ying.huang@intel.com>
+	<20100921124718.GE18991@one.firstfloor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100921124552.GD18991@one.firstfloor.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:50001 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752470Ab0IWJEc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Sep 2010 05:04:32 -0400
+In-Reply-To: <20100921124718.GE18991@one.firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
 Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Hi, Andi,
+Hi,
 
-On Tue, Sep 21, 2010 at 8:45 PM, Andi Kleen <andi@firstfloor.org> wrote=
+On Tue, Sep 21, 2010 at 8:47 PM, Andi Kleen <andi@firstfloor.org> wrote=
 :
-> On Sun, Sep 19, 2010 at 11:00:34AM +0800, Huang Ying wrote:
->> @@ -475,7 +479,13 @@ int apei_resources_request(struct apei_resource=
-s *resources,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> =C2=A0 =C2=A0 =C2=A0 }
->>
->> - =C2=A0 =C2=A0 apei_resources_merge(&apei_resources_all, resources)=
-;
->> + =C2=A0 =C2=A0 rc =3D apei_resources_merge(&apei_resources_all, res=
-ources);
->> + =C2=A0 =C2=A0 if (rc) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err(APEI_PFX
->> +"Error in APEI internal resource management, there may be inconsist=
-ent "
->> +"between APEI internal and system resource management.");
+> On Sun, Sep 19, 2010 at 11:00:35AM +0800, Huang Ying wrote:
+>> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+>> index 40b01c3..a103963 100644
+>> --- a/drivers/acpi/apei/erst.c
+>> +++ b/drivers/acpi/apei/erst.c
+>> @@ -266,13 +266,27 @@ static int erst_exec_move_data(struct apei_exe=
+c_context *ctx,
+>> =C2=A0{
+>> =C2=A0 =C2=A0 =C2=A0 int rc;
+>> =C2=A0 =C2=A0 =C2=A0 u64 offset;
+>> + =C2=A0 =C2=A0 void *src, *dst;
+>> +
+>> + =C2=A0 =C2=A0 /* ioremap does not work in interrupt context */
+>> + =C2=A0 =C2=A0 if (in_interrupt())
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EBUSY;
 >
-> Please fix the English. This will wrap in the syslog without \ns no?
-> Kernel messges should be not wider than 80 characters.
->
->> + =C2=A0 =C2=A0 rc =3D apei_resources_sub(&apei_resources_all, resou=
-rces);
->> + =C2=A0 =C2=A0 if (rc)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err(APEI_PFX
->> +"Error in APEI internal resource management, there may be inconsist=
-ent "
->> +"between APEI internal and system resource management.");
->
-> Same.
->
-> Also instead of Error it would be better just say what is wrong and d=
-on't
-> try to analyze the problem.
+> That breaks serialization of machine checks no? If the BIOS uses MOVE=
+_DATA
+> How about using kmap_atomic instead?
 
-OK, I will do it.
+In my test machine, MOVE_DATA is not used. So this does not breaks
+serialization of machine checks.
+
+We can not use kmap_atomic or kmap_atomic_pfn here. Because
+kmap_atomic_xxx needs struct page, but the address provided by BIOS
+may be in E820_RESERVED area, that is, the corresponding page may have
+no struct page. Maybe we need another kmap_atomic implementation for
+E820_RESERVED area.
 
 Best Regards,
 Huang Ying
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
