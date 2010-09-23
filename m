@@ -1,28 +1,51 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] Drivers: ACPI: Kconfig: fix typo.
-Date: Thu, 23 Sep 2010 13:51:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009231351150.30002@localhost.localdomain>
-References: <1282137731-10469-1-git-send-email-andrea.gelmini@gelma.net>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [2.6.35-rc5] hp-wmi patch missed .35 merge window,
+ requesting addition to next rc
+Date: Thu, 23 Sep 2010 11:00:52 -0700
+Message-ID: <20100923180052.GF23040@kroah.com>
+References: <AANLkTimOVY+iOOMKhwFfX5Wcw1y_PcvoCCfEcjoPmj3J@mail.gmail.com>
+ <20100921190816.e6ca6a72.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:35258 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753968Ab0IWRv1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Sep 2010 13:51:27 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9700CXVO9PLPXP@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Sep 2010 12:51:27 -0500 (CDT)
-In-reply-to: <1282137731-10469-1-git-send-email-andrea.gelmini@gelma.net>
+Received: from kroah.org ([198.145.64.141]:51243 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752066Ab0IWTST (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Sep 2010 15:18:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20100921190816.e6ca6a72.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrea Gelmini <andrea.gelmini@gelma.net>
-Cc: gelma@gelma.net, Zhang Rui <rui.zhang@intel.com>, Huang Ying <ying.huang@intel.com>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Josh Hill <joshua.hill@gmail.com>, linux-kernel@vger.kernel.org, stable@kernel.org, linux-acpi@vger.kernel.org, alan@redhat.com, "Zhang, Rui" <rui.zhang@intel.com>, torvalds@linux-foundation.org, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>
 
-applied
+On Tue, Sep 21, 2010 at 07:08:16PM -0700, Andrew Morton wrote:
+> (cc's added)
+> 
+> On Tue, 21 Sep 2010 10:23:57 -0700 Josh Hill <joshua.hill@gmail.com> wrote:
+> 
+> > please cc as i'm unsubscribed
+> > as reported in this bug: https://bugzilla.kernel.org/show_bug.cgi?id=15344
+> > and the patch: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=751ae808f6b29803228609f51aa1ae057f5c576e
+> > 
+> > the backlight on this laptop goes down one level whenever
+> > /proc/acpi/ac_adapter/*/status is read.
+> > i've been told the patch missed the .35 merge window, and is going to
+> > be in .36, but ubuntu is
+> > going to release 10.10 soon with .35 in it, and if this patch doesn't
+> > make it into .35 my laptop
+> > will be doing this for its (10.10) entire lifetime. i didn't know who
+> > to really contact and request this sort
+> > of thing so i'm doing it here.
+> 
+> The suggestion is that mainline's
+> 751ae808f6b29803228609f51aa1ae057f5c576e ("x86 platform drivers: hp-wmi
+> Reorder event id processing") be backported into 2.6.35.x to fix the
+> post-2.6.32 regression described in
+> https://bugzilla.kernel.org/show_bug.cgi?id=15344
+
+Now applied.
 
 thanks,
-Len Brown, Intel Open Source Technology Center
 
+greg k-h
