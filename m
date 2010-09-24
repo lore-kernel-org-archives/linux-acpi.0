@@ -1,124 +1,72 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [49/80] x86 platform drivers: hp-wmi Reorder event id processing
-Date: Fri, 24 Sep 2010 09:24:37 -0700
-Message-ID: <20100924162619.137250221@clark.site>
-References: <20100924162706.GA7381@kroah.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100924162706.GA7381@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: stable-review@kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] PCI / PCIe / AER: Disable native AER service if BIOS
+ has precedence (v2) (was: Re: [PATCH]  PCI / PCIe / AER ...)
+Date: Fri, 24 Sep 2010 09:53:55 -0700
+Message-ID: <20100924095355.36a7b064@jbarnes-desktop>
+References: <201009200002.15609.rjw@sisk.pl>
+	<4C96FCA3.2060704@linux.intel.com>
+	<201009201850.00626.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cpoproxy1-pub.bluehost.com ([69.89.21.11]:37911 "HELO
+	cpoproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755394Ab0IXQx6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Sep 2010 12:53:58 -0400
+In-Reply-To: <201009201850.00626.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chen Gong <gong.chen@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-2.6.35-stable review patch.  If anyone has any objections, please let us know.
+On Mon, 20 Sep 2010 18:50:00 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-------------------
+> On Monday, September 20, 2010, Chen Gong wrote:
+> > =E4=BA=8E 9/20/2010 6:02 AM, Rafael J. Wysocki =E5=86=99=E9=81=93:
+> > > From: Rafael J. Wysocki<rjw@sisk.pl>
+> > >
+> > > There is a design issue related to PCIe AER and _OSC that the BIO=
+S
+> > > may be asked to grant control of the AER service even if some
+> > > Hardware Error Source Table (HEST) entries contain information
+> > > meaning that the BIOS really should control it.  Namely,
+> > > pcie_port_acpi_setup() calls pcie_aer_get_firmware_first() that
+> > > determines whether or not the AER service should be controlled by
+> > > the BIOS on the basis of the HEST information for the given PCIe
+> > > port.  The BIOS is asked to grant control of the AER service for
+> > > a PCIe Root Complex if pcie_aer_get_firmware_first() returns 'fal=
+se'
+> > > for at least one root port in that complex, even if all of the ot=
+her
+> > > root ports' HEST entries have the FIRMWARE_FIRST flag set (and no=
+ne
+> > > of them has the GLOBAL flag set).  However, if the AER service is
+> > > controlled by the kernel, that may interfere with the BIOS' handl=
+ing
+> > > of the error sources having the FIRMWARE_FIRST flag.  Moreover,
+> > > there may be PCIe endpoints that have the FIRMWARE_FIRST flag set=
+ in
+> > > HEST and are attached to the root ports in question, in which cas=
+e it
+> > > also may be unsafe to ask the BIOS for control of the AER service=
+=2E
+> > >
+> > > For this reason, introduce a function checking if there's at leas=
+t
+> > > one PCIe-related HEST entry with the FIRMWARE_FIRST flag set and
+> > > disable the native AER service altogether if this function return=
+s
+> > > 'true'.
 
-From: Thomas Renninger <trenn@suse.de>
+Applied the second patch to my linux-next branch, thanks.
 
-commit 751ae808f6b29803228609f51aa1ae057f5c576e upstream.
-
-Event id 0x4 defines the hotkey event.
-No need (or even wrong) to query HPWMI_HOTKEY_QUERY if event id is != 0x4.
-
-Reorder the eventcode conditionals and use switch case instead of if/else.
-Use an enum for the event ids cases.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-CC: linux-acpi@vger.kernel.org
-CC: platform-driver-x86@vger.kernel.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/platform/x86/hp-wmi.c |   51 ++++++++++++++++++++++++++----------------
- 1 file changed, 32 insertions(+), 19 deletions(-)
-
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -58,6 +58,12 @@ enum hp_wmi_radio {
- 	HPWMI_WWAN = 2,
- };
- 
-+enum hp_wmi_event_ids {
-+	HPWMI_DOCK_EVENT = 1,
-+	HPWMI_BEZEL_BUTTON = 4,
-+	HPWMI_WIRELESS = 5,
-+};
-+
- static int __devinit hp_wmi_bios_setup(struct platform_device *device);
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
- static int hp_wmi_resume_handler(struct device *device);
-@@ -338,7 +344,7 @@ static void hp_wmi_notify(u32 value, voi
- 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
- 	static struct key_entry *key;
- 	union acpi_object *obj;
--	int eventcode;
-+	int eventcode, key_code;
- 	acpi_status status;
- 
- 	status = wmi_get_event_data(value, &response);
-@@ -357,28 +363,32 @@ static void hp_wmi_notify(u32 value, voi
- 
- 	eventcode = *((u8 *) obj->buffer.pointer);
- 	kfree(obj);
--	if (eventcode == 0x4)
--		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
--						0);
--	key = hp_wmi_get_entry_by_scancode(eventcode);
--	if (key) {
--		switch (key->type) {
--		case KE_KEY:
--			input_report_key(hp_wmi_input_dev,
--					 key->keycode, 1);
--			input_sync(hp_wmi_input_dev);
--			input_report_key(hp_wmi_input_dev,
--					 key->keycode, 0);
--			input_sync(hp_wmi_input_dev);
--			break;
--		}
--	} else if (eventcode == 0x1) {
-+	switch (eventcode) {
-+	case HPWMI_DOCK_EVENT:
- 		input_report_switch(hp_wmi_input_dev, SW_DOCK,
- 				    hp_wmi_dock_state());
- 		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
- 				    hp_wmi_tablet_state());
- 		input_sync(hp_wmi_input_dev);
--	} else if (eventcode == 0x5) {
-+		break;
-+	case HPWMI_BEZEL_BUTTON:
-+		key_code = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
-+						 0);
-+		key = hp_wmi_get_entry_by_scancode(key_code);
-+		if (key) {
-+			switch (key->type) {
-+			case KE_KEY:
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 1);
-+				input_sync(hp_wmi_input_dev);
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 0);
-+				input_sync(hp_wmi_input_dev);
-+				break;
-+			}
-+		}
-+		break;
-+	case HPWMI_WIRELESS:
- 		if (wifi_rfkill)
- 			rfkill_set_states(wifi_rfkill,
- 					  hp_wmi_get_sw_state(HPWMI_WIFI),
-@@ -391,9 +401,12 @@ static void hp_wmi_notify(u32 value, voi
- 			rfkill_set_states(wwan_rfkill,
- 					  hp_wmi_get_sw_state(HPWMI_WWAN),
- 					  hp_wmi_get_hw_state(HPWMI_WWAN));
--	} else
-+		break;
-+	default:
- 		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
- 			eventcode);
-+		break;
-+	}
- }
- 
- static int __init hp_wmi_input_setup(void)
+--=20
+Jesse Barnes, Intel Open Source Technology Center
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
