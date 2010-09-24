@@ -1,72 +1,83 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCI / PCIe / AER: Disable native AER service if BIOS
- has precedence (v2) (was: Re: [PATCH]  PCI / PCIe / AER ...)
-Date: Fri, 24 Sep 2010 09:53:55 -0700
-Message-ID: <20100924095355.36a7b064@jbarnes-desktop>
-References: <201009200002.15609.rjw@sisk.pl>
-	<4C96FCA3.2060704@linux.intel.com>
-	<201009201850.00626.rjw@sisk.pl>
+From: Kamal Mostafa <kamal@canonical.com>
+Subject: Re: [RFC PATCH 0/2] i915 brightness control
+Date: Fri, 24 Sep 2010 12:12:55 -0700
+Message-ID: <1285355575.4644.24.camel@fourier>
+References: <1275516702-27090-1-git-send-email-kamal@canonical.com>
+	 <20100913174847.GA10443@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-G1xA08RcVfMtddVgZcZn"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpoproxy1-pub.bluehost.com ([69.89.21.11]:37911 "HELO
-	cpoproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755394Ab0IXQx6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Sep 2010 12:53:58 -0400
-In-Reply-To: <201009201850.00626.rjw@sisk.pl>
+Received: from adelie.canonical.com ([91.189.90.139]:57961 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab0IXTNZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Sep 2010 15:13:25 -0400
+In-Reply-To: <20100913174847.GA10443@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Chen Gong <gong.chen@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Mon, 20 Sep 2010 18:50:00 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> On Monday, September 20, 2010, Chen Gong wrote:
-> > =E4=BA=8E 9/20/2010 6:02 AM, Rafael J. Wysocki =E5=86=99=E9=81=93:
-> > > From: Rafael J. Wysocki<rjw@sisk.pl>
-> > >
-> > > There is a design issue related to PCIe AER and _OSC that the BIO=
-S
-> > > may be asked to grant control of the AER service even if some
-> > > Hardware Error Source Table (HEST) entries contain information
-> > > meaning that the BIOS really should control it.  Namely,
-> > > pcie_port_acpi_setup() calls pcie_aer_get_firmware_first() that
-> > > determines whether or not the AER service should be controlled by
-> > > the BIOS on the basis of the HEST information for the given PCIe
-> > > port.  The BIOS is asked to grant control of the AER service for
-> > > a PCIe Root Complex if pcie_aer_get_firmware_first() returns 'fal=
-se'
-> > > for at least one root port in that complex, even if all of the ot=
-her
-> > > root ports' HEST entries have the FIRMWARE_FIRST flag set (and no=
-ne
-> > > of them has the GLOBAL flag set).  However, if the AER service is
-> > > controlled by the kernel, that may interfere with the BIOS' handl=
-ing
-> > > of the error sources having the FIRMWARE_FIRST flag.  Moreover,
-> > > there may be PCIe endpoints that have the FIRMWARE_FIRST flag set=
- in
-> > > HEST and are attached to the root ports in question, in which cas=
-e it
-> > > also may be unsafe to ask the BIOS for control of the AER service=
-=2E
-> > >
-> > > For this reason, introduce a function checking if there's at leas=
-t
-> > > one PCIe-related HEST entry with the FIRMWARE_FIRST flag set and
-> > > disable the native AER service altogether if this function return=
-s
-> > > 'true'.
+--=-G1xA08RcVfMtddVgZcZn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Applied the second patch to my linux-next branch, thanks.
+On Mon, 2010-09-13 at 18:48 +0100, Matthew Garrett wrote:
+> I've looked into this issue more closely and think I've worked out the=20
+> underlying problem. The system in question appears to have two GPUs and=20
+> exposes two ACPI backlight devices. Both of these are associated with=20
+> existing PCI devices, so we don't ignore either of them because of that.=20
+> Further, one of them (the AMD one) implements the spec properly and=20
+> should work. We don't seem to perform a more fine-grained check to=20
+> identify whether every ACPI backlight has all the required methods, and=20
+> so as a result we provide both the working one and the non-working one.
+>=20
+> Having thought about this some more, I don't think this is the right=20
+> approach. We should be ensuring that every backlight ahs all the=20
+> required methods and then dropping the one that doesn't. This should be=20
+> replaced with a native i915 backlight, and I sent patches to do that=20
+> last week.
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I agree.  Your proposed design is good, and I have successfully tested
+your proposed patches[1] (after minor porting changes to Ubuntu
+Maverick's 2.6.35).  Thanks very much Matthew!
+
+FYI, I have published an experimental Ubuntu Maverick PPA kernel[2]
+which includes your patches, plus my dell_laptop tweaks to inhibit the
+broken dell_backlight by a module param or dmi blacklist table (in lieu
+of a yet to be implemented more fine-grained check).
+
+ -Kamal Mostafa <kamal@canonical.com>
+
+
+[1] 2010-09-08 [Intel-gfx] [PATCH] i915: Add native backlight control
+    2010-09-08 [Intel-gfx] [PATCH] Backlight: Add backlight type
+
+[2] https://launchpad.net/~kamalmostafa/+archive/linux-kamal-mjgbacklight
+
+
+--=-G1xA08RcVfMtddVgZcZn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQIcBAABAgAGBQJMnPgeAAoJEOf3EFVUCeQi9ckP/0emPdIL89MYq6Hx5u1MF5r+
+aGrRbGzc8rEAf7eD4W/Oxg1dZOS909ZwDzgXAahVQHU3LJ/C16IR3IvkzVSUCc3y
+emPVTR3brUliDOnPPOCaiGhimQQglRvwgm85UpEFB06F3RySaV0XWKSA+4uxkTLa
+7EqqHVnD+PWbFPL9fvanxxbPdEH9D0Gb3kEStr9j+z0a6VcSwJP5Z1lNsSqCL+pe
+BBLl7Q81ub6bSH0DcDiBT3Y15hqdPpDkfehPm6DIuM7+QJDOQbcUu+YWAYE/9e/g
+BDJPkTZFkdTTVWttWYwLKuGqDyOQmqHcAcODPwRke2hZ1smRcUnIwo4fqYiGx3R4
+ni2MOeRhkH1Brri4rD8ctQV5MjYGxnqxhB/9XfmM2GLTTknDttz8+FoEeHW55a8m
+Ieg3KteSuEVQKDzwz4z1awmBGZKWSUuj0rsXob6A8OiZ7AtYdllb6B/58gKHtiQf
+3mqAfCo3OAG4TMLl32TcsLTXnPJYQbbW9JZIYN6WCJ2f+UdqJeOAOkZQOrNXtvxq
++P4IR4eCDBkbXaflEYlXDcr0sT8BXUl9uUvQX9CFca8HT3A7rE8IfLXHIE5sQH4+
+FnWsjMJfwrPY4ny/QmyyRalRW8k11CFYeJRKZpIJG5jyMk00o9M8LvK/fLHq/VoV
+yDQUDpurupAFL8OlKTjA
+=3hK9
+-----END PGP SIGNATURE-----
+
+--=-G1xA08RcVfMtddVgZcZn--
+
