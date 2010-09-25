@@ -1,36 +1,43 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: intel_idle (Lenovo ideapad S10-3)
-Date: Sat, 25 Sep 2010 12:09:11 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009251201150.17910@localhost.localdomain>
-References: <4C8DE00F.7070801@canonical.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PCI / PCIe / AER: Disable native AER service if BIOS has precedence (v2) (was: Re: [PATCH]  PCI / PCIe / AER ...)
+Date: Sat, 25 Sep 2010 22:37:52 +0200
+Message-ID: <201009252237.52589.rjw@sisk.pl>
+References: <201009200002.15609.rjw@sisk.pl> <201009201850.00626.rjw@sisk.pl> <1285393862.15685.37.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:40817 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755682Ab0IYQJb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Sep 2010 12:09:31 -0400
-In-reply-to: <4C8DE00F.7070801@canonical.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:41376 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750797Ab0IYUix (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Sep 2010 16:38:53 -0400
+In-Reply-To: <1285393862.15685.37.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: linux-pm@lists.linux-foundation.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-
-> I test myself which says when CONFIG_CPU_IDLE=y, Lenovo ideapad S10-3 can
-> not boot. The CPU is Atom N450, and I also find the report[2] that says intel_idle
-> works fine with N450.
+On Saturday, September 25, 2010, Huang Ying wrote:
+> Hi, Rafael,
 > 
-> I do not have much knowledge about intel_idle. is there any similar report that on
-> some machine intel_idle halt the system or any suggestion for next step debug?
+> On Tue, 2010-09-21 at 00:50 +0800, Rafael J. Wysocki wrote:
+> > --- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
+> > +++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
+> > @@ -49,7 +49,7 @@ int pcie_port_acpi_setup(struct pci_dev 
+> >  		| OSC_PCI_EXPRESS_PME_CONTROL;
+> >  
+> >  	if (pci_aer_available()) {
+> > -		if (pcie_aer_get_firmware_first(port))
+> > +		if (aer_acpi_firmware_first())
+> >  			dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
+> >  		else
+> >  			flags |= OSC_PCI_EXPRESS_AER_CONTROL;
 > 
-> 
-> [1] http://launchpad.net/bugs/634702
-> [2] http://www.spinics.net/lists/linux-pm/msg21334.html
+> The original per-device firmware_first is overridden by the new global
+> firmware_first? If it is, why keep the original per-device
+> firmware_first?
 
-Please test the fix here:
-http://bugs.meego.com/show_bug.cgi?id=7093
+I didn't want to remove it just yet, but I do think it should be removed.
 
-thanks,
--Len
-
+Rafael
