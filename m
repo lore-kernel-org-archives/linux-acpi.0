@@ -1,43 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / PCIe / AER: Disable native AER service if BIOS has precedence (v2) (was: Re: [PATCH]  PCI / PCIe / AER ...)
-Date: Sat, 25 Sep 2010 22:37:52 +0200
-Message-ID: <201009252237.52589.rjw@sisk.pl>
-References: <201009200002.15609.rjw@sisk.pl> <201009201850.00626.rjw@sisk.pl> <1285393862.15685.37.camel@yhuang-dev>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 1/5] ACPI, APEI, Fix APEI related table size checking
+Date: Sun, 26 Sep 2010 13:30:34 +0800
+Message-ID: <1285479034.15685.56.camel@yhuang-dev>
+References: <1284865235-29920-1-git-send-email-ying.huang@intel.com>
+	 <1284865235-29920-2-git-send-email-ying.huang@intel.com>
+	 <20100921123945.GB18991@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41376 "EHLO ogre.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:55086 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797Ab0IYUix (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Sep 2010 16:38:53 -0400
-In-Reply-To: <1285393862.15685.37.camel@yhuang-dev>
+	id S1750926Ab0IZFaq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Sep 2010 01:30:46 -0400
+In-Reply-To: <20100921123945.GB18991@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Andi Kleen <andi@firstfloor.org>, Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Saturday, September 25, 2010, Huang Ying wrote:
-> Hi, Rafael,
+On Tue, 2010-09-21 at 20:39 +0800, Andi Kleen wrote:
+> On Sun, Sep 19, 2010 at 11:00:31AM +0800, Huang Ying wrote:
+> > From: Yinghai Lu <yinghai@kernel.org>
+> > 
+> > Both ERST and EINJ table size checking is fixed.
 > 
-> On Tue, 2010-09-21 at 00:50 +0800, Rafael J. Wysocki wrote:
-> > --- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
-> > +++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
-> > @@ -49,7 +49,7 @@ int pcie_port_acpi_setup(struct pci_dev 
-> >  		| OSC_PCI_EXPRESS_PME_CONTROL;
+> Needs a better description.
+> > ---
+> >  drivers/acpi/apei/einj.c |    3 ++-
+> >  drivers/acpi/apei/erst.c |    3 ++-
+> >  2 files changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> > index 465c885..b184baa 100644
+> > --- a/drivers/acpi/apei/einj.c
+> > +++ b/drivers/acpi/apei/einj.c
+> > @@ -426,7 +426,8 @@ DEFINE_SIMPLE_ATTRIBUTE(error_inject_fops, NULL,
 > >  
-> >  	if (pci_aer_available()) {
-> > -		if (pcie_aer_get_firmware_first(port))
-> > +		if (aer_acpi_firmware_first())
-> >  			dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
-> >  		else
-> >  			flags |= OSC_PCI_EXPRESS_AER_CONTROL;
+> >  static int einj_check_table(struct acpi_table_einj *einj_tab)
+> >  {
+> > -	if (einj_tab->header_length != sizeof(struct acpi_table_einj))
+> > +	if (einj_tab->header_length !=
+> > +	    (sizeof(struct acpi_table_einj) - sizeof(einj_tab->header)))
 > 
-> The original per-device firmware_first is overridden by the new global
-> firmware_first? If it is, why keep the original per-device
-> firmware_first?
+> I don't understand these changes. So on any system where the old check worked
+> before it won't work anymore?  Since the code has been presumably tested
+> before this would break systems, won't it?
+> 
+> Same with the other changes.
 
-I didn't want to remove it just yet, but I do think it should be removed.
+Yes. It seems that old check works on my testing machine but not on
+Yinghai's machine, while the new check works on Yinghai's machine and
+not on my testing machine.
 
-Rafael
+So I think it is better to remove the checks. Apparently, Windows does
+not check that.
+
+Best Regards,
+Huang Ying
+
+
+
