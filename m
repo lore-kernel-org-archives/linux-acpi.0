@@ -1,16 +1,16 @@
 From: Lin Ming <ming.m.lin@intel.com>
 Subject: Re: acpi/test panic
-Date: Mon, 27 Sep 2010 08:19:04 +0800
-Message-ID: <1285546744.5416.25.camel@minggr.sh.intel.com>
+Date: Mon, 27 Sep 2010 09:26:02 +0800
+Message-ID: <1285550762.5416.30.camel@minggr.sh.intel.com>
 References: <4C9FC97F.7030405@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:37363 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:18451 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757257Ab0I0ASW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Sep 2010 20:18:22 -0400
+	id S1757580Ab0I0BZU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Sep 2010 21:25:20 -0400
 In-Reply-To: <4C9FC97F.7030405@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,12 +19,6 @@ Cc: "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
 On Mon, 2010-09-27 at 06:30 +0800, Yinghai Lu wrote:
 > acpi/test panic
-
-Would you please attach the acpidump output?
-
-Thanks,
-Lin Ming
-
 > 
 > with acpi/test
 > 
@@ -156,7 +150,27 @@ Lin Ming
 > :040000 040000 5c0f644ddbab39510e8f394d451b65234127e041 b8c8c4c268a79aeecd475866b5673b7001422872 M	drivers
 > 
 > reverting that will fix the problem.
-> 
-> Yinghai
+
+Would you please try below fix?
+
+Thanks.
+
+diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
+index 5366a48..fa51450 100644
+--- a/drivers/acpi/acpica/exprep.c
++++ b/drivers/acpi/acpica/exprep.c
+@@ -472,6 +472,10 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
+ 			}
+ 		}
+ 
++		/* An additional reference for the container */
++
++		acpi_ut_add_reference(obj_desc->field.region_obj);
++
+ 		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
+ 				  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
+ 				  obj_desc->field.start_field_bit_offset,
+
+
 
 
