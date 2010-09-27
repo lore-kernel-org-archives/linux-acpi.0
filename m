@@ -1,44 +1,29 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: intel_idle (Lenovo ideapad S10-3)
-Date: Mon, 27 Sep 2010 14:55:55 +0800
-Message-ID: <4CA03FFB.2030307@canonical.com>
-References: <4C8DE00F.7070801@canonical.com> <alpine.LFD.2.00.1009251201150.17910@localhost.localdomain>
+From: Chev wins <monday8890@cox.net>
+Subject: Complete
+Date: Mon, 27 Sep 2010 0:00:37 -0700
+Message-ID: <20100927030037.MUEH4.1032886.imail__29595.0131178417$1285571337$gmane$org@fed1rmwml33>
+Reply-To: fdddd@ok.ms
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60459 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab0I0G4G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Sep 2010 02:56:06 -0400
-In-Reply-To: <alpine.LFD.2.00.1009251201150.17910@localhost.localdomain>
+Received: from fed1rmpop111.cox.net ([68.230.241.15]:37575 "EHLO
+	fed1rmpop111.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758673Ab0I0HIa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Sep 2010 03:08:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.linux-foundation.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Len,
-
-Thanks a lot. I apply the patch and the kernel boots fine on S10-3
-
-
-On 09/26/2010 12:09 AM, Len Brown wrote:
-> 
->> I test myself which says when CONFIG_CPU_IDLE=y, Lenovo ideapad S10-3 can
->> not boot. The CPU is Atom N450, and I also find the report[2] that says intel_idle
->> works fine with N450.
->>
->> I do not have much knowledge about intel_idle. is there any similar report that on
->> some machine intel_idle halt the system or any suggestion for next step debug?
->>
->>
->> [1] http://launchpad.net/bugs/634702
->> [2] http://www.spinics.net/lists/linux-pm/msg21334.html
-> 
-> Please test the fix here:
-> http://bugs.meego.com/show_bug.cgi?id=7093
-> 
-> thanks,
-> -Len
-> 
-
+I have been directed to inform you that you have been chosen for Award of GBP1,000,000.00 by the board of trustees of the above stated non-governmental aid organization Chevron/Texaco.Your grant number is (CT-222-6747,FGN/P-900-56).
+Contact Mr Collins Tevez
+and provide these details:
+FULL NAMES,
+CONTACT ADDRESS,
+NATIONALITY,
+GENDER,
+AGE,
+TEL NO,
+OCCUPATION.
+Regards.
+Patricia Sowinski-Demarco
+Promo Announcer
