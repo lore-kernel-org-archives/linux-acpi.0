@@ -1,36 +1,44 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 5/5] ACPI, APEI, Fix ERST MOVE_DATA instruction implementation
-Date: Mon, 27 Sep 2010 07:31:10 +0200
-Message-ID: <20100927053110.GA21952@one.firstfloor.org>
-References: <1284865235-29920-1-git-send-email-ying.huang@intel.com> <1284865235-29920-6-git-send-email-ying.huang@intel.com> <20100921124718.GE18991@one.firstfloor.org> <AANLkTi=-LzZSgk9BYg8z6i5QrbRWPVBYtpqdkvsTc_E_@mail.gmail.com>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: Re: intel_idle (Lenovo ideapad S10-3)
+Date: Mon, 27 Sep 2010 14:55:55 +0800
+Message-ID: <4CA03FFB.2030307@canonical.com>
+References: <4C8DE00F.7070801@canonical.com> <alpine.LFD.2.00.1009251201150.17910@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=-LzZSgk9BYg8z6i5QrbRWPVBYtpqdkvsTc_E_@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:60459 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374Ab0I0G4G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Sep 2010 02:56:06 -0400
+In-Reply-To: <alpine.LFD.2.00.1009251201150.17910@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-pm@lists.linux-foundation.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-> In my test machine, MOVE_DATA is not used. So this does not breaks
-> serialization of machine checks.
+Hi Len,
 
-Ok. But we don't know what other systems are doing.
+Thanks a lot. I apply the patch and the kernel boots fine on S10-3
+
+
+On 09/26/2010 12:09 AM, Len Brown wrote:
 > 
-> We can not use kmap_atomic or kmap_atomic_pfn here. Because
-> kmap_atomic_xxx needs struct page, but the address provided by BIOS
-> may be in E820_RESERVED area, that is, the corresponding page may have
-> no struct page. Maybe we need another kmap_atomic implementation for
-> E820_RESERVED area.
+>> I test myself which says when CONFIG_CPU_IDLE=y, Lenovo ideapad S10-3 can
+>> not boot. The CPU is Atom N450, and I also find the report[2] that says intel_idle
+>> works fine with N450.
+>>
+>> I do not have much knowledge about intel_idle. is there any similar report that on
+>> some machine intel_idle halt the system or any suggestion for next step debug?
+>>
+>>
+>> [1] http://launchpad.net/bugs/634702
+>> [2] http://www.spinics.net/lists/linux-pm/msg21334.html
+> 
+> Please test the fix here:
+> http://bugs.meego.com/show_bug.cgi?id=7093
+> 
+> thanks,
+> -Len
+> 
 
-Yes, at some point that may be needed.
-
-It would be good to have some kind of warning that gets reported
-back to us when this happens. This should happen on panicing situations
-anyways, so we can printk.
-
--Andi
-
--- 
-ak@linux.intel.com -- Speaking for myself only.
