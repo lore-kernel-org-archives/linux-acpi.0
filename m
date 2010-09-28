@@ -1,25 +1,41 @@
-From: Marc Ferland <marc.ferland@gmail.com>
-Subject: Re:
-Date: Tue, 28 Sep 2010 20:23:08 +0800
-Message-ID: <AANLkTi=NKY+8dAUZ2U-6Vw5siH6YOkUJrKdPisbj8hGc@mail.gmail.com>
+From: Alan Cox <alan@linux.intel.com>
+Subject: [PATCH] acpi: Fix the ERST warning
+Date: Tue, 28 Sep 2010 13:30:35 +0100
+Message-ID: <20100928123029.9667.22883.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:48436 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab0I1MXd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 08:23:33 -0400
-Received: by iwn5 with SMTP id 5so5907660iwn.19
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Sep 2010 05:23:33 -0700 (PDT)
+Received: from mga09.intel.com ([134.134.136.24]:52831 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753862Ab0I1NSp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Sep 2010 09:18:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-hey,
-how are you?
-Just  received my  Iphone 4G 16GB  from this homepage,   www.Benefits188.com
-It's so cheaper but genuine, Wow. that's amazing. I like it very much!!
-I paid it $690US  couier charges included , They have some other
-products. If you want to get one. you can check it out !
+I got bored of seeing this every compile so I fixed it.
 
-Regards,
-Marc Ferland
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+
+ drivers/acpi/apei/erst.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index a4904f1..37d7a05 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -270,8 +270,8 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
+ 	rc = __apei_exec_read_register(entry, &offset);
+ 	if (rc)
+ 		return rc;
+-	memmove((void *)ctx->dst_base + offset,
+-		(void *)ctx->src_base + offset,
++	memmove((void *)(unsigned long)ctx->dst_base + offset,
++		(void *)(unsigned long)ctx->src_base + offset,
+ 		ctx->var2);
+ 
+ 	return 0;
+
