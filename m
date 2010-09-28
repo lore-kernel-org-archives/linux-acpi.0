@@ -1,399 +1,112 @@
-From: Len Brown <lenb@kernel.org>
-Subject: x86_energy_perf_policy.c
-Date: Tue, 28 Sep 2010 12:17:06 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009281143070.14962@localhost.localdomain>
-References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+From: "Joey Lee" <jlee@novell.com>
+Subject: Re: MSI GX723 notebook - ACPI problem with Fn keys
+Date: Tue, 28 Sep 2010 10:48:45 -0600
+Message-ID: <4CA2A90D0200002300020F8E@novprvlin0050.provo.novell.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="=__PartE7CA047D.1__="
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:41016 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754571Ab0I1QRY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 12:17:24 -0400
-In-reply-to: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org
+To: patrol@sinus.cz
+Cc: linux-acpi@vger.kernel.org
 
-/* In June, I proposed /sys/power/policy_preference
-to consolidate the knobs that user-space needs to turn
-to tell the kernel its performance/energy preference.
+This is a MIME message. If you are reading this text, you may want to 
+consider changing to a mail reader or gateway that understands how to 
+properly handle MIME multipart messages.
 
-The feedback I got was that user-space doesn't want the
-kernel to consolidate anything, but instead wants the
-kernel to expose everything and user-space will be able
-to keep up with new devices and hooks, as long as
-they are sufficiently documented.
+--=__PartE7CA047D.1__=
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
 
-I think that past history and the current state of affairs
-suggests that user-space will come up short, but who am I to judge?
+Hi Pavel, 
 
-So here is a utility to implement the user-space
-approach for Intel's new ENERGY_PERFR_BIAS MSR.
-(You'll see it on some Westmere, and all Sandy Bridge processors)
+於 一，2010-09-27 於 16:17 +0200，Pavel Troller 提到：
+> Hi Joey,
+> 
+> > Hi Pavel, 
+> > 
+> > ??? ??????2010-09-25 ??? 14:44 +0200???Pavel Troller ?????????
+> > > Hi!
+> > >   I'm a fresh owner of GX723 notebook by MSI. It looks relatively
+> > > linux-friendly, but I've found some ACPI-related issues.
+> > >   1) Booting 2.6.35.5 kernel natively, the Fn keys (brightness control,
+> > > video switching) are non-functional and even a single keypress causes,
+> > > that ACPI events (like AC adapter status changes or lid switch operation) are
+> > > not generated anymore. After a while (about 10 minutes), the following
+> > > lines pop to the system log:
+> > > Sep 25 13:53:18 beam kernel: ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__._QB7] (Node ffff88013fc1ff00), AE_AML_INFINITE_LOOP
+> > > Sep 25 13:42:23 beam kernel: ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__._QB8] (Node ffff88013fc1ff20), AE_AML_INFINITE_LOOP
+> > 
+> > In _QB7 and _QB8 have the following infinite while loop:
+> > 
+> >                         If (_OSI ("Windows 2006"))
+> >                         {  
+> >                             If (LEqual (^^^P0P2.VGA.VVID, 0x10DE))
+> >                             {  
+> >                                 Store (One, ^^^P0P2.VGA.MSIB)
+> >                                 Store (Zero, ^^^P0P2.VGA.MSIM)
+> >                                 Store (One, ^^^P0P2.VGA.MSIE) /* defalut
+> > is one */
+> >                                 Sleep (0x0A)
+> >                                 Notify (^^^P0P2.VGA, 0xCB)
+> >                                 While (^^^P0P2.VGA.MSIE)  /* infinite */
+> >                                 {
+> >                                     Sleep (0x0A)
+> >                                 }
+> >                             }
+> >                         }
+> > 
+> > The MSIE is just a named object declared in VGA device but it's not any
+> > hardware register. So, kernel's acpi parser is right, it's a infinite
+> > loop.
+> 
+> I've seen it, but I was not sure, whether the MSIE object could change its
+> state back to zero by some external event... But in Linux, it definitely
+> doesn't.
+> 
 
-The utility translates the words "powersave",
-"normal", or "performance" into the right bits for
-this register, and scribbles on /dev/cpu/*/msr,
-as appropriate.
+There have a NVIF method in VGA device, it will set MSIE to zero. I
+thought it call by Nvida vista driver, but have don't know how to verify
+it.
 
-I'll be delighted to re-implement this in a different way
-if consensus emerges that a better way exists.
+The attached is the patch I add MSI GX723 DMI information to blacklist.
+If possible, could you please test it?
+I just simply check your DSDT, please make sure the following features
+work fine after you applied the attached blacklist patch:
 
-thanks,
-Len Brown
-Intel Open Source Technology Center
-*/
+ - brightness up/down hotkey
+ - switch to external monitor
+ - unplug ac-power event
+ - battery information
 
-/*
- * x86_energy_perf_policy -- set the energy versus performance
- * policy preference bias on recent X86 processors.
- */
-/*
- * Copyright (c) 2010, Intel Corporation.
- * Len Brown <len.brown@intel.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/resource.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <stdlib.h>
+Thank's a lot!
+Joey Lee
 
-unsigned int verbose;		/* set with -v */
-unsigned int read_only;		/* set with -r */
-char *progname;
-unsigned long long new_bias;
-int cpu = -1;
 
-/*
- * Usage:
- *
- * -c cpu: limit action to a single CPU (default is all CPUs)
- * -v: verbose output (can invoke more than once)
- * -r: read-only, don't change any settings
- *
- *  performance
- *	Performance is paramount.
- *	Unwilling to sacrafice any performance
- *	for the sake of energy saving. (hardware default)
- *
- *  normal
- *	Can tolerate minor performance compromise
- *	for potentially significant energy savings.
- *	(reasonable default for most desktops and servers)
- *
- *  powersave
- *	Can tolerate significant performance hit
- *	to maximize energy savings.
- *
- * n
- * 	a numerical value to write to the underlying MSR.
- */
-void usage(void)
-{
-	printf("%s: [-c cpu] [-v] "
-		"(-r | 'performance' | 'normal' | 'powersave' | n)\n",
-		progname);
-}
+--=__PartE7CA047D.1__=
+Content-Type: text/plain; name="0001-DMI-to-disable-Vista-compatibility-on-MSI-GX723-Note.PATCH"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename="0001-DMI-to-disable-Vista-compatibility-on-MSI-GX723-Note.PATCH"
 
-/*
- * MSR_IA32_ENERGY_PERF_BIAS allows software to convey
- * its policy for the relative importance of performance
- * versus energy savings.
- *
- * The hardware uses this information in model-specific ways
- * when it must choose trade-offs between performance and
- * energy consumption.
- *
- * This policy hint does not supercede Processor Performance states
- * (P-states) or CPU Idle power states (C-states), but allows
- * software to have influence where it has been unable to
- * express a preference in the past.
- *
- * For example, this setting may tell the hardware how
- * aggressively or conservatively to control frequency
- * in the "turbo range" above the explicitly OS-controlled
- * P-state frequency range.  It may also tell the hardware
- * how aggressively is should enter the OS requestec C-states.
- *
- * The support for this feature is indicated by CPUID.06H.ECX.bit3
- * per the Intel Architectures Software Developer's Manual.
- */
-
-#define MSR_IA32_ENERGY_PERF_BIAS	0x000001b0
-
-#define	BIAS_PERFORMANCE		0
-#define BIAS_BALANCE			6
-#define	BIAS_POWERSAVE			15
-
-cmdline(int argc, char **argv) {
-	int opt;
-
-	progname = argv[0];
-
-	while((opt = getopt(argc, argv, "+rvc:")) != -1) {
-		switch (opt) {
-		case 'c':
-			cpu = atoi(optarg);
-			break;
-		case 'r':
-			read_only = 1;
-			break;
-		case 'v':
-			verbose++;
-			break;
-		default:
-			usage();
-			exit(-1);
-		}
-	}
-	/* if -r, then should be no additional optind */
-	if (read_only && (argc > optind)) {
-		usage();
-		exit(-1);
-	}
-
-	/*
-	 * if no -r , then must be one additional optind
-	 */
-	if (!read_only) {
-
-		if (argc != optind + 1 ) {
-			printf("must supply -r or policy param\n");
-			usage();
-			exit(-1);
-			}
-
-		if (!strcmp("performance", argv[optind])) {
-			new_bias = BIAS_PERFORMANCE;
-		} else if (!strcmp("normal", argv[optind])) {
-			new_bias = BIAS_BALANCE;
-		} else if (!strcmp("powersave", argv[optind])) {
-			new_bias = BIAS_POWERSAVE;
-		} else {
-			new_bias = atoll(argv[optind]);
-			if (new_bias > BIAS_POWERSAVE) {
-				usage();
-				exit(-1);
-			}
-		}
-		printf("new_bias 0x%016llx\n", new_bias);
-	}
-}
-
-/*
- * validate_cpuid()
- * returns on success, quietly exits on failure (make verbose with -v)
- */
-void validate_cpuid(void) {
-	unsigned int eax, ebx, ecx, edx, max_level;
-	char brand[16];
-	unsigned int fms, family, model, stepping, ht_capable;
-
-	eax = ebx = ecx = edx = 0;
-
-	asm("cpuid" : "=a" (max_level), "=b" (ebx), "=c" (ecx), "=d" (edx) : "a" (0));
-
-	sprintf(brand, "%.4s%.4s%.4s", &ebx, &edx, &ecx);
-
-	if (strncmp(brand, "GenuineIntel", 12)) {
-		if (verbose) printf("CPUID: %s != GenuineIntel\n",
-			brand);
-		exit(-1);
-	}
-
-	asm("cpuid" : "=a" (fms), "=c" (ecx), "=d" (edx) : "a" (1) : "ebx");
-	family = (fms >> 8) & 0xf;
-	model = (fms >> 4) & 0xf;
-	stepping = fms & 0xf;
-	if (family == 6 || family == 0xf)
-		model += ((fms >> 16) & 0xf) << 4;
-
-	if (verbose > 1)
-		printf("CPUID %s %d levels family:model:stepping "
-			"0x%x:%x:%x (%d:%d:%d)\n",
-			brand, max_level, family, model, stepping, family, model, stepping);
-
-	if (!(edx & (1 << 5))) {
-		if (verbose)
-			printf("CPUID: no MSR\n");
-		exit(-1);
-	}
-
- 	/*
- 	 * Support for MSR_IA32_ENERGY_PERF_BIAS is indicated by CPUID.06H.ECX.bit3
- 	 */
-	asm("cpuid" : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx) : "a" (6));
-	if (verbose) printf("CPUID.06H.ECX: 0x%x\n", ecx);
-	if (!(ecx & (1 << 3))) {
-		if (verbose)
-			printf("CPUID: No MSR_IA32_ENERGY_PERF_BIAS\n");
-		exit(-1);
-	}
-	return;	/* success */
-}
-
-check_dev_msr() {
-	struct stat sb;
-
-	if (stat("/dev/cpu/0/msr", &sb)) {
-		printf("no /dev/cpu/0/msr\n");
-		printf("Try \"# modprobe msr\"\n");
-		exit(-5);
-	}
-}
-
-unsigned long long get_msr(int cpu, int offset)
-{
-	unsigned long long msr;
-	char msr_path[32];
-	int retval;
-	int fd;
-
-	sprintf(msr_path, "/dev/cpu/%d/msr", cpu);
-	fd = open(msr_path, O_RDONLY);
-	if (fd < 0) {
-		perror(msr_path);
-		exit(-1);
-	}
-
-	retval = pread(fd, &msr, sizeof msr, offset);
-
-	if (retval != sizeof msr) {
-		printf("pread cpu%d 0x%x = %d\n", cpu, offset, retval);
-		exit(-2);
-	}
-	close(fd);
-	return msr;
-}
-
-unsigned long long  put_msr(int cpu, unsigned long long new_msr, int offset)
-{
-	unsigned long long old_msr;
-	char msr_path[32];
-	int retval;
-	int fd;
-
-	sprintf(msr_path, "/dev/cpu/%d/msr", cpu);
-	fd = open(msr_path, O_RDWR);
-	if (fd < 0) {
-		perror(msr_path);
-		exit(-1);
-	}
-
-	retval = pread(fd, &old_msr, sizeof old_msr, offset);
-	if (retval != sizeof old_msr) {
-		perror("pwrite");
-		printf("pread cpu%d 0x%x = %d\n", cpu, offset, retval);
-		exit(-2);
-	}
-
-	retval = pwrite(fd, &new_msr, sizeof new_msr, offset);
-	if (retval != sizeof new_msr) {
-		perror("pwrite");
-		printf("pwrite cpu%d 0x%x = %d\n", cpu, offset, retval);
-		exit(-2);
-	}
-
-	close(fd);
-
-	return old_msr;
-}
-
-void print_msr(int cpu)
-{
-	printf("cpu%d: 0x%016llx\n", cpu, get_msr(cpu, MSR_IA32_ENERGY_PERF_BIAS));
-}
-
-void update_msr(int cpu)
-{
-	unsigned long long previous_msr;
-
-	previous_msr = put_msr(cpu, new_bias, MSR_IA32_ENERGY_PERF_BIAS);
-
-	if (verbose)
-		printf("cpu%d  msr0x%x 0x%016llx -> 0x%016llx\n",
-			cpu, MSR_IA32_ENERGY_PERF_BIAS, previous_msr, new_bias);
-
-	return;
-}
-
-char *proc_stat = "/proc/stat";
-/*
- * run func() on every cpu in /dev/cpu
- */
-void for_every_cpu(void (func)(int)) {
-	FILE *fp;
-	int cpu_count;
-	int retval;
-
-	fp = fopen(proc_stat, "r");
-	if (fp == NULL) {
-		perror(proc_stat);
-		exit(-1);
-	}
-
-	retval = fscanf(fp, "cpu %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d\n");
-	if (retval != 0) {
-		perror("/proc/stat format");
-		exit(-1);
-	}
-
-	for (cpu_count = 0; ;cpu_count++) {
-		int cpu;
-
-		retval = fscanf(fp, "cpu%u %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d\n", &cpu);
-		if (retval != 1)
-			return;
-
-		func(cpu);
-	}
-	fclose(fp);
-}
-
-int main(int argc, char **argv)
-{
-	cmdline(argc, argv);
-
-	if (verbose > 1)
-		printf("x86_energy_perf_policy Aug 2, 2010"
-				" - Len Brown <lenb@kernel.org>\n");
-	if (verbose > 1 && !read_only)
-		printf("new_bias %lld\n", new_bias);
-
-	validate_cpuid();
-	check_dev_msr();
-
-	if (cpu != -1) {
-		if (read_only)
-			print_msr(cpu);
-		else
-			update_msr(cpu);
-	} else {
-		if (read_only) {
-			for_every_cpu(print_msr);
-		} else {
-			for_every_cpu(update_msr);
-		}
-	}
-		
-	return 0;
-}
+>From 580c3c8d894121e82dfbe6c2fdb7b320b4abd85d Mon Sep 17 00:00:00 =
+2001=0AFrom: Lee, Chun-Yi <jlee@novell.com>=0ADate: Wed, 29 Sep 2010 =
+00:30:08 +0800=0ASubject: [PATCH] DMI to disable Vista compatibility on =
+MSI GX723 Notebook=0A=0AThe brightness control hotkey don't work with =
+Vista compatibility=0A, because MSI GX723 included a infinite while loop =
+in DSDT when=0Abrightness control hotkey pressed.=0AMSI GX723 used Nvida =
+video card, the infinite while loop must be a=0Aworkaround with Nvidia's =
+Vista driver.=0A=0ASigned-off-by: Lee, Chun-Yi <jlee@novell.com>=0A---=0A =
+drivers/acpi/blacklist.c |    8 ++++++++=0A 1 files changed, 8 insertions(+=
+), 0 deletions(-)=0A=0Adiff --git a/drivers/acpi/blacklist.c b/drivers/acpi=
+/blacklist.c=0Aindex 2bb28b9..3e644d8 100644=0A--- a/drivers/acpi/blacklist=
+.c=0A+++ b/drivers/acpi/blacklist.c=0A@@ -226,6 +226,14 @@ static struct =
+dmi_system_id acpi_osi_dmi_table[] __initdata =3D {=0A 		},=0A 	=
+},=0A 	{=0A+	.callback =3D dmi_disable_osi_vista,=0A+	.ident =3D =
+"MSI GX723",=0A+	.matches =3D {=0A+		     DMI_MATCH(DMI_=
+SYS_VENDOR, "Micro-Star International"),=0A+		     DMI_MATCH(DMI_=
+PRODUCT_NAME, "GX723"),=0A+		},=0A+	},=0A+	{=0A 	.callback =
+=3D dmi_disable_osi_win7,=0A 	.ident =3D "ASUS K50IJ",=0A 	.matches =
+=3D {=0A-- =0A1.6.0.2=0A=0A
+--=__PartE7CA047D.1__=--
