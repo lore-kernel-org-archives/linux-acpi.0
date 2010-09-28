@@ -1,107 +1,101 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: acpi_pad: simplify code to avoid false gcc build warning
-Date: Tue, 28 Sep 2010 16:53:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009281652110.32026@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: RFC: mixing device idle and CPUidle or non-atomic idle notifiers
+Date: Wed, 29 Sep 2010 00:24:01 +0200
+Message-ID: <201009290024.01381.rjw@sisk.pl>
+References: <87iq1uwvtd.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1863258042-1285707193=:32026"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:60748 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786Ab0I1Uxe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 16:53:34 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9H009CG60RWTH1@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 28 Sep 2010 15:53:16 -0500 (CDT)
+Received: from ogre.sisk.pl ([217.79.144.158]:50910 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754874Ab0I1WZE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Sep 2010 18:25:04 -0400
+In-Reply-To: <87iq1uwvtd.fsf@deeprootsystems.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Len Brown <lenb@kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Saturday, September 25, 2010, Kevin Hilman wrote:
+> Now that we have runtime PM for devices, I'm exploring ways of how to
+> couple the runtime PM of certain devices with CPUidle transitions.
+> Ideally, CPUidle should only manage CPU idle states, and device idle
+> states would be managed separately using runtime PM.  However, there are
+> cases where the device idle transistions need to be coordinated with CPU
+> idle transistions.  This is already a proposed topic for the PM
+> mini-conf at Plumbers'[1], so this RFC is to get the discussion started.
 
---8323328-1863258042-1285707193=:32026
-Content-Type: TEXT/PLAIN; charset=ISO-8859-7
-Content-Transfer-Encoding: 8BIT
+OK
 
-From: Len Brown <len.brown@intel.com>
+> In the wild west (before runtime PM), we managed these special cases on
+> OMAP by having some special hacks^Whooks for certain drivers that were
+> called during idle.  When these devices are converted to using runtime
+> PM, ideally we'd like initiate device runtime PM transitions for these
+> devices somehow coordinated with CPU idle transitions.
+> 
+> So, I started to explore how to coordinate device runtime PM transitions
+> with CPU idle transitions.
+> 
+> One of the fundamental problems is that by the time CPUidle is entered,
+> interrupts are already disabled, and runtime PM cannot be used from
+> interrupts disabled context (c.f. thread on linux-pm[1].)
 
-acpi_pad.c:432: warning: ¡num_cpus¢ may be used uninitialized in this function
+This issue should be addressed by Alan, by adding the new flag to struct
+dev_pm_info that will tell the runtime PM framework that to work with the
+assumption that interrupts are off.
 
-gcc 4.4.4 was unable to notice that num_cpus is always set.
-Re-arrange the code to un-confuse gcc, and also make
-it easier for humans to read....
+> So that led me down the path of exploring whether we really need to have
+> interrupts disabled during the early part of CPUidle.  It seems to me
+> that during the time when the governor is selecting a state, and when
+> the platform-specific code is checking for device/bus activity,
+> interrupts do not really need to be disabled yet.  At least, I didn't
+> come up with a good reason why they need to be disabled so early, hence
+> the RFC.
+> 
+> Here's a simplified version how it works today:
+> 
+> /* arch/arm/kernel/process.c, arch/x86/kernel/process_*.c */
+> cpu_idle()  
+>     local_irq_disable()    
+>     pm_idle()  --> cpuidle_idle_call()
+> 
+> cpuidle_idle_call()
+>     dev->prepare()
+>     target_state = governor->select()  /* selects next state */
+>     target_state->enter()
+>         /* the ->enter hook must enable IRQs before returning */
+> 
+> As a quick hack, I just (re)enabled interrupts in our CPUidle
+> ->prepare() hook (they're later disabled again before the core idle is
+> run.)  This allowed the calling of device-specific idle functions which
+> then use runtime PM and thus allows device-specific idle to be
+> coordinated with the CPU idle.
+> 
+> So back to the main question... do we really need interrupts disabled so
+> early in the idle path? 
+> 
+> I'm sure I'm missing something obvious about why this can't work, but
+> it's Friday and my brain prefers to think about beer rather than
+> CPUidle.
+> 
+> Or, as another potential option...
+> 
+> I just discovered that x86_64 has an atomic idle_notifier called just
+> before idle (c.f. arch/x86/kernel/process_64.c.)  However this is also
+> done with interrupts disabled, so using this has the same problems with
+> interrupts disabled.  But, what about adding an additional notifier
+> chain that happens with interrupts still enabled....  hmm, will
+> ponder that over that beer...
 
-Signed-off-by: Len Brown <len.browns@intel.com>
----
- drivers/acpi/acpi_pad.c |   34 ++++++++++++++++++----------------
- 1 files changed, 18 insertions(+), 16 deletions(-)
+I must admit I haven't looked very deeply into the cpuidle code, but
+certainly there are good reasons to make it collaborate with the I/O runtime PM.
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index b76848c..6b115f6 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -382,31 +382,32 @@ static void acpi_pad_remove_sysfs(struct acpi_device *device)
- 	device_remove_file(&device->dev, &dev_attr_rrtime);
- }
- 
--/* Query firmware how many CPUs should be idle */
--static int acpi_pad_pur(acpi_handle handle, int *num_cpus)
-+/*
-+ * Query firmware how many CPUs should be idle
-+ * return -1 on failure
-+ */
-+static int acpi_pad_pur(acpi_handle handle)
- {
- 	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
- 	union acpi_object *package;
--	int rev, num, ret = -EINVAL;
-+	int num = -1;
- 
- 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_PUR", NULL, &buffer)))
--		return -EINVAL;
-+		return num;
- 
- 	if (!buffer.length || !buffer.pointer)
--		return -EINVAL;
-+		return num;
- 
- 	package = buffer.pointer;
--	if (package->type != ACPI_TYPE_PACKAGE || package->package.count != 2)
--		goto out;
--	rev = package->package.elements[0].integer.value;
--	num = package->package.elements[1].integer.value;
--	if (rev != 1 || num < 0)
--		goto out;
--	*num_cpus = num;
--	ret = 0;
--out:
-+
-+	if (package->type == ACPI_TYPE_PACKAGE &&
-+		package->package.count == 2 &&
-+		package->package.elements[0].integer.value == 1) /* rev 1 */
-+
-+		num = package->package.elements[1].integer.value;
-+
- 	kfree(buffer.pointer);
--	return ret;
-+	return num;
- }
- 
- /* Notify firmware how many CPUs are idle */
-@@ -433,7 +434,8 @@ static void acpi_pad_handle_notify(acpi_handle handle)
- 	uint32_t idle_cpus;
- 
- 	mutex_lock(&isolated_cpus_lock);
--	if (acpi_pad_pur(handle, &num_cpus)) {
-+	num_cpus = acpi_pad_pur(handle);
-+	if (num_cpus < 0) {
- 		mutex_unlock(&isolated_cpus_lock);
- 		return;
- 	}
--- 
-1.7.3.2.g9027fa
+It would be good to know if we can relax the handling of interrupts in the
+cpuidle framework a bit, this way or another.
 
---8323328-1863258042-1285707193=:32026--
+[Added a few CCs to people that may be interested.]
+
+Thanks,
+Rafael
