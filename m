@@ -1,50 +1,25 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH 1/1] acpi: clear PCIEXP_WAKE_STS on resume
-Date: Tue, 28 Sep 2010 12:00:24 +0100
-Message-ID: <1285671624-7826-2-git-send-email-colin.king@canonical.com>
-References: <1285671624-7826-1-git-send-email-colin.king@canonical.com>
+From: Marc Ferland <marc.ferland@gmail.com>
+Subject: Re:
+Date: Tue, 28 Sep 2010 20:23:08 +0800
+Message-ID: <AANLkTi=NKY+8dAUZ2U-6Vw5siH6YOkUJrKdPisbj8hGc@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:45825 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab0I1LA0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 07:00:26 -0400
-In-Reply-To: <1285671624-7826-1-git-send-email-colin.king@canonical.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:48436 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007Ab0I1MXd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 08:23:33 -0400
+Received: by iwn5 with SMTP id 5so5907660iwn.19
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Sep 2010 05:23:33 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+hey,
+how are you?
+Just  received my  Iphone 4G 16GB  from this homepage,   www.Benefits188.com
+It's so cheaper but genuine, Wow. that's amazing. I like it very much!!
+I paid it $690US  couier charges included , They have some other
+products. If you want to get one. you can check it out !
 
-Section 4.7.3.1.1 (PM1 Status Registers) of version 4.0 of
-the ACPI spec concerning PCIEXP_WAKE_STS points out in
-in the final note field in table 4-11 that if this bit is
-set to 1 and the system is put into a sleeping state then
-the system will not automatically wake.
-
-This bit gets set by hardware to indicate that the system
-woke up due to a PCI Express wakeup event, so clear it during
-acpi_hw_clear_acpi_status() calls to enable subsequent
-resumes to work.
-
-BugLink: http://bugs.launchpad.net/bugs/613381
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/acpica/aclocal.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 147a7e6..f26db38 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -853,6 +853,7 @@ struct acpi_bit_register_info {
- 	ACPI_BITMASK_POWER_BUTTON_STATUS   | \
- 	ACPI_BITMASK_SLEEP_BUTTON_STATUS   | \
- 	ACPI_BITMASK_RT_CLOCK_STATUS       | \
-+        ACPI_BITMASK_PCIEXP_WAKE_DISABLE   | \
- 	ACPI_BITMASK_WAKE_STATUS)
- 
- #define ACPI_BITMASK_TIMER_ENABLE               0x0001
--- 
-1.7.0.4
-
+Regards,
+Marc Ferland
