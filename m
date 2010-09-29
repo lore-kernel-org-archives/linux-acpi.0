@@ -1,13 +1,14 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/16] ACPI: Kconfig: fix typo.
-Date: Tue, 28 Sep 2010 23:44:41 -0400
-Message-ID: <25cb1bfdd8256cd1c614947e1696e42176ac22ec.1285731809.git.len.brown@intel.com>
+Subject: [PATCH 10/16] ACPI: add missing __percpu markup in
+ arch/x86/kernel/acpi/cstate.c
+Date: Tue, 28 Sep 2010 23:44:40 -0400
+Message-ID: <bd126b23a2f30c3c7d268db2b96866923eb732a5.1285731809.git.len.brown@intel.com>
 References: <1285731886-18321-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:58382 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab0I2DyR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 23:54:17 -0400
+	with ESMTP id S1754453Ab0I2DyS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 23:54:18 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
@@ -19,30 +20,33 @@ References: <b137b9942a07843c64a934cfdb7d43155e507e13.1285731809.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Andrea Gelmini <andrea.gelmini@gelma.net>, Len Brown <len.brown@intel.com>
+Cc: Namhyung Kim <namhyung@gmail.com>, Len Brown <len.brown@intel.com>
 
-From: Andrea Gelmini <andrea.gelmini@gelma.net>
+From: Namhyung Kim <namhyung@gmail.com>
 
-"power of" -> "power off"
+cpu_cstate_entry is a percpu pointer
+but was missing __percpu markup.
 
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |    2 +-
+ arch/x86/kernel/acpi/cstate.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b811f21..88681ac 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -105,7 +105,7 @@ config ACPI_EC_DEBUGFS
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index fb7a5f0..fb16f17 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -61,7 +61,7 @@ struct cstate_entry {
+ 		unsigned int ecx;
+ 	} states[ACPI_PROCESSOR_MAX_POWER];
+ };
+-static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
++static struct cstate_entry __percpu *cpu_cstate_entry;	/* per CPU ptr */
  
- 	  Be aware that using this interface can confuse your Embedded
- 	  Controller in a way that a normal reboot is not enough. You then
--	  have to power of your system, and remove the laptop battery for
-+	  have to power off your system, and remove the laptop battery for
- 	  some seconds.
- 	  An Embedded Controller typically is available on laptops and reads
- 	  sensor values like battery state and temperature.
+ static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+ 
 -- 
 1.7.3.2.g9027fa
 
