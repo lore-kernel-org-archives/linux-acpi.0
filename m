@@ -1,30 +1,29 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Tie ACPI backlight devices to PCI devices if possible
-Date: Wed, 29 Sep 2010 14:39:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1009291438520.21034@localhost.localdomain>
-References: <1284053985-11254-1-git-send-email-mjg@redhat.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: Tie ACPI backlight devices to PCI devices if
+	possible
+Date: Wed, 29 Sep 2010 19:44:46 +0100
+Message-ID: <20100929184446.GA28082@srcf.ucam.org>
+References: <1284053985-11254-1-git-send-email-mjg@redhat.com> <alpine.LFD.2.00.1009291438520.21034@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:48399 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754427Ab0I2SjR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Sep 2010 14:39:17 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9I00MWRUHF7SL3@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 29 Sep 2010 13:39:16 -0500 (CDT)
-In-reply-to: <1284053985-11254-1-git-send-email-mjg@redhat.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:42431 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754022Ab0I2Sov (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Sep 2010 14:44:51 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1009291438520.21034@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
--ENOAPPLY
+On Wed, Sep 29, 2010 at 02:39:12PM -0400, Len Brown wrote:
+> -ENOAPPLY
+> 
+> what tree is this patch on top of?
 
-what tree is this patch on top of?
+It requires the backlight rework which still hasn't been merged.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
