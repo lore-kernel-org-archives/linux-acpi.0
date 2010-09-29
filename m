@@ -1,7 +1,7 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2 3/5] ACPI, APEI, HEST Fix the unsuitable usage of platform_data
-Date: Wed, 29 Sep 2010 19:53:53 +0800
-Message-ID: <1285761235-4751-4-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v2 2/5] ACPI, APEI, Fix acpi_pre_map() return value
+Date: Wed, 29 Sep 2010 19:53:52 +0800
+Message-ID: <1285761235-4751-3-git-send-email-ying.huang@intel.com>
 References: <1285761235-4751-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1285761235-4751-1-git-send-email-ying.huang@intel.com>
@@ -12,65 +12,32 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 
-platform_data in hest_parse_ghes() is used for saving the address of entry
-information of erst_tab. When the device is failed to be added, platform_data
-will be freed by platform_device_put(). But the value saved in platform_data
-should not be freed here. If it is done, it will make system panic.
-
-So I think platform_data should save the address of allocated memory
-which saves entry information of erst_tab.
-
-This patch fixed it and I confirmed it on x86_64 next-tree.
+After we ioremap() a new region, we call __acpi_try_ioremap() to
+see whether another thread has already mapped the same region.
+This check clobbers "vaddr",  so compute the return value of
+acpi_pre_map() using the ioremap() result "map->vaddr" instead.
 
 v2:
-    Transport the pointer of hest_hdr to platform_data using
-    platform_device_add_data()
+    Modified the unsuitable description of patch.
+
+v3:
+    Removed unlikely() check and made description simpler.
 
 Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/ghes.c |    2 +-
- drivers/acpi/apei/hest.c |   11 +++++++----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/acpi/atomicio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -302,7 +302,7 @@ static int __devinit ghes_probe(struct p
- 	struct ghes *ghes = NULL;
- 	int rc = -EINVAL;
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -142,7 +142,7 @@ static void __iomem *acpi_pre_map(phys_a
+ 	list_add_tail_rcu(&map->list, &acpi_iomaps);
+ 	spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
  
--	generic = ghes_dev->dev.platform_data;
-+	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
- 	if (!generic->enabled)
- 		return -ENODEV;
- 
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -137,20 +137,23 @@ static int hest_parse_ghes_count(struct
- 
- static int hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
- {
--	struct acpi_hest_generic *generic;
- 	struct platform_device *ghes_dev;
- 	struct ghes_arr *ghes_arr = data;
- 	int rc;
- 
- 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
- 		return 0;
--	generic = (struct acpi_hest_generic *)hest_hdr;
--	if (!generic->enabled)
-+
-+	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
- 		return 0;
- 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
- 	if (!ghes_dev)
- 		return -ENOMEM;
--	ghes_dev->dev.platform_data = generic;
-+
-+	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
-+	if (rc)
-+		goto err;
-+
- 	rc = platform_device_add(ghes_dev);
- 	if (rc)
- 		goto err;
+-	return vaddr + (paddr - pg_off);
++	return map->vaddr + (paddr - map->paddr);
+ err_unmap:
+ 	iounmap(vaddr);
+ 	return NULL;
