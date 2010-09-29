@@ -1,48 +1,29 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: acpi/test panic
-Date: Wed, 29 Sep 2010 11:23:46 +0800
-Message-ID: <1285730626.5741.0.camel@minggr.sh.intel.com>
-References: <4C9FC97F.7030405@oracle.com>
-	 <1285550762.5416.30.camel@minggr.sh.intel.com>
-	 <4CA010F9.8040804@oracle.com>
-	 <1285563934.5416.35.camel@minggr.sh.intel.com>
-	 <alpine.LFD.2.00.1009272045260.27732@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: ACPI patches for 2.6.36-rc6
+Date: Tue, 28 Sep 2010 23:44:30 -0400
+Message-ID: <1285731886-18321-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:54016 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752863Ab0I2DXC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Sep 2010 23:23:02 -0400
-In-Reply-To: <alpine.LFD.2.00.1009272045260.27732@localhost.localdomain>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:43999 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752122Ab0I2Do5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Sep 2010 23:44:57 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0L9H00AO6P2VLJG3@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 28 Sep 2010 22:44:57 -0500 (CDT)
+Received: from localhost.localdomain (x980 [127.0.0.1])
+	by localhost.localdomain (8.14.4/8.14.4) with ESMTP id o8T3irLf018356	for
+ <linux-acpi@vger.kernel.org>; Tue, 28 Sep 2010 23:44:54 -0400
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.4/8.14.4/Submit)
+ id o8T3irdT018354	for linux-acpi@vger.kernel.org; Tue,
+ 28 Sep 2010 23:44:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Yinghai Lu <yinghai.lu@oracle.com>, "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Tue, 2010-09-28 at 08:46 +0800, Len Brown wrote:
-> > Len,
-> > Please merge above code into then commit "ACPICA: Revert "Revert "Enable
-> > multi-byte EC transfers".
-> 
-> done.
-> but i've backed out the acpica branch entirely
-> because it doesn't boot on my t61
-> starting with at this patch:
-> 
-> ACPICA/ACPI: Add new host interfaces for _OSI support
+here is my queue for 2.6.36-rc6
+please let me know if you have troubles with any of these patches.
 
-I'll test t61 and get back to you.
-
-Lin Ming
-
-> 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+thanks,
+Len Brown, Intel Open Source Technology Center
