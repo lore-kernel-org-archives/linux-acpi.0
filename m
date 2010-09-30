@@ -1,42 +1,36 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] DMI to disable Vista compatibility on MSI GX723 Notebook
-Date: Thu, 30 Sep 2010 18:44:11 +0800
-Message-ID: <1285843451-24932-1-git-send-email-jlee@novell.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, rui.zhang@intel.com
-Cc: melchior+kernel@cmu.edu, jerone.young@canonical.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patrol@sinus.cz, "Lee, Chun-Yi" <jlee@novell.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] DMI to disable Vista compatibility on MSI GX723
+	Notebook
+Date: Thu, 30 Sep 2010 14:25:52 +0100
+Message-ID: <20100930132552.GA11064@srcf.ucam.org>
+References: <1285843451-24932-1-git-send-email-jlee@novell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:48346 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941Ab0I3N0Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Sep 2010 09:26:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1285843451-24932-1-git-send-email-jlee@novell.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, melchior+kernel@cmu.edu, jerone.young@canonical.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patrol@sinus.cz, "Lee, Chun-Yi" <jlee@novell.com>
 
-The brightness control hotkey don't work with Vista compatibility
-, because MSI GX723 included a infinite while loop in DSDT when
-brightness control hotkey pressed.
-MSI GX723 used Nvida video card, the infinite while loop must be a
-workaround with Nvidia's Vista driver.
+On Thu, Sep 30, 2010 at 06:44:11PM +0800, Lee, Chun-Yi wrote:
+> The brightness control hotkey don't work with Vista compatibility
+> , because MSI GX723 included a infinite while loop in DSDT when
+> brightness control hotkey pressed.
+> MSI GX723 used Nvida video card, the infinite while loop must be a
+> workaround with Nvidia's Vista driver.
 
-Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
----
- drivers/acpi/blacklist.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+While this would work, it seems likely that the expected behaviour is 
+for the graphics driver to call the NVIF method. We don't do that as 
+yet, but when we do I'm worried about it potentially resulting in this 
+system being in an unexpected state (NVIF is used, but we don't claim to 
+be Vista). Can you add a comment indicating that it should be reverted 
+once nouveau grows support?
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 2bb28b9..3e644d8 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -226,6 +226,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		},
- 	},
- 	{
-+	.callback = dmi_disable_osi_vista,
-+	.ident = "MSI GX723",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "GX723"),
-+		},
-+	},
-+	{
- 	.callback = dmi_disable_osi_win7,
- 	.ident = "ASUS K50IJ",
- 	.matches = {
 -- 
-1.6.0.2
+Matthew Garrett | mjg59@srcf.ucam.org
