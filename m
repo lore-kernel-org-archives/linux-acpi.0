@@ -1,48 +1,42 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v2 1/5] ACPI, APEI, Fix APEI related table size
- checking
-Date: Thu, 30 Sep 2010 08:25:34 +0800
-Message-ID: <1285806334.6944.8.camel@yhuang-dev>
-References: <1285761235-4751-1-git-send-email-ying.huang@intel.com>
-	 <1285761235-4751-2-git-send-email-ying.huang@intel.com>
-	 <alpine.LFD.2.00.1009291400590.3855@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60826 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998Ab0I3AZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Sep 2010 20:25:57 -0400
-In-Reply-To: <alpine.LFD.2.00.1009291400590.3855@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] DMI to disable Vista compatibility on MSI GX723 Notebook
+Date: Thu, 30 Sep 2010 18:44:11 +0800
+Message-ID: <1285843451-24932-1-git-send-email-jlee@novell.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: melchior+kernel@cmu.edu, jerone.young@canonical.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patrol@sinus.cz, "Lee, Chun-Yi" <jlee@novell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Len,
+The brightness control hotkey don't work with Vista compatibility
+, because MSI GX723 included a infinite while loop in DSDT when
+brightness control hotkey pressed.
+MSI GX723 used Nvida video card, the infinite while loop must be a
+workaround with Nvidia's Vista driver.
 
-On Thu, 2010-09-30 at 02:01 +0800, Len Brown wrote:
-> > Originally-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> BTW.
-> 
-> If the patch is substantially the same as the original,
-> then the method to credit the original author is to
-> start the patch body with:
-> 
-> From: Yinghai Lu <yinghai@kernel.org>
-> 
-> and you can choose to note your changes in the signed-off part,
-> like akpm typically does, or not.
+Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+---
+ drivers/acpi/blacklist.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Thanks for remaining.
-
-I changes the logic in original patch, and don't know whether Yinghai
-agree with me. So uses Originally-by: here. If I just do some minor
-fixes, I will use From:
-
-Best Regards,
-Huang Ying
-
-
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 2bb28b9..3e644d8 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -226,6 +226,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
++	.callback = dmi_disable_osi_vista,
++	.ident = "MSI GX723",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "GX723"),
++		},
++	},
++	{
+ 	.callback = dmi_disable_osi_win7,
+ 	.ident = "ASUS K50IJ",
+ 	.matches = {
+-- 
+1.6.0.2
