@@ -1,508 +1,198 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/4] ACPI thermal: remove deprecated porcfs interface
-Date: Sat, 02 Oct 2010 04:39:48 +0800
-Message-ID: <1285965588.2111.3746.camel@rui>
+Subject: [PATCH 2/4] ACPI fan: remove deprecated procfs I/F
+Date: Sat, 02 Oct 2010 04:39:44 +0800
+Message-ID: <1285965584.2111.3745.camel@rui>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40778 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:16978 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752263Ab0JAUlA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Oct 2010 16:41:00 -0400
+	id S1751466Ab0JAUlB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Oct 2010 16:41:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-Remove the deprecated ACPI thermal driver procfs I/F, as stated in the change log 
-of commit 43d9f87b79804f2d75d9d8a81c862b179f055a15
-sysfs I/F is available at /sys/class/thermal/thermal_zoneX/
+Remove deprecated ACPI Fan driver procfs interface.
+New sysfs I/F is available at /sys/class/thermal/cooling_devicecX/
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/thermal.c |  436 -------------------------------------------------
- 1 file changed, 1 insertion(+), 435 deletions(-)
+ drivers/acpi/fan.c |  137 -----------------------------------------------------
+ 1 file changed, 1 insertion(+), 136 deletions(-)
 
-Index: linux-2.6/drivers/acpi/thermal.c
+Index: linux-2.6/drivers/acpi/fan.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/thermal.c
-+++ linux-2.6/drivers/acpi/thermal.c
-@@ -37,12 +37,6 @@
+--- linux-2.6.orig/drivers/acpi/fan.c
++++ linux-2.6/drivers/acpi/fan.c
+@@ -27,8 +27,6 @@
+ #include <linux/module.h>
  #include <linux/init.h>
- #include <linux/slab.h>
  #include <linux/types.h>
--
--#ifdef CONFIG_ACPI_PROCFS
 -#include <linux/proc_fs.h>
 -#include <linux/seq_file.h>
--#endif
--
- #include <linux/jiffies.h>
- #include <linux/kmod.h>
- #include <linux/reboot.h>
-@@ -195,61 +189,6 @@ struct acpi_thermal {
- 	struct mutex lock;
+ #include <asm/uaccess.h>
+ #include <linux/thermal.h>
+ #include <acpi/acpi_bus.h>
+@@ -119,122 +117,6 @@ static struct thermal_cooling_device_ops
  };
- 
--#ifdef CONFIG_ACPI_PROCFS
--static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_cooling_mode(struct file *,
--					       const char __user *, size_t,
--					       loff_t *);
--static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
--					  size_t, loff_t *);
--
--static const struct file_operations acpi_thermal_state_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_thermal_state_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static const struct file_operations acpi_thermal_temp_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_thermal_temp_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static const struct file_operations acpi_thermal_trip_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_thermal_trip_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static const struct file_operations acpi_thermal_cooling_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_thermal_cooling_open_fs,
--	.read = seq_read,
--	.write = acpi_thermal_write_cooling_mode,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static const struct file_operations acpi_thermal_polling_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_thermal_polling_open_fs,
--	.read = seq_read,
--	.write = acpi_thermal_write_polling,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--#endif /* CONFIG_ACPI_PROCFS*/
--
- /* --------------------------------------------------------------------------
-                              Thermal Zone Management
-    -------------------------------------------------------------------------- */
-@@ -958,358 +897,6 @@ static void acpi_thermal_unregister_ther
- 
  
  /* --------------------------------------------------------------------------
 -                              FS Interface (/proc)
 -   -------------------------------------------------------------------------- */
 -#ifdef CONFIG_ACPI_PROCFS
--static struct proc_dir_entry *acpi_thermal_dir;
 -
--static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+-static struct proc_dir_entry *acpi_fan_dir;
+-
+-static int acpi_fan_read_state(struct seq_file *seq, void *offset)
 -{
--	struct acpi_thermal *tz = seq->private;
+-	struct acpi_device *device = seq->private;
+-	int state = 0;
 -
 -
--	if (!tz)
--		goto end;
--
--	seq_puts(seq, "state:                   ");
--
--	if (!tz->state.critical && !tz->state.hot && !tz->state.passive
--	    && !tz->state.active)
--		seq_puts(seq, "ok\n");
--	else {
--		if (tz->state.critical)
--			seq_puts(seq, "critical ");
--		if (tz->state.hot)
--			seq_puts(seq, "hot ");
--		if (tz->state.passive)
--			seq_puts(seq, "passive ");
--		if (tz->state.active)
--			seq_printf(seq, "active[%d]", tz->state.active_index);
--		seq_puts(seq, "\n");
--	}
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_state_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_temp_seq_show(struct seq_file *seq, void *offset)
--{
--	int result = 0;
--	struct acpi_thermal *tz = seq->private;
--
--
--	if (!tz)
--		goto end;
--
--	result = acpi_thermal_get_temperature(tz);
--	if (result)
--		goto end;
--
--	seq_printf(seq, "temperature:             %ld C\n",
--		   KELVIN_TO_CELSIUS(tz->temperature));
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_temp_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_thermal *tz = seq->private;
--	struct acpi_device *device;
--	acpi_status status;
--
--	int i = 0;
--	int j = 0;
--
--
--	if (!tz)
--		goto end;
--
--	if (tz->trips.critical.flags.valid)
--		seq_printf(seq, "critical (S5):           %ld C%s",
--			   KELVIN_TO_CELSIUS(tz->trips.critical.temperature),
--			   nocrt ? " <disabled>\n" : "\n");
--
--	if (tz->trips.hot.flags.valid)
--		seq_printf(seq, "hot (S4):                %ld C%s",
--			   KELVIN_TO_CELSIUS(tz->trips.hot.temperature),
--			   nocrt ? " <disabled>\n" : "\n");
--
--	if (tz->trips.passive.flags.valid) {
--		seq_printf(seq,
--			   "passive:                 %ld C: tc1=%lu tc2=%lu tsp=%lu devices=",
--			   KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
--			   tz->trips.passive.tc1, tz->trips.passive.tc2,
--			   tz->trips.passive.tsp);
--		for (j = 0; j < tz->trips.passive.devices.count; j++) {
--			status = acpi_bus_get_device(tz->trips.passive.devices.
--						     handles[j], &device);
--			seq_printf(seq, "%4.4s ", status ? "" :
--				   acpi_device_bid(device));
--		}
--		seq_puts(seq, "\n");
--	} else {
--		seq_printf(seq, "passive (forced):");
--		if (tz->thermal_zone->forced_passive)
--			seq_printf(seq, "        %i C\n",
--				   tz->thermal_zone->forced_passive / 1000);
+-	if (device) {
+-		if (acpi_bus_get_power(device->handle, &state))
+-			seq_printf(seq, "status:                  ERROR\n");
 -		else
--			seq_printf(seq, "<not set>\n");
+-			seq_printf(seq, "status:                  %s\n",
+-				   !state ? "on" : "off");
 -	}
--
--	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
--		if (!(tz->trips.active[i].flags.valid))
--			break;
--		seq_printf(seq, "active[%d]:               %ld C: devices=",
--			   i,
--			   KELVIN_TO_CELSIUS(tz->trips.active[i].temperature));
--		for (j = 0; j < tz->trips.active[i].devices.count; j++){
--			status = acpi_bus_get_device(tz->trips.active[i].
--						     devices.handles[j],
--						     &device);
--			seq_printf(seq, "%4.4s ", status ? "" :
--				   acpi_device_bid(device));
--		}
--		seq_puts(seq, "\n");
--	}
--
--      end:
 -	return 0;
 -}
 -
--static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file)
+-static int acpi_fan_state_open_fs(struct inode *inode, struct file *file)
 -{
--	return single_open(file, acpi_thermal_trip_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_cooling_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_thermal *tz = seq->private;
--
--
--	if (!tz)
--		goto end;
--
--	if (!tz->flags.cooling_mode)
--		seq_puts(seq, "<setting not supported>\n");
--	else
--		seq_puts(seq, "0 - Active; 1 - Passive\n");
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_cooling_seq_show,
--			   PDE(inode)->data);
+-	return single_open(file, acpi_fan_read_state, PDE(inode)->data);
 -}
 -
 -static ssize_t
--acpi_thermal_write_cooling_mode(struct file *file,
--				const char __user * buffer,
--				size_t count, loff_t * ppos)
+-acpi_fan_write_state(struct file *file, const char __user * buffer,
+-		     size_t count, loff_t * ppos)
 -{
--	struct seq_file *m = file->private_data;
--	struct acpi_thermal *tz = m->private;
 -	int result = 0;
--	char mode_string[12] = { '\0' };
+-	struct seq_file *m = file->private_data;
+-	struct acpi_device *device = m->private;
+-	char state_string[3] = { '\0' };
 -
--
--	if (!tz || (count > sizeof(mode_string) - 1))
+-	if (count > sizeof(state_string) - 1)
 -		return -EINVAL;
 -
--	if (!tz->flags.cooling_mode)
--		return -ENODEV;
--
--	if (copy_from_user(mode_string, buffer, count))
+-	if (copy_from_user(state_string, buffer, count))
 -		return -EFAULT;
 -
--	mode_string[count] = '\0';
+-	state_string[count] = '\0';
+-	if ((state_string[0] < '0') || (state_string[0] > '3'))
+-		return -EINVAL;
+-	if (state_string[1] == '\n')
+-		state_string[1] = '\0';
+-	if (state_string[1] != '\0')
+-		return -EINVAL;
 -
--	result = acpi_thermal_set_cooling_mode(tz,
--					       simple_strtoul(mode_string, NULL,
--							      0));
+-	result = acpi_bus_set_power(device->handle,
+-				    simple_strtoul(state_string, NULL, 0));
 -	if (result)
 -		return result;
--
--	acpi_thermal_check(tz);
 -
 -	return count;
 -}
 -
--static int acpi_thermal_polling_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_thermal *tz = seq->private;
+-static const struct file_operations acpi_fan_state_ops = {
+-	.open = acpi_fan_state_open_fs,
+-	.read = seq_read,
+-	.write = acpi_fan_write_state,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
 -
--
--	if (!tz)
--		goto end;
--
--	if (!tz->thermal_zone->polling_delay) {
--		seq_puts(seq, "<polling disabled>\n");
--		goto end;
--	}
--
--	seq_printf(seq, "polling frequency:       %d seconds\n",
--		   (tz->thermal_zone->polling_delay / 1000));
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_polling_seq_show,
--			   PDE(inode)->data);
--}
--
--static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
--{
--	if (!tz)
--		return -EINVAL;
--
--	/* Convert value to deci-seconds */
--	tz->polling_frequency = seconds * 10;
--
--	tz->thermal_zone->polling_delay = seconds * 1000;
--
--	if (tz->tz_enabled)
--		thermal_zone_device_update(tz->thermal_zone);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Polling frequency set to %lu seconds\n",
--			  tz->polling_frequency/10));
--
--	return 0;
--}
--
--static ssize_t
--acpi_thermal_write_polling(struct file *file,
--			   const char __user * buffer,
--			   size_t count, loff_t * ppos)
--{
--	struct seq_file *m = file->private_data;
--	struct acpi_thermal *tz = m->private;
--	int result = 0;
--	char polling_string[12] = { '\0' };
--	int seconds = 0;
--
--
--	if (!tz || (count > sizeof(polling_string) - 1))
--		return -EINVAL;
--
--	if (copy_from_user(polling_string, buffer, count))
--		return -EFAULT;
--
--	polling_string[count] = '\0';
--
--	seconds = simple_strtoul(polling_string, NULL, 0);
--
--	result = acpi_thermal_set_polling(tz, seconds);
--	if (result)
--		return result;
--
--	acpi_thermal_check(tz);
--
--	return count;
--}
--
--static int acpi_thermal_add_fs(struct acpi_device *device)
+-static int acpi_fan_add_fs(struct acpi_device *device)
 -{
 -	struct proc_dir_entry *entry = NULL;
 -
 -
+-	if (!device)
+-		return -EINVAL;
+-
 -	if (!acpi_device_dir(device)) {
 -		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
--						     acpi_thermal_dir);
+-						     acpi_fan_dir);
 -		if (!acpi_device_dir(device))
 -			return -ENODEV;
 -	}
 -
--	/* 'state' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_STATE,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_thermal_state_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'temperature' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_TEMPERATURE,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_thermal_temp_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'trip_points' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_TRIP_POINTS,
--				 S_IRUGO,
--				 acpi_device_dir(device),
--				 &acpi_thermal_trip_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'cooling_mode' [R/W] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_COOLING_MODE,
+-	/* 'status' [R/W] */
+-	entry = proc_create_data(ACPI_FAN_FILE_STATE,
 -				 S_IFREG | S_IRUGO | S_IWUSR,
 -				 acpi_device_dir(device),
--				 &acpi_thermal_cooling_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'polling_frequency' [R/W] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_POLLING_FREQ,
--				 S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_device_dir(device),
--				 &acpi_thermal_polling_fops,
--				 acpi_driver_data(device));
+-				 &acpi_fan_state_ops,
+-				 device);
 -	if (!entry)
 -		return -ENODEV;
 -	return 0;
 -}
 -
--static int acpi_thermal_remove_fs(struct acpi_device *device)
+-static int acpi_fan_remove_fs(struct acpi_device *device)
 -{
 -
 -	if (acpi_device_dir(device)) {
--		remove_proc_entry(ACPI_THERMAL_FILE_POLLING_FREQ,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_COOLING_MODE,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_TRIP_POINTS,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_TEMPERATURE,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_STATE,
--				  acpi_device_dir(device));
--		remove_proc_entry(acpi_device_bid(device), acpi_thermal_dir);
+-		remove_proc_entry(ACPI_FAN_FILE_STATE, acpi_device_dir(device));
+-		remove_proc_entry(acpi_device_bid(device), acpi_fan_dir);
 -		acpi_device_dir(device) = NULL;
 -	}
 -
 -	return 0;
 -}
 -#else
--static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
--static inline int acpi_thermal_remove_fs(struct acpi_device *device)
+-static int acpi_fan_add_fs(struct acpi_device *device)
 -{
 -	return 0;
 -}
--#endif /* CONFIG_ACPI_PROCFS */
+-
+-static int acpi_fan_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-#endif
 -/* --------------------------------------------------------------------------
                                   Driver Interface
     -------------------------------------------------------------------------- */
  
-@@ -1428,17 +1015,11 @@ static int acpi_thermal_add(struct acpi_
- 	if (result)
- 		goto free_memory;
+@@ -284,10 +166,6 @@ static int acpi_fan_add(struct acpi_devi
+ 		dev_err(&device->dev, "Failed to create sysfs link "
+ 			"'device'\n");
  
--	result = acpi_thermal_add_fs(device);
+-	result = acpi_fan_add_fs(device);
 -	if (result)
--		goto unregister_thermal_zone;
+-		goto end;
 -
- 	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
  	       acpi_device_name(device), acpi_device_bid(device),
- 	       KELVIN_TO_CELSIUS(tz->temperature));
- 	goto end;
+ 	       !device->power.state ? "on" : "off");
+@@ -303,7 +181,6 @@ static int acpi_fan_remove(struct acpi_d
+ 	if (!device || !cdev)
+ 		return -EINVAL;
  
--unregister_thermal_zone:
--	thermal_zone_device_unregister(tz->thermal_zone);
- free_memory:
- 	kfree(tz);
- end:
-@@ -1454,7 +1035,6 @@ static int acpi_thermal_remove(struct ac
- 
- 	tz = acpi_driver_data(device);
- 
--	acpi_thermal_remove_fs(device);
- 	acpi_thermal_unregister_thermal_zone(tz);
- 	mutex_destroy(&tz->lock);
- 	kfree(tz);
-@@ -1580,19 +1160,9 @@ static int __init acpi_thermal_init(void
- 		return -ENODEV;
- 	}
+-	acpi_fan_remove_fs(device);
+ 	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+ 	sysfs_remove_link(&cdev->device.kobj, "device");
+ 	thermal_cooling_device_unregister(cdev);
+@@ -347,19 +224,9 @@ static int __init acpi_fan_init(void)
+ {
+ 	int result = 0;
  
 -#ifdef CONFIG_ACPI_PROCFS
--	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
--	if (!acpi_thermal_dir)
+-	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
+-	if (!acpi_fan_dir)
 -		return -ENODEV;
 -#endif
 -
- 	result = acpi_bus_register_driver(&acpi_thermal_driver);
+ 	result = acpi_bus_register_driver(&acpi_fan_driver);
 -	if (result < 0) {
 -#ifdef CONFIG_ACPI_PROCFS
--		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
+-		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
 -#endif
 +	if (result < 0)
  		return -ENODEV;
@@ -510,13 +200,11 @@ Index: linux-2.6/drivers/acpi/thermal.c
  
  	return 0;
  }
-@@ -1602,10 +1172,6 @@ static void __exit acpi_thermal_exit(voi
+@@ -369,8 +236,6 @@ static void __exit acpi_fan_exit(void)
  
- 	acpi_bus_unregister_driver(&acpi_thermal_driver);
+ 	acpi_bus_unregister_driver(&acpi_fan_driver);
  
--#ifdef CONFIG_ACPI_PROCFS
--	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
--#endif
+-	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
 -
  	return;
  }
