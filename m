@@ -1,411 +1,877 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 1/4] ACPI AC/Battery/SBS: deprecate procfs I/F and make
- sysfs I/F always built in
-Date: Sat, 02 Oct 2010 04:39:36 +0800
-Message-ID: <1285965576.2111.3744.camel@rui>
+Subject: [PATCH 4/4] ACPI video: remove deprecated procfs interface
+Date: Sat, 02 Oct 2010 04:39:55 +0800
+Message-ID: <1285965595.2111.3747.camel@rui>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:17764 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:28143 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752263Ab0JAUlC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Oct 2010 16:41:02 -0400
+	id S1753624Ab0JAUlI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Oct 2010 16:41:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-ACPI AC/Battery/SBS driver has different kernel option for procfs and sysfs I/F.
-
-This patch,
-1. Change CONFIG_ACPI_PROCFS_POWER to 'n' by default so that we can remove it in the next release or two.
-2. Remove CONFIG_ACPI_SYSFS_POWER and always build in the sysfs I/F of these drivers.
+Remove the deprecated ACPI video driver procfs I/F, as stated in the change log
+of commit 6e37c658aefa57c472b2dbf1de88dbd3c67cdb52
+New sysfs I/F is available at /sys/class/backlight/
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Kconfig   |    9 +--------
- drivers/acpi/ac.c      |   14 --------------
- drivers/acpi/battery.c |   21 ---------------------
- drivers/acpi/sbs.c     |   25 -------------------------
- 4 files changed, 1 insertion(+), 68 deletions(-)
+ drivers/acpi/video.c |  767 ---------------------------------------------------
+ 1 file changed, 767 deletions(-)
 
-Index: linux-2.6/drivers/acpi/Kconfig
+Index: linux-2.6/drivers/acpi/video.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/Kconfig
-+++ linux-2.6/drivers/acpi/Kconfig
-@@ -66,7 +66,7 @@ config ACPI_PROCFS
- config ACPI_PROCFS_POWER
- 	bool "Deprecated power /proc/acpi directories"
- 	depends on PROC_FS
--	default y
-+	default n
- 	help
- 	  For backwards compatibility, this option allows
-           deprecated power /proc/acpi/ directories to exist, even when
-@@ -90,13 +90,6 @@ config ACPI_POWER_METER
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called power-meter.
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -30,8 +30,6 @@
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+ #include <linux/input.h>
+ #include <linux/backlight.h>
+ #include <linux/thermal.h>
+@@ -152,9 +150,6 @@ struct acpi_video_bus {
+ 	struct acpi_video_bus_flags flags;
+ 	struct list_head video_device_list;
+ 	struct mutex device_list_lock;	/* protects video_device_list */
+-#ifdef CONFIG_ACPI_PROCFS
+-	struct proc_dir_entry *dir;
+-#endif
+ 	struct input_dev *input;
+ 	char phys[32];	/* for input device */
+ 	struct notifier_block pm_nb;
+@@ -210,108 +205,6 @@ struct acpi_video_device {
+ 	struct output_device *output_dev;
+ };
  
--config ACPI_SYSFS_POWER
--	bool "Future power /sys interface"
--	select POWER_SUPPLY
--	default y
--	help
--	  Say N to disable power /sys interface
+-#ifdef CONFIG_ACPI_PROCFS
+-/* bus */
+-static int acpi_video_bus_info_open_fs(struct inode *inode, struct file *file);
+-static const struct file_operations acpi_video_bus_info_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_bus_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
 -
- config ACPI_EC_DEBUGFS
- 	tristate "EC read/write access through /sys/kernel/debug/ec"
- 	default n
-Index: linux-2.6/drivers/acpi/ac.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ac.c
-+++ linux-2.6/drivers/acpi/ac.c
-@@ -32,9 +32,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
--#endif
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+-static int acpi_video_bus_ROM_open_fs(struct inode *inode, struct file *file);
+-static const struct file_operations acpi_video_bus_ROM_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_bus_ROM_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_bus_POST_info_open_fs(struct inode *inode,
+-					    struct file *file);
+-static const struct file_operations acpi_video_bus_POST_info_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_bus_POST_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_bus_POST_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_video_bus_write_POST(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_bus_POST_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_bus_POST_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_bus_write_POST,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_bus_DOS_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_video_bus_write_DOS(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_bus_DOS_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_bus_DOS_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_bus_write_DOS,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-/* device */
+-static int acpi_video_device_info_open_fs(struct inode *inode,
+-					  struct file *file);
+-static const struct file_operations acpi_video_device_info_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_state_open_fs(struct inode *inode,
+-					   struct file *file);
+-static ssize_t acpi_video_device_write_state(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_device_state_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_state_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_device_write_state,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_brightness_open_fs(struct inode *inode,
+-						struct file *file);
+-static ssize_t acpi_video_device_write_brightness(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_device_brightness_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_brightness_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_device_write_brightness,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_EDID_open_fs(struct inode *inode,
+-					  struct file *file);
+-static const struct file_operations acpi_video_device_EDID_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_EDID_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-#endif /* CONFIG_ACPI_PROCFS */
+-
+ static const char device_decode[][30] = {
+ 	"motherboard VGA device",
+ 	"PCI VGA device",
+@@ -1111,646 +1004,6 @@ static int acpi_video_bus_check(struct a
+ }
  
-@@ -86,9 +84,7 @@ static struct acpi_driver acpi_ac_driver
- };
- 
- struct acpi_ac {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply charger;
--#endif
- 	struct acpi_device * device;
- 	unsigned long long state;
- };
-@@ -104,7 +100,6 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int get_ac_property(struct power_supply *psy,
- 			   enum power_supply_property psp,
- 			   union power_supply_propval *val)
-@@ -123,7 +118,6 @@ static int get_ac_property(struct power_
- static enum power_supply_property ac_props[] = {
- 	POWER_SUPPLY_PROP_ONLINE,
- };
--#endif
  /* --------------------------------------------------------------------------
-                                AC Adapter Management
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_PROCFS
+-
+-static struct proc_dir_entry *acpi_video_dir;
+-
+-/* video devices */
+-
+-static int acpi_video_device_info_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_device *dev = seq->private;
+-
+-
+-	if (!dev)
+-		goto end;
+-
+-	seq_printf(seq, "device_id:    0x%04x\n", (u32) dev->device_id);
+-	seq_printf(seq, "type:         ");
+-	if (dev->flags.crt)
+-		seq_printf(seq, "CRT\n");
+-	else if (dev->flags.lcd)
+-		seq_printf(seq, "LCD\n");
+-	else if (dev->flags.tvout)
+-		seq_printf(seq, "TVOUT\n");
+-	else if (dev->flags.dvi)
+-		seq_printf(seq, "DVI\n");
+-	else
+-		seq_printf(seq, "UNKNOWN\n");
+-
+-	seq_printf(seq, "known by bios: %s\n", dev->flags.bios ? "yes" : "no");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int
+-acpi_video_device_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_device_info_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_device_query(struct acpi_video_device *device,
+-			unsigned long long *state)
+-{
+-	int status;
+-
+-	status = acpi_evaluate_integer(device->dev->handle, "_DGS",
+-				       NULL, state);
+-
+-	return status;
+-}
+-
+-static int acpi_video_device_state_seq_show(struct seq_file *seq, void *offset)
+-{
+-	int status;
+-	struct acpi_video_device *dev = seq->private;
+-	unsigned long long state;
+-
+-
+-	if (!dev)
+-		goto end;
+-
+-	status = acpi_video_device_get_state(dev, &state);
+-	seq_printf(seq, "state:     ");
+-	if (ACPI_SUCCESS(status))
+-		seq_printf(seq, "0x%02llx\n", state);
+-	else
+-		seq_printf(seq, "<not supported>\n");
+-
+-	status = acpi_video_device_query(dev, &state);
+-	seq_printf(seq, "query:     ");
+-	if (ACPI_SUCCESS(status))
+-		seq_printf(seq, "0x%02llx\n", state);
+-	else
+-		seq_printf(seq, "<not supported>\n");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int
+-acpi_video_device_state_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_device_state_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static ssize_t
+-acpi_video_device_write_state(struct file *file,
+-			      const char __user * buffer,
+-			      size_t count, loff_t * data)
+-{
+-	int status;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_device *dev = m->private;
+-	char str[12] = { 0 };
+-	u32 state = 0;
+-
+-
+-	if (!dev || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	state = simple_strtoul(str, NULL, 0);
+-	state &= ((1ul << 31) | (1ul << 30) | (1ul << 0));
+-
+-	status = acpi_video_device_set_state(dev, state);
+-
+-	if (status)
+-		return -EFAULT;
+-
+-	return count;
+-}
+-
+-static int
+-acpi_video_device_brightness_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_device *dev = seq->private;
+-	int i;
+-
+-
+-	if (!dev || !dev->brightness) {
+-		seq_printf(seq, "<not supported>\n");
+-		return 0;
+-	}
+-
+-	seq_printf(seq, "levels: ");
+-	for (i = 2; i < dev->brightness->count; i++)
+-		seq_printf(seq, " %d", dev->brightness->levels[i]);
+-	seq_printf(seq, "\ncurrent: %d\n", dev->brightness->curr);
+-
+-	return 0;
+-}
+-
+-static int
+-acpi_video_device_brightness_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_device_brightness_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static ssize_t
+-acpi_video_device_write_brightness(struct file *file,
+-				   const char __user * buffer,
+-				   size_t count, loff_t * data)
+-{
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_device *dev = m->private;
+-	char str[5] = { 0 };
+-	unsigned int level = 0;
+-	int i;
+-
+-
+-	if (!dev || !dev->brightness || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	level = simple_strtoul(str, NULL, 0);
+-
+-	if (level > 100)
+-		return -EFAULT;
+-
+-	/* validate through the list of available levels */
+-	for (i = 2; i < dev->brightness->count; i++)
+-		if (level == dev->brightness->levels[i]) {
+-			if (!acpi_video_device_lcd_set_level(dev, level))
+-				return count;
+-			break;
+-		}
+-
+-	return -EINVAL;
+-}
+-
+-static int acpi_video_device_EDID_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_device *dev = seq->private;
+-	int status;
+-	int i;
+-	union acpi_object *edid = NULL;
+-
+-
+-	if (!dev)
+-		goto out;
+-
+-	status = acpi_video_device_EDID(dev, &edid, 128);
+-	if (ACPI_FAILURE(status)) {
+-		status = acpi_video_device_EDID(dev, &edid, 256);
+-	}
+-
+-	if (ACPI_FAILURE(status)) {
+-		goto out;
+-	}
+-
+-	if (edid && edid->type == ACPI_TYPE_BUFFER) {
+-		for (i = 0; i < edid->buffer.length; i++)
+-			seq_putc(seq, edid->buffer.pointer[i]);
+-	}
+-
+-      out:
+-	if (!edid)
+-		seq_printf(seq, "<not supported>\n");
+-	else
+-		kfree(edid);
+-
+-	return 0;
+-}
+-
+-static int
+-acpi_video_device_EDID_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_device_EDID_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_device_add_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *entry, *device_dir;
+-	struct acpi_video_device *vid_dev;
+-
+-	vid_dev = acpi_driver_data(device);
+-	if (!vid_dev)
+-		return -ENODEV;
+-
+-	device_dir = proc_mkdir(acpi_device_bid(device),
+-				vid_dev->video->dir);
+-	if (!device_dir)
+-		return -ENOMEM;
+-
+-	/* 'info' [R] */
+-	entry = proc_create_data("info", S_IRUGO, device_dir,
+-			&acpi_video_device_info_fops, acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_dir;
+-
+-	/* 'state' [R/W] */
+-	entry = proc_create_data("state", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_device_state_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_info;
+-
+-	/* 'brightness' [R/W] */
+-	entry = proc_create_data("brightness", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_device_brightness_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_state;
+-
+-	/* 'EDID' [R] */
+-	entry = proc_create_data("EDID", S_IRUGO, device_dir,
+-				 &acpi_video_device_EDID_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_brightness;
+-
+-	acpi_device_dir(device) = device_dir;
+-
+-	return 0;
+-
+- err_remove_brightness:
+-	remove_proc_entry("brightness", device_dir);
+- err_remove_state:
+-	remove_proc_entry("state", device_dir);
+- err_remove_info:
+-	remove_proc_entry("info", device_dir);
+- err_remove_dir:
+-	remove_proc_entry(acpi_device_bid(device), vid_dev->video->dir);
+-	return -ENOMEM;
+-}
+-
+-static int acpi_video_device_remove_fs(struct acpi_device *device)
+-{
+-	struct acpi_video_device *vid_dev;
+-	struct proc_dir_entry *device_dir;
+-
+-	vid_dev = acpi_driver_data(device);
+-	if (!vid_dev || !vid_dev->video || !vid_dev->video->dir)
+-		return -ENODEV;
+-
+-	device_dir = acpi_device_dir(device);
+-	if (device_dir) {
+-		remove_proc_entry("info", device_dir);
+-		remove_proc_entry("state", device_dir);
+-		remove_proc_entry("brightness", device_dir);
+-		remove_proc_entry("EDID", device_dir);
+-		remove_proc_entry(acpi_device_bid(device), vid_dev->video->dir);
+-		acpi_device_dir(device) = NULL;
+-	}
+-
+-	return 0;
+-}
+-
+-/* video bus */
+-static int acpi_video_bus_info_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	seq_printf(seq, "Switching heads:              %s\n",
+-		   video->flags.multihead ? "yes" : "no");
+-	seq_printf(seq, "Video ROM:                    %s\n",
+-		   video->flags.rom ? "yes" : "no");
+-	seq_printf(seq, "Device to be POSTed on boot:  %s\n",
+-		   video->flags.post ? "yes" : "no");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_info_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_bus_ROM_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
+-	seq_printf(seq, "<TODO>\n");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_ROM_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_ROM_seq_show, PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_POST_options(struct acpi_video_bus *video,
+-			    unsigned long long *options)
+-{
+-	int status;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_VPO",
+-				       NULL, options);
+-	*options &= 3;
+-
+-	return status;
+-}
+-
+-static int acpi_video_bus_POST_info_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-	unsigned long long options;
+-	int status;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	status = acpi_video_bus_POST_options(video, &options);
+-	if (ACPI_SUCCESS(status)) {
+-		if (!(options & 1)) {
+-			printk(KERN_WARNING PREFIX
+-			       "The motherboard VGA device is not listed as a possible POST device.\n");
+-			printk(KERN_WARNING PREFIX
+-			       "This indicates a BIOS bug. Please contact the manufacturer.\n");
+-		}
+-		printk(KERN_WARNING "%llx\n", options);
+-		seq_printf(seq, "can POST: <integrated video>");
+-		if (options & 2)
+-			seq_printf(seq, " <PCI video>");
+-		if (options & 4)
+-			seq_printf(seq, " <AGP video>");
+-		seq_putc(seq, '\n');
+-	} else
+-		seq_printf(seq, "<not supported>\n");
+-      end:
+-	return 0;
+-}
+-
+-static int
+-acpi_video_bus_POST_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_POST_info_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_get_POST(struct acpi_video_bus *video, unsigned long long *id)
+-{
+-	int status;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_GPD", NULL, id);
+-
+-	return status;
+-}
+-
+-static int acpi_video_bus_POST_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-	int status;
+-	unsigned long long id;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	status = acpi_video_bus_get_POST(video, &id);
+-	if (!ACPI_SUCCESS(status)) {
+-		seq_printf(seq, "<not supported>\n");
+-		goto end;
+-	}
+-	seq_printf(seq, "device POSTed is <%s>\n", device_decode[id & 3]);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_DOS_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	seq_printf(seq, "DOS setting: <%d>\n", video->dos_setting);
+-
+-	return 0;
+-}
+-
+-static int acpi_video_bus_POST_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_POST_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_bus_DOS_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_DOS_seq_show, PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_set_POST(struct acpi_video_bus *video, unsigned long option)
+-{
+-	int status;
+-	unsigned long long tmp;
+-	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+-	struct acpi_object_list args = { 1, &arg0 };
+-
+-
+-	arg0.integer.value = option;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_SPD",
+-				       &args, &tmp);
+-	if (ACPI_SUCCESS(status))
+-		status = tmp ? (-EINVAL) : (AE_OK);
+-
+-	return status;
+-}
+-
+-static ssize_t
+-acpi_video_bus_write_POST(struct file *file,
+-			  const char __user * buffer,
+-			  size_t count, loff_t * data)
+-{
+-	int status;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_bus *video = m->private;
+-	char str[12] = { 0 };
+-	unsigned long long opt, options;
+-
+-
+-	if (!video || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	status = acpi_video_bus_POST_options(video, &options);
+-	if (!ACPI_SUCCESS(status))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	opt = strtoul(str, NULL, 0);
+-	if (opt > 3)
+-		return -EFAULT;
+-
+-	/* just in case an OEM 'forgot' the motherboard... */
+-	options |= 1;
+-
+-	if (options & (1ul << opt)) {
+-		status = acpi_video_bus_set_POST(video, opt);
+-		if (!ACPI_SUCCESS(status))
+-			return -EFAULT;
+-
+-	}
+-
+-	return count;
+-}
+-
+-static ssize_t
+-acpi_video_bus_write_DOS(struct file *file,
+-			 const char __user * buffer,
+-			 size_t count, loff_t * data)
+-{
+-	int status;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_bus *video = m->private;
+-	char str[12] = { 0 };
+-	unsigned long opt;
+-
+-
+-	if (!video || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	opt = strtoul(str, NULL, 0);
+-	if (opt > 7)
+-		return -EFAULT;
+-
+-	status = acpi_video_bus_DOS(video, opt & 0x3, (opt & 0x4) >> 2);
+-
+-	if (!ACPI_SUCCESS(status))
+-		return -EFAULT;
+-
+-	return count;
+-}
+-
+-static int acpi_video_bus_add_fs(struct acpi_device *device)
+-{
+-	struct acpi_video_bus *video = acpi_driver_data(device);
+-	struct proc_dir_entry *device_dir;
+-	struct proc_dir_entry *entry;
+-
+-	device_dir = proc_mkdir(acpi_device_bid(device), acpi_video_dir);
+-	if (!device_dir)
+-		return -ENOMEM;
+-
+-	/* 'info' [R] */
+-	entry = proc_create_data("info", S_IRUGO, device_dir,
+-				 &acpi_video_bus_info_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_dir;
+-
+-	/* 'ROM' [R] */
+-	entry = proc_create_data("ROM", S_IRUGO, device_dir,
+-				 &acpi_video_bus_ROM_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_info;
+-
+-	/* 'POST_info' [R] */
+-	entry = proc_create_data("POST_info", S_IRUGO, device_dir,
+-				 &acpi_video_bus_POST_info_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_rom;
+-
+-	/* 'POST' [R/W] */
+-	entry = proc_create_data("POST", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_bus_POST_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_post_info;
+-
+-	/* 'DOS' [R/W] */
+-	entry = proc_create_data("DOS", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_bus_DOS_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_post;
+-
+-	video->dir = acpi_device_dir(device) = device_dir;
+-	return 0;
+-
+- err_remove_post:
+-	remove_proc_entry("POST", device_dir);
+- err_remove_post_info:
+-	remove_proc_entry("POST_info", device_dir);
+- err_remove_rom:
+-	remove_proc_entry("ROM", device_dir);
+- err_remove_info:
+-	remove_proc_entry("info", device_dir);
+- err_remove_dir:
+-	remove_proc_entry(acpi_device_bid(device), acpi_video_dir);
+-	return -ENOMEM;
+-}
+-
+-static int acpi_video_bus_remove_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *device_dir = acpi_device_dir(device);
+-
+-	if (device_dir) {
+-		remove_proc_entry("info", device_dir);
+-		remove_proc_entry("ROM", device_dir);
+-		remove_proc_entry("POST_info", device_dir);
+-		remove_proc_entry("POST", device_dir);
+-		remove_proc_entry("DOS", device_dir);
+-		remove_proc_entry(acpi_device_bid(device), acpi_video_dir);
+-		acpi_device_dir(device) = NULL;
+-	}
+-
+-	return 0;
+-}
+-#else
+-static inline int acpi_video_device_add_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_device_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_bus_add_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_bus_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_ACPI_PROCFS */
+-
+-/* --------------------------------------------------------------------------
+                                  Driver Interface
     -------------------------------------------------------------------------- */
-@@ -247,9 +241,7 @@ static void acpi_ac_notify(struct acpi_d
- 						  dev_name(&device->dev), event,
- 						  (u32) ac->state);
- 		acpi_notifier_call_chain(device, event, (u32) ac->state);
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
--#endif
+ 
+@@ -1877,8 +1130,6 @@ acpi_video_bus_get_one_device(struct acp
+ 		list_add_tail(&data->entry, &video->video_device_list);
+ 		mutex_unlock(&video->device_list_lock);
+ 
+-		acpi_video_device_add_fs(device);
+-
+ 		return 0;
  	}
+ 
+@@ -2181,8 +1432,6 @@ static int acpi_video_bus_put_one_device
+ 	if (!device || !device->video)
+ 		return -ENOENT;
+ 
+-	acpi_video_device_remove_fs(device->dev);
+-
+ 	status = acpi_remove_notify_handler(device->dev->handle,
+ 					    ACPI_DEVICE_NOTIFY,
+ 					    acpi_video_device_notify);
+@@ -2466,10 +1715,6 @@ static int acpi_video_bus_add(struct acp
+ 	if (error)
+ 		goto err_free_video;
+ 
+-	error = acpi_video_bus_add_fs(device);
+-	if (error)
+-		goto err_free_video;
+-
+ 	mutex_init(&video->device_list_lock);
+ 	INIT_LIST_HEAD(&video->video_device_list);
+ 
+@@ -2522,7 +1767,6 @@ static int acpi_video_bus_add(struct acp
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+ 	kfree(video->attached_array);
+-	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+ 	device->driver_data = NULL;
+@@ -2544,7 +1788,6 @@ static int acpi_video_bus_remove(struct 
+ 
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+-	acpi_video_bus_remove_fs(device);
+ 
+ 	input_unregister_device(video->input);
+ 	kfree(video->attached_array);
+@@ -2584,12 +1827,6 @@ int acpi_video_register(void)
+ 		return 0;
+ 	}
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+-	if (!acpi_video_dir)
+-		return -ENODEV;
+-#endif
+-
+ 	result = acpi_bus_register_driver(&acpi_video_bus);
+ 	if (result < 0) {
+ 		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+@@ -2617,10 +1854,6 @@ void acpi_video_unregister(void)
+ 	}
+ 	acpi_bus_unregister_driver(&acpi_video_bus);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+-#endif
+-
+ 	register_count = 0;
  
  	return;
-@@ -282,14 +274,12 @@ static int acpi_ac_add(struct acpi_devic
- #endif
- 	if (result)
- 		goto end;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	ac->charger.name = acpi_device_bid(device);
- 	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	ac->charger.properties = ac_props;
- 	ac->charger.num_properties = ARRAY_SIZE(ac_props);
- 	ac->charger.get_property = get_ac_property;
- 	power_supply_register(&ac->device->dev, &ac->charger);
--#endif
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
-@@ -316,10 +306,8 @@ static int acpi_ac_resume(struct acpi_de
- 	old_state = ac->state;
- 	if (acpi_ac_get_state(ac))
- 		return 0;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (old_state != ac->state)
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
--#endif
- 	return 0;
- }
- 
-@@ -333,10 +321,8 @@ static int acpi_ac_remove(struct acpi_de
- 
- 	ac = acpi_driver_data(device);
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_ac_remove_fs(device);
- #endif
-Index: linux-2.6/drivers/acpi/battery.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/battery.c
-+++ linux-2.6/drivers/acpi/battery.c
-@@ -42,10 +42,7 @@
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
--
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
--#endif
- 
- #define PREFIX "ACPI: "
- 
-@@ -102,9 +99,7 @@ enum {
- 
- struct acpi_battery {
- 	struct mutex lock;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply bat;
--#endif
- 	struct acpi_device *device;
- 	unsigned long update_time;
- 	int rate_now;
-@@ -141,7 +136,6 @@ inline int acpi_battery_present(struct a
- 	return battery->device->status.battery_present;
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int acpi_battery_technology(struct acpi_battery *battery)
- {
- 	if (!strcasecmp("NiCd", battery->type))
-@@ -282,7 +276,6 @@ static enum power_supply_property energy
- 	POWER_SUPPLY_PROP_MANUFACTURER,
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
--#endif
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- inline char *acpi_battery_units(struct acpi_battery *battery)
-@@ -493,7 +486,6 @@ static int acpi_battery_init_alarm(struc
- 	return acpi_battery_set_alarm(battery);
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static ssize_t acpi_battery_alarm_show(struct device *dev,
- 					struct device_attribute *attr,
- 					char *buf)
-@@ -553,7 +545,6 @@ static void sysfs_remove_battery(struct 
- 	power_supply_unregister(&battery->bat);
- 	battery->bat.dev = NULL;
- }
--#endif
- 
- static void acpi_battery_quirks(struct acpi_battery *battery)
- {
-@@ -569,9 +560,7 @@ static int acpi_battery_update(struct ac
- 	if (result)
- 		return result;
- 	if (!acpi_battery_present(battery)) {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		sysfs_remove_battery(battery);
--#endif
- 		battery->update_time = 0;
- 		return 0;
- 	}
-@@ -583,10 +572,8 @@ static int acpi_battery_update(struct ac
- 		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (!battery->bat.dev)
- 		sysfs_add_battery(battery);
--#endif
- 	return acpi_battery_get_state(battery);
- }
- 
-@@ -868,26 +855,20 @@ static void acpi_battery_remove_fs(struc
- static void acpi_battery_notify(struct acpi_device *device, u32 event)
- {
- 	struct acpi_battery *battery = acpi_driver_data(device);
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct device *old;
--#endif
- 
- 	if (!battery)
- 		return;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	old = battery->bat.dev;
--#endif
- 	acpi_battery_update(battery);
- 	acpi_bus_generate_proc_event(device, event,
- 				     acpi_battery_present(battery));
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	/* acpi_battery_update could remove power_supply object */
- 	if (old && battery->bat.dev)
- 		power_supply_changed(&battery->bat);
--#endif
- }
- 
- static int acpi_battery_add(struct acpi_device *device)
-@@ -935,9 +916,7 @@ static int acpi_battery_remove(struct ac
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_battery_remove_fs(device);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	sysfs_remove_battery(battery);
--#endif
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
- 	return 0;
-Index: linux-2.6/drivers/acpi/sbs.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sbs.c
-+++ linux-2.6/drivers/acpi/sbs.c
-@@ -40,10 +40,7 @@
- #include <linux/timer.h>
- #include <linux/jiffies.h>
- #include <linux/delay.h>
--
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
--#endif
- 
- #include "sbshc.h"
- 
-@@ -85,9 +82,7 @@ static const struct acpi_device_id sbs_d
- MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
- 
- struct acpi_battery {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply bat;
--#endif
- 	struct acpi_sbs *sbs;
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	struct proc_dir_entry *proc_entry;
-@@ -120,9 +115,7 @@ struct acpi_battery {
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
- 
- struct acpi_sbs {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply charger;
--#endif
- 	struct acpi_device *device;
- 	struct acpi_smb_hc *hc;
- 	struct mutex lock;
-@@ -166,7 +159,6 @@ static inline int acpi_battery_scale(str
- 	    acpi_battery_ipscale(battery);
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int sbs_get_ac_property(struct power_supply *psy,
- 			       enum power_supply_property psp,
- 			       union power_supply_propval *val)
-@@ -313,7 +305,6 @@ static enum power_supply_property sbs_en
- 	POWER_SUPPLY_PROP_MANUFACTURER,
- };
- 
--#endif
- 
- /* --------------------------------------------------------------------------
-                             Smart Battery System Management
-@@ -449,7 +440,6 @@ static int acpi_ac_get_present(struct ac
- 	return result;
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static ssize_t acpi_battery_alarm_show(struct device *dev,
- 					struct device_attribute *attr,
- 					char *buf)
-@@ -479,7 +469,6 @@ static struct device_attribute alarm_att
- 	.show = acpi_battery_alarm_show,
- 	.store = acpi_battery_alarm_store,
- };
--#endif
- 
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc/acpi)
-@@ -798,7 +787,6 @@ static int acpi_battery_add(struct acpi_
- 			&acpi_battery_state_fops, &acpi_battery_alarm_fops,
- 			battery);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	battery->bat.name = battery->name;
- 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
- 	if (!acpi_battery_mode(battery)) {
-@@ -819,7 +807,6 @@ static int acpi_battery_add(struct acpi_
- 		goto end;
- 	battery->have_sysfs_alarm = 1;
-       end:
--#endif
- 	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       battery->name, battery->present ? "present" : "absent");
-@@ -828,17 +815,13 @@ static int acpi_battery_add(struct acpi_
- 
- static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
- {
--#if defined(CONFIG_ACPI_SYSFS_POWER) || defined(CONFIG_ACPI_PROCFS_POWER)
- 	struct acpi_battery *battery = &sbs->battery[id];
--#endif
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (battery->bat.dev) {
- 		if (battery->have_sysfs_alarm)
- 			device_remove_file(battery->bat.dev, &alarm_attr);
- 		power_supply_unregister(&battery->bat);
- 	}
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	if (battery->proc_entry)
- 		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
-@@ -859,14 +842,12 @@ static int acpi_charger_add(struct acpi_
- 	if (result)
- 		goto end;
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	sbs->charger.name = "sbs-charger";
- 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	sbs->charger.properties = sbs_ac_props;
- 	sbs->charger.num_properties = ARRAY_SIZE(sbs_ac_props);
- 	sbs->charger.get_property = sbs_get_ac_property;
- 	power_supply_register(&sbs->device->dev, &sbs->charger);
--#endif
- 	printk(KERN_INFO PREFIX "%s [%s]: AC Adapter [%s] (%s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       ACPI_AC_DIR_NAME, sbs->charger_present ? "on-line" : "off-line");
-@@ -876,10 +857,8 @@ static int acpi_charger_add(struct acpi_
- 
- static void acpi_charger_remove(struct acpi_sbs *sbs)
- {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (sbs->charger.dev)
- 		power_supply_unregister(&sbs->charger);
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	if (sbs->charger_entry)
- 		acpi_sbs_remove_fs(&sbs->charger_entry, acpi_ac_dir);
-@@ -900,9 +879,7 @@ static void acpi_sbs_callback(void *cont
- 					      ACPI_SBS_NOTIFY_STATUS,
- 					      sbs->charger_present);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
--#endif
- 	}
- 	if (sbs->manager_present) {
- 		for (id = 0; id < MAX_SBS_BAT; ++id) {
-@@ -919,9 +896,7 @@ static void acpi_sbs_callback(void *cont
- 						      ACPI_SBS_NOTIFY_STATUS,
- 						      bat->present);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 			kobject_uevent(&bat->bat.dev->kobj, KOBJ_CHANGE);
--#endif
- 		}
- 	}
- }
 
 
