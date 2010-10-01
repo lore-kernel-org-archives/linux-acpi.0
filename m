@@ -1,78 +1,101 @@
 From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH 5/9] ideapad: use EC command to control camera
-Date: Fri,  1 Oct 2010 15:39:40 +0800
-Message-ID: <1285918780-13000-1-git-send-email-ike.pan@canonical.com>
+Subject: [PATCH 7/9] ideapad: rewrite the sw rfkill set
+Date: Fri,  1 Oct 2010 15:39:59 +0800
+Message-ID: <1285918799-13058-1-git-send-email-ike.pan@canonical.com>
 References: <1285918660-12802-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:37287 "EHLO
+Received: from adelie.canonical.com ([91.189.90.139]:37593 "EHLO
 	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386Ab0JAHjq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 03:39:46 -0400
+	with ESMTP id S1754736Ab0JAHkF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 03:40:05 -0400
 In-Reply-To: <1285918660-12802-1-git-send-email-ike.pan@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Corentin Chary <corentincj@iksaif.net>, David Woodhouse <David.Woodhouse@intel.com>, Mario.Holbe@TU-Ilmenau.DE
 
+Control power of rf modules by ec commands
+
 Signed-off-by: Ike Panhc <ike.pan@canonical.com>
 ---
- drivers/platform/x86/ideapad_acpi.c |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/platform/x86/ideapad_acpi.c |   37 +++++++++++-----------------------
+ 1 files changed, 12 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/platform/x86/ideapad_acpi.c b/drivers/platform/x86/ideapad_acpi.c
-index 43a1c89..aacf84e 100644
+index 3826686..78ac02a 100644
 --- a/drivers/platform/x86/ideapad_acpi.c
 +++ b/drivers/platform/x86/ideapad_acpi.c
-@@ -35,6 +35,7 @@
- #define IDEAPAD_DEV_KILLSW	4
- 
+@@ -37,18 +37,19 @@
  struct ideapad_private {
-+	acpi_handle handle;
+ 	acpi_handle handle;
  	struct rfkill *rfk[5];
+-};
++} *ideapad_priv;
+ 
+ static struct {
+ 	char *name;
+ 	int cfgbit;
++	int opcode;
+ 	int type;
+ } ideapad_rfk_data[] = {
+-	{ "ideapad_camera",	19, NUM_RFKILL_TYPES },
+-	{ "ideapad_wlan",	18, RFKILL_TYPE_WLAN },
+-	{ "ideapad_bluetooth",	16, RFKILL_TYPE_BLUETOOTH },
+-	{ "ideapad_3g",		17, RFKILL_TYPE_WWAN },
+-	{ "ideapad_killsw",	0, RFKILL_TYPE_WLAN }
++	{ "ideapad_camera",	19, 0x1E, NUM_RFKILL_TYPES },
++	{ "ideapad_wlan",	18, 0x15, RFKILL_TYPE_WLAN },
++	{ "ideapad_bluetooth",	16, 0x17, RFKILL_TYPE_BLUETOOTH },
++	{ "ideapad_3g",		17, 0x20, RFKILL_TYPE_WWAN },
++	{ "ideapad_killsw",	0,  0,    RFKILL_TYPE_WLAN }
  };
  
-@@ -207,24 +208,28 @@ static ssize_t show_ideapad_cam(struct device *dev,
+ /*
+@@ -160,24 +161,6 @@ static int write_ec_cmd(acpi_handle handle, int cmd, unsigned long data)
+ }
+ /* the above is ACPI helpers */
+ 
+-static int ideapad_dev_set_state(int device, int state)
+-{
+-	acpi_status status;
+-	union acpi_object in_params[2];
+-	struct acpi_object_list input = { 2, in_params };
+-
+-	in_params[0].type = ACPI_TYPE_INTEGER;
+-	in_params[0].integer.value = device + 1;
+-	in_params[1].type = ACPI_TYPE_INTEGER;
+-	in_params[1].integer.value = state;
+-
+-	status = acpi_evaluate_object(NULL, "\\_SB_.SECN", &input, NULL);
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_WARNING "IdeaPAD \\_SB_.SECN method failed %d\n", status);
+-		return -ENODEV;
+-	}
+-	return 0;
+-}
+ static ssize_t show_ideapad_cam(struct device *dev,
  				struct device_attribute *attr,
  				char *buf)
- {
--	int state = ideapad_dev_get_state(IDEAPAD_DEV_CAMERA);
--	if (state < 0)
--		return state;
-+	struct ideapad_private *priv = dev_get_drvdata(dev);
-+	acpi_handle handle = priv->handle;
-+	unsigned long result;
+@@ -217,7 +200,10 @@ static int ideapad_rfk_set(void *data, bool blocked)
  
--	return sprintf(buf, "%d\n", state);
-+	if (read_ec_data(handle, 0x1D, &result))
-+		return sprintf(buf, "-1\n");
-+	return sprintf(buf, "%lu\n", result);
+ 	if (device == IDEAPAD_DEV_KILLSW)
+ 		return -EINVAL;
+-	return ideapad_dev_set_state(device, !blocked);
++
++	return write_ec_cmd(ideapad_priv->handle,
++			    ideapad_rfk_data[device].opcode,
++			    !blocked);
  }
  
- static ssize_t store_ideapad_cam(struct device *dev,
- 				 struct device_attribute *attr,
- 				 const char *buf, size_t count)
- {
-+	struct ideapad_private *priv = dev_get_drvdata(dev);
-+	acpi_handle handle = priv->handle;
- 	int ret, state;
+ static struct rfkill_ops ideapad_rfk_ops = {
+@@ -318,6 +304,7 @@ static int ideapad_acpi_add(struct acpi_device *adevice)
  
- 	if (!count)
- 		return 0;
- 	if (sscanf(buf, "%i", &state) != 1)
- 		return -EINVAL;
--	ret = ideapad_dev_set_state(IDEAPAD_DEV_CAMERA, !!state);
-+	ret = write_ec_cmd(handle, 0x1E, state);
- 	if (ret < 0)
- 		return ret;
- 	return count;
-@@ -330,6 +335,7 @@ static int ideapad_acpi_add(struct acpi_device *adevice)
- 		}
- 	}
- 
-+	priv->handle = adevice->handle;
+ 	priv->handle = adevice->handle;
  	dev_set_drvdata(&adevice->dev, priv);
++	ideapad_priv = priv;
  	for (i = IDEAPAD_DEV_WLAN; i <= IDEAPAD_DEV_KILLSW; i++) {
  		if (!devs_present[i])
+ 			continue;
 -- 
 1.7.1
 
