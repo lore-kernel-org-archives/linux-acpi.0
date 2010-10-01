@@ -1,86 +1,133 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: [PATCH] DMI to disable Vista compatibility on MSI GX723
- Notebook
-Date: Fri, 01 Oct 2010 02:48:16 -0600
-Message-ID: <4CA62CF0020000230002124F@novprvlin0050.provo.novell.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=__Part614C8540.6__="
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/2] ACPI: Do not export hid/modalias sysfs file for ACPI objects without a HID
+Date: Fri,  1 Oct 2010 10:53:59 +0200
+Message-ID: <1285923240-31671-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:42014 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754125Ab0JAIyE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Oct 2010 04:54:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: jerone.young@canonical.com, melchior+kernel@cmu.edu, rui.zhang@intel.com, lenb@kernel.org, patrol@sinus.cz, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, Zhang Rui <rui.zhang@intel.com>, kay.sievers@vrfy.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This is a MIME message. If you are reading this text, you may want to 
-consider changing to a mail reader or gateway that understands how to 
-properly handle MIME multipart messages.
+Boot and compile tested.
+The fact that pnp.ids can now be empty needs testing on some
+further machines, though.
 
---=__Part614C8540.6__=
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
+This should handle a "modprobe is wrongly called by udev" issue:
+https://bugzilla.kernel.org/show_bug.cgi?id=19162
 
-Hi Matthew, 
+Modaliase files in
+/sys/devices/LNXSYSTM:00/
+went down from 113 to 71 on my tested system.
 
-Thank's for your review!
+This is a sysfs change, but userspace must already be able to handle it.
 
-於 四，2010-09-30 於 14:25 +0100，Matthew Garrett 提到：
-> On Thu, Sep 30, 2010 at 06:44:11PM +0800, Lee, Chun-Yi wrote:
-> > The brightness control hotkey don't work with Vista compatibility
-> > , because MSI GX723 included a infinite while loop in DSDT when
-> > brightness control hotkey pressed.
-> > MSI GX723 used Nvida video card, the infinite while loop must be a
-> > workaround with Nvidia's Vista driver.
-> 
-> While this would work, it seems likely that the expected behaviour is 
-> for the graphics driver to call the NVIF method. We don't do that as 
-> yet, but when we do I'm worried about it potentially resulting in this 
-> system being in an unexpected state (NVIF is used, but we don't claim to 
-> be Vista). Can you add a comment indicating that it should be reverted 
-> once nouveau grows support?
-> 
+Also do not fill up pnp.ids list with a "struct hid"
+entry. This comment:
+     * This generic ID isn't useful for driver binding, but it provides
+     * the useful property that "every acpi_device has an ID."
+is still half way true:
+Best you never touch pnp.ids list directly or make sure it can be empty,
+instead use:
+char *acpi_device_hid()
+which always returns a value ("device" as a dummy if the object
+has no hid).
 
-I added comment to source code to remind need remove the MSI GX723 from
-blacklist table after nouveau driver support NVIF method.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Zhang Rui <rui.zhang@intel.com>
+CC: kay.sievers@vrfy.org
+CC: <linux-acpi@vger.kernel.org>
+CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/acpi/scan.c |   36 ++++++++++++++++++++----------------
+ 1 files changed, 20 insertions(+), 16 deletions(-)
 
-The attached file is new patch. Do I need send the patch to kernel mail
-loop by git send-mail again?
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index b23825e..d281afb 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -26,6 +26,9 @@ extern struct acpi_device *acpi_root;
+ 
+ #define ACPI_IS_ROOT_DEVICE(device)    (!(device)->parent)
+ 
++/* Should be const */
++static char* dummy_hid = "device";
++
+ static LIST_HEAD(acpi_device_list);
+ static LIST_HEAD(acpi_bus_id_list);
+ DEFINE_MUTEX(acpi_device_lock);
+@@ -49,6 +52,9 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+ 	int count;
+ 	struct acpi_hardware_id *id;
+ 
++	if (list_empty(&acpi_dev->pnp.ids))
++		return 0;
++
+ 	len = snprintf(modalias, size, "acpi:");
+ 	size -= len;
+ 
+@@ -202,13 +208,15 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+ 			goto end;
+ 	}
+ 
+-	result = device_create_file(&dev->dev, &dev_attr_hid);
+-	if (result)
+-		goto end;
++	if (!list_empty(&dev->pnp.ids)) {
++		result = device_create_file(&dev->dev, &dev_attr_hid);
++		if (result)
++			goto end;
+ 
+-	result = device_create_file(&dev->dev, &dev_attr_modalias);
+-	if (result)
+-		goto end;
++		result = device_create_file(&dev->dev, &dev_attr_modalias);
++		if (result)
++			goto end;
++	}
+ 
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+@@ -316,6 +324,9 @@ static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 	int len;
+ 
++	if (list_empty(&acpi_dev->pnp.ids))
++		return 0;
++
+ 	if (add_uevent_var(env, "MODALIAS="))
+ 		return -ENOMEM;
+ 	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
+@@ -1013,6 +1024,9 @@ static int acpi_dock_match(struct acpi_device *device)
+ char *acpi_device_hid(struct acpi_device *device)
+ {
+ 	struct acpi_hardware_id *hid;
++	
++	if (list_empty(&device->pnp.ids))
++		return dummy_hid;
+ 
+ 	hid = list_first_entry(&device->pnp.ids, struct acpi_hardware_id, list);
+ 	return hid->id;
+@@ -1142,16 +1156,6 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		acpi_add_id(device, ACPI_BUTTON_HID_SLEEPF);
+ 		break;
+ 	}
+-
+-	/*
+-	 * We build acpi_devices for some objects that don't have _HID or _CID,
+-	 * e.g., PCI bridges and slots.  Drivers can't bind to these objects,
+-	 * but we do use them indirectly by traversing the acpi_device tree.
+-	 * This generic ID isn't useful for driver binding, but it provides
+-	 * the useful property that "every acpi_device has an ID."
+-	 */
+-	if (list_empty(&device->pnp.ids))
+-		acpi_add_id(device, "device");
+ }
+ 
+ static int acpi_device_set_context(struct acpi_device *device)
+-- 
+1.6.3
 
-
-Thank's
-Joey Lee
-
-
---=__Part614C8540.6__=
-Content-Type: text/plain; name="0001-DMI-to-disable-Vista-compatibility-on-MSI-GX723-Note.PATCH"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename="0001-DMI-to-disable-Vista-compatibility-on-MSI-GX723-Note.PATCH"
-
->From c9541bb35389c3ccd96a49e9f30509e5bebae760 Mon Sep 17 00:00:00 =
-2001=0AFrom: Lee, Chun-Yi <jlee@novell.com>=0ADate: Fri, 1 Oct 2010 =
-16:28:29 +0800=0ASubject: [PATCH] DMI to disable Vista compatibility on =
-MSI GX723 Notebook=0A=0AThe brightness control hotkey don't work with =
-Vista compatibility=0A, because MSI GX723 included a infinite while loop =
-in DSDT when=0Abrightness control hotkey pressed.=0AMSI GX723 used Nvidia =
-video card, the infinite while loop must be=0Aa workaround with Nvidia's =
-Vista driver.=0A=0AThis patch should be reverted  once nouveau grows =
-support to call=0ANVIF method in DSDT.=0A=0ASigned-off-by: Lee, Chun-Yi =
-<jlee@novell.com>=0A---=0A drivers/acpi/blacklist.c |   17 ++++++++++++++++=
-+=0A 1 files changed, 17 insertions(+), 0 deletions(-)=0A=0Adiff --git =
-a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c=0Aindex f761960..fd24=
-325 100644=0A--- a/drivers/acpi/blacklist.c=0A+++ b/drivers/acpi/blacklist.=
-c=0A@@ -236,6 +236,23 @@ static struct dmi_system_id acpi_osi_dmi_table[] =
-__initdata =3D {=0A 		},=0A 	},=0A 	{=0A+	/*=0A+	 * There =
-have a NVIF method in MSI GX723 DSDT need call by Nvidia=0A+	 * driver =
-(e.g. nouveau) when user press brightness hotkey.=0A+	 * Currently, =
-nouveau driver didn't do the job and it causes there=0A+	 * have a =
-infinite while loop in DSDT when user press hotkey.=0A+	 * We add MSI =
-GX723's dmi information to this table for workaround=0A+	 * this =
-issue.=0A+	 * Will remove MSI GX723 from the table after nouveau =
-grows support.=0A+	 */=0A+	.callback =3D dmi_disable_osi_vista,=0A+	=
-.ident =3D "MSI GX723",=0A+	.matches =3D {=0A+		     =
-DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),=0A+		   =
-  DMI_MATCH(DMI_PRODUCT_NAME, "GX723"),=0A+		},=0A+	},=0A+	=
-{=0A 	.callback =3D dmi_disable_osi_win7,=0A 	.ident =3D "ASUS K50IJ",=0A=
- 	.matches =3D {=0A-- =0A1.6.0.2=0A=0A
---=__Part614C8540.6__=--
