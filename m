@@ -1,55 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Questions about ACPI and PCI interrupt routing
-Date: Fri, 01 Oct 2010 02:33:34 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010010229120.7033@localhost.localdomain>
-References: <AANLkTinoAuRE5nmwpUo9gjc-qda6y08gEZxEUvOkN2GL@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: [Resend] [PATCH 0/9] ideapad: using EC command to control rf/camera power
+Date: Fri,  1 Oct 2010 15:37:40 +0800
+Message-ID: <1285918660-12802-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:33605 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483Ab0JAGdk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 02:33:40 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9L002NFM82GVY1@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 01 Oct 2010 01:33:40 -0500 (CDT)
-In-reply-to: <AANLkTinoAuRE5nmwpUo9gjc-qda6y08gEZxEUvOkN2GL@mail.gmail.com>
+Received: from adelie.canonical.com ([91.189.90.139]:36145 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117Ab0JAHhs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 03:37:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thawan Kooburat <kthawan@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Corentin Chary <corentincj@iksaif.net>, David Woodhouse <David.Woodhouse@intel.com>, Mario.Holbe@TU-Ilmenau.DE
 
-> Short:
-> Is it possible to use static interrupt routing on a machine that
-> support configurable interrupt (via PCI Link Device)? So that kernel
-> will go to IOAPIC chip directly instead of using ACPI layer (such as
-> _CRS method) to manage the interrupt
->
-> Long:
-> I am trying to resume a kernel in a machine with different hardware
-> which results in many hardware miss match problem. Right now I am
-> looking into the interrupt issue. The machines I am testing support
-> different interrupt routing model (Dynamic and Static). I am not sure
-> if a machine that support dynamic routing will also support static
-> routing or not. So is it possible to force the kernel to use only
-> static model only? Bypassing ACPI layer has better chance of success
-> because I think that the resume kernel does not have a correct ACPI
-> handler to deal with the new device.
-> 
-> My understanding may be incorrect because I just read a portion of
-> ACPI spec and the kernel source that related to this issue.
+These patches are made against current mainline kernel and also available at
+  git://kernel.ubuntu.com/ikepanhc/ideapad-laptop.git for-upstream
 
-This doesn't make any sense.
+Once the rfkill of a laptop is set to block, it is no way to unblock with Linux
+without driver. Thanks for David Woodhouse wrote the first driver solving this.
 
-Interrupt routing configuration reflects wires on the motherboard.
-If you resume a kernel image on hardware with different wires
-than were you suspended, all is lost.
+But the \_SB_.GECN and \_SB_.DECN are only available on Lenovo ideapad S10-3.
+Using EC command to control rf/camera power is better because I believe every
+ideapads which has VPC2004 device in its DSDT has this common method.
 
-To do something like this, you have to un-configure
-interrupts completely, and then re-probe your devices
-when you resume on changed hardware.  ie. unload all your drivers.
+This driver is tested on Lenovo ideapad B550 and ideapad S10-3 and also tested
+by Mario 'BitKoenig' Holbe on Lenovo ideapad S12-VIA.
 
-cheers,
-Len Brown, Intel Open Source Technoloy Center
+Changes after last posted:
+ * Add schedule() to yield processor when waiting EC.
+ * Using time_before() to check timeout.
+ * Maximun waiting for EC execution increasing to 100ms in case that we have a
+   slow EC.
+ * Add parameter: no_bt_rfkill for not setup bluetooth rfkill.
+
+Next step for this driver:
+ * Hotkey enablement.
+
+Ike Panhc (9):
+  ideapad: add ACPI helpers
+  ideapad: check VPC bit before sync rfkill hw status
+  ideapad: make sure we bind on the correct device
+  ideapad: use return value of _CFG to tell if device exist or not
+  ideapad: use EC command to control camera
+  ideapad: rewrite the hw rfkill notify
+  ideapad: rewrite the sw rfkill set
+  ideapad: Change the driver name to ideapad-laptop
+  ideapad: Add param: no_bt_rfkill
+
+ drivers/platform/x86/Kconfig          |    4 +-
+ drivers/platform/x86/Makefile         |    2 +-
+ drivers/platform/x86/ideapad-laptop.c |  394 +++++++++++++++++++++++++++++++++
+ drivers/platform/x86/ideapad_acpi.c   |  306 -------------------------
+ 4 files changed, 397 insertions(+), 309 deletions(-)
+ create mode 100644 drivers/platform/x86/ideapad-laptop.c
+ delete mode 100644 drivers/platform/x86/ideapad_acpi.c
+
