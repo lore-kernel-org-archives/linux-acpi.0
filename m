@@ -1,32 +1,79 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Toshiba C650-194 ACPI bug - regression
-Date: Fri, 01 Oct 2010 22:45:40 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010012243430.2293@localhost.localdomain>
-References: <AANLkTin3mtDm9x=8E_b_0FDWdwzbU570x1Ok-btMBPiF@mail.gmail.com>
- <AANLkTi=j75zW-8NFtt8w-z8zQrL7Y_esQD6iLEcCyP00@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: invoke DSDT corruption workaround on all Toshiba
+ Satellite
+Date: Fri, 01 Oct 2010 22:54:20 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010012251170.2293@localhost.localdomain>
+References: <1285731886-18321-1-git-send-email-lenb@kernel.org>
+ <b4b8edbdb198b3dfe633de9c93a014b22e3ec014.1285731809.git.len.brown@intel.com>
+ <20100929115108.1c596067@destiny.ordissimo>
+ <alpine.LFD.2.00.1009291429090.21034@localhost.localdomain>
+ <20100930152745.6468ae8c@destiny.ordissimo>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:46224 "EHLO
+Received: from vms173003pub.verizon.net ([206.46.173.3]:49785 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126Ab0JBCpq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 22:45:46 -0400
+	with ESMTP id S1753205Ab0JBCy1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Oct 2010 22:54:27 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9N00LQ26C7XPT0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 01 Oct 2010 21:45:45 -0500 (CDT)
-In-reply-to: <AANLkTi=j75zW-8NFtt8w-z8zQrL7Y_esQD6iLEcCyP00@mail.gmail.com>
+ with ESMTPA id <0L9N00MRV6QQZIS0@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 01 Oct 2010 21:54:27 -0500 (CDT)
+In-reply-to: <20100930152745.6468ae8c@destiny.ordissimo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Allan Kelly <allankelly@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Anisse Astier <anisse@astier.eu>
+Cc: Frank <frank@61924.nl>, joe@neoturbine.net, linux-acpi@vger.kernel.org
 
-Thanks for confirming the patch works, Allan,
+> > Please test this patch.
 
-It shipped upstream in 2.6.36-rc6-git2
-and I just sent a note for Greg to consider it for .stable
+> >  drivers/acpi/bus.c |   14 +++-----------
+> >  1 files changed, 3 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index 5c221ab..a70ca8e 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -80,23 +80,15 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+> >  
+> >  static struct dmi_system_id dsdt_dmi_table[] __initdata = {
+> >  	/*
+> > -	 * Insyde BIOS on some TOSHIBA machines corrupt the DSDT.
+> > +	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
+> >  	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
+> >  	 */
+> >  	{
+> >  	 .callback = set_copy_dsdt,
+> > -	 .ident = "TOSHIBA Satellite A505",
+> > +	 .ident = "TOSHIBA Satellite",
+> >  	 .matches = {
+> >  		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+> > -		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite A505"),
+> > -		},
+> > -	},
+> > -	{
+> > -	 .callback = set_copy_dsdt,
+> > -	 .ident = "TOSHIBA Satellite L505D",
+> > -	 .matches = {
+> > -		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+> Isn't that a bit too broad? Maybe we should keep "TOSHIBA" in case
+> another vendor decides to add "Satellite" in its DMI product name.
+
+We kept it -- it is the 1st line above without a '-' in fron of it.
+
+> > -		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite L505D"),
+> > +		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite"),
+> >  		},
+> >  	},
+> >  	{}
+> 
+> Anyway, this works well on Toshiba Satellite C650D.
+> 
+> Tested-by: Anisse Astier <anisse@astier.eu>
+
+Thanks very much for testing.
 
 cheers,
-Len Brown, Intel Open Source Technology Center
+Len Brown, Intel Open Souce Technology Center
 
