@@ -1,75 +1,91 @@
 From: Tiago Marques <tiagomnm@gmail.com>
 Subject: Re: Speedstep on Celeron SU2300 - 20% more battery lifetime on Windows
-Date: Sun, 3 Oct 2010 16:06:42 +0100
-Message-ID: <AANLkTinUJqU__oxnnO2LO9xHJMNyaSLjtJtrUvJu299K@mail.gmail.com>
+Date: Sun, 3 Oct 2010 16:45:58 +0100
+Message-ID: <AANLkTi=gYZAuP91kRM=eb2rgOZ5PS5v0ROem49NUsTM4@mail.gmail.com>
 References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com>
+ <201009020152.37466.trenn@suse.de> <AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY@mail.gmail.com>
  <201009061035.03727.trenn@suse.de> <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
- <201009071347.13509.trenn@suse.de>
+ <20100907152246.GA12326@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <201009071347.13509.trenn@suse.de>
-Sender: cpufreq-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:33342 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495Ab0JCPqY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Oct 2010 11:46:24 -0400
+In-Reply-To: <20100907152246.GA12326@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Hello,
-
-On Tue, Sep 7, 2010 at 12:47 PM, Thomas Renninger <trenn@suse.de> wrote=
-:
+On Tue, Sep 7, 2010 at 4:22 PM, Matthew Garrett <mjg59@srcf.ucam.org> w=
+rote:
+> On Mon, Sep 06, 2010 at 10:47:58PM +0100, Tiago Marques wrote:
 >
-> On Monday 06 September 2010 23:47:58 Tiago Marques wrote:
-> > On Mon, Sep 6, 2010 at 9:35 AM, Thomas Renninger <trenn@suse.de> wr=
-ote:
-> ..
-> > C states seem ok...ish. I get C0, C1 and C4, though not anything in
-> > between. Don't know how to check in windows and usually it shouldn'=
-t
-> > in leaps, right? That might be a problem. I'm getting around 75% in
-> > C4, the rest almost exclusively in C0. Perhaps the transitions are =
-the
-> > problem? I think I previously saw normal rates of closer to 98% so
-> > I'll have to check what's going now. Too many wakeups from i915, us=
-b
-> > and wlan.
-> > Powertop shows that the BIOS reports C1 and C4 support, hence only
-> > these C-stats.
-> Yep, I'd concentrate on this first. If idle, the system should be in =
-deepest
-> C-state (nearly) all of the time. Perfect tool for this is powertop.
-> You could also boot into runlevel S. If the system is much more idle
-> there you could load drivers one by one to find out whether there is =
-a bad
-> one keeping your cpu busy/awake.
+>> Yes, but shouldn't it detect P-States with different voltages, as in
+>> windows? (even as stupid as this sounds) I sure loved to get it alwa=
+ys
+>> stuck at the lower clock, given that I usually perform maintenance o=
+n
+>> PCs I highly doubt the fan would get dust clogged to the point of
+>> taking the CPU to temperatures that would cause problems.
+>> This looks like it doesn't support Speedstep even though Intel says =
+it
+>> does but the fact is that Windows can work with two voltages, which
+>> always improves power.
 >
-
-The guilty party was the broadcom binary driver, it was waking the CPU
-up 30k times per second. I've tried with an USB wlan card and it
-hovers around 70-20 wakeups per second. Does that look normal?
-
->
-> C-states also should "rule-out" P-states. If you are in C4 it shouldn=
-'t matter
-> whether your freq is up or down, the core's freq and voltage should b=
+> If there's only one frequency then there's no reason to have multiple
+> voltages - the voltage will already be at the minimum possible for th=
 e
-> ramped down to a minimum on latest processors (I've never measured th=
-at,
-> but this is what I've heard from Intel guys themselves...).
->
+> core to be stable at that frequency.
 
-I'm still due to actually measure times again but from casual
-observation the CPU fan is still on considerably more time than in
-Windows. It seems to me that the lower voltage in idle that Windows
-can use does impact temperatures a bit, after all the CPU does have to
-wake from time to time.
-I'll be measuring this directly from the CPU voltage regulator when I
-find the time, as to leave out any doubts on what's really going on.
+Unfortunately, that's not what the Intel document says. It's beyond my
+understanding why anyone would lock these CPUs also at 1200MHz and
+claim them to have Speedstep, but then again I'm not the one trying to
+pull out quarter after quarter of record profits while delivering
+misleading products.
+
+I think they're supplying a lower voltage to improve battery life and
+a higher one to control processor stability when the laptop gets in a
+state where it can reach close to 100=C2=BAC and the lower voltage migh=
+t
+not be enough - like when the fan ducts get stuck with dust or in a
+very hot day/country/region. It doesn't make any sense to keep the
+clock out of the equation but we also had to wait for years(and the
+Atom) for laptops to have C4 state enabled in the BIOS. IIRC, three
+years ago one laptop that made it to C2 was uncommon, let alone
+deeper.
+
+It seems the designers of this line were not in their right mind, as
+they have also done things like enabling VT-x in these Celeron
+processors while the more expensive Pentium SU4100 doesn't have VT-x
+and also has only 1200MHz and 1300MHz as P-states. I still can't find
+if the other Core 2 CULV processors can go below 1200MHz and a proper
+reasoning for that to be so.
+
+> Entering C4 will typically result
+> in the voltage dropping as parts of the core are disabled.
+>
+> Does your chip have the "est" flag in /proc/cpuinfo? If not, it doesn=
+'t
+> support speedstep.
+
+Yes. I have to confirm this with a multimeter but as I can see in
+Windows, it seems that it uses both voltages with 1200MHz in the two
+P-states, while the acpi-cpufreq module fails because it can't find
+more than onde differente clock in the p-states the BIOS exposes.
 
 Best regards,
-Tiago
+Tiago Marques
 
-> Good luck,
 >
-> =C2=A0 =C2=A0Thomas
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
