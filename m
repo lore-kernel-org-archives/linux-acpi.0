@@ -1,98 +1,90 @@
-From: Tiago Marques <tiagomnm@gmail.com>
-Subject: Re: Speedstep on Celeron SU2300 - 20% more battery lifetime on Windows
-Date: Sun, 3 Oct 2010 16:56:40 +0100
-Message-ID: <AANLkTin0TfOsjhXC2EHcT_1p7YhzdYCgsqhHmHx85xba@mail.gmail.com>
-References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com>
- <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
- <20100907152246.GA12326@srcf.ucam.org> <201009071843.55783.trenn@suse.de>
+From: Thawan Kooburat <kthawan@gmail.com>
+Subject: Re: Questions about ACPI and PCI interrupt routing
+Date: Sun, 3 Oct 2010 12:14:04 -0500
+Message-ID: <AANLkTimHKWSomkH7DDNJdu24M83w_dKEjhmYiuMnH=_F@mail.gmail.com>
+References: <AANLkTinoAuRE5nmwpUo9gjc-qda6y08gEZxEUvOkN2GL@mail.gmail.com>
+	<alpine.LFD.2.00.1010010229120.7033@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:59666 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495Ab0JCP5B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Oct 2010 11:57:01 -0400
-In-Reply-To: <201009071843.55783.trenn@suse.de>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:42199 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754030Ab0JCROG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Oct 2010 13:14:06 -0400
+Received: by ewy23 with SMTP id 23so1629292ewy.19
+        for <linux-acpi@vger.kernel.org>; Sun, 03 Oct 2010 10:14:04 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.1010010229120.7033@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Sep 7, 2010 at 5:43 PM, Thomas Renninger <trenn@suse.de> wrote:
-> On Tuesday 07 September 2010 17:22:46 Matthew Garrett wrote:
->> On Mon, Sep 06, 2010 at 10:47:58PM +0100, Tiago Marques wrote:
+Hi Len,
+
+Thank you very much for your response.
+
+=46or unloading drivers and re-probing devices, I found that hotpluggin=
+g
+is very useful if the bus controller is compatible. However, I
+discovered that a new device does not work properly after using rescan
+because the kernel try to setup an interrupt using the old routing
+information.
+
+Is it possible to re-configure interrupt via ACPI? My current
+understanding is that ACPI layer is configured during boot process by
+reading various tables and create handlers for various method to
+handle devices. So my initial thought is that routing via IOAPIC is a
+simpler model and easier to tackle at first.
+
+Any suggestion is welcome.
+
+Cheers
+
+On Fri, Oct 1, 2010 at 1:33 AM, Len Brown <lenb@kernel.org> wrote:
+>> Short:
+>> Is it possible to use static interrupt routing on a machine that
+>> support configurable interrupt (via PCI Link Device)? So that kernel
+>> will go to IOAPIC chip directly instead of using ACPI layer (such as
+>> _CRS method) to manage the interrupt
 >>
->> > Yes, but shouldn't it detect P-States with different voltages, as =
-in
->> > windows? (even as stupid as this sounds) I sure loved to get it al=
-ways
->> > stuck at the lower clock, given that I usually perform maintenance=
- on
->> > PCs I highly doubt the fan would get dust clogged to the point of
->> > taking the CPU to temperatures that would cause problems.
->> > This looks like it doesn't support Speedstep even though Intel say=
-s it
->> > does but the fact is that Windows can work with two voltages, whic=
-h
->> > always improves power.
->>
->> If there's only one frequency then there's no reason to have multipl=
+>> Long:
+>> I am trying to resume a kernel in a machine with different hardware
+>> which results in many hardware miss match problem. Right now I am
+>> looking into the interrupt issue. The machines I am testing support
+>> different interrupt routing model (Dynamic and Static). I am not sur=
 e
->> voltages - the voltage will already be at the minimum possible for t=
-he
->> core to be stable at that frequency. Entering C4 will typically resu=
-lt
->> in the voltage dropping as parts of the core are disabled.
+>> if a machine that support dynamic routing will also support static
+>> routing or not. So is it possible to force the kernel to use only
+>> static model only? Bypassing ACPI layer has better chance of success
+>> because I think that the resume kernel does not have a correct ACPI
+>> handler to deal with the new device.
 >>
->> Does your chip have the "est" flag in /proc/cpuinfo? If not, it does=
-n't
->> support speedstep.
-> That is somewhat strange. These CPUs show est support in cpuinfo, als=
-o
-> compare with (not only about HP, but also other OEMs):
-> [Bug 16072] [HP Pavilion dm1-1110ev] Cpufreq doesn't work at all ( In=
-tel Celeron U2300 )
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D16072
+>> My understanding may be incorrect because I just read a portion of
+>> ACPI spec and the kernel source that related to this issue.
 >
-> But Tiago digged out an Intel spec which says that the SU processors =
-do only
-> run at one freq:
-> http://www.intel.com/design/mobile/datashts/321111.pdf
-> page 30, note 10, at the top of the page.
+> This doesn't make any sense.
 >
-> I could imagine cpuid should not export est capabilities for these an=
-d
-> cpufreq drivers should not complain that an est capable CPU is found =
-for
-> which no frequencies get exported, but probably only Intel can tell f=
-or
-> sure.
-
-I'd love input on this, because with the lower voltage being there I
-could probably get away with using it even in load usage since I tend
-to keep vents clean and temperatures here aren't high. coretemp is
-showing me around 60=C2=BAC in load. To me, having a lower voltage when=
- the
-CPU has to come out of C4 into C0 is an advantage, one which I hope to
-measure. When having the CPU run at C0 in light loads(<50%) would also
-be useful to have the lower voltage there, kicking it up when the two
-cores are +80% to keep stability in check with the temperature rise(if
-needed...). Or am I completely wrong and when having 50% load the CPU
-also does a lot of C4 idling?
-
-The only reason I took the plunge with a Celeron processor, besides
-being the only one available in the DM1 around here, was that it
-supported EIST. I would not get one laptop without it, so let's say I
-was a bit perplexed when I tried to get it to run and failed.
-
-Best regards,
-Tiago
-
-
+> Interrupt routing configuration reflects wires on the motherboard.
+> If you resume a kernel image on hardware with different wires
+> than were you suspended, all is lost.
 >
-> =C2=A0 =C2=A0 Thomas
+> To do something like this, you have to un-configure
+> interrupts completely, and then re-probe your devices
+> when you resume on changed hardware. =A0ie. unload all your drivers.
 >
+> cheers,
+> Len Brown, Intel Open Source Technoloy Center
+>
+
+
+
+--=20
+Thawan Kooburat
+
+Graduate Student
+Department of Computer Science
+UW-Madison
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
