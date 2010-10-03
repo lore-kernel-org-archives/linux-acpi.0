@@ -1,64 +1,75 @@
-From: Tiago Marques <tiagomnm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Speedstep on Celeron SU2300 - 20% more battery
- lifetime on Windows
-Date: Sun, 3 Oct 2010 16:03:04 +0100
-Message-ID: <AANLkTi=5cnfrZr0c4t9W-fLHiD=h+tjf9KXJo3xwmPJ3@mail.gmail.com>
+From: Tiago Marques <tiagomnm@gmail.com>
+Subject: Re: Speedstep on Celeron SU2300 - 20% more battery lifetime on Windows
+Date: Sun, 3 Oct 2010 16:06:42 +0100
+Message-ID: <AANLkTinUJqU__oxnnO2LO9xHJMNyaSLjtJtrUvJu299K@mail.gmail.com>
 References: <AANLkTiktJ5Xgnsmq2je7T3Yc5Sf53Bu8vWMM1XT1V_vm@mail.gmail.com>
-	<201009020152.37466.trenn@suse.de>
-	<AANLkTi=WDEA+prG26g5R9oG1uZ7cNgaMrYDtug_LM7bY@mail.gmail.com>
-	<201009061035.03727.trenn@suse.de> <4C850D10.2050801@linux.intel.com>
-	<AANLkTik0oTMzTCyNwS6X-CeQK_cJLs90=eU7o9_Rn1XE@mail.gmail.com>
-	<4C85790A.50005@linux.intel.com>
-	<AANLkTin5Kjiw+Z4F8Y+h+c0Qb_tu1o0SuwHEJ=R3iu40@mail.gmail.com>
+ <201009061035.03727.trenn@suse.de> <AANLkTi==7HGa9OKUDq4cpexPpdPMKVgcXqONFL+UqmRe@mail.gmail.com>
+ <201009071347.13509.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org>
-In-Reply-To: <AANLkTin5Kjiw+Z4F8Y+h+c0Qb_tu1o0SuwHEJ=R3iu40-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.lesswatts.org/options/discuss>,
-	<mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.lesswatts.org/pipermail/discuss>
-List-Post: <mailto:discuss-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org>
-List-Help: <mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.lesswatts.org/listinfo/discuss>,
-	<mailto:discuss-request-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org?subject=subscribe>
-Sender: discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org
-Errors-To: discuss-bounces-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org
-To: Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: discuss-ovCJLiDH4KkgsBAKwltoeQ@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, cpufreq-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <201009071347.13509.trenn@suse.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: cpufreq@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SSBzZWUuIFRoYW5rcy4gSXQgc2VlbXMgdGhhdCBpbnRlbF9pZGxlIGlzbid0IHN1cHBvcnRlZCBv
-biBDb3JlIDIKYmFzZWQgQ2VsZXJvbnMuCkJlc3QgcmVnYXJkcwoKCgo+IE9uIFR1ZSwgU2VwIDcs
-IDIwMTAgYXQgMTI6MjggQU0sIEFyamFuIHZhbiBkZSBWZW4gPGFyamFuQGxpbnV4LmludGVsLmNv
-bT4KPiB3cm90ZToKPj4KPj4gwqBPbiA5LzYvMjAxMCAzOjAzIFBNLCBUaWFnbyBNYXJxdWVzIHdy
-b3RlOgo+Pj4KPj4+IE9uIE1vbiwgU2VwIDYsIDIwMTAgYXQgNDo0NyBQTSwgQXJqYW4gdmFuIGRl
-IFZlbjxhcmphbkBsaW51eC5pbnRlbC5jb20+Cj4+PiDCoHdyb3RlOgo+Pj4+Cj4+Pj4gwqBPbiA5
-LzYvMjAxMCAxOjM1IEFNLCBUaG9tYXMgUmVubmluZ2VyIHdyb3RlOgo+Pj4+Pgo+Pj4+PiBIaSwK
-Pj4+Pj4KPj4+Pj4gSSBhbSBhZGRpbmcgbGVzc3dhdHRzLm9yZyBhbmQgbGludXgtcG0gbGlzdC4K
-Pj4+Pj4gSSBleHBlY3QgeW91IGZvdW5kIG91dCB3aHkgeW91IGRvIG5vdCBnZXQgZnJlcXVlbmN5
-L1AtIHN0YXRlcyBhbmQgaXQKPj4+Pj4gc2VlbSB0byBiZSBjb3JyZWN0LiBPbiB0aGVzZSBsaXN0
-cywgcGVvcGxlIGNhbiBoZWxwIHlvdSBmdXJ0aGVyCj4+Pj4+IHRvIGZpbmQgb3V0IExpbnV4IHZz
-IFdpbmRvd3MgYmF0dGVyeSBkcmFpbiBkaWZmZXJlbmNlcy4KPj4+Pj4KPj4+Pj4gSWYgeW91IGhh
-dmUgdGhlIHNhbWUgYmFja2xpZ2h0IHNldHRpbmdzLCBJIGV4cGVjdCBDLXN0YXRlIG9yIGdyYXBo
-aWNzCj4+Pj4+IGNhcmQgbXVzdCBiZSB0aGUgcmVhc29uLiBUaGVyZSBpcyBub3RoaW5nIGVsc2Ug
-dGhhbiBDUFUgb3IgR1BVCj4+Pj4+IHRoYXQgZHJhaW5zIHNvIG11Y2ggZW5lcmd5IGZvciBiZWlu
-ZyB0aGUgcmVhc29uIG9mCj4+Pj4+IDIwJSBtb3JlIGJhdHRlcnkgbGlmZSB0aW1lLgo+Pj4+PiBX
-aGljaCBncmFwaGljcyBjYXJkIGFuZCBkcml2ZXIgZG8geW91IHVzZSAoZm9yIG52aWRpYS9hdGks
-IHRyeWluZyB0aGUKPj4+Pj4gYmluYXJ5IG9uZSBmb3IgY29tcGFyaXNvbiwgbWlnaHQgc2hvdyBh
-IGJpZyBkaWZmZXJlbmNlIG9uIGEgcmVjZW50Cj4+Pj4+IGNhcmQpPwo+Pj4+PiBXaGljaCBDLXN0
-YXRlIGRyaXZlciBkbyB5b3UgdXNlICh0aGVyZSBpcyBhbiBhY3BpIGFuZCBpbnRlbF9pZGxlIG9u
-ZQo+Pj4+PiB3aXRoIGxhdGVzdCBrZXJuZWxzKToKPj4+Pj4gY2F0IC9zeXMvZGV2aWNlcy9zeXN0
-ZW0vY3B1L2NwdWlkbGUvY3VycmVudF9kcml2ZXIKPj4+Pj4gSSBob3BlIHRvIGJlIGFibGUgdG8g
-cHJvdmlkZSBhIGMtc3RhdGUgdG9vbCBzb29uLCBmb3Igbm93IHlvdSBoYXZlIHRvCj4+Pj4+IGdv
-IHRocm91Z2g6Cj4+Pj4+IGNhdCAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHUqL2NwdWlkbGUv
-c3RhdGUqCj4+Pj4+IHRvIGNoZWNrIHdoaWNoIGFuZCBob3cgb2Z0ZW4vZWZmaWNpZW50IEMtc3Rh
-dGVzIGFyZSB1c2VkLgo+Pj4+Cj4+Pj4gcG93ZXJ0b3Agd2lsbCB0ZWxsIHlvdSBleGFjdGx5IHRo
-aXMKPj4+Pgo+Pj4gVGhhbmsgeW91LiBQbGVhc2Ugc2VlIG15IHByZXZpb3VzIGUtbWFpbC4gQzAs
-IEMxIGFuZCBDNC4gRG8geW91IGtub3cKPj4+IG9mIGFueSB3YXkgdG8gZm9yY2UgdGhlIGludGVy
-bWVkaWF0ZSBvbmVzIGZvciBkZWJ1Z2dpbmc/Cj4+Cj4+IGludGVsX2lkbGUgZHJpdmVyIGlzIHRo
-ZSBvbmx5IHdheSB0aGF0J3MgcmVhc29uYWJsZSBpbiBhbW91bnQgb2Ygd29yay4KPj4KPj4gZm9y
-IGFueXRoaW5nIGVsc2UgeW91IGRlcGVuZCBvbiB0aGUgZ3JhY2Ugb2YgdGhlIGJpb3MuCj4+Cj4K
-PgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpEaXNjdXNz
-IG1haWxpbmcgbGlzdApEaXNjdXNzQGxlc3N3YXR0cy5vcmcKaHR0cDovL2xpc3RzLmxlc3N3YXR0
-cy5vcmcvbGlzdGluZm8vZGlzY3Vzcwo=
+Hello,
+
+On Tue, Sep 7, 2010 at 12:47 PM, Thomas Renninger <trenn@suse.de> wrote=
+:
+>
+> On Monday 06 September 2010 23:47:58 Tiago Marques wrote:
+> > On Mon, Sep 6, 2010 at 9:35 AM, Thomas Renninger <trenn@suse.de> wr=
+ote:
+> ..
+> > C states seem ok...ish. I get C0, C1 and C4, though not anything in
+> > between. Don't know how to check in windows and usually it shouldn'=
+t
+> > in leaps, right? That might be a problem. I'm getting around 75% in
+> > C4, the rest almost exclusively in C0. Perhaps the transitions are =
+the
+> > problem? I think I previously saw normal rates of closer to 98% so
+> > I'll have to check what's going now. Too many wakeups from i915, us=
+b
+> > and wlan.
+> > Powertop shows that the BIOS reports C1 and C4 support, hence only
+> > these C-stats.
+> Yep, I'd concentrate on this first. If idle, the system should be in =
+deepest
+> C-state (nearly) all of the time. Perfect tool for this is powertop.
+> You could also boot into runlevel S. If the system is much more idle
+> there you could load drivers one by one to find out whether there is =
+a bad
+> one keeping your cpu busy/awake.
+>
+
+The guilty party was the broadcom binary driver, it was waking the CPU
+up 30k times per second. I've tried with an USB wlan card and it
+hovers around 70-20 wakeups per second. Does that look normal?
+
+>
+> C-states also should "rule-out" P-states. If you are in C4 it shouldn=
+'t matter
+> whether your freq is up or down, the core's freq and voltage should b=
+e
+> ramped down to a minimum on latest processors (I've never measured th=
+at,
+> but this is what I've heard from Intel guys themselves...).
+>
+
+I'm still due to actually measure times again but from casual
+observation the CPU fan is still on considerably more time than in
+Windows. It seems to me that the lower voltage in idle that Windows
+can use does impact temperatures a bit, after all the CPU does have to
+wake from time to time.
+I'll be measuring this directly from the CPU voltage regulator when I
+find the time, as to leave out any doubts on what's really going on.
+
+Best regards,
+Tiago
+
+> Good luck,
+>
+> =C2=A0 =C2=A0Thomas
