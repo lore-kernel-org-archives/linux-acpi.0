@@ -1,36 +1,24 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.36-rc6-git2: Reported regressions 2.6.34 -> 2.6.35
-Date: Mon, 4 Oct 2010 20:01:00 +0200
-Message-ID: <AANLkTi=ZwaH6ZL1g4d1jhfSXtQJGMGu-=YN+vTm+=UgS@mail.gmail.com>
-References: <OjxVjYbf_EJ.A.ReC.pTPqMB@chimera>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OjxVjYbf_EJ.A.ReC.pTPqMB@chimera>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Mickler <florian-sVu6HhrpSfRAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Runtime PM: Improve support for PCI devices
+Date: Mon,  4 Oct 2010 14:22:24 -0400
+Message-ID: <1286216549-5438-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:39962 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755256Ab0JDSXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Oct 2010 14:23:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-2010/10/3 Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>:
-> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
-cgi?id=3D19302
-> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : PROBLEM: kernel crash on USB-mo=
-dem (Huawei E1750) hangup.
-> Submitter =C2=A0 =C2=A0 =C2=A0 : O01eg <O01eg-o+MxOtu4lMCHXe+LvDLADg@public.gmane.org>
-> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2010-09-26 19:50 (8 d=
-ays old)
-> Message-ID =C2=A0 =C2=A0 =C2=A0: <op.vjnn1up1yohvy1@localhost>
-> References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel&m=
-=3D128553111709569&w=3D2
+Right now we only support runtime PCI PM on devices that provide GPE methods.
+That's not strictly necessary - we can find GPE associations from the _PRW
+data and then install our own handlers. This patchset provides support for
+allowing ACPI handlers to be installed for PCI devices and enables runtime
+PM on a wider range of machines (Thinkpads, for instance). It also adds
+support for polling legacy PCI devices to see if their PME flag has gone
+high, since some vendors appear to have decided that copper is a sufficiently
+precious resource that attaching that to anything would be an unnecessary
+extravagence.
 
-Comment from bugzilla:
-> I got this bug at 2.6.34-gentoo-r6 and 2.6.36-rc5. Other kernels were=
- not
-> checked.
-
-Doesn't sound like regression.
-
---=20
-Rafa=C5=82
