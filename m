@@ -1,46 +1,79 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Toshiba C650-194 ACPI bug - regression
-Date: Tue, 05 Oct 2010 00:46:57 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010050041000.23093@localhost.localdomain>
-References: <AANLkTin3mtDm9x=8E_b_0FDWdwzbU570x1Ok-btMBPiF@mail.gmail.com>
- <AANLkTi=j75zW-8NFtt8w-z8zQrL7Y_esQD6iLEcCyP00@mail.gmail.com>
- <alpine.LFD.2.00.1010012243430.2293@localhost.localdomain>
- <AANLkTi=Jn7kRpDvE4YUgLZe1yxBCZdcFYo0oUpov+PXx@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] /drivers/acpi/acpica/nsrepair.c (2.6.35.7) - Fixed
+ useless compile warning
+Date: Tue, 5 Oct 2010 14:53:20 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858B48936BB@orsmsx503.amr.corp.intel.com>
+References: <593258.59408.qm@web45801.mail.sp1.yahoo.com>
+ <alpine.LFD.2.00.1010010213051.7033@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:63358 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab0JEErN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Oct 2010 00:47:13 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0L9S00C02VYCWCB1@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 04 Oct 2010 23:47:08 -0500 (CDT)
-In-reply-to: <AANLkTi=Jn7kRpDvE4YUgLZe1yxBCZdcFYo0oUpov+PXx@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:52058 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751844Ab0JEVxV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Oct 2010 17:53:21 -0400
+In-Reply-To: <alpine.LFD.2.00.1010010213051.7033@localhost.localdomain>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Allan Kelly <allankelly@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Poyo VL <poyo_vl@yahoo.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+
+Is there any other information on this?
 
 
-> BTW, what is going on here? Is there a thread where this is explained?
-
-https://bugzilla.kernel.org/show_bug.cgi?id=14679
-
-> Seems the BIOS deliberately alters the DSDT after initialisation. Do
-> we know why? Does it do it for Win OSs?
-
-We have no idea what the Toshiba BIOS engineers are thinking
-and if their actions are deliberate or not.
-
-If the platform has a Windows sticker on it, then it passed
-some kind of Windows Compatible Test.
-
-It is possible to read the tables back in Windows, and they
-are not garbled -- so we assume that Windows makes a private
-copy of them on this platform, and perhaps all platforms.
-
-cheers,
--Len
+>-----Original Message-----
+>From: Len Brown [mailto:lenb@kernel.org]
+>Sent: Thursday, September 30, 2010 11:14 PM
+>To: Poyo VL
+>Cc: linux-acpi@vger.kernel.org; Moore, Robert
+>Subject: Re: [PATCH] /drivers/acpi/acpica/nsrepair.c (2.6.35.7) - Fixed
+>useless compile warning
+>
+>
+>
+>thanks,
+>Len Brown, Intel Open Source Technology Center
+>
+>On Sun, 19 Sep 2010, Poyo VL wrote:
+>
+>> This is not a problem, it is a simple fix for an ugly compiler warning.
+>When I
+>> tried to cimpile, I got the following warning:
+>> drivers/acpi/acpica/nsrepair.c: In function 'acpi_ns_repair_object':
+>> drivers/acpi/acpica/nsrepair.c:125:29: warning: 'new_object' may be used
+>> uninitialized in this function
+>> new_object is declared without being initialized. It is initialized in a
+>> conditional expression like if (expected_btypes & ACPI_RTYPE_INTEGER) so
+>the
+>> compiler can't be sure that it will be used initialized, and it throws
+>that
+>> warning.
+>> Just have to initialize new_object which is a pointer with NULL.
+>
+>I don't see this warning.
+>What version of the compiler are you using?
+>
+>thanks,
+>-Len
+>
+>> Patch:
+>>
+>> Signed-off-by: Ionut Gabriel Popescu <poyo_vl@yahoo.com>
+>> ---
+>>
+>> --- a/drivers/acpi/acpica/nsrepair.c    2010-09-20 08:35:56.568006487
+>+0300
+>> +++ b/drivers/acpi/acpica/nsrepair.c    2010-09-20 08:00:40.000000000
+>+0300
+>> @@ -122,7 +122,7 @@ acpi_ns_repair_object(struct acpi_predef
+>>                union acpi_operand_object **return_object_ptr)
+>>  {
+>>      union acpi_operand_object *return_object = *return_object_ptr;
+>> -    union acpi_operand_object *new_object;
+>> +    union acpi_operand_object *new_object = NULL;
+>>      acpi_status status;
+>>
+>>      ACPI_FUNCTION_NAME(ns_repair_object);
+>>
