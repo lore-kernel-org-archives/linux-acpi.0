@@ -1,79 +1,46 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] /drivers/acpi/acpica/nsrepair.c (2.6.35.7) - Fixed
- useless compile warning
-Date: Tue, 5 Oct 2010 14:53:20 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858B48936BB@orsmsx503.amr.corp.intel.com>
-References: <593258.59408.qm@web45801.mail.sp1.yahoo.com>
- <alpine.LFD.2.00.1010010213051.7033@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/5] ACPI: Allow handlers to be installed at the same time as methods
+Date: Wed, 6 Oct 2010 01:18:50 +0200
+Message-ID: <201010060118.50875.rjw@sisk.pl>
+References: <1286216549-5438-1-git-send-email-mjg@redhat.com> <1286216549-5438-2-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52058 "EHLO mga02.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:48376 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab0JEVxV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Oct 2010 17:53:21 -0400
-In-Reply-To: <alpine.LFD.2.00.1010010213051.7033@localhost.localdomain>
-Content-Language: en-US
+	id S1756205Ab0JEXTn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Oct 2010 19:19:43 -0400
+In-Reply-To: <1286216549-5438-2-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Poyo VL <poyo_vl@yahoo.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
 
-Is there any other information on this?
+On Monday, October 04, 2010, Matthew Garrett wrote:
+> There are circumstances under which it may be desirable for GPE handlers
+> to be installable without displacing the existing GPE method. Add support
+> for this via a boolean argument to acpi_install_gpe_handler, and fix up the
+> existing users to ensure that their behaviour doesn't change.
 
+Hmm.  I'm not sure this is the best way to do that.
 
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Thursday, September 30, 2010 11:14 PM
->To: Poyo VL
->Cc: linux-acpi@vger.kernel.org; Moore, Robert
->Subject: Re: [PATCH] /drivers/acpi/acpica/nsrepair.c (2.6.35.7) - Fixed
->useless compile warning
->
->
->
->thanks,
->Len Brown, Intel Open Source Technology Center
->
->On Sun, 19 Sep 2010, Poyo VL wrote:
->
->> This is not a problem, it is a simple fix for an ugly compiler warning.
->When I
->> tried to cimpile, I got the following warning:
->> drivers/acpi/acpica/nsrepair.c: In function 'acpi_ns_repair_object':
->> drivers/acpi/acpica/nsrepair.c:125:29: warning: 'new_object' may be used
->> uninitialized in this function
->> new_object is declared without being initialized. It is initialized in a
->> conditional expression like if (expected_btypes & ACPI_RTYPE_INTEGER) so
->the
->> compiler can't be sure that it will be used initialized, and it throws
->that
->> warning.
->> Just have to initialize new_object which is a pointer with NULL.
->
->I don't see this warning.
->What version of the compiler are you using?
->
->thanks,
->-Len
->
->> Patch:
->>
->> Signed-off-by: Ionut Gabriel Popescu <poyo_vl@yahoo.com>
->> ---
->>
->> --- a/drivers/acpi/acpica/nsrepair.c    2010-09-20 08:35:56.568006487
->+0300
->> +++ b/drivers/acpi/acpica/nsrepair.c    2010-09-20 08:00:40.000000000
->+0300
->> @@ -122,7 +122,7 @@ acpi_ns_repair_object(struct acpi_predef
->>                union acpi_operand_object **return_object_ptr)
->>  {
->>      union acpi_operand_object *return_object = *return_object_ptr;
->> -    union acpi_operand_object *new_object;
->> +    union acpi_operand_object *new_object = NULL;
->>      acpi_status status;
->>
->>      ACPI_FUNCTION_NAME(ns_repair_object);
->>
+In fact, what we need to handle is the case in which a GPE is pointed to by
+a _PRW method somewhere and we presume that it's necessary to execute
+Notify() for it regardless of whether or not it has a method, right?
+
+So, this GPE will have ACPI_GPE_CAN_WAKE, so can we just put something like
+
+if (gpe_event_info->flags & ACPI_GPE_CAN_WAKE)
+         execute Notify()
+
+somewhere around the switch statement in acpi_ev_gpe_dispatch()?
+
+Or perhaps replace acpi_ev_asynch_enable_gpe() with something that will
+execute Notify() and then do what the original acpi_ev_asynch_enable_gpe() does?
+
+That should be easier to implement after the changes we've been discussing with
+Bob recently (basically, handle both GPE handlers and _Lxx/_Exx analogously).
+
+Rafael
