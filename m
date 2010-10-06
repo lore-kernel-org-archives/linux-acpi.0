@@ -1,137 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Fix problems with acpi_pm_device_sleep_state()
-Date: Thu, 7 Oct 2010 00:48:20 +0200
-Message-ID: <201010070048.20890.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+From: Sameer Nanda <snanda@chromium.org>
+Subject: [PATCH] ACPI: Read TSC upon resume
+Date: Wed,  6 Oct 2010 16:15:19 -0700
+Message-ID: <1286406919-6236-1-git-send-email-snanda@chromium.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:45115 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754183Ab0JFXP6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Oct 2010 19:15:58 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, stefan.bader@canonical.com, brad.figg@canonical.com, gregkh@suse.de, apw@canonical.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sameer Nanda <snanda@chromium.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / PM: Fix problems with acpi_pm_device_sleep_state()
+Read the TSC upon resuming and print it out. This is useful
+in helping figure out amount of time spent in the BIOS when
+resuming from suspend.
 
-There is a number of problems with acpi_pm_device_sleep_state() now.
-First, if _S0W is not defined, it prevents devices from being put
-into D3 by PCI runtime PM, which shouldn't happen.  Second, it
-shouldn't use adev->wakeup.state.enabled, because if it's set, it
-only means that either the device is permanently enabled to wake up
-the system, or that it has been enabled to do that through
-/proc/acpi/wakeup.  Finally, it should be compiled if CONFIG_PM_SLEEP
-is not set, so that PCI runtime PM works correctly in that case.
-Fix these problems.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Change-Id: I1d6a32bd62421becddecd152d561763e5f3e1101
+Signed-off-by: Sameer Nanda <snanda@chromium.org>
 ---
- drivers/acpi/sleep.c    |   16 ++++++++++------
- include/acpi/acpi_bus.h |   12 ++++++++----
- 2 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/acpi/sleep.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -27,6 +27,8 @@
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index c0fed2e..f0588fa 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -214,6 +214,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 	acpi_status status = AE_OK;
+ 	unsigned long flags = 0;
+ 	u32 acpi_state = acpi_target_sleep_state;
++	u64 tsc;
  
- u8 sleep_states[ACPI_S_STATE_COUNT];
+ 	ACPI_FLUSH_CPU_CACHE();
  
-+static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+
- static void acpi_sleep_tts_switch(u32 acpi_state)
- {
- 	union acpi_object in_arg = { ACPI_TYPE_INTEGER };
-@@ -79,8 +81,6 @@ static int acpi_sleep_prepare(u32 acpi_s
- }
+@@ -235,6 +236,9 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
  
- #ifdef CONFIG_ACPI_SLEEP
--static u32 acpi_target_sleep_state = ACPI_STATE_S0;
--
- /*
-  * The ACPI specification wants us to save NVS memory regions during hibernation
-  * and to restore them during the subsequent resume.  Windows does that also for
-@@ -562,7 +562,7 @@ int acpi_suspend(u32 acpi_state)
- 	return -EINVAL;
- }
+ 	case ACPI_STATE_S3:
+ 		do_suspend_lowlevel();
++		rdtscll(tsc);
++		printk(KERN_INFO "TSC at resume: %llu\n",
++				(unsigned long long)tsc);
+ 		break;
+ 	}
  
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_OPS
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-@@ -624,7 +624,7 @@ int acpi_pm_device_sleep_state(struct de
- 	 * can wake the system.  _S0W may be valid, too.
- 	 */
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
--	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
-+	    (device_may_wakeup(dev) &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
- 		acpi_status status;
- 
-@@ -632,7 +632,9 @@ int acpi_pm_device_sleep_state(struct de
- 		status = acpi_evaluate_integer(handle, acpi_method, NULL,
- 						&d_max);
- 		if (ACPI_FAILURE(status)) {
--			d_max = d_min;
-+			if (acpi_target_sleep_state != ACPI_STATE_S0 ||
-+			    status != AE_NOT_FOUND)
-+				d_max = d_min;
- 		} else if (d_max < d_min) {
- 			/* Warn the user of the broken DSDT */
- 			printk(KERN_WARNING "ACPI: Wrong value from %s\n",
-@@ -646,7 +648,9 @@ int acpi_pm_device_sleep_state(struct de
- 		*d_min_p = d_min;
- 	return d_max;
- }
-+#endif /* CONFIG_PM_OPS */
- 
-+#ifdef CONFIG_PM_SLEEP
- /**
-  *	acpi_pm_device_sleep_wake - enable or disable the system wake-up
-  *                                  capability of given device
-@@ -677,7 +681,7 @@ int acpi_pm_device_sleep_wake(struct dev
- 
- 	return error;
- }
--#endif
-+#endif  /* CONFIG_PM_SLEEP */
- 
- static void acpi_power_off_prepare(void)
- {
-Index: linux-2.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -389,21 +389,25 @@ struct acpi_pci_root *acpi_pci_find_root
- int acpi_enable_wakeup_device_power(struct acpi_device *dev, int state);
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- 
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_OPS
- int acpi_pm_device_sleep_state(struct device *, int *);
--int acpi_pm_device_sleep_wake(struct device *, bool);
--#else /* !CONFIG_PM_SLEEP */
-+#else
- static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
- 	return ACPI_STATE_D3;
- }
-+#endif
-+
-+#ifdef CONFIG_PM_SLEEP
-+int acpi_pm_device_sleep_wake(struct device *, bool);
-+#else
- static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
- }
--#endif /* !CONFIG_PM_SLEEP */
-+#endif
- 
- #endif				/* CONFIG_ACPI */
- 
+-- 
+1.7.1
+
