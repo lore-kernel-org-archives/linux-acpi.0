@@ -1,66 +1,28 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/5] ACPI: Allow handlers to be installed at the same
- time as methods
-Date: Tue, 5 Oct 2010 19:09:19 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858B4893958@orsmsx503.amr.corp.intel.com>
-References: <1286216549-5438-1-git-send-email-mjg@redhat.com>
- <1286216549-5438-2-git-send-email-mjg@redhat.com>
- <201010060118.50875.rjw@sisk.pl>
+From: "Mrs. Habiba Miller" <mjward@spanner.org>
+Subject: (no subject)
+Date: Wed, 06 Oct 2010 03:28:13 +0000
+Message-ID: <36451bf5502057188dc9e2e70c7eaea8@bloodnok.spanner.org>
+Reply-To: miller.mrshabiba@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201010060118.50875.rjw@sisk.pl>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [109.123.94.149] ([109.123.94.149]:41575 "EHLO
+	bloodnok.spanner.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1758628Ab0JFDhG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Oct 2010 23:37:06 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
->In fact, what we need to handle is the case in which a GPE is pointed to by
->a _PRW method somewhere and we presume that it's necessary to execute
->Notify() for it regardless of whether or not it has a method, right?
-
-Is this the "windows compatibility" case where windows claims to implement a "implicit notify" if the GPE method does not exist for a GPE referenced by a _PRW?
 
 
+-- 
+Good day to you,
 
->-----Original Message-----
->From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
->Sent: Tuesday, October 05, 2010 4:19 PM
->To: Matthew Garrett
->Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
->pci@vger.kernel.org; Moore, Robert
->Subject: Re: [PATCH 1/5] ACPI: Allow handlers to be installed at the same
->time as methods
->
->On Monday, October 04, 2010, Matthew Garrett wrote:
->> There are circumstances under which it may be desirable for GPE handlers
->> to be installable without displacing the existing GPE method. Add support
->> for this via a boolean argument to acpi_install_gpe_handler, and fix up
->the
->> existing users to ensure that their behaviour doesn't change.
->
->Hmm.  I'm not sure this is the best way to do that.
->
->In fact, what we need to handle is the case in which a GPE is pointed to by
->a _PRW method somewhere and we presume that it's necessary to execute
->Notify() for it regardless of whether or not it has a method, right?
->
->So, this GPE will have ACPI_GPE_CAN_WAKE, so can we just put something like
->
->if (gpe_event_info->flags & ACPI_GPE_CAN_WAKE)
->         execute Notify()
->
->somewhere around the switch statement in acpi_ev_gpe_dispatch()?
->
->Or perhaps replace acpi_ev_asynch_enable_gpe() with something that will
->execute Notify() and then do what the original acpi_ev_asynch_enable_gpe()
->does?
->
->That should be easier to implement after the changes we've been discussing
->with
->Bob recently (basically, handle both GPE handlers and _Lxx/_Exx
->analogously).
->
->Rafael
+my name is Mrs. Habiba Miller, I saw your e-mail in a quest book, so i
+decided to contact bacuase i want to discuss a vary 
+important transaction which i have to carry out before it get too late due
+to my health condition. please write back.
+My e-mail is : miller.mrshabiba@gmail.com 
+
+Mrs. Habiba Miller
