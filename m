@@ -1,81 +1,51 @@
 From: Sameer Nanda <snanda@chromium.org>
 Subject: Re: [PATCH] ACPI: Read TSC upon resume
-Date: Thu, 7 Oct 2010 10:58:10 -0700
-Message-ID: <AANLkTi=mjaojm-O2rbKRTpsqpKiSKjU+P2dGZmENd-jU@mail.gmail.com>
-References: <1286406919-6236-1-git-send-email-snanda@chromium.org> <20101007021959.GA7300@suse.de>
+Date: Thu, 7 Oct 2010 11:05:21 -0700
+Message-ID: <AANLkTik=imw5XRpXSkboyB6txXio6Y65bLV+EdfvRXg3@mail.gmail.com>
+References: <1286406919-6236-1-git-send-email-snanda@chromium.org>
+ <20101007021959.GA7300@suse.de> <AANLkTimE2h46iZkj_amvgUg5UwN9xjuwqdW5TB+XccYy@mail.gmail.com>
+ <20101007174626.GA31541@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101007021959.GA7300@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:16580 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667Ab0JGSFp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Oct 2010 14:05:45 -0400
+Received: from kpbe14.cbf.corp.google.com (kpbe14.cbf.corp.google.com [172.25.105.78])
+	by smtp-out.google.com with ESMTP id o97I5iFG020566
+	for <linux-acpi@vger.kernel.org>; Thu, 7 Oct 2010 11:05:44 -0700
+Received: from qwe4 (qwe4.prod.google.com [10.241.194.4])
+	by kpbe14.cbf.corp.google.com with ESMTP id o97I2ggP016587
+	for <linux-acpi@vger.kernel.org>; Thu, 7 Oct 2010 11:05:42 -0700
+Received: by qwe4 with SMTP id 4so217600qwe.8
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Oct 2010 11:05:42 -0700 (PDT)
+In-Reply-To: <20101007174626.GA31541@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Greg KH <gregkh@suse.de>
 Cc: lenb@kernel.org, stefan.bader@canonical.com, brad.figg@canonical.com, apw@canonical.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-(resending as plain text, sorry if you got dupe messages)
-
-On Wed, Oct 6, 2010 at 7:19 PM, Greg KH <gregkh@suse.de> wrote:
-> On Wed, Oct 06, 2010 at 04:15:19PM -0700, Sameer Nanda wrote:
->> Read the TSC upon resuming and print it out. This is useful
->> in helping figure out amount of time spent in the BIOS when
->> resuming from suspend.
+On Thu, Oct 7, 2010 at 10:46 AM, Greg KH <gregkh@suse.de> wrote:
+> On Thu, Oct 07, 2010 at 10:43:34AM -0700, Sameer Nanda wrote:
+>> On Wed, Oct 6, 2010 at 7:19 PM, Greg KH <gregkh@suse.de> wrote:
+>> > And are you always going to be printing this out? =C2=A0Why do we =
+want to
+>> > know this every time?
+>> >
 >>
->> Change-Id: I1d6a32bd62421becddecd152d561763e5f3e1101
+>> Yes, every time. =C2=A0This helps track variance in BIOS resume time=
+s within a
+>> single boot.
 >
-> What is this tag for? =C2=A0I don't think it matches anything the ker=
-nel
-> community wants, do you?
+> Is that really something that users can do something about?
 
-Yeah, its not needed.  Let me resubmit the patch without this tag.
+Aside from complaining to the BIOS vendors, no :)
 
->
-> And are you always going to be printing this out? =C2=A0Why do we wan=
-t to
-> know this every time?
-
-Yes, every time.  This helps track variance in BIOS resume times
-within a single boot.
-
->
->> Signed-off-by: Sameer Nanda <snanda@chromium.org>
->> ---
->> =C2=A0drivers/acpi/sleep.c | =C2=A0 =C2=A04 ++++
->> =C2=A01 files changed, 4 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
->> index c0fed2e..f0588fa 100644
->> --- a/drivers/acpi/sleep.c
->> +++ b/drivers/acpi/sleep.c
->> @@ -214,6 +214,7 @@ static int acpi_suspend_enter(suspend_state_t pm=
-_state)
->> =C2=A0 =C2=A0 =C2=A0 acpi_status status =3D AE_OK;
->> =C2=A0 =C2=A0 =C2=A0 unsigned long flags =3D 0;
->> =C2=A0 =C2=A0 =C2=A0 u32 acpi_state =3D acpi_target_sleep_state;
->> + =C2=A0 =C2=A0 u64 tsc;
->>
->> =C2=A0 =C2=A0 =C2=A0 ACPI_FLUSH_CPU_CACHE();
->>
->> @@ -235,6 +236,9 @@ static int acpi_suspend_enter(suspend_state_t pm=
-_state)
->>
->> =C2=A0 =C2=A0 =C2=A0 case ACPI_STATE_S3:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 do_suspend_lowlevel=
-();
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 rdtscll(tsc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_INFO "TSC at=
- resume: %llu\n",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (unsigned long long)tsc);
->
-> How long does this take, will it slow down resume?
-
-The impact is ~10us (as measured on an Intel Atom N455 @ 1.66Ghz).
-Given that resume time is currently of the order of 1sec, its in the
-noise range.
-
-Thanks for the feedback!
-
+> I can
+> understand when you are trying to work with a BIOS company, but
+> otherwise, this seems quite pointless.
 >
 > thanks,
 >
@@ -86,3 +56,8 @@ Thanks for the feedback!
 
 --=20
 Sameer
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
