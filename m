@@ -1,40 +1,107 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Read TSC upon resume
-Date: Thu, 7 Oct 2010 23:44:21 +0200
-Message-ID: <201010072344.22166.rjw@sisk.pl>
-References: <1286406919-6236-1-git-send-email-snanda@chromium.org> <AANLkTik=imw5XRpXSkboyB6txXio6Y65bLV+EdfvRXg3@mail.gmail.com> <20101007181536.GA24811@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/2] ACPI: Do not export hid/modalias sysfs file for
+ ACPI objects without a HID
+Date: Fri, 08 Oct 2010 08:26:21 +0800
+Message-ID: <1286497581.2111.3753.camel@rui>
+References: <1285923240-31671-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101007181536.GA24811@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Sameer Nanda <snanda@chromium.org>, lenb@kernel.org, stefan.bader@canonical.com, brad.figg@canonical.com, apw@canonical.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:19912 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751691Ab0JHA2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Oct 2010 20:28:31 -0400
+In-Reply-To: <1285923240-31671-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "kay.sievers@vrfy.org" <kay.sievers@vrfy.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Thursday, October 07, 2010, Greg KH wrote:
-> On Thu, Oct 07, 2010 at 11:05:21AM -0700, Sameer Nanda wrote:
-> > On Thu, Oct 7, 2010 at 10:46 AM, Greg KH <gregkh@suse.de> wrote:
-> > > On Thu, Oct 07, 2010 at 10:43:34AM -0700, Sameer Nanda wrote:
-> > >> On Wed, Oct 6, 2010 at 7:19 PM, Greg KH <gregkh@suse.de> wrote:
-> > >> > And are you always going to be printing this out?  Why do we want to
-> > >> > know this every time?
-> > >> >
-> > >>
-> > >> Yes, every time.  This helps track variance in BIOS resume times within a
-> > >> single boot.
-> > >
-> > > Is that really something that users can do something about?
-> > 
-> > Aside from complaining to the BIOS vendors, no :)
+On Fri, 2010-10-01 at 16:53 +0800, Thomas Renninger wrote:
+> Boot and compile tested.
+> The fact that pnp.ids can now be empty needs testing on some
+> further machines, though.
 > 
-> Then I would not recommend adding this patch, as it is irrelevant for
-> 99.9999% of all Linux users.
+> This should handle a "modprobe is wrongly called by udev" issue:
+> https://bugzilla.kernel.org/show_bug.cgi?id=19162
+> 
+> Modaliase files in
+> /sys/devices/LNXSYSTM:00/
+> went down from 113 to 71 on my tested system.
+> 
+> This is a sysfs change, but userspace must already be able to handle it.
+> 
+> Also do not fill up pnp.ids list with a "struct hid"
+> entry. This comment:
+>      * This generic ID isn't useful for driver binding, but it provides
+>      * the useful property that "every acpi_device has an ID."
+> is still half way true:
+> Best you never touch pnp.ids list directly or make sure it can be empty,
+> instead use:
+> char *acpi_device_hid()
+> which always returns a value ("device" as a dummy if the object
+> has no hid).
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: Zhang Rui <rui.zhang@intel.com>
+> CC: kay.sievers@vrfy.org
+> CC: <linux-acpi@vger.kernel.org>
+> CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+>  drivers/acpi/scan.c |   36 ++++++++++++++++++++----------------
+>  1 files changed, 20 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index b23825e..d281afb 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -26,6 +26,9 @@ extern struct acpi_device *acpi_root;
+>  
+>  #define ACPI_IS_ROOT_DEVICE(device)    (!(device)->parent)
+>  
+> +/* Should be const */
+> +static char* dummy_hid = "device";
+> +
+>  static LIST_HEAD(acpi_device_list);
+>  static LIST_HEAD(acpi_bus_id_list);
+>  DEFINE_MUTEX(acpi_device_lock);
+> @@ -49,6 +52,9 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+>  	int count;
+>  	struct acpi_hardware_id *id;
+>  
+> +	if (list_empty(&acpi_dev->pnp.ids))
+> +		return 0;
+> +
+>  	len = snprintf(modalias, size, "acpi:");
+>  	size -= len;
+>  
+> @@ -202,13 +208,15 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+>  			goto end;
+>  	}
+>  
+> -	result = device_create_file(&dev->dev, &dev_attr_hid);
+> -	if (result)
+> -		goto end;
+> +	if (!list_empty(&dev->pnp.ids)) {
+> +		result = device_create_file(&dev->dev, &dev_attr_hid);
+> +		if (result)
+> +			goto end;
+>  
+> -	result = device_create_file(&dev->dev, &dev_attr_modalias);
+> -	if (result)
+> -		goto end;
+> +		result = device_create_file(&dev->dev, &dev_attr_modalias);
+> +		if (result)
+> +			goto end;
+> +	}
+>  
 
-It may be somewhat useful, but the rdtscll() call seems to be x86-specific, in
-which case it shouldn't be used at this place.
+the "hid" attribute exports the first entry of the device.pnp..ids list,
+while "modalias" exports all the entries.
+now it seems that the "hid" file is redundant, right?
 
-Thanks,
-Rafael
+thanks,
+rui
+
+
