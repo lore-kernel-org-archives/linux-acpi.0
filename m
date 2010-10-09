@@ -1,174 +1,117 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Do not hang at mutex forever if BIOS tries to
- release global lock
-Date: Fri, 8 Oct 2010 07:54:13 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858BB85F060@orsmsx503.amr.corp.intel.com>
-References: <201010081240.15203.trenn@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: [git pull request] ACPI patches for Linux-2.6.36-rc7
+Date: Fri, 08 Oct 2010 22:46:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010082243390.3961@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5007 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758316Ab0JHOyP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2010 10:54:15 -0400
-In-Reply-To: <201010081240.15203.trenn@suse.de>
-Content-Language: en-US
+Received: from vms173003pub.verizon.net ([206.46.173.3]:40185 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760141Ab0JICrF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2010 22:47:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "devel@acpica.org" <devel@acpica.org>, "stuart_hayes@dell.com" <stuart_hayes@dell.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-We will take a look at this, and probably have a few more questions.
+Hi Linus,
 
-+	/* This must not happen: BIOS must only release the lock if OS has set
-+	 * it pending. Such inconsistancies could happen if the global lock bits
-+	 * survived through a kexec boot. */
+please pull from: 
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+Fixes a 2.6.34 regression, and works around a machine that went into an 
+infinite AML loop in the name of Vista+Nvidia compatibility.
+
+This will update the files shown below.
+
+thanks!
+
+--
+Len Brown
+Intel Open Source Technology Center
 
 
-We're going to need a non-OS-specific comment here.
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.36/acpi-release-20100702-2.6.36-rc7.diff.gz
 
+ drivers/acpi/blacklist.c      |   17 +++++++++++++++++
+ drivers/acpi/processor_core.c |    1 +
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
+through these commits:
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de]
->Sent: Friday, October 08, 2010 3:40 AM
->To: Moore, Robert; ACPI Devel Maling List
->Cc: devel@acpica.org; stuart_hayes@dell.com
->Subject: [PATCH] ACPICA: Do not hang at mutex forever if BIOS tries to
->release global lock
->
->Hi,
->
->find the code against the Linux kernel pasted at the end
->of the mail for review.
->Find the code adjusted for ACPICA inclusion in the
->attachement.
->
->Bob: If you are ok with the patch, it would be great
->if you could push it. Be aware that I did not compile
->tested it in ACPICA environment.
->
->Thanks,
->
->       Thomas
->
->From: Stuart Hayes <stuart_hayes@dell.com>
->
->ACPICA: Do not hang at mutex forever if BIOS tries to release global lock
->
->and OS did not request the lock (means the pending bit was not set).
->Which in fact is a BIOS/HW bug (compare with ACPI Spec 3.0b):
->
->5.2.10.1 Global Lock:
->..
->This signal only occurs when the other environment attempted to acquire
->ownership while the lock was owned.
->..
->or
->4.7.3.1.1 PM1 Status Registers
->GBL_STS:
->..
->This bit is set in response to the BIOS releasing control of the Global
->Lock
->and having seen the pending bit set.
->..
->
->There seem to be chipsets which can get this wrong (especially after a
->kexec
->boot on Linux).
->
->Also one could theoretically run into this if a new kernel got booted
->without
->proper reboot and BIOS re-initialization (like kexec) while:
->  1) The OS hold the global lock
->  2) The BIOS hold the global lock
->This patch would handle condition 1.
->
->To make sure condition 2. cannot happen, it should get stated in the ACPI
->spec
->that the global lock needs to be zeroed by BIOS everytime the OS tries to
->(re-)enable ACPI mode.
->
->Modifications by trenn:
->  - Add a message -> This should not happen and if it happens it should not
->    be ignored/handled silently
->  - Adjusted from Linux kernel to acpica sources
->
->
->Signed-off-by: Thomas Renninger <trenn@suse.de>
->
->diff -purN '--exclude=*orig' linux-2.6.36-
->rc6_orig/drivers/acpi/acpica/acglobal.h linux-2.6.36-
->rc6/drivers/acpi/acpica/acglobal.h
->--- linux-2.6.36-rc6_orig/drivers/acpi/acpica/acglobal.h	2010-06-02
->09:16:14.000000000 -0500
->+++ linux-2.6.36-rc6/drivers/acpi/acpica/acglobal.h	2010-06-02
->09:24:44.000000000 -0500
->@@ -213,6 +213,7 @@ ACPI_EXTERN acpi_semaphore acpi_gbl_glob
-> ACPI_EXTERN u16 acpi_gbl_global_lock_handle;
-> ACPI_EXTERN u8 acpi_gbl_global_lock_acquired;
-> ACPI_EXTERN u8 acpi_gbl_global_lock_present;
->+ACPI_EXTERN u32 acpi_gbl_global_lock_pending;
->
-> /*
->  * Spinlocks are used for interfaces that can be possibly called at
->diff -purN '--exclude=*orig' linux-2.6.36-
->rc6_orig/drivers/acpi/acpica/evmisc.c linux-2.6.36-
->rc6/drivers/acpi/acpica/evmisc.c
->--- linux-2.6.36-rc6_orig/drivers/acpi/acpica/evmisc.c	2010-06-02
->09:16:11.000000000 -0500
->+++ linux-2.6.36-rc6/drivers/acpi/acpica/evmisc.c	2010-06-02
->09:24:45.000000000 -0500
->@@ -297,6 +297,17 @@ static u32 acpi_ev_global_lock_handler(v
-> {
-> 	u8 acquired = FALSE;
->
->+	/* This must not happen: BIOS must only release the lock if OS has
->set
->+	 * it pending. Such inconsistancies could happen if the global lock
->bits
->+	 * survived through a kexec boot. */
->+
->+	if (!acpi_gbl_global_lock_pending) {
->+		u8 pending;
->+		/* Clear lock bits. BIOS released lock and OS isn't waiting. */
->+		ACPI_RELEASE_GLOBAL_LOCK(acpi_gbl_FACS, pending);
->+		return (ACPI_INTERRUPT_HANDLED);
->+	}
->+
-> 	/*
-> 	 * Attempt to get the lock.
-> 	 *
->@@ -309,6 +320,7 @@ static u32 acpi_ev_global_lock_handler(v
-> 		/* Got the lock, now wake all threads waiting for it */
->
-> 		acpi_gbl_global_lock_acquired = TRUE;
->+		acpi_gbl_global_lock_pending--;
-> 		/* Send a unit to the semaphore */
->
-> 		if (ACPI_FAILURE
->@@ -479,6 +491,8 @@ acpi_status acpi_ev_acquire_global_lock(
->
-> 		acpi_gbl_global_lock_acquired = TRUE;
-> 		return_ACPI_STATUS(AE_OK);
->+	} else {
->+		acpi_gbl_global_lock_pending++;
-> 	}
->
-> 	/*
->diff -purN '--exclude=*orig' linux-2.6.36-
->rc6_orig/drivers/acpi/acpica/utglobal.c linux-2.6.36-
->rc6/drivers/acpi/acpica/utglobal.c
->--- linux-2.6.36-rc6_orig/drivers/acpi/acpica/utglobal.c	2010-06-02
->09:16:14.000000000 -0500
->+++ linux-2.6.36-rc6/drivers/acpi/acpica/utglobal.c	2010-06-02
->09:24:45.000000000 -0500
->@@ -782,6 +782,7 @@ acpi_status acpi_ut_init_globals(void)
-> 	acpi_gbl_global_lock_acquired = FALSE;
-> 	acpi_gbl_global_lock_handle = 0;
-> 	acpi_gbl_global_lock_present = FALSE;
->+	acpi_gbl_global_lock_pending = 0;
->
-> 	/* Miscellaneous variables */
->
+Lee, Chun-Yi (1):
+      ACPI: add DMI to disable AML Vista compatibility on MSI GX723 Notebook
+
+Yinghai Lu (1):
+      ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
+
+with this log:
+
+commit 7cfff7f21221725f587ba90bd1acf0e2e0304901
+Merge: c9933f7 3deb11e
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Oct 8 22:37:46 2010 -0400
+
+    Merge branch 'msi-dmi' into release
+
+commit c9933f795c0740eaf97e6291a68a9787346d5997
+Merge: cb655d0 c1e0ddb
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Oct 8 22:35:02 2010 -0400
+
+    Merge branch 'pdc-regression' into release
+
+commit 3deb11ef16632fb76daead0db281f6f7d19332f2
+Author: Lee, Chun-Yi <jlee@novell.com>
+Date:   Fri Oct 1 16:28:29 2010 +0800
+
+    ACPI: add DMI to disable AML Vista compatibility on MSI GX723 Notebook
+    
+    The brightness control hotkey don't work with Vista compatibility
+    because the MSI GX723 includes an infinite while loop in DSDT when
+    brightness control hotkey pressed.
+    
+    The MSI GX723 uses Nvidia video.  Perhaps the loop is specific
+    to the Nvidia Vista driver...
+    
+    This patch should be reverted once nouveau grows support
+    to call the ACPI NVIF method.
+    
+    Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c1e0ddbf0a97e1704d7f13b4934f9acca002402d
+Author: Yinghai Lu <yinghai@kernel.org>
+Date:   Fri Sep 17 23:26:24 2010 -0700
+
+    ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
+    
+    After
+    | commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
+    | Author: Alex Chiang <achiang@hp.com>
+    | Date:   Mon Feb 22 12:11:39 2010 -0700
+    |
+    |    ACPI: processor: driver doesn't need to evaluate _PDC
+    |
+    |    Now that the early _PDC evaluation path knows how to correctly
+    |    evaluate _PDC on only physically present processors, there's no
+    |    need for the processor driver to evaluate it later when it loads.
+    |
+    |    To cover the hotplug case, push _PDC evaluation down into the
+    |    hotplug paths.
+    
+    only cpu with Processor Statement get processed with _PDC
+    
+    If bios is using Device object instead of Processor statement.
+    SSDTs for Pstate/Cstate/Tstate can not be loaded dynamically.
+    
+    Need to try to scan ACPI0007 in addition to Processor.
+    
+    That commit is between 2.6.34-rc1 and 2.6.34-rc2, so stable tree for 2.6.34+
+    need this patch.
+    
+    Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+    Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
