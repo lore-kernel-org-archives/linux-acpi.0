@@ -1,117 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [git pull request] ACPI patches for Linux-2.6.36-rc7
-Date: Fri, 08 Oct 2010 22:46:45 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010082243390.3961@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: [PATCH] ACPI: Only processor needs CPU_IDLE
+Date: Sun, 10 Oct 2010 14:54:52 +0200
+Message-ID: <20101010145452.72fd10e0@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40185 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760141Ab0JICrF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Oct 2010 22:47:05 -0400
+Received: from zone0.gcu-squad.org ([212.85.147.21]:15323 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402Ab0JJMzG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Oct 2010 08:55:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Linus,
+ACPI support itself doesn't need CPU_IDLE, only ACPI_PROCESSOR does,
+so only ACPI_PROCESSOR should select CPU_IDLE.
 
-please pull from: 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-Fixes a 2.6.34 regression, and works around a machine that went into an 
-infinite AML loop in the name of Vista+Nvidia compatibility.
+--- linux-2.6.36-rc7.orig/drivers/acpi/Kconfig	2010-10-10 13:23:02.000000000 +0200
++++ linux-2.6.36-rc7/drivers/acpi/Kconfig	2010-10-10 13:23:08.000000000 +0200
+@@ -9,7 +9,6 @@ menuconfig ACPI
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+-	select CPU_IDLE
+ 	default y
+ 	help
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
+@@ -206,6 +205,7 @@ config ACPI_DOCK
+ config ACPI_PROCESSOR
+ 	tristate "Processor"
+ 	select THERMAL
++	select CPU_IDLE
+ 	default y
+ 	help
+ 	  This driver installs ACPI as the idle handler for Linux and uses
 
-This will update the files shown below.
 
-thanks!
-
---
-Len Brown
-Intel Open Source Technology Center
-
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.36/acpi-release-20100702-2.6.36-rc7.diff.gz
-
- drivers/acpi/blacklist.c      |   17 +++++++++++++++++
- drivers/acpi/processor_core.c |    1 +
- 2 files changed, 18 insertions(+), 0 deletions(-)
-
-through these commits:
-
-Lee, Chun-Yi (1):
-      ACPI: add DMI to disable AML Vista compatibility on MSI GX723 Notebook
-
-Yinghai Lu (1):
-      ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
-
-with this log:
-
-commit 7cfff7f21221725f587ba90bd1acf0e2e0304901
-Merge: c9933f7 3deb11e
-Author: Len Brown <len.brown@intel.com>
-Date:   Fri Oct 8 22:37:46 2010 -0400
-
-    Merge branch 'msi-dmi' into release
-
-commit c9933f795c0740eaf97e6291a68a9787346d5997
-Merge: cb655d0 c1e0ddb
-Author: Len Brown <len.brown@intel.com>
-Date:   Fri Oct 8 22:35:02 2010 -0400
-
-    Merge branch 'pdc-regression' into release
-
-commit 3deb11ef16632fb76daead0db281f6f7d19332f2
-Author: Lee, Chun-Yi <jlee@novell.com>
-Date:   Fri Oct 1 16:28:29 2010 +0800
-
-    ACPI: add DMI to disable AML Vista compatibility on MSI GX723 Notebook
-    
-    The brightness control hotkey don't work with Vista compatibility
-    because the MSI GX723 includes an infinite while loop in DSDT when
-    brightness control hotkey pressed.
-    
-    The MSI GX723 uses Nvidia video.  Perhaps the loop is specific
-    to the Nvidia Vista driver...
-    
-    This patch should be reverted once nouveau grows support
-    to call the ACPI NVIF method.
-    
-    Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit c1e0ddbf0a97e1704d7f13b4934f9acca002402d
-Author: Yinghai Lu <yinghai@kernel.org>
-Date:   Fri Sep 17 23:26:24 2010 -0700
-
-    ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
-    
-    After
-    | commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
-    | Author: Alex Chiang <achiang@hp.com>
-    | Date:   Mon Feb 22 12:11:39 2010 -0700
-    |
-    |    ACPI: processor: driver doesn't need to evaluate _PDC
-    |
-    |    Now that the early _PDC evaluation path knows how to correctly
-    |    evaluate _PDC on only physically present processors, there's no
-    |    need for the processor driver to evaluate it later when it loads.
-    |
-    |    To cover the hotplug case, push _PDC evaluation down into the
-    |    hotplug paths.
-    
-    only cpu with Processor Statement get processed with _PDC
-    
-    If bios is using Device object instead of Processor statement.
-    SSDTs for Pstate/Cstate/Tstate can not be loaded dynamically.
-    
-    Need to try to scan ACPI0007 in addition to Processor.
-    
-    That commit is between 2.6.34-rc1 and 2.6.34-rc2, so stable tree for 2.6.34+
-    need this patch.
-    
-    Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-    Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+-- 
+Jean Delvare
