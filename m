@@ -1,63 +1,36 @@
-From: fabio tirapelle <ftirapelle@yahoo.it>
-Subject: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-Date: Mon, 11 Oct 2010 10:41:17 +0100 (BST)
-Message-ID: <139193.61347.qm@web25403.mail.ukl.yahoo.com>
+From: "Sergeant Jared Fletsher" <info@army.org>
+Subject: Attention Please!!
+Date: Mon, 11 Oct 2010 05:22:45 -0300 (BRT)
+Message-ID: <4751.82.128.16.205.1286785365.squirrel__46855.6933258244$1286817084$gmane$org@www.cca.ufscar.br>
+Reply-To: jared.fletsher@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm5.bullet.mail.ukl.yahoo.com ([217.146.182.226]:38040 "HELO
-	nm5.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753558Ab0JKJqw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Oct 2010 05:46:52 -0400
+Received: from einstein.cca.ufscar.br ([189.109.33.210]:59594 "EHLO
+	einstein.cca.ufscar.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755501Ab0JKRLU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Oct 2010 13:11:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hi
-
-After upgrading from Ubuntu 9.10 to Ubuntu 10.04 my Hauppauge WinTV-HVR-1120 
-(sometimes) doesn't work correctly.
-I get random the following errors:
-
-[   53.216153] DVB: registering new adapter (saa7133[0])
-[   53.216156] DVB: registering adapter 2 frontend 0 (NXP TDA10048HN DVB-T)...
-[   53.840013] tda10048_firmware_upload: waiting for firmware upload 
-(dvb-fe-tda10048-1.0.fw)...
-[   53.840019] saa7134 0000:01:06.0: firmware: requesting dvb-fe-tda10048-1.0.fw
-[   53.880505] tda10048_firmware_upload: firmware read 24878 bytes.
-[   53.880509] tda10048_firmware_upload: firmware uploading
-[   58.280136] tda10048_firmware_upload: firmware uploaded
-[   59.024537] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[   59.024541] tda18271c2_rf_tracking_filters_correction: error -5 on line 264
-[   59.420153] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[   59.420157] tda18271_toggle_output: error -5 on line 47
-[   91.004019] Clocksource tsc unstable (delta = -295012684 ns)
-[  256.293639] eth0: link up.
-[  256.294750] ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-[  263.523498] eth0: link down.
-[  265.258740] eth0: link up.
-[  266.460026] eth0: no IPv6 routers present
-[ 9869.636167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9869.636178] tda18271_init: error -5 on line 826
-[ 9872.636220] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9872.636232] tda18271_toggle_output: error -5 on line 47
-[ 9998.240167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9998.240178] tda18271_init: error -5 on line 826
-[10001.240179] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[10001.240190] tda18271_toggle_output: error -5 on line 47
 
 
 
-Any ideas?
-Thanks
 
+Attention Please,
 
-      
+I, Staff Sergeant Jared Fletsher, I have an urgent proposition Involving an
+investment initiative in your country's economy to discuss with you, It will be
+of mutual benefit to both of us and I believe you can handle it once we have a
+common understanding and mutual cooperation in the execution of the modalities.
+I work with US Air Defense Artillery Company Task Force here in Baqubah al
+Jadidah, Iraq.
+
+Should you be interested, please email back to me through this email address:
+(jared.fletsher@hotmail.com) for details: And I must asure you that this
+transactions is 100% risk free and you have nothing to fear in any way. I await
+your earliest response.
+
+Yours Sincerely,
+SSgt.Jared Fletsher.
+
