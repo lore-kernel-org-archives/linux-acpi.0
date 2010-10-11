@@ -1,36 +1,29 @@
-From: "Sergeant Jared Fletsher" <info@army.org>
-Subject: Attention Please!!
-Date: Mon, 11 Oct 2010 05:22:45 -0300 (BRT)
-Message-ID: <4751.82.128.16.205.1286785365.squirrel__46855.6933258244$1286817084$gmane$org@www.cca.ufscar.br>
-Reply-To: jared.fletsher@hotmail.com
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Only processor needs CPU_IDLE
+Date: Mon, 11 Oct 2010 18:09:52 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010111809180.3341@localhost.localdomain>
+References: <20101010145452.72fd10e0@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from einstein.cca.ufscar.br ([189.109.33.210]:59594 "EHLO
-	einstein.cca.ufscar.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755501Ab0JKRLU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Oct 2010 13:11:20 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:58527 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756463Ab0JKWKO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Oct 2010 18:10:14 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LA500J49C8N8R54@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 11 Oct 2010 17:10:09 -0500 (CDT)
+In-reply-to: <20101010145452.72fd10e0@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-acpi@vger.kernel.org
 
+applied (though I'm wondering if there is a use-case
+where we really notice the difference)
 
-
-
-Attention Please,
-
-I, Staff Sergeant Jared Fletsher, I have an urgent proposition Involving an
-investment initiative in your country's economy to discuss with you, It will be
-of mutual benefit to both of us and I believe you can handle it once we have a
-common understanding and mutual cooperation in the execution of the modalities.
-I work with US Air Defense Artillery Company Task Force here in Baqubah al
-Jadidah, Iraq.
-
-Should you be interested, please email back to me through this email address:
-(jared.fletsher@hotmail.com) for details: And I must asure you that this
-transactions is 100% risk free and you have nothing to fear in any way. I await
-your earliest response.
-
-Yours Sincerely,
-SSgt.Jared Fletsher.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
