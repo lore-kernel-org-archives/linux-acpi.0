@@ -1,29 +1,81 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi-cpufreq: fix a memleak when unloading acpi-cpufreq
- driver
-Date: Tue, 12 Oct 2010 00:58:38 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010120058350.3341@localhost.localdomain>
-References: <1286845777.2111.4082.camel@rui>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: yakui.zhao@intel.com
+Subject: [RFC PATCH 0/4_v10] IPMI/ACPI: Install the ACPI IPMI opregion
+Date: Tue, 12 Oct 2010 15:47:06 +0800
+Message-ID: <1286869630-18695-1-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:46286 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199Ab0JLE6p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Oct 2010 00:58:45 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LA500GRKV5UQGJ0@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 11 Oct 2010 23:58:43 -0500 (CDT)
-In-reply-to: <1286845777.2111.4082.camel@rui>
+Received: from mga09.intel.com ([134.134.136.24]:59991 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756710Ab0JLHvq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Oct 2010 03:51:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, toralf.foerster@gmx.de
+To: openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: minyard@acm.org, lenb@kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
-applied
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Hi, 
+	
+    ACPI 4.0 spec adds the ACPI IPMI opregion, which means that the ACPI AML
+code can also communicate with the BMC controller. This patch set is to
+install the ACPI IPMI opregion space handler and enable the ACPI to access
+the BMC controller through the IPMI message.
+
+[RFC Patch 01/04]: Add one interface to get more info of low-level interface
+	It will return the corresponding info of low-level interface based 
+	on the expected type(For example: SI_ACPI, SI_PCI and so on.)
+
+[RFC Patch 02/04]: Remove the redudant definition of ipmi_addr_src type
+
+[RFC Patch 03/04]: Add the document description about how to use the function
+of ipmi_get_smi_info/ipmi_put_smi_info
+
+[RFC Patch 04/04]: Install the IPMI space handler to enable ACPI to access the BMC
+controller
+
+V9-V10: Redefine the interface function to get more info of low-level IPMI
+device. And add the document description about how to use it. 
+
+V8-V9: This patch set is based on the mechanism that add one interface that can 
+get more info of low-level IPMI device. For example: the ACPI device handle will
+be returned for the pnp_acpi. Then the second patch will use the added interface
+to check whether the IPMI device is what ACPI wanted to communicated with in the
+new_smi callback function of smi_watcher. If it is, we will install the IPMI
+opregion handler and enable ACPI to communicate with BMC.
+
+V7->V8: Based on Bjorn's comment, use acpi ipmi notifier hook function to
+avoid the discovery of ACPI pnp IPMI device again. Then in course of binding
+/unbinding ipmi pnp driver with the corresponding device, the notifier chain
+function will be called to install/uninstall the ACPI IPMI opregion space
+handler. 
+
+V6->V7: Based on Corey Minyard's comments, the IPMI opregion handler is put
+into the separate file again as it only uses the API interface provided
+by IPMI system. Now it is put into the ACPI subsystem.
+
+V5->V6: Adjust the patch order and refresh the patch set.
+
+V4->V5: According to Bjorn's comment, remove the unnecessary comment.
+The debug info will be printed by using dev_err/dev_warn instead of by
+using printk directly.
+
+V3->V4: According to Bjorn's comment, delete the meaningless variable
+initialization and check. We also do some cleanup. 
+
+V2->V3: According to Bjorn's comment, this IPMI opregion code is put into
+the IPMI subsystem(ipmi_si_intf.c). In such case the part of IPMI opregion
+code  will be installed automatically when IPMI detection module is loaded.
+When the IPMI system interface is detected by loading PNP device driver, we
+will record every IPMI system interface defined in ACPI namespace and then
+install the corresponding IPMI opregion space handler, which is used to enable
+ACPI AML code to access the BMC controller.
+
+V1->V2: According to Bjorn's comment, we won't install the IPMI space handler
+by loading an ACPI device driver. Instead we will enumerate the ACPI IPMI
+device directly in ACPI device tree and then install the IPMI space handler.
+Then ACPI AML code and access the BMC controller through the IPMI space
+handler.
+
+Best regards.
+   Yakui
 
