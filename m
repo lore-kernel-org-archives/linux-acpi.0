@@ -1,47 +1,116 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-Date: Tue, 12 Oct 2010 14:27:33 -0600
-Message-ID: <201010121427.33472.bjorn.helgaas@hp.com>
-References: <139193.61347.qm@web25403.mail.ukl.yahoo.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI battery: handle batteries tht report percentage
+ remaining capacity correctly
+Date: Wed, 13 Oct 2010 08:18:41 +0800
+Message-ID: <1286929121.2111.4092.camel@rui>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:46057 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247Ab0JLU2m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Oct 2010 16:28:42 -0400
-In-Reply-To: <139193.61347.qm@web25403.mail.ukl.yahoo.com>
+Received: from mga11.intel.com ([192.55.52.93]:19534 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752606Ab0JMAVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Oct 2010 20:21:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fabio tirapelle <ftirapelle@yahoo.it>
-Cc: linux-acpi@vger.kernel.org
+To: "Brown, Len" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, sitsofe@yahoo.com
 
-On Monday, October 11, 2010 03:41:17 am fabio tirapelle wrote:
-> Hi
-> 
-> After upgrading from Ubuntu 9.10 to Ubuntu 10.04 my Hauppauge WinTV-HVR-1120 
-> (sometimes) doesn't work correctly.
-> I get random the following errors:
-> 
-> [   53.216153] DVB: registering new adapter (saa7133[0])
-> [   53.216156] DVB: registering adapter 2 frontend 0 (NXP TDA10048HN DVB-T)...
-> [   53.840013] tda10048_firmware_upload: waiting for firmware upload 
-> (dvb-fe-tda10048-1.0.fw)...
-> [   53.840019] saa7134 0000:01:06.0: firmware: requesting dvb-fe-tda10048-1.0.fw
-> [   53.880505] tda10048_firmware_upload: firmware read 24878 bytes.
-> [   53.880509] tda10048_firmware_upload: firmware uploading
-> [   58.280136] tda10048_firmware_upload: firmware uploaded
-> [   59.024537] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-> returned: -5
 
-Can you collect the complete dmesg log, please?  If you still have
-the 9.10 kernel and can collect a log from that for comparison, that
-would be great, too.
+According to the ACPI spec, some kind of primary battery can
+report percentage battery remaining capacity directly to OS.
 
-I don't see an indication that it's ACPI-related, so maybe
-linux-kernel@vger.kernel.org would be a better place.  Please copy
-me, too :-)
+In this case, it reports the LastFullChargedCapacity == 100,
+BatteryPresentRate == 0xFFFFFFFF, and BatteryRemaingCapacity a
+percentage value, which actually means RemainingBatteryPercentage.
 
-Bjorn
+Now we found some battery follows this rule even if it's rechargeable.
+https://bugzilla.kernel.org/show_bug.cgi?id=15979
+
+Handle these batteries correctly in ACPI battery driver
+so that they won't break userspace.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/battery.c |   38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/battery.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/battery.c
++++ linux-2.6/drivers/acpi/battery.c
+@@ -98,6 +98,7 @@ enum {
+ 	 * due to bad math.
+ 	 */
+ 	ACPI_BATTERY_QUIRK_SIGNED16_CURRENT,
++	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
+ };
+ 
+ struct acpi_battery {
+@@ -412,6 +413,8 @@ static int acpi_battery_get_info(struct 
+ 		result = extract_package(battery, buffer.pointer,
+ 				info_offsets, ARRAY_SIZE(info_offsets));
+ 	kfree(buffer.pointer);
++	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
++		battery->full_charge_capacity = battery->design_capacity;
+ 	return result;
+ }
+ 
+@@ -448,6 +451,10 @@ static int acpi_battery_get_state(struct
+ 	    battery->rate_now != -1)
+ 		battery->rate_now = abs((s16)battery->rate_now);
+ 
++	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
++	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
++		battery->capacity_now = (battery->capacity_now *
++				battery->full_charge_capacity) / 100;
+ 	return result;
+ }
+ 
+@@ -561,6 +568,33 @@ static void acpi_battery_quirks(struct a
+ 	}
+ }
+ 
++/*
++ * According to the ACPI spec, some kinds of primary batteries can
++ * report percentage battery remaining capacity directly to OS.
++ * In this case, it reports the Last Full Charged Capacity == 100
++ * and BatteryPresentRate == 0xFFFFFFFF.
++ *
++ * Now we found some battery reports percentage remaining capacity
++ * even if it's rechargeable.
++ * https://bugzilla.kernel.org/show_bug.cgi?id=15979
++ *
++ * Handle this correctly so that they won't break userspace.
++ */
++static void acpi_battery_quirks2(struct acpi_battery *battery)
++{
++	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
++		return ;
++
++        if (battery->full_charge_capacity == 100 &&
++            battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
++            battery->capacity_now >=0 && battery->capacity_now <= 100) {
++		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
++		battery->full_charge_capacity = battery->design_capacity;
++		battery->capacity_now = (battery->capacity_now *
++				battery->full_charge_capacity) / 100;
++	}
++}
++
+ static int acpi_battery_update(struct acpi_battery *battery)
+ {
+ 	int result, old_present = acpi_battery_present(battery);
+@@ -586,7 +620,9 @@ static int acpi_battery_update(struct ac
+ 	if (!battery->bat.dev)
+ 		sysfs_add_battery(battery);
+ #endif
+-	return acpi_battery_get_state(battery);
++	result = acpi_battery_get_state(battery);
++	acpi_battery_quirks2(battery);
++	return result;
+ }
+ 
+ /* --------------------------------------------------------------------------
+
+
