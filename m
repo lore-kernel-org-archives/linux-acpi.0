@@ -1,123 +1,29 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Len Brown <lenb@kernel.org>
 Subject: Re: [PATCH] ACPI battery: handle batteries tht report percentage
  remaining capacity correctly
-Date: Wed, 13 Oct 2010 08:53:31 +0800
-Message-ID: <1286931211.2111.4093.camel@rui>
-References: <1286929121.2111.4092.camel@rui>
+Date: Wed, 13 Oct 2010 12:28:59 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010131228550.3157@localhost.localdomain>
+References: <1286929121.2111.4092.camel@rui> <1286931211.2111.4093.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62846 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751053Ab0JMA40 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Oct 2010 20:56:26 -0400
-In-Reply-To: <1286929121.2111.4092.camel@rui>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:44772 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795Ab0JMQ3R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Oct 2010 12:29:17 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LA800LBSLSFPDL1@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 13 Oct 2010 11:29:17 -0500 (CDT)
+In-reply-to: <1286931211.2111.4093.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "sitsofe@yahoo.com" <sitsofe@yahoo.com>
 
-On Wed, 2010-10-13 at 08:18 +0800, Zhang, Rui wrote:
-> According to the ACPI spec, some kind of primary battery can
-> report percentage battery remaining capacity directly to OS.
-> 
-> In this case, it reports the LastFullChargedCapacity == 100,
-> BatteryPresentRate == 0xFFFFFFFF, and BatteryRemaingCapacity a
-> percentage value, which actually means RemainingBatteryPercentage.
-> 
-> Now we found some battery follows this rule even if it's rechargeable.
-> https://bugzilla.kernel.org/show_bug.cgi?id=15979
-> 
-> Handle these batteries correctly in ACPI battery driver
-> so that they won't break userspace.
-> 
-Forgot to add,
+applied
 
-Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/battery.c |   38 +++++++++++++++++++++++++++++++++++++-
->  1 file changed, 37 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/battery.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/battery.c
-> +++ linux-2.6/drivers/acpi/battery.c
-> @@ -98,6 +98,7 @@ enum {
->  	 * due to bad math.
->  	 */
->  	ACPI_BATTERY_QUIRK_SIGNED16_CURRENT,
-> +	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
->  };
->  
->  struct acpi_battery {
-> @@ -412,6 +413,8 @@ static int acpi_battery_get_info(struct 
->  		result = extract_package(battery, buffer.pointer,
->  				info_offsets, ARRAY_SIZE(info_offsets));
->  	kfree(buffer.pointer);
-> +	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
-> +		battery->full_charge_capacity = battery->design_capacity;
->  	return result;
->  }
->  
-> @@ -448,6 +451,10 @@ static int acpi_battery_get_state(struct
->  	    battery->rate_now != -1)
->  		battery->rate_now = abs((s16)battery->rate_now);
->  
-> +	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
-> +	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
-> +		battery->capacity_now = (battery->capacity_now *
-> +				battery->full_charge_capacity) / 100;
->  	return result;
->  }
->  
-> @@ -561,6 +568,33 @@ static void acpi_battery_quirks(struct a
->  	}
->  }
->  
-> +/*
-> + * According to the ACPI spec, some kinds of primary batteries can
-> + * report percentage battery remaining capacity directly to OS.
-> + * In this case, it reports the Last Full Charged Capacity == 100
-> + * and BatteryPresentRate == 0xFFFFFFFF.
-> + *
-> + * Now we found some battery reports percentage remaining capacity
-> + * even if it's rechargeable.
-> + * https://bugzilla.kernel.org/show_bug.cgi?id=15979
-> + *
-> + * Handle this correctly so that they won't break userspace.
-> + */
-> +static void acpi_battery_quirks2(struct acpi_battery *battery)
-> +{
-> +	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
-> +		return ;
-> +
-> +        if (battery->full_charge_capacity == 100 &&
-> +            battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
-> +            battery->capacity_now >=0 && battery->capacity_now <= 100) {
-> +		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
-> +		battery->full_charge_capacity = battery->design_capacity;
-> +		battery->capacity_now = (battery->capacity_now *
-> +				battery->full_charge_capacity) / 100;
-> +	}
-> +}
-> +
->  static int acpi_battery_update(struct acpi_battery *battery)
->  {
->  	int result, old_present = acpi_battery_present(battery);
-> @@ -586,7 +620,9 @@ static int acpi_battery_update(struct ac
->  	if (!battery->bat.dev)
->  		sysfs_add_battery(battery);
->  #endif
-> -	return acpi_battery_get_state(battery);
-> +	result = acpi_battery_get_state(battery);
-> +	acpi_battery_quirks2(battery);
-> +	return result;
->  }
->  
->  /* --------------------------------------------------------------------------
-> 
-> 
-
+thanks,
+Len Brown, Intel Open Source Technology Center
 
