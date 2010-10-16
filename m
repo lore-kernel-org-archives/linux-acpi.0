@@ -1,70 +1,32 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [2.6.35.stable] ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
-Date: Fri, 15 Oct 2010 22:12:31 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010152210530.2971@localhost.localdomain>
+Subject: Re: [PATCH RESEND 1/6] ACPI ac/battery/sbs: sysfs I/F always built in,
+ procfs I/F disabled by defaul
+Date: Fri, 15 Oct 2010 22:16:33 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010152215260.2971@localhost.localdomain>
+References: <1286517297.2111.3796.camel@rui> <1286517434.2111.3803.camel@rui>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:57065 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752016Ab0JPCMf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2010 22:12:35 -0400
+Received: from vms173011pub.verizon.net ([206.46.173.11]:53571 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab0JPCQh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2010 22:16:37 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173003.mailsrvcs.net
+ by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LAD00AWX24Y5FT4@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 15 Oct 2010 21:12:35 -0500 (CDT)
+ with ESMTPA id <0LAD006A42BOYKC2@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 15 Oct 2010 21:16:37 -0500 (CDT)
+In-reply-to: <1286517434.2111.3803.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Yinghai Lu <yinghai@kernel.org>
+replaced original series from a week ago with this one.
 
-upstream c1e0ddbf0a97e1704d7f13b4934f9acca002402d
+note that bugzilla-15979 is now in conflict and is dropped for now.
+I can look at it later, of if you do for me, then I don't have to:-)
 
-
-After
-| commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
-| Author: Alex Chiang <achiang@hp.com>
-| Date:   Mon Feb 22 12:11:39 2010 -0700
-|
-|    ACPI: processor: driver doesn't need to evaluate _PDC
-|
-|    Now that the early _PDC evaluation path knows how to correctly
-|    evaluate _PDC on only physically present processors, there's no
-|    need for the processor driver to evaluate it later when it loads.
-|
-|    To cover the hotplug case, push _PDC evaluation down into the
-|    hotplug paths.
-
-only cpu with Processor Statement get processed with _PDC
-
-If bios is using Device object instead of Processor statement.
-SSDTs for Pstate/Cstate/Tstate can not be loaded dynamically.
-
-Need to try to scan ACPI0007 in addition to Processor.
-
-That commit is between 2.6.34-rc1 and 2.6.34-rc2, so stable tree for 2.6.34+
-need this patch.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index e9699aa..df6e167 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -352,4 +352,5 @@ void __init acpi_early_processor_set_pdc(void)
- 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
- 			    ACPI_UINT32_MAX,
- 			    early_init_pdc, NULL, NULL, NULL);
-+	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
- }
--- 
-1.7.3.1.120.g38a18
+thanks,
+Len Brown, Intel Open Source Technology Center
 
