@@ -1,68 +1,79 @@
-From: "Koornstra, Reinoud" <koornstra@hp.com>
-Subject: RE: [PATCH] ACPI: Read TSC upon resume
-Date: Sat, 16 Oct 2010 03:03:54 +0000
-Message-ID: <E92FAF79A8BBC642A36EEE3AA7F152D884DB9CA072@GVW1089EXB.americas.hpqcorp.net>
-References: <1286406919-6236-1-git-send-email-snanda@chromium.org>
- <AANLkTik=imw5XRpXSkboyB6txXio6Y65bLV+EdfvRXg3@mail.gmail.com>
- <20101007181536.GA24811@suse.de> <201010072344.22166.rjw@sisk.pl>
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Returning ACPI_BATTERY_VALUE_UNKNOWN to userspace
+Date: Sat, 16 Oct 2010 15:13:22 +0100
+Message-ID: <20101016141321.GA11054@sucs.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:31728 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485Ab0JPDHp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2010 23:07:45 -0400
-In-Reply-To: <201010072344.22166.rjw@sisk.pl>
-Content-Language: en-US
+Received: from silver.sucs.swan.ac.uk ([137.44.10.1]:60963 "EHLO
+	silver.sucs.swan.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756401Ab0JPONy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Oct 2010 10:13:54 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
-Cc: Sameer Nanda <snanda@chromium.org>, "lenb@kernel.org" <lenb@kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "brad.figg@canonical.com" <brad.figg@canonical.com>, "apw@canonical.com" <apw@canonical.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> Sent: Thursday, October 07, 2010 2:44 PM
-> To: Greg KH
-> Cc: Sameer Nanda; lenb@kernel.org; stefan.bader@canonical.com;
-> brad.figg@canonical.com; apw@canonical.com; linux-acpi@vger.kernel.org;
-> linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH] ACPI: Read TSC upon resume
-> 
-> On Thursday, October 07, 2010, Greg KH wrote:
-> > On Thu, Oct 07, 2010 at 11:05:21AM -0700, Sameer Nanda wrote:
-> > > On Thu, Oct 7, 2010 at 10:46 AM, Greg KH <gregkh@suse.de> wrote:
-> > > > On Thu, Oct 07, 2010 at 10:43:34AM -0700, Sameer Nanda wrote:
-> > > >> On Wed, Oct 6, 2010 at 7:19 PM, Greg KH <gregkh@suse.de> wrote:
-> > > >> > And are you always going to be printing this out?  Why do we
-> want to
-> > > >> > know this every time?
-> > > >> >
-> > > >>
-> > > >> Yes, every time.  This helps track variance in BIOS resume times
-> within a
-> > > >> single boot.
-> > > >
-> > > > Is that really something that users can do something about?
-> > >
-> > > Aside from complaining to the BIOS vendors, no :)
-> >
-> > Then I would not recommend adding this patch, as it is irrelevant for
-> > 99.9999% of all Linux users.
-> 
-> It may be somewhat useful, but the rdtscll() call seems to be x86-
-> specific, in
-> which case it shouldn't be used at this place.
+Hi,
 
-Also, in the case of an intel core 2 duo cpu, the tsc is not stable, hence upon resume the cpu is spinning up and the first tsc's will be slower.
-During idle-time the tsc will not be incremented. The tsc is only stably incremented upon 100% cpu usage. It also doesn't increment faster in turbo mode in case of some core 2 duo and certainly the Nehalem cpu's. Calculating in time in terms of tsc might not be so reliable.
+I have an EeePC 900 with a battery/BIOS that does not report the rate at
+which it charges/discharges. When I look at
+/proc/acpi/battery/BAT0/state this is what is reported:
 
-> 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+present:                 yes
+capacity state:          ok
+charging state:          charging
+present rate:            unknown
+remaining capacity:      3120 mAh
+present voltage:         7889 mV
+
+However looking at /sys/class/power_supply/BAT0/current_now reports:
+
+-1000
+
+Why -1000? I think it's because it's -1 * 1000 == -1000! In
+drivers/acpi/battery.c, ACPI_BATTERY_VALUE_UNKNOWN is defined as being
+0xFFFFFFFF. As rate_now is a signed int variable when it is assigned
+ACPI_BATTERY_VALUE_UNKNOWN its value is -1. However, before the value is
+returned via sysfs it is multiplied by 1000:
+http://lxr.linux.no/linux+v2.6.35.7/drivers/acpi/battery.c#L222
+(http://lxr.linux.no/linux+v2.6.35.7/drivers/acpi/battery.c#L524 shows
+that acpi_battery_get_property will be called via sysfs).
+
+If the above is a correct interpretation, this behaviour was introduced
+when sysfs battery support was added in commit
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d7380965752505951668e85de59c128d1d6fd21f
+so it has effectively been always been this way.
+
+However, looking at the code for the userspace power reporting tool
+upower shows that it is not expecting to test against -1000 - it is
+trying to test against 0xffff:
+http://cgit.freedesktop.org/DeviceKit/upower/tree/src/linux/up-device-supply.c?id=UPOWER_0_9_6#n583
+. Unfortunately, it's not clear that testing 0xffff is ever the right
+thing to do. I wrote the following test program:
+
+#include <stdio.h>
+#include <math.h>
+int main(void) {
+	double minusone = -1;
+	double sysfs = -1000;
+	double hex_kernel = (int) 0xffffffff;
+	double hex_tested = 0xffff;
+	double energy_rate = fabs(sysfs / 1000000.0);
+	double energy_rate_minusone = fabs(minusone / 1000000.0);
+	printf("%f %f %f %f %f %f\n", minusone, sysfs, hex_kernel, hex_tested, energy_rate, energy_rate_minusone);
+	return 0;
+}
+
+Which output the following:
+
+-1.000000 -1000.000000 -1.000000 65535.000000 0.001000 0.000001
+
+Given that at least upower (which is already deployed) will need to be
+changed, I'm unsure as to where fixes for this should go. Was it really
+the intent for userspace to test for -1000 instead of -1 to determine
+an unknown rate?
+
+-- 
+Sitsofe | http://sucs.org/~sits/
