@@ -1,45 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/5] pci: Add support for polling PME state on suspended legacy PCI devices
-Date: Fri, 15 Oct 2010 22:39:50 +0200
-Message-ID: <201010152239.50316.rjw@sisk.pl>
-References: <1286216549-5438-1-git-send-email-mjg@redhat.com> <1286216549-5438-6-git-send-email-mjg@redhat.com> <20101015131028.7fffba40@jbarnes-desktop>
+From: Len Brown <lenb@kernel.org>
+Subject: [2.6.35.stable] ACPI: Handle ACPI0007 Device in acpi_early_set_pdc
+Date: Fri, 15 Oct 2010 22:12:31 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010152210530.2971@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50709 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932105Ab0JOUk5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Oct 2010 16:40:57 -0400
-In-Reply-To: <20101015131028.7fffba40@jbarnes-desktop>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:57065 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752016Ab0JPCMf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Oct 2010 22:12:35 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LAD00AWX24Y5FT4@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 15 Oct 2010 21:12:35 -0500 (CDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Friday, October 15, 2010, Jesse Barnes wrote:
-> On Mon,  4 Oct 2010 14:22:29 -0400
-> Matthew Garrett <mjg@redhat.com> wrote:
-> 
-> > Not all hardware vendors hook up the PME line for legacy PCI devices,
-> > meaning that wakeup events get lost. The only way around this is to poll
-> > the devices to see if their state has changed, so add support for doing
-> > that on legacy PCI devices that aren't part of the core chipset.
-> > 
-> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> > ---
-> >  drivers/pci/pci.c |   77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 files changed, 77 insertions(+), 0 deletions(-)
-> 
-> Yuck, polling.  But I guess we don't have an alternative short of
-> rewiring all the cheap platforms out there!
-> 
-> So, applied.
+From: Yinghai Lu <yinghai@kernel.org>
 
-Actually, the next step should be to avoid polling for the devices that
-do signal wakeup normally.  That is, if wakeup interrupts or notifications are
-coming for the device, we'll drop it from the list.  This looks doable.
+upstream c1e0ddbf0a97e1704d7f13b4934f9acca002402d
 
-Thanks,
-Rafael
+
+After
+| commit d8191fa4a33fdc817277da4f2b7f771ff605a41c
+| Author: Alex Chiang <achiang@hp.com>
+| Date:   Mon Feb 22 12:11:39 2010 -0700
+|
+|    ACPI: processor: driver doesn't need to evaluate _PDC
+|
+|    Now that the early _PDC evaluation path knows how to correctly
+|    evaluate _PDC on only physically present processors, there's no
+|    need for the processor driver to evaluate it later when it loads.
+|
+|    To cover the hotplug case, push _PDC evaluation down into the
+|    hotplug paths.
+
+only cpu with Processor Statement get processed with _PDC
+
+If bios is using Device object instead of Processor statement.
+SSDTs for Pstate/Cstate/Tstate can not be loaded dynamically.
+
+Need to try to scan ACPI0007 in addition to Processor.
+
+That commit is between 2.6.34-rc1 and 2.6.34-rc2, so stable tree for 2.6.34+
+need this patch.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index e9699aa..df6e167 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -352,4 +352,5 @@ void __init acpi_early_processor_set_pdc(void)
+ 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX,
+ 			    early_init_pdc, NULL, NULL, NULL);
++	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
+ }
+-- 
+1.7.3.1.120.g38a18
+
