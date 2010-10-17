@@ -1,69 +1,50 @@
-From: Hans Petter Selasky <hselasky@c2i.net>
-Subject: Re: MacBookPro 5,1
-Date: Sun, 17 Oct 2010 15:47:56 +0200
-Message-ID: <201010171547.56445.hselasky@c2i.net>
-References: <201010121209.06397.hselasky@c2i.net> <201010131958.02252.jkim@FreeBSD.org> <201010171056.12606.hselasky@c2i.net>
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Re: [PATCH] ACPI / Battery: Return -ENODATA for unknown values in
+	get_property()
+Date: Sun, 17 Oct 2010 15:50:25 +0100
+Message-ID: <20101017145025.GA32599@sucs.org>
+References: <20101016141321.GA11054@sucs.org> <201010170105.33274.rjw@sisk.pl> <20101017051953.GA3430@khazad-dum.debian.net> <20101017095940.GA4077@sucs.org> <20101017131016.GB13015@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailfe07.swip.net ([212.247.154.193]:60617 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756379Ab0JQNql (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Oct 2010 09:46:41 -0400
-In-Reply-To: <201010171056.12606.hselasky@c2i.net>
+Received: from silver.sucs.swan.ac.uk ([137.44.10.1]:36907 "EHLO
+	silver.sucs.swan.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756759Ab0JQOvB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Oct 2010 10:51:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20101017131016.GB13015@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: freebsd-acpi@freebsd.org
-Cc: Jung-uk Kim <jkim@freebsd.org>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+On Sun, Oct 17, 2010 at 11:10:16AM -0200, Henrique de Moraes Holschuh wrote:
+> On Sun, 17 Oct 2010, Sitsofe Wheeler wrote:
+> > 
+> > Using ENODATA and ENXIO appears to solve the problem (upower reports a
+> > rate of 0.0). However when plugging the battery in after previously only
+> > being on AC power none of the /sys/class/power_supply/BAT0/uevent:*
+> > files are created so upower never realises a battery has been plugged
+> 
+> You might have broken firmware that does not issue a notify when a battery
+> is plugged.  But it has been a long time, I don't recall if the battery
+> driver handles hotplugging without the help of the dock/bay driver (it
+> should, AFAIK).
 
-CC'ing the Linux guys, hence I belive you are using the same ACPI code like in 
-FreeBSD.
+Battery hotplug works fine without these patches. I should have said -
+the uevent devices are there with a vanilla kernel no matter how many
+times the battery is plugged in or unplugged (that's how I knew they
+were missing with the patches added :) I am guessing some part of the
+kernel/udev cannot handle being told ENODATA or ENXIO and bails out
+before those nodes would be made.
 
-It appears that when a string is present in the extended interrupt descriptor 
-(6.4.3.6, ACPIspec30.pdf), then this is not handled correctly, meaning that 
-the precomputed buffer space when encoding to AML, is incorrect and that data 
-is written beyond the destination buffer!
+> > in. A further issue with ENXIO is is the following repeatedly appears in
+> > dmesg:
+> > power_supply BAT0: driver failed to report `current_now' property
+> 
+> And it keeps silent if it gets ENODATA?
 
-The error is catched on a MacBookPro 5,1 and is visible if you zero-pad all 
-ACPI allocations to 4096 bytes, and verify that the freed buffer is not 
-written beyond the allocation. Also the Extended interrupt descriptor must be 
-the last element encoded in the AML.
+Yes.
 
-The quick patch is to disable these elements. I tried to figure out why this 
-happens, but this particular handling in the code looks very obfuscated to me.
-
-src/sys/contrib/dev/acpica
-%svk diff
-=== resources/rsmisc.c
-==================================================================
---- resources/rsmisc.c  (revision 213698)
-+++ resources/rsmisc.c  (local)
-@@ -311,6 +311,8 @@
- 
- 
-         case ACPI_RSC_SOURCEX:
-+               break;  /* RSC_SOURCEX is broken */
-+
-             /*
-              * Optional ResourceSource (Index and String). This is the more
-              * complicated case used by the Interrupt() macro
-@@ -537,6 +539,8 @@
- 
- 
-         case ACPI_RSC_SOURCEX:
-+               break;  /* RSC_SOURCEX is broken */
-+
-             /*
-              * Optional ResourceSource (Index and String)
-              */
-
-
-Any comments are welcome!
-
---HPS
-
-Please keep me CC'ed.
+-- 
+Sitsofe | http://sucs.org/~sits/
