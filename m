@@ -1,233 +1,81 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH] acpi: remove dead code
-Date: Mon, 18 Oct 2010 08:42:48 -0700
-Message-ID: <20101018084248.23262ba6@nehalam>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] acpi: remove dead code
+Date: Mon, 18 Oct 2010 12:49:57 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010181239110.2932@localhost.localdomain>
+References: <20101018084248.23262ba6@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:54048 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756873Ab0JRPmv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Oct 2010 11:42:51 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:64143 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757446Ab0JRQuP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Oct 2010 12:50:15 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LAH00F1ZW3DMJI0@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 18 Oct 2010 11:50:14 -0500 (CDT)
+In-reply-to: <20101018084248.23262ba6@nehalam>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Stephen Hemminger <shemminger@vyatta.com>
 Cc: linux-acpi@vger.kernel.org
 
-Found by running make namespacecheck on linux-next
+On Mon, 18 Oct 2010, Stephen Hemminger wrote:
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+> Found by running make namespacecheck on linux-next
+> 
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+> 
+> --- a/drivers/acpi/osl.c	2010-10-06 13:42:58.722974685 +0900
+...
+>  /*
+> - * Allocate the memory for a spinlock and initialize it.
+> - */
+> -acpi_status acpi_os_create_lock(acpi_spinlock * handle)
+> -{
+> -	spin_lock_init(*handle);
+> -
+> -	return AE_OK;
+> -}
 
---- a/drivers/acpi/osl.c	2010-10-06 13:42:58.722974685 +0900
-+++ b/drivers/acpi/osl.c	2010-10-06 13:45:23.322689618 +0900
-@@ -780,16 +780,6 @@ void acpi_os_wait_events_complete(void *
- EXPORT_SYMBOL(acpi_os_wait_events_complete);
- 
- /*
-- * Allocate the memory for a spinlock and initialize it.
-- */
--acpi_status acpi_os_create_lock(acpi_spinlock * handle)
--{
--	spin_lock_init(*handle);
--
--	return AE_OK;
--}
--
--/*
-  * Deallocate the memory for a spinlock.
-  */
- void acpi_os_delete_lock(acpi_spinlock handle)
-@@ -1152,21 +1142,6 @@ int acpi_check_region(resource_size_t st
- }
- EXPORT_SYMBOL(acpi_check_region);
- 
--int acpi_check_mem_region(resource_size_t start, resource_size_t n,
--		      const char *name)
--{
--	struct resource res = {
--		.start = start,
--		.end   = start + n - 1,
--		.name  = name,
--		.flags = IORESOURCE_MEM,
--	};
--
--	return acpi_check_resource_conflict(&res);
--
--}
--EXPORT_SYMBOL(acpi_check_mem_region);
--
- /*
-  * Let drivers know whether the resource checks are effective
-  */
---- a/drivers/acpi/processor_driver.c	2010-10-06 13:46:52.594978592 +0900
-+++ b/drivers/acpi/processor_driver.c	2010-10-06 13:46:55.817980993 +0900
-@@ -899,6 +899,4 @@ static void __exit acpi_processor_exit(v
- module_init(acpi_processor_init);
- module_exit(acpi_processor_exit);
- 
--EXPORT_SYMBOL(acpi_processor_set_thermal_limit);
--
- MODULE_ALIAS("processor");
---- a/drivers/acpi/processor_thermal.c	2010-10-06 13:47:23.469979232 +0900
-+++ b/drivers/acpi/processor_thermal.c	2010-10-06 13:47:29.141997316 +0900
-@@ -238,113 +238,6 @@ static int acpi_thermal_cpufreq_decrease
- 
- #endif
- 
--int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
--{
--	int result = 0;
--	struct acpi_processor *pr = NULL;
--	struct acpi_device *device = NULL;
--	int tx = 0, max_tx_px = 0;
--
--
--	if ((type < ACPI_PROCESSOR_LIMIT_NONE)
--	    || (type > ACPI_PROCESSOR_LIMIT_DECREMENT))
--		return -EINVAL;
--
--	result = acpi_bus_get_device(handle, &device);
--	if (result)
--		return result;
--
--	pr = acpi_driver_data(device);
--	if (!pr)
--		return -ENODEV;
--
--	/* Thermal limits are always relative to the current Px/Tx state. */
--	if (pr->flags.throttling)
--		pr->limit.thermal.tx = pr->throttling.state;
--
--	/*
--	 * Our default policy is to only use throttling at the lowest
--	 * performance state.
--	 */
--
--	tx = pr->limit.thermal.tx;
--
--	switch (type) {
--
--	case ACPI_PROCESSOR_LIMIT_NONE:
--		do {
--			result = acpi_thermal_cpufreq_decrease(pr->id);
--		} while (!result);
--		tx = 0;
--		break;
--
--	case ACPI_PROCESSOR_LIMIT_INCREMENT:
--		/* if going up: P-states first, T-states later */
--
--		result = acpi_thermal_cpufreq_increase(pr->id);
--		if (!result)
--			goto end;
--		else if (result == -ERANGE)
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "At maximum performance state\n"));
--
--		if (pr->flags.throttling) {
--			if (tx == (pr->throttling.state_count - 1))
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "At maximum throttling state\n"));
--			else
--				tx++;
--		}
--		break;
--
--	case ACPI_PROCESSOR_LIMIT_DECREMENT:
--		/* if going down: T-states first, P-states later */
--
--		if (pr->flags.throttling) {
--			if (tx == 0) {
--				max_tx_px = 1;
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "At minimum throttling state\n"));
--			} else {
--				tx--;
--				goto end;
--			}
--		}
--
--		result = acpi_thermal_cpufreq_decrease(pr->id);
--		if (result) {
--			/*
--			 * We only could get -ERANGE, 1 or 0.
--			 * In the first two cases we reached max freq again.
--			 */
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "At minimum performance state\n"));
--			max_tx_px = 1;
--		} else
--			max_tx_px = 0;
--
--		break;
--	}
--
--      end:
--	if (pr->flags.throttling) {
--		pr->limit.thermal.px = 0;
--		pr->limit.thermal.tx = tx;
--
--		result = acpi_processor_apply_limit(pr);
--		if (result)
--			printk(KERN_ERR PREFIX "Unable to set thermal limit\n");
--
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
--				  pr->limit.thermal.px, pr->limit.thermal.tx));
--	} else
--		result = 0;
--	if (max_tx_px)
--		return 1;
--	else
--		return result;
--}
--
- int acpi_processor_get_limit_info(struct acpi_processor *pr)
- {
- 
---- a/include/acpi/acpi_drivers.h	2010-10-06 13:47:54.590004475 +0900
-+++ b/include/acpi/acpi_drivers.h	2010-10-06 13:47:59.250377356 +0900
-@@ -115,8 +115,6 @@ void pci_acpi_crs_quirks(void);
- #define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
- #define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
- 
--int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
--
- /*--------------------------------------------------------------------------
-                                   Dock Station
-   -------------------------------------------------------------------------- */
---- a/include/acpi/acpiosxf.h	2010-10-06 13:44:29.943008303 +0900
-+++ b/include/acpi/acpiosxf.h	2010-10-06 13:44:36.262095467 +0900
-@@ -98,8 +98,6 @@ acpi_os_table_override(struct acpi_table
- /*
-  * Spinlock primitives
-  */
--acpi_status acpi_os_create_lock(acpi_spinlock * out_handle);
--
- void acpi_os_delete_lock(acpi_spinlock handle);
- 
- acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock handle);
---- a/include/linux/acpi.h	2010-10-06 13:42:58.734970973 +0900
-+++ b/include/linux/acpi.h	2010-10-06 13:45:25.793973981 +0900
-@@ -245,8 +245,6 @@ int acpi_check_resource_conflict(const s
- 
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
--int acpi_check_mem_region(resource_size_t start, resource_size_t n,
--		      const char *name);
- 
- int acpi_resources_are_enforced(void);
- 
-@@ -344,12 +342,6 @@ static inline int acpi_check_region(reso
- 	return 0;
- }
- 
--static inline int acpi_check_mem_region(resource_size_t start,
--					resource_size_t n, const char *name)
--{
--	return 0;
--}
--
- struct acpi_table_header;
- static inline int acpi_table_parse(char *id,
- 				int (*handler)(struct acpi_table_header *))
+ACPICA declares acpi_os_create_lock in acpiosxf.h,
+but never calls it.  Bob, can we do away with it?
+
+...
+> -int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+> -		      const char *name)
+> -{
+> -	struct resource res = {
+> -		.start = start,
+> -		.end   = start + n - 1,
+> -		.name  = name,
+> -		.flags = IORESOURCE_MEM,
+> -	};
+> -
+> -	return acpi_check_resource_conflict(&res);
+> -
+> -}
+> -EXPORT_SYMBOL(acpi_check_mem_region);
+
+acpi_check_mem_region seems to be entirely
+a Linux thing.  It is exported to modules -- though
+see any that use it.
+
+> --- a/drivers/acpi/processor_driver.c	2010-10-06 13:46:52.594978592 +0900
+...
+> -EXPORT_SYMBOL(acpi_processor_set_thermal_limit);
+...
+> --- a/drivers/acpi/processor_thermal.c	2010-10-06 13:47:23.469979232 +0900
+...
+> -int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
+> -{
+
+although acpi_processor_set_thermal_limit() is exported to modules
+I don't see any users in recent history.
+
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
+
+
