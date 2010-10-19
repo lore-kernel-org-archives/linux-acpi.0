@@ -1,81 +1,72 @@
-From: Len Brown <lenb@kernel.org>
+From: Lin Ming <lin@ming.vg>
 Subject: Re: [PATCH] acpi: remove dead code
-Date: Mon, 18 Oct 2010 12:49:57 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010181239110.2932@localhost.localdomain>
+Date: Tue, 19 Oct 2010 08:42:36 +0800
+Message-ID: <AANLkTinb_xkyy4Qyb9r2N+f1BizJZ_QmNveUg+L2jG2U@mail.gmail.com>
 References: <20101018084248.23262ba6@nehalam>
+	<alpine.LFD.2.00.1010181239110.2932@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:64143 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757446Ab0JRQuP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Oct 2010 12:50:15 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LAH00F1ZW3DMJI0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 18 Oct 2010 11:50:14 -0500 (CDT)
-In-reply-to: <20101018084248.23262ba6@nehalam>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62447 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932081Ab0JSAmh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Oct 2010 20:42:37 -0400
+Received: by wwj40 with SMTP id 40so498866wwj.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Oct 2010 17:42:36 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.1010181239110.2932@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Stephen Hemminger <shemminger@vyatta.com>, linux-acpi@vger.kernel.org
 
-On Mon, 18 Oct 2010, Stephen Hemminger wrote:
+On Tue, Oct 19, 2010 at 12:49 AM, Len Brown <lenb@kernel.org> wrote:
+> On Mon, 18 Oct 2010, Stephen Hemminger wrote:
+>
+>> Found by running make namespacecheck on linux-next
+>>
+>> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+>>
+>> --- a/drivers/acpi/osl.c =A0 =A0 =A02010-10-06 13:42:58.722974685 +0=
+900
+> ...
+>> =A0/*
+>> - * Allocate the memory for a spinlock and initialize it.
+>> - */
+>> -acpi_status acpi_os_create_lock(acpi_spinlock * handle)
+>> -{
+>> - =A0 =A0 spin_lock_init(*handle);
+>> -
+>> - =A0 =A0 return AE_OK;
+>> -}
+>
+> ACPICA declares acpi_os_create_lock in acpiosxf.h,
+> but never calls it. =A0Bob, can we do away with it?
 
-> Found by running make namespacecheck on linux-next
-> 
-> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-> 
-> --- a/drivers/acpi/osl.c	2010-10-06 13:42:58.722974685 +0900
-...
->  /*
-> - * Allocate the memory for a spinlock and initialize it.
-> - */
-> -acpi_status acpi_os_create_lock(acpi_spinlock * handle)
-> -{
-> -	spin_lock_init(*handle);
-> -
-> -	return AE_OK;
-> -}
+In ACPICA code (AcpiUtMutexInitialize),
 
-ACPICA declares acpi_os_create_lock in acpiosxf.h,
-but never calls it.  Bob, can we do away with it?
+    Status =3D AcpiOsCreateLock (&AcpiGbl_GpeLock);
+    if (ACPI_FAILURE (Status))
+    {
+        return_ACPI_STATUS (Status);
+    }
 
-...
-> -int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-> -		      const char *name)
-> -{
-> -	struct resource res = {
-> -		.start = start,
-> -		.end   = start + n - 1,
-> -		.name  = name,
-> -		.flags = IORESOURCE_MEM,
-> -	};
-> -
-> -	return acpi_check_resource_conflict(&res);
-> -
-> -}
-> -EXPORT_SYMBOL(acpi_check_mem_region);
+    Status =3D AcpiOsCreateLock (&AcpiGbl_HardwareLock);
+    if (ACPI_FAILURE (Status))
+    {
+        return_ACPI_STATUS (Status);
+    }
 
-acpi_check_mem_region seems to be entirely
-a Linux thing.  It is exported to modules -- though
-see any that use it.
+In Linux code (acpi_ut_mutex_initialize)
 
-> --- a/drivers/acpi/processor_driver.c	2010-10-06 13:46:52.594978592 +0900
-...
-> -EXPORT_SYMBOL(acpi_processor_set_thermal_limit);
-...
-> --- a/drivers/acpi/processor_thermal.c	2010-10-06 13:47:23.469979232 +0900
-...
-> -int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
-> -{
+        spin_lock_init(acpi_gbl_gpe_lock);
+        spin_lock_init(acpi_gbl_hardware_lock);
 
-although acpi_processor_set_thermal_limit() is exported to modules
-I don't see any users in recent history.
+This is another divergence between ACPICA and Linux code.
 
-
-thanks,
--Len Brown, Intel Open Source Technology Center
-
-
+Lin Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
