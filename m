@@ -1,92 +1,71 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: lost parts of "pci, acpi: reroute PCI interrupt to legacy boot
  interrupt equivalent" during merge
-Date: Wed, 20 Oct 2010 15:48:48 +0200
-Message-ID: <20101020134848.GB7970@elte.hu>
-References: <4CBEDA90020000780001E290@vpn.id2.novell.com>
+Date: Wed, 20 Oct 2010 08:15:11 -0700
+Message-ID: <AANLkTi=LWrOKow7Nw8dr_YZTeMGncP+Vowz3EZK5vShD@mail.gmail.com>
+References: <4CBEDA90020000780001E290@vpn.id2.novell.com> <20101020134848.GB7970@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4CBEDA90020000780001E290@vpn.id2.novell.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jan Beulich <JBeulich@novell.com>, Takashi Iwai <tiwai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Junio C Hamano <gitster@pobox.com>
-Cc: sassmann@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59011 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753392Ab0JTPQN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Oct 2010 11:16:13 -0400
+In-Reply-To: <20101020134848.GB7970@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Beulich <JBeulich@novell.com>, Takashi Iwai <tiwai@suse.de>, Junio C Hamano <gitster@pobox.com>, sassmann@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
+On Wed, Oct 20, 2010 at 6:48 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> I re-created the merge commit the following way:
+>
+> =A0git checkout c2f4398 =A0 =A0 =A0 =A0 =A0 # has old drivers/acpi/pc=
+i_irq.c
+> =A0git merge 662c319 =A0 =A0 =A0 =A0 =A0 =A0 =A0# contains new driver=
+s/acpi/pci_irq.c bits
 
-* Jan Beulich <JBeulich@novell.com> wrote:
+The other way around. The c2f4398 version is the new one, the 662c319
+is the old one. So git picks the new one.
 
-> The git history shows the complete patch (commit
-> e1d3a90846b40ad3160bf4b648d36c6badad39ac), but none of the
-> released versions from .29 onwards have the pieces the patch was
-> supposed to add to drivers/acpi/pci_irq.c. What happened here? Is
-> the workaround no longer needed (in which case the other bits
-> should also be removed to avoid confusion)?
+How do I know? Look here:
 
-Very strange. It appears to have been damaged by this merge commit:
+   [torvalds@i5 linux]$ git merge-base -a c2f4398 662c319
+   6a94cb73064c952255336cc57731904174b2c58f
 
- |
- | commit 5b56eec77498f15317f3ff5ac9101372f400c859 (from 662c319ae4b4fb60001816dfe1dde5fdfc7a2af9)
- | Merge: c2f4398 662c319
- | Author: Takashi Iwai <tiwai@suse.de>
- | Date:   Tue Mar 24 00:35:43 2009 +0100
- |
- |     Merge branch 'topic/jack' into for-linus
- |
+and then you can do
 
-See:
+   [torvalds@i5 linux]$ git diff --stat 6a94cb7..c2f4398 drivers/acpi/p=
+ci_irq.c
+    drivers/acpi/pci_irq.c |  472
++++++++++++++-----------------------------------
+    1 files changed, 130 insertions(+), 342 deletions(-)
+   [torvalds@i5 linux]$ git diff --stat 6a94cb7..662c319 drivers/acpi/p=
+ci_irq.c
+   [torvalds@i5 linux]$
 
-   git log -p -m 5b56eec77498f15317f3ff5ac9101372f400c859
+Notice? The version in 662c319 is the _same_ as the merge base version
+(=3D=3D the old common one). So git simply picked the version that is
+clearly the newer one, ie the one in c2f4398. There's not any data
+conflict or anything. and that was a trivial merge as far as that file
+is concerned.
 
-Not sure how that happened there. This is what Linus merged from me:
+After you do the merge, you'll also have
 
- |
- | commit 3e370b29d35fb01bfb92c2814d6f79bf6a2cb970
- | Merge: 88d1dce 5b664cb
- | Author: Ingo Molnar <mingo@elte.hu>
- | Date:   Fri Jul 18 19:31:12 2008 +0200
- |
- |    Merge branch 'linus' into x86/pci-ioapic-boot-irq-quirks
- |   
- |    Conflicts:
- |   
- |        drivers/pci/quirks.c
- |   
- |    Signed-off-by: Ingo Molnar <mingo@elte.hu>
- |
+   [torvalds@i5 linux]$ git diff c2f4398..5b56eec drivers/acpi/pci_irq.=
+c
+   [torvalds@i5 linux]$
 
-At this point those bits still appear to have been intact.
+ie the merge did the expected thing and picked the new one.
 
-I re-created the merge commit the following way:
+If something got lost, it got lost elsewhere.
 
- git checkout c2f4398           # has old drivers/acpi/pci_irq.c
- git merge 662c319              # contains new drivers/acpi/pci_irq.c bits
-
- Auto-merging include/linux/input.h
- Auto-merging sound/core/jack.c
- Merge made by recursive.
- .../sound/alsa/DocBook/alsa-driver-api.tmpl        |    3 +
- include/linux/input.h                              |    1 +
- include/sound/jack.h                               |    5 ++
- sound/core/jack.c                                  |   45 +++++++++----------
- 4 files changed, 30 insertions(+), 24 deletions(-)
-
-And the resulting merge does not carry over the changes in drivers/acpi/pci_irq.c!
-
-That is how those changes got lost. (it in essence deactivated that part of the 
-feature)
-
-Now, this appears to be either a Git bug, or some very non-obvious Git behavior.
-
-I do remember merge troubles with that file, so maybe my merge commit 
-3e370b29d35fb01bfb92c2814d6f79bf6a2cb970 introduces something that confuses Git? 
-I've Cc:-ed Linus and Junio.
-
-( Sidenote, in hindsight that particular chunk does not look particularly clean so 
-  if we re-add it please clean it up to be less #ifdeffy and to have the extern
-  declaration in some header, get Acks from the ACPI and PCI people again, etc. )
-
-Thanks,
-
-	Ingo
+                                 Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
