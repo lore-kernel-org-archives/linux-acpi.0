@@ -1,31 +1,24 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] Add Intel GMA500(Poulsbo) Stub Driver
-Date: Tue, 19 Oct 2010 22:58:51 -0700
-Message-ID: <1287554331.1813.3.camel@Joe-Laptop>
-References: <1287553879-25897-1-git-send-email-jlee@novell.com>
+From: "Jan Beulich" <JBeulich@novell.com>
+Subject: lost parts of "pci, acpi: reroute PCI interrupt to legacy boot
+	 interrupt equivalent" during merge
+Date: Wed, 20 Oct 2010 11:03:28 +0100
+Message-ID: <4CBEDA90020000780001E290@vpn.id2.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:3177 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755717Ab0JTF6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Oct 2010 01:58:53 -0400
-In-Reply-To: <1287553879-25897-1-git-send-email-jlee@novell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, randy.dunlap@oracle.com, mjg59@srcf.ucam.org, gregkh@suse.de, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@linux.ie, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, "Lee, Chun-Yi" <jlee@novell.com>
+To: mingo@elte.hu, sassmann@redhat.com
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Wed, 2010-10-20 at 13:51 +0800, Lee, Chun-Yi wrote:
-> Currently, there have no GMA500(Poulsbo) native video driver to support
-> intel opregion. So, use this stub driver to enable the acpi backlight
-> control sysfs entry files by requrest acpi_video_register.
-[]
-> diff --git a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c
-[]
-> +static struct pci_device_id pciidlist[] = {
+The git history shows the complete patch (commit
+e1d3a90846b40ad3160bf4b648d36c6badad39ac), but none of the
+released versions from .29 onwards have the pieces the patch was
+supposed to add to drivers/acpi/pci_irq.c. What happened here? Is
+the workaround no longer needed (in which case the other bits
+should also be removed to avoid confusion)?
 
-DEFINE_PCI_DEVICE_TABLE
- 
+Thanks, Jan
 
