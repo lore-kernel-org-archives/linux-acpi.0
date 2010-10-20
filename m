@@ -1,25 +1,23 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH RESEND] ACPI dock: move some functions to .init.text
-Date: Tue, 19 Oct 2010 14:03:14 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010191403110.19606@localhost.localdomain>
-References: <1277127073-10485-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1287472419-13187-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <20101019154838.GF4589@kroah.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH 0/9] ACPI, APEI patches for 2.6.37
+Date: Wed, 20 Oct 2010 09:36:51 +0800
+Message-ID: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:35015 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab0JSSDf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Oct 2010 14:03:35 -0400
-In-reply-to: <20101019154838.GF4589@kroah.com>
+Received: from mga09.intel.com ([134.134.136.24]:19948 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754821Ab0JTBhH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Oct 2010 21:37:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-applied
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+[PATCH 1/9] ACPI, APEI, Add ERST record ID cache
+[PATCH 2/9] Add lock-less version of bitmap_set/clear
+[PATCH 3/9] lock-less NULL terminated single list implementation
+[PATCH 4/9] lock-less general memory allocator
+[PATCH 5/9] Hardware error device core
+[PATCH 6/9] Hardware error record persistent support
+[PATCH 7/9] ACPI, APEI, Use ERST for hardware error persisting before panic
+[PATCH 8/9] ACPI, APEI, Report GHES error record with hardware error device core
+[PATCH 9/9] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support
