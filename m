@@ -1,94 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Make Embedded Controller command timeout delay configurable
-Date: Thu, 21 Oct 2010 21:53:03 +0200
-Message-ID: <201010212153.03664.rjw@sisk.pl>
-References: <201010211824.57893.trenn@suse.de>
+Subject: Re: [PATCH] ACPI / Battery: Return -ENODATA for unknown values in get_property()
+Date: Thu, 21 Oct 2010 21:57:47 +0200
+Message-ID: <201010212157.47952.rjw@sisk.pl>
+References: <20101016141321.GA11054@sucs.org> <201010172032.43206.rjw@sisk.pl> <20101021165420.GA8718@sucs.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41686 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:41694 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751403Ab0JUTyK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:54:10 -0400
-In-Reply-To: <201010211824.57893.trenn@suse.de>
+	id S1751403Ab0JUT6m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Oct 2010 15:58:42 -0400
+In-Reply-To: <20101021165420.GA8718@sucs.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Sitsofe Wheeler <sitsofe@yahoo.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, October 21, 2010, Thomas Renninger wrote:
-> Here and then there show up machines which need higher timeout values.
-> Finding this on affected machines can be cumbersome, because
-> ACPI_EC_DELAY is a compile option -> make it configurable via boot param.
+On Thursday, October 21, 2010, Sitsofe Wheeler wrote:
+> On Sun, Oct 17, 2010 at 08:32:42PM +0200, Rafael J. Wysocki wrote:
+> > 
+> > Still, if user space has problems with failing reads from the sysfs
+> > attributes, it may be better to simply put -1 in there.  Patch is
+> > appended, please test.
+> 
+> This patch does what it says on the tin (returns -1 in sysfs on my EeePC
+> 900). So:
+> 
+> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+> 
+> It's a shame the previous changes didn't work as they stopped a buggy
+> upower using the -1 value (and producing a nonsense rate like 8.4e-06)
 
-I think the users should not be allowed to decrease the delay below certain
-reasonable limit (perhaps current value of ACPI_EC_DELAY).
+Hmm.  So upower _doesn't_ handle -1?  What does it do with -1000, then?
 
-> This can even be provided writable at runtime via:
-> /sys/modules/acpi/parameters/ec_delay
+> but it's not clear which part of the stack can't handle -ENODATA
+> perhaps it is another part of the kernel?
 
-Would it be safe?
+I don't really think it's a part of the kernel.
 
-> Known machines where this helps:
-> Some HP machines where for whatever reasons specific EC accesses take
-> very long at resume from S3 (in _WAK function).
-> The AE_TIME error is passed upwards and the ACPI interpreter will
-> not execute the rest of the _WAK function which results in not properly
-> initialized devices/variables with different side-effects.
-> 
-> Afaik, on some MSI machines this helped as well.
-> 
-> If this param is needed there probably are underlying problems like:
->   - EC firmware bug
->   - A kernel EC driver bug
->   - An ACPI interpreter behavior (e.g. timings when specific
->     EC accesses happen and how) which the EC does not like
->   - ...
-> which should get evaluated further, but often are nasty or
-> impossible to fix from OS side.
-> 
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> CC: lenb@kernel.org
-> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> CC: linux-acpi@vger.kernel.org
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index f31291b..6499cc4 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -83,6 +83,11 @@ enum {
->  	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
->  };
->  
-> +/* ec.c is compiled in acpi namespace so this shows up as acpi.ec_delay param */
-> +static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
-> +module_param(ec_delay, uint, 0644);
-> +MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC command completes");
-> +
->  /* If we find an EC via the ECDT, we need to keep a ptr to its context */
->  /* External interfaces use first EC only, so remember */
->  typedef int (*acpi_ec_query_func) (void *data);
-> @@ -210,7 +215,7 @@ static int ec_poll(struct acpi_ec *ec)
->  	int repeat = 2; /* number of command restarts */
->  	while (repeat--) {
->  		unsigned long delay = jiffies +
-> -			msecs_to_jiffies(ACPI_EC_DELAY);
-> +			msecs_to_jiffies(ec_delay);
->  		do {
->  			/* don't sleep with disabled interrupts */
->  			if (EC_FLAGS_MSI || irqs_disabled()) {
-> @@ -265,7 +270,7 @@ static int ec_check_ibf0(struct acpi_ec *ec)
->  
->  static int ec_wait_ibf0(struct acpi_ec *ec)
->  {
-> -	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-> +	unsigned long delay = jiffies + msecs_to_jiffies(ec_delay);
->  	/* interrupt wait manually if GPE mode is not active */
->  	while (time_before(jiffies, delay))
->  		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
+> Richard, any chance of upower being changed to test for -1 before doing
+> doing anything with current_now (
+> http://cgit.freedesktop.org/DeviceKit/upower/tree/src/linux/up-device-supply.c?id=5387183d53c16a987a0737c1bdec1b62edf3daa6#n561)?
+> I guess there are a whole bunch of other attributes that could
+> theoretically be -1 and shouldn't be used if they return it...
+
+If user space doesn't handle -1 correctly too, I think the right approach for
+us should be to use the previous version of the patch and return error code
+for unknown values.
 
 Thanks,
 Rafael
