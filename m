@@ -1,29 +1,83 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: lost parts of "pci, acpi: reroute PCI interrupt to legacy boot interrupt equivalent" during merge
-Date: Wed, 20 Oct 2010 15:31:55 -0600
-Message-ID: <201010201531.55930.bjorn.helgaas@hp.com>
-References: <4CBEDA90020000780001E290@vpn.id2.novell.com> <201010201214.03363.bjorn.helgaas@hp.com> <4CBF4904.8050503@redhat.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] ACPI: Make Embedded Controller command timeout delay configurable
+Date: Thu, 21 Oct 2010 18:24:57 +0200
+Message-ID: <201010211824.57893.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4CBF4904.8050503@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Stefan Assmann <sassmann@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Jan Beulich <JBeulich@novell.com>, Takashi Iwai <tiwai@suse.de>, Junio C Hamano <gitster@pobox.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Olaf Dabrunz <Olaf.Dabrunz@gmx.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:56558 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750990Ab0JUQZA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Oct 2010 12:25:00 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org
 
-On Wednesday, October 20, 2010 01:54:44 pm Stefan Assmann wrote:
-> On 20.10.2010 20:14, Bjorn Helgaas wrote:
+Here and then there show up machines which need higher timeout values.
+Finding this on affected machines can be cumbersome, because
+ACPI_EC_DELAY is a compile option -> make it configurable via boot param.
 
-> > It'd be kind of nice for archaeologists like me if there were a
-> > kernel bugzilla with before/after dmesg logs and stuff.
-> 
-> Sorry I'm not aware of any.
+This can even be provided writable at runtime via:
+/sys/modules/acpi/parameters/ec_delay
 
-That was a hint that you could open one and put the URL in your
-changelog, as a place to archive useful information that's too
-big for the git history :-)
+Known machines where this helps:
+Some HP machines where for whatever reasons specific EC accesses take
+very long at resume from S3 (in _WAK function).
+The AE_TIME error is passed upwards and the ACPI interpreter will
+not execute the rest of the _WAK function which results in not properly
+initialized devices/variables with different side-effects.
 
-Bjorn
+Afaik, on some MSI machines this helped as well.
+
+If this param is needed there probably are underlying problems like:
+  - EC firmware bug
+  - A kernel EC driver bug
+  - An ACPI interpreter behavior (e.g. timings when specific
+    EC accesses happen and how) which the EC does not like
+  - ...
+which should get evaluated further, but often are nasty or
+impossible to fix from OS side.
+
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: lenb@kernel.org
+CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+CC: linux-acpi@vger.kernel.org
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f31291b..6499cc4 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -83,6 +83,11 @@ enum {
+ 	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
+ };
+ 
++/* ec.c is compiled in acpi namespace so this shows up as acpi.ec_delay param */
++static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
++module_param(ec_delay, uint, 0644);
++MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC command completes");
++
+ /* If we find an EC via the ECDT, we need to keep a ptr to its context */
+ /* External interfaces use first EC only, so remember */
+ typedef int (*acpi_ec_query_func) (void *data);
+@@ -210,7 +215,7 @@ static int ec_poll(struct acpi_ec *ec)
+ 	int repeat = 2; /* number of command restarts */
+ 	while (repeat--) {
+ 		unsigned long delay = jiffies +
+-			msecs_to_jiffies(ACPI_EC_DELAY);
++			msecs_to_jiffies(ec_delay);
+ 		do {
+ 			/* don't sleep with disabled interrupts */
+ 			if (EC_FLAGS_MSI || irqs_disabled()) {
+@@ -265,7 +270,7 @@ static int ec_check_ibf0(struct acpi_ec *ec)
+ 
+ static int ec_wait_ibf0(struct acpi_ec *ec)
+ {
+-	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
++	unsigned long delay = jiffies + msecs_to_jiffies(ec_delay);
+ 	/* interrupt wait manually if GPE mode is not active */
+ 	while (time_before(jiffies, delay))
+ 		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
