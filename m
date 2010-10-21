@@ -1,28 +1,30 @@
 From: Myron Stowe <myron.stowe@hp.com>
-Subject: [PATCH 1/7] ACPI: Fix ioremap size for MMIO reads and writes
-Date: Thu, 21 Oct 2010 14:23:48 -0600
-Message-ID: <20101021202348.9220.57786.stgit@bob.kio>
+Subject: [PATCH 3/7] ACPI: Add interfaces for ioremapping/iounmapping ACPI
+	registers
+Date: Thu, 21 Oct 2010 14:23:59 -0600
+Message-ID: <20101021202359.9220.72989.stgit@bob.kio>
 References: <20101021201916.9220.5711.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:43625 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756744Ab0JUUXt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Oct 2010 16:23:49 -0400
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:24517 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755287Ab0JUUYA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Oct 2010 16:24:00 -0400
 In-Reply-To: <20101021201916.9220.5711.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, ak@linux.intel.com, ying.huang@intel.com
 
-The size used for I/O remapping MMIO read and write accesses has not
-accounted for the basis of ACPI's Generic Address Structure (GAS)
-'Register Bit Width' field which is bits, not bytes.  This patch
-adjusts the ioremap() 'size' argument accordingly.
+Add remapping and unmapping interfaces for ACPI registers that are
+backed by memory mapped I/O (MMIO).  These interfaces, along with
+the MMIO remapping list, enable accesses of such registers from within
+interrupt context.
 
-ACPI "Generic Register" reference:
+ACPI Generic Address Structure (GAS) reference (ACPI's fixed/generic
+hardware registers use the GAS format):
   ACPI Specification, Revision 4.0, Section 5.2.3.1, "Generic Address
   Structure".
 
@@ -30,29 +32,71 @@ ACPI "Generic Register" reference:
 Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 ---
 
- drivers/acpi/osl.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/osl.c   |   38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |    3 +++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 65b25a3..58842fb 100644
+index bd72129..fc6c5d2 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -496,7 +496,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
- 	u32 dummy;
- 	void __iomem *virt_addr;
+@@ -372,6 +372,44 @@ void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ 		__acpi_unmap_table(virt, size);
+ }
  
--	virt_addr = ioremap(phys_addr, width);
-+	virt_addr = ioremap(phys_addr, width / 8);
- 	if (!value)
- 		value = &dummy;
++int acpi_os_map_generic_address(struct acpi_generic_address *addr)
++{
++	void __iomem *virt;
++
++	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		return 0;
++
++	if (!addr->address || !addr->bit_width)
++		return -EINVAL;
++
++	virt = acpi_os_map_memory(addr->address, addr->bit_width / 8);
++	if (!virt)
++		return -EIO;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_os_map_generic_address);
++
++void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
++{
++	void __iomem *virt;
++	unsigned long flags;
++	acpi_size size = addr->bit_width / 8;
++
++	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		return;
++
++	if (!addr->address || !addr->bit_width)
++		return;
++
++	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	virt = acpi_map_vaddr_lookup(addr->address, size);
++	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++
++	acpi_os_unmap_memory(virt, size);
++}
++EXPORT_SYMBOL_GPL(acpi_os_unmap_generic_address);
++
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status
+ acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index c227757..7774e6d 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -308,6 +308,9 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+ 					     u32 *mask, u32 req);
+ extern void acpi_early_init(void);
  
-@@ -524,7 +524,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
- {
- 	void __iomem *virt_addr;
++int acpi_os_map_generic_address(struct acpi_generic_address *addr);
++void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
++
+ #else	/* !CONFIG_ACPI */
  
--	virt_addr = ioremap(phys_addr, width);
-+	virt_addr = ioremap(phys_addr, width / 8);
- 
- 	switch (width) {
- 	case 8:
+ #define acpi_disabled 1
 
