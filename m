@@ -1,120 +1,30 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 9/9] ACPI, APEI, Generic Hardware Error Source
- POLL/IRQ/NMI notification type support
-Date: Fri, 22 Oct 2010 13:57:00 +0200
-Message-ID: <20101022115700.GC10456@basil.fritz.box>
+Subject: Re: [PATCH 0/9] ACPI, APEI patches for 2.6.37
+Date: Fri, 22 Oct 2010 13:57:56 +0200
+Message-ID: <20101022115756.GD10456@basil.fritz.box>
 References: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
- <1287538620-7442-10-git-send-email-ying.huang@intel.com>
+ <alpine.LFD.2.00.1010220147560.27300@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:35778 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750801Ab0JVL5F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Oct 2010 07:57:05 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1287538620-7442-10-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <alpine.LFD.2.00.1010220147560.27300@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 09:37:00AM +0800, Huang Ying wrote:
+On Fri, Oct 22, 2010 at 01:50:08AM -0400, Len Brown wrote:
+> On Wed, 20 Oct 2010, Huang Ying wrote:
+> 
+> > [PATCH 2/9] Add lock-less version of bitmap_set/clear
+> > [PATCH 3/9] lock-less NULL terminated single list implementation
+> > [PATCH 4/9] lock-less general memory allocator
+> 
+> What kinds of tests has this lockless lib code been subject to?
+> This is generic code, does it play on multiple architectures?
 
-Hi Ying,
-
-Only some minor nits found in review. 
-
-I don't think they're merge blockers, but could be all fixed
-in followups later.
-
-Overall it looks all good.
-
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-
-> + * These 2 spinlock is used to prevent atomic ioremap virtual memory
-> + * area from being mapped simultaneously.
-> + */
-> +static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
-> +static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
-> +
-> +static int ghes_ioremap_init(void)
-> +{
-> +	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * 2, VM_IOREMAP,
-
-Should make the magic PAGE_SIZE * 2 into a define with a comment?
-
-> +			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
-> +		} else {
-> +			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-> +			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
-> +		}
-> +		trunk = PAGE_SIZE - offset;
-> +		trunk = min(trunk, len);
-> +		if (from_phys)
-> +			memcpy(buffer, vaddr + offset, trunk);
-> +		else
-> +			memcpy(vaddr + offset, buffer, trunk);
-
-In generic Linux this would be memcpy_fromio. On x86 of course it's the same. 
-Still perhaps better use that to prevent sparse from freaking out with its 
-address space checks.
-
-> @@ -303,6 +390,43 @@ out:
->  	return 0;
->  }
->  
-> +static void ghes_add_timer(struct ghes *ghes)
-> +{
-> +	struct acpi_hest_generic *g = ghes->generic;
-> +	unsigned long expire;
-> +
-> +	if (!g->notify.poll_interval) {
-> +		pr_warning(FW_WARN GHES_PFX "Poll interval is 0 for "
-> +			   "generaic hardware error source: %d, disabled.",
-
-generaic -> generic 
-
-This is user visible so should be fixed.
-
-
-> +			   g->header.source_id);
-> +		return;
-> +	}
-> +	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-> +	ghes->timer.expires = round_jiffies_relative(expire);
-> +	add_timer(&ghes->timer);
-
-Could actually make this a deferrable timer I guess to be even more
-friendly to power.
-
-> +		}
-> +		ret = NOTIFY_STOP;
-> +	}
-> +
-> +	if (ret == NOTIFY_DONE)
-> +		goto out;
-> +
-> +	if (sev_global >= GHES_SEV_PANIC) {
-> +		herr_persist_all_records();
-> +		oops_begin();
-> +		/* reboot to log the error! */
-> +		if (panic_timeout == 0)
-> +			panic_timeout = ghes_panic_timeout;
-> +		panic(GHES_PFX "generic hardware fatal error!\n");
-
-I suspect need some more explanation on this one.
-
-> +	case ACPI_HEST_NOTIFY_NMI:
-> +		mutex_lock(&ghes_list_mutex);
-> +		list_del_rcu(&ghes->list);
-> +		if (list_empty(&ghes_nmi))
-> +			unregister_die_notifier(&ghes_notifier_nmi);
-> +		mutex_unlock(&ghes_list_mutex);
-> +		synchronize_rcu();
-
-Should normally have a comment to describe what it synchronizes against.
-The NMI in this case I guess.
+cmpxchg is universal these days, so it should be ok everywhere.
 
 -Andi
 -- 
