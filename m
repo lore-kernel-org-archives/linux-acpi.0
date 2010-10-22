@@ -1,332 +1,189 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Fix reference counting of power resources
-Date: Fri, 22 Oct 2010 02:35:54 +0200
-Message-ID: <201010220235.55050.rjw@sisk.pl>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 6/7] ACPI: Page based coalescing of I/O remappings
+ optimization
+Date: Fri, 22 Oct 2010 09:03:54 +0800
+Message-ID: <1287709434.2862.25.camel@yhuang-dev>
+References: <20101021201916.9220.5711.stgit@bob.kio>
+	 <20101021202414.9220.71053.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:4350 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750968Ab0JVBD4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Oct 2010 21:03:56 -0400
+In-Reply-To: <20101021202414.9220.71053.stgit@bob.kio>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Myron Stowe <myron.stowe@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi, Myron,
 
-The reference counting of ACPI power resources is currently broken
-for a few reasons.  First, instead of using a simple reference
-counter per power resource it uses a list of objects representing
-refereces to the given power resource from devices.  This leads to
-the second breakage, because it prevents power resources from
-being referenced more than once by one device, which is necessary
-if the device is configured to signal wakeup.  Namely, when putting
-the device into a low power state we first call
-acpi_enable_wakeup_device_power() that should reference count power
-resources needed for signaling wakeup and then we call
-acpi_power_transition() to power off the device.  The latter call
-drops references to the device's power resources, possibly including
-the ones added by acpi_enable_wakeup_device_power(), so the device
-can't signal wakeup as a result.  Apart from this, the locking
-in acpi_power_on() and acpi_power_off_device() doesn't prevent
-all possible races from happening, which may be problematic for
-runtime PM and asynchronous suspend and resume.
+On Fri, 2010-10-22 at 04:24 +0800, Myron Stowe wrote:
+> This patch optimizes ACPI MMIO remappings by keeping track of the
+> remappings on a PAGE_SIZE granularity.
+> 
+> When an ioremap() occurs, the underlying infrastructure works on a 'page'
+> based granularity.  As such, an ioremap() request for 1 byte for example,
+> will end up mapping in an entire (PAGE_SIZE) page.  Huang Ying took
+> advantage of this in commit 15651291a2f8c11e7e6a42d8bfde7a213ff13262 by
+> checking if subsequent ioremap() requests reside within any of the list's
+> existing remappings still in place, and if so, incrementing a reference
+> count on the existing mapping as opposed to performing another ioremap().
+> 
+> 
+> Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> ---
+> 
+>  drivers/acpi/osl.c |   62 +++++++++++++++++++++++++++++++++++++++++++---------
+>  1 files changed, 51 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 3282689..885e222 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -104,6 +104,7 @@ struct acpi_ioremap {
+>  	void __iomem *virt;
+>  	acpi_physical_address phys;
+>  	acpi_size size;
+> +	struct kref ref;
+>  };
+>  
+>  static LIST_HEAD(acpi_ioremaps);
+> @@ -245,15 +246,28 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+>  }
+>  
+>  /* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
+> -static void __iomem *
+> -acpi_map_vaddr_lookup(acpi_physical_address phys, acpi_size size)
+> +static struct acpi_ioremap *
+> +acpi_map_lookup(acpi_physical_address phys, acpi_size size)
+>  {
+>  	struct acpi_ioremap *map;
+>  
+>  	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
+>  		if (map->phys <= phys &&
+>  		    phys + size <= map->phys + map->size)
+> -			return map->virt + (phys - map->phys);
+> +			return map;
+> +
+> +	return NULL;
+> +}
+> +
+> +/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
+> +static void __iomem *
+> +acpi_map_vaddr_lookup(acpi_physical_address phys, unsigned int size)
+> +{
+> +	struct acpi_ioremap *map;
+> +
+> +	map = acpi_map_lookup(phys, size);
+> +	if (map)
+> +		return map->virt + (phys - map->phys);
+>  
+>  	return NULL;
+>  }
+> @@ -265,7 +279,8 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
+>  	struct acpi_ioremap *map;
+>  
+>  	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
+> -		if (map->virt == virt && map->size == size)
+> +		if (map->virt <= virt &&
+> +		    virt + size <= map->virt + map->size)
+>  			return map;
+>  
+>  	return NULL;
+> @@ -274,9 +289,10 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
+>  void __iomem *__init_refok
+>  acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+>  {
+> -	struct acpi_ioremap *map;
+> -	unsigned long flags;
+> +	struct acpi_ioremap *map, *tmp_map;
+> +	unsigned long flags, pg_sz;
+>  	void __iomem *virt;
+> +	phys_addr_t pg_off;
+>  
+>  	if (phys > ULONG_MAX) {
+>  		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
+> @@ -290,7 +306,9 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+>  	if (!map)
+>  		return NULL;
+>  
+> -	virt = ioremap(phys, size);
+> +	pg_off = round_down(phys, PAGE_SIZE);
+> +	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+> +	virt = ioremap(pg_off, pg_sz);
+>  	if (!virt) {
+>  		kfree(map);
+>  		return NULL;
 
-Fix the problem by using a counter for power resources reference
-counting and putting the evaluation of ACPI _ON and _OFF methods
-under the power resource mutex.
+Why not check the existing map (that is, acpi_map_lookup()) before the
+ioremap()? In APEI tables, several GAS may be in same page, so we need
+ioremap() for the first page only.
 
-Reported-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/power.c |  167 +++++++++++++++++++++------------------------------
- 1 file changed, 70 insertions(+), 97 deletions(-)
+Best Regards,
+Huang Ying
 
-Index: linux-2.6/drivers/acpi/power.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/power.c
-+++ linux-2.6/drivers/acpi/power.c
-@@ -80,18 +80,13 @@ static struct acpi_driver acpi_power_dri
- 		},
- };
- 
--struct acpi_power_reference {
--	struct list_head node;
--	struct acpi_device *device;
--};
--
- struct acpi_power_resource {
- 	struct acpi_device * device;
- 	acpi_bus_id name;
- 	u32 system_level;
- 	u32 order;
-+	unsigned int ref_count;
- 	struct mutex resource_lock;
--	struct list_head reference;
- };
- 
- static struct list_head acpi_power_resource_list;
-@@ -184,101 +179,89 @@ static int acpi_power_get_list_state(str
- 	return result;
- }
- 
--static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
-+static int __acpi_power_on(struct acpi_power_resource *resource)
- {
--	int result = 0;
--	int found = 0;
- 	acpi_status status = AE_OK;
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
- 
-+	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	/* Update the power resource's _device_ power state */
-+	resource->device->power.state = ACPI_STATE_D0;
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
-+			  resource->name));
-+
-+	return 0;
-+}
-+
-+static int acpi_power_on(acpi_handle handle)
-+{
-+	int result = 0;
-+	struct acpi_power_resource *resource = NULL;
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
- 		return result;
- 
- 	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		if (dev->handle == ref->device->handle) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already referenced by resource [%s]\n",
--				  dev->pnp.bus_id, resource->name));
--			found = 1;
--			break;
--		}
--	}
- 
--	if (!found) {
--		ref = kmalloc(sizeof (struct acpi_power_reference),
--		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
--		if (!ref) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
--			mutex_unlock(&resource->resource_lock);
--			return -ENOMEM;
--		}
--		list_add_tail(&ref->node, &resource->reference);
--		ref->device = dev;
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] added to resource [%s] references\n",
--			  dev->pnp.bus_id, resource->name));
-+	if (resource->ref_count++) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] already on",
-+				  resource->name));
-+	} else {
-+		result = __acpi_power_on(resource);
- 	}
--	mutex_unlock(&resource->resource_lock);
- 
--	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	/* Update the power resource's _device_ power state */
--	resource->device->power.state = ACPI_STATE_D0;
-+	mutex_unlock(&resource->resource_lock);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned on\n",
--			  resource->name));
- 	return 0;
- }
- 
--static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
-+static int acpi_power_off_device(acpi_handle handle)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
- 	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
- 		return result;
- 
- 	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		if (dev->handle == ref->device->handle) {
--			list_del(&ref->node);
--			kfree(ref);
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] removed from resource [%s] references\n",
--			    dev->pnp.bus_id, resource->name));
--			break;
--		}
-+
-+	if (!resource->ref_count) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] already off",
-+				  resource->name));
-+		goto unlock;
- 	}
- 
--	if (!list_empty(&resource->reference)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cannot turn resource [%s] off - resource is in use\n",
--		    resource->name));
--		mutex_unlock(&resource->resource_lock);
--		return 0;
-+	if (--resource->ref_count) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] still in use\n",
-+				  resource->name));
-+		goto unlock;
- 	}
--	mutex_unlock(&resource->resource_lock);
- 
- 	status = acpi_evaluate_object(resource->device->handle, "_OFF", NULL, NULL);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	if (ACPI_FAILURE(status)) {
-+		result = -ENODEV;
-+	} else {
-+		/* Update the power resource's _device_ power state */
-+		resource->device->power.state = ACPI_STATE_D3;
- 
--	/* Update the power resource's _device_ power state */
--	resource->device->power.state = ACPI_STATE_D3;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] turned off\n",
-+				  resource->name));
-+	}
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned off\n",
--			  resource->name));
-+ unlock:
-+	mutex_unlock(&resource->resource_lock);
- 
--	return 0;
-+	return result;
- }
- 
- /**
-@@ -364,7 +347,7 @@ int acpi_enable_wakeup_device_power(stru
- 
- 	/* Open power resource */
- 	for (i = 0; i < dev->wakeup.resources.count; i++) {
--		int ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
-+		int ret = acpi_power_on(dev->wakeup.resources.handles[i]);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
- 			dev->wakeup.flags.valid = 0;
-@@ -420,7 +403,7 @@ int acpi_disable_wakeup_device_power(str
- 	/* Close power resource */
- 	for (i = 0; i < dev->wakeup.resources.count; i++) {
- 		int ret = acpi_power_off_device(
--				dev->wakeup.resources.handles[i], dev);
-+				dev->wakeup.resources.handles[i]);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
- 			dev->wakeup.flags.valid = 0;
-@@ -500,7 +483,7 @@ int acpi_power_transition(struct acpi_de
- 	 * (e.g. so the device doesn't lose power while transitioning).
- 	 */
- 	for (i = 0; i < tl->count; i++) {
--		result = acpi_power_on(tl->handles[i], device);
-+		result = acpi_power_on(tl->handles[i]);
- 		if (result)
- 			goto end;
- 	}
-@@ -513,7 +496,7 @@ int acpi_power_transition(struct acpi_de
- 	 * Then we dereference all power resources used in the current list.
- 	 */
- 	for (i = 0; i < cl->count; i++) {
--		result = acpi_power_off_device(cl->handles[i], device);
-+		result = acpi_power_off_device(cl->handles[i]);
- 		if (result)
- 			goto end;
- 	}
-@@ -551,7 +534,6 @@ static int acpi_power_add(struct acpi_de
- 
- 	resource->device = device;
- 	mutex_init(&resource->resource_lock);
--	INIT_LIST_HEAD(&resource->reference);
- 	strcpy(resource->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
-@@ -594,22 +576,14 @@ static int acpi_power_add(struct acpi_de
- 
- static int acpi_power_remove(struct acpi_device *device, int type)
- {
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
-+	struct acpi_power_resource *resource;
- 
--
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
- 
- 	resource = acpi_driver_data(device);
--
--	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
--		list_del(&ref->node);
--		kfree(ref);
--	}
--	mutex_unlock(&resource->resource_lock);
-+	if (!resource)
-+		return -EINVAL;
- 
- 	kfree(resource);
- 
-@@ -619,29 +593,28 @@ static int acpi_power_remove(struct acpi
- static int acpi_power_resume(struct acpi_device *device)
- {
- 	int result = 0, state;
--	struct acpi_power_resource *resource = NULL;
--	struct acpi_power_reference *ref;
-+	struct acpi_power_resource *resource;
- 
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
- 
- 	resource = acpi_driver_data(device);
-+	if (!resource)
-+		return -EINVAL;
-+
-+	mutex_lock(&resource->resource_lock);
- 
- 	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
--		return result;
-+		goto unlock;
- 
--	mutex_lock(&resource->resource_lock);
--	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
--	    !list_empty(&resource->reference)) {
--		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
--		mutex_unlock(&resource->resource_lock);
--		result = acpi_power_on(device->handle, ref->device);
--		return result;
--	}
-+	if (state == ACPI_POWER_RESOURCE_STATE_OFF && resource->ref_count)
-+		result = __acpi_power_on(resource);
- 
-+ unlock:
- 	mutex_unlock(&resource->resource_lock);
--	return 0;
-+
-+	return result;
- }
- 
- int __init acpi_power_init(void)
+> @@ -298,21 +316,40 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+>  
+>  	INIT_LIST_HEAD(&map->list);
+>  	map->virt = virt;
+> -	map->phys = phys;
+> -	map->size = size;
+> +	map->phys = pg_off;
+> +	map->size = pg_sz;
+> +	kref_init(&map->ref);
+>  
+>  	spin_lock_irqsave(&acpi_ioremap_lock, flags);
+> +	/* Check if page has already been mapped. */
+> +	tmp_map = acpi_map_lookup(phys, size);
+> +	if (tmp_map) {
+> +		kref_get(&tmp_map->ref);
+> +		spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+> +		iounmap(map->virt);
+> +		kfree(map);
+> +		return tmp_map->virt + (phys - tmp_map->phys);
+> +	}
+>  	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+>  	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+>  
+> -	return virt;
+> +	return map->virt + (phys - map->phys);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+>  
+> +static void acpi_kref_del_iomap(struct kref *ref)
+> +{
+> +	struct acpi_ioremap *map;
+> +
+> +	map = container_of(ref, struct acpi_ioremap, ref);
+> +	list_del_rcu(&map->list);
+> +}
+> +
+>  void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+>  {
+>  	struct acpi_ioremap *map;
+>  	unsigned long flags;
+> +	int del;
+>  
+>  	if (!acpi_gbl_permanent_mmap) {
+>  		__acpi_unmap_table(virt, size);
+> @@ -328,9 +365,12 @@ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+>  		return;
+>  	}
+>  
+> -	list_del_rcu(&map->list);
+> +	del = kref_put(&map->ref, acpi_kref_del_iomap);
+>  	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+>  
+> +	if (!del)
+> +		return;
+> +
+>  	synchronize_rcu();
+>  	iounmap(map->virt);
+>  	kfree(map);
+> 
+
+
