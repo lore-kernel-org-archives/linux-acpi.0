@@ -1,12 +1,16 @@
 From: yakui.zhao@intel.com
-Subject: [RFC PATCH 0/4_v11] IPMI/ACPI: Install the ACPI IPMI opregion
-Date: Fri, 22 Oct 2010 17:10:37 +0800
-Message-ID: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+Subject: [RFC PATCH 3/4] IPMI: Add the document description of ipmi_get_smi_info
+Date: Fri, 22 Oct 2010 17:10:40 +0800
+Message-ID: <1287738641-11490-4-git-send-email-yakui.zhao@intel.com>
+References: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+ <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
+ <1287738641-11490-3-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga14.intel.com ([143.182.124.37]:27822 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753704Ab0JVJPk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Oct 2010 05:15:40 -0400
+	id S1753704Ab0JVJPo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Oct 2010 05:15:44 -0400
+In-Reply-To: <1287738641-11490-3-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org
@@ -14,71 +18,61 @@ Cc: minyard@acm.org, lenb@kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-Hi, 
-	
-    ACPI 4.0 spec adds the ACPI IPMI opregion, which means that the ACPI AML
-code can also communicate with the BMC controller. This patch set is to
-install the ACPI IPMI opregion space handler and enable the ACPI to access
-the BMC controller through the IPMI message.
+Add the document description about how to use ipmi_get_smi_info.
 
-[RFC Patch 01/04]: Add one interface to get more info of low-level interface
-	It will return the corresponding info of low-level interface based 
-	on the expected type(For example: SI_ACPI, SI_PCI and so on.)
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ Documentation/IPMI.txt |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-[RFC Patch 02/04]: Remove the redudant definition of ipmi_addr_src type
-
-[RFC Patch 03/04]: Add the document description about how to use the function
-of ipmi_get_smi_info
-
-[RFC Patch 04/04]: Install the IPMI space handler to enable ACPI to access the BMC
-controller
-
-V10->V11: Delete the incorrect refcount in V10. At the same time the function of
-ipmi_get_smi_info will return the reference pointer to avoid the memory copy.
-
-V9-V10: Redefine the interface function to get more info of low-level IPMI
-device. And add the document description about how to use it. 
-
-V8-V9: This patch set is based on the mechanism that add one interface that can 
-get more info of low-level IPMI device. For example: the ACPI device handle will
-be returned for the pnp_acpi. Then the second patch will use the added interface
-to check whether the IPMI device is what ACPI wanted to communicated with in the
-new_smi callback function of smi_watcher. If it is, we will install the IPMI
-opregion handler and enable ACPI to communicate with BMC.
-
-V7->V8: Based on Bjorn's comment, use acpi ipmi notifier hook function to
-avoid the discovery of ACPI pnp IPMI device again. Then in course of binding
-/unbinding ipmi pnp driver with the corresponding device, the notifier chain
-function will be called to install/uninstall the ACPI IPMI opregion space
-handler. 
-
-V6->V7: Based on Corey Minyard's comments, the IPMI opregion handler is put
-into the separate file again as it only uses the API interface provided
-by IPMI system. Now it is put into the ACPI subsystem.
-
-V5->V6: Adjust the patch order and refresh the patch set.
-
-V4->V5: According to Bjorn's comment, remove the unnecessary comment.
-The debug info will be printed by using dev_err/dev_warn instead of by
-using printk directly.
-
-V3->V4: According to Bjorn's comment, delete the meaningless variable
-initialization and check. We also do some cleanup. 
-
-V2->V3: According to Bjorn's comment, this IPMI opregion code is put into
-the IPMI subsystem(ipmi_si_intf.c). In such case the part of IPMI opregion
-code  will be installed automatically when IPMI detection module is loaded.
-When the IPMI system interface is detected by loading PNP device driver, we
-will record every IPMI system interface defined in ACPI namespace and then
-install the corresponding IPMI opregion space handler, which is used to enable
-ACPI AML code to access the BMC controller.
-
-V1->V2: According to Bjorn's comment, we won't install the IPMI space handler
-by loading an ACPI device driver. Instead we will enumerate the ACPI IPMI
-device directly in ACPI device tree and then install the IPMI space handler.
-Then ACPI AML code and access the BMC controller through the IPMI space
-handler.
-
-Best regards.
-   Yakui
+diff --git a/Documentation/IPMI.txt b/Documentation/IPMI.txt
+index 69dd29e..0b8aecc 100644
+--- a/Documentation/IPMI.txt
++++ b/Documentation/IPMI.txt
+@@ -533,6 +533,43 @@ completion during sending a panic event.
+ Other Pieces
+ ------------
+ 
++Get the detailed info related with the IPMI device
++--------
++The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
++In order to communicate with the correct IPMI device, it should be confirmed
++ whether it is what we wanted especially on the system with multiple IPMI
++devices. But the new_smi callback function of smi_watcher provides very
++limited info(only the interface number and dev pointer) and there is no
++detailed info about the low level interface. For example: which mechansim
++registers the IPMI interface(ACPI, PCI, DMI and so on).
++    The function of ipmi_get_smi_info is added to get the
++detailed info of IPMI device. The following is the struct definition of
++ipmi_smi_info(Now only ACPI info is defined. If the info is required for
++other IPMI device type, please add it) .
++     struct ipmi_smi_info{
++        enum ipmi_addr_src addr_src;
++        struct device *dev;
++        union {
++                /*
++                 * Now only SI_ACPI info is provided. If the info is required
++                 * for other type, please add it
++                 */
++#ifdef CONFIG_ACPI
++                struct {
++                        void *acpi_handle;
++                } acpi_info;
++#endif
++        } smi_info;
++};
++
++	The following is the definition of ipmi_get_smi_info.
++	extern int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
++		struct ipmi_smi_info **data);
++	It is noted that the returned smi_data is not the dynamically
++allocated memory. It is only the pointer of the corresponding info stored
++in IPMI device. In such case the caller don't try to free the corresponding
++memory.
++
+ Watchdog
+ --------
+ 
+-- 
+1.5.4.5
 
