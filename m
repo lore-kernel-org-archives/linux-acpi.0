@@ -1,52 +1,120 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/7] ACPI: Memory Mapped I/O (MMIO) pre-mapping
-Date: Fri, 22 Oct 2010 11:10:01 -0600
-Message-ID: <201010221110.01582.bjorn.helgaas@hp.com>
-References: <20101021201916.9220.5711.stgit@bob.kio> <1287716220.2862.57.camel@yhuang-dev> <1287717372.8722.954.camel@sli10-conroe.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0186.atlanta.hp.com ([15.193.32.63]:9190 "EHLO
-	g6t0186.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597Ab0JVRLW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Oct 2010 13:11:22 -0400
-In-Reply-To: <1287717372.8722.954.camel@sli10-conroe.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Greg Kroah-Hartman <gregkh@suse.de>
+Subject: [PATCH 03/31] Dynamic Debug: Initialize dynamic debug earlier via arch_initcall
+Date: Fri, 22 Oct 2010 11:24:48 -0700
+Message-ID: <1287771916-15016-3-git-send-email-gregkh@suse.de>
+References: <20101022175107.GB13489@kroah.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101022175107.GB13489@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>, Myron Stowe <myron.stowe@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>
 
-On Thursday, October 21, 2010 09:16:12 pm Shaohua Li wrote:
-> On Fri, 2010-10-22 at 10:57 +0800, Huang, Ying wrote:
-> > On Fri, 2010-10-22 at 10:43 +0800, Li, Shaohua wrote:
-> > > On Fri, 2010-10-22 at 04:23 +0800, Myron Stowe wrote:
-> > > > ACPI's system event related IRQ handing accesses specific fixed
-> > > > hardware registers; namely PM1a event, PM1b event, GPE0, and GPE1
-> > > > which are declared in the FADT.  If these registers are backed by
-> > > > MMIO, as opposed to I/O port space, accessing them within interrupt
-> > > > context will incur a panic since acpi_read() and acpi_write() end up
-> > > > calling ioremap(), which may block to allocate memory - BZ 18012.
-> > > since you just access several bytes mmio in interrupt context, can't you
-> > > use kmap_atomic_pfn() here?
-> > 
-> > On x86_64, kmap_atomic_pfn() is defined as kmap_atomic(), which requires
-> > struct page for the physical address. But the MMIO address may have no
-> > struct page.
+From: Thomas Renninger <trenn@suse.de>
 
-I really like this idea because we could get rid of the list and
-all the RCU stuff, but I don't see how to make it work yet.
+Having the ddebug_query= boot parameter it makes sense to set up
+dynamic debug as soon as possible.
 
-On ia64 (which also uses ACPI), kmap_atomic_pfn() also requires
-a struct page.  An ia64-specific version that doesn't need a struct
-page would be trivial, but I still don't know how to make it work on
-x86_64.
+I expect sysfs files cannot be set up via an arch_initcall, because
+this one is even before fs_initcall. Therefore I splitted the
+dynamic_debug_init function into an early one and a later one providing
+/sys/../dynamic_debug/control file.
 
-> ok, can we add a new entry in fix map and the entry is dedicated for
-> mmio mapping? The ioremap list looks like a hack.
+Possibly dynamic_debug can be initialized even earlier, not sure whether
+this still makes sense then. I picked up arch_initcall as it covers
+quite a lot already.
 
-Fixmap is arch-specific and there's no ia64 implementation, so I
-don't think we can use it here.
+Dynamic debug needs to allocate memory, therefore it's not easily possible to
+set it up even before the command line gets parsed.
+Therefore the boot param query string is stored in a temp string which is
+applied when dynamic debug gets set up.
 
-Bjorn
+This has been tested with ddebug_query="file ec.c +p"
+and I could retrieve pr_debug() messages early at boot during ACPI setup:
+ACPI: EC: Look up EC in DSDT
+ACPI: EC: ---> status = 0x08
+ACPI: EC: transaction start
+ACPI: EC: <--- command = 0x80
+ACPI: EC: ~~~> interrupt
+ACPI: EC: ---> status = 0x08
+ACPI: EC: <--- data = 0xa4
+...
+ACPI: Interpreter enabled
+ACPI: (supports S0 S3 S4 S5)
+ACPI: Using IOAPIC for interrupt routing
+ACPI: EC: ---> status = 0x00
+ACPI: EC: transaction start
+ACPI: EC: <--- command = 0x80
+
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Acked-by: jbaron@redhat.com
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+CC: linux-acpi@vger.kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ lib/dynamic_debug.c |   33 +++++++++++++++++++++++----------
+ 1 files changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/lib/dynamic_debug.c b/lib/dynamic_debug.c
+index 44ce66b..a687d90 100644
+--- a/lib/dynamic_debug.c
++++ b/lib/dynamic_debug.c
+@@ -748,13 +748,14 @@ static void ddebug_remove_all_tables(void)
+ 	mutex_unlock(&ddebug_lock);
+ }
+ 
+-static int __init dynamic_debug_init(void)
++static __initdata int ddebug_init_success;
++
++static int __init dynamic_debug_init_debugfs(void)
+ {
+ 	struct dentry *dir, *file;
+-	struct _ddebug *iter, *iter_start;
+-	const char *modname = NULL;
+-	int ret = 0;
+-	int n = 0;
++
++	if (!ddebug_init_success)
++		return -ENODEV;
+ 
+ 	dir = debugfs_create_dir("dynamic_debug", NULL);
+ 	if (!dir)
+@@ -765,6 +766,16 @@ static int __init dynamic_debug_init(void)
+ 		debugfs_remove(dir);
+ 		return -ENOMEM;
+ 	}
++	return 0;
++}
++
++static int __init dynamic_debug_init(void)
++{
++	struct _ddebug *iter, *iter_start;
++	const char *modname = NULL;
++	int ret = 0;
++	int n = 0;
++
+ 	if (__start___verbose != __stop___verbose) {
+ 		iter = __start___verbose;
+ 		modname = iter->modname;
+@@ -795,11 +806,13 @@ static int __init dynamic_debug_init(void)
+ 	}
+ 
+ out_free:
+-	if (ret) {
++	if (ret)
+ 		ddebug_remove_all_tables();
+-		debugfs_remove(dir);
+-		debugfs_remove(file);
+-	}
++	else
++		ddebug_init_success = 1;
+ 	return 0;
+ }
+-module_init(dynamic_debug_init);
++/* Allow early initialization for boot messages via boot param */
++arch_initcall(dynamic_debug_init);
++/* Debugfs setup must be done later */
++module_init(dynamic_debug_init_debugfs);
+-- 
+1.7.2
