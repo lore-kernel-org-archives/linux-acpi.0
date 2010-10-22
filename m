@@ -1,14 +1,15 @@
 From: yakui.zhao@intel.com
-Subject: [RFC PATCH 1/4] IPMI: Add one interface to get more info of low-level IPMI device
-Date: Fri, 22 Oct 2010 17:10:38 +0800
-Message-ID: <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
+Subject: [RFC PATCH 2/4] IPMI: Remove the redundant definition of ipmi_addr_src
+Date: Fri, 22 Oct 2010 17:10:39 +0800
+Message-ID: <1287738641-11490-3-git-send-email-yakui.zhao@intel.com>
 References: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+ <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:27822 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:35671 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753704Ab0JVJPl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Oct 2010 05:15:41 -0400
-In-Reply-To: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+	id S1753492Ab0JVJPn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Oct 2010 05:15:43 -0400
+In-Reply-To: <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org
@@ -16,211 +17,171 @@ Cc: minyard@acm.org, lenb@kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
-In order to communicate with the correct IPMI device, it should be confirmed
- whether it is what we wanted especially on the system with multiple IPMI
-devices. But the new_smi callback function of smi_watcher provides very
-limited info(only the interface number and dev pointer) and there is no
-detailed info about the low level interface. For example: which mechansim
-registers the IPMI interface(ACPI, PCI, DMI and so on).
-
-This is to add one interface that can get more info of low-level IPMI
-device. For example: the ACPI device handle will be returned for the pnp_acpi
-IPMI device.
+The ipmi_addr_src is defined twice. One is in ipmi_smi_info and the other
+is in generic smi_info. Remove the redunant definition in smi_info.
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 ---
-In this patch only the info of pnp_acpi IPMI is provided. If the detailed info
-is also required for other mechanism, please add them in the structure of
-ipmi_smi_info.
+ drivers/char/ipmi/ipmi_si_intf.c |   37 +++++++++++++++++--------------------
+ 1 files changed, 17 insertions(+), 20 deletions(-)
 
- drivers/char/ipmi/ipmi_msghandler.c |   26 ++++++++++++++++++++++++++
- drivers/char/ipmi/ipmi_si_intf.c    |   28 ++++++++++++++++++++++++----
- include/linux/ipmi.h                |   23 +++++++++++++++++++++++
- include/linux/ipmi_smi.h            |   11 +++++++++++
- 4 files changed, 84 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-index 4f3f8c9..6f4da59 100644
---- a/drivers/char/ipmi/ipmi_msghandler.c
-+++ b/drivers/char/ipmi/ipmi_msghandler.c
-@@ -970,6 +970,32 @@ out_kfree:
- }
- EXPORT_SYMBOL(ipmi_create_user);
- 
-+int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
-+			struct ipmi_smi_info **data)
-+{
-+	int           rv = 0;
-+	ipmi_smi_t    intf;
-+	struct ipmi_smi_handlers *handlers;
-+
-+	mutex_lock(&ipmi_interfaces_mutex);
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		if (intf->intf_num == if_num)
-+			goto found;
-+	}
-+	/* Not found, return an error */
-+	rv = -EINVAL;
-+	mutex_unlock(&ipmi_interfaces_mutex);
-+	return rv;
-+
-+found:
-+	handlers = intf->handlers;
-+	rv = handlers->get_smi_info(intf->send_info, type, data);
-+	mutex_unlock(&ipmi_interfaces_mutex);
-+
-+	return rv;
-+}
-+EXPORT_SYMBOL(ipmi_get_smi_info);
-+
- static void free_user(struct kref *ref)
- {
- 	ipmi_user_t user = container_of(ref, struct ipmi_user, refcount);
 diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-index 7bd7c45..73b1c82 100644
+index 73b1c82..44f6b9e 100644
 --- a/drivers/char/ipmi/ipmi_si_intf.c
 +++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -57,6 +57,7 @@
- #include <asm/irq.h>
- #include <linux/interrupt.h>
- #include <linux/rcupdate.h>
-+#include <linux/ipmi.h>
- #include <linux/ipmi_smi.h>
- #include <asm/io.h>
- #include "ipmi_si_sm.h"
-@@ -107,10 +108,6 @@ enum si_type {
- };
- static char *si_to_str[] = { "kcs", "smic", "bt" };
+@@ -193,7 +193,6 @@ struct smi_info {
+ 	int (*irq_setup)(struct smi_info *info);
+ 	void (*irq_cleanup)(struct smi_info *info);
+ 	unsigned int io_size;
+-	enum ipmi_addr_src addr_source; /* ACPI, PCI, SMBIOS, hardcode, etc. */
+ 	void (*addr_source_cleanup)(struct smi_info *info);
+ 	void *addr_source_data;
  
--enum ipmi_addr_src {
--	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
--	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
--};
- static char *ipmi_addr_src_to_str[] = { NULL, "hotmod", "hardcoded", "SPMI",
- 					"ACPI", "SMBIOS", "PCI",
- 					"device-tree", "default" };
-@@ -291,6 +288,7 @@ struct smi_info {
- 	struct task_struct *thread;
+@@ -1191,11 +1190,9 @@ static int get_smi_info(void *send_info,
+ 	struct smi_info *new_smi = send_info;
+ 	struct ipmi_smi_info *smi_data = &new_smi->smi_data;
  
- 	struct list_head link;
-+	struct ipmi_smi_info smi_data;
- };
+-	if (new_smi->addr_source != type)
++	if (smi_data->addr_src != type)
+ 		return -EINVAL;
  
- #define smi_inc_stat(smi, stat) \
-@@ -1186,6 +1184,22 @@ static int smi_start_processing(void       *send_info,
+-	smi_data->addr_src = type;
+-
+ 	*data = smi_data;
  	return 0;
  }
+@@ -1800,7 +1797,7 @@ static int hotmod_handler(const char *val, struct kernel_param *kp)
+ 				goto out;
+ 			}
  
-+static int get_smi_info(void *send_info,
-+			enum ipmi_addr_src type,
-+			struct ipmi_smi_info **data)
-+{
-+	struct smi_info *new_smi = send_info;
-+	struct ipmi_smi_info *smi_data = &new_smi->smi_data;
-+
-+	if (new_smi->addr_source != type)
-+		return -EINVAL;
-+
-+	smi_data->addr_src = type;
-+
-+	*data = smi_data;
-+	return 0;
-+}
-+
- static void set_maintenance_mode(void *send_info, int enable)
- {
- 	struct smi_info   *smi_info = send_info;
-@@ -1197,6 +1211,7 @@ static void set_maintenance_mode(void *send_info, int enable)
- static struct ipmi_smi_handlers handlers = {
- 	.owner                  = THIS_MODULE,
- 	.start_processing       = smi_start_processing,
-+	.get_smi_info		= get_smi_info,
- 	.sender			= sender,
- 	.request_events		= request_events,
- 	.set_maintenance_mode   = set_maintenance_mode,
-@@ -2143,6 +2158,8 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+-			info->addr_source = SI_HOTMOD;
++			info->smi_data.addr_src = SI_HOTMOD;
+ 			info->si_type = si_type;
+ 			info->io.addr_data = addr;
+ 			info->io.addr_type = addr_space;
+@@ -1863,7 +1860,7 @@ static __devinit void hardcode_find_bmc(void)
+ 		if (!info)
+ 			return;
+ 
+-		info->addr_source = SI_HARDCODED;
++		info->smi_data.addr_src = SI_HARDCODED;
+ 		printk(KERN_INFO PFX "probing via hardcoded address\n");
+ 
+ 		if (!si_type[i] || strcmp(si_type[i], "kcs") == 0) {
+@@ -2049,7 +2046,7 @@ static __devinit int try_init_spmi(struct SPMITable *spmi)
  		return -ENOMEM;
- 
- 	info->addr_source = SI_ACPI;
-+	info->smi_data.smi_info.acpi_info.acpi_handle =
-+				acpi_dev->handle;
- 	printk(KERN_INFO PFX "probing via ACPI\n");
- 
- 	handle = acpi_dev->handle;
-@@ -3092,6 +3109,7 @@ static int try_smi_init(struct smi_info *new_smi)
- {
- 	int rv = 0;
- 	int i;
-+	struct ipmi_smi_info *smi_data = &new_smi->smi_data;
- 
- 	printk(KERN_INFO PFX "Trying %s-specified %s state"
- 	       " machine at %s address 0x%lx, slave address 0x%x,"
-@@ -3217,6 +3235,8 @@ static int try_smi_init(struct smi_info *new_smi)
- 		new_smi->dev_registered = 1;
  	}
  
-+	smi_data->dev = new_smi->dev;
-+
- 	rv = ipmi_register_smi(&handlers,
- 			       new_smi,
- 			       &new_smi->device_id,
-diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
-index 65aae34..1ce428f 100644
---- a/include/linux/ipmi.h
-+++ b/include/linux/ipmi.h
-@@ -454,6 +454,29 @@ unsigned int ipmi_addr_length(int addr_type);
- /* Validate that the given IPMI address is valid. */
- int ipmi_validate_addr(struct ipmi_addr *addr, int len);
+-	info->addr_source = SI_SPMI;
++	info->smi_data.addr_src = SI_SPMI;
+ 	printk(KERN_INFO PFX "probing via SPMI\n");
  
-+enum ipmi_addr_src {
-+	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
-+	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
-+};
-+struct ipmi_smi_info{
-+	enum ipmi_addr_src addr_src;
-+	struct device *dev;
-+	union {
-+		/*
-+		 * Now only SI_ACPI info is provided. If the info is required
-+		 * for other type, please add it
-+		 */
-+#ifdef CONFIG_ACPI
-+		struct {
-+			void *acpi_handle;
-+		} acpi_info;
-+#endif
-+	} smi_info;
-+};
-+
-+/* This is to get the private info of ipmi_smi_t. The pointer is returned */
-+extern int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
-+		struct ipmi_smi_info **data);
- #endif /* __KERNEL__ */
+ 	/* Figure out the interface type. */
+@@ -2157,7 +2154,7 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+ 	if (!info)
+ 		return -ENOMEM;
  
+-	info->addr_source = SI_ACPI;
++	info->smi_data.addr_src = SI_ACPI;
+ 	info->smi_data.smi_info.acpi_info.acpi_handle =
+ 				acpi_dev->handle;
+ 	printk(KERN_INFO PFX "probing via ACPI\n");
+@@ -2342,7 +2339,7 @@ static __devinit void try_init_dmi(struct dmi_ipmi_data *ipmi_data)
+ 		return;
+ 	}
  
-diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
-index 4b48318..bfa8f40 100644
---- a/include/linux/ipmi_smi.h
-+++ b/include/linux/ipmi_smi.h
-@@ -86,6 +86,17 @@ struct ipmi_smi_handlers {
- 	int (*start_processing)(void       *send_info,
- 				ipmi_smi_t new_intf);
+-	info->addr_source = SI_SMBIOS;
++	info->smi_data.addr_src = SI_SMBIOS;
+ 	printk(KERN_INFO PFX "probing via SMBIOS\n");
  
-+	/*
-+	 * Get the detailed private info of the low level interface and return
-+	 * the corresponding pointer.
-+	 * For example: the ACPI device handle will be returned for the
-+	 * pnp_acpi IPMI device. Of course it will firstly compare the
-+	 * interface type of low-level interface(Hardcoded type, DMI,
-+	 * ACPI and so on). If the type doesn't match, it will return -EINVAL.
-+	 */
-+	int (*get_smi_info)(void *send_info, enum ipmi_addr_src type,
-+				struct ipmi_smi_info **data);
-+
- 	/* Called to enqueue an SMI message to be sent.  This
- 	   operation is not allowed to fail.  If an error occurs, it
- 	   should report back the error in a received message.  It may
+ 	switch (ipmi_data->type) {
+@@ -2447,7 +2444,7 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+-	info->addr_source = SI_PCI;
++	info->smi_data.addr_src = SI_PCI;
+ 	dev_info(&pdev->dev, "probing via PCI");
+ 
+ 	switch (class_type) {
+@@ -2593,7 +2590,7 @@ static int __devinit ipmi_of_probe(struct platform_device *dev,
+ 	}
+ 
+ 	info->si_type		= (enum si_type) match->data;
+-	info->addr_source	= SI_DEVICETREE;
++	info->smi_data.addr_src	= SI_DEVICETREE;
+ 	info->irq_setup		= std_irq_setup;
+ 
+ 	if (resource.flags & IORESOURCE_IO) {
+@@ -3035,7 +3032,7 @@ static __devinit void default_find_bmc(void)
+ 		if (!info)
+ 			return;
+ 
+-		info->addr_source = SI_DEFAULT;
++		info->smi_data.addr_src = SI_DEFAULT;
+ 
+ 		info->si_type = ipmi_defaults[i].type;
+ 		info->io_setup = port_setup;
+@@ -3082,7 +3079,7 @@ static int add_smi(struct smi_info *new_smi)
+ 	int rv = 0;
+ 
+ 	printk(KERN_INFO PFX "Adding %s-specified %s state machine",
+-			ipmi_addr_src_to_str[new_smi->addr_source],
++			ipmi_addr_src_to_str[new_smi->smi_data.addr_src],
+ 			si_to_str[new_smi->si_type]);
+ 	mutex_lock(&smi_infos_lock);
+ 	if (!is_new_interface(new_smi)) {
+@@ -3114,7 +3111,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 	printk(KERN_INFO PFX "Trying %s-specified %s state"
+ 	       " machine at %s address 0x%lx, slave address 0x%x,"
+ 	       " irq %d\n",
+-	       ipmi_addr_src_to_str[new_smi->addr_source],
++	       ipmi_addr_src_to_str[new_smi->smi_data.addr_src],
+ 	       si_to_str[new_smi->si_type],
+ 	       addr_space_to_str[new_smi->io.addr_type],
+ 	       new_smi->io.addr_data,
+@@ -3162,7 +3159,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 
+ 	/* Do low-level detection first. */
+ 	if (new_smi->handlers->detect(new_smi->si_sm)) {
+-		if (new_smi->addr_source)
++		if (new_smi->smi_data.addr_src)
+ 			printk(KERN_INFO PFX "Interface detection failed\n");
+ 		rv = -ENODEV;
+ 		goto out_err;
+@@ -3174,7 +3171,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 	 */
+ 	rv = try_get_dev_id(new_smi);
+ 	if (rv) {
+-		if (new_smi->addr_source)
++		if (new_smi->smi_data.addr_src)
+ 			printk(KERN_INFO PFX "There appears to be no BMC"
+ 			       " at this location\n");
+ 		goto out_err;
+@@ -3408,9 +3405,9 @@ static __devinit int init_ipmi_si(void)
+ 		/* Try to register a device if it has an IRQ and we either
+ 		   haven't successfully registered a device yet or this
+ 		   device has the same type as one we successfully registered */
+-		if (e->irq && (!type || e->addr_source == type)) {
++		if (e->irq && (!type || e->smi_data.addr_src == type)) {
+ 			if (!try_smi_init(e)) {
+-				type = e->addr_source;
++				type = e->smi_data.addr_src;
+ 			}
+ 		}
+ 	}
+@@ -3424,9 +3421,9 @@ static __devinit int init_ipmi_si(void)
+ 	/* Fall back to the preferred device */
+ 
+ 	list_for_each_entry(e, &smi_infos, link) {
+-		if (!e->irq && (!type || e->addr_source == type)) {
++		if (!e->irq && (!type || e->smi_data.addr_src == type)) {
+ 			if (!try_smi_init(e)) {
+-				type = e->addr_source;
++				type = e->smi_data.addr_src;
+ 			}
+ 		}
+ 	}
 -- 
 1.5.4.5
 
