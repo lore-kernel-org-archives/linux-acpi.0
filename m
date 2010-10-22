@@ -1,120 +1,31 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 1/9] ACPI, APEI, Add ERST record ID cache
-Date: Fri, 22 Oct 2010 14:04:04 +0200
-Message-ID: <20101022120404.GF10456@basil.fritz.box>
-References: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
- <1287538620-7442-2-git-send-email-ying.huang@intel.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [PATCH] ACPI / Battery: Return -ENODATA for unknown values in get_property()
+Date: Fri, 22 Oct 2010 13:31:28 +0100
+Message-ID: <AANLkTimJQN=SNCDwOJLo0MKXEcutTKZ3qd81hNAKeXGg@mail.gmail.com>
+References: <20101016141321.GA11054@sucs.org>
+	<20101017131016.GB13015@khazad-dum.debian.net>
+	<20101017145025.GA32599@sucs.org>
+	<201010172032.43206.rjw@sisk.pl>
+	<20101021165420.GA8718@sucs.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:36126 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381Ab0JVMEG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Oct 2010 08:04:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1287538620-7442-2-git-send-email-ying.huang@intel.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:60568 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753506Ab0JVMba (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Oct 2010 08:31:30 -0400
+In-Reply-To: <20101021165420.GA8718@sucs.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
+To: Sitsofe Wheeler <sitsofe@yahoo.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 09:36:52AM +0800, Huang Ying wrote:
-> 1
-> 			2
-> 3
-> 			4
-> -1
-> 			-1
-> 
-> where -1 signals there is no more record ID.
-> 
-> Reader 1 has no chance to check record 2 and 4, while reader 2 has no
-> chance to check record 1 and 3. And any other GET_NEXT_RECORD_ID will
-> return -1, that is, other readers will has no chance to check any
-> record even they are not cleared by anyone.
-> 
-> This makes raw GET_NEXT_RECORD_ID not suitable for usage of multiple
-> users.
-> 
-> To solve the issue, an in memory ERST record ID cache is designed and
-> implemented. When enumerating record ID, the ID returned by
-> GET_NEXT_RECORD_ID is added into cache in addition to be returned to
-> caller. So other readers can check the cache to get all record ID
-> available.
+On 21 October 2010 17:54, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
+> I guess there are a whole bunch of other attributes that could
+> theoretically be -1 and shouldn't be used if they return it...
 
-Generally it looks ok, just a minor cleanup nit below.
+I think checking for <0 is probably a good idea, and I'm a little
+surprised we don't do this already. Patch welcome, if this is what you
+decide to do.
 
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-
-> +static int erst_record_id_cache_add_one(void)
-> +{
-> +	u64 id, prev_id, first_id;
-> +	int i, rc;
-> +	struct erst_record_id_entry *entries;
-> +	unsigned long flags;
-> +
-> +	id = prev_id = first_id = APEI_ERST_INVALID_RECORD_ID;
-> +retry:
-> +	spin_lock_irqsave(&erst_lock, flags);
-> +	rc = __erst_get_next_record_id(&id);
-> +	spin_unlock_irqrestore(&erst_lock, flags);
-> +	if (rc == -ENOENT)
-> +		return 0;
-> +	if (rc)
-> +		return rc;
-> +	if (id == APEI_ERST_INVALID_RECORD_ID)
-> +		return 0;
-> +	/* can not skip current ID, or look back to first ID */
-> +	if (id == prev_id || id == first_id)
-> +		return 0;
-> +	if (first_id == APEI_ERST_INVALID_RECORD_ID)
-> +		first_id = id;
-> +	prev_id = id;
-> +
-> +	entries = erst_record_id_cache.entries;
-> +	for (i = 0; i < erst_record_id_cache.len; i++) {
-> +		if (!entries[i].cleared && entries[i].id == id)
-> +			break;
-> +	}
-> +	/* record id already in cache, try next */
-> +	if (i < erst_record_id_cache.len)
-> +		goto retry;
-> +	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
-> +		int new_size, alloc_size;
-> +		struct erst_record_id_entry *new_entries;
-> +
-> +		new_size = erst_record_id_cache.size * 2;
-> +		new_size = max_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MIN);
-> +		new_size = min_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MAX);
-
-This is clamp_t() 
-
-> +		if (new_size <= erst_record_id_cache.size) {
-> +			if (printk_ratelimit())
-> +				pr_warning(FW_WARN ERST_PFX
-> +					   "too many record ID!\n");
-> +			return 0;
-> +		}
-> +		alloc_size = new_size * sizeof(struct erst_record_id_entry);
-> +		if (alloc_size < PAGE_SIZE)
-> +			new_entries = kmalloc(alloc_size, GFP_KERNEL);
-> +		else
-> +			new_entries = vmalloc(alloc_size);
-
-This is essentially kremalloc with vmalloc. Since this a common
-pattern it would be nicer to put a generic helper for this somewhere.
-
--Andi
-
-> +		if (!new_entries)
-> +			return -ENOMEM;
-> +		memcpy(new_entries, entries,
-> +		       erst_record_id_cache.len * sizeof(entries[0]));
-> +		if (erst_record_id_cache.size < PAGE_SIZE)
-> +			kfree(entries);
-> +		else
-> +			vfree(entries);
-
--Andi
--- 
-ak@linux.intel.com -- Speaking for myself only.
+Richard.
