@@ -1,87 +1,45 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH] ACPICA: Fix Scope() op in module level code
-Date: Fri, 22 Oct 2010 16:27:02 +0800
-Message-ID: <1287736022.6530.3216.camel@minggr.sh.intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 0/9] ACPI, APEI patches for 2.6.37
+Date: Fri, 22 Oct 2010 16:55:42 +0800
+Message-ID: <1287737742.2862.241.camel@yhuang-dev>
+References: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
+	 <alpine.LFD.2.00.1010220147560.27300@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23315 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:49875 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838Ab0JVIaU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Oct 2010 04:30:20 -0400
+	id S1752005Ab0JVIzv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Oct 2010 04:55:51 -0400
+In-Reply-To: <alpine.LFD.2.00.1010220147560.27300@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb <lenb@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, tony@awtrey.com, john.floyd@environment.nsw.gov.au
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Len, 
+On Fri, 2010-10-22 at 13:50 +0800, Len Brown wrote:
+> On Wed, 20 Oct 2010, Huang Ying wrote:
+> 
+> > [PATCH 2/9] Add lock-less version of bitmap_set/clear
+> > [PATCH 3/9] lock-less NULL terminated single list implementation
+> > [PATCH 4/9] lock-less general memory allocator
+> 
+> What kinds of tests has this lockless lib code been subject to?
 
-Would you please include this patch in 2.6.37 merge?
+These code are used by GHES only now. We have a test suite for GHES.
+These code works well for GHES.
 
-Thanks,
-Lin Ming
----
+At the same time, we have test code dedicated for these lib too,
+including stress testing.
 
-From: Bob Moore <robert.moore@intel.com>
+> This is generic code, does it play on multiple architectures?
 
-Some Panasonic Toughbooks create nodes in module level code.
-Module level code is the executable AML code outside of control method,
-for example, below AML code creates a node \_SB.PCI0.GFX0.DD02.CUBL
+We have tested the code on x86_64 and i386 architectures. For some other
+architectures, we have done compile testing. The code is quite simple,
+so I think it should run properly on other architectures too.
 
-        If (\_OSI ("Windows 2006"))
-        {
-            Scope (\_SB.PCI0.GFX0.DD02)
-            {
-                Name (CUBL, Ones)
-                ...
-            }
-        }
-
-Scope() op does not actually create a new object, it refers to an
-existing object(\_SB.PCI0.GFX0.DD02 in above example). However, for
-Scope(), we want to indeed open a new scope, so the child nodes(CUBL in
-above example) can be created correctly under it.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=19462
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
----
- drivers/acpi/acpica/dswexec.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-index d555b37..6b0b5d0 100644
---- a/drivers/acpi/acpica/dswexec.c
-+++ b/drivers/acpi/acpica/dswexec.c
-@@ -300,10 +300,25 @@ acpi_ds_exec_begin_op(struct acpi_walk_state *walk_state,
- 			 * we must enter this object into the namespace.  The created
- 			 * object is temporary and will be deleted upon completion of
- 			 * the execution of this method.
-+			 *
-+			 * Note 10/2010: Except for the Scope() op. This opcode does
-+			 * not actually create a new object, it refers to an existing
-+			 * object. However, for Scope(), we want to indeed open a
-+			 * new scope.
- 			 */
--			status = acpi_ds_load2_begin_op(walk_state, NULL);
-+			if (op->common.aml_opcode != AML_SCOPE_OP) {
-+				status =
-+				    acpi_ds_load2_begin_op(walk_state, NULL);
-+			} else {
-+				status =
-+				    acpi_ds_scope_stack_push(op->named.node,
-+							     op->named.node->
-+							     type, walk_state);
-+				if (ACPI_FAILURE(status)) {
-+					return_ACPI_STATUS(status);
-+				}
-+			}
- 		}
--
- 		break;
- 
- 	case AML_CLASS_EXECUTE:
+Best Regards,
+Huang Ying
 
 
