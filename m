@@ -1,39 +1,225 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH 0/7] ACPI: Memory Mapped I/O (MMIO) pre-mapping
-Date: Fri, 22 Oct 2010 11:16:12 +0800
-Message-ID: <1287717372.8722.954.camel@sli10-conroe.sh.intel.com>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: Re: [PATCH 6/7] ACPI: Page based coalescing of I/O remappings
+ optimization
+Date: Thu, 21 Oct 2010 21:23:54 -0600
+Message-ID: <1287717834.2564.81.camel@zim>
 References: <20101021201916.9220.5711.stgit@bob.kio>
-	 <1287715387.8722.950.camel@sli10-conroe.sh.intel.com>
-	 <1287716220.2862.57.camel@yhuang-dev>
+	 <20101021202414.9220.71053.stgit@bob.kio>
+	 <1287709434.2862.25.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16265 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab0JVDQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Oct 2010 23:16:13 -0400
-In-Reply-To: <1287716220.2862.57.camel@yhuang-dev>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:47155 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab0JVDX5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Oct 2010 23:23:57 -0400
+In-Reply-To: <1287709434.2862.25.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Myron Stowe <myron.stowe@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>
 
-On Fri, 2010-10-22 at 10:57 +0800, Huang, Ying wrote:
-> On Fri, 2010-10-22 at 10:43 +0800, Li, Shaohua wrote:
-> > On Fri, 2010-10-22 at 04:23 +0800, Myron Stowe wrote:
-> > > ACPI's system event related IRQ handing accesses specific fixed
-> > > hardware registers; namely PM1a event, PM1b event, GPE0, and GPE1
-> > > which are declared in the FADT.  If these registers are backed by
-> > > MMIO, as opposed to I/O port space, accessing them within interrupt
-> > > context will incur a panic since acpi_read() and acpi_write() end up
-> > > calling ioremap(), which may block to allocate memory - BZ 18012.
-> > since you just access several bytes mmio in interrupt context, can't you
-> > use kmap_atomic_pfn() here?
+On Fri, 2010-10-22 at 09:03 +0800, Huang Ying wrote:
+> Hi, Myron,
 > 
-> On x86_64, kmap_atomic_pfn() is defined as kmap_atomic(), which requires
-> struct page for the physical address. But the MMIO address may have no
-> struct page.
-ok, can we add a new entry in fix map and the entry is dedicated for
-mmio mapping? The ioremap list looks like a hack.
+> On Fri, 2010-10-22 at 04:24 +0800, Myron Stowe wrote:
+> > This patch optimizes ACPI MMIO remappings by keeping track of the
+> > remappings on a PAGE_SIZE granularity.
+> > 
+> > When an ioremap() occurs, the underlying infrastructure works on a 'page'
+> > based granularity.  As such, an ioremap() request for 1 byte for example,
+> > will end up mapping in an entire (PAGE_SIZE) page.  Huang Ying took
+> > advantage of this in commit 15651291a2f8c11e7e6a42d8bfde7a213ff13262 by
+> > checking if subsequent ioremap() requests reside within any of the list's
+> > existing remappings still in place, and if so, incrementing a reference
+> > count on the existing mapping as opposed to performing another ioremap().
+> > 
+> > 
+> > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> > ---
+> > 
+> >  drivers/acpi/osl.c |   62 +++++++++++++++++++++++++++++++++++++++++++---------
+> >  1 files changed, 51 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> > index 3282689..885e222 100644
+> > --- a/drivers/acpi/osl.c
+> > +++ b/drivers/acpi/osl.c
+> > @@ -104,6 +104,7 @@ struct acpi_ioremap {
+> >  	void __iomem *virt;
+> >  	acpi_physical_address phys;
+> >  	acpi_size size;
+> > +	struct kref ref;
+> >  };
+> >  
+> >  static LIST_HEAD(acpi_ioremaps);
+> > @@ -245,15 +246,28 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+> >  }
+> >  
+> >  /* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
+> > -static void __iomem *
+> > -acpi_map_vaddr_lookup(acpi_physical_address phys, acpi_size size)
+> > +static struct acpi_ioremap *
+> > +acpi_map_lookup(acpi_physical_address phys, acpi_size size)
+> >  {
+> >  	struct acpi_ioremap *map;
+> >  
+> >  	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
+> >  		if (map->phys <= phys &&
+> >  		    phys + size <= map->phys + map->size)
+> > -			return map->virt + (phys - map->phys);
+> > +			return map;
+> > +
+> > +	return NULL;
+> > +}
+> > +
+> > +/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
+> > +static void __iomem *
+> > +acpi_map_vaddr_lookup(acpi_physical_address phys, unsigned int size)
+> > +{
+> > +	struct acpi_ioremap *map;
+> > +
+> > +	map = acpi_map_lookup(phys, size);
+> > +	if (map)
+> > +		return map->virt + (phys - map->phys);
+> >  
+> >  	return NULL;
+> >  }
+> > @@ -265,7 +279,8 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
+> >  	struct acpi_ioremap *map;
+> >  
+> >  	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
+> > -		if (map->virt == virt && map->size == size)
+> > +		if (map->virt <= virt &&
+> > +		    virt + size <= map->virt + map->size)
+> >  			return map;
+> >  
+> >  	return NULL;
+> > @@ -274,9 +289,10 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
+> >  void __iomem *__init_refok
+> >  acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+> >  {
+> > -	struct acpi_ioremap *map;
+> > -	unsigned long flags;
+> > +	struct acpi_ioremap *map, *tmp_map;
+> > +	unsigned long flags, pg_sz;
+> >  	void __iomem *virt;
+> > +	phys_addr_t pg_off;
+> >  
+> >  	if (phys > ULONG_MAX) {
+> >  		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
+> > @@ -290,7 +306,9 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+> >  	if (!map)
+> >  		return NULL;
+> >  
+> > -	virt = ioremap(phys, size);
+> > +	pg_off = round_down(phys, PAGE_SIZE);
+> > +	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+> > +	virt = ioremap(pg_off, pg_sz);
+> >  	if (!virt) {
+> >  		kfree(map);
+> >  		return NULL;
+> 
+> Why not check the existing map (that is, acpi_map_lookup()) before the
+> ioremap()? In APEI tables, several GAS may be in same page, so we need
+> ioremap() for the first page only.
+
+Yes, even in other instances, several registers (GAS) may reside within
+the same page(s) of a previously, still active, ioremapping and thus
+only one ioremapping needs to be in place (with the subsequent
+mapping(s) that fall within the same page(s) of the existing, active,
+remapping then only needing to increment its reference).
+
+
+In the existing implementation - atomicio.c:acpi_pre_map() - there is a
+check at the beginning of the routine to see if a new mapping fits
+within the page(s) of a previous entry's page(s) that is still active:
+__acpi_try_ioremap().  Then later in the same routine, the same
+__acpi_try_ioremap() check has to be made again due to a potential mp
+race between the initial check and the insertion of a potentially new
+entry onto the list.
+
+Since the second check *must* take place, due to the possible race, I
+decided to skip the initial check in the re-factored implementation
+knowing that such a situation would ultimately still be caught by it
+(the second check) and handled correctly: a subsequent, overlapping,
+mapping is caught by the "tmp_map = acpi_map_lookup()" below, the
+reference to the initial, active, remapping incremented, and the
+overlapping mapping is "backed out".
+
+Do you see any issues with such an approach?
+
+Thanks,
+
+Myron
+> 
+> Best Regards,
+> Huang Ying
+> 
+> > @@ -298,21 +316,40 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+> >  
+> >  	INIT_LIST_HEAD(&map->list);
+> >  	map->virt = virt;
+> > -	map->phys = phys;
+> > -	map->size = size;
+> > +	map->phys = pg_off;
+> > +	map->size = pg_sz;
+> > +	kref_init(&map->ref);
+> >  
+> >  	spin_lock_irqsave(&acpi_ioremap_lock, flags);
+> > +	/* Check if page has already been mapped. */
+> > +	tmp_map = acpi_map_lookup(phys, size);
+> > +	if (tmp_map) {
+> > +		kref_get(&tmp_map->ref);
+> > +		spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+> > +		iounmap(map->virt);
+> > +		kfree(map);
+> > +		return tmp_map->virt + (phys - tmp_map->phys);
+> > +	}
+> >  	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+> >  	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+> >  
+> > -	return virt;
+> > +	return map->virt + (phys - map->phys);
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+> >  
+> > +static void acpi_kref_del_iomap(struct kref *ref)
+> > +{
+> > +	struct acpi_ioremap *map;
+> > +
+> > +	map = container_of(ref, struct acpi_ioremap, ref);
+> > +	list_del_rcu(&map->list);
+> > +}
+> > +
+> >  void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+> >  {
+> >  	struct acpi_ioremap *map;
+> >  	unsigned long flags;
+> > +	int del;
+> >  
+> >  	if (!acpi_gbl_permanent_mmap) {
+> >  		__acpi_unmap_table(virt, size);
+> > @@ -328,9 +365,12 @@ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+> >  		return;
+> >  	}
+> >  
+> > -	list_del_rcu(&map->list);
+> > +	del = kref_put(&map->ref, acpi_kref_del_iomap);
+> >  	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
+> >  
+> > +	if (!del)
+> > +		return;
+> > +
+> >  	synchronize_rcu();
+> >  	iounmap(map->virt);
+> >  	kfree(map);
+> > 
+> 
+> 
+
+
+-- 
+Myron Stowe                             HP Open Source Linux Lab (OSLL)
 
