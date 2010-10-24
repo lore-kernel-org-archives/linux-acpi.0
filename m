@@ -1,24 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [Resend][PATCH] ACPI / Battery: Return -ENODEV for unknown values
- in get_property()
-Date: Sat, 23 Oct 2010 14:07:17 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010231407130.2565@localhost.localdomain>
-References: <201010231935.16178.rjw@sisk.pl>
+From: "CHARITY DONATION & ECOWAS" <donation@fdv.org>
+Subject: (unknown)
+Date: Sun, 24 Oct 2010 16:16:48 -0200 (FNT)
+Message-ID: <49243.41.203.64.243.1287944208.squirrel@41.203.64.243>
+Reply-To: ecowas00@aol.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:37960 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756204Ab0JWSH3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Oct 2010 14:07:29 -0400
-In-reply-to: <201010231935.16178.rjw@sisk.pl>
+Received: from mail.avellaneda-ba.gov.ar ([200.71.230.2]:55641 "EHLO
+	ns2.avellaneda-ba.gov.ar" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754649Ab0JXSkI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Oct 2010 14:40:08 -0400
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>, Sitsofe Wheeler <sitsofe@yahoo.com>
 
-applied
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+
+
+CHARITY DONATION & ECOWAS
+http://www.comm.ecowas.int/
+Worldwide Donation Program "helping one to help others...."
+==========================================
+I have been directed to inform you that you have been chosen for a cash
+grant of US$1,000,000.00 by the board of trustees of the above stated
+non-governmental aid organisation.
+
+Your grant number is B01-0147. Contact Rev David Rex via telephone
++234-8077-801517 email: ecowas00@aol.com, and provide these details:
+
+1).Full name.
+2).Address
+3).Telephone number. [Cell preferably]
+4).Occupation.
+
+Regards.
+Tracy Nicholson
+Coordinator.
+
 
