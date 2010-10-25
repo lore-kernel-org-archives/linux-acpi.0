@@ -1,34 +1,45 @@
-From: Webmaster Help Desk Support <health@utgsu.ca>
-Subject: Technical Support
-Date: Mon, 25 Oct 2010 13:50:16 -0400
-Message-ID: <20101025135016.39al2aioysock88g__40729.0842304521$1288050208$gmane$org@webmail.utgsu.ca>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for October 25 (acpi/apei-related)
+Date: Mon, 25 Oct 2010 16:51:45 -0700
+Message-ID: <20101025165145.1b48cd69.randy.dunlap@oracle.com>
+References: <20101025145834.9b68e026.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv3.cfsadmin.org ([67.205.74.171]:44523 "EHLO
-	srv3.cfsadmin.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab0JYXnX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 19:43:23 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20101025145834.9b68e026.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, 25 Oct 2010 14:58:34 +1100 Stephen Rothwell wrote:
 
--- 
-You have reached the limit of your email quota.
-You will not be able to send or receive new mail until you boost your mailbox
-size.
+> Hi all,
 
-Click the below link and fill the form to upgrade your account.
-http://use.my/system-helpdeskdesk/
-
-Technical Support
-192.168.0.1
-
+drivers/built-in.o: In function `herr_record_init':
+(.text+0x85149): undefined reference to `trace_clock_local'
+drivers/built-in.o: In function `herr_record_alloc':
+(.text+0x851ab): undefined reference to `trace_clock_local'
+drivers/built-in.o: In function `herr_record_alloc':
+(.text+0x8521c): undefined reference to `trace_clock_local'
 
 
+config ACPI_APEI
+	bool "ACPI Platform Error Interface (APEI)"
+	depends on X86
+	select HERR_DEV_CORE
 
+but kernel/trace/trace_clock is not built unless one of these symbols
+is enabled:
+
+obj-$(CONFIG_FUNCTION_TRACER) += trace/
+obj-$(CONFIG_TRACING) += trace/
+obj-$(CONFIG_X86_DS) += trace/
+obj-$(CONFIG_RING_BUFFER) += trace/
+
+and in this case, none of these is enabled.
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
