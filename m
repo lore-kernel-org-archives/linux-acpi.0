@@ -1,86 +1,63 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
- Source POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 16:58:32 +0800
-Message-ID: <1287997112.2862.322.camel@yhuang-dev>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
-	 <1287992610-14996-10-git-send-email-ying.huang@intel.com>
-	 <20101025084553.GA27119@elte.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 30/60] ACPICA: Change type of _TZ from ThermalZone to Device
+Date: Mon, 25 Oct 2010 02:20:38 -0400
+Message-ID: <81256669aaaa8b06a617f8d0613cb7fb24f8b910.1287987547.git.len.brown@intel.com>
+References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31550 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751856Ab0JYI6f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 04:58:35 -0400
-In-Reply-To: <20101025084553.GA27119@elte.hu>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:38306 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab0JYJLC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 05:11:02 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LAU004W59ICTPC0@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 04:11:01 -0500 (CDT)
+In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
+In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
+References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-On Mon, 2010-10-25 at 16:45 +0800, Ingo Molnar wrote:
-> * Huang Ying <ying.huang@intel.com> wrote:
-> 
-> > Generic Hardware Error Source provides a way to report platform
-> > hardware errors (such as that from chipset). It works in so called
-> > "Firmware First" mode, that is, hardware errors are reported to
-> > firmware firstly, then reported to Linux by firmware. This way, some
-> > non-standard hardware error registers or non-standard hardware link
-> > can be checked by firmware to produce more valuable hardware error
-> > information for Linux.
-> > 
-> > This patch adds POLL/IRQ/NMI notification types support.
-> > 
-> > Because the memory area used to transfer hardware error information
-> > from BIOS to Linux can be determined only in NMI, IRQ or timer
-> > handler, but general ioremap can not be used in atomic context, so a
-> > special version of atomic ioremap is implemented for that.
-> > 
-> > Signed-off-by: Huang Ying <ying.huang@intel.com>
-> > Reviewed-by: Andi Kleen <ak@linux.intel.com>
-> > ---
-> >  arch/x86/kernel/acpi/boot.c |    1 
-> >  arch/x86/kernel/dumpstack.c |    1 
-> >  drivers/acpi/apei/ghes.c    |  397 ++++++++++++++++++++++++++++++++++++--------
-> >  kernel/panic.c              |    1 
-> >  lib/ioremap.c               |    2 
-> >  mm/vmalloc.c                |    1 
-> >  6 files changed, 333 insertions(+), 70 deletions(-)
-> 
-> WTF?
-> 
-> Sigh, please integrate all this into EDAC (drivers/edac/) properly, instead of 
-> turning it into YET ANOTHER hardware vendor special hw-errors thing. We can do 
-> better than this. EDAC is almost there: it has support for Nehalem, AMD, a couple
-> of older chips.
+From: Bob Moore <robert.moore@intel.com>
 
-I think APEI (ACPI Platform Error Interface) is another driver. Why
-integrate two drivers?
+The type of ThermalZone was confusing hosts as they process the
+various ThermalZone objects. ACPICA BZ 876.
 
-> Guys, instead of carving out a special driver area where you can produce crap 
-> without anyone looking too much, and pretending that the EDAC code does not exist, 
-> please try to work with others who are aiming higher and who are using saner 
-> interfaces.
-> 
-> Just look at the higher level structure in drivers/acpi/apei/:
-> 
->   apei-base.c  apei-internal.h  cper.c  einj.c  erst.c  erst-dbg.c  ghes.c  hest.c  Kconfig  Makefile
-> 
-> ghes, einj, cper, erst? Someone's been abbreviating too much.
+http://www.acpica.org/bugzilla/show_bug.cgi?id=876
 
-Maybe they are not good name. But they are defined in ACPI
-specification. Using the same name makes it easier for people to link
-the specification to corresponding implementation.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/acpica/utglobal.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-> einj.c: it's about the 3rd separate 'error injection' concept that got introduced 
-> ...
-
-EINJ is a true platform feature, not just software feature. We need to
-support it to debug various hardware error features.
-
-Best Regards,
-Huang Ying
-
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index 45f6334..4a5dcaa 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -154,14 +154,16 @@ ACPI_EXPORT_SYMBOL(acpi_format_exception)
+  * 1) _SB_ is defined to be a device to allow \_SB_._INI to be run
+  *    during the initialization sequence.
+  * 2) _TZ_ is defined to be a thermal zone in order to allow ASL code to
+- *    perform a Notify() operation on it.
++ *    perform a Notify() operation on it. 09/2010: Changed to type Device.
++ *    This still allows notifies, but does not confuse host code that
++ *    searches for valid thermal_zone objects.
+  */
+ const struct acpi_predefined_names acpi_gbl_pre_defined_names[] = {
+ 	{"_GPE", ACPI_TYPE_LOCAL_SCOPE, NULL},
+ 	{"_PR_", ACPI_TYPE_LOCAL_SCOPE, NULL},
+ 	{"_SB_", ACPI_TYPE_DEVICE, NULL},
+ 	{"_SI_", ACPI_TYPE_LOCAL_SCOPE, NULL},
+-	{"_TZ_", ACPI_TYPE_THERMAL, NULL},
++	{"_TZ_", ACPI_TYPE_DEVICE, NULL},
+ 	{"_REV", ACPI_TYPE_INTEGER, (char *)ACPI_CA_SUPPORT_LEVEL},
+ 	{"_OS_", ACPI_TYPE_STRING, ACPI_OS_NAME},
+ 	{"_GL_", ACPI_TYPE_MUTEX, (char *)1},
+-- 
+1.7.3.2.90.gd4c43
 
