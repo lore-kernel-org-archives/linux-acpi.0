@@ -1,72 +1,95 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 20/60] acpi-cpufreq: fix a memleak when unloading driver
-Date: Mon, 25 Oct 2010 02:20:28 -0400
-Message-ID: <dab5fff14df2cd16eb1ad4c02e83915e1063fece.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 40/60] ACPI dock: move some functions to .init.text
+Date: Mon, 25 Oct 2010 02:20:48 -0400
+Message-ID: <d38a5edf812c2f715242aa20b6beb785939a0096.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:50545 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab0JYHLK (ORCPT
+	with ESMTP id S1753281Ab0JYHLK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:10 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00FPR3YCZ7J4@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:07 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:08 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+=46rom: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
 
-We didn't free per_cpu(acfreq_data, cpu)->freq_table
-when acpi_freq driver is unloaded.
+find_dock and find_bay are only called by dock_init which lives in
+=2Einit.text dock_add is only called by find_dock and find_bay.  So all
+three functions can be moved to .init.text, too.
 
-Resulting in the following messages in /sys/kernel/debug/kmemleak:
+This fixes:
 
-unreferenced object 0xf6450e80 (size 64):
-  comm "modprobe", pid 1066, jiffies 4294677317 (age 19290.453s)
-  hex dump (first 32 bytes):
-    00 00 00 00 e8 a2 24 00 01 00 00 00 00 9f 24 00  ......$.......$.
-    02 00 00 00 00 6a 18 00 03 00 00 00 00 35 0c 00  .....j.......5..
-  backtrace:
-    [<c123ba97>] kmemleak_alloc+0x27/0x50
-    [<c109f96f>] __kmalloc+0xcf/0x110
-    [<f9da97ee>] acpi_cpufreq_cpu_init+0x1ee/0x4e4 [acpi_cpufreq]
-    [<c11cd8d2>] cpufreq_add_dev+0x142/0x3a0
-    [<c11920b7>] sysdev_driver_register+0x97/0x110
-    [<c11cce56>] cpufreq_register_driver+0x86/0x140
-    [<f9dad080>] 0xf9dad080
-    [<c1001130>] do_one_initcall+0x30/0x160
-    [<c10626e9>] sys_init_module+0x99/0x1e0
-    [<c1002d97>] sysenter_do_call+0x12/0x26
-    [<ffffffff>] 0xffffffff
+        WARNING: vmlinux.o(.text+0x2134b7): Section mismatch in referen=
+ce from the function dock_add() to the function .init.text:platform_dev=
+ice_register_resndata()
+        The function dock_add() references
+        the function __init platform_device_register_resndata().
+        This is often because dock_add lacks a __init
+        annotation or the annotation of platform_device_register_resnda=
+ta is wrong.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=15807#c21
+for a build with unset CONFIG_MODULES.
 
-Tested-by: Toralf Forster <toralf.foerster@gmx.de>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/acpi/dock.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-index cd8da24..a2baafb 100644
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -701,6 +701,7 @@ static int acpi_cpufreq_cpu_exit(struct cpufreq_policy *policy)
- 		per_cpu(acfreq_data, policy->cpu) = NULL;
- 		acpi_processor_unregister_performance(data->acpi_data,
- 						      policy->cpu);
-+		kfree(data->freq_table);
- 		kfree(data);
- 	}
- 
--- 
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 3fe29e9..2b16563 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -929,7 +929,7 @@ static struct attribute_group dock_attribute_group =
+=3D {
+  * allocated and initialize a new dock station device.  Find all devic=
+es
+  * that are on the dock station, and register for dock event notificat=
+ions.
+  */
+-static int dock_add(acpi_handle handle)
++static int __init dock_add(acpi_handle handle)
+ {
+ 	int ret, id;
+ 	struct dock_station ds, *dock_station;
+@@ -1023,7 +1023,7 @@ static int dock_remove(struct dock_station *ds)
+  *
+  * This is called by acpi_walk_namespace to look for dock stations.
+  */
+-static acpi_status
++static __init acpi_status
+ find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+ 	if (is_dock(handle))
+@@ -1032,7 +1032,7 @@ find_dock(acpi_handle handle, u32 lvl, void *cont=
+ext, void **rv)
+ 	return AE_OK;
+ }
+=20
+-static acpi_status
++static __init acpi_status
+ find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+ 	/* If bay is a dock, it's already handled */
+--=20
 1.7.3.2.90.gd4c43
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
