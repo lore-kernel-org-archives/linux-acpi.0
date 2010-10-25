@@ -1,120 +1,281 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 1/9] ACPI, APEI, Add ERST record ID cache
-Date: Mon, 25 Oct 2010 10:08:27 +0800
-Message-ID: <1287972507.2862.302.camel@yhuang-dev>
-References: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
-	 <1287538620-7442-2-git-send-email-ying.huang@intel.com>
-	 <20101022120404.GF10456@basil.fritz.box>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: [RFC PATCH 1/4] IPMI: Add one interface to get more info of
+ low-level IPMI device
+Date: Sun, 24 Oct 2010 22:25:49 -0500
+Message-ID: <4CC4F8BD.80900@acm.org>
+References: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+ <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:63797 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752004Ab0JYCIa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Oct 2010 22:08:30 -0400
-In-Reply-To: <20101022120404.GF10456@basil.fritz.box>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:57781 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744Ab0JYD0E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Oct 2010 23:26:04 -0400
+Received: from wf-rch.minyard.local ([unknown] [173.57.145.237])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LAT006Q2TJ2FZN1@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 24 Oct 2010 22:25:51 -0500 (CDT)
+In-reply-to: <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: yakui.zhao@intel.com
+Cc: openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi, Andi,
+Well, no, you are returning a pointer to something that is in the smi 
+data structure.  For that you would need a refcount, because that 
+structure can cease to exist asynchronously to your code.  Instead, just 
+pass in the structure you want to fill in.  Like:
 
-On Fri, 2010-10-22 at 20:04 +0800, Andi Kleen wrote:
-> On Wed, Oct 20, 2010 at 09:36:52AM +0800, Huang Ying wrote:
-> > 1
-> > 			2
-> > 3
-> > 			4
-> > -1
-> > 			-1
-> > 
-> > where -1 signals there is no more record ID.
-> > 
-> > Reader 1 has no chance to check record 2 and 4, while reader 2 has no
-> > chance to check record 1 and 3. And any other GET_NEXT_RECORD_ID will
-> > return -1, that is, other readers will has no chance to check any
-> > record even they are not cleared by anyone.
-> > 
-> > This makes raw GET_NEXT_RECORD_ID not suitable for usage of multiple
-> > users.
-> > 
-> > To solve the issue, an in memory ERST record ID cache is designed and
-> > implemented. When enumerating record ID, the ID returned by
-> > GET_NEXT_RECORD_ID is added into cache in addition to be returned to
-> > caller. So other readers can check the cache to get all record ID
-> > available.
-> 
-> Generally it looks ok, just a minor cleanup nit below.
-> 
-> Reviewed-by: Andi Kleen <ak@linux.intel.com>
+int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data)
+{
+	/* checks here */
 
-Thanks.
+	handlers = intf->handlers;
+	rv = handlers->get_smi_info(intf->send_info, data);
+}
 
-> > +static int erst_record_id_cache_add_one(void)
-> > +{
-> > +	u64 id, prev_id, first_id;
-> > +	int i, rc;
-> > +	struct erst_record_id_entry *entries;
-> > +	unsigned long flags;
-> > +
-> > +	id = prev_id = first_id = APEI_ERST_INVALID_RECORD_ID;
-> > +retry:
-> > +	spin_lock_irqsave(&erst_lock, flags);
-> > +	rc = __erst_get_next_record_id(&id);
-> > +	spin_unlock_irqrestore(&erst_lock, flags);
-> > +	if (rc == -ENOENT)
-> > +		return 0;
-> > +	if (rc)
-> > +		return rc;
-> > +	if (id == APEI_ERST_INVALID_RECORD_ID)
-> > +		return 0;
-> > +	/* can not skip current ID, or look back to first ID */
-> > +	if (id == prev_id || id == first_id)
-> > +		return 0;
-> > +	if (first_id == APEI_ERST_INVALID_RECORD_ID)
-> > +		first_id = id;
-> > +	prev_id = id;
-> > +
-> > +	entries = erst_record_id_cache.entries;
-> > +	for (i = 0; i < erst_record_id_cache.len; i++) {
-> > +		if (!entries[i].cleared && entries[i].id == id)
-> > +			break;
-> > +	}
-> > +	/* record id already in cache, try next */
-> > +	if (i < erst_record_id_cache.len)
-> > +		goto retry;
-> > +	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
-> > +		int new_size, alloc_size;
-> > +		struct erst_record_id_entry *new_entries;
-> > +
-> > +		new_size = erst_record_id_cache.size * 2;
-> > +		new_size = max_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MIN);
-> > +		new_size = min_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MAX);
-> 
-> This is clamp_t() 
+static int get_smi_info(void *send_info,
+			struct ipmi_smi_info *data)
+{
+	struct smi_info *new_smi = send_info;
 
-Yes. Will change it.
+	data->smi_info.dev = new_smi->dev;
+	data->addr_src = new_smi->addr_source;
+	data->smi_info.addr_info = new_smi->addr_info;
 
-> > +		if (new_size <= erst_record_id_cache.size) {
-> > +			if (printk_ratelimit())
-> > +				pr_warning(FW_WARN ERST_PFX
-> > +					   "too many record ID!\n");
-> > +			return 0;
-> > +		}
-> > +		alloc_size = new_size * sizeof(struct erst_record_id_entry);
-> > +		if (alloc_size < PAGE_SIZE)
-> > +			new_entries = kmalloc(alloc_size, GFP_KERNEL);
-> > +		else
-> > +			new_entries = vmalloc(alloc_size);
-> 
-> This is essentially kremalloc with vmalloc. Since this a common
-> pattern it would be nicer to put a generic helper for this somewhere.
+	return 0;
+}
 
-Yes. But will try to do that in another patch.
 
-Best Regards,
-Huang Ying
 
+Why are you passing an address type in to the function?  That means you 
+would have to know the address type to get anything out of if.  It would 
+be better to just return the info and let the user do the comparison.  
+That way, if something wanted to fetch the info to get the device, or 
+some other info, you don't have to try every address type.
+
+Speaking of the device, that is a refcounted structure.  You can't just 
+pass it back without doing refcounts on it.
+
+Can you rename the union addr_info, and comment that which union 
+structure is used depends on the address type?
+
+Also, I don't know anything about this ACPI handle, but is that a 
+permanent structure?  Can you just grab it like you do and pass it 
+around?  I would guess not.
+
+-corey
+
+On 10/22/2010 04:10 AM, yakui.zhao@intel.com wrote:
+> From: Zhao Yakui<yakui.zhao@intel.com>
+>
+> The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
+> In order to communicate with the correct IPMI device, it should be confirmed
+>   whether it is what we wanted especially on the system with multiple IPMI
+> devices. But the new_smi callback function of smi_watcher provides very
+> limited info(only the interface number and dev pointer) and there is no
+> detailed info about the low level interface. For example: which mechansim
+> registers the IPMI interface(ACPI, PCI, DMI and so on).
+>
+> This is to add one interface that can get more info of low-level IPMI
+> device. For example: the ACPI device handle will be returned for the pnp_acpi
+> IPMI device.
+>
+> Signed-off-by: Zhao Yakui<yakui.zhao@intel.com>
+> ---
+> In this patch only the info of pnp_acpi IPMI is provided. If the detailed info
+> is also required for other mechanism, please add them in the structure of
+> ipmi_smi_info.
+>
+>   drivers/char/ipmi/ipmi_msghandler.c |   26 ++++++++++++++++++++++++++
+>   drivers/char/ipmi/ipmi_si_intf.c    |   28 ++++++++++++++++++++++++----
+>   include/linux/ipmi.h                |   23 +++++++++++++++++++++++
+>   include/linux/ipmi_smi.h            |   11 +++++++++++
+>   4 files changed, 84 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+> index 4f3f8c9..6f4da59 100644
+> --- a/drivers/char/ipmi/ipmi_msghandler.c
+> +++ b/drivers/char/ipmi/ipmi_msghandler.c
+> @@ -970,6 +970,32 @@ out_kfree:
+>   }
+>   EXPORT_SYMBOL(ipmi_create_user);
+>
+> +int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
+> +			struct ipmi_smi_info **data)
+> +{
+> +	int           rv = 0;
+> +	ipmi_smi_t    intf;
+> +	struct ipmi_smi_handlers *handlers;
+> +
+> +	mutex_lock(&ipmi_interfaces_mutex);
+> +	list_for_each_entry_rcu(intf,&ipmi_interfaces, link) {
+> +		if (intf->intf_num == if_num)
+> +			goto found;
+> +	}
+> +	/* Not found, return an error */
+> +	rv = -EINVAL;
+> +	mutex_unlock(&ipmi_interfaces_mutex);
+> +	return rv;
+> +
+> +found:
+> +	handlers = intf->handlers;
+> +	rv = handlers->get_smi_info(intf->send_info, type, data);
+> +	mutex_unlock(&ipmi_interfaces_mutex);
+> +
+> +	return rv;
+> +}
+> +EXPORT_SYMBOL(ipmi_get_smi_info);
+> +
+>   static void free_user(struct kref *ref)
+>   {
+>   	ipmi_user_t user = container_of(ref, struct ipmi_user, refcount);
+> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+> index 7bd7c45..73b1c82 100644
+> --- a/drivers/char/ipmi/ipmi_si_intf.c
+> +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> @@ -57,6 +57,7 @@
+>   #include<asm/irq.h>
+>   #include<linux/interrupt.h>
+>   #include<linux/rcupdate.h>
+> +#include<linux/ipmi.h>
+>   #include<linux/ipmi_smi.h>
+>   #include<asm/io.h>
+>   #include "ipmi_si_sm.h"
+> @@ -107,10 +108,6 @@ enum si_type {
+>   };
+>   static char *si_to_str[] = { "kcs", "smic", "bt" };
+>
+> -enum ipmi_addr_src {
+> -	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+> -	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> -};
+>   static char *ipmi_addr_src_to_str[] = { NULL, "hotmod", "hardcoded", "SPMI",
+>   					"ACPI", "SMBIOS", "PCI",
+>   					"device-tree", "default" };
+> @@ -291,6 +288,7 @@ struct smi_info {
+>   	struct task_struct *thread;
+>
+>   	struct list_head link;
+> +	struct ipmi_smi_info smi_data;
+>   };
+>
+>   #define smi_inc_stat(smi, stat) \
+> @@ -1186,6 +1184,22 @@ static int smi_start_processing(void       *send_info,
+>   	return 0;
+>   }
+>
+> +static int get_smi_info(void *send_info,
+> +			enum ipmi_addr_src type,
+> +			struct ipmi_smi_info **data)
+> +{
+> +	struct smi_info *new_smi = send_info;
+> +	struct ipmi_smi_info *smi_data =&new_smi->smi_data;
+> +
+> +	if (new_smi->addr_source != type)
+> +		return -EINVAL;
+> +
+> +	smi_data->addr_src = type;
+> +
+> +	*data = smi_data;
+> +	return 0;
+> +}
+> +
+>   static void set_maintenance_mode(void *send_info, int enable)
+>   {
+>   	struct smi_info   *smi_info = send_info;
+> @@ -1197,6 +1211,7 @@ static void set_maintenance_mode(void *send_info, int enable)
+>   static struct ipmi_smi_handlers handlers = {
+>   	.owner                  = THIS_MODULE,
+>   	.start_processing       = smi_start_processing,
+> +	.get_smi_info		= get_smi_info,
+>   	.sender			= sender,
+>   	.request_events		= request_events,
+>   	.set_maintenance_mode   = set_maintenance_mode,
+> @@ -2143,6 +2158,8 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+>   		return -ENOMEM;
+>
+>   	info->addr_source = SI_ACPI;
+> +	info->smi_data.smi_info.acpi_info.acpi_handle =
+> +				acpi_dev->handle;
+>   	printk(KERN_INFO PFX "probing via ACPI\n");
+>
+>   	handle = acpi_dev->handle;
+> @@ -3092,6 +3109,7 @@ static int try_smi_init(struct smi_info *new_smi)
+>   {
+>   	int rv = 0;
+>   	int i;
+> +	struct ipmi_smi_info *smi_data =&new_smi->smi_data;
+>
+>   	printk(KERN_INFO PFX "Trying %s-specified %s state"
+>   	       " machine at %s address 0x%lx, slave address 0x%x,"
+> @@ -3217,6 +3235,8 @@ static int try_smi_init(struct smi_info *new_smi)
+>   		new_smi->dev_registered = 1;
+>   	}
+>
+> +	smi_data->dev = new_smi->dev;
+> +
+>   	rv = ipmi_register_smi(&handlers,
+>   			       new_smi,
+>   			&new_smi->device_id,
+> diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
+> index 65aae34..1ce428f 100644
+> --- a/include/linux/ipmi.h
+> +++ b/include/linux/ipmi.h
+> @@ -454,6 +454,29 @@ unsigned int ipmi_addr_length(int addr_type);
+>   /* Validate that the given IPMI address is valid. */
+>   int ipmi_validate_addr(struct ipmi_addr *addr, int len);
+>
+> +enum ipmi_addr_src {
+> +	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+> +	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> +};
+> +struct ipmi_smi_info{
+> +	enum ipmi_addr_src addr_src;
+> +	struct device *dev;
+> +	union {
+> +		/*
+> +		 * Now only SI_ACPI info is provided. If the info is required
+> +		 * for other type, please add it
+> +		 */
+> +#ifdef CONFIG_ACPI
+> +		struct {
+> +			void *acpi_handle;
+> +		} acpi_info;
+> +#endif
+> +	} smi_info;
+> +};
+> +
+> +/* This is to get the private info of ipmi_smi_t. The pointer is returned */
+> +extern int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
+> +		struct ipmi_smi_info **data);
+>   #endif /* __KERNEL__ */
+>
+>
+> diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
+> index 4b48318..bfa8f40 100644
+> --- a/include/linux/ipmi_smi.h
+> +++ b/include/linux/ipmi_smi.h
+> @@ -86,6 +86,17 @@ struct ipmi_smi_handlers {
+>   	int (*start_processing)(void       *send_info,
+>   				ipmi_smi_t new_intf);
+>
+> +	/*
+> +	 * Get the detailed private info of the low level interface and return
+> +	 * the corresponding pointer.
+> +	 * For example: the ACPI device handle will be returned for the
+> +	 * pnp_acpi IPMI device. Of course it will firstly compare the
+> +	 * interface type of low-level interface(Hardcoded type, DMI,
+> +	 * ACPI and so on). If the type doesn't match, it will return -EINVAL.
+> +	 */
+> +	int (*get_smi_info)(void *send_info, enum ipmi_addr_src type,
+> +				struct ipmi_smi_info **data);
+> +
+>   	/* Called to enqueue an SMI message to be sent.  This
+>   	   operation is not allowed to fail.  If an error occurs, it
+>   	   should report back the error in a received message.  It may
+>    
 
