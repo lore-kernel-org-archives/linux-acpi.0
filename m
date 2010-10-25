@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 23/60] ACPI ac/battery/sbs: sysfs I/F always built in,
- procfs I/F disabled by default
-Date: Mon, 25 Oct 2010 02:20:31 -0400
-Message-ID: <1b3d4c3b9a597e216c08bff2c59a8de872ef2d09.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 25/60] ACPI thermal: remove deprecated procfs I/F
+Date: Mon, 25 Oct 2010 02:20:33 -0400
+Message-ID: <c57b62f5b1e6dd69ff8c96f6db7f86ea31c0e21f.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:63743 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155Ab0JYILM (ORCPT
+	with ESMTP id S1753837Ab0JYILM (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:12 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:10 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:11 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
@@ -24,420 +23,513 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-ACPI AC/Battery/SBS driver has different kernel option for procfs and sysfs I/F.
+Remove the deprecated ACPI thermal driver procfs I/F,
+as stated in the changelog of commit 43d9f87b79804f2d75d9d8a81c862b179f055a15
 
-This patch,
-1. Change CONFIG_ACPI_PROCFS_POWER to 'n' by default so that we can remove it in the next release or two.
-2. Remove CONFIG_ACPI_SYSFS_POWER and always build in the sysfs I/F of these drivers.
+sysfs I/F is available at /sys/class/thermal/thermal_zoneX/
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig   |   11 +++--------
- drivers/acpi/ac.c      |   14 --------------
- drivers/acpi/battery.c |   21 ---------------------
- drivers/acpi/sbs.c     |   25 -------------------------
- 4 files changed, 3 insertions(+), 68 deletions(-)
+ drivers/acpi/thermal.c |  436 +-----------------------------------------------
+ 1 files changed, 1 insertions(+), 435 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 88681ac..0f9de2b 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -66,7 +66,6 @@ config ACPI_PROCFS
- config ACPI_PROCFS_POWER
- 	bool "Deprecated power /proc/acpi directories"
- 	depends on PROC_FS
--	default y
- 	help
- 	  For backwards compatibility, this option allows
-           deprecated power /proc/acpi/ directories to exist, even when
-@@ -90,13 +89,6 @@ config ACPI_POWER_METER
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called power-meter.
- 
--config ACPI_SYSFS_POWER
--	bool "Future power /sys interface"
--	select POWER_SUPPLY
--	default y
--	help
--	  Say N to disable power /sys interface
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 2f8f171..5a27b0a 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -37,12 +37,6 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
 -
- config ACPI_EC_DEBUGFS
- 	tristate "EC read/write access through /sys/kernel/debug/ec"
- 	default n
-@@ -136,6 +128,7 @@ config ACPI_PROC_EVENT
- config ACPI_AC
- 	tristate "AC Adapter"
- 	depends on X86
-+	select POWER_SUPPLY
- 	default y
- 	help
- 	  This driver supports the AC Adapter object, which indicates
-@@ -148,6 +141,7 @@ config ACPI_AC
- config ACPI_BATTERY
- 	tristate "Battery"
- 	depends on X86
-+	select POWER_SUPPLY
- 	default y
- 	help
- 	  This driver adds support for battery information through
-@@ -364,6 +358,7 @@ config ACPI_HOTPLUG_MEMORY
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
-+	select POWER_SUPPLY
- 	help
- 	  This driver supports the Smart Battery System, another
- 	  type of access to battery information, found on some laptops.
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 56205a0..ba9afea 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -32,9 +32,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
+-#ifdef CONFIG_ACPI_PROCFS
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
 -#endif
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
-@@ -86,9 +84,7 @@ static struct acpi_driver acpi_ac_driver = {
- };
- 
- struct acpi_ac {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply charger;
--#endif
- 	struct acpi_device * device;
- 	unsigned long long state;
- };
-@@ -104,7 +100,6 @@ static const struct file_operations acpi_ac_fops = {
- 	.release = single_release,
- };
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int get_ac_property(struct power_supply *psy,
- 			   enum power_supply_property psp,
- 			   union power_supply_propval *val)
-@@ -123,7 +118,6 @@ static int get_ac_property(struct power_supply *psy,
- static enum power_supply_property ac_props[] = {
- 	POWER_SUPPLY_PROP_ONLINE,
- };
--#endif
- /* --------------------------------------------------------------------------
-                                AC Adapter Management
-    -------------------------------------------------------------------------- */
-@@ -247,9 +241,7 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
- 						  dev_name(&device->dev), event,
- 						  (u32) ac->state);
- 		acpi_notifier_call_chain(device, event, (u32) ac->state);
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
--#endif
- 	}
- 
- 	return;
-@@ -282,14 +274,12 @@ static int acpi_ac_add(struct acpi_device *device)
- #endif
- 	if (result)
- 		goto end;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	ac->charger.name = acpi_device_bid(device);
- 	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	ac->charger.properties = ac_props;
- 	ac->charger.num_properties = ARRAY_SIZE(ac_props);
- 	ac->charger.get_property = get_ac_property;
- 	power_supply_register(&ac->device->dev, &ac->charger);
--#endif
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
-@@ -316,10 +306,8 @@ static int acpi_ac_resume(struct acpi_device *device)
- 	old_state = ac->state;
- 	if (acpi_ac_get_state(ac))
- 		return 0;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (old_state != ac->state)
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
--#endif
- 	return 0;
- }
- 
-@@ -333,10 +321,8 @@ static int acpi_ac_remove(struct acpi_device *device, int type)
- 
- 	ac = acpi_driver_data(device);
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_ac_remove_fs(device);
- #endif
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 9841720..7b8787b 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -42,10 +42,7 @@
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
 -
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
--#endif
- 
- #define PREFIX "ACPI: "
- 
-@@ -102,9 +99,7 @@ enum {
- 
- struct acpi_battery {
- 	struct mutex lock;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply bat;
--#endif
- 	struct acpi_device *device;
- 	unsigned long update_time;
- 	int rate_now;
-@@ -141,7 +136,6 @@ inline int acpi_battery_present(struct acpi_battery *battery)
- 	return battery->device->status.battery_present;
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int acpi_battery_technology(struct acpi_battery *battery)
- {
- 	if (!strcasecmp("NiCd", battery->type))
-@@ -281,7 +275,6 @@ static enum power_supply_property energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_MANUFACTURER,
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
--#endif
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- inline char *acpi_battery_units(struct acpi_battery *battery)
-@@ -492,7 +485,6 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
- 	return acpi_battery_set_alarm(battery);
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static ssize_t acpi_battery_alarm_show(struct device *dev,
- 					struct device_attribute *attr,
- 					char *buf)
-@@ -552,7 +544,6 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
- 	power_supply_unregister(&battery->bat);
- 	battery->bat.dev = NULL;
- }
--#endif
- 
- static void acpi_battery_quirks(struct acpi_battery *battery)
- {
-@@ -568,9 +559,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	if (result)
- 		return result;
- 	if (!acpi_battery_present(battery)) {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		sysfs_remove_battery(battery);
--#endif
- 		battery->update_time = 0;
- 		return 0;
- 	}
-@@ -582,10 +571,8 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (!battery->bat.dev)
- 		sysfs_add_battery(battery);
--#endif
- 	return acpi_battery_get_state(battery);
- }
- 
-@@ -867,26 +854,20 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
- static void acpi_battery_notify(struct acpi_device *device, u32 event)
- {
- 	struct acpi_battery *battery = acpi_driver_data(device);
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct device *old;
--#endif
- 
- 	if (!battery)
- 		return;
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	old = battery->bat.dev;
--#endif
- 	acpi_battery_update(battery);
- 	acpi_bus_generate_proc_event(device, event,
- 				     acpi_battery_present(battery));
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	/* acpi_battery_update could remove power_supply object */
- 	if (old && battery->bat.dev)
- 		power_supply_changed(&battery->bat);
--#endif
- }
- 
- static int acpi_battery_add(struct acpi_device *device)
-@@ -934,9 +915,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_battery_remove_fs(device);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	sysfs_remove_battery(battery);
--#endif
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
- 	return 0;
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 4ff76e8..e5dbedb 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -40,10 +40,7 @@
- #include <linux/timer.h>
  #include <linux/jiffies.h>
- #include <linux/delay.h>
--
--#ifdef CONFIG_ACPI_SYSFS_POWER
- #include <linux/power_supply.h>
--#endif
- 
- #include "sbshc.h"
- 
-@@ -85,9 +82,7 @@ static const struct acpi_device_id sbs_device_ids[] = {
- MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
- 
- struct acpi_battery {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply bat;
--#endif
- 	struct acpi_sbs *sbs;
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	struct proc_dir_entry *proc_entry;
-@@ -120,9 +115,7 @@ struct acpi_battery {
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
- 
- struct acpi_sbs {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	struct power_supply charger;
--#endif
- 	struct acpi_device *device;
- 	struct acpi_smb_hc *hc;
+ #include <linux/kmod.h>
+ #include <linux/reboot.h>
+@@ -195,61 +189,6 @@ struct acpi_thermal {
  	struct mutex lock;
-@@ -166,7 +159,6 @@ static inline int acpi_battery_scale(struct acpi_battery *battery)
- 	    acpi_battery_ipscale(battery);
- }
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static int sbs_get_ac_property(struct power_supply *psy,
- 			       enum power_supply_property psp,
- 			       union power_supply_propval *val)
-@@ -313,7 +305,6 @@ static enum power_supply_property sbs_energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_MANUFACTURER,
  };
  
--#endif
+-#ifdef CONFIG_ACPI_PROCFS
+-static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
+-static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_thermal_write_cooling_mode(struct file *,
+-					       const char __user *, size_t,
+-					       loff_t *);
+-static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+-					  size_t, loff_t *);
+-
+-static const struct file_operations acpi_thermal_state_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_thermal_state_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static const struct file_operations acpi_thermal_temp_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_thermal_temp_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static const struct file_operations acpi_thermal_trip_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_thermal_trip_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static const struct file_operations acpi_thermal_cooling_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_thermal_cooling_open_fs,
+-	.read = seq_read,
+-	.write = acpi_thermal_write_cooling_mode,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static const struct file_operations acpi_thermal_polling_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_thermal_polling_open_fs,
+-	.read = seq_read,
+-	.write = acpi_thermal_write_polling,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-#endif /* CONFIG_ACPI_PROCFS*/
+-
+ /* --------------------------------------------------------------------------
+                              Thermal Zone Management
+    -------------------------------------------------------------------------- */
+@@ -958,358 +897,6 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
+ 
  
  /* --------------------------------------------------------------------------
-                             Smart Battery System Management
-@@ -449,7 +440,6 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
- 	return result;
- }
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_PROCFS
+-static struct proc_dir_entry *acpi_thermal_dir;
+-
+-static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_thermal *tz = seq->private;
+-
+-
+-	if (!tz)
+-		goto end;
+-
+-	seq_puts(seq, "state:                   ");
+-
+-	if (!tz->state.critical && !tz->state.hot && !tz->state.passive
+-	    && !tz->state.active)
+-		seq_puts(seq, "ok\n");
+-	else {
+-		if (tz->state.critical)
+-			seq_puts(seq, "critical ");
+-		if (tz->state.hot)
+-			seq_puts(seq, "hot ");
+-		if (tz->state.passive)
+-			seq_puts(seq, "passive ");
+-		if (tz->state.active)
+-			seq_printf(seq, "active[%d]", tz->state.active_index);
+-		seq_puts(seq, "\n");
+-	}
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_thermal_state_seq_show, PDE(inode)->data);
+-}
+-
+-static int acpi_thermal_temp_seq_show(struct seq_file *seq, void *offset)
+-{
+-	int result = 0;
+-	struct acpi_thermal *tz = seq->private;
+-
+-
+-	if (!tz)
+-		goto end;
+-
+-	result = acpi_thermal_get_temperature(tz);
+-	if (result)
+-		goto end;
+-
+-	seq_printf(seq, "temperature:             %ld C\n",
+-		   KELVIN_TO_CELSIUS(tz->temperature));
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_thermal_temp_seq_show, PDE(inode)->data);
+-}
+-
+-static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_thermal *tz = seq->private;
+-	struct acpi_device *device;
+-	acpi_status status;
+-
+-	int i = 0;
+-	int j = 0;
+-
+-
+-	if (!tz)
+-		goto end;
+-
+-	if (tz->trips.critical.flags.valid)
+-		seq_printf(seq, "critical (S5):           %ld C%s",
+-			   KELVIN_TO_CELSIUS(tz->trips.critical.temperature),
+-			   nocrt ? " <disabled>\n" : "\n");
+-
+-	if (tz->trips.hot.flags.valid)
+-		seq_printf(seq, "hot (S4):                %ld C%s",
+-			   KELVIN_TO_CELSIUS(tz->trips.hot.temperature),
+-			   nocrt ? " <disabled>\n" : "\n");
+-
+-	if (tz->trips.passive.flags.valid) {
+-		seq_printf(seq,
+-			   "passive:                 %ld C: tc1=%lu tc2=%lu tsp=%lu devices=",
+-			   KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
+-			   tz->trips.passive.tc1, tz->trips.passive.tc2,
+-			   tz->trips.passive.tsp);
+-		for (j = 0; j < tz->trips.passive.devices.count; j++) {
+-			status = acpi_bus_get_device(tz->trips.passive.devices.
+-						     handles[j], &device);
+-			seq_printf(seq, "%4.4s ", status ? "" :
+-				   acpi_device_bid(device));
+-		}
+-		seq_puts(seq, "\n");
+-	} else {
+-		seq_printf(seq, "passive (forced):");
+-		if (tz->thermal_zone->forced_passive)
+-			seq_printf(seq, "        %i C\n",
+-				   tz->thermal_zone->forced_passive / 1000);
+-		else
+-			seq_printf(seq, "<not set>\n");
+-	}
+-
+-	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+-		if (!(tz->trips.active[i].flags.valid))
+-			break;
+-		seq_printf(seq, "active[%d]:               %ld C: devices=",
+-			   i,
+-			   KELVIN_TO_CELSIUS(tz->trips.active[i].temperature));
+-		for (j = 0; j < tz->trips.active[i].devices.count; j++){
+-			status = acpi_bus_get_device(tz->trips.active[i].
+-						     devices.handles[j],
+-						     &device);
+-			seq_printf(seq, "%4.4s ", status ? "" :
+-				   acpi_device_bid(device));
+-		}
+-		seq_puts(seq, "\n");
+-	}
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_thermal_trip_seq_show, PDE(inode)->data);
+-}
+-
+-static int acpi_thermal_cooling_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_thermal *tz = seq->private;
+-
+-
+-	if (!tz)
+-		goto end;
+-
+-	if (!tz->flags.cooling_mode)
+-		seq_puts(seq, "<setting not supported>\n");
+-	else
+-		seq_puts(seq, "0 - Active; 1 - Passive\n");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_thermal_cooling_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static ssize_t
+-acpi_thermal_write_cooling_mode(struct file *file,
+-				const char __user * buffer,
+-				size_t count, loff_t * ppos)
+-{
+-	struct seq_file *m = file->private_data;
+-	struct acpi_thermal *tz = m->private;
+-	int result = 0;
+-	char mode_string[12] = { '\0' };
+-
+-
+-	if (!tz || (count > sizeof(mode_string) - 1))
+-		return -EINVAL;
+-
+-	if (!tz->flags.cooling_mode)
+-		return -ENODEV;
+-
+-	if (copy_from_user(mode_string, buffer, count))
+-		return -EFAULT;
+-
+-	mode_string[count] = '\0';
+-
+-	result = acpi_thermal_set_cooling_mode(tz,
+-					       simple_strtoul(mode_string, NULL,
+-							      0));
+-	if (result)
+-		return result;
+-
+-	acpi_thermal_check(tz);
+-
+-	return count;
+-}
+-
+-static int acpi_thermal_polling_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_thermal *tz = seq->private;
+-
+-
+-	if (!tz)
+-		goto end;
+-
+-	if (!tz->thermal_zone->polling_delay) {
+-		seq_puts(seq, "<polling disabled>\n");
+-		goto end;
+-	}
+-
+-	seq_printf(seq, "polling frequency:       %d seconds\n",
+-		   (tz->thermal_zone->polling_delay / 1000));
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_thermal_polling_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
+-{
+-	if (!tz)
+-		return -EINVAL;
+-
+-	/* Convert value to deci-seconds */
+-	tz->polling_frequency = seconds * 10;
+-
+-	tz->thermal_zone->polling_delay = seconds * 1000;
+-
+-	if (tz->tz_enabled)
+-		thermal_zone_device_update(tz->thermal_zone);
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			  "Polling frequency set to %lu seconds\n",
+-			  tz->polling_frequency/10));
+-
+-	return 0;
+-}
+-
+-static ssize_t
+-acpi_thermal_write_polling(struct file *file,
+-			   const char __user * buffer,
+-			   size_t count, loff_t * ppos)
+-{
+-	struct seq_file *m = file->private_data;
+-	struct acpi_thermal *tz = m->private;
+-	int result = 0;
+-	char polling_string[12] = { '\0' };
+-	int seconds = 0;
+-
+-
+-	if (!tz || (count > sizeof(polling_string) - 1))
+-		return -EINVAL;
+-
+-	if (copy_from_user(polling_string, buffer, count))
+-		return -EFAULT;
+-
+-	polling_string[count] = '\0';
+-
+-	seconds = simple_strtoul(polling_string, NULL, 0);
+-
+-	result = acpi_thermal_set_polling(tz, seconds);
+-	if (result)
+-		return result;
+-
+-	acpi_thermal_check(tz);
+-
+-	return count;
+-}
+-
+-static int acpi_thermal_add_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *entry = NULL;
+-
+-
+-	if (!acpi_device_dir(device)) {
+-		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+-						     acpi_thermal_dir);
+-		if (!acpi_device_dir(device))
+-			return -ENODEV;
+-	}
+-
+-	/* 'state' [R] */
+-	entry = proc_create_data(ACPI_THERMAL_FILE_STATE,
+-				 S_IRUGO, acpi_device_dir(device),
+-				 &acpi_thermal_state_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -ENODEV;
+-
+-	/* 'temperature' [R] */
+-	entry = proc_create_data(ACPI_THERMAL_FILE_TEMPERATURE,
+-				 S_IRUGO, acpi_device_dir(device),
+-				 &acpi_thermal_temp_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -ENODEV;
+-
+-	/* 'trip_points' [R] */
+-	entry = proc_create_data(ACPI_THERMAL_FILE_TRIP_POINTS,
+-				 S_IRUGO,
+-				 acpi_device_dir(device),
+-				 &acpi_thermal_trip_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -ENODEV;
+-
+-	/* 'cooling_mode' [R/W] */
+-	entry = proc_create_data(ACPI_THERMAL_FILE_COOLING_MODE,
+-				 S_IFREG | S_IRUGO | S_IWUSR,
+-				 acpi_device_dir(device),
+-				 &acpi_thermal_cooling_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -ENODEV;
+-
+-	/* 'polling_frequency' [R/W] */
+-	entry = proc_create_data(ACPI_THERMAL_FILE_POLLING_FREQ,
+-				 S_IFREG | S_IRUGO | S_IWUSR,
+-				 acpi_device_dir(device),
+-				 &acpi_thermal_polling_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		return -ENODEV;
+-	return 0;
+-}
+-
+-static int acpi_thermal_remove_fs(struct acpi_device *device)
+-{
+-
+-	if (acpi_device_dir(device)) {
+-		remove_proc_entry(ACPI_THERMAL_FILE_POLLING_FREQ,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_THERMAL_FILE_COOLING_MODE,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_THERMAL_FILE_TRIP_POINTS,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_THERMAL_FILE_TEMPERATURE,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_THERMAL_FILE_STATE,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(acpi_device_bid(device), acpi_thermal_dir);
+-		acpi_device_dir(device) = NULL;
+-	}
+-
+-	return 0;
+-}
+-#else
+-static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
+-static inline int acpi_thermal_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_ACPI_PROCFS */
+-/* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
  
--#ifdef CONFIG_ACPI_SYSFS_POWER
- static ssize_t acpi_battery_alarm_show(struct device *dev,
- 					struct device_attribute *attr,
- 					char *buf)
-@@ -479,7 +469,6 @@ static struct device_attribute alarm_attr = {
- 	.show = acpi_battery_alarm_show,
- 	.store = acpi_battery_alarm_store,
- };
--#endif
- 
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc/acpi)
-@@ -798,7 +787,6 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 			&acpi_battery_state_fops, &acpi_battery_alarm_fops,
- 			battery);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	battery->bat.name = battery->name;
- 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
- 	if (!acpi_battery_mode(battery)) {
-@@ -819,7 +807,6 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 		goto end;
- 	battery->have_sysfs_alarm = 1;
-       end:
--#endif
- 	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       battery->name, battery->present ? "present" : "absent");
-@@ -828,17 +815,13 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 
- static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
- {
--#if defined(CONFIG_ACPI_SYSFS_POWER) || defined(CONFIG_ACPI_PROCFS_POWER)
- 	struct acpi_battery *battery = &sbs->battery[id];
--#endif
- 
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (battery->bat.dev) {
- 		if (battery->have_sysfs_alarm)
- 			device_remove_file(battery->bat.dev, &alarm_attr);
- 		power_supply_unregister(&battery->bat);
- 	}
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	if (battery->proc_entry)
- 		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
-@@ -859,14 +842,12 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+@@ -1428,17 +1015,11 @@ static int acpi_thermal_add(struct acpi_device *device)
  	if (result)
- 		goto end;
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	sbs->charger.name = "sbs-charger";
- 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	sbs->charger.properties = sbs_ac_props;
- 	sbs->charger.num_properties = ARRAY_SIZE(sbs_ac_props);
- 	sbs->charger.get_property = sbs_get_ac_property;
- 	power_supply_register(&sbs->device->dev, &sbs->charger);
--#endif
- 	printk(KERN_INFO PREFIX "%s [%s]: AC Adapter [%s] (%s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       ACPI_AC_DIR_NAME, sbs->charger_present ? "on-line" : "off-line");
-@@ -876,10 +857,8 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+ 		goto free_memory;
  
- static void acpi_charger_remove(struct acpi_sbs *sbs)
- {
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (sbs->charger.dev)
- 		power_supply_unregister(&sbs->charger);
--#endif
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	if (sbs->charger_entry)
- 		acpi_sbs_remove_fs(&sbs->charger_entry, acpi_ac_dir);
-@@ -900,9 +879,7 @@ static void acpi_sbs_callback(void *context)
- 					      ACPI_SBS_NOTIFY_STATUS,
- 					      sbs->charger_present);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
--#endif
+-	result = acpi_thermal_add_fs(device);
+-	if (result)
+-		goto unregister_thermal_zone;
+-
+ 	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       KELVIN_TO_CELSIUS(tz->temperature));
+ 	goto end;
+ 
+-unregister_thermal_zone:
+-	thermal_zone_device_unregister(tz->thermal_zone);
+ free_memory:
+ 	kfree(tz);
+ end:
+@@ -1454,7 +1035,6 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
+ 
+ 	tz = acpi_driver_data(device);
+ 
+-	acpi_thermal_remove_fs(device);
+ 	acpi_thermal_unregister_thermal_zone(tz);
+ 	mutex_destroy(&tz->lock);
+ 	kfree(tz);
+@@ -1580,19 +1160,9 @@ static int __init acpi_thermal_init(void)
+ 		return -ENODEV;
  	}
- 	if (sbs->manager_present) {
- 		for (id = 0; id < MAX_SBS_BAT; ++id) {
-@@ -919,9 +896,7 @@ static void acpi_sbs_callback(void *context)
- 						      ACPI_SBS_NOTIFY_STATUS,
- 						      bat->present);
- #endif
--#ifdef CONFIG_ACPI_SYSFS_POWER
- 			kobject_uevent(&bat->bat.dev->kobj, KOBJ_CHANGE);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
+-	if (!acpi_thermal_dir)
+-		return -ENODEV;
 -#endif
- 		}
- 	}
+-
+ 	result = acpi_bus_register_driver(&acpi_thermal_driver);
+-	if (result < 0) {
+-#ifdef CONFIG_ACPI_PROCFS
+-		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
+-#endif
++	if (result < 0)
+ 		return -ENODEV;
+-	}
+ 
+ 	return 0;
  }
+@@ -1602,10 +1172,6 @@ static void __exit acpi_thermal_exit(void)
+ 
+ 	acpi_bus_unregister_driver(&acpi_thermal_driver);
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
+-#endif
+-
+ 	return;
+ }
+ 
 -- 
 1.7.3.2.90.gd4c43
 
