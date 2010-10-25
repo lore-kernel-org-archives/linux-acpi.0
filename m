@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 51/60] ACPI, APEI, Report GHES error record with hardware error
- device core
-Date: Mon, 25 Oct 2010 02:20:59 -0400
-Message-ID: <631b82e5511f8ee4ccc9cf60c1980df9b1a89895.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 47/60] lock-less general memory allocator
+Date: Mon, 25 Oct 2010 02:20:55 -0400
+Message-ID: <0ce46f3ec321cf96fe2b151d4c4a4c924a0a16fa.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63725 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:63730 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816Ab0JYILG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:06 -0400
+	with ESMTP id S1753837Ab0JYILH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:07 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:06 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:07 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
@@ -24,270 +23,353 @@ Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Huang Ying <ying.huang@intel.com>
 
-One hardware error device (struct herr_dev) is created for each GHES
-in GHES platform device "probe" function.  Then when GHES hardware
-error handler is notified by firmware, the hardware error records will
-be reported on the struct herr_dev.
+Lock-less memory allocator, can be used to allocate/free memory in
+IRQ/NMI handler. This is useful for hardware error handling, which
+needs to collect hardware error information in IRQ/NMI handler.
 
-In the previous GHES support, only corrected memory error can be
-reported to user space via /dev/mcelog, now all kinds of hardware
-errors notified with SCI can be reported.
+The memory pages for lock-less memory allocator are pre-allocated
+during initialization. Bitmap is used to record allocated/free memory
+blocks. To support lock-less allocate/free operation, lock-less bitmap
+set/clear operations are used.
+
+The difference between this allocator and the gen_pool implementation
+in lib/genalloc.c is that memory can be allocated/freed by multiple
+users simultaneously without lock.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/apei/cper.c |   18 +++++++
- drivers/acpi/apei/ghes.c |  119 ++++++++++++++++++++++++++++++---------------
- include/linux/cper.h     |    2 +
- 3 files changed, 99 insertions(+), 40 deletions(-)
+ include/linux/llalloc.h |   27 +++++
+ lib/Kconfig             |    3 +
+ lib/Makefile            |    1 +
+ lib/llalloc.c           |  259 +++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 290 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/llalloc.h
+ create mode 100644 lib/llalloc.c
 
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index ef72fb1..7623b73 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -49,6 +49,24 @@ int herr_severity_to_cper(int herr_severity)
- }
- EXPORT_SYMBOL_GPL(herr_severity_to_cper);
+diff --git a/include/linux/llalloc.h b/include/linux/llalloc.h
+new file mode 100644
+index 0000000..8f7a9f3
+--- /dev/null
++++ b/include/linux/llalloc.h
+@@ -0,0 +1,27 @@
++#ifndef LLALLOC_H
++#define LLALLOC_H
++
++struct ll_pool;
++
++struct ll_pool_chunk {
++	atomic_t avail;
++	void *data;
++	struct ll_pool *pool;
++	unsigned long bitmap[0];
++};
++
++struct ll_pool {
++	int min_alloc_order;
++	int chunk_order;
++	int chunk_num;
++	struct ll_pool_chunk *chunks[0];
++};
++
++struct ll_pool *ll_pool_create(int min_alloc_order, int chunk_order,
++			       int chunk_num, int nid);
++void ll_pool_destroy(struct ll_pool *pool);
++void *ll_pool_alloc(struct ll_pool *pool, size_t len);
++void ll_pool_free(const void *p, size_t len);
++size_t ll_pool_avail(struct ll_pool *pool);
++size_t ll_pool_size(struct ll_pool *pool);
++#endif /* LLALLOC_H */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 948b50b..fdedd11 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -213,4 +213,7 @@ config LRU_CACHE
+ config LLIST
+ 	bool
  
-+int cper_severity_to_herr(int cper_severity)
++config LLALLOC
++	bool
++
+ endmenu
+diff --git a/lib/Makefile b/lib/Makefile
+index 7696e8d..18fb70f 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -107,6 +107,7 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic64.o
+ obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
+ 
+ obj-$(CONFIG_LLIST) += llist.o
++obj-$(CONFIG_LLALLOC) += llalloc.o
+ 
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
+diff --git a/lib/llalloc.c b/lib/llalloc.c
+new file mode 100644
+index 0000000..c31b02b
+--- /dev/null
++++ b/lib/llalloc.c
+@@ -0,0 +1,259 @@
++/*
++ * Lock-less memory allocator, This can be used to allocate/free
++ * memory in IRQ/NMI handler. This is useful for hardware error
++ * handling, which needs to collect hardware error information in
++ * IRQ/NMI handler.
++ *
++ * The memory pages for lock-less memory allocator are pre-allocated
++ * during initialization. Bitmap is used to record allocated/free
++ * memory blocks. To support lock-less allocate/free operation,
++ * lock-less bitmap set/clear operations are used.
++ *
++ * The difference between this allocator and the gen_pool
++ * implementation in lib/genalloc.c is that memory can be
++ * allocated/freed by multiple users simultaneously without lock.
++ *
++ * Copyright 2010 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/bitmap.h>
++#include <linux/slab.h>
++#include <linux/mm.h>
++#include <linux/llalloc.h>
++
++static inline void ll_page_set_chunk(struct page *page,
++				     struct ll_pool_chunk *chunk)
 +{
-+	switch (cper_severity) {
-+	case CPER_SEV_INFORMATIONAL:
-+		return HERR_SEV_NONE;
-+	case CPER_SEV_CORRECTED:
-+		return HERR_SEV_CORRECTED;
-+	case CPER_SEV_RECOVERABLE:
-+		return HERR_SEV_RECOVERABLE;
-+	case CPER_SEV_FATAL:
-+		return HERR_SEV_FATAL;
-+	default:
-+		/* Unknown, default to fatal */
-+		return HERR_SEV_FATAL;
++	page->lru.prev = (struct list_head *)chunk;
++}
++
++static inline struct ll_pool_chunk *ll_virt_to_pool_chunk(const void *p)
++{
++	struct page *page = virt_to_head_page(p);
++	return (struct ll_pool_chunk *)page->lru.prev;
++}
++
++static void ll_pool_chunk_destroy(struct ll_pool_chunk *chunk)
++{
++	int chunk_size = PAGE_SIZE << chunk->pool->chunk_order;
++
++	BUG_ON(atomic_read(&chunk->avail) != chunk_size);
++	__free_pages(virt_to_page(chunk->data), chunk->pool->chunk_order);
++	kfree(chunk);
++}
++
++/**
++ * ll_pool_destroy - destroy a lock-less memory pool
++ * @ pool: pool to destroy
++ *
++ * Destroy the lock-less memory pool. Verify that there are no
++ * outstanding allocations. Memory pages backed the lock-less
++ * allocator are freed.
++ */
++void ll_pool_destroy(struct ll_pool *pool)
++{
++	int i;
++
++	for (i = 0; i < pool->chunk_num; i++) {
++		if (pool->chunks[i])
++			ll_pool_chunk_destroy(pool->chunks[i]);
 +	}
 +}
-+EXPORT_SYMBOL_GPL(cper_severity_to_herr);
++EXPORT_SYMBOL_GPL(ll_pool_destroy);
 +
- /*
-  * CPER record ID need to be unique even after reboot, because record
-  * ID is used as index for ERST storage, while CPER records from
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 0d505e5..7939fc2 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -43,6 +43,7 @@
- #include <linux/kdebug.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
-+#include <linux/herror.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -74,6 +75,7 @@ struct ghes {
- 	struct list_head list;
- 	u64 buffer_paddr;
- 	unsigned long flags;
-+	struct herr_dev *herr_dev;
- };
- 
- /*
-@@ -238,9 +240,38 @@ static void ghes_clear_estatus(struct ghes *ghes)
- 	ghes->flags &= ~GHES_TO_CLEAR;
- }
- 
-+static void ghes_report(struct ghes *ghes)
++static struct ll_pool_chunk *ll_pool_chunk_create(struct ll_pool *pool, int nid)
 +{
-+	struct herr_record *ercd;
-+	struct herr_section *esec;
-+	struct acpi_hest_generic_status *estatus;
-+	unsigned int estatus_len, ercd_alloc_flags = 0;
-+	int ghes_sev;
++	struct ll_pool_chunk *chunk;
++	int chunk_size = PAGE_SIZE << pool->chunk_order;
++	int nbits = chunk_size >> pool->min_alloc_order;
++	int nbytes = sizeof(struct ll_pool_chunk) + \
++		DIV_ROUND_UP(nbits, BITS_PER_LONG) * sizeof(unsigned long);
++	struct page *page;
 +
-+	ghes_sev = ghes_severity(ghes->estatus->error_severity);
-+	if (ghes_sev >= GHES_SEV_PANIC)
-+		ercd_alloc_flags |= HERR_ALLOC_NO_BURST_CONTROL;
-+	estatus_len = apei_estatus_len(ghes->estatus);
-+	ercd = herr_record_alloc(HERR_RECORD_LEN_ROUND1(estatus_len),
-+				 ghes->herr_dev, ercd_alloc_flags);
-+	if (!ercd)
-+		return;
++	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
++	if (!chunk)
++		return NULL;
++	page = alloc_pages_node(nid, GFP_KERNEL, pool->chunk_order);
++	if (!page)
++		goto err_free_chunk;
++	chunk->data = page_address(page);
++	atomic_set(&chunk->avail, chunk_size);
++	ll_page_set_chunk(page, chunk);
++	chunk->pool = pool;
 +
-+	ercd->severity = cper_severity_to_herr(ghes->estatus->error_severity);
-+
-+	esec = herr_first_sec(ercd);
-+	esec->length = HERR_SEC_LEN_ROUND(estatus_len);
-+	esec->flags = 0;
-+	esec->type = HERR_TYPE_GESR;
-+
-+	estatus = herr_sec_data(esec);
-+	memcpy(estatus, ghes->estatus, estatus_len);
-+	herr_record_report(ercd, ghes->herr_dev);
++	return chunk;
++err_free_chunk:
++	kfree(chunk);
++	return NULL;
 +}
 +
- static void ghes_do_proc(struct ghes *ghes)
- {
--	int sev, processed = 0;
-+	int sev;
- 	struct acpi_hest_generic_data *gdata;
- 
- 	sev = ghes_severity(ghes->estatus->error_severity);
-@@ -251,15 +282,9 @@ static void ghes_do_proc(struct ghes *ghes)
- 			apei_mce_report_mem_error(
- 				sev == GHES_SEV_CORRECTED,
- 				(struct cper_sec_mem_err *)(gdata+1));
--			processed = 1;
- 		}
- #endif
- 	}
--
--	if (!processed && printk_ratelimit())
--		pr_warning(GHES_PFX
--		"Unknown error record from generic hardware error source: %d\n",
--			   ghes->generic->header.source_id);
- }
- 
- static int ghes_proc(struct ghes *ghes)
-@@ -269,7 +294,9 @@ static int ghes_proc(struct ghes *ghes)
- 	rc = ghes_read_estatus(ghes, 0);
- 	if (rc)
- 		goto out;
-+	ghes_report(ghes);
- 	ghes_do_proc(ghes);
-+	herr_notify();
- 
- out:
- 	ghes_clear_estatus(ghes);
-@@ -300,41 +327,15 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
- 	struct ghes *ghes = NULL;
--	int rc = -EINVAL;
-+	int rc;
- 
-+	rc = -ENODEV;
- 	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
- 	if (!generic->enabled)
--		return -ENODEV;
--
--	if (generic->error_block_length <
--	    sizeof(struct acpi_hest_generic_status)) {
--		pr_warning(FW_BUG GHES_PFX
--"Invalid error block length: %u for generic hardware error source: %d\n",
--			   generic->error_block_length,
--			   generic->header.source_id);
--		goto err;
--	}
--	if (generic->records_to_preallocate == 0) {
--		pr_warning(FW_BUG GHES_PFX
--"Invalid records to preallocate: %u for generic hardware error source: %d\n",
--			   generic->records_to_preallocate,
--			   generic->header.source_id);
--		goto err;
--	}
--	ghes = ghes_new(generic);
--	if (IS_ERR(ghes)) {
--		rc = PTR_ERR(ghes);
--		ghes = NULL;
- 		goto err;
--	}
--	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
--		mutex_lock(&ghes_list_mutex);
--		if (list_empty(&ghes_sci))
--			register_acpi_hed_notifier(&ghes_notifier_sci);
--		list_add_rcu(&ghes->list, &ghes_sci);
--		mutex_unlock(&ghes_list_mutex);
--	} else {
--		unsigned char *notify = NULL;
++/**
++ * ll_pool_create - create a new lock-less memory pool
++ * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
++ * @chunk_order: log base 2 of number of pages each chunk manages
++ * @chunk_num: number of chunks
++ * @nid: node id of the node the pool structure should be allocated on, or -1
++ *
++ * Create a new lock-less memory pool that can be used in IRQ/NMI
++ * context. (PAGE_SIZE << @chunk_order) * @chunk_num memory pages
++ * backed the lock-less allocator are allocated with alloc_pages_node.
++ */
++struct ll_pool *ll_pool_create(int min_alloc_order, int chunk_order,
++			       int chunk_num, int nid)
++{
++	struct ll_pool *pool;
++	int i;
 +
-+	if (generic->notify.type != ACPI_HEST_NOTIFY_SCI) {
-+		char *notify = NULL;
- 
- 		switch (generic->notify.type) {
- 		case ACPI_HEST_NOTIFY_POLLED:
-@@ -357,9 +358,46 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
- "Unknown notification type: %u for generic hardware error source: %d\n",
- 			generic->notify.type, generic->header.source_id);
- 		}
--		rc = -ENODEV;
- 		goto err;
- 	}
++	pool = kmalloc_node(sizeof(*pool) + chunk_num * sizeof(void *),
++			    GFP_KERNEL | __GFP_ZERO, nid);
++	if (!pool)
++		return NULL;
++	pool->min_alloc_order = min_alloc_order;
++	pool->chunk_order = chunk_order;
++	pool->chunk_num = chunk_num;
++	for (i = 0; i < chunk_num; i++) {
++		pool->chunks[i] = ll_pool_chunk_create(pool, nid);
++		if (!pool->chunks[i])
++			goto err_pool_destroy;
++	}
 +
-+	rc = -EIO;
-+	if (generic->error_block_length <
-+	    sizeof(struct acpi_hest_generic_status)) {
-+		pr_warning(FW_BUG GHES_PFX
-+"Invalid error block length: %u for generic hardware error source: %d\n",
-+			   generic->error_block_length,
-+			   generic->header.source_id);
-+		goto err;
++	return pool;
++err_pool_destroy:
++	ll_pool_destroy(pool);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(ll_pool_create);
++
++static void *ll_pool_chunk_alloc(struct ll_pool_chunk *chunk, size_t len)
++{
++	struct ll_pool *pool = chunk->pool;
++	int order = pool->min_alloc_order;
++	int chunk_bits = (PAGE_SIZE << pool->chunk_order) >> order;
++	int pos = 0, bits, remain;
++
++	if (len > atomic_read(&chunk->avail))
++		return NULL;
++
++	bits = (len + (1UL << order) - 1) >> order;
++	for (;;) {
++		pos = bitmap_find_next_zero_area(chunk->bitmap, chunk_bits,
++						 pos, bits, 0);
++		if (pos >= chunk_bits)
++			return NULL;
++		remain = bitmap_set_ll(chunk->bitmap, pos, bits);
++		if (!remain)
++			break;
++		remain = bitmap_clear_ll(chunk->bitmap, pos, bits - remain);
++		BUG_ON(remain);
 +	}
-+	ghes = ghes_new(generic);
-+	if (IS_ERR(ghes)) {
-+		rc = PTR_ERR(ghes);
-+		ghes = NULL;
-+		goto err;
++	len = bits << order;
++	atomic_sub(len, &chunk->avail);
++
++	return chunk->data + (pos << order);
++}
++
++/**
++ * ll_pool_alloc - allocate memory from the pool
++ * @pool: pool to allocate from
++ * @len: number of bytes to allocate from the pool
++ *
++ * Allocate the required number of bytes from the pool. Uses a
++ * first-fit algorithm.
++ */
++void *ll_pool_alloc(struct ll_pool *pool, size_t len)
++{
++	int i;
++	void *p;
++	struct ll_pool_chunk *chunk;
++
++	for (i = 0; i < pool->chunk_num; i++) {
++		chunk = pool->chunks[i];
++		p = ll_pool_chunk_alloc(chunk, len);
++		if (p)
++			return p;
 +	}
-+	rc = -ENOMEM;
-+	ghes->herr_dev = herr_dev_alloc();
-+	if (!ghes->herr_dev)
-+		goto err;
-+	ghes->herr_dev->name = dev_name(&ghes_dev->dev);
-+	ghes->herr_dev->dev.parent = &ghes_dev->dev;
-+	rc = herr_dev_register(ghes->herr_dev);
-+	if (rc) {
-+		herr_dev_free(ghes->herr_dev);
-+		goto err;
-+	}
-+	switch (generic->notify.type) {
-+	case ACPI_HEST_NOTIFY_SCI:
-+		mutex_lock(&ghes_list_mutex);
-+		if (list_empty(&ghes_sci))
-+			register_acpi_hed_notifier(&ghes_notifier_sci);
-+		list_add_rcu(&ghes->list, &ghes_sci);
-+		mutex_unlock(&ghes_list_mutex);
-+		break;
-+	default:
-+		BUG();
-+	}
- 	platform_set_drvdata(ghes_dev, ghes);
- 
- 	return 0;
-@@ -386,13 +424,14 @@ static int __devexit ghes_remove(struct platform_device *ghes_dev)
- 		if (list_empty(&ghes_sci))
- 			unregister_acpi_hed_notifier(&ghes_notifier_sci);
- 		mutex_unlock(&ghes_list_mutex);
-+		synchronize_rcu();
- 		break;
- 	default:
- 		BUG();
- 		break;
- 	}
- 
--	synchronize_rcu();
-+	herr_dev_unregister(ghes->herr_dev);
- 	ghes_fini(ghes);
- 	kfree(ghes);
- 
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 7e00f1e..10026c3 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -22,6 +22,7 @@
- #define LINUX_CPER_H
- 
- #include <linux/uuid.h>
-+#include <linux/herror_record.h>
- 
- /* CPER record signature and the size */
- #define CPER_SIG_RECORD				"CPER"
-@@ -310,6 +311,7 @@ struct cper_sec_mem_err {
- #pragma pack()
- 
- int herr_severity_to_cper(int herr_severity);
-+int cper_severity_to_herr(int cper_severity);
- u64 cper_next_record_id(void);
- 
- #endif
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(ll_pool_alloc);
++
++static void ll_pool_chunk_free(struct ll_pool_chunk *chunk,
++			       const void *p, size_t len)
++{
++	struct ll_pool *pool = chunk->pool;
++	int order = pool->min_alloc_order;
++	int mask = (1UL << order) - 1;
++	int chunk_size = PAGE_SIZE << pool->chunk_order;
++	int remain, pos, bits;
++
++	BUG_ON(p < chunk->data || p + len > chunk->data + chunk_size);
++	BUG_ON((p - chunk->data) & mask);
++	bits = (len + mask) >> order;
++	len = bits << order;
++	pos = (p - chunk->data) >> order;
++	remain = bitmap_clear_ll(chunk->bitmap, pos, bits);
++	BUG_ON(remain);
++	atomic_add(len, &chunk->avail);
++}
++
++/**
++ * ll_pool_free - free allocated memory back to the pool
++ * @p: starting address of memory to free back to pool
++ * @len: size in bytes of memory to free
++ *
++ * Free previously allocated memory back the the pool.
++ */
++void ll_pool_free(const void *p, size_t len)
++{
++	struct ll_pool_chunk *chunk;
++
++	chunk = ll_virt_to_pool_chunk(p);
++	ll_pool_chunk_free(chunk, p, len);
++}
++EXPORT_SYMBOL_GPL(ll_pool_free);
++
++/**
++ * ll_pool_avail - get available free space of the pool
++ * @pool: pool to get available free space
++ *
++ * Return available free space of the specified pool.
++ */
++size_t ll_pool_avail(struct ll_pool *pool)
++{
++	int i;
++	size_t avail = 0;
++
++	for (i = 0; i < pool->chunk_num; i++)
++		avail += atomic_read(&pool->chunks[i]->avail);
++
++	return avail;
++}
++EXPORT_SYMBOL_GPL(ll_pool_avail);
++
++/**
++ * ll_pool_size - get size in bytes of memory managed by the pool
++ * @pool: pool to get size
++ *
++ * Return size in bytes of memory managed by the pool.
++ */
++size_t ll_pool_size(struct ll_pool *pool)
++{
++	return (PAGE_SIZE << pool->chunk_order) * pool->chunk_num;
++}
++EXPORT_SYMBOL_GPL(ll_pool_size);
 -- 
 1.7.3.2.90.gd4c43
 
