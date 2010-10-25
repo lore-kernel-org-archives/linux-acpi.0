@@ -1,44 +1,117 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH 0/7] ACPI: Memory Mapped I/O (MMIO) pre-mapping
-Date: Mon, 25 Oct 2010 11:29:18 +0200
-Message-ID: <20101025092918.GB30292@gargoyle.fritz.box>
-References: <20101021201916.9220.5711.stgit@bob.kio>
- <1287716220.2862.57.camel@yhuang-dev>
- <1287717372.8722.954.camel@sli10-conroe.sh.intel.com>
- <201010221110.01582.bjorn.helgaas@hp.com>
- <20101025083404.GA30292@gargoyle.fritz.box>
- <1287996235.2862.314.camel@yhuang-dev>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
+ Source POLL/IRQ/NMI notification type support
+Date: Mon, 25 Oct 2010 13:15:30 +0200
+Message-ID: <20101025111530.GA27659@elte.hu>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
+ <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+ <20101025084553.GA27119@elte.hu>
+ <1287997112.2862.322.camel@yhuang-dev>
+ <20101025091913.GA17622@basil.fritz.box>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34161 "EHLO mga01.intel.com"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:39406 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753432Ab0JYJ06 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 05:26:58 -0400
+	id S1753877Ab0JYLPx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 07:15:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1287996235.2862.314.camel@yhuang-dev>
+In-Reply-To: <20101025091913.GA17622@basil.fritz.box>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Li, Shaohua" <shaohua.li@intel.com>, Myron Stowe <myron.stowe@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Mon, Oct 25, 2010 at 04:43:55PM +0800, Huang Ying wrote:
-> On Mon, 2010-10-25 at 16:34 +0800, Andi Kleen wrote:
-> > > On ia64 (which also uses ACPI), kmap_atomic_pfn() also requires
-> > > a struct page.  An ia64-specific version that doesn't need a struct
-> > > page would be trivial, but I still don't know how to make it work on
-> > > x86_64.
+
+* Andi Kleen <andi@firstfloor.org> wrote:
+
+> > > Sigh, please integrate all this into EDAC (drivers/edac/) properly, instead of 
+> > > turning it into YET ANOTHER hardware vendor special hw-errors thing. We can do 
+> > > better than this. EDAC is almost there: it has support for Nehalem, AMD, a 
+> > > couple of older chips.
 > > 
-> > Doing a struct page less kmap_atomic() shouldn't be too hard 
-> > on x86 either.
-> > 
-> > Just to avoid problems with concurrency you likely need per 
-> > CPU mappings.
+> > I think APEI (ACPI Platform Error Interface) is another driver. Why integrate 
+> > two drivers?
 > 
-> One issue is PAT management, like in general ioremap implementation
-> (reserve_memtype).
+> Yes they're solving quite different problems from EDAC with different interfaces 
+> and for different devices in the ACPI space.
 
-That's true, didn't consider that.
-Making that fully lockless is probably too hard.
+That's my whole point, _why_ do they have different interfaces?
 
--Andi
+EDAC is the upstream mechanism to organize hardware error reporting and to get 
+hardware errors to user-space. It is already successful in handling a wide range of 
+hardware in a similar fashion.
+
+Furthermore, there is work ongoing to do the reporting via perf event channels, some 
+of that work is upstream already. Boris is working on persistent events, on RAS 
+tooling (tools/ras/) and on event injection. Here's a past submission of his work:
+
+  http://lwn.net/Articles/394522/
+
+You are now doing a completely separate thing here, detaching a big CPU vendor from 
+the main body of Linux code that deals with this stuff.
+
+IMHO that's not helpful _at all_.
+
+> > > einj.c: it's about the 3rd separate 'error injection' concept that got 
+> > > introduced ...
+> > 
+> > EINJ is a true platform feature, not just software feature. We need to support 
+> > it to debug various hardware error features.
+> 
+> Also having multiple error injecting interfaces is a good thing.
+
+It's never a good thing to have separate, vendor dependent interfaces for what to 
+the user is basically the same conceptual thing!
+
+> Error injection is hard and one size definitely doesn't fit all. You need quite 
+> different ones depending on what you want to test, in which context etc.
+
+And that kind of variance is in your opinion a good reason to introduce separate 
+user ABIs for it?
+
+( And i dont care that there might be no 'end user' for hardware error injection per 
+  se right now. There is certainly an 'end user' for hardware error events and even 
+  _there_ you are introducing and pushing for separate, incompatible interfaces. )
+
+We have really good historic data here: we got the _biggest_ practical advantage 
+from event enumeration (/debug/tracing/events/) when we extended it in a generic, 
+unified way to the rich topology that the hardware and the kernel gives us.
+
+That way we got new, useful tools like powertop, timechart or pytimechart or the 
+edac tool, which can concentrate on a single, well-defined event topology and event 
+ABI.
+
+Why do these tools like this kind of unified event enumeration and reporting 
+facilities, which you are fighting against so hard? Because of the big technological 
+advantage of having to deal with one enumeration and reporting facility alone. They 
+can get power events, scheduling events, timer events, kmalloc events all from the 
+same source - even though these subsystems have barely anything in common! Tools can 
+then combine these seemingly unrelated events into something new and useful.
+
+It's a very extensible model, and with every new event type added, the tool space 
+gets richer _together_.
+
+Error event injection to simulate/trigger various error conditions in those events 
+is a natural extension to the whole events framework - not something that should be 
+in a randomly different way.
+
+What you are doing here is to fragment the whole landscape into small, incompatible, 
+vendor specific bits. Some of it is in /dev, some of it is in debugfs, some things 
+report via signals, etc. etc.
+
+It's inconsistent, messy and doesnt integrate well with the events framework we are 
+building.
+
+That was the main basis of my prior NAK, and you have said _nothing_ in the past 
+that invalidates the fundamental points of that NAK.
+
+Instead you started, by stealth and by duplicity, looking for ways to get around 
+that conceptual NAK.
+
+> For hwpoison we currently have three different injectors at least and I expect 
+> that to even grow more in the future as different features get added.
+
+That's insane!
+
+	Ingo
