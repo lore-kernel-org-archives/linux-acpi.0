@@ -1,332 +1,302 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/60] ACPICA: Make acpi_thread_id no longer configurable,
- always u64
-Date: Mon, 25 Oct 2010 02:20:16 -0400
-Message-ID: <28eb3fcf8762a3b52f4fef5af29dce50d23c7151.1287987547.git.len.brown@intel.com>
-References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [RFC PATCH 1/4] IPMI: Add one interface to get more info of
+	low-level IPMI device
+Date: Mon, 25 Oct 2010 15:00:21 +0800
+Message-ID: <1287990021.3885.127.camel@localhost.localdomain>
+References: <1287738641-11490-1-git-send-email-yakui.zhao@intel.com>
+	 <1287738641-11490-2-git-send-email-yakui.zhao@intel.com>
+	 <4CC4F8BD.80900@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:41773 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab0JYGVw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 02:21:52 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LAU009761NZP205@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 01:21:44 -0500 (CDT)
-In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
-In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
-References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:63278 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804Ab0JYHFX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 03:05:23 -0400
+In-Reply-To: <4CC4F8BD.80900@acm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+To: Corey Minyard <minyard@acm.org>
+Cc: "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-From: Lin Ming <ming.m.lin@intel.com>
+On Mon, 2010-10-25 at 11:25 +0800, Corey Minyard wrote: 
+> Well, no, you are returning a pointer to something that is in the smi 
+> data structure.  For that you would need a refcount, because that 
+> structure can cease to exist asynchronously to your code.  Instead, just 
+> pass in the structure you want to fill in.  Like:
+> 
+> int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data)
+> {
+> 	/* checks here */
+> 
+> 	handlers = intf->handlers;
+> 	rv = handlers->get_smi_info(intf->send_info, data);
+> }
+> 
+> static int get_smi_info(void *send_info,
+> 			struct ipmi_smi_info *data)
+> {
+> 	struct smi_info *new_smi = send_info;
+> 
+> 	data->smi_info.dev = new_smi->dev;
+> 	data->addr_src = new_smi->addr_source;
+> 	data->smi_info.addr_info = new_smi->addr_info;
+> 
+> 	return 0;
+> }
+> 
 
-Change definition of acpi_thread_id to always be a u64. This
-simplifies the code, especially any printf output. u64 is
-the only common data type for all thread_id types across all
-operating systems. We now force the OSL to cast the native
-thread_id type to u64 before returning the value to ACPICA
-(via acpi_os_get_thread_id).
+You are right. In theory the refcount should be added if it returns the
+pointer of ipmi_smi_info. But as it resides in the smi_info, it will
+always exist before the smi_info is released.
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/acpica/achware.h   |    2 +-
- drivers/acpi/acpica/aclocal.h   |    2 +-
- drivers/acpi/acpica/dsmethod.c  |    2 +-
- drivers/acpi/acpica/evmisc.c    |    2 +-
- drivers/acpi/acpica/exmutex.c   |   10 +++++-----
- drivers/acpi/acpica/utdebug.c   |    7 +++----
- drivers/acpi/acpica/utmutex.c   |   29 ++++++++++++++++-------------
- include/acpi/actypes.h          |   17 ++++++++++-------
- include/acpi/platform/aclinux.h |    7 +++----
- 9 files changed, 41 insertions(+), 37 deletions(-)
+OK. To make the thing simpler, I will use the mechanism you recommended.
 
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index e7c5545..167470a 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -121,7 +121,6 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 				 struct acpi_gpe_block_info *gpe_block,
- 				 void *context);
- 
--#ifdef	ACPI_FUTURE_USAGE
- /*
-  * hwpci - PCI configuration support
-  */
-@@ -129,6 +128,7 @@ acpi_status
- acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
- 		      acpi_handle root_pci_device, acpi_handle pci_region);
- 
-+#ifdef	ACPI_FUTURE_USAGE
- /*
-  * hwtimer - ACPI Timer prototypes
-  */
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 53f7512..04ce322 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -1001,7 +1001,7 @@ struct acpi_port_info {
- struct acpi_db_method_info {
- 	acpi_handle main_thread_gate;
- 	acpi_handle thread_complete_gate;
--	u32 *threads;
-+	acpi_thread_id *threads;
- 	u32 num_threads;
- 	u32 num_created;
- 	u32 num_completed;
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 64750ee..d94dd89 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -573,7 +573,7 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 
- 				acpi_os_release_mutex(method_desc->method.
- 						      mutex->mutex.os_mutex);
--				method_desc->method.mutex->mutex.thread_id = NULL;
-+				method_desc->method.mutex->mutex.thread_id = 0;
- 			}
- 		}
- 
-diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
-index df0aea9..fcaed9f 100644
---- a/drivers/acpi/acpica/evmisc.c
-+++ b/drivers/acpi/acpica/evmisc.c
-@@ -553,7 +553,7 @@ acpi_status acpi_ev_release_global_lock(void)
- 	acpi_gbl_global_lock_acquired = FALSE;
- 
- 	/* Release the local GL mutex */
--	acpi_ev_global_lock_thread_id = NULL;
-+	acpi_ev_global_lock_thread_id = 0;
- 	acpi_ev_global_lock_acquired = 0;
- 	acpi_os_release_mutex(acpi_gbl_global_lock_mutex->mutex.os_mutex);
- 	return_ACPI_STATUS(status);
-diff --git a/drivers/acpi/acpica/exmutex.c b/drivers/acpi/acpica/exmutex.c
-index f73be97..6af14e4 100644
---- a/drivers/acpi/acpica/exmutex.c
-+++ b/drivers/acpi/acpica/exmutex.c
-@@ -336,7 +336,7 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
- 
- 	/* Clear mutex info */
- 
--	obj_desc->mutex.thread_id = NULL;
-+	obj_desc->mutex.thread_id = 0;
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -393,10 +393,10 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
- 	if ((owner_thread->thread_id != walk_state->thread->thread_id) &&
- 	    (obj_desc != acpi_gbl_global_lock_mutex)) {
- 		ACPI_ERROR((AE_INFO,
--			    "Thread %p cannot release Mutex [%4.4s] acquired by thread %p",
--			    ACPI_CAST_PTR(void, walk_state->thread->thread_id),
-+			    "Thread %u cannot release Mutex [%4.4s] acquired by thread %u",
-+			    (u32)walk_state->thread->thread_id,
- 			    acpi_ut_get_node_name(obj_desc->mutex.node),
--			    ACPI_CAST_PTR(void, owner_thread->thread_id)));
-+			    (u32)owner_thread->thread_id));
- 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
- 	}
- 
-@@ -488,7 +488,7 @@ void acpi_ex_release_all_mutexes(struct acpi_thread_state *thread)
- 		/* Mark mutex unowned */
- 
- 		obj_desc->mutex.owner_thread = NULL;
--		obj_desc->mutex.thread_id = NULL;
-+		obj_desc->mutex.thread_id = 0;
- 
- 		/* Update Thread sync_level (Last mutex is the important one) */
- 
-diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index 9835106..f21c486 100644
---- a/drivers/acpi/acpica/utdebug.c
-+++ b/drivers/acpi/acpica/utdebug.c
-@@ -179,9 +179,8 @@ acpi_debug_print(u32 requested_debug_level,
- 	if (thread_id != acpi_gbl_prev_thread_id) {
- 		if (ACPI_LV_THREADS & acpi_dbg_level) {
- 			acpi_os_printf
--			    ("\n**** Context Switch from TID %p to TID %p ****\n\n",
--			     ACPI_CAST_PTR(void, acpi_gbl_prev_thread_id),
--			     ACPI_CAST_PTR(void, thread_id));
-+			    ("\n**** Context Switch from TID %u to TID %u ****\n\n",
-+			     (u32)acpi_gbl_prev_thread_id, (u32)thread_id);
- 		}
- 
- 		acpi_gbl_prev_thread_id = thread_id;
-@@ -194,7 +193,7 @@ acpi_debug_print(u32 requested_debug_level,
- 	acpi_os_printf("%8s-%04ld ", module_name, line_number);
- 
- 	if (ACPI_LV_THREADS & acpi_dbg_level) {
--		acpi_os_printf("[%p] ", ACPI_CAST_PTR(void, thread_id));
-+		acpi_os_printf("[%u] ", (u32)thread_id);
- 	}
- 
- 	acpi_os_printf("[%02ld] %-22.22s: ",
-diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
-index b07b425..d9efa49 100644
---- a/drivers/acpi/acpica/utmutex.c
-+++ b/drivers/acpi/acpica/utmutex.c
-@@ -228,18 +228,17 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
- 			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
- 				if (i == mutex_id) {
- 					ACPI_ERROR((AE_INFO,
--						    "Mutex [%s] already acquired by this thread [%p]",
-+						    "Mutex [%s] already acquired by this thread [%u]",
- 						    acpi_ut_get_mutex_name
- 						    (mutex_id),
--						    ACPI_CAST_PTR(void,
--								  this_thread_id)));
-+						    (u32)this_thread_id));
- 
- 					return (AE_ALREADY_ACQUIRED);
- 				}
- 
- 				ACPI_ERROR((AE_INFO,
--					    "Invalid acquire order: Thread %p owns [%s], wants [%s]",
--					    ACPI_CAST_PTR(void, this_thread_id),
-+					    "Invalid acquire order: Thread %u owns [%s], wants [%s]",
-+					    (u32)this_thread_id,
- 					    acpi_ut_get_mutex_name(i),
- 					    acpi_ut_get_mutex_name(mutex_id)));
- 
-@@ -250,24 +249,24 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
- #endif
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
--			  "Thread %p attempting to acquire Mutex [%s]\n",
--			  ACPI_CAST_PTR(void, this_thread_id),
-+			  "Thread %u attempting to acquire Mutex [%s]\n",
-+			  (u32)this_thread_id,
- 			  acpi_ut_get_mutex_name(mutex_id)));
- 
- 	status = acpi_os_acquire_mutex(acpi_gbl_mutex_info[mutex_id].mutex,
- 				       ACPI_WAIT_FOREVER);
- 	if (ACPI_SUCCESS(status)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
--				  "Thread %p acquired Mutex [%s]\n",
--				  ACPI_CAST_PTR(void, this_thread_id),
-+				  "Thread %u acquired Mutex [%s]\n",
-+				  (u32)this_thread_id,
- 				  acpi_ut_get_mutex_name(mutex_id)));
- 
- 		acpi_gbl_mutex_info[mutex_id].use_count++;
- 		acpi_gbl_mutex_info[mutex_id].thread_id = this_thread_id;
- 	} else {
- 		ACPI_EXCEPTION((AE_INFO, status,
--				"Thread %p could not acquire Mutex [0x%X]",
--				ACPI_CAST_PTR(void, this_thread_id), mutex_id));
-+				"Thread %u could not acquire Mutex [0x%X]",
-+				(u32)this_thread_id, mutex_id));
- 	}
- 
- 	return (status);
-@@ -287,10 +286,14 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
- 
- acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
- {
-+	acpi_thread_id this_thread_id;
-+
- 	ACPI_FUNCTION_NAME(ut_release_mutex);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Thread %p releasing Mutex [%s]\n",
--			  ACPI_CAST_PTR(void, acpi_os_get_thread_id()),
-+	this_thread_id = acpi_os_get_thread_id();
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Thread %u releasing Mutex [%s]\n",
-+			  (u32)this_thread_id,
- 			  acpi_ut_get_mutex_name(mutex_id)));
- 
- 	if (mutex_id > ACPI_MAX_MUTEX) {
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 332d076..864cfae 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -115,7 +115,6 @@
-  *
-  * ACPI_SIZE        16/32/64-bit unsigned value
-  * ACPI_NATIVE_INT  16/32/64-bit signed value
-- *
-  */
- 
- /*******************************************************************************
-@@ -132,6 +131,16 @@ typedef COMPILER_DEPENDENT_INT64 INT64;
- 
- /*! [End] no source code translation !*/
- 
-+/*
-+ * Value returned by acpi_os_get_thread_id. There is no standard "thread_id"
-+ * across operating systems or even the various UNIX systems. Since ACPICA
-+ * only needs the thread ID as a unique thread identifier, we use a u64
-+ * as the only common data type - it will accommodate any type of pointer or
-+ * any type of integer. It is up to the host-dependent OSL to cast the
-+ * native thread ID type to a u64 (in acpi_os_get_thread_id).
-+ */
-+#define acpi_thread_id                  u64
-+
- /*******************************************************************************
-  *
-  * Types specific to 64-bit targets
-@@ -211,12 +220,6 @@ typedef u32 acpi_physical_address;
-  *
-  ******************************************************************************/
- 
--/* Value returned by acpi_os_get_thread_id */
--
--#ifndef acpi_thread_id
--#define acpi_thread_id			acpi_size
--#endif
--
- /* Flags for acpi_os_acquire_lock/acpi_os_release_lock */
- 
- #ifndef acpi_cpu_flags
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 103f08a..572189e 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -75,7 +75,6 @@
- #define acpi_cache_t                        struct kmem_cache
- #define acpi_spinlock                       spinlock_t *
- #define acpi_cpu_flags                      unsigned long
--#define acpi_thread_id                      struct task_struct *
- 
- #else /* !__KERNEL__ */
- 
-@@ -88,7 +87,7 @@
- /* Host-dependent types and defines for user-space ACPICA */
- 
- #define ACPI_FLUSH_CPU_CACHE()
--#define acpi_thread_id                      pthread_t
-+#define ACPI_CAST_PTHREAD_T(pthread) ((acpi_thread_id) (pthread))
- 
- #if defined(__ia64__) || defined(__x86_64__)
- #define ACPI_MACHINE_WIDTH          64
-@@ -113,12 +112,13 @@
- 
- 
- #ifdef __KERNEL__
-+#include <acpi/actypes.h>
- /*
-  * Overrides for in-kernel ACPICA
-  */
- static inline acpi_thread_id acpi_os_get_thread_id(void)
- {
--	return current;
-+	return (acpi_thread_id)(unsigned long)current;
- }
- 
- /*
-@@ -127,7 +127,6 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
-  * However, boot has  (system_state != SYSTEM_RUNNING)
-  * to quiet __might_sleep() in kmalloc() and resume does not.
-  */
--#include <acpi/actypes.h>
- static inline void *acpi_os_allocate(acpi_size size)
- {
- 	return kmalloc(size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
--- 
-1.7.3.2.90.gd4c43
+> 
+> 
+> Why are you passing an address type in to the function?  That means you 
+> would have to know the address type to get anything out of if.  It would 
+> be better to just return the info and let the user do the comparison.  
+> That way, if something wanted to fetch the info to get the device, or 
+> some other info, you don't have to try every address type.
+
+OK. I will remove the argument of address type. 
+
+> 
+> Speaking of the device, that is a refcounted structure.  You can't just 
+> pass it back without doing refcounts on it.
+
+Yes. In the previous-version patch set, the refcount of dev is increased
+when the ipmi_get_smi_info is called.  And it is decreased when the
+ipmi_put_smi_info. But after the discussion, it seems that I
+misunderstand the refcount and then I remove it in this version. 
+Ok, I will call it back. 
+
+> 
+> Can you rename the union addr_info, and comment that which union 
+> structure is used depends on the address type?
+> 
+> Also, I don't know anything about this ACPI handle, but is that a 
+> permanent structure?  Can you just grab it like you do and pass it 
+> around?  I would guess not.
+
+Sorry that I don't know the requirement for other address type when defining the
+structure of ipmi_smi_info. But for the ACPI address type, the acpi handle is very 
+important. So it is defined in the union structure.
+
+
+> 
+> -corey
+> 
+> On 10/22/2010 04:10 AM, yakui.zhao@intel.com wrote:
+> > From: Zhao Yakui<yakui.zhao@intel.com>
+> >
+> > The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
+> > In order to communicate with the correct IPMI device, it should be confirmed
+> >   whether it is what we wanted especially on the system with multiple IPMI
+> > devices. But the new_smi callback function of smi_watcher provides very
+> > limited info(only the interface number and dev pointer) and there is no
+> > detailed info about the low level interface. For example: which mechansim
+> > registers the IPMI interface(ACPI, PCI, DMI and so on).
+> >
+> > This is to add one interface that can get more info of low-level IPMI
+> > device. For example: the ACPI device handle will be returned for the pnp_acpi
+> > IPMI device.
+> >
+> > Signed-off-by: Zhao Yakui<yakui.zhao@intel.com>
+> > ---
+> > In this patch only the info of pnp_acpi IPMI is provided. If the detailed info
+> > is also required for other mechanism, please add them in the structure of
+> > ipmi_smi_info.
+> >
+> >   drivers/char/ipmi/ipmi_msghandler.c |   26 ++++++++++++++++++++++++++
+> >   drivers/char/ipmi/ipmi_si_intf.c    |   28 ++++++++++++++++++++++++----
+> >   include/linux/ipmi.h                |   23 +++++++++++++++++++++++
+> >   include/linux/ipmi_smi.h            |   11 +++++++++++
+> >   4 files changed, 84 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+> > index 4f3f8c9..6f4da59 100644
+> > --- a/drivers/char/ipmi/ipmi_msghandler.c
+> > +++ b/drivers/char/ipmi/ipmi_msghandler.c
+> > @@ -970,6 +970,32 @@ out_kfree:
+> >   }
+> >   EXPORT_SYMBOL(ipmi_create_user);
+> >
+> > +int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
+> > +			struct ipmi_smi_info **data)
+> > +{
+> > +	int           rv = 0;
+> > +	ipmi_smi_t    intf;
+> > +	struct ipmi_smi_handlers *handlers;
+> > +
+> > +	mutex_lock(&ipmi_interfaces_mutex);
+> > +	list_for_each_entry_rcu(intf,&ipmi_interfaces, link) {
+> > +		if (intf->intf_num == if_num)
+> > +			goto found;
+> > +	}
+> > +	/* Not found, return an error */
+> > +	rv = -EINVAL;
+> > +	mutex_unlock(&ipmi_interfaces_mutex);
+> > +	return rv;
+> > +
+> > +found:
+> > +	handlers = intf->handlers;
+> > +	rv = handlers->get_smi_info(intf->send_info, type, data);
+> > +	mutex_unlock(&ipmi_interfaces_mutex);
+> > +
+> > +	return rv;
+> > +}
+> > +EXPORT_SYMBOL(ipmi_get_smi_info);
+> > +
+> >   static void free_user(struct kref *ref)
+> >   {
+> >   	ipmi_user_t user = container_of(ref, struct ipmi_user, refcount);
+> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+> > index 7bd7c45..73b1c82 100644
+> > --- a/drivers/char/ipmi/ipmi_si_intf.c
+> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> > @@ -57,6 +57,7 @@
+> >   #include<asm/irq.h>
+> >   #include<linux/interrupt.h>
+> >   #include<linux/rcupdate.h>
+> > +#include<linux/ipmi.h>
+> >   #include<linux/ipmi_smi.h>
+> >   #include<asm/io.h>
+> >   #include "ipmi_si_sm.h"
+> > @@ -107,10 +108,6 @@ enum si_type {
+> >   };
+> >   static char *si_to_str[] = { "kcs", "smic", "bt" };
+> >
+> > -enum ipmi_addr_src {
+> > -	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+> > -	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> > -};
+> >   static char *ipmi_addr_src_to_str[] = { NULL, "hotmod", "hardcoded", "SPMI",
+> >   					"ACPI", "SMBIOS", "PCI",
+> >   					"device-tree", "default" };
+> > @@ -291,6 +288,7 @@ struct smi_info {
+> >   	struct task_struct *thread;
+> >
+> >   	struct list_head link;
+> > +	struct ipmi_smi_info smi_data;
+> >   };
+> >
+> >   #define smi_inc_stat(smi, stat) \
+> > @@ -1186,6 +1184,22 @@ static int smi_start_processing(void       *send_info,
+> >   	return 0;
+> >   }
+> >
+> > +static int get_smi_info(void *send_info,
+> > +			enum ipmi_addr_src type,
+> > +			struct ipmi_smi_info **data)
+> > +{
+> > +	struct smi_info *new_smi = send_info;
+> > +	struct ipmi_smi_info *smi_data =&new_smi->smi_data;
+> > +
+> > +	if (new_smi->addr_source != type)
+> > +		return -EINVAL;
+> > +
+> > +	smi_data->addr_src = type;
+> > +
+> > +	*data = smi_data;
+> > +	return 0;
+> > +}
+> > +
+> >   static void set_maintenance_mode(void *send_info, int enable)
+> >   {
+> >   	struct smi_info   *smi_info = send_info;
+> > @@ -1197,6 +1211,7 @@ static void set_maintenance_mode(void *send_info, int enable)
+> >   static struct ipmi_smi_handlers handlers = {
+> >   	.owner                  = THIS_MODULE,
+> >   	.start_processing       = smi_start_processing,
+> > +	.get_smi_info		= get_smi_info,
+> >   	.sender			= sender,
+> >   	.request_events		= request_events,
+> >   	.set_maintenance_mode   = set_maintenance_mode,
+> > @@ -2143,6 +2158,8 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+> >   		return -ENOMEM;
+> >
+> >   	info->addr_source = SI_ACPI;
+> > +	info->smi_data.smi_info.acpi_info.acpi_handle =
+> > +				acpi_dev->handle;
+> >   	printk(KERN_INFO PFX "probing via ACPI\n");
+> >
+> >   	handle = acpi_dev->handle;
+> > @@ -3092,6 +3109,7 @@ static int try_smi_init(struct smi_info *new_smi)
+> >   {
+> >   	int rv = 0;
+> >   	int i;
+> > +	struct ipmi_smi_info *smi_data =&new_smi->smi_data;
+> >
+> >   	printk(KERN_INFO PFX "Trying %s-specified %s state"
+> >   	       " machine at %s address 0x%lx, slave address 0x%x,"
+> > @@ -3217,6 +3235,8 @@ static int try_smi_init(struct smi_info *new_smi)
+> >   		new_smi->dev_registered = 1;
+> >   	}
+> >
+> > +	smi_data->dev = new_smi->dev;
+> > +
+> >   	rv = ipmi_register_smi(&handlers,
+> >   			       new_smi,
+> >   			&new_smi->device_id,
+> > diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
+> > index 65aae34..1ce428f 100644
+> > --- a/include/linux/ipmi.h
+> > +++ b/include/linux/ipmi.h
+> > @@ -454,6 +454,29 @@ unsigned int ipmi_addr_length(int addr_type);
+> >   /* Validate that the given IPMI address is valid. */
+> >   int ipmi_validate_addr(struct ipmi_addr *addr, int len);
+> >
+> > +enum ipmi_addr_src {
+> > +	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+> > +	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> > +};
+> > +struct ipmi_smi_info{
+> > +	enum ipmi_addr_src addr_src;
+> > +	struct device *dev;
+> > +	union {
+> > +		/*
+> > +		 * Now only SI_ACPI info is provided. If the info is required
+> > +		 * for other type, please add it
+> > +		 */
+> > +#ifdef CONFIG_ACPI
+> > +		struct {
+> > +			void *acpi_handle;
+> > +		} acpi_info;
+> > +#endif
+> > +	} smi_info;
+> > +};
+> > +
+> > +/* This is to get the private info of ipmi_smi_t. The pointer is returned */
+> > +extern int ipmi_get_smi_info(int if_num, enum ipmi_addr_src type,
+> > +		struct ipmi_smi_info **data);
+> >   #endif /* __KERNEL__ */
+> >
+> >
+> > diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
+> > index 4b48318..bfa8f40 100644
+> > --- a/include/linux/ipmi_smi.h
+> > +++ b/include/linux/ipmi_smi.h
+> > @@ -86,6 +86,17 @@ struct ipmi_smi_handlers {
+> >   	int (*start_processing)(void       *send_info,
+> >   				ipmi_smi_t new_intf);
+> >
+> > +	/*
+> > +	 * Get the detailed private info of the low level interface and return
+> > +	 * the corresponding pointer.
+> > +	 * For example: the ACPI device handle will be returned for the
+> > +	 * pnp_acpi IPMI device. Of course it will firstly compare the
+> > +	 * interface type of low-level interface(Hardcoded type, DMI,
+> > +	 * ACPI and so on). If the type doesn't match, it will return -EINVAL.
+> > +	 */
+> > +	int (*get_smi_info)(void *send_info, enum ipmi_addr_src type,
+> > +				struct ipmi_smi_info **data);
+> > +
+> >   	/* Called to enqueue an SMI message to be sent.  This
+> >   	   operation is not allowed to fail.  If an error occurs, it
+> >   	   should report back the error in a received message.  It may
+> >    
+> 
 
