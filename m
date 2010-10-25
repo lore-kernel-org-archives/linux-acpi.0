@@ -1,38 +1,55 @@
-From: Tony Luck <tony.luck@gmail.com>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
  Source POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 10:14:52 -0700
-Message-ID: <AANLkTi=2SVT1M+nDZUB7EB05jh+tsuKcew_t66QORrwb@mail.gmail.com>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
-	<1287992610-14996-10-git-send-email-ying.huang@intel.com>
-	<20101025084553.GA27119@elte.hu>
-	<1287997112.2862.322.camel@yhuang-dev>
-	<20101025092557.GA11544@elte.hu>
+Date: Mon, 25 Oct 2010 15:19:10 -0200
+Message-ID: <4CC5BC0E.7090601@redhat.com>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>	<1287992610-14996-10-git-send-email-ying.huang@intel.com>	<20101025084553.GA27119@elte.hu>	<1287997112.2862.322.camel@yhuang-dev>	<20101025091913.GA17622@basil.fritz.box>	<20101025111530.GA27659@elte.hu>	<4CC5726B.1020207@redhat.com> <AANLkTin=WM5AN_z_SxaKgOta-Q0xQnyO2S-G5w7JOQSh@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:45977 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932108Ab0JYROy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 13:14:54 -0400
-In-Reply-To: <20101025092557.GA11544@elte.hu>
+Received: from mx1.redhat.com ([209.132.183.28]:48688 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755326Ab0JYRUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 13:20:06 -0400
+In-Reply-To: <AANLkTin=WM5AN_z_SxaKgOta-Q0xQnyO2S-G5w7JOQSh@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Tony Luck <tony.luck@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Borislav Petkov <bp@amd64.org>
 
-On Mon, Oct 25, 2010 at 2:25 AM, Ingo Molnar <mingo@elte.hu> wrote:
+Em 25-10-2010 15:07, Tony Luck escreveu:
+> On Mon, Oct 25, 2010 at 5:04 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> We had some discussions with Intel during the Collaboration summit about that, trying to
+>> integrate Nehalem EX on such environment, with, unfortunately, didn't happen, as Intel
+>> didn't release any (public) datasheet describing Nehalem EX memory controller, nor wrote
+>> such driver.
+> 
+> The chipset registers that are needed to write an EDAC driver for
+> Nehalem-EX (a.k.a Xeon
+> 7500 series) are not accessible to OS (ring 0) code. Documenting them
+> wouldn't change this.
 
-> drivers/acpi/apei/ overlaps and duplicates drivers/edac/. We dont want two
-> facilities, two ABIs, two sets of behavior. erst-dbg even defines a /dev node with
-> two ioctls, and a debugfs file to read/write records ...
+Yeah, I know.
 
-As mentioned above these 4-letter names from from the ACPI specification. ERST
-is perhaps the dumbest name of them all - "Error Record Serialization Table" is
-ACPI-speak for platform level non-volatile memory.  This code simply provides
-a mechanism for Linux to stash some information in nvram before the system is
-reset, and to retrieve it after the reboot.
+The error reporting mechanism could do something similar to i7core_edac
+driver to parse the MCE NMI errors to userspace via EDAC interface, but
+without any way to get the memory topology, this wouldn't work. With some 
+documentation, maybe we could find a way for a kernel code to retrieve 
+the memory topology, maybe via BIOS, and make it work.
 
-The naming could be better - but I don't see any overlap with EDAC here.
 
--Tony
+>> As most of us will be in Boston next week, I've reserved a BoF at Plumbers for us to discuss
+>> about this subject:
+>>
+>> http://www.linuxplumbersconf.org/2010/ocw/proposals/921
+> 
+> An excellent idea. See you there.
+
+OK,
+
+See you there.
+
+Thanks,
+Mauro
