@@ -1,423 +1,345 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 49/60] Hardware error record persistent support
-Date: Mon, 25 Oct 2010 02:20:57 -0400
-Message-ID: <af7e02c78484aa273ce7bb1d2caa3a2ae0665a18.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 53/60] ACPI / PM: Fix reference counting of power resources
+Date: Mon, 25 Oct 2010 02:21:01 -0400
+Message-ID: <3e384ee6c687cb397581ee8f9440fc8220cfac80.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63738 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:63735 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753690Ab0JYILJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:09 -0400
+	with ESMTP id S1753296Ab0JYILI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:08 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:09 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:08 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Huang Ying <ying.huang@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Normally, corrected hardware error records will go through the kernel
-processing and be logged to disk or network finally.  But for
-uncorrected errors, system may go panic directly for better error
-containment, disk or network is not usable in this half-working
-system.  To avoid losing these valuable hardware error records, the
-error records are saved into some kind of simple persistent storage
-such as flash before panic, so that they can be read out after system
-reboot successfully.
+The reference counting of ACPI power resources is currently broken
+for a few reasons.  First, instead of using a simple reference
+counter per power resource it uses a list of objects representing
+refereces to the given power resource from devices.  This leads to
+the second breakage, because it prevents power resources from
+being referenced more than once by one device, which is necessary
+if the device is configured to signal wakeup.  Namely, when putting
+the device into a low power state we first call
+acpi_enable_wakeup_device_power() that should reference count power
+resources needed for signaling wakeup and then we call
+acpi_power_transition() to power off the device.  The latter call
+drops references to the device's power resources, possibly including
+the ones added by acpi_enable_wakeup_device_power(), so the device
+can't signal wakeup as a result.  Apart from this, the locking
+in acpi_power_on() and acpi_power_off_device() doesn't prevent
+all possible races from happening, which may be problematic for
+runtime PM and asynchronous suspend and resume.
 
-Different kind of simple persistent storage implementation mechanisms
-are provided on different platforms, so an abstract interface for
-persistent storage is defined.  Different implementations of the
-interface can be registered.
+Fix the problem by using a counter for power resources reference
+counting and putting the evaluation of ACPI _ON and _OFF methods
+under the power resource mutex.
 
-This patch is designed by Andi Kleen and Huang Ying.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Reported-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/char/herror/Makefile        |    2 +-
- drivers/char/herror/herr-core.c     |   39 +++++++-
- drivers/char/herror/herr-internal.h |   12 +++
- drivers/char/herror/herr-persist.c  |  174 +++++++++++++++++++++++++++++++++++
- include/linux/Kbuild                |    1 +
- include/linux/herror.h              |   48 ++++++++++-
- 6 files changed, 271 insertions(+), 5 deletions(-)
- create mode 100644 drivers/char/herror/herr-internal.h
- create mode 100644 drivers/char/herror/herr-persist.c
+ drivers/acpi/power.c |  167 +++++++++++++++++++++-----------------------------
+ 1 files changed, 70 insertions(+), 97 deletions(-)
 
-diff --git a/drivers/char/herror/Makefile b/drivers/char/herror/Makefile
-index e47b7bf..5452df0 100644
---- a/drivers/char/herror/Makefile
-+++ b/drivers/char/herror/Makefile
-@@ -1 +1 @@
--obj-y				+= herr-core.o
-+obj-y				+= herr-core.o herr-persist.o
-diff --git a/drivers/char/herror/herr-core.c b/drivers/char/herror/herr-core.c
-index aeff738..42b9cb9 100644
---- a/drivers/char/herror/herr-core.c
-+++ b/drivers/char/herror/herr-core.c
-@@ -43,9 +43,9 @@
- #include <linux/llalloc.h>
- #include <linux/herror.h>
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 844c155..67dedee 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -80,18 +80,13 @@ static struct acpi_driver acpi_power_driver = {
+ 		},
+ };
  
--#define HERR_NOTIFY_BIT			0
-+#include "herr-internal.h"
+-struct acpi_power_reference {
+-	struct list_head node;
+-	struct acpi_device *device;
+-};
+-
+ struct acpi_power_resource {
+ 	struct acpi_device * device;
+ 	acpi_bus_id name;
+ 	u32 system_level;
+ 	u32 order;
++	unsigned int ref_count;
+ 	struct mutex resource_lock;
+-	struct list_head reference;
+ };
  
--static unsigned long herr_flags;
-+unsigned long herr_flags;
+ static struct list_head acpi_power_resource_list;
+@@ -184,101 +179,89 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
+ 	return result;
+ }
  
- /*
-  * Record list management and error reporting
-@@ -524,6 +524,7 @@ static ssize_t herr_mix_read(struct file *filp, char __user *ubuf,
+-static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
++static int __acpi_power_on(struct acpi_power_resource *resource)
  {
- 	int rc;
- 	static DEFINE_MUTEX(read_mutex);
-+	u64 record_id;
+-	int result = 0;
+-	int found = 0;
+ 	acpi_status status = AE_OK;
+-	struct acpi_power_resource *resource = NULL;
+-	struct list_head *node, *next;
+-	struct acpi_power_reference *ref;
  
- 	if (*off != 0)
- 		return -EINVAL;
-@@ -531,7 +532,14 @@ static ssize_t herr_mix_read(struct file *filp, char __user *ubuf,
- 	rc = mutex_lock_interruptible(&read_mutex);
- 	if (rc)
- 		return rc;
-+	rc = herr_persist_peek_user(&record_id, ubuf, usize);
-+	if (rc > 0) {
-+		herr_persist_clear(record_id);
-+		goto out;
-+	}
++	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
 +
- 	rc = herr_rcd_lists_read(ubuf, usize, &read_mutex);
-+out:
- 	mutex_unlock(&read_mutex);
++	/* Update the power resource's _device_ power state */
++	resource->device->power.state = ACPI_STATE_D0;
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
++			  resource->name));
++
++	return 0;
++}
++
++static int acpi_power_on(acpi_handle handle)
++{
++	int result = 0;
++	struct acpi_power_resource *resource = NULL;
  
- 	return rc;
-@@ -540,15 +548,40 @@ static ssize_t herr_mix_read(struct file *filp, char __user *ubuf,
- static unsigned int herr_mix_poll(struct file *file, poll_table *wait)
- {
- 	poll_wait(file, &herr_mix_wait, wait);
--	if (!herr_rcd_lists_is_empty())
-+	if (!herr_rcd_lists_is_empty() || !herr_persist_read_done())
- 		return POLLIN | POLLRDNORM;
+ 	result = acpi_power_get_context(handle, &resource);
+ 	if (result)
+ 		return result;
+ 
+ 	mutex_lock(&resource->resource_lock);
+-	list_for_each_safe(node, next, &resource->reference) {
+-		ref = container_of(node, struct acpi_power_reference, node);
+-		if (dev->handle == ref->device->handle) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already referenced by resource [%s]\n",
+-				  dev->pnp.bus_id, resource->name));
+-			found = 1;
+-			break;
+-		}
+-	}
+ 
+-	if (!found) {
+-		ref = kmalloc(sizeof (struct acpi_power_reference),
+-		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
+-		if (!ref) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
+-			mutex_unlock(&resource->resource_lock);
+-			return -ENOMEM;
+-		}
+-		list_add_tail(&ref->node, &resource->reference);
+-		ref->device = dev;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] added to resource [%s] references\n",
+-			  dev->pnp.bus_id, resource->name));
++	if (resource->ref_count++) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Power resource [%s] already on",
++				  resource->name));
++	} else {
++		result = __acpi_power_on(resource);
+ 	}
+-	mutex_unlock(&resource->resource_lock);
+ 
+-	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	/* Update the power resource's _device_ power state */
+-	resource->device->power.state = ACPI_STATE_D0;
++	mutex_unlock(&resource->resource_lock);
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned on\n",
+-			  resource->name));
  	return 0;
  }
  
-+static long herr_mix_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
-+{
-+	void __user *p = (void __user *)arg;
-+	int rc;
-+	u64 record_id;
-+	struct herr_persist_buffer buf;
-+
-+	switch (cmd) {
-+	case HERR_PERSIST_PEEK:
-+		rc = copy_from_user(&buf, p, sizeof(buf));
-+		if (rc)
-+			return -EFAULT;
-+		return herr_persist_peek_user(&record_id, buf.buf,
-+					      buf.buf_size);
-+	case HERR_PERSIST_CLEAR:
-+		rc = copy_from_user(&record_id, p, sizeof(record_id));
-+		if (rc)
-+			return -EFAULT;
-+		return herr_persist_clear(record_id);
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
- static const struct file_operations herr_mix_dev_fops = {
- 	.owner		= THIS_MODULE,
- 	.read		= herr_mix_read,
- 	.poll		= herr_mix_poll,
-+	.unlocked_ioctl	= herr_mix_ioctl,
- };
+-static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
++static int acpi_power_off_device(acpi_handle handle)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_power_resource *resource = NULL;
+-	struct list_head *node, *next;
+-	struct acpi_power_reference *ref;
  
- static int __init herr_mix_dev_init(void)
-diff --git a/drivers/char/herror/herr-internal.h b/drivers/char/herror/herr-internal.h
-new file mode 100644
-index 0000000..43e75ca
---- /dev/null
-+++ b/drivers/char/herror/herr-internal.h
-@@ -0,0 +1,12 @@
-+#ifndef HERR_INTERNAL_H
-+#define HERR_INTERNAL_H
+ 	result = acpi_power_get_context(handle, &resource);
+ 	if (result)
+ 		return result;
+ 
+ 	mutex_lock(&resource->resource_lock);
+-	list_for_each_safe(node, next, &resource->reference) {
+-		ref = container_of(node, struct acpi_power_reference, node);
+-		if (dev->handle == ref->device->handle) {
+-			list_del(&ref->node);
+-			kfree(ref);
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] removed from resource [%s] references\n",
+-			    dev->pnp.bus_id, resource->name));
+-			break;
+-		}
 +
-+#define HERR_NOTIFY_BIT			0
-+
-+extern unsigned long herr_flags;
-+
-+int herr_persist_read_done(void);
-+ssize_t herr_persist_peek_user(u64 *record_id, char __user *ercd,
-+			       size_t bufsiz);
-+int herr_persist_clear(u64 record_id);
-+#endif /* HERR_INTERNAL_H */
-diff --git a/drivers/char/herror/herr-persist.c b/drivers/char/herror/herr-persist.c
-new file mode 100644
-index 0000000..106298f
---- /dev/null
-+++ b/drivers/char/herror/herr-persist.c
-@@ -0,0 +1,174 @@
-+/*
-+ * Hardware error record persistent support
-+ *
-+ * Normally, corrected hardware error records will go through the
-+ * kernel processing and be logged to disk or network finally.  But
-+ * for uncorrected errors, system may go panic directly for better
-+ * error containment, disk or network is not usable in this
-+ * half-working system.  To avoid losing these valuable hardware error
-+ * records, the error records are saved into some kind of simple
-+ * persistent storage such as flash before panic, so that they can be
-+ * read out after system reboot successfully.
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/rculist.h>
-+#include <linux/mutex.h>
-+
-+#include <linux/herror.h>
-+
-+#include "herr-internal.h"
-+
-+/*
-+ * Simple persistent storage provider list, herr_persists_mutex is
-+ * used for writer side mutual exclusion, RCU is used to implement
-+ * lock-less reader side.
-+ */
-+static LIST_HEAD(herr_persists);
-+static DEFINE_MUTEX(herr_persists_mutex);
-+
-+int herr_persist_register(struct herr_persist *persist)
-+{
-+	if (!persist->peek_user)
++	if (!resource->ref_count) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Power resource [%s] already off",
++				  resource->name));
++		goto unlock;
+ 	}
+ 
+-	if (!list_empty(&resource->reference)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cannot turn resource [%s] off - resource is in use\n",
+-		    resource->name));
+-		mutex_unlock(&resource->resource_lock);
+-		return 0;
++	if (--resource->ref_count) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Power resource [%s] still in use\n",
++				  resource->name));
++		goto unlock;
+ 	}
+-	mutex_unlock(&resource->resource_lock);
+ 
+ 	status = acpi_evaluate_object(resource->device->handle, "_OFF", NULL, NULL);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
++	if (ACPI_FAILURE(status)) {
++		result = -ENODEV;
++	} else {
++		/* Update the power resource's _device_ power state */
++		resource->device->power.state = ACPI_STATE_D3;
+ 
+-	/* Update the power resource's _device_ power state */
+-	resource->device->power.state = ACPI_STATE_D3;
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Power resource [%s] turned off\n",
++				  resource->name));
++	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned off\n",
+-			  resource->name));
++ unlock:
++	mutex_unlock(&resource->resource_lock);
+ 
+-	return 0;
++	return result;
+ }
+ 
+ /**
+@@ -364,7 +347,7 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state)
+ 
+ 	/* Open power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		int ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
++		int ret = acpi_power_on(dev->wakeup.resources.handles[i]);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
+@@ -420,7 +403,7 @@ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
+ 	/* Close power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+ 		int ret = acpi_power_off_device(
+-				dev->wakeup.resources.handles[i], dev);
++				dev->wakeup.resources.handles[i]);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
+@@ -500,7 +483,7 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ 	 * (e.g. so the device doesn't lose power while transitioning).
+ 	 */
+ 	for (i = 0; i < tl->count; i++) {
+-		result = acpi_power_on(tl->handles[i], device);
++		result = acpi_power_on(tl->handles[i]);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -513,7 +496,7 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ 	 * Then we dereference all power resources used in the current list.
+ 	 */
+ 	for (i = 0; i < cl->count; i++) {
+-		result = acpi_power_off_device(cl->handles[i], device);
++		result = acpi_power_off_device(cl->handles[i]);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -551,7 +534,6 @@ static int acpi_power_add(struct acpi_device *device)
+ 
+ 	resource->device = device;
+ 	mutex_init(&resource->resource_lock);
+-	INIT_LIST_HEAD(&resource->reference);
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+@@ -594,22 +576,14 @@ static int acpi_power_add(struct acpi_device *device)
+ 
+ static int acpi_power_remove(struct acpi_device *device, int type)
+ {
+-	struct acpi_power_resource *resource = NULL;
+-	struct list_head *node, *next;
++	struct acpi_power_resource *resource;
+ 
+-
+-	if (!device || !acpi_driver_data(device))
++	if (!device)
+ 		return -EINVAL;
+ 
+ 	resource = acpi_driver_data(device);
+-
+-	mutex_lock(&resource->resource_lock);
+-	list_for_each_safe(node, next, &resource->reference) {
+-		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
+-		list_del(&ref->node);
+-		kfree(ref);
+-	}
+-	mutex_unlock(&resource->resource_lock);
++	if (!resource)
 +		return -EINVAL;
-+	persist->read_done = 0;
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_add_rcu(&persist->list, &herr_persists);
-+	mutex_unlock(&herr_persists_mutex);
-+	/*
-+	 * There may be hardware error records of previous boot in
-+	 * persistent storage, notify the user space error daemon to
-+	 * check.
-+	 */
-+	set_bit(HERR_NOTIFY_BIT, &herr_flags);
-+	herr_notify();
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_register);
-+
-+void herr_persist_unregister(struct herr_persist *persist)
-+{
-+	mutex_lock(&herr_persists_mutex);
-+	list_del_rcu(&persist->list);
-+	mutex_unlock(&herr_persists_mutex);
-+	synchronize_rcu();
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_unregister);
-+
-+/* Can be used in atomic context including NMI */
-+int herr_persist_in(const struct herr_record *ercd)
-+{
-+	struct herr_persist *persist;
-+	int rc = -ENODEV;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(persist, &herr_persists, list) {
-+		if (!persist->in)
-+			continue;
-+		rc = persist->in(ercd);
-+		if (!rc)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_in);
-+
-+int herr_persist_read_done(void)
-+{
-+	struct herr_persist *persist;
-+	int rc = 1;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(persist, &herr_persists, list) {
-+		if (!persist->read_done) {
-+			rc = 0;
-+			break;
-+		}
-+	}
-+	rcu_read_unlock();
-+	return rc;
-+}
-+
-+/* Read next error record from persist storage, don't remove it */
-+ssize_t herr_persist_peek_user(u64 *record_id, char __user *ercd,
-+			       size_t bufsiz)
-+{
-+	struct herr_persist *persist;
-+	ssize_t rc = 0;
-+
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_for_each_entry(persist, &herr_persists, list) {
-+		if (persist->read_done)
-+			continue;
-+		rc = persist->peek_user(record_id, ercd, bufsiz);
-+		if (rc > 0)
-+			break;
-+		else if (rc != -EINTR && rc != -EAGAIN && rc != -EINVAL)
-+			persist->read_done = 1;
-+	}
-+	mutex_unlock(&herr_persists_mutex);
-+	return rc;
-+}
-+
-+/* Clear specified error record from persist storage */
-+int herr_persist_clear(u64 record_id)
-+{
-+	struct herr_persist *persist;
-+	int rc = -ENOENT;
-+
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_for_each_entry(persist, &herr_persists, list) {
-+		if (!persist->clear)
-+			continue;
-+		rc = persist->clear(record_id);
-+		if (!rc)
-+			break;
-+		/*
-+		 * Failed to clear, mark as read_done, because we can
-+		 * not skip this one
-+		 */
-+		else if (rc != -EINTR && rc != -EAGAIN && rc != -ENOENT)
-+			persist->read_done = 1;
-+	}
-+	mutex_unlock(&herr_persists_mutex);
-+	return rc;
-+}
-+
-+static int herr_persist_record(struct herr_record *ercd, void *data)
-+{
-+	int *severity = data;
-+
-+	if (ercd->severity == *severity)
-+		return herr_persist_in(ercd);
-+	return 0;
-+}
-+
-+void herr_persist_all_records(void)
-+{
-+	int severity;
-+
-+	for (severity = HERR_SEV_FATAL; severity >= HERR_SEV_NONE; severity--)
-+		herr_for_each_record(herr_persist_record, &severity);
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_all_records);
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 3b31865..abfd16f 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -141,6 +141,7 @@ header-y += hdlc.h
- header-y += hdlcdrv.h
- header-y += hdreg.h
- header-y += herror_record.h
-+header-y += herror.h
- header-y += hid.h
- header-y += hiddev.h
- header-y += hidraw.h
-diff --git a/include/linux/herror.h b/include/linux/herror.h
-index aba1102..4635df6 100644
---- a/include/linux/herror.h
-+++ b/include/linux/herror.h
-@@ -1,10 +1,22 @@
- #ifndef LINUX_HERROR_H
- #define LINUX_HERROR_H
  
-+#include <linux/ioctl.h>
-+#include <linux/herror_record.h>
-+
-+struct herr_persist_buffer {
-+	void __user *buf;
-+	unsigned int buf_size;
-+};
-+
-+#define HERR_PERSIST_PEEK	_IOW('H', 1, struct herr_persist_buffer)
-+#define HERR_PERSIST_CLEAR	_IOW('H', 2, u64)
-+
-+#ifdef __KERNEL__
-+
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/device.h>
--#include <linux/herror_record.h>
+ 	kfree(resource);
  
- /*
-  * Hardware error reporting
-@@ -66,4 +78,38 @@ static inline void herr_dev_put(struct herr_dev *dev)
+@@ -619,29 +593,28 @@ static int acpi_power_remove(struct acpi_device *device, int type)
+ static int acpi_power_resume(struct acpi_device *device)
+ {
+ 	int result = 0, state;
+-	struct acpi_power_resource *resource = NULL;
+-	struct acpi_power_reference *ref;
++	struct acpi_power_resource *resource;
  
- int herr_dev_register(struct herr_dev *dev);
- void herr_dev_unregister(struct herr_dev *dev);
+-	if (!device || !acpi_driver_data(device))
++	if (!device)
+ 		return -EINVAL;
+ 
+ 	resource = acpi_driver_data(device);
++	if (!resource)
++		return -EINVAL;
 +
++	mutex_lock(&resource->resource_lock);
+ 
+ 	result = acpi_power_get_state(device->handle, &state);
+ 	if (result)
+-		return result;
++		goto unlock;
+ 
+-	mutex_lock(&resource->resource_lock);
+-	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
+-	    !list_empty(&resource->reference)) {
+-		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
+-		mutex_unlock(&resource->resource_lock);
+-		result = acpi_power_on(device->handle, ref->device);
+-		return result;
+-	}
++	if (state == ACPI_POWER_RESOURCE_STATE_OFF && resource->ref_count)
++		result = __acpi_power_on(resource);
+ 
++ unlock:
+ 	mutex_unlock(&resource->resource_lock);
+-	return 0;
 +
-+/*
-+ * Simple Persistent Storage
-+ */
-+
-+struct herr_persist;
-+/* Put an error record into simple persistent storage */
-+int herr_persist_in(const struct herr_record *ercd);
-+/* Save all error records not yet consumed in persistent storage */
-+void herr_persist_all_records(void);
-+
-+/*
-+ * Simple Persistent Storage Provider Management
-+ */
-+struct herr_persist {
-+	struct list_head list;
-+	char *name;
-+	unsigned int read_done:1;
-+	/* Put an error record into storage, must be NMI-safe */
-+	int (*in)(const struct herr_record *ercd);
-+	/*
-+	 * Read out an error record from storage to user space, don't
-+	 * remove it, the HERR_RCD_PERSIST must be set in record flags
-+	 */
-+	ssize_t (*peek_user)(u64 *record_id, char __user *ubuf, size_t usize);
-+	/* Clear an error record */
-+	int (*clear)(u64 record_id);
-+};
-+
-+/* Register (un-register) simple persistent storage provider */
-+int herr_persist_register(struct herr_persist *persist);
-+void herr_persist_unregister(struct herr_persist *persist);
-+#endif
- #endif
++	return result;
+ }
+ 
+ int __init acpi_power_init(void)
 -- 
 1.7.3.2.90.gd4c43
 
