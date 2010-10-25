@@ -1,59 +1,78 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
- Source POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 15:11:27 +0200
-Message-ID: <20101025131127.GC17622@basil.fritz.box>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
- <1287992610-14996-10-git-send-email-ying.huang@intel.com>
- <20101025084553.GA27119@elte.hu>
- <1287997112.2862.322.camel@yhuang-dev>
- <20101025091913.GA17622@basil.fritz.box>
- <20101025111530.GA27659@elte.hu>
- <20101025123753.GB17622@basil.fritz.box>
- <20101025125531.GA6075@elte.hu>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPI / Battery: Return -ENODATA for unknown values in
+ get_property()
+Date: Mon, 25 Oct 2010 15:17:28 +0200
+Message-ID: <20101025131728.GC2162@ucw.cz>
+References: <20101016141321.GA11054@sucs.org>
+ <20101017131016.GB13015@khazad-dum.debian.net>
+ <20101017145025.GA32599@sucs.org>
+ <201010172032.43206.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:36021 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab0JYNL3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 09:11:29 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20101025125531.GA6075@elte.hu>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <201010172032.43206.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Sitsofe Wheeler <sitsofe@yahoo.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <andi@firstfloor.org>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Mon, Oct 25, 2010 at 02:55:31PM +0200, Ingo Molnar wrote:
+Hi!
+
+> That's why I suggested to use -ENODATA. :-)
 > 
-> * Andi Kleen <andi@firstfloor.org> wrote:
-> 
-> > On Mon, Oct 25, 2010 at 01:15:30PM +0200, Ingo Molnar wrote:
-> > 
-> > > > > > einj.c: it's about the 3rd separate 'error injection' concept that got 
-> > > > > > introduced ...
-> > > > > 
-> > > > > EINJ is a true platform feature, not just software feature. We need to support 
-> > > > > it to debug various hardware error features.
-> > > > 
-> > > > Also having multiple error injecting interfaces is a good thing.
-> > > 
-> > > It's never a good thing to have separate, vendor dependent interfaces for what 
-> > > to the user is basically the same conceptual thing!
-> > 
-> > Perhaps a simple example (simplified, in practice there are more complications) 
-> > makes it more clear:
-> > 
-> > The memory error handler does different actions depending on what the state the 
-> > page the error is happening on is in.
-> 
-> What you appear to be arguing for is the ability to inject different types of 
-> events.
+> Still, if user space has problems with failing reads from the sysfs attributes,
+> it may be better to simply put -1 in there.  Patch is appended, please test.
 
-Different events in different contexts with different drivers 
-with different parameters using different tools.
+I'd say that reporting -1 for unknown is ugly. You can have -1A
+current easily (charging at 1A), and I've seen machines reporting <0
+current -- when charging. Logical and well-defined.
 
-Commonality: about 0% exept there's "error" somewhere in the description.
+								Pavel
 
--Andi
+
+>  	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
+> -		val->intval = battery->design_voltage * 1000;
+> +		if (battery->design_voltage != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->design_voltage * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+> -		val->intval = battery->voltage_now * 1000;
+> +		if (battery->voltage_now != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->voltage_now * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+>  	case POWER_SUPPLY_PROP_POWER_NOW:
+> -		val->intval = battery->rate_now * 1000;
+> +		if (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->rate_now * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+>  	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
+> -		val->intval = battery->design_capacity * 1000;
+> +		if (battery->design_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->design_capacity * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CHARGE_FULL:
+>  	case POWER_SUPPLY_PROP_ENERGY_FULL:
+> -		val->intval = battery->full_charge_capacity * 1000;
+> +		if (battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->full_charge_capacity * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CHARGE_NOW:
+>  	case POWER_SUPPLY_PROP_ENERGY_NOW:
+> -		val->intval = battery->capacity_now * 1000;
+> +		if (battery->capacity_now != ACPI_BATTERY_VALUE_UNKNOWN)
+> +			val->intval = battery->capacity_now * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_MODEL_NAME:
+>  		val->strval = battery->model_number;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
