@@ -1,317 +1,265 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 50/60] ACPI, APEI,
- Use ERST for hardware error persisting before panic
-Date: Mon, 25 Oct 2010 02:20:58 -0400
-Message-ID: <d7a625a122d5990cb7b4fe131ac76005b4f88ff5.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 37/60] ACPI: remove dead code
+Date: Mon, 25 Oct 2010 02:20:45 -0400
+Message-ID: <5ba8b1c6fe40c314a02e28553c25552d8f1442e7.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63728 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:63718 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155Ab0JYILH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:07 -0400
+	with ESMTP id S1751884Ab0JYILF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:05 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:06 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:05 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Stephen Hemminger <shemminger@vyatta.com>, Len Brown <len.brown@intel.com>
 
-From: Huang Ying <ying.huang@intel.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-Corrected/Recoverable hardware errors can usually be saved into disk
-and/or sent to network for logging.  But if uncorrected/fatal hardware
-errors occur, system may not reliable enough for desk and/or network
-accessing and needs to go panic as soon as possible for error
-containment.  In this situation, ERST can be used to save the valuable
-error records into some persistent storage such as flash.
+Found by running make namespacecheck on linux-next
 
-This patch implements herr_persist interface using ERST.  So that
-hardware error device core can use ERST to save hardware error record
-before panic.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/apei/Kconfig |    1 +
- drivers/acpi/apei/cper.c  |   19 +++++
- drivers/acpi/apei/erst.c  |  169 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/cper.h      |    1 +
- 4 files changed, 190 insertions(+), 0 deletions(-)
+ drivers/acpi/osl.c               |   25 ---------
+ drivers/acpi/processor_driver.c  |    2 -
+ drivers/acpi/processor_thermal.c |  107 --------------------------------------
+ include/acpi/acpi_drivers.h      |    2 -
+ include/acpi/acpiosxf.h          |    2 -
+ include/linux/acpi.h             |    8 ---
+ 6 files changed, 0 insertions(+), 146 deletions(-)
 
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index fca34cc..e7501d6 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -1,6 +1,7 @@
- config ACPI_APEI
- 	bool "ACPI Platform Error Interface (APEI)"
- 	depends on X86
-+	select HERR_DEV_CORE
- 	help
- 	  APEI allows to report errors (for example from the chipset)
- 	  to the operating system. This improves NMI handling
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index f4cf2fc..ef72fb1 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -29,6 +29,25 @@
- #include <linux/time.h>
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/herror_record.h>
-+
-+int herr_severity_to_cper(int herr_severity)
-+{
-+	switch (herr_severity) {
-+	case HERR_SEV_NONE:
-+		return CPER_SEV_INFORMATIONAL;
-+	case HERR_SEV_CORRECTED:
-+		return CPER_SEV_CORRECTED;
-+	case HERR_SEV_RECOVERABLE:
-+		return CPER_SEV_RECOVERABLE;
-+	case HERR_SEV_FATAL:
-+		return CPER_SEV_FATAL;
-+	default:
-+		BUG();
-+		return CPER_SEV_FATAL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(herr_severity_to_cper);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 65b25a3..82097fd 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -780,16 +780,6 @@ void acpi_os_wait_events_complete(void *context)
+ EXPORT_SYMBOL(acpi_os_wait_events_complete);
  
  /*
-  * CPER record ID need to be unique even after reboot, because record
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index addd47f..2c37855 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -33,6 +33,7 @@
- #include <linux/uaccess.h>
- #include <linux/cper.h>
- #include <linux/nmi.h>
-+#include <linux/herror.h>
- #include <linux/hardirq.h>
- #include <acpi/apei.h>
- 
-@@ -88,6 +89,12 @@ static struct erst_erange {
+- * Allocate the memory for a spinlock and initialize it.
+- */
+-acpi_status acpi_os_create_lock(acpi_spinlock * handle)
+-{
+-	spin_lock_init(*handle);
+-
+-	return AE_OK;
+-}
+-
+-/*
+  * Deallocate the memory for a spinlock.
   */
- static DEFINE_SPINLOCK(erst_lock);
- 
-+static void *erst_buf;
-+static unsigned int erst_buf_len;
-+
-+/* Prevent erst_buf from being accessed simultaneously */
-+static DEFINE_MUTEX(erst_buf_mutex);
-+
- static inline int erst_errno(int command_status)
- {
- 	switch (command_status) {
-@@ -774,6 +781,12 @@ static int __erst_write_to_nvram(const struct cper_record_header *record)
- 	return -ENOSYS;
+ void acpi_os_delete_lock(acpi_spinlock handle)
+@@ -1152,21 +1142,6 @@ int acpi_check_region(resource_size_t start, resource_size_t n,
  }
+ EXPORT_SYMBOL(acpi_check_region);
  
-+static int __erst_write_herr_record_to_nvram(const struct herr_record *ercd)
-+{
-+	/* do not print message, because printk is not safe for NMI */
-+	return -ENOSYS;
-+}
-+
- static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
- {
- 	pr_unimpl_nvram();
-@@ -910,6 +923,156 @@ out:
- }
- EXPORT_SYMBOL_GPL(erst_clear);
+-int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+-		      const char *name)
+-{
+-	struct resource res = {
+-		.start = start,
+-		.end   = start + n - 1,
+-		.name  = name,
+-		.flags = IORESOURCE_MEM,
+-	};
+-
+-	return acpi_check_resource_conflict(&res);
+-
+-}
+-EXPORT_SYMBOL(acpi_check_mem_region);
+-
+ /*
+  * Let drivers know whether the resource checks are effective
+  */
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 347eb21..8d924a8 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -899,6 +899,4 @@ static void __exit acpi_processor_exit(void)
+ module_init(acpi_processor_init);
+ module_exit(acpi_processor_exit);
  
-+#define CPER_CREATOR_ERST						\
-+	UUID_LE(0xEACBBA0C, 0x803A, 0x4096, 0xB1, 0x1D, 0xC3, 0xC7,	\
-+		0x6E, 0xE7, 0x94, 0xF9)
-+
-+#define CPER_SEC_HERR_RECORD						\
-+	UUID_LE(0x633AB656, 0x6703, 0x11DF, 0x87, 0xCF, 0x00, 0x19,	\
-+		0xD1, 0x2A, 0x29, 0xEF)
-+
-+static ssize_t erst_herr_record_to_cper(struct cper_record_header *crcd,
-+					size_t buf_size,
-+					const struct herr_record *ercd)
-+{
-+	struct cper_section_descriptor *csec;
-+	unsigned int crcd_len;
-+	void *csec_data;
-+
-+	crcd_len = sizeof(*crcd) + sizeof(*csec) + ercd->length;
-+	if (crcd_len > buf_size)
-+		return crcd_len;
-+
-+	memset(crcd, 0, crcd_len);
-+	memcpy(crcd->signature, CPER_SIG_RECORD, CPER_SIG_SIZE);
-+	crcd->revision = CPER_RECORD_REV;
-+	crcd->signature_end = CPER_SIG_END;
-+	crcd->error_severity = herr_severity_to_cper(ercd->severity);
-+	/* timestamp, platform_id, partition_id is invalid */
-+	crcd->validation_bits = 0;
-+	crcd->creator_id = CPER_CREATOR_ERST;
-+	crcd->section_count = 1;
-+	crcd->record_length = crcd_len;
-+	crcd->record_id = ercd->id;
-+
-+	csec = (struct cper_section_descriptor *)(crcd + 1);
-+	csec_data = csec + 1;
-+
-+	csec->section_length = ercd->length;
-+	csec->revision = CPER_SEC_REV;
-+	csec->section_type = CPER_SEC_HERR_RECORD;
-+	csec->section_severity = crcd->error_severity;
-+	csec->section_offset = (void *)csec_data - (void *)crcd;
-+
-+	memcpy(csec_data, ercd, ercd->length);
-+
-+	return crcd_len;
-+}
-+
-+static int erst_write_herr_record(const struct herr_record *ercd)
-+{
-+	struct cper_record_header *crcd;
-+	ssize_t crcd_len;
-+	unsigned long flags;
-+	int rc;
-+
-+	if (!spin_trylock_irqsave(&erst_lock, flags))
-+		return -EBUSY;
-+
-+	if (erst_erange.attr & ERST_RANGE_NVRAM) {
-+		rc = __erst_write_herr_record_to_nvram(ercd);
-+		goto out;
-+	}
-+
-+	rc = -EINVAL;
-+	crcd_len = erst_herr_record_to_cper(erst_erange.vaddr,
-+					    erst_erange.size, ercd);
-+	if (crcd_len > erst_erange.size)
-+		goto out;
-+	crcd = erst_erange.vaddr;
-+	/* signature for serialization system */
-+	memcpy(&crcd->persistence_information, "ER", 2);
-+	rc = __erst_write_to_storage(0);
-+out:
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return rc;
-+}
-+
-+static ssize_t erst_persist_peek_user(u64 *record_id, char __user *ubuf,
-+				      size_t usize)
-+{
-+	int rc, pos;
-+	ssize_t len, clen;
-+	u64 id;
-+	struct cper_record_header *crcd;
-+	struct cper_section_descriptor *csec;
-+	struct herr_record *ercd;
-+
-+	if (mutex_lock_interruptible(&erst_buf_mutex) != 0)
-+		return -EINTR;
-+	erst_get_record_id_begin(&pos);
-+retry_next:
-+	len = 0;
-+	rc = erst_get_record_id_next(&pos, &id);
-+	if (rc)
-+		goto out;
-+	/* no more record */
-+	if (id == APEI_ERST_INVALID_RECORD_ID)
-+		goto out;
-+retry:
-+	rc = clen = erst_read(id, erst_buf, erst_buf_len);
-+	/* someone else has cleared the record, try next one */
-+	if (rc == -ENOENT)
-+		goto retry_next;
-+	else if (rc < 0)
-+		goto out;
-+	else if (clen > erst_buf_len) {
-+		void *p;
-+		rc = -ENOMEM;
-+		p = kmalloc(clen, GFP_KERNEL);
-+		if (!p)
-+			goto out;
-+		kfree(erst_buf);
-+		erst_buf = p;
-+		erst_buf_len = clen;
-+		goto retry;
-+	}
-+
-+	crcd = erst_buf;
-+	csec = (struct cper_section_descriptor *)(crcd + 1);
-+	if (crcd->section_count != 1 ||
-+	    uuid_le_cmp(crcd->creator_id, CPER_CREATOR_ERST) ||
-+	    uuid_le_cmp(csec->section_type, CPER_SEC_HERR_RECORD))
-+		goto retry_next;
-+
-+	ercd = (struct herr_record *)(csec + 1);
-+	len = ercd->length;
-+
-+	rc = -EINVAL;
-+	if (len > usize)
-+		goto out;
-+
-+	ercd->flags |= HERR_RCD_PREV | HERR_RCD_PERSIST;
-+
-+	rc = -EFAULT;
-+	if (copy_to_user(ubuf, ercd, len))
-+		goto out;
-+	*record_id = id;
-+	rc = 0;
-+out:
-+	erst_get_record_id_end();
-+	mutex_unlock(&erst_buf_mutex);
-+	return rc ? rc : len;
-+}
-+
-+static struct herr_persist erst_persist = {
-+	.name		= "ERST",
-+	.in		= erst_write_herr_record,
-+	.peek_user	= erst_persist_peek_user,
-+	.clear		= erst_clear,
-+};
-+
- static int __init setup_erst_disable(char *str)
- {
- 	erst_disable = 1;
-@@ -1007,11 +1170,17 @@ static int __init erst_init(void)
- 	if (!erst_erange.vaddr)
- 		goto err_release_erange;
- 
-+	rc = herr_persist_register(&erst_persist);
-+	if (rc)
-+		goto err_unmap_erange;
-+
- 	pr_info(ERST_PFX
- 	"Error Record Serialization Table (ERST) support is initialized.\n");
- 
- 	return 0;
- 
-+err_unmap_erange:
-+	iounmap(erst_erange.vaddr);
- err_release_erange:
- 	release_mem_region(erst_erange.base, erst_erange.size);
- err_unmap_reg:
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index bf972f8..7e00f1e 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -309,6 +309,7 @@ struct cper_sec_mem_err {
- /* Reset to default packing */
- #pragma pack()
- 
-+int herr_severity_to_cper(int herr_severity);
- u64 cper_next_record_id(void);
+-EXPORT_SYMBOL(acpi_processor_set_thermal_limit);
+-
+ MODULE_ALIAS("processor");
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 953b25f..419f651 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -238,113 +238,6 @@ static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
  
  #endif
+ 
+-int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
+-{
+-	int result = 0;
+-	struct acpi_processor *pr = NULL;
+-	struct acpi_device *device = NULL;
+-	int tx = 0, max_tx_px = 0;
+-
+-
+-	if ((type < ACPI_PROCESSOR_LIMIT_NONE)
+-	    || (type > ACPI_PROCESSOR_LIMIT_DECREMENT))
+-		return -EINVAL;
+-
+-	result = acpi_bus_get_device(handle, &device);
+-	if (result)
+-		return result;
+-
+-	pr = acpi_driver_data(device);
+-	if (!pr)
+-		return -ENODEV;
+-
+-	/* Thermal limits are always relative to the current Px/Tx state. */
+-	if (pr->flags.throttling)
+-		pr->limit.thermal.tx = pr->throttling.state;
+-
+-	/*
+-	 * Our default policy is to only use throttling at the lowest
+-	 * performance state.
+-	 */
+-
+-	tx = pr->limit.thermal.tx;
+-
+-	switch (type) {
+-
+-	case ACPI_PROCESSOR_LIMIT_NONE:
+-		do {
+-			result = acpi_thermal_cpufreq_decrease(pr->id);
+-		} while (!result);
+-		tx = 0;
+-		break;
+-
+-	case ACPI_PROCESSOR_LIMIT_INCREMENT:
+-		/* if going up: P-states first, T-states later */
+-
+-		result = acpi_thermal_cpufreq_increase(pr->id);
+-		if (!result)
+-			goto end;
+-		else if (result == -ERANGE)
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-					  "At maximum performance state\n"));
+-
+-		if (pr->flags.throttling) {
+-			if (tx == (pr->throttling.state_count - 1))
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "At maximum throttling state\n"));
+-			else
+-				tx++;
+-		}
+-		break;
+-
+-	case ACPI_PROCESSOR_LIMIT_DECREMENT:
+-		/* if going down: T-states first, P-states later */
+-
+-		if (pr->flags.throttling) {
+-			if (tx == 0) {
+-				max_tx_px = 1;
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "At minimum throttling state\n"));
+-			} else {
+-				tx--;
+-				goto end;
+-			}
+-		}
+-
+-		result = acpi_thermal_cpufreq_decrease(pr->id);
+-		if (result) {
+-			/*
+-			 * We only could get -ERANGE, 1 or 0.
+-			 * In the first two cases we reached max freq again.
+-			 */
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-					  "At minimum performance state\n"));
+-			max_tx_px = 1;
+-		} else
+-			max_tx_px = 0;
+-
+-		break;
+-	}
+-
+-      end:
+-	if (pr->flags.throttling) {
+-		pr->limit.thermal.px = 0;
+-		pr->limit.thermal.tx = tx;
+-
+-		result = acpi_processor_apply_limit(pr);
+-		if (result)
+-			printk(KERN_ERR PREFIX "Unable to set thermal limit\n");
+-
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
+-				  pr->limit.thermal.px, pr->limit.thermal.tx));
+-	} else
+-		result = 0;
+-	if (max_tx_px)
+-		return 1;
+-	else
+-		return result;
+-}
+-
+ int acpi_processor_get_limit_info(struct acpi_processor *pr)
+ {
+ 
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index 23d78b4..3090471 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -115,8 +115,6 @@ void pci_acpi_crs_quirks(void);
+ #define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
+ #define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
+ 
+-int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
+-
+ /*--------------------------------------------------------------------------
+                                   Dock Station
+   -------------------------------------------------------------------------- */
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 29bf945..782acdf 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -98,8 +98,6 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
+ /*
+  * Spinlock primitives
+  */
+-acpi_status acpi_os_create_lock(acpi_spinlock * out_handle);
+-
+ void acpi_os_delete_lock(acpi_spinlock handle);
+ 
+ acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock handle);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index c227757..659c743 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -245,8 +245,6 @@ int acpi_check_resource_conflict(const struct resource *res);
+ 
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+-int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+-		      const char *name);
+ 
+ int acpi_resources_are_enforced(void);
+ 
+@@ -344,12 +342,6 @@ static inline int acpi_check_region(resource_size_t start, resource_size_t n,
+ 	return 0;
+ }
+ 
+-static inline int acpi_check_mem_region(resource_size_t start,
+-					resource_size_t n, const char *name)
+-{
+-	return 0;
+-}
+-
+ struct acpi_table_header;
+ static inline int acpi_table_parse(char *id,
+ 				int (*handler)(struct acpi_table_header *))
 -- 
 1.7.3.2.90.gd4c43
 
