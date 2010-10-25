@@ -1,126 +1,65 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 39/60] ACPI: thermal: remove unused limit code
-Date: Mon, 25 Oct 2010 02:20:47 -0400
-Message-ID: <ab7c13c4a5a22335b0cfc6f364ee77abed66503c.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 55/60] ACPI: Fix ioremap size for MMIO reads and writes
+Date: Mon, 25 Oct 2010 02:21:03 -0400
+Message-ID: <b3ba1efec2a58f4dc0647f4c0099c27d6ab92595.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:50524 "EHLO
+Received: from vms173019pub.verizon.net ([206.46.173.19]:50532 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210Ab0JYHLD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:03 -0400
+	with ESMTP id S1753210Ab0JYHLG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:06 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00FPR3YCZ7J4@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:02 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:05 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Myron Stowe <myron.stowe@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Myron Stowe <myron.stowe@hp.com>
 
-acpi_processor_apply_limit()
-acpi_thermal_cpufreq_increase()
-acpi_thermal_cpufreq_decrease()
+The size used for I/O remapping MMIO read and write accesses has not
+accounted for the basis of ACPI's Generic Address Structure (GAS)
+'Register Bit Width' field which is bits, not bytes.  This patch
+adjusts the ioremap() 'size' argument accordingly.
 
+ACPI "Generic Register" reference:
+  ACPI Specification, Revision 4.0, Section 5.2.3.1, "Generic Address
+  Structure".
+
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_thermal.c |   71 --------------------------------------
- 1 files changed, 0 insertions(+), 71 deletions(-)
+ drivers/acpi/osl.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 419f651..fde49b9 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -44,47 +44,6 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_thermal");
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 65b25a3..58842fb 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -496,7 +496,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
+ 	u32 dummy;
+ 	void __iomem *virt_addr;
  
--/* --------------------------------------------------------------------------
--                                 Limit Interface
--   -------------------------------------------------------------------------- */
--static int acpi_processor_apply_limit(struct acpi_processor *pr)
--{
--	int result = 0;
--	u16 px = 0;
--	u16 tx = 0;
--
--
--	if (!pr)
--		return -EINVAL;
--
--	if (!pr->flags.limit)
--		return -ENODEV;
--
--	if (pr->flags.throttling) {
--		if (pr->limit.user.tx > tx)
--			tx = pr->limit.user.tx;
--		if (pr->limit.thermal.tx > tx)
--			tx = pr->limit.thermal.tx;
--
--		result = acpi_processor_set_throttling(pr, tx, false);
--		if (result)
--			goto end;
--	}
--
--	pr->limit.state.px = px;
--	pr->limit.state.tx = tx;
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Processor [%d] limit set to (P%d:T%d)\n", pr->id,
--			  pr->limit.state.px, pr->limit.state.tx));
--
--      end:
--	if (result)
--		printk(KERN_ERR PREFIX "Unable to set limit\n");
--
--	return result;
--}
--
- #ifdef CONFIG_CPU_FREQ
+-	virt_addr = ioremap(phys_addr, width);
++	virt_addr = ioremap(phys_addr, width / 8);
+ 	if (!value)
+ 		value = &dummy;
  
- /* If a passive cooling situation is detected, primarily CPUfreq is used, as it
-@@ -107,36 +66,6 @@ static int cpu_has_cpufreq(unsigned int cpu)
- 	return 1;
- }
- 
--static int acpi_thermal_cpufreq_increase(unsigned int cpu)
--{
--	if (!cpu_has_cpufreq(cpu))
--		return -ENODEV;
--
--	if (per_cpu(cpufreq_thermal_reduction_pctg, cpu) <
--		CPUFREQ_THERMAL_MAX_STEP) {
--		per_cpu(cpufreq_thermal_reduction_pctg, cpu)++;
--		cpufreq_update_policy(cpu);
--		return 0;
--	}
--
--	return -ERANGE;
--}
--
--static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
--{
--	if (!cpu_has_cpufreq(cpu))
--		return -ENODEV;
--
--	if (per_cpu(cpufreq_thermal_reduction_pctg, cpu) >
--		(CPUFREQ_THERMAL_MIN_STEP + 1))
--		per_cpu(cpufreq_thermal_reduction_pctg, cpu)--;
--	else
--		per_cpu(cpufreq_thermal_reduction_pctg, cpu) = 0;
--	cpufreq_update_policy(cpu);
--	/* We reached max freq again and can leave passive mode */
--	return !per_cpu(cpufreq_thermal_reduction_pctg, cpu);
--}
--
- static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
- 					 unsigned long event, void *data)
+@@ -524,7 +524,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
  {
+ 	void __iomem *virt_addr;
+ 
+-	virt_addr = ioremap(phys_addr, width);
++	virt_addr = ioremap(phys_addr, width / 8);
+ 
+ 	switch (width) {
+ 	case 8:
 -- 
 1.7.3.2.90.gd4c43
 
