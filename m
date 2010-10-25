@@ -1,75 +1,44 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
- Source POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 11:25:57 +0200
-Message-ID: <20101025092557.GA11544@elte.hu>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
- <1287992610-14996-10-git-send-email-ying.huang@intel.com>
- <20101025084553.GA27119@elte.hu>
- <1287997112.2862.322.camel@yhuang-dev>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 0/7] ACPI: Memory Mapped I/O (MMIO) pre-mapping
+Date: Mon, 25 Oct 2010 11:29:18 +0200
+Message-ID: <20101025092918.GB30292@gargoyle.fritz.box>
+References: <20101021201916.9220.5711.stgit@bob.kio>
+ <1287716220.2862.57.camel@yhuang-dev>
+ <1287717372.8722.954.camel@sli10-conroe.sh.intel.com>
+ <201010221110.01582.bjorn.helgaas@hp.com>
+ <20101025083404.GA30292@gargoyle.fritz.box>
+ <1287996235.2862.314.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:39697 "EHLO mx3.mail.elte.hu"
+Received: from mga01.intel.com ([192.55.52.88]:34161 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754348Ab0JYJ0Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 05:26:25 -0400
+	id S1753432Ab0JYJ06 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 05:26:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1287997112.2862.322.camel@yhuang-dev>
+In-Reply-To: <1287996235.2862.314.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Li, Shaohua" <shaohua.li@intel.com>, Myron Stowe <myron.stowe@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-
-* Huang Ying <ying.huang@intel.com> wrote:
-
-> > Sigh, please integrate all this into EDAC (drivers/edac/) properly, instead of 
-> > turning it into YET ANOTHER hardware vendor special hw-errors thing. We can do 
-> > better than this. EDAC is almost there: it has support for Nehalem, AMD, a 
-> > couple of older chips.
+On Mon, Oct 25, 2010 at 04:43:55PM +0800, Huang Ying wrote:
+> On Mon, 2010-10-25 at 16:34 +0800, Andi Kleen wrote:
+> > > On ia64 (which also uses ACPI), kmap_atomic_pfn() also requires
+> > > a struct page.  An ia64-specific version that doesn't need a struct
+> > > page would be trivial, but I still don't know how to make it work on
+> > > x86_64.
+> > 
+> > Doing a struct page less kmap_atomic() shouldn't be too hard 
+> > on x86 either.
+> > 
+> > Just to avoid problems with concurrency you likely need per 
+> > CPU mappings.
 > 
-> I think APEI (ACPI Platform Error Interface) is another driver. Why integrate two 
-> drivers?
+> One issue is PAT management, like in general ioremap implementation
+> (reserve_memtype).
 
-Sigh. I did not say integrate the drivers - integrate the _error event facilities_. 
+That's true, didn't consider that.
+Making that fully lockless is probably too hard.
 
-You can have drivers/edac/apei/ghes* bits just fine (in fact it would be desirable, 
-to keep things modular).
-
-Really, just read the two Kconfig entries:
-
-        bool "EDAC (Error Detection And Correction) reporting"
-
-          EDAC is designed to report errors in the core system.
-          These are low-level errors that are reported in the CPU or
-          supporting chipset or other subsystems:
-          memory errors, cache errors, PCI errors, thermal throttling, etc..
-
-...
-
-        tristate "APEI Generic Hardware Error Source"
-
-          Generic Hardware Error Source provides a way to report
-          platform hardware errors (such as that from chipset).
-
-drivers/acpi/apei/ overlaps and duplicates drivers/edac/. We dont want two 
-facilities, two ABIs, two sets of behavior. erst-dbg even defines a /dev node with 
-two ioctls, and a debugfs file to read/write records ...
-
-I have NAK-ed various attempts to extend /dev/mcelog and asked for it to be done 
-properly, and work has begun on that - but the debugfs interface here just tries to 
-work around those objections by stealth.
-
-I'd like you and Andi to listen not just to the letter of NAKs but to the spirit as 
-well. If you get a NAK in one subsystem you should not just try to route around the 
-NAK, go to some other subsystem, figure out a slightly different scheme and try to 
-sneak crap upstream ...
-
-If you disagree with the mcelog NAK, if you disagree with EDAC directions then at 
-least do it openly and honestly and Cc: the parties that sent you the NAK and work 
-with the EDAC guys to migrate to the facility you are advancing ...
-
-Thanks,
-
-	Ingo
+-Andi
