@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 46/60] lock-less NULL terminated single list implementation
-Date: Mon, 25 Oct 2010 02:20:54 -0400
-Message-ID: <e42a2308904d7ab7f6dcc7fe4f770de842ccdb6d.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 50/60] ACPI, APEI,
+ Use ERST for hardware error persisting before panic
+Date: Mon, 25 Oct 2010 02:20:58 -0400
+Message-ID: <d7a625a122d5990cb7b4fe131ac76005b4f88ff5.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63717 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:63728 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753690Ab0JYILF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:05 -0400
+	with ESMTP id S1752155Ab0JYILH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:07 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:04 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:06 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
@@ -23,204 +24,294 @@ Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Huang Ying <ying.huang@intel.com>
 
-Cmpxchg is used to implement adding new entry to list, deleting first
-entry of the list and some other operations.
+Corrected/Recoverable hardware errors can usually be saved into disk
+and/or sent to network for logging.  But if uncorrected/fatal hardware
+errors occur, system may not reliable enough for desk and/or network
+accessing and needs to go panic as soon as possible for error
+containment.  In this situation, ERST can be used to save the valuable
+error records into some persistent storage such as flash.
 
-Because this is a single list, so the tail can not be accessed in O(1).
-
-This can be used in NMI handler.
+This patch implements herr_persist interface using ERST.  So that
+hardware error device core can use ERST to save hardware error record
+before panic.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/linux/llist.h |   64 ++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig           |    3 ++
- lib/Makefile          |    2 +
- lib/llist.c           |   78 +++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 147 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/llist.h
- create mode 100644 lib/llist.c
+ drivers/acpi/apei/Kconfig |    1 +
+ drivers/acpi/apei/cper.c  |   19 +++++
+ drivers/acpi/apei/erst.c  |  169 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/cper.h      |    1 +
+ 4 files changed, 190 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/llist.h b/include/linux/llist.h
-new file mode 100644
-index 0000000..53be9b5
---- /dev/null
-+++ b/include/linux/llist.h
-@@ -0,0 +1,64 @@
-+#ifndef LLIST_H
-+#define LLIST_H
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index fca34cc..e7501d6 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -1,6 +1,7 @@
+ config ACPI_APEI
+ 	bool "ACPI Platform Error Interface (APEI)"
+ 	depends on X86
++	select HERR_DEV_CORE
+ 	help
+ 	  APEI allows to report errors (for example from the chipset)
+ 	  to the operating system. This improves NMI handling
+diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+index f4cf2fc..ef72fb1 100644
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -29,6 +29,25 @@
+ #include <linux/time.h>
+ #include <linux/cper.h>
+ #include <linux/acpi.h>
++#include <linux/herror_record.h>
 +
-+/* lock-less NULL terminated single linked list */
-+struct llist_head {
-+	struct llist_head *next;
++int herr_severity_to_cper(int herr_severity)
++{
++	switch (herr_severity) {
++	case HERR_SEV_NONE:
++		return CPER_SEV_INFORMATIONAL;
++	case HERR_SEV_CORRECTED:
++		return CPER_SEV_CORRECTED;
++	case HERR_SEV_RECOVERABLE:
++		return CPER_SEV_RECOVERABLE;
++	case HERR_SEV_FATAL:
++		return CPER_SEV_FATAL;
++	default:
++		BUG();
++		return CPER_SEV_FATAL;
++	}
++}
++EXPORT_SYMBOL_GPL(herr_severity_to_cper);
+ 
+ /*
+  * CPER record ID need to be unique even after reboot, because record
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index addd47f..2c37855 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -33,6 +33,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/cper.h>
+ #include <linux/nmi.h>
++#include <linux/herror.h>
+ #include <linux/hardirq.h>
+ #include <acpi/apei.h>
+ 
+@@ -88,6 +89,12 @@ static struct erst_erange {
+  */
+ static DEFINE_SPINLOCK(erst_lock);
+ 
++static void *erst_buf;
++static unsigned int erst_buf_len;
++
++/* Prevent erst_buf from being accessed simultaneously */
++static DEFINE_MUTEX(erst_buf_mutex);
++
+ static inline int erst_errno(int command_status)
+ {
+ 	switch (command_status) {
+@@ -774,6 +781,12 @@ static int __erst_write_to_nvram(const struct cper_record_header *record)
+ 	return -ENOSYS;
+ }
+ 
++static int __erst_write_herr_record_to_nvram(const struct herr_record *ercd)
++{
++	/* do not print message, because printk is not safe for NMI */
++	return -ENOSYS;
++}
++
+ static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
+ {
+ 	pr_unimpl_nvram();
+@@ -910,6 +923,156 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(erst_clear);
+ 
++#define CPER_CREATOR_ERST						\
++	UUID_LE(0xEACBBA0C, 0x803A, 0x4096, 0xB1, 0x1D, 0xC3, 0xC7,	\
++		0x6E, 0xE7, 0x94, 0xF9)
++
++#define CPER_SEC_HERR_RECORD						\
++	UUID_LE(0x633AB656, 0x6703, 0x11DF, 0x87, 0xCF, 0x00, 0x19,	\
++		0xD1, 0x2A, 0x29, 0xEF)
++
++static ssize_t erst_herr_record_to_cper(struct cper_record_header *crcd,
++					size_t buf_size,
++					const struct herr_record *ercd)
++{
++	struct cper_section_descriptor *csec;
++	unsigned int crcd_len;
++	void *csec_data;
++
++	crcd_len = sizeof(*crcd) + sizeof(*csec) + ercd->length;
++	if (crcd_len > buf_size)
++		return crcd_len;
++
++	memset(crcd, 0, crcd_len);
++	memcpy(crcd->signature, CPER_SIG_RECORD, CPER_SIG_SIZE);
++	crcd->revision = CPER_RECORD_REV;
++	crcd->signature_end = CPER_SIG_END;
++	crcd->error_severity = herr_severity_to_cper(ercd->severity);
++	/* timestamp, platform_id, partition_id is invalid */
++	crcd->validation_bits = 0;
++	crcd->creator_id = CPER_CREATOR_ERST;
++	crcd->section_count = 1;
++	crcd->record_length = crcd_len;
++	crcd->record_id = ercd->id;
++
++	csec = (struct cper_section_descriptor *)(crcd + 1);
++	csec_data = csec + 1;
++
++	csec->section_length = ercd->length;
++	csec->revision = CPER_SEC_REV;
++	csec->section_type = CPER_SEC_HERR_RECORD;
++	csec->section_severity = crcd->error_severity;
++	csec->section_offset = (void *)csec_data - (void *)crcd;
++
++	memcpy(csec_data, ercd, ercd->length);
++
++	return crcd_len;
++}
++
++static int erst_write_herr_record(const struct herr_record *ercd)
++{
++	struct cper_record_header *crcd;
++	ssize_t crcd_len;
++	unsigned long flags;
++	int rc;
++
++	if (!spin_trylock_irqsave(&erst_lock, flags))
++		return -EBUSY;
++
++	if (erst_erange.attr & ERST_RANGE_NVRAM) {
++		rc = __erst_write_herr_record_to_nvram(ercd);
++		goto out;
++	}
++
++	rc = -EINVAL;
++	crcd_len = erst_herr_record_to_cper(erst_erange.vaddr,
++					    erst_erange.size, ercd);
++	if (crcd_len > erst_erange.size)
++		goto out;
++	crcd = erst_erange.vaddr;
++	/* signature for serialization system */
++	memcpy(&crcd->persistence_information, "ER", 2);
++	rc = __erst_write_to_storage(0);
++out:
++	spin_unlock_irqrestore(&erst_lock, flags);
++
++	return rc;
++}
++
++static ssize_t erst_persist_peek_user(u64 *record_id, char __user *ubuf,
++				      size_t usize)
++{
++	int rc, pos;
++	ssize_t len, clen;
++	u64 id;
++	struct cper_record_header *crcd;
++	struct cper_section_descriptor *csec;
++	struct herr_record *ercd;
++
++	if (mutex_lock_interruptible(&erst_buf_mutex) != 0)
++		return -EINTR;
++	erst_get_record_id_begin(&pos);
++retry_next:
++	len = 0;
++	rc = erst_get_record_id_next(&pos, &id);
++	if (rc)
++		goto out;
++	/* no more record */
++	if (id == APEI_ERST_INVALID_RECORD_ID)
++		goto out;
++retry:
++	rc = clen = erst_read(id, erst_buf, erst_buf_len);
++	/* someone else has cleared the record, try next one */
++	if (rc == -ENOENT)
++		goto retry_next;
++	else if (rc < 0)
++		goto out;
++	else if (clen > erst_buf_len) {
++		void *p;
++		rc = -ENOMEM;
++		p = kmalloc(clen, GFP_KERNEL);
++		if (!p)
++			goto out;
++		kfree(erst_buf);
++		erst_buf = p;
++		erst_buf_len = clen;
++		goto retry;
++	}
++
++	crcd = erst_buf;
++	csec = (struct cper_section_descriptor *)(crcd + 1);
++	if (crcd->section_count != 1 ||
++	    uuid_le_cmp(crcd->creator_id, CPER_CREATOR_ERST) ||
++	    uuid_le_cmp(csec->section_type, CPER_SEC_HERR_RECORD))
++		goto retry_next;
++
++	ercd = (struct herr_record *)(csec + 1);
++	len = ercd->length;
++
++	rc = -EINVAL;
++	if (len > usize)
++		goto out;
++
++	ercd->flags |= HERR_RCD_PREV | HERR_RCD_PERSIST;
++
++	rc = -EFAULT;
++	if (copy_to_user(ubuf, ercd, len))
++		goto out;
++	*record_id = id;
++	rc = 0;
++out:
++	erst_get_record_id_end();
++	mutex_unlock(&erst_buf_mutex);
++	return rc ? rc : len;
++}
++
++static struct herr_persist erst_persist = {
++	.name		= "ERST",
++	.in		= erst_write_herr_record,
++	.peek_user	= erst_persist_peek_user,
++	.clear		= erst_clear,
 +};
 +
-+#define LLIST_HEAD_INIT(name) { NULL }
-+
-+#define LLIST_HEAD(name)				\
-+	struct llist_head name = LLIST_HEAD_INIT(name)
-+
-+/**
-+ * init_llist_head - initialize lock-less list head
-+ * @head:	the head for your lock-less list
-+ */
-+static inline void init_llist_head(struct llist_head *list)
-+{
-+	list->next = NULL;
-+}
-+
-+/**
-+ * llist_entry - get the struct of this entry
-+ * @ptr:	the &struct llist_head pointer.
-+ * @type:	the type of the struct this is embedded in.
-+ * @member:	the name of the llist_head within the struct.
-+ */
-+#define llist_entry(ptr, type, member)		\
-+	container_of(ptr, type, member)
-+
-+/**
-+ * llist_for_each - iterate over a lock-less list
-+ * @pos:	the &struct llist_head to use as a loop cursor
-+ * @head:	the head for your lock-less list
-+ */
-+#define llist_for_each(pos, head)					\
-+	for (pos = (head)->next; pos; pos = pos->next)
-+
-+/**
-+ * llist_for_each_entry - iterate over lock-less list of given type
-+ * @pos:	the type * to use as a loop cursor.
-+ * @head:	the head for your lock-less list.
-+ * @member:	the name of the llist_head with the struct.
-+ */
-+#define llist_for_each_entry(pos, head, member)				\
-+	for (pos = llist_entry((head)->next, typeof(*pos), member);	\
-+	     &pos->member != NULL;					\
-+	     pos = llist_entry(pos->member.next, typeof(*pos), member))
-+
-+/**
-+ * llist_empty - tests whether a lock-less list is empty
-+ * @head:	the list to test
-+ */
-+static inline int llist_empty(const struct llist_head *head)
-+{
-+	return head->next == NULL;
-+}
-+
-+void llist_add(struct llist_head *new, struct llist_head *head);
-+struct llist_head *llist_del_first(struct llist_head *head);
-+void llist_move_all(struct llist_head *list, struct llist_head *head);
-+
-+#endif /* LLIST_H */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index fa9bf2c..948b50b 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -210,4 +210,7 @@ config GENERIC_ATOMIC64
- config LRU_CACHE
- 	tristate
+ static int __init setup_erst_disable(char *str)
+ {
+ 	erst_disable = 1;
+@@ -1007,11 +1170,17 @@ static int __init erst_init(void)
+ 	if (!erst_erange.vaddr)
+ 		goto err_release_erange;
  
-+config LLIST
-+	bool
++	rc = herr_persist_register(&erst_persist);
++	if (rc)
++		goto err_unmap_erange;
 +
- endmenu
-diff --git a/lib/Makefile b/lib/Makefile
-index e6a3763..7696e8d 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -106,6 +106,8 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic64.o
+ 	pr_info(ERST_PFX
+ 	"Error Record Serialization Table (ERST) support is initialized.\n");
  
- obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
+ 	return 0;
  
-+obj-$(CONFIG_LLIST) += llist.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
++err_unmap_erange:
++	iounmap(erst_erange.vaddr);
+ err_release_erange:
+ 	release_mem_region(erst_erange.base, erst_erange.size);
+ err_unmap_reg:
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index bf972f8..7e00f1e 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -309,6 +309,7 @@ struct cper_sec_mem_err {
+ /* Reset to default packing */
+ #pragma pack()
  
-diff --git a/lib/llist.c b/lib/llist.c
-new file mode 100644
-index 0000000..22264d9
---- /dev/null
-+++ b/lib/llist.c
-@@ -0,0 +1,78 @@
-+/*
-+ * Simple lock-less NULL terminated single list implementation
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/llist.h>
-+#include <linux/errno.h>
-+
-+#include <asm/system.h>
-+
-+/**
-+ * llist_add - add a new entry
-+ * @new:	new entry to be added
-+ * @head:	the head for your lock-less list
-+ */
-+void llist_add(struct llist_head *new, struct llist_head *head)
-+{
-+	struct llist_head *entry;
-+
-+	do {
-+		entry = head->next;
-+		new->next = entry;
-+	} while (cmpxchg(&head->next, entry, new) != entry);
-+}
-+EXPORT_SYMBOL_GPL(llist_add);
-+
-+/**
-+ * llist_del_first - delete the first entry of lock-less list
-+ * @head:	the head for your lock-less list
-+ *
-+ * If list is empty, return NULL, otherwise, return the first entry deleted
-+ */
-+struct llist_head *llist_del_first(struct llist_head *head)
-+{
-+	struct llist_head *entry;
-+
-+	do {
-+		entry = head->next;
-+		if (entry == NULL)
-+			return NULL;
-+	} while (cmpxchg(&head->next, entry, entry->next) != entry);
-+
-+	return entry;
-+}
-+EXPORT_SYMBOL_GPL(llist_del_first);
-+
-+/**
-+ * llist_move_all - delete all entries from one list and add them to another list
-+ * @list:	the head of lock-less list to delete all entries
-+ * @head:	the head of lock-less list to add the entries
-+ *
-+ * Remove all entries from @list lock-lessly, then add the entries to
-+ * lock-less list @head.
-+ */
-+void llist_move_all(struct llist_head *list, struct llist_head *head)
-+{
-+	struct llist_head *entry;
-+
-+	entry = xchg(&list->next, NULL);
-+	head->next = entry;
-+}
-+EXPORT_SYMBOL_GPL(llist_move_all);
++int herr_severity_to_cper(int herr_severity);
+ u64 cper_next_record_id(void);
+ 
+ #endif
 -- 
 1.7.3.2.90.gd4c43
 
