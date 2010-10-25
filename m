@@ -1,55 +1,41 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
- Source POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 15:19:10 -0200
-Message-ID: <4CC5BC0E.7090601@redhat.com>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>	<1287992610-14996-10-git-send-email-ying.huang@intel.com>	<20101025084553.GA27119@elte.hu>	<1287997112.2862.322.camel@yhuang-dev>	<20101025091913.GA17622@basil.fritz.box>	<20101025111530.GA27659@elte.hu>	<4CC5726B.1020207@redhat.com> <AANLkTin=WM5AN_z_SxaKgOta-Q0xQnyO2S-G5w7JOQSh@mail.gmail.com>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 0/7] ACPI: Memory Mapped I/O (MMIO) pre-mapping
+Date: Mon, 25 Oct 2010 20:34:52 +0200
+Message-ID: <20101025183452.GA3527@gargoyle.fritz.box>
+References: <20101021201916.9220.5711.stgit@bob.kio>
+ <alpine.LFD.2.00.1010242336390.3343@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48688 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:48112 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755326Ab0JYRUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 13:20:06 -0400
-In-Reply-To: <AANLkTin=WM5AN_z_SxaKgOta-Q0xQnyO2S-G5w7JOQSh@mail.gmail.com>
+	id S1751316Ab0JYScq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 14:32:46 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1010242336390.3343@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Borislav Petkov <bp@amd64.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Myron Stowe <myron.stowe@hp.com>, linux-acpi@vger.kernel.org, ying.huang@intel.com
 
-Em 25-10-2010 15:07, Tony Luck escreveu:
-> On Mon, Oct 25, 2010 at 5:04 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> We had some discussions with Intel during the Collaboration summit about that, trying to
->> integrate Nehalem EX on such environment, with, unfortunately, didn't happen, as Intel
->> didn't release any (public) datasheet describing Nehalem EX memory controller, nor wrote
->> such driver.
+On Sun, Oct 24, 2010 at 11:38:22PM -0400, Len Brown wrote:
+> applied to acpi-test
 > 
-> The chipset registers that are needed to write an EDAC driver for
-> Nehalem-EX (a.k.a Xeon
-> 7500 series) are not accessible to OS (ring 0) code. Documenting them
-> wouldn't change this.
-
-Yeah, I know.
-
-The error reporting mechanism could do something similar to i7core_edac
-driver to parse the MCE NMI errors to userspace via EDAC interface, but
-without any way to get the memory topology, this wouldn't work. With some 
-documentation, maybe we could find a way for a kernel code to retrieve 
-the memory topology, maybe via BIOS, and make it work.
-
-
->> As most of us will be in Boston next week, I've reserved a BoF at Plumbers for us to discuss
->> about this subject:
->>
->> http://www.linuxplumbersconf.org/2010/ocw/proposals/921
+> My comfort-level with these changes is not high.
 > 
-> An excellent idea. See you there.
+> I'm open to your recommendations on if they are
+> too late/risky for this merge window -- or too
+> important to miss this merge window.
 
-OK,
+The NMI handling is fairly important  by itself,
+on the other hand it has been broken for a long time.
 
-See you there.
+But yes the patches were late unfortunately.
 
-Thanks,
-Mauro
+I still think it would be better to push them out
+earlier than later simply to get more testing
+on more systems.  That's essentially what they need
+and unfortunately the only really good way to get
+that is being part of a release.
+
+-Andi
