@@ -1,265 +1,235 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 37/60] ACPI: remove dead code
-Date: Mon, 25 Oct 2010 02:20:45 -0400
-Message-ID: <5ba8b1c6fe40c314a02e28553c25552d8f1442e7.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 56/60] ACPI: Maintain a list of ACPI memory mapped I/O
+ remappings
+Date: Mon, 25 Oct 2010 02:21:04 -0400
+Message-ID: <620242ae8c3d9c0b1a77451744fb2d855d1e7342.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:63718 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab0JYILF (ORCPT
+	with ESMTP id S1753296Ab0JYILF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:05 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:05 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:03 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Stephen Hemminger <shemminger@vyatta.com>, Len Brown <len.brown@intel.com>
+Cc: Myron Stowe <myron.stowe@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Stephen Hemminger <shemminger@vyatta.com>
+From: Myron Stowe <myron.stowe@hp.com>
 
-Found by running make namespacecheck on linux-next
+For memory mapped I/O (MMIO) remappings, add a list to maintain the
+remappings and augment the corresponding mapping and unmapping interface
+routines (acpi_os_map_memory() and acpi_os_unmap_memory()) to
+dynamically add to, and delete from, the list.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+The current ACPI I/O accessing methods - acpi_read() and acpi_write() -
+end up calling ioremap() when accessing MMIO.  This prevents use of these
+methods within interrupt context (IRQ and/or NMI), since ioremap() may
+block to allocate memory.  Maintaining a list of MMIO remappings enables
+accesses to such areas from within interrupt context provided they have
+been pre-mapped.
+
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/osl.c               |   25 ---------
- drivers/acpi/processor_driver.c  |    2 -
- drivers/acpi/processor_thermal.c |  107 --------------------------------------
- include/acpi/acpi_drivers.h      |    2 -
- include/acpi/acpiosxf.h          |    2 -
- include/linux/acpi.h             |    8 ---
- 6 files changed, 0 insertions(+), 146 deletions(-)
+ drivers/acpi/osl.c |  128 +++++++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 113 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 65b25a3..82097fd 100644
+index 58842fb..bd72129 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -780,16 +780,6 @@ void acpi_os_wait_events_complete(void *context)
- EXPORT_SYMBOL(acpi_os_wait_events_complete);
+@@ -95,6 +95,20 @@ struct acpi_res_list {
+ static LIST_HEAD(resource_list_head);
+ static DEFINE_SPINLOCK(acpi_res_lock);
  
- /*
-- * Allocate the memory for a spinlock and initialize it.
-- */
--acpi_status acpi_os_create_lock(acpi_spinlock * handle)
--{
--	spin_lock_init(*handle);
--
--	return AE_OK;
--}
--
--/*
-  * Deallocate the memory for a spinlock.
-  */
- void acpi_os_delete_lock(acpi_spinlock handle)
-@@ -1152,21 +1142,6 @@ int acpi_check_region(resource_size_t start, resource_size_t n,
++/*
++ * This list of permanent mappings is for memory that may be accessed from
++ * interrupt context, where we can't do the ioremap().
++ */
++struct acpi_ioremap {
++	struct list_head list;
++	void __iomem *virt;
++	acpi_physical_address phys;
++	acpi_size size;
++};
++
++static LIST_HEAD(acpi_ioremaps);
++static DEFINE_SPINLOCK(acpi_ioremap_lock);
++
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+ 
+@@ -260,29 +274,95 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 	}
  }
- EXPORT_SYMBOL(acpi_check_region);
  
--int acpi_check_mem_region(resource_size_t start, resource_size_t n,
--		      const char *name)
--{
--	struct resource res = {
--		.start = start,
--		.end   = start + n - 1,
--		.name  = name,
--		.flags = IORESOURCE_MEM,
--	};
--
--	return acpi_check_resource_conflict(&res);
--
--}
--EXPORT_SYMBOL(acpi_check_mem_region);
--
- /*
-  * Let drivers know whether the resource checks are effective
-  */
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 347eb21..8d924a8 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -899,6 +899,4 @@ static void __exit acpi_processor_exit(void)
- module_init(acpi_processor_init);
- module_exit(acpi_processor_exit);
- 
--EXPORT_SYMBOL(acpi_processor_set_thermal_limit);
--
- MODULE_ALIAS("processor");
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 953b25f..419f651 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -238,113 +238,6 @@ static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
- 
- #endif
- 
--int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
--{
--	int result = 0;
--	struct acpi_processor *pr = NULL;
--	struct acpi_device *device = NULL;
--	int tx = 0, max_tx_px = 0;
--
--
--	if ((type < ACPI_PROCESSOR_LIMIT_NONE)
--	    || (type > ACPI_PROCESSOR_LIMIT_DECREMENT))
--		return -EINVAL;
--
--	result = acpi_bus_get_device(handle, &device);
--	if (result)
--		return result;
--
--	pr = acpi_driver_data(device);
--	if (!pr)
--		return -ENODEV;
--
--	/* Thermal limits are always relative to the current Px/Tx state. */
--	if (pr->flags.throttling)
--		pr->limit.thermal.tx = pr->throttling.state;
--
--	/*
--	 * Our default policy is to only use throttling at the lowest
--	 * performance state.
--	 */
--
--	tx = pr->limit.thermal.tx;
--
--	switch (type) {
--
--	case ACPI_PROCESSOR_LIMIT_NONE:
--		do {
--			result = acpi_thermal_cpufreq_decrease(pr->id);
--		} while (!result);
--		tx = 0;
--		break;
--
--	case ACPI_PROCESSOR_LIMIT_INCREMENT:
--		/* if going up: P-states first, T-states later */
--
--		result = acpi_thermal_cpufreq_increase(pr->id);
--		if (!result)
--			goto end;
--		else if (result == -ERANGE)
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "At maximum performance state\n"));
--
--		if (pr->flags.throttling) {
--			if (tx == (pr->throttling.state_count - 1))
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "At maximum throttling state\n"));
--			else
--				tx++;
--		}
--		break;
--
--	case ACPI_PROCESSOR_LIMIT_DECREMENT:
--		/* if going down: T-states first, P-states later */
--
--		if (pr->flags.throttling) {
--			if (tx == 0) {
--				max_tx_px = 1;
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "At minimum throttling state\n"));
--			} else {
--				tx--;
--				goto end;
--			}
--		}
--
--		result = acpi_thermal_cpufreq_decrease(pr->id);
--		if (result) {
--			/*
--			 * We only could get -ERANGE, 1 or 0.
--			 * In the first two cases we reached max freq again.
--			 */
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "At minimum performance state\n"));
--			max_tx_px = 1;
--		} else
--			max_tx_px = 0;
--
--		break;
--	}
--
--      end:
--	if (pr->flags.throttling) {
--		pr->limit.thermal.px = 0;
--		pr->limit.thermal.tx = tx;
--
--		result = acpi_processor_apply_limit(pr);
--		if (result)
--			printk(KERN_ERR PREFIX "Unable to set thermal limit\n");
--
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
--				  pr->limit.thermal.px, pr->limit.thermal.tx));
--	} else
--		result = 0;
--	if (max_tx_px)
--		return 1;
--	else
--		return result;
--}
--
- int acpi_processor_get_limit_info(struct acpi_processor *pr)
++/* Must be called with 'acpi_ioremap_lock' lock held. */
++static void __iomem *
++acpi_map_vaddr_lookup(acpi_physical_address phys, acpi_size size)
++{
++	struct acpi_ioremap *map;
++
++	list_for_each_entry(map, &acpi_ioremaps, list)
++		if (map->phys <= phys &&
++		    phys + size <= map->phys + map->size)
++			return map->virt + (phys - map->phys);
++
++	return NULL;
++}
++
++/* Must be called with 'acpi_ioremap_lock' lock held. */
++static struct acpi_ioremap *
++acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
++{
++	struct acpi_ioremap *map;
++
++	list_for_each_entry(map, &acpi_ioremaps, list)
++		if (map->virt == virt && map->size == size)
++			return map;
++
++	return NULL;
++}
++
+ void __iomem *__init_refok
+ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
  {
- 
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 23d78b4..3090471 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -115,8 +115,6 @@ void pci_acpi_crs_quirks(void);
- #define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
- #define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
- 
--int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
--
- /*--------------------------------------------------------------------------
-                                   Dock Station
-   -------------------------------------------------------------------------- */
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 29bf945..782acdf 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -98,8 +98,6 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
- /*
-  * Spinlock primitives
-  */
--acpi_status acpi_os_create_lock(acpi_spinlock * out_handle);
--
- void acpi_os_delete_lock(acpi_spinlock handle);
- 
- acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock handle);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c227757..659c743 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -245,8 +245,6 @@ int acpi_check_resource_conflict(const struct resource *res);
- 
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
--int acpi_check_mem_region(resource_size_t start, resource_size_t n,
--		      const char *name);
- 
- int acpi_resources_are_enforced(void);
- 
-@@ -344,12 +342,6 @@ static inline int acpi_check_region(resource_size_t start, resource_size_t n,
- 	return 0;
++	struct acpi_ioremap *map;
++	unsigned long flags;
++	void __iomem *virt;
++
+ 	if (phys > ULONG_MAX) {
+ 		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
+ 		return NULL;
+ 	}
+-	if (acpi_gbl_permanent_mmap)
+-		/*
+-		* ioremap checks to ensure this is in reserved space
+-		*/
+-		return ioremap((unsigned long)phys, size);
+-	else
++
++	if (!acpi_gbl_permanent_mmap)
+ 		return __acpi_map_table((unsigned long)phys, size);
++
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	if (!map)
++		return NULL;
++
++	virt = ioremap(phys, size);
++	if (!virt) {
++		kfree(map);
++		return NULL;
++	}
++
++	INIT_LIST_HEAD(&map->list);
++	map->virt = virt;
++	map->phys = phys;
++	map->size = size;
++
++	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	list_add_tail(&map->list, &acpi_ioremaps);
++	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++
++	return virt;
  }
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
  
--static inline int acpi_check_mem_region(resource_size_t start,
--					resource_size_t n, const char *name)
--{
--	return 0;
--}
+ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ {
+-	if (acpi_gbl_permanent_mmap)
+-		iounmap(virt);
+-	else
++	struct acpi_ioremap *map;
++	unsigned long flags;
++
++	if (!acpi_gbl_permanent_mmap) {
+ 		__acpi_unmap_table(virt, size);
++		return;
++	}
++
++	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	map = acpi_map_lookup_virt(virt, size);
++	if (!map) {
++		spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++		printk(KERN_ERR PREFIX "%s: bad address %p\n", __func__, virt);
++		dump_stack();
++		return;
++	}
++
++	list_del(&map->list);
++	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++
++	iounmap(map->virt);
++	kfree(map);
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+ 
+@@ -495,8 +575,16 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
+ {
+ 	u32 dummy;
+ 	void __iomem *virt_addr;
 -
- struct acpi_table_header;
- static inline int acpi_table_parse(char *id,
- 				int (*handler)(struct acpi_table_header *))
+-	virt_addr = ioremap(phys_addr, width / 8);
++	int size = width / 8, unmap = 0;
++	unsigned long flags;
++
++	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
++	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++	if (!virt_addr) {
++		virt_addr = ioremap(phys_addr, size);
++		unmap = 1;
++	}
+ 	if (!value)
+ 		value = &dummy;
+ 
+@@ -514,7 +602,8 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
+ 		BUG();
+ 	}
+ 
+-	iounmap(virt_addr);
++	if (unmap)
++		iounmap(virt_addr);
+ 
+ 	return AE_OK;
+ }
+@@ -523,8 +612,16 @@ acpi_status
+ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
+ {
+ 	void __iomem *virt_addr;
+-
+-	virt_addr = ioremap(phys_addr, width / 8);
++	int size = width / 8, unmap = 0;
++	unsigned long flags;
++
++	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
++	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++	if (!virt_addr) {
++		virt_addr = ioremap(phys_addr, size);
++		unmap = 1;
++	}
+ 
+ 	switch (width) {
+ 	case 8:
+@@ -540,7 +637,8 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
+ 		BUG();
+ 	}
+ 
+-	iounmap(virt_addr);
++	if (unmap)
++		iounmap(virt_addr);
+ 
+ 	return AE_OK;
+ }
 -- 
 1.7.3.2.90.gd4c43
 
