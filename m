@@ -1,84 +1,86 @@
 From: Ingo Molnar <mingo@elte.hu>
-Subject: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error Source
- POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 10:45:53 +0200
-Message-ID: <20101025084553.GA27119@elte.hu>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
- <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+Subject: Re: [PATCH 44/60] ACPI, APEI, Add ERST record ID cache
+Date: Mon, 25 Oct 2010 10:56:08 +0200
+Message-ID: <20101025085608.GA3496@elte.hu>
+References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
+ <3ab532b764169a551caffc4f3ea550538091449e.1287987547.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:34362 "EHLO mx2.mail.elte.hu"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:56036 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753814Ab0JYIqP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 04:46:15 -0400
+	id S1751856Ab0JYI4b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 04:56:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+In-Reply-To: <3ab532b764169a551caffc4f3ea550538091449e.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux@elte.hu, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <petkovbb@googlemail.com>, Don Zickus <dzickus@redhat.com>
 
 
-* Huang Ying <ying.huang@intel.com> wrote:
+* Len Brown <lenb@kernel.org> wrote:
 
-> Generic Hardware Error Source provides a way to report platform
-> hardware errors (such as that from chipset). It works in so called
-> "Firmware First" mode, that is, hardware errors are reported to
-> firmware firstly, then reported to Linux by firmware. This way, some
-> non-standard hardware error registers or non-standard hardware link
-> can be checked by firmware to produce more valuable hardware error
-> information for Linux.
+> From: Huang Ying <ying.huang@intel.com>
 > 
-> This patch adds POLL/IRQ/NMI notification types support.
+> APEI ERST firmware interface and implementation has no multiple users
+> in mind. For example, there is four records in storage with ID: 1, 2,
+> 3 and 4, if two ERST readers enumerate the records via
+> GET_NEXT_RECORD_ID as follow,
 > 
-> Because the memory area used to transfer hardware error information
-> from BIOS to Linux can be determined only in NMI, IRQ or timer
-> handler, but general ioremap can not be used in atomic context, so a
-> special version of atomic ioremap is implemented for that.
+> reader 1		reader 2
+> 1
+> 			2
+> 3
+> 			4
+> -1
+> 			-1
+> 
+> where -1 signals there is no more record ID.
+> 
+> Reader 1 has no chance to check record 2 and 4, while reader 2 has no
+> chance to check record 1 and 3. And any other GET_NEXT_RECORD_ID will
+> return -1, that is, other readers will has no chance to check any
+> record even they are not cleared by anyone.
+> 
+> This makes raw GET_NEXT_RECORD_ID not suitable for usage of multiple
+> users.
+> 
+> To solve the issue, an in memory ERST record ID cache is designed and
+> implemented. When enumerating record ID, the ID returned by
+> GET_NEXT_RECORD_ID is added into cache in addition to be returned to
+> caller. So other readers can check the cache to get all record ID
+> available.
 > 
 > Signed-off-by: Huang Ying <ying.huang@intel.com>
 > Reviewed-by: Andi Kleen <ak@linux.intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
 > ---
->  arch/x86/kernel/acpi/boot.c |    1 
->  arch/x86/kernel/dumpstack.c |    1 
->  drivers/acpi/apei/ghes.c    |  397 ++++++++++++++++++++++++++++++++++++--------
->  kernel/panic.c              |    1 
->  lib/ioremap.c               |    2 
->  mm/vmalloc.c                |    1 
->  6 files changed, 333 insertions(+), 70 deletions(-)
+>  arch/x86/kernel/cpu/mcheck/mce-apei.c |   42 ++++---
+>  drivers/acpi/apei/erst-dbg.c          |   24 +++-
+>  drivers/acpi/apei/erst.c              |  241 +++++++++++++++++++++++++++------
+>  include/acpi/apei.h                   |    5 +-
+>  4 files changed, 247 insertions(+), 65 deletions(-)
 
-WTF?
+NAK on similar grounds.
 
-Sigh, please integrate all this into EDAC (drivers/edac/) properly, instead of 
-turning it into YET ANOTHER hardware vendor special hw-errors thing. We can do 
-better than this. EDAC is almost there: it has support for Nehalem, AMD, a couple
-of older chips.
+The code here is exporting all sorts of lowlevel hw error event details to 
+user-space, in a vendor specific form, without _ANY_ effort whatsoever at 
+generalizing it, merging it with the existing EDAC code, extending EDAC so that both 
+can offer similar functionality, etc. etc.
 
-Guys, instead of carving out a special driver area where you can produce crap 
-without anyone looking too much, and pretending that the EDAC code does not exist, 
-please try to work with others who are aiming higher and who are using saner 
-interfaces.
+And before you say that "it's for debug only": the direction of these patches 
+suggests that this exported data will be used by user-space as an ad-hoc event 
+interface, resulting in a de-facto ABI later on.
 
-Just look at the higher level structure in drivers/acpi/apei/:
+(Or if it will not be used by user-space then it should not be merged upstream.)
 
-  apei-base.c  apei-internal.h  cper.c  einj.c  erst.c  erst-dbg.c  ghes.c  hest.c  Kconfig  Makefile
+There's EDAC code that tries to do all this correctly, there was even an RFC 
+user-space EDAC tool posted recently that uses the perf syscall to receive error 
+events, etc. This code goes into debugfs and adds Yet Another Random ABI instead of 
+using (or extending) existing facilities of structured event logging.
 
-ghes, einj, cper, erst? Someone's been abbreviating too much.
-
-einj.c: it's about the 3rd separate 'error injection' concept that got introduced 
-...
-
-Please _THINK_ for goodness's sake and try to get some usable, coherent, generic 
-interface to users - instead of just directly implementing whatever crap hw 
-designers came up with.
-
-So unless Linus or Andrew overrules me i'll NAK this before the insanity spreads too 
-much:
-
- NAKed-by: Ingo Molnar <mingo@elte.hu>
-
-(Someone should have NAK-ed it when the first iteration was merged.)
+NAKed-by: Ingo Molnar <mingo@elte.hu>
 
 Thanks,
 
