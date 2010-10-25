@@ -1,392 +1,273 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2 6/9] Hardware error record persistent support
-Date: Mon, 25 Oct 2010 15:43:27 +0800
-Message-ID: <1287992610-14996-7-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v2 8/9] ACPI, APEI, Report GHES error record with hardware error device core
+Date: Mon, 25 Oct 2010 15:43:29 +0800
+Message-ID: <1287992610-14996-9-git-send-email-ying.huang@intel.com>
 References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:36703 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753744Ab0JYHnq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 03:43:46 -0400
 In-Reply-To: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Normally, corrected hardware error records will go through the kernel
-processing and be logged to disk or network finally.  But for
-uncorrected errors, system may go panic directly for better error
-containment, disk or network is not usable in this half-working
-system.  To avoid losing these valuable hardware error records, the
-error records are saved into some kind of simple persistent storage
-such as flash before panic, so that they can be read out after system
-reboot successfully.
+One hardware error device (struct herr_dev) is created for each GHES
+in GHES platform device "probe" function.  Then when GHES hardware
+error handler is notified by firmware, the hardware error records will
+be reported on the struct herr_dev.
 
-Different kind of simple persistent storage implementation mechanisms
-are provided on different platforms, so an abstract interface for
-persistent storage is defined.  Different implementations of the
-interface can be registered.
-
-This patch is designed by Andi Kleen and Huang Ying.
+In the previous GHES support, only corrected memory error can be
+reported to user space via /dev/mcelog, now all kinds of hardware
+errors notified with SCI can be reported.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/char/herror/Makefile        |    2 
- drivers/char/herror/herr-core.c     |   39 +++++++-
- drivers/char/herror/herr-internal.h |   12 ++
- drivers/char/herror/herr-persist.c  |  174 ++++++++++++++++++++++++++++++++++++
- include/linux/Kbuild                |    1 
- include/linux/herror.h              |   48 +++++++++
- 6 files changed, 271 insertions(+), 5 deletions(-)
- create mode 100644 drivers/char/herror/herr-internal.h
- create mode 100644 drivers/char/herror/herr-persist.c
+ drivers/acpi/apei/cper.c |   18 +++++++
+ drivers/acpi/apei/ghes.c |  119 +++++++++++++++++++++++++++++++----------------
+ include/linux/cper.h     |    2 
+ 3 files changed, 99 insertions(+), 40 deletions(-)
 
---- a/drivers/char/herror/Makefile
-+++ b/drivers/char/herror/Makefile
-@@ -1 +1 @@
--obj-y				+= herr-core.o
-+obj-y				+= herr-core.o herr-persist.o
---- a/drivers/char/herror/herr-core.c
-+++ b/drivers/char/herror/herr-core.c
-@@ -43,9 +43,9 @@
- #include <linux/llalloc.h>
- #include <linux/herror.h>
- 
--#define HERR_NOTIFY_BIT			0
-+#include "herr-internal.h"
- 
--static unsigned long herr_flags;
-+unsigned long herr_flags;
- 
- /*
-  * Record list management and error reporting
-@@ -524,6 +524,7 @@ static ssize_t herr_mix_read(struct file
- {
- 	int rc;
- 	static DEFINE_MUTEX(read_mutex);
-+	u64 record_id;
- 
- 	if (*off != 0)
- 		return -EINVAL;
-@@ -531,7 +532,14 @@ static ssize_t herr_mix_read(struct file
- 	rc = mutex_lock_interruptible(&read_mutex);
- 	if (rc)
- 		return rc;
-+	rc = herr_persist_peek_user(&record_id, ubuf, usize);
-+	if (rc > 0) {
-+		herr_persist_clear(record_id);
-+		goto out;
-+	}
-+
- 	rc = herr_rcd_lists_read(ubuf, usize, &read_mutex);
-+out:
- 	mutex_unlock(&read_mutex);
- 
- 	return rc;
-@@ -540,15 +548,40 @@ static ssize_t herr_mix_read(struct file
- static unsigned int herr_mix_poll(struct file *file, poll_table *wait)
- {
- 	poll_wait(file, &herr_mix_wait, wait);
--	if (!herr_rcd_lists_is_empty())
-+	if (!herr_rcd_lists_is_empty() || !herr_persist_read_done())
- 		return POLLIN | POLLRDNORM;
- 	return 0;
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -49,6 +49,24 @@ int herr_severity_to_cper(int herr_sever
  }
+ EXPORT_SYMBOL_GPL(herr_severity_to_cper);
  
-+static long herr_mix_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
++int cper_severity_to_herr(int cper_severity)
 +{
-+	void __user *p = (void __user *)arg;
-+	int rc;
-+	u64 record_id;
-+	struct herr_persist_buffer buf;
-+
-+	switch (cmd) {
-+	case HERR_PERSIST_PEEK:
-+		rc = copy_from_user(&buf, p, sizeof(buf));
-+		if (rc)
-+			return -EFAULT;
-+		return herr_persist_peek_user(&record_id, buf.buf,
-+					      buf.buf_size);
-+	case HERR_PERSIST_CLEAR:
-+		rc = copy_from_user(&record_id, p, sizeof(record_id));
-+		if (rc)
-+			return -EFAULT;
-+		return herr_persist_clear(record_id);
++	switch (cper_severity) {
++	case CPER_SEV_INFORMATIONAL:
++		return HERR_SEV_NONE;
++	case CPER_SEV_CORRECTED:
++		return HERR_SEV_CORRECTED;
++	case CPER_SEV_RECOVERABLE:
++		return HERR_SEV_RECOVERABLE;
++	case CPER_SEV_FATAL:
++		return HERR_SEV_FATAL;
 +	default:
-+		return -ENOTTY;
++		/* Unknown, default to fatal */
++		return HERR_SEV_FATAL;
 +	}
 +}
++EXPORT_SYMBOL_GPL(cper_severity_to_herr);
 +
- static const struct file_operations herr_mix_dev_fops = {
- 	.owner		= THIS_MODULE,
- 	.read		= herr_mix_read,
- 	.poll		= herr_mix_poll,
-+	.unlocked_ioctl	= herr_mix_ioctl,
+ /*
+  * CPER record ID need to be unique even after reboot, because record
+  * ID is used as index for ERST storage, while CPER records from
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -43,6 +43,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/herror.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+@@ -74,6 +75,7 @@ struct ghes {
+ 	struct list_head list;
+ 	u64 buffer_paddr;
+ 	unsigned long flags;
++	struct herr_dev *herr_dev;
  };
  
- static int __init herr_mix_dev_init(void)
---- /dev/null
-+++ b/drivers/char/herror/herr-internal.h
-@@ -0,0 +1,12 @@
-+#ifndef HERR_INTERNAL_H
-+#define HERR_INTERNAL_H
-+
-+#define HERR_NOTIFY_BIT			0
-+
-+extern unsigned long herr_flags;
-+
-+int herr_persist_read_done(void);
-+ssize_t herr_persist_peek_user(u64 *record_id, char __user *ercd,
-+			       size_t bufsiz);
-+int herr_persist_clear(u64 record_id);
-+#endif /* HERR_INTERNAL_H */
---- /dev/null
-+++ b/drivers/char/herror/herr-persist.c
-@@ -0,0 +1,174 @@
-+/*
-+ * Hardware error record persistent support
-+ *
-+ * Normally, corrected hardware error records will go through the
-+ * kernel processing and be logged to disk or network finally.  But
-+ * for uncorrected errors, system may go panic directly for better
-+ * error containment, disk or network is not usable in this
-+ * half-working system.  To avoid losing these valuable hardware error
-+ * records, the error records are saved into some kind of simple
-+ * persistent storage such as flash before panic, so that they can be
-+ * read out after system reboot successfully.
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/rculist.h>
-+#include <linux/mutex.h>
-+
-+#include <linux/herror.h>
-+
-+#include "herr-internal.h"
-+
-+/*
-+ * Simple persistent storage provider list, herr_persists_mutex is
-+ * used for writer side mutual exclusion, RCU is used to implement
-+ * lock-less reader side.
-+ */
-+static LIST_HEAD(herr_persists);
-+static DEFINE_MUTEX(herr_persists_mutex);
-+
-+int herr_persist_register(struct herr_persist *persist)
-+{
-+	if (!persist->peek_user)
-+		return -EINVAL;
-+	persist->read_done = 0;
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_add_rcu(&persist->list, &herr_persists);
-+	mutex_unlock(&herr_persists_mutex);
-+	/*
-+	 * There may be hardware error records of previous boot in
-+	 * persistent storage, notify the user space error daemon to
-+	 * check.
-+	 */
-+	set_bit(HERR_NOTIFY_BIT, &herr_flags);
-+	herr_notify();
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_register);
-+
-+void herr_persist_unregister(struct herr_persist *persist)
-+{
-+	mutex_lock(&herr_persists_mutex);
-+	list_del_rcu(&persist->list);
-+	mutex_unlock(&herr_persists_mutex);
-+	synchronize_rcu();
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_unregister);
-+
-+/* Can be used in atomic context including NMI */
-+int herr_persist_in(const struct herr_record *ercd)
-+{
-+	struct herr_persist *persist;
-+	int rc = -ENODEV;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(persist, &herr_persists, list) {
-+		if (!persist->in)
-+			continue;
-+		rc = persist->in(ercd);
-+		if (!rc)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_in);
-+
-+int herr_persist_read_done(void)
-+{
-+	struct herr_persist *persist;
-+	int rc = 1;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(persist, &herr_persists, list) {
-+		if (!persist->read_done) {
-+			rc = 0;
-+			break;
-+		}
-+	}
-+	rcu_read_unlock();
-+	return rc;
-+}
-+
-+/* Read next error record from persist storage, don't remove it */
-+ssize_t herr_persist_peek_user(u64 *record_id, char __user *ercd,
-+			       size_t bufsiz)
-+{
-+	struct herr_persist *persist;
-+	ssize_t rc = 0;
-+
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_for_each_entry(persist, &herr_persists, list) {
-+		if (persist->read_done)
-+			continue;
-+		rc = persist->peek_user(record_id, ercd, bufsiz);
-+		if (rc > 0)
-+			break;
-+		else if (rc != -EINTR && rc != -EAGAIN && rc != -EINVAL)
-+			persist->read_done = 1;
-+	}
-+	mutex_unlock(&herr_persists_mutex);
-+	return rc;
-+}
-+
-+/* Clear specified error record from persist storage */
-+int herr_persist_clear(u64 record_id)
-+{
-+	struct herr_persist *persist;
-+	int rc = -ENOENT;
-+
-+	if (mutex_lock_interruptible(&herr_persists_mutex))
-+		return -EINTR;
-+	list_for_each_entry(persist, &herr_persists, list) {
-+		if (!persist->clear)
-+			continue;
-+		rc = persist->clear(record_id);
-+		if (!rc)
-+			break;
-+		/*
-+		 * Failed to clear, mark as read_done, because we can
-+		 * not skip this one
-+		 */
-+		else if (rc != -EINTR && rc != -EAGAIN && rc != -ENOENT)
-+			persist->read_done = 1;
-+	}
-+	mutex_unlock(&herr_persists_mutex);
-+	return rc;
-+}
-+
-+static int herr_persist_record(struct herr_record *ercd, void *data)
-+{
-+	int *severity = data;
-+
-+	if (ercd->severity == *severity)
-+		return herr_persist_in(ercd);
-+	return 0;
-+}
-+
-+void herr_persist_all_records(void)
-+{
-+	int severity;
-+
-+	for (severity = HERR_SEV_FATAL; severity >= HERR_SEV_NONE; severity--)
-+		herr_for_each_record(herr_persist_record, &severity);
-+}
-+EXPORT_SYMBOL_GPL(herr_persist_all_records);
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -141,6 +141,7 @@ header-y += hdlc.h
- header-y += hdlcdrv.h
- header-y += hdreg.h
- header-y += herror_record.h
-+header-y += herror.h
- header-y += hid.h
- header-y += hiddev.h
- header-y += hidraw.h
---- a/include/linux/herror.h
-+++ b/include/linux/herror.h
-@@ -1,10 +1,22 @@
- #ifndef LINUX_HERROR_H
- #define LINUX_HERROR_H
- 
-+#include <linux/ioctl.h>
-+#include <linux/herror_record.h>
-+
-+struct herr_persist_buffer {
-+	void __user *buf;
-+	unsigned int buf_size;
-+};
-+
-+#define HERR_PERSIST_PEEK	_IOW('H', 1, struct herr_persist_buffer)
-+#define HERR_PERSIST_CLEAR	_IOW('H', 2, u64)
-+
-+#ifdef __KERNEL__
-+
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/device.h>
--#include <linux/herror_record.h>
- 
  /*
-  * Hardware error reporting
-@@ -66,4 +78,38 @@ static inline void herr_dev_put(struct h
+@@ -238,9 +240,38 @@ static void ghes_clear_estatus(struct gh
+ 	ghes->flags &= ~GHES_TO_CLEAR;
+ }
  
- int herr_dev_register(struct herr_dev *dev);
- void herr_dev_unregister(struct herr_dev *dev);
++static void ghes_report(struct ghes *ghes)
++{
++	struct herr_record *ercd;
++	struct herr_section *esec;
++	struct acpi_hest_generic_status *estatus;
++	unsigned int estatus_len, ercd_alloc_flags = 0;
++	int ghes_sev;
 +
++	ghes_sev = ghes_severity(ghes->estatus->error_severity);
++	if (ghes_sev >= GHES_SEV_PANIC)
++		ercd_alloc_flags |= HERR_ALLOC_NO_BURST_CONTROL;
++	estatus_len = apei_estatus_len(ghes->estatus);
++	ercd = herr_record_alloc(HERR_RECORD_LEN_ROUND1(estatus_len),
++				 ghes->herr_dev, ercd_alloc_flags);
++	if (!ercd)
++		return;
 +
-+/*
-+ * Simple Persistent Storage
-+ */
++	ercd->severity = cper_severity_to_herr(ghes->estatus->error_severity);
 +
-+struct herr_persist;
-+/* Put an error record into simple persistent storage */
-+int herr_persist_in(const struct herr_record *ercd);
-+/* Save all error records not yet consumed in persistent storage */
-+void herr_persist_all_records(void);
++	esec = herr_first_sec(ercd);
++	esec->length = HERR_SEC_LEN_ROUND(estatus_len);
++	esec->flags = 0;
++	esec->type = HERR_TYPE_GESR;
 +
-+/*
-+ * Simple Persistent Storage Provider Management
-+ */
-+struct herr_persist {
-+	struct list_head list;
-+	char *name;
-+	unsigned int read_done:1;
-+	/* Put an error record into storage, must be NMI-safe */
-+	int (*in)(const struct herr_record *ercd);
-+	/*
-+	 * Read out an error record from storage to user space, don't
-+	 * remove it, the HERR_RCD_PERSIST must be set in record flags
-+	 */
-+	ssize_t (*peek_user)(u64 *record_id, char __user *ubuf, size_t usize);
-+	/* Clear an error record */
-+	int (*clear)(u64 record_id);
-+};
++	estatus = herr_sec_data(esec);
++	memcpy(estatus, ghes->estatus, estatus_len);
++	herr_record_report(ercd, ghes->herr_dev);
++}
 +
-+/* Register (un-register) simple persistent storage provider */
-+int herr_persist_register(struct herr_persist *persist);
-+void herr_persist_unregister(struct herr_persist *persist);
-+#endif
+ static void ghes_do_proc(struct ghes *ghes)
+ {
+-	int sev, processed = 0;
++	int sev;
+ 	struct acpi_hest_generic_data *gdata;
+ 
+ 	sev = ghes_severity(ghes->estatus->error_severity);
+@@ -251,15 +282,9 @@ static void ghes_do_proc(struct ghes *gh
+ 			apei_mce_report_mem_error(
+ 				sev == GHES_SEV_CORRECTED,
+ 				(struct cper_sec_mem_err *)(gdata+1));
+-			processed = 1;
+ 		}
+ #endif
+ 	}
+-
+-	if (!processed && printk_ratelimit())
+-		pr_warning(GHES_PFX
+-		"Unknown error record from generic hardware error source: %d\n",
+-			   ghes->generic->header.source_id);
+ }
+ 
+ static int ghes_proc(struct ghes *ghes)
+@@ -269,7 +294,9 @@ static int ghes_proc(struct ghes *ghes)
+ 	rc = ghes_read_estatus(ghes, 0);
+ 	if (rc)
+ 		goto out;
++	ghes_report(ghes);
+ 	ghes_do_proc(ghes);
++	herr_notify();
+ 
+ out:
+ 	ghes_clear_estatus(ghes);
+@@ -300,41 +327,15 @@ static int __devinit ghes_probe(struct p
+ {
+ 	struct acpi_hest_generic *generic;
+ 	struct ghes *ghes = NULL;
+-	int rc = -EINVAL;
++	int rc;
+ 
++	rc = -ENODEV;
+ 	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
+ 	if (!generic->enabled)
+-		return -ENODEV;
+-
+-	if (generic->error_block_length <
+-	    sizeof(struct acpi_hest_generic_status)) {
+-		pr_warning(FW_BUG GHES_PFX
+-"Invalid error block length: %u for generic hardware error source: %d\n",
+-			   generic->error_block_length,
+-			   generic->header.source_id);
+ 		goto err;
+-	}
+-	if (generic->records_to_preallocate == 0) {
+-		pr_warning(FW_BUG GHES_PFX
+-"Invalid records to preallocate: %u for generic hardware error source: %d\n",
+-			   generic->records_to_preallocate,
+-			   generic->header.source_id);
+-		goto err;
+-	}
+-	ghes = ghes_new(generic);
+-	if (IS_ERR(ghes)) {
+-		rc = PTR_ERR(ghes);
+-		ghes = NULL;
+-		goto err;
+-	}
+-	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
+-		mutex_lock(&ghes_list_mutex);
+-		if (list_empty(&ghes_sci))
+-			register_acpi_hed_notifier(&ghes_notifier_sci);
+-		list_add_rcu(&ghes->list, &ghes_sci);
+-		mutex_unlock(&ghes_list_mutex);
+-	} else {
+-		unsigned char *notify = NULL;
++
++	if (generic->notify.type != ACPI_HEST_NOTIFY_SCI) {
++		char *notify = NULL;
+ 
+ 		switch (generic->notify.type) {
+ 		case ACPI_HEST_NOTIFY_POLLED:
+@@ -357,9 +358,46 @@ static int __devinit ghes_probe(struct p
+ "Unknown notification type: %u for generic hardware error source: %d\n",
+ 			generic->notify.type, generic->header.source_id);
+ 		}
+-		rc = -ENODEV;
+ 		goto err;
+ 	}
++
++	rc = -EIO;
++	if (generic->error_block_length <
++	    sizeof(struct acpi_hest_generic_status)) {
++		pr_warning(FW_BUG GHES_PFX
++"Invalid error block length: %u for generic hardware error source: %d\n",
++			   generic->error_block_length,
++			   generic->header.source_id);
++		goto err;
++	}
++	ghes = ghes_new(generic);
++	if (IS_ERR(ghes)) {
++		rc = PTR_ERR(ghes);
++		ghes = NULL;
++		goto err;
++	}
++	rc = -ENOMEM;
++	ghes->herr_dev = herr_dev_alloc();
++	if (!ghes->herr_dev)
++		goto err;
++	ghes->herr_dev->name = dev_name(&ghes_dev->dev);
++	ghes->herr_dev->dev.parent = &ghes_dev->dev;
++	rc = herr_dev_register(ghes->herr_dev);
++	if (rc) {
++		herr_dev_free(ghes->herr_dev);
++		goto err;
++	}
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_SCI:
++		mutex_lock(&ghes_list_mutex);
++		if (list_empty(&ghes_sci))
++			register_acpi_hed_notifier(&ghes_notifier_sci);
++		list_add_rcu(&ghes->list, &ghes_sci);
++		mutex_unlock(&ghes_list_mutex);
++		break;
++	default:
++		BUG();
++	}
+ 	platform_set_drvdata(ghes_dev, ghes);
+ 
+ 	return 0;
+@@ -386,13 +424,14 @@ static int __devexit ghes_remove(struct
+ 		if (list_empty(&ghes_sci))
+ 			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+ 		mutex_unlock(&ghes_list_mutex);
++		synchronize_rcu();
+ 		break;
+ 	default:
+ 		BUG();
+ 		break;
+ 	}
+ 
+-	synchronize_rcu();
++	herr_dev_unregister(ghes->herr_dev);
+ 	ghes_fini(ghes);
+ 	kfree(ghes);
+ 
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -22,6 +22,7 @@
+ #define LINUX_CPER_H
+ 
+ #include <linux/uuid.h>
++#include <linux/herror_record.h>
+ 
+ /* CPER record signature and the size */
+ #define CPER_SIG_RECORD				"CPER"
+@@ -310,6 +311,7 @@ struct cper_sec_mem_err {
+ #pragma pack()
+ 
+ int herr_severity_to_cper(int herr_severity);
++int cper_severity_to_herr(int cper_severity);
+ u64 cper_next_record_id(void);
+ 
  #endif
