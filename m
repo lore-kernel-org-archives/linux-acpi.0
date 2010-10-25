@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 45/60] Add lock-less version of bitmap_set/clear
-Date: Mon, 25 Oct 2010 02:20:53 -0400
-Message-ID: <2bc7089b5a8dde8c5098f778458159e614ee846f.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 46/60] lock-less NULL terminated single list implementation
+Date: Mon, 25 Oct 2010 02:20:54 -0400
+Message-ID: <e42a2308904d7ab7f6dcc7fe4f770de842ccdb6d.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:63717 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab0JYILE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:04 -0400
+	with ESMTP id S1753690Ab0JYILF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:05 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:02 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:04 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
@@ -23,155 +23,204 @@ Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Huang Ying <ying.huang@intel.com>
 
-cmpxchg is used to change the bitmap instead of the ordinary unsigned
-long assigning. Several users can set/clear the same bitmap
-simultaneously without lock. If there is conflict between two user,
-(set/clear same bit), one will return remain bits immediately.
+Cmpxchg is used to implement adding new entry to list, deleting first
+entry of the list and some other operations.
 
-This can be used to implement the lock-less resource allocator.
+Because this is a single list, so the tail can not be accessed in O(1).
+
+This can be used in NMI handler.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/linux/bitmap.h |    4 ++
- lib/bitmap.c           |  101 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 105 insertions(+), 0 deletions(-)
+ include/linux/llist.h |   64 ++++++++++++++++++++++++++++++++++++++++
+ lib/Kconfig           |    3 ++
+ lib/Makefile          |    2 +
+ lib/llist.c           |   78 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 147 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/llist.h
+ create mode 100644 lib/llist.c
 
-diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
-index daf8c48..7c12d8a 100644
---- a/include/linux/bitmap.h
-+++ b/include/linux/bitmap.h
-@@ -44,6 +44,8 @@
-  * bitmap_weight(src, nbits)			Hamming Weight: number set bits
-  * bitmap_set(dst, pos, nbits)			Set specified bit area
-  * bitmap_clear(dst, pos, nbits)		Clear specified bit area
-+ * bitmap_set_ll(dst, pos, nbits)		Set specified bit area, lock-less version
-+ * bitmap_clear_ll(dst, pos, nbits)		Clear specified bit area, lock-less version
-  * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
-  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
-  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
-@@ -113,6 +115,8 @@ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
- 
- extern void bitmap_set(unsigned long *map, int i, int len);
- extern void bitmap_clear(unsigned long *map, int start, int nr);
-+extern int bitmap_set_ll(unsigned long *map, int i, int len);
-+extern int bitmap_clear_ll(unsigned long *map, int start, int nr);
- extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
- 					 unsigned long size,
- 					 unsigned long start,
-diff --git a/lib/bitmap.c b/lib/bitmap.c
-index ffb78c9..90c60b3 100644
---- a/lib/bitmap.c
-+++ b/lib/bitmap.c
-@@ -315,6 +315,107 @@ void bitmap_clear(unsigned long *map, int start, int nr)
- }
- EXPORT_SYMBOL(bitmap_clear);
- 
-+static inline int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
+diff --git a/include/linux/llist.h b/include/linux/llist.h
+new file mode 100644
+index 0000000..53be9b5
+--- /dev/null
++++ b/include/linux/llist.h
+@@ -0,0 +1,64 @@
++#ifndef LLIST_H
++#define LLIST_H
++
++/* lock-less NULL terminated single linked list */
++struct llist_head {
++	struct llist_head *next;
++};
++
++#define LLIST_HEAD_INIT(name) { NULL }
++
++#define LLIST_HEAD(name)				\
++	struct llist_head name = LLIST_HEAD_INIT(name)
++
++/**
++ * init_llist_head - initialize lock-less list head
++ * @head:	the head for your lock-less list
++ */
++static inline void init_llist_head(struct llist_head *list)
 +{
-+	unsigned long val, nval;
-+
-+	nval = *addr;
-+	do {
-+		val = nval;
-+		if (val & mask_to_set)
-+			return -EBUSY;
-+	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
-+
-+	return 0;
-+}
-+
-+static inline int clear_bits_ll(unsigned long *addr,
-+				unsigned long mask_to_clear)
-+{
-+	unsigned long val, nval;
-+
-+	nval = *addr;
-+	do {
-+		val = nval;
-+		if ((val & mask_to_clear) != mask_to_clear)
-+			return -EBUSY;
-+	} while ((nval = cmpxchg(addr, val, val & ~mask_to_clear)) != val);
-+
-+	return 0;
++	list->next = NULL;
 +}
 +
 +/**
-+ * bitmap_set_ll - set the specified number of bits at the specified position
-+ * @map: pointer to a bitmap
-+ * @start: a bit position in @map
-+ * @nr: number of bits to set
-+ *
-+ * Set @nr bits start from @start in @map lock-lessly. Several users
-+ * can set/clear the same bitmap simultaneously without lock. If two
-+ * users set the same bit, one user will return remain bits, otherwise
-+ * return 0.
++ * llist_entry - get the struct of this entry
++ * @ptr:	the &struct llist_head pointer.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the llist_head within the struct.
 + */
-+int bitmap_set_ll(unsigned long *map, int start, int nr)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_set >= 0) {
-+		if (set_bits_ll(p, mask_to_set))
-+			return nr;
-+		nr -= bits_to_set;
-+		bits_to_set = BITS_PER_LONG;
-+		mask_to_set = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-+		if (set_bits_ll(p, mask_to_set))
-+			return nr;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(bitmap_set_ll);
++#define llist_entry(ptr, type, member)		\
++	container_of(ptr, type, member)
 +
 +/**
-+ * bitmap_clear_ll - clear the specified number of bits at the specified position
-+ * @map: pointer to a bitmap
-+ * @start: a bit position in @map
-+ * @nr: number of bits to set
-+ *
-+ * Clear @nr bits start from @start in @map lock-lessly. Several users
-+ * can set/clear the same bitmap simultaneously without lock. If two
-+ * users clear the same bit, one user will return remain bits,
-+ * otherwise return 0.
++ * llist_for_each - iterate over a lock-less list
++ * @pos:	the &struct llist_head to use as a loop cursor
++ * @head:	the head for your lock-less list
 + */
-+int bitmap_clear_ll(unsigned long *map, int start, int nr)
++#define llist_for_each(pos, head)					\
++	for (pos = (head)->next; pos; pos = pos->next)
++
++/**
++ * llist_for_each_entry - iterate over lock-less list of given type
++ * @pos:	the type * to use as a loop cursor.
++ * @head:	the head for your lock-less list.
++ * @member:	the name of the llist_head with the struct.
++ */
++#define llist_for_each_entry(pos, head, member)				\
++	for (pos = llist_entry((head)->next, typeof(*pos), member);	\
++	     &pos->member != NULL;					\
++	     pos = llist_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * llist_empty - tests whether a lock-less list is empty
++ * @head:	the list to test
++ */
++static inline int llist_empty(const struct llist_head *head)
 +{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_clear >= 0) {
-+		if (clear_bits_ll(p, mask_to_clear))
-+			return nr;
-+		nr -= bits_to_clear;
-+		bits_to_clear = BITS_PER_LONG;
-+		mask_to_clear = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-+		if (clear_bits_ll(p, mask_to_clear))
-+			return nr;
-+	}
-+
-+	return 0;
++	return head->next == NULL;
 +}
-+EXPORT_SYMBOL(bitmap_clear_ll);
 +
- /*
-  * bitmap_find_next_zero_area - find a contiguous aligned zero area
-  * @map: The address to base the search on
++void llist_add(struct llist_head *new, struct llist_head *head);
++struct llist_head *llist_del_first(struct llist_head *head);
++void llist_move_all(struct llist_head *list, struct llist_head *head);
++
++#endif /* LLIST_H */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index fa9bf2c..948b50b 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -210,4 +210,7 @@ config GENERIC_ATOMIC64
+ config LRU_CACHE
+ 	tristate
+ 
++config LLIST
++	bool
++
+ endmenu
+diff --git a/lib/Makefile b/lib/Makefile
+index e6a3763..7696e8d 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -106,6 +106,8 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic64.o
+ 
+ obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
+ 
++obj-$(CONFIG_LLIST) += llist.o
++
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
+ 
+diff --git a/lib/llist.c b/lib/llist.c
+new file mode 100644
+index 0000000..22264d9
+--- /dev/null
++++ b/lib/llist.c
+@@ -0,0 +1,78 @@
++/*
++ * Simple lock-less NULL terminated single list implementation
++ *
++ * Copyright 2010 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/llist.h>
++#include <linux/errno.h>
++
++#include <asm/system.h>
++
++/**
++ * llist_add - add a new entry
++ * @new:	new entry to be added
++ * @head:	the head for your lock-less list
++ */
++void llist_add(struct llist_head *new, struct llist_head *head)
++{
++	struct llist_head *entry;
++
++	do {
++		entry = head->next;
++		new->next = entry;
++	} while (cmpxchg(&head->next, entry, new) != entry);
++}
++EXPORT_SYMBOL_GPL(llist_add);
++
++/**
++ * llist_del_first - delete the first entry of lock-less list
++ * @head:	the head for your lock-less list
++ *
++ * If list is empty, return NULL, otherwise, return the first entry deleted
++ */
++struct llist_head *llist_del_first(struct llist_head *head)
++{
++	struct llist_head *entry;
++
++	do {
++		entry = head->next;
++		if (entry == NULL)
++			return NULL;
++	} while (cmpxchg(&head->next, entry, entry->next) != entry);
++
++	return entry;
++}
++EXPORT_SYMBOL_GPL(llist_del_first);
++
++/**
++ * llist_move_all - delete all entries from one list and add them to another list
++ * @list:	the head of lock-less list to delete all entries
++ * @head:	the head of lock-less list to add the entries
++ *
++ * Remove all entries from @list lock-lessly, then add the entries to
++ * lock-less list @head.
++ */
++void llist_move_all(struct llist_head *list, struct llist_head *head)
++{
++	struct llist_head *entry;
++
++	entry = xchg(&list->next, NULL);
++	head->next = entry;
++}
++EXPORT_SYMBOL_GPL(llist_move_all);
 -- 
 1.7.3.2.90.gd4c43
 
