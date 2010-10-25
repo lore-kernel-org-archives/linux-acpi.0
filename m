@@ -1,95 +1,104 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 40/60] ACPI dock: move some functions to .init.text
-Date: Mon, 25 Oct 2010 02:20:48 -0400
-Message-ID: <d38a5edf812c2f715242aa20b6beb785939a0096.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 15/60] PNP: log PNP resources, as we do for PCI
+Date: Mon, 25 Oct 2010 02:20:23 -0400
+Message-ID: <c1f3f2819667a238585c65bba96c8b16af39a442.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:50545 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab0JYHLK (ORCPT
+	with ESMTP id S1753210Ab0JYHLK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:10 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00FPR3YCZ7J4@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:08 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:09 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-=46rom: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-find_dock and find_bay are only called by dock_init which lives in
-=2Einit.text dock_add is only called by find_dock and find_bay.  So all
-three functions can be moved to .init.text, too.
+ACPI devices are often involved in address space conflicts with PCI devices,
+so I think it's worth logging the resources they use.  Otherwise we have to
+depend on lspnp or groping around in sysfs to find them.
 
-This fixes:
-
-        WARNING: vmlinux.o(.text+0x2134b7): Section mismatch in referen=
-ce from the function dock_add() to the function .init.text:platform_dev=
-ice_register_resndata()
-        The function dock_add() references
-        the function __init platform_device_register_resndata().
-        This is often because dock_add lacks a __init
-        annotation or the annotation of platform_device_register_resnda=
-ta is wrong.
-
-for a build with unset CONFIG_MODULES.
-
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/pnp/core.c     |    5 +++--
+ drivers/pnp/resource.c |   10 +++++-----
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 3fe29e9..2b16563 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -929,7 +929,7 @@ static struct attribute_group dock_attribute_group =
-=3D {
-  * allocated and initialize a new dock station device.  Find all devic=
-es
-  * that are on the dock station, and register for dock event notificat=
-ions.
-  */
--static int dock_add(acpi_handle handle)
-+static int __init dock_add(acpi_handle handle)
- {
- 	int ret, id;
- 	struct dock_station ds, *dock_station;
-@@ -1023,7 +1023,7 @@ static int dock_remove(struct dock_station *ds)
-  *
-  * This is called by acpi_walk_namespace to look for dock stations.
-  */
--static acpi_status
-+static __init acpi_status
- find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	if (is_dock(handle))
-@@ -1032,7 +1032,7 @@ find_dock(acpi_handle handle, u32 lvl, void *cont=
-ext, void **rv)
- 	return AE_OK;
+diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+index 88b3cde..53a8f33 100644
+--- a/drivers/pnp/core.c
++++ b/drivers/pnp/core.c
+@@ -194,8 +194,9 @@ int pnp_add_device(struct pnp_dev *dev)
+ 	for (id = dev->id; id; id = id->next)
+ 		len += scnprintf(buf + len, sizeof(buf) - len, " %s", id->id);
+ 
+-	pnp_dbg(&dev->dev, "%s device, IDs%s (%s)\n",
+-		dev->protocol->name, buf, dev->active ? "active" : "disabled");
++	dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs%s (%s)\n",
++		   dev->protocol->name, buf,
++		   dev->active ? "active" : "disabled");
+ 	return 0;
  }
-=20
--static acpi_status
-+static __init acpi_status
- find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	/* If bay is a dock, it's already handled */
---=20
+ 
+diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+index e3446ab..a925e6b 100644
+--- a/drivers/pnp/resource.c
++++ b/drivers/pnp/resource.c
+@@ -523,7 +523,7 @@ struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
+ 	res->start = irq;
+ 	res->end = irq;
+ 
+-	pnp_dbg(&dev->dev, "  add %pr\n", res);
++	dev_printk(KERN_DEBUG, &dev->dev, "%pR\n", res);
+ 	return pnp_res;
+ }
+ 
+@@ -544,7 +544,7 @@ struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
+ 	res->start = dma;
+ 	res->end = dma;
+ 
+-	pnp_dbg(&dev->dev, "  add %pr\n", res);
++	dev_printk(KERN_DEBUG, &dev->dev, "%pR\n", res);
+ 	return pnp_res;
+ }
+ 
+@@ -568,7 +568,7 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
+ 	res->start = start;
+ 	res->end = end;
+ 
+-	pnp_dbg(&dev->dev, "  add %pr\n", res);
++	dev_printk(KERN_DEBUG, &dev->dev, "%pR\n", res);
+ 	return pnp_res;
+ }
+ 
+@@ -592,7 +592,7 @@ struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
+ 	res->start = start;
+ 	res->end = end;
+ 
+-	pnp_dbg(&dev->dev, "  add %pr\n", res);
++	dev_printk(KERN_DEBUG, &dev->dev, "%pR\n", res);
+ 	return pnp_res;
+ }
+ 
+@@ -616,7 +616,7 @@ struct pnp_resource *pnp_add_bus_resource(struct pnp_dev *dev,
+ 	res->start = start;
+ 	res->end = end;
+ 
+-	pnp_dbg(&dev->dev, "  add %pr\n", res);
++	dev_printk(KERN_DEBUG, &dev->dev, "%pR\n", res);
+ 	return pnp_res;
+ }
+ 
+-- 
 1.7.3.2.90.gd4c43
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
