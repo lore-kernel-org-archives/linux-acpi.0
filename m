@@ -1,101 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/2] PNP: Compile all pnp built-in stuff in one module namespace
-Date: Mon, 25 Oct 2010 21:11:15 +0200
-Message-ID: <1288033876-22929-1-git-send-email-trenn@suse.de>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
+ Source POLL/IRQ/NMI notification type support
+Date: Mon, 25 Oct 2010 22:23:44 +0200
+Message-ID: <20101025202344.GC13652@liondog.tnic>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
+ <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+ <20101025084553.GA27119@elte.hu>
+ <1287997112.2862.322.camel@yhuang-dev>
+ <20101025092557.GA11544@elte.hu>
+ <AANLkTi=2SVT1M+nDZUB7EB05jh+tsuKcew_t66QORrwb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:59739 "EHLO mx1.suse.de"
+Received: from mail.skyhub.de ([78.46.96.112]:55815 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750915Ab0JYTLr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 15:11:47 -0400
+	id S1757709Ab0JYUXs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 16:23:48 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=2SVT1M+nDZUB7EB05jh+tsuKcew_t66QORrwb@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, bjorn.helgaas@hp.com
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: Tony Luck <tony.luck@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-This is cleanup mostly, nothing urgent.
-I came up with it when looking at dynamic debug which can
-enable pr_debug messages at runtime or boot param
-for a specific module.
+On Mon, Oct 25, 2010 at 10:14:52AM -0700, Tony Luck wrote:
+> On Mon, Oct 25, 2010 at 2:25 AM, Ingo Molnar <mingo@elte.hu> wrote:
+> 
+> > drivers/acpi/apei/ overlaps and duplicates drivers/edac/. We dont want two
+> > facilities, two ABIs, two sets of behavior. erst-dbg even defines a /dev node with
+> > two ioctls, and a debugfs file to read/write records ...
+> 
+> As mentioned above these 4-letter names from from the ACPI specification. ERST
+> is perhaps the dumbest name of them all - "Error Record Serialization Table" is
+> ACPI-speak for platform level non-volatile memory.  This code simply provides
+> a mechanism for Linux to stash some information in nvram before the system is
+> reset, and to retrieve it after the reboot.
+> 
+> The naming could be better - but I don't see any overlap with EDAC here.
 
-Advantages:
-  - Any pnp code can make use of the moduleparam.h interface, the modules
-    will show up as pnp.param.
-  - Passing pnp.ddebug as kernel boot param will enable all pnp debug messages
-    with my previous patch and CONFIG_DYNAMIC_DEBUG enabled.
+You may be right but what we actually want is a consistent RAS
+infrastructure. Didn't you point out at the last edac meeting in Boston
+that concerning RAS Linux were in the stone ages? (at least this is what
+I remember reading).
 
+What we should do is put all that post-system-reset error info, ECC
+errors mapping to DRAM devices, L3 cache index manipulation based on
+excessive errors - you name it - together and stick it in ras/ or
+drivers/ras or whatever. And all with a nice and easy to use userspace
+tool on top.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: linux-acpi@vger.kernel.org
----
- drivers/pnp/Makefile         |    6 ++++--
- drivers/pnp/isapnp/Makefile  |    6 +++---
- drivers/pnp/pnpacpi/Makefile |    3 ++-
- drivers/pnp/pnpbios/Makefile |    5 +++--
- 4 files changed, 12 insertions(+), 8 deletions(-)
+Now it looks like a wart on arch/x86/ which truly doesn't belong there.
+And I don't buy all that crap that it can't be done right.
 
-diff --git a/drivers/pnp/Makefile b/drivers/pnp/Makefile
-index 8de3775..bfba893 100644
---- a/drivers/pnp/Makefile
-+++ b/drivers/pnp/Makefile
-@@ -2,11 +2,13 @@
- # Makefile for the Linux Plug-and-Play Support.
- #
- 
--obj-y		:= core.o card.o driver.o resource.o manager.o support.o interface.o quirks.o
-+obj-y		:= pnp.o
-+
-+pnp-y		:= core.o card.o driver.o resource.o manager.o support.o interface.o quirks.o
- 
- obj-$(CONFIG_PNPACPI)		+= pnpacpi/
- obj-$(CONFIG_PNPBIOS)		+= pnpbios/
- obj-$(CONFIG_ISAPNP)		+= isapnp/
- 
- # pnp_system_init goes after pnpacpi/pnpbios init
--obj-y				+= system.o
-+pnp-y				+= system.o
-diff --git a/drivers/pnp/isapnp/Makefile b/drivers/pnp/isapnp/Makefile
-index cac18bb..6e607aa 100644
---- a/drivers/pnp/isapnp/Makefile
-+++ b/drivers/pnp/isapnp/Makefile
-@@ -1,7 +1,7 @@
- #
- # Makefile for the kernel ISAPNP driver.
- #
-+obj-y			+= pnp.o
-+pnp-y			:= core.o compat.o
- 
--isapnp-proc-$(CONFIG_PROC_FS) = proc.o
--
--obj-y := core.o compat.o $(isapnp-proc-y)
-+pnp-$(CONFIG_PROC_FS)	+= proc.o
-diff --git a/drivers/pnp/pnpacpi/Makefile b/drivers/pnp/pnpacpi/Makefile
-index 905326f..40c93da 100644
---- a/drivers/pnp/pnpacpi/Makefile
-+++ b/drivers/pnp/pnpacpi/Makefile
-@@ -1,5 +1,6 @@
- #
- # Makefile for the kernel PNPACPI driver.
- #
-+obj-y += pnp.o
- 
--obj-y := core.o rsparser.o
-+pnp-y := core.o rsparser.o
-diff --git a/drivers/pnp/pnpbios/Makefile b/drivers/pnp/pnpbios/Makefile
-index 3cd3ed7..240b0ff 100644
---- a/drivers/pnp/pnpbios/Makefile
-+++ b/drivers/pnp/pnpbios/Makefile
-@@ -1,7 +1,8 @@
- #
- # Makefile for the kernel PNPBIOS driver.
- #
-+obj-y := pnp.o
- 
--pnpbios-proc-$(CONFIG_PNPBIOS_PROC_FS) = proc.o
-+pnp-y := core.o bioscalls.o rsparser.o
- 
--obj-y := core.o bioscalls.o rsparser.o $(pnpbios-proc-y)
-+pnp-$(CONFIG_PNPBIOS_PROC_FS) += proc.o
+Thanks.
+
 -- 
-1.6.3
-
+Regards/Gruss,
+    Boris.
