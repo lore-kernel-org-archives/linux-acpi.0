@@ -1,345 +1,496 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 53/60] ACPI / PM: Fix reference counting of power resources
-Date: Mon, 25 Oct 2010 02:21:01 -0400
-Message-ID: <3e384ee6c687cb397581ee8f9440fc8220cfac80.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 44/60] ACPI, APEI, Add ERST record ID cache
+Date: Mon, 25 Oct 2010 02:20:52 -0400
+Message-ID: <3ab532b764169a551caffc4f3ea550538091449e.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63735 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:63743 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296Ab0JYILI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:08 -0400
+	with ESMTP id S1753816Ab0JYILK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:10 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:08 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:09 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Huang Ying <ying.huang@intel.com>
 
-The reference counting of ACPI power resources is currently broken
-for a few reasons.  First, instead of using a simple reference
-counter per power resource it uses a list of objects representing
-refereces to the given power resource from devices.  This leads to
-the second breakage, because it prevents power resources from
-being referenced more than once by one device, which is necessary
-if the device is configured to signal wakeup.  Namely, when putting
-the device into a low power state we first call
-acpi_enable_wakeup_device_power() that should reference count power
-resources needed for signaling wakeup and then we call
-acpi_power_transition() to power off the device.  The latter call
-drops references to the device's power resources, possibly including
-the ones added by acpi_enable_wakeup_device_power(), so the device
-can't signal wakeup as a result.  Apart from this, the locking
-in acpi_power_on() and acpi_power_off_device() doesn't prevent
-all possible races from happening, which may be problematic for
-runtime PM and asynchronous suspend and resume.
+APEI ERST firmware interface and implementation has no multiple users
+in mind. For example, there is four records in storage with ID: 1, 2,
+3 and 4, if two ERST readers enumerate the records via
+GET_NEXT_RECORD_ID as follow,
 
-Fix the problem by using a counter for power resources reference
-counting and putting the evaluation of ACPI _ON and _OFF methods
-under the power resource mutex.
+reader 1		reader 2
+1
+			2
+3
+			4
+-1
+			-1
 
-Reported-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+where -1 signals there is no more record ID.
+
+Reader 1 has no chance to check record 2 and 4, while reader 2 has no
+chance to check record 1 and 3. And any other GET_NEXT_RECORD_ID will
+return -1, that is, other readers will has no chance to check any
+record even they are not cleared by anyone.
+
+This makes raw GET_NEXT_RECORD_ID not suitable for usage of multiple
+users.
+
+To solve the issue, an in memory ERST record ID cache is designed and
+implemented. When enumerating record ID, the ID returned by
+GET_NEXT_RECORD_ID is added into cache in addition to be returned to
+caller. So other readers can check the cache to get all record ID
+available.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/power.c |  167 +++++++++++++++++++++-----------------------------
- 1 files changed, 70 insertions(+), 97 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce-apei.c |   42 ++++---
+ drivers/acpi/apei/erst-dbg.c          |   24 +++-
+ drivers/acpi/apei/erst.c              |  241 +++++++++++++++++++++++++++------
+ include/acpi/apei.h                   |    5 +-
+ 4 files changed, 247 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 844c155..67dedee 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -80,18 +80,13 @@ static struct acpi_driver acpi_power_driver = {
- 		},
- };
- 
--struct acpi_power_reference {
--	struct list_head node;
--	struct acpi_device *device;
--};
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+index 8209472..83930de 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
++++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+@@ -106,24 +106,34 @@ int apei_write_mce(struct mce *m)
+ ssize_t apei_read_mce(struct mce *m, u64 *record_id)
+ {
+ 	struct cper_mce_record rcd;
+-	ssize_t len;
 -
- struct acpi_power_resource {
- 	struct acpi_device * device;
- 	acpi_bus_id name;
- 	u32 system_level;
- 	u32 order;
-+	unsigned int ref_count;
- 	struct mutex resource_lock;
--	struct list_head reference;
- };
+-	len = erst_read_next(&rcd.hdr, sizeof(rcd));
+-	if (len <= 0)
+-		return len;
+-	/* Can not skip other records in storage via ERST unless clear them */
+-	else if (len != sizeof(rcd) ||
+-		 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE)) {
+-		if (printk_ratelimit())
+-			pr_warning(
+-			"MCE-APEI: Can not skip the unknown record in ERST");
+-		return -EIO;
+-	}
+-
++	int rc, pos;
++
++	rc = erst_get_record_id_begin(&pos);
++	if (rc)
++		return rc;
++retry:
++	rc = erst_get_record_id_next(&pos, record_id);
++	if (rc)
++		goto out;
++	/* no more record */
++	if (*record_id == APEI_ERST_INVALID_RECORD_ID)
++		goto out;
++	rc = erst_read(*record_id, &rcd.hdr, sizeof(rcd));
++	/* someone else has cleared the record, try next one */
++	if (rc == -ENOENT)
++		goto retry;
++	else if (rc < 0)
++		goto out;
++	/* try to skip other type records in storage */
++	else if (rc != sizeof(rcd) ||
++		 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE))
++		goto retry;
+ 	memcpy(m, &rcd.mce, sizeof(*m));
+-	*record_id = rcd.hdr.record_id;
++	rc = sizeof(*m);
++out:
++	erst_get_record_id_end();
  
- static struct list_head acpi_power_resource_list;
-@@ -184,101 +179,89 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- 	return result;
+-	return sizeof(*m);
++	return rc;
  }
  
--static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
-+static int __acpi_power_on(struct acpi_power_resource *resource)
- {
--	int result = 0;
--	int found = 0;
- 	acpi_status status = AE_OK;
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
+ /* Check whether there is record in ERST */
+diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
+index da1228a..92fd57b 100644
+--- a/drivers/acpi/apei/erst-dbg.c
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -43,12 +43,27 @@ static DEFINE_MUTEX(erst_dbg_mutex);
  
-+	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
+ static int erst_dbg_open(struct inode *inode, struct file *file)
+ {
++	int rc, *pos;
 +
-+	/* Update the power resource's _device_ power state */
-+	resource->device->power.state = ACPI_STATE_D0;
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
++	pos = (int *)&file->private_data;
 +
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
-+			  resource->name));
++	rc = erst_get_record_id_begin(pos);
++	if (rc)
++		return rc;
++
+ 	return nonseekable_open(inode, file);
+ }
+ 
++static int erst_dbg_release(struct inode *inode, struct file *file)
++{
++	erst_get_record_id_end();
 +
 +	return 0;
 +}
 +
-+static int acpi_power_on(acpi_handle handle)
-+{
-+	int result = 0;
-+	struct acpi_power_resource *resource = NULL;
+ static long erst_dbg_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+ {
+ 	int rc;
+@@ -79,18 +94,20 @@ static long erst_dbg_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+ static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
+ 			     size_t usize, loff_t *off)
+ {
+-	int rc;
++	int rc, *pos;
+ 	ssize_t len = 0;
+ 	u64 id;
  
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
- 		return result;
+-	if (*off != 0)
++	if (*off)
+ 		return -EINVAL;
  
- 	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		if (dev->handle == ref->device->handle) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already referenced by resource [%s]\n",
--				  dev->pnp.bus_id, resource->name));
--			found = 1;
--			break;
--		}
--	}
+ 	if (mutex_lock_interruptible(&erst_dbg_mutex) != 0)
+ 		return -EINTR;
  
--	if (!found) {
--		ref = kmalloc(sizeof (struct acpi_power_reference),
--		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
--		if (!ref) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
--			mutex_unlock(&resource->resource_lock);
--			return -ENOMEM;
--		}
--		list_add_tail(&ref->node, &resource->reference);
--		ref->device = dev;
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] added to resource [%s] references\n",
--			  dev->pnp.bus_id, resource->name));
-+	if (resource->ref_count++) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] already on",
-+				  resource->name));
-+	} else {
-+		result = __acpi_power_on(resource);
- 	}
--	mutex_unlock(&resource->resource_lock);
++	pos = (int *)&filp->private_data;
++
+ retry_next:
+-	rc = erst_get_next_record_id(&id);
++	rc = erst_get_record_id_next(pos, &id);
+ 	if (rc)
+ 		goto out;
+ 	/* no more record */
+@@ -181,6 +198,7 @@ out:
+ static const struct file_operations erst_dbg_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= erst_dbg_open,
++	.release	= erst_dbg_release,
+ 	.read		= erst_dbg_read,
+ 	.write		= erst_dbg_write,
+ 	.unlocked_ioctl	= erst_dbg_ioctl,
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 1211c03..addd47f 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -429,6 +429,27 @@ ssize_t erst_get_record_count(void)
+ }
+ EXPORT_SYMBOL_GPL(erst_get_record_count);
  
--	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	/* Update the power resource's _device_ power state */
--	resource->device->power.state = ACPI_STATE_D0;
-+	mutex_unlock(&resource->resource_lock);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned on\n",
--			  resource->name));
++#define ERST_RECORD_ID_CACHE_SIZE_MIN	16
++#define ERST_RECORD_ID_CACHE_SIZE_MAX	1024
++
++struct erst_record_id_entry {
++	u64 id;
++	unsigned int cleared:1;
++};
++
++struct erst_record_id_cache {
++	struct mutex lock;
++	struct erst_record_id_entry *entries;
++	int len;
++	int size;
++	int refcount;
++};
++
++static struct erst_record_id_cache erst_record_id_cache = {
++	.lock = __MUTEX_INITIALIZER(erst_record_id_cache.lock),
++	.refcount = 0,
++};
++
+ static int __erst_get_next_record_id(u64 *record_id)
+ {
+ 	struct apei_exec_context ctx;
+@@ -443,26 +464,180 @@ static int __erst_get_next_record_id(u64 *record_id)
  	return 0;
  }
  
--static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
-+static int acpi_power_off_device(acpi_handle handle)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
- 	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
--	struct acpi_power_reference *ref;
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
- 		return result;
- 
- 	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		ref = container_of(node, struct acpi_power_reference, node);
--		if (dev->handle == ref->device->handle) {
--			list_del(&ref->node);
--			kfree(ref);
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] removed from resource [%s] references\n",
--			    dev->pnp.bus_id, resource->name));
--			break;
--		}
++int erst_get_record_id_begin(int *pos)
++{
++	int rc;
 +
-+	if (!resource->ref_count) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] already off",
-+				  resource->name));
-+		goto unlock;
- 	}
- 
--	if (!list_empty(&resource->reference)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cannot turn resource [%s] off - resource is in use\n",
--		    resource->name));
--		mutex_unlock(&resource->resource_lock);
--		return 0;
-+	if (--resource->ref_count) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] still in use\n",
-+				  resource->name));
-+		goto unlock;
- 	}
--	mutex_unlock(&resource->resource_lock);
- 
- 	status = acpi_evaluate_object(resource->device->handle, "_OFF", NULL, NULL);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	if (ACPI_FAILURE(status)) {
-+		result = -ENODEV;
-+	} else {
-+		/* Update the power resource's _device_ power state */
-+		resource->device->power.state = ACPI_STATE_D3;
- 
--	/* Update the power resource's _device_ power state */
--	resource->device->power.state = ACPI_STATE_D3;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Power resource [%s] turned off\n",
-+				  resource->name));
++	if (erst_disable)
++		return -ENODEV;
++
++	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
++	if (rc)
++		return rc;
++	erst_record_id_cache.refcount++;
++	mutex_unlock(&erst_record_id_cache.lock);
++
++	*pos = 0;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(erst_get_record_id_begin);
++
++/* erst_record_id_cache.lock must be held by caller */
++static int erst_record_id_cache_add_one(void)
++{
++	u64 id, prev_id, first_id;
++	int i, rc;
++	struct erst_record_id_entry *entries;
++	unsigned long flags;
++
++	id = prev_id = first_id = APEI_ERST_INVALID_RECORD_ID;
++retry:
++	spin_lock_irqsave(&erst_lock, flags);
++	rc = __erst_get_next_record_id(&id);
++	spin_unlock_irqrestore(&erst_lock, flags);
++	if (rc == -ENOENT)
++		return 0;
++	if (rc)
++		return rc;
++	if (id == APEI_ERST_INVALID_RECORD_ID)
++		return 0;
++	/* can not skip current ID, or look back to first ID */
++	if (id == prev_id || id == first_id)
++		return 0;
++	if (first_id == APEI_ERST_INVALID_RECORD_ID)
++		first_id = id;
++	prev_id = id;
++
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (!entries[i].cleared && entries[i].id == id)
++			break;
 +	}
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] turned off\n",
--			  resource->name));
-+ unlock:
-+	mutex_unlock(&resource->resource_lock);
- 
--	return 0;
-+	return result;
- }
- 
- /**
-@@ -364,7 +347,7 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state)
- 
- 	/* Open power resource */
- 	for (i = 0; i < dev->wakeup.resources.count; i++) {
--		int ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
-+		int ret = acpi_power_on(dev->wakeup.resources.handles[i]);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
- 			dev->wakeup.flags.valid = 0;
-@@ -420,7 +403,7 @@ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
- 	/* Close power resource */
- 	for (i = 0; i < dev->wakeup.resources.count; i++) {
- 		int ret = acpi_power_off_device(
--				dev->wakeup.resources.handles[i], dev);
-+				dev->wakeup.resources.handles[i]);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
- 			dev->wakeup.flags.valid = 0;
-@@ -500,7 +483,7 @@ int acpi_power_transition(struct acpi_device *device, int state)
- 	 * (e.g. so the device doesn't lose power while transitioning).
- 	 */
- 	for (i = 0; i < tl->count; i++) {
--		result = acpi_power_on(tl->handles[i], device);
-+		result = acpi_power_on(tl->handles[i]);
- 		if (result)
- 			goto end;
- 	}
-@@ -513,7 +496,7 @@ int acpi_power_transition(struct acpi_device *device, int state)
- 	 * Then we dereference all power resources used in the current list.
- 	 */
- 	for (i = 0; i < cl->count; i++) {
--		result = acpi_power_off_device(cl->handles[i], device);
-+		result = acpi_power_off_device(cl->handles[i]);
- 		if (result)
- 			goto end;
- 	}
-@@ -551,7 +534,6 @@ static int acpi_power_add(struct acpi_device *device)
- 
- 	resource->device = device;
- 	mutex_init(&resource->resource_lock);
--	INIT_LIST_HEAD(&resource->reference);
- 	strcpy(resource->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
-@@ -594,22 +576,14 @@ static int acpi_power_add(struct acpi_device *device)
- 
- static int acpi_power_remove(struct acpi_device *device, int type)
- {
--	struct acpi_power_resource *resource = NULL;
--	struct list_head *node, *next;
-+	struct acpi_power_resource *resource;
- 
--
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
- 
- 	resource = acpi_driver_data(device);
--
--	mutex_lock(&resource->resource_lock);
--	list_for_each_safe(node, next, &resource->reference) {
--		struct acpi_power_reference *ref = container_of(node, struct acpi_power_reference, node);
--		list_del(&ref->node);
--		kfree(ref);
--	}
--	mutex_unlock(&resource->resource_lock);
-+	if (!resource)
-+		return -EINVAL;
- 
- 	kfree(resource);
- 
-@@ -619,29 +593,28 @@ static int acpi_power_remove(struct acpi_device *device, int type)
- static int acpi_power_resume(struct acpi_device *device)
- {
- 	int result = 0, state;
--	struct acpi_power_resource *resource = NULL;
--	struct acpi_power_reference *ref;
-+	struct acpi_power_resource *resource;
- 
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
- 
- 	resource = acpi_driver_data(device);
-+	if (!resource)
-+		return -EINVAL;
++	/* record id already in cache, try next */
++	if (i < erst_record_id_cache.len)
++		goto retry;
++	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
++		int new_size, alloc_size;
++		struct erst_record_id_entry *new_entries;
 +
-+	mutex_lock(&resource->resource_lock);
- 
- 	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
--		return result;
-+		goto unlock;
- 
--	mutex_lock(&resource->resource_lock);
--	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
--	    !list_empty(&resource->reference)) {
--		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
--		mutex_unlock(&resource->resource_lock);
--		result = acpi_power_on(device->handle, ref->device);
--		return result;
--	}
-+	if (state == ACPI_POWER_RESOURCE_STATE_OFF && resource->ref_count)
-+		result = __acpi_power_on(resource);
- 
-+ unlock:
- 	mutex_unlock(&resource->resource_lock);
--	return 0;
++		new_size = erst_record_id_cache.size * 2;
++		new_size = max_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MIN);
++		new_size = min_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MAX);
++		if (new_size <= erst_record_id_cache.size) {
++			if (printk_ratelimit())
++				pr_warning(FW_WARN ERST_PFX
++					   "too many record ID!\n");
++			return 0;
++		}
++		alloc_size = new_size * sizeof(struct erst_record_id_entry);
++		if (alloc_size < PAGE_SIZE)
++			new_entries = kmalloc(alloc_size, GFP_KERNEL);
++		else
++			new_entries = vmalloc(alloc_size);
++		if (!new_entries)
++			return -ENOMEM;
++		memcpy(new_entries, entries,
++		       erst_record_id_cache.len * sizeof(entries[0]));
++		if (erst_record_id_cache.size < PAGE_SIZE)
++			kfree(entries);
++		else
++			vfree(entries);
++		erst_record_id_cache.entries = entries = new_entries;
++		erst_record_id_cache.size = new_size;
++	}
++	memset(&entries[i], 0, sizeof(entries[i]));
++	entries[i].id = id;
++	erst_record_id_cache.len++;
 +
-+	return result;
- }
++	return 1;
++}
++
+ /*
+  * Get the record ID of an existing error record on the persistent
+  * storage. If there is no error record on the persistent storage, the
+  * returned record_id is APEI_ERST_INVALID_RECORD_ID.
+  */
+-int erst_get_next_record_id(u64 *record_id)
++int erst_get_record_id_next(int *pos, u64 *record_id)
+ {
+-	int rc;
+-	unsigned long flags;
++	int rc = 0;
++	struct erst_record_id_entry *entries;
  
- int __init acpi_power_init(void)
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
+-	spin_lock_irqsave(&erst_lock, flags);
+-	rc = __erst_get_next_record_id(record_id);
+-	spin_unlock_irqrestore(&erst_lock, flags);
++	/* must be enclosed by erst_get_record_id_begin/end */
++	BUG_ON(!erst_record_id_cache.refcount);
++	BUG_ON(*pos < 0 || *pos > erst_record_id_cache.len);
++
++	mutex_lock(&erst_record_id_cache.lock);
++	entries = erst_record_id_cache.entries;
++	for (; *pos < erst_record_id_cache.len; (*pos)++)
++		if (!entries[*pos].cleared)
++			break;
++	/* found next record id in cache */
++	if (*pos < erst_record_id_cache.len) {
++		*record_id = entries[*pos].id;
++		(*pos)++;
++		goto out_unlock;
++	}
++
++	/* Try to add one more record ID to cache */
++	rc = erst_record_id_cache_add_one();
++	if (rc < 0)
++		goto out_unlock;
++	/* successfully add one new ID */
++	if (rc == 1) {
++		entries = erst_record_id_cache.entries;
++		*record_id = entries[*pos].id;
++		(*pos)++;
++		rc = 0;
++	} else {
++		*pos = -1;
++		*record_id = APEI_ERST_INVALID_RECORD_ID;
++	}
++out_unlock:
++	mutex_unlock(&erst_record_id_cache.lock);
+ 
+ 	return rc;
+ }
+-EXPORT_SYMBOL_GPL(erst_get_next_record_id);
++EXPORT_SYMBOL_GPL(erst_get_record_id_next);
++
++static void __erst_record_id_cache_compact(void)
++{
++	int i, wpos = 0;
++	struct erst_record_id_entry *entries;
++
++	if (!erst_record_id_cache.refcount) {
++		entries = erst_record_id_cache.entries;
++		for (i = 0; i < erst_record_id_cache.len; i++) {
++			if (entries[i].cleared)
++				continue;
++			if (wpos != i)
++				memcpy(&entries[wpos], &entries[i],
++				       sizeof(entries[i]));
++			wpos++;
++		}
++		erst_record_id_cache.len = wpos;
++	}
++}
++
++void erst_get_record_id_end(void)
++{
++	/*
++	 * erst_disable != 0 should be detected by invoker via the
++	 * return value of erst_get_record_id_begin/next, so this
++	 * function should not be called for erst_disable != 0.
++	 */
++	BUG_ON(erst_disable);
++
++	mutex_lock(&erst_record_id_cache.lock);
++	erst_record_id_cache.refcount--;
++	BUG_ON(erst_record_id_cache.refcount < 0);
++	__erst_record_id_cache_compact();
++	mutex_unlock(&erst_record_id_cache.lock);
++}
++EXPORT_SYMBOL_GPL(erst_get_record_id_end);
+ 
+ static int __erst_write_to_storage(u64 offset)
+ {
+@@ -703,56 +878,34 @@ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
+ }
+ EXPORT_SYMBOL_GPL(erst_read);
+ 
+-/*
+- * If return value > buflen, the buffer size is not big enough,
+- * else if return value = 0, there is no more record to read,
+- * else if return value < 0, something goes wrong,
+- * else everything is OK, and return value is record length
+- */
+-ssize_t erst_read_next(struct cper_record_header *record, size_t buflen)
+-{
+-	int rc;
+-	ssize_t len;
+-	unsigned long flags;
+-	u64 record_id;
+-
+-	if (erst_disable)
+-		return -ENODEV;
+-
+-	spin_lock_irqsave(&erst_lock, flags);
+-	rc = __erst_get_next_record_id(&record_id);
+-	if (rc) {
+-		spin_unlock_irqrestore(&erst_lock, flags);
+-		return rc;
+-	}
+-	/* no more record */
+-	if (record_id == APEI_ERST_INVALID_RECORD_ID) {
+-		spin_unlock_irqrestore(&erst_lock, flags);
+-		return 0;
+-	}
+-
+-	len = __erst_read(record_id, record, buflen);
+-	spin_unlock_irqrestore(&erst_lock, flags);
+-
+-	return len;
+-}
+-EXPORT_SYMBOL_GPL(erst_read_next);
+-
+ int erst_clear(u64 record_id)
+ {
+-	int rc;
++	int rc, i;
+ 	unsigned long flags;
++	struct erst_record_id_entry *entries;
+ 
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
++	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
++	if (rc)
++		return rc;
+ 	spin_lock_irqsave(&erst_lock, flags);
+ 	if (erst_erange.attr & ERST_RANGE_NVRAM)
+ 		rc = __erst_clear_from_nvram(record_id);
+ 	else
+ 		rc = __erst_clear_from_storage(record_id);
+ 	spin_unlock_irqrestore(&erst_lock, flags);
+-
++	if (rc)
++		goto out;
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (!entries[i].cleared && entries[i].id == record_id)
++			entries[i].cleared = 1;
++	}
++	__erst_record_id_cache_compact();
++out:
++	mutex_unlock(&erst_record_id_cache.lock);
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(erst_clear);
+diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+index b336502..ad4a736 100644
+--- a/include/acpi/apei.h
++++ b/include/acpi/apei.h
+@@ -24,10 +24,11 @@ int apei_hest_parse(apei_hest_func_t func, void *data);
+ 
+ int erst_write(const struct cper_record_header *record);
+ ssize_t erst_get_record_count(void);
+-int erst_get_next_record_id(u64 *record_id);
++int erst_get_record_id_begin(int *pos);
++int erst_get_record_id_next(int *pos, u64 *record_id);
++void erst_get_record_id_end(void);
+ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
+ 		  size_t buflen);
+-ssize_t erst_read_next(struct cper_record_header *record, size_t buflen);
+ int erst_clear(u64 record_id);
+ 
+ #endif
 -- 
 1.7.3.2.90.gd4c43
 
