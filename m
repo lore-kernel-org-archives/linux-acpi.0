@@ -1,78 +1,116 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI / Battery: Return -ENODATA for unknown values in
- get_property()
-Date: Mon, 25 Oct 2010 15:17:28 +0200
-Message-ID: <20101025131728.GC2162@ucw.cz>
-References: <20101016141321.GA11054@sucs.org>
- <20101017131016.GB13015@khazad-dum.debian.net>
- <20101017145025.GA32599@sucs.org>
- <201010172032.43206.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
+ Source POLL/IRQ/NMI notification type support
+Date: Mon, 25 Oct 2010 15:47:40 +0200
+Message-ID: <20101025134740.GA8888@elte.hu>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
+ <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+ <20101025084553.GA27119@elte.hu>
+ <1287997112.2862.322.camel@yhuang-dev>
+ <20101025091913.GA17622@basil.fritz.box>
+ <20101025111530.GA27659@elte.hu>
+ <20101025123753.GB17622@basil.fritz.box>
+ <20101025125531.GA6075@elte.hu>
+ <20101025131127.GC17622@basil.fritz.box>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:34878 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755261Ab0JYNsG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Oct 2010 09:48:06 -0400
 Content-Disposition: inline
-In-Reply-To: <201010172032.43206.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Sitsofe Wheeler <sitsofe@yahoo.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, David Zeuthen <davidz@redhat.com>, Richard Hughes <richard@hughsie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20101025131127.GC17622@basil.fritz.box>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Arjan van de Ven <arjan@infradead.org>
 
-Hi!
 
-> That's why I suggested to use -ENODATA. :-)
+* Andi Kleen <andi@firstfloor.org> wrote:
+
+> On Mon, Oct 25, 2010 at 02:55:31PM +0200, Ingo Molnar wrote:
+> > 
+> > * Andi Kleen <andi@firstfloor.org> wrote:
+> > 
+> > > On Mon, Oct 25, 2010 at 01:15:30PM +0200, Ingo Molnar wrote:
+> > > 
+> > > > > > > einj.c: it's about the 3rd separate 'error injection' concept that got 
+> > > > > > > introduced ...
+> > > > > > 
+> > > > > > EINJ is a true platform feature, not just software feature. We need to support 
+> > > > > > it to debug various hardware error features.
+> > > > > 
+> > > > > Also having multiple error injecting interfaces is a good thing.
+> > > > 
+> > > > It's never a good thing to have separate, vendor dependent interfaces for what 
+> > > > to the user is basically the same conceptual thing!
+> > > 
+> > > Perhaps a simple example (simplified, in practice there are more complications) 
+> > > makes it more clear:
+> > > 
+> > > The memory error handler does different actions depending on what the state the 
+> > > page the error is happening on is in.
+> > 
+> > What you appear to be arguing for is the ability to inject different types of 
+> > events.
 > 
-> Still, if user space has problems with failing reads from the sysfs attributes,
-> it may be better to simply put -1 in there.  Patch is appended, please test.
+> Different events in different contexts with different drivers with different 
+> parameters [...]
 
-I'd say that reporting -1 for unknown is ugly. You can have -1A
-current easily (charging at 1A), and I've seen machines reporting <0
-current -- when charging. Logical and well-defined.
+Correct.
 
-								Pavel
+> [...] using different tools.
 
+That's possible, but i'd expect tools/ras/ to be populated with uniformly working 
+tools. There's little sense in fragmenting the hw-testing field...
 
->  	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-> -		val->intval = battery->design_voltage * 1000;
-> +		if (battery->design_voltage != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->design_voltage * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-> -		val->intval = battery->voltage_now * 1000;
-> +		if (battery->voltage_now != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->voltage_now * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CURRENT_NOW:
->  	case POWER_SUPPLY_PROP_POWER_NOW:
-> -		val->intval = battery->rate_now * 1000;
-> +		if (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->rate_now * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
->  	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
-> -		val->intval = battery->design_capacity * 1000;
-> +		if (battery->design_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->design_capacity * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CHARGE_FULL:
->  	case POWER_SUPPLY_PROP_ENERGY_FULL:
-> -		val->intval = battery->full_charge_capacity * 1000;
-> +		if (battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->full_charge_capacity * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CHARGE_NOW:
->  	case POWER_SUPPLY_PROP_ENERGY_NOW:
-> -		val->intval = battery->capacity_now * 1000;
-> +		if (battery->capacity_now != ACPI_BATTERY_VALUE_UNKNOWN)
-> +			val->intval = battery->capacity_now * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_MODEL_NAME:
->  		val->strval = battery->model_number;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> Commonality: about 0% exept there's "error" somewhere in the description.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Wrong. Their main purpose is common: they are events attached to existing hardware 
+topologies, which events can be configured, which events can be received and which 
+can be injected with attributes for rare-event simulation purposes.
+
+The tool people have spoken to us clear and loud that they want to _receive_ events 
+in a unified and structured way - not via lots of separate ABIs from facilities that 
+have mismatching capabilities.
+
+We want to be able to inject _other_ events as well, not just hw-error ones - 
+especially rare ones.
+
+I.e. there's clear, demonstrated, patches-pending demand for uniformity and there's 
+similar demand for a broader concept.
+
+You are now making the point that somehow the receipt and sending/injecting of 'hw 
+errors on Intel hardware' should be a separate, fragmented, disoriented, messy piece 
+of interface design, closely matching some ACPI spec detail, which should be 
+disassociated from the preferred mechanism of error reporting?
+
+Your argument makes absolutely no sense to me.
+
+The kernel is an abstraction machine: common hw aspects should be generalized to the 
+extent it makes sense, with reasonable extensions for anything we dont want (or 
+cannot) generalize.
+
+There's _tons_ of interesting structure here to be taken advantage of: just look at 
+what Boris is trying to achieve with his EDAC tooling patches. See what Lin Ming is 
+trying to do by moving event descriptors to /sys, so that events can come with 
+elements of our hw and sw topology in a natural way.
+
+There is absolutely no justification whatsoever for the new /dev/erst-dbg ABI ...
+
+Furthermore, you have ignored my other argument for the second time now: why does 
+this code not do the event _reporting_ via the facilities we use and prefer? As far 
+as users are concerned, the ability to receive hardware error events in a unified 
+way is an even more important aspect than the matter of event injection.
+
+Once you do that i think you will see how naturally error injection fits into the 
+picture as well. It is an aspect of pretty much any event (not just hw-error events) 
+that we want to be able to 'inject/simulate' them, to test tools.
+
+Your refusal to even consider this possibility and to look at the EDAC/RAS patches 
+that deal with this is puzzling to me.
+
+Thanks,
+
+	Ingo
