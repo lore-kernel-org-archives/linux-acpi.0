@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 25/60] ACPI thermal: remove deprecated procfs I/F
-Date: Mon, 25 Oct 2010 02:20:33 -0400
-Message-ID: <c57b62f5b1e6dd69ff8c96f6db7f86ea31c0e21f.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 26/60] ACPI video: remove deprecated procfs I/F
+Date: Mon, 25 Oct 2010 02:20:34 -0400
+Message-ID: <39fe394d05be43481ceac8b3db19dfd5189097f6.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:63743 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753837Ab0JYILM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:12 -0400
+	with ESMTP id S1753690Ab0JYILQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 04:11:16 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00AR06QCM6U2@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:11 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 03:11:12 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
@@ -23,513 +23,871 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Remove the deprecated ACPI thermal driver procfs I/F,
-as stated in the changelog of commit 43d9f87b79804f2d75d9d8a81c862b179f055a15
+Remove the deprecated ACPI video driver procfs I/F,
+as stated in the changelog of commit 6e37c658aefa57c472b2dbf1de88dbd3c67cdb52
 
-sysfs I/F is available at /sys/class/thermal/thermal_zoneX/
+New sysfs I/F is available at /sys/class/backlight/
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/thermal.c |  436 +-----------------------------------------------
- 1 files changed, 1 insertions(+), 435 deletions(-)
+ drivers/acpi/video.c |  771 +-------------------------------------------------
+ 1 files changed, 1 insertions(+), 770 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 2f8f171..5a27b0a 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -37,12 +37,6 @@
- #include <linux/init.h>
- #include <linux/slab.h>
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 67dec0c..5cd0228 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -30,8 +30,6 @@
  #include <linux/types.h>
--
--#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/list.h>
+ #include <linux/mutex.h>
 -#include <linux/proc_fs.h>
 -#include <linux/seq_file.h>
+ #include <linux/input.h>
+ #include <linux/backlight.h>
+ #include <linux/thermal.h>
+@@ -152,9 +150,6 @@ struct acpi_video_bus {
+ 	struct acpi_video_bus_flags flags;
+ 	struct list_head video_device_list;
+ 	struct mutex device_list_lock;	/* protects video_device_list */
+-#ifdef CONFIG_ACPI_PROCFS
+-	struct proc_dir_entry *dir;
 -#endif
--
- #include <linux/jiffies.h>
- #include <linux/kmod.h>
- #include <linux/reboot.h>
-@@ -195,61 +189,6 @@ struct acpi_thermal {
- 	struct mutex lock;
+ 	struct input_dev *input;
+ 	char phys[32];	/* for input device */
+ 	struct notifier_block pm_nb;
+@@ -210,108 +205,6 @@ struct acpi_video_device {
+ 	struct output_device *output_dev;
  };
  
 -#ifdef CONFIG_ACPI_PROCFS
--static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
--static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_cooling_mode(struct file *,
--					       const char __user *, size_t,
--					       loff_t *);
--static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file);
--static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
--					  size_t, loff_t *);
--
--static const struct file_operations acpi_thermal_state_fops = {
+-/* bus */
+-static int acpi_video_bus_info_open_fs(struct inode *inode, struct file *file);
+-static const struct file_operations acpi_video_bus_info_fops = {
 -	.owner = THIS_MODULE,
--	.open = acpi_thermal_state_open_fs,
+-	.open = acpi_video_bus_info_open_fs,
 -	.read = seq_read,
 -	.llseek = seq_lseek,
 -	.release = single_release,
 -};
 -
--static const struct file_operations acpi_thermal_temp_fops = {
+-static int acpi_video_bus_ROM_open_fs(struct inode *inode, struct file *file);
+-static const struct file_operations acpi_video_bus_ROM_fops = {
 -	.owner = THIS_MODULE,
--	.open = acpi_thermal_temp_open_fs,
+-	.open = acpi_video_bus_ROM_open_fs,
 -	.read = seq_read,
 -	.llseek = seq_lseek,
 -	.release = single_release,
 -};
 -
--static const struct file_operations acpi_thermal_trip_fops = {
+-static int acpi_video_bus_POST_info_open_fs(struct inode *inode,
+-					    struct file *file);
+-static const struct file_operations acpi_video_bus_POST_info_fops = {
 -	.owner = THIS_MODULE,
--	.open = acpi_thermal_trip_open_fs,
+-	.open = acpi_video_bus_POST_info_open_fs,
 -	.read = seq_read,
 -	.llseek = seq_lseek,
 -	.release = single_release,
 -};
 -
--static const struct file_operations acpi_thermal_cooling_fops = {
+-static int acpi_video_bus_POST_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_video_bus_write_POST(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_bus_POST_fops = {
 -	.owner = THIS_MODULE,
--	.open = acpi_thermal_cooling_open_fs,
+-	.open = acpi_video_bus_POST_open_fs,
 -	.read = seq_read,
--	.write = acpi_thermal_write_cooling_mode,
+-	.write = acpi_video_bus_write_POST,
 -	.llseek = seq_lseek,
 -	.release = single_release,
 -};
 -
--static const struct file_operations acpi_thermal_polling_fops = {
+-static int acpi_video_bus_DOS_open_fs(struct inode *inode, struct file *file);
+-static ssize_t acpi_video_bus_write_DOS(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_bus_DOS_fops = {
 -	.owner = THIS_MODULE,
--	.open = acpi_thermal_polling_open_fs,
+-	.open = acpi_video_bus_DOS_open_fs,
 -	.read = seq_read,
--	.write = acpi_thermal_write_polling,
+-	.write = acpi_video_bus_write_DOS,
 -	.llseek = seq_lseek,
 -	.release = single_release,
 -};
--#endif /* CONFIG_ACPI_PROCFS*/
 -
- /* --------------------------------------------------------------------------
-                              Thermal Zone Management
-    -------------------------------------------------------------------------- */
-@@ -958,358 +897,6 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
- 
+-/* device */
+-static int acpi_video_device_info_open_fs(struct inode *inode,
+-					  struct file *file);
+-static const struct file_operations acpi_video_device_info_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_info_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_state_open_fs(struct inode *inode,
+-					   struct file *file);
+-static ssize_t acpi_video_device_write_state(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_device_state_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_state_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_device_write_state,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_brightness_open_fs(struct inode *inode,
+-						struct file *file);
+-static ssize_t acpi_video_device_write_brightness(struct file *file,
+-	const char __user *buffer, size_t count, loff_t *data);
+-static const struct file_operations acpi_video_device_brightness_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_brightness_open_fs,
+-	.read = seq_read,
+-	.write = acpi_video_device_write_brightness,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_video_device_EDID_open_fs(struct inode *inode,
+-					  struct file *file);
+-static const struct file_operations acpi_video_device_EDID_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_video_device_EDID_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-#endif /* CONFIG_ACPI_PROCFS */
+-
+ static const char device_decode[][30] = {
+ 	"motherboard VGA device",
+ 	"PCI VGA device",
+@@ -1111,646 +1004,6 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
+ }
  
  /* --------------------------------------------------------------------------
 -                              FS Interface (/proc)
 -   -------------------------------------------------------------------------- */
 -#ifdef CONFIG_ACPI_PROCFS
--static struct proc_dir_entry *acpi_thermal_dir;
 -
--static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+-static struct proc_dir_entry *acpi_video_dir;
+-
+-/* video devices */
+-
+-static int acpi_video_device_info_seq_show(struct seq_file *seq, void *offset)
 -{
--	struct acpi_thermal *tz = seq->private;
+-	struct acpi_video_device *dev = seq->private;
 -
 -
--	if (!tz)
+-	if (!dev)
 -		goto end;
 -
--	seq_puts(seq, "state:                   ");
--
--	if (!tz->state.critical && !tz->state.hot && !tz->state.passive
--	    && !tz->state.active)
--		seq_puts(seq, "ok\n");
--	else {
--		if (tz->state.critical)
--			seq_puts(seq, "critical ");
--		if (tz->state.hot)
--			seq_puts(seq, "hot ");
--		if (tz->state.passive)
--			seq_puts(seq, "passive ");
--		if (tz->state.active)
--			seq_printf(seq, "active[%d]", tz->state.active_index);
--		seq_puts(seq, "\n");
--	}
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_state_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_temp_seq_show(struct seq_file *seq, void *offset)
--{
--	int result = 0;
--	struct acpi_thermal *tz = seq->private;
--
--
--	if (!tz)
--		goto end;
--
--	result = acpi_thermal_get_temperature(tz);
--	if (result)
--		goto end;
--
--	seq_printf(seq, "temperature:             %ld C\n",
--		   KELVIN_TO_CELSIUS(tz->temperature));
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_temp_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_thermal *tz = seq->private;
--	struct acpi_device *device;
--	acpi_status status;
--
--	int i = 0;
--	int j = 0;
--
--
--	if (!tz)
--		goto end;
--
--	if (tz->trips.critical.flags.valid)
--		seq_printf(seq, "critical (S5):           %ld C%s",
--			   KELVIN_TO_CELSIUS(tz->trips.critical.temperature),
--			   nocrt ? " <disabled>\n" : "\n");
--
--	if (tz->trips.hot.flags.valid)
--		seq_printf(seq, "hot (S4):                %ld C%s",
--			   KELVIN_TO_CELSIUS(tz->trips.hot.temperature),
--			   nocrt ? " <disabled>\n" : "\n");
--
--	if (tz->trips.passive.flags.valid) {
--		seq_printf(seq,
--			   "passive:                 %ld C: tc1=%lu tc2=%lu tsp=%lu devices=",
--			   KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
--			   tz->trips.passive.tc1, tz->trips.passive.tc2,
--			   tz->trips.passive.tsp);
--		for (j = 0; j < tz->trips.passive.devices.count; j++) {
--			status = acpi_bus_get_device(tz->trips.passive.devices.
--						     handles[j], &device);
--			seq_printf(seq, "%4.4s ", status ? "" :
--				   acpi_device_bid(device));
--		}
--		seq_puts(seq, "\n");
--	} else {
--		seq_printf(seq, "passive (forced):");
--		if (tz->thermal_zone->forced_passive)
--			seq_printf(seq, "        %i C\n",
--				   tz->thermal_zone->forced_passive / 1000);
--		else
--			seq_printf(seq, "<not set>\n");
--	}
--
--	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
--		if (!(tz->trips.active[i].flags.valid))
--			break;
--		seq_printf(seq, "active[%d]:               %ld C: devices=",
--			   i,
--			   KELVIN_TO_CELSIUS(tz->trips.active[i].temperature));
--		for (j = 0; j < tz->trips.active[i].devices.count; j++){
--			status = acpi_bus_get_device(tz->trips.active[i].
--						     devices.handles[j],
--						     &device);
--			seq_printf(seq, "%4.4s ", status ? "" :
--				   acpi_device_bid(device));
--		}
--		seq_puts(seq, "\n");
--	}
--
--      end:
--	return 0;
--}
--
--static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_thermal_trip_seq_show, PDE(inode)->data);
--}
--
--static int acpi_thermal_cooling_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_thermal *tz = seq->private;
--
--
--	if (!tz)
--		goto end;
--
--	if (!tz->flags.cooling_mode)
--		seq_puts(seq, "<setting not supported>\n");
+-	seq_printf(seq, "device_id:    0x%04x\n", (u32) dev->device_id);
+-	seq_printf(seq, "type:         ");
+-	if (dev->flags.crt)
+-		seq_printf(seq, "CRT\n");
+-	else if (dev->flags.lcd)
+-		seq_printf(seq, "LCD\n");
+-	else if (dev->flags.tvout)
+-		seq_printf(seq, "TVOUT\n");
+-	else if (dev->flags.dvi)
+-		seq_printf(seq, "DVI\n");
 -	else
--		seq_puts(seq, "0 - Active; 1 - Passive\n");
+-		seq_printf(seq, "UNKNOWN\n");
+-
+-	seq_printf(seq, "known by bios: %s\n", dev->flags.bios ? "yes" : "no");
 -
 -      end:
 -	return 0;
 -}
 -
--static int acpi_thermal_cooling_open_fs(struct inode *inode, struct file *file)
+-static int
+-acpi_video_device_info_open_fs(struct inode *inode, struct file *file)
 -{
--	return single_open(file, acpi_thermal_cooling_seq_show,
+-	return single_open(file, acpi_video_device_info_seq_show,
 -			   PDE(inode)->data);
 -}
 -
--static ssize_t
--acpi_thermal_write_cooling_mode(struct file *file,
--				const char __user * buffer,
--				size_t count, loff_t * ppos)
+-static int
+-acpi_video_device_query(struct acpi_video_device *device,
+-			unsigned long long *state)
 -{
--	struct seq_file *m = file->private_data;
--	struct acpi_thermal *tz = m->private;
--	int result = 0;
--	char mode_string[12] = { '\0' };
+-	int status;
 -
+-	status = acpi_evaluate_integer(device->dev->handle, "_DGS",
+-				       NULL, state);
 -
--	if (!tz || (count > sizeof(mode_string) - 1))
--		return -EINVAL;
--
--	if (!tz->flags.cooling_mode)
--		return -ENODEV;
--
--	if (copy_from_user(mode_string, buffer, count))
--		return -EFAULT;
--
--	mode_string[count] = '\0';
--
--	result = acpi_thermal_set_cooling_mode(tz,
--					       simple_strtoul(mode_string, NULL,
--							      0));
--	if (result)
--		return result;
--
--	acpi_thermal_check(tz);
--
--	return count;
+-	return status;
 -}
 -
--static int acpi_thermal_polling_seq_show(struct seq_file *seq, void *offset)
+-static int acpi_video_device_state_seq_show(struct seq_file *seq, void *offset)
 -{
--	struct acpi_thermal *tz = seq->private;
+-	int status;
+-	struct acpi_video_device *dev = seq->private;
+-	unsigned long long state;
 -
 -
--	if (!tz)
+-	if (!dev)
 -		goto end;
 -
--	if (!tz->thermal_zone->polling_delay) {
--		seq_puts(seq, "<polling disabled>\n");
--		goto end;
--	}
+-	status = acpi_video_device_get_state(dev, &state);
+-	seq_printf(seq, "state:     ");
+-	if (ACPI_SUCCESS(status))
+-		seq_printf(seq, "0x%02llx\n", state);
+-	else
+-		seq_printf(seq, "<not supported>\n");
 -
--	seq_printf(seq, "polling frequency:       %d seconds\n",
--		   (tz->thermal_zone->polling_delay / 1000));
+-	status = acpi_video_device_query(dev, &state);
+-	seq_printf(seq, "query:     ");
+-	if (ACPI_SUCCESS(status))
+-		seq_printf(seq, "0x%02llx\n", state);
+-	else
+-		seq_printf(seq, "<not supported>\n");
 -
 -      end:
 -	return 0;
 -}
 -
--static int acpi_thermal_polling_open_fs(struct inode *inode, struct file *file)
+-static int
+-acpi_video_device_state_open_fs(struct inode *inode, struct file *file)
 -{
--	return single_open(file, acpi_thermal_polling_seq_show,
+-	return single_open(file, acpi_video_device_state_seq_show,
 -			   PDE(inode)->data);
 -}
 -
--static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
--{
--	if (!tz)
--		return -EINVAL;
--
--	/* Convert value to deci-seconds */
--	tz->polling_frequency = seconds * 10;
--
--	tz->thermal_zone->polling_delay = seconds * 1000;
--
--	if (tz->tz_enabled)
--		thermal_zone_device_update(tz->thermal_zone);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Polling frequency set to %lu seconds\n",
--			  tz->polling_frequency/10));
--
--	return 0;
--}
--
 -static ssize_t
--acpi_thermal_write_polling(struct file *file,
--			   const char __user * buffer,
--			   size_t count, loff_t * ppos)
+-acpi_video_device_write_state(struct file *file,
+-			      const char __user * buffer,
+-			      size_t count, loff_t * data)
 -{
+-	int status;
 -	struct seq_file *m = file->private_data;
--	struct acpi_thermal *tz = m->private;
--	int result = 0;
--	char polling_string[12] = { '\0' };
--	int seconds = 0;
+-	struct acpi_video_device *dev = m->private;
+-	char str[12] = { 0 };
+-	u32 state = 0;
 -
 -
--	if (!tz || (count > sizeof(polling_string) - 1))
+-	if (!dev || count >= sizeof(str))
 -		return -EINVAL;
 -
--	if (copy_from_user(polling_string, buffer, count))
+-	if (copy_from_user(str, buffer, count))
 -		return -EFAULT;
 -
--	polling_string[count] = '\0';
+-	str[count] = 0;
+-	state = simple_strtoul(str, NULL, 0);
+-	state &= ((1ul << 31) | (1ul << 30) | (1ul << 0));
 -
--	seconds = simple_strtoul(polling_string, NULL, 0);
+-	status = acpi_video_device_set_state(dev, state);
 -
--	result = acpi_thermal_set_polling(tz, seconds);
--	if (result)
--		return result;
--
--	acpi_thermal_check(tz);
+-	if (status)
+-		return -EFAULT;
 -
 -	return count;
 -}
 -
--static int acpi_thermal_add_fs(struct acpi_device *device)
+-static int
+-acpi_video_device_brightness_seq_show(struct seq_file *seq, void *offset)
 -{
--	struct proc_dir_entry *entry = NULL;
+-	struct acpi_video_device *dev = seq->private;
+-	int i;
 -
 -
--	if (!acpi_device_dir(device)) {
--		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
--						     acpi_thermal_dir);
--		if (!acpi_device_dir(device))
--			return -ENODEV;
+-	if (!dev || !dev->brightness) {
+-		seq_printf(seq, "<not supported>\n");
+-		return 0;
 -	}
 -
--	/* 'state' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_STATE,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_thermal_state_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
+-	seq_printf(seq, "levels: ");
+-	for (i = 2; i < dev->brightness->count; i++)
+-		seq_printf(seq, " %d", dev->brightness->levels[i]);
+-	seq_printf(seq, "\ncurrent: %d\n", dev->brightness->curr);
 -
--	/* 'temperature' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_TEMPERATURE,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_thermal_temp_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'trip_points' [R] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_TRIP_POINTS,
--				 S_IRUGO,
--				 acpi_device_dir(device),
--				 &acpi_thermal_trip_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'cooling_mode' [R/W] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_COOLING_MODE,
--				 S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_device_dir(device),
--				 &acpi_thermal_cooling_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--
--	/* 'polling_frequency' [R/W] */
--	entry = proc_create_data(ACPI_THERMAL_FILE_POLLING_FREQ,
--				 S_IFREG | S_IRUGO | S_IWUSR,
--				 acpi_device_dir(device),
--				 &acpi_thermal_polling_fops,
--				 acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
 -	return 0;
 -}
 -
--static int acpi_thermal_remove_fs(struct acpi_device *device)
+-static int
+-acpi_video_device_brightness_open_fs(struct inode *inode, struct file *file)
 -{
+-	return single_open(file, acpi_video_device_brightness_seq_show,
+-			   PDE(inode)->data);
+-}
 -
--	if (acpi_device_dir(device)) {
--		remove_proc_entry(ACPI_THERMAL_FILE_POLLING_FREQ,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_COOLING_MODE,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_TRIP_POINTS,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_TEMPERATURE,
--				  acpi_device_dir(device));
--		remove_proc_entry(ACPI_THERMAL_FILE_STATE,
--				  acpi_device_dir(device));
--		remove_proc_entry(acpi_device_bid(device), acpi_thermal_dir);
+-static ssize_t
+-acpi_video_device_write_brightness(struct file *file,
+-				   const char __user * buffer,
+-				   size_t count, loff_t * data)
+-{
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_device *dev = m->private;
+-	char str[5] = { 0 };
+-	unsigned int level = 0;
+-	int i;
+-
+-
+-	if (!dev || !dev->brightness || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	level = simple_strtoul(str, NULL, 0);
+-
+-	if (level > 100)
+-		return -EFAULT;
+-
+-	/* validate through the list of available levels */
+-	for (i = 2; i < dev->brightness->count; i++)
+-		if (level == dev->brightness->levels[i]) {
+-			if (!acpi_video_device_lcd_set_level(dev, level))
+-				return count;
+-			break;
+-		}
+-
+-	return -EINVAL;
+-}
+-
+-static int acpi_video_device_EDID_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_device *dev = seq->private;
+-	int status;
+-	int i;
+-	union acpi_object *edid = NULL;
+-
+-
+-	if (!dev)
+-		goto out;
+-
+-	status = acpi_video_device_EDID(dev, &edid, 128);
+-	if (ACPI_FAILURE(status)) {
+-		status = acpi_video_device_EDID(dev, &edid, 256);
+-	}
+-
+-	if (ACPI_FAILURE(status)) {
+-		goto out;
+-	}
+-
+-	if (edid && edid->type == ACPI_TYPE_BUFFER) {
+-		for (i = 0; i < edid->buffer.length; i++)
+-			seq_putc(seq, edid->buffer.pointer[i]);
+-	}
+-
+-      out:
+-	if (!edid)
+-		seq_printf(seq, "<not supported>\n");
+-	else
+-		kfree(edid);
+-
+-	return 0;
+-}
+-
+-static int
+-acpi_video_device_EDID_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_device_EDID_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_device_add_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *entry, *device_dir;
+-	struct acpi_video_device *vid_dev;
+-
+-	vid_dev = acpi_driver_data(device);
+-	if (!vid_dev)
+-		return -ENODEV;
+-
+-	device_dir = proc_mkdir(acpi_device_bid(device),
+-				vid_dev->video->dir);
+-	if (!device_dir)
+-		return -ENOMEM;
+-
+-	/* 'info' [R] */
+-	entry = proc_create_data("info", S_IRUGO, device_dir,
+-			&acpi_video_device_info_fops, acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_dir;
+-
+-	/* 'state' [R/W] */
+-	entry = proc_create_data("state", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_device_state_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_info;
+-
+-	/* 'brightness' [R/W] */
+-	entry = proc_create_data("brightness", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_device_brightness_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_state;
+-
+-	/* 'EDID' [R] */
+-	entry = proc_create_data("EDID", S_IRUGO, device_dir,
+-				 &acpi_video_device_EDID_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_brightness;
+-
+-	acpi_device_dir(device) = device_dir;
+-
+-	return 0;
+-
+- err_remove_brightness:
+-	remove_proc_entry("brightness", device_dir);
+- err_remove_state:
+-	remove_proc_entry("state", device_dir);
+- err_remove_info:
+-	remove_proc_entry("info", device_dir);
+- err_remove_dir:
+-	remove_proc_entry(acpi_device_bid(device), vid_dev->video->dir);
+-	return -ENOMEM;
+-}
+-
+-static int acpi_video_device_remove_fs(struct acpi_device *device)
+-{
+-	struct acpi_video_device *vid_dev;
+-	struct proc_dir_entry *device_dir;
+-
+-	vid_dev = acpi_driver_data(device);
+-	if (!vid_dev || !vid_dev->video || !vid_dev->video->dir)
+-		return -ENODEV;
+-
+-	device_dir = acpi_device_dir(device);
+-	if (device_dir) {
+-		remove_proc_entry("info", device_dir);
+-		remove_proc_entry("state", device_dir);
+-		remove_proc_entry("brightness", device_dir);
+-		remove_proc_entry("EDID", device_dir);
+-		remove_proc_entry(acpi_device_bid(device), vid_dev->video->dir);
+-		acpi_device_dir(device) = NULL;
+-	}
+-
+-	return 0;
+-}
+-
+-/* video bus */
+-static int acpi_video_bus_info_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	seq_printf(seq, "Switching heads:              %s\n",
+-		   video->flags.multihead ? "yes" : "no");
+-	seq_printf(seq, "Video ROM:                    %s\n",
+-		   video->flags.rom ? "yes" : "no");
+-	seq_printf(seq, "Device to be POSTed on boot:  %s\n",
+-		   video->flags.post ? "yes" : "no");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_info_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_bus_ROM_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
+-	seq_printf(seq, "<TODO>\n");
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_ROM_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_ROM_seq_show, PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_POST_options(struct acpi_video_bus *video,
+-			    unsigned long long *options)
+-{
+-	int status;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_VPO",
+-				       NULL, options);
+-	*options &= 3;
+-
+-	return status;
+-}
+-
+-static int acpi_video_bus_POST_info_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-	unsigned long long options;
+-	int status;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	status = acpi_video_bus_POST_options(video, &options);
+-	if (ACPI_SUCCESS(status)) {
+-		if (!(options & 1)) {
+-			printk(KERN_WARNING PREFIX
+-			       "The motherboard VGA device is not listed as a possible POST device.\n");
+-			printk(KERN_WARNING PREFIX
+-			       "This indicates a BIOS bug. Please contact the manufacturer.\n");
+-		}
+-		printk(KERN_WARNING "%llx\n", options);
+-		seq_printf(seq, "can POST: <integrated video>");
+-		if (options & 2)
+-			seq_printf(seq, " <PCI video>");
+-		if (options & 4)
+-			seq_printf(seq, " <AGP video>");
+-		seq_putc(seq, '\n');
+-	} else
+-		seq_printf(seq, "<not supported>\n");
+-      end:
+-	return 0;
+-}
+-
+-static int
+-acpi_video_bus_POST_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_POST_info_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_get_POST(struct acpi_video_bus *video, unsigned long long *id)
+-{
+-	int status;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_GPD", NULL, id);
+-
+-	return status;
+-}
+-
+-static int acpi_video_bus_POST_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-	int status;
+-	unsigned long long id;
+-
+-
+-	if (!video)
+-		goto end;
+-
+-	status = acpi_video_bus_get_POST(video, &id);
+-	if (!ACPI_SUCCESS(status)) {
+-		seq_printf(seq, "<not supported>\n");
+-		goto end;
+-	}
+-	seq_printf(seq, "device POSTed is <%s>\n", device_decode[id & 3]);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_video_bus_DOS_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_video_bus *video = seq->private;
+-
+-
+-	seq_printf(seq, "DOS setting: <%d>\n", video->dos_setting);
+-
+-	return 0;
+-}
+-
+-static int acpi_video_bus_POST_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_POST_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static int acpi_video_bus_DOS_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_video_bus_DOS_seq_show, PDE(inode)->data);
+-}
+-
+-static int
+-acpi_video_bus_set_POST(struct acpi_video_bus *video, unsigned long option)
+-{
+-	int status;
+-	unsigned long long tmp;
+-	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+-	struct acpi_object_list args = { 1, &arg0 };
+-
+-
+-	arg0.integer.value = option;
+-
+-	status = acpi_evaluate_integer(video->device->handle, "_SPD",
+-				       &args, &tmp);
+-	if (ACPI_SUCCESS(status))
+-		status = tmp ? (-EINVAL) : (AE_OK);
+-
+-	return status;
+-}
+-
+-static ssize_t
+-acpi_video_bus_write_POST(struct file *file,
+-			  const char __user * buffer,
+-			  size_t count, loff_t * data)
+-{
+-	int status;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_bus *video = m->private;
+-	char str[12] = { 0 };
+-	unsigned long long opt, options;
+-
+-
+-	if (!video || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	status = acpi_video_bus_POST_options(video, &options);
+-	if (!ACPI_SUCCESS(status))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	opt = strtoul(str, NULL, 0);
+-	if (opt > 3)
+-		return -EFAULT;
+-
+-	/* just in case an OEM 'forgot' the motherboard... */
+-	options |= 1;
+-
+-	if (options & (1ul << opt)) {
+-		status = acpi_video_bus_set_POST(video, opt);
+-		if (!ACPI_SUCCESS(status))
+-			return -EFAULT;
+-
+-	}
+-
+-	return count;
+-}
+-
+-static ssize_t
+-acpi_video_bus_write_DOS(struct file *file,
+-			 const char __user * buffer,
+-			 size_t count, loff_t * data)
+-{
+-	int status;
+-	struct seq_file *m = file->private_data;
+-	struct acpi_video_bus *video = m->private;
+-	char str[12] = { 0 };
+-	unsigned long opt;
+-
+-
+-	if (!video || count >= sizeof(str))
+-		return -EINVAL;
+-
+-	if (copy_from_user(str, buffer, count))
+-		return -EFAULT;
+-
+-	str[count] = 0;
+-	opt = strtoul(str, NULL, 0);
+-	if (opt > 7)
+-		return -EFAULT;
+-
+-	status = acpi_video_bus_DOS(video, opt & 0x3, (opt & 0x4) >> 2);
+-
+-	if (!ACPI_SUCCESS(status))
+-		return -EFAULT;
+-
+-	return count;
+-}
+-
+-static int acpi_video_bus_add_fs(struct acpi_device *device)
+-{
+-	struct acpi_video_bus *video = acpi_driver_data(device);
+-	struct proc_dir_entry *device_dir;
+-	struct proc_dir_entry *entry;
+-
+-	device_dir = proc_mkdir(acpi_device_bid(device), acpi_video_dir);
+-	if (!device_dir)
+-		return -ENOMEM;
+-
+-	/* 'info' [R] */
+-	entry = proc_create_data("info", S_IRUGO, device_dir,
+-				 &acpi_video_bus_info_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_dir;
+-
+-	/* 'ROM' [R] */
+-	entry = proc_create_data("ROM", S_IRUGO, device_dir,
+-				 &acpi_video_bus_ROM_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_info;
+-
+-	/* 'POST_info' [R] */
+-	entry = proc_create_data("POST_info", S_IRUGO, device_dir,
+-				 &acpi_video_bus_POST_info_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_rom;
+-
+-	/* 'POST' [R/W] */
+-	entry = proc_create_data("POST", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_bus_POST_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_post_info;
+-
+-	/* 'DOS' [R/W] */
+-	entry = proc_create_data("DOS", S_IFREG | S_IRUGO | S_IWUSR,
+-				 device_dir,
+-				 &acpi_video_bus_DOS_fops,
+-				 acpi_driver_data(device));
+-	if (!entry)
+-		goto err_remove_post;
+-
+-	video->dir = acpi_device_dir(device) = device_dir;
+-	return 0;
+-
+- err_remove_post:
+-	remove_proc_entry("POST", device_dir);
+- err_remove_post_info:
+-	remove_proc_entry("POST_info", device_dir);
+- err_remove_rom:
+-	remove_proc_entry("ROM", device_dir);
+- err_remove_info:
+-	remove_proc_entry("info", device_dir);
+- err_remove_dir:
+-	remove_proc_entry(acpi_device_bid(device), acpi_video_dir);
+-	return -ENOMEM;
+-}
+-
+-static int acpi_video_bus_remove_fs(struct acpi_device *device)
+-{
+-	struct proc_dir_entry *device_dir = acpi_device_dir(device);
+-
+-	if (device_dir) {
+-		remove_proc_entry("info", device_dir);
+-		remove_proc_entry("ROM", device_dir);
+-		remove_proc_entry("POST_info", device_dir);
+-		remove_proc_entry("POST", device_dir);
+-		remove_proc_entry("DOS", device_dir);
+-		remove_proc_entry(acpi_device_bid(device), acpi_video_dir);
 -		acpi_device_dir(device) = NULL;
 -	}
 -
 -	return 0;
 -}
 -#else
--static inline int acpi_thermal_add_fs(struct acpi_device *device) { return 0; }
--static inline int acpi_thermal_remove_fs(struct acpi_device *device)
+-static inline int acpi_video_device_add_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_device_remove_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_bus_add_fs(struct acpi_device *device)
+-{
+-	return 0;
+-}
+-static inline int acpi_video_bus_remove_fs(struct acpi_device *device)
 -{
 -	return 0;
 -}
 -#endif /* CONFIG_ACPI_PROCFS */
+-
 -/* --------------------------------------------------------------------------
                                   Driver Interface
     -------------------------------------------------------------------------- */
  
-@@ -1428,17 +1015,11 @@ static int acpi_thermal_add(struct acpi_device *device)
- 	if (result)
- 		goto free_memory;
+@@ -1877,8 +1130,6 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
+ 		list_add_tail(&data->entry, &video->video_device_list);
+ 		mutex_unlock(&video->device_list_lock);
  
--	result = acpi_thermal_add_fs(device);
--	if (result)
--		goto unregister_thermal_zone;
+-		acpi_video_device_add_fs(device);
 -
- 	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       KELVIN_TO_CELSIUS(tz->temperature));
- 	goto end;
+ 		return 0;
+ 	}
  
--unregister_thermal_zone:
--	thermal_zone_device_unregister(tz->thermal_zone);
- free_memory:
- 	kfree(tz);
- end:
-@@ -1454,7 +1035,6 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
+@@ -2181,8 +1432,6 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
+ 	if (!device || !device->video)
+ 		return -ENOENT;
  
- 	tz = acpi_driver_data(device);
+-	acpi_video_device_remove_fs(device->dev);
+-
+ 	status = acpi_remove_notify_handler(device->dev->handle,
+ 					    ACPI_DEVICE_NOTIFY,
+ 					    acpi_video_device_notify);
+@@ -2466,10 +1715,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	if (error)
+ 		goto err_free_video;
  
--	acpi_thermal_remove_fs(device);
- 	acpi_thermal_unregister_thermal_zone(tz);
- 	mutex_destroy(&tz->lock);
- 	kfree(tz);
-@@ -1580,19 +1160,9 @@ static int __init acpi_thermal_init(void)
- 		return -ENODEV;
+-	error = acpi_video_bus_add_fs(device);
+-	if (error)
+-		goto err_free_video;
+-
+ 	mutex_init(&video->device_list_lock);
+ 	INIT_LIST_HEAD(&video->video_device_list);
+ 
+@@ -2522,7 +1767,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+ 	kfree(video->attached_array);
+-	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+ 	device->driver_data = NULL;
+@@ -2544,7 +1788,6 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
+ 
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+-	acpi_video_bus_remove_fs(device);
+ 
+ 	input_unregister_device(video->input);
+ 	kfree(video->attached_array);
+@@ -2584,17 +1827,9 @@ int acpi_video_register(void)
+ 		return 0;
  	}
  
 -#ifdef CONFIG_ACPI_PROCFS
--	acpi_thermal_dir = proc_mkdir(ACPI_THERMAL_CLASS, acpi_root_dir);
--	if (!acpi_thermal_dir)
+-	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+-	if (!acpi_video_dir)
 -		return -ENODEV;
 -#endif
 -
- 	result = acpi_bus_register_driver(&acpi_thermal_driver);
+ 	result = acpi_bus_register_driver(&acpi_video_bus);
 -	if (result < 0) {
--#ifdef CONFIG_ACPI_PROCFS
--		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
--#endif
+-		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
 +	if (result < 0)
  		return -ENODEV;
 -	}
  
- 	return 0;
- }
-@@ -1602,10 +1172,6 @@ static void __exit acpi_thermal_exit(void)
- 
- 	acpi_bus_unregister_driver(&acpi_thermal_driver);
+ 	/*
+ 	 * When the acpi_video_bus is loaded successfully, increase
+@@ -2617,10 +1852,6 @@ void acpi_video_unregister(void)
+ 	}
+ 	acpi_bus_unregister_driver(&acpi_video_bus);
  
 -#ifdef CONFIG_ACPI_PROCFS
--	remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
+-	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
 -#endif
 -
- 	return;
- }
+ 	register_count = 0;
  
+ 	return;
 -- 
 1.7.3.2.90.gd4c43
 
