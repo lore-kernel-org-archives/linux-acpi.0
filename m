@@ -1,20 +1,19 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 9/9] ACPI, APEI, Generic Hardware Error Source
- POLL/IRQ/NMI notification type support
-Date: Mon, 25 Oct 2010 10:03:27 +0800
-Message-ID: <1287972207.2862.297.camel@yhuang-dev>
+Subject: Re: [PATCH 1/9] ACPI, APEI, Add ERST record ID cache
+Date: Mon, 25 Oct 2010 10:08:27 +0800
+Message-ID: <1287972507.2862.302.camel@yhuang-dev>
 References: <1287538620-7442-1-git-send-email-ying.huang@intel.com>
-	 <1287538620-7442-10-git-send-email-ying.huang@intel.com>
-	 <20101022115700.GC10456@basil.fritz.box>
+	 <1287538620-7442-2-git-send-email-ying.huang@intel.com>
+	 <20101022120404.GF10456@basil.fritz.box>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:17461 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:63797 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752332Ab0JYCDj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Oct 2010 22:03:39 -0400
-In-Reply-To: <20101022115700.GC10456@basil.fritz.box>
+	id S1752004Ab0JYCIa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Oct 2010 22:08:30 -0400
+In-Reply-To: <20101022120404.GF10456@basil.fritz.box>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
@@ -22,111 +21,98 @@ Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vg
 
 Hi, Andi,
 
-Thank you very much for your review!
-
-On Fri, 2010-10-22 at 19:57 +0800, Andi Kleen wrote:
-> On Wed, Oct 20, 2010 at 09:37:00AM +0800, Huang Ying wrote:
+On Fri, 2010-10-22 at 20:04 +0800, Andi Kleen wrote:
+> On Wed, Oct 20, 2010 at 09:36:52AM +0800, Huang Ying wrote:
+> > 1
+> > 			2
+> > 3
+> > 			4
+> > -1
+> > 			-1
+> > 
+> > where -1 signals there is no more record ID.
+> > 
+> > Reader 1 has no chance to check record 2 and 4, while reader 2 has no
+> > chance to check record 1 and 3. And any other GET_NEXT_RECORD_ID will
+> > return -1, that is, other readers will has no chance to check any
+> > record even they are not cleared by anyone.
+> > 
+> > This makes raw GET_NEXT_RECORD_ID not suitable for usage of multiple
+> > users.
+> > 
+> > To solve the issue, an in memory ERST record ID cache is designed and
+> > implemented. When enumerating record ID, the ID returned by
+> > GET_NEXT_RECORD_ID is added into cache in addition to be returned to
+> > caller. So other readers can check the cache to get all record ID
+> > available.
 > 
-> Hi Ying,
-> 
-> Only some minor nits found in review. 
-> 
-> I don't think they're merge blockers, but could be all fixed
-> in followups later.
-> 
-> Overall it looks all good.
+> Generally it looks ok, just a minor cleanup nit below.
 > 
 > Reviewed-by: Andi Kleen <ak@linux.intel.com>
-> 
-> > + * These 2 spinlock is used to prevent atomic ioremap virtual memory
-> > + * area from being mapped simultaneously.
-> > + */
-> > +static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
-> > +static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
-> > +
-> > +static int ghes_ioremap_init(void)
+
+Thanks.
+
+> > +static int erst_record_id_cache_add_one(void)
 > > +{
-> > +	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * 2, VM_IOREMAP,
+> > +	u64 id, prev_id, first_id;
+> > +	int i, rc;
+> > +	struct erst_record_id_entry *entries;
+> > +	unsigned long flags;
+> > +
+> > +	id = prev_id = first_id = APEI_ERST_INVALID_RECORD_ID;
+> > +retry:
+> > +	spin_lock_irqsave(&erst_lock, flags);
+> > +	rc = __erst_get_next_record_id(&id);
+> > +	spin_unlock_irqrestore(&erst_lock, flags);
+> > +	if (rc == -ENOENT)
+> > +		return 0;
+> > +	if (rc)
+> > +		return rc;
+> > +	if (id == APEI_ERST_INVALID_RECORD_ID)
+> > +		return 0;
+> > +	/* can not skip current ID, or look back to first ID */
+> > +	if (id == prev_id || id == first_id)
+> > +		return 0;
+> > +	if (first_id == APEI_ERST_INVALID_RECORD_ID)
+> > +		first_id = id;
+> > +	prev_id = id;
+> > +
+> > +	entries = erst_record_id_cache.entries;
+> > +	for (i = 0; i < erst_record_id_cache.len; i++) {
+> > +		if (!entries[i].cleared && entries[i].id == id)
+> > +			break;
+> > +	}
+> > +	/* record id already in cache, try next */
+> > +	if (i < erst_record_id_cache.len)
+> > +		goto retry;
+> > +	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
+> > +		int new_size, alloc_size;
+> > +		struct erst_record_id_entry *new_entries;
+> > +
+> > +		new_size = erst_record_id_cache.size * 2;
+> > +		new_size = max_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MIN);
+> > +		new_size = min_t(int, new_size, ERST_RECORD_ID_CACHE_SIZE_MAX);
 > 
-> Should make the magic PAGE_SIZE * 2 into a define with a comment?
+> This is clamp_t() 
 
-Yes. Will do it.
+Yes. Will change it.
 
-> > +			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
-> > +		} else {
-> > +			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-> > +			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
+> > +		if (new_size <= erst_record_id_cache.size) {
+> > +			if (printk_ratelimit())
+> > +				pr_warning(FW_WARN ERST_PFX
+> > +					   "too many record ID!\n");
+> > +			return 0;
 > > +		}
-> > +		trunk = PAGE_SIZE - offset;
-> > +		trunk = min(trunk, len);
-> > +		if (from_phys)
-> > +			memcpy(buffer, vaddr + offset, trunk);
+> > +		alloc_size = new_size * sizeof(struct erst_record_id_entry);
+> > +		if (alloc_size < PAGE_SIZE)
+> > +			new_entries = kmalloc(alloc_size, GFP_KERNEL);
 > > +		else
-> > +			memcpy(vaddr + offset, buffer, trunk);
+> > +			new_entries = vmalloc(alloc_size);
 > 
-> In generic Linux this would be memcpy_fromio. On x86 of course it's the same. 
-> Still perhaps better use that to prevent sparse from freaking out with its 
-> address space checks.
+> This is essentially kremalloc with vmalloc. Since this a common
+> pattern it would be nicer to put a generic helper for this somewhere.
 
-Will do it.
-
-> > @@ -303,6 +390,43 @@ out:
-> >  	return 0;
-> >  }
-> >  
-> > +static void ghes_add_timer(struct ghes *ghes)
-> > +{
-> > +	struct acpi_hest_generic *g = ghes->generic;
-> > +	unsigned long expire;
-> > +
-> > +	if (!g->notify.poll_interval) {
-> > +		pr_warning(FW_WARN GHES_PFX "Poll interval is 0 for "
-> > +			   "generaic hardware error source: %d, disabled.",
-> 
-> generaic -> generic 
-> 
-> This is user visible so should be fixed.
-
-Yes. Will do it.
-
-> > +			   g->header.source_id);
-> > +		return;
-> > +	}
-> > +	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-> > +	ghes->timer.expires = round_jiffies_relative(expire);
-> > +	add_timer(&ghes->timer);
-> 
-> Could actually make this a deferrable timer I guess to be even more
-> friendly to power.
-
-Yes. Will do it.
-
-> > +		}
-> > +		ret = NOTIFY_STOP;
-> > +	}
-> > +
-> > +	if (ret == NOTIFY_DONE)
-> > +		goto out;
-> > +
-> > +	if (sev_global >= GHES_SEV_PANIC) {
-> > +		herr_persist_all_records();
-> > +		oops_begin();
-> > +		/* reboot to log the error! */
-> > +		if (panic_timeout == 0)
-> > +			panic_timeout = ghes_panic_timeout;
-> > +		panic(GHES_PFX "generic hardware fatal error!\n");
-> 
-> I suspect need some more explanation on this one.
-
-Yes. Will do it.
-
-> > +	case ACPI_HEST_NOTIFY_NMI:
-> > +		mutex_lock(&ghes_list_mutex);
-> > +		list_del_rcu(&ghes->list);
-> > +		if (list_empty(&ghes_nmi))
-> > +			unregister_die_notifier(&ghes_notifier_nmi);
-> > +		mutex_unlock(&ghes_list_mutex);
-> > +		synchronize_rcu();
+Yes. But will try to do that in another patch.
 
 Best Regards,
 Huang Ying
