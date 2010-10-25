@@ -1,122 +1,143 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 59/60] ACPI: Convert simple locking to RCU based locking
-Date: Mon, 25 Oct 2010 02:21:07 -0400
-Message-ID: <78cdb3ed4053798c894899b15d2255fb880edad4.1287987547.git.len.brown@intel.com>
+Subject: [PATCH 27/60] ACPI processor: make /proc/acpi/processor/*/throttle
+ depends on CONFIG_ACPI_PROCFS
+Date: Mon, 25 Oct 2010 02:20:35 -0400
+Message-ID: <d5c6887c7fbaf7a149c3bf441338fa833c529fb4.1287987547.git.len.brown@intel.com>
 References: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:50545 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210Ab0JYHLM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:12 -0400
+	with ESMTP id S1753236Ab0JYHLR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 03:11:17 -0400
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LAU00FPR3YCZ7J4@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:10 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 02:11:11 -0500 (CDT)
 In-reply-to: <1287987668-17584-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 References: <a210080195c95ebca2a517ee3057d71607aa65e0.1287987547.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Myron Stowe <myron.stowe@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Myron Stowe <myron.stowe@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-Convert the simple locking introduced earlier for the ACPI MMIO
-remappings list to an RCU based locking scheme.
+As a feature that would only be used when system is overheating,
+the processor t-state control should not be exported to user space.
+Make /proc/acpi/processor/*/throttle depends on CONFIG_ACPI_PROCFS,
+which is cleared by default.
+And we will remove this I/F in 2.6.38.
 
-Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/osl.c |   23 +++++++++++------------
- 1 files changed, 11 insertions(+), 12 deletions(-)
+ drivers/acpi/processor_driver.c     |   20 +++++++++++++++++++-
+ drivers/acpi/processor_throttling.c |    4 ++++
+ 2 files changed, 23 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index c63d4cb..3282689 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -244,13 +244,13 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
- 	}
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 347eb21..356c320 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -40,8 +40,10 @@
+ #include <linux/pm.h>
+ #include <linux/cpufreq.h>
+ #include <linux/cpu.h>
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#endif
+ #include <linux/dmi.h>
+ #include <linux/moduleparam.h>
+ #include <linux/cpuidle.h>
+@@ -244,6 +246,7 @@ static int acpi_processor_errata(struct acpi_processor *pr)
+ 	return result;
  }
  
--/* Must be called with 'acpi_ioremap_lock' lock held. */
-+/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static void __iomem *
- acpi_map_vaddr_lookup(acpi_physical_address phys, acpi_size size)
- {
- 	struct acpi_ioremap *map;
++#ifdef CONFIG_ACPI_PROCFS
+ static struct proc_dir_entry *acpi_processor_dir = NULL;
  
--	list_for_each_entry(map, &acpi_ioremaps, list)
-+	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
- 		if (map->phys <= phys &&
- 		    phys + size <= map->phys + map->size)
- 			return map->virt + (phys - map->phys);
-@@ -258,13 +258,13 @@ acpi_map_vaddr_lookup(acpi_physical_address phys, acpi_size size)
- 	return NULL;
+ static int __cpuinit acpi_processor_add_fs(struct acpi_device *device)
+@@ -280,7 +283,16 @@ static int acpi_processor_remove_fs(struct acpi_device *device)
+ 
+ 	return 0;
+ }
+-
++#else
++static inline int acpi_processor_add_fs(struct acpi_device *device)
++{
++	return 0;
++}
++static inline int acpi_processor_remove_fs(struct acpi_device *device)
++{
++	return 0;
++}
++#endif
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -842,9 +854,11 @@ static int __init acpi_processor_init(void)
+ 
+ 	memset(&errata, 0, sizeof(errata));
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+ 		return -ENOMEM;
++#endif
+ 
+ 	if (!cpuidle_register_driver(&acpi_idle_driver)) {
+ 		printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
+@@ -871,7 +885,9 @@ static int __init acpi_processor_init(void)
+ out_cpuidle:
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++#endif
+ 
+ 	return result;
+ }
+@@ -891,7 +907,9 @@ static void __exit acpi_processor_exit(void)
+ 
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++#endif
+ 
+ 	return;
+ }
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 7308638..ff36327 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -32,8 +32,10 @@
+ #include <linux/init.h>
+ #include <linux/sched.h>
+ #include <linux/cpufreq.h>
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#endif
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+@@ -1214,6 +1216,7 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ 	return result;
  }
  
--/* Must be called with 'acpi_ioremap_lock' lock held. */
-+/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static struct acpi_ioremap *
- acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
- {
- 	struct acpi_ioremap *map;
- 
--	list_for_each_entry(map, &acpi_ioremaps, list)
-+	list_for_each_entry_rcu(map, &acpi_ioremaps, list)
- 		if (map->virt == virt && map->size == size)
- 			return map;
- 
-@@ -302,7 +302,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
- 	map->size = size;
- 
- 	spin_lock_irqsave(&acpi_ioremap_lock, flags);
--	list_add_tail(&map->list, &acpi_ioremaps);
-+	list_add_tail_rcu(&map->list, &acpi_ioremaps);
- 	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
- 
- 	return virt;
-@@ -328,9 +328,10 @@ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
- 		return;
- 	}
- 
--	list_del(&map->list);
-+	list_del_rcu(&map->list);
- 	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
- 
-+	synchronize_rcu();
- 	iounmap(map->virt);
- 	kfree(map);
- }
-@@ -584,11 +585,10 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
- 	u32 dummy;
- 	void __iomem *virt_addr;
- 	int size = width / 8, unmap = 0;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&acpi_ioremap_lock, flags);
-+	rcu_read_lock();
- 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
-+	rcu_read_unlock();
- 	if (!virt_addr) {
- 		virt_addr = ioremap(phys_addr, size);
- 		unmap = 1;
-@@ -621,11 +621,10 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
- {
- 	void __iomem *virt_addr;
- 	int size = width / 8, unmap = 0;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&acpi_ioremap_lock, flags);
-+	rcu_read_lock();
- 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
-+	rcu_read_unlock();
- 	if (!virt_addr) {
- 		virt_addr = ioremap(phys_addr, size);
- 		unmap = 1;
++#ifdef CONFIG_ACPI_PROCFS
+ /* proc interface */
+ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+ 					      void *offset)
+@@ -1322,3 +1325,4 @@ const struct file_operations acpi_processor_throttling_fops = {
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
 -- 
 1.7.3.2.90.gd4c43
 
