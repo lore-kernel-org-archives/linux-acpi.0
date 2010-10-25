@@ -1,138 +1,143 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: RE: [PATCH] ACPICA: Fix Scope() op in module level code
-Date: Mon, 25 Oct 2010 08:29:21 +0800
-Message-ID: <1287966561.6530.3229.camel@minggr.sh.intel.com>
-References: <1287736022.6530.3216.camel@minggr.sh.intel.com>
-	 <4911F71203A09E4D9981D27F9D830858BC1E4705@orsmsx503.amr.corp.intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 6/7] ACPI: Page based coalescing of I/O remappings
+ optimization
+Date: Mon, 25 Oct 2010 09:22:58 +0800
+Message-ID: <1287969779.2862.294.camel@yhuang-dev>
+References: <20101021201916.9220.5711.stgit@bob.kio>
+	 <20101021202414.9220.71053.stgit@bob.kio>
+	 <1287709434.2862.25.camel@yhuang-dev>  <1287717834.2564.81.camel@zim>
+	 <1287724625.2862.78.camel@yhuang-dev>  <1287764826.2469.132.camel@zim>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:29173 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:30408 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920Ab0JYAdF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Oct 2010 20:33:05 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BC1E4705@orsmsx503.amr.corp.intel.com>
+	id S1752065Ab0JYBXC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Oct 2010 21:23:02 -0400
+In-Reply-To: <1287764826.2469.132.camel@zim>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "tony@awtrey.com" <tony@awtrey.com>, "john.floyd@environment.nsw.gov.au" <john.floyd@environment.nsw.gov.au>
+To: Myron Stowe <myron.stowe@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "ak@linux.intel.com" <ak@linux.intel.com>
 
-On Sat, 2010-10-23 at 06:43 +0800, Moore, Robert wrote:
-> However, the fix really affects any control method that attempts to use the Scope() operator, correct?
+Hi, Myron,
 
-Correct, how about below changelog?
-
-[PATCH] ACPICA: Fix Scope() op in control method
-
-Some Panasonic Toughbooks create nodes in module level code.
-Module level code is the executable AML code outside of control method,
-but we implemented it as control method.
-For example, below AML code creates a node \_SB.PCI0.GFX0.DD02.CUBL
-
-       If (\_OSI ("Windows 2006"))
-       {
-           Scope (\_SB.PCI0.GFX0.DD02)
-           {
-               Name (CUBL, Ones)
-               ...
-           }
-       }
-
-Scope() op does not actually create a new object, it refers to an
-existing object(\_SB.PCI0.GFX0.DD02 in above example). However, for
-Scope(), we want to indeed open a new scope, so the child nodes(CUBL in
-above example) can be created correctly under it.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=19462
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-
-
+On Sat, 2010-10-23 at 00:27 +0800, Myron Stowe wrote:
+> On Fri, 2010-10-22 at 13:17 +0800, Huang Ying wrote:
+> > On Fri, 2010-10-22 at 11:23 +0800, Myron Stowe wrote:
+> > > On Fri, 2010-10-22 at 09:03 +0800, Huang Ying wrote:
+> > > > Hi, Myron,
+> > > > 
+> <snip>
+> > > > 
+> > > > Why not check the existing map (that is, acpi_map_lookup()) before the
+> > > > ioremap()? In APEI tables, several GAS may be in same page, so we need
+> > > > ioremap() for the first page only.
+> > > 
+> > > Yes, even in other instances, several registers (GAS) may reside within
+> > > the same page(s) of a previously, still active, ioremapping and thus
+> > > only one ioremapping needs to be in place (with the subsequent
+> > > mapping(s) that fall within the same page(s) of the existing, active,
+> > > remapping then only needing to increment its reference).
+> > > 
+> > > 
+> > > In the existing implementation - atomicio.c:acpi_pre_map() - there is a
+> > > check at the beginning of the routine to see if a new mapping fits
+> > > within the page(s) of a previous entry's page(s) that is still active:
+> > > __acpi_try_ioremap().  Then later in the same routine, the same
+> > > __acpi_try_ioremap() check has to be made again due to a potential mp
+> > > race between the initial check and the insertion of a potentially new
+> > > entry onto the list.
+> > > 
+> > > Since the second check *must* take place,
+> > 
+> > No. If the first check succeeds, the second check is not necessary, it
+> > is sufficient just to increase the reference count and return the mapped
+> > virtual address. The first check will eliminate
+> > kmalloc/ioremap/iounmap/kfree for physical address has been mapped by
+> > previous calling.
 > 
-> >-----Original Message-----
-> >From: Lin, Ming M
-> >Sent: Friday, October 22, 2010 1:27 AM
-> >To: lenb
-> >Cc: Moore, Robert; linux-acpi; tony@awtrey.com;
-> >john.floyd@environment.nsw.gov.au
-> >Subject: [PATCH] ACPICA: Fix Scope() op in module level code
-> >
-> >Len,
-> >
-> >Would you please include this patch in 2.6.37 merge?
-> >
-> >Thanks,
-> >Lin Ming
-> >---
-> >
-> >From: Bob Moore <robert.moore@intel.com>
-> >
-> >Some Panasonic Toughbooks create nodes in module level code.
-> >Module level code is the executable AML code outside of control method,
-> >for example, below AML code creates a node \_SB.PCI0.GFX0.DD02.CUBL
-> >
-> >        If (\_OSI ("Windows 2006"))
-> >        {
-> >            Scope (\_SB.PCI0.GFX0.DD02)
-> >            {
-> >                Name (CUBL, Ones)
-> >                ...
-> >            }
-> >        }
-> >
-> >Scope() op does not actually create a new object, it refers to an
-> >existing object(\_SB.PCI0.GFX0.DD02 in above example). However, for
-> >Scope(), we want to indeed open a new scope, so the child nodes(CUBL in
-> >above example) can be created correctly under it.
-> >
-> >https://bugzilla.kernel.org/show_bug.cgi?id=19462
-> >
-> >Signed-off-by: Bob Moore <robert.moore@intel.com>
-> >Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> >---
-> > drivers/acpi/acpica/dswexec.c |   19 +++++++++++++++++--
-> > 1 files changed, 17 insertions(+), 2 deletions(-)
-> >
-> >diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-> >index d555b37..6b0b5d0 100644
-> >--- a/drivers/acpi/acpica/dswexec.c
-> >+++ b/drivers/acpi/acpica/dswexec.c
-> >@@ -300,10 +300,25 @@ acpi_ds_exec_begin_op(struct acpi_walk_state
-> >*walk_state,
-> > 			 * we must enter this object into the namespace.  The
-> >created
-> > 			 * object is temporary and will be deleted upon
-> >completion of
-> > 			 * the execution of this method.
-> >+			 *
-> >+			 * Note 10/2010: Except for the Scope() op. This opcode
-> >does
-> >+			 * not actually create a new object, it refers to an
-> >existing
-> >+			 * object. However, for Scope(), we want to indeed open a
-> >+			 * new scope.
-> > 			 */
-> >-			status = acpi_ds_load2_begin_op(walk_state, NULL);
-> >+			if (op->common.aml_opcode != AML_SCOPE_OP) {
-> >+				status =
-> >+				    acpi_ds_load2_begin_op(walk_state, NULL);
-> >+			} else {
-> >+				status =
-> >+				    acpi_ds_scope_stack_push(op->named.node,
-> >+							     op->named.node->
-> >+							     type, walk_state);
-> >+				if (ACPI_FAILURE(status)) {
-> >+					return_ACPI_STATUS(status);
-> >+				}
-> >+			}
-> > 		}
-> >-
-> > 		break;
-> >
-> > 	case AML_CLASS_EXECUTE:
-> >
+> Hay Haung:
 > 
+> Let's take two scenarios and see if I can express myself better why I
+> believe that the second check must take place.  Let's also stick with
+> the existing atomicio.c:acpi_pre_map() implementation for now just to
+> keep things simpler.
+> 
+> 
+> Scenario 1:  Assume that an MMIO remapping is already in place - mapping
+> A.  At some later point in time another call is made to map in some
+> other MMIO area and this mapping - mapping B - resides within the same
+> page(s) of mapping A which is still active, and thus, still on the list.
+> 
+> In this scenario, the first __acpi_try_ioremap() check will detect that
+> mapping B resides within mapping A, increment the reference of mapping
+> A, and then acpi_pre_map() short circuits out.  Things are handled
+> correctly and the first check nicely short circuits out so the second
+> check was never even reached.
+> 
+> Now let's take another scenario, Scenario 2: Assume that an MMIO
+> remapping is occurring on some processor of a MP system to put mapping A
+> into place (so the the processor is processing code somewhere between
+> "pg_off = ..." and "kref_init()").  While the processor is in the
+> process of putting mapping A into place it becomes blocked for any of a
+> number of reasons.  Another processor now runs and puts a mapping into
+> place - mapping C - that is equal to or greater in size than mapping A
+> which also encompasses the same page(s) of mapping A.  So now, at this
+> point in time, mapping C is on the list but mapping A is not.
+> 
+> At some later point in time the processor running mapping A will
+> continue.  It acquires the spin_lock immediately following the
+> "kref_init()" and must now check again to see if some other processor
+> put a similar mapping into place.  In this scenario, exactly such has
+> happened - which is why I think you put this check in place to begin
+> with.  The MP race is properly detected by the second
+> __acpi_try_ioremap() check which increments the reference of mapping C
+> and mapping A is backed out (iounmap/kfree).
+> 
+> So with the existing atomicio.c:acpi_pre_map() implementation there are
+> two __acpi_try_ioremap() checks.  The first check handles situations
+> like Scenario 1 and the second check handles situations like Scenario 2.
+> 
+> It was situations like Scenario 2 that I was thinking of in my initial
+> response when I said that the second check *must* take place.  I agree,
+> as indicated above, in situations like Scenario 1 the second check is
+> never even reached.
+> 
+> Hopefully I have now expressed better why I believe the second check
+> *must* take place?
+> 
+> 
+> Now back to your original question - why did I not include the first
+> check in the re-factoring?
+> 
+> My thinking was along the lines of: "Yes, the first check is nice in
+> that it short circuits additional remappings that match existing
+> mappings.  Thinking further, consider that since the second check must
+> still occur due to situations like Scenario 2, and, since the second
+> check would not only catch situations like Scenario 2 but also
+> additionally catches any additional remappings matching existing ones in
+> place like Scenario 1 - why not just keep the code simpler/smaller and
+> not include the first check?"
+> 
+> I agree that such a tack does have trade offs.  I chose to keep the code
+> simpler/smaller at the expense of giving up the "short circuit" benefits
+> that the first check provides in situations like Scenario 1.  The code,
+> without the first check still handles situations like Scenario 1 - just
+> not as efficiently (i.e. it incurs the expense of
+> "kmalloc/ioremap/iounmap/kfree for physical address has been mapped by
+> previous calling" as you properly pointed out.
+> 
+> With this explanation of my actions do you see any issues with such an
+> approach? 
+
+Now, I understand your idea. But I still think it is better to keep the
+first check. Because it has some benefit with the cost of just a few
+lines of simple code. I think it should have no much harm to code
+readability.
+
+Best Regards,
+Huang Ying
 
 
