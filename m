@@ -1,74 +1,131 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
- Source POLL/IRQ/NMI notification type support
-Date: Tue, 26 Oct 2010 09:55:59 +0200
-Message-ID: <20101026075559.GA9798@elte.hu>
-References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
- <1287992610-14996-10-git-send-email-ying.huang@intel.com>
- <20101025084553.GA27119@elte.hu>
- <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
- <alpine.LFD.2.00.1010260629560.3955@localhost6.localdomain6>
- <20101026072210.GE13036@elte.hu>
- <1288078222.2862.484.camel@yhuang-dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: durgadoss.r@intel.com
+Subject: [PATCH] Adding_write_support_to_trip_points
+Date: Wed, 27 Oct 2010 01:16:50 +0530
+Message-ID: <1288122410-3215-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:34314 "EHLO mx2.mail.elte.hu"
+Received: from mga11.intel.com ([192.55.52.93]:52545 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753844Ab0JZH40 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Oct 2010 03:56:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1288078222.2862.484.camel@yhuang-dev>
+	id S1751361Ab0JZIIk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Oct 2010 04:08:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, "Luck, Tony" <tony.luck@intel.com>
+To: lenb@kernel.org
+Cc: alan@linux.intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, durgadoss.r@intel.com, ramesh.agarwal@intel.com, len.brown@intel.com
 
+From: R.Durgadoss <durgadoss.r@intel.com>
 
-* Huang Ying <ying.huang@intel.com> wrote:
+This patch makes the thermal trip points 'write'able.
+Thus, enabling the trip points to be configured at runtime.
+Please review and apply.
 
-> On Tue, 2010-10-26 at 15:22 +0800, Ingo Molnar wrote:
-> > * Thomas Gleixner <tglx@linutronix.de> wrote:
-> > 
-> > > >From Kconfig:
-> > > 
-> > >   EDAC is designed to report errors in the core system.
-> > >   These are low-level errors that are reported in the CPU or
-> > >   supporting chipset or other subsystems:
-> > >   memory errors, cache errors, PCI errors, thermal throttling, etc..
-> > >   If unsure, select 'Y'.
-> > > 
-> > > So please explain why your error reporting is so different from the above that it 
-> > > justifies a separate facility. And you better come up with a real good explanation 
-> > > other than we looked at EDAC and it did not fit our needs.
-> > 
-> > Btw., it's not just about EDAC - the firmware can store Linux events 
-> > persistently (beyond allowing the firmware to insert its own RAS events), that 
-> > is obviously _hugely_ useful for kernel debugging in general. We could inject 
-> > debugging events there and recover them after a crash, etc.
-> 
-> Yes. It can be used by other kernel subsystems other than RAS. A kernel API is 
-> provided already. The design of the kernel API makes it easy to be used by various 
-> kernel subsystems. As the first step, we plan to support saving kernel log before 
-> panic and reading it back after reboot.
+Signed-off-by: R.Durgadoss <durgadoss.r@intel.com>
+---
+ drivers/thermal/thermal_sys.c |   60 ++++++++++++++++++++++++++++++++--------
+ include/linux/thermal.h       |    2 +
+ 2 files changed, 50 insertions(+), 12 deletions(-)
 
-And that's the problem: we have good facilities already that deal with similar 
-things. We have NMI-safe event logging, event enumeration, dump-on-panic code and 
-all sorts of goodies there.
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 13c72c6..63b75dc 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -216,6 +216,30 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+ }
+ 
+ static ssize_t
++trip_point_temp_store(struct device *dev, struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct thermal_zone_device *tz = to_thermal_zone(dev);
++	int trip, result;
++	unsigned long temperature;
++
++	if (!tz->ops->set_trip_temp)
++		return -EPERM;
++
++	if (!sscanf(attr->attr.name, "trip_point_%d_type", &trip))
++		return -EINVAL;
++
++	if (strict_strtoul(buf, 10, &temperature))
++		return -EINVAL;
++
++	mutex_lock(&thermal_trip_lock);
++	result = tz->ops->set_trip_temp(tz, trip, temperature);
++	mutex_unlock(&thermal_trip_lock);
++
++	return (result == 0) ? count : -EINVAL;
++}
++
++static ssize_t
+ passive_store(struct device *dev, struct device_attribute *attr,
+ 		    const char *buf, size_t count)
+ {
+@@ -284,29 +308,41 @@ static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, \
+ 
+ static struct device_attribute trip_point_attrs[] = {
+ 	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_0_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_1_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_2_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_3_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_4_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_5_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_6_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_7_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_8_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_9_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_10_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ 	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
++	__ATTR(trip_point_11_temp, S_IRUGO | S_IWUSR, trip_point_temp_show,
++						trip_point_temp_store),
+ };
+ 
+ #define TRIP_POINT_ATTR_ADD(_dev, _index, result)     \
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 1de8b9e..e5cc53b 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -58,6 +58,8 @@ struct thermal_zone_device_ops {
+ 		enum thermal_trip_type *);
+ 	int (*get_trip_temp) (struct thermal_zone_device *, int,
+ 			      unsigned long *);
++	int (*set_trip_temp) (struct thermal_zone_device *, int,
++			      unsigned long);
+ 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+ 	int (*notify) (struct thermal_zone_device *, int,
+ 		       enum thermal_trip_type);
+-- 
+1.7.2.3
 
-But what did Andi's guidance/design lead you to do instead?
-
-You stuck a useful hw feature into a vendor specific area of the kernel and exported 
-it to /dev/erst-dbg via a crappy ABI. You also did it in the worst possible 
-imaginable way: you avoided talking to the people who maintain and know the 
-RAS/EDAC/debugging/instrumentation code, and you tried to create an ABI to export it 
-in the most raw form possible - limiting our future options.
-
-All that done so that dealing with those pesky RAS/EDAC, instrumentation and core 
-kernel people can be avoided? ;-)
-
-Sucks IMHO.
-
-Thanks,
-
-	Ingo
