@@ -1,32 +1,36 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI / PM: Blacklist another machine that needs
- acpi_sleep=nonvs
-Date: Mon, 25 Oct 2010 20:14:42 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
-References: <201010172101.21576.rjw@sisk.pl>
+Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI,
+ Generic Hardware Error Source POLL/IRQ/NMI notification type support
+Date: Mon, 25 Oct 2010 21:06:09 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
+ <1287992610-14996-10-git-send-email-ying.huang@intel.com>
+ <20101025084553.GA27119@elte.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:65001 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875Ab0JZAOz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 20:14:55 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LAV00BOPFCNOF35@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 25 Oct 2010 19:14:53 -0500 (CDT)
-In-reply-to: <201010172101.21576.rjw@sisk.pl>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:62990 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159Ab0JZBG3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Oct 2010 21:06:29 -0400
+In-reply-to: <20101025084553.GA27119@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Emanuele Bigiarini <pulmro@gmail.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Rather than a black list of machines that can not survive saving NVS,
-I wonder how long a white list of machines requiring NVS save would be?
+>  NAKed-by: Ingo Molnar <mingo@elte.hu>
 
-applied.
+Everybody knows that Linux has a lot to learn about RAS.
+
+I think to catch up, we need to play to Linux's strengths
+of continuous improvement.  If we halt patches in this area
+then we could wait forever for the "perfect design".
+
+If Linus Torvalds disagrees and wants to NAK this series,
+I can live with that.  But it isn't my recommendation.
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len Brown, Intel Open Source Technology Center
+
 
