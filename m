@@ -1,78 +1,54 @@
-From: Borislav Petkov <bp@alien8.de>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
  Source POLL/IRQ/NMI notification type support
-Date: Tue, 26 Oct 2010 08:26:53 +0200
-Message-ID: <20101026062653.GA27411@liondog.tnic>
+Date: Tue, 26 Oct 2010 09:22:10 +0200
+Message-ID: <20101026072210.GE13036@elte.hu>
 References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
  <1287992610-14996-10-git-send-email-ying.huang@intel.com>
  <20101025084553.GA27119@elte.hu>
- <1287997112.2862.322.camel@yhuang-dev>
- <20101025092557.GA11544@elte.hu>
- <AANLkTi=2SVT1M+nDZUB7EB05jh+tsuKcew_t66QORrwb@mail.gmail.com>
- <20101025202344.GC13652@liondog.tnic>
- <AANLkTi=DEmss+3uX_5uw=VJDY9+cFPayjQkCQHa+r+Ye@mail.gmail.com>
- <20101025215132.GA23427@liondog.tnic>
- <AANLkTi=pJFUWusDNrwQA8bWYy4q5QZBHxkbikZGKvHLY@mail.gmail.com>
+ <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
+ <alpine.LFD.2.00.1010260629560.3955@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:57073 "EHLO mail.skyhub.de"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:37965 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754097Ab0JZG07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Oct 2010 02:26:59 -0400
+	id S1753249Ab0JZHWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Oct 2010 03:22:40 -0400
 Content-Disposition: inline
-In-Reply-To: <AANLkTi=pJFUWusDNrwQA8bWYy4q5QZBHxkbikZGKvHLY@mail.gmail.com>
+In-Reply-To: <alpine.LFD.2.00.1010260629560.3955@localhost6.localdomain6>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@googlemail.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Borislav Petkov <petkovbb@googlemail.com>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Tony Luck <tony.luck@intel.com>
 
-On Mon, Oct 25, 2010 at 04:35:43PM -0700, Tony Luck wrote:
-> On Mon, Oct 25, 2010 at 2:51 PM, Borislav Petkov <bp@alien8.de> wrote=
-:
-> > Concerning fatal errors, take a look at drivers/edac/mce_amd.(c|h)=C2=
-=B9 -
-> > this is not in arch/x86/ and still decodes MCEs in the kernel. And =
-it
-> > works fine - it even helped in several cases where people simply re=
-ad
-> > their serial console/dmesg and didn't have to collect it first and =
-run
-> > it through some tool to understand which functional unit in the CPU=
- is
-> > mchecking.
->=20
-> That looks neat ... but end-users seem to have some conflicting requi=
-rements
-> here. Your uses seem to like it but the LLNL folks at the S.F. meetin=
-g said
-> that solutions that involved looking at console logs from thousands
-> of machines in a cluster were not acceptable.
->=20
-> I doubt very much if any end-user cares which unit *within* a cpu
-> failed (their replaceable unit is the whole of the cpu). So much of
-> your driver could be replaced with: printk("CPU%d is bad\n", cpu);
 
-Yeah, nobody said this is finished. The next step is using perf
-infrastructure to convey those decoded errors to userspace, say, to a
-ras daemon or similar which can do all sorts of reporting, statistics,
-policy decisions, injection, paint graphs, whatever...
+* Thomas Gleixner <tglx@linutronix.de> wrote:
 
-I sent out two patchsets as an rfc already and am working
-on the 3rd one so we're getting there. Here's the last one:
-http://kerneltrap.org/mailarchive/linux-kernel/2010/8/6/4603847
+> >From Kconfig:
+> 
+>   EDAC is designed to report errors in the core system.
+>   These are low-level errors that are reported in the CPU or
+>   supporting chipset or other subsystems:
+>   memory errors, cache errors, PCI errors, thermal throttling, etc..
+>   If unsure, select 'Y'.
+> 
+> So please explain why your error reporting is so different from the above that it 
+> justifies a separate facility. And you better come up with a real good explanation 
+> other than we looked at EDAC and it did not fit our needs.
 
-Also, I'm open to all suggestions on how to make it more usable and
-user-friendly.
+Btw., it's not just about EDAC - the firmware can store Linux events persistently 
+(beyond allowing the firmware to insert its own RAS events), that is obviously 
+_hugely_ useful for kernel debugging in general. We could inject debugging events 
+there and recover them after a crash, etc.
 
-Thanks.
+As long as it's all integrated into the standard event logging facilities it could 
+be very useful (and i dont generally complain about things that are insignificant).
 
---=20
-Regards/Gruss,
-    Boris.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As /dev/erst-dbg it's not useful at all - in fact it might close the door to sane 
+future usage of this hw facility if some crappy user-space learns to rely on the 
+/dev/erst-dbg ABI.
+
+Thanks,
+
+	Ingo
