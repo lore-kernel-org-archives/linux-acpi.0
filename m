@@ -1,81 +1,67 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI: install ACPI table handler before any dynamic
- tables being loaded
-Date: Tue, 26 Oct 2010 10:11:57 +0800
-Message-ID: <1288059117.2210.167.camel@rui>
-References: <1288058814.2210.165.camel@rui>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
+ Source POLL/IRQ/NMI notification type support
+Date: Tue, 26 Oct 2010 06:53:11 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1010260629560.3955@localhost6.localdomain6>
+References: <1287992610-14996-1-git-send-email-ying.huang@intel.com> <1287992610-14996-10-git-send-email-ying.huang@intel.com> <20101025084553.GA27119@elte.hu> <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:56182 "EHLO mga14.intel.com"
+Received: from www.tglx.de ([62.245.132.106]:35818 "EHLO www.tglx.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755372Ab0JZCMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Oct 2010 22:12:31 -0400
-In-Reply-To: <1288058814.2210.165.camel@rui>
+	id S1751045Ab0JZExz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Oct 2010 00:53:55 -0400
+In-Reply-To: <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "dennis.jansen@web.de" <dennis.jansen@web.de>, achiang@canonical.com
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Huang Ying <ying.huang@intel.com>, LKML <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Borislav Petkov <petkovbb@googlemail.com>, "H. Peter Anvin" <hpa@zytor.com>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, Tony Luck <tony.luck@intel.com>
 
-cc Alex Chiang.
+B1;2401;0cLen,
 
-On Tue, 2010-10-26 at 10:06 +0800, Zhang Rui wrote:
-> ACPI table sysfs I/F is broken by commit
-> 
-> 78f1699659963fff97975df44db6d5dbe7218e55
-> Author: Alex Chiang <achiang@hp.com>
-> Date:   Sun Dec 20 12:19:09 2009 -0700
->     ACPI: processor: call _PDC early
-> 
-> because dynamic SSDT tables may be loaded in _PDC,
-> before installing the ACPI table handler.
-> As a result, the sysfs I/F of these dynamic tables are
-> located at  /sys/firmware/acpi/tables instead of
-> /sys/firmware/acpi/tables/dynamic, which is not true.
-> 
-> Invoke acpi_sysfs_init() before acpi_early_processor_set_pdc(),
-> so that the table handler is installed before any dynamic tables loaded.
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=21142
-> 
-> CC: Dennis Jansen <dennis.jansen@web.de>
-> CC: Alex Chiang <achiang@hp.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/bus.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/bus.c
-> +++ linux-2.6/drivers/acpi/bus.c
-> @@ -935,6 +935,12 @@ static int __init acpi_bus_init(void)
->  		goto error1;
->  	}
->  
-> +	/*
-> +	 * _PDC control method may load dynamic SSDT tables,
-> +	 * and we need to install the table handler before that.
-> +	 */
-> +	acpi_sysfs_init();
-> +
->  	acpi_early_processor_set_pdc();
->  
->  	/*
-> @@ -1026,7 +1032,6 @@ static int __init acpi_init(void)
->  	acpi_scan_init();
->  	acpi_ec_init();
->  	acpi_power_init();
-> -	acpi_sysfs_init();
->  	acpi_debugfs_init();
->  	acpi_sleep_proc_init();
->  	acpi_wakeup_device_init();
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 25 Oct 2010, Len Brown wrote:
 
+> >  NAKed-by: Ingo Molnar <mingo@elte.hu>
+> 
+> Everybody knows that Linux has a lot to learn about RAS.
+> 
+> I think to catch up, we need to play to Linux's strengths
+> of continuous improvement.  If we halt patches in this area
+> then we could wait forever for the "perfect design".
 
+it's not about perfect design. It's about creating new user space
+ABIs. The patches introduce another error reporting user space ABI
+with an ad hoc "fits the needs" design.
+
+This is my major point of objection. 
+
+I agree that Linux needs improvement on the RAS side, but does this
+lack of features justify a new user space ABI which is totally
+disconnected to existing RAS facilities ?
+
+No, it does not. It's not our problem that Intel wasted time on
+creating another character device driver to report errors to user
+space. The time spent to do so would have been sufficient to do a
+proper integration into the existing infrastructure.
+
+I would not care at all if these patches would just introduce some
+weird in kernel interfaces as we can clean that up at will. But
+introducing a new user space ABI is setting the disconnect of RAS
+related facilities into stone.
+
+>From Kconfig:
+
+  EDAC is designed to report errors in the core system.
+  These are low-level errors that are reported in the CPU or
+  supporting chipset or other subsystems:
+  memory errors, cache errors, PCI errors, thermal throttling, etc..
+  If unsure, select 'Y'.
+
+So please explain why your error reporting is so different from the
+above that it justifies a separate facility. And you better come up
+with a real good explanation other than we looked at EDAC and it did
+not fit our needs.
+
+Thanks,
+
+	tglx
