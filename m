@@ -1,35 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PM: Blacklist another machine that needs acpi_sleep=nonvs
-Date: Tue, 26 Oct 2010 20:49:21 +0200
-Message-ID: <201010262049.21424.rjw@sisk.pl>
-References: <201010172101.21576.rjw@sisk.pl> <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain> <20101026131948.GA9221@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI / PM: Blacklist another machine that needs
+ acpi_sleep=nonvs
+Date: Tue, 26 Oct 2010 15:21:15 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1010261519490.11689@localhost.localdomain>
+References: <201010172101.21576.rjw@sisk.pl>
+ <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
+ <20101026131948.GA9221@srcf.ucam.org> <201010262049.21424.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55359 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759041Ab0JZSuV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Oct 2010 14:50:21 -0400
-In-Reply-To: <20101026131948.GA9221@srcf.ucam.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:63898 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755976Ab0JZTVh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 15:21:37 -0400
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LAW0029ZWFKFP90@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 26 Oct 2010 14:21:27 -0500 (CDT)
+In-reply-to: <201010262049.21424.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Emanuele Bigiarini <pulmro@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Emanuele Bigiarini <pulmro@gmail.com>
 
-On Tuesday, October 26, 2010, Matthew Garrett wrote:
-> On Mon, Oct 25, 2010 at 08:14:42PM -0400, Len Brown wrote:
-> > Rather than a black list of machines that can not survive saving NVS,
-> > I wonder how long a white list of machines requiring NVS save would be?
-> 
-> Windows saves the NVS area in my testing. Either there's something that 
-> indicates the choices of one behaviour over the other, or the machines 
-> that are broken by NVS saving are actually tripping some other bug.
+> Windows-compatible.
 
-Since we're claiming Windows compatibility through _OSI, we should follow
-Windows except for on machines that are blacklisted as not being
-Windows-compatible.
+Matthew,
+Exactly what version of Windows did you test to be saving NVS?
+Is it possible that different versions of Windows behave differently?
 
-Thanks,
-Rafael
+thanks,
+Len Brown, Intel Open Source Technology Center
+
