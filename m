@@ -1,30 +1,30 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH] Adding_write_support_to_trip_points
-Date: Tue, 26 Oct 2010 16:19:38 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF04654105BED797D1@bgsmsx502.gar.corp.intel.com>
-References: <1288122410-3215-1-git-send-email-durgadoss.r@intel.com>
- <20101026105217.41eebda5@linux.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI / PM: Blacklist another machine that needs
+	acpi_sleep=nonvs
+Date: Tue, 26 Oct 2010 14:19:48 +0100
+Message-ID: <20101026131948.GA9221@srcf.ucam.org>
+References: <201010172101.21576.rjw@sisk.pl> <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32336 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759733Ab0JZKu0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 06:50:26 -0400
-In-Reply-To: <20101026105217.41eebda5@linux.intel.com>
-Content-Language: en-US
+Received: from cavan.codon.org.uk ([93.93.128.6]:55209 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932857Ab0JZNUC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 09:20:02 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Agarwal, Ramesh" <ramesh.agarwal@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Emanuele Bigiarini <pulmro@gmail.com>
 
-> Is the expectation that these would be set once at platform initialize
-> or that the trip points would be dynamically managed to generate
-> interrupts at different points for power management ?
+On Mon, Oct 25, 2010 at 08:14:42PM -0400, Len Brown wrote:
+> Rather than a black list of machines that can not survive saving NVS,
+> I wonder how long a white list of machines requiring NVS save would be?
 
-Yes. The trip points would be dynamically managed to generate
-interrupts at various temperatures.
+Windows saves the NVS area in my testing. Either there's something that 
+indicates the choices of one behaviour over the other, or the machines 
+that are broken by NVS saving are actually tripping some other bug.
 
-Thanks,
-Durgadoss
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
