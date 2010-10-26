@@ -1,30 +1,32 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI / PM: Blacklist another machine that needs
-	acpi_sleep=nonvs
-Date: Tue, 26 Oct 2010 14:19:48 +0100
-Message-ID: <20101026131948.GA9221@srcf.ucam.org>
-References: <201010172101.21576.rjw@sisk.pl> <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
+Subject: Re: [PATCH] Adding_write_support_to_trip_points
+Date: Tue, 26 Oct 2010 14:22:21 +0100
+Message-ID: <20101026132221.GB9221@srcf.ucam.org>
+References: <1288122410-3215-1-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:55209 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:55257 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932857Ab0JZNUC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 09:20:02 -0400
+	with ESMTP id S932084Ab0JZNWb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 09:22:31 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1010252013270.18670@localhost.localdomain>
+In-Reply-To: <1288122410-3215-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Emanuele Bigiarini <pulmro@gmail.com>
+To: durgadoss.r@intel.com
+Cc: lenb@kernel.org, alan@linux.intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, ramesh.agarwal@intel.com, len.brown@intel.com
 
-On Mon, Oct 25, 2010 at 08:14:42PM -0400, Len Brown wrote:
-> Rather than a black list of machines that can not survive saving NVS,
-> I wonder how long a white list of machines requiring NVS save would be?
+On Wed, Oct 27, 2010 at 01:16:50AM +0530, durgadoss.r@intel.com wrote:
+> From: R.Durgadoss <durgadoss.r@intel.com>
+> 
+> This patch makes the thermal trip points 'write'able.
+> Thus, enabling the trip points to be configured at runtime.
+> Please review and apply.
 
-Windows saves the NVS area in my testing. Either there's something that 
-indicates the choices of one behaviour over the other, or the machines 
-that are broken by NVS saving are actually tripping some other bug.
+If you're going to do this then you need to have a callback to determine 
+whether the platform supports this behaviour. ACPI doesn't and writes 
+should fail in that case.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
