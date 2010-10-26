@@ -1,26 +1,23 @@
 From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [NAK] Re: [PATCH -v2 9/9] ACPI, APEI, Generic Hardware Error
  Source POLL/IRQ/NMI notification type support
-Date: Tue, 26 Oct 2010 12:03:29 +0200
-Message-ID: <20101026100329.GB16552@elte.hu>
+Date: Tue, 26 Oct 2010 12:15:36 +0200
+Message-ID: <20101026101536.GC16552@elte.hu>
 References: <1287992610-14996-1-git-send-email-ying.huang@intel.com>
  <1287992610-14996-10-git-send-email-ying.huang@intel.com>
  <20101025084553.GA27119@elte.hu>
  <alpine.LFD.2.00.1010252058370.11036@localhost.localdomain>
  <alpine.LFD.2.00.1010260629560.3955@localhost6.localdomain6>
- <20101026072210.GE13036@elte.hu>
- <1288078222.2862.484.camel@yhuang-dev>
- <20101026075559.GA9798@elte.hu>
- <1288081966.2862.571.camel@yhuang-dev>
+ <1288083163.2862.592.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:52124 "EHLO mx2.mail.elte.hu"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:46627 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756404Ab0JZKDz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Oct 2010 06:03:55 -0400
+	id S1752695Ab0JZKPw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Oct 2010 06:15:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1288081966.2862.571.camel@yhuang-dev>
+In-Reply-To: <1288083163.2862.592.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
@@ -29,52 +26,94 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, LKML <lin
 
 * Huang Ying <ying.huang@intel.com> wrote:
 
-> On Tue, 2010-10-26 at 15:55 +0800, Ingo Molnar wrote:
-> > * Huang Ying <ying.huang@intel.com> wrote:
-> > 
-> > > On Tue, 2010-10-26 at 15:22 +0800, Ingo Molnar wrote:
-> > > > * Thomas Gleixner <tglx@linutronix.de> wrote:
-> > > > 
-> > > > > >From Kconfig:
-> > > > > 
-> > > > >   EDAC is designed to report errors in the core system.
-> > > > >   These are low-level errors that are reported in the CPU or
-> > > > >   supporting chipset or other subsystems:
-> > > > >   memory errors, cache errors, PCI errors, thermal throttling, etc..
-> > > > >   If unsure, select 'Y'.
-> > > > > 
-> > > > > So please explain why your error reporting is so different from the above that it 
-> > > > > justifies a separate facility. And you better come up with a real good explanation 
-> > > > > other than we looked at EDAC and it did not fit our needs.
-> > > > 
-> > > > Btw., it's not just about EDAC - the firmware can store Linux events 
-> > > > persistently (beyond allowing the firmware to insert its own RAS events), that 
-> > > > is obviously _hugely_ useful for kernel debugging in general. We could inject 
-> > > > debugging events there and recover them after a crash, etc.
-> > > 
-> > > Yes. It can be used by other kernel subsystems other than RAS. A kernel API is 
-> > > provided already. The design of the kernel API makes it easy to be used by various 
-> > > kernel subsystems. As the first step, we plan to support saving kernel log before 
-> > > panic and reading it back after reboot.
-> > 
-> > And that's the problem: we have good facilities already that deal with similar 
-> > things. We have NMI-safe event logging, event enumeration, dump-on-panic code 
-> > and all sorts of goodies there.
+> Hi, Thomas,
 > 
-> We have provided an in-kernel API for ERST now. And we plan to implement a 
-> kmsg_dumper with ERST. And maybe implement some output support (maybe via some 
-> /dev/kmsg extension) for kmsg_dumper if necessary.
+> On Tue, 2010-10-26 at 12:53 +0800, Thomas Gleixner wrote:
+> > B1;2401;0cLen,
+> > 
+> > On Mon, 25 Oct 2010, Len Brown wrote:
+> > 
+> > > >  NAKed-by: Ingo Molnar <mingo@elte.hu>
+> > > 
+> > > Everybody knows that Linux has a lot to learn about RAS.
+> > > 
+> > > I think to catch up, we need to play to Linux's strengths
+> > > of continuous improvement.  If we halt patches in this area
+> > > then we could wait forever for the "perfect design".
+> > 
+> > it's not about perfect design. It's about creating new user space
+> > ABIs. The patches introduce another error reporting user space ABI
+> > with an ad hoc "fits the needs" design.
+> > 
+> > This is my major point of objection. 
+> > 
+> > I agree that Linux needs improvement on the RAS side, but does this
+> > lack of features justify a new user space ABI which is totally
+> > disconnected to existing RAS facilities ?
+> > 
+> > No, it does not. It's not our problem that Intel wasted time on
+> > creating another character device driver to report errors to user
+> > space. The time spent to do so would have been sufficient to do a
+> > proper integration into the existing infrastructure.
+> > 
+> > I would not care at all if these patches would just introduce some
+> > weird in kernel interfaces as we can clean that up at will. But
+> > introducing a new user space ABI is setting the disconnect of RAS
+> > related facilities into stone.
+> > 
+> > From Kconfig:
+> > 
+> >   EDAC is designed to report errors in the core system.
+> >   These are low-level errors that are reported in the CPU or
+> >   supporting chipset or other subsystems:
+> >   memory errors, cache errors, PCI errors, thermal throttling, etc..
+> >   If unsure, select 'Y'.
+> > 
+> > So please explain why your error reporting is so different from the
+> > above that it justifies a separate facility. And you better come up
+> > with a real good explanation other than we looked at EDAC and it did
+> > not fit our needs.
+> 
+> As far as I know, EDAC guys plan to use some other "perfect interface" in the 
+> future. So I think the current state is really waiting for the "perfect design".
 
-So my argument/objection was:
+Not sure what you mean by this, but Boris has posted links to his latest patch-set 
+in this thread, see:
 
- " You are introducing a bad ABI here, amongst other problems. Please work with the
-   people who are maintaining sane RAS/event/error reporting ABIs and facilities.
-   You should have done that to begin with. "
+  http://kerneltrap.org/mailarchive/linux-kernel/2010/8/6/4603847
 
-and your answer to that is:
+The Git coordinates are:
 
- " Hey, we plan to introduce another ad-hoc ABI as well! "
+  git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-2.6-trace.git, branch tip/perf/parse-events
 
-... do you really not see the glaring disconnect?
+The 'persistent events' facility he has prototyped there appears to be a good 
+potential match for the ERST store.
+
+It would be very useful to have another feature there: to mark persistent events as 
+'dump into syslog on bootup', so that for example the contents of the ERST log could 
+be dumped right on bootup. [but ERST would not be the only persistent event that 
+could be marked like that.]
+
+Note that we dont need/want other ABI accesses to the ERST log (i.e. we dont want 
+/dev/erst-dbg), because we want the benefits of the generalization: tooling (RAS and 
+other tooling) should learn how to deal with persistent events - not learn how to 
+deal with ERST logs ... or with warm bootup RAM-embedded logs ... or to deal with 
+kcrash embedded kernel logs ... etc.
+
+There are many obvious advantages from implementing it like that: there's no need to 
+special-code ERST to printk or ERST to whatever other facility cross links - it 
+would be part of a generic/uniform event logging facility to begin with. ERST would 
+only implement its own, narrow, hardware-specific event accessor methods - nothing 
+else. Basically a small 'event driver'. This would be the most optimal, smallest, 
+easiest to maintain approach - with no facility duplication and no fragmentation.
+
+It's certainly more work as well _for the first such example_ - but from that point 
+on any new hardware facility can be added with ease, and those too will fit into 
+existing tooling in a very natural way.
+
+So please help out with the persistent events work. If you need any pointers we'd be 
+glad to help.
+
+Thanks,
 
 	Ingo
