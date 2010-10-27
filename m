@@ -1,68 +1,62 @@
-From: Arnaldo Carvalho de Melo <acme@redhat.com>
-Subject: Re: [PATCH] tools: add x86_energy_perf_policy to program
-	MSR_IA32_ENERGY_PERF_BIAS
-Date: Wed, 27 Oct 2010 09:43:11 -0200
-Message-ID: <20101027114310.GO3826@ghostprotocols.net>
-References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain> <alpine.LFD.2.00.1009281143070.14962@localhost.localdomain> <alpine.LFD.2.00.1010230035360.29399@localhost.localdomain> <20101026202307.c028e26c.akpm@linux-foundation.org> <20101027060139.GB5603@elte.hu>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH -v3 0/8] ACPI, APEI patches for 2.6.37
+Date: Wed, 27 Oct 2010 08:27:02 -0700
+Message-ID: <20101027082702.c65a0d22.randy.dunlap@oracle.com>
+References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
+	<1288174050.15336.1507.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13462 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753377Ab0J0LoR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Oct 2010 07:44:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20101027060139.GB5603@elte.hu>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:26598 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756464Ab0J0P2K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Oct 2010 11:28:10 -0400
+In-Reply-To: <1288174050.15336.1507.camel@twins>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Len Brown <lenb@kernel.org>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Huang Ying <ying.huang@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, BorislavPetkov <petkovbb@googlemail.com>, Andrew Morton <akpm@linux-foundation.org>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Em Wed, Oct 27, 2010 at 08:01:39AM +0200, Ingo Molnar escreveu:
+On Wed, 27 Oct 2010 12:07:30 +0200 Peter Zijlstra wrote:
+
+> On Wed, 2010-10-27 at 13:28 +0800, Huang Ying wrote:
+> > v3:
+> > 
+> > - Rework lock-less memory allocator and lock-less list.
+> > 
+> > v2:
+> > 
+> > - Some minor changes according to Andi's comments.
+> > 
+> > [PATCH -v3 1/8] ACPI, APEI, Add ERST record ID cache
+> > [PATCH -v3 2/8] lib, Make gen_pool memory allocator lock-less
+> > [PATCH -v3 3/8] lib, Add lock-less NULL terminated single list
+> > [PATCH -v3 4/8] Hardware error device core
+> > [PATCH -v3 5/8] Hardware error record persistent support
+> > [PATCH -v3 6/8] ACPI, APEI, Use ERST for hardware error persisting before panic
+> > [PATCH -v3 7/8] ACPI, APEI, Report GHES error record with hardware error device core
+> > [PATCH -v3 8/8] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support
 > 
-> * Andrew Morton <akpm@linux-foundation.org> wrote:
-> > On Sat, 23 Oct 2010 00:40:18 -0400 (EDT) Len Brown <lenb@kernel.org> wrote:
-> > tools/power/x86, eh?  It seems a better place than under
-> > Documentation/, where such things have thus far landed!
+> You forgot to CC all people who participated in the previous discussion.
+> 
+> You seem to have forgotten to address the high-level feedback given by
+> the x86 maintainers.
+> 
+> All you've done is decreased the arch/x86/ footprint of the patch
+> series, but neither you nor Andi have addressed the technical arguments
+> against adding this ABI.
+> 
+> Nor have you engaged in conversation with the other EDAC people on how
+> to extend the existing interface, or even work towards creating
+> something new that would cater to all interested parties.
+> 
+> Not charmed at all by your attitude.
+> --
 
-> > I looked briefly, wondering about the kbuild situation.  It doesn't
-> > appear to be wired up, so one has to manually enter that directory
-> > and type `make'?
+Looks like you also have not addressed this reported build error:
+  http://lkml.org/lkml/2010/10/25/440
 
-> > I guess that's OK as an interim thing but longer-term I suppose we
-> > should have some more complete build and deployment system.  So
-> > (thinking out loud) a `make' would invoke a `make tools', and that
-> > `make tools' would build the tools which are specific to the target
-> > arch[*], and any generic ones.  And a `make tools_install' would
-> > install those tools in, I guess, /lib/modules/$(uname -r)/bin.
- 
-> In terms of build and documentation environment, tools/perf/ has one
-> cloned/inherited from Git, which is rather good and functional.
- 
-> Sharing it with the kernel's build system depends on the kbuild
-> developers being interested in it.
-
-Yes, that is how it is today, I glued it to the main makefile in at
-least one case:
-
-[acme@doppio linux]$ make help | grep perf
-  perf-tar-src-pkg    - Build perf-2.6.36-rc7.tar source tarball
-  perf-targz-src-pkg  - Build perf-2.6.36-rc7.tar.gz source tarball
-  perf-tarbz2-src-pkg - Build perf-2.6.36-rc7.tar.bz2 source tarball
-[acme@doppio linux]$
-
-I'd love to glue it some more, even using Kconfig and 'make toolsconfig'
-for configuring the tools:
-
-	. Want the TUI?
-        . Want to link with DWARF? Needed for features x, y and z
-
-Getting it done this way will provide examples that hopefully would lead
-to more kernel coding practices and infrastructure being adopted by
-(hell is freezing) userland programmers.
-
-This is specially important now that there are more kernel programmers
-writing userland code, lets hope that at least them continue to use
-those practices and infrastructures ;-)
-
-- Arnaldo
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
