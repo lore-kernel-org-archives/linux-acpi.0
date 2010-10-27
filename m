@@ -1,43 +1,32 @@
-From: "Bernardo Pedro Alcaraz" <balcaraz@unlam.edu.ar>
-Subject: NOKIA END OF THE YEAR GRANT!!!
-Date: Tue, 26 Oct 2010 19:37:35 -0300
-Message-ID: <B8EFE19CF09C75469B0FDC9C8B004D293BA8A6@maxwell.UNLM.EDU.AR>
+From: "Dr. Robert William" <pascale.vial@noos.fr>
+Subject: Yours Faithfully
+Date: Wed, 27 Oct 2010 02:34:17 +0200 (CEST)
+Message-ID: <ea-mime-4cc77389-71b-20d7ee4b__27650.8021205247$1288140181$gmane$org@webmail.numericable.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ironport.unlam.edu.ar ([200.47.41.11]:57626 "EHLO
-	c30.unlm.edu.ar" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758727Ab0JZWl6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 18:41:58 -0400
-Content-class: urn:content-classes:message
+Received: from fb2.tech.numericable.fr ([82.216.111.50]:48106 "EHLO
+	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760655Ab0J0Amv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Oct 2010 20:42:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: pascale.vial@noos.fr
+
+Good News My Dear Friend,
+ 
+I'm happy to inform you about my success in getting those funds transferred under the co-operation of a new partner from Paraguay. Presently i'm in Paraguay for investment projects with my own share of the total sum. meanwhile,i didn't forget your past efforts and attempts to assist me in transferring those funds despite that it failed us some how.
+Now contact my secretary in Benin Republic
+
+His name is Mr. Timothy Adams
+Phone Number: +229 97373889
+Email:  timothyadams90@gmail.com
+ 
+Please do let me know immediately you receive it so that we can share the joy after all the sufferings at that time. in the moment, I'm very busy here because of the investment projects which me and the new partner are having at hand, finally, remember that I had forwarded instruction to the secretary on your behalf to receive that money, so feel free to get in touch with Mr. Timothy Adams on timothyadams90@gmail.com, he will send the amount to you without any delay.
+ 
+Yours Faithfully
+Dr Robert William
 
 
- Your Email I.D was selected at random and you have therefore been awar=
-ded the sum of GBP=A3850,000.00 (Eight Hundred And Fifty Thousand Great=
- British Pounds Sterling) in the ongoing UK NOKIA GRANT DONATION 2009/2=
-010 AWARD.
-
-=46or more info on claims please contact Person: Dr. Barry Morgan/ emai=
-l;nokiagrannt-unit@w.cn
-
-
-Names:...........................
-Country:........................
-Sex:............................
-Age/mobile number:................
-contact address:..................
-
-
- Bernando Pedro Alcaraz,
-           Online Coordinator.
-
-
-=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
