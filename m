@@ -1,291 +1,661 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v3 6/8] ACPI, APEI, Use ERST for hardware error persisting before panic
-Date: Wed, 27 Oct 2010 13:28:30 +0800
-Message-ID: <1288157312-10441-7-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v3 8/8] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support
+Date: Wed, 27 Oct 2010 13:28:32 +0800
+Message-ID: <1288157312-10441-9-git-send-email-ying.huang@intel.com>
 References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:19326 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752604Ab0J0F2v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Oct 2010 01:28:51 -0400
 In-Reply-To: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Corrected/Recoverable hardware errors can usually be saved into disk
-and/or sent to network for logging.  But if uncorrected/fatal hardware
-errors occur, system may not reliable enough for desk and/or network
-accessing and needs to go panic as soon as possible for error
-containment.  In this situation, ERST can be used to save the valuable
-error records into some persistent storage such as flash.
+Generic Hardware Error Source provides a way to report platform
+hardware errors (such as that from chipset). It works in so called
+"Firmware First" mode, that is, hardware errors are reported to
+firmware firstly, then reported to Linux by firmware. This way, some
+non-standard hardware error registers or non-standard hardware link
+can be checked by firmware to produce more valuable hardware error
+information for Linux.
 
-This patch implements herr_persist interface using ERST.  So that
-hardware error device core can use ERST to save hardware error record
-before panic.
+This patch adds POLL/IRQ/NMI notification types support.
+
+Because the memory area used to transfer hardware error information
+from BIOS to Linux can be determined only in NMI, IRQ or timer
+handler, but general ioremap can not be used in atomic context, so a
+special version of atomic ioremap is implemented for that.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/apei/Kconfig |    1 
- drivers/acpi/apei/cper.c  |   19 +++++
- drivers/acpi/apei/erst.c  |  169 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/cper.h      |    1 
- 4 files changed, 190 insertions(+)
+ arch/x86/kernel/acpi/boot.c |    1 
+ arch/x86/kernel/dumpstack.c |    1 
+ drivers/acpi/apei/ghes.c    |  397 ++++++++++++++++++++++++++++++++++++--------
+ kernel/panic.c              |    1 
+ lib/ioremap.c               |    2 
+ mm/vmalloc.c                |    1 
+ 6 files changed, 333 insertions(+), 70 deletions(-)
 
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -29,6 +29,25 @@
- #include <linux/time.h>
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/herror_record.h>
-+
-+int herr_severity_to_cper(int herr_severity)
-+{
-+	switch (herr_severity) {
-+	case HERR_SEV_NONE:
-+		return CPER_SEV_INFORMATIONAL;
-+	case HERR_SEV_CORRECTED:
-+		return CPER_SEV_CORRECTED;
-+	case HERR_SEV_RECOVERABLE:
-+		return CPER_SEV_RECOVERABLE;
-+	case HERR_SEV_FATAL:
-+		return CPER_SEV_FATAL;
-+	default:
-+		BUG();
-+		return CPER_SEV_FATAL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(herr_severity_to_cper);
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -512,6 +512,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq
+ 	*gsi = irq_to_gsi(isa_irq);
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
  
  /*
-  * CPER record ID need to be unique even after reboot, because record
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -33,6 +33,7 @@
- #include <linux/uaccess.h>
+  * success: return IRQ number (>=0)
+--- a/arch/x86/kernel/dumpstack.c
++++ b/arch/x86/kernel/dumpstack.c
+@@ -240,6 +240,7 @@ unsigned __kprobes long oops_begin(void)
+ 	bust_spinlocks(1);
+ 	return flags;
+ }
++EXPORT_SYMBOL_GPL(oops_begin);
+ 
+ void __kprobes oops_end(unsigned long flags, struct pt_regs *regs, int signr)
+ {
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -12,10 +12,6 @@
+  * For more information about Generic Hardware Error Source, please
+  * refer to ACPI Specification version 4.0, section 17.3.2.6
+  *
+- * Now, only SCI notification type and memory errors are
+- * supported. More notification type and hardware error type will be
+- * added later.
+- *
+  * Copyright 2010 Intel Corp.
+  *   Author: Huang Ying <ying.huang@intel.com>
+  *
+@@ -39,15 +35,18 @@
+ #include <linux/acpi.h>
+ #include <linux/io.h>
+ #include <linux/interrupt.h>
++#include <linux/timer.h>
  #include <linux/cper.h>
- #include <linux/nmi.h>
-+#include <linux/herror.h>
- #include <linux/hardirq.h>
+ #include <linux/kdebug.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/vmalloc.h>
+ #include <linux/herror.h>
  #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+ #include <asm/mce.h>
++#include <asm/tlbflush.h>
  
-@@ -88,6 +89,12 @@ static struct erst_erange {
+ #include "apei-internal.h"
+ 
+@@ -56,43 +55,133 @@
+ #define GHES_ESTATUS_MAX_SIZE		65536
+ 
+ /*
+- * One struct ghes is created for each generic hardware error
+- * source.
+- *
++ * One struct ghes is created for each generic hardware error source.
+  * It provides the context for APEI hardware error timer/IRQ/SCI/NMI
+- * handler. Handler for one generic hardware error source is only
+- * triggered after the previous one is done. So handler can uses
+- * struct ghes without locking.
++ * handler.
+  *
+  * estatus: memory buffer for error status block, allocated during
+  * HEST parsing.
   */
- static DEFINE_SPINLOCK(erst_lock);
+ #define GHES_TO_CLEAR		0x0001
++#define GHES_EXITING		0x0002
  
-+static void *erst_buf;
-+static unsigned int erst_buf_len;
-+
-+/* Prevent erst_buf from being accessed simultaneously */
-+static DEFINE_MUTEX(erst_buf_mutex);
-+
- static inline int erst_errno(int command_status)
- {
- 	switch (command_status) {
-@@ -774,6 +781,12 @@ static int __erst_write_to_nvram(const s
- 	return -ENOSYS;
- }
+ struct ghes {
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
+-	struct list_head list;
+ 	u64 buffer_paddr;
+ 	unsigned long flags;
+ 	struct herr_dev *herr_dev;
++	union {
++		struct list_head list;
++		struct timer_list timer;
++		unsigned int irq;
++	};
+ };
  
-+static int __erst_write_herr_record_to_nvram(const struct herr_record *ercd)
++static int ghes_panic_timeout	__read_mostly = 30;
++
+ /*
+- * Error source lists, one list for each notification method. The
+- * members in lists are struct ghes.
++ * All error sources notified with SCI shares one notifier function,
++ * so they need to be linked and checked one by one.  This is applied
++ * to NMI too.
+  *
+- * The list members are only added in HEST parsing and deleted during
+- * module_exit, that is, single-threaded. So no lock is needed for
+- * that.
+- *
+- * But the mutual exclusion is needed between members adding/deleting
+- * and timer/IRQ/SCI/NMI handler, which may traverse the list. RCU is
+- * used for that.
++ * RCU is used for these lists, so ghes_list_mutex is only used for
++ * list changing, not for traversing.
+  */
+ static LIST_HEAD(ghes_sci);
++static LIST_HEAD(ghes_nmi);
+ static DEFINE_MUTEX(ghes_list_mutex);
+ 
++/*
++ * NMI may be triggered on any CPU, so ghes_nmi_lock is used for
++ * mutual exclusion.
++ */
++static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
++
++/*
++ * Because the memory area used to transfer hardware error information
++ * from BIOS to Linux can be determined only in NMI, IRQ or timer
++ * handler, but general ioremap can not be used in atomic context, so
++ * a special version of atomic ioremap is implemented for that.
++ */
++
++/*
++ * Two virtual pages are used, one for NMI context, the other for
++ * IRQ/PROCESS context
++ */
++#define GHES_IOREMAP_PAGES		2
++#define GHES_IOREMAP_NMI_PAGE(base)	(base)
++#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
++
++/* virtual memory area for atomic ioremap */
++static struct vm_struct *ghes_ioremap_area;
++/*
++ * These 2 spinlock is used to prevent atomic ioremap virtual memory
++ * area from being mapped simultaneously.
++ */
++static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
++static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
++
++static int ghes_ioremap_init(void)
 +{
-+	/* do not print message, because printk is not safe for NMI */
-+	return -ENOSYS;
++	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
++		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
++	if (!ghes_ioremap_area) {
++		pr_err(GHES_PFX
++		"Failed to allocate virtual memory area for atomic ioremap.\n");
++		return -ENOMEM;
++	}
++
++	return 0;
 +}
 +
- static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
- {
- 	pr_unimpl_nvram();
-@@ -910,6 +923,156 @@ out:
- }
- EXPORT_SYMBOL_GPL(erst_clear);
- 
-+#define CPER_CREATOR_ERST						\
-+	UUID_LE(0xEACBBA0C, 0x803A, 0x4096, 0xB1, 0x1D, 0xC3, 0xC7,	\
-+		0x6E, 0xE7, 0x94, 0xF9)
-+
-+#define CPER_SEC_HERR_RECORD						\
-+	UUID_LE(0x633AB656, 0x6703, 0x11DF, 0x87, 0xCF, 0x00, 0x19,	\
-+		0xD1, 0x2A, 0x29, 0xEF)
-+
-+static ssize_t erst_herr_record_to_cper(struct cper_record_header *crcd,
-+					size_t buf_size,
-+					const struct herr_record *ercd)
++static void ghes_ioremap_exit(void)
 +{
-+	struct cper_section_descriptor *csec;
-+	unsigned int crcd_len;
-+	void *csec_data;
-+
-+	crcd_len = sizeof(*crcd) + sizeof(*csec) + ercd->length;
-+	if (crcd_len > buf_size)
-+		return crcd_len;
-+
-+	memset(crcd, 0, crcd_len);
-+	memcpy(crcd->signature, CPER_SIG_RECORD, CPER_SIG_SIZE);
-+	crcd->revision = CPER_RECORD_REV;
-+	crcd->signature_end = CPER_SIG_END;
-+	crcd->error_severity = herr_severity_to_cper(ercd->severity);
-+	/* timestamp, platform_id, partition_id is invalid */
-+	crcd->validation_bits = 0;
-+	crcd->creator_id = CPER_CREATOR_ERST;
-+	crcd->section_count = 1;
-+	crcd->record_length = crcd_len;
-+	crcd->record_id = ercd->id;
-+
-+	csec = (struct cper_section_descriptor *)(crcd + 1);
-+	csec_data = csec + 1;
-+
-+	csec->section_length = ercd->length;
-+	csec->revision = CPER_SEC_REV;
-+	csec->section_type = CPER_SEC_HERR_RECORD;
-+	csec->section_severity = crcd->error_severity;
-+	csec->section_offset = (void *)csec_data - (void *)crcd;
-+
-+	memcpy(csec_data, ercd, ercd->length);
-+
-+	return crcd_len;
++	free_vm_area(ghes_ioremap_area);
 +}
 +
-+static int erst_write_herr_record(const struct herr_record *ercd)
++static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
 +{
-+	struct cper_record_header *crcd;
-+	ssize_t crcd_len;
-+	unsigned long flags;
++	unsigned long vaddr;
++
++	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
++	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
++			   pfn << PAGE_SHIFT, PAGE_KERNEL);
++
++	return (void __iomem *)vaddr;
++}
++
++static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
++{
++	unsigned long vaddr;
++
++	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
++	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
++			   pfn << PAGE_SHIFT, PAGE_KERNEL);
++
++	return (void __iomem *)vaddr;
++}
++
++static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
++{
++	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
++	void *base = ghes_ioremap_area->addr;
++
++	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_NMI_PAGE(base));
++	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
++	__flush_tlb_one(vaddr);
++}
++
++static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
++{
++	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
++	void *base = ghes_ioremap_area->addr;
++
++	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_IRQ_PAGE(base));
++	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
++	__flush_tlb_one(vaddr);
++}
++
+ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+ {
+ 	struct ghes *ghes;
+@@ -103,7 +192,6 @@ static struct ghes *ghes_new(struct acpi
+ 	if (!ghes)
+ 		return ERR_PTR(-ENOMEM);
+ 	ghes->generic = generic;
+-	INIT_LIST_HEAD(&ghes->list);
+ 	rc = acpi_pre_map_gar(&generic->error_status_address);
+ 	if (rc)
+ 		goto err_free;
+@@ -160,22 +248,41 @@ static inline int ghes_severity(int seve
+ 	}
+ }
+ 
+-/* SCI handler run in work queue, so ioremap can be used here */
+-static int ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+-				 int from_phys)
++static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
++				  int from_phys)
+ {
+-	void *vaddr;
+-
+-	vaddr = ioremap_cache(paddr, len);
+-	if (!vaddr)
+-		return -ENOMEM;
+-	if (from_phys)
+-		memcpy(buffer, vaddr, len);
+-	else
+-		memcpy(vaddr, buffer, len);
+-	iounmap(vaddr);
+-
+-	return 0;
++	void __iomem *vaddr;
++	unsigned long flags = 0;
++	int in_nmi = in_nmi();
++	u64 offset;
++	u32 trunk;
++
++	while (len > 0) {
++		offset = paddr - (paddr & PAGE_MASK);
++		if (in_nmi) {
++			raw_spin_lock(&ghes_ioremap_lock_nmi);
++			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
++		} else {
++			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
++			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
++		}
++		trunk = PAGE_SIZE - offset;
++		trunk = min(trunk, len);
++		if (from_phys)
++			memcpy_fromio(buffer, vaddr + offset, trunk);
++		else
++			memcpy_toio(vaddr + offset, buffer, trunk);
++		len -= trunk;
++		paddr += trunk;
++		buffer += trunk;
++		if (in_nmi) {
++			ghes_iounmap_nmi(vaddr);
++			raw_spin_unlock(&ghes_ioremap_lock_nmi);
++		} else {
++			ghes_iounmap_irq(vaddr);
++			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
++		}
++	}
+ }
+ 
+ static int ghes_read_estatus(struct ghes *ghes, int silent)
+@@ -196,10 +303,8 @@ static int ghes_read_estatus(struct ghes
+ 	if (!buf_paddr)
+ 		return -ENOENT;
+ 
+-	rc = ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
+-				   sizeof(*ghes->estatus), 1);
+-	if (rc)
+-		return rc;
++	ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
++			      sizeof(*ghes->estatus), 1);
+ 	if (!ghes->estatus->block_status)
+ 		return -ENOENT;
+ 
+@@ -214,17 +319,15 @@ static int ghes_read_estatus(struct ghes
+ 		goto err_read_block;
+ 	if (apei_estatus_check_header(ghes->estatus))
+ 		goto err_read_block;
+-	rc = ghes_copy_tofrom_phys(ghes->estatus + 1,
+-				   buf_paddr + sizeof(*ghes->estatus),
+-				   len - sizeof(*ghes->estatus), 1);
+-	if (rc)
+-		return rc;
++	ghes_copy_tofrom_phys(ghes->estatus + 1,
++			      buf_paddr + sizeof(*ghes->estatus),
++			      len - sizeof(*ghes->estatus), 1);
+ 	if (apei_estatus_check(ghes->estatus))
+ 		goto err_read_block;
+ 	rc = 0;
+ 
+ err_read_block:
+-	if (rc && !silent)
++	if (rc && !silent && printk_ratelimit())
+ 		pr_warning(FW_WARN GHES_PFX
+ 			   "Failed to read error status block!\n");
+ 	return rc;
+@@ -303,6 +406,43 @@ out:
+ 	return 0;
+ }
+ 
++static void ghes_add_timer(struct ghes *ghes)
++{
++	struct acpi_hest_generic *g = ghes->generic;
++	unsigned long expire;
++
++	if (!g->notify.poll_interval) {
++		pr_warning(FW_WARN GHES_PFX "Poll interval is 0 for "
++			   "generic hardware error source: %d, disabled.",
++			   g->header.source_id);
++		return;
++	}
++	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
++	ghes->timer.expires = round_jiffies_relative(expire);
++	add_timer(&ghes->timer);
++}
++
++static void ghes_poll_func(unsigned long data)
++{
++	struct ghes *ghes = (void *)data;
++
++	ghes_proc(ghes);
++	if (!(ghes->flags & GHES_EXITING))
++		ghes_add_timer(ghes);
++}
++
++static irqreturn_t ghes_irq_func(int irq, void *data)
++{
++	struct ghes *ghes = data;
 +	int rc;
 +
-+	if (!spin_trylock_irqsave(&erst_lock, flags))
-+		return -EBUSY;
-+
-+	if (erst_erange.attr & ERST_RANGE_NVRAM) {
-+		rc = __erst_write_herr_record_to_nvram(ercd);
-+		goto out;
-+	}
-+
-+	rc = -EINVAL;
-+	crcd_len = erst_herr_record_to_cper(erst_erange.vaddr,
-+					    erst_erange.size, ercd);
-+	if (crcd_len > erst_erange.size)
-+		goto out;
-+	crcd = erst_erange.vaddr;
-+	/* signature for serialization system */
-+	memcpy(&crcd->persistence_information, "ER", 2);
-+	rc = __erst_write_to_storage(0);
-+out:
-+	spin_unlock_irqrestore(&erst_lock, flags);
-+
-+	return rc;
-+}
-+
-+static ssize_t erst_persist_peek_user(u64 *record_id, char __user *ubuf,
-+				      size_t usize)
-+{
-+	int rc, pos;
-+	ssize_t len, clen;
-+	u64 id;
-+	struct cper_record_header *crcd;
-+	struct cper_section_descriptor *csec;
-+	struct herr_record *ercd;
-+
-+	if (mutex_lock_interruptible(&erst_buf_mutex) != 0)
-+		return -EINTR;
-+	erst_get_record_id_begin(&pos);
-+retry_next:
-+	len = 0;
-+	rc = erst_get_record_id_next(&pos, &id);
++	rc = ghes_proc(ghes);
 +	if (rc)
-+		goto out;
-+	/* no more record */
-+	if (id == APEI_ERST_INVALID_RECORD_ID)
-+		goto out;
-+retry:
-+	rc = clen = erst_read(id, erst_buf, erst_buf_len);
-+	/* someone else has cleared the record, try next one */
-+	if (rc == -ENOENT)
-+		goto retry_next;
-+	else if (rc < 0)
-+		goto out;
-+	else if (clen > erst_buf_len) {
-+		void *p;
-+		rc = -ENOMEM;
-+		p = kmalloc(clen, GFP_KERNEL);
-+		if (!p)
-+			goto out;
-+		kfree(erst_buf);
-+		erst_buf = p;
-+		erst_buf_len = clen;
-+		goto retry;
-+	}
++		return IRQ_NONE;
 +
-+	crcd = erst_buf;
-+	csec = (struct cper_section_descriptor *)(crcd + 1);
-+	if (crcd->section_count != 1 ||
-+	    uuid_le_cmp(crcd->creator_id, CPER_CREATOR_ERST) ||
-+	    uuid_le_cmp(csec->section_type, CPER_SEC_HERR_RECORD))
-+		goto retry_next;
-+
-+	ercd = (struct herr_record *)(csec + 1);
-+	len = ercd->length;
-+
-+	rc = -EINVAL;
-+	if (len > usize)
-+		goto out;
-+
-+	ercd->flags |= HERR_RCD_PREV | HERR_RCD_PERSIST;
-+
-+	rc = -EFAULT;
-+	if (copy_to_user(ubuf, ercd, len))
-+		goto out;
-+	*record_id = id;
-+	rc = 0;
-+out:
-+	erst_get_record_id_end();
-+	mutex_unlock(&erst_buf_mutex);
-+	return rc ? rc : len;
++	return IRQ_HANDLED;
 +}
 +
-+static struct herr_persist erst_persist = {
-+	.name		= "ERST",
-+	.in		= erst_write_herr_record,
-+	.peek_user	= erst_persist_peek_user,
-+	.clear		= erst_clear,
+ static int ghes_notify_sci(struct notifier_block *this,
+ 				  unsigned long event, void *data)
+ {
+@@ -319,10 +459,70 @@ static int ghes_notify_sci(struct notifi
+ 	return ret;
+ }
+ 
++static int ghes_notify_nmi(struct notifier_block *this,
++				  unsigned long cmd, void *data)
++{
++	struct ghes *ghes, *ghes_global = NULL;
++	int sev, sev_global = -1;
++	int ret = NOTIFY_DONE;
++
++	if (cmd != DIE_NMI && cmd != DIE_NMI_IPI)
++		return ret;
++
++	raw_spin_lock(&ghes_nmi_lock);
++	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
++		if (ghes_read_estatus(ghes, 1)) {
++			ghes_clear_estatus(ghes);
++			continue;
++		}
++		ghes_report(ghes);
++		sev = ghes_severity(ghes->estatus->error_severity);
++		if (sev > sev_global) {
++			sev_global = sev;
++			ghes_global = ghes;
++		}
++		ret = NOTIFY_STOP;
++	}
++
++	if (ret == NOTIFY_DONE)
++		goto out;
++
++	if (sev_global >= GHES_SEV_PANIC) {
++		herr_persist_all_records();
++		oops_begin();
++		/* reboot to log the error! */
++		if (panic_timeout == 0)
++			panic_timeout = ghes_panic_timeout;
++		pr_emerg(HW_ERR
++"Fatal hardware error from Generic Hardware Error Source: %d\n",
++			 ghes_global->generic->header.source_id);
++		pr_emerg(HW_ERR "Block status: 0x%08x\n",
++			 ghes_global->estatus->block_status);
++		pr_emerg(HW_ERR "Severity: %d\n",
++			 ghes_global->estatus->error_severity);
++		panic("Fatal hardware error!");
++	}
++
++	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
++		if (!(ghes->flags & GHES_TO_CLEAR))
++			continue;
++		ghes_do_proc(ghes);
++		ghes_clear_estatus(ghes);
++	}
++
++out:
++	raw_spin_unlock(&ghes_nmi_lock);
++	return ret;
++}
++
+ static struct notifier_block ghes_notifier_sci = {
+ 	.notifier_call = ghes_notify_sci,
+ };
+ 
++static struct notifier_block ghes_notifier_nmi = {
++	.notifier_call = ghes_notify_nmi,
 +};
 +
- static int __init setup_erst_disable(char *str)
+ static int __devinit ghes_probe(struct platform_device *ghes_dev)
  {
- 	erst_disable = 1;
-@@ -1007,11 +1170,17 @@ static int __init erst_init(void)
- 	if (!erst_erange.vaddr)
- 		goto err_release_erange;
+ 	struct acpi_hest_generic *generic;
+@@ -334,30 +534,21 @@ static int __devinit ghes_probe(struct p
+ 	if (!generic->enabled)
+ 		goto err;
  
-+	rc = herr_persist_register(&erst_persist);
-+	if (rc)
-+		goto err_unmap_erange;
-+
- 	pr_info(ERST_PFX
- 	"Error Record Serialization Table (ERST) support is initialized.\n");
+-	if (generic->notify.type != ACPI_HEST_NOTIFY_SCI) {
+-		char *notify = NULL;
+-
+-		switch (generic->notify.type) {
+-		case ACPI_HEST_NOTIFY_POLLED:
+-			notify = "POLL";
+-			break;
+-		case ACPI_HEST_NOTIFY_EXTERNAL:
+-		case ACPI_HEST_NOTIFY_LOCAL:
+-			notify = "IRQ";
+-			break;
+-		case ACPI_HEST_NOTIFY_NMI:
+-			notify = "NMI";
+-			break;
+-		}
+-		if (notify) {
+-			pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via %s is not supported!\n",
+-				   generic->header.source_id, notify);
+-		} else {
+-			pr_warning(FW_WARN GHES_PFX
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_NMI:
++		break;
++	case ACPI_HEST_NOTIFY_LOCAL:
++		pr_warning(GHES_PFX
++"Generic hardware error source: %d notified via local interrupt is not supported!\n",
++			   generic->header.source_id);
++		goto err;
++	default:
++		pr_warning(FW_WARN GHES_PFX
+ "Unknown notification type: %u for generic hardware error source: %d\n",
+-			generic->notify.type, generic->header.source_id);
+-		}
++			   generic->notify.type, generic->header.source_id);
+ 		goto err;
+ 	}
+ 
+@@ -388,6 +579,28 @@ static int __devinit ghes_probe(struct p
+ 		goto err;
+ 	}
+ 	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++		ghes->timer.function = ghes_poll_func;
++		ghes->timer.data = (unsigned long)ghes;
++		init_timer_deferrable(&ghes->timer);
++		ghes_add_timer(ghes);
++		break;
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++		/* External interrupt vector is GSI */
++		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
++			pr_err(GHES_PFX
++	"Failed to map GSI to IRQ for generic hardware error source: %d\n",
++			       generic->header.source_id);
++			goto err_unreg;
++		}
++		if (request_irq(ghes->irq, ghes_irq_func,
++				0, "GHES IRQ", ghes)) {
++			pr_err(GHES_PFX
++	"Failed to register IRQ for generic hardware error source: %d\n",
++			       generic->header.source_id);
++			goto err_unreg;
++		}
++		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
+ 		mutex_lock(&ghes_list_mutex);
+ 		if (list_empty(&ghes_sci))
+@@ -395,12 +608,21 @@ static int __devinit ghes_probe(struct p
+ 		list_add_rcu(&ghes->list, &ghes_sci);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
++	case ACPI_HEST_NOTIFY_NMI:
++		mutex_lock(&ghes_list_mutex);
++		if (list_empty(&ghes_nmi))
++			register_die_notifier(&ghes_notifier_nmi);
++		list_add_rcu(&ghes->list, &ghes_nmi);
++		mutex_unlock(&ghes_list_mutex);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+ 	platform_set_drvdata(ghes_dev, ghes);
  
  	return 0;
++err_unreg:
++	herr_dev_unregister(ghes->herr_dev);
+ err:
+ 	if (ghes) {
+ 		ghes_fini(ghes);
+@@ -417,7 +639,15 @@ static int __devexit ghes_remove(struct
+ 	ghes = platform_get_drvdata(ghes_dev);
+ 	generic = ghes->generic;
  
-+err_unmap_erange:
-+	iounmap(erst_erange.vaddr);
- err_release_erange:
- 	release_mem_region(erst_erange.base, erst_erange.size);
- err_unmap_reg:
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -309,6 +309,7 @@ struct cper_sec_mem_err {
- /* Reset to default packing */
- #pragma pack()
++	ghes->flags |= GHES_EXITING;
++
+ 	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++		del_timer_sync(&ghes->timer);
++		break;
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++		free_irq(ghes->irq, ghes);
++		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
+ 		mutex_lock(&ghes_list_mutex);
+ 		list_del_rcu(&ghes->list);
+@@ -426,6 +656,18 @@ static int __devexit ghes_remove(struct
+ 		mutex_unlock(&ghes_list_mutex);
+ 		synchronize_rcu();
+ 		break;
++	case ACPI_HEST_NOTIFY_NMI:
++		mutex_lock(&ghes_list_mutex);
++		list_del_rcu(&ghes->list);
++		if (list_empty(&ghes_nmi))
++			unregister_die_notifier(&ghes_notifier_nmi);
++		mutex_unlock(&ghes_list_mutex);
++		/*
++		 * To synchronize with NMI handler, ghes can only be
++		 * freed after NMI handler finishes.
++		 */
++		synchronize_rcu();
++		break;
+ 	default:
+ 		BUG();
+ 		break;
+@@ -451,6 +693,8 @@ static struct platform_driver ghes_platf
  
-+int herr_severity_to_cper(int herr_severity);
- u64 cper_next_record_id(void);
+ static int __init ghes_init(void)
+ {
++	int rc;
++
+ 	if (acpi_disabled)
+ 		return -ENODEV;
  
- #endif
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -1,6 +1,7 @@
- config ACPI_APEI
- 	bool "ACPI Platform Error Interface (APEI)"
- 	depends on X86
-+	select HERR_DEV_CORE
- 	help
- 	  APEI allows to report errors (for example from the chipset)
- 	  to the operating system. This improves NMI handling
+@@ -459,12 +703,25 @@ static int __init ghes_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	return platform_driver_register(&ghes_platform_driver);
++	rc = ghes_ioremap_init();
++	if (rc)
++		goto err;
++
++	rc = platform_driver_register(&ghes_platform_driver);
++	if (rc)
++		goto err_ioremap_exit;
++
++	return 0;
++err_ioremap_exit:
++	ghes_ioremap_exit();
++err:
++	return rc;
+ }
+ 
+ static void __exit ghes_exit(void)
+ {
+ 	platform_driver_unregister(&ghes_platform_driver);
++	ghes_ioremap_exit();
+ }
+ 
+ module_init(ghes_init);
+--- a/kernel/panic.c
++++ b/kernel/panic.c
+@@ -34,6 +34,7 @@ static int pause_on_oops_flag;
+ static DEFINE_SPINLOCK(pause_on_oops_lock);
+ 
+ int panic_timeout;
++EXPORT_SYMBOL_GPL(panic_timeout);
+ 
+ ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
+ 
+--- a/lib/ioremap.c
++++ b/lib/ioremap.c
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/io.h>
++#include <linux/module.h>
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
+ 
+@@ -90,3 +91,4 @@ int ioremap_page_range(unsigned long add
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(ioremap_page_range);
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -1160,6 +1160,7 @@ void unmap_kernel_range_noflush(unsigned
+ {
+ 	vunmap_page_range(addr, addr + size);
+ }
++EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
+ 
+ /**
+  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
