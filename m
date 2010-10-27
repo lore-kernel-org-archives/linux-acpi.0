@@ -1,155 +1,145 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v3 3/8] lib, Add lock-less NULL terminated single list
-Date: Wed, 27 Oct 2010 13:28:27 +0800
-Message-ID: <1288157312-10441-4-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v3 4/8] Hardware error device core
+Date: Wed, 27 Oct 2010 13:28:28 +0800
+Message-ID: <1288157312-10441-5-git-send-email-ying.huang@intel.com>
 References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:14210 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753068Ab0J0F2q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Oct 2010 01:28:46 -0400
 In-Reply-To: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Cmpxchg is used to implement adding new entry to the list, deleting
-all entries from the list, deleting first entry of the list and some
-other operations.
+Hardware error device is a kind of device which can report hardware
+errors.  The examples of hardware error device include APEI GHES, PCIe
+AER, etc.
 
-Because this is a single list, so the tail can not be accessed in O(1).
+Hardware error device core in this patch provides common services for
+various hardware error devices.
 
-This can be used in NMI handler.
+Hardware error record data structure is defined to accommodate various
+hardware error information.  Several error sections can be
+incorporated into one error record to accumulate information for
+multiple hardware components related to one error.  For example, for
+an error on a device on the secondary side of a PCIe bridge, it is
+useful to record error information from PCIe bridge and from the PCIe
+device.
+
+To manage various hardware error devices, struct herr_dev is defined
+as a "sub-class" of "struct device".  It should be created as the
+child device of the "real" hardware error device such as APEI GHES to
+represent the hardware error reporting aspect of the device.  The
+class of struct herr_dev instances is "error", so that all hardware
+error devices can be enumerated via listing all links in
+/sys/class/error.
+
+The most important functionality that this patch provided is hardware
+error reporting support.  Details is as follow.
+
+A lock-less hardware error record allocator is provided.  So for
+hardware error that can be ignored (such as corrected errors), it is
+not needed to pre-allocate the error record or allocate the error
+record on stack.
+
+After filling in all necessary fields in hardware error record, the
+error reporting is quite straightforward, just calling
+herr_record_report, parameters are the error record itself and the
+corresponding struct herr_dev.  All other special processing including
+user space interface is handled by hardware error device core, this
+make it much easier to write a hardware error handler.
+
+Because the possibility for two or more hardware parts to go error
+simultaneously is quite low, it is not necessary to create one device
+file for each hardware error device.  One device file (/dev/error)
+which mixed error records from all hardware error devices is created
+as the user space interface.  Then, the user space hardware error
+daemon can do some further processing (including logging into disk),
+based on the hardware error records read from the device file.
+
+Although the in-kernel and user space interface of hardware error
+reporting is quite simple, there is some special consideration in
+hardware error reporting implementation.
+
+Hardware errors may burst, for example, same hardware errors may be
+reported at high rate within a short interval, this will use up all
+pre-allocated memory for error reporting, so that other hardware
+errors come from same or different hardware device can not be logged.
+To deal with this issue, a burst control algorithm is implemented.
+The logging rate for errors come from one hardware error device is
+throttled based on the available pre-allocated memory for error
+reporting.  In this way we can log as many kinds of errors as possible
+comes from as many error devices as possible.
+
+This patch is designed by Andi Kleen and Huang Ying.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 ---
- include/linux/llist.h |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig           |    3 +
- lib/Makefile          |    2 +
- lib/llist.c           |   80 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 177 insertions(+)
- create mode 100644 include/linux/llist.h
- create mode 100644 lib/llist.c
+ drivers/char/Kconfig            |    2 
+ drivers/char/Makefile           |    2 
+ drivers/char/herror/Kconfig     |    4 
+ drivers/char/herror/Makefile    |    1 
+ drivers/char/herror/herr-core.c |  620 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/Kbuild            |    1 
+ include/linux/herror.h          |   69 ++++
+ include/linux/herror_record.h   |  100 ++++++
+ 8 files changed, 799 insertions(+)
+ create mode 100644 drivers/char/herror/Kconfig
+ create mode 100644 drivers/char/herror/Makefile
+ create mode 100644 drivers/char/herror/herr-core.c
+ create mode 100644 include/linux/herror.h
+ create mode 100644 include/linux/herror_record.h
 
---- /dev/null
-+++ b/include/linux/llist.h
-@@ -0,0 +1,92 @@
-+#ifndef LLIST_H
-+#define LLIST_H
-+/*
-+ * Lock-less NULL terminated single linked list
-+ *
-+ * If there are multiple producers and multiple consumers, llist_add
-+ * can be used in producers and llist_del_all can be used in
-+ * consumers.  They can work simultaneously without lock.  But
-+ * llist_del_first can not be used here.  Because llist_del_first
-+ * depends on list->first->next does not changed if list->first is not
-+ * changed during its operation, but llist_del_first, llist_add,
-+ * llist_add sequence in another consumer may violate that.
-+ *
-+ * If there are multiple producers and one consumer, llist_add can be
-+ * used in producers and llist_del_all or llist_del_first can be used
-+ * in the consumer.
-+ *
-+ * The list entries deleted via llist_del_all can be traversed with
-+ * traversing function such as llist_for_each etc.  But the list
-+ * entries can not be traversed safely before deleted from the list
-+ * without proper synchronization with the list consumers.
-+ */
-+
-+struct llist_head {
-+	struct llist_node *first;
-+};
-+
-+struct llist_node {
-+	struct llist_node *next;
-+};
-+
-+#define LLIST_HEAD_INIT(name)	{ NULL }
-+#define LLIST_HEAD(name)	struct llist_head name = LLIST_HEAD_INIT(name)
-+
-+/**
-+ * init_llist_head - initialize lock-less list head
-+ * @head:	the head for your lock-less list
-+ */
-+static inline void init_llist_head(struct llist_head *list)
-+{
-+	list->first = NULL;
-+}
-+
-+/**
-+ * llist_entry - get the struct of this entry
-+ * @ptr:	the &struct llist_node pointer.
-+ * @type:	the type of the struct this is embedded in.
-+ * @member:	the name of the llist_node within the struct.
-+ */
-+#define llist_entry(ptr, type, member)		\
-+	container_of(ptr, type, member)
-+
-+/**
-+ * llist_for_each - iterate over some entries of a lock-less list
-+ * @pos:	the &struct llist_node to use as a loop cursor
-+ * @node:	the first entry of deleted list entries
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being deleted from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each(pos, node)			\
-+	for (pos = (node); pos; pos = pos->next)
-+
-+/**
-+ * llist_for_each_entry - iterate over some entries of lock-less list of given type
-+ * @pos:	the type * to use as a loop cursor.
-+ * @node:	the fist entry of deleted list entries.
-+ * @member:	the name of the llist_node with the struct.
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being removed from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each_entry(pos, node, member)				\
-+	for (pos = llist_entry((node), typeof(*pos), member);		\
-+	     &pos->member != NULL;					\
-+	     pos = llist_entry(pos->member.next, typeof(*pos), member))
-+
-+/**
-+ * llist_empty - tests whether a lock-less list is empty
-+ * @head:	the list to test
-+ */
-+static inline int llist_empty(const struct llist_head *head)
-+{
-+	return head->first == NULL;
-+}
-+
-+void llist_add(struct llist_node *new, struct llist_head *head);
-+struct llist_node *llist_del_first(struct llist_head *head);
-+struct llist_node *llist_del_all(struct llist_head *head);
-+#endif /* LLIST_H */
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -210,4 +210,7 @@ config GENERIC_ATOMIC64
- config LRU_CACHE
- 	tristate
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -1129,5 +1129,7 @@ config RAMOOPS
+ 	  This enables panic and oops messages to be logged to a circular
+ 	  buffer in RAM where it can be read back at some later point.
  
-+config LLIST
-+	bool
++source "drivers/char/herror/Kconfig"
 +
  endmenu
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -106,6 +106,8 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic
  
- obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -115,6 +115,8 @@ obj-$(CONFIG_RAMOOPS)		+= ramoops.o
+ obj-$(CONFIG_JS_RTC)		+= js-rtc.o
+ js-rtc-y = rtc.o
  
-+obj-$(CONFIG_LLIST) += llist.o
++obj-$(CONFIG_HERR_DEV_CORE)	+= herror/
 +
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
+ # Files generated that shall be removed upon make clean
+ clean-files := consolemap_deftbl.c defkeymap.c
  
 --- /dev/null
-+++ b/lib/llist.c
-@@ -0,0 +1,80 @@
++++ b/drivers/char/herror/Kconfig
+@@ -0,0 +1,4 @@
++config HERR_DEV_CORE
++	bool
++	select LLIST
++	select GENERIC_ALLOCATOR
+--- /dev/null
++++ b/drivers/char/herror/Makefile
+@@ -0,0 +1 @@
++obj-y				+= herr-core.o
+--- /dev/null
++++ b/drivers/char/herror/herr-core.c
+@@ -0,0 +1,620 @@
 +/*
-+ * Lock-less NULL terminated single linked list
++ * Hardware error device core
++ *
++ * Hardware error device is a kind of device which can report hardware
++ * errors.  The examples of hardware error device include APEI GHES,
++ * PCIe AER, etc.
++ *
++ * Hardware error device core provides common services for various
++ * hardware error devices, including hardware error record lock-less
++ * allocator, error reporting mechanism, hardware error device
++ * management, etc.
 + *
 + * Copyright 2010 Intel Corp.
 + *   Author: Huang Ying <ying.huang@intel.com>
@@ -167,64 +157,780 @@ Reviewed-by: Andi Kleen <ak@linux.intel.com>
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
++
 +#include <linux/kernel.h>
 +#include <linux/module.h>
++#include <linux/rculist.h>
++#include <linux/mutex.h>
++#include <linux/percpu.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/trace_clock.h>
++#include <linux/uaccess.h>
++#include <linux/poll.h>
++#include <linux/ratelimit.h>
++#include <linux/nmi.h>
 +#include <linux/llist.h>
-+#include <linux/errno.h>
++#include <linux/genalloc.h>
++#include <linux/herror.h>
 +
-+#include <asm/system.h>
++#define HERR_NOTIFY_BIT			0
 +
-+/**
-+ * llist_add - add a new entry
-+ * @new:	new entry to be added
-+ * @head:	the head for your lock-less list
++static unsigned long herr_flags;
++
++/*
++ * Record list management and error reporting
 + */
-+void llist_add(struct llist_node *new, struct llist_head *head)
-+{
-+	struct llist_node *entry;
 +
-+	do {
-+		entry = head->first;
-+		new->next = entry;
-+	} while (cmpxchg(&head->first, entry, new) != entry);
++struct herr_node {
++	struct llist_node llist;
++	struct herr_record ercd __attribute__((aligned(HERR_MIN_ALIGN)));
++};
++
++#define HERR_NODE_LEN(rcd_len)					\
++	((rcd_len) + sizeof(struct herr_node) - sizeof(struct herr_record))
++
++#define HERR_MIN_ALLOC_ORDER	HERR_MIN_ALIGN_ORDER
++#define HERR_CHUNKS_PER_CPU	2
++#define HERR_RCD_LIST_NUM	2
++
++struct herr_rcd_lists {
++	struct llist_head *write;
++	struct llist_head *read;
++	struct llist_head heads[HERR_RCD_LIST_NUM];
++};
++
++static DEFINE_PER_CPU(struct herr_rcd_lists, herr_rcd_lists);
++
++static DEFINE_PER_CPU(struct gen_pool *, herr_gen_pool);
++
++static void herr_rcd_lists_init(void)
++{
++	int cpu, i;
++	struct herr_rcd_lists *lists;
++
++	for_each_possible_cpu(cpu) {
++		lists = per_cpu_ptr(&herr_rcd_lists, cpu);
++		for (i = 0; i < HERR_RCD_LIST_NUM; i++)
++			init_llist_head(&lists->heads[i]);
++		lists->write = &lists->heads[0];
++		lists->read = &lists->heads[1];
++	}
 +}
-+EXPORT_SYMBOL_GPL(llist_add);
 +
-+/**
-+ * llist_del_first - delete the first entry of lock-less list
-+ * @head:	the head for your lock-less list
-+ *
-+ * If list is empty, return NULL, otherwise, return the first entry deleted.
-+ *
-+ * Only one llist_del_first user can be used simultaneously with
-+ * multiple llist_add users without lock. Because otherwise
-+ * llist_del_first, llist_add, llist_add sequence in another user may
-+ * change @head->first->next, but keep @head->first. If multiple
-+ * consumers are needed, please use llist_del_all.
-+ */
-+struct llist_node *llist_del_first(struct llist_head *head)
++static void herr_pool_fini(void)
 +{
-+	struct llist_node *entry;
++	struct gen_pool *pool;
++	struct gen_pool_chunk *chunk;
++	int cpu;
 +
-+	do {
-+		entry = head->first;
-+		if (entry == NULL)
++	for_each_possible_cpu(cpu) {
++		pool = per_cpu(herr_gen_pool, cpu);
++		gen_pool_for_each_chunk(chunk, pool)
++			free_page(chunk->start_addr);
++		gen_pool_destroy(pool);
++	}
++}
++
++static int herr_pool_init(void)
++{
++	struct gen_pool **pool;
++	int cpu, rc, nid, i;
++	unsigned long addr;
++
++	for_each_possible_cpu(cpu) {
++		pool = per_cpu_ptr(&herr_gen_pool, cpu);
++		rc = -ENOMEM;
++		nid = cpu_to_node(cpu);
++		*pool = gen_pool_create(HERR_MIN_ALLOC_ORDER, nid);
++		if (!*pool)
++			goto err_pool_fini;
++		for (i = 0; i < HERR_CHUNKS_PER_CPU; i++) {
++			rc = -ENOMEM;
++			addr = __get_free_page(GFP_KERNEL);
++			if (!addr)
++				goto err_pool_fini;
++			rc = gen_pool_add(*pool, addr, PAGE_SIZE, nid);
++			if (rc)
++				goto err_pool_fini;
++		}
++	}
++
++	return 0;
++err_pool_fini:
++	herr_pool_fini();
++	return rc;
++}
++
++/* Max interval: about 2 second */
++#define HERR_BURST_BASE_INTVL	NSEC_PER_USEC
++#define HERR_BURST_MAX_RATIO	21
++#define HERR_BURST_MAX_INTVL						\
++	((1ULL << HERR_BURST_MAX_RATIO) * HERR_BURST_BASE_INTVL)
++/*
++ * Pool size/used ratio considered spare, before this, interval
++ * between error reporting is ignored. After this, minimal interval
++ * needed is increased exponentially to max interval.
++ */
++#define HERR_BURST_SPARE_RATIO	3
++
++static int herr_burst_control(struct herr_dev *edev)
++{
++	struct gen_pool *pool;
++	unsigned long long last, now, min_intvl;
++	unsigned int size, used, ratio;
++
++	pool = __get_cpu_var(herr_gen_pool);
++	size = gen_pool_size(pool);
++	used = size - gen_pool_avail(pool);
++	if (HERR_BURST_SPARE_RATIO * used < size)
++		goto pass;
++	now = trace_clock_local();
++	last = atomic64_read(&edev->timestamp);
++	ratio = (used * HERR_BURST_SPARE_RATIO - size) * HERR_BURST_MAX_RATIO;
++	ratio = ratio / (size * HERR_BURST_SPARE_RATIO - size) + 1;
++	min_intvl = (1ULL << ratio) * HERR_BURST_BASE_INTVL;
++	if ((long long)(now - last) > min_intvl)
++		goto pass;
++	atomic_inc(&edev->bursts);
++	return 0;
++pass:
++	return 1;
++}
++
++static u64 herr_record_next_id(void)
++{
++	static atomic64_t seq = ATOMIC64_INIT(0);
++
++	if (!atomic64_read(&seq))
++		atomic64_set(&seq, (u64)get_seconds() << 32);
++
++	return atomic64_inc_return(&seq);
++}
++
++void herr_record_init(struct herr_record *ercd)
++{
++	ercd->flags = 0;
++	ercd->rev = HERR_RCD_REV1_0;
++	ercd->id = herr_record_next_id();
++	ercd->timestamp = trace_clock_local();
++}
++EXPORT_SYMBOL_GPL(herr_record_init);
++
++struct herr_record *herr_record_alloc(unsigned int len, struct herr_dev *edev,
++				      unsigned int flags)
++{
++	struct gen_pool *pool;
++	struct herr_node *enode;
++	struct herr_record *ercd = NULL;
++
++	preempt_disable();
++	if (!(flags & HERR_ALLOC_NO_BURST_CONTROL)) {
++		if (!herr_burst_control(edev)) {
++			preempt_enable_no_resched();
 +			return NULL;
-+	} while (cmpxchg(&head->first, entry, entry->next) != entry);
++		}
++	}
 +
-+	return entry;
++	pool = __get_cpu_var(herr_gen_pool);
++	enode = (struct herr_node *)gen_pool_alloc(pool, HERR_NODE_LEN(len));
++	if (enode) {
++		ercd = &enode->ercd;
++		herr_record_init(ercd);
++		ercd->length = len;
++
++		atomic64_set(&edev->timestamp, trace_clock_local());
++		atomic_inc(&edev->logs);
++	} else
++		atomic_inc(&edev->overflows);
++	preempt_enable_no_resched();
++
++	return ercd;
 +}
-+EXPORT_SYMBOL_GPL(llist_del_first);
++EXPORT_SYMBOL_GPL(herr_record_alloc);
 +
-+/**
-+ * llist_del_all - delete all entries from lock-less list
-+ * @head:	the head of lock-less list to delete all entries
-+ *
-+ * If list is empty, return NULL, otherwise, delete all entries and
-+ * return the pointer to the first entry.
-+ */
-+struct llist_node *llist_del_all(struct llist_head *head)
++int herr_record_report(struct herr_record *ercd, struct herr_dev *edev)
 +{
-+	return xchg(&head->first, NULL);
++	struct herr_rcd_lists *lists;
++	struct herr_node *enode;
++
++	preempt_disable();
++	lists = this_cpu_ptr(&herr_rcd_lists);
++	enode = container_of(ercd, struct herr_node, ercd);
++	llist_add(&enode->llist, lists->write);
++	preempt_enable_no_resched();
++
++	set_bit(HERR_NOTIFY_BIT, &herr_flags);
++
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(llist_del_all);
++EXPORT_SYMBOL_GPL(herr_record_report);
++
++void herr_record_free(struct herr_record *ercd)
++{
++	struct herr_node *enode;
++	struct gen_pool *pool;
++
++	enode = container_of(ercd, struct herr_node, ercd);
++	pool = get_cpu_var(herr_gen_pool);
++	gen_pool_free(pool, (unsigned long)enode,
++		      HERR_NODE_LEN(enode->ercd.length));
++	put_cpu_var(pool);
++}
++EXPORT_SYMBOL_GPL(herr_record_free);
++
++/*
++ * The low 16 bit is freeze count, high 16 bit is thaw count. If they
++ * are not equal, someone is freezing the reader
++ */
++static u32 herr_freeze_thaw;
++
++/*
++ * Stop the reader to consume error records, so that the error records
++ * can be checked in kernel space safely.
++ */
++static void herr_freeze_reader(void)
++{
++	u32 old, new;
++
++	do {
++		new = old = herr_freeze_thaw;
++		new = ((new + 1) & 0xffff) | (old & 0xffff0000);
++	} while (cmpxchg(&herr_freeze_thaw, old, new) != old);
++}
++
++static void herr_thaw_reader(void)
++{
++	u32 old, new;
++
++	do {
++		old = herr_freeze_thaw;
++		new = old + 0x10000;
++	} while (cmpxchg(&herr_freeze_thaw, old, new) != old);
++}
++
++static int herr_reader_is_frozen(void)
++{
++	u32 freeze_thaw = herr_freeze_thaw;
++	return (freeze_thaw & 0xffff) != (freeze_thaw >> 16);
++}
++
++int herr_for_each_record(herr_traverse_func_t func, void *data)
++{
++	int i, cpu, rc = 0;
++	struct herr_rcd_lists *lists;
++	struct herr_node *enode;
++
++	preempt_disable();
++	herr_freeze_reader();
++	for_each_possible_cpu(cpu) {
++		lists = per_cpu_ptr(&herr_rcd_lists, cpu);
++		for (i = 0; i < HERR_RCD_LIST_NUM; i++) {
++			struct llist_head *head = &lists->heads[i];
++			llist_for_each_entry(enode, head->first, llist) {
++				rc = func(&enode->ercd, data);
++				if (rc)
++					goto out;
++			}
++		}
++	}
++out:
++	herr_thaw_reader();
++	preempt_enable_no_resched();
++	return rc;
++}
++EXPORT_SYMBOL_GPL(herr_for_each_record);
++
++static ssize_t herr_rcd_lists_read(char __user *ubuf, size_t usize,
++				   struct mutex *read_mutex)
++{
++	int cpu, rc = 0, read;
++	struct herr_rcd_lists *lists;
++	struct gen_pool *pool;
++	ssize_t len, rsize = 0;
++	struct herr_node *enode;
++	struct llist_head *old_read;
++	struct llist_node *to_read;
++
++	do {
++		read = 0;
++		for_each_possible_cpu(cpu) {
++			lists = per_cpu_ptr(&herr_rcd_lists, cpu);
++			pool = per_cpu(herr_gen_pool, cpu);
++			if (llist_empty(lists->read)) {
++				if (llist_empty(lists->write))
++					continue;
++				/*
++				 * Error records are output in batch, so old
++				 * error records can be output before new ones.
++				 */
++				old_read = lists->read;
++				lists->read = lists->write;
++				lists->write = old_read;
++			}
++			rc = rsize ? 0 : -EBUSY;
++			if (herr_reader_is_frozen())
++				goto out;
++			to_read = llist_del_first(lists->read);
++			if (herr_reader_is_frozen())
++				goto out_readd;
++			enode = llist_entry(to_read, struct herr_node, llist);
++			len = enode->ercd.length;
++			rc = rsize ? 0 : -EINVAL;
++			if (len > usize - rsize)
++				goto out_readd;
++			rc = -EFAULT;
++			if (copy_to_user(ubuf + rsize, &enode->ercd, len))
++				goto out_readd;
++			gen_pool_free(pool, (unsigned long)enode,
++				      HERR_NODE_LEN(len));
++			rsize += len;
++			read = 1;
++		}
++		if (need_resched()) {
++			mutex_unlock(read_mutex);
++			cond_resched();
++			mutex_lock(read_mutex);
++		}
++	} while (read);
++	rc = 0;
++out:
++	return rc ? rc : rsize;
++out_readd:
++	llist_add(to_read, lists->read);
++	goto out;
++}
++
++static int herr_rcd_lists_is_empty(void)
++{
++	int cpu, i;
++	struct herr_rcd_lists *lists;
++
++	for_each_possible_cpu(cpu) {
++		lists = per_cpu_ptr(&herr_rcd_lists, cpu);
++		for (i = 0; i < HERR_RCD_LIST_NUM; i++) {
++			if (!llist_empty(&lists->heads[i]))
++				return 0;
++		}
++	}
++	return 1;
++}
++
++
++/*
++ * Hardware Error Reporting Device Management
++ */
++
++static ssize_t herr_dev_name_show(struct device *device,
++				  struct device_attribute *attr,
++				  char *buf)
++{
++	struct herr_dev *dev = to_herr_dev(device);
++	return sprintf(buf, "%s\n", dev->name);
++}
++
++static struct device_attribute herr_dev_attr_name =
++	__ATTR(name, 0400, herr_dev_name_show, NULL);
++
++#define HERR_DEV_COUNTER_ATTR(_name)					\
++	static ssize_t herr_dev_##_name##_show(struct device *device,	\
++					       struct device_attribute *attr, \
++					       char *buf)		\
++	{								\
++		struct herr_dev *dev = to_herr_dev(device);		\
++		int counter;						\
++									\
++		counter = atomic_read(&dev->_name);			\
++		return sprintf(buf, "%d\n", counter);			\
++	}								\
++	static ssize_t herr_dev_##_name##_store(struct device *device,	\
++						struct device_attribute *attr, \
++						const char *buf,	\
++						size_t count)		\
++	{								\
++		struct herr_dev *dev = to_herr_dev(device);		\
++									\
++		atomic_set(&dev->_name, 0);				\
++		return count;						\
++	}								\
++	static struct device_attribute herr_dev_attr_##_name =		\
++		__ATTR(_name, 0600, herr_dev_##_name##_show,		\
++		       herr_dev_##_name##_store)
++
++HERR_DEV_COUNTER_ATTR(logs);
++HERR_DEV_COUNTER_ATTR(overflows);
++HERR_DEV_COUNTER_ATTR(bursts);
++
++static struct attribute *herr_dev_attrs[] = {
++	&herr_dev_attr_name.attr,
++	&herr_dev_attr_logs.attr,
++	&herr_dev_attr_overflows.attr,
++	&herr_dev_attr_bursts.attr,
++	NULL,
++};
++
++static struct attribute_group herr_dev_attr_group = {
++	.attrs	= herr_dev_attrs,
++};
++
++static const struct attribute_group *herr_dev_attr_groups[] = {
++	&herr_dev_attr_group,
++	NULL,
++};
++
++static void herr_dev_release(struct device *device)
++{
++	struct herr_dev *dev = to_herr_dev(device);
++
++	kfree(dev);
++}
++
++static struct device_type herr_dev_type = {
++	.groups		= herr_dev_attr_groups,
++	.release	= herr_dev_release,
++};
++
++static char *herr_devnode(struct device *dev, mode_t *mode)
++{
++	return kasprintf(GFP_KERNEL, "error/%s", dev_name(dev));
++}
++
++struct class herr_class = {
++	.name		= "error",
++	.devnode	= herr_devnode,
++};
++EXPORT_SYMBOL_GPL(herr_class);
++
++struct herr_dev *herr_dev_alloc(void)
++{
++	struct herr_dev *dev;
++
++	dev = kzalloc(sizeof(struct herr_dev), GFP_KERNEL);
++	if (!dev)
++		return NULL;
++	dev->dev.type = &herr_dev_type;
++	dev->dev.class = &herr_class;
++	device_initialize(&dev->dev);
++	atomic_set(&dev->logs, 0);
++	atomic_set(&dev->overflows, 0);
++	atomic_set(&dev->bursts, 0);
++	atomic64_set(&dev->timestamp, 0);
++
++	return dev;
++}
++EXPORT_SYMBOL_GPL(herr_dev_alloc);
++
++void herr_dev_free(struct herr_dev *dev)
++{
++	if (dev)
++		herr_dev_put(dev);
++}
++EXPORT_SYMBOL_GPL(herr_dev_free);
++
++int herr_dev_register(struct herr_dev *dev)
++{
++	static atomic_t herr_no = ATOMIC_INIT(0);
++	const char *path;
++	int rc;
++
++	dev_set_name(&dev->dev, "error%d", atomic_inc_return(&herr_no) - 1);
++
++	rc = device_add(&dev->dev);
++	if (rc)
++		goto err;
++
++	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
++	pr_info("error: %s as %s\n", dev->name ? dev->name : "Unspecified device",
++		path ? path : "N/A");
++	kfree(path);
++
++	return 0;
++err:
++	return rc;
++}
++EXPORT_SYMBOL_GPL(herr_dev_register);
++
++void herr_dev_unregister(struct herr_dev *dev)
++{
++	device_unregister(&dev->dev);
++}
++EXPORT_SYMBOL_GPL(herr_dev_unregister);
++
++
++/*
++ * Hardware Error Mix Reporting Device
++ */
++
++static int herr_major;
++static DECLARE_WAIT_QUEUE_HEAD(herr_mix_wait);
++
++void herr_notify(void)
++{
++	if (test_and_clear_bit(HERR_NOTIFY_BIT, &herr_flags))
++		wake_up_interruptible(&herr_mix_wait);
++}
++EXPORT_SYMBOL_GPL(herr_notify);
++
++static ssize_t herr_mix_read(struct file *filp, char __user *ubuf,
++			     size_t usize, loff_t *off)
++{
++	int rc;
++	static DEFINE_MUTEX(read_mutex);
++
++	if (*off != 0)
++		return -EINVAL;
++
++	rc = mutex_lock_interruptible(&read_mutex);
++	if (rc)
++		return rc;
++	rc = herr_rcd_lists_read(ubuf, usize, &read_mutex);
++	mutex_unlock(&read_mutex);
++
++	return rc;
++}
++
++static unsigned int herr_mix_poll(struct file *file, poll_table *wait)
++{
++	poll_wait(file, &herr_mix_wait, wait);
++	if (!herr_rcd_lists_is_empty())
++		return POLLIN | POLLRDNORM;
++	return 0;
++}
++
++static const struct file_operations herr_mix_dev_fops = {
++	.owner		= THIS_MODULE,
++	.read		= herr_mix_read,
++	.poll		= herr_mix_poll,
++};
++
++static int __init herr_mix_dev_init(void)
++{
++	struct device *dev;
++	dev_t devt;
++
++	devt = MKDEV(herr_major, 0);
++	dev = device_create(&herr_class, NULL, devt, NULL, "error");
++	if (IS_ERR(dev))
++		return PTR_ERR(dev);
++
++	return 0;
++}
++device_initcall(herr_mix_dev_init);
++
++static int __init herr_core_init(void)
++{
++	int rc;
++
++	BUILD_BUG_ON(sizeof(struct herr_node) % HERR_MIN_ALIGN);
++	BUILD_BUG_ON(sizeof(struct herr_record) % HERR_MIN_ALIGN);
++	BUILD_BUG_ON(sizeof(struct herr_section) % HERR_MIN_ALIGN);
++
++	herr_rcd_lists_init();
++
++	rc = herr_pool_init();
++	if (rc)
++		goto err;
++
++	rc = class_register(&herr_class);
++	if (rc)
++		goto err_free_pool;
++
++	rc = herr_major = register_chrdev(0, "error", &herr_mix_dev_fops);
++	if (rc < 0)
++		goto err_free_class;
++
++	return 0;
++err_free_class:
++	class_unregister(&herr_class);
++err_free_pool:
++	herr_pool_fini();
++err:
++	return rc;
++}
++/* Initialize data structure used by device driver, so subsys_initcall */
++subsys_initcall(herr_core_init);
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -140,6 +140,7 @@ header-y += gigaset_dev.h
+ header-y += hdlc.h
+ header-y += hdlcdrv.h
+ header-y += hdreg.h
++header-y += herror_record.h
+ header-y += hid.h
+ header-y += hiddev.h
+ header-y += hidraw.h
+--- /dev/null
++++ b/include/linux/herror.h
+@@ -0,0 +1,69 @@
++#ifndef LINUX_HERROR_H
++#define LINUX_HERROR_H
++
++#include <linux/types.h>
++#include <linux/list.h>
++#include <linux/device.h>
++#include <linux/herror_record.h>
++
++/*
++ * Hardware error reporting
++ */
++
++#define HERR_ALLOC_NO_BURST_CONTROL	0x0001
++
++struct herr_dev;
++
++/* allocate a herr_record lock-lessly */
++struct herr_record *herr_record_alloc(unsigned int len,
++				      struct herr_dev *edev,
++				      unsigned int flags);
++void herr_record_init(struct herr_record *ercd);
++/* report error via error record */
++int herr_record_report(struct herr_record *ercd, struct herr_dev *edev);
++/* free the herr_record allocated before, must on same CPU as allocated CPU */
++void herr_record_free(struct herr_record *ercd);
++/*
++ * Notify waited user space hardware error daemon for the new error
++ * record, can not be used in NMI context
++ */
++void herr_notify(void);
++
++/* Traverse all error records not consumed by user space */
++typedef int (*herr_traverse_func_t)(struct herr_record *ercd, void *data);
++int herr_for_each_record(herr_traverse_func_t func, void *data);
++
++
++/*
++ * Hardware Error Reporting Device Management
++ */
++extern struct class herr_class;
++
++struct herr_dev {
++	const char *name;
++	atomic_t overflows;
++	atomic_t logs;
++	atomic_t bursts;
++	struct device dev;
++	struct list_head list;
++	atomic64_t timestamp;
++};
++#define to_herr_dev(d)	container_of(d, struct herr_dev, dev)
++
++struct herr_dev *herr_dev_alloc(void);
++void herr_dev_free(struct herr_dev *dev);
++
++static inline struct herr_dev *herr_dev_get(struct herr_dev *dev)
++{
++	return dev ? to_herr_dev(get_device(&dev->dev)) : NULL;
++}
++
++static inline void herr_dev_put(struct herr_dev *dev)
++{
++	if (dev)
++		put_device(&dev->dev);
++}
++
++int herr_dev_register(struct herr_dev *dev);
++void herr_dev_unregister(struct herr_dev *dev);
++#endif
+--- /dev/null
++++ b/include/linux/herror_record.h
+@@ -0,0 +1,100 @@
++#ifndef LINUX_HERROR_RECORD_H
++#define LINUX_HERROR_RECORD_H
++
++#include <linux/types.h>
++
++/*
++ * Hardware Error Record Definition
++ */
++enum herr_severity {
++	HERR_SEV_NONE,
++	HERR_SEV_CORRECTED,
++	HERR_SEV_RECOVERABLE,
++	HERR_SEV_FATAL,
++};
++
++#define HERR_RCD_REV1_0		0x0100
++#define HERR_MIN_ALIGN_ORDER	3
++#define HERR_MIN_ALIGN		(1 << HERR_MIN_ALIGN_ORDER)
++
++enum herr_record_flags {
++	HERR_RCD_PREV		= 0x0001, /* record is for previous boot */
++	HERR_RCD_PERSIST	= 0x0002, /* record is from flash, need to be
++					   * cleared after writing to disk */
++};
++
++/*
++ * sizeof(struct herr_record) and sizeof(struct herr_section) should
++ * be multiple of HERR_MIN_ALIGN to make error record packing easier.
++ */
++struct herr_record {
++	__u16	length;
++	__u16	flags;
++	__u16	rev;
++	__u8	severity;
++	__u8	pad1;
++	__u64	id;
++	__u64	timestamp;
++	__u8	data[0];
++};
++
++/* Section type ID are allocated here */
++enum herr_section_type_id {
++	/* 0x0 - 0xff are reserved by core */
++	/* 0x100 - 0x1ff are allocated to CPER */
++	HERR_TYPE_CPER		= 0x0100,
++	HERR_TYPE_GESR		= 0x0110, /* acpi_hest_generic_status */
++	/* 0x200 - 0x2ff are allocated to PCI/PCIe subsystem */
++	HERR_TYPE_PCIE_AER	= 0x0200,
++};
++
++struct herr_section {
++	__u16	length;
++	__u16	flags;
++	__u32	type;
++	__u8	data[0];
++};
++
++#define herr_record_for_each_section(ercd, esec)		\
++	for ((esec) = (struct herr_section *)(ercd)->data;	\
++	     (void *)(esec) - (void *)(ercd) < (ercd)->length;	\
++	     (esec) = (void *)(esec) + (esec)->length)
++
++#define HERR_SEC_LEN_ROUND(len)						\
++	(((len) + HERR_MIN_ALIGN - 1) & ~(HERR_MIN_ALIGN - 1))
++#define HERR_SEC_LEN(type)						\
++	(sizeof(struct herr_section) + HERR_SEC_LEN_ROUND(sizeof(type)))
++
++#define HERR_RECORD_LEN_ROUND1(sec_len1)				\
++	(sizeof(struct herr_record) + HERR_SEC_LEN_ROUND(sec_len1))
++#define HERR_RECORD_LEN_ROUND2(sec_len1, sec_len2)			\
++	(sizeof(struct herr_record) + HERR_SEC_LEN_ROUND(sec_len1) +	\
++	 HERR_SEC_LEN_ROUND(sec_len2))
++#define HERR_RECORD_LEN_ROUND3(sec_len1, sec_len2, sec_len3)		\
++	(sizeof(struct herr_record) + HERR_SEC_LEN_ROUND(sec_len1) +	\
++	 HERR_SEC_LEN_ROUND(sec_len2) + HERR_SEC_LEN_ROUND(sec_len3))
++
++#define HERR_RECORD_LEN1(sec_type1)				\
++	(sizeof(struct herr_record) + HERR_SEC_LEN(sec_type1))
++#define HERR_RECORD_LEN2(sec_type1, sec_type2)			\
++	(sizeof(struct herr_record) + HERR_SEC_LEN(sec_type1) + \
++	 HERR_SEC_LEN(sec_type2))
++#define HERR_RECORD_LEN3(sec_type1, sec_type2, sec_type3)	\
++	(sizeof(struct herr_record) + HERR_SEC_LEN(sec_type1) + \
++	 HERR_SEC_LEN(sec_type2) + HERR_SEC_LEN(sec_type3))
++
++static inline struct herr_section *herr_first_sec(struct herr_record *ercd)
++{
++	return (struct herr_section *)(ercd + 1);
++}
++
++static inline struct herr_section *herr_next_sec(struct herr_section *esrc)
++{
++	return (void *)esrc + esrc->length;
++}
++
++static inline void *herr_sec_data(struct herr_section *esec)
++{
++	return (void *)(esec + 1);
++}
++#endif
