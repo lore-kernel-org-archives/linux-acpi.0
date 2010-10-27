@@ -1,71 +1,51 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH -v3 2/8] lib, Make gen_pool memory allocator lock-less
-Date: Wed, 27 Oct 2010 11:17:41 +0200
-Message-ID: <20101027091741.GD2472@basil.fritz.box>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH -v3 0/8] ACPI, APEI patches for 2.6.37
+Date: Wed, 27 Oct 2010 12:07:30 +0200
+Message-ID: <1288174050.15336.1507.camel@twins>
 References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
- <1288157312-10441-3-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:54235 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760727Ab0J0JRm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Oct 2010 05:17:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1288157312-10441-3-git-send-email-ying.huang@intel.com>
+Received: from canuck.infradead.org ([134.117.69.58]:41870 "EHLO
+	canuck.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105Ab0J0KHx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Oct 2010 06:07:53 -0400
+In-Reply-To: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, BorislavPetkov <petkovbb@googlemail.com>, Andrew Morton <akpm@linux-foundation.org>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-> --- a/lib/genalloc.c
-> +++ b/lib/genalloc.c
-> @@ -1,8 +1,8 @@
->  /*
-> - * Basic general purpose allocator for managing special purpose memory
-> - * not managed by the regular kmalloc/kfree interface.
-> - * Uses for this includes on-device special memory, uncached memory
-> - * etc.
-> + * Basic general purpose allocator for managing special purpose
-> + * memory, for example, memory that is not managed by the regular
-> + * kmalloc/kfree interface.  Uses for this includes on-device special
-> + * memory, uncached memory etc.
+On Wed, 2010-10-27 at 13:28 +0800, Huang Ying wrote:
+> v3:
+> 
+> - Rework lock-less memory allocator and lock-less list.
+> 
+> v2:
+> 
+> - Some minor changes according to Andi's comments.
+> 
+> [PATCH -v3 1/8] ACPI, APEI, Add ERST record ID cache
+> [PATCH -v3 2/8] lib, Make gen_pool memory allocator lock-less
+> [PATCH -v3 3/8] lib, Add lock-less NULL terminated single list
+> [PATCH -v3 4/8] Hardware error device core
+> [PATCH -v3 5/8] Hardware error record persistent support
+> [PATCH -v3 6/8] ACPI, APEI, Use ERST for hardware error persisting before panic
+> [PATCH -v3 7/8] ACPI, APEI, Report GHES error record with hardware error device core
+> [PATCH -v3 8/8] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support
 
-I think we need some more description here about the locklessness:
+You forgot to CC all people who participated in the previous discussion.
 
-How about adding to the comment:
+You seem to have forgotten to address the high-level feedback given by
+the x86 maintainers.
 
-This version of the allocator supports lockless operation.
+All you've done is decreased the arch/x86/ footprint of the patch
+series, but neither you nor Andi have addressed the technical arguments
+against adding this ABI.
 
-This makes it safe to use in NMI handlers and other special unblockable
-contexts that could otherwise deadlock on locks.  This is implemented by 
-using atomic operations and retries on any conflicts. 
-The disadvantage is that there may be livelocks in extreme cases.  
+Nor have you engaged in conversation with the other EDAC people on how
+to extend the existing interface, or even work towards creating
+something new that would cater to all interested parties.
 
-The lockless operation only works if there is enough memory
-available. If new memory is added to the pool a lock has to 
-be still taken. So any user relying on locklessness has to ensure
-that sufficient memory is preallocated.
-
-The basic atomic operation of this allocator is cmpxchg on long. 
-On architectures that don't support cmpxchg natively a fallback
-is used. If the fallback uses locks it may not be safe to use
-it in NMI contexts on these architectures.
-
-> +/**
-> + * gen_pool_for_each_chunk - iterate over chunks of generic memory pool
-> + * @chunk:	the struct gen_pool_chunk * to use as a loop cursor
-> + * @pool:	the generic memory pool
-> + */
-
-I believe that's not safe in a lockless context right?
-Should note that.
-
-> +#define gen_pool_for_each_chunk(chunk, pool)			\
-> +	list_for_each_entry(chunk, &pool->chunks, next_chunk)
-> +
-
--Andi
-
--- 
-ak@linux.intel.com -- Speaking for myself only.
+Not charmed at all by your attitude.
