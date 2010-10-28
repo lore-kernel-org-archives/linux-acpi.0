@@ -1,83 +1,237 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH -v3 0/8] ACPI, APEI patches for 2.6.37
-Date: Wed, 27 Oct 2010 19:23:44 +0200
-Message-ID: <20101027172343.GB22171@basil.fritz.box>
-References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
- <1288174050.15336.1507.camel@twins>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [RFC] PERF: fix power:cpu_idle double end events and missing acpi_idle events - make cpu_idle power events cpuidle sysfs conform
+Date: Thu, 28 Oct 2010 02:46:38 +0200
+Message-ID: <201010280246.40134.trenn@suse.de>
+References: <1288136605-10526-1-git-send-email-trenn@suse.de> <1288136605-10526-5-git-send-email-trenn@suse.de> <201010271742.04545.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:32987 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143Ab0J0RXp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Oct 2010 13:23:45 -0400
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <201010271742.04545.trenn@suse.de>
 Content-Disposition: inline
-In-Reply-To: <1288174050.15336.1507.camel@twins>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-trace-users-owner@vger.kernel.org
+To: arjan@linux.intel.com
+Cc: jean.pihet@newoldbits.com, mingo@elte.hu, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Robert Schoene <robert.schoene@tu-dresden.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Huang Ying <ying.huang@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, BorislavPetkov <petkovbb@googlemail.com>, Andrew Morton <akpm@linux-foundation.org>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Peter,
+On Wednesday 27 October 2010 05:42:04 pm Thomas Renninger wrote:
+> On Wednesday 27 October 2010 01:43:25 Thomas Renninger wrote:
+> > cpu_idle events (transition into sleep state and exiting) are
+> > both fired in pm_idle().
+> > 
+> > Entering sleep state and exiting should always get fired inside
+> > pm_idle() already.
+> > 
+> > This is a revert of commit c882e0feb937af4e5b991cbd1c
+..
+> Argh, I tried to come up with patches, but run out of
+> time. I will send something soon.
 
-> All you've done is decreased the arch/x86/ footprint of the patch
-> series, but neither you nor Andi have addressed the technical arguments
-> against adding this ABI.
+Below patch should fix and clean up current cpu_idle (former power_start/end)
+event throwing policy.
 
-What were the technical arguments? I don't remember any.
+But it introduces a change which state number is thrown in acpi_idle
+mwait case. This should be done anyway, but needs further adjustings
+in userspace.
 
-I remember just reading some rants from people who clearly
-never even looked at this code and made no attempt to review
-it. It was very untechnical.
+If a cpuidle driver is registered, now the event throws the state which
+maps to the registered cpuidle state.
+This is an important fix, so that the whole cpu_idle event (state) 
+interface gets architecture independent.
+For the intel_idle driver it currently does not matter because the cpuidle
+and mwait C1/2/3 states by luck exactly match.
 
-> Nor have you engaged in conversation with the other EDAC people on how
+But on my machine with acpi_idle I only get 2 states: C1/C3.
+ls /sys/devices/system/cpu/cpu0/cpuidle/state
+state0/     state1/ state2/
+(poll idle)   (C1)    (C3)
+So with this change it would throw state=2, but it is C3, which has to be
+grabbed from:
+/sys/devices/system/cpu/cpu0/cpuidle/state2/name
 
-There was a long thread on it last time, patchkit really is based
-on at least some of the sane feedback from that.
+But in intel_idle case the state names are bit long to be displayed nicely
+in perf timechart:
+        { /* MWAIT C1 */
+                .name = "NHM-C1",
+                .desc = "MWAIT 0x00",
+        { /* MWAIT C3 */
+                .name = "NHM-C6",
+                .desc = "MWAIT 0x20",
 
-But in a nutshell:
+Therefore I suggest to:
+Shorten .name (also by cutting the char array down) to 2 characters
+1) Either introduce convention that first word in .desc is the longer name,
+   arbitrary flags (as strings) follow, like:
+        { /* MWAIT C3 */
+                .name = "C3",
+                .desc = "NHM-C6 MWAIT 0x20",
+2) Or introduce another sysfs file, however it's named:
+        { /* MWAIT C3 */
+                .name = "NHM-C6",
+                .desc = "MWAIT 0x20",
+                .abbr = "C3"
+The latter is fully userspace (sysfs) compatible, I'd go for that.
 
-This code is quite orthogonal to EDAC: EDAC does enumeration
-(or some weird variant of it at least), exporting of counter registers
-and some dumping of the registers into the kernel log. 
+If nobody objects, I may have time to implement this (will take more than a week) which includes:
+ - place cpu_idle events correctly, so that they always get thrown when idle
+   and no double end marker events can happen
+ - Make above cpuidle name/sysfs changes
+ - Let perf timechart grab the correct idle state name from sysfs.
+   -> Mapping between the cpu_idle event and the sysfs cpuidle state.
 
-APEI doesn't do enumeration or counting or registers, it's really just
-an interface to retrieve some events from firmware, stop the machine on 
-fatal events and pass them on and support managing of the events in a 
-backing store.
+Thanks,
 
-It's also a standardized interface supported by multiple vendors,
-it's not proprietary at all as some people claimed.
+    Thomas
 
-> to extend the existing interface, or even work towards creating
-> something new that would cater to all interested parties.
+--------
+PERF: fix power:cpu_idle double end events - always throw events with acpi_idle
 
-Open to serious input. Do you have anything concrete?
-Please be concrete and technical ideally with references to code.
+Convention should be:
+Fire cpu_idle events inside the current pm_idle function (not somewhere
+down the the callee tree) to keep things easy.
 
-Some common comments I heard:
+This is not always possible, only exception is:
+c1e_idle -> calls default_idle which throws events -> easy and obvious.
+Current possible pm_idle functions in X86:
+c1e_idle, poll_idle, cpuidle_idle_call, mwait_idle, default_idle
 
-If you want enumeration it could be probably done in some 
-EDAC2 variant which fixes the worst problems in the current EDAC interface.
-But it won't be talking to APEI directly anyways -- APEI
-doesn't do enumeration -- it's really a different problem
-and won't be solve by this code.
+-> this is really easy is now (if I haven't overseen something).
 
-If you want to move the event channel to perf: we looked at that
-and it's not practical with the current infrastructure. And
-not a very good fit anyways because the requirements
-as quite different from the ones perf was designed for.
-For more details see the big thread on the previous posting.
+This also introduces another cleanup which may affect userspace:
+The type field of the cpu_idle power event can now direclty get
+mapped to:
+/sys/devices/system/cpu/cpuX/cpuidle/stateX/{name,desc,usage,time,...}
+instead of throwing very CPU/mwait specific numbers.
+Fortunately this change is not visible for the intel_idle driver.
+For the acpi_idle driver it should only be visible if the vendor
+misses out C-states in his BIOS.
 
-If you want to move the backing store to a file system
-or MTD: we actually looked at that too but there were too
-many problems and it's really far too much code for the simple 
-use case.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Robert Schoene <robert.schoene@tu-dresden.de>
+CC: Arjan van de Ven <arjan@linux.intel.com>
+CC: Ingo Molnar <mingo@elte.hu>
+CC: linux-trace-users@vger.kernel.org
+CC: linux-pm@lists.linux-foundation.org
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
 
-Short term this code just attempts to handle fatal chipset errors
-(which are a long standing problem in Linux) in a sane way.
-
--Andi
-
--- 
-ak@linux.intel.com -- Speaking for myself only.
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index 155d975..b618548 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -387,6 +387,8 @@ void default_idle(void)
+ 		else
+ 			local_irq_enable();
+ 		current_thread_info()->status |= TS_POLLING;
++		trace_power_end(smp_processor_id());
++		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+ 	} else {
+ 		local_irq_enable();
+ 		/* loop is done by the caller */
+@@ -444,8 +446,6 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
+  */
+ void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
+ {
+-	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
+-	trace_cpu_idle((ax>>4)+1, smp_processor_id());
+ 	if (!need_resched()) {
+ 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
+ 			clflush((void *)&current_thread_info()->flags);
+@@ -472,6 +472,8 @@ static void mwait_idle(void)
+ 			__sti_mwait(0, 0);
+ 		else
+ 			local_irq_enable();
++		trace_power_end(smp_processor_id());
++		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+ 	} else
+ 		local_irq_enable();
+ }
+diff --git a/arch/x86/kernel/process_32.c b/arch/x86/kernel/process_32.c
+index 4b9befa..8d12878 100644
+--- a/arch/x86/kernel/process_32.c
++++ b/arch/x86/kernel/process_32.c
+@@ -57,8 +57,6 @@
+ #include <asm/syscalls.h>
+ #include <asm/debugreg.h>
+ 
+-#include <trace/events/power.h>
+-
+ asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
+ 
+ /*
+@@ -113,8 +111,6 @@ void cpu_idle(void)
+ 			stop_critical_timings();
+ 			pm_idle();
+ 			start_critical_timings();
+-			trace_power_end(smp_processor_id());
+-			trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+ 		}
+ 		tick_nohz_restart_sched_tick();
+ 		preempt_enable_no_resched();
+diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+index 28153a9..d7b3e95 100644
+--- a/arch/x86/kernel/process_64.c
++++ b/arch/x86/kernel/process_64.c
+@@ -51,8 +51,6 @@
+ #include <asm/syscalls.h>
+ #include <asm/debugreg.h>
+ 
+-#include <trace/events/power.h>
+-
+ asmlinkage extern void ret_from_fork(void);
+ 
+ DEFINE_PER_CPU(unsigned long, old_rsp);
+@@ -141,10 +139,6 @@ void cpu_idle(void)
+ 			pm_idle();
+ 			start_critical_timings();
+ 
+-			trace_power_end(smp_processor_id());
+-			trace_cpu_idle(PWR_EVENT_EXIT,
+-				       smp_processor_id());
+-
+ 			/* In many cases the interrupt that ended idle
+ 			   has already called exit_idle. But some idle
+ 			   loops can be woken up without interrupt. */
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 08d5f05..491a4af 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -96,7 +96,15 @@ static void cpuidle_idle_call(void)
+ 
+ 	/* enter the state and update stats */
+ 	dev->last_state = target_state;
++
++	trace_power_start(POWER_CSTATE, next_state, dev->cpu);
++	trace_cpu_idle(next_state, dev->cpu);
++
+ 	dev->last_residency = target_state->enter(dev, target_state);
++
++	trace_power_end(dev->cpu);
++	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
++
+ 	if (dev->last_state)
+ 		target_state = dev->last_state;
+ 
+@@ -106,8 +114,6 @@ static void cpuidle_idle_call(void)
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+ 		cpuidle_curr_governor->reflect(dev);
+-	trace_power_end(smp_processor_id());
+-	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+ }
+ 
+ /**
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index d3701bf..5539cff 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -201,8 +201,6 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state)
+ 	kt_before = ktime_get_real();
+ 
+ 	stop_critical_timings();
+-	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
+-	trace_cpu_idle((eax >> 4) + 1, cpu);
+ 	if (!need_resched()) {
+ 
+ 		__monitor((void *)&current_thread_info()->flags, 0, 0);
