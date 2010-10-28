@@ -1,43 +1,65 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH -v3 0/8] ACPI, APEI patches for 2.6.37
-Date: Thu, 28 Oct 2010 18:01:29 +0200
-Message-ID: <20101028160129.GA12628@elte.hu>
-References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
- <1288174050.15336.1507.camel@twins>
- <20101027172343.GB22171@basil.fritz.box>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: jwjstone@fastmail.fm
+Subject: [PATCH] acpi: Fix the build when the video output switcher is disabled
+Date: Thu, 28 Oct 2010 20:06:18 +0100
+Message-ID: <1288292779-23347-1-git-send-email-jwjstone@fastmail.fm>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:38179 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758884Ab0J1QB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Oct 2010 12:01:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20101027172343.GB22171@basil.fritz.box>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:37339 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757152Ab0J1TGa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Oct 2010 15:06:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Huang Ying <ying.huang@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, BorislavPetkov <petkovbb@googlemail.com>, Andrew Morton <akpm@linux-foundation.org>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com
+Cc: Jack Stone <jwjstone@fastmail.fm>
 
+From: Jack Stone <jwjstone@fastmail.fm>
 
-* Andi Kleen <andi@firstfloor.org> wrote:
+When CONFIG_ACPI_VIDEO is enabled and CONFIG_VIDEO_OUTPUT_CONTROL is disabled
+the following errors occur:
 
-> Peter,
-> 
-> > All you've done is decreased the arch/x86/ footprint of the patch series, but 
-> > neither you nor Andi have addressed the technical arguments against adding this 
-> > ABI.
-> 
-> What were the technical arguments? I don't remember any.
+drivers/built-in.o: In function `acpi_video_bus_put_one_device':
+/home/jwjs/projects/linux.trees.git/drivers/acpi/video.c:1455: undefined reference to `video_output_unregister'
+drivers/built-in.o: In function `acpi_video_device_find_cap':
+/home/jwjs/projects/linux.trees.git/drivers/acpi/video.c:917: undefined reference to `video_output_register'
 
-You did not reply to my technical arguments:
+Fix this by adding ifdefs around the offending calls in acpi video.
 
-    http://lkml.org/lkml/2010/10/25/271
+Signed-off-by: Jack Stone <jwjstone@fastmail.fm>
+---
+ drivers/acpi/video.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-You did not reply to Thomas's technical arguments:
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 5cd0228..a3ec29e 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -905,6 +905,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 
+ 	}
+ 
++#ifdef CONFIG_VIDEO_OUTPUT_CONTROL
+ 	if (acpi_video_display_switch_support()) {
+ 
+ 		if (device->cap._DCS && device->cap._DSS) {
+@@ -919,6 +920,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 			kfree(name);
+ 		}
+ 	}
++#endif
+ }
+ 
+ /*
+@@ -1452,7 +1454,9 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
+ 		thermal_cooling_device_unregister(device->cooling_dev);
+ 		device->cooling_dev = NULL;
+ 	}
++#ifdef CONFIG_VIDEO_OUTPUT_CONTROL
+ 	video_output_unregister(device->output_dev);
++#endif
+ 
+ 	return 0;
+ }
+-- 
+1.7.3.2.145.g7ebee
 
-    http://lkml.org/lkml/2010/10/26/71
-
-Are you really claiming that you "don't remember any"?
-
-	Ingo
