@@ -1,24 +1,20 @@
-From: f6bvp <f6bvp@free.fr>
+From: Bernard Pidoux <bernard.pidoux@upmc.fr>
 Subject: Re: booting "nosmp" kernel causing ACPI errors
-Date: Fri, 29 Oct 2010 21:47:03 +0200
-Message-ID: <4CCB24B7.1070500@free.fr>
+Date: Fri, 29 Oct 2010 21:47:42 +0200
+Message-ID: <4CCB24DE.2040009@upmc.fr>
 References: <4CB9D69D.60203@upmc.fr> <1287708483.2210.13.camel@rui>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------040308030106020809050304"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:54607 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752584Ab0J2ToD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Oct 2010 15:44:03 -0400
+ boundary="------------000209080807090708060300"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1287708483.2210.13.camel@rui>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
 Cc: Bernard Pidoux <bernard.pidoux@upmc.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040308030106020809050304
+--------------000209080807090708060300
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
@@ -114,7 +110,7 @@ Le 22/10/2010 02:48, Zhang Rui a écrit :
 >    
 
 
---------------040308030106020809050304
+--------------000209080807090708060300
 Content-Type: text/plain;
  name="dmesg_2.6.36-smp.txt"
 Content-Transfer-Encoding: base64
@@ -561,7 +557,7 @@ cywgZnVsbC1kdXBsZXgsIGxwYSAweDQ1RTEKTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZh
 bWlseSAxNwptYXJ0aWFuIHNvdXJjZSAxOTIuMTY4LjAuNjggZnJvbSA4OS43OC43OS4xMzcs
 IG9uIGRldiBldGgwCmxsIGhlYWRlcjogMDA6MTY6MTc6YjM6ZTk6NmM6MDA6MDc6Y2I6YzU6
 MWM6MmE6MDg6MDAK
---------------040308030106020809050304
+--------------000209080807090708060300
 Content-Type: text/plain;
  name="dmesg_2.6.36-nosmp.txt"
 Content-Transfer-Encoding: base64
@@ -1135,4 +1131,4 @@ biAvZGV2L3NkYjEuICBQcmlvcml0eTotMiBleHRlbnRzOjEgYWNyb3NzOjQwODg1MDRrIApJ
 UHY2OiBMb2FkZWQsIGJ1dCBhZG1pbmlzdHJhdGl2ZWx5IGRpc2FibGVkLCByZWJvb3QgcmVx
 dWlyZWQgdG8gZW5hYmxlCmV0aDA6IGxpbmsgdXAsIDEwME1icHMsIGZ1bGwtZHVwbGV4LCBs
 cGEgMHg0NUUxCnNwdXJpb3VzIDgyNTlBIGludGVycnVwdDogSVJRNy4K
---------------040308030106020809050304--
+--------------000209080807090708060300--
