@@ -1,37 +1,38 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 06/39] drivers/acpi: Update WARN uses
-Date: Sat, 30 Oct 2010 14:08:23 -0700
-Message-ID: <5188d583646249745c87ec1e3a1850d5b9748529.1288471898.git.joe@perches.com>
-References: <cover.1288471897.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1288471897.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [PATCH -v3 0/8] ACPI, APEI patches for 2.6.37
+Date: Sun, 31 Oct 2010 19:36:12 +0800
+Message-ID: <AANLkTinp48sY7HPOu4JgnSKhMpo1j0e71n2TeECn4wLv@mail.gmail.com>
+References: <1288157312-10441-1-git-send-email-ying.huang@intel.com>
+	<1288174050.15336.1507.camel@twins>
+	<20101027082702.c65a0d22.randy.dunlap@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45955 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753575Ab0JaLgN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Oct 2010 07:36:13 -0400
+In-Reply-To: <20101027082702.c65a0d22.randy.dunlap@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Huang Ying <ying.huang@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, BorislavPetkov <petkovbb@googlemail.com>, Andrew Morton <akpm@linux-foundation.org>, Don Zickus <dzickus@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Add missing newlines.
+Hi, Randy,
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/acpi/ec.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+On Wed, Oct 27, 2010 at 11:27 PM, Randy Dunlap <randy.dunlap@oracle.com=
+> wrote:
+> Looks like you also have not addressed this reported build error:
+> =C2=A0http://lkml.org/lkml/2010/10/25/440
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 372ff80..d41d68e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -818,9 +818,9 @@ static int acpi_ec_add(struct acpi_device *device)
- 	device->driver_data = ec;
- 
- 	WARN(!request_region(ec->data_addr, 1, "EC data"),
--	     "Could not request EC data io port 0x%lx", ec->data_addr);
-+	     "Could not request EC data io port 0x%lx\n", ec->data_addr);
- 	WARN(!request_region(ec->command_addr, 1, "EC cmd"),
--	     "Could not request EC cmd io port 0x%lx", ec->command_addr);
-+	     "Could not request EC cmd io port 0x%lx\n", ec->command_addr);
- 
- 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
- 			  ec->gpe, ec->command_addr, ec->data_addr);
--- 
-1.7.3.1.g432b3.dirty
+Sorry for late, busy in traveling recently. I will fix the issue in
+the next version.
+
+Best Regards,
+Huang Ying
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
