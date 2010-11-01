@@ -1,56 +1,57 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for October 28 (acpi_video)
-Date: Sun, 31 Oct 2010 20:09:22 -0700
-Message-ID: <4CCE2F62.7050202@oracle.com>
-References: <20101028142031.5a4d6612.sfr@canb.auug.org.au> <20101029090131.68709a71.randy.dunlap@oracle.com> <alpine.LFD.2.00.1010291406560.3423@localhost.localdomain>
+From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: [PATCH] acpi: Fix section mismatch warning in osl.c
+Date: Mon, 1 Nov 2010 13:21:13 +0600
+Message-ID: <AANLkTimWOytXT=jDWTobyvL=xdD7xW7oRqXshULgoF6R@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:19519 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272Ab0KADLp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Oct 2010 23:11:45 -0400
-In-Reply-To: <alpine.LFD.2.00.1010291406560.3423@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Lee@kernel.org, Chun-Yi <joeyli.kernel@gmail.com>, Dave Airlie <airlied@redhat.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 10/29/10 11:18, Len Brown wrote:
->> drivers/built-in.o: In function `acpi_video_bus_put_one_device':
->> video.c:(.text+0x9d794): undefined reference to `backlight_device_unregister'
-> 
-> Invalid .config, as ACPI_VIDEO depends on BACKLIGHT_CLASS_DEVICE, which is not set.
-> 
-> This breakage is the infamous "select in Kconfig doesn't" bug,
-> which has apparently claimed a new victim, STUB_POULSBO:
-> 
-> (STUB_POULSBO && HAS_IOMEM && PCI && ACPI || DRM_I915 && <choice> && 
-> AGP_INTEL && ACPI || DRM_NOUVEAU && STAGING && !STAGING_EXCLUDE_BUILD && 
-> DRM && PCI && ACPI) selects ACPI_VIDEO which has unmet direct dependencies 
-> (ACPI && X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL && INPUT)
-> 
-> commit e26fd1199ebab0d469fc3e037da5932d382f0669
-> Author: Lee, Chun-Yi <joeyli.kernel@gmail.com>
-> Date:   Wed Oct 20 13:51:19 2010 +0800
-> 
->     gpu: Add Intel GMA500(Poulsbo) Stub Driver
->     
->     Currently, there have no GMA500(Poulsbo) native video driver to 
-> support
->     intel opregion. So, use this stub driver to enable the acpi backlight
->     control sysfs entry files by requrest acpi_video_register.
->     
->     [airlied: fix warnings]
->     
->     Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
->     Signed-off-by: Dave Airlie <airlied@redhat.com>
-> 
+Function acpi_os_initialize1() calls acpi_osi_setup_late() which is in
+.init.text section and gets called from acpi_bus_init which is in
+.init.text section. So mark acpi_os_initialize1() with __init. And
+declaration of __init acpi_osi_setup_late has been removed, cause its
+defination is above called function.
 
-I think that it needs this patch (from 2010-OCT-13):
-  http://lkml.org/lkml/2010/10/13/270
 
--- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+ WARNING: drivers/acpi/acpi.o(.text+0x460): Section mismatch in
+reference from the function acpi_os_initialize1() to the function
+.init.text:acpi_osi_setup_late()
+The function acpi_os_initialize1() references
+the function __init acpi_osi_setup_late().
+This is often because acpi_os_initialize1 lacks a __init
+annotation or the annotation of acpi_osi_setup_late is wrong.
+
+
+Thanks,
+Rakib
+
+
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+---
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 966fedd..81de639 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -113,8 +113,6 @@ static DEFINE_SPINLOCK(acpi_ioremap_lock);
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_setup_string[OSI_STRING_LENGTH_MAX];
+
+-static void __init acpi_osi_setup_late(void);
+-
+ /*
+  * The story of _OSI(Linux)
+  *
+@@ -1530,7 +1528,7 @@ acpi_status __init acpi_os_initialize(void)
+ 	return AE_OK;
+ }
+
+-acpi_status acpi_os_initialize1(void)
++acpi_status __init acpi_os_initialize1(void)
+ {
+ 	kacpid_wq = create_workqueue("kacpid");
+ 	kacpi_notify_wq = create_workqueue("kacpi_notify");
