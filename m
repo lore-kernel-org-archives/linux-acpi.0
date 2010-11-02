@@ -1,57 +1,71 @@
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject: [PATCH] acpi: Fix section mismatch warning in osl.c
-Date: Mon, 1 Nov 2010 13:21:13 +0600
-Message-ID: <AANLkTimWOytXT=jDWTobyvL=xdD7xW7oRqXshULgoF6R@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Bad AC adaptateur value trought sysfst
+Date: Tue, 02 Nov 2010 09:16:35 +0800
+Message-ID: <1288660595.2234.164.camel@rui>
+References: <AANLkTino-WkpMHfqD6amL-gk5mabiQAVbn9Low8L6joF@mail.gmail.com>
+	 <1288572245.2234.88.camel@rui>
+	 <AANLkTin517i-Ld_rNRxjmt65hiVpT3bC3wCrL43weiu7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:1716 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752384Ab0KBBQ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Nov 2010 21:16:28 -0400
+In-Reply-To: <AANLkTin517i-Ld_rNRxjmt65hiVpT3bC3wCrL43weiu7@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seblu <seblu@seblu.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Function acpi_os_initialize1() calls acpi_osi_setup_late() which is in
-.init.text section and gets called from acpi_bus_init which is in
-.init.text section. So mark acpi_os_initialize1() with __init. And
-declaration of __init acpi_osi_setup_late has been removed, cause its
-defination is above called function.
+On Tue, 2010-11-02 at 04:10 +0800, Seblu wrote:
+> On Mon, Nov 1, 2010 at 1:44 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> > will you please attach the acpidump output of this laptop?
+> yes, sure.
+
+does the error message pop up every time you boot the kernel?
+
+> > please try the patch attached to see if it helps.
+> > BTW, the patch is based on today's git tree. and there may be some
+> > conflict if you use 2.6.36 kernel.
+> Right, i join my version to test it on 2.6.35.8.
+> 
+> I've tested after many startup (from shutdown or reboot) on 2.6.35.8
+> and on linux-next-2010-10-29 and this seems to fix the issue. Thanks!
+> 
+good to know.
+But I'm still confused about this problem.
+you can get the notifications every time you plug or unplug the AC
+adapter, right?
+
+here is how ACPI AC driver works:
+1. plug/unplug AC
+2. AC driver receives notification (done by BIOS)
+3. update the AC status (in notification hander)
+4. send notification to userspace (in notification handler)
+5. user space query AC status when receiving the notification
+
+as we can see, the AC status is already updated in step 3, that's why AC
+driver returns a cached value to user space in step 5.
+But apparently this is broken in your case.
+
+This makes me wondering if BIOS forgets to do step 2, thus AC driver
+does not update the AC status. But you can catch the AC plug/unplug
+event every time which suggest the notification is sent correctly.
+
+Seblu,
+will you please plug and unplug the AC adapter for several times and
+attach the output of "grep . /sys/firmware/acpi/interrupts/*" every time
+you plug or unplug the AC adapter?
+
+> I think we have the same bug on battery module, because sometimes i
+> need to cat /proc/acpi/battery/BAT*/state do have a proper report of
+> battery level. Do you have a patch for this too?
+> 
+I'll cook up one soon. :) thanks for remindering.
+
+thanks,
+rui
 
 
- WARNING: drivers/acpi/acpi.o(.text+0x460): Section mismatch in
-reference from the function acpi_os_initialize1() to the function
-.init.text:acpi_osi_setup_late()
-The function acpi_os_initialize1() references
-the function __init acpi_osi_setup_late().
-This is often because acpi_os_initialize1 lacks a __init
-annotation or the annotation of acpi_osi_setup_late is wrong.
-
-
-Thanks,
-Rakib
-
-
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
----
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 966fedd..81de639 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -113,8 +113,6 @@ static DEFINE_SPINLOCK(acpi_ioremap_lock);
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_setup_string[OSI_STRING_LENGTH_MAX];
-
--static void __init acpi_osi_setup_late(void);
--
- /*
-  * The story of _OSI(Linux)
-  *
-@@ -1530,7 +1528,7 @@ acpi_status __init acpi_os_initialize(void)
- 	return AE_OK;
- }
-
--acpi_status acpi_os_initialize1(void)
-+acpi_status __init acpi_os_initialize1(void)
- {
- 	kacpid_wq = create_workqueue("kacpid");
- 	kacpi_notify_wq = create_workqueue("kacpi_notify");
