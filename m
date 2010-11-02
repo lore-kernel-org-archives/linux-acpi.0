@@ -1,50 +1,64 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [Intel-gfx] [PATCH 4/4] cpuidle: Hack iowait weighting to
-	avoid C-state reduction for graphics.
-Date: Tue, 02 Nov 2010 20:20:14 +0800
-Message-ID: <1288700414.26046.18.camel@localhost.localdomain>
-References: <1288643024-5706-1-git-send-email-eric@anholt.net>
-	 <1288643024-5706-5-git-send-email-eric@anholt.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] intel_idle: Do not load if user overrides idle function via idle= boot param
+Date: Tue, 2 Nov 2010 14:41:08 +0100
+Message-ID: <201011021441.09258.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37908 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:47628 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750872Ab0KBMZ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Nov 2010 08:25:26 -0400
-In-Reply-To: <1288643024-5706-5-git-send-email-eric@anholt.net>
+	id S1752766Ab0KBNlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Nov 2010 09:41:11 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Anholt <eric@anholt.net>
-Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, arjan@linxu.intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, stable@kernel.org
 
-On Tue, 2010-11-02 at 04:23 +0800, Eric Anholt wrote:
-> Improves nexuiz performance by about 1% on my system.
+Hi Len,
 
-CC: Arjan and linux-acpi mailing list.
+I found that by review, it's compile tested only.
+Could you give this a review and apply if appropriate.
 
-It seems that the selection of C-state will become very sensitive to IO
-wait after the multi factor is changed from 10 to 1000.
-Maybe only one IO/wait will bring that the system can't enter the deep
-C-state.
-> 
-> Signed-off-by: Eric Anholt <eric@anholt.net>
-> ---
->  drivers/cpuidle/governors/menu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-> index f508690..9bb5654 100644
-> --- a/drivers/cpuidle/governors/menu.c
-> +++ b/drivers/cpuidle/governors/menu.c
-> @@ -175,7 +175,7 @@ static inline int performance_multiplier(void)
->  	mult += 2 * get_loadavg();
->  
->  	/* for IO wait tasks (per cpu!) we add 5x each */
-> -	mult += 10 * nr_iowait_cpu(smp_processor_id());
-> +	mult += 1000 * nr_iowait_cpu(smp_processor_id());
->  
->  	return mult;
->  }
+Thanks,
 
+     Thomas
+
+----
+
+if idle= boot param is passed, cpuidle drivers should not register
+and only arch specific idle routines should get active.
+
+Ideally cpuidle subsystem would be made aware of this.
+But acpi parses sleep state tables before registering for cpuidle
+which should not happen if idle= is passed.
+
+-> Check for boot_option_idle_override in cpuidle drivers, not
+cpuidle subsystem.
+
+Compare with:
+arch/x86/kernel/process.c
+and
+drivers/acpi/processor_idle.c
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: lenb@kernel.org
+CC: linux-acpi@vger.kernel.org
+CC: stable@kernel.org
+CC: linux-pm@lists.linux-foundation.org                                                                                                                               
+ 
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 41665d2..e50389b 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -410,6 +410,9 @@ static int __init intel_idle_init(void)
+ {
+ 	int retval;
+ 
++	if (boot_option_idle_override)
++		return -ENODEV;
++
+ 	retval = intel_idle_probe();
+ 	if (retval)
+ 		return retval;
