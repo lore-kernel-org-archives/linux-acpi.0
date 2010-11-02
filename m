@@ -1,64 +1,70 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] intel_idle: Do not load if user overrides idle function via idle= boot param
-Date: Tue, 2 Nov 2010 14:41:08 +0100
-Message-ID: <201011021441.09258.trenn@suse.de>
+From: Eric Anholt <eric@anholt.net>
+Subject: Re: [PATCH 4/4] cpuidle: Hack iowait weighting to avoid
+	C-state reduction for graphics.
+Date: Tue, 02 Nov 2010 08:42:24 -0700
+Message-ID: <87fwvj7mvz.fsf@pollan.anholt.net>
+References: <1288643024-5706-1-git-send-email-eric@anholt.net>
+	<1288643024-5706-5-git-send-email-eric@anholt.net>
+	<1288700414.26046.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47628 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752766Ab0KBNlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Nov 2010 09:41:11 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1220887265=="
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1288700414.26046.18.camel@localhost.localdomain>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, arjan@linxu.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, stable@kernel.org
 
-Hi Len,
+--===============1220887265==
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 
-I found that by review, it's compile tested only.
-Could you give this a review and apply if appropriate.
+--=-=-=
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
+On Tue, 02 Nov 2010 20:20:14 +0800, ykzhao <yakui.zhao@intel.com> wrote:
+> On Tue, 2010-11-02 at 04:23 +0800, Eric Anholt wrote:
+> > Improves nexuiz performance by about 1% on my system.
+>=20
+> CC: Arjan and linux-acpi mailing list.
+>=20
+> It seems that the selection of C-state will become very sensitive to IO
+> wait after the multi factor is changed from 10 to 1000.
+> Maybe only one IO/wait will bring that the system can't enter the deep
+> C-state.
 
-     Thomas
+Note the original message that said "This patch series is a hack, if it
+helps anyone I'll rewrite it to do the right thing".
 
-----
+--=-=-=
+Content-Type: application/pgp-signature
 
-if idle= boot param is passed, cpuidle drivers should not register
-and only arch specific idle routines should get active.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-Ideally cpuidle subsystem would be made aware of this.
-But acpi parses sleep state tables before registering for cpuidle
-which should not happen if idle= is passed.
+iEYEARECAAYFAkzQMWAACgkQHUdvYGzw6vd6ZwCgiFtCYfrkVo/XHXSUbnC+wFi/
+yWsAn0AVV1fdm7g4cnk2GhQnqstQaxj1
+=rCVF
+-----END PGP SIGNATURE-----
+--=-=-=--
 
--> Check for boot_option_idle_override in cpuidle drivers, not
-cpuidle subsystem.
+--===============1220887265==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Compare with:
-arch/x86/kernel/process.c
-and
-drivers/acpi/processor_idle.c
+_______________________________________________
+Intel-gfx mailing list
+Intel-gfx@lists.freedesktop.org
+http://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: lenb@kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: stable@kernel.org
-CC: linux-pm@lists.linux-foundation.org                                                                                                                               
- 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 41665d2..e50389b 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -410,6 +410,9 @@ static int __init intel_idle_init(void)
- {
- 	int retval;
- 
-+	if (boot_option_idle_override)
-+		return -ENODEV;
-+
- 	retval = intel_idle_probe();
- 	if (retval)
- 		return retval;
+--===============1220887265==--
