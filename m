@@ -1,96 +1,99 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.35.stable] ACPI: install ACPI table handler before any
- dynamic tables being loaded
-Date: Mon, 01 Nov 2010 23:18:51 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1011012309280.14926@localhost.localdomain>
-References: <alpine.LFD.2.00.1011012306250.14926@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 1/2] ACPI ac:  update AC status first when querying from
+ sysfs
+Date: Tue, 02 Nov 2010 11:20:59 +0800
+Message-ID: <1288668059.2234.170.camel@rui>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:44365 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685Ab0KBDTK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Nov 2010 23:19:10 -0400
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LB8000RUMJH8HH2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 01 Nov 2010 22:18:54 -0500 (CDT)
-In-reply-to: <alpine.LFD.2.00.1011012306250.14926@localhost.localdomain>
+Received: from mga03.intel.com ([143.182.124.21]:43917 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754135Ab0KBDU7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Nov 2010 23:20:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: "Brown, Len" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, cbou@mail.ru, seblu@seblu.net, "Zhang, Rui" <rui.zhang@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
 
-upstream b1d248d96c71665c79befb81207f38f894c7c082
+Sometimes the AC driver doesn't get notifications when it's
+plugged/unplugged. And this results in the incorrect AC status
+reported by the power supply sysfs I/F.
+http://marc.info/?l=linux-acpi&m=128855015826728&w=2
+https://bugzilla.kernel.org/show_bug.cgi?id=21722
 
-back-ported to 2.6.35
+Update the AC status first when querying from sysfs.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+Tested-by: Seblu <seblu@seblu.net>
 ---
- drivers/acpi/bus.c      |    6 ++++++
- drivers/acpi/internal.h |    1 +
- drivers/acpi/system.c   |   13 +++----------
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/ac.c |   45 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 17 deletions(-)
 
-Index: linux-2.6.35.y/drivers/acpi/bus.c
+Index: linux-2.6/drivers/acpi/ac.c
 ===================================================================
---- linux-2.6.35.y.orig/drivers/acpi/bus.c
-+++ linux-2.6.35.y/drivers/acpi/bus.c
-@@ -935,6 +935,12 @@ static int __init acpi_bus_init(void)
- 		goto error1;
- 	}
+--- linux-2.6.orig/drivers/acpi/ac.c
++++ linux-2.6/drivers/acpi/ac.c
+@@ -100,24 +100,7 @@ static const struct file_operations acpi
+ 	.release = single_release,
+ };
+ #endif
+-static int get_ac_property(struct power_supply *psy,
+-			   enum power_supply_property psp,
+-			   union power_supply_propval *val)
+-{
+-	struct acpi_ac *ac = to_acpi_ac(psy);
+-	switch (psp) {
+-	case POWER_SUPPLY_PROP_ONLINE:
+-		val->intval = ac->state;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
  
-+	/*
-+	 * _PDC control method may load dynamic SSDT tables,
-+	 * and we need to install the table handler before that.
-+	*/
-+	acpi_system_sysfs_init();
-+
- 	acpi_early_processor_set_pdc();
- 
- 	/*
-Index: linux-2.6.35.y/drivers/acpi/internal.h
-===================================================================
---- linux-2.6.35.y.orig/drivers/acpi/internal.h
-+++ linux-2.6.35.y/drivers/acpi/internal.h
-@@ -23,6 +23,7 @@
- int init_acpi_device_notify(void);
- int acpi_scan_init(void);
- int acpi_system_init(void);
-+int acpi_system_sysfs_init(void);
- 
- #ifdef CONFIG_ACPI_DEBUG
- int acpi_debug_init(void);
-Index: linux-2.6.35.y/drivers/acpi/system.c
-===================================================================
---- linux-2.6.35.y.orig/drivers/acpi/system.c
-+++ linux-2.6.35.y/drivers/acpi/system.c
-@@ -164,7 +164,7 @@ acpi_sysfs_table_handler(u32 event, void
- 	return AE_OK;
+-static enum power_supply_property ac_props[] = {
+-	POWER_SUPPLY_PROP_ONLINE,
+-};
+ /* --------------------------------------------------------------------------
+                                AC Adapter Management
+    -------------------------------------------------------------------------- */
+@@ -140,6 +123,34 @@ static int acpi_ac_get_state(struct acpi
+ 	return 0;
  }
  
--static int acpi_system_sysfs_init(void)
-+int __init acpi_system_sysfs_init(void)
- {
- 	struct acpi_table_attr *table_attr;
- 	struct acpi_table_header *table_header = NULL;
-@@ -627,13 +627,6 @@ static int acpi_system_procfs_init(void)
- 
- int __init acpi_system_init(void)
- {
--	int result;
--
--	result = acpi_system_procfs_init();
--	if (result)
--		return result;
--
--	result = acpi_system_sysfs_init();
--
--	return result;
-+	return acpi_system_procfs_init();
- }
++/* --------------------------------------------------------------------------
++                            sysfs I/F
++   -------------------------------------------------------------------------- */
++static int get_ac_property(struct power_supply *psy,
++			   enum power_supply_property psp,
++			   union power_supply_propval *val)
++{
++	struct acpi_ac *ac = to_acpi_ac(psy);
 +
++	if (!ac)
++		return -ENODEV;
++
++	if (acpi_ac_get_state(ac))
++		return -ENODEV;
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_ONLINE:
++		val->intval = ac->state;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static enum power_supply_property ac_props[] = {
++	POWER_SUPPLY_PROP_ONLINE,
++};
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+
+
