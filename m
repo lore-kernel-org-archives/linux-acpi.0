@@ -1,315 +1,391 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] X86: Cleanup idle= internal variables by getting rid of idle_halt idle_nomwait
-Date: Wed, 3 Nov 2010 17:06:14 +0100
-Message-ID: <201011031706.15248.trenn@suse.de>
-References: <201011021441.09258.trenn@suse.de> <alpine.LFD.2.00.1011030150560.3378@localhost.localdomain>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: [RFC PATCH 1/4] IPMI: Add one interface to
+ get more info of low-level IPMI device
+Date: Wed, 03 Nov 2010 19:41:14 -0500
+Message-ID: <4CD2012A.20200@acm.org>
+References: <1288084454-560-1-git-send-email-yakui.zhao@intel.com>
+	<1288084454-560-2-git-send-email-yakui.zhao@intel.com>
+	<4CC84FAA.9040401@acm.org>	
+	<1288227644.3885.203.camel@localhost.localdomain>
+	<1288675990.26046.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35898 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435Ab0KCQGR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Nov 2010 12:06:17 -0400
-In-Reply-To: <alpine.LFD.2.00.1011030150560.3378@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-reply-to: <1288675990.26046.9.camel@localhost.localdomain>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: ykzhao <yakui.zhao@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, stable@kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday 03 November 2010 07:33:54 Len Brown wrote:
-> On Tue, 2 Nov 2010, Thomas Renninger wrote:
-> > 
-...
-> > Compare with:
-> > arch/x86/kernel/process.c
-> > and
-> > drivers/acpi/processor_idle.c
-> 
-> idle=halt and idle=nomwait will not
-> set boot_option_idle_override,
-> so checking that option in intel_idle
-> is a NOP for those incantations.
-Indeed, thanks for looking closer at this.
+On 11/02/2010 12:33 AM, ykzhao wrote:
+> On Thu, 2010-10-28 at 09:00 +0800, ykzhao wrote:
+>    
+>> On Thu, 2010-10-28 at 00:13 +0800, Corey Minyard wrote:
+>>      
+>>> I think you miss the point of a refcount.  The refcount is to keep the
+>>> data structure around even if the device has gone away, so that any
+>>> users may not crash.  Just having a counter in the IPMI structure and
+>>> then decrementing the device refcount is not going to accomplish anything.
+>>>
+>>> And you don't really need to refcount the IPMI structure.  (And if you
+>>> did, you would need to use a refcount structure and you would need to
+>>> keep from freeing the IPMI structure until the refcount went to zero.)
+>>> You just need to increment the refcount on the device structure, and
+>>> whoever gets the device structure needs to be responsible for
+>>> decrementing it's refcount.
+>>>        
+>> Yes. After the copy mechanism is used, it is unnecessary to use the
+>> refcount to protect the corresponding data structure.
+>>
+>> In fact the purpose of adding another one refcount is to add/decrease
+>> the refcount of dev in course of calling the function of
+>> ipmi_get_smi_info/ipmi_put_smi_info.
+>>       But after I look at the smi_watcher mechanism, I find that the
+>> refcount of dev is not released correctly in the following case.
+>>          Step 1:  Other driver registers one smi_watcher and the
+>> ipmi_get_smi_info is called in the new_smi callback function. (And the
+>> driver will use the dev pointer before the ipmi_put_smi_info is
+>> called).
+>>          Step 2: for any reason, the IPMI device will be unregistered by calling
+>> cleanup_one_si. This function will remove it from the IPMI device list
+>> firstly and then call the smi_gone for every smi_watcher.
+>>          Step 3: the ipmi_put_smi_info is called in smi_gone callback function.
+>> In such case the ipmi_put_smi_info can't find the corresponding IPMI
+>> device based on the given if_num and can't release the pointer of dev.
+>>
+>> But after adding another refcount, we can handle the above scenario. At
+>> the same time even when the ipmi_put_smi_info is not called by the
+>> caller, it still can work.
+>> Not sure whether the above thought is redundant?
+>>      
+> Corey,
+>      Is the above thought correct? If not, please correct me. In fact the
+> purpose of adding another refcount is to fix the incorrect inc/dec in
+> course of calling ipmi_get_smi_info/ipmi_put_smi_info.
+>    
 
-> idle_setup() is a confusing mess.
-I can't find better words.
+No.  The purpose of a refcount is to keep from freeing a data structure 
+while it is in use.
 
-> That function and all these idle workaround flags
-> need to be re-whacked.
-Whatabout this (compile tested (on x86_64/ia64)).
-Adding lkml as this affects x86 core code.
+Let's say your code gets the device structure for the IPMI device, then 
+a task switch occurs.  During the time it is not running, the IPMI 
+device is hotplugged away and no longer exists.  The device is deleted.  
+When your code starts running again, it still has a pointer to that 
+device structure.  Sure, the removal code may have run, but your code 
+still has a pointer to that device structure.  Which has been freed.  Bad.
 
-Thanks,
+This is what refcounts (well, krefs) do.  In the above scenario, your 
+code will get the device with the kref incremented.  All the above 
+happens, but since you have incremented the refcount on the device 
+structure, it will not be deleted.  It will wait until you put 
+(decrement) the refcount before performing the free.
 
-    Thomas
+>    
+>>
+>>      
+>>> I'd also prefer to not have a struct ipmi_smi_info in the IPMI data
+>>> structure.  Just pull the data from existing sources.
+>>>        
+>> At most cases the requirement is different for the different addr source
+>> type. If we don't put the ipmi_smi_info in the IPMI data structure, I am
+>> afraid that we will have to fill the corresponding info based on the
+>> addr source type. Maybe it will be more complex.
+>>      
+> If only pull data from the existing source, it can save some
+> memory-space. But it seems a bit complex as we have to fill the info
+> based on the corresponding addr source type. And this should be done
+> every time the function of ipmi_get_smi_info is called.
+>    
 
---------------
-X86: Cleanup idle= internal variables by getting rid of idle_halt idle_nomwait
+I don't think it's that complex, and I doubt that function is called 
+that often.
 
-Having four variables for the same thing:
-  idle_halt, idle_nomwait, force_mwait and boot_option_idle_overrides
-is rather confusing and unnecessary complex.
+-corey
+>    
+>> Thanks.
+>>          Yakui
+>>
+>>      
+>>> -corey
+>>>
+>>> On 10/26/2010 04:14 AM, yakui.zhao@intel.com wrote:
+>>>        
+>>>> From: Zhao Yakui<yakui.zhao@intel.com>
+>>>>
+>>>> The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
+>>>> In order to communicate with the correct IPMI device, it should be confirmed
+>>>>    whether it is what we wanted especially on the system with multiple IPMI
+>>>> devices. But the new_smi callback function of smi_watcher provides very
+>>>> limited info(only the interface number and dev pointer) and there is no
+>>>> detailed info about the low level interface. For example: which mechansim
+>>>> registers the IPMI interface(ACPI, PCI, DMI and so on).
+>>>>
+>>>> This is to add one interface that can get more info of low-level IPMI
+>>>> device. For example: the ACPI device handle will be returned for the pnp_acpi
+>>>> IPMI device.
+>>>>
+>>>> Signed-off-by: Zhao Yakui<yakui.zhao@intel.com>
+>>>> ---
+>>>>    drivers/char/ipmi/ipmi_msghandler.c |   46 ++++++++++++++++++++++++++++++++
+>>>>    drivers/char/ipmi/ipmi_si_intf.c    |   49 +++++++++++++++++++++++++++++++---
+>>>>    include/linux/ipmi.h                |   29 ++++++++++++++++++++
+>>>>    include/linux/ipmi_smi.h            |    8 +++++
+>>>>    4 files changed, 127 insertions(+), 5 deletions(-)
+>>>>
+>>>> diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+>>>> index 4f3f8c9..e323edb 100644
+>>>> --- a/drivers/char/ipmi/ipmi_msghandler.c
+>>>> +++ b/drivers/char/ipmi/ipmi_msghandler.c
+>>>> @@ -970,6 +970,52 @@ out_kfree:
+>>>>    }
+>>>>    EXPORT_SYMBOL(ipmi_create_user);
+>>>>
+>>>> +int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data)
+>>>> +{
+>>>> +   int           rv = 0;
+>>>> +   ipmi_smi_t    intf;
+>>>> +   struct ipmi_smi_handlers *handlers;
+>>>> +
+>>>> +   mutex_lock(&ipmi_interfaces_mutex);
+>>>> +   list_for_each_entry_rcu(intf,&ipmi_interfaces, link) {
+>>>> +           if (intf->intf_num == if_num)
+>>>> +                   goto found;
+>>>> +   }
+>>>> +   /* Not found, return an error */
+>>>> +   rv = -EINVAL;
+>>>> +   mutex_unlock(&ipmi_interfaces_mutex);
+>>>> +   return rv;
+>>>> +
+>>>> +found:
+>>>> +   handlers = intf->handlers;
+>>>> +   rv = handlers->get_smi_info(intf->send_info, data);
+>>>> +   mutex_unlock(&ipmi_interfaces_mutex);
+>>>> +
+>>>> +   return rv;
+>>>> +}
+>>>> +EXPORT_SYMBOL(ipmi_get_smi_info);
+>>>> +
+>>>> +void ipmi_put_smi_info(int if_num)
+>>>> +{
+>>>> +   ipmi_smi_t    intf;
+>>>> +   struct ipmi_smi_handlers *handlers;
+>>>> +
+>>>> +   mutex_lock(&ipmi_interfaces_mutex);
+>>>> +   list_for_each_entry_rcu(intf,&ipmi_interfaces, link) {
+>>>> +           if (intf->intf_num == if_num)
+>>>> +                   goto found;
+>>>> +   }
+>>>> +   /* Not found, return */
+>>>> +   mutex_unlock(&ipmi_interfaces_mutex);
+>>>> +   return;
+>>>> +
+>>>> +found:
+>>>> +   handlers = intf->handlers;
+>>>> +   handlers->put_smi_info(intf->send_info);
+>>>> +   mutex_unlock(&ipmi_interfaces_mutex);
+>>>> +}
+>>>> +EXPORT_SYMBOL(ipmi_put_smi_info);
+>>>> +
+>>>>    static void free_user(struct kref *ref)
+>>>>    {
+>>>>      ipmi_user_t user = container_of(ref, struct ipmi_user, refcount);
+>>>> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+>>>> index 7bd7c45..d313018 100644
+>>>> --- a/drivers/char/ipmi/ipmi_si_intf.c
+>>>> +++ b/drivers/char/ipmi/ipmi_si_intf.c
+>>>> @@ -57,6 +57,7 @@
+>>>>    #include<asm/irq.h>
+>>>>    #include<linux/interrupt.h>
+>>>>    #include<linux/rcupdate.h>
+>>>> +#include<linux/ipmi.h>
+>>>>    #include<linux/ipmi_smi.h>
+>>>>    #include<asm/io.h>
+>>>>    #include "ipmi_si_sm.h"
+>>>> @@ -107,10 +108,6 @@ enum si_type {
+>>>>    };
+>>>>    static char *si_to_str[] = { "kcs", "smic", "bt" };
+>>>>
+>>>> -enum ipmi_addr_src {
+>>>> -   SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+>>>> -   SI_PCI, SI_DEVICETREE, SI_DEFAULT
+>>>> -};
+>>>>    static char *ipmi_addr_src_to_str[] = { NULL, "hotmod", "hardcoded", "SPMI",
+>>>>                                      "ACPI", "SMBIOS", "PCI",
+>>>>                                      "device-tree", "default" };
+>>>> @@ -291,6 +288,12 @@ struct smi_info {
+>>>>      struct task_struct *thread;
+>>>>
+>>>>      struct list_head link;
+>>>> +   /*
+>>>> +    * Count the refcount of smi_data->dev related with the function
+>>>> +    * of ipmi_get_smi_info/ipmi_put_smi_info.
+>>>> +    */
+>>>> +   atomic_t        smi_info_ref;
+>>>> +   struct ipmi_smi_info smi_data;
+>>>>    };
+>>>>
+>>>>    #define smi_inc_stat(smi, stat) \
+>>>> @@ -1186,6 +1189,27 @@ static int smi_start_processing(void       *send_info,
+>>>>      return 0;
+>>>>    }
+>>>>
+>>>> +static int get_smi_info(void *send_info, struct ipmi_smi_info *data)
+>>>> +{
+>>>> +   struct smi_info *new_smi = send_info;
+>>>> +   struct ipmi_smi_info *smi_data =&new_smi->smi_data;
+>>>> +
+>>>> +   get_device(new_smi->dev);
+>>>> +   memcpy(data, smi_data, sizeof(*smi_data));
+>>>> +   smi_data->addr_src = new_smi->addr_source;
+>>>> +   atomic_inc(&new_smi->smi_info_ref);
+>>>> +
+>>>> +   return 0;
+>>>> +}
+>>>> +
+>>>> +static void put_smi_info(void *send_info)
+>>>> +{
+>>>> +   struct smi_info *new_smi = send_info;
+>>>> +
+>>>> +   put_device(new_smi->dev);
+>>>> +   atomic_dec(&new_smi->smi_info_ref);
+>>>> +}
+>>>> +
+>>>>    static void set_maintenance_mode(void *send_info, int enable)
+>>>>    {
+>>>>      struct smi_info   *smi_info = send_info;
+>>>> @@ -1197,6 +1221,8 @@ static void set_maintenance_mode(void *send_info, int enable)
+>>>>    static struct ipmi_smi_handlers handlers = {
+>>>>      .owner                  = THIS_MODULE,
+>>>>      .start_processing       = smi_start_processing,
+>>>> +   .get_smi_info           = get_smi_info,
+>>>> +   .put_smi_info           = put_smi_info,
+>>>>      .sender                 = sender,
+>>>>      .request_events         = request_events,
+>>>>      .set_maintenance_mode   = set_maintenance_mode,
+>>>> @@ -2143,6 +2169,8 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+>>>>              return -ENOMEM;
+>>>>
+>>>>      info->addr_source = SI_ACPI;
+>>>> +   info->smi_data.addr_info.acpi_info.acpi_handle =
+>>>> +                           acpi_dev->handle;
+>>>>      printk(KERN_INFO PFX "probing via ACPI\n");
+>>>>
+>>>>      handle = acpi_dev->handle;
+>>>> @@ -3092,6 +3120,7 @@ static int try_smi_init(struct smi_info *new_smi)
+>>>>    {
+>>>>      int rv = 0;
+>>>>      int i;
+>>>> +   struct ipmi_smi_info *smi_data;
+>>>>
+>>>>      printk(KERN_INFO PFX "Trying %s-specified %s state"
+>>>>             " machine at %s address 0x%lx, slave address 0x%x,"
+>>>> @@ -3255,6 +3284,9 @@ static int try_smi_init(struct smi_info *new_smi)
+>>>>
+>>>>      dev_info(new_smi->dev, "IPMI %s interface initialized\n",
+>>>>               si_to_str[new_smi->si_type]);
+>>>> +   smi_data =&new_smi->smi_data;
+>>>> +   smi_data->dev = new_smi->dev;
+>>>> +   atomic_set(&new_smi->smi_info_ref, 0);
+>>>>
+>>>>      return 0;
+>>>>
+>>>> @@ -3501,7 +3533,14 @@ static void cleanup_one_si(struct smi_info *to_clean)
+>>>>              printk(KERN_ERR PFX "Unable to unregister device: errno=%d\n",
+>>>>                     rv);
+>>>>      }
+>>>> -
+>>>> +   /* maybe the caller doesn't release the refcount of dev, which is
+>>>> +    * increased by calling the function of ipmi_get_smi_info. So try
+>>>> +    * to help it.
+>>>> +    */
+>>>> +   while (atomic_read(&to_clean->smi_info_ref)) {
+>>>> +           put_device(to_clean->dev);
+>>>> +           atomic_dec(&to_clean->smi_info_ref);
+>>>> +   }
+>>>>      if (to_clean->handlers)
+>>>>              to_clean->handlers->cleanup(to_clean->si_sm);
+>>>>
+>>>> diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
+>>>> index 65aae34..9a0c72e 100644
+>>>> --- a/include/linux/ipmi.h
+>>>> +++ b/include/linux/ipmi.h
+>>>> @@ -454,6 +454,35 @@ unsigned int ipmi_addr_length(int addr_type);
+>>>>    /* Validate that the given IPMI address is valid. */
+>>>>    int ipmi_validate_addr(struct ipmi_addr *addr, int len);
+>>>>
+>>>> +enum ipmi_addr_src {
+>>>> +   SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
+>>>> +   SI_PCI, SI_DEVICETREE, SI_DEFAULT
+>>>> +};
+>>>> +struct ipmi_smi_info {
+>>>> +   enum ipmi_addr_src addr_src;
+>>>> +   struct device *dev;
+>>>> +   /*
+>>>> +    * The addr_info can provide more detailed info of one IPMI device.
+>>>> +    * Now only SI_ACPI info is provided. And it depends on the SI_ACPI
+>>>> +    * address type. If the info is required for other address type, please
+>>>> +    * add it.
+>>>> +    */
+>>>> +   union {
+>>>> +           /* the acpi_info element is defined for the SI_ACPI
+>>>> +            * address type
+>>>> +            */
+>>>> +           struct {
+>>>> +                   void *acpi_handle;
+>>>> +           } acpi_info;
+>>>> +   } addr_info;
+>>>> +};
+>>>> +
+>>>> +/* This is to get the private info of ipmi_smi_t */
+>>>> +extern int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data);
+>>>> +/* This is to decrease refcount of dev added in the function of
+>>>> + * ipmi_get_smi_info
+>>>> + */
+>>>> +extern void ipmi_put_smi_info(int if_num);
+>>>>    #endif /* __KERNEL__ */
+>>>>
+>>>>
+>>>> diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
+>>>> index 4b48318..b99942d 100644
+>>>> --- a/include/linux/ipmi_smi.h
+>>>> +++ b/include/linux/ipmi_smi.h
+>>>> @@ -86,6 +86,14 @@ struct ipmi_smi_handlers {
+>>>>      int (*start_processing)(void       *send_info,
+>>>>                              ipmi_smi_t new_intf);
+>>>>
+>>>> +   /*
+>>>> +    * Get the detailed private info of the low level interface and store
+>>>> +    * it into the structure of ipmi_smi_data. For example: the
+>>>> +    * ACPI device handle will be returned for the pnp_acpi IPMI device.
+>>>> +    */
+>>>> +   int (*get_smi_info)(void *send_info, struct ipmi_smi_info *data);
+>>>> +
+>>>> +   void (*put_smi_info)(void *send_info);
+>>>>      /* Called to enqueue an SMI message to be sent.  This
+>>>>         operation is not allowed to fail.  If an error occurs, it
+>>>>         should report back the error in a received message.  It may
+>>>>
+>>>>          
+>>>        
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>      
+>    
 
-if idle= boot param is passed, only set up one variable:
-boot_option_idle_overrides
 
-Introduces following functional changes/fixes:
-  - intel_idle driver does not register if any idle=xy
-    boot param is passed.
-  - processor_idle.c will also not register a cpuidle driver
-    and get active if idle=halt is passed.
-    Before a cpuidle driver with one (C1, halt) state got registered
-    Now the default_idle function will be used which finally uses
-    the same idle call to enter sleep state (safe_halt()), but
-    without registering a whole cpuidle driver.
-
-That means idle= param will always avoid cpuidle drivers to register
-with one exception (same behavior as before):
-idle=nomwait
-may still register acpi_idle cpuidle driver, but C1 will not use
-mwait, but hlt. This can be a workaround for IO based deeper sleep
-states where C1 mwait causes problems.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: lenb@kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: stable@kernel.org
-CC: linux-pm@lists.linux-foundation.org
-
-diff --git a/arch/ia64/include/asm/processor.h b/arch/ia64/include/asm/processor.h
-index 348e44d..03afe79 100644
---- a/arch/ia64/include/asm/processor.h
-+++ b/arch/ia64/include/asm/processor.h
-@@ -717,8 +717,9 @@ prefetchw (const void *x)
- #define spin_lock_prefetch(x)	prefetchw(x)
- 
- extern unsigned long boot_option_idle_override;
--extern unsigned long idle_halt;
--extern unsigned long idle_nomwait;
-+
-+enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_FORCE_MWAIT,
-+			 IDLE_NOMWAIT, IDLE_POLL};
- 
- #endif /* !__ASSEMBLY__ */
- 
-diff --git a/arch/ia64/kernel/process.c b/arch/ia64/kernel/process.c
-index 16f1c7b..6d33c5c 100644
---- a/arch/ia64/kernel/process.c
-+++ b/arch/ia64/kernel/process.c
-@@ -53,12 +53,8 @@
- 
- void (*ia64_mark_idle)(int);
- 
--unsigned long boot_option_idle_override = 0;
-+unsigned long boot_option_idle_override = IDLE_NO_OVERRIDE;
- EXPORT_SYMBOL(boot_option_idle_override);
--unsigned long idle_halt;
--EXPORT_SYMBOL(idle_halt);
--unsigned long idle_nomwait;
--EXPORT_SYMBOL(idle_nomwait);
- void (*pm_idle) (void);
- EXPORT_SYMBOL(pm_idle);
- void (*pm_power_off) (void);
-diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
-index cae9c3c..b79bd98 100644
---- a/arch/x86/include/asm/processor.h
-+++ b/arch/x86/include/asm/processor.h
-@@ -762,10 +762,11 @@ extern void select_idle_routine(const struct cpuinfo_x86 *c);
- extern void init_c1e_mask(void);
- 
- extern unsigned long		boot_option_idle_override;
--extern unsigned long		idle_halt;
--extern unsigned long		idle_nomwait;
- extern bool			c1e_detected;
- 
-+enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_NOMWAIT,
-+			 IDLE_POLL, IDLE_FORCE_MWAIT};
-+
- extern void enable_sep_cpu(void);
- extern int sysenter_setup(void);
- 
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 57d1868..b647215 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -22,11 +22,6 @@
- #include <asm/i387.h>
- #include <asm/debugreg.h>
- 
--unsigned long idle_halt;
--EXPORT_SYMBOL(idle_halt);
--unsigned long idle_nomwait;
--EXPORT_SYMBOL(idle_nomwait);
--
- struct kmem_cache *task_xstate_cachep;
- EXPORT_SYMBOL_GPL(task_xstate_cachep);
- 
-@@ -328,7 +323,7 @@ long sys_execve(const char __user *name,
- /*
-  * Idle related variables and functions
-  */
--unsigned long boot_option_idle_override = 0;
-+unsigned long boot_option_idle_override = IDLE_NO_OVERRIDE;
- EXPORT_SYMBOL(boot_option_idle_override);
- 
- /*
-@@ -499,7 +494,6 @@ static void poll_idle(void)
-  *
-  * idle=mwait overrides this decision and forces the usage of mwait.
-  */
--static int __cpuinitdata force_mwait;
- 
- #define MWAIT_INFO			0x05
- #define MWAIT_ECX_EXTENDED_INFO		0x01
-@@ -509,7 +503,7 @@ static int __cpuinit mwait_usable(const struct cpuinfo_x86 *c)
- {
- 	u32 eax, ebx, ecx, edx;
- 
--	if (force_mwait)
-+	if (boot_option_idle_override == IDLE_FORCE_MWAIT)
- 		return 1;
- 
- 	if (c->cpuid_level < MWAIT_INFO)
-@@ -629,9 +623,10 @@ static int __init idle_setup(char *str)
- 	if (!strcmp(str, "poll")) {
- 		printk("using polling idle threads.\n");
- 		pm_idle = poll_idle;
--	} else if (!strcmp(str, "mwait"))
--		force_mwait = 1;
--	else if (!strcmp(str, "halt")) {
-+		boot_option_idle_override = IDLE_POLL;
-+	} else if (!strcmp(str, "mwait")) {
-+		boot_option_idle_override = IDLE_FORCE_MWAIT;
-+	} else if (!strcmp(str, "halt")) {
- 		/*
- 		 * When the boot option of idle=halt is added, halt is
- 		 * forced to be used for CPU idle. In such case CPU C2/C3
-@@ -640,8 +635,7 @@ static int __init idle_setup(char *str)
- 		 * the boot_option_idle_override.
- 		 */
- 		pm_idle = default_idle;
--		idle_halt = 1;
--		return 0;
-+		boot_option_idle_override = IDLE_HALT;
- 	} else if (!strcmp(str, "nomwait")) {
- 		/*
- 		 * If the boot option of "idle=nomwait" is added,
-@@ -649,12 +643,10 @@ static int __init idle_setup(char *str)
- 		 * states. In such case it won't touch the variable
- 		 * of boot_option_idle_override.
- 		 */
--		idle_nomwait = 1;
--		return 0;
-+		boot_option_idle_override = IDLE_NOMWAIT;
- 	} else
- 		return -1;
- 
--	boot_option_idle_override = 1;
- 	return 0;
- }
- early_param("idle", idle_setup);
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index bec561c..3c1a2fe 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -23,7 +23,7 @@ static int set_no_mwait(const struct dmi_system_id *id)
- {
- 	printk(KERN_NOTICE PREFIX "%s detected - "
- 		"disabling mwait for CPU C-states\n", id->ident);
--	idle_nomwait = 1;
-+	boot_option_idle_override = IDLE_NOMWAIT;
- 	return 0;
- }
- 
-@@ -283,7 +283,7 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- {
- 	acpi_status status = AE_OK;
- 
--	if (idle_nomwait) {
-+	if (boot_option_idle_override == IDLE_NOMWAIT) {
- 		/*
- 		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
- 		 * mode will be disabled in the parameter of _PDC object.
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index dcb38f8..eefd4aa 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -79,6 +79,13 @@ module_param(bm_check_disable, uint, 0000);
- static unsigned int latency_factor __read_mostly = 2;
- module_param(latency_factor, uint, 0644);
- 
-+static int disabled_by_idle_boot_param(void)
-+{
-+	return boot_option_idle_override == IDLE_POLL ||
-+		boot_option_idle_override == IDLE_FORCE_MWAIT ||
-+		boot_option_idle_override == IDLE_HALT;
-+}
-+
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -455,7 +462,7 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 				continue;
- 			}
- 			if (cx.type == ACPI_STATE_C1 &&
--					(idle_halt || idle_nomwait)) {
-+			    (boot_option_idle_override == IDLE_NOMWAIT)) {
- 				/*
- 				 * In most cases the C1 space_id obtained from
- 				 * _CST object is FIXED_HARDWARE access mode.
-@@ -1058,7 +1065,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- {
- 	int ret = 0;
- 
--	if (boot_option_idle_override)
-+	if (disabled_by_idle_boot_param())
- 		return 0;
- 
- 	if (!pr)
-@@ -1089,19 +1096,10 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 	acpi_status status = 0;
- 	static int first_run;
- 
--	if (boot_option_idle_override)
-+	if (disabled_by_idle_boot_param())
- 		return 0;
- 
- 	if (!first_run) {
--		if (idle_halt) {
--			/*
--			 * When the boot option of "idle=halt" is added, halt
--			 * is used for CPU IDLE.
--			 * In such case C2/C3 is meaningless. So the max_cstate
--			 * is set to one.
--			 */
--			max_cstate = 1;
--		}
- 		dmi_check_system(processor_power_dmi_table);
- 		max_cstate = acpi_processor_cstate_check(max_cstate);
- 		if (max_cstate < ACPI_C_STATES_MAX)
-@@ -1142,7 +1140,7 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- int acpi_processor_power_exit(struct acpi_processor *pr,
- 			      struct acpi_device *device)
- {
--	if (boot_option_idle_override)
-+	if (disabled_by_idle_boot_param())
- 		return 0;
- 
- 	cpuidle_unregister_device(&pr->power.dev);
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 41665d2..8e625de 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -410,6 +410,10 @@ static int __init intel_idle_init(void)
- {
- 	int retval;
- 
-+	/* Do not load intel_idle at all for now if idle= is passed */
-+	if (boot_option_idle_override != IDLE_NO_OVERRIDE)
-+		return -ENODEV;
-+
- 	retval = intel_idle_probe();
- 	if (retval)
- 		return retval;
+------------------------------------------------------------------------------
+The Next 800 Companies to Lead America's Growth: New Video Whitepaper
+David G. Thomson, author of the best-selling book "Blueprint to a 
+Billion" shares his insights and actions to help propel your 
+business during the next growth cycle. Listen Now!
+http://p.sf.net/sfu/SAP-dev2dev
