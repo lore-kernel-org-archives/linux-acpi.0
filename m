@@ -1,93 +1,68 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] PNPACPI: check return value of pnp_add_device()
-Date: Mon, 8 Nov 2010 11:06:04 -0800
-Message-ID: <20101108190603.GA18738@core.coreip.homeip.net>
-References: <20101104173929.GA11251@core.coreip.homeip.net>
- <201011081445.00124.bjorn.helgaas@hp.com>
+From: Wilhelm de Araujo Rodrigues <willy@tjse.jus.br>
+Subject: linux acpi info
+Date: Tue, 09 Nov 2010 08:40:41 -0300
+Message-ID: <4CD93339.5000806@tjse.jus.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:44461 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753635Ab0KHTGX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Nov 2010 14:06:23 -0500
-Received: by vws13 with SMTP id 13so2107156vws.19
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Nov 2010 11:06:22 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <201011081445.00124.bjorn.helgaas@hp.com>
+Received: from tj.se.gov.br ([200.254.108.150]:42890 "EHLO tjmail1.tjse.jus.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755482Ab0KILuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Nov 2010 06:50:11 -0500
+Received: from [172.18.6.56] (unknown [172.18.6.56])
+	by tjse.jus.br (Postfix) with ESMTPA id 341687C08D
+	for <linux-acpi@vger.kernel.org>; Tue,  9 Nov 2010 08:40:01 -0300 (BRT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Mon, Nov 08, 2010 at 02:45:00PM -0700, Bjorn Helgaas wrote:
-> On Thursday, November 04, 2010 11:39:30 am Dmitry Torokhov wrote:
-> > pnp_add_device() may fail so we need to handle errors and avoid leaking
-> > memory. Also, do not use ACPI-specific return codes (AE_OK) but rather
-> > standard ones.
-> 
-> I think this is generally a good thing.  You probably found this by
-> inspection, but if there's a bug report, please include the URL.
+log messages in reverse order
 
-I am not aware of an existing bug report,I just happened to look into
-the code in question...
 
-> 
-> Would you consider fixing the similar leaks and failure path issues
-> in isapnp and pnpbios at the same time?
 
--ENOTIME at the moment ;( The only reason I happened to look into PNP
-code is that issue with HID strings exceeding 8 characters.
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.577697] ACPI: PCI Root=
+=20
+Bridge [PCI0] (0000:00)
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.472498] ACPI: Using=20
+IOAPIC for interrupt routing
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.472125] ACPI: (support=
+s=20
+S0 S1 S4 S5)
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.471925] ACPI:=20
+Interpreter enabled
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.470125] ACPI: If=20
+"acpi_osi=3DLinux" works better, please notify linux-acpi@vger.kernel.o=
+rg
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469877] ACPI: Please=20
+send DMI info above to linux-acpi@vger.kernel.org
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469672] ACPI: DMI BIOS=
+=20
+Date: 09/22/2009
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469445] ACPI: DMI BIOS=
+=20
+Vendor: Phoenix Technologies LTD
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468764] ACPI: DMI Boar=
+d=20
+Name: 440BX Desktop Reference Platform
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468524] ACPI: DMI=20
+Product Version: None
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468295] ACPI: DMI=20
+Product Name: VMware Virtual Platform
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468081] ACPI: DMI=20
+System Vendor: VMware, Inc.
+Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.467835] ACPI: BIOS=20
+_OSI(Linux) query ignored
 
-> 
-> > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > ---
-> > 
-> >  drivers/pnp/pnpacpi/core.c |   13 ++++++++++---
-> >  1 files changed, 10 insertions(+), 3 deletions(-)
-> > 
-> > 
-> > diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> > index 2d73dfc..06ee06c 100644
-> > --- a/drivers/pnp/pnpacpi/core.c
-> > +++ b/drivers/pnp/pnpacpi/core.c
-> > @@ -194,8 +194,9 @@ static char *pnpacpi_get_id(struct acpi_device *device)
-> >  
-> >  static int __init pnpacpi_add_device(struct acpi_device *device)
-> >  {
-> > -	acpi_handle temp = NULL;
-> > +	acpi_handle temp;
-> >  	acpi_status status;
-> > +	int error;
-> >  	struct pnp_dev *dev;
-> >  	char *pnpid;
-> >  	struct acpi_hardware_id *id;
-> > @@ -256,10 +257,16 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
-> >  	/* clear out the damaged flags */
-> >  	if (!dev->active)
-> >  		pnp_init_resources(dev);
-> > -	pnp_add_device(dev);
-> > +
-> > +	error = pnp_add_device(dev);
-> > +	if (error) {
-> > +		put_device(&dev->dev);
-> > +		return error;
-> > +	}
-> > +
-> >  	num++;
-> >  
-> > -	return AE_OK;
-> > +	return 0;
-> 
-> The acpi_get_devices() usage of pnpacpi_add_device() expects an
-> acpi_status return value, so maybe we should leave this same and
-> change the pnpacpi_add_device() return type from
-> "int" to "acpi_status"?
+--=20
+Wilhelm de Araujo Rodrigues
+TJSE - Analista Judici=E1rio
+Secretaria de Tecnologia da Informa=E7=E3o
+willy@tjse.jus.br - (79) 3226 3121
 
-PNPACPI calls acpi_get_devices() with pnpacpi_add_device_handler() which
-returns proper type (acpi_status).
-
-Thanks.
-
--- 
-Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
