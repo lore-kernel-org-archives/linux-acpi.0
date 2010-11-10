@@ -1,25 +1,45 @@
-From: "KRISTEN OTT" <KristenOtt@mail.weber.edu>
-Subject: RE.Nokia mobile prize =?UTF-8?B?4oCP4oCPIMKjMjUwLjAwMC4wMEdCUOKAj+KAj+KAjw==?=
-Date: Tue, 09 Nov 2010 19:41:30 -0700
-Message-ID: <1289356890.55f1863cKristenOtt@mail.weber.edu>
-Reply-To: nokiaonlinedept1@hotmail.com
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
+Date: Wed, 10 Nov 2010 12:58:33 +0900
+Message-ID: <20101110035833.GB3029@kamineko.org>
+References: <20101104142915.GC7650@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fishing2.weber.edu ([137.190.12.107]:62112 "EHLO
-	fishing2.weber.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab0KJCql convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Nov 2010 21:46:41 -0500
-Received: from fishing2.weber.edu (localhost.localdomain [127.0.0.1])
-	by localhost (Email Security Appliance) with SMTP id B55251BC07A2_CDA065FB
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Nov 2010 02:41:35 +0000 (GMT)
-Received: from mail.weber.edu (mail.weber.edu [137.190.12.68])
-	by fishing2.weber.edu (Sophos Email Appliance) with ESMTP id A2FC11BC0731_CDA065FF
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Nov 2010 02:41:35 +0000 (GMT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20101104142915.GC7650@gamma.logic.tuwien.ac.at>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: info@nokia.co.uk
 
+On Thu, Nov 04, 2010 at 11:29:15PM +0900, Norbert Preining wrote:
+> Hi Mattia, hi all,
+> 
+> (please keep me in Cc)
+> 
+> when switching from 2.6.36 to 2.6.37-rc1(+git) I realize that I cannot
+> adjust the backlight anymore. Before this was possible with the
+> Fn-F5 and Fn-F6 keys, but now nothing happens.
 
+It's ages sony_laptop doesn't change, it may be some other change in the
+acpi layer that causes this.
 
+> acpi_listen does not issue anything when these keys are pressed.
+
+How about the input layer? /proc/acpi/event is deprecated and you should
+not rely on that.
+But anyway, it's a Fn key issue, not backlight control itself, right?
+Can you change brightness echoing to the sysfs files directly?
+
+> Is there any obvious oversight from my side?
+
+don't know, can you bisect it?
+
+> config is attached.
+
+can you attach dmesg output after loading sony_laptop with debug=1 and
+pressing the brightness keys?
+-- 
+mattia
+:wq!
