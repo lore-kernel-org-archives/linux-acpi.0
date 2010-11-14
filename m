@@ -1,18 +1,36 @@
-From: Joan Ekblad <joan_ekblad@bismarckschools.org>
-Subject: REPLY REQUEST TO (diamondloanitaly@qualityservice.com)
-Date: Sun, 14 Nov 2010 09:33:42 -0600
-Message-ID: <9DD9F1A08AC4974EAA505B344D78F69AAF9FEB2F9A__38160.0933302709$1289749913$gmane$org@701-CORE-EX01.bismarck.k12.nd.us>
+From: "Jozef Ruud Roosevelt" <jozefr@live.co.uk>
+Subject: Attention Please,  Investment Initiative From Jozef Ruud Roosevelt.
+Date: Sun, 14 Nov 2010 11:41:56 -0300 (BRT)
+Message-ID: <71a093f18c191bb97baa51f59ffefc68.squirrel__37359.0684998364$1289752866$gmane$org@webmail.dfte.ufrn.br>
+Reply-To: jozef.rosevelt@live.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 701-core-spam-01.bismarck.k12.nd.us ([165.234.103.39]:53776
-	"EHLO 701-core-spam-01.educ8.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756139Ab0KNPvl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Nov 2010 10:51:41 -0500
-Content-Language: en-US
+Received: from fisica.dfte.ufrn.br ([200.19.173.16]:54907 "EHLO
+	fisica.dfte.ufrn.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755989Ab0KNQky (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Nov 2010 11:40:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-We are Diamond Financial Service,we are registered and guaranteed loan company in the  Europe,and we give out loans to individuals, companies, government establishments, churches and business organizations. Are you in need of a loan for any purpose? Are you in a financial problem? Do you need financial solution? Diamond Financial Service is the solution to all your financial problems, our loans are easy, cheap, and quick. Contact us today Via or forward you responds to (diamondloanitaly@qualityservice.com).
+
+
+
+Attention Please,
+
+I am Jozef Ruud Roosevelt, a Dutch National presently residing in
+Newcastle United Kingdom, I have a proposition Involving an investment
+initiative in your country economy  to discuss with you, It will be of
+mutual benefit to both of us, and I believe we can handle it together,
+once we have a common understanding and mutual cooperation in the
+execution of the modalities. I work with Abn Amro Bank as an auditor.
+
+Should you be interested, please e-mail back to me through this email
+address: (jozef.rosevelt@live.co.uk) or you can give me a call (+44 702
+4056 175).
+I await your earliest response.
+
+Yours Sincerely,
+Jozef Ruud Roosevel.
+
