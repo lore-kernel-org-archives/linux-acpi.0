@@ -1,65 +1,41 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: No thermal information on Toshiba Satellite L670
-Date: Mon, 15 Nov 2010 08:21:51 +0800
-Message-ID: <1289780511.8148.1797.camel@rui>
-References: <4CDD5F07.9010102@tvcablenet.be>
+Subject: Re: ACPI_VIDEO and BACKLIGHT_CLASS_DEVICE
+Date: Mon, 15 Nov 2010 08:33:43 +0800
+Message-ID: <1289781223.8148.1805.camel@rui>
+References: <20101112034614.GB7407@srcf.ucam.org>
+	 <Pine.LNX.4.44L0.1011121624440.21040-100000@netrider.rowland.org>
+	 <20101112213601.GA19996@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53180 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:13903 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754659Ab0KOAUU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Nov 2010 19:20:20 -0500
-In-Reply-To: <4CDD5F07.9010102@tvcablenet.be>
+	id S1755171Ab0KOAcM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Nov 2010 19:32:12 -0500
+In-Reply-To: <20101112213601.GA19996@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Fran=E7ois?= Valenduc <francois.valenduc@tvcablenet.be>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 2010-11-12 at 23:36 +0800, Fran=C3=A7ois Valenduc wrote:
-> Hello everybody,
->=20
-> In don't know if it's the right place to post the following problem b=
-ut
-> I have a Toshiba Satellite L670 laptop and I can't get any temperatur=
-e
-> information. The /sys/class/thermal directory contains the files
-> cooling_device0 to 4, but not "thermal_zone". I don't know if i'ts
-> related but in the output of dmesg |
-> grep ACPI, I found the following error:
->=20
-> [    0.465758] ACPI: EC: Look up EC in DSDT
-> [    0.466331] ACPI Error: No handler for Region [ERAM]
-> (ffff8800b6c2dcf0) [EmbeddedControl] (20100702/evregion-369)
-> [    0.466471] ACPI Error: Region EmbeddedControl(0x3) has no handler
-> (20100702/exfldio-293)
-> [    0.466610] ACPI Error (psparse-0537): Method parse/execution fail=
-ed
-> [\_SB_.PCI0.LPCB.EC0_._REG] (Node ffff8800b6c31208), AE_NOT_EXIST
->=20
-what's the kernel version you're running?
-does the problem also exists in 2.6.36 or 2.6.37-rc kernel?
-
-please attach the FULL dmesg output after boot and the acpidump output
-of your laptop.
+On Sat, 2010-11-13 at 05:36 +0800, Matthew Garrett wrote:
+> On Fri, Nov 12, 2010 at 04:26:15PM -0500, Alan Stern wrote:
+> 
+> > Thanks for the information.  Why does the help text for ACPI_VIDEO 
+> > mention defining the POST device or setting up a video output if the 
+> > driver doesn't do these things?
+> 
+> The help text is documenting what the spec was intended to allow, rather 
+> than what it tends to in the real world...
+> 
+At least the video driver is trying to do so right now, e.g. create
+proc/sysfs I/F for output device switching, although they doesn't work
+actually.
+And I was preparing a patch to removing this stuff, together with an
+update of the ACPI_VIDEO help text.
 
 thanks,
 rui
 
-> The full result is in the attached file. Do you need any more
-> information ? I am not subscribed to this list so please answer also =
-to
-> my e-mail adress.
->=20
-> Thanks in advance for your help,
-> Fran=C3=A7ois Valenduc
->=20
->=20
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
