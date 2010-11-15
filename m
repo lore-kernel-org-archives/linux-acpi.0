@@ -1,41 +1,121 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI_VIDEO and BACKLIGHT_CLASS_DEVICE
-Date: Mon, 15 Nov 2010 08:33:43 +0800
-Message-ID: <1289781223.8148.1805.camel@rui>
-References: <20101112034614.GB7407@srcf.ucam.org>
-	 <Pine.LNX.4.44L0.1011121624440.21040-100000@netrider.rowland.org>
-	 <20101112213601.GA19996@srcf.ucam.org>
+Subject: Re: [PATCH] thermal: make ops constant
+Date: Mon, 15 Nov 2010 08:38:28 +0800
+Message-ID: <1289781508.8148.1806.camel@rui>
+References: <20101111152714.11105.2101.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:13903 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:41067 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755171Ab0KOAcM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Nov 2010 19:32:12 -0500
-In-Reply-To: <20101112213601.GA19996@srcf.ucam.org>
+	id S1753301Ab0KOAg5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Nov 2010 19:36:57 -0500
+In-Reply-To: <20101111152714.11105.2101.stgit@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, 2010-11-13 at 05:36 +0800, Matthew Garrett wrote:
-> On Fri, Nov 12, 2010 at 04:26:15PM -0500, Alan Stern wrote:
+On Thu, 2010-11-11 at 23:27 +0800, Alan Cox wrote:
+> From: Alan Cox <alan@linux.intel.com>
 > 
-> > Thanks for the information.  Why does the help text for ACPI_VIDEO 
-> > mention defining the POST device or setting up a video output if the 
-> > driver doesn't do these things?
+> And while touching that function definition do something about the disaster
+> of formatting there.
 > 
-> The help text is documenting what the spec was intended to allow, rather 
-> than what it tends to in the real world...
-> 
-At least the video driver is trying to do so right now, e.g. create
-proc/sysfs I/F for output device switching, although they doesn't work
-actually.
-And I was preparing a patch to removing this stuff, together with an
-update of the ACPI_VIDEO help text.
+> Signed-off-by: Alan Cox <alan@linux.intel.com>
 
-thanks,
-rui
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+
+> ---
+> 
+>  drivers/thermal/thermal_sys.c |   17 +++++------------
+>  include/linux/thermal.h       |   15 +++++----------
+>  2 files changed, 10 insertions(+), 22 deletions(-)
+> 
+> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 13c72c6..bde3477 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -823,11 +823,8 @@ static struct class thermal_class = {
+>   * @devdata:	device private data.
+>   * @ops:		standard thermal cooling devices callbacks.
+>   */
+> -struct thermal_cooling_device *thermal_cooling_device_register(char *type,
+> -							       void *devdata,
+> -							       struct
+> -							       thermal_cooling_device_ops
+> -							       *ops)
+> +struct thermal_cooling_device *thermal_cooling_device_register(
+> +     char *type, void *devdata, const struct thermal_cooling_device_ops *ops)
+>  {
+>  	struct thermal_cooling_device *cdev;
+>  	struct thermal_zone_device *pos;
+> @@ -1048,13 +1045,9 @@ EXPORT_SYMBOL(thermal_zone_device_update);
+>   * section 11.1.5.1 of the ACPI specification 3.0.
+>   */
+>  struct thermal_zone_device *thermal_zone_device_register(char *type,
+> -							 int trips,
+> -							 void *devdata, struct
+> -							 thermal_zone_device_ops
+> -							 *ops, int tc1, int
+> -							 tc2,
+> -							 int passive_delay,
+> -							 int polling_delay)
+> +	int trips, void *devdata,
+> +	const struct thermal_zone_device_ops *ops,
+> +	int tc1, int tc2, int passive_delay, int polling_delay)
+>  {
+>  	struct thermal_zone_device *tz;
+>  	struct thermal_cooling_device *pos;
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 1de8b9e..0662690 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -77,7 +77,7 @@ struct thermal_cooling_device {
+>  	char type[THERMAL_NAME_LENGTH];
+>  	struct device device;
+>  	void *devdata;
+> -	struct thermal_cooling_device_ops *ops;
+> +	const struct thermal_cooling_device_ops *ops;
+>  	struct list_head node;
+>  };
+>  
+> @@ -114,7 +114,7 @@ struct thermal_zone_device {
+>  	int last_temperature;
+>  	bool passive;
+>  	unsigned int forced_passive;
+> -	struct thermal_zone_device_ops *ops;
+> +	const struct thermal_zone_device_ops *ops;
+>  	struct list_head cooling_devices;
+>  	struct idr idr;
+>  	struct mutex lock;	/* protect cooling devices list */
+> @@ -129,11 +129,8 @@ struct thermal_zone_device {
+>  };
+>  
+>  struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+> -							 struct
+> -							 thermal_zone_device_ops
+> -							 *, int tc1, int tc2,
+> -							 int passive_freq,
+> -							 int polling_freq);
+> +		const struct thermal_zone_device_ops *, int tc1, int tc2,
+> +		int passive_freq, int polling_freq);
+>  void thermal_zone_device_unregister(struct thermal_zone_device *);
+>  
+>  int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+> @@ -142,9 +139,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
+>  				       struct thermal_cooling_device *);
+>  void thermal_zone_device_update(struct thermal_zone_device *);
+>  struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+> -							       struct
+> -							       thermal_cooling_device_ops
+> -							       *);
+> +		const struct thermal_cooling_device_ops *);
+>  void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+>  
+>  #endif /* __THERMAL_H__ */
+> 
 
 
