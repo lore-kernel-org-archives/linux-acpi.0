@@ -1,47 +1,67 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH -v4 0/2] Lockless memory allocator and list
-Date: Tue, 16 Nov 2010 08:38:05 -0800
-Message-ID: <AANLkTime3Sh2TbgCGKir=t_TBNsd5fHipEqQwa4bVJuY@mail.gmail.com>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com> <1289908158.2109.568.camel@laptop>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: [REGRESSION] [2.6.37-rc1] Fan noise after suspend to ram/disk
+Date: Tue, 16 Nov 2010 18:31:10 +0100
+Message-ID: <201011161831.11209.maciej.rutecki@gmail.com>
+References: <201011041706.59046.maciej.rutecki@gmail.com> <201011152139.46261.maciej.rutecki@gmail.com> <1289870775.8148.2020.camel@rui>
+Reply-To: maciej.rutecki@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33299 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551Ab0KPQjB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Nov 2010 11:39:01 -0500
-In-Reply-To: <1289908158.2109.568.camel@laptop>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:57735 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372Ab0KPRbQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 12:31:16 -0500
+In-Reply-To: <1289870775.8148.2020.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Tue, Nov 16, 2010 at 3:49 AM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Tue, 2010-11-16 at 08:53 +0800, Huang Ying wrote:
->> Hi, Len,
->>
->> This patchset is needed by APEI support. Which involves some lockless
->> operations. And I think they can be used by some other part of kernel
->> too.
->
-> The whole notion of allocating memory from NMI context seems incredibly
-> offensive.
->
-> And then there's the whole point of not merging stuff without a user.
+On wtorek, 16 listopada 2010 o 02:26:15 Zhang Rui wrote:
+> On Tue, 2010-11-16 at 04:39 +0800, Maciej Rutecki wrote:
+> > On poniedzia=C5=82ek, 15 listopada 2010 o 04:16:35 Zhang Rui wrote:
+> > > On Tue, 2010-11-09 at 01:35 +0800, Maciej Rutecki wrote:
+> > > > On poniedzia=C5=82ek, 8 listopada 2010 o 07:58:52 Zhang Rui wro=
+te:
+> > > > > IMO, the only one that may cause this regression is commit
+> > > > > c57b62f5b1e6dd69ff8c96f6db7f86ea31c0e21f
+> > > > > some app may enable polling via procfs and update the thermal=
+ zone
+> > > > > status.
+> > > >=20
+> > > > I revert this commit from 2.6.37-rc1. Still the same:
+> > > could you please apply the patch attached, on top of 2.6.37-rc1, =
+and
+> > > then attach the dmesg output if the fan is noise after suspend/re=
+sume.
+> >=20
+> > Dmesg in attachement.
+> >=20
+> > Starting suspend to ram from:
+> > [  104.602674] PM: Syncing filesystems ... done.
+> > resume OK, but next:
+> > [  144.298104] PM: Syncing filesystems ... done.
+> > after resume fan starts on full speed.
+>=20
+> it seems that it's not the thermal driver that changes the Fan speed.
+> Please apply the debug patch attached, rebuild with CONFIG_ACPI_DEBUG
+> set and reboot with "acpi.debug_level=3D0x004
+> acpi.debug_layer=3D0x04A10000", and then attach the dmesg output afte=
+r the
+> same test.
 
-So I do agree that people should look very hard at trying to use
-existing infrastructure.
+2.6.37-rc1 + your latest patch, suspend to ram&resume:
+http://unixy.pl/maciek/download/kernel/2.6.37-rc1/gumis/dmesg-debug-2.6=
+=2E37-
+rc1.txt.zip
 
-I kind of like the lock-less list implementation (it could easily be
-useful for random things, and it's very simple). And I don't think the
-notion of a lockless memory allocator is wrong either, although it
-looks a lot more specialized than the list thing (the solution to
-lockless allocations is generally simply to do them ahead of time).
-
-So the part I'm really not all that comfy with is the whole APEI side
-of things. I'm not at all convinced that we want yet another random
-hw-specific interface, and I really have yet to hear why it's so
-magical.
-
-                          Linus
+Thanks
+--=20
+Maciej Rutecki
+http://www.maciek.unixy.pl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
