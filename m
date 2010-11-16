@@ -1,35 +1,75 @@
-From: "Jozef Ruud Roosevelt" <"jozef@"@admin.in.th>
-Subject: Re: Attention Please.
-Date: Tue, 16 Nov 2010 13:03:09 -0300 (BRT)
-Message-ID: <0b7b6dc6ba61551189893a42e928890f.squirrel__22155.5089847699$1289923779$gmane$org@webmail.dfte.ufrn.br>
-Reply-To: jozef_rosevelt@admin.in.th
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH -v4 2/2] lib, Add lock-less NULL terminated single list
+Date: Tue, 16 Nov 2010 08:33:26 -0800
+Message-ID: <AANLkTincM=Jsu48yJ_wEinj4Vfdu3Xt8QgC50Uqav7q3@mail.gmail.com>
+References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
+ <1289868791-16658-3-git-send-email-ying.huang@intel.com> <1289908241.2109.570.camel@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fisica.dfte.ufrn.br ([200.19.173.16]:35869 "EHLO
-	fisica.dfte.ufrn.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892Ab0KPQJa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 11:09:30 -0500
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56839 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754578Ab0KPQeV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 11:34:21 -0500
+In-Reply-To: <1289908241.2109.570.camel@laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>
 
+On Tue, Nov 16, 2010 at 3:50 AM, Peter Zijlstra <peterz@infradead.org> =
+wrote:
+> On Tue, 2010-11-16 at 08:53 +0800, Huang Ying wrote:
+>> +/**
+>> + * llist_del_all - delete all entries from lock-less list
+>> + * @head: =A0 =A0 =A0the head of lock-less list to delete all entri=
+es
+>> + *
+>> + * If list is empty, return NULL, otherwise, delete all entries and
+>> + * return the pointer to the first entry.
+>> + */
+>> +struct llist_node *llist_del_all(struct llist_head *head)
+>> +{
+>> + =A0 =A0 =A0 return xchg(&head->first, NULL);
+>> +}
+>> +EXPORT_SYMBOL_GPL(llist_del_all);
+>
+> Its not del_all, since it returns the actual list. move or splice mig=
+ht
+> be better names.
 
+I don't think it's a "move", since the result isn't actually a
+list_head (it's by definition a "we remove all entries from the list,
+and then we can look at the list entries in private afterwards").
 
+So the "delete" part _is_ important - before the op, we had an atomic
+list. After the op, we just have a bunch of entries (they may be a
+list, but they aren't a _lock-less_ list any more: they are literally
+just private entries now).
 
-Attention Please,
+So both "move" and "splice" imply at least to me that the target is
+equivalent to the source. And it really isn't. The target is something
+totally different. In fact, my original objection to this code was
+that there wasn't a good separation between "entries" and "lock-less
+head of list", and it used the same type for both - the way the
+regular list functions do. In the regular list implementation, each
+list entry really is a list head too, and you can have lists that
+don't even _have_ separate heads, but everything is a list entry
+(common in things like the dentry "siblings" list, where each dentry
+can be used as the "head" to that sibling list - all siblings are
+equal).
 
-I am Jozef Ruud Roosevelt, a Dutch National presently residing in
-Newcastle United Kingdom, I have a proposition Involving an investment
-initiative in your country economy  to discuss with you, It will be of
-mutual benefit to both of us, and I believe we can handle it together,
-once we have a common understanding and mutual cooperation in the
-execution of the modalities. I work with Abn Amro Bank as an auditor.
+Now, I don't know if "del_all" is necessarily the proper name, but I
+do think that it's important to make it clear that as far as the
+lock-lessness of the list is concerned, the operation really is about
+removing all entries, and it's not some kind of symmetric operation
+wrt src/dest like with normal lists.
 
-Should you be interested, please e-mail back to me through this email
-address: (jozef.rosevelt@yahoo.co.uk).
-I await your earliest response.
-
-Yours Sincerely,
-Jozef Ruud Roosevel.
-
+                                  Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
