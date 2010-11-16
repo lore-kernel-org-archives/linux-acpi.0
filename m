@@ -1,36 +1,27 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 2/2] lib, Add lock-less NULL terminated single list
-Date: Tue, 16 Nov 2010 12:50:41 +0100
-Message-ID: <1289908241.2109.570.camel@laptop>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	 <1289868791-16658-3-git-send-email-ying.huang@intel.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH]  do not select ACPI_VIDEO in poulsbo stub driver
+Date: Tue, 16 Nov 2010 14:11:05 +0000
+Message-ID: <20101116141105.GA13582@srcf.ucam.org>
+References: <1289887493.8148.2040.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33532 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933866Ab0KPLux convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 06:50:53 -0500
-In-Reply-To: <1289868791-16658-3-git-send-email-ying.huang@intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:58659 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754952Ab0KPOLP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 09:11:15 -0500
+Content-Disposition: inline
+In-Reply-To: <1289887493.8148.2040.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Joey Lee <jlee@novell.com>, mingo@elte.hu, airlied@redhat.com, "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, 2010-11-16 at 08:53 +0800, Huang Ying wrote:
-> +/**
-> + * llist_del_all - delete all entries from lock-less list
-> + * @head:      the head of lock-less list to delete all entries
-> + *
-> + * If list is empty, return NULL, otherwise, delete all entries and
-> + * return the pointer to the first entry.
-> + */
-> +struct llist_node *llist_del_all(struct llist_head *head)
-> +{
-> +       return xchg(&head->first, NULL);
-> +}
-> +EXPORT_SYMBOL_GPL(llist_del_all); 
+On Tue, Nov 16, 2010 at 02:04:53PM +0800, Zhang Rui wrote:
+> 
+> the poulsbo stub driver should not select ACPI video driver.
 
-Its not del_all, since it returns the actual list. move or splice might
-be better names.
+No, the entire point is for the driver to make this call.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
