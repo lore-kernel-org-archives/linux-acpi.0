@@ -1,50 +1,31 @@
-From: "Webmail Help Desk." <sofia@ufscar.br>
-Subject: Warning Code: ID67565434.
-Date: Mon, 15 Nov 2010 13:42:50 -0200 (BRST)
-Message-ID: <3894.199.255.209.71.1289835770.squirrel@webmail.ufscar.br>
-Reply-To: web_user2010@mail2webmaster.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v4 0/2] Lockless memory allocator and list
+Date: Tue, 16 Nov 2010 08:53:09 +0800
+Message-ID: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aruana.ufscar.br ([200.9.84.68]:55265 "EHLO aruana.ufscar.br"
+Received: from mga14.intel.com ([143.182.124.37]:40415 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757452Ab0KOQph (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Nov 2010 11:45:37 -0500
+	id S1752826Ab0KPAxv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Nov 2010 19:53:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Peter Zijlstra <peterz@infradead.org>
 
+Hi, Len,
 
+This patchset is needed by APEI support. Which involves some lockless
+operations. And I think they can be used by some other part of kernel
+too.
 
+v4:
 
-Dear webmail user,
+- Split from APEI patchset
+- Update patch description and comments according to ML comments
 
-We are updating our database, and e-mail account center. We are deletin=
-g
-all unused webmail account and create more space for new accounts. To
-ensure  that you do not experience service disruption during this perio=
-d,
-you need to provide the below details:
+v3:
 
-CONFIRM YOUR ACCOUNT BELOW
-1. E-mail:.................................
-2. Username :....................................
-2. Password :...................................
-3. Confirm password :...............................
+- Rework lockless memory allocator and list according to ML comments
 
-You will receive confirmation of a new alphanumeric password that is on=
-ly
-valid during this period, and may be changed by this process. We regret
-any inconvenience this may cost you.
-
-Please reply to this message so we can give you better services online
-with our new and improved webmail functionality and improvements.
-
-Webmail Upgrade Team =C2=A9 2010
-Warning Code: ID67565434.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[PATCH -v4 1/2] lib, Make gen_pool memory allocator lockless
+[PATCH -v4 2/2] lib, Add lock-less NULL terminated single list
