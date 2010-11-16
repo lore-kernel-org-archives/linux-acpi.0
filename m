@@ -1,89 +1,45 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [REGRESSION] [2.6.37-rc1] Fan noise after suspend to ram/disk
-Date: Tue, 16 Nov 2010 09:26:15 +0800
-Message-ID: <1289870775.8148.2020.camel@rui>
-References: <201011041706.59046.maciej.rutecki@gmail.com>
-	 <201011081835.05733.maciej.rutecki@gmail.com>
-	 <1289790995.8148.1819.camel@rui>
-	 <201011152139.46261.maciej.rutecki@gmail.com>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
+Date: Tue, 16 Nov 2010 14:16:42 +0900
+Message-ID: <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
+References: <20101104142915.GC7650@gamma.logic.tuwien.ac.at> <20101110035833.GB3029@kamineko.org> <20101111235000.GA6651@gamma.logic.tuwien.ac.at> <20101112034423.GA7407@srcf.ucam.org> <20101112035027.GD26742@gamma.logic.tuwien.ac.at> <20101112035732.GB7574@srcf.ucam.org> <20101112042243.GE2852@kamineko.org> <20101112043922.GA19889@gamma.logic.tuwien.ac.at> <20101112121742.GA17690@kamineko.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-wqMHYkESA4X14MuEyQzB"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57843 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754711Ab0KPBYi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Nov 2010 20:24:38 -0500
-In-Reply-To: <201011152139.46261.maciej.rutecki@gmail.com>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:57193 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770Ab0KPFQt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 00:16:49 -0500
+Content-Disposition: inline
+In-Reply-To: <20101112121742.GA17690@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "maciej.rutecki@gmail.com" <maciej.rutecki@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
+On Fr, 12 Nov 2010, Mattia Dongili wrote:
+> You will need an updated input-kbd to set the scancode map.
 
---=-wqMHYkESA4X14MuEyQzB
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Ouch.
 
-On Tue, 2010-11-16 at 04:39 +0800, Maciej Rutecki wrote:
-> On poniedziałek, 15 listopada 2010 o 04:16:35 Zhang Rui wrote:
-> > On Tue, 2010-11-09 at 01:35 +0800, Maciej Rutecki wrote:
-> > > On poniedziałek, 8 listopada 2010 o 07:58:52 Zhang Rui wrote:
-> > > > IMO, the only one that may cause this regression is commit
-> > > > c57b62f5b1e6dd69ff8c96f6db7f86ea31c0e21f
-> > > > some app may enable polling via procfs and update the thermal zone
-> > > > status.
-> > > 
-> > > I revert this commit from 2.6.37-rc1. Still the same:
-> > could you please apply the patch attached, on top of 2.6.37-rc1, and
-> > then attach the dmesg output if the fan is noise after suspend/resume.
-> > 
+> > Does that mean that 2.6.37rc is too new for the user space?
 > 
-> Dmesg in attachement.
-> 
-> Starting suspend to ram from:
-> [  104.602674] PM: Syncing filesystems ... done.
-> resume OK, but next:
-> [  144.298104] PM: Syncing filesystems ... done.
-> after resume fan starts on full speed.
-> 
-it seems that it's not the thermal driver that changes the Fan speed.
-Please apply the debug patch attached, rebuild with CONFIG_ACPI_DEBUG
-set and reboot with "acpi.debug_level=0x004
-acpi.debug_layer=0x04A10000", and then attach the dmesg output after the
-same test.
-Please attach the acpidump output of this laptop as well.
+> Maybe. Anyway if evtest reacts positively to key presses then it's a
+> userspace issue and not the driver's.
 
-thanks,
-rui
+What is strange that there *WAS* a change in the kernel that triggered
+that. Old kernels still work fine. I just tried 2.6.36 and it was working.
 
-> Regards
+I always thought that kernel changes should not break user space
+(well, without good reason).
 
+Best wishes
 
---=-wqMHYkESA4X14MuEyQzB
-Content-Disposition: attachment; filename="patch-thermal-debug-2"
-Content-Type: text/x-vhdl; name="patch-thermal-debug-2"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
----
- drivers/acpi/bus.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -256,6 +256,11 @@ int acpi_bus_set_power(acpi_handle handl
- 	if (result)
- 		return result;
- 
-+	if (!strcmp(acpi_device_hid(device), "PNP0C0B")) {
-+		printk("Rui: Change %s state from %d to %d\n", device->pnp.bus_id, device->power.state, state);
-+		dump_stack();
-+	}
-+
- 	if ((state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
- 		return -EINVAL;
- 
-
---=-wqMHYkESA4X14MuEyQzB--
-
+Norbert
+------------------------------------------------------------------------
+Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
+JAIST, Japan                                 TeX Live & Debian Developer
+DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+------------------------------------------------------------------------
+Does it worry you that you don't talk any kind of sense?
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
