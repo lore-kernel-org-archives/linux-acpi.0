@@ -1,45 +1,88 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
-Date: Tue, 16 Nov 2010 14:16:42 +0900
-Message-ID: <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
-References: <20101104142915.GC7650@gamma.logic.tuwien.ac.at> <20101110035833.GB3029@kamineko.org> <20101111235000.GA6651@gamma.logic.tuwien.ac.at> <20101112034423.GA7407@srcf.ucam.org> <20101112035027.GD26742@gamma.logic.tuwien.ac.at> <20101112035732.GB7574@srcf.ucam.org> <20101112042243.GE2852@kamineko.org> <20101112043922.GA19889@gamma.logic.tuwien.ac.at> <20101112121742.GA17690@kamineko.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH]  do not select ACPI_VIDEO in poulsbo stub driver
+Date: Tue, 16 Nov 2010 14:04:53 +0800
+Message-ID: <1289887493.8148.2040.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:57193 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770Ab0KPFQt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 00:16:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20101112121742.GA17690@kamineko.org>
+Received: from mga09.intel.com ([134.134.136.24]:40476 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756275Ab0KPGDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 01:03:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Joey Lee <jlee@novell.com>, mingo@elte.hu, airlied@redhat.com, "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Fr, 12 Nov 2010, Mattia Dongili wrote:
-> You will need an updated input-kbd to set the scancode map.
 
-Ouch.
+the poulsbo stub driver should not select ACPI video driver.
 
-> > Does that mean that 2.6.37rc is too new for the user space?
-> 
-> Maybe. Anyway if evtest reacts positively to key presses then it's a
-> userspace issue and not the driver's.
+The reason why i915 driver selects ACPI video driver is that it needs some
+cooperation between these two drivers during initialization, or else the
+system may hang.
 
-What is strange that there *WAS* a change in the kernel that triggered
-that. Old kernels still work fine. I just tried 2.6.36 and it was working.
+So if users want ACPI backlight control, please set CONFIG_ACPI_VIDEO manually.
 
-I always thought that kernel changes should not break user space
-(well, without good reason).
+http://marc.info/?l=linux-acpi&m=128952659018533&w=2
 
-Best wishes
+CC: Ingo Molnar <mingo@elte.hu>
+CC: Dave Airlie <airlied@redhat.com>
+CC: Lee, Chun-Yi <joeyli.kernel@gmail.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/gpu/stub/Kconfig   |   11 +----------
+ drivers/gpu/stub/poulsbo.c |    5 +----
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-Norbert
-------------------------------------------------------------------------
-Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-JAIST, Japan                                 TeX Live & Debian Developer
-DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-------------------------------------------------------------------------
-Does it worry you that you don't talk any kind of sense?
-                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
+Index: linux-2.6/drivers/gpu/stub/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/gpu/stub/Kconfig
++++ linux-2.6/drivers/gpu/stub/Kconfig
+@@ -1,16 +1,7 @@
+ config STUB_POULSBO
+ 	tristate "Intel GMA500 Stub Driver"
+ 	depends on PCI
+-	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
+-	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+-	select VIDEO_OUTPUT_CONTROL if ACPI
+-	select BACKLIGHT_CLASS_DEVICE if ACPI
+-	select INPUT if ACPI
+-	select ACPI_VIDEO if ACPI
+ 	help
+ 	  Choose this option if you have a system that has Intel GMA500
+ 	  (Poulsbo) integrated graphics. If M is selected, the module will
+-	  be called Poulsbo. This driver is a stub driver for Poulsbo that
+-	  will call poulsbo.ko to enable the acpi backlight control sysfs
+-	  entry file because there have no poulsbo native driver can support
+-	  intel opregion.
++	  be called Poulsbo.
+Index: linux-2.6/drivers/gpu/stub/poulsbo.c
+===================================================================
+--- linux-2.6.orig/drivers/gpu/stub/poulsbo.c
++++ linux-2.6/drivers/gpu/stub/poulsbo.c
+@@ -11,8 +11,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/pci.h>
+-#include <linux/acpi.h>
+-#include <acpi/video.h>
+ 
+ #define DRIVER_NAME "poulsbo"
+ 
+@@ -29,12 +27,11 @@ static DEFINE_PCI_DEVICE_TABLE(pciidlist
+ 
+ static int poulsbo_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ {
+-	return acpi_video_register();
++	return 0;
+ }
+ 
+ static void poulsbo_remove(struct pci_dev *pdev)
+ {
+-	acpi_video_unregister();
+ }
+ 
+ static struct pci_driver poulsbo_driver = {
+
+
