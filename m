@@ -1,51 +1,39 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
-Date: Tue, 16 Nov 2010 23:18:50 +0900
-Message-ID: <20101116141849.GB2111@kamineko.org>
-References: <20101104142915.GC7650@gamma.logic.tuwien.ac.at>
- <20101110035833.GB3029@kamineko.org>
- <20101111235000.GA6651@gamma.logic.tuwien.ac.at>
- <20101112034423.GA7407@srcf.ucam.org>
- <20101112035027.GD26742@gamma.logic.tuwien.ac.at>
- <20101112035732.GB7574@srcf.ucam.org>
- <20101112042243.GE2852@kamineko.org>
- <20101112043922.GA19889@gamma.logic.tuwien.ac.at>
- <20101112121742.GA17690@kamineko.org>
- <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
+From: Ming-Yang Lee <ming.yangfundsservice@qatar.io>
+Subject: (unknown)
+Date: Tue, 16 Nov 2010 13:59:33 +0000
+Message-ID: <20101116135933.9lfnni1reokcgc0o__20334.4513698996$1289917948$gmane$org@mail.idngh.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:56235
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757920Ab0KPOSv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 09:18:51 -0500
+Received: from mail.idngh.com ([41.204.36.5]:50536 "EHLO idngh.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755183Ab0KPOaG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 09:30:06 -0500
+Subject: 
 Content-Disposition: inline
-In-Reply-To: <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 16, 2010 at 02:16:42PM +0900, Norbert Preining wrote:
-> On Fr, 12 Nov 2010, Mattia Dongili wrote:
-> > You will need an updated input-kbd to set the scancode map.
-> 
-> Ouch.
-> 
-> > > Does that mean that 2.6.37rc is too new for the user space?
-> > 
-> > Maybe. Anyway if evtest reacts positively to key presses then it's a
-> > userspace issue and not the driver's.
-> 
-> What is strange that there *WAS* a change in the kernel that triggered
-> that. Old kernels still work fine. I just tried 2.6.36 and it was working.
-> 
-> I always thought that kernel changes should not break user space
-> (well, without good reason).
 
-it's the same as this:
-https://bugzilla.kernel.org/show_bug.cgi?id=23022
+
+Do you need a loan to pay your bills or to start up a business or for Xmas?.
+Kindly apply now for a low rate loan of 3%. for more information contact:
+ming.yangfundsservice@qatar.io
+We Await Your Response.
+Mr Ming-Yang Lee
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
 
 -- 
-mattia
-:wq!
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
