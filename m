@@ -1,123 +1,74 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH -v4 1/2] lib, Make gen_pool memory allocator lockless
-Date: Tue, 16 Nov 2010 13:50:38 -0800
-Message-ID: <20101116135038.fcaa90ca.akpm@linux-foundation.org>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	<1289868791-16658-2-git-send-email-ying.huang@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [REGRESSION] [2.6.37-rc1] Fan noise after suspend to ram/disk
+Date: Tue, 16 Nov 2010 23:35:26 +0100
+Message-ID: <201011162335.26220.rjw@sisk.pl>
+References: <201011041706.59046.maciej.rutecki@gmail.com> <1289870775.8148.2020.camel@rui> <201011162028.47007.maciej.rutecki@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60881 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755534Ab0KPVvx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:51:53 -0500
-In-Reply-To: <1289868791-16658-2-git-send-email-ying.huang@intel.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54699 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753946Ab0KPWgM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 17:36:12 -0500
+In-Reply-To: <201011162028.47007.maciej.rutecki@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Peter Zijlstra <peterz@infradead.org>
+To: maciej.rutecki@gmail.com
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-On Tue, 16 Nov 2010 08:53:10 +0800
-Huang Ying <ying.huang@intel.com> wrote:
+On Tuesday, November 16, 2010, Maciej Rutecki wrote:
+> On wtorek, 16 listopada 2010 o 02:26:15 Zhang Rui wrote:
+> > On Tue, 2010-11-16 at 04:39 +0800, Maciej Rutecki wrote:
+> > > On poniedzia=C5=82ek, 15 listopada 2010 o 04:16:35 Zhang Rui wrot=
+e:
+> > > > On Tue, 2010-11-09 at 01:35 +0800, Maciej Rutecki wrote:
+> > > > > On poniedzia=C5=82ek, 8 listopada 2010 o 07:58:52 Zhang Rui w=
+rote:
+> > > > > > IMO, the only one that may cause this regression is commit
+> > > > > > c57b62f5b1e6dd69ff8c96f6db7f86ea31c0e21f
+> > > > > > some app may enable polling via procfs and update the therm=
+al zone
+> > > > > > status.
+> > > > >=20
+> > > > > I revert this commit from 2.6.37-rc1. Still the same:
+> > > > could you please apply the patch attached, on top of 2.6.37-rc1=
+, and
+> > > > then attach the dmesg output if the fan is noise after suspend/=
+resume.
+> > >=20
+> > > Dmesg in attachement.
+> > >=20
+> > > Starting suspend to ram from:
+> > > [  104.602674] PM: Syncing filesystems ... done.
+> > > resume OK, but next:
+> > > [  144.298104] PM: Syncing filesystems ... done.
+> > > after resume fan starts on full speed.
+> >=20
+> > it seems that it's not the thermal driver that changes the Fan spee=
+d.
+> > Please apply the debug patch attached, rebuild with CONFIG_ACPI_DEB=
+UG
+> > set and reboot with "acpi.debug_level=3D0x004
+> > acpi.debug_layer=3D0x04A10000", and then attach the dmesg output af=
+ter the
+> > same test.
+> > Please attach the acpidump output of this laptop as well.
+> >=20
+> > thanks,
+> > rui
+> >=20
+> > > Regards
+>=20
+> Revert 3e384ee6c687cb397581ee8f9440fc8220cfac80 seems solve problem:
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D22932#c3
 
-> This version of the gen_pool memory allocator supports lockless
-> operation.
-> 
-> This makes it safe to use in NMI handlers and other special
-> unblockable contexts that could otherwise deadlock on locks.  This is
-> implemented by using atomic operations and retries on any conflicts.
-> The disadvantage is that there may be livelocks in extreme cases.  For
-> better scalability, one gen_pool allocator can be used for each CPU.
-> 
-> The lockless operation only works if there is enough memory available.
-> If new memory is added to the pool a lock has to be still taken.  So
-> any user relying on locklessness has to ensure that sufficient memory
-> is preallocated.
-> 
-> The basic atomic operation of this allocator is cmpxchg on long.  On
-> architectures that don't support cmpxchg natively a fallback is used.
-> If the fallback uses locks it may not be safe to use it in NMI
-> contexts on these architectures.
+Please do the test I asked for in the bug entry.
 
-The code assumes that cmpxchg is atomic wrt NMI.  That would be news to
-me - at present an architecture can legitimately implement cmpxchg()
-with, say, spin_lock_irqsave() on a hashed spinlock.  I don't know
-whether any architectures _do_ do anything like that.  If so then
-that's a problem.  If not, it's an additional requirement on future
-architecture ports.
-
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> Reviewed-by: Andi Kleen <ak@linux.intel.com>
-> ---
->  include/linux/bitmap.h   |    1 
->  include/linux/genalloc.h |   35 +++++--
->  lib/bitmap.c             |    2 
->  lib/genalloc.c           |  228 ++++++++++++++++++++++++++++++++++++++---------
->  4 files changed, 215 insertions(+), 51 deletions(-)
-> 
-> --- a/include/linux/bitmap.h
-> +++ b/include/linux/bitmap.h
-> @@ -142,6 +142,7 @@ extern void bitmap_release_region(unsign
->  extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
->  extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
->  
-> +#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
->  #define BITMAP_LAST_WORD_MASK(nbits)					\
->  (									\
->  	((nbits) % BITS_PER_LONG) ?					\
-> --- a/include/linux/genalloc.h
-> +++ b/include/linux/genalloc.h
-> @@ -1,19 +1,26 @@
-> +#ifndef GENALLOC_H
-> +#define GENALLOC_H
->  /*
-> - * Basic general purpose allocator for managing special purpose memory
-> - * not managed by the regular kmalloc/kfree interface.
-> - * Uses for this includes on-device special memory, uncached memory
-> - * etc.
-> + * Basic general purpose allocator for managing special purpose
-> + * memory, for example, memory not managed by the regular
-> + * kmalloc/kfree interface.  Uses for this includes on-device special
-> + * memory, uncached memory etc.
-> + *
-> + * The gen_pool_alloc, gen_pool_free, gen_pool_avail and gen_pool_size
-> + * implementation is lockless, that is, multiple users can
-> + * allocate/free memory in the pool simultaneously without lock.  This
-> + * also makes the gen_pool memory allocator can be used to
-
-That sentence needs a fixup.
-
->  
-> +static inline int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
-> +{
-> +	unsigned long val, nval;
-> +
-> +	nval = *addr;
-> +	do {
-> +		val = nval;
-> +		if (val & mask_to_set)
-> +			return -EBUSY;
-> +	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
-> +
-> +	return 0;
-> +}
-> +
-> +static inline int clear_bits_ll(unsigned long *addr,
-> +				unsigned long mask_to_clear)
-> +{
-> +	unsigned long val, nval;
-> +
-> +	nval = *addr;
-> +	do {
-> +		val = nval;
-> +		if ((val & mask_to_clear) != mask_to_clear)
-> +			return -EBUSY;
-> +	} while ((nval = cmpxchg(addr, val, val & ~mask_to_clear)) != val);
-> +
-> +	return 0;
-> +}
-
-These are waaaay too big to be inlined.  Let the compiler decide.
-
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
