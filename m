@@ -1,27 +1,51 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH]  do not select ACPI_VIDEO in poulsbo stub driver
-Date: Tue, 16 Nov 2010 14:11:05 +0000
-Message-ID: <20101116141105.GA13582@srcf.ucam.org>
-References: <1289887493.8148.2040.camel@rui>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
+Date: Tue, 16 Nov 2010 23:18:50 +0900
+Message-ID: <20101116141849.GB2111@kamineko.org>
+References: <20101104142915.GC7650@gamma.logic.tuwien.ac.at>
+ <20101110035833.GB3029@kamineko.org>
+ <20101111235000.GA6651@gamma.logic.tuwien.ac.at>
+ <20101112034423.GA7407@srcf.ucam.org>
+ <20101112035027.GD26742@gamma.logic.tuwien.ac.at>
+ <20101112035732.GB7574@srcf.ucam.org>
+ <20101112042243.GE2852@kamineko.org>
+ <20101112043922.GA19889@gamma.logic.tuwien.ac.at>
+ <20101112121742.GA17690@kamineko.org>
+ <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:58659 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754952Ab0KPOLP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 09:11:15 -0500
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:56235
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757920Ab0KPOSv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Nov 2010 09:18:51 -0500
 Content-Disposition: inline
-In-Reply-To: <1289887493.8148.2040.camel@rui>
+In-Reply-To: <20101116051642.GA24410@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Joey Lee <jlee@novell.com>, mingo@elte.hu, airlied@redhat.com, "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Norbert Preining <preining@logic.at>
+Cc: Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 16, 2010 at 02:04:53PM +0800, Zhang Rui wrote:
+On Tue, Nov 16, 2010 at 02:16:42PM +0900, Norbert Preining wrote:
+> On Fr, 12 Nov 2010, Mattia Dongili wrote:
+> > You will need an updated input-kbd to set the scancode map.
 > 
-> the poulsbo stub driver should not select ACPI video driver.
+> Ouch.
+> 
+> > > Does that mean that 2.6.37rc is too new for the user space?
+> > 
+> > Maybe. Anyway if evtest reacts positively to key presses then it's a
+> > userspace issue and not the driver's.
+> 
+> What is strange that there *WAS* a change in the kernel that triggered
+> that. Old kernels still work fine. I just tried 2.6.36 and it was working.
+> 
+> I always thought that kernel changes should not break user space
+> (well, without good reason).
 
-No, the entire point is for the driver to make this call.
+it's the same as this:
+https://bugzilla.kernel.org/show_bug.cgi?id=23022
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+mattia
+:wq!
