@@ -1,172 +1,447 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: [PATCH]  do not select ACPI_VIDEO in poulsbo stub driver
-Date: Wed, 17 Nov 2010 00:34:42 -0700
-Message-ID: <4CE42042020000230002406A@novprvlin0050.provo.novell.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [git 2.6.32.stable] intel_idle driver for 2.6.32.stable
+Date: Wed, 17 Nov 2010 03:21:19 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011170315050.24426@x980>
+References: <alpine.LFD.2.00.1011030138010.3378@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Content-Disposition: inline
+Received: from vms173007pub.verizon.net ([206.46.173.7]:56785 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934523Ab0KQIVj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2010 03:21:39 -0500
+In-reply-to: <alpine.LFD.2.00.1011030138010.3378@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com
-Cc: mingo@elte.hu, lenb@kernel.org, airlied@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Rui,
+I've added the upstream commit id's to each patch,
+but the idle-release branch is otherwise unchanged.
 
-=E6=96=BC =E4=B8=89=EF=BC=8C2010-11-17 =E6=96=BC 11:16 +0800=EF=BC=8CZh=
-ang Rui =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Wed, 2010-11-17 at 11:04 +0800, Joey Lee wrote:
-> > Hi Rui,=20
-> >=20
-> > =E6=96=BC =E4=B8=89=EF=BC=8C2010-11-17 =E6=96=BC 08:42 +0800=EF=BC=8C=
-Zhang Rui =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > On Tue, 2010-11-16 at 15:34 +0800, Joey Lee wrote:
-> > > > Hi Rui,=20
-> > > >=20
-> > > > Sorry about this patch will not work on my MSi poulsbo machine.
-> > > >=20
-> > > > =E6=96=BC =E4=BA=8C=EF=BC=8C2010-11-16 =E6=96=BC 14:04 +0800=EF=
-=BC=8CZhang Rui =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > > > the poulsbo stub driver should not select ACPI video driver.
-> > > > >=20
-> > > > > The reason why i915 driver selects ACPI video driver is that =
-it needs some
-> > > > > cooperation between these two drivers during initialization, =
-or else the
-> > > > > system may hang.
-> > > > >=20
-> > > > > So if users want ACPI backlight control, please set CONFIG_AC=
-PI_VIDEO manually.
-> > > > >=20
-> > > > > http://marc.info/?l=3Dlinux-acpi&m=3D128952659018533&w=3D2
-> > > > >=20
-> > > > > CC: Ingo Molnar <mingo@elte.hu>
-> > > > > CC: Dave Airlie <airlied@redhat.com>
-> > > > > CC: Lee, Chun-Yi <joeyli.kernel@gmail.com>
-> > > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > > > ---
-> > > > >  drivers/gpu/stub/Kconfig   |   11 +----------
-> > > > >  drivers/gpu/stub/poulsbo.c |    5 +----
-> > > > >  2 files changed, 2 insertions(+), 14 deletions(-)
-> > > > >=20
-> > > > > Index: linux-2.6/drivers/gpu/stub/Kconfig
-> > > > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > > > --- linux-2.6.orig/drivers/gpu/stub/Kconfig
-> > > > > +++ linux-2.6/drivers/gpu/stub/Kconfig
-> > > > > @@ -1,16 +1,7 @@
-> > > > >  config STUB_POULSBO
-> > > > >  	tristate "Intel GMA500 Stub Driver"
-> > > > >  	depends on PCI
-> > > > > -	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
-> > > > > -	# but for select to work, need to select ACPI_VIDEO's depen=
-dencies, ick
-> > > > > -	select VIDEO_OUTPUT_CONTROL if ACPI
-> > > > > -	select BACKLIGHT_CLASS_DEVICE if ACPI
-> > > > > -	select INPUT if ACPI
-> > > > > -	select ACPI_VIDEO if ACPI
-> > > > >  	help
-> > > > >  	  Choose this option if you have a system that has Intel GM=
-A500
-> > > > >  	  (Poulsbo) integrated graphics. If M is selected, the modu=
-le will
-> > > > > -	  be called Poulsbo. This driver is a stub driver for Pouls=
-bo that
-> > > > > -	  will call poulsbo.ko to enable the acpi backlight control=
- sysfs
-> > > > > -	  entry file because there have no poulsbo native driver ca=
-n support
-> > > > > -	  intel opregion.
-> > > > > +	  be called Poulsbo.
-> > > > > Index: linux-2.6/drivers/gpu/stub/poulsbo.c
-> > > > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > > > --- linux-2.6.orig/drivers/gpu/stub/poulsbo.c
-> > > > > +++ linux-2.6/drivers/gpu/stub/poulsbo.c
-> > > > > @@ -11,8 +11,6 @@
-> > > > > =20
-> > > > >  #include <linux/module.h>
-> > > > >  #include <linux/pci.h>
-> > > > > -#include <linux/acpi.h>
-> > > > > -#include <acpi/video.h>
-> > > > > =20
-> > > > >  #define DRIVER_NAME "poulsbo"
-> > > > > =20
-> > > > > @@ -29,12 +27,11 @@ static DEFINE_PCI_DEVICE_TABLE(pciidlist
-> > > > > =20
-> > > > >  static int poulsbo_probe(struct pci_dev *pdev, const struct =
-pci_device_id *id)
-> > > > >  {
-> > > > > -	return acpi_video_register();
-> > > > > +	return 0;
-> > > > >  }
-> > > >=20
-> > > > Sorry, we cann't remove to call acpi_video_register, because th=
-e acpi
-> > > > video will not generate because there have some poulsbo machine=
- declare
-> > > > Intel opregion in DSDT but the i915 driver not support poulsbo.
-> > > >=20
-> > > I'm confused.
-> > > It's the i915 driver that supports Intel Opregion.
-> > > i.e. for a poulsbo machine with Intel Opregion, loading ACPI vide=
-o
-> > > driver won't help neither.
-> > >=20
-> >=20
-> > Matthew have a patch:
-> >=20
-> >       * http://git.kernel.org/?p=3Dlinux/kernel/git/lenb/linux-acpi=
--2.6.git;a=3Dcommitdiff;h=3D74a365b3f354fafc537efa5867deb7a9fadbfe27
-> >=20
-> > This patch do:
-> >=20
-> > - ACPI video driver will not register if it check the DSDT have opr=
-egion table declare.
-> > - i915_opregion will call acpi_video_register after it initialised =
-the DIDL field in opregion.
-> >=20
-> > That means acpi video driver will blocked when have opregion declar=
-e in
-> > DSDT until i915 drm driver call acpi_video_register. The patch fixe=
-d
-> > BKO#11259, but introduced a side effect: If there have Intel video =
-chip
-> > not supported by Intel drm driver, the acpi_video_register will nev=
-er
-> > called, then some machine have good acpi backlight interface
-> > implementation will never have acpi brightness sysfs interface for
-> > userland control. e.g. any Poulsbo netbook.
-> >=20
-> > Matthew's comment to talk about the side effect: Intel IGD opregion=
- and
-> > GMA500
-> >=20
-> > There have some machines declare opregion in DSDT but they also
-> > implement the backlight control by EC in _BCM. Like: MSI poulsbo
-> > netbook.
-> > Before introduce the above patch to kernel, those machine's acpi
-> > backlight control works fine. On current kernel, those machines
-> > backlight control broken.
-> >=20
-> > One function workable with old kernel but broken by new kernel, now=
-=2E
-> >=20
-> Oh, I see what the problem is.
-> You're right, this patch doesn't make sense. Sorry for the noise. :)
->=20
-> thanks,
-> rui
+cheers,
+-Len Brown, Intel Open Source Technology Center.
 
-No problem, and thank's for your review and take care :-)
 
-Joey Lee
+intel_idle for 2.6.32.stable is available in git:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-idle-2.6.32.y.git 
+idle-release
+
+and also as a plain patch:
+
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/idle/patches/2.6.32/idle-release-2.6.32.25.diff.gz
+
+The patch series is summarized below.
+
+ MAINTAINERS                      |    7 +
+ arch/x86/include/asm/mwait.h     |   15 ++
+ arch/x86/kernel/acpi/cstate.c    |   11 +-
+ drivers/Makefile                 |    2 +-
+ drivers/acpi/acpi_pad.c          |    7 +-
+ drivers/acpi/processor_core.c    |   15 +-
+ drivers/cpuidle/cpuidle.c        |   43 ++++-
+ drivers/cpuidle/cpuidle.h        |    1 -
+ drivers/cpuidle/driver.c         |   16 ++-
+ drivers/cpuidle/governors/menu.c |   23 ++-
+ drivers/cpuidle/sysfs.c          |    5 +-
+ drivers/idle/Kconfig             |   10 +
+ drivers/idle/Makefile            |    1 +
+ drivers/idle/intel_idle.c        |  448 ++++++++++++++++++++++++++++++++++++++
+ include/linux/cpuidle.h          |   13 +-
+ 15 files changed, 575 insertions(+), 42 deletions(-)
+ create mode 100644 arch/x86/include/asm/mwait.h
+ create mode 100644 drivers/idle/intel_idle.c
+
+through these commits:
+
+Ai Li (1):
+      cpuidle: extend cpuidle and menu governor to handle dynamic states
+
+Arjan van de Ven (1):
+      intel_idle: recognize Lincroft Atom Processor
+
+H. Peter Anvin (1):
+      x86, mwait: Move mwait constants to a common header file
+
+Len Brown (15):
+      cpuidle: fail to register if !CONFIG_CPU_IDLE
+      cpuidle: add cpuidle_unregister_driver() error check
+      cpuidle: make cpuidle_curr_driver static
+      ACPI: allow a native cpuidle driver to displace ACPI
+      intel_idle: native hardware cpuidle driver for latest Intel processors
+      intel_idle: delete substates DEBUG modparam
+      intel_idle: delete power_policy modparam, and choose substate functions
+      intel_idle: add support for Westmere-EX
+      intel_idle: disable module support
+      intel_idle: no longer EXPERIMENTAL
+      intel_idle: enable Atom C6
+      intel_idle: simplify test for leave_mm()
+      intel_idle: delete bogus data from cpuidle_state.power_usage
+      intel_idle: add initial Sandy Bridge support
+      intel_idle: do not use the LAPIC timer for ATOM C2
+
+Suresh Siddha (1):
+      intel_idle: Voluntary leave_mm before entering deeper
+
+Thomas Weber (1):
+      intel_idle: Change mode 755 => 644
+
+with this log:
+
+commit 97e3bcac24f55fa6c3224f1bc39d08db73495cfb
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Oct 23 23:25:53 2010 -0400
+
+    intel_idle: do not use the LAPIC timer for ATOM C2
+    
+    upstream: c25d29952b2a8c9aaf00e081c9162a0e383030cd
+    
+    If we use the LAPIC timer during ATOM C2 on
+    some nvidia chisets, the system stalls.
+    
+    https://bugzilla.kernel.org/show_bug.cgi?id=21032
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 3f371943e54e8cbc8cdea3e543656d8e62f6b8a9
+Author: Len Brown <len.brown@intel.com>
+Date:   Wed Jul 7 00:12:03 2010 -0400
+
+    intel_idle: add initial Sandy Bridge support
+    
+    upstream: d13780d439d08a57c87c1a07b6e76ddde61da1aa
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 263d2d9ba1fd6f8baa2003d46ff1b32733585903
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Oct 15 21:23:25 2010 -0400
+
+    intel_idle: delete bogus data from cpuidle_state.power_usage
+    
+    upstream: dea44c6b7df7f8bb67cb059b4c14b24288c4cd04
+    
+    The mW data in this field is a total fabrication
+    and serves no purpose other than to mislead
+    those who might see it in sysfs.  Delete it.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 731dafe015fc308b40eaf9cc1838739d74554a72
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Oct 15 20:43:06 2010 -0400
+
+    intel_idle: simplify test for leave_mm()
+    
+    upstream: c8381cc3d8a9cc6c80f65bf60863c776651f245c
+    
+    A run-time test to invoke leave_mm() for the deepest
+    supported C-state is redundant, since the appropriate
+    C-states already have flags with CPUIDLE_FLAG_TLB_FLUSHED set.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 0d377ee9506d73b26852a9f2a03e87412532a83a
+Author: H. Peter Anvin <hpa@linux.intel.com>
+Date:   Fri Sep 17 15:36:40 2010 -0700
+
+    x86, mwait: Move mwait constants to a common header file
+    
+    upstream: bc83cccc761953f878088cdfa682de0970b5561f
+    
+    We have MWAIT constants spread across three different .c files, for no
+    good reason.  Move them all into a common header file.
+    
+    Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+    Reviewed-by: Arjan van de Ven <arjan@linux.intel.com>
+    Cc: Len Brown <lenb@kernel.org>
+    LKML-Reference: <tip-*@git.kernel.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b302246d3ba6e822e23193516385bd82c3e1d957
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Oct 5 13:43:14 2010 -0400
+
+    intel_idle: enable Atom C6
+    
+    upstream: 7fcca7d900957b43c84da171b750afcf1682808a
+    
+    ATM-C6 was commented out, pending public documentation.
+    
+    https://bugzilla.kernel.org/show_bug.cgi?id=19762
+    
+    Tested-by: Dennis Jansen <Dennis.Jansen@...>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 13fec6ba1116ea16dd28d54cc92a5f19fa1460f5
+Author: Suresh Siddha <suresh.b.siddha@intel.com>
+Date:   Thu Sep 30 21:19:07 2010 -0400
+
+    intel_idle: Voluntary leave_mm before entering deeper
+    
+    upstream: 6110a1f43c27b516e16d5ce8860fca50748c2a87
+    
+    Avoid TLB flush IPIs for the cores in deeper c-states by voluntary leave_mm()
+    before entering into that state. CPUs tend to flush TLB in those c-states
+    anyways.
+    
+    acpi_idle does this with C3-type states, but it was not caried over
+    when intel_idle was introduced.  intel_idle can apply it
+    to C-states in addition to those that ACPI might export as C3...
+    
+    Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1b4cde4b819b532319b4972355968ea48ad06157
+Author: Ai Li <aili@codeaurora.org>
+Date:   Mon Aug 9 17:20:13 2010 -0700
+
+    cpuidle: extend cpuidle and menu governor to handle dynamic states
+    
+    cpuidle: 71abbbf856a0e70ca478782505c800891260ba84
+    
+    On some SoC chips, HW resources may be in use during any particular idle
+    period.  As a consequence, the cpuidle states that the SoC is safe to
+    enter can change from idle period to idle period.  In addition, the
+    latency and threshold of each cpuidle state can vary, depending on the
+    operating condition when the CPU becomes idle, e.g.  the current cpu
+    frequency, the current state of the HW blocks, etc.
+    
+    cpuidle core and the menu governor, in the current form, are geared
+    towards cpuidle states that are static, i.e.  the availabiltiy of the
+    states, their latencies, their thresholds are non-changing during run
+    time.  cpuidle does not provide any hook that cpuidle drivers can use to
+    adjust those values on the fly for the current idle period before the menu
+    governor selects the target cpuidle state.
+    
+    This patch extends cpuidle core and the menu governor to handle states
+    that are dynamic.  There are three additions in the patch and the patch
+    maintains backwards-compatibility with existing cpuidle drivers.
+    
+    1) add prepare() to struct cpuidle_device.  A cpuidle driver can hook
+       into the callback and cpuidle will call prepare() before calling the
+       governor's select function.  The callback gives the cpuidle driver a
+       chance to update the dynamic information of the cpuidle states for the
+       current idle period, e.g.  state availability, latencies, thresholds,
+       power values, etc.
+    
+    2) add CPUIDLE_FLAG_IGNORE as one of the state flags.  In the prepare()
+       function, a cpuidle driver can set/clear the flag to indicate to the
+       menu governor whether a cpuidle state should be ignored, i.e.  not
+       available, during the current idle period.
+    
+    3) add power_specified bit to struct cpuidle_device.  The menu governor
+       currently assumes that the cpuidle states are arranged in the order of
+       increasing latency, threshold, and power savings.  This is true or can
+       be made true for static states.  Once the state parameters are dynamic,
+       the latencies, thresholds, and power savings for the cpuidle states can
+       increase or decrease by different amounts from idle period to idle
+       period.  So the assumption of increasing latency, threshold, and power
+       savings from Cn to C(n+1) can no longer be guaranteed.
+    
+    It can be straightforward to calculate the power consumption of each
+    available state and to specify it in power_usage for the idle period.
+    Using the power_usage fields, the menu governor then selects the state
+    that has the lowest power consumption and that still satisfies all other
+    critieria.  The power_specified bit defaults to 0.  For existing cpuidle
+    drivers, cpuidle detects that power_specified is 0 and fills in a dummy
+    set of power_usage values.
+    
+    Signed-off-by: Ai Li <aili@codeaurora.org>
+    Cc: Len Brown <len.brown@intel.com>
+    Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+    Cc: Ingo Molnar <mingo@elte.hu>
+    Cc: Venkatesh Pallipadi <venki@google.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit bb55febc2a2b41014e8c34ea312848574ac96f5e
+Author: Thomas Weber <weber@corscience.de>
+Date:   Mon Jul 12 08:56:43 2010 +0200
+
+    intel_idle: Change mode 755 => 644
+    
+    upstream: 68f160125f0655c21a1c9f896ddff97d98012cb0
+    
+    Remove execution permission from source file.
+    
+    Signed-off-by: Thomas Weber <weber@corscience.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1d9ce17be4700a0115bf283c7ff1e67263cfc17a
+Author: Arjan van de Ven <arjan@linux.intel.com>
+Date:   Wed Jul 21 23:42:25 2010 -0400
+
+    intel_idle: recognize Lincroft Atom Processor
+    
+    upstream: 4725fd3ce970c27a1678fb0809bfc7c2f4ac3e4f
+    
+    Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 96076984bc88598023b7fdc823659c4a3ed444e3
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Aug 14 14:44:08 2010 -0400
+
+    intel_idle: no longer EXPERIMENTAL
+    
+    upstream: 5a5e28daea69652505ac07eb5fbda4d7f0534926
+    
+    This is a fully supported driver.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 6e6c0dae2b32736f270c03f853a166c8b11567a0
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Aug 14 14:40:36 2010 -0400
+
+    intel_idle: disable module support
+    
+    upstream: 6ce9cd8669fa1195fdc21643370e34523c7ac988
+    
+    Right now the module capability is cauing more trouble
+    than it is worth.  At least one distro built intel_idle as a module
+    where it lost the init race with ACPI, making it useless.
+    
+    Make intel_idle bool so that if you select it, you will use it.
+    
+    We can restore module capability after cpuidle is enhanced
+    to handle run-time changing of idle drivers.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e361b2321279f6c44392bc3e89b4895d68594b67
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 26 23:40:19 2010 -0400
+
+    intel_idle: add support for Westmere-EX
+    
+    upstream: ec67a2ba360d4874b1158e6e87fe1e859b0c9117
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 50ce5830e037e9bf934e3dfaeafb56f2be3f6bb1
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Jul 23 16:04:46 2010 -0400
+
+    intel_idle: delete power_policy modparam, and choose substate functions
+    
+    upstream: 0394c6676e3fa48587fbe4821390d3264672c530
+    
+    The idea behind power policy was that it would start off as a modparam,
+    and then hook into the new "global" in-kernel power vs energy tunable.
+    But that tunable isn't happening, so delete the hook here.
+    
+    With the policy hook gone, the sub-state choice functions
+    do not do anything useful, so delete them from the critical path.
+    
+    To handle sub-states in the future, we will advertise them
+    with dedicated cpuidle_state entries.  That is necessary
+    because some of the sub-states will have substantially different
+    properties than their peer sub-states.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 7b6d47c455d6c9388447ea466881e85864496636
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri May 28 02:22:03 2010 -0400
+
+    intel_idle: delete substates DEBUG modparam
+    
+    upstream: c4236282e5921a410e8f074fec795b6ca0af36d5
+    
+    it isn't useful anymore
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 08479e73c90ed7714ac733434539196025909544
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Mar 8 14:07:30 2010 -0500
+
+    intel_idle: native hardware cpuidle driver for latest Intel processors
+    
+    upstream: 2671717265ae6e720a9ba5f13fbec3a718983b65
+    
+    This EXPERIMENTAL driver supersedes acpi_idle on
+    Intel Atom Processors, Intel Core i3/i5/i7 Processors
+    and associated Intel Xeon processors.
+    
+    It does not support the Intel Core2 processor or earlier.
+    
+    For kernels configured with ACPI, CONFIG_INTEL_IDLE=y
+    allows intel_idle to probe before the ACPI processor driver.
+    Booting with "intel_idle.max_cstate=0" disables intel_idle
+    and the system will fall back on ACPI's "acpi_idle".
+    
+    Typical Linux distributions load ACPI processor module early,
+    making CONFIG_INTEL_IDLE=m not easily useful on ACPI platforms.
+    
+    intel_idle probes all processors at module_init time.
+    Processors that are hot-added later will be limited
+    to using C1 in idle.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 86741cac7bbc7e9a9f20d3999a172a835d4cd152
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat May 22 17:03:29 2010 -0400
+
+    ACPI: allow a native cpuidle driver to displace ACPI
+    
+    upstream: 541adf7cd937b3895c7645406a9b060504df453b
+    
+    The ACPI driver would fail probe when it found that
+    another driver had previously registered with cpuidle.
+    
+    But this is a natural situation, as a native hardware
+    cpuidle driver should be able to bind instead of ACPI,
+    and the ACPI processor driver should be able to handle
+    yielding control of C-states while still handling
+    P-states and T-states.
+    
+    Add a KERN_DEBUG line showing when acpi_idle
+    does successfully register.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 0f4465d44e93651c90813923268a8e9abcf89b58
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat May 22 16:57:26 2010 -0400
+
+    cpuidle: make cpuidle_curr_driver static
+    
+    upstream: 752138df0dc2daaae09379c754caeb08c97905dc
+    
+    cpuidle_register_driver() sets cpuidle_curr_driver
+    cpuidle_unregister_driver() clears cpuidle_curr_driver
+    
+    We should't expose cpuidle_curr_driver to
+    potential modification except via these interfaces.
+    So make it static and create cpuidle_get_driver() to observe it.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 329dc1a14c6ddfd71b0ecff1e2458f50258106cf
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat May 22 16:34:10 2010 -0400
+
+    cpuidle: add cpuidle_unregister_driver() error check
+    
+    upstream: c0d64cb031c21f163a0ec15cf10844bcf0ceedcf
+    
+    Assure that cpuidle_unregister_driver() will not clobber
+    the registered driver if unregistered by somebody else.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5991bb561038bc6b7b0a1dbea741a64e499ae118
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue May 11 16:50:52 2010 -0400
+
+    cpuidle: fail to register if !CONFIG_CPU_IDLE
+    
+    upstream: 6b2c676bf32be91f43215d5874c07c1becaba013
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
