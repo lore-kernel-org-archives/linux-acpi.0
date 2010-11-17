@@ -1,70 +1,155 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH -v4 1/2] lib, Make gen_pool memory allocator lockless
-Date: Wed, 17 Nov 2010 19:16:01 +0800
-Message-ID: <AANLkTi=F+r77f5WJpPPh2rtWgtcVqGS-qbCJZ11Fy1yN@mail.gmail.com>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	<1289868791-16658-2-git-send-email-ying.huang@intel.com>
-	<20101116135038.fcaa90ca.akpm@linux-foundation.org>
-	<1289960281.8719.1218.camel@yhuang-dev>
-	<20101116183506.41e77e1a.akpm@linux-foundation.org>
-	<1289963005.8719.1238.camel@yhuang-dev>
-	<20101116195720.23287038.akpm@linux-foundation.org>
-	<1289973914.8719.1261.camel@yhuang-dev>
-	<1289990983.2109.678.camel@laptop>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH RESEND] tools: add power/x86/x86_energy_perf_policy to program MSR_IA32_ENERGY_PERF_BIAS
+Date: Wed, 17 Nov 2010 12:35:52 +0100
+Message-ID: <8739r0rxlz.fsf@basil.nowhere.org>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+	<alpine.LFD.2.00.1009281143070.14962@localhost.localdomain>
+	<alpine.LFD.2.00.1010230035360.29399@localhost.localdomain>
+	<alpine.LFD.2.00.1011151103280.2939@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:37087 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933515Ab0KQLQD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2010 06:16:03 -0500
-In-Reply-To: <1289990983.2109.678.camel@laptop>
+Received: from one.firstfloor.org ([213.235.205.2]:35469 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932962Ab0KQLfy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2010 06:35:54 -0500
+In-Reply-To: <alpine.LFD.2.00.1011151103280.2939@x980> (Len Brown's message of
+	"Mon, 15 Nov 2010 11:07:04 -0500 (EST)")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Huang Ying <ying.huang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Steven Rostedt <rostedt@goodmis.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Wed, Nov 17, 2010 at 6:49 PM, Peter Zijlstra <peterz@infradead.org> =
-wrote:
-> On Wed, 2010-11-17 at 14:05 +0800, Huang Ying wrote:
->> Hi, Peter,
->>
->> Do you think think irq_work should depend on that? =C2=A0Or we just
->> reimplement irq_work based on lockless list and make irq_work depend=
-s on
->> lockless list?
->
-> If you can make it use a lockless list thing that's fine.
+Len Brown <lenb@kernel.org> writes:
+> @@ -0,0 +1,7 @@
+> +x86_energy_perf_policy : x86_energy_perf_policy.c
+> +
+> +clean :
+> +	rm -f x86_energy_perf_policy
+> +
+> +install :
+> +	install x86_energy_perf_policy /usr/bin/x86_energy_perf_policy
 
-I will try to do that.
+It's not clear to me how this Makefile ensures it's only
+build on x86. 
 
-> I'm not sure Andrew's CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG makes much se=
-nse
-> for CONFIG_ARCH_HAVE_NMI=3Dn though..
+If someone on another architecture does a full tools build
+in the future (I think that is not wired up yet, but should
+eventually) such a mechanism would be needed.
 
-Sorry, I do not find ARCH_HAVE_NMI in any Kconfig, can you help me to
-point out? I think cmpxchg can be used safely in lock-less code on
-architectures without NMI.
 
-> Anyway, make sure to consolidate net/rds/xlist.h and its users, havin=
-g
-> two lockless lists is one too many.
+> +
+> +/*
+> + * Usage:
 
-Sure.
+...
 
->> At least as the first step, I prefer to just make lockless list depe=
-nd
->> on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
->
-> But only if the platform has NMIs, otherwise its moot.
+This full comment and parts of the following comments describing the
+semantics need to be available somewhere to the user who may not have
+easy access to the source. Can you make it display in usage or convert
+it to a manpage? I would prefer a manpage
 
-Yes.
+> +
+> +cmdline(int argc, char **argv) {
 
-Best Regards,
-Huang Ying
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No type?
+
+> +	int opt;
+> +
+> +	progname = argv[0];
+> +
+> +	while ((opt = getopt(argc, argv, "+rvc:")) != -1) {
+
+Maybe it's me, but I prefer having long options too (getopt_long)
+These are easier to memorize.
+
+> +
+> +	/*
+> +	 * if no -r , then must be one additional optind
+> +	 */
+> +	if (!read_only) {
+> +
+> +		if (argc != optind + 1) {
+> +			printf("must supply -r or policy param\n");
+> +			usage();
+> +			exit(-1);
+
+-1 is an unusual exit code. Better use 1.
+
+An obvious improvement would be to put the exit() into usage()
+
+> +			}
+> +
+> +		if (!strcmp("performance", argv[optind])) {
+> +			new_bias = BIAS_PERFORMANCE;
+> +		} else if (!strcmp("normal", argv[optind])) {
+> +			new_bias = BIAS_BALANCE;
+> +		} else if (!strcmp("powersave", argv[optind])) {
+> +			new_bias = BIAS_POWERSAVE;
+> +		} else {
+> +			new_bias = atoll(argv[optind]);
+
+If you used strtoull() you could actually check if the input
+is really a number (end == argv[optind])
+
+> +	eax = ebx = ecx = edx = 0;
+> +
+> +	asm("cpuid" : "=a" (max_level), "=b" (ebx), "=c" (ecx),
+> +		"=d" (edx) : "a" (0));
+
+Strictly for 386/early 486 you would need to check if cpuid
+is available using pushf too. Perhaps it's safer to use cpuinfo
+
+> +
+> +check_dev_msr() {
+
+Return type missing again
+
+> +	struct stat sb;
+> +
+> +	if (stat("/dev/cpu/0/msr", &sb)) {
+> +		printf("no /dev/cpu/0/msr\n");
+
+This will fail if we eventually implement cpu 0 hotplug...
+Better readdir or similar.
+
+> +		printf("Try \"# modprobe msr\"\n");
+> +		exit(-5);
+
+Again -5 is unusual.
+
+
+> +	char msr_path[32];
+> +	int retval;
+> +	int fd;
+> +
+> +	sprintf(msr_path, "/dev/cpu/%d/msr", cpu);
+> +	fd = open(msr_path, O_RDONLY);
+> +	if (fd < 0) {
+> +		perror(msr_path);
+> +		exit(-1);
+
+This should be a soft error because the CPU can go away
+any time.
+
+
+> +/*
+> + * run func() on every cpu in /dev/cpu
+> + */
+> +void for_every_cpu(void (func)(int))
+> +{
+> +	FILE *fp;
+> +	int cpu_count;
+> +	int retval;
+> +
+> +	fp = fopen(proc_stat, "r");
+
+Using /proc/stat to get the number of CPUs is unusual
+and you don't handle holes in the cpu numbers which
+can happen due to hotplug.
+
+I would just readdir or fnmatch the MSR /dev/cpu/* directories.
+
+-Andi
+-- 
+ak@linux.intel.com -- Speaking for myself only.
