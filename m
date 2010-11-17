@@ -1,38 +1,65 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 1/2] lib, Make gen_pool memory allocator lockless
-Date: Wed, 17 Nov 2010 12:53:16 +0100
-Message-ID: <1289994796.2109.722.camel@laptop>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	 <1289868791-16658-2-git-send-email-ying.huang@intel.com>
-	 <20101116135038.fcaa90ca.akpm@linux-foundation.org>
-	 <1289960281.8719.1218.camel@yhuang-dev> <1289990458.2109.675.camel@laptop>
-	 <AANLkTi=X2noJJwJwWh30-ac76f-pN5W0cD2c9w0F1EeK@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH] acpi: fix acpi/video.h error and warning when PM is not
+ enabled
+Date: Wed, 17 Nov 2010 08:06:24 -0800
+Message-ID: <4CE3FD80.7010808@oracle.com>
+References: <AANLkTimYevUOSxDm+nGq_ctPEFp_E2zJR7rNGvUi2fWY@mail.gmail.com>	 <20101116165954.f7d8540b.randy.dunlap@oracle.com> <1289957348.8148.2098.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from canuck.infradead.org ([134.117.69.58]:59292 "EHLO
-	canuck.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934581Ab0KQLx2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2010 06:53:28 -0500
-In-Reply-To: <AANLkTi=X2noJJwJwWh30-ac76f-pN5W0cD2c9w0F1EeK@mail.gmail.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:63681 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757032Ab0KQQHN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Nov 2010 11:07:13 -0500
+In-Reply-To: <1289957348.8148.2098.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, 2010-11-17 at 19:47 +0800, huang ying wrote:
-> On Wed, Nov 17, 2010 at 6:40 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Wed, 2010-11-17 at 10:18 +0800, Huang Ying wrote:
-> >>
-> >> cmpxchg has been used in that way by ftrace and perf for a long time. So
-> >> I agree to make it a requirement on future architecture ports.
-> >
-> > Neither mandate an architecture do this though, only that when an
-> > architecture wants to support either feature and has NMIs (not all archs
-> > have NMI equivalents) it has to be safe.
+On 11/16/10 17:29, Zhang Rui wrote:
+> On Wed, 2010-11-17 at 08:59 +0800, Randy Dunlap wrote:
+>> From: Randy Dunlap <randy.dunlap@oracle.com>
+>>
+>> When CONFIG_PM is not enabled, acpi/video.h causes a build error.
+>> Also fix a longstanding warning.
+>>
+>> include/acpi/video.h:22: warning: 'struct acpi_device' declared inside parameter list
+>> include/acpi/video.h:22: warning: its scope is only this definition or declaration, which is probably not what you want
+>> include/acpi/video.h: In function 'acpi_video_get_edid':
+>> include/acpi/video.h:24: error: 'ENODEV' undeclared (first use in this function)
+>>
+>> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 > 
-> So we can make sure cmpxchg can be used in lock-less code on
-> architectures with perf, irq_work or ftrace enabled?
+> we already have a patch at
+> http://marc.info/?l=linux-kernel&m=128369371631933&w=2
+> Not sure if Len has applied it or not.
+> Anyway, thanks for the patch. :)
 
-It had better, otherwise stuff is broken.
+Good.  Thanks for the info.
+
+> -rui
+>> ---
+>>  include/acpi/video.h |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> --- lnx-2637-rc2.orig/include/acpi/video.h
+>> +++ lnx-2637-rc2/include/acpi/video.h
+>> @@ -1,6 +1,10 @@
+>>  #ifndef __ACPI_VIDEO_H
+>>  #define __ACPI_VIDEO_H
+>>  
+>> +#include <linux/errno.h>
+>> +
+>> +struct acpi_device;
+>> +
+>>  #define ACPI_VIDEO_DISPLAY_CRT  1
+>>  #define ACPI_VIDEO_DISPLAY_TV   2
+>>  #define ACPI_VIDEO_DISPLAY_DVI  3
+>> --
+
+
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
