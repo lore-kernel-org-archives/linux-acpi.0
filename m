@@ -1,63 +1,79 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] acpi: fix acpi/video.h error and warning when PM is
- not enabled
-Date: Wed, 17 Nov 2010 09:29:08 +0800
-Message-ID: <1289957348.8148.2098.camel@rui>
-References: <AANLkTimYevUOSxDm+nGq_ctPEFp_E2zJR7rNGvUi2fWY@mail.gmail.com>
-	 <20101116165954.f7d8540b.randy.dunlap@oracle.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH -v4 0/2] Lockless memory allocator and list
+Date: Wed, 17 Nov 2010 09:45:30 +0800
+Message-ID: <1289958330.8719.1196.camel@yhuang-dev>
+References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
+	 <1289908158.2109.568.camel@laptop>
+	 <AANLkTime3Sh2TbgCGKir=t_TBNsd5fHipEqQwa4bVJuY@mail.gmail.com>
+	 <1289930649.2109.640.camel@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43519 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:52460 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933606Ab0KQB1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Nov 2010 20:27:24 -0500
-In-Reply-To: <20101116165954.f7d8540b.randy.dunlap@oracle.com>
+	id S933466Ab0KQBpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 20:45:33 -0500
+In-Reply-To: <1289930649.2109.640.camel@laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Chris Mason <chris.mason@oracle.com>, Jens Axboe <jaxboe@fusionio.com>
 
-On Wed, 2010-11-17 at 08:59 +0800, Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
+On Wed, 2010-11-17 at 02:04 +0800, Peter Zijlstra wrote:
+> On Tue, 2010-11-16 at 08:38 -0800, Linus Torvalds wrote:
+> > 
+> > I kind of like the lock-less list implementation (it could easily be
+> > useful for random things, and it's very simple).
 > 
-> When CONFIG_PM is not enabled, acpi/video.h causes a build error.
-> Also fix a longstanding warning.
+> Yes, there's various implementations floating around, and we already
+> have one in-kernel ( net/rds/xlist.h ), mason and axboe and me have been
+> kicking around various patches using that thing in other circumstances
+> as well.
 > 
-> include/acpi/video.h:22: warning: 'struct acpi_device' declared inside parameter list
-> include/acpi/video.h:22: warning: its scope is only this definition or declaration, which is probably not what you want
-> include/acpi/video.h: In function 'acpi_video_get_edid':
-> include/acpi/video.h:24: error: 'ENODEV' undeclared (first use in this function)
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> [ At some point we had perf -- what now is kernel/irq_work.c --  using
+>   it as well, but the new code grew too complex due to requirements
+>   from Huang ]
 
-we already have a patch at
-http://marc.info/?l=linux-kernel&m=128369371631933&w=2
-Not sure if Len has applied it or not.
-Anyway, thanks for the patch. :)
+I think it should be possible for them to use the general lockless list
+implementation in the patch. I think this will reduce some code
+duplication/complexity. Do you agree?
 
--rui
-> ---
->  include/acpi/video.h |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> --- lnx-2637-rc2.orig/include/acpi/video.h
-> +++ lnx-2637-rc2/include/acpi/video.h
-> @@ -1,6 +1,10 @@
->  #ifndef __ACPI_VIDEO_H
->  #define __ACPI_VIDEO_H
->  
-> +#include <linux/errno.h>
-> +
-> +struct acpi_device;
-> +
->  #define ACPI_VIDEO_DISPLAY_CRT  1
->  #define ACPI_VIDEO_DISPLAY_TV   2
->  #define ACPI_VIDEO_DISPLAY_DVI  3
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >  And I don't think the
+> > notion of a lockless memory allocator is wrong either, although it
+> > looks a lot more specialized than the list thing (the solution to
+> > lockless allocations is generally simply to do them ahead of time).
+> > 
+> Right, I don't generally object to lockless things, but they either need
+> to be 1) faster than the existing code, and/or 2) have a very convincing
+> use-case (other than performance) for their added complexity.
+
+I will post a generic hardware error reporting mechanism patchset soon.
+The lock-less memory allocator is used there. And I think maybe we can
+use it in lockdep code too. Which needs to allocate something locklessly
+if my understanding is correct.
+
+> Afaict the proposed patch adds lots more LOCK'ed instructions into that
+> allocator path than it removes, ie its a slow down for existing users.
+
+Let's take a look at gen_pool_alloc
+
+The locks removed:
+
+- one rwlock: pool->lock
+- one spinlock for each chunk: chunk->lock
+
+The LOCK'ed instructions added:
+
+- one or two cmpxchg in most cases. But if there is heavy contention
+between users, there will be more cmpxchg. So I suggest to use one
+gen_pool for each CPU for heavy contention situation.
+
+BTW: The original gen_pool is designed to deal with special purpose
+memory in some drivers. So I don't think performance is a big issue for
+it.
+
+Best Regards,
+Huang Ying
 
 
