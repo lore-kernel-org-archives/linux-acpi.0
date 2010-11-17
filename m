@@ -1,77 +1,132 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v4 0/2] Lockless memory allocator and list
-Date: Wed, 17 Nov 2010 09:45:30 +0800
-Message-ID: <1289958330.8719.1196.camel@yhuang-dev>
+Subject: Re: [PATCH -v4 1/2] lib, Make gen_pool memory allocator lockless
+Date: Wed, 17 Nov 2010 10:18:01 +0800
+Message-ID: <1289960281.8719.1218.camel@yhuang-dev>
 References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	 <1289908158.2109.568.camel@laptop>
-	 <AANLkTime3Sh2TbgCGKir=t_TBNsd5fHipEqQwa4bVJuY@mail.gmail.com>
-	 <1289930649.2109.640.camel@laptop>
+	 <1289868791-16658-2-git-send-email-ying.huang@intel.com>
+	 <20101116135038.fcaa90ca.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52460 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:54398 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933466Ab0KQBpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Nov 2010 20:45:33 -0500
-In-Reply-To: <1289930649.2109.640.camel@laptop>
+	id S1752128Ab0KQCSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 21:18:05 -0500
+In-Reply-To: <20101116135038.fcaa90ca.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Chris Mason <chris.mason@oracle.com>, Jens Axboe <jaxboe@fusionio.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Peter Zijlstra <peterz@infradead.org>
 
-On Wed, 2010-11-17 at 02:04 +0800, Peter Zijlstra wrote:
-> On Tue, 2010-11-16 at 08:38 -0800, Linus Torvalds wrote:
-> > 
-> > I kind of like the lock-less list implementation (it could easily be
-> > useful for random things, and it's very simple).
+On Wed, 2010-11-17 at 05:50 +0800, Andrew Morton wrote:
+> On Tue, 16 Nov 2010 08:53:10 +0800
+> Huang Ying <ying.huang@intel.com> wrote:
 > 
-> Yes, there's various implementations floating around, and we already
-> have one in-kernel ( net/rds/xlist.h ), mason and axboe and me have been
-> kicking around various patches using that thing in other circumstances
-> as well.
-> 
-> [ At some point we had perf -- what now is kernel/irq_work.c --  using
->   it as well, but the new code grew too complex due to requirements
->   from Huang ]
-
-I think it should be possible for them to use the general lockless list
-implementation in the patch. I think this will reduce some code
-duplication/complexity. Do you agree?
-
-> >  And I don't think the
-> > notion of a lockless memory allocator is wrong either, although it
-> > looks a lot more specialized than the list thing (the solution to
-> > lockless allocations is generally simply to do them ahead of time).
+> > This version of the gen_pool memory allocator supports lockless
+> > operation.
 > > 
-> Right, I don't generally object to lockless things, but they either need
-> to be 1) faster than the existing code, and/or 2) have a very convincing
-> use-case (other than performance) for their added complexity.
+> > This makes it safe to use in NMI handlers and other special
+> > unblockable contexts that could otherwise deadlock on locks.  This is
+> > implemented by using atomic operations and retries on any conflicts.
+> > The disadvantage is that there may be livelocks in extreme cases.  For
+> > better scalability, one gen_pool allocator can be used for each CPU.
+> > 
+> > The lockless operation only works if there is enough memory available.
+> > If new memory is added to the pool a lock has to be still taken.  So
+> > any user relying on locklessness has to ensure that sufficient memory
+> > is preallocated.
+> > 
+> > The basic atomic operation of this allocator is cmpxchg on long.  On
+> > architectures that don't support cmpxchg natively a fallback is used.
+> > If the fallback uses locks it may not be safe to use it in NMI
+> > contexts on these architectures.
+> 
+> The code assumes that cmpxchg is atomic wrt NMI.  That would be news to
+> me - at present an architecture can legitimately implement cmpxchg()
+> with, say, spin_lock_irqsave() on a hashed spinlock.  I don't know
+> whether any architectures _do_ do anything like that.  If so then
+> that's a problem.  If not, it's an additional requirement on future
+> architecture ports.
 
-I will post a generic hardware error reporting mechanism patchset soon.
-The lock-less memory allocator is used there. And I think maybe we can
-use it in lockdep code too. Which needs to allocate something locklessly
-if my understanding is correct.
+cmpxchg has been used in that way by ftrace and perf for a long time. So
+I agree to make it a requirement on future architecture ports.
 
-> Afaict the proposed patch adds lots more LOCK'ed instructions into that
-> allocator path than it removes, ie its a slow down for existing users.
+> > Signed-off-by: Huang Ying <ying.huang@intel.com>
+> > Reviewed-by: Andi Kleen <ak@linux.intel.com>
+> > ---
+> >  include/linux/bitmap.h   |    1 
+> >  include/linux/genalloc.h |   35 +++++--
+> >  lib/bitmap.c             |    2 
+> >  lib/genalloc.c           |  228 ++++++++++++++++++++++++++++++++++++++---------
+> >  4 files changed, 215 insertions(+), 51 deletions(-)
+> > 
+> > --- a/include/linux/bitmap.h
+> > +++ b/include/linux/bitmap.h
+> > @@ -142,6 +142,7 @@ extern void bitmap_release_region(unsign
+> >  extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
+> >  extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
+> >  
+> > +#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
+> >  #define BITMAP_LAST_WORD_MASK(nbits)					\
+> >  (									\
+> >  	((nbits) % BITS_PER_LONG) ?					\
+> > --- a/include/linux/genalloc.h
+> > +++ b/include/linux/genalloc.h
+> > @@ -1,19 +1,26 @@
+> > +#ifndef GENALLOC_H
+> > +#define GENALLOC_H
+> >  /*
+> > - * Basic general purpose allocator for managing special purpose memory
+> > - * not managed by the regular kmalloc/kfree interface.
+> > - * Uses for this includes on-device special memory, uncached memory
+> > - * etc.
+> > + * Basic general purpose allocator for managing special purpose
+> > + * memory, for example, memory not managed by the regular
+> > + * kmalloc/kfree interface.  Uses for this includes on-device special
+> > + * memory, uncached memory etc.
+> > + *
+> > + * The gen_pool_alloc, gen_pool_free, gen_pool_avail and gen_pool_size
+> > + * implementation is lockless, that is, multiple users can
+> > + * allocate/free memory in the pool simultaneously without lock.  This
+> > + * also makes the gen_pool memory allocator can be used to
+> 
+> That sentence needs a fixup.
 
-Let's take a look at gen_pool_alloc
+Yes. I will fix it.
+  
+> > +static inline int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
+> > +{
+> > +	unsigned long val, nval;
+> > +
+> > +	nval = *addr;
+> > +	do {
+> > +		val = nval;
+> > +		if (val & mask_to_set)
+> > +			return -EBUSY;
+> > +	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static inline int clear_bits_ll(unsigned long *addr,
+> > +				unsigned long mask_to_clear)
+> > +{
+> > +	unsigned long val, nval;
+> > +
+> > +	nval = *addr;
+> > +	do {
+> > +		val = nval;
+> > +		if ((val & mask_to_clear) != mask_to_clear)
+> > +			return -EBUSY;
+> > +	} while ((nval = cmpxchg(addr, val, val & ~mask_to_clear)) != val);
+> > +
+> > +	return 0;
+> > +}
+> 
+> These are waaaay too big to be inlined.  Let the compiler decide.
 
-The locks removed:
-
-- one rwlock: pool->lock
-- one spinlock for each chunk: chunk->lock
-
-The LOCK'ed instructions added:
-
-- one or two cmpxchg in most cases. But if there is heavy contention
-between users, there will be more cmpxchg. So I suggest to use one
-gen_pool for each CPU for heavy contention situation.
-
-BTW: The original gen_pool is designed to deal with special purpose
-memory in some drivers. So I don't think performance is a big issue for
-it.
+Yes. Will change it.
 
 Best Regards,
 Huang Ying
