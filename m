@@ -1,70 +1,63 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v4 0/2] Lockless memory allocator and list
-Date: Wed, 17 Nov 2010 09:03:05 +0800
-Message-ID: <1289955785.8719.1154.camel@yhuang-dev>
-References: <1289868791-16658-1-git-send-email-ying.huang@intel.com>
-	 <1289908158.2109.568.camel@laptop>
-	 <AANLkTime3Sh2TbgCGKir=t_TBNsd5fHipEqQwa4bVJuY@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: fix acpi/video.h error and warning when PM is
+ not enabled
+Date: Wed, 17 Nov 2010 09:29:08 +0800
+Message-ID: <1289957348.8148.2098.camel@rui>
+References: <AANLkTimYevUOSxDm+nGq_ctPEFp_E2zJR7rNGvUi2fWY@mail.gmail.com>
+	 <20101116165954.f7d8540b.randy.dunlap@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60945 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:43519 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932835Ab0KQBDI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Nov 2010 20:03:08 -0500
-In-Reply-To: <AANLkTime3Sh2TbgCGKir=t_TBNsd5fHipEqQwa4bVJuY@mail.gmail.com>
+	id S933606Ab0KQB1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Nov 2010 20:27:24 -0500
+In-Reply-To: <20101116165954.f7d8540b.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, 2010-11-17 at 00:38 +0800, Linus Torvalds wrote:
-> On Tue, Nov 16, 2010 at 3:49 AM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Tue, 2010-11-16 at 08:53 +0800, Huang Ying wrote:
-> >> Hi, Len,
-> >>
-> >> This patchset is needed by APEI support. Which involves some lockless
-> >> operations. And I think they can be used by some other part of kernel
-> >> too.
-> >
-> > The whole notion of allocating memory from NMI context seems incredibly
-> > offensive.
-> >
-> > And then there's the whole point of not merging stuff without a user.
+On Wed, 2010-11-17 at 08:59 +0800, Randy Dunlap wrote:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
 > 
-> So I do agree that people should look very hard at trying to use
-> existing infrastructure.
+> When CONFIG_PM is not enabled, acpi/video.h causes a build error.
+> Also fix a longstanding warning.
 > 
-> I kind of like the lock-less list implementation (it could easily be
-> useful for random things, and it's very simple). And I don't think the
-> notion of a lockless memory allocator is wrong either, although it
-> looks a lot more specialized than the list thing (the solution to
-> lockless allocations is generally simply to do them ahead of time).
+> include/acpi/video.h:22: warning: 'struct acpi_device' declared inside parameter list
+> include/acpi/video.h:22: warning: its scope is only this definition or declaration, which is probably not what you want
+> include/acpi/video.h: In function 'acpi_video_get_edid':
+> include/acpi/video.h:24: error: 'ENODEV' undeclared (first use in this function)
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-Yes. The general solution is that. But lockless memory allocator has
-some advantages too for some situations. For example, the memory pool
-backing lockless memory allocator can be enlarged or shrunken (not
-implemented yet) when needed. That is hard for pre-allocation.
+we already have a patch at
+http://marc.info/?l=linux-kernel&m=128369371631933&w=2
+Not sure if Len has applied it or not.
+Anyway, thanks for the patch. :)
 
-> So the part I'm really not all that comfy with is the whole APEI side
-> of things. I'm not at all convinced that we want yet another random
-> hw-specific interface, and I really have yet to hear why it's so
-> magical.
-
-Yes. Random hardware-specific interface is not good. In fact we have a
-generic hardware error reporting infrastructure that can be used by
-Machine Check, EDAC, PCIe AER, APEI, etc in the original patchset as
-follow:
-
-http://lkml.org/lkml/2010/10/27/23
-http://lkml.org/lkml/2010/10/27/18
-
-But it seem that nobody want to take a look at it. I will re-post the
-generic hardware error reporting infrastructure patchset with better
-description separately. Hope somebody will take a look at it this time.
-
-Best Regards,
-Huang Ying
+-rui
+> ---
+>  include/acpi/video.h |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> --- lnx-2637-rc2.orig/include/acpi/video.h
+> +++ lnx-2637-rc2/include/acpi/video.h
+> @@ -1,6 +1,10 @@
+>  #ifndef __ACPI_VIDEO_H
+>  #define __ACPI_VIDEO_H
+>  
+> +#include <linux/errno.h>
+> +
+> +struct acpi_device;
+> +
+>  #define ACPI_VIDEO_DISPLAY_CRT  1
+>  #define ACPI_VIDEO_DISPLAY_TV   2
+>  #define ACPI_VIDEO_DISPLAY_DVI  3
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
