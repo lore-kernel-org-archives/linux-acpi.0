@@ -1,95 +1,37 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
-Date: Thu, 18 Nov 2010 10:06:24 -0800
-Message-ID: <20101118180624.GA574@core.coreip.homeip.net>
-References: <20101111235000.GA6651@gamma.logic.tuwien.ac.at>
- <20101112034423.GA7407@srcf.ucam.org>
- <20101112035027.GD26742@gamma.logic.tuwien.ac.at>
- <20101112035732.GB7574@srcf.ucam.org>
- <20101112042243.GE2852@kamineko.org>
- <20101117063006.GF29129@gamma.logic.tuwien.ac.at>
- <20101117063338.GG29129@gamma.logic.tuwien.ac.at>
- <20101117065252.GA7046@core.coreip.homeip.net>
- <20101118110445.GB4107@kamineko.org>
- <20101118133420.GA3177@kamineko.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 3/4] PCI: fix locking for pci_find_upstream_pcie_bridge
+ and add declaration
+Date: Thu, 18 Nov 2010 10:18:11 -0800
+Message-ID: <20101118101811.1fd1c3fd@jbarnes-desktop>
+References: <20101118135207.2269.2593.sendpatchset@localhost6.localdomain6>
+	<20101118135237.2269.96220.sendpatchset@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:46913 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932443Ab0KRSGd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Nov 2010 13:06:33 -0500
-Content-Disposition: inline
-In-Reply-To: <20101118133420.GA3177@kamineko.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101118135237.2269.96220.sendpatchset@localhost6.localdomain6>
+Sender: linux-pci-owner@vger.kernel.org
+To: Stefan Assmann <sassmann@redhat.com>
+Cc: linux-pci@vger.kernel.org, JBeulich@novell.com, linux-acpi@vger.kernel.org, Olaf.Dabrunz@gmx.net, mingo@elte.hu, bjorn.helgaas@hp.com, tglx@linutronix.de, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Norbert Preining <preining@logic.at>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, linux-input@vger.kernel.org
 
-On Thu, Nov 18, 2010 at 10:34:20PM +0900, Mattia Dongili wrote:
-> On Thu, Nov 18, 2010 at 08:04:45PM +0900, Mattia Dongili wrote:
-> > On Tue, Nov 16, 2010 at 10:52:52PM -0800, Dmitry Torokhov wrote:
-> > > On Wed, Nov 17, 2010 at 03:33:38PM +0900, Norbert Preining wrote:
-> > > > > - recompiled a input-kbd binary with a relaxed version check
-> > > > > 	-	if (EV_VERSION != version) {
-> > > > > 	+	if (EV_VERSION > version) {
-> > > > >   in input.c, line 104 of input-utils.
-> > > > 
-> > > > Furthermore, although both of you referred to the fact that udev keymap
-> > > > is working, I checked that Debian/sid uses udev kbd rules, but it 
-> > > > stopped working ...
-> > > > 
-> > > 
-> > > Seems to be working here (I also verified that the keycodces are
-> > > actually emitted with evtest):
-> > > 
-> > > [root@dtor-d630 ~]# /lib/udev/keymap /dev/input/event3 0x87 wlan
-> > > setting scancode 0x87 to key code 238
-> > > [root@dtor-d630 ~]# /lib/udev/keymap /dev/input/event3 0x87 battery
-> > > setting scancode 0x87 to key code 236
-> > > [root@dtor-d630 ~]# uname -r
-> > > 2.6.37-rc1+
-> > > [root@dtor-d630 ~]# 
-> > 
-> > ok I got the error. I'll see why the EVIOCSKEYCODE syscall is returning
-> > -EINVAL.
-> 
-> there is a typo in the large scancode support patch. This patch makes 
-> /lib/udev/keymap work again here on 2.6.37-rc2.
-> 
+On Thu, 18 Nov 2010 08:52:28 -0500
+Stefan Assmann <sassmann@redhat.com> wrote:
 
-Applied, thanks Mattia.
+> From: Stefan Assmann <sassmann@redhat.com>
+> 
+> Add header declaration of pci_find_upstream_pcie_bridge to pci.h. This will
+> allow the boot interrupt reroute code, and others, to make use of this
+> implementation. Also pci_find_upstream_pcie_bridge should take the pci_bus_sem
+> semaphore while reading global PCI structures, so update the locking as well.
+> 
+> Signed-off-by: Stefan Assmann <sassmann@redhat.com>
+> ---
 
-> commit a33950b5baa848ff7851b9efd4c5e2eaafd370f2
-> Author: Mattia Dongili <malattia@linux.it>
-> Date:   Thu Nov 18 22:20:36 2010 +0900
-> 
->     Input: fix typo in keycode validation supporting large scancodes
->     
->     Check the input_keymap_entry keycode size (u32) instead of the device's
->     (void*).
->     Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=22722
->     
->     Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->     Cc: Dmitry Torokhov <dtor@mail.ru>
->     Signed-off-by: Mattia Dongili <malattia@linux.it>
-> 
-> diff --git a/drivers/input/input.c b/drivers/input/input.c
-> index 7f26ca6..5edc41a 100644
-> --- a/drivers/input/input.c
-> +++ b/drivers/input/input.c
-> @@ -753,7 +753,7 @@ static int input_default_setkeycode(struct input_dev *dev,
->  	if (index >= dev->keycodemax)
->  		return -EINVAL;
->  
-> -	if (dev->keycodesize < sizeof(dev->keycode) &&
-> +	if (dev->keycodesize < sizeof(ke->keycode) &&
->  			(ke->keycode >> (dev->keycodesize * 8)))
->  		return -EINVAL;
->  
-> -- 
-> mattia
-> :wq!
+You should split this into two patches just to keep things separate,
+but other than that it looks fine.  I assume this set will go through
+the ACPI tree, you can add my:
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 
 -- 
-Dmitry
+Jesse Barnes, Intel Open Source Technology Center
