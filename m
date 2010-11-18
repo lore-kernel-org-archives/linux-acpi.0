@@ -1,88 +1,177 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: regression since 2.6.36: backlight in sony-laptop not working
-Date: Thu, 18 Nov 2010 22:34:20 +0900
-Message-ID: <20101118133420.GA3177@kamineko.org>
-References: <20101110035833.GB3029@kamineko.org>
- <20101111235000.GA6651@gamma.logic.tuwien.ac.at>
- <20101112034423.GA7407@srcf.ucam.org>
- <20101112035027.GD26742@gamma.logic.tuwien.ac.at>
- <20101112035732.GB7574@srcf.ucam.org>
- <20101112042243.GE2852@kamineko.org>
- <20101117063006.GF29129@gamma.logic.tuwien.ac.at>
- <20101117063338.GG29129@gamma.logic.tuwien.ac.at>
- <20101117065252.GA7046@core.coreip.homeip.net>
- <20101118110445.GB4107@kamineko.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:60289
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab0KRNeV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Nov 2010 08:34:21 -0500
-Content-Disposition: inline
-In-Reply-To: <20101118110445.GB4107@kamineko.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Stefan Assmann <sassmann@redhat.com>
+Subject: [PATCH 4/4] PCI, ACPI: re-add boot interrupt reroute code in separate files
+Date: Thu, 18 Nov 2010 08:52:41 -0500
+Message-ID: <20101118135249.2269.73369.sendpatchset@localhost6.localdomain6>
+References: <20101118135207.2269.2593.sendpatchset@localhost6.localdomain6>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101118135207.2269.2593.sendpatchset@localhost6.localdomain6>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: lenb@kernel.org, JBeulich@novell.com, linux-acpi@vger.kernel.org, Stefan Assmann <sassmann@redhat.com>, mingo@elte.hu, Olaf.Dabrunz@gmx.net, tglx@linutronix.de, bjorn.helgaas@hp.com
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Norbert Preining <preining@logic.at>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, linux-input@vger.kernel.org
 
-On Thu, Nov 18, 2010 at 08:04:45PM +0900, Mattia Dongili wrote:
-> On Tue, Nov 16, 2010 at 10:52:52PM -0800, Dmitry Torokhov wrote:
-> > On Wed, Nov 17, 2010 at 03:33:38PM +0900, Norbert Preining wrote:
-> > > > - recompiled a input-kbd binary with a relaxed version check
-> > > > 	-	if (EV_VERSION != version) {
-> > > > 	+	if (EV_VERSION > version) {
-> > > >   in input.c, line 104 of input-utils.
-> > > 
-> > > Furthermore, although both of you referred to the fact that udev keymap
-> > > is working, I checked that Debian/sid uses udev kbd rules, but it 
-> > > stopped working ...
-> > > 
-> > 
-> > Seems to be working here (I also verified that the keycodces are
-> > actually emitted with evtest):
-> > 
-> > [root@dtor-d630 ~]# /lib/udev/keymap /dev/input/event3 0x87 wlan
-> > setting scancode 0x87 to key code 238
-> > [root@dtor-d630 ~]# /lib/udev/keymap /dev/input/event3 0x87 battery
-> > setting scancode 0x87 to key code 236
-> > [root@dtor-d630 ~]# uname -r
-> > 2.6.37-rc1+
-> > [root@dtor-d630 ~]# 
-> 
-> ok I got the error. I'll see why the EVIOCSKEYCODE syscall is returning
-> -EINVAL.
+From: Stefan Assmann <sassmann@redhat.com>
 
-there is a typo in the large scancode support patch. This patch makes 
-/lib/udev/keymap work again here on 2.6.37-rc2.
+During the 2.6.29 merge major parts of e1d3a90846b40ad3160bf4b648d36c6badad39ac
+got lost because of other ACPI changes. As suggested by Ingo Molnar the missing
+boot interrupt reroute parts are re-added in a separate file. The code has been
+updated to be less ifdeffy and play along with the current ACPI code. The
+printks have been converted to dev_info(). Also the implementation of
+bridge_has_boot_interrupt_variant() has been dropped in favor to the existing
+pci_find_upstream_pcie_bridge().
 
-commit a33950b5baa848ff7851b9efd4c5e2eaafd370f2
-Author: Mattia Dongili <malattia@linux.it>
-Date:   Thu Nov 18 22:20:36 2010 +0900
+By request of Bjorn Helgaas I've created a bugzilla entry at
+https://bugzilla.kernel.org/show_bug.cgi?id=21882
+to gather information about the boot interrupt reroute problem.
 
-    Input: fix typo in keycode validation supporting large scancodes
-    
-    Check the input_keymap_entry keycode size (u32) instead of the device's
-    (void*).
-    Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=22722
-    
-    Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-    Cc: Dmitry Torokhov <dtor@mail.ru>
-    Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Stefan Assmann <sassmann@redhat.com>
+---
+ arch/x86/include/asm/boot_irq.h |   28 +++++++++++++++++
+ arch/x86/kernel/apic/Makefile   |    3 ++
+ arch/x86/kernel/apic/boot_irq.c |   63 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c          |    4 ++
+ 4 files changed, 98 insertions(+), 0 deletions(-)
+ create mode 100644 arch/x86/include/asm/boot_irq.h
+ create mode 100644 arch/x86/kernel/apic/boot_irq.c
 
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 7f26ca6..5edc41a 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -753,7 +753,7 @@ static int input_default_setkeycode(struct input_dev *dev,
- 	if (index >= dev->keycodemax)
- 		return -EINVAL;
+diff --git a/arch/x86/include/asm/boot_irq.h b/arch/x86/include/asm/boot_irq.h
+new file mode 100644
+index 0000000..0cc35e1
+--- /dev/null
++++ b/arch/x86/include/asm/boot_irq.h
+@@ -0,0 +1,28 @@
++#ifndef _ASM_X86_BOOT_IRQ_H
++#define _ASM_X86_BOOT_IRQ_H
++
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Workaround for boot interrupts that cannot be disabled in hardware: makes
++ * affected devices always use the boot interrupt, the original interrupt line
++ * for the device remains disabled.
++ */
++
++#include <linux/pci.h>
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#endif /* CONFIG_ACPI */
++
++#ifdef CONFIG_X86_IO_APIC
++#ifdef CONFIG_ACPI
++extern struct acpi_prt_entry *boot_irq_reroute (struct pci_dev *dev, struct acpi_prt_entry *entry);
++#endif /* CONFIG_ACPI */
++#else
++static inline struct acpi_prt_entry *boot_irq_reroute (struct pci_dev *dev, struct acpi_prt_entry *entry)
++	{ return entry; }
++#endif /* CONFIG_X86_IO_APIC */
++
++#endif /* _ASM_X86_BOOT_IRQ_H */
+diff --git a/arch/x86/kernel/apic/Makefile b/arch/x86/kernel/apic/Makefile
+index 910f20b..4603b66 100644
+--- a/arch/x86/kernel/apic/Makefile
++++ b/arch/x86/kernel/apic/Makefile
+@@ -9,6 +9,9 @@ endif
+ obj-$(CONFIG_HARDLOCKUP_DETECTOR)	+= hw_nmi.o
  
--	if (dev->keycodesize < sizeof(dev->keycode) &&
-+	if (dev->keycodesize < sizeof(ke->keycode) &&
- 			(ke->keycode >> (dev->keycodesize * 8)))
- 		return -EINVAL;
+ obj-$(CONFIG_X86_IO_APIC)	+= io_apic.o
++ifeq ($(CONFIG_ACPI),y)
++obj-$(CONFIG_X86_IO_APIC)	+= boot_irq.o
++endif
+ obj-$(CONFIG_SMP)		+= ipi.o
+ 
+ ifeq ($(CONFIG_X86_64),y)
+diff --git a/arch/x86/kernel/apic/boot_irq.c b/arch/x86/kernel/apic/boot_irq.c
+new file mode 100644
+index 0000000..297d590
+--- /dev/null
++++ b/arch/x86/kernel/apic/boot_irq.c
+@@ -0,0 +1,63 @@
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Workaround for boot interrupts that cannot be disabled in hardware: makes
++ * affected devices always use the boot interrupt, the original interrupt line
++ * for the device remains disabled.
++ */
++
++#include <linux/types.h>
++#include <asm/boot_irq.h>
++
++/*
++ * On it's way to the CPU a PCI IRQ might pass multiple PCI bridges therefore
++ * we need to inspect all of them.
++ */
++static int boot_irq_check_broken_bridge(struct pci_dev *pdev)
++{
++	struct pci_dev *tmp_pdev;
++
++	tmp_pdev = pci_find_upstream_pcie_bridge(pdev);
++
++	if (tmp_pdev)
++		return tmp_pdev->irq_reroute_variant;
++	else
++		return 0;
++}
++
++/*
++ * Some chipsets (e.g. intel 6700PXH) generate a legacy INTx when the IRQ entry
++ * in the chipset's IO-APIC is masked (as, e.g. the RT kernel does during
++ * interrupt handling). When this INTx generation cannot be disabled, we
++ * reroute these interrupts to their legacy equivalent to get rid of spurious
++ * interrupts.
++ */
++struct acpi_prt_entry *boot_irq_reroute(struct pci_dev *dev, struct acpi_prt_entry *entry)
++{
++	u32 orig_index;
++
++	switch (boot_irq_check_broken_bridge(dev)) {
++	case 0:
++		break; /* no rerouting necessary */
++
++	case INTEL_IRQ_REROUTE_VARIANT:
++		/*
++		 * Remap according to INTx routing table in 6700PXH specs,
++		 * intel order number 302628-002, section 2.15.2. Other
++		 * chipsets (80332, ...) have the same mapping and are handled
++		 * here as well.
++		 */
++		orig_index = entry->index;
++		entry->index = (entry->index % 4) + 16;
++		dev_info(&dev->dev, "PCI IRQ %d -> rerouted to legacy boot IRQ %d\n", orig_index, entry->index);
++		break;
++
++	default:
++		dev_info(&dev->dev, "Not rerouting PCI IRQ %d: unknown mapping\n", entry->index);
++		break;
++	}
++
++	return entry;
++}
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index e1632b2..83eb5f6 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -39,6 +39,7 @@
+ #include <linux/slab.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <asm/boot_irq.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -309,6 +310,9 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
+ 	if (entry) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %s[%c] _PRT entry\n",
+ 				  pci_name(dev), pin_name(pin)));
++		if (!noioapicquirk)
++			entry = boot_irq_reroute(dev, entry);
++
+ 		return entry;
+ 	}
  
 -- 
-mattia
-:wq!
+1.7.3.2
