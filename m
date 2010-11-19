@@ -1,216 +1,144 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 2/5] i915: Add native backlight control
-Date: Fri, 19 Nov 2010 10:53:53 -0500
-Message-ID: <1290182036-30484-2-git-send-email-mjg@redhat.com>
+Subject: [PATCH 4/5] nouveau: Change the backlight parent device to the connector, not the PCI dev
+Date: Fri, 19 Nov 2010 10:53:55 -0500
+Message-ID: <1290182036-30484-4-git-send-email-mjg@redhat.com>
 References: <1290182036-30484-1-git-send-email-mjg@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:63369 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754059Ab0KSPzb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Nov 2010 10:55:31 -0500
 In-Reply-To: <1290182036-30484-1-git-send-email-mjg@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: linux-kernel@vger.kernel.org
-Cc: nouveau@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, akpm@linux-foundation.org, Matthew Garrett <mjg@redhat.com>, lenb@kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: rpurdie@rpsys.net, akpm@linux-foundation.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
 
-Not all systems expose a firmware or platform mechanism for changing the
-backlight intensity on i915, so add native driver support.
+We may eventually end up with per-connector backlights, especially with
+ddcci devices. Make sure that the parent node for the backlight device is
+the connector rather than the PCI device.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>
 ---
- drivers/gpu/drm/i915/i915_drv.h       |    4 ++
- drivers/gpu/drm/i915/intel_dp.c       |    7 +++
- drivers/gpu/drm/i915/intel_drv.h      |    2 +
- drivers/gpu/drm/i915/intel_lvds.c     |    5 ++
- drivers/gpu/drm/i915/intel_opregion.c |    1 -
- drivers/gpu/drm/i915/intel_panel.c    |   67 +++++++++++++++++++++++++++++++++
- 6 files changed, 85 insertions(+), 1 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_backlight.c |   21 ++++++++++++---------
+ drivers/gpu/drm/nouveau/nouveau_connector.c |    9 +++++++++
+ drivers/gpu/drm/nouveau/nouveau_drv.h       |    4 ++--
+ 3 files changed, 23 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index 90414ae..f311ce4 100644
---- a/drivers/gpu/drm/i915/i915_drv.h
-+++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -36,6 +36,7 @@
- #include <linux/io-mapping.h>
- #include <linux/i2c.h>
- #include <drm/intel-gtt.h>
-+#include <linux/backlight.h>
+diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+index 9485af3..7e8a448 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
++++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+@@ -87,10 +87,11 @@ static struct backlight_ops nv50_bl_ops = {
+ 	.update_status = nv50_set_intensity,
+ };
  
- /* General customization:
-  */
-@@ -679,6 +680,7 @@ typedef struct drm_i915_private {
- 	int child_dev_num;
- 	struct child_device_config *child_dev;
- 	struct drm_connector *int_lvds_connector;
-+	struct drm_connector *int_edp_connector;
+-static int nouveau_nv40_backlight_init(struct drm_device *dev)
++static int nouveau_nv40_backlight_init(struct drm_connector *connector)
+ {
+-	struct backlight_properties props;
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
++	struct backlight_properties props;
+ 	struct backlight_device *bd;
  
- 	bool mchbar_need_disable;
+ 	if (!(nv_rd32(dev, NV40_PMC_BACKLIGHT) & NV40_PMC_BACKLIGHT_MASK))
+@@ -99,7 +100,7 @@ static int nouveau_nv40_backlight_init(struct drm_device *dev)
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = 31;
+-	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
++	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+ 				       &nv40_bl_ops, &props);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
+@@ -111,10 +112,11 @@ static int nouveau_nv40_backlight_init(struct drm_device *dev)
+ 	return 0;
+ }
  
-@@ -707,6 +709,8 @@ typedef struct drm_i915_private {
+-static int nouveau_nv50_backlight_init(struct drm_device *dev)
++static int nouveau_nv50_backlight_init(struct drm_connector *connector)
+ {
+-	struct backlight_properties props;
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
++	struct backlight_properties props;
+ 	struct backlight_device *bd;
  
- 	/* list of fbdev register on this device */
- 	struct intel_fbdev *fbdev;
-+
-+	struct backlight_device *backlight;
- } drm_i915_private_t;
+ 	if (!nv_rd32(dev, NV50_PDISPLAY_SOR_BACKLIGHT))
+@@ -123,7 +125,7 @@ static int nouveau_nv50_backlight_init(struct drm_device *dev)
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = 1025;
+-	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
++	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+ 				       &nv50_bl_ops, &props);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
+@@ -134,15 +136,16 @@ static int nouveau_nv50_backlight_init(struct drm_device *dev)
+ 	return 0;
+ }
  
- /** driver private structure attached to each drm_gem_object */
-diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-index c8e0055..7cfefb5 100644
---- a/drivers/gpu/drm/i915/intel_dp.c
-+++ b/drivers/gpu/drm/i915/intel_dp.c
-@@ -1639,6 +1639,11 @@ done:
- static void
- intel_dp_destroy (struct drm_connector *connector)
+-int nouveau_backlight_init(struct drm_device *dev)
++int nouveau_backlight_init(struct drm_connector *connector)
  {
 +	struct drm_device *dev = connector->dev;
-+
-+	if (intel_dpd_is_edp(dev))
-+		intel_panel_backlight_destroy(dev);
-+
- 	drm_sysfs_connector_remove(connector);
- 	drm_connector_cleanup(connector);
- 	kfree(connector);
-@@ -1868,6 +1873,8 @@ intel_dp_init(struct drm_device *dev, int output_reg)
- 					DRM_MODE_TYPE_PREFERRED;
- 			}
- 		}
-+		dev_priv->int_edp_connector = connector;
-+		intel_panel_backlight_setup(dev);
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 
+ 	switch (dev_priv->card_type) {
+ 	case NV_40:
+-		return nouveau_nv40_backlight_init(dev);
++		return nouveau_nv40_backlight_init(connector);
+ 	case NV_50:
+-		return nouveau_nv50_backlight_init(dev);
++		return nouveau_nv50_backlight_init(connector);
+ 	default:
+ 		break;
  	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.c b/drivers/gpu/drm/nouveau/nouveau_connector.c
+index 0871495..914058d 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_connector.c
++++ b/drivers/gpu/drm/nouveau/nouveau_connector.c
+@@ -106,6 +106,10 @@ nouveau_connector_destroy(struct drm_connector *drm_connector)
+ 	dev = nv_connector->base.dev;
+ 	NV_DEBUG_KMS(dev, "\n");
  
- 	intel_dp_add_properties(intel_dp, connector);
-diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-index 21551fe..7917bec 100644
---- a/drivers/gpu/drm/i915/intel_drv.h
-+++ b/drivers/gpu/drm/i915/intel_drv.h
-@@ -256,6 +256,8 @@ extern void intel_pch_panel_fitting(struct drm_device *dev,
- extern u32 intel_panel_get_max_backlight(struct drm_device *dev);
- extern u32 intel_panel_get_backlight(struct drm_device *dev);
- extern void intel_panel_set_backlight(struct drm_device *dev, u32 level);
-+extern int intel_panel_backlight_setup(struct drm_device *dev);
-+extern void intel_panel_backlight_destroy(struct drm_device *dev);
- 
- extern void intel_crtc_load_lut(struct drm_crtc *crtc);
- extern void intel_encoder_prepare (struct drm_encoder *encoder);
-diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
-index 4324a32..f69a7b8 100644
---- a/drivers/gpu/drm/i915/intel_lvds.c
-+++ b/drivers/gpu/drm/i915/intel_lvds.c
-@@ -569,6 +569,8 @@ static void intel_lvds_destroy(struct drm_connector *connector)
- 	struct drm_device *dev = connector->dev;
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 
-+	intel_panel_backlight_destroy(dev);
++	if (drm_connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
++	    drm_connector->connector_type == DRM_MODE_CONNECTOR_eDP)
++		nouveau_backlight_exit(dev);
 +
- 	if (dev_priv->lid_notifier.notifier_call)
- 		acpi_lid_notifier_unregister(&dev_priv->lid_notifier);
- 	drm_sysfs_connector_remove(connector);
-@@ -1026,6 +1028,9 @@ out:
- 	/* keep the LVDS connector */
- 	dev_priv->int_lvds_connector = connector;
+ 	kfree(nv_connector->edid);
+ 	drm_sysfs_connector_remove(drm_connector);
+ 	drm_connector_cleanup(drm_connector);
+@@ -894,6 +898,11 @@ nouveau_connector_create(struct drm_device *dev, int index)
+ 	nouveau_connector_set_polling(connector);
+ 
  	drm_sysfs_connector_add(connector);
 +
-+	intel_panel_backlight_setup(dev);
++	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
++	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
++		nouveau_backlight_init(connector);
 +
- 	return;
+ 	dcb->drm = connector;
+ 	return dcb->drm;
  
- failed:
-diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-index 9b0d9a8..bf79c02 100644
---- a/drivers/gpu/drm/i915/intel_opregion.c
-+++ b/drivers/gpu/drm/i915/intel_opregion.c
-@@ -224,7 +224,6 @@ void intel_opregion_asle_intr(struct drm_device *dev)
- 	asle->aslc = asle_stat;
- }
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
+index 3a07e58..3c65b77 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.h
++++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
+@@ -933,10 +933,10 @@ static inline int nouveau_acpi_edid(struct drm_device *dev, struct drm_connector
  
--/* Only present on Ironlake+ */
- void intel_opregion_gse_intr(struct drm_device *dev)
+ /* nouveau_backlight.c */
+ #ifdef CONFIG_DRM_NOUVEAU_BACKLIGHT
+-extern int nouveau_backlight_init(struct drm_device *);
++extern int nouveau_backlight_init(struct drm_connector *);
+ extern void nouveau_backlight_exit(struct drm_device *);
+ #else
+-static inline int nouveau_backlight_init(struct drm_device *dev)
++static inline int nouveau_backlight_init(struct drm_connector *dev)
  {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
-diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
-index 92ff8f3..1eaa66e 100644
---- a/drivers/gpu/drm/i915/intel_panel.c
-+++ b/drivers/gpu/drm/i915/intel_panel.c
-@@ -218,3 +218,70 @@ void intel_panel_set_backlight(struct drm_device *dev, u32 level)
- 		tmp &= ~BACKLIGHT_DUTY_CYCLE_MASK;
- 	I915_WRITE(BLC_PWM_CTL, tmp | level);
+ 	return 0;
  }
-+
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
-+static int intel_panel_update_status(struct backlight_device *bd)
-+{
-+	struct drm_device *dev = bl_get_data(bd);
-+	intel_panel_set_backlight(dev, bd->props.brightness);
-+	return 0;
-+}
-+
-+static int intel_panel_get_brightness(struct backlight_device *bd)
-+{
-+	struct drm_device *dev = bl_get_data(bd);
-+	return intel_panel_get_backlight(dev);
-+}
-+
-+static const struct backlight_ops intel_panel_bl_ops = {
-+	.update_status = intel_panel_update_status,
-+	.get_brightness = intel_panel_get_brightness,
-+};
-+
-+int intel_panel_backlight_setup(struct drm_device *dev)
-+{
-+	struct drm_i915_private *dev_priv = dev->dev_private;
-+	struct backlight_properties props;
-+	struct drm_connector *connector;
-+
-+	if (dev_priv->int_lvds_connector)
-+		connector = dev_priv->int_lvds_connector;
-+	else if (dev_priv->int_edp_connector)
-+		connector = dev_priv->int_edp_connector;
-+	else
-+		return -ENODEV;
-+
-+	props.type = BACKLIGHT_RAW;
-+	props.max_brightness = intel_panel_get_max_backlight(dev);
-+	dev_priv->backlight =
-+		backlight_device_register("intel_backlight",
-+					  &connector->kdev, dev,
-+					  &intel_panel_bl_ops, &props);
-+
-+	if (IS_ERR(dev_priv->backlight)) {
-+		DRM_ERROR("Failed to register backlight: %ld\n",
-+			  PTR_ERR(dev_priv->backlight));
-+		dev_priv->backlight = NULL;
-+		return -ENODEV;
-+	}
-+	dev_priv->backlight->props.brightness = intel_panel_get_backlight(dev);
-+	return 0;
-+}
-+
-+void intel_panel_backlight_destroy(struct drm_device *dev)
-+{
-+	struct drm_i915_private *dev_priv = dev->dev_private;
-+	if (dev_priv->backlight)
-+		backlight_device_unregister(dev_priv->backlight);
-+}
-+#else
-+int intel_panel_backlight_setup(struct drm_device *dev)
-+{
-+	return 0;
-+}
-+
-+void intel_panel_backlight_destroy(struct drm_device *dev)
-+{
-+	return;
-+}
-+#endif
 -- 
 1.7.3.2
+
