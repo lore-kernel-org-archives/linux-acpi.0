@@ -1,95 +1,54 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: 2.6.37-rc2-git4: Reported regressions 2.6.35 -> 2.6.36
-Date: Fri, 19 Nov 2010 11:39:26 -0500
-Message-ID: <AANLkTi=8G7pNA7QTxaXDWKrWrCERPfmKU+nLJWCA=JUH@mail.gmail.com>
-References: <tTUH_XeInOH.A.dMF.c3b5MB@chimera>
-	<4CE5C919.7090504@teksavvy.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/2] Hardware error record persistent support
+Date: Fri, 19 Nov 2010 12:01:12 -0800
+Message-ID: <20101119120112.77f2636f.akpm@linux-foundation.org>
+References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
+	<1290154233-28695-3-git-send-email-ying.huang@intel.com>
+	<AANLkTikPTYLELKMLOeB868rW9cN40897TRg0dtuN=zQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4CE5C919.7090504@teksavvy.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Lord <kernel@teksavvy.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37026 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753421Ab0KSUCO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Nov 2010 15:02:14 -0500
+In-Reply-To: <AANLkTikPTYLELKMLOeB868rW9cN40897TRg0dtuN=zQQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thu, Nov 18, 2010 at 7:47 PM, Mark Lord <kernel@teksavvy.com> wrote:
-> On 10-11-18 06:50 PM, Rafael J. Wysocki wrote:
->>
->> This message contains a list of some post-2.6.35 regressions introdu=
-ced
->> before
->> 2.6.36, for which there are no fixes in the mainline known to the tr=
-acking
->> team.
->> If any of them have been fixed already, please let us know.
->>
->> If you know of any other unresolved post-2.6.35 regressions, please =
-let us
->> know
->> either and we'll add them to the list. =A0Also, please let us know i=
-f any
->> of the entries below are invalid.
->
->> Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D=
-21652
->> Subject =A0 =A0 =A0 =A0 : several problems with intel graphics since=
- 2.6.36
->> Submitter =A0 =A0 =A0 : Norbert Preining<preining@logic.at>
->> Date =A0 =A0 =A0 =A0 =A0 =A0: 2010-10-27 14:32 (23 days old)
->> Message-ID =A0 =A0 =A0:<20101027143252.GA8676@gamma.logic.tuwien.ac.=
-at>
->> References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D12881=
-8998630241&w=3D2
->
-> That one is interesting to me.. I suspect it may be the same cause
-> as for https://bugzilla.kernel.org/show_bug.cgi?id=3D21952
->
-> I have one of those Samsung (N210) Netbooks here: works fine with 2.6=
-=2E34 and
-> earlier,
-> but fails to come out of suspend on 2.6.35/2.6.36 (haven't tried 2.6.=
-37).
->
-> So perhaps add 21952 to the list, or link it to the 21652
-> (kind of amusing how similar the bug numbers are..).
->
->
-> My non-Intel graphics notebook (has ATI X1400 graphics) also has a re=
-sume
-> regression with 2.6.36. =A0But it does work fine with 2.6.35 (and ear=
-lier,
-> back many years). =A0As a result, I'm stuck with 2.6.35 for the time =
-being,
-> and lack the time for a concerted debug effort on 2.6.36+ right now.
->
+On Fri, 19 Nov 2010 07:52:08 -0800
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-Can you bisect?  Does this patch help?
+> On Fri, Nov 19, 2010 at 12:10 AM, Huang Ying <ying.huang@intel.com> wrote:
+> > Normally, corrected hardware error records will go through the kernel
+> > processing and be logged to disk or network finally. __But for
+> > uncorrected errors, system may go panic directly for better error
+> > containment, disk or network is not usable in this half-working
+> > system. __To avoid losing these valuable hardware error records, the
+> > error records are saved into some kind of simple persistent storage
+> > such as flash before panic, so that they can be read out after system
+> > reboot successfully.
+> 
+> I think this is totally the wrong thing to do. TOTALLY.
+> 
+> The fact is, concentrating about "hardware errors" makes this
+> something that I refuse to merge. It's such an idiotic approach that
+> it's disgusting.
+> 
+> Now, if this was designed to be a "hardware-backed persistent 'printk'
+> buffer", and was explicitly meant to save not just some special
+> hardware error, but catch all printk's (which may be due to hardware
+> errors or oopses or warnings or whatever), that would be useful.
+> 
+> But limiting it to just some special source of errors makes this
+> pointless and not ever worth merging.
+> 
 
-diff --git a/drivers/gpu/drm/radeon/atom.c b/drivers/gpu/drm/radeon/ato=
-m.c
-index 8e421f6..05efb5b 100644
---- a/drivers/gpu/drm/radeon/atom.c
-+++ b/drivers/gpu/drm/radeon/atom.c
-@@ -112,6 +112,7 @@ static uint32_t atom_iio_execute(struct
-atom_context *ctx, int base,
-                        base +=3D 3;
-                        break;
-                case ATOM_IIO_WRITE:
-+                       (void)ctx->card->ioreg_read(ctx->card, CU16(bas=
-e + 1));
-                        ctx->card->ioreg_write(ctx->card, CU16(base + 1=
-), temp);
-                        base +=3D 3;
-                        break;
+yep.  We already have bits and pieces in place for this: kmsg_dump,
+ramoops, mtdoops, etc.  If your hardware has a non-volatile memory then
+just hook it up as a backend driver for kmsg_dump.
 
-
-Alex
-
-> Cheers
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->
