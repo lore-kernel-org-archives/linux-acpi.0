@@ -1,78 +1,62 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: 2.6.37-rc2-git4: Reported regressions 2.6.35 -> 2.6.36
-Date: Fri, 19 Nov 2010 18:17:54 -0500
-Message-ID: <AANLkTi==0+pNswCwfgo5v5tKA+Qkq7UfRdH4ftEqx7rf@mail.gmail.com>
-References: <tTUH_XeInOH.A.dMF.c3b5MB@chimera>
-	<4CE5C919.7090504@teksavvy.com>
-	<AANLkTi=8G7pNA7QTxaXDWKrWrCERPfmKU+nLJWCA=JUH@mail.gmail.com>
-	<4CE7006E.4040102@teksavvy.com>
-	<AANLkTim9aXi1_EJyh2f-+X4HnNWJ3uk2z=P6m1hQso5a@mail.gmail.com>
-	<4CE70543.2000206@teksavvy.com>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [PATCH 2/2] Hardware error record persistent support
+Date: Sat, 20 Nov 2010 09:09:58 +0800
+Message-ID: <AANLkTimWbcemRbB-1XCTOSi-tpGLB2O1O5uueg_PzPWX@mail.gmail.com>
+References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
+	<1290154233-28695-3-git-send-email-ying.huang@intel.com>
+	<AANLkTikPTYLELKMLOeB868rW9cN40897TRg0dtuN=zQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36762 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932211Ab0KSXR4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Nov 2010 18:17:56 -0500
-In-Reply-To: <4CE70543.2000206@teksavvy.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:58164 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755894Ab0KTBJ7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Nov 2010 20:09:59 -0500
+In-Reply-To: <AANLkTikPTYLELKMLOeB868rW9cN40897TRg0dtuN=zQQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <kernel@teksavvy.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-On Fri, Nov 19, 2010 at 6:16 PM, Mark Lord <kernel@teksavvy.com> wrote:
-> On 10-11-19 05:58 PM, Alex Deucher wrote:
->>
->> On Fri, Nov 19, 2010 at 5:55 PM, Mark Lord<kernel@teksavvy.com> =A0w=
+On Fri, Nov 19, 2010 at 11:52 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Fri, Nov 19, 2010 at 12:10 AM, Huang Ying <ying.huang@intel.com> w=
 rote:
->>
->>> It now comes back at resume time.
->>
->> So that patch helped?
+>> Normally, corrected hardware error records will go through the kerne=
+l
+>> processing and be logged to disk or network finally. =C2=A0But for
+>> uncorrected errors, system may go panic directly for better error
+>> containment, disk or network is not usable in this half-working
+>> system. =C2=A0To avoid losing these valuable hardware error records,=
+ the
+>> error records are saved into some kind of simple persistent storage
+>> such as flash before panic, so that they can be read out after syste=
+m
+>> reboot successfully.
 >
-> I think so. =A0It didn't used to resume from suspend with 2.6.36, and=
- now it
-> does.
+> I think this is totally the wrong thing to do. TOTALLY.
 >
->>> But suffers long delays (also sometimes with 2.6.35) doing this:
->>>
->>> [drm:atom_op_jump] *ERROR* atombios stuck in loop for more than 5se=
-cs
->>> aborting
->>> [drm:atom_execute_table_locked] *ERROR* atombios stuck executing E5=
-76
->>> (len
->>> 105, WS 12, PS 8) @ 0xE5C4
->>> [drm:atom_op_jump] *ERROR* atombios stuck in loop for more than 5se=
-cs
->>> aborting
->>> [drm:atom_execute_table_locked] *ERROR* atombios stuck executing EC=
-D2
->>> (len
->>> 86, WS 4, PS 0) @ 0xED05
->>> [drm:atom_op_jump] *ERROR* atombios stuck in loop for more than 5se=
-cs
->>> aborting
->>> [drm:atom_execute_table_locked] *ERROR* atombios stuck executing E5=
-76
->>> (len
->>> 105, WS 12, PS 8) @ 0xE5C4
->>> PM: resume of devices complete after 15718.253 msecs
->>>
->>
->> It's be nice if you could bisect to track down when those started.
+> The fact is, concentrating about "hardware errors" makes this
+> something that I refuse to merge. It's such an idiotic approach that
+> it's disgusting.
 >
-> It'd be even nicer if they hadn't started. =A0:)
+> Now, if this was designed to be a "hardware-backed persistent 'printk=
+'
+> buffer", and was explicitly meant to save not just some special
+> hardware error, but catch all printk's (which may be due to hardware
+> errors or oopses or warnings or whatever), that would be useful.
 >
-> What kernel release first had that atom/ops table in it? =A0I'll try =
-that.
->
+> But limiting it to just some special source of errors makes this
+> pointless and not ever worth merging.
 
-2.6.31 or 32 was when radeon kms got merged IIRC.
+Yes. APEI ERST can be used to back persistent 'printk', and that is in
+our plan too. But APEI ERST is not limited to do that, it can be used
+for printk, hardware error, and maybe some other users. When we design
+APEI ERST support, we have multiple users in mind.
 
-Alex
+Best Regards,
+Huang Ying
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
