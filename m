@@ -1,90 +1,62 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 0/2] Generic hardware error reporting support
-Date: Fri, 19 Nov 2010 18:15:54 -0800
-Message-ID: <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com>
-References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
- <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com> <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: linux acpi info
+Date: Fri, 19 Nov 2010 21:30:35 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011192130040.9745@x980>
+References: <4CD93339.5000806@tjse.jus.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42034 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756329Ab0KTCRH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Nov 2010 21:17:07 -0500
-In-Reply-To: <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:53533 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756564Ab0KTCbE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Nov 2010 21:31:04 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LC5006SAWB24AR5@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 19 Nov 2010 20:30:51 -0600 (CST)
+In-reply-to: <4CD93339.5000806@tjse.jus.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
+To: Wilhelm de Araujo Rodrigues <willy@tjse.jus.br>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Nov 19, 2010 at 6:04 PM, huang ying
-<huang.ying.caritas@gmail.com> wrote:
->
-> We thought about 'printk' for hardware errors before, but it has some
-> issues too.
->
-> 1) It mixes software errors and hardware errors. When Andi Kleen
-> maintained the Machine Check code, he found many users report the
-> hardware errors as software bug to software vendor instead of as
-> hardware error to hardware vendor. Having explicit hardware error
-> reporting interface may help these users.
+It is a bug in vmware.
 
-Bah. Many machine checks _were_ software errors. They were things like
-the BIOS not clearing some old pending state etc.
+cheers,
+Len Brown, Intel Open Source Technology Center
 
-The confusion came not from printk, but simply from ambiguous errors.
-When is a machine check hardware-related? It's not at all always
-obvious.
+On Tue, 9 Nov 2010, Wilhelm de Araujo Rodrigues wrote:
 
-Sometimes machine checks are from uninitialized hardware state, where
-_software_ hasn't initialized it. Is it a hardware bug? No.
+> log messages in reverse order
+> 
+> 
+> 
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.577697] ACPI: PCI Root Bridge
+> [PCI0] (0000:00)
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.472498] ACPI: Using IOAPIC
+> for interrupt routing
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.472125] ACPI: (supports S0 S1
+> S4 S5)
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.471925] ACPI: Interpreter
+> enabled
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.470125] ACPI: If
+> "acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469877] ACPI: Please send DMI
+> info above to linux-acpi@vger.kernel.org
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469672] ACPI: DMI BIOS Date:
+> 09/22/2009
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.469445] ACPI: DMI BIOS
+> Vendor: Phoenix Technologies LTD
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468764] ACPI: DMI Board Name:
+> 440BX Desktop Reference Platform
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468524] ACPI: DMI Product
+> Version: None
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468295] ACPI: DMI Product
+> Name: VMware Virtual Platform
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.468081] ACPI: DMI System
+> Vendor: VMware, Inc.
+> Nov  9 07:44:45 vpl-expre-cte0000 kernel: [    0.467835] ACPI: BIOS
+> _OSI(Linux) query ignored
+> 
 
-> 2) Hardware error reporting may flush other information in printk
-> buffer. Considering one pin of your ECC DIMM is broken, tons of 1 bit
-> corrected memory error will be reported. Although we can enforce some
-> kind of throttling, your printk buffer may be full of the hardware
-> error reporting eventually.
-
-Sure. That doesn't change the fact that finding the data is your
-/var/log/messages and your regular logging tools is still a lot more
-useful than having some random tool that is specialized and that most
-IT people won't know about. And that won't be good at doing network
-reporting etc etc.
-
-The thing is, hardware errors aren't that special. Sure, hardware
-people always think so. But to anybody else, a hardware error is "just
-another source of issues".
-
-Anybody who thinks that hardware errors are special and needs a
-special interface is missing that point totally.
-
-And I really do understand why people inside Intel would miss that
-point. To YOU guys the hardware errors you report are magical and
-special. But that's always true. To _everybody_, the errors _they_
-report is special. Like snowflakes, we're all unique. And we're all
-the same.
-
-> 3) We need some kind of user space hardware error daemon, which is
-> used to enforce some policy. For example, if the number of corrected
-> memory errors reported on one page exceeds the threshold, we can
-> offline the page to prevent some fatal error to occur in the future,
-> because fatal error may begin with corrected errors in reality. printk
-> is good for administrator, and may be not good enough for the hardware
-> error daemon.
-
-And by "we", who do you mean exactly? The fact is, "we" covers a lot
-of ground, and I don't think your statement is in the least true.
-
-Yes, IT people want to know. When they start seeing hardware errors,
-they'll start replacing the machine as soon as they can. Whether that
-replacement is then "in five minutes" or "four months from now" is up
-to their management, their replacement policy, and based on how
-critical that machine is.
-
-IT HAS NOTHING WHAT-SO-EVER TO DO WITH HOW OFTEN THE ERRORS HAPPEN.
-
-And yes, Intel can do guidelines, but when you say there should be
-some "enforced policy" by some tool, you're simply just wrong.
-
-                  Linus
