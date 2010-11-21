@@ -1,75 +1,135 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH 0/2] Generic hardware error reporting support
-Date: Sun, 21 Nov 2010 09:06:35 +0800
-Message-ID: <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com>
-References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
-	<AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com>
-	<AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>
-	<AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com>
-	<AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com>
-	<AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com>
-	<AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com>
-	<AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com>
-	<AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Core i7 & C-States
+Date: Sun, 21 Nov 2010 17:47:07 +0100
+Message-ID: <201011211747.08537.trenn@suse.de>
+References: <AANLkTik+zt0FC7chXJojaqtAMC5DsfLHKcU1FVAJEXAn@mail.gmail.com> <201011190159.32152.trenn@suse.de> <AANLkTi=QWXnPwEHBUmaL+PE==pxdTq=gRX_LjuF0L8Mp@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:58206 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755371Ab0KUBGg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Nov 2010 20:06:36 -0500
-In-Reply-To: <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:37384 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754271Ab0KUQrM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Nov 2010 11:47:12 -0500
+In-Reply-To: <AANLkTi=QWXnPwEHBUmaL+PE==pxdTq=gRX_LjuF0L8Mp@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
+To: Greg Oliver <oliver.greg2@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Sun, Nov 21, 2010 at 8:50 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Sat, Nov 20, 2010 at 4:42 PM, huang ying
-> <huang.ying.caritas@gmail.com> wrote:
->>
->> I don't want to hide the information from the MIS people with the
->> tool. I want to show the information to MIS people in a better way.
->
-> You really don't understand, do you?
+Hi,
 
-I mean the tool can cook the raw error information from kernel and
-report it in a better way. Yes. You are right that the user space
-error daemon is not popular now. But every tool has its beginning,
-isn't it? I know it is impossible for this tool becomes popular in
-desktop users because hardware error is really rare for them. But it
-may become popular for server farm administrators, to them hardware
-errors are common and they really care about the RAS.
+I add linux-acpi again, this is some nice info already...
 
-> People won't even _know_ about your tool. =C2=A0It's too f*cking
-> specialized. They'll have come from other Unixes, they'll have come
-> from older Linux versions, they don't know, they don't care.
->
-> They _do_ know about system logs.
+On Saturday 20 November 2010 03:21:58 am Greg Oliver wrote:
+> On Thu, Nov 18, 2010 at 6:59 PM, Thomas Renninger <trenn@suse.de> wro=
+te:
+> > On Wednesday 17 November 2010 09:34:43 pm Greg Oliver wrote:
+> >> Hi,
+> >>
+> >> This is my first motherboard with ACPI issues, so I am in uncharte=
+d
+> >> water. It is an intel board, so no overclocking, etc. =C2=A0Readin=
+g through
+> >> as much as I can this morning, I have hit the wall. =C2=A0I have
+> >> disassembled all of my [DS]SDTs, and will attach them with a dmesg=
+ as
+> >> this seems to be the normal request from the archives.
+> >>
+> >> About the issue though -
+> >>
+> >> If I enable either/or C-STATES/C2-STATES,
+> > How do you enable them? I expect you disable them (disabling these
+> > does vary depending whether intel_idle or acpi_idle is used, see be=
+low)?
+>=20
+> I disable them in the bios.  I do not know the kernel syntax to do it
+> on boot since I did not know it existed, but I'll go find it.
+I wonder whether the BIOS disabling also works with intel_idle driver (=
+and
+some MSRs are set) or whether intel_idle will still do C-states, becaus=
+e
+only ACPI C-state entries not exposed. I expect the latter...
 
-I have no objection to report hardware errors in system logs too. So
-these people can get the information too. I just want to add another
-tool oriented interface too. So that some other users (like cluster
-administrator) can get their work done better too.
+intel_idle driver is not used with your kernel, though, see below.
 
-> The most common kind of "system admin" is the random end-user. Now,
-> admittedly Intel seems to have its head up its arse on the whole
-> "regular people care about ECC and random memory corruption", and it
-> may be that consumer chips simply won't support the whole magic error
-> handling code, but the point remains: we don't want yet another
-> obscure error reporting tool that almost nobody knows about.
-> Especially for errors that are so rare that you'll never notice if yo=
-u
-> are missing them.
+> >> the system will freeze on
+> >> boot. =C2=A0Disabling them both the system runs fine, but I would =
+obviously
+> >> like the power savings if possible. =C2=A0Now I know this BIOS has=
+ some
+> >> issues as some PCI devices (when disabled in the BIOS) still get
+> >> partially enumerated and assigned IRQs on the bus as well, but tha=
+t
+> >> does not concern me as much as the power. =C2=A0The latest update =
+to the
+> >> BIOS from intel is installed.
+> > Interesting.
+> > Which kernel are you running?
+>=20
+> 2.6.32 stable
+Ok, there acpi_idle should still be used and this one should take your
+BIOS settings into account properly.
 
-=46or desktop users, that is true. But for cluster administrator, the
-hardware errors are really common. Some engineer of local search
-engine vendor told me that they have broken DIMM everyday.
+> > With latest kernel intel_idle should be used for C-states on such
+> > a new CPU and it will totally
+> > ignore ACPI C-state information. If it works, it's due to ACPI tabl=
+es.
+> > You can check here:
+> > cat /sys/devices/system/cpu/cpuidle/current_driver
+> > That should show acpi_idle if processor.ko driver is used and ACPI
+> > tables are used or intel_idle.
+>=20
+> acpi_idle is what shows
+Yep.
 
-Best Regards,
-Huang Ying
+> >> This is the only ACPI error I get from dmesg currently though:
+> >>
+> >> ACPI Warning: Incorrect checksum in table [SSDT] - 3F, should be 9=
+1
+> >> (20090903/tbutils-314)
+> > Probably irrelvant to C-states.
+>=20
+> I guess I skimmed past these by accident:
+>=20
+>     0.000000] ACPI Warning: 32/64 FACS address mismatch in FADT - two
+> FACS tables! (20090903/tbfadt-369)
+> [    0.000000] ACPI Warning: 32/64X FACS address mismatch in FADT -
+> BBE19F40/00000000BBE19E40, using 32 (20090903/tbfadt-486)
+This looks sever and chances are high that this is the reason for the
+system freezes at boot up.
+I could imagine the problem is that acpica/Linux behaves like old
+Windowses (prior Windows Vista) and preferes 32-bit fadt addresses.
+I opened a bug for that some time ago:
+http://acpica.org/bugzilla/show_bug.cgi?id=3D885
+
+> >> I have also booted with "acpi.debug_layer=3D0xFFFFFFFF
+> >> acpi.debug_level=3D0x80000000" appended to my kernel cmdline and I=
+ am
+> >> unsure why, but even though the system showed all debugs enabled i=
+n
+> >> /sys, I did not receive any extra debug messages in dmesg!?!?
+> > For C-states this debug facility does not help much.
+>=20
+> Yeah, I was just surprised that it did not add any more verbosity to
+> my boot at all..
+>=20
+> > If intel_idle also freezes the machine, you should open a bug on
+> > bugzilla.kernel.org, please add me and Len Brown to CC then.
+>=20
+> Thanks for the pointer - I did not know the alternatives were out
+> there.  I'll patch it in and rebuild the kernel to see how it goes.
+But first above problem (FACS address mismatch) should be addressed.
+Chances are high that the machine does not freeze anymore then.
+Best is you open a bug here:
+http://bugzilla.kernel.org
+assign it to the ACPI component and attach acpidump output and at least
+past above error message in there. A short description that the machine
+freezes at boot (and disabling C-states in BIOS helps?) and the used
+kernel should also show up there.
+
+    Thomas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
