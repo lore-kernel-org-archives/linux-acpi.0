@@ -1,103 +1,39 @@
-From: "Koornstra, Reinoud" <koornstra@hp.com>
-Subject: RE: Core i7 & C-States
-Date: Mon, 22 Nov 2010 10:32:12 +0000
-Message-ID: <E92FAF79A8BBC642A36EEE3AA7F152D8852BAE3D01@GVW1089EXB.americas.hpqcorp.net>
-References: <AANLkTik+zt0FC7chXJojaqtAMC5DsfLHKcU1FVAJEXAn@mail.gmail.com>
- <201011211747.08537.trenn@suse.de>
- <E92FAF79A8BBC642A36EEE3AA7F152D8852BAE3AA4@GVW1089EXB.americas.hpqcorp.net>
- <201011221022.05618.trenn@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/5] Backlight: Add backlight type
+Date: Mon, 22 Nov 2010 12:30:50 +0000
+Message-ID: <20101122123050.GA5385@srcf.ucam.org>
+References: <1290182036-30484-1-git-send-email-mjg@redhat.com> <20101119120523.15bc341c.akpm@linux-foundation.org> <20101119202558.GA10898@srcf.ucam.org> <1290421020.1272.16707.camel@rex>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:42540 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754326Ab0KVKdn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Nov 2010 05:33:43 -0500
-In-Reply-To: <201011221022.05618.trenn@suse.de>
-Content-Language: en-US
+Received: from cavan.codon.org.uk ([93.93.128.6]:36730 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755557Ab0KVMa7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Nov 2010 07:30:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1290421020.1272.16707.camel@rex>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Greg Oliver <oliver.greg2@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUaG9tYXMgUmVubmluZ2VyIFtt
-YWlsdG86dHJlbm5Ac3VzZS5kZV0NCj4gU2VudDogTW9uZGF5LCBOb3ZlbWJlciAyMiwgMjAxMCAx
-OjIyIEFNDQo+IFRvOiBLb29ybnN0cmEsIFJlaW5vdWQNCj4gQ2M6IEdyZWcgT2xpdmVyOyBsaW51
-eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgTGVuIEJyb3duOyBNb29yZSwgUm9iZXJ0DQo+IFN1Ympl
-Y3Q6IFJlOiBDb3JlIGk3ICYgQy1TdGF0ZXMNCj4gDQo+IEhpLA0KPiANCj4gT24gTW9uZGF5IDIy
-IE5vdmVtYmVyIDIwMTAgMDI6MzA6NTEgS29vcm5zdHJhLCBSZWlub3VkIHdyb3RlOg0KPiA+ID4g
-LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gLi4uDQo+ID4gPiA+ICAgICAwLjAwMDAwMF0g
-QUNQSSBXYXJuaW5nOiAzMi82NCBGQUNTIGFkZHJlc3MgbWlzbWF0Y2ggaW4gRkFEVCAtDQo+IHR3
-bw0KPiA+ID4gPiBGQUNTIHRhYmxlcyEgKDIwMDkwOTAzL3RiZmFkdC0zNjkpDQo+ID4gPiA+IFsg
-ICAgMC4wMDAwMDBdIEFDUEkgV2FybmluZzogMzIvNjRYIEZBQ1MgYWRkcmVzcyBtaXNtYXRjaCBp
-biBGQURUDQo+IC0NCj4gPiA+ID4gQkJFMTlGNDAvMDAwMDAwMDBCQkUxOUU0MCwgdXNpbmcgMzIg
-KDIwMDkwOTAzL3RiZmFkdC00ODYpDQo+ID4gPiBUaGlzIGxvb2tzIHNldmVyIGFuZCBjaGFuY2Vz
-IGFyZSBoaWdoIHRoYXQgdGhpcyBpcyB0aGUgcmVhc29uIGZvcg0KPiB0aGUNCj4gPiA+IHN5c3Rl
-bSBmcmVlemVzIGF0IGJvb3QgdXAuDQo+ID4gPiBJIGNvdWxkIGltYWdpbmUgdGhlIHByb2JsZW0g
-aXMgdGhhdCBhY3BpY2EvTGludXggYmVoYXZlcyBsaWtlIG9sZA0KPiA+ID4gV2luZG93c2VzIChw
-cmlvciBXaW5kb3dzIFZpc3RhKSBhbmQgcHJlZmVyZXMgMzItYml0IGZhZHQgYWRkcmVzc2VzLg0K
-PiA+ID4gSSBvcGVuZWQgYSBidWcgZm9yIHRoYXQgc29tZSB0aW1lIGFnbzoNCj4gPiA+IGh0dHA6
-Ly9hY3BpY2Eub3JnL2J1Z3ppbGxhL3Nob3dfYnVnLmNnaT9pZD04ODUNCj4gPg0KPiA+IFRoZSBh
-Y3BpIDQuMCBzdGFuZGFyZCByZXF1aXJlcyB0aGF0IGVpdGhlciBhIDMyIGJpdHMgYWRkcmVzcw0K
-PiA+IGlzIHVzZWQgYW5kIHRoYXQgdGhlbiB0aGUgNjQgYml0cyBhZGRyZXNzIHNob3VsZCBiZSAw
-LiAobm90IHVzZWQpDQo+ID4gT3IgdGhhdCB3aGVuIHRoZSA2NCBiaXRzIGFkZHJlc3MgaXMgdXNl
-ZCB0aGVuIHRoZSAzMiBiaXRzIGFkZHJlc3MNCj4gPiBpc24ndCB1c2VkIGFuZCBzaG91bGQgYmUg
-MC4NCj4gPiBTb21lIGJpb3NzZXMgYWN0dWFsbHkgdXNlIGJvdGggdGhlIDMyIGJpdHMgYW5kIDY0
-IGJpdHMgYWRkcmVzc2VzLA0KPiA+IGJ1dCB0aGUgNjQgYml0cyBhZGRyZXNzIGlzIHRoZSBzYW1l
-IGFzIHRoZSAzMiBiaXRzIGFkZHJlc3MsDQo+ID4gdGhpcyBpcyBub3QgYXMgaXQncyBzdXBwb3Nl
-ZCB0byBiZSwgYnV0IGxpbnV4IGNhbiBkZWFsIHdpdGggdGhpcy4NCj4gPiBTb21lIGJpb3NzZXMs
-IGRvIHVzZSBkaWZmZXJlbnQgYWRkcmVzc2VzIGZvciB0aGUgMzIgYml0cyBhZGRyZXNzDQo+ID4g
-YW5kIDY0IGJpdHMgYWRkcmVzc2VzIHdoaWNoIGlzbid0IGdvb2QgYXQgYWxsLg0KPiBJc24ndCBn
-b29kIGF0IGFsbCBtaWdodCBtaWdodCBkZXNjcmliZSB0aGlzIHdlbGwsIGJ1dCBpdCBkb2Vzbid0
-DQo+IGhlbHAuDQo+IElmIHRoaXMgd291bGQgYmUgYSBTTEVEIGJ1ZywgSSdkIHBvaW50IHRvIHRo
-ZSBPRU0sIGJ1eWluZyBhIG5vbi1MaW51eA0KPiBjZXJ0aWZpZWQvdGVzdGVkIEhXIGlzIGEgYmFk
-IHRoaW5nIGFuZCB5b3UgbWlnaHQgcnVuIGludG8gcXVpdGUgc29tZQ0KPiB3b3JrIGdldHRpbmcg
-eW91ciBIVyBnb2luZy4NCj4gDQo+ID4gSW4gdGhpcyBjYXNlIGxpbnV4IGRvZXNuJ3Qga25vdyB3
-aGljaCBvbmUgdG8gdXNlIGFuZCBieSBkZWZhdWx0DQo+ID4gaXQnbGwgdXNlIHRoZSAzMiBiaXRz
-IHRhYmxlLiBJbiB0aGlzIGNhc2Ugd2UgYWN0dWFsbHkgaGF2ZSAyIGZhZHQNCj4gPiB0YWJsZXMg
-YSAzMiBiaXRzIG9uZSBhbmQgYSA2NCBiaXRzIG9uZS4NCj4gPiBCaW9zIHZlbmRvcnMgbWlnaHQg
-ZG8gdGhpcyB0byBzdXBwb3J0IHdpbmRvd3MgMjAwMC4NCj4gTWFpbmxpbmUgcG9saWN5IGFsd2F5
-cyBpcy93YXMgdG8gYmUgY29tcGF0aWJsZSB0byBXaW5kb3dzLg0KPiBJIGV4cGVjdCB0aGlzIG1h
-Y2hpbmUgZG9lcyBub3QgZnJlZXplIG9uIFdpbmRvd3MgYW5kIHRlbGxpbmcgcGVvcGxlDQo+IHRo
-ZWlyIG1hY2hpbmUgd29uJ3QgZXZlciBib290IHdpdGggTGludXggaXNuJ3QgZ29vZCBhdCBhbGwg
-YXMgd2VsbC4NCg0KV2l0aCAyLjYuMzIgYW5kIHlvdXIgbWFjaGluZSBoYXZpbmcgMiBkaWZmZXJl
-bnQgRkFEVCB0YWJsZXMsIGEgMzIgYml0cyBvbmUgYW5kIGEgNjQgYml0cyBvbmUgc2hvdWxkIG5v
-dCBjYXVzZSBsaW51eCB0byBoYW5nLg0KV2VsbCwgSSBDQU5OT1Qgc2F5IHRoaXMgZm9yIHN1cmUs
-IGJ1dCBpbiBnZW5lcmFsIGl0IHNob3VsZCBiZSBhbHJpZ2h0IHRvIGp1c3QgdXNlIHRoZSAzMiBi
-aXRzIG9uZSBiZWNhdXNlIGlmIHNob3VsZCBqdXN0IGRvIHRoZSBzYW1lIGFzIHdoZW4geW91IHVz
-ZSB0aGUgNjQgYml0cyBGQURULg0KVGhpcyBpcyB0aGUgZGVmYXVsdCBiZWhhdmlvciBpbiB0aGlz
-IGNhc2UsIGxpbnV4IGRvZXNuJ3Qga25vdyB3aGljaCBvbmUgdG8gdXNlIGluIHRoaXMgY2FzZSBh
-bmQganVzdCBwaWNrcyB0aGUgMzIgYml0cyBGQURUIHRhYmxlIHdoaWNoIHNob3VsZCBiZSBqdXN0
-IGZpbmUuDQpJbiB0aGVzZSBjYXNlcyB3aGV0aGVyIHlvdSB1c2UgdGhlIDMyIGJpdHMgb3IgNjQg
-Yml0cyBvbmUgaXQgc2hvdWxkbid0IG1hdHRlciwgYmVjYXVzZSB0aGV5IHNob3VsZCBiZSB0aGUg
-c2FtZS4NCg0KPiANCj4gLi4uDQo+IA0KPiA+ID4gPiBUaGFua3MgZm9yIHRoZSBwb2ludGVyIC0g
-SSBkaWQgbm90IGtub3cgdGhlIGFsdGVybmF0aXZlcyB3ZXJlIG91dA0KPiA+ID4gPiB0aGVyZS4g
-IEknbGwgcGF0Y2ggaXQgaW4gYW5kIHJlYnVpbGQgdGhlIGtlcm5lbCB0byBzZWUgaG93IGl0DQo+
-IGdvZXMuDQo+ID4gPiBCdXQgZmlyc3QgYWJvdmUgcHJvYmxlbSAoRkFDUyBhZGRyZXNzIG1pc21h
-dGNoKSBzaG91bGQgYmUNCj4gYWRkcmVzc2VkLg0KPiA+DQo+ID4gVGhpcyBpc24ndCBhIGxpbnV4
-IHByb2JsZW0sIGxpbnV4IGNhbm5vdCBoZWxwIHRoYXQgc29tZSBiaW9zDQo+ID4gdmVuZG9ycyB1
-c2UgdHdvIEZBRFQgdGFibGVzLg0KPiBJdCBjYW4uIElmIGl0IHdvcmtzIG9uIFdpbmRvd3Mgd2Ug
-Y2FuIG1ha2UgaXQgd29yayBhcyB3ZWxsLg0KPiANCj4gPiBJdCBzaG91bGQgYmUgZmluZSB0byBq
-dXN0IHVzZSB0aGUgMzIgYml0cyB0YWJsZSB0aG91Z2ggYXMgbGludXgNCj4gPiBkb2VzIGJ5IGRl
-ZmF1bHQgaW4gdGhhdCBjYXNlLg0KPiBMZXQncyB0cmFjayB0aGlzIGluIGEgYnVnLiBHcmVnLCBj
-YW4geW91IG9wZW4gb25lIGFzIGRlc2NyaWJlZCBiZWxvdy4NCj4gV2Ugd2FudCB0byBrbm93IHdo
-eSB0aGlzIG1hY2hpbmUgZnJlZXplcy4NCj4gDQo+IElmIGl0J3MgcmVhbGx5IGJlY2F1c2UgV2lu
-ZG93cyBwaWNrcyB1cCAzMiBiaXQgRkFEVCBhZGRyZXNzZXMgd2l0aA0KPiBvbGRlcg0KPiB2ZXJz
-aW9ucyBhbmQgcHJlZmVycyA2NCBiaXQgYWRkcmVzc2VzIHdpdGggVmlzdGEgYW5kIGxhdGVyLCBh
-dA0KPiBsZWFzdCBhIGJvb3QgcGFyYW0gc2hvdWxkIGJlIGFkZGVkIHRvIGZvcmNlIHRoZSB1c2Ug
-b2YgdGhlIFhTRFQgb3INCj4gUlNEVCBwb2ludGVkIHRvIEZBRFQgYWRkcmVzc2VzLiBUaGVuIGl0
-IGNvdWxkIGJlIGVhc2lseSBjaGVja2VkIG5vdw0KPiB3aGV0aGVyDQo+IHRoaXMgaXMgdGhlIHBy
-b2JsZW0gYW5kIGlmIGl0IHdvcmtzLCBwZW9wbGUgd291bGQgaGF2ZSBhIHdvcmthcm91bmQNCj4g
-dG8gYmUgYWJsZSB0byBib290IHRoZWlyIHN5c3RlbXMuDQoNCldpbmRvd3MgWFAgc2hvdWxkIGFs
-c28gYmUgYWJsZSB0byBwaWNrIHVwIHRoZSA2NCBiaXRzIHRhYmxlLg0KSSBndWVzcyB0aGlzIHdv
-dWxkIGNvbmNlcm4gd2luZG93cyB2ZXJzaW9uIG9sZGVyIHRoYW4geHAuDQpCb2IgV2hhdCBkbyB5
-b3Ugc2F5IGFib3V0IHdpbmRvd3MgdmVyc2lvbnMgb24gdGhpcyBpc3N1ZT8NCg0KPiANCj4gPiA+
-IENoYW5jZXMgYXJlIGhpZ2ggdGhhdCB0aGUgbWFjaGluZSBkb2VzIG5vdCBmcmVlemUgYW55bW9y
-ZSB0aGVuLg0KPiA+ID4gQmVzdCBpcyB5b3Ugb3BlbiBhIGJ1ZyBoZXJlOg0KPiA+ID4gaHR0cDov
-L2J1Z3ppbGxhLmtlcm5lbC5vcmcNCj4gPiA+IGFzc2lnbiBpdCB0byB0aGUgQUNQSSBjb21wb25l
-bnQgYW5kIGF0dGFjaCBhY3BpZHVtcCBvdXRwdXQgYW5kIGF0DQo+IGxlYXN0DQo+ID4gPiBwYXN0
-IGFib3ZlIGVycm9yIG1lc3NhZ2UgaW4gdGhlcmUuIEEgc2hvcnQgZGVzY3JpcHRpb24gdGhhdCB0
-aGUNCj4gbWFjaGluZQ0KPiA+ID4gZnJlZXplcyBhdCBib290IChhbmQgZGlzYWJsaW5nIEMtc3Rh
-dGVzIGluIEJJT1MgaGVscHM/KSBhbmQgdGhlDQo+IHVzZWQNCj4gPiA+IGtlcm5lbCBzaG91bGQg
-YWxzbyBzaG93IHVwIHRoZXJlLg0KPiANCj4gICAgICAgVGhvbWFzDQo=
+On Mon, Nov 22, 2010 at 10:17:00AM +0000, Richard Purdie wrote:
+
+> I also want to make sure you think this patch is going to scale with
+> multiple GPU output machines? Thats the main reason I've held off any
+> patch like this as it doesn't help solve that problem as far as I can
+> tell. Yes, we have the device parent information and I see later in the
+> patch series you ensure the backlight is registered against the
+> connector which is good. If you have an ACPI "firmware" control that you
+> say should always be preferred, how do we know which connector device
+> that corresponds to in the multiple output case? From that point of view
+> this model falls apart?
+
+The ACPI device will point at the correct PCI device. Associating it 
+with the appropriate connector is theoretically possible in the case of 
+open drivers, but I hadn't seen it as a high priority since (in 
+practice) there's no situations where an ACPI interface will be able to 
+control more than one backlight.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
