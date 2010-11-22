@@ -1,137 +1,131 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Core i7 & C-States
-Date: Sun, 21 Nov 2010 17:47:07 +0100
-Message-ID: <201011211747.08537.trenn@suse.de>
-References: <AANLkTik+zt0FC7chXJojaqtAMC5DsfLHKcU1FVAJEXAn@mail.gmail.com> <201011190159.32152.trenn@suse.de> <AANLkTi=QWXnPwEHBUmaL+PE==pxdTq=gRX_LjuF0L8Mp@mail.gmail.com>
+From: "Koornstra, Reinoud" <koornstra@hp.com>
+Subject: RE: Core i7 & C-States
+Date: Mon, 22 Nov 2010 01:30:51 +0000
+Message-ID: <E92FAF79A8BBC642A36EEE3AA7F152D8852BAE3AA4@GVW1089EXB.americas.hpqcorp.net>
+References: <AANLkTik+zt0FC7chXJojaqtAMC5DsfLHKcU1FVAJEXAn@mail.gmail.com>
+ <201011190159.32152.trenn@suse.de>
+ <AANLkTi=QWXnPwEHBUmaL+PE==pxdTq=gRX_LjuF0L8Mp@mail.gmail.com>
+ <201011211747.08537.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37384 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754271Ab0KUQrM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Nov 2010 11:47:12 -0500
-In-Reply-To: <AANLkTi=QWXnPwEHBUmaL+PE==pxdTq=gRX_LjuF0L8Mp@mail.gmail.com>
-Content-Disposition: inline
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:35374 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755726Ab0KVBcp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Nov 2010 20:32:45 -0500
+In-Reply-To: <201011211747.08537.trenn@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Oliver <oliver.greg2@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Thomas Renninger <trenn@suse.de>, Greg Oliver <oliver.greg2@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi,
-
-I add linux-acpi again, this is some nice info already...
-
-On Saturday 20 November 2010 03:21:58 am Greg Oliver wrote:
-> On Thu, Nov 18, 2010 at 6:59 PM, Thomas Renninger <trenn@suse.de> wro=
-te:
-> > On Wednesday 17 November 2010 09:34:43 pm Greg Oliver wrote:
-> >> Hi,
-> >>
-> >> This is my first motherboard with ACPI issues, so I am in uncharte=
-d
-> >> water. It is an intel board, so no overclocking, etc. =C2=A0Readin=
-g through
-> >> as much as I can this morning, I have hit the wall. =C2=A0I have
-> >> disassembled all of my [DS]SDTs, and will attach them with a dmesg=
- as
-> >> this seems to be the normal request from the archives.
-> >>
-> >> About the issue though -
-> >>
-> >> If I enable either/or C-STATES/C2-STATES,
-> > How do you enable them? I expect you disable them (disabling these
-> > does vary depending whether intel_idle or acpi_idle is used, see be=
-low)?
->=20
-> I disable them in the bios.  I do not know the kernel syntax to do it
-> on boot since I did not know it existed, but I'll go find it.
-I wonder whether the BIOS disabling also works with intel_idle driver (=
-and
-some MSRs are set) or whether intel_idle will still do C-states, becaus=
-e
-only ACPI C-state entries not exposed. I expect the latter...
-
-intel_idle driver is not used with your kernel, though, see below.
-
-> >> the system will freeze on
-> >> boot. =C2=A0Disabling them both the system runs fine, but I would =
-obviously
-> >> like the power savings if possible. =C2=A0Now I know this BIOS has=
- some
-> >> issues as some PCI devices (when disabled in the BIOS) still get
-> >> partially enumerated and assigned IRQs on the bus as well, but tha=
-t
-> >> does not concern me as much as the power. =C2=A0The latest update =
-to the
-> >> BIOS from intel is installed.
-> > Interesting.
-> > Which kernel are you running?
->=20
-> 2.6.32 stable
-Ok, there acpi_idle should still be used and this one should take your
-BIOS settings into account properly.
-
-> > With latest kernel intel_idle should be used for C-states on such
-> > a new CPU and it will totally
-> > ignore ACPI C-state information. If it works, it's due to ACPI tabl=
-es.
-> > You can check here:
-> > cat /sys/devices/system/cpu/cpuidle/current_driver
-> > That should show acpi_idle if processor.ko driver is used and ACPI
-> > tables are used or intel_idle.
->=20
-> acpi_idle is what shows
-Yep.
-
-> >> This is the only ACPI error I get from dmesg currently though:
-> >>
-> >> ACPI Warning: Incorrect checksum in table [SSDT] - 3F, should be 9=
-1
-> >> (20090903/tbutils-314)
-> > Probably irrelvant to C-states.
->=20
-> I guess I skimmed past these by accident:
->=20
->     0.000000] ACPI Warning: 32/64 FACS address mismatch in FADT - two
-> FACS tables! (20090903/tbfadt-369)
-> [    0.000000] ACPI Warning: 32/64X FACS address mismatch in FADT -
-> BBE19F40/00000000BBE19E40, using 32 (20090903/tbfadt-486)
-This looks sever and chances are high that this is the reason for the
-system freezes at boot up.
-I could imagine the problem is that acpica/Linux behaves like old
-Windowses (prior Windows Vista) and preferes 32-bit fadt addresses.
-I opened a bug for that some time ago:
-http://acpica.org/bugzilla/show_bug.cgi?id=3D885
-
-> >> I have also booted with "acpi.debug_layer=3D0xFFFFFFFF
-> >> acpi.debug_level=3D0x80000000" appended to my kernel cmdline and I=
- am
-> >> unsure why, but even though the system showed all debugs enabled i=
-n
-> >> /sys, I did not receive any extra debug messages in dmesg!?!?
-> > For C-states this debug facility does not help much.
->=20
-> Yeah, I was just surprised that it did not add any more verbosity to
-> my boot at all..
->=20
-> > If intel_idle also freezes the machine, you should open a bug on
-> > bugzilla.kernel.org, please add me and Len Brown to CC then.
->=20
-> Thanks for the pointer - I did not know the alternatives were out
-> there.  I'll patch it in and rebuild the kernel to see how it goes.
-But first above problem (FACS address mismatch) should be addressed.
-Chances are high that the machine does not freeze anymore then.
-Best is you open a bug here:
-http://bugzilla.kernel.org
-assign it to the ACPI component and attach acpidump output and at least
-past above error message in there. A short description that the machine
-freezes at boot (and disabling C-states in BIOS helps?) and the used
-kernel should also show up there.
-
-    Thomas
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZn
+ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+IG93bmVyQHZnZXIua2VybmVsLm9y
+Z10gT24gQmVoYWxmIE9mIFRob21hcyBSZW5uaW5nZXINCj4gU2VudDogU3VuZGF5LCBOb3ZlbWJl
+ciAyMSwgMjAxMCA4OjQ3IEFNDQo+IFRvOiBHcmVnIE9saXZlcg0KPiBDYzogbGludXgtYWNwaUB2
+Z2VyLmtlcm5lbC5vcmc7IExlbiBCcm93bjsgTW9vcmUsIFJvYmVydA0KPiBTdWJqZWN0OiBSZTog
+Q29yZSBpNyAmIEMtU3RhdGVzDQo+IA0KPiBIaSwNCj4gDQo+IEkgYWRkIGxpbnV4LWFjcGkgYWdh
+aW4sIHRoaXMgaXMgc29tZSBuaWNlIGluZm8gYWxyZWFkeS4uLg0KPiANCj4gT24gU2F0dXJkYXkg
+MjAgTm92ZW1iZXIgMjAxMCAwMzoyMTo1OCBhbSBHcmVnIE9saXZlciB3cm90ZToNCj4gPiBPbiBU
+aHUsIE5vdiAxOCwgMjAxMCBhdCA2OjU5IFBNLCBUaG9tYXMgUmVubmluZ2VyIDx0cmVubkBzdXNl
+LmRlPg0KPiB3cm90ZToNCj4gPiA+IE9uIFdlZG5lc2RheSAxNyBOb3ZlbWJlciAyMDEwIDA5OjM0
+OjQzIHBtIEdyZWcgT2xpdmVyIHdyb3RlOg0KPiA+ID4+IEhpLA0KPiA+ID4+DQo+ID4gPj4gVGhp
+cyBpcyBteSBmaXJzdCBtb3RoZXJib2FyZCB3aXRoIEFDUEkgaXNzdWVzLCBzbyBJIGFtIGluDQo+
+IHVuY2hhcnRlZA0KPiA+ID4+IHdhdGVyLiBJdCBpcyBhbiBpbnRlbCBib2FyZCwgc28gbm8gb3Zl
+cmNsb2NraW5nLCBldGMuIMKgUmVhZGluZw0KPiB0aHJvdWdoDQo+ID4gPj4gYXMgbXVjaCBhcyBJ
+IGNhbiB0aGlzIG1vcm5pbmcsIEkgaGF2ZSBoaXQgdGhlIHdhbGwuIMKgSSBoYXZlDQo+ID4gPj4g
+ZGlzYXNzZW1ibGVkIGFsbCBvZiBteSBbRFNdU0RUcywgYW5kIHdpbGwgYXR0YWNoIHRoZW0gd2l0
+aCBhIGRtZXNnDQo+IGFzDQo+ID4gPj4gdGhpcyBzZWVtcyB0byBiZSB0aGUgbm9ybWFsIHJlcXVl
+c3QgZnJvbSB0aGUgYXJjaGl2ZXMuDQo+ID4gPj4NCj4gPiA+PiBBYm91dCB0aGUgaXNzdWUgdGhv
+dWdoIC0NCj4gPiA+Pg0KPiA+ID4+IElmIEkgZW5hYmxlIGVpdGhlci9vciBDLVNUQVRFUy9DMi1T
+VEFURVMsDQo+ID4gPiBIb3cgZG8geW91IGVuYWJsZSB0aGVtPyBJIGV4cGVjdCB5b3UgZGlzYWJs
+ZSB0aGVtIChkaXNhYmxpbmcgdGhlc2UNCj4gPiA+IGRvZXMgdmFyeSBkZXBlbmRpbmcgd2hldGhl
+ciBpbnRlbF9pZGxlIG9yIGFjcGlfaWRsZSBpcyB1c2VkLCBzZWUNCj4gYmVsb3cpPw0KPiA+DQo+
+ID4gSSBkaXNhYmxlIHRoZW0gaW4gdGhlIGJpb3MuICBJIGRvIG5vdCBrbm93IHRoZSBrZXJuZWwg
+c3ludGF4IHRvIGRvIGl0DQo+ID4gb24gYm9vdCBzaW5jZSBJIGRpZCBub3Qga25vdyBpdCBleGlz
+dGVkLCBidXQgSSdsbCBnbyBmaW5kIGl0Lg0KPiBJIHdvbmRlciB3aGV0aGVyIHRoZSBCSU9TIGRp
+c2FibGluZyBhbHNvIHdvcmtzIHdpdGggaW50ZWxfaWRsZSBkcml2ZXINCj4gKGFuZA0KPiBzb21l
+IE1TUnMgYXJlIHNldCkgb3Igd2hldGhlciBpbnRlbF9pZGxlIHdpbGwgc3RpbGwgZG8gQy1zdGF0
+ZXMsDQo+IGJlY2F1c2UNCj4gb25seSBBQ1BJIEMtc3RhdGUgZW50cmllcyBub3QgZXhwb3NlZC4g
+SSBleHBlY3QgdGhlIGxhdHRlci4uLg0KPiANCj4gaW50ZWxfaWRsZSBkcml2ZXIgaXMgbm90IHVz
+ZWQgd2l0aCB5b3VyIGtlcm5lbCwgdGhvdWdoLCBzZWUgYmVsb3cuDQo+IA0KPiA+ID4+IHRoZSBz
+eXN0ZW0gd2lsbCBmcmVlemUgb24NCj4gPiA+PiBib290LiDCoERpc2FibGluZyB0aGVtIGJvdGgg
+dGhlIHN5c3RlbSBydW5zIGZpbmUsIGJ1dCBJIHdvdWxkDQo+IG9idmlvdXNseQ0KPiA+ID4+IGxp
+a2UgdGhlIHBvd2VyIHNhdmluZ3MgaWYgcG9zc2libGUuIMKgTm93IEkga25vdyB0aGlzIEJJT1Mg
+aGFzIHNvbWUNCj4gPiA+PiBpc3N1ZXMgYXMgc29tZSBQQ0kgZGV2aWNlcyAod2hlbiBkaXNhYmxl
+ZCBpbiB0aGUgQklPUykgc3RpbGwgZ2V0DQo+ID4gPj4gcGFydGlhbGx5IGVudW1lcmF0ZWQgYW5k
+IGFzc2lnbmVkIElSUXMgb24gdGhlIGJ1cyBhcyB3ZWxsLCBidXQNCj4gdGhhdA0KPiA+ID4+IGRv
+ZXMgbm90IGNvbmNlcm4gbWUgYXMgbXVjaCBhcyB0aGUgcG93ZXIuIMKgVGhlIGxhdGVzdCB1cGRh
+dGUgdG8NCj4gdGhlDQo+ID4gPj4gQklPUyBmcm9tIGludGVsIGlzIGluc3RhbGxlZC4NCj4gPiA+
+IEludGVyZXN0aW5nLg0KPiA+ID4gV2hpY2gga2VybmVsIGFyZSB5b3UgcnVubmluZz8NCj4gPg0K
+PiA+IDIuNi4zMiBzdGFibGUNCj4gT2ssIHRoZXJlIGFjcGlfaWRsZSBzaG91bGQgc3RpbGwgYmUg
+dXNlZCBhbmQgdGhpcyBvbmUgc2hvdWxkIHRha2UgeW91cg0KPiBCSU9TIHNldHRpbmdzIGludG8g
+YWNjb3VudCBwcm9wZXJseS4NCj4gDQo+ID4gPiBXaXRoIGxhdGVzdCBrZXJuZWwgaW50ZWxfaWRs
+ZSBzaG91bGQgYmUgdXNlZCBmb3IgQy1zdGF0ZXMgb24gc3VjaA0KPiA+ID4gYSBuZXcgQ1BVIGFu
+ZCBpdCB3aWxsIHRvdGFsbHkNCj4gPiA+IGlnbm9yZSBBQ1BJIEMtc3RhdGUgaW5mb3JtYXRpb24u
+IElmIGl0IHdvcmtzLCBpdCdzIGR1ZSB0byBBQ1BJDQo+IHRhYmxlcy4NCj4gPiA+IFlvdSBjYW4g
+Y2hlY2sgaGVyZToNCj4gPiA+IGNhdCAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHVpZGxlL2N1
+cnJlbnRfZHJpdmVyDQo+ID4gPiBUaGF0IHNob3VsZCBzaG93IGFjcGlfaWRsZSBpZiBwcm9jZXNz
+b3Iua28gZHJpdmVyIGlzIHVzZWQgYW5kIEFDUEkNCj4gPiA+IHRhYmxlcyBhcmUgdXNlZCBvciBp
+bnRlbF9pZGxlLg0KPiA+DQo+ID4gYWNwaV9pZGxlIGlzIHdoYXQgc2hvd3MNCj4gWWVwLg0KPiAN
+Cj4gPiA+PiBUaGlzIGlzIHRoZSBvbmx5IEFDUEkgZXJyb3IgSSBnZXQgZnJvbSBkbWVzZyBjdXJy
+ZW50bHkgdGhvdWdoOg0KPiA+ID4+DQo+ID4gPj4gQUNQSSBXYXJuaW5nOiBJbmNvcnJlY3QgY2hl
+Y2tzdW0gaW4gdGFibGUgW1NTRFRdIC0gM0YsIHNob3VsZCBiZQ0KPiA5MQ0KPiA+ID4+ICgyMDA5
+MDkwMy90YnV0aWxzLTMxNCkNCj4gPiA+IFByb2JhYmx5IGlycmVsdmFudCB0byBDLXN0YXRlcy4N
+Cj4gPg0KPiA+IEkgZ3Vlc3MgSSBza2ltbWVkIHBhc3QgdGhlc2UgYnkgYWNjaWRlbnQ6DQo+ID4N
+Cj4gPiAgICAgMC4wMDAwMDBdIEFDUEkgV2FybmluZzogMzIvNjQgRkFDUyBhZGRyZXNzIG1pc21h
+dGNoIGluIEZBRFQgLSB0d28NCj4gPiBGQUNTIHRhYmxlcyEgKDIwMDkwOTAzL3RiZmFkdC0zNjkp
+DQo+ID4gWyAgICAwLjAwMDAwMF0gQUNQSSBXYXJuaW5nOiAzMi82NFggRkFDUyBhZGRyZXNzIG1p
+c21hdGNoIGluIEZBRFQgLQ0KPiA+IEJCRTE5RjQwLzAwMDAwMDAwQkJFMTlFNDAsIHVzaW5nIDMy
+ICgyMDA5MDkwMy90YmZhZHQtNDg2KQ0KPiBUaGlzIGxvb2tzIHNldmVyIGFuZCBjaGFuY2VzIGFy
+ZSBoaWdoIHRoYXQgdGhpcyBpcyB0aGUgcmVhc29uIGZvciB0aGUNCj4gc3lzdGVtIGZyZWV6ZXMg
+YXQgYm9vdCB1cC4NCj4gSSBjb3VsZCBpbWFnaW5lIHRoZSBwcm9ibGVtIGlzIHRoYXQgYWNwaWNh
+L0xpbnV4IGJlaGF2ZXMgbGlrZSBvbGQNCj4gV2luZG93c2VzIChwcmlvciBXaW5kb3dzIFZpc3Rh
+KSBhbmQgcHJlZmVyZXMgMzItYml0IGZhZHQgYWRkcmVzc2VzLg0KPiBJIG9wZW5lZCBhIGJ1ZyBm
+b3IgdGhhdCBzb21lIHRpbWUgYWdvOg0KPiBodHRwOi8vYWNwaWNhLm9yZy9idWd6aWxsYS9zaG93
+X2J1Zy5jZ2k/aWQ9ODg1DQoNClRoZSBhY3BpIDQuMCBzdGFuZGFyZCByZXF1aXJlcyB0aGF0IGVp
+dGhlciBhIDMyIGJpdHMgYWRkcmVzcyBpcyB1c2VkIGFuZCB0aGF0IHRoZW4gdGhlIDY0IGJpdHMg
+YWRkcmVzcyBzaG91bGQgYmUgMC4gKG5vdCB1c2VkKQ0KT3IgdGhhdCB3aGVuIHRoZSA2NCBiaXRz
+IGFkZHJlc3MgaXMgdXNlZCB0aGVuIHRoZSAzMiBiaXRzIGFkZHJlc3MgaXNuJ3QgdXNlZCBhbmQg
+c2hvdWxkIGJlIDAuDQpTb21lIGJpb3NzZXMgYWN0dWFsbHkgdXNlIGJvdGggdGhlIDMyIGJpdHMg
+YW5kIDY0IGJpdHMgYWRkcmVzc2VzLCBidXQgdGhlIDY0IGJpdHMgYWRkcmVzcyBpcyB0aGUgc2Ft
+ZSBhcyB0aGUgMzIgYml0cyBhZGRyZXNzLCB0aGlzIGlzIG5vdCBhcyBpdCdzIHN1cHBvc2VkIHRv
+IGJlLCBidXQgbGludXggY2FuIGRlYWwgd2l0aCB0aGlzLiBTb21lIGJpb3NzZXMsIGRvIHVzZSBk
+aWZmZXJlbnQgYWRkcmVzc2VzIGZvciB0aGUgMzIgYml0cyBhZGRyZXNzIGFuZCA2NCBiaXRzIGFk
+ZHJlc3NlcyB3aGljaCBpc24ndCBnb29kIGF0IGFsbC4NCkluIHRoaXMgY2FzZSBsaW51eCBkb2Vz
+bid0IGtub3cgd2hpY2ggb25lIHRvIHVzZSBhbmQgYnkgZGVmYXVsdCBpdCdsbCB1c2UgdGhlIDMy
+IGJpdHMgdGFibGUuIEluIHRoaXMgY2FzZSB3ZSBhY3R1YWxseSBoYXZlIDIgZmFkdCB0YWJsZXMg
+YSAzMiBiaXRzIG9uZSBhbmQgYSA2NCBiaXRzIG9uZS4NCkJpb3MgdmVuZG9ycyBtaWdodCBkbyB0
+aGlzIHRvIHN1cHBvcnQgd2luZG93cyAyMDAwLg0KIA0KPiA+ID4+IEkgaGF2ZSBhbHNvIGJvb3Rl
+ZCB3aXRoICJhY3BpLmRlYnVnX2xheWVyPTB4RkZGRkZGRkYNCj4gPiA+PiBhY3BpLmRlYnVnX2xl
+dmVsPTB4ODAwMDAwMDAiIGFwcGVuZGVkIHRvIG15IGtlcm5lbCBjbWRsaW5lIGFuZCBJDQo+IGFt
+DQo+ID4gPj4gdW5zdXJlIHdoeSwgYnV0IGV2ZW4gdGhvdWdoIHRoZSBzeXN0ZW0gc2hvd2VkIGFs
+bCBkZWJ1Z3MgZW5hYmxlZA0KPiBpbg0KPiA+ID4+IC9zeXMsIEkgZGlkIG5vdCByZWNlaXZlIGFu
+eSBleHRyYSBkZWJ1ZyBtZXNzYWdlcyBpbiBkbWVzZyE/IT8NCj4gPiA+IEZvciBDLXN0YXRlcyB0
+aGlzIGRlYnVnIGZhY2lsaXR5IGRvZXMgbm90IGhlbHAgbXVjaC4NCg0KSW4gb3JkZXIgZm9yIGFj
+cGkuZGVidWcgcGFyYW1ldGVycyB0byB3b3JrIHlvdSBuZWVkIHRvIHJlY29tcGlsZSB0aGUga2Vy
+bmVsIHdpdGggQ09ORklHX0FDUElfREVCVUc9eQ0KDQo+ID4NCj4gPiBZZWFoLCBJIHdhcyBqdXN0
+IHN1cnByaXNlZCB0aGF0IGl0IGRpZCBub3QgYWRkIGFueSBtb3JlIHZlcmJvc2l0eSB0bw0KPiA+
+IG15IGJvb3QgYXQgYWxsLi4NCj4gPg0KPiA+ID4gSWYgaW50ZWxfaWRsZSBhbHNvIGZyZWV6ZXMg
+dGhlIG1hY2hpbmUsIHlvdSBzaG91bGQgb3BlbiBhIGJ1ZyBvbg0KPiA+ID4gYnVnemlsbGEua2Vy
+bmVsLm9yZywgcGxlYXNlIGFkZCBtZSBhbmQgTGVuIEJyb3duIHRvIENDIHRoZW4uDQo+ID4NCj4g
+PiBUaGFua3MgZm9yIHRoZSBwb2ludGVyIC0gSSBkaWQgbm90IGtub3cgdGhlIGFsdGVybmF0aXZl
+cyB3ZXJlIG91dA0KPiA+IHRoZXJlLiAgSSdsbCBwYXRjaCBpdCBpbiBhbmQgcmVidWlsZCB0aGUg
+a2VybmVsIHRvIHNlZSBob3cgaXQgZ29lcy4NCj4gQnV0IGZpcnN0IGFib3ZlIHByb2JsZW0gKEZB
+Q1MgYWRkcmVzcyBtaXNtYXRjaCkgc2hvdWxkIGJlIGFkZHJlc3NlZC4NCg0KVGhpcyBpc24ndCBh
+IGxpbnV4IHByb2JsZW0sIGxpbnV4IGNhbm5vdCBoZWxwIHRoYXQgc29tZSBiaW9zIHZlbmRvcnMg
+dXNlIHR3byBGQURUIHRhYmxlcy4NCkl0IHNob3VsZCBiZSBmaW5lIHRvIGp1c3QgdXNlIHRoZSAz
+MiBiaXRzIHRhYmxlIHRob3VnaCBhcyBsaW51eCBkb2VzIGJ5IGRlZmF1bHQgaW4gdGhhdCBjYXNl
+Lg0KDQo+IENoYW5jZXMgYXJlIGhpZ2ggdGhhdCB0aGUgbWFjaGluZSBkb2VzIG5vdCBmcmVlemUg
+YW55bW9yZSB0aGVuLg0KPiBCZXN0IGlzIHlvdSBvcGVuIGEgYnVnIGhlcmU6DQo+IGh0dHA6Ly9i
+dWd6aWxsYS5rZXJuZWwub3JnDQo+IGFzc2lnbiBpdCB0byB0aGUgQUNQSSBjb21wb25lbnQgYW5k
+IGF0dGFjaCBhY3BpZHVtcCBvdXRwdXQgYW5kIGF0IGxlYXN0DQo+IHBhc3QgYWJvdmUgZXJyb3Ig
+bWVzc2FnZSBpbiB0aGVyZS4gQSBzaG9ydCBkZXNjcmlwdGlvbiB0aGF0IHRoZSBtYWNoaW5lDQo+
+IGZyZWV6ZXMgYXQgYm9vdCAoYW5kIGRpc2FibGluZyBDLXN0YXRlcyBpbiBCSU9TIGhlbHBzPykg
+YW5kIHRoZSB1c2VkDQo+IGtlcm5lbCBzaG91bGQgYWxzbyBzaG93IHVwIHRoZXJlLg0KPiANCj4g
+ICAgIFRob21hcw0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0
+aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSINCj4gaW4NCj4gdGhlIGJvZHkgb2YgYSBt
+ZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5m
+byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
