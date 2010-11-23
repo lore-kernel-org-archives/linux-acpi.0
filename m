@@ -1,54 +1,70 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 0/2] Generic hardware error reporting support
-Date: Tue, 23 Nov 2010 08:29:58 +0800
-Message-ID: <1290472198.2903.156.camel@yhuang-dev>
-References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
-	 <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com>
-	 <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>
-	 <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com>
-	 <AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com>
-	 <AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com>
-	 <AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com>
-	 <AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com>
-	 <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com>
-	 <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com>
-	 <4CEB0037.3000303@teksavvy.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH RESEND] tools: add power/x86/x86_energy_perf_policy to
+ program MSR_IA32_ENERGY_PERF_BIAS
+Date: Mon, 22 Nov 2010 23:48:26 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011222343140.19247@x980>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+ <alpine.LFD.2.00.1009281143070.14962@localhost.localdomain>
+ <alpine.LFD.2.00.1010230035360.29399@localhost.localdomain>
+ <alpine.LFD.2.00.1011151103280.2939@x980> <8739r0rxlz.fsf@basil.nowhere.org>
+ <alpine.LFD.2.00.1011221348200.19247@x980>
+ <20101122203359.GD21836@basil.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14950 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932065Ab0KWAaF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Nov 2010 19:30:05 -0500
-In-Reply-To: <4CEB0037.3000303@teksavvy.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20101122203359.GD21836@basil.fritz.box>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <kernel@teksavvy.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, 2010-11-23 at 07:43 +0800, Mark Lord wrote:
-> On 10-11-20 08:06 PM, huang ying wrote:
-> >
-> > I have no objection to report hardware errors in system logs too. So
-> > these people can get the information too. I just want to add another
-> > tool oriented interface too. So that some other users (like cluster
-> > administrator) can get their work done better too.
+On Mon, 22 Nov 2010, Andi Kleen wrote:
+
+> On Mon, Nov 22, 2010 at 03:13:24PM -0500, Len Brown wrote:
+> > Per the comments from Andrew and others, the concept of a
+> > "full tools build" doesn't actually exit (yet).
+> > 
+> > So I guess the only assurance that somebody not on x86 would run
+> > make in this directory this utility lives in tools/power/x86/
+> > 
+> > Note that there are other utilities under tools
+> > which have no Makefile at all...
 > 
-> So, use the standard interface for the tool:  syslog.
-
-Although it may be possible to extract some information from syslog and
-parse it in a fault tolerant way, we can only use that human oriented
-interface for a tool? That sounds like hack.
-
-> Have this obscure new tool simply parse the log messages,
-> and the send/save the data whatever way you like.
+> I suspect this will need to be fixed at some point.
 > 
-> No new specialized kernel API required.
+> e.g. kernel rpms probably don't want to hard code all of this
+> but just call some standard make file target. And the kernel
+> eventually needs a make install_user or similar.
 
-Adding a new device file will be seen as a new kernel API?
+I agree, but I don't volunteer to set up such
+a build system as part of this particular patch.
+As I mentioned, supplying any Makefile is
+a step better than some of the peers...
 
-Best Regards,
-Huang Ying
+> > I'm not inclined to bother, as the use-case for this utility
+> > is to be invoked by another program, and the options available
+> 
+> What other program?
+> 
+> I could well imagine administrators sticking this 
+> into their boot.locals to set the policy they want.
 
+right, and that would be a program.
+It is unlikely that users are going to be typing this
+command, except into an admin script.
 
+> > In the highly unlikely scenario that somebody uses
+> > the -r option to excerise the read-only code,
+> > and simultaneously invokes and completes a cpu hot remove
+> 
+> FWIW there are setups where core offlining can happen
+> automatically in response to an error.
+
+Understood.  I think it is fine if this utility
+simply exits if that error occurs while it is running.
+
+(turbostat, OTOH, may be long running, and it treats
+ vanishing processors as a recoverable error)
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
