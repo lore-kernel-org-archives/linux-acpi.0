@@ -1,150 +1,171 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 11/13] ACPI / Fan: Rework the handling of power
-	resources
-Date: Thu, 25 Nov 2010 00:11:24 +0100
-Message-ID: <201011250011.24389.rjw@sisk.pl>
+Subject: [PATCH 8/13] ACPI / PM: Add function for updating device power state consistently
+Date: Thu, 25 Nov 2010 00:09:15 +0100
+Message-ID: <201011250009.15501.rjw@sisk.pl>
 References: <201011250001.11297.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201011250001.11297.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Use the new function acpi_bus_update_power() for manipulating power
-resources used by ACPI fan devices, which allows them to be put into
-the right state during initialization and resume.  Consequently,
-remove the flags.force_power_state field from struct acpi_device,
-which is not necessary any more.
+Add function acpi_bus_update_power() for reading the actual power
+state of an ACPI device and updating its device->power.state field
+in such a way that its power resources' reference counters will
+remain consistent with that field.
+
+For this purpose introduce __acpi_bus_set_power() setting the
+power state of an ACPI device without updating its
+device->power.state field and make acpi_bus_set_power() and
+acpi_bus_update_power() use it (acpi_bus_set_power() retains the
+current behavior for now).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/bus.c      |    2 +-
- drivers/acpi/fan.c      |   27 +++++++--------------------
- drivers/acpi/thermal.c  |    5 +++--
- include/acpi/acpi_bus.h |    3 +--
- 4 files changed, 12 insertions(+), 25 deletions(-)
+ drivers/acpi/bus.c      |   90 ++++++++++++++++++++++++++++++++----------------
+ include/acpi/acpi_bus.h |    1 
+ 2 files changed, 62 insertions(+), 29 deletions(-)
 
-Index: linux-2.6/drivers/acpi/fan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/fan.c
-+++ linux-2.6/drivers/acpi/fan.c
-@@ -86,7 +86,7 @@ static int fan_get_cur_state(struct ther
- 	if (!device)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_power(device->handle, &acpi_state);
-+	result = acpi_bus_update_power(device->handle, &acpi_state);
- 	if (result)
- 		return result;
- 
-@@ -123,7 +123,6 @@ static struct thermal_cooling_device_ops
- static int acpi_fan_add(struct acpi_device *device)
- {
- 	int result = 0;
--	int state = 0;
- 	struct thermal_cooling_device *cdev;
- 
- 	if (!device)
-@@ -132,16 +131,12 @@ static int acpi_fan_add(struct acpi_devi
- 	strcpy(acpi_device_name(device), "Fan");
- 	strcpy(acpi_device_class(device), ACPI_FAN_CLASS);
- 
--	result = acpi_bus_get_power(device->handle, &state);
-+	result = acpi_bus_update_power(device->handle, NULL);
- 	if (result) {
--		printk(KERN_ERR PREFIX "Reading power state\n");
-+		printk(KERN_ERR PREFIX "Setting initial power state\n");
- 		goto end;
- 	}
- 
--	device->flags.force_power_state = 1;
--	acpi_bus_set_power(device->handle, state);
--	device->flags.force_power_state = 0;
--
- 	cdev = thermal_cooling_device_register("Fan", device,
- 						&fan_cooling_ops);
- 	if (IS_ERR(cdev)) {
-@@ -200,22 +195,14 @@ static int acpi_fan_suspend(struct acpi_
- 
- static int acpi_fan_resume(struct acpi_device *device)
- {
--	int result = 0;
--	int power_state = 0;
-+	int result;
- 
- 	if (!device)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_power(device->handle, &power_state);
--	if (result) {
--		printk(KERN_ERR PREFIX
--				  "Error reading fan power state\n");
--		return result;
--	}
--
--	device->flags.force_power_state = 1;
--	acpi_bus_set_power(device->handle, power_state);
--	device->flags.force_power_state = 0;
-+	result = acpi_bus_update_power(device->handle, NULL);
-+	if (result)
-+		printk(KERN_ERR PREFIX "Error updating fan power state\n");
- 
- 	return result;
- }
-Index: linux-2.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -149,8 +149,7 @@ struct acpi_device_flags {
- 	u32 power_manageable:1;
- 	u32 performance_manageable:1;
- 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
--	u32 force_power_state:1;
--	u32 reserved:22;
-+	u32 reserved:23;
- };
- 
- /* File System */
-Index: linux-2.6/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/thermal.c
-+++ linux-2.6/drivers/acpi/thermal.c
-@@ -1059,8 +1059,9 @@ static int acpi_thermal_resume(struct ac
- 			break;
- 		tz->trips.active[i].flags.enabled = 1;
- 		for (j = 0; j < tz->trips.active[i].devices.count; j++) {
--			result = acpi_bus_get_power(tz->trips.active[i].devices.
--			    handles[j], &power_state);
-+			result = acpi_bus_update_power(
-+					tz->trips.active[i].devices.handles[j],
-+					&power_state);
- 			if (result || (power_state != ACPI_STATE_D0)) {
- 				tz->trips.active[i].flags.enabled = 0;
- 				break;
 Index: linux-2.6/drivers/acpi/bus.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/bus.c
 +++ linux-2.6/drivers/acpi/bus.c
-@@ -266,7 +266,7 @@ static int __acpi_bus_set_power(struct a
+@@ -255,44 +255,17 @@ int acpi_bus_get_power(acpi_handle handl
+ EXPORT_SYMBOL(acpi_bus_get_power);
+ 
+ 
+-int acpi_bus_set_power(acpi_handle handle, int state)
++static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+-	struct acpi_device *device = NULL;
+ 	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
+ 
+-
+-	result = acpi_bus_get_device(handle, &device);
+-	if (result)
+-		return result;
+-
+-	if ((state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
++	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
+ 		return -EINVAL;
  
  	/* Make sure this is a valid target state */
  
--	if ((state == device->power.state) && !device->flags.force_power_state) {
-+	if (state == device->power.state) {
+-	if (!device->flags.power_manageable) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device `[%s]' is not power manageable\n",
+-				kobject_name(&device->dev.kobj)));
+-		return -ENODEV;
+-	}
+-	/*
+-	 * Get device's current power state
+-	 */
+-	if (!acpi_power_nocheck) {
+-		/*
+-		 * Maybe the incorrect power state is returned on the bogus
+-		 * bios, which is different with the real power state.
+-		 * For example: the bios returns D0 state and the real power
+-		 * state is D3. OS expects to set the device to D0 state. In
+-		 * such case if OS uses the power state returned by the BIOS,
+-		 * the device can't be transisted to the correct power state.
+-		 * So if the acpi_power_nocheck is set, it is unnecessary to
+-		 * get the power state by calling acpi_bus_get_power.
+-		 */
+-		acpi_bus_get_power(device->handle, &device->power.state);
+-	}
+ 	if ((state == device->power.state) && !device->flags.force_power_state) {
  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
  				  state));
- 		return 0;
+@@ -362,6 +335,42 @@ int acpi_bus_set_power(acpi_handle handl
+ 	return result;
+ }
+ 
++
++int acpi_bus_set_power(acpi_handle handle, int state)
++{
++	struct acpi_device *device;
++	int result;
++
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return result;
++
++	if (!device->flags.power_manageable) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				"Device [%s] is not power manageable\n",
++				dev_name(&device->dev)));
++		return -ENODEV;
++	}
++
++	/*
++	 * Get device's current power state
++	 */
++	if (!acpi_power_nocheck) {
++		/*
++		 * Maybe the incorrect power state is returned on the bogus
++		 * bios, which is different with the real power state.
++		 * For example: the bios returns D0 state and the real power
++		 * state is D3. OS expects to set the device to D0 state. In
++		 * such case if OS uses the power state returned by the BIOS,
++		 * the device can't be transisted to the correct power state.
++		 * So if the acpi_power_nocheck is set, it is unnecessary to
++		 * get the power state by calling acpi_bus_get_power.
++		 */
++		__acpi_bus_get_power(device, &device->power.state);
++	}
++
++	return __acpi_bus_set_power(device, state);
++}
+ EXPORT_SYMBOL(acpi_bus_set_power);
+ 
+ 
+@@ -389,6 +398,29 @@ int acpi_bus_init_power(struct acpi_devi
+ }
+ 
+ 
++int acpi_bus_update_power(acpi_handle handle, int *state_p)
++{
++	struct acpi_device *device;
++	int state;
++	int result;
++
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return result;
++
++	result = __acpi_bus_get_power(device, &state);
++	if (result)
++		return result;
++
++	result = __acpi_bus_set_power(device, state);
++	if (!result && state_p)
++		*state_p = state;
++
++	return result;
++}
++EXPORT_SYMBOL_GPL(acpi_bus_update_power);
++
++
+ bool acpi_bus_power_manageable(acpi_handle handle)
+ {
+ 	struct acpi_device *device;
+Index: linux-2.6/include/acpi/acpi_bus.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpi_bus.h
++++ linux-2.6/include/acpi/acpi_bus.h
+@@ -330,6 +330,7 @@ acpi_status acpi_bus_get_status_handle(a
+ int acpi_bus_get_status(struct acpi_device *device);
+ int acpi_bus_get_power(acpi_handle handle, int *state);
+ int acpi_bus_set_power(acpi_handle handle, int state);
++int acpi_bus_update_power(acpi_handle handle, int *state_p);
+ bool acpi_bus_power_manageable(acpi_handle handle);
+ bool acpi_bus_can_wakeup(acpi_handle handle);
+ #ifdef CONFIG_ACPI_PROC_EVENT
