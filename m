@@ -1,70 +1,127 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 9/13] ACPI / PM: Register acpi_power_driver early
-Date: Thu, 25 Nov 2010 00:10:02 +0100
-Message-ID: <201011250010.02778.rjw@sisk.pl>
+Subject: [PATCH 6/13] ACPI / PM: Introduce __acpi_bus_get_power()
+Date: Thu, 25 Nov 2010 00:07:56 +0100
+Message-ID: <201011250007.56895.rjw@sisk.pl>
 References: <201011250001.11297.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52751 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932163Ab0KXXRQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Nov 2010 18:17:16 -0500
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 In-Reply-To: <201011250001.11297.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The ACPI device driver used for handling power resources,
-acpi_power_driver, creates a struct acpi_power_resource object for
-each ACPI device representing a power resource.  These objects are
-then used when setting and reading the power states of devices using
-the corresponding power resources.  Unfortunately, acpi_power_driver
-is registered after acpi_scan_init() that may add devices using the
-power resources before acpi_power_driver has a chance to create
-struct acpi_power_resource objects for them (specifically, the power
-resources may be referred to during the scanning process through
-acpi_bus_get_power() before they have been initialized).
-
-As the first step towards fixing this issue, move the registration
-of acpi_power_driver into acpi_scan_init() so that power resource
-devices can be initialized by it as soon as they have been found in
-the namespace.
+It sometimes is necessary to get the power state of an ACPI device
+without updating its device->power.state field, for example to
+avoid inconsistencies between device->power.state and the reference
+counters of the device's power resources.  For this purpose introduce
+__acpi_bus_get_power() that will return the given device's power
+state via a pointer (instead of modifying device->power.state)
+and make acpi_bus_get_power() use it.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/bus.c  |    1 -
- drivers/acpi/scan.c |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/bus.c |   48 +++++++++++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 19 deletions(-)
 
 Index: linux-2.6/drivers/acpi/bus.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/bus.c
 +++ linux-2.6/drivers/acpi/bus.c
-@@ -1099,7 +1099,6 @@ static int __init acpi_init(void)
+@@ -196,34 +196,24 @@ EXPORT_SYMBOL(acpi_bus_get_private_data)
+                                  Power Management
+    -------------------------------------------------------------------------- */
  
- 	acpi_scan_init();
- 	acpi_ec_init();
--	acpi_power_init();
- 	acpi_debugfs_init();
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -1547,6 +1547,8 @@ int __init acpi_scan_init(void)
- 		printk(KERN_ERR PREFIX "Could not register bus type\n");
+-int acpi_bus_get_power(acpi_handle handle, int *state)
++static int __acpi_bus_get_power(struct acpi_device *device, int *state)
+ {
+ 	int result = 0;
+ 	acpi_status status = 0;
+-	struct acpi_device *device = NULL;
+ 	unsigned long long psc = 0;
+ 
+-
+-	result = acpi_bus_get_device(handle, &device);
+-	if (result)
+-		return result;
++	if (!device || !state)
++		return -EINVAL;
+ 
+ 	*state = ACPI_STATE_UNKNOWN;
+ 
+-	if (!device->flags.power_manageable) {
+-		/* TBD: Non-recursive algorithm for walking up hierarchy */
+-		if (device->parent)
+-			*state = device->parent->power.state;
+-		else
+-			*state = ACPI_STATE_D0;
+-	} else {
++	if (device->flags.power_manageable) {
+ 		/*
+ 		 * Get the device's power state either directly (via _PSC) or
+ 		 * indirectly (via power resources).
+ 		 */
+ 		if (device->power.flags.power_resources) {
+-			result = acpi_power_get_inferred_state(device,
+-							&device->power.state);
++			result = acpi_power_get_inferred_state(device, state);
+ 			if (result)
+ 				return result;
+ 		} else if (device->power.flags.explicit_get) {
+@@ -231,20 +221,40 @@ int acpi_bus_get_power(acpi_handle handl
+ 						       NULL, &psc);
+ 			if (ACPI_FAILURE(status))
+ 				return -ENODEV;
+-			device->power.state = (int)psc;
++			*state = (int)psc;
+ 		}
+-
+-		*state = device->power.state;
++	} else {
++		/* TBD: Non-recursive algorithm for walking up hierarchy. */
++		*state = device->parent ?
++			device->parent->power.state : ACPI_STATE_D0;
  	}
  
-+	acpi_power_init();
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] power state is D%d\n",
+-			  device->pnp.bus_id, device->power.state));
++			  device->pnp.bus_id, *state));
+ 
+ 	return 0;
+ }
+ 
 +
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
-
++int acpi_bus_get_power(acpi_handle handle, int *state)
++{
++	struct acpi_device *device;
++	int result;
++
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return result;
++
++	result = __acpi_bus_get_power(device, state);
++	if (result)
++		return result;
++
++	device->power.state = *state;
++	return 0;
++}
+ EXPORT_SYMBOL(acpi_bus_get_power);
+ 
++
+ int acpi_bus_set_power(acpi_handle handle, int state)
+ {
+ 	int result = 0;
