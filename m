@@ -1,347 +1,525 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [RFC][PATCH 2/3] ACPI, APEI, Add APEI generic error status print support
-Date: Wed, 24 Nov 2010 09:16:53 +0800
-Message-ID: <1290561414-13313-3-git-send-email-ying.huang@intel.com>
-References: <1290561414-13313-1-git-send-email-ying.huang@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH v2] tools: create power/x86/x86_energy_perf_policy
+Date: Wed, 24 Nov 2010 00:31:23 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011240028470.20657@x980>
+References: <alpine.LFD.2.00.1006161659140.24913@localhost.localdomain>
+ <alpine.LFD.2.00.1009281143070.14962@localhost.localdomain>
+ <alpine.LFD.2.00.1010230035360.29399@localhost.localdomain>
+ <alpine.LFD.2.00.1011151103280.2939@x980>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27535 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756240Ab0KXBRa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Nov 2010 20:17:30 -0500
-In-Reply-To: <1290561414-13313-1-git-send-email-ying.huang@intel.com>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:53040 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717Ab0KXFbc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Nov 2010 00:31:32 -0500
+In-reply-to: <alpine.LFD.2.00.1011151103280.2939@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
+To: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-printk is one of the methods to report hardware errors to user space.
-Hardware error information reported by firmware to Linux kernel is in
-the format of APEI generic error status (struct
-acpi_hes_generic_status).  This patch adds print support for the
-format, so that the corresponding hardware error information can be
-reported to user space via printk.
+From: Len Brown <len.brown@intel.com>
 
-PCIe AER information print is not implemented yet.  Will refactor the
-original PCIe AER information printing code to avoid code duplicating.
+MSR_IA32_ENERGY_PERF_BIAS first became available on Westmere Xeon.
+It is implemented in all Sandy Bridge processors -- mobile, desktop and server.
+It is expected to become increasingly important in subsequent generations.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
+x86_energy_perf_policy is a user-space utility to set this
+hardware energy vs performance policy hint in the processor.
+Most systems would benefit from "x86_energy_perf_policy normal"
+at system startup, as the hardware default is maximum performance
+at the expense of energy efficiency.
+
+Linux-2.6.36 added "epb" to /proc/cpuinfo to indicate
+if an x86 processor supports MSR_IA32_ENERGY_PERF_BIAS,
+though the kernel does not actually program the MSR.
+
+In March, Venkatesh Pallipadi proposed a small driver
+that programmed MSR_IA32_ENERGY_PERF_BIAS, based on
+the cpufreq governor in use.  It also offered
+a boot-time cmdline option to override.
+http://lkml.org/lkml/2010/3/4/457
+But hiding the hardware policy behind the
+governor choice was deemed "kinda icky".
+
+So in June, I proposed a generic user/kernel API to
+consolidate the power/performance policy trade-off.
+"RFC: /sys/power/policy_preference"
+http://lkml.org/lkml/2010/6/16/399
+That is my preference for implementing this capability,
+but I received no support on the list.
+
+So in September, I sent x86_energy_perf_policy.c to LKML,
+a user-space utility that scribbles directly to the MSR.
+http://lkml.org/lkml/2010/9/28/246
+
+Here is the same utility re-sent, this time proposed
+to reside in the kernel tools directory.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/apei/apei-internal.h |    2 
- drivers/acpi/apei/cper.c          |  288 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 290 insertions(+)
+v2
+create man page
+minor tweaks in response to review comments
 
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -109,6 +109,8 @@ static inline u32 apei_estatus_len(struc
- 		return sizeof(*estatus) + estatus->data_length;
- }
- 
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
- #endif
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -30,6 +30,9 @@
- #include <linux/cper.h>
- #include <linux/acpi.h>
- 
-+#define pr_pfx(pfx, fmt, ...)			\
-+	printk("%s" fmt, pfx, ##__VA_ARGS__)
+tools/power/x86/x86_energy_perf_policy/Makefile    |    8 +
+ .../x86_energy_perf_policy.8                       |  104 +++++++
+ .../x86_energy_perf_policy.c                       |  325 ++++++++++++++++++++
+
+diff --git a/tools/power/x86/x86_energy_perf_policy/Makefile b/tools/power/x86/x86_energy_perf_policy/Makefile
+new file mode 100644
+index 0000000..f458237
+--- /dev/null
++++ b/tools/power/x86/x86_energy_perf_policy/Makefile
+@@ -0,0 +1,8 @@
++x86_energy_perf_policy : x86_energy_perf_policy.c
 +
- /*
-  * CPER record ID need to be unique even after reboot, because record
-  * ID is used as index for ERST storage, while CPER records from
-@@ -46,6 +49,291 @@ u64 cper_next_record_id(void)
- }
- EXPORT_SYMBOL_GPL(cper_next_record_id);
- 
-+static const char *cper_severity_strs[] = {
-+	[CPER_SEV_RECOVERABLE]		= "recoverable",
-+	[CPER_SEV_FATAL]		=  "fatal",
-+	[CPER_SEV_CORRECTED]		= "corrected",
-+	[CPER_SEV_INFORMATIONAL]	= "info",
-+};
++clean :
++	rm -f x86_energy_perf_policy
 +
-+static void cper_print_bits(const char *pfx, unsigned int bits,
-+			    const char *strs[], unsigned int strs_size)
++install :
++	install x86_energy_perf_policy /usr/bin/
++	install x86_energy_perf_policy.8 /usr/share/man/man8/
+diff --git a/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.8 b/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.8
+new file mode 100644
+index 0000000..8eaaad6
+--- /dev/null
++++ b/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.8
+@@ -0,0 +1,104 @@
++.\"  This page Copyright (C) 2010 Len Brown <len.brown@intel.com>
++.\"  Distributed under the GPL, Copyleft 1994.
++.TH X86_ENERGY_PERF_POLICY 8
++.SH NAME
++x86_energy_perf_policy \- read or write MSR_IA32_ENERGY_PERF_BIAS
++.SH SYNOPSIS
++.ft B
++.B x86_energy_perf_policy
++.RB [ "\-c cpu" ]
++.RB [ "\-v" ]
++.RB "\-r"
++.br
++.B x86_energy_perf_policy
++.RB [ "\-c cpu" ]
++.RB [ "\-v" ]
++.RB 'performance'
++.br
++.B x86_energy_perf_policy
++.RB [ "\-c cpu" ]
++.RB [ "\-v" ]
++.RB 'normal'
++.br
++.B x86_energy_perf_policy
++.RB [ "\-c cpu" ]
++.RB [ "\-v" ]
++.RB 'powersave'
++.br
++.B x86_energy_perf_policy
++.RB [ "\-c cpu" ]
++.RB [ "\-v" ]
++.RB n
++.br
++.SH DESCRIPTION
++\fBx86_energy_perf_policy\fP
++allows software to convey
++its policy for the relative importance of performance
++versus energy savings to the processor.
++
++The processor uses this information in model-specific ways
++when it must select trade-offs between performance and
++energy efficiency.
++
++This policy hint does not supersede Processor Performance states
++(P-states) or CPU Idle power states (C-states), but allows
++software to have influence where it would otherwise be unable
++to express a preference.
++
++For example, this setting may tell the hardware how
++aggressively or conservatively to control frequency
++in the "turbo range" above the explicitly OS-controlled
++P-state frequency range.  It may also tell the hardware
++how aggressively is should enter the OS requested C-states.
++
++Support for this feature is indicated by CPUID.06H.ECX.bit3
++per the Intel Architectures Software Developer's Manual.
++
++.SS Options
++\fB-c\fP limits operation to a single CPU.
++The default is to operate on all CPUs.
++Note that MSR_IA32_ENERGY_PERF_BIAS is defined per
++logical processor, but that the initial implementations
++of the MSR were shared among all processors in each package.
++.PP
++\fB-v\fP increases verbosity.  By default
++x86_energy_perf_policy is silent.
++.PP
++\fB-r\fP is for "read-only" mode - the unchanged state
++is read and displayed.
++.PP
++.I performance
++Set a policy where performance is paramount.
++The processor will be unwilling to sacrifice any performance
++for the sake of energy saving. This is the hardware default.
++.PP
++.I normal
++Set a policy with a normal balance between performance and energy efficiency.
++The processor will tolerate minor performance compromise
++for potentially significant energy savings.
++This reasonable default for most desktops and servers.
++.PP
++.I powersave
++Set a policy where the processor can accept
++a measurable performance hit to maximize energy efficiency.
++.PP
++.I n
++Set MSR_IA32_ENERGY_PERF_BIAS to the specified number.
++The range of valid numbers is 0-15, where 0 is maximum
++performance and 15 is maximum energy efficiency.
++
++.SH NOTES
++.B "x86_energy_perf_policy "
++runs only as root.
++.SH FILES
++.ta
++.nf
++/dev/cpu/*/msr
++.fi
++
++.SH "SEE ALSO"
++msr(4)
++.PP
++.SH AUTHORS
++.nf
++Written by Len Brown <len.brown@intel.com>
+diff --git a/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.c b/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.c
+new file mode 100644
+index 0000000..b539923
+--- /dev/null
++++ b/tools/power/x86/x86_energy_perf_policy/x86_energy_perf_policy.c
+@@ -0,0 +1,325 @@
++/*
++ * x86_energy_perf_policy -- set the energy versus performance
++ * policy preference bias on recent X86 processors.
++ */
++/*
++ * Copyright (c) 2010, Intel Corporation.
++ * Len Brown <len.brown@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/resource.h>
++#include <fcntl.h>
++#include <signal.h>
++#include <sys/time.h>
++#include <stdlib.h>
++#include <string.h>
++
++unsigned int verbose;		/* set with -v */
++unsigned int read_only;		/* set with -r */
++char *progname;
++unsigned long long new_bias;
++int cpu = -1;
++
++/*
++ * Usage:
++ *
++ * -c cpu: limit action to a single CPU (default is all CPUs)
++ * -v: verbose output (can invoke more than once)
++ * -r: read-only, don't change any settings
++ *
++ *  performance
++ *	Performance is paramount.
++ *	Unwilling to sacrafice any performance
++ *	for the sake of energy saving. (hardware default)
++ *
++ *  normal
++ *	Can tolerate minor performance compromise
++ *	for potentially significant energy savings.
++ *	(reasonable default for most desktops and servers)
++ *
++ *  powersave
++ *	Can tolerate significant performance hit
++ *	to maximize energy savings.
++ *
++ * n
++ *	a numerical value to write to the underlying MSR.
++ */
++void usage(void)
 +{
-+	int i, len = 0;
-+	const char *str;
++	printf("%s: [-c cpu] [-v] "
++		"(-r | 'performance' | 'normal' | 'powersave' | n)\n",
++		progname);
++	exit(1);
++}
 +
-+	for (i = 0; i < strs_size; i++) {
-+		if (!(bits & (1U << i)))
-+			continue;
-+		str = strs[i];
-+		if (len && len + strlen(str) + 2 > 80) {
-+			printk("\n");
-+			len = 0;
++#define MSR_IA32_ENERGY_PERF_BIAS	0x000001b0
++
++#define	BIAS_PERFORMANCE		0
++#define BIAS_BALANCE			6
++#define	BIAS_POWERSAVE			15
++
++void cmdline(int argc, char **argv)
++{
++	int opt;
++
++	progname = argv[0];
++
++	while ((opt = getopt(argc, argv, "+rvc:")) != -1) {
++		switch (opt) {
++		case 'c':
++			cpu = atoi(optarg);
++			break;
++		case 'r':
++			read_only = 1;
++			break;
++		case 'v':
++			verbose++;
++			break;
++		default:
++			usage();
 +		}
-+		if (!len)
-+			len = pr_pfx(pfx, "%s", str);
++	}
++	/* if -r, then should be no additional optind */
++	if (read_only && (argc > optind))
++		usage();
++
++	/*
++	 * if no -r , then must be one additional optind
++	 */
++	if (!read_only) {
++
++		if (argc != optind + 1) {
++			printf("must supply -r or policy param\n");
++			usage();
++			}
++
++		if (!strcmp("performance", argv[optind])) {
++			new_bias = BIAS_PERFORMANCE;
++		} else if (!strcmp("normal", argv[optind])) {
++			new_bias = BIAS_BALANCE;
++		} else if (!strcmp("powersave", argv[optind])) {
++			new_bias = BIAS_POWERSAVE;
++		} else {
++			char *endptr;
++
++			new_bias = strtoull(argv[optind], &endptr, 0);
++			if (endptr == argv[optind] ||
++				new_bias > BIAS_POWERSAVE) {
++					fprintf(stderr, "invalid value: %s\n",
++						argv[optind]);
++				usage();
++			}
++		}
++	}
++}
++
++/*
++ * validate_cpuid()
++ * returns on success, quietly exits on failure (make verbose with -v)
++ */
++void validate_cpuid(void)
++{
++	unsigned int eax, ebx, ecx, edx, max_level;
++	char brand[16];
++	unsigned int fms, family, model, stepping;
++
++	eax = ebx = ecx = edx = 0;
++
++	asm("cpuid" : "=a" (max_level), "=b" (ebx), "=c" (ecx),
++		"=d" (edx) : "a" (0));
++
++	if (ebx != 0x756e6547 || edx != 0x49656e69 || ecx != 0x6c65746e) {
++		if (verbose)
++			fprintf(stderr, "%.4s%.4s%.4s != GenuineIntel",
++				(char *)&ebx, (char *)&edx, (char *)&ecx);
++		exit(1);
++	}
++
++	asm("cpuid" : "=a" (fms), "=c" (ecx), "=d" (edx) : "a" (1) : "ebx");
++	family = (fms >> 8) & 0xf;
++	model = (fms >> 4) & 0xf;
++	stepping = fms & 0xf;
++	if (family == 6 || family == 0xf)
++		model += ((fms >> 16) & 0xf) << 4;
++
++	if (verbose > 1)
++		printf("CPUID %s %d levels family:model:stepping "
++			"0x%x:%x:%x (%d:%d:%d)\n", brand, max_level,
++			family, model, stepping, family, model, stepping);
++
++	if (!(edx & (1 << 5))) {
++		if (verbose)
++			printf("CPUID: no MSR\n");
++		exit(1);
++	}
++
++	/*
++	 * Support for MSR_IA32_ENERGY_PERF_BIAS
++	 * is indicated by CPUID.06H.ECX.bit3
++	 */
++	asm("cpuid" : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx) : "a" (6));
++	if (verbose)
++		printf("CPUID.06H.ECX: 0x%x\n", ecx);
++	if (!(ecx & (1 << 3))) {
++		if (verbose)
++			printf("CPUID: No MSR_IA32_ENERGY_PERF_BIAS\n");
++		exit(1);
++	}
++	return;	/* success */
++}
++
++unsigned long long get_msr(int cpu, int offset)
++{
++	unsigned long long msr;
++	char msr_path[32];
++	int retval;
++	int fd;
++
++	sprintf(msr_path, "/dev/cpu/%d/msr", cpu);
++	fd = open(msr_path, O_RDONLY);
++	if (fd < 0) {
++		printf("Try \"# modprobe msr\"\n");
++		perror(msr_path);
++		exit(1);
++	}
++
++	retval = pread(fd, &msr, sizeof msr, offset);
++
++	if (retval != sizeof msr) {
++		printf("pread cpu%d 0x%x = %d\n", cpu, offset, retval);
++		exit(-2);
++	}
++	close(fd);
++	return msr;
++}
++
++unsigned long long  put_msr(int cpu, unsigned long long new_msr, int offset)
++{
++	unsigned long long old_msr;
++	char msr_path[32];
++	int retval;
++	int fd;
++
++	sprintf(msr_path, "/dev/cpu/%d/msr", cpu);
++	fd = open(msr_path, O_RDWR);
++	if (fd < 0) {
++		perror(msr_path);
++		exit(1);
++	}
++
++	retval = pread(fd, &old_msr, sizeof old_msr, offset);
++	if (retval != sizeof old_msr) {
++		perror("pwrite");
++		printf("pread cpu%d 0x%x = %d\n", cpu, offset, retval);
++		exit(-2);
++	}
++
++	retval = pwrite(fd, &new_msr, sizeof new_msr, offset);
++	if (retval != sizeof new_msr) {
++		perror("pwrite");
++		printf("pwrite cpu%d 0x%x = %d\n", cpu, offset, retval);
++		exit(-2);
++	}
++
++	close(fd);
++
++	return old_msr;
++}
++
++void print_msr(int cpu)
++{
++	printf("cpu%d: 0x%016llx\n",
++		cpu, get_msr(cpu, MSR_IA32_ENERGY_PERF_BIAS));
++}
++
++void update_msr(int cpu)
++{
++	unsigned long long previous_msr;
++
++	previous_msr = put_msr(cpu, new_bias, MSR_IA32_ENERGY_PERF_BIAS);
++
++	if (verbose)
++		printf("cpu%d  msr0x%x 0x%016llx -> 0x%016llx\n",
++			cpu, MSR_IA32_ENERGY_PERF_BIAS, previous_msr, new_bias);
++
++	return;
++}
++
++char *proc_stat = "/proc/stat";
++/*
++ * run func() on every cpu in /dev/cpu
++ */
++void for_every_cpu(void (func)(int))
++{
++	FILE *fp;
++	int retval;
++
++	fp = fopen(proc_stat, "r");
++	if (fp == NULL) {
++		perror(proc_stat);
++		exit(1);
++	}
++
++	retval = fscanf(fp, "cpu %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d\n");
++	if (retval != 0) {
++		perror("/proc/stat format");
++		exit(1);
++	}
++
++	while (1) {
++		int cpu;
++
++		retval = fscanf(fp,
++			"cpu%u %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d\n",
++			&cpu);
++		if (retval != 1)
++			return;
++
++		func(cpu);
++	}
++	fclose(fp);
++}
++
++int main(int argc, char **argv)
++{
++	cmdline(argc, argv);
++
++	if (verbose > 1)
++		printf("x86_energy_perf_policy Nov 24, 2010"
++				" - Len Brown <lenb@kernel.org>\n");
++	if (verbose > 1 && !read_only)
++		printf("new_bias %lld\n", new_bias);
++
++	validate_cpuid();
++
++	if (cpu != -1) {
++		if (read_only)
++			print_msr(cpu);
 +		else
-+			len += printk(", %s", str);
++			update_msr(cpu);
++	} else {
++		if (read_only)
++			for_every_cpu(print_msr);
++		else
++			for_every_cpu(update_msr);
 +	}
-+	if (len)
-+		printk("\n");
++
++	return 0;
 +}
-+
-+static const char *cper_proc_type_strs[] = {
-+	"IA32/X64",
-+	"IA64",
-+};
-+
-+static const char *cper_proc_isa_strs[] = {
-+	"IA32",
-+	"IA64",
-+	"X64",
-+};
-+
-+static const char *cper_proc_error_type_strs[] = {
-+	"cache error",
-+	"TLB error",
-+	"bus error",
-+	"micro-architectural error",
-+};
-+
-+static const char *cper_proc_op_strs[] = {
-+	"Unknown or generic",
-+	"data read",
-+	"data write",
-+	"instruction execution",
-+};
-+
-+static const char *cper_proc_flag_strs[] = {
-+	"restartable",
-+	"precise IP",
-+	"overflow",
-+	"corrected",
-+};
-+
-+static void cper_print_proc_generic(const char *pfx,
-+				    const struct cper_sec_proc_generic *proc)
-+{
-+	if (proc->validation_bits & CPER_PROC_VALID_TYPE)
-+		pr_pfx(pfx, "processor_type: %d, %s\n", proc->proc_type,
-+			proc->proc_type < ARRAY_SIZE(cper_proc_type_strs) ?
-+			cper_proc_type_strs[proc->proc_type] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ISA)
-+		pr_pfx(pfx, "processor_isa: %d, %s\n", proc->proc_isa,
-+			proc->proc_isa < ARRAY_SIZE(cper_proc_isa_strs) ?
-+			cper_proc_isa_strs[proc->proc_isa] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ERROR_TYPE) {
-+		pr_pfx(pfx, "error_type: 0x%02x\n", proc->proc_error_type);
-+		cper_print_bits(pfx, proc->proc_error_type,
-+				cper_proc_error_type_strs,
-+				ARRAY_SIZE(cper_proc_error_type_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_OPERATION)
-+		pr_pfx(pfx, "operation: %d, %s\n", proc->operation,
-+		       proc->operation < ARRAY_SIZE(cper_proc_op_strs) ?
-+		       cper_proc_op_strs[proc->operation] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_FLAGS) {
-+		pr_pfx(pfx, "flags: 0x%02x\n", proc->flags);
-+		cper_print_bits(pfx, proc->flags, cper_proc_flag_strs,
-+				ARRAY_SIZE(cper_proc_flag_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_LEVEL)
-+		pr_pfx(pfx, "level: %d\n", proc->level);
-+	if (proc->validation_bits & CPER_PROC_VALID_VERSION)
-+		pr_pfx(pfx, "version_info: 0x%016llx\n", proc->cpu_version);
-+	if (proc->validation_bits & CPER_PROC_VALID_ID)
-+		pr_pfx(pfx, "processor_id: 0x%016llx\n", proc->proc_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_TARGET_ADDRESS)
-+		pr_pfx(pfx, "target_address: 0x%016llx\n",
-+		       proc->target_addr);
-+	if (proc->validation_bits & CPER_PROC_VALID_REQUESTOR_ID)
-+		pr_pfx(pfx, "requestor_id: 0x%016llx\n", proc->requestor_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_RESPONDER_ID)
-+		pr_pfx(pfx, "responder_id: 0x%016llx\n", proc->responder_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_IP)
-+		pr_pfx(pfx, "IP: 0x%016llx\n", proc->ip);
-+}
-+
-+static const char *cper_mem_err_type_strs[] = {
-+	"Unknown",
-+	"No error",
-+	"Single-bit ECC",
-+	"Multi-bit ECC",
-+	"Single-symbol chipkill ECC",
-+	"Multi-symbol chipkill ECC",
-+	"Master abort",
-+	"Target abort",
-+	"Parity error",
-+	"Watchdog timeout",
-+	"Invalid address",
-+	"Mirror Broken",
-+	"Memory sparing",
-+	"Scrub corrected error",
-+	"Scrub uncorrected error",
-+};
-+
-+static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-+{
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-+		pr_pfx(pfx, "error_status: 0x%016llx\n", mem->error_status);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
-+		pr_pfx(pfx, "physical_address: 0x%016llx\n",
-+		       mem->physical_addr);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK)
-+		pr_pfx(pfx, "physical_address_mask: 0x%016llx\n",
-+		       mem->physical_addr_mask);
-+	if (mem->validation_bits & CPER_MEM_VALID_NODE)
-+		pr_pfx(pfx, "node: %d\n", mem->node);
-+	if (mem->validation_bits & CPER_MEM_VALID_CARD)
-+		pr_pfx(pfx, "card: %d\n", mem->card);
-+	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
-+		pr_pfx(pfx, "module: %d\n", mem->module);
-+	if (mem->validation_bits & CPER_MEM_VALID_BANK)
-+		pr_pfx(pfx, "bank: %d\n", mem->bank);
-+	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
-+		pr_pfx(pfx, "device: %d\n", mem->device);
-+	if (mem->validation_bits & CPER_MEM_VALID_ROW)
-+		pr_pfx(pfx, "row: %d\n", mem->row);
-+	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
-+		pr_pfx(pfx, "column: %d\n", mem->column);
-+	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
-+		pr_pfx(pfx, "bit_position: %d\n", mem->bit_pos);
-+	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
-+		pr_pfx(pfx, "requestor_id: 0x%016llx\n", mem->requestor_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
-+		pr_pfx(pfx, "responder_id: 0x%016llx\n", mem->responder_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
-+		pr_pfx(pfx, "target_id: 0x%016llx\n", mem->target_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
-+		u8 etype = mem->error_type;
-+		pr_pfx(pfx, "error_type: %d, %s\n", etype,
-+		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
-+		       cper_mem_err_type_strs[etype] : "unknown");
-+	}
-+}
-+
-+static const char *cper_pcie_port_type_strs[] = {
-+	"PCIe end point",
-+	"legacy PCI end point",
-+	"unknown",
-+	"unknown",
-+	"root port",
-+	"upstream switch port",
-+	"downstream switch port",
-+	"PCIe to PCI/PCI-X bridge",
-+	"PCI/PCI-X to PCIe bridge",
-+	"root complex integrated endpoint device",
-+	"root complex event collector",
-+};
-+
-+static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie)
-+{
-+	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
-+		pr_pfx(pfx, "port_type: %d, %s\n", pcie->port_type,
-+		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-+		       cper_pcie_port_type_strs[pcie->port_type] : "unknown");
-+	if (pcie->validation_bits & CPER_PCIE_VALID_VERSION)
-+		pr_pfx(pfx, "version: %d.%d\n",
-+		       pcie->version[CPER_PCIE_VERSION_MAJOR],
-+		       pcie->version[CPER_PCIE_VERSION_MINOR]);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_COMMAND_STATUS)
-+		pr_pfx(pfx, "command: 0x%04x, status: 0x%04x\n",
-+		       pcie->command_status[CPER_PCIE_COMMAND_REG],
-+		       pcie->command_status[CPER_PCIE_STATUS_REG]);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_DEVICE_ID) {
-+		const __u8 *p;
-+		pr_pfx(pfx, "device_id: %04x:%02x:%02x.%x\n",
-+		       pcie->device_id[CPER_PCIE_DEVID_SEGMENT],
-+		       pcie->device_id[CPER_PCIE_DEVID_BUS_PRIMARY],
-+		       pcie->device_id[CPER_PCIE_DEVID_DEV],
-+		       pcie->device_id[CPER_PCIE_DEVID_FUNC]);
-+		pr_pfx(pfx, "slot: %d\n",
-+		       pcie->device_id[CPER_PCIE_DEVID_SLOT]);
-+		pr_pfx(pfx, "secondary_bus: 0x%02x\n",
-+		       pcie->device_id[CPER_PCIE_DEVID_BUS_SECONDARY]);
-+		pr_pfx(pfx, "vendor_id: 0x%04x, device_id: 0x%04x\n",
-+		       *(__u16 *)&pcie->device_id[CPER_PCIE_DEVID_VENDOR_ID],
-+		       *(__u16 *)&pcie->device_id[CPER_PCIE_DEVID_DEVICE_ID]);
-+		p = pcie->device_id + CPER_PCIE_DEVID_CLASS_CODE;
-+		pr_pfx(pfx, "class_code: %02x%02x%02x\n", p[0], p[1], p[2]);
-+	}
-+	if (pcie->validation_bits & CPER_PCIE_VALID_SERIAL_NUMBER)
-+		pr_pfx(pfx, "serial number: 0x%04x, 0x%04x\n",
-+		       pcie->serial_number[CPER_PCIE_SERIAL_NUMBER_LOW],
-+		       pcie->serial_number[CPER_PCIE_SERIAL_NUMBER_HIGH]);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_BRIDGE_CONTROL_STATUS)
-+		pr_pfx(pfx,
-+	"bridge: secondary_status: 0x%04x, control: 0x%04x\n",
-+	pcie->bridge_control_status[CPER_PCIE_BRIDGE_SECONDARY_STATUS_REG],
-+	pcie->bridge_control_status[CPER_PCIE_BRIDGE_CONTROL_REG]);
-+}
-+
-+static const char *apei_estatus_section_flag_strs[] = {
-+	"primary",
-+	"containment_warning",
-+	"reset",
-+	"threshold_exceeded",
-+	"resource_not_accessible",
-+	"latent_error",
-+};
-+
-+static void apei_estatus_print_section(
-+	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
-+{
-+	uuid_le *sec_type = (uuid_le *)gdata->section_type;
-+	__u16 severity;
-+
-+	severity = gdata->error_severity;
-+	pr_pfx(pfx, "section: %d, severity: %d, %s\n", sec_no, severity,
-+	       severity < ARRAY_SIZE(cper_severity_strs) ?
-+	       cper_severity_strs[severity] : "unknown");
-+	pr_pfx(pfx, "flags: 0x%02x\n", gdata->flags);
-+	cper_print_bits(pfx, gdata->flags, apei_estatus_section_flag_strs,
-+			ARRAY_SIZE(apei_estatus_section_flag_strs));
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+		pr_pfx(pfx, "fru_id: %pUl\n", (uuid_le *)gdata->fru_id);
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+		pr_pfx(pfx, "fru_text: %20s\n", gdata->fru_text);
-+
-+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_GENERIC)) {
-+		struct cper_sec_proc_generic *proc_err = (void *)(gdata + 1);
-+		pr_pfx(pfx, "section_type: general processor error\n");
-+		cper_print_proc_generic(pfx, proc_err);
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-+		pr_pfx(pfx, "section_type: memory error\n");
-+		cper_print_mem(pfx, mem_err);
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
-+		struct cper_sec_pcie *pcie = (void *)(gdata + 1);
-+		pr_pfx(pfx, "section_type: PCIe error\n");
-+		cper_print_pcie(pfx, pcie);
-+	} else
-+		pr_pfx(pfx, "Unknown section type: %pUl\n", sec_type);
-+}
-+
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus)
-+{
-+	struct acpi_hest_generic_data *gdata;
-+	unsigned int data_len, gedata_len;
-+	int sec_no = 0;
-+	__u16 severity;
-+
-+	severity = estatus->error_severity;
-+	pr_pfx(pfx, "severity: %d, %s\n", severity,
-+	       severity < ARRAY_SIZE(cper_severity_strs) ?
-+	       cper_severity_strs[severity] : "unknown");
-+	data_len = estatus->data_length;
-+	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-+	while (data_len > sizeof(*gdata)) {
-+		gedata_len = gdata->error_data_length;
-+		apei_estatus_print_section(pfx, gdata, sec_no);
-+		data_len -= gedata_len + sizeof(*gdata);
-+		sec_no++;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(apei_estatus_print);
-+
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus)
- {
- 	if (estatus->data_length &&
+
