@@ -1,8 +1,8 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/13] ACPI / PM: Do not refcount power resources
-	that can't be turned on
-Date: Thu, 25 Nov 2010 00:03:32 +0100
-Message-ID: <201011250003.32330.rjw@sisk.pl>
+Subject: [PATCH 5/13] ACPI / PM: Introduce function for
+	refcounting device power resources
+Date: Thu, 25 Nov 2010 00:06:55 +0100
+Message-ID: <201011250006.55559.rjw@sisk.pl>
 References: <201011250001.11297.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,30 +24,47 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-If turning on a power resource fails, do not reference count it,
-since it cannot be in use in that case.
+Introduce function acpi_power_on_resources() that reference counts
+and possibly turns on ACPI power resources for a given device and
+a given power state of it.
+
+This function will be used for reference counting device power
+resources during initialization.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/power.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/power.c    |    8 ++++++++
+ 2 files changed, 9 insertions(+)
 
 Index: linux-2.6/drivers/acpi/power.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/power.c
 +++ linux-2.6/drivers/acpi/power.c
-@@ -213,11 +213,13 @@ static int acpi_power_on(acpi_handle han
- 				  resource->name));
- 	} else {
- 		result = __acpi_power_on(resource);
-+		if (result)
-+			resource->ref_count--;
- 	}
- 
- 	mutex_unlock(&resource->resource_lock);
- 
--	return 0;
-+	return result;
+@@ -485,6 +485,14 @@ int acpi_power_get_inferred_state(struct
+ 	return 0;
  }
  
- static int acpi_power_off_device(acpi_handle handle)
++int acpi_power_on_resources(struct acpi_device *device, int state)
++{
++	if (!device || state < ACPI_STATE_D0 || state > ACPI_STATE_D3)
++		return -EINVAL;
++
++	return acpi_power_on_list(&device->power.states[state].resources);
++}
++
+ int acpi_power_transition(struct acpi_device *device, int state)
+ {
+ 	int result;
+Index: linux-2.6/drivers/acpi/internal.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/internal.h
++++ linux-2.6/drivers/acpi/internal.h
+@@ -42,6 +42,7 @@ int acpi_power_init(void);
+ int acpi_device_sleep_wake(struct acpi_device *dev,
+                            int enable, int sleep_state, int dev_state);
+ int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
++int acpi_power_on_resources(struct acpi_device *device, int state);
+ int acpi_power_transition(struct acpi_device *device, int state);
+ extern int acpi_power_nocheck;
+ 
