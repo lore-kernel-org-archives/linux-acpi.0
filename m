@@ -1,99 +1,45 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: debugfs_create_dir return value in acer-wmi, intel_ips and ec_sys
-Date: Thu, 25 Nov 2010 00:51:06 +0100
-Message-ID: <4ceda4f7.0cedd80a.26b4.0222@mx.google.com>
+From: Mark Lord <kernel@teksavvy.com>
+Subject: Re: [PATCH 0/2] Generic hardware error reporting support
+Date: Wed, 24 Nov 2010 21:41:57 -0500
+Message-ID: <4CEDCCF5.5030308@teksavvy.com>
+References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>	 <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com>	 <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>	 <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com>	 <AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com>	 <AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com>	 <AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com>	 <AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com>	 <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com>	 <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com>	 <4CEB0037.3000303@teksavvy.com> <1290472198.2903.156.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, platform-driver-x86@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Julia Lawall <julia@diku.dk>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Matthew Garrett <mjg@redhat.com>, Axel Lin <axel.lin@gmail.com>, Thomas Renninger <trenn@suse.de>Thomas Renninger <trenn@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ironport2-out.teksavvy.com ([206.248.154.181]:26235 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754039Ab0KYCmC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Nov 2010 21:42:02 -0500
+In-Reply-To: <1290472198.2903.156.camel@yhuang-dev>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-Hi,
-
-I was checking debugfs code in platform/x86, because I want to add
-some files to eeepc-wmi. And I found something disturbing.
-
-The documentation says:
-
-> This call, if successful, will make a directory called name underneath the
-> indicated parent directory.  If parent is NULL, the directory will be
-> created in the debugfs root.  On success, the return value is a struct
-> dentry pointer which can be used to create files in the directory (and to
-> clean it up at the end).  A NULL return value indicates that something went
-> wrong.  If ERR_PTR(-ENODEV) is returned, that is an indication that the
-> kernel has been built without debugfs support and none of the functions
-> described below will work.
-
-But then, here is the code in acer-wmi:
-
-> static void remove_debugfs(void)
-> {
->       debugfs_remove(interface->debug.devices);
->       debugfs_remove(interface->debug.root);
-> }
+On 10-11-22 07:29 PM, Huang Ying wrote:
+> On Tue, 2010-11-23 at 07:43 +0800, Mark Lord wrote:
+>> On 10-11-20 08:06 PM, huang ying wrote:
+>>>
+>>> I have no objection to report hardware errors in system logs too. So
+>>> these people can get the information too. I just want to add another
+>>> tool oriented interface too. So that some other users (like cluster
+>>> administrator) can get their work done better too.
+>>
+>> So, use the standard interface for the tool:  syslog.
 >
-> static int create_debugfs(void)
-> {
->        interface->debug.root = debugfs_create_dir("acer-wmi", NULL);
->        if (!interface->debug.root) {
->                printk(ACER_ERR "Failed to create debugfs directory");
->                return -ENOMEM;
->        }
+> Although it may be possible to extract some information from syslog and
+> parse it in a fault tolerant way, we can only use that human oriented
+> interface for a tool? That sounds like hack.
 
-this code is *not* inside #ifndef CONFIG_DEBUG_FS, so debugfs_create_dir
-can return ERR_PTR(-ENODEV) right ?
+No, that sounds like the *NIX programming philosophy.
 
-Then, remove_debug() will call debugfs_remove(ERR_PTR(-ENODEV)) right ?
+You may have already noticed that most *NIX tools store
+and manage data in _text_ form.  That makes it easy to
+understand, easy to parse/process, and generally better
+in almost every respect.
 
-So, acpi-wmi seems to have an issue when debugfs is disabled, that's "ok".
+Other platforms (GNOME, MS-Windows) prefer a binary format
+that requires special tools to view/access.  Ugh.
 
-But then I took a look at intel_ips :
-
->        ips->debug_root = debugfs_create_dir("ips", NULL);
->        if (!ips->debug_root) {
->                dev_err(&ips->dev->dev,
->                        "failed to create debugfs entries: %ld\n",
->                        PTR_ERR(ips->debug_root));
->                return;
->        }
-
-Then PTR_ERR thing is strange, because ips->debug_root can only be NULL 
-here...
-But here, it's ok to only check NULL, because it's inside #ifndef 
-CONFIG_DEBUG_FS.
-
-So, two drivers checked, to weird error handling code. I did a quick grep and 
-opened
-the first result: ec_sys.c.
-
-ec_sys.c depends on CONFIG_ACPI_EC_DEBUGFS but doesn't depend on
-CONFIG_DEBUG_FS.
-
-Here, again, the code only check for != NULL while it could be ERR_PTR(-
-ENODEV):
-
->        if (ec_device_count == 0) {
->                acpi_ec_debugfs_dir = debugfs_create_dir("ec", NULL);
->                if (!acpi_ec_debugfs_dir)
->                        return -ENOMEM;
->        }
->
->        sprintf(name, "ec%u", ec_device_count);
->        dev_dir = debugfs_create_dir(name, acpi_ec_debugfs_dir);
-
-Here, acpi_ec_debugfs_dir (that can be an invalid pointer) is used as
-a parent dentry, and will be dereferenced without checks.
-
-I am missing something obvious, or are most of debugfs implementation
-broken when debugfs is disabled ?
-
-Julia, if I am right, coccinelle could help us right ? Can the tool check
-if the code is between #ifdef CONFIG_DEBUGS_FS ? That would help a lot.
-
-Thanks,
---
-Corentin Chary
-http://xf.iksaif.net
+Cheers
