@@ -1,37 +1,42 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: [PATCH 0/2] Generic hardware error reporting support
-Date: Wed, 24 Nov 2010 23:19:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1011242316390.637@x980>
+Date: Wed, 24 Nov 2010 23:27:01 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011242320000.637@x980>
 References: <1290154233-28695-1-git-send-email-ying.huang@intel.com>
  <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com>
  <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com>
  <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com>
  <AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com>
- <4CE7CF95.2040608@teksavvy.com>
+ <AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com>
+ <AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com>
+ <AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com>
+ <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com>
+ <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com>
+ <4CEB0037.3000303@teksavvy.com> <1290472198.2903.156.camel@yhuang-dev>
+ <4CEDCCF5.5030308@teksavvy.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:56951 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab0KYETq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Nov 2010 23:19:46 -0500
-In-reply-to: <4CE7CF95.2040608@teksavvy.com>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:45965 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab0KYE1S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Nov 2010 23:27:18 -0500
+In-reply-to: <4CEDCCF5.5030308@teksavvy.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mark Lord <kernel@teksavvy.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Huang Ying <ying.huang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Mauro Carvalho Chehab <mchehab@redhat.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
+> ... most *NIX tools store and manage data in _text_ form.
 
-> If you (and the code) are absolutely certain that a particular error instance
-> is totally due to the BIOS, then stick the words "BIOS ERROR" into the 
-> printk().
+If the hardware error dump is complicated there is a trade-off
+between making things human readable and putting a lot of
+comlicated parsing code into the kernel.  Maybe the kernel
+should just dump hex "text" in some cases and let a user-program
+parse the syslog?
 
-FYI, trenn added some printk prefixes for this case a while back;
+What do do if the hardware error log is very large?
+Is there a limit on how much is practical to send through syslog?
 
-#define FW_BUG          "[Firmware Bug]: "
-#define FW_WARN         "[Firmware Warn]: "
-#define FW_INFO         "[Firmware Info]: "
-
-cheers,
+thanks,
 -Len Brown, Intel Open Source Technology Center
-
