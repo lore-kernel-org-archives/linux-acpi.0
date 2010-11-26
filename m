@@ -1,59 +1,64 @@
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Subject: Input event for blocking touchpad
-Date: Fri, 26 Nov 2010 19:10:57 -0200
-Message-ID: <20101126211056.GD3819@barata.holoscopio.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] Platform / x86: Make fujitsu_laptop use acpi_bus_update_power()
+Date: Fri, 26 Nov 2010 22:55:20 +0100
+Message-ID: <201011262255.20848.rjw@sisk.pl>
+References: <201011250001.11297.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:33232 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751465Ab0KZV4L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Nov 2010 16:56:11 -0500
+In-Reply-To: <201011250001.11297.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
---q9KOos5vDmpwPx9o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Use the new function acpi_bus_update_power(), which is safer than
+acpi_bus_get_power(), for getting device power state in
+acpi_fujitsu_add().
 
-Hello,
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+---
 
-I have a notebook with an ACPI system that notifies about the pressing
-of the key for blocking touchpad. However, it does not notify it by
-itself. I was considering sending the event to userspace and let it does
-the blocking.
+Hi Len,
 
-Since other keys are also notified by this same ACPI object, it's even
-more natural that I use an input device to send this to userspace.
+This patch should go after [11/13] in the "ACPI / PM: Rework power resources
+management" series.  I hope Matthew won't mind if it goes in through your tree.
 
-The problem is: there seems to be no event to represent this. Any
-suggestions?
+Thanks,
+Rafael
 
-Best regards,
-Cascardo.
+---
+ drivers/platform/x86/fujitsu-laptop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---q9KOos5vDmpwPx9o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQIcBAEBAgAGBQJM8CJfAAoJEEWxSg7udFZInIMP+gORojV1mq1gWdCIwVXxVyxv
-Vhrw2gdQkXrQc2y2Calx9EN8YWwp9RrshbFeBgpgk4UJFF3yorJywGNSwBMwCiwd
-8Qj90MPT3/MrGjPfieYKuULcbyw5fafpbHbQ8XeToq7wvG+Ekp5Dep8EWByAOqwn
-sIxWZwrC34Ae9O5CKaY9X6pBGS1VENnlvvTePqjQExwapOUUHDBA6FsOKmwpgdvn
-4YirdD2IYop+fyQoTA6t9K7neKyX9d/keyE0hB3mYXFN2sKNRHtDGuYBl/Oa1841
-MJYzm9xWLc2LUV6QNMs87ZLC1TDIvo5w+aAw6Mp1k5HHyl2O61VQ/6JzcxflAi0I
-QDTZMJMXrS6XBcDHB9mGMOHXu3ZK/QagpDTShCRhmRGs7tro8HOrfdSgn0Lze7bt
-63AnoW4h0Wmao4u0csZL/YP8WdISRMIuImdiZjCWETJ/S3EGYWcMUibVuH+Y+UC8
-oiNB4b4K/uYmuvo+1G24jmP1eGvL6Uv7Z5RAXS6XchGRpr+FT9PXHZ8YGtUsbXVG
-3H+LO5MszI5xBIJFfmrUxx+OS/l6It24zlQ1mEJdCSewCy4fFx2Ofr8maR2VnL5g
-pzu+LOnB5ZKOa0OrjTI8amPC5egJ+6vyC0jiyyqiJomzsIW9UObi4s8uNPGyJGiS
-ghMKDxRn7g+NQr5uODDg
-=KSZ+
------END PGP SIGNATURE-----
-
---q9KOos5vDmpwPx9o--
+Index: linux-2.6/drivers/platform/x86/fujitsu-laptop.c
+===================================================================
+--- linux-2.6.orig/drivers/platform/x86/fujitsu-laptop.c
++++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c
+@@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_
+ 	if (error)
+ 		goto err_free_input_dev;
+ 
+-	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
++	result = acpi_bus_update_power(fujitsu->acpi_handle, &state);
+ 	if (result) {
+ 		printk(KERN_ERR "Error reading power state\n");
+ 		goto err_unregister_input_dev;
+@@ -857,7 +857,7 @@ static int acpi_fujitsu_hotkey_add(struc
+ 	if (error)
+ 		goto err_free_input_dev;
+ 
+-	result = acpi_bus_get_power(fujitsu_hotkey->acpi_handle, &state);
++	result = acpi_bus_update_power(fujitsu_hotkey->acpi_handle, &state);
+ 	if (result) {
+ 		printk(KERN_ERR "Error reading power state\n");
+ 		goto err_unregister_input_dev;
