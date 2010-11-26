@@ -1,56 +1,59 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [Bugme-new] [Bug 17802] New: touchpad become crazy: disable irq 21
-Date: Fri, 26 Nov 2010 15:15:30 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1011261510090.3588@x980>
-References: <bug-17802-10286@https.bugzilla.kernel.org/>
- <20100908153201.91dc03d2.akpm@linux-foundation.org>
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: Input event for blocking touchpad
+Date: Fri, 26 Nov 2010 19:10:57 -0200
+Message-ID: <20101126211056.GD3819@barata.holoscopio.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:33222 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077Ab0KZUPl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Nov 2010 15:15:41 -0500
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173013.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LCI00ESXDM0KQF1@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 26 Nov 2010 14:15:37 -0600 (CST)
-In-reply-to: <20100908153201.91dc03d2.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, x86@kernel.org, Dmitry Torokhov <dtor@mail.ru>, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, polhallen@fuckaround.org
 
 
-            CPU0       CPU1       
-   0:     287671     109637   IO-APIC-edge      timer
-   8:          0          1   IO-APIC-edge      rtc0
-   9:        483        479   IO-APIC-fasteoi   acpi
-  16:      36491      15935   IO-APIC-fasteoi   uhci_hcd:usb4, 
-uhci_hcd:usb5, ndiswrapper
-  18:      23811      10147   IO-APIC-fasteoi   uhci_hcd:usb6, ata_piix
-  19:          1          3   IO-APIC-fasteoi   ohci1394
-  20:        869        298   IO-APIC-fasteoi   ehci_hcd:usb2, 
-uhci_hcd:usb3, HDA Intel
-  21:      97807      68959   IO-APIC-fasteoi   ide0, ide1, ehci_hcd:usb1, 
-uhci_hcd:usb7
-  27:          1          0   PCI-MSI-edge      eth0
-  28:      18118      22763   PCI-MSI-edge      i915@pci:0000:00:02.0
+--q9KOos5vDmpwPx9o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hello,
 
-The DSDT shows that there are no programmable IRQs
-in IOAPIC mode on this machine, so it is unlikely that
-there is an ACPI interrupt routing issue.
+I have a notebook with an ACPI system that notifies about the pressing
+of the key for blocking touchpad. However, it does not notify it by
+itself. I was considering sending the event to userspace and let it does
+the blocking.
 
-It is more likely that the problem is in one of the devices (above)
-using IRQ21.  I assume that the touchpad is uhci_hcd:usb7?
+Since other keys are also notified by this same ACPI object, it's even
+more natural that I use an input device to send this to userspace.
 
-What does "lsusb" show on this machine?
+The problem is: there seems to be no event to represent this. Any
+suggestions?
 
-Of course I'd recommend trying to reproduce the issue
-after excluding "ndiswrapper" from the configuration.
+Best regards,
+Cascardo.
 
-cheers,
-Len Brown, Intel Open Source Technology Center
+--q9KOos5vDmpwPx9o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQIcBAEBAgAGBQJM8CJfAAoJEEWxSg7udFZInIMP+gORojV1mq1gWdCIwVXxVyxv
+Vhrw2gdQkXrQc2y2Calx9EN8YWwp9RrshbFeBgpgk4UJFF3yorJywGNSwBMwCiwd
+8Qj90MPT3/MrGjPfieYKuULcbyw5fafpbHbQ8XeToq7wvG+Ekp5Dep8EWByAOqwn
+sIxWZwrC34Ae9O5CKaY9X6pBGS1VENnlvvTePqjQExwapOUUHDBA6FsOKmwpgdvn
+4YirdD2IYop+fyQoTA6t9K7neKyX9d/keyE0hB3mYXFN2sKNRHtDGuYBl/Oa1841
+MJYzm9xWLc2LUV6QNMs87ZLC1TDIvo5w+aAw6Mp1k5HHyl2O61VQ/6JzcxflAi0I
+QDTZMJMXrS6XBcDHB9mGMOHXu3ZK/QagpDTShCRhmRGs7tro8HOrfdSgn0Lze7bt
+63AnoW4h0Wmao4u0csZL/YP8WdISRMIuImdiZjCWETJ/S3EGYWcMUibVuH+Y+UC8
+oiNB4b4K/uYmuvo+1G24jmP1eGvL6Uv7Z5RAXS6XchGRpr+FT9PXHZ8YGtUsbXVG
+3H+LO5MszI5xBIJFfmrUxx+OS/l6It24zlQ1mEJdCSewCy4fFx2Ofr8maR2VnL5g
+pzu+LOnB5ZKOa0OrjTI8amPC5egJ+6vyC0jiyyqiJomzsIW9UObi4s8uNPGyJGiS
+ghMKDxRn7g+NQr5uODDg
+=KSZ+
+-----END PGP SIGNATURE-----
+
+--q9KOos5vDmpwPx9o--
