@@ -1,173 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/13] ACPI / PM: Rework power resources management
-Date: Fri, 26 Nov 2010 20:26:54 +0100
-Message-ID: <201011262026.55052.rjw@sisk.pl>
-References: <AANLkTimahUpEL3cV6pFhkN8KqrphfVMSOw8xAN2=9jPy@mail.gmail.com> <201011252145.19814.rjw@sisk.pl> <AANLkTimcn_3DamzfWaCk6YEfSCvC78ZJGkw-f+01pj2=@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Bugme-new] [Bug 17802] New: touchpad become crazy: disable irq 21
+Date: Fri, 26 Nov 2010 15:15:30 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011261510090.3588@x980>
+References: <bug-17802-10286@https.bugzilla.kernel.org/>
+ <20100908153201.91dc03d2.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:32988 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754669Ab0KZT1y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Nov 2010 14:27:54 -0500
-In-Reply-To: <AANLkTimcn_3DamzfWaCk6YEfSCvC78ZJGkw-f+01pj2=@mail.gmail.com>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:33222 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751077Ab0KZUPl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Nov 2010 15:15:41 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LCI00ESXDM0KQF1@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 26 Nov 2010 14:15:37 -0600 (CST)
+In-reply-to: <20100908153201.91dc03d2.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, x86@kernel.org, Dmitry Torokhov <dtor@mail.ru>, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, polhallen@fuckaround.org
 
-On Friday, November 26, 2010, Sedat Dilek wrote:
-> On Thu, Nov 25, 2010 at 9:45 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
-e:
-> > On Thursday, November 25, 2010, Sedat Dilek wrote:
-> >> On Thu, Nov 25, 2010 at 9:29 PM, Rafael J. Wysocki <rjw@sisk.pl> w=
-rote:
-> >> > On Thursday, November 25, 2010, Rafael J. Wysocki wrote:
-> >> >> On Thursday, November 25, 2010, Sedat Dilek wrote:
-> >> >> > On Thu, Nov 25, 2010 at 10:41 AM, Sedat Dilek
-> >> >> > <sedat.dilek@googlemail.com> wrote:
-> >> >> > > On Thu, Nov 25, 2010 at 10:11 AM, Sedat Dilek
-> >> >> > > <sedat.dilek@googlemail.com> wrote:
-> >> >> > >> Hi Rafael,
-> >> >> > >>
-> >> >> > [ ... ]
-> >> >> > >> # grep "error:" build_linux-next_next20101124.dileks.2.log
-> >> >> > >> /home/sd/src/linux-2.6/linux-2.6.37-rc3/debian/build/sourc=
-e_i386_none/drivers/platform/x86/fujitsu-laptop.c:692:
-> >> >> > >> error: implicit declaration of function =E2=80=98acpi_bus_=
-get_power=E2=80=99
-> >> >> > [ ... ]
-> >> >> > >
-> >> >> > > Guess this is conflicting with your patch
-> >> >> > > "12-13-ACPI-PM-Drop-acpi_bus_get_power.patch".
-> >> >> > >
-> >> >> > > - Sedat -
-> >> >> > >
-> >> >> > > P.S.: Note to myself, add the following snippet for testing=
- purposes:
-> >> >> > >
-> >> >> > > [ debian/config/i386/none/config.686 ]
-> >> >> > > ...
-> >> >> > > ##
-> >> >> > > ## file: drivers/platform/x86/Kconfig
-> >> >> > > ##
-> >> >> > > # CONFIG_FUJITSU_LAPTOP is not set
-> >> >> > > - EOT -
-> >> >> > >
-> >> >> >
-> >> >> > Applied on top of linux-next (next-20101125) and running.
-> >> >> >
-> >> >> >      Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-> >> >>
-> >> >> Great, thanks a lot!
-> >> >>
-> >> >> I should have said the patchset is on top of the current Linus'=
- tree.
-> >> >
-> >> > Actually it also breaks with the current Linus' tree, but the ap=
-pended patch
-> >> > should fix it.
-> >> >
-> >> > Thanks,
-> >> > Rafael
-> >> >
-> >> > ---
-> >> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >> > Subject: Platform / x86: Make fujitsu_laptop use acpi_bus_update=
-_power()
-> >> >
-> >> > Use the new function acpi_bus_update_power(), which is safer tha=
-n
-> >> > acpi_bus_get_power(), for getting device power state in
-> >> > acpi_fujitsu_add().
-> >> >
-> >> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> >> > ---
-> >> >  drivers/platform/x86/fujitsu-laptop.c |    2 +-
-> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >
-> >> > Index: linux-2.6/drivers/platform/x86/fujitsu-laptop.c
-> >> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >> > --- linux-2.6.orig/drivers/platform/x86/fujitsu-laptop.c
-> >> > +++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c
-> >> > @@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_
-> >> >        if (error)
-> >> >                goto err_free_input_dev;
-> >> >
-> >> > -       result =3D acpi_bus_get_power(fujitsu->acpi_handle, &sta=
-te);
-> >> > +       result =3D acpi_bus_update_power(fujitsu->acpi_handle, &=
-state);
-> >> >        if (result) {
-> >> >                printk(KERN_ERR "Error reading power state\n");
-> >> >                goto err_unregister_input_dev;
-> >> >
-> >>
-> >> Sorry, I crapped my own quotes.
-> >> Missed to catch line #860?
-> >
-> > Indeed, sorry.  Updated patch is appended.
-> >
-> > Rafael
-> >
-> >
-> > ---
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: Platform / x86: Make fujitsu_laptop use acpi_bus_update_po=
-wer()
-> >
-> > Use the new function acpi_bus_update_power(), which is safer than
-> > acpi_bus_get_power(), for getting device power state in
-> > acpi_fujitsu_add().
-> >
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/platform/x86/fujitsu-laptop.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > Index: linux-2.6/drivers/platform/x86/fujitsu-laptop.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/platform/x86/fujitsu-laptop.c
-> > +++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c
-> > @@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_
-> >        if (error)
-> >                goto err_free_input_dev;
-> >
-> > -       result =3D acpi_bus_get_power(fujitsu->acpi_handle, &state)=
-;
-> > +       result =3D acpi_bus_update_power(fujitsu->acpi_handle, &sta=
-te);
-> >        if (result) {
-> >                printk(KERN_ERR "Error reading power state\n");
-> >                goto err_unregister_input_dev;
-> > @@ -857,7 +857,7 @@ static int acpi_fujitsu_hotkey_add(struc
-> >        if (error)
-> >                goto err_free_input_dev;
-> >
-> > -       result =3D acpi_bus_get_power(fujitsu_hotkey->acpi_handle, =
-&state);
-> > +       result =3D acpi_bus_update_power(fujitsu_hotkey->acpi_handl=
-e, &state);
-> >        if (result) {
-> >                printk(KERN_ERR "Error reading power state\n");
-> >                goto err_unregister_input_dev;
-> >
->=20
-> Feel free to add for
-> "Platform-x86-Make-fujitsu_laptop-use-acpi_bus_update_power.patch":
->=20
->      Reported-and-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 
-Thanks for testing!
+            CPU0       CPU1       
+   0:     287671     109637   IO-APIC-edge      timer
+   8:          0          1   IO-APIC-edge      rtc0
+   9:        483        479   IO-APIC-fasteoi   acpi
+  16:      36491      15935   IO-APIC-fasteoi   uhci_hcd:usb4, 
+uhci_hcd:usb5, ndiswrapper
+  18:      23811      10147   IO-APIC-fasteoi   uhci_hcd:usb6, ata_piix
+  19:          1          3   IO-APIC-fasteoi   ohci1394
+  20:        869        298   IO-APIC-fasteoi   ehci_hcd:usb2, 
+uhci_hcd:usb3, HDA Intel
+  21:      97807      68959   IO-APIC-fasteoi   ide0, ide1, ehci_hcd:usb1, 
+uhci_hcd:usb7
+  27:          1          0   PCI-MSI-edge      eth0
+  28:      18118      22763   PCI-MSI-edge      i915@pci:0000:00:02.0
 
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+The DSDT shows that there are no programmable IRQs
+in IOAPIC mode on this machine, so it is unlikely that
+there is an ACPI interrupt routing issue.
+
+It is more likely that the problem is in one of the devices (above)
+using IRQ21.  I assume that the touchpad is uhci_hcd:usb7?
+
+What does "lsusb" show on this machine?
+
+Of course I'd recommend trying to reproduce the issue
+after excluding "ndiswrapper" from the configuration.
+
+cheers,
+Len Brown, Intel Open Source Technology Center
+
