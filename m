@@ -1,100 +1,41 @@
-From: Boris Savelev <boris.savelev@gmail.com>
-Subject: Re: keyboard doesn't work with acpi on lenovo s10-3c
-Date: Sun, 28 Nov 2010 21:49:31 +0300
-Message-ID: <AANLkTi=dxCgV1wKcpZwCQydrpMYhGVfiJWyV-5x9o0dt@mail.gmail.com>
-References: <AANLkTimZxNOuuK2+uEUF_RbHus1dgFRA6usMuYzrGjoD@mail.gmail.com>
- <20101128000648.GC29981@core.coreip.homeip.net> <AANLkTikagjOqgTSZjKPvgyR-73PJqgi2YiE5HmWKPP9+@mail.gmail.com>
- <20101128090241.GG14499@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20101128090241.GG14499@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v6 0/3] Lockless memory allocator and list
+Date: Mon, 29 Nov 2010 15:03:18 +0800
+Message-ID: <1291014201-15513-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:52747 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751275Ab0K2HD1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Nov 2010 02:03:27 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-2010/11/28 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
-> On Sun, Nov 28, 2010 at 11:30:58AM +0300, Boris Savelev wrote:
->> Thanks for reply Dmitry!
->>
->> 2010/11/28 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
->> > Hi Boris,
->> >
->> > On Sat, Nov 27, 2010 at 08:28:51PM +0300, Boris Savelev wrote:
->> >> Hello!
->> >>
->> >> When I run linux on my netbook lenovo s10-3c -- keyboard doesn't =
-work!
->> >> keyboard works perfectly in bios, in grub (or lilo), in windows, =
-but
->> >> not in linux.
->> >> I try linux kernel 2.6.35, 2.6.36, 2.6.37-rc2 -- no way. keyboard=
- doesn't work
->> >> I upgrade BIOS up to 3CCN13WW. keyboard doesn't work
->> >> All keys are disabled, numlock, capslock... It's seems like keybo=
-ard
->> >> haven't power.
->> >> with Google I find topic [1] where solution is add to kernel opts
->> >> 'noapic acpi=3Doff' -- Viola! keyboard work. But battery state,
->> >> powersaving, powerbutton and other usefull things doesn't work.
->> >> So this is not a workaround...
->> >
->> > The keyboard seems to get detected but is silent afterwards... =A0=
-Does the
->> > touchpad work by default?
->>
->> Touchpad always work.
->>
->> >
->> > Could you try a few kernel options: acpi=3Dnoirq, pci=3Dnoacpi, i8=
-042.reset
->> > and i8042.nomux please?
->>
->> acpi=3Dnoirq -- kernel panic
->> pci=3Dnoacpi -- kernel panic
->> i8042.reset=3D1 -- kbd doesn't work
->> i8042.nomux=3D1 -- kbd doesn't work
->>
->> combination of these options also doesn't help.
->>
->> Need screenshots of kernel panic?
->
-> Might be interesting but not much.
->
-> If you plug an external USB keyboard and do:
->
-> =A0 =A0 =A0 =A0echo -n "reconnect" > /sys/bus/serio/devices/serio0/dr=
-vctl
->
-> or
->
-> =A0 =A0 =A0 =A0echo -n "rescan" > /sys/bus/serio/devices/serio0/drvct=
-l
->
-> after booting does it revive the keyboard?
+This patchset adds a lockless memory allocator and a lock-less
+list.
 
-I haven't external keyboard. I try to do this with ssh remotly.
-Keyboard doesn't revived-(
+v6:
 
-> Also, what does /proc/interrupts look like?
+- Revise ARCH_HAVE_NMI_SAFE_CMPXCHG definition for some architectures
+  according to architecture maitainers' comments.
 
-Attached to lp bug:
-http://launchpadlibrarian.net/59755127/proc_interrupts_when_kbd_dn_work=
-=2Etxt
--- when keyboard doesn't work
-http://launchpadlibrarian.net/59755166/proc_interrupts_when_kbd_work.tx=
-t
--- when keyboard works
+v5:
 
-additional info from /proc/cpuinfo
-model name: Intel(R) Atom(TM) CPU N455   @ 1.66GHz
+- Add ARCH_HAVE_NMI_SAFE_CMPXCHG
+- Add spin_trylock_irqsave based fallback in lockless memory allocator
+  if ARCH_HAVE_NMI_SAFE_CMPXCHG=n
+- Make lockless list depends on ARCH_HAVE_NMI_SAFE_CMPXCHG
 
---=20
-Boris
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v4:
+
+- Split from APEI patchset
+- Update patch description and comments according to ML comments
+
+v3:
+
+- Rework lockless memory allocator and list according to ML comments
+
+[PATCH -v6 1/3] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+[PATCH -v6 2/3] lib, Make gen_pool memory allocator lockless
+[PATCH -v6 3/3] lib, Add lock-less NULL terminated single list
