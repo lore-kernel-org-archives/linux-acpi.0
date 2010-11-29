@@ -1,252 +1,48 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v6 3/3] lib, Add lock-less NULL terminated single list
-Date: Mon, 29 Nov 2010 15:03:21 +0800
-Message-ID: <1291014201-15513-4-git-send-email-ying.huang@intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH -v6 2/3] lib, Make gen_pool memory allocator lockless
+Date: Mon, 29 Nov 2010 13:11:37 +0100
+Message-ID: <1291032697.32004.28.camel@laptop>
 References: <1291014201-15513-1-git-send-email-ying.huang@intel.com>
+	 <1291014201-15513-3-git-send-email-ying.huang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:52747 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754824Ab0K2HDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Nov 2010 02:03:36 -0500
-In-Reply-To: <1291014201-15513-1-git-send-email-ying.huang@intel.com>
+Received: from casper.infradead.org ([85.118.1.10]:55309 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752350Ab0K2ML1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Nov 2010 07:11:27 -0500
+In-Reply-To: <1291014201-15513-3-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-Cmpxchg is used to implement adding new entry to the list, deleting
-all entries from the list, deleting first entry of the list and some
-other operations.
+On Mon, 2010-11-29 at 15:03 +0800, Huang Ying wrote:
+> This version of the gen_pool memory allocator supports lockless
+> operation.
+> 
+> This makes it safe to use in NMI handlers and other special
+> unblockable contexts that could otherwise deadlock on locks.  This is
+> implemented by using atomic operations and retries on any conflicts.
+> The disadvantage is that there may be livelocks in extreme cases.  For
+> better scalability, one gen_pool allocator can be used for each CPU.
+> 
+> The lockless operation only works if there is enough memory available.
+> If new memory is added to the pool a lock has to be still taken.  So
+> any user relying on locklessness has to ensure that sufficient memory
+> is preallocated.
+> 
+> The basic atomic operation of this allocator is cmpxchg on long.  On
+> architectures that don't have NMI-safe cmpxchg implementation, a
+> spin_trylock_irqsave based fallback is used for gen_pool_alloc, so it
+> can be used in NMI handler safely.  But gen_pool_free can not be used
+> in NMI handler in these architectures, because memory free can not
+> fail. 
 
-Because this is a single list, so the tail can not be accessed in O(1).
+I still don't see a reason to merge this.
 
-This can be used in NMI handler.
+It makes the genalloc thing slower for every other user (more LOCK'ed
+ops) and there is no new user presented in this series.
 
-If there are multiple producers and multiple consumers, llist_add can
-be used in producers and llist_del_all can be used in consumers.  They
-can work simultaneously without lock.  But llist_del_first can not be
-used here.  Because llist_del_first depends on list->first->next does
-not changed if list->first is not changed during its operation, but
-llist_del_first, llist_add, llist_add sequence in another consumer may
-violate that.
 
-If there are multiple producers and one consumer, llist_add can be
-used in producers and llist_del_all or llist_del_first can be used in
-the consumer.
-
-The list entries deleted via llist_del_all can be traversed with
-traversing function such as llist_for_each etc.  But the list entries
-can not be traversed safely before deleted from the list without
-proper synchronization with the list consumers.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
----
- include/linux/llist.h |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig           |    4 ++
- lib/Makefile          |    2 +
- lib/llist.c           |   80 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 178 insertions(+)
- create mode 100644 include/linux/llist.h
- create mode 100644 lib/llist.c
-
---- /dev/null
-+++ b/include/linux/llist.h
-@@ -0,0 +1,92 @@
-+#ifndef LLIST_H
-+#define LLIST_H
-+/*
-+ * Lock-less NULL terminated single linked list
-+ *
-+ * If there are multiple producers and multiple consumers, llist_add
-+ * can be used in producers and llist_del_all can be used in
-+ * consumers.  They can work simultaneously without lock.  But
-+ * llist_del_first can not be used here.  Because llist_del_first
-+ * depends on list->first->next does not changed if list->first is not
-+ * changed during its operation, but llist_del_first, llist_add,
-+ * llist_add sequence in another consumer may violate that.
-+ *
-+ * If there are multiple producers and one consumer, llist_add can be
-+ * used in producers and llist_del_all or llist_del_first can be used
-+ * in the consumer.
-+ *
-+ * The list entries deleted via llist_del_all can be traversed with
-+ * traversing function such as llist_for_each etc.  But the list
-+ * entries can not be traversed safely before deleted from the list
-+ * without proper synchronization with the list consumers.
-+ */
-+
-+struct llist_head {
-+	struct llist_node *first;
-+};
-+
-+struct llist_node {
-+	struct llist_node *next;
-+};
-+
-+#define LLIST_HEAD_INIT(name)	{ NULL }
-+#define LLIST_HEAD(name)	struct llist_head name = LLIST_HEAD_INIT(name)
-+
-+/**
-+ * init_llist_head - initialize lock-less list head
-+ * @head:	the head for your lock-less list
-+ */
-+static inline void init_llist_head(struct llist_head *list)
-+{
-+	list->first = NULL;
-+}
-+
-+/**
-+ * llist_entry - get the struct of this entry
-+ * @ptr:	the &struct llist_node pointer.
-+ * @type:	the type of the struct this is embedded in.
-+ * @member:	the name of the llist_node within the struct.
-+ */
-+#define llist_entry(ptr, type, member)		\
-+	container_of(ptr, type, member)
-+
-+/**
-+ * llist_for_each - iterate over some entries of a lock-less list
-+ * @pos:	the &struct llist_node to use as a loop cursor
-+ * @node:	the first entry of deleted list entries
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being deleted from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each(pos, node)			\
-+	for (pos = (node); pos; pos = pos->next)
-+
-+/**
-+ * llist_for_each_entry - iterate over some entries of lock-less list of given type
-+ * @pos:	the type * to use as a loop cursor.
-+ * @node:	the fist entry of deleted list entries.
-+ * @member:	the name of the llist_node with the struct.
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being removed from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each_entry(pos, node, member)				\
-+	for (pos = llist_entry((node), typeof(*pos), member);		\
-+	     &pos->member != NULL;					\
-+	     pos = llist_entry(pos->member.next, typeof(*pos), member))
-+
-+/**
-+ * llist_empty - tests whether a lock-less list is empty
-+ * @head:	the list to test
-+ */
-+static inline int llist_empty(const struct llist_head *head)
-+{
-+	return head->first == NULL;
-+}
-+
-+void llist_add(struct llist_node *new, struct llist_head *head);
-+struct llist_node *llist_del_first(struct llist_head *head);
-+struct llist_node *llist_del_all(struct llist_head *head);
-+#endif /* LLIST_H */
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -210,4 +210,8 @@ config GENERIC_ATOMIC64
- config LRU_CACHE
- 	tristate
- 
-+config LLIST
-+	bool
-+	depends on ARCH_HAVE_NMI_SAFE_CMPXCHG
-+
- endmenu
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -106,6 +106,8 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic
- 
- obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
- 
-+obj-$(CONFIG_LLIST) += llist.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
- 
---- /dev/null
-+++ b/lib/llist.c
-@@ -0,0 +1,80 @@
-+/*
-+ * Lock-less NULL terminated single linked list
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/llist.h>
-+#include <linux/errno.h>
-+
-+#include <asm/system.h>
-+
-+/**
-+ * llist_add - add a new entry
-+ * @new:	new entry to be added
-+ * @head:	the head for your lock-less list
-+ */
-+void llist_add(struct llist_node *new, struct llist_head *head)
-+{
-+	struct llist_node *entry;
-+
-+	do {
-+		entry = head->first;
-+		new->next = entry;
-+	} while (cmpxchg(&head->first, entry, new) != entry);
-+}
-+EXPORT_SYMBOL_GPL(llist_add);
-+
-+/**
-+ * llist_del_first - delete the first entry of lock-less list
-+ * @head:	the head for your lock-less list
-+ *
-+ * If list is empty, return NULL, otherwise, return the first entry deleted.
-+ *
-+ * Only one llist_del_first user can be used simultaneously with
-+ * multiple llist_add users without lock. Because otherwise
-+ * llist_del_first, llist_add, llist_add sequence in another user may
-+ * change @head->first->next, but keep @head->first. If multiple
-+ * consumers are needed, please use llist_del_all.
-+ */
-+struct llist_node *llist_del_first(struct llist_head *head)
-+{
-+	struct llist_node *entry;
-+
-+	do {
-+		entry = head->first;
-+		if (entry == NULL)
-+			return NULL;
-+	} while (cmpxchg(&head->first, entry, entry->next) != entry);
-+
-+	return entry;
-+}
-+EXPORT_SYMBOL_GPL(llist_del_first);
-+
-+/**
-+ * llist_del_all - delete all entries from lock-less list
-+ * @head:	the head of lock-less list to delete all entries
-+ *
-+ * If list is empty, return NULL, otherwise, delete all entries and
-+ * return the pointer to the first entry.
-+ */
-+struct llist_node *llist_del_all(struct llist_head *head)
-+{
-+	return xchg(&head->first, NULL);
-+}
-+EXPORT_SYMBOL_GPL(llist_del_all);
