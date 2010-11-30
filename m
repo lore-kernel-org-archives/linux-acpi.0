@@ -1,61 +1,108 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 0/2] Generic hardware error reporting support
-Date: Tue, 30 Nov 2010 13:09:14 -0200
-Message-ID: <4CF5139A.1080607@redhat.com>
-References: <1290154233-28695-1-git-send-email-ying.huang@intel.com> <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com> <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com> <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com> <AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com> <AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com> <AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com> <AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com> <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com> <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com> <4CEB0037.3000303@teksavvy.com> <1290472198.2903.156.camel@yhuang-dev> <4CEDCCF5.5030308@teksavvy.com> <alpine.LFD.2.00.1011242320000.637@x980>
+From: Boris Savelev <boris.savelev@gmail.com>
+Subject: Re: keyboard doesn't work with acpi on lenovo s10-3c
+Date: Tue, 30 Nov 2010 19:37:15 +0300
+Message-ID: <AANLkTimHY1P0dfy+gsUXR7-A_kHfQuL38PoiAUqOZuZy@mail.gmail.com>
+References: <AANLkTimZxNOuuK2+uEUF_RbHus1dgFRA6usMuYzrGjoD@mail.gmail.com>
+ <20101128000648.GC29981@core.coreip.homeip.net> <AANLkTikagjOqgTSZjKPvgyR-73PJqgi2YiE5HmWKPP9+@mail.gmail.com>
+ <20101128090241.GG14499@core.coreip.homeip.net> <AANLkTi=dxCgV1wKcpZwCQydrpMYhGVfiJWyV-5x9o0dt@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31596 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936Ab0K3PKY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Nov 2010 10:10:24 -0500
-In-Reply-To: <alpine.LFD.2.00.1011242320000.637@x980>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=dxCgV1wKcpZwCQydrpMYhGVfiJWyV-5x9o0dt@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Mark Lord <kernel@teksavvy.com>, Huang Ying <ying.huang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-Em 25-11-2010 02:27, Len Brown escreveu:
->> ... most *NIX tools store and manage data in _text_ form.
-> 
-> If the hardware error dump is complicated there is a trade-off
-> between making things human readable and putting a lot of
-> comlicated parsing code into the kernel.  Maybe the kernel
-> should just dump hex "text" in some cases and let a user-program
-> parse the syslog?
-> 
-> What do do if the hardware error log is very large?
-> Is there a limit on how much is practical to send through syslog?
+2010/11/28 Boris Savelev <boris.savelev@gmail.com>:
+> 2010/11/28 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
+>> On Sun, Nov 28, 2010 at 11:30:58AM +0300, Boris Savelev wrote:
+>>> Thanks for reply Dmitry!
+>>>
+>>> 2010/11/28 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
+>>> > Hi Boris,
+>>> >
+>>> > On Sat, Nov 27, 2010 at 08:28:51PM +0300, Boris Savelev wrote:
+>>> >> Hello!
+>>> >>
+>>> >> When I run linux on my netbook lenovo s10-3c -- keyboard doesn't=
+ work!
+>>> >> keyboard works perfectly in bios, in grub (or lilo), in windows,=
+ but
+>>> >> not in linux.
+>>> >> I try linux kernel 2.6.35, 2.6.36, 2.6.37-rc2 -- no way. keyboar=
+d doesn't work
+>>> >> I upgrade BIOS up to 3CCN13WW. keyboard doesn't work
+>>> >> All keys are disabled, numlock, capslock... It's seems like keyb=
+oard
+>>> >> haven't power.
+>>> >> with Google I find topic [1] where solution is add to kernel opt=
+s
+>>> >> 'noapic acpi=3Doff' -- Viola! keyboard work. But battery state,
+>>> >> powersaving, powerbutton and other usefull things doesn't work.
+>>> >> So this is not a workaround...
+>>> >
+>>> > The keyboard seems to get detected but is silent afterwards... =A0=
+Does the
+>>> > touchpad work by default?
+>>>
+>>> Touchpad always work.
+>>>
+>>> >
+>>> > Could you try a few kernel options: acpi=3Dnoirq, pci=3Dnoacpi, i=
+8042.reset
+>>> > and i8042.nomux please?
+>>>
+>>> acpi=3Dnoirq -- kernel panic
+>>> pci=3Dnoacpi -- kernel panic
+>>> i8042.reset=3D1 -- kbd doesn't work
+>>> i8042.nomux=3D1 -- kbd doesn't work
+>>>
+>>> combination of these options also doesn't help.
+>>>
+>>> Need screenshots of kernel panic?
+>>
+>> Might be interesting but not much.
 
-If you look what sysadm's do with the Unix logs, you'll see that they 
-use either one of the following approaches:
+screenshot of kernel panic
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/677633/comments/8
 
-1) have something looking at syslog (and/or serial console logs), and 
-storing them for their analisys, in text format;
+>>
+>> If you plug an external USB keyboard and do:
+>>
+>> =A0 =A0 =A0 =A0echo -n "reconnect" > /sys/bus/serio/devices/serio0/d=
+rvctl
+>>
+>> or
+>>
+>> =A0 =A0 =A0 =A0echo -n "rescan" > /sys/bus/serio/devices/serio0/drvc=
+tl
+>>
+>> after booting does it revive the keyboard?
+>
+> I haven't external keyboard. I try to do this with ssh remotly.
+> Keyboard doesn't revived-(
+>
+>> Also, what does /proc/interrupts look like?
+>
+> Attached to lp bug:
+> http://launchpadlibrarian.net/59755127/proc_interrupts_when_kbd_dn_wo=
+rk.txt
+> -- when keyboard doesn't work
+> http://launchpadlibrarian.net/59755166/proc_interrupts_when_kbd_work.=
+txt
+> -- when keyboard works
+>
+> additional info from /proc/cpuinfo
+> model name: Intel(R) Atom(TM) CPU N455 =A0 @ 1.66GHz
 
-2) convert syslog errors into a SNMP object UID's, on a machine-readable code, 
-in order to manage them via some SNMP management system.
+How can I help you to help me any more?-)
 
-On both cases, the approach is there for a long time.
-
-If an error "magic" code is added, both ways will break, as sysadm's won't be
-able to understand the meaning of the magic number, and the SNMP conversion 
-tools won't be ready to convert that magic code into something else. 
-
-Of course, with time, the SNMP parsers will eventually add the needed decoders
-for the magic numbers, in order to convert them into a MIB representation.
-
-So, even being a number, such code is not machine readable (at least not for the
-right tools), as it is not an SNMP object, so, the management systems won't catch 
-it without a parser.
-
-So, IMO, the better is to keep providing a text message. 
-
-We might think on adding a way to directly output a SNMP UID from kernel,
-but this seems overkill to me, and anything else would just be meaningless
-for most sysadmins.
-
-Thanks,
-Mauro.
+--=20
+Boris
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
