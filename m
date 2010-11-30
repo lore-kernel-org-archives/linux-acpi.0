@@ -1,253 +1,61 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [RFC PATCH 1/4] IPMI: Add one interface to get more info of
-	low-level IPMI device
-Date: Tue, 30 Nov 2010 08:36:32 +0800
-Message-ID: <1291077392.3948.141.camel@localhost.localdomain>
-References: <1291076781-9438-1-git-send-email-yakui.zhao@intel.com>
-	 <1291076781-9438-2-git-send-email-yakui.zhao@intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH -v6 2/3] lib, Make gen_pool memory allocator lockless
+Date: Tue, 30 Nov 2010 09:08:09 +0800
+Message-ID: <1291079289.12648.30.camel@yhuang-dev>
+References: <1291014201-15513-1-git-send-email-ying.huang@intel.com>
+	 <1291014201-15513-3-git-send-email-ying.huang@intel.com>
+	 <1291032697.32004.28.camel@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64483 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:64173 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755242Ab0K3Amg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Nov 2010 19:42:36 -0500
-In-Reply-To: <1291076781-9438-2-git-send-email-yakui.zhao@intel.com>
+	id S1756024Ab0K3BIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Nov 2010 20:08:12 -0500
+In-Reply-To: <1291032697.32004.28.camel@laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "minyard@acm.org" <minyard@acm.org>
-Cc: "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-On Tue, 2010-11-30 at 08:26 +0800, yakui.zhao@intel.com wrote:
-> From: Zhao Yakui <yakui.zhao@intel.com>
+Hi, Peter,
+
+On Mon, 2010-11-29 at 20:11 +0800, Peter Zijlstra wrote:
+> On Mon, 2010-11-29 at 15:03 +0800, Huang Ying wrote:
+> > This version of the gen_pool memory allocator supports lockless
+> > operation.
+> > 
+> > This makes it safe to use in NMI handlers and other special
+> > unblockable contexts that could otherwise deadlock on locks.  This is
+> > implemented by using atomic operations and retries on any conflicts.
+> > The disadvantage is that there may be livelocks in extreme cases.  For
+> > better scalability, one gen_pool allocator can be used for each CPU.
+> > 
+> > The lockless operation only works if there is enough memory available.
+> > If new memory is added to the pool a lock has to be still taken.  So
+> > any user relying on locklessness has to ensure that sufficient memory
+> > is preallocated.
+> > 
+> > The basic atomic operation of this allocator is cmpxchg on long.  On
+> > architectures that don't have NMI-safe cmpxchg implementation, a
+> > spin_trylock_irqsave based fallback is used for gen_pool_alloc, so it
+> > can be used in NMI handler safely.  But gen_pool_free can not be used
+> > in NMI handler in these architectures, because memory free can not
+> > fail. 
 > 
-> The IPMI smi_watcher will be used to catch the IPMI interface as they come or go.
-> In order to communicate with the correct IPMI device, it should be confirmed
->  whether it is what we wanted especially on the system with multiple IPMI
-> devices. But the new_smi callback function of smi_watcher provides very
-> limited info(only the interface number and dev pointer) and there is no
-> detailed info about the low level interface. For example: which mechansim
-> registers the IPMI interface(ACPI, PCI, DMI and so on).
+> I still don't see a reason to merge this.
 > 
-> This is to add one interface that can get more info of low-level IPMI
-> device. For example: the ACPI device handle will be returned for the pnp_acpi
-> IPMI device.
+> It makes the genalloc thing slower for every other user (more LOCK'ed
+> ops) and there is no new user presented in this series.
 
-Hi, Corey
+As far as I know, all genalloc users are not performance sensitive.
+After all, it is mainly used to manage some device memory before. As for
+users, I think this is a "chicken and egg" problem. And I have plan to
+use it in APEI code.
 
-   The following is updated in the patch set.
-    a. Change the function prototype of ipmi_put_smi_info.
-       The corresponding parameter is changed from "
-		Ipmi_put_smi_info(int iface) to ipmi_put_smi_info(struct ipmi_smi_info
-*data)
-
-    b. Remove the incorrect refcount in previous patch set.
+Best Regards,
+Huang Ying
 
 
-But for the issues about pulling data from the current source, very
-sorry that I still statically construct them in the corresponding
-smi_info as I meet with the following two issues when trying to pull
-data from the current source.
-	1. no specific info is contained in smi_info. For example: ACPI handle
-is important to the SI_ACPI type. But the corresponding handle is stored
-in smi_info. 
-        b. Need to add a lot of If/else macro definitions to handle the
-corresponding IPMI device type.
-
-Thanks.
-
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  drivers/char/ipmi/ipmi_msghandler.c |   31 +++++++++++++++++++++++++++++++
->  drivers/char/ipmi/ipmi_si_intf.c    |   24 ++++++++++++++++++++----
->  include/linux/ipmi.h                |   29 +++++++++++++++++++++++++++++
->  include/linux/ipmi_smi.h            |    7 +++++++
->  4 files changed, 87 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-> index 2fe72f8..a90b3ec 100644
-> --- a/drivers/char/ipmi/ipmi_msghandler.c
-> +++ b/drivers/char/ipmi/ipmi_msghandler.c
-> @@ -970,6 +970,37 @@ out_kfree:
->  }
->  EXPORT_SYMBOL(ipmi_create_user);
->  
-> +int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data)
-> +{
-> +	int           rv = 0;
-> +	ipmi_smi_t    intf;
-> +	struct ipmi_smi_handlers *handlers;
-> +
-> +	mutex_lock(&ipmi_interfaces_mutex);
-> +	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-> +		if (intf->intf_num == if_num)
-> +			goto found;
-> +	}
-> +	/* Not found, return an error */
-> +	rv = -EINVAL;
-> +	mutex_unlock(&ipmi_interfaces_mutex);
-> +	return rv;
-> +
-> +found:
-> +	handlers = intf->handlers;
-> +	rv = handlers->get_smi_info(intf->send_info, data);
-> +	mutex_unlock(&ipmi_interfaces_mutex);
-> +
-> +	return rv;
-> +}
-> +EXPORT_SYMBOL(ipmi_get_smi_info);
-> +
-> +void ipmi_put_smi_info(struct ipmi_smi_info *data)
-> +{
-> +	put_device(data->dev);
-> +}
-> +EXPORT_SYMBOL(ipmi_put_smi_info);
-> +
->  static void free_user(struct kref *ref)
->  {
->  	ipmi_user_t user = container_of(ref, struct ipmi_user, refcount);
-> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> index 035da9e..a41afca 100644
-> --- a/drivers/char/ipmi/ipmi_si_intf.c
-> +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> @@ -57,6 +57,7 @@
->  #include <asm/irq.h>
->  #include <linux/interrupt.h>
->  #include <linux/rcupdate.h>
-> +#include <linux/ipmi.h>
->  #include <linux/ipmi_smi.h>
->  #include <asm/io.h>
->  #include "ipmi_si_sm.h"
-> @@ -107,10 +108,6 @@ enum si_type {
->  };
->  static char *si_to_str[] = { "kcs", "smic", "bt" };
->  
-> -enum ipmi_addr_src {
-> -	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
-> -	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
-> -};
->  static char *ipmi_addr_src_to_str[] = { NULL, "hotmod", "hardcoded", "SPMI",
->  					"ACPI", "SMBIOS", "PCI",
->  					"device-tree", "default" };
-> @@ -291,6 +288,7 @@ struct smi_info {
->  	struct task_struct *thread;
->  
->  	struct list_head link;
-> +	struct ipmi_smi_info smi_data;
->  };
->  
->  #define smi_inc_stat(smi, stat) \
-> @@ -1186,6 +1184,18 @@ static int smi_start_processing(void       *send_info,
->  	return 0;
->  }
->  
-> +static int get_smi_info(void *send_info, struct ipmi_smi_info *data)
-> +{
-> +	struct smi_info *new_smi = send_info;
-> +	struct ipmi_smi_info *smi_data = &new_smi->smi_data;
-> +
-> +	memcpy(data, smi_data, sizeof(*smi_data));
-> +	data->addr_src = new_smi->addr_source;
-> +	get_device(new_smi->dev);
-> +
-> +	return 0;
-> +}
-> +
->  static void set_maintenance_mode(void *send_info, int enable)
->  {
->  	struct smi_info   *smi_info = send_info;
-> @@ -1197,6 +1207,7 @@ static void set_maintenance_mode(void *send_info, int enable)
->  static struct ipmi_smi_handlers handlers = {
->  	.owner                  = THIS_MODULE,
->  	.start_processing       = smi_start_processing,
-> +	.get_smi_info		= get_smi_info,
->  	.sender			= sender,
->  	.request_events		= request_events,
->  	.set_maintenance_mode   = set_maintenance_mode,
-> @@ -2153,6 +2164,8 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
->  		return -ENOMEM;
->  
->  	info->addr_source = SI_ACPI;
-> +	info->smi_data.addr_info.acpi_info.acpi_handle =
-> +				acpi_dev->handle;
->  	printk(KERN_INFO PFX "probing via ACPI\n");
->  
->  	handle = acpi_dev->handle;
-> @@ -3102,6 +3115,7 @@ static int try_smi_init(struct smi_info *new_smi)
->  {
->  	int rv = 0;
->  	int i;
-> +	struct ipmi_smi_info *smi_data;
->  
->  	printk(KERN_INFO PFX "Trying %s-specified %s state"
->  	       " machine at %s address 0x%lx, slave address 0x%x,"
-> @@ -3263,6 +3277,8 @@ static int try_smi_init(struct smi_info *new_smi)
->  	dev_info(new_smi->dev, "IPMI %s interface initialized\n",
->  		 si_to_str[new_smi->si_type]);
->  
-> +	smi_data = &new_smi->smi_data;
-> +	smi_data->dev = new_smi->dev;
->  	return 0;
->  
->   out_err_stop_timer:
-> diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
-> index 65aae34..956bd41 100644
-> --- a/include/linux/ipmi.h
-> +++ b/include/linux/ipmi.h
-> @@ -454,6 +454,35 @@ unsigned int ipmi_addr_length(int addr_type);
->  /* Validate that the given IPMI address is valid. */
->  int ipmi_validate_addr(struct ipmi_addr *addr, int len);
->  
-> +enum ipmi_addr_src {
-> +	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
-> +	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
-> +};
-> +struct ipmi_smi_info {
-> +	enum ipmi_addr_src addr_src;
-> +	struct device *dev;
-> +	/*
-> +	 * The addr_info can provide more detailed info of one IPMI device.
-> +	 * Now only SI_ACPI info is provided. And it depends on the SI_ACPI
-> +	 * address type. If the info is required for other address type, please
-> +	 * add it.
-> +	 */
-> +	union {
-> +		/* the acpi_info element is defined for the SI_ACPI
-> +		 * address type
-> +		 */
-> +		struct {
-> +			void *acpi_handle;
-> +		} acpi_info;
-> +	} addr_info;
-> +};
-> +
-> +/* This is to get the private info of ipmi_smi_t */
-> +extern int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data);
-> +/* This is to decrease refcount of dev added in the function of
-> + * ipmi_get_smi_info
-> + */
-> +extern void ipmi_put_smi_info(struct ipmi_smi_info *data);
->  #endif /* __KERNEL__ */
->  
-> 
-> diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
-> index 4b48318..deabdcc 100644
-> --- a/include/linux/ipmi_smi.h
-> +++ b/include/linux/ipmi_smi.h
-> @@ -86,6 +86,13 @@ struct ipmi_smi_handlers {
->  	int (*start_processing)(void       *send_info,
->  				ipmi_smi_t new_intf);
->  
-> +	/*
-> +	 * Get the detailed private info of the low level interface and store
-> +	 * it into the structure of ipmi_smi_data. For example: the
-> +	 * ACPI device handle will be returned for the pnp_acpi IPMI device.
-> +	 */
-> +	int (*get_smi_info)(void *send_info, struct ipmi_smi_info *data);
-> +
->  	/* Called to enqueue an SMI message to be sent.  This
->  	   operation is not allowed to fail.  If an error occurs, it
->  	   should report back the error in a received message.  It may
 
