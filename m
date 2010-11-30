@@ -1,124 +1,61 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v2 2/3] ACPI, APEI, Add APEI generic error status
- print support
-Date: Tue, 30 Nov 2010 15:00:31 +0800
-Message-ID: <1291100431.12648.165.camel@yhuang-dev>
-References: <1291085501-31494-1-git-send-email-ying.huang@intel.com>
-	 <1291085501-31494-3-git-send-email-ying.huang@intel.com>
-	 <20101129190343.7d7cea12.akpm@linux-foundation.org>
-	 <1291087752.12648.95.camel@yhuang-dev>
-	 <20101129194033.393e1f70.akpm@linux-foundation.org>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/2] Generic hardware error reporting support
+Date: Tue, 30 Nov 2010 13:09:14 -0200
+Message-ID: <4CF5139A.1080607@redhat.com>
+References: <1290154233-28695-1-git-send-email-ying.huang@intel.com> <AANLkTin_SyFFP_2=pKoS+8+4V1qXVWyrus7BKz8ENVsJ@mail.gmail.com> <AANLkTincYS7G1yb2ukT67qvpjwQmptXzQZabLQLYrEqn@mail.gmail.com> <AANLkTi=U7F7MS48dC=GgGqh=cm8YrtVhrm6sDXOma6Fc@mail.gmail.com> <AANLkTiki3d3Ft3-XJwFg8DUzUYcz3xPoYTzLZokLf+dv@mail.gmail.com> <AANLkTinAZgHbexU+LTUZHs-+7C0N990=kyuO-USV1Ncp@mail.gmail.com> <AANLkTinBBELXbUu1O+iSX+1FMXTwa9epwPYmi7EnCP+o@mail.gmail.com> <AANLkTikZ=TPN4_GXnUasRq-m8uwy6Spdzd=m_fR08Okt@mail.gmail.com> <AANLkTimvf8t5Rti73kYKV9cG3d7d7Y=OCn57LQNzUuTR@mail.gmail.com> <AANLkTin_-05__F-CMPcOFHceJraJgDN3EGaHe4MT-EyM@mail.gmail.com> <4CEB0037.3000303@teksavvy.com> <1290472198.2903.156.camel@yhuang-dev> <4CEDCCF5.5030308@teksavvy.com> <alpine.LFD.2.00.1011242320000.637@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:48778 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31596 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751549Ab0K3HAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Nov 2010 02:00:34 -0500
-In-Reply-To: <20101129194033.393e1f70.akpm@linux-foundation.org>
+	id S1750936Ab0K3PKY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Nov 2010 10:10:24 -0500
+In-Reply-To: <alpine.LFD.2.00.1011242320000.637@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Len Brown <lenb@kernel.org>
+Cc: Mark Lord <kernel@teksavvy.com>, Huang Ying <ying.huang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, 2010-11-30 at 11:40 +0800, Andrew Morton wrote:
-> On Tue, 30 Nov 2010 11:29:12 +0800 Huang Ying <ying.huang@intel.com> wrote:
+Em 25-11-2010 02:27, Len Brown escreveu:
+>> ... most *NIX tools store and manage data in _text_ form.
 > 
-> > On Tue, 2010-11-30 at 11:03 +0800, Andrew Morton wrote:
-> > > On Tue, 30 Nov 2010 10:51:40 +0800 Huang Ying <ying.huang@intel.com> wrote:
-> > > 
-> > > > printk is one of the methods to report hardware errors to user space.
-> > > > Hardware error information reported by firmware to Linux kernel is in
-> > > > the format of APEI generic error status (struct
-> > > > acpi_hes_generic_status).  This patch adds print support for the
-> > > > format, so that the corresponding hardware error information can be
-> > > > reported to user space via printk.
-> > > > 
-> > > > PCIe AER information print is not implemented yet.  Will refactor the
-> > > > original PCIe AER information printing code to avoid code duplicating.
-> > > > 
-> > > > ...
-> > > >  
-> > > > +#define pr_pfx(pfx, fmt, ...)			\
-> > > > +	printk("%s" fmt, pfx, ##__VA_ARGS__)
-> > > 
-> > > hm, why does so much code create little printk helper macros.  Isn't
-> > > there something generic somewhere?
-> > 
-> > Sorry, I do not find the generic code for this helper. But I think this
-> > macro may be helpful for others too, who need to determine the log level
-> > only at runtime. Here corrected errors should have log level:
-> > KERN_WARNING, while uncorrected errors should have log level: KERN_ERR.
+> If the hardware error dump is complicated there is a trade-off
+> between making things human readable and putting a lot of
+> comlicated parsing code into the kernel.  Maybe the kernel
+> should just dump hex "text" in some cases and let a user-program
+> parse the syslog?
 > 
-> Oh, is that what it does.  Replacing "pfx" everywhere with "loglevel"
-> (or similar) would have been much clearer?
+> What do do if the hardware error log is very large?
+> Is there a limit on how much is practical to send through syslog?
 
-The pfx (prefix) here is more than "loglevel", I prefix each line with
-"[Hardware Error:]" to make it clear that this is a hardware error
-reporting. I think that can be useful for some shared functions doing
-printk, the prefix parameter can provide sufficient flexibility for
-caller to use prefix like <module name> or <device ID>.
+If you look what sysadm's do with the Unix logs, you'll see that they 
+use either one of the following approaches:
 
-> > Do you think it is a good idea to make this macro generic?
-> 
-> hm, maybe.  It's the sort of thing which gives rise to much
-> chin-scratching, which is why people usually avoid doing it ;) If the
-> macro is well-named and its intended use is quite clear then yes, it's
-> probably worth pursuing.
-> 
-> > > This patchset appears to implement a new kernel->userspace interface. 
-> > > But that interface isn't actually described anywhere, so reviewers must
-> > > reverse-engineer the interface from the implementation to be able to
-> > > review the interface.  Nobody bothers doing that so we end up with an
-> > > unreviewed interface, which we must maintain for eternity.
-> > > 
-> > > Please fully document all proposed interfaces?
-> > 
-> > Sorry. I don't realize that printk-ing something means implementing a
-> > new kernel->userspace interface. I think the messages resulted are
-> > self-explaining for human. Is it sufficient just to add example messages
-> > in patch description?
-> 
-> Well normally a printk() isn't really considered a "userspace
-> interface".  This allows us to change them even though there surely
-> _are_ existing tools which treat particular messages as a userspace
-> interface.  But I don't recall hearing of much breakage from changed
-> kernel printks.
-> 
-> However in this case you are avowedly treating the printks as a
-> userspace interface, with the intention that software be written to
-> parse them, yes?  So once they're in place, we cannot change them?  That
-> makes it more important.
+1) have something looking at syslog (and/or serial console logs), and 
+storing them for their analisys, in text format;
 
-If my understanding is correct, Linus still don't like the idea of user
-space hardware error tool.  On the other hand, if we need this tool, I
-think printk is not a good tool-oriented hardware error reporting
-interface for it, because:
+2) convert syslog errors into a SNMP object UID's, on a machine-readable code, 
+in order to manage them via some SNMP management system.
 
-- There is no overall format or record boundaries for printk, because
-printk is traditionally for 1-2 lines.  This makes that printk is hard
-to parse in general.
+On both cases, the approach is there for a long time.
 
-- Messages from different CPUs may be interleaved.
+If an error "magic" code is added, both ways will break, as sysadm's won't be
+able to understand the meaning of the magic number, and the SNMP conversion 
+tools won't be ready to convert that magic code into something else. 
 
-- Good error reporting is too verbose for kernel log
+Of course, with time, the SNMP parsers will eventually add the needed decoders
+for the magic numbers, in order to convert them into a MIB representation.
 
-- printk has no internal priority support, so that high severity errors
-has no more priority than low severity ones.
+So, even being a number, such code is not machine readable (at least not for the
+right tools), as it is not an SNMP object, so, the management systems won't catch 
+it without a parser.
 
+So, IMO, the better is to keep providing a text message. 
 
-So my opinion is:
+We might think on adding a way to directly output a SNMP UID from kernel,
+but this seems overkill to me, and anything else would just be meaningless
+for most sysadmins.
 
-- Use printk as human oriented hardware error reporting.
-- Use another tool oriented interface for user space hardware error tool
-if necessary.
-
-Do you agree?  Do you think printk can be used as a good tool-oriented
-hardware error reporting interface too?
-
-
-Best Regards,
-Huang Ying
-
-
+Thanks,
+Mauro.
