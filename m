@@ -1,59 +1,62 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH -v2 2/3] ACPI, APEI, Add APEI generic error status print
- support
-Date: Tue, 30 Nov 2010 10:17:44 -0800
-Message-ID: <20101130101744.17efdea4.akpm@linux-foundation.org>
-References: <1291085501-31494-1-git-send-email-ying.huang@intel.com>
-	<1291085501-31494-3-git-send-email-ying.huang@intel.com>
-	<20101129190343.7d7cea12.akpm@linux-foundation.org>
-	<987664A83D2D224EAE907B061CE93D530191E8BCF1@orsmsx505.amr.corp.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: video: fix build error when VIDEO_OUTPUT_CONTROL=n
+Date: Tue, 30 Nov 2010 18:29:42 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1011301828410.3354@x980>
+References: <1288292779-23347-1-git-send-email-jwjstone@fastmail.fm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <987664A83D2D224EAE907B061CE93D530191E8BCF1@orsmsx505.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:48894 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab0K3XaD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Nov 2010 18:30:03 -0500
+In-reply-to: <1288292779-23347-1-git-send-email-jwjstone@fastmail.fm>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jack Stone <jwjstone@fastmail.fm>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com
 
-On Tue, 30 Nov 2010 10:00:47 -0800 "Luck, Tony" <tony.luck@intel.com> wrote:
+From: Len Brown <len.brown@intel.com>
 
-> > +	for (i = 0; i < strs_size; i++) {
-> > +		if (!(bits & (1U << i)))
-> > +			continue;
-> > +		str = strs[i];
-> > +		if (len && len + strlen(str) + 2 > 80) {
-> > +			printk("\n");
-> > +			len = 0;
-> > +		}
-> > +		if (!len)
-> > +			len = pr_pfx(pfx, "%s", str);
-> > +		else
-> > +			len += printk(", %s", str);
-> > +	}
-> > +	if (len)
-> > +		printk("\n");
-> 
-> Does printk() offer any guarantees about getting all the characters
-> from a single printk() call out to the console without interleaving
-> with messages from printk() calls on other cpus?
+drivers/built-in.o: In function `acpi_video_bus_put_devices':
+video.c:(.text+0x79663): undefined reference to
+`video_output_unregister'
+drivers/built-in.o: In function `acpi_video_bus_add':
+video.c:(.text+0x7b0b3): undefined reference to `video_output_register'
 
-Yes, it uses logbuf_lock to atomically append all the output from a
-printk into log_buf[].  Then it calls the console drivers against
-log_buf[].  It's hard to see how a console driver could then screw that
-up.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ include/linux/video_output.h |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
->  If it does, then
-> it would be a good idea to sprintf() the parts of this message to
-> a buffer and then use one printk() call.
+diff --git a/include/linux/video_output.h b/include/linux/video_output.h
+index 2fb46bc..c630194 100644
+--- a/include/linux/video_output.h
++++ b/include/linux/video_output.h
+@@ -34,9 +34,23 @@ struct output_device {
+ 	struct device dev;
+ };
+ #define to_output_device(obj) container_of(obj, struct output_device, dev)
++#ifdef CONFIG_VIDEO_OUTPUT_CONTROL
+ struct output_device *video_output_register(const char *name,
+ 	struct device *dev,
+ 	void *devdata,
+ 	struct output_properties *op);
+ void video_output_unregister(struct output_device *dev);
++#else
++static struct output_device *video_output_register(const char *name,
++        struct device *dev,
++        void *devdata,
++        struct output_properties *op)
++{
++	return ERR_PTR(-ENODEV);
++}
++static void video_output_unregister(struct output_device *dev)
++{
++	return;
++};
++#endif
+ #endif
+-- 
+1.7.3.2.343.g7d43d
 
-yup.
-
->  I think I read that netconsole
-> ends up with one packet on the wire for each call to printk().
-> 
-> Trying to parse output jumbled together from multiple cpus
-> doesn't sound like fun.
-> 
-> -Tony
