@@ -1,145 +1,31 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX for 2.6.37] ACPI, APEI, use raw spinlock in ERST
-Date: Thu, 02 Dec 2010 10:40:53 +0800
-Message-ID: <1291257653.12648.517.camel@yhuang-dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH -v3 0/4] ACPI, APEI, Report GHES error information via printk
+Date: Thu,  2 Dec 2010 16:05:01 +0800
+Message-ID: <1291277105-31758-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41720 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:47984 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756133Ab0LBCky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Dec 2010 21:40:54 -0500
+	id S1751223Ab0LBIFK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Dec 2010 03:05:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-ERST writing may be used in NMI or Machine Check Exception handler. So
-it need to use raw spinlock instead of normal spinlock.  This patch
-fixes it.
+The recent consensus is that hardware error should be reported via printk.
+This patch adds printk support to APEI GHES.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/erst.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+v3:
 
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -86,7 +86,7 @@ static struct erst_erange {
-  * It is used to provide exclusive accessing for ERST Error Log
-  * Address Range too.
-  */
--static DEFINE_SPINLOCK(erst_lock);
-+static DEFINE_RAW_SPINLOCK(erst_lock);
- 
- static inline int erst_errno(int command_status)
- {
-@@ -421,9 +421,9 @@ ssize_t erst_get_record_count(void)
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	spin_lock_irqsave(&erst_lock, flags);
-+	raw_spin_lock_irqsave(&erst_lock, flags);
- 	count = __erst_get_record_count();
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return count;
- }
-@@ -456,9 +456,9 @@ int erst_get_next_record_id(u64 *record_
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	spin_lock_irqsave(&erst_lock, flags);
-+	raw_spin_lock_irqsave(&erst_lock, flags);
- 	rc = __erst_get_next_record_id(record_id);
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return rc;
- }
-@@ -624,17 +624,17 @@ int erst_write(const struct cper_record_
- 		return -EINVAL;
- 
- 	if (erst_erange.attr & ERST_RANGE_NVRAM) {
--		if (!spin_trylock_irqsave(&erst_lock, flags))
-+		if (!raw_spin_trylock_irqsave(&erst_lock, flags))
- 			return -EBUSY;
- 		rc = __erst_write_to_nvram(record);
--		spin_unlock_irqrestore(&erst_lock, flags);
-+		raw_spin_unlock_irqrestore(&erst_lock, flags);
- 		return rc;
- 	}
- 
- 	if (record->record_length > erst_erange.size)
- 		return -EINVAL;
- 
--	if (!spin_trylock_irqsave(&erst_lock, flags))
-+	if (!raw_spin_trylock_irqsave(&erst_lock, flags))
- 		return -EBUSY;
- 	memcpy(erst_erange.vaddr, record, record->record_length);
- 	rcd_erange = erst_erange.vaddr;
-@@ -642,7 +642,7 @@ int erst_write(const struct cper_record_
- 	memcpy(&rcd_erange->persistence_information, "ER", 2);
- 
- 	rc = __erst_write_to_storage(0);
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return rc;
- }
-@@ -696,9 +696,9 @@ ssize_t erst_read(u64 record_id, struct
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	spin_lock_irqsave(&erst_lock, flags);
-+	raw_spin_lock_irqsave(&erst_lock, flags);
- 	len = __erst_read(record_id, record, buflen);
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 	return len;
- }
- EXPORT_SYMBOL_GPL(erst_read);
-@@ -719,20 +719,20 @@ ssize_t erst_read_next(struct cper_recor
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	spin_lock_irqsave(&erst_lock, flags);
-+	raw_spin_lock_irqsave(&erst_lock, flags);
- 	rc = __erst_get_next_record_id(&record_id);
- 	if (rc) {
--		spin_unlock_irqrestore(&erst_lock, flags);
-+		raw_spin_unlock_irqrestore(&erst_lock, flags);
- 		return rc;
- 	}
- 	/* no more record */
- 	if (record_id == APEI_ERST_INVALID_RECORD_ID) {
--		spin_unlock_irqrestore(&erst_lock, flags);
-+		raw_spin_unlock_irqrestore(&erst_lock, flags);
- 		return 0;
- 	}
- 
- 	len = __erst_read(record_id, record, buflen);
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return len;
- }
-@@ -746,12 +746,12 @@ int erst_clear(u64 record_id)
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	spin_lock_irqsave(&erst_lock, flags);
-+	raw_spin_lock_irqsave(&erst_lock, flags);
- 	if (erst_erange.attr & ERST_RANGE_NVRAM)
- 		rc = __erst_clear_from_nvram(record_id);
- 	else
- 		rc = __erst_clear_from_storage(record_id);
--	spin_unlock_irqrestore(&erst_lock, flags);
-+	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return rc;
- }
+- Add document for output format per Andrew's comments
+- Move pr_pfx into printk.h, hope it is useful for others too
+- Fixes some issues according to comments
 
+v2:
 
+- Some minor adjustment of PCIe error section definition and printk format
+
+[PATCH -v3 1/4] printk, Add pr_pfx for library functions
+[PATCH -v3 2/4] Add CPER PCIe error section structure and constants definition
+[PATCH -v3 3/4] ACPI, APEI, Add APEI generic error status printing support
+[PATCH -v3 4/4] ACPI, APEI, Report GHES error information via printk
