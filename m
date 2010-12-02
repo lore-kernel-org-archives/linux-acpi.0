@@ -1,49 +1,65 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/8] cpuidle: Rename X86 specific idle poll state[0] from C0 to CPUIDLE
-Date: Thu,  2 Dec 2010 17:42:22 +0100
-Message-ID: <1291308148-28628-3-git-send-email-trenn@suse.de>
+Subject: [PATCH 1/8] acpi: Use ACPI C-state type instead of enumeration value to export cpuidle state name
+Date: Thu,  2 Dec 2010 17:42:21 +0100
+Message-ID: <1291308148-28628-2-git-send-email-trenn@suse.de>
 References: <1291308148-28628-1-git-send-email-trenn@suse.de>
- <1291308148-28628-2-git-send-email-trenn@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34519 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757787Ab0LBQmk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Dec 2010 11:42:40 -0500
-In-Reply-To: <1291308148-28628-2-git-send-email-trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1291308148-28628-1-git-send-email-trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, arjan@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, arjan@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org
 
-C0 means and is well know as "not idle".
-All documentation out there uses this term as "running"/"not idle"
-state. Also Linux userspace tools (e.g. cpufreq-aperf and turbostat)
-show C0 residency which there is correct, but means something totally
-else than cpuidle "POLL" state.
+In the former /proc/acpi/processor/power/* there were Cx showing the
+enumerated number/amount of C-states and type[Cy] which is
+what should get shown as the cpuidle state name.
 
+Typically on latest Nehalem and later CPUs, BIOS vendors miss
+out C2 and C3 wrongly shows up as C2.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: arjan@linux.intel.com
 CC: lenb@kernel.org
 CC: linux-acpi@vger.kernel.org
-CC: Ingo Molnar <mingo@elte.hu>
 CC: linux-kernel@vger.kernel.org
 ---
- drivers/cpuidle/cpuidle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_idle.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index 08d5f05..99cc8fc 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -260,7 +260,7 @@ static void poll_idle_init(struct cpuidle_device *dev)
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index dcb38f8..104ae77 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1008,7 +1008,6 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ #endif
+ 		cpuidle_set_statedata(state, cx);
  
- 	cpuidle_set_statedata(state, NULL);
+-		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
+ 		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
+ 		state->exit_latency = cx->latency;
+ 		state->target_residency = cx->latency * latency_factor;
+@@ -1016,6 +1015,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ 		state->flags = 0;
+ 		switch (cx->type) {
+ 			case ACPI_STATE_C1:
++			snprintf(state->name, CPUIDLE_NAME_LEN, "C1");
+ 			state->flags |= CPUIDLE_FLAG_SHALLOW;
+ 			if (cx->entry_method == ACPI_CSTATE_FFH)
+ 				state->flags |= CPUIDLE_FLAG_TIME_VALID;
+@@ -1025,6 +1025,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ 			break;
  
--	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
-+	snprintf(state->name, CPUIDLE_NAME_LEN, "POLL");
- 	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
- 	state->exit_latency = 0;
- 	state->target_residency = 0;
+ 			case ACPI_STATE_C2:
++			snprintf(state->name, CPUIDLE_NAME_LEN, "C2");
+ 			state->flags |= CPUIDLE_FLAG_BALANCED;
+ 			state->flags |= CPUIDLE_FLAG_TIME_VALID;
+ 			state->enter = acpi_idle_enter_simple;
+@@ -1032,6 +1033,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ 			break;
+ 
+ 			case ACPI_STATE_C3:
++			snprintf(state->name, CPUIDLE_NAME_LEN, "C3");
+ 			state->flags |= CPUIDLE_FLAG_DEEP;
+ 			state->flags |= CPUIDLE_FLAG_TIME_VALID;
+ 			state->flags |= CPUIDLE_FLAG_CHECK_BM;
 -- 
 1.6.0.2
-
