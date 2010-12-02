@@ -1,71 +1,94 @@
-From: Joe Perches <joe@perches.com>
+From: Huang Ying <ying.huang@intel.com>
 Subject: Re: [PATCH -v3 1/4] printk, Add pr_pfx for library functions
-Date: Thu, 02 Dec 2010 00:37:15 -0800
-Message-ID: <1291279035.1761.58.camel@Joe-Laptop>
+Date: Thu, 02 Dec 2010 16:54:30 +0800
+Message-ID: <1291280070.12648.582.camel@yhuang-dev>
 References: <1291277105-31758-1-git-send-email-ying.huang@intel.com>
 	 <1291277105-31758-2-git-send-email-ying.huang@intel.com>
+	 <1291279035.1761.58.camel@Joe-Laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:2143 "EHLO mail.perches.com"
+Received: from mga03.intel.com ([143.182.124.21]:22119 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755319Ab0LBIhS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Dec 2010 03:37:18 -0500
-In-Reply-To: <1291277105-31758-2-git-send-email-ying.huang@intel.com>
+	id S1752545Ab0LBIyf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Dec 2010 03:54:35 -0500
+In-Reply-To: <1291279035.1761.58.camel@Joe-Laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Joe Perches <joe@perches.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-On Thu, 2010-12-02 at 16:05 +0800, Huang Ying wrote:
-> For library functions doing printk, the log level and line prefix
-> usually need to be specified by the caller. So this patch adds
-> "pr_pfx" to make the life of these library functions easier.
-[]
-> +#define pr_pfx(pfx, fmt, ...) \
-> +	printk("%s" fmt, pfx, ##__VA_ARGS__)
+Hi, Joe,
 
-I think this would be a very error prone style.
+On Thu, 2010-12-02 at 16:37 +0800, Joe Perches wrote:
+> On Thu, 2010-12-02 at 16:05 +0800, Huang Ying wrote:
+> > For library functions doing printk, the log level and line prefix
+> > usually need to be specified by the caller. So this patch adds
+> > "pr_pfx" to make the life of these library functions easier.
+> []
+> > +#define pr_pfx(pfx, fmt, ...) \
+> > +	printk("%s" fmt, pfx, ##__VA_ARGS__)
+> 
+> I think this would be a very error prone style.
+> 
+> pr_<foo> uses are log levels.
+> 
+> For an casual reader, is pfx a new log level or
+> is it a prefix or is it both?  I do understand
+> what you intend.
 
-pr_<foo> uses are log levels.
+Maybe we can rename it to avoid confusing. Any suggestion? Or just
+pfx_pr?
 
-For an casual reader, is pfx a new log level or
-is it a prefix or is it both?  I do understand
-what you intend.
+> Mutability of the KERN_<level> is pretty unusual.
+> Most all of the uses are ?: style
 
-Mutability of the KERN_<level> is pretty unusual.
-Most all of the uses are ?: style
+If printk is used in library functions, the log level and some prefix
+need to be specified by the caller. That is the intended user. Such as
+that in 2 of the patch series.
 
-Here are the first uses in each file that has them:
-There aren't many.
+> Here are the first uses in each file that has them:
+> There aren't many.
+> 
+> $ grep -rP -m1 --include=*.[ch] "KERN_[A-Z]+\s*:\s*KERN" *
+> arch/avr32/mm/fault.c:			       is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
+> arch/sparc/kernel/traps_64.c:	       (recoverable ? KERN_WARNING : KERN_CRIT), smp_processor_id(),
+> arch/sparc/mm/fault_64.c:	       task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
+> arch/sparc/mm/fault_32.c:	       task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
+> arch/x86/kernel/signal.c:		       task_pid_nr(current) > 1 ? KERN_INFO : KERN_EMERG,
+> arch/x86/mm/fault.c:		task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
+> arch/parisc/kernel/traps.c:	level = user ? KERN_DEBUG : KERN_CRIT;
+> drivers/pci/pcie/aer/aerdrv_errprint.c:		KERN_WARNING : KERN_ERR, dev_driver_string(&pdev->dev),	\
+> include/linux/arcdevice.h:            		: x < D_DURING ? KERN_INFO : KERN_DEBUG, \
+> mm/internal.h:		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG); \
+> sound/core/misc.c:	const char *pfx = level ? KERN_DEBUG : KERN_DEFAULT;
+> 
+> I don't see why you can't use something like that
+> with a simpler flag for level.
 
-$ grep -rP -m1 --include=*.[ch] "KERN_[A-Z]+\s*:\s*KERN" *
-arch/avr32/mm/fault.c:			       is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
-arch/sparc/kernel/traps_64.c:	       (recoverable ? KERN_WARNING : KERN_CRIT), smp_processor_id(),
-arch/sparc/mm/fault_64.c:	       task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
-arch/sparc/mm/fault_32.c:	       task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
-arch/x86/kernel/signal.c:		       task_pid_nr(current) > 1 ? KERN_INFO : KERN_EMERG,
-arch/x86/mm/fault.c:		task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
-arch/parisc/kernel/traps.c:	level = user ? KERN_DEBUG : KERN_CRIT;
-drivers/pci/pcie/aer/aerdrv_errprint.c:		KERN_WARNING : KERN_ERR, dev_driver_string(&pdev->dev),	\
-include/linux/arcdevice.h:            		: x < D_DURING ? KERN_INFO : KERN_DEBUG, \
-mm/internal.h:		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG); \
-sound/core/misc.c:	const char *pfx = level ? KERN_DEBUG : KERN_DEFAULT;
+That is doable. I just think let caller specify log level and line
+prefix is more flexible, and uses less code.
 
-I don't see why you can't use something like that
-with a simpler flag for level.
+> You also miss a chance to use pr_pfx in ghes_print_estatus:
 
-You also miss a chance to use pr_pfx in ghes_print_estatus:
+Sorry, forget that.
 
-+       if (__ratelimit(&ratelimit)) {
-+               printk(
-+       "%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
-+       pfx, ghes->generic->header.source_id);
-+               apei_estatus_print(pfx, ghes->estatus);
-+
+> +       if (__ratelimit(&ratelimit)) {
+> +               printk(
+> +       "%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
+> +       pfx, ghes->generic->header.source_id);
+> +               apei_estatus_print(pfx, ghes->estatus);
+> +
+> 
+> ghes_print_estatus is only called with a NULL first argument.
+> so the code use of pr_pfx seems dubious in any case.
 
-ghes_print_estatus is only called with a NULL first argument.
-so the code use of pr_pfx seems dubious in any case.
+In some following-up patches (not sent out yet), ghes_print_estatus may
+be called with non-NULL first argument.
+
+Best Regards,
+Huang Ying
+
 
 
