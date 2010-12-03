@@ -1,259 +1,197 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: 2.6.37-rc4-git1: Reported regressions from 2.6.36
-Date: Fri,  3 Dec 2010 00:35:49 +0100 (CET)
-Message-ID: <1OMp3vU_qjP.A.JXG.uxC-MB@chimera>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v7 1/3] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+Date: Fri,  3 Dec 2010 10:46:56 +0800
+Message-ID: <1291344418-25206-2-git-send-email-ying.huang@intel.com>
+References: <1291344418-25206-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49864 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:40652 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757178Ab0LBXfg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Dec 2010 18:35:36 -0500
-Content-Disposition: inline
+	id S932226Ab0LCCrM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Dec 2010 21:47:12 -0500
+In-Reply-To: <1291344418-25206-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
-
-This message contains a list of some regressions from 2.6.36,
-for which there are no fixes in the mainline known to the tracking team.
-If any of them have been fixed already, please let us know.
-
-If you know of any other unresolved regressions from 2.6.36, please let us
-know either and we'll add them to the list.  Also, please let us know
-if any of the entries below are invalid.
-
-Each entry from the list will be sent additionally in an automatic reply
-to this message with CCs to the people involved in reporting and handling
-the issue.
-
-
-Listed regressions statistics:
-
-  Date          Total  Pending  Unresolved
-  ----------------------------------------
-  2010-12-03       55       25          19
-  2010-11-19       39       29          25
-
-
-Unresolved regressions
-----------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=24142
-Subject		: No more bt848 driver in 2.6.37-rc*
-Submitter	: Christian Casteyde <casteyde.christian@free.fr>
-Date		: 2010-11-30 20:50 (3 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23902
-Subject		: [BUG] 2.6.37-rc3 massive interactivity regression on ARM
-Submitter	: Mikael Pettersson <mikpe@it.uu.se>
-Date		: 2010-11-27 15:16 (6 days old)
-Message-ID	: <19697.8378.717761.236202@pilspetsen.it.uu.se>
-References	: http://marc.info/?l=linux-kernel&m=129087098911837&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23762
-Subject		: kernel 2.6.37-rc2 breaks i915 graphics
-Submitter	: Chris Vine <chris@cvine.freeserve.co.uk>
-Date		: 2010-11-21 10:23 (12 days old)
-Message-ID	: <20101121102344.7c590b99@laptop.homenet>
-References	: http://marc.info/?l=linux-kernel&m=129033505414671&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23542
-Subject		: HP 2530p accelerated graphics causes spontaneous power off/on
-Submitter	: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Date		: 2010-11-22 17:12 (11 days old)
-References	: https://patchwork.kernel.org/patch/365092/
-Handled-By	: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23462
-Subject		: DVI/EDID broken with Intel i945 graphics and 2.6.37-rc2
-Submitter	: Tino Keitel <tino.keitel@tikei.de>
-Date		: 2010-11-16 18:49 (17 days old)
-Message-ID	: <20101116184914.GA15794@mac.home>
-References	: http://marc.info/?l=linux-kernel&m=128993389113001&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23432
-Subject		: resume from suspend hangs on everex stepnote sa2053
-Submitter	: tomas m <tmezzadra@gmail.com>
-Date		: 2010-11-21 13:32 (12 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23332
-Subject		: Boot failure on HP nx6325
-Submitter	: Rafael J. Wysocki <rjw@sisk.pl>
-Date		: 2010-11-20 00:57 (13 days old)
-First-Bad-Commit: http://git.kernel.org/linus/1af3c2e45e7a641e774bbb84fa428f2f0bf2d9c9
-Handled-By	: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23142
-Subject		: autofs4 hang in 2.6.37-rc1
-Submitter	: Avi Kivity <avi@redhat.com>
-Date		: 2010-11-14 12:55 (19 days old)
-Message-ID	: <4CDFDC2B.6040205@redhat.com>
-References	: http://marc.info/?l=linux-kernel&m=128973936026185&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23102
-Subject		: [bisected] i915 regression in post 2.6.36 kernels
-Submitter	: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
-Date		: 2010-11-10 7:02 (23 days old)
-Message-ID	: <201011100802.20332.johannes.hirte@fem.tu-ilmenau.de>
-References	: http://marc.info/?l=linux-kernel&m=128937310017057&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22942
-Subject		: [2.6.37-rc1, OOM] virtblk: OOM in do_virtblk_request()
-Submitter	: Dave Chinner <david@fromorbit.com>
-Date		: 2010-11-05 1:30 (28 days old)
-Message-ID	: <20101105013003.GE13830@dastard>
-References	: http://marc.info/?l=linux-kernel&m=128892062917641&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22912
-Subject		: spi_lm70llp module crash on unload (2.6.37-rc1)
-Submitter	: Randy Dunlap <randy.dunlap@oracle.com>
-Date		: 2010-11-05 0:16 (28 days old)
-Message-ID	: <20101104171620.00d8c95d.randy.dunlap@oracle.com>
-References	: http://marc.info/?l=linux-kernel&m=128891627913647&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22882
-Subject		: (2.6.37-rc1) amd64-agp module crashed on second load
-Submitter	: Randy Dunlap <randy.dunlap@oracle.com>
-Date		: 2010-11-05 0:13 (28 days old)
-Message-ID	: <20101104171333.fea1f498.randy.dunlap@oracle.com>
-References	: http://marc.info/?l=linux-kernel&m=128891605213447&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22812
-Subject		: kernel oops on 2.6.37-rc1
-Submitter	: Andrew <atswartz@gmail.com>
-Date		: 2010-11-12 16:05 (21 days old)
-First-Bad-Commit: http://git.kernel.org/linus/a68c439b1966c91f0ef474e2bf275d6792312726
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22672
-Subject		: Regression in 2.6.37-rc1 for Intel 945 Graphics Adapter - bisected to commit e9e331a
-Submitter	: Larry Finger <Larry.Finger@lwfinger.net>
-Date		: 2010-11-11 01:56 (22 days old)
-References	: https://bugs.freedesktop.org/show_bug.cgi?id=31803
-		  http://marc.info/?l=linux-kernel&m=128944001311444&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22642
-Subject		: 2.6.37-rc1: Disk takes 10 seconds to resume - MacBook2,1
-Submitter	: Tobias <devnull@plzk.org>
-Date		: 2010-11-10 19:33 (23 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22562
-Subject		: Regression in 2.6.37-rc1 - logs spammed with "unable to enumerate USB port" - bisected to commit 3df7169e
-Submitter	: Larry Finger <Larry.Finger@lwfinger.net>
-Date		: 2010-11-02 22:32 (31 days old)
-First-Bad-Commit: http://git.kernel.org/linus/3df7169e73fc1d71a39cffeacc969f6840cdf52b
-Message-ID	: <4CD09166.4060202@lwfinger.net>
-References	: http://marc.info/?l=linux-kernel&m=128873713207906&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22542
-Subject		: [2.6.37-rc1] drm:i195 errors
-Submitter	: Paul Rolland <rol@witbe.net>
-Date		: 2010-11-02 14:58 (31 days old)
-Message-ID	: <20101102155813.09cb2c6e@tux.DEF.witbe.net>
-References	: http://marc.info/?l=linux-kernel&m=128870991628970&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22532
-Subject		: 2.6.37-rc1: BUG: scheduling while atomic (kvm_init)
-Submitter	: Thomas Meyer <thomas@m3y3r.de>
-Date		: 2010-11-02 19:06 (31 days old)
-Message-ID	: <50AA24C585B14210A44AB599605C7CBD@hugo>
-References	: http://marc.info/?l=linux-kernel&m=128872479921559&w=2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22472
-Subject		: vga_switcheroo fails to switch from intel to ati
-Submitter	: Radu Andries <admiral0@tuxfamily.org>
-Date		: 2010-11-08 16:46 (25 days old)
-
-
-Regressions with patches
-------------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=24012
-Subject		: Commit g18733b0 hangs my LVM+raid10 system
-Submitter	: Giacomo Catenazzi <cate@cateee.net>
-Date		: 2010-11-29 19:48 (4 days old)
-Handled-By	: Neil Brown <neilb@suse.de>
-Patch		: https://bugzilla.kernel.org/show_bug.cgi?id=24012#c16
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23452
-Subject		: 5ada28bf76752 causes compilation error if !CONFIG_LEDS_CLASS
-Submitter	: Michal Hocko <mhocko@suse.cz>
-Date		: 2010-11-16 14:20 (17 days old)
-Message-ID	: <20101116142027.GC19247@tiehlicka.suse.cz>
-References	: http://marc.info/?l=linux-kernel&m=128991726220668&w=2
-Handled-By	: Johannes Berg <johannes.berg@intel.com>
-Patch		: https://patchwork.kernel.org/patch/365582/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=23012
-Subject		: ftdi_sio /dev/ttyUSB error:  "Resource Temporarily Unavailable"
-Submitter	: Kevin Smith <thirdwiggin@gmail.com>
-Date		: 2010-11-16 06:25 (17 days old)
-Handled-By	: Alan Stern <stern@rowland.harvard.edu>
-Patch		: https://bugzilla.kernel.org/attachment.cgi?id=38372
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22932
-Subject		: [REGRESSION] [2.6.37-rc1] Fan noise after suspend to ram/disk
-Submitter	: Maciej Rutecki <maciej.rutecki@gmail.com>
-Date		: 2010-11-04 16:06 (29 days old)
-First-Bad-Commit: http://git.kernel.org/linus/3e384ee6c687cb397581ee8f9440fc8220cfac80
-Message-ID	: <201011041706.59046.maciej.rutecki@gmail.com>
-References	: http://marc.info/?l=linux-kernel&m=128888684308982&w=2
-Handled-By	: Rafael J. Wysocki <rjw@sisk.pl>
-Patch		: https://patchwork.kernel.org/patch/354682/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22662
-Subject		: divide error in select_task_rq_fair()
-Submitter	: Myron Stowe <myron.stowe@hp.com>
-Date		: 2010-11-10 23:58 (23 days old)
-Patch		: http://lkml.org/lkml/2010/11/13/176
-		  http://lkml.org/lkml/2010/11/13/181
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=22572
-Subject		: Linux 2.6.37-rc1 (acpi_video)
-Submitter	: Randy Dunlap <randy.dunlap@oracle.com>
-Date		: 2010-11-02 18:51 (31 days old)
-Message-ID	: <20101102115106.bac57d21.randy.dunlap@oracle.com>
-References	: http://marc.info/?l=linux-kernel&m=128872403920449&w=2
-		  http://marc.info/?l=linux-acpi&m=128874714517914&w=2
-Handled-By	: Zhang Rui <rui.zhang@intel.com>
-Patch		: https://bugzilla.kernel.org/attachment.cgi?id=36992
-
-
-For details, please visit the bug entries and follow the links given in
-references.
-
-As you can see, there is a Bugzilla entry for each of the listed regressions.
-There also is a Bugzilla entry used for tracking the regressions from 2.6.36,
-unresolved as well as resolved, at:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=21782
-
-Please let the tracking team know if there are any Bugzilla entries that
-should be added to the list in there.
-
-Thanks!
-
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Richard Henderson <rth@twiddle.net>, Russell King <linux@arm.linux.org.uk>, Mikael Starvik <starvik@axis.com>, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Kyle McMartin <kyle@mcmartin.ca>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Chen Liqin <liqin.chen@sunplusct.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@redhat.com>, Chris Zankel <chris@zankel.net>
+
+cmpxchg() is widely used by lockless code, including NMI-safe lockless
+code.  But on some architectures, the cmpxchg() implementation is not
+NMI-safe, on these architectures the lockless code may need to a
+spin_trylock_irqsave() based implementation.
+
+This patch adds a Kconfig option: ARCH_HAVE_NMI_SAFE_CMPXCHG, so that
+NMI-safe lockless code can depend on it or provide different
+implementation according to it.
+
+On many architectures, cmpxchg is only NMI-safe for several specific
+operand sizes. So, ARCH_HAVE_NMI_SAFE_CMPXCHG define in this patch
+only guarantees cmpxchg is NMI-safe for sizeof(unsigned long).
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+CC: Richard Henderson <rth@twiddle.net>
+CC: Russell King <linux@arm.linux.org.uk>
+CC: Mikael Starvik <starvik@axis.com>
+CC: David Howells <dhowells@redhat.com>
+CC: Yoshinori Sato <ysato@users.sourceforge.jp>
+CC: Tony Luck <tony.luck@intel.com>
+CC: Hirokazu Takata <takata@linux-m32r.org>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Michal Simek <monstr@monstr.eu>
+CC: Ralf Baechle <ralf@linux-mips.org>
+CC: Kyle McMartin <kyle@mcmartin.ca>
+CC: Martin Schwidefsky <schwidefsky@de.ibm.com>
+CC: Chen Liqin <liqin.chen@sunplusct.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Chris Zankel <chris@zankel.net>
+---
+ arch/Kconfig         |    3 +++
+ arch/alpha/Kconfig   |    1 +
+ arch/avr32/Kconfig   |    1 +
+ arch/frv/Kconfig     |    1 +
+ arch/ia64/Kconfig    |    1 +
+ arch/m68k/Kconfig    |    1 +
+ arch/parisc/Kconfig  |    1 +
+ arch/powerpc/Kconfig |    1 +
+ arch/s390/Kconfig    |    1 +
+ arch/sh/Kconfig      |    1 +
+ arch/sparc/Kconfig   |    1 +
+ arch/tile/Kconfig    |    1 +
+ arch/x86/Kconfig     |    1 +
+ 13 files changed, 15 insertions(+)
+
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -175,4 +175,7 @@ config HAVE_PERF_EVENTS_NMI
+ config HAVE_ARCH_JUMP_LABEL
+ 	bool
+ 
++config ARCH_HAVE_NMI_SAFE_CMPXCHG
++	bool
++
+ source "kernel/gcov/Kconfig"
+--- a/arch/alpha/Kconfig
++++ b/arch/alpha/Kconfig
+@@ -7,6 +7,7 @@ config ALPHA
+ 	select HAVE_SYSCALL_WRAPPERS
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_DMA_ATTRS
+ 	help
+ 	  The Alpha is a 64-bit general-purpose processor designed and
+--- a/arch/avr32/Kconfig
++++ b/arch/avr32/Kconfig
+@@ -6,6 +6,7 @@ config AVR32
+ 	select HAVE_CLK
+ 	select HAVE_OPROFILE
+ 	select HAVE_KPROBES
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	help
+ 	  AVR32 is a high-performance 32-bit RISC microprocessor core,
+ 	  designed for cost-sensitive embedded applications, with particular
+--- a/arch/frv/Kconfig
++++ b/arch/frv/Kconfig
+@@ -5,6 +5,7 @@ config FRV
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 
+ config ZONE_DMA
+ 	bool
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -22,6 +22,7 @@ config IA64
+ 	select HAVE_KVM
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_DMA_API_DEBUG
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	default y
+ 	help
+ 	  The Itanium Processor Family is Intel's 64-bit successor to
+--- a/arch/m68k/Kconfig
++++ b/arch/m68k/Kconfig
+@@ -4,6 +4,7 @@ config M68K
+ 	select HAVE_AOUT
+ 	select HAVE_IDE
+ 	select GENERIC_ATOMIC64
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG if RMW_INSNS
+ 
+ config MMU
+ 	bool
+--- a/arch/parisc/Kconfig
++++ b/arch/parisc/Kconfig
+@@ -11,6 +11,7 @@ config PARISC
+ 	select BUG
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_ATOMIC64 if !64BIT
+ 	select GENERIC_HARDIRQS_NO__DO_IRQ
+ 	help
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -138,6 +138,7 @@ config PPC
+ 	select GENERIC_ATOMIC64 if PPC32
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_HW_BREAKPOINT if PERF_EVENTS && PPC_BOOK3S_64
+ 
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -94,6 +94,7 @@ config S390
+ 	select INIT_ALL_POSSIBLE
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
+ 	select HAVE_KERNEL_LZMA
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -11,6 +11,7 @@ config SUPERH
+ 	select HAVE_DMA_ATTRS
+ 	select HAVE_IRQ_WORK
+ 	select HAVE_PERF_EVENTS
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
+ 	select PERF_USE_VMALLOC
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -22,6 +22,7 @@ config SPARC
+ 	select RTC_CLASS
+ 	select RTC_DRV_M48T59
+ 	select HAVE_IRQ_WORK
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_DMA_ATTRS
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_ARCH_JUMP_LABEL
+--- a/arch/tile/Kconfig
++++ b/arch/tile/Kconfig
+@@ -104,6 +104,7 @@ config TILE
+ 	select GENERIC_FIND_NEXT_BIT
+ 	select USE_GENERIC_SMP_HELPERS
+ 	select CC_OPTIMIZE_FOR_SIZE
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 
+ # FIXME: investigate whether we need/want these options.
+ #	select HAVE_IOREMAP_PROT
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -23,6 +23,7 @@ config X86
+ 	select HAVE_OPROFILE
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_IRQ_WORK
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG if !M386
+ 	select HAVE_IOREMAP_PROT
+ 	select HAVE_KPROBES
+ 	select HAVE_MEMBLOCK
