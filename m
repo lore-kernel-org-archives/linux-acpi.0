@@ -1,82 +1,49 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 6/7] ACPI video: introduce module parameter
- video.use_bios_initial_backlight
-Date: Mon, 6 Dec 2010 08:03:40 -0800
-Message-ID: <20101206080340.8773aee3.randy.dunlap@oracle.com>
-References: <1291619067.19296.580.camel@rui>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: acpi_button: random oops on boot
+Date: Mon, 6 Dec 2010 09:28:11 -0700
+Message-ID: <201012060928.11307.bjorn.helgaas@hp.com>
+References: <1291477752.5096.27.camel@Tobias-Karnat>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:65039 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162Ab0LFQFA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Dec 2010 11:05:00 -0500
-In-Reply-To: <1291619067.19296.580.camel@rui>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:4213 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab0LFQ2U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Dec 2010 11:28:20 -0500
+In-Reply-To: <1291477752.5096.27.camel@Tobias-Karnat>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Tobias Karnat <tobias.karnat@googlemail.com>
+Cc: linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, richard.coe@med.ge.com, jslaby@novell.com
 
-On Mon, 06 Dec 2010 15:04:27 +0800 Zhang Rui wrote:
-
+On Saturday, December 04, 2010 08:49:12 am Tobias Karnat wrote:
+> I have a problem with random oopses on boot,
+> every 1 out of 5 times I boot linux freezes.
 > 
-> Introduce module parameter video.use_bios_initial_backlight.
+> I was not able to obtain a call trace, however it happens around 10-15
+> seconds after boot. I can hear that the tg3 driver is initialised.
 > 
-> Some BIOSes claim they use the minimum backlight at boot,
-> and this may bring dimming screen after boot.
-> https://bugzilla.kernel.org/show_bug.cgi?id=21212
+> In this thread, they have the same problem:
+> https://bugzilla.novell.com/show_bug.cgi?id=647029
+
+Wow, that's a nasty problem.
+
+> Applying the patch from the thread, makes the problem occurring less
+> often and dmesg shows acpi-button loads for me on hid PNP0C0C and
+> LNXPWRBN.
 > 
-> use video.use_bios_initl_backlight=0 to use
-> the maximum backlight level after boot.
+> Maybe commit e2fb9754d27513918a4936e8cbaad50ff56cfd3d
+> ACPI: button: remove unnecessary null pointer checks
+> has unmasked an underlying problem?
 
-Hi,
-Where is this documented?
+The oopses from the bugzilla are not the sort I would expect from
+a null pointer dereference, but since it's fairly reproducible for
+you, it might be worth reverting e2fb9754d27 to see whether it makes
+any difference.
 
+Does Rich's script from https://bugzilla.novell.com/show_bug.cgi?id=647029#c30
+help you reproduce the problem?
 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |   15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -80,6 +80,13 @@ module_param(brightness_switch_enabled, 
->  static int allow_duplicates;
->  module_param(allow_duplicates, bool, 0644);
->  
-> +/*
-> + * Some BIOSes claim they use minimum backlight at boot,
-> + * and this may bring dimming screen after boot
-> + */
-> +static int use_bios_initial_backlight = 1;
-> +module_param(use_bios_initial_backlight, bool, 0644);
-> +
->  static int register_count = 0;
->  static int acpi_video_bus_add(struct acpi_device *device);
->  static int acpi_video_bus_remove(struct acpi_device *device, int type);
-> @@ -705,9 +712,11 @@ acpi_video_init_brightness(struct acpi_v
->  		 * when invoked for the first time, i.e. level_old is invalid.
->  		 * set the backlight to max_level in this case
->  		 */
-> -		for (i = 2; i < br->count; i++)
-> -			if (level_old == br->levels[i])
-> -				level = level_old;
-> +		if (use_bios_initial_backlight) {
-> +			for (i = 2; i < br->count; i++)
-> +				if (level_old == br->levels[i])
-> +					level = level_old;
-> +		}
->  		goto set_level;
->  	}
->  
-> 
-> 
-> --
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Bjorn
