@@ -1,237 +1,305 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: 2.6.37-rc4-git4: Reported regressions 2.6.35 -> 2.6.36
-Date: Sun,  5 Dec 2010 21:15:41 +0100 (CET)
-Message-ID: <jyQ21do2hOF.A.qwD.m_--MB@chimera>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [RFC PATCH 1/4] IPMI: Add one interface to get more info of
+	low-level IPMI device
+Date: Mon, 06 Dec 2010 09:06:42 +0800
+Message-ID: <1291597602.3948.300.camel@localhost.localdomain>
+References: <1291076781-9438-1-git-send-email-yakui.zhao@intel.com>
+	 <1291076781-9438-2-git-send-email-yakui.zhao@intel.com>
+	 <1291077392.3948.141.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-bounces@linux.kernel.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/stable>,
-	<mailto:stable-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/mailman/private/stable/>
-List-Post: <mailto:stable@linux.kernel.org>
-List-Help: <mailto:stable-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/stable>,
-	<mailto:stable-request@linux.kernel.org?subject=subscribe>
-Sender: stable-bounces@linux.kernel.org
-Errors-To: stable-bounces@linux.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:42861 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891Ab0LFBIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 5 Dec 2010 20:08:11 -0500
+In-Reply-To: <1291077392.3948.141.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "minyard@acm.org" <minyard@acm.org>
+Cc: "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-VGhpcyBtZXNzYWdlIGNvbnRhaW5zIGEgbGlzdCBvZiBzb21lIHBvc3QtMi42LjM1IHJlZ3Jlc3Np
-b25zIGludHJvZHVjZWQgYmVmb3JlCjIuNi4zNiwgZm9yIHdoaWNoIHRoZXJlIGFyZSBubyBmaXhl
-cyBpbiB0aGUgbWFpbmxpbmUga25vd24gdG8gdGhlIHRyYWNraW5nIHRlYW0uCklmIGFueSBvZiB0
-aGVtIGhhdmUgYmVlbiBmaXhlZCBhbHJlYWR5LCBwbGVhc2UgbGV0IHVzIGtub3cuCgpJZiB5b3Ug
-a25vdyBvZiBhbnkgb3RoZXIgdW5yZXNvbHZlZCBwb3N0LTIuNi4zNSByZWdyZXNzaW9ucywgcGxl
-YXNlIGxldCB1cyBrbm93CmVpdGhlciBhbmQgd2UnbGwgYWRkIHRoZW0gdG8gdGhlIGxpc3QuICBB
-bHNvLCBwbGVhc2UgbGV0IHVzIGtub3cgaWYgYW55Cm9mIHRoZSBlbnRyaWVzIGJlbG93IGFyZSBp
-bnZhbGlkLgoKRWFjaCBlbnRyeSBmcm9tIHRoZSBsaXN0IHdpbGwgYmUgc2VudCBhZGRpdGlvbmFs
-bHkgaW4gYW4gYXV0b21hdGljIHJlcGx5IHRvCnRoaXMgbWVzc2FnZSB3aXRoIENDcyB0byB0aGUg
-cGVvcGxlIGludm9sdmVkIGluIHJlcG9ydGluZyBhbmQgaGFuZGxpbmcgdGhlCmlzc3VlLgoKCkxp
-c3RlZCByZWdyZXNzaW9ucyBzdGF0aXN0aWNzOgoKICBEYXRlICAgICAgICAgIFRvdGFsICBQZW5k
-aW5nICBVbnJlc29sdmVkCiAgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQogIDIwMTAtMTItMDUgICAgICAgOTUgICAgICAgMzQgICAgICAgICAgMzEKICAyMDEwLTExLTE5
-ICAgICAgIDkyICAgICAgIDM4ICAgICAgICAgIDM0CiAgMjAxMC0xMC0xNyAgICAgICA3MCAgICAg
-ICAyNyAgICAgICAgICAyNwogIDIwMTAtMTAtMTAgICAgICAgNTYgICAgICAgMTYgICAgICAgICAg
-MTUKICAyMDEwLTEwLTAzICAgICAgIDUyICAgICAgIDE2ICAgICAgICAgIDE0CiAgMjAxMC0wOS0y
-NiAgICAgICA0NiAgICAgICAxNSAgICAgICAgICAxMwogIDIwMTAtMDktMjAgICAgICAgMzggICAg
-ICAgMTUgICAgICAgICAgMTUKICAyMDEwLTA5LTEyICAgICAgIDI4ICAgICAgIDE0ICAgICAgICAg
-IDEzCiAgMjAxMC0wOC0zMCAgICAgICAyMSAgICAgICAxNiAgICAgICAgICAxNQoKClVucmVzb2x2
-ZWQgcmVncmVzc2lvbnMKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKQnVnLUVudHJ5CTogaHR0cDov
-L2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTI0MDIyClN1YmplY3QJCTogd2ly
-ZWxlc3Mgbm8gbG9uZ2VyIHdvcmtzIGFmdGVyIDFzdCB1cGRhdGUgb2YgMTAuMTAgW3J0bDgxOXhF
-OkVSUiBpbiBpbml0X2Zpcm13YXJlKCldClN1Ym1pdHRlcgk6IG5qaW4gPG1hcmNvbmlmYWJpb0B1
-YnVudHUtaXQub3JnPgpEYXRlCQk6IDIwMTAtMTEtMjkgMTk6NDkgKDcgZGF5cyBvbGQpCgoKQnVn
-LUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIzODEy
-ClN1YmplY3QJCTogSEFMIGRvZXMgbm90IHByb3ZpZGUgYmF0dGVyeSBpbmZvcm1hdGlvbiBvbiBS
-SEVMNSBhbmQgQ2VudE9TLTUKU3VibWl0dGVyCTogRGFnIFdpZWVycyA8ZGFnQHdpZWVycy5jb20+
-CkRhdGUJCTogMjAxMC0xMS0yNiAxODowOCAoMTAgZGF5cyBvbGQpCgoKQnVnLUVudHJ5CTogaHR0
-cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIzMzAyClN1YmplY3QJCTog
-YWxzYSBzdG9wcyB3b3JraW5nIGFmdGVyIG9uZSBvciBtb3JlIGhpYmVybmF0ZSBvciBzdXNwZW5k
-IGN5Y2xlcwpTdWJtaXR0ZXIJOiBXZXJuZXIgTGVtYmVyZyA8d2xAZ251Lm9yZz4KRGF0ZQkJOiAy
-MDEwLTExLTE5IDE2OjIxICgxNyBkYXlzIG9sZCkKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemls
-bGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MjMxMzIKU3ViamVjdAkJOiB3aXRob3V0ICJw
-Y2k9bm9jcnMiLCBEZWxsIEluc3Bpcm9uIDE1NDUgaGFuZ3MKU3VibWl0dGVyCTogQmpvcm4gSGVs
-Z2FhcyA8Ympvcm4uaGVsZ2Fhc0BocC5jb20+CkRhdGUJCTogMjAxMC0xMS0xNyAxOToxOCAoMTkg
-ZGF5cyBvbGQpCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19i
-dWcuY2dpP2lkPTIyODQyClN1YmplY3QJCTogaXdsMzk0NSBzdWRkZW5seSBzdG9wcyB3b3JraW5n
-ClN1Ym1pdHRlcgk6IEZlbGlwZSBDb250cmVyYXMgPGZlbGlwZS5jb250cmVyYXNAZ21haWwuY29t
-PgpEYXRlCQk6IDIwMTAtMTEtMTQgMTE6MTQgKDIyIGRheXMgb2xkKQoKCkJ1Zy1FbnRyeQk6IGh0
-dHA6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0yMjc4MgpTdWJqZWN0CQk6
-IDIuNi4zNjogZ2VuZXJhbCBwcm90ZWN0aW9uIGZhdWx0IGR1cmluZyBsb2NrZnMgbG9ja3NwYWNl
-IHJlbW92YWwKU3VibWl0dGVyCTogbmlrQGxpbnV4Ym94LmN6IDxuaWtAbGludXhib3guY3o+CkRh
-dGUJCTogMjAxMC0xMS0xMiAxMjowNSAoMjQgZGF5cyBvbGQpCgoKQnVnLUVudHJ5CTogaHR0cDov
-L2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIyNzMyClN1YmplY3QJCTogMi42
-LjM3LXJjMTogaGliZXJuYXRpb24gYnJlYWtzIHN3YXAKU3VibWl0dGVyCTogWmhhbmcgUnVpIDxy
-dWkuemhhbmdAaW50ZWwuY29tPgpEYXRlCQk6IDIwMTAtMTEtMTEgMDg6MzggKDI1IGRheXMgb2xk
-KQoKCkJ1Zy1FbnRyeQk6IGh0dHA6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9p
-ZD0yMjI3MgpTdWJqZWN0CQk6IEhpZ2ggW2V4dHJhIHRpbWVyIGludGVycnVwdF0gY291bnQgaW4g
-cG93ZXJ0b3Agc2luY2UgMi42LjM2ClN1Ym1pdHRlcgk6IElhbiBLdW1saWVuIDxwb21hY0BkZW1p
-dXMubmV0PgpEYXRlCQk6IDIwMTAtMTAtMzAgMjM6NTIgKDM3IGRheXMgb2xkKQpNZXNzYWdlLUlE
-CTogPGFscGluZS5MTlguMi4wMC4xMDEwMzEwMTQ4NDUwLjI0MjkwQHR3aWxpZ2h0LnBvbWFjLmNv
-bT4KUmVmZXJlbmNlcwk6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTI4ODQ4
-MzMwMzA0NDMxJnc9MgoKCkJ1Zy1FbnRyeQk6IGh0dHA6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3No
-b3dfYnVnLmNnaT9pZD0yMjE3MgpTdWJqZWN0CQk6IGFsc2EtdXRpbC5jOiBzbmRfcGNtX2F2YWls
-X2RlbGF5KCkgcmV0dXJuZWQgc3RyYW5nZSB2YWx1ZXM6IGRlbGF5IDAgaXMgbGVzcyB0aGFuIGF2
-YWlsIDMyClN1Ym1pdHRlcgk6IFRvYmlhcyA8ZGV2bnVsbEBwbHprLm9yZz4KRGF0ZQkJOiAyMDEw
-LTExLTA2IDA5OjMzICgzMCBkYXlzIG9sZCkKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEu
-a2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MjIwOTIKU3ViamVjdAkJOiBLZXJuZWwgdjIuNi4z
-NiB0cm91YmxlIG9uIFVTQiBkaXNjb25uZWN0ClN1Ym1pdHRlcgk6IEtldGlsIEZyb3luIDxrZXRp
-bEBmcm95bi5uYW1lPgpEYXRlCQk6IDIwMTAtMTAtMjkgODowNSAoMzggZGF5cyBvbGQpCk1lc3Nh
-Z2UtSUQJOiA8QUFOTGtUaWs1cVZ4a0VHVkFBMVBTT0drMktUVytla0hwU3d0dHNRRVd6V2orQG1h
-aWwuZ21haWwuY29tPgpSZWZlcmVuY2VzCTogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJu
-ZWwmbT0xMjg4MzM5NTY1MDM2MDcmdz0yCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtl
-cm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIxNjYyClN1YmplY3QJCTogMi42LjM1LT4yLjYuMzYg
-cmVncmVzc2lvbiwgdmFuaWxsYSBrZXJuZWwgcGFuaWMsIHBwcCBvciBocnRpbWVycyBjcmFzaGlu
-ZwpTdWJtaXR0ZXIJOiBEZW55cyBGZWRvcnlzaGNoZW5rbyA8bnVjbGVhcmNhdEBudWNsZWFyY2F0
-LmNvbT4KRGF0ZQkJOiAyMDEwLTEwLTI1IDk6MjIgKDQyIGRheXMgb2xkKQpNZXNzYWdlLUlECTog
-PDIwMTAxMDI1MTIyMi4zNzE5MS5udWNsZWFyY2F0QG51Y2xlYXJjYXQuY29tPgpSZWZlcmVuY2Vz
-CTogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMjg3OTk4NTU4MjYwMTEmdz0y
-CgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
-PTIxNjUyClN1YmplY3QJCTogc2V2ZXJhbCBwcm9ibGVtcyB3aXRoIGludGVsIGdyYXBoaWNzIHNp
-bmNlIDIuNi4zNgpTdWJtaXR0ZXIJOiBOb3JiZXJ0IFByZWluaW5nIDxwcmVpbmluZ0Bsb2dpYy5h
-dD4KRGF0ZQkJOiAyMDEwLTEwLTI3IDE0OjMyICg0MCBkYXlzIG9sZCkKTWVzc2FnZS1JRAk6IDwy
-MDEwMTAyNzE0MzI1Mi5HQTg2NzZAZ2FtbWEubG9naWMudHV3aWVuLmFjLmF0PgpSZWZlcmVuY2Vz
-CTogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMjg4MTg5OTg2MzAyNDEmdz0y
-CgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
-PTIxNDAyClN1YmplY3QJCTogW0tWTV0gTm9hY3BpIFdpbmRvd3MgZ3Vlc3QgY2FuIG5vdCBib290
-IHVwIG9uIDMyYml0IEtWTSBob3N0ClN1Ym1pdHRlcgk6IHh1ZG9uZyA8eHVkb25nLmhhb0BpbnRl
-bC5jb20+CkRhdGUJCTogMjAxMC0xMC0yOSAwMzowMSAoMzggZGF5cyBvbGQpCgoKQnVnLUVudHJ5
-CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIxMzcyClN1Ympl
-Y3QJCTogTlVMTCBwb2ludGVyIGRlZmVyZW5jZSBhdCBkaXNrX3JlcGxhY2VfcGFydF90YmwrMHgz
-MgpTdWJtaXR0ZXIJOiBMdWlzIFIuIFJvZHJpZ3VleiA8bWNncm9mQGdtYWlsLmNvbT4KRGF0ZQkJ
-OiAyMDEwLTEwLTI4IDE3OjIyICgzOSBkYXlzIG9sZCkKCgpCdWctRW50cnkJOiBodHRwOi8vYnVn
-emlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MjAzNTIKU3ViamVjdAkJOiBGd2Q6IFJl
-OiBVTUwga2VybmVsIGNyYXNoIG9mIHYyLjYuMzYtcmNYIGtlcm5lbApTdWJtaXR0ZXIJOiBUb3Jh
-bGYgRsO2cnN0ZXIgPHRvcmFsZi5mb2Vyc3RlckBnbXguZGU+CkRhdGUJCTogMjAxMC0xMC0xMyAx
-MToyOCAoNTQgZGF5cyBvbGQpCkZpcnN0LUJhZC1Db21taXQ6IGh0dHA6Ly9naXQua2VybmVsLm9y
-Zy9saW51cy8zNjViMTgxODk3ODliZmExYWNkOTkzOWU2MzEyYjhhNGI0NTc3YjI4Ck1lc3NhZ2Ut
-SUQJOiA8MjAxMDEwMTMxMzI4LjA2NDY1LnRvcmFsZi5mb2Vyc3RlckBnbXguZGU+ClJlZmVyZW5j
-ZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODY5NjkzMDEzMjUwMyZ3
-PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/
-aWQ9MjAzNDIKU3ViamVjdAkJOiBbTG9nRlNdIFsyLjYuMzYtcmM3XSBEZWFkbG9jayBpbiBsb2dm
-c19nZXRfd2Jsb2NrcywgaG9sZCBhbmQgd2FpdCBvbiBzYW1lIGxvY2sgc3VwZXItPnNfd3JpdGVf
-bXV0ZXgKU3VibWl0dGVyCTogUHJhc2FkIEpvc2hpIDxwcmFzYWRqb3NoaTEyNEBnbWFpbC5jb20+
-CkRhdGUJCTogMjAxMC0xMC0xMyA5OjQ5ICg1NCBkYXlzIG9sZCkKTWVzc2FnZS1JRAk6IDxBQU5M
-a1RpbnZzTXhUeEViREVGbWI1TS02ZllqZFJ2RXJVPT1aczcrcUFOa1ZAbWFpbC5nbWFpbC5jb20+
-ClJlZmVyZW5jZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODY5NjMz
-NTAyNDcxOCZ3PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93
-X2J1Zy5jZ2k/aWQ9MjAzMzIKU3ViamVjdAkJOiBbTG9nRlNdIFsyLjYuMzYtcmM3XSBLZXJuZWwg
-QlVHIGF0IGxpYi9idHJlZS5jOjQ2NSEKU3VibWl0dGVyCTogUHJhc2FkIEpvc2hpIDxwcmFzYWRq
-b3NoaTEyNEBnbWFpbC5jb20+CkRhdGUJCTogMjAxMC0xMC0xMiAxODo1NiAoNTUgZGF5cyBvbGQp
-Ck1lc3NhZ2UtSUQJOiA8QUFOTGtUaW1BYkNaTmhMUTVuQURVaUFDKzdKcEFlSkJFbWpGd2R4eVot
-RnhPQG1haWwuZ21haWwuY29tPgpSZWZlcmVuY2VzCTogaHR0cDovL21hcmMuaW5mby8/bD1saW51
-eC1rZXJuZWwmbT0xMjg2OTA5MTA1MDE4MzAmdz0yCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3pp
-bGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIwMzIyClN1YmplY3QJCTogMi42LjM2LXJj
-NzogaW5jb25zaXN0ZW50IGxvY2sgc3RhdGU6IGluY29uc2lzdGVudCB7SU4tUkVDTEFJTV9GUy1S
-fSAtPiB7UkVDTEFJTV9GUy1PTi1XfSB1c2FnZS4KU3VibWl0dGVyCTogRGF2ZSBKb25lcyA8ZGF2
-ZWpAcmVkaGF0LmNvbT4KRGF0ZQkJOiAyMDEwLTEwLTExIDIwOjEwICg1NiBkYXlzIG9sZCkKTWVz
-c2FnZS1JRAk6IDwyMDEwMTAxMTIwMTAwNy5HQTI5NzA3QHJlZGhhdC5jb20+ClJlZmVyZW5jZXMJ
-OiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODY4Mjc4MjgyODQ1MyZ3PTIK
-CgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9
-MjAyMzIKU3ViamVjdAkJOiBrd29ya2VyIGNvbnN1bWVzIH4xMDAlIENQVSBvbiBIUCBFbGl0ZWJv
-b2sgODU0MHcgcnVubmluZyAyLjYuMzZfcmM2LWdpdDQKU3VibWl0dGVyCTogT3phbiBDYWdsYXlh
-biA8b3phbkBwYXJkdXMub3JnLnRyPgpEYXRlCQk6IDIwMTAtMTAtMTMgMDY6MTMgKDU0IGRheXMg
-b2xkKQoKCkJ1Zy1FbnRyeQk6IGh0dHA6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNn
-aT9pZD0xOTgwMgpTdWJqZWN0CQk6IFtkcm06aW5pdF9yaW5nX2NvbW1vbl0gKkVSUk9SKiByZW5k
-ZXIgcmluZyBoZWFkIG5vdCByZXNldCB0byB6ZXJvClN1Ym1pdHRlcgk6IFRob21hcyBNZXllciA8
-dGhvbWFzQG0zeTNyLmRlPgpEYXRlCQk6IDIwMTAtMTAtMDQgMjA6MzEgKDYzIGRheXMgb2xkKQpN
-ZXNzYWdlLUlECTogPDIwMTAxMDA0MjIzMS4yMDMyMC50aG9tYXNAbTN5M3IuZGU+ClJlZmVyZW5j
-ZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODYyMjQ0MTMzMTE5OSZ3
-PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/
-aWQ9MTk3ODIKU3ViamVjdAkJOiAyLjYuMzYtcmM2LWdpdDIgLS0gQlVHIGRlbnRyeTogUG9pc29u
-IG92ZXJ3cml0dGVuIChhZnRlciByZXN1bWUgZnJvbSBoaWJlcm5hdGlvbikKU3VibWl0dGVyCTog
-TWlsZXMgTGFuZSA8bWlsZXMubGFuZUBnbWFpbC5jb20+CkRhdGUJCTogMjAxMC0xMC0wMyAzOjU0
-ICg2NCBkYXlzIG9sZCkKTWVzc2FnZS1JRAk6IDxBQU5Ma1RpbXJxdHpCSEFaU3VEaEVzXzNDS0E2
-cENiTTM1YjFCdEtIPU12Q19AbWFpbC5nbWFpbC5jb20+ClJlZmVyZW5jZXMJOiBodHRwOi8vbWFy
-Yy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODYwNzgwOTMxNDA3OSZ3PTIKCgpCdWctRW50cnkJ
-OiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTk2MzIKU3ViamVj
-dAkJOiAyLjYuMzYtcmM2OiBtb2Rwcm9iZSBOb3QgdGFpbnRlZCB3YXJuaW5nClN1Ym1pdHRlcgk6
-IEhlaW56IERpZWhsIDxodGRAZnJpdGhhLm9yZz4KRGF0ZQkJOiAyMDEwLTA5LTMwIDE4OjI1ICg2
-NyBkYXlzIG9sZCkKTWVzc2FnZS1JRAk6IDwyMDEwMDkzMDE4MjUxNi5HQTE1MDg5QGZyaXRoYS5v
-cmc+ClJlZmVyZW5jZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODU4
-NzExNDAwNDY4MCZ3PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9z
-aG93X2J1Zy5jZ2k/aWQ9MTkzOTIKU3ViamVjdAkJOiBXQVJOSU5HOiBhdCBkcml2ZXJzL25ldC93
-aXJlbGVzcy9hdGgvYXRoNWsvYmFzZS5jOjM0NzUgYXRoNWtfYnNzX2luZm9fY2hhbmdlZCsweDQ0
-LzB4MTY4IFthdGg1a10oKQpTdWJtaXR0ZXIJOiBKdXN0aW4gTWF0dG9jayA8anVzdGlubWF0dG9j
-a0BnbWFpbC5jb20+CkRhdGUJCTogMjAxMC0wOS0yOCAyMjozMCAoNjkgZGF5cyBvbGQpCk1lc3Nh
-Z2UtSUQJOiA8PEFBTkxrVGltNVdDR0tQdkVrT2tPX1luTUY5cGc4bXZMZlFvRkJOVUZwZmFfa0Bt
-YWlsLmdtYWlsLmNvbT4+ClJlZmVyZW5jZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtl
-cm5lbCZtPTEyODU3MTMwNzAxODYzNSZ3PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEu
-a2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTkzNzIKU3ViamVjdAkJOiAyLjYuMzYtcmM2OiBX
-QVJOSU5HOiBhdCBkcml2ZXJzL2dwdS9kcm0vcmFkZW9uL3JhZGVvbl9mZW5jZS5jOjIzNSByYWRl
-b25fZmVuY2Vfd2FpdCsweDM1YS8weDNjMApTdWJtaXR0ZXIJOiBBbGV4ZXkgRG9icml5YW4gPGFk
-b2JyaXlhbkBnbWFpbC5jb20+CkRhdGUJCTogMjAxMC0wOS0yOSAyMToyOSAoNjggZGF5cyBvbGQp
-Ck1lc3NhZ2UtSUQJOiA8MjAxMDA5MjkyMTI5MjMuR0E1NTc4QGNvcmUyLnRlbGVjb20uYnk+ClJl
-ZmVyZW5jZXMJOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyODU3OTU3OTQw
-MDMxNSZ3PTIKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1
-Zy5jZ2k/aWQ9MTkxNDIKU3ViamVjdAkJOiBTY3JlZW4gZmxpY2tlcnMgd2hlbiBzd2l0Y2hpbmcg
-ZnJvbSB0aGUgY29uc29sZSB0byBYClN1Ym1pdHRlcgk6IEFuZHJleSBSYWhtYXR1bGxpbiA8d3Jh
-ckB3cmFyLm5hbWU+CkRhdGUJCTogMjAxMC0wOS0yNyAxMjowNSAoNzAgZGF5cyBvbGQpCgoKQnVn
-LUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTE5MDUy
-ClN1YmplY3QJCTogMi42LjM2LXJjNS1naXQxIC0tIFtkcm06aTkxNV9yZXBvcnRfYW5kX2NsZWFy
-X2Vpcl0gKkVSUk9SKiBFSVIgc3R1Y2s6IDB4MDAwMDAwMTAsIG1hc2tpbmcKU3VibWl0dGVyCTog
-TWlsZXMgTGFuZSA8bWlsZXMubGFuZUBnbWFpbC5jb20+CkRhdGUJCTogMjAxMC0wOS0yMiAyMzo0
-NyAoNzUgZGF5cyBvbGQpCk1lc3NhZ2UtSUQJOiA8QUFOTGtUaWtXUWpVUWpGSlU5TU8xK1hiU0xB
-RUUtR0FSeitTK0R6MkZndTRoQG1haWwuZ21haWwuY29tPgpSZWZlcmVuY2VzCTogaHR0cDovL21h
-cmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMjg1MTk5MjY2MjYzMjImdz0yCgoKQnVnLUVudHJ5
-CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTE5MDAyClN1Ympl
-Y3QJCTogUmFkZW9uIHJ2NzMwIEFHUC9LTVMvRFJNIGtlcm5lbCBsb2NrdXAKU3VibWl0dGVyCTog
-RHVuY2FuIDwxaTV0NS5kdW5jYW5AY294Lm5ldD4KRGF0ZQkJOiAyMDEwLTA5LTIzIDE2OjQ4ICg3
-NCBkYXlzIG9sZCkKCgpCdWctRW50cnkJOiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93
-X2J1Zy5jZ2k/aWQ9MTcxMjEKU3ViamVjdAkJOiBUd28gYmxhbmsgcmVjdGFuZ2xlcyBtb3JlIHRo
-YW4gMTAgY20gbG9uZyB3aGVuIGJvb3RpbmcKU3VibWl0dGVyCTogRXJpYyBWYWxldHRlIDxlcmlj
-LnZhbGV0dGVAZnJlZS5mcj4KRGF0ZQkJOiAyMDEwLTA4LTI2IDE3OjI0ICgxMDIgZGF5cyBvbGQp
-CgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
-PTE3MDYxClN1YmplY3QJCTogMi42LjM2LXJjMSBvbiB6YXVydXM6IGJsdWV0b290aCByZWdyZXNz
-aW9uClN1Ym1pdHRlcgk6IFBhdmVsIE1hY2hlayA8cGF2ZWxAdWN3LmN6PgpEYXRlCQk6IDIwMTAt
-MDgtMjEgMTU6MjQgKDEwNyBkYXlzIG9sZCkKTWVzc2FnZS1JRAk6IDwyMDEwMDgyMTE1MjQ0NS5H
-QTE1MzZAdWN3LmN6PgpSZWZlcmVuY2VzCTogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJu
-ZWwmbT0xMjgyNDA0MzM4MjgwODcmdz0yCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtl
-cm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTE2OTcxClN1YmplY3QJCTogcWxhNHh4eCBjb21waWxl
-IGZhaWx1cmUgb24gMzItYml0IFBvd2VyUEM6IG1pc3NpbmcgcmVhZHEgYW5kIHdyaXRlcQpTdWJt
-aXR0ZXIJOiBNZWVsaXMgUm9vcyA8bXJvb3NAbGludXguZWU+CkRhdGUJCTogMjAxMC0wOC0xOSAy
-MTowMyAoMTA5IGRheXMgb2xkKQpNZXNzYWdlLUlECTogPDw8YWxwaW5lLlNPQy4xLjAwLjEwMDgx
-OTIzNTkzMTAuMTk2NTRAbWF0aC51dC5lZT4+PgpSZWZlcmVuY2VzCTogaHR0cDovL21hcmMuaW5m
-by8/bD1saW51eC1rZXJuZWwmbT0xMjgyMjUxODQ5MDA4OTImdz0yCgoKQnVnLUVudHJ5CTogaHR0
-cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTE2OTUxClN1YmplY3QJCTog
-aGFja2JlbmNoIHJlZ3Jlc3Npb24gd2l0aCAyLjYuMzYtcmMxClN1Ym1pdHRlcgk6IFpoYW5nLCBZ
-YW5taW4gPHlhbm1pbl96aGFuZ0BsaW51eC5pbnRlbC5jb20+CkRhdGUJCTogMjAxMC0wOC0xOCA2
-OjE4ICgxMTAgZGF5cyBvbGQpCk1lc3NhZ2UtSUQJOiA8MTI4MjExMjMxOC4yMTIwMi44LmNhbWVs
-QHltemhhbmcuc2guaW50ZWwuY29tPgpSZWZlcmVuY2VzCTogaHR0cDovL21hcmMuaW5mby8/bD1s
-aW51eC1rZXJuZWwmbT0xMjgyMTEyMzU5MDQ5MTAmdz0yCgoKUmVncmVzc2lvbnMgd2l0aCBwYXRj
-aGVzCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxh
-Lmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIxMDkyClN1YmplY3QJCTogS2VybmVsIDIuNi4z
-NiBCdWcgZHVyaW5nIHF1b3Rhb24gb24gcmVpc2VyZnMKU3VibWl0dGVyCTogIDxtYXJrdXMuZ2Fw
-cEBnbXgubmV0PgpEYXRlCQk6IDIwMTAtMTAtMjQgMTY6NTcgKDQzIGRheXMgb2xkKQpIYW5kbGVk
-LUJ5CTogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KUGF0Y2gJCTogaHR0cHM6Ly9idWd6aWxsYS5r
-ZXJuZWwub3JnL2F0dGFjaG1lbnQuY2dpP2lkPTM1MjkyCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1
-Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTIwNDYyClN1YmplY3QJCTogMi42LjM2
-LXJjNy1naXQyIC0gcGFuaWMvR1BGOiBlMTAwMGUvdmxhbnM/ClN1Ym1pdHRlcgk6IE5pa29sYSBD
-aXByaWNoIDxleHRtYWlsbGlzdEBsaW51eGJveC5jej4KRGF0ZQkJOiAyMDEwLTEwLTE1IDc6MTAg
-KDUyIGRheXMgb2xkKQpNZXNzYWdlLUlECTogPDIwMTAxMDE1MDcxMDA4LkdBODcxNEBwY25jaS5s
-aW51eGJveC5jej4KUmVmZXJlbmNlcwk6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVs
-Jm09MTI4NzEyOTg0ODMxMzAzJnc9MgpIYW5kbGVkLUJ5CTogSmVzc2UgR3Jvc3MgPGplc3NlQG5p
-Y2lyYS5jb20+ClBhdGNoCQk6IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbmV0ZGV2L21z
-ZzE0NjIyNy5odG1sCgoKQnVnLUVudHJ5CTogaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hv
-d19idWcuY2dpP2lkPTIwMTYyClN1YmplY3QJCTogW0xvZ0ZTXVsyLjYuMzYucmM3K10gS2VybmVs
-IEJVRyBhdCByZWFkd3JpdGUuYzoxMTkzClN1Ym1pdHRlcgk6IFByYXNhZCBKb3NoaSA8cHJhc2Fk
-am9zaGkxMjRAZ21haWwuY29tPgpEYXRlCQk6IDIwMTAtMTAtMTAgMTc6NDQgKDU3IGRheXMgb2xk
-KQpNZXNzYWdlLUlECTogPEFBTkxrVGk9SmtjdVdCUG8rWC1pKzlvLUJKRlZxamVhMUozZT1Ncj1I
-dkFXRkBtYWlsLmdtYWlsLmNvbT4KUmVmZXJlbmNlcwk6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGlu
-dXgta2VybmVsJm09MTI4NjczMTk2MjAzMzQwJnc9MgpIYW5kbGVkLUJ5CTogIFByYXNhZCBHYWph
-bmFuIEpvc2hpIDxwcmFzYWRqb3NoaTEyNEBnbWFpbC5jb20+ClBhdGNoCQk6IGh0dHBzOi8vYnVn
-emlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MjAxNjIjYzEKCgpGb3IgZGV0YWlscywg
-cGxlYXNlIHZpc2l0IHRoZSBidWcgZW50cmllcyBhbmQgZm9sbG93IHRoZSBsaW5rcyBnaXZlbiBp
-bgpyZWZlcmVuY2VzLgoKQXMgeW91IGNhbiBzZWUsIHRoZXJlIGlzIGEgQnVnemlsbGEgZW50cnkg
-Zm9yIGVhY2ggb2YgdGhlIGxpc3RlZCByZWdyZXNzaW9ucy4KVGhlcmUgYWxzbyBpcyBhIEJ1Z3pp
-bGxhIGVudHJ5IHVzZWQgZm9yIHRyYWNraW5nIHRoZSByZWdyZXNzaW9ucyBpbnRyb2R1Y2VkCmJl
-dHdlZW4gMi42LjM1IGFuZCAyLjYuMzYsIHVucmVzb2x2ZWQgYXMgd2VsbCBhcyByZXNvbHZlZCwg
-YXQ6CgpodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTY0NDQKClBs
-ZWFzZSBsZXQgdGhlIHRyYWNraW5nIHRlYW0ga25vdyBpZiB0aGVyZSBhcmUgYW55IEJ1Z3ppbGxh
-IGVudHJpZXMgdGhhdApzaG91bGQgYmUgYWRkZWQgdG8gdGhlIGxpc3QgaW4gdGhlcmUuCgpUaGFu
-a3MhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18Kc3Rh
-YmxlIG1haWxpbmcgbGlzdApzdGFibGVAbGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2Vy
-bmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL3N0YWJsZQo=
+On Tue, 2010-11-30 at 08:36 +0800, ykzhao wrote:
+> On Tue, 2010-11-30 at 08:26 +0800, yakui.zhao@intel.com wrote:
+> > From: Zhao Yakui <yakui.zhao@intel.com>
+> >=20
+> > The IPMI smi_watcher will be used to catch the IPMI interface as th=
+ey come or go.
+> > In order to communicate with the correct IPMI device, it should be =
+confirmed
+> >  whether it is what we wanted especially on the system with multipl=
+e IPMI
+> > devices. But the new_smi callback function of smi_watcher provides =
+very
+> > limited info(only the interface number and dev pointer) and there i=
+s no
+> > detailed info about the low level interface. For example: which mec=
+hansim
+> > registers the IPMI interface(ACPI, PCI, DMI and so on).
+> >=20
+> > This is to add one interface that can get more info of low-level IP=
+MI
+> > device. For example: the ACPI device handle will be returned for th=
+e pnp_acpi
+> > IPMI device.
+>=20
+> Hi, Corey
+>=20
+>    The following is updated in the patch set.
+>     a. Change the function prototype of ipmi_put_smi_info.
+>        The corresponding parameter is changed from "
+> 		Ipmi_put_smi_info(int iface) to ipmi_put_smi_info(struct ipmi_smi_i=
+nfo
+> *data)
+>=20
+>     b. Remove the incorrect refcount in previous patch set.
+
+>=20
+> But for the issues about pulling data from the current source, very
+> sorry that I still statically construct them in the corresponding
+> smi_info as I meet with the following two issues when trying to pull
+> data from the current source.
+> 	1. no specific info is contained in smi_info. For example: ACPI hand=
+le
+> is important to the SI_ACPI type. But the corresponding handle is sto=
+red
+> in smi_info.=20
+>         b. Need to add a lot of If/else macro definitions to handle t=
+he
+> corresponding IPMI device type.
+
+=EF=BB=BF
+Hi, Corey
+     Any comments about the updated patch set?
+
+Thanks.
+>=20
+> Thanks.
+>=20
+> >=20
+> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> > ---
+> >  drivers/char/ipmi/ipmi_msghandler.c |   31 +++++++++++++++++++++++=
+++++++++
+> >  drivers/char/ipmi/ipmi_si_intf.c    |   24 ++++++++++++++++++++---=
+-
+> >  include/linux/ipmi.h                |   29 +++++++++++++++++++++++=
+++++++
+> >  include/linux/ipmi_smi.h            |    7 +++++++
+> >  4 files changed, 87 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipm=
+i/ipmi_msghandler.c
+> > index 2fe72f8..a90b3ec 100644
+> > --- a/drivers/char/ipmi/ipmi_msghandler.c
+> > +++ b/drivers/char/ipmi/ipmi_msghandler.c
+> > @@ -970,6 +970,37 @@ out_kfree:
+> >  }
+> >  EXPORT_SYMBOL(ipmi_create_user);
+> > =20
+> > +int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *data)
+> > +{
+> > +	int           rv =3D 0;
+> > +	ipmi_smi_t    intf;
+> > +	struct ipmi_smi_handlers *handlers;
+> > +
+> > +	mutex_lock(&ipmi_interfaces_mutex);
+> > +	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
+> > +		if (intf->intf_num =3D=3D if_num)
+> > +			goto found;
+> > +	}
+> > +	/* Not found, return an error */
+> > +	rv =3D -EINVAL;
+> > +	mutex_unlock(&ipmi_interfaces_mutex);
+> > +	return rv;
+> > +
+> > +found:
+> > +	handlers =3D intf->handlers;
+> > +	rv =3D handlers->get_smi_info(intf->send_info, data);
+> > +	mutex_unlock(&ipmi_interfaces_mutex);
+> > +
+> > +	return rv;
+> > +}
+> > +EXPORT_SYMBOL(ipmi_get_smi_info);
+> > +
+> > +void ipmi_put_smi_info(struct ipmi_smi_info *data)
+> > +{
+> > +	put_device(data->dev);
+> > +}
+> > +EXPORT_SYMBOL(ipmi_put_smi_info);
+> > +
+> >  static void free_user(struct kref *ref)
+> >  {
+> >  	ipmi_user_t user =3D container_of(ref, struct ipmi_user, refcount=
+);
+> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/i=
+pmi_si_intf.c
+> > index 035da9e..a41afca 100644
+> > --- a/drivers/char/ipmi/ipmi_si_intf.c
+> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> > @@ -57,6 +57,7 @@
+> >  #include <asm/irq.h>
+> >  #include <linux/interrupt.h>
+> >  #include <linux/rcupdate.h>
+> > +#include <linux/ipmi.h>
+> >  #include <linux/ipmi_smi.h>
+> >  #include <asm/io.h>
+> >  #include "ipmi_si_sm.h"
+> > @@ -107,10 +108,6 @@ enum si_type {
+> >  };
+> >  static char *si_to_str[] =3D { "kcs", "smic", "bt" };
+> > =20
+> > -enum ipmi_addr_src {
+> > -	SI_INVALID =3D 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_S=
+MBIOS,
+> > -	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> > -};
+> >  static char *ipmi_addr_src_to_str[] =3D { NULL, "hotmod", "hardcod=
+ed", "SPMI",
+> >  					"ACPI", "SMBIOS", "PCI",
+> >  					"device-tree", "default" };
+> > @@ -291,6 +288,7 @@ struct smi_info {
+> >  	struct task_struct *thread;
+> > =20
+> >  	struct list_head link;
+> > +	struct ipmi_smi_info smi_data;
+> >  };
+> > =20
+> >  #define smi_inc_stat(smi, stat) \
+> > @@ -1186,6 +1184,18 @@ static int smi_start_processing(void       *=
+send_info,
+> >  	return 0;
+> >  }
+> > =20
+> > +static int get_smi_info(void *send_info, struct ipmi_smi_info *dat=
+a)
+> > +{
+> > +	struct smi_info *new_smi =3D send_info;
+> > +	struct ipmi_smi_info *smi_data =3D &new_smi->smi_data;
+> > +
+> > +	memcpy(data, smi_data, sizeof(*smi_data));
+> > +	data->addr_src =3D new_smi->addr_source;
+> > +	get_device(new_smi->dev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static void set_maintenance_mode(void *send_info, int enable)
+> >  {
+> >  	struct smi_info   *smi_info =3D send_info;
+> > @@ -1197,6 +1207,7 @@ static void set_maintenance_mode(void *send_i=
+nfo, int enable)
+> >  static struct ipmi_smi_handlers handlers =3D {
+> >  	.owner                  =3D THIS_MODULE,
+> >  	.start_processing       =3D smi_start_processing,
+> > +	.get_smi_info		=3D get_smi_info,
+> >  	.sender			=3D sender,
+> >  	.request_events		=3D request_events,
+> >  	.set_maintenance_mode   =3D set_maintenance_mode,
+> > @@ -2153,6 +2164,8 @@ static int __devinit ipmi_pnp_probe(struct pn=
+p_dev *dev,
+> >  		return -ENOMEM;
+> > =20
+> >  	info->addr_source =3D SI_ACPI;
+> > +	info->smi_data.addr_info.acpi_info.acpi_handle =3D
+> > +				acpi_dev->handle;
+> >  	printk(KERN_INFO PFX "probing via ACPI\n");
+> > =20
+> >  	handle =3D acpi_dev->handle;
+> > @@ -3102,6 +3115,7 @@ static int try_smi_init(struct smi_info *new_=
+smi)
+> >  {
+> >  	int rv =3D 0;
+> >  	int i;
+> > +	struct ipmi_smi_info *smi_data;
+> > =20
+> >  	printk(KERN_INFO PFX "Trying %s-specified %s state"
+> >  	       " machine at %s address 0x%lx, slave address 0x%x,"
+> > @@ -3263,6 +3277,8 @@ static int try_smi_init(struct smi_info *new_=
+smi)
+> >  	dev_info(new_smi->dev, "IPMI %s interface initialized\n",
+> >  		 si_to_str[new_smi->si_type]);
+> > =20
+> > +	smi_data =3D &new_smi->smi_data;
+> > +	smi_data->dev =3D new_smi->dev;
+> >  	return 0;
+> > =20
+> >   out_err_stop_timer:
+> > diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
+> > index 65aae34..956bd41 100644
+> > --- a/include/linux/ipmi.h
+> > +++ b/include/linux/ipmi.h
+> > @@ -454,6 +454,35 @@ unsigned int ipmi_addr_length(int addr_type);
+> >  /* Validate that the given IPMI address is valid. */
+> >  int ipmi_validate_addr(struct ipmi_addr *addr, int len);
+> > =20
+> > +enum ipmi_addr_src {
+> > +	SI_INVALID =3D 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_S=
+MBIOS,
+> > +	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+> > +};
+> > +struct ipmi_smi_info {
+> > +	enum ipmi_addr_src addr_src;
+> > +	struct device *dev;
+> > +	/*
+> > +	 * The addr_info can provide more detailed info of one IPMI devic=
+e.
+> > +	 * Now only SI_ACPI info is provided. And it depends on the SI_AC=
+PI
+> > +	 * address type. If the info is required for other address type, =
+please
+> > +	 * add it.
+> > +	 */
+> > +	union {
+> > +		/* the acpi_info element is defined for the SI_ACPI
+> > +		 * address type
+> > +		 */
+> > +		struct {
+> > +			void *acpi_handle;
+> > +		} acpi_info;
+> > +	} addr_info;
+> > +};
+> > +
+> > +/* This is to get the private info of ipmi_smi_t */
+> > +extern int ipmi_get_smi_info(int if_num, struct ipmi_smi_info *dat=
+a);
+> > +/* This is to decrease refcount of dev added in the function of
+> > + * ipmi_get_smi_info
+> > + */
+> > +extern void ipmi_put_smi_info(struct ipmi_smi_info *data);
+> >  #endif /* __KERNEL__ */
+> > =20
+> >=20
+> > diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
+> > index 4b48318..deabdcc 100644
+> > --- a/include/linux/ipmi_smi.h
+> > +++ b/include/linux/ipmi_smi.h
+> > @@ -86,6 +86,13 @@ struct ipmi_smi_handlers {
+> >  	int (*start_processing)(void       *send_info,
+> >  				ipmi_smi_t new_intf);
+> > =20
+> > +	/*
+> > +	 * Get the detailed private info of the low level interface and s=
+tore
+> > +	 * it into the structure of ipmi_smi_data. For example: the
+> > +	 * ACPI device handle will be returned for the pnp_acpi IPMI devi=
+ce.
+> > +	 */
+> > +	int (*get_smi_info)(void *send_info, struct ipmi_smi_info *data);
+> > +
+> >  	/* Called to enqueue an SMI message to be sent.  This
+> >  	   operation is not allowed to fail.  If an error occurs, it
+> >  	   should report back the error in a received message.  It may
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
