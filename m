@@ -1,60 +1,30 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 7/7] ACPI processor: remove unused function
-Date: Mon, 06 Dec 2010 15:04:30 +0800
-Message-ID: <1291619070.19296.582.camel@rui>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 5/7] ACPI video: check cap._DDC flag before getting EDID
+Date: Mon, 6 Dec 2010 12:53:40 +0000
+Message-ID: <20101206125340.GA20645@srcf.ucam.org>
+References: <1291619064.19296.579.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14508 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751222Ab0LFHHk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Dec 2010 02:07:40 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:37073 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab0LFMxs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Dec 2010 07:53:48 -0500
+Content-Disposition: inline
+In-Reply-To: <1291619064.19296.579.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-drivers/acpi/processor_thermal.c:159:12: warning: =E2=80=98acpi_thermal=
-_cpufreq_increase=E2=80=99 defined but not used
-drivers/acpi/processor_thermal.c:163:12: warning: =E2=80=98acpi_thermal=
-_cpufreq_decrease=E2=80=99 defined but not used
+On Mon, Dec 06, 2010 at 03:04:24PM +0800, Zhang Rui wrote:
+> 
+> cap._DDC is defined but never used.
+> Check this flag now and don't try to get EDID for video output devices with this flag cleared.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Remove unused declaration of =E2=80=98acpi_thermal_cpufreq_increase=E2=80=
-=99 and
-=E2=80=98acpi_thermal_cpufreq_decrease=E2=80=99
+Acked-by: Matthew Garrett <mjg@redhat.com>
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/processor_thermal.c |    9 ---------
- 1 file changed, 9 deletions(-)
-
-Index: linux-2.6/drivers/acpi/processor_thermal.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/acpi/processor_thermal.c
-+++ linux-2.6/drivers/acpi/processor_thermal.c
-@@ -156,15 +156,6 @@ static int cpufreq_set_cur_state(unsigne
- 	return 0;
- }
-=20
--static int acpi_thermal_cpufreq_increase(unsigned int cpu)
--{
--	return -ENODEV;
--}
--static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
--{
--	return -ENODEV;
--}
--
- #endif
-=20
- int acpi_processor_get_limit_info(struct acpi_processor *pr)
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
