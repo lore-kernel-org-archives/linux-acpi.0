@@ -1,66 +1,44 @@
-From: Rich Coe <Richard.Coe@med.ge.com>
-Subject: Re: acpi_button: random oops on boot
-Date: Tue, 7 Dec 2010 08:44:05 -0600
-Message-ID: <20101207084405.e71289cd.Richard.Coe@med.ge.com>
-References: <1291477752.5096.27.camel@Tobias-Karnat>
-	<201012060928.11307.bjorn.helgaas@hp.com>
-	<1291676503.24968.25.camel@Tobias-Karnat>
-	<201012061626.45962.bjorn.helgaas@hp.com>
-	<1291679699.6246.11.camel@Tobias-Karnat>
-	<20101207051521.GA16804@helgaas.com>
+From: "Jan Beulich" <JBeulich@novell.com>
+Subject: [PATCH] ACPI: remove unused static functions
+Date: Tue, 07 Dec 2010 14:50:57 +0000
+Message-ID: <4CFE57E102000078000266E6@vpn.id2.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101207051521.GA16804@helgaas.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Tobias Karnat <tobias.karnat@googlemail.com>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-I agree that it's a timing race condition.  I had an earlier version of
-acpi-button with printf's that masked the issue from happening.
+..., fixing respective compiler warnings when !CPU_FREQ.
 
-Rich
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 
-On Mon, 6 Dec 2010 22:15:21 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Tue, Dec 07, 2010 at 12:54:59AM +0100, Tobias Karnat wrote:
-> > Am Montag, den 06.12.2010, 16:26 -0700 schrieb Bjorn Helgaas:
-> > > On Monday, December 06, 2010 04:01:43 pm Tobias Karnat wrote:
-> > > > No, it only crashes on boot (without the printk patch).
-> > > > If it happens the machine is completely dead, SysRq does not work.
-> > > > 
-> > > > However it is definitely the acpi_button module, because removing it
-> > > > also fixes this.
-> > > 
-> > > If it crashes on boot (not when loading an acpi_button module),
-> > > you must be building acpi_button into the static kernel.
-> > 
-> > It does crash on boot either if built-in to the kernel or as a module,
-> > However it does not crash if the module is loaded/unloaded after the
-> > machine has booted.
-> > 
-> > > The acpi_button driver has a fairly complicated add() method.
-> > > In the absence of a better idea, I might just comment out blocks
-> > > of it and try to isolate the problem.  For example, take out
-> > > all the input stuff, take out the wakeup GPE stuff, take out
-> > > the type/name setup, etc.
-> > 
-> > Couldn't this be a compiler issue?
-> > Adding some printk's to fix it seems to be insane.
-> 
-> Agreed, adding printk's is absolutely not any kind of fix.
-> I think it's more likely to be some sort of memory corruption or
-> race than a compiler problem.  I assume there is some old kernel
-> that works fine, even when compiled with the same compiler.
-> 
-> In addition to the isolation ideas I suggested above, you might
-> boot with "maxcpus=1" and turn on all the Kconfig memory debug
-> switches.
-> 
-> Bjorn
-> 
+---
+ drivers/acpi/processor_thermal.c |   10 ----------
+ 1 file changed, 10 deletions(-)
+
+--- linux-2.6.37-rc5/drivers/acpi/processor_thermal.c
++++ 2.6.37-rc5-acpi-cpufreq-warning/drivers/acpi/processor_thermal.c
+@@ -155,16 +155,6 @@ static int cpufreq_set_cur_state(unsigne
+ {
+ 	return 0;
+ }
+-
+-static int acpi_thermal_cpufreq_increase(unsigned int cpu)
+-{
+-	return -ENODEV;
+-}
+-static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
+-{
+-	return -ENODEV;
+-}
+-
+ #endif
+ 
+ int acpi_processor_get_limit_info(struct acpi_processor *pr)
 
 
--- 
+
