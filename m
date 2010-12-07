@@ -1,7 +1,7 @@
 From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] ACPI: avoid section mismatch warning
-Date: Tue, 07 Dec 2010 15:03:03 +0000
-Message-ID: <4CFE5AB70200007800026720@vpn.id2.novell.com>
+Subject: [PATCH] ACPI/PNP: avoid section mismatch warning
+Date: Tue, 07 Dec 2010 15:05:49 +0000
+Message-ID: <4CFE5B5D0200007800026730@vpn.id2.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
@@ -15,20 +15,20 @@ Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 
 ---
- drivers/acpi/osl.c |    2 +-
+ drivers/pnp/pnpacpi/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-2.6.37-rc5/drivers/acpi/osl.c
-+++ 2.6.37-rc5-acpi-osl-sections/drivers/acpi/osl.c
-@@ -1530,7 +1530,7 @@ acpi_status __init acpi_os_initialize(vo
- 	return AE_OK;
- }
+--- linux-2.6.37-rc5/drivers/pnp/pnpacpi/core.c
++++ 2.6.37-rc5-pnpacpi-sections/drivers/pnp/pnpacpi/core.c
+@@ -180,7 +180,7 @@ struct pnp_protocol pnpacpi_protocol = {
+ };
+ EXPORT_SYMBOL(pnpacpi_protocol);
  
--acpi_status acpi_os_initialize1(void)
-+acpi_status __init acpi_os_initialize1(void)
+-static char *pnpacpi_get_id(struct acpi_device *device)
++static char *__init pnpacpi_get_id(struct acpi_device *device)
  {
- 	kacpid_wq = create_workqueue("kacpid");
- 	kacpi_notify_wq = create_workqueue("kacpi_notify");
+ 	struct acpi_hardware_id *id;
+ 
 
 
 
