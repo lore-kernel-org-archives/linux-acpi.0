@@ -1,59 +1,91 @@
-From: Jack Steiner <steiner@sgi.com>
-Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
-Date: Wed, 8 Dec 2010 15:22:44 -0600
-Message-ID: <20101208212244.GA24280@sgi.com>
-References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com> <20100826171704.GA21584@sgi.com> <4C76AD82.2030105@zytor.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 1/5] resources: add arch hook for preventing allocation in
+	reserved areas
+Date: Wed, 08 Dec 2010 14:36:06 -0700
+Message-ID: <20101208213606.13026.47657.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay3.sgi.com ([192.48.152.1]:35679 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750951Ab0LHVY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Dec 2010 16:24:27 -0500
-Content-Disposition: inline
-In-Reply-To: <4C76AD82.2030105@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>, lenb@kernel.org
-Cc: hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
-
-On Thu, Aug 26, 2010 at 11:08:02AM -0700, H. Peter Anvin wrote:
-> On 08/26/2010 10:17 AM, Jack Steiner wrote:
-> > Map ACPI tables as WB on x86_64. No substantive changes to IA64.
-> > 
-> > 
-> > Signed-off-by: Jack Steiner <steiner@sgi.com>
-> > 
-> > ---
-> > V2 - Change the patch to unconditionally map ACPI tables as WB on x86_64.
-> >      I'm still some paranoid about this because of the potential imapct on
-> >      some platforms with weird BIOSs. However, note that on EFI-enabled
-> >      systems (like UV), the ACPI tables are already mapped as WB memory.
-> >      This is done in the EFI function efi_enter_virtual_mode().
-> >      The ACPI code in acpi_os_map_memory() is not currently aware of the
-> >      EFI mapping & currently maps the memory as UC. This seems like a bug.
-> > 
-> 
-> I really think that it's all a consequence of the fact that ioremap()
-> became implicitly UC when we added PAT support (being the more
-> conservative choice.)
-> 
-> Len, want to take this one or should I?
-> 
-> 	-hpa
-
-What is the upstream status of this patch? See the LKML discussion at:
-
-	http://marc.info/?l=linux-kernel&m=128206079905826&w=2
-	http://marc.info/?l=linux-acpi&m=128284304032481&w=2
-
-We would like to get this patch into the distros but need upstream acceptance first.
-
-This patch substantially reduces the time to run ACPIDUMP on a large system:
- 	527 seconds without the patch
- 	  8 seconds with the patch
-
-Is there something I should be doing? I can resend the patch if needed.
 
 
---- jack
+This adds arch_remove_reservations(), which an arch can implement if it
+needs to protect part of the address space from allocation.
+
+Sometimes that can be done by just requesting a resource.  This hook is to
+cover cases where protected area doesn't fit well in the hierarchical
+resource tree.  For example, x86 BIOS E820 reservations are not related
+to devices, so they may overlap part of, all of, or more than a device
+resource.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+
+ include/linux/ioport.h |    1 +
+ kernel/resource.c      |    8 ++++++++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
+
+
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index d377ea8..b92b8b4 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -124,6 +124,7 @@ extern void reserve_region_with_split(struct resource *root,
+ extern struct resource *insert_resource_conflict(struct resource *parent, struct resource *new);
+ extern int insert_resource(struct resource *parent, struct resource *new);
+ extern void insert_resource_expand_to_fit(struct resource *root, struct resource *new);
++extern void arch_remove_reservations(struct resource *avail);
+ extern int allocate_resource(struct resource *root, struct resource *new,
+ 			     resource_size_t size, resource_size_t min,
+ 			     resource_size_t max, resource_size_t align,
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 9fad33e..246957e 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -374,6 +374,10 @@ int __weak page_is_ram(unsigned long pfn)
+ 	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
+ }
+ 
++void __weak arch_remove_reservations(struct resource *avail)
++{
++}
++
+ static resource_size_t simple_align_resource(void *data,
+ 					     const struct resource *avail,
+ 					     resource_size_t size,
+@@ -426,6 +430,7 @@ static int find_resource_from_top(struct resource *root, struct resource *new,
+ 	struct resource *this;
+ 	struct resource tmp, avail, alloc;
+ 
++	tmp.flags = new->flags;
+ 	tmp.start = root->end;
+ 	tmp.end = root->end;
+ 
+@@ -438,6 +443,7 @@ static int find_resource_from_top(struct resource *root, struct resource *new,
+ 			tmp.start = root->start;
+ 
+ 		resource_clip(&tmp, min, max);
++		arch_remove_reservations(&tmp);
+ 
+ 		/* Check for overflow after ALIGN() */
+ 		avail = *new;
+@@ -478,6 +484,7 @@ static int find_resource(struct resource *root, struct resource *new,
+ 	struct resource *this = root->child;
+ 	struct resource tmp = *new, avail, alloc;
+ 
++	tmp.flags = new->flags;
+ 	tmp.start = root->start;
+ 	/*
+ 	 * Skip past an allocated resource that starts at 0, since the
+@@ -495,6 +502,7 @@ static int find_resource(struct resource *root, struct resource *new,
+ 			tmp.end = root->end;
+ 
+ 		resource_clip(&tmp, min, max);
++		arch_remove_reservations(&tmp);
+ 
+ 		/* Check for overflow after ALIGN() */
+ 		avail = *new;
