@@ -1,91 +1,98 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 1/5] resources: add arch hook for preventing allocation in
-	reserved areas
-Date: Wed, 08 Dec 2010 14:36:06 -0700
-Message-ID: <20101208213606.13026.47657.stgit@bob.kio>
+Subject: [PATCH 4/5] PNP: add framework for platform PNP quirks
+Date: Wed, 08 Dec 2010 14:36:22 -0700
+Message-ID: <20101208213621.13026.87155.stgit@bob.kio>
+References: <20101208213606.13026.47657.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101208213606.13026.47657.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
 
-This adds arch_remove_reservations(), which an arch can implement if it
-needs to protect part of the address space from allocation.
+This allows platform quirks to fabricate PNP devices to describe things
+that should have been described via ACPI.  For example, if the BIOS writer
+forgets to describe a device, we may assign its address space to another
+device, causing a conflict.  We can avoid the conflict by making a fake PNP
+device to stand in for the one the BIOS missed.
 
-Sometimes that can be done by just requesting a resource.  This hook is to
-cover cases where protected area doesn't fit well in the hierarchical
-resource tree.  For example, x86 BIOS E820 reservations are not related
-to devices, so they may overlap part of, all of, or more than a device
-resource.
+In that case, there's no ACPI or PNPBIOS device, so we need a new
+pnp_protocol that doesn't go back to firmware for get/set/wakeup/
+suspend/etc.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- include/linux/ioport.h |    1 +
- kernel/resource.c      |    8 ++++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/pnp/base.h   |    2 ++
+ drivers/pnp/core.c   |    9 ++++++++-
+ drivers/pnp/quirks.c |   15 +++++++++++++++
+ 3 files changed, 25 insertions(+), 1 deletions(-)
 
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index d377ea8..b92b8b4 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -124,6 +124,7 @@ extern void reserve_region_with_split(struct resource *root,
- extern struct resource *insert_resource_conflict(struct resource *parent, struct resource *new);
- extern int insert_resource(struct resource *parent, struct resource *new);
- extern void insert_resource_expand_to_fit(struct resource *root, struct resource *new);
-+extern void arch_remove_reservations(struct resource *avail);
- extern int allocate_resource(struct resource *root, struct resource *new,
- 			     resource_size_t size, resource_size_t min,
- 			     resource_size_t max, resource_size_t align,
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 9fad33e..246957e 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -374,6 +374,10 @@ int __weak page_is_ram(unsigned long pfn)
- 	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 19bc736..dca301e 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -7,6 +7,8 @@ extern spinlock_t pnp_lock;
+ extern struct device_attribute pnp_interface_attrs[];
+ void *pnp_alloc(long size);
+ 
++void platform_pnp_fixups(void);
++
+ int pnp_register_protocol(struct pnp_protocol *protocol);
+ void pnp_unregister_protocol(struct pnp_protocol *protocol);
+ 
+diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+index 0f34d96..5076493 100644
+--- a/drivers/pnp/core.c
++++ b/drivers/pnp/core.c
+@@ -212,7 +212,14 @@ void __pnp_remove_device(struct pnp_dev *dev)
+ 
+ static int __init pnp_init(void)
+ {
+-	return bus_register(&pnp_bus_type);
++	int ret;
++
++	ret = bus_register(&pnp_bus_type);
++	if (ret)
++		return ret;
++
++	platform_pnp_fixups();
++	return 0;
  }
  
-+void __weak arch_remove_reservations(struct resource *avail)
-+{
-+}
+ subsys_initcall(pnp_init);
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index dfbd5a6..f18bb69 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/kernel.h>
++#include <linux/dmi.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/pnp.h>
+@@ -337,3 +338,17 @@ void pnp_fixup_device(struct pnp_dev *dev)
+ 		f->quirk_function(dev);
+ 	}
+ }
 +
- static resource_size_t simple_align_resource(void *data,
- 					     const struct resource *avail,
- 					     resource_size_t size,
-@@ -426,6 +430,7 @@ static int find_resource_from_top(struct resource *root, struct resource *new,
- 	struct resource *this;
- 	struct resource tmp, avail, alloc;
- 
-+	tmp.flags = new->flags;
- 	tmp.start = root->end;
- 	tmp.end = root->end;
- 
-@@ -438,6 +443,7 @@ static int find_resource_from_top(struct resource *root, struct resource *new,
- 			tmp.start = root->start;
- 
- 		resource_clip(&tmp, min, max);
-+		arch_remove_reservations(&tmp);
- 
- 		/* Check for overflow after ALIGN() */
- 		avail = *new;
-@@ -478,6 +484,7 @@ static int find_resource(struct resource *root, struct resource *new,
- 	struct resource *this = root->child;
- 	struct resource tmp = *new, avail, alloc;
- 
-+	tmp.flags = new->flags;
- 	tmp.start = root->start;
- 	/*
- 	 * Skip past an allocated resource that starts at 0, since the
-@@ -495,6 +502,7 @@ static int find_resource(struct resource *root, struct resource *new,
- 			tmp.end = root->end;
- 
- 		resource_clip(&tmp, min, max);
-+		arch_remove_reservations(&tmp);
- 
- 		/* Check for overflow after ALIGN() */
- 		avail = *new;
++static struct pnp_protocol pnp_fixup_protocol = {
++	.name = "Plug and Play fixup",
++};
++
++static const struct dmi_system_id pnp_fixup_table[] __initconst = {
++	{}
++};
++
++void __init platform_pnp_fixups(void)
++{
++	pnp_register_protocol(&pnp_fixup_protocol);
++	dmi_check_system(pnp_fixup_table);
++}
