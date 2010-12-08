@@ -1,95 +1,61 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/4] ACPI ac: update AC status first when querying from
- sysfs
-Date: Wed, 08 Dec 2010 10:40:45 +0800
-Message-ID: <1291776045.19296.704.camel@rui>
+Subject: [PATCH 1/4] ACPI:  remove two unused functions
+Date: Wed, 08 Dec 2010 10:40:26 +0800
+Message-ID: <1291776026.19296.702.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24868 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:45933 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755848Ab0LHCkp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Dec 2010 21:40:45 -0500
+	id S1755953Ab0LHCkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Dec 2010 21:40:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, seblu@seblu.net, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Update AC status first when querying from sysfs.
-http://marc.info/?l=linux-acpi&m=128855015826728&w=2
-https://bugzilla.kernel.org/show_bug.cgi?id=21722
 
-Tested_by: Seblu <seblu@seblu.net>
+drivers/acpi/processor_thermal.c:159:12: warning: =E2=80=98acpi_thermal=
+_cpufreq_increase=E2=80=99 defined but not used
+drivers/acpi/processor_thermal.c:163:12: warning: =E2=80=98acpi_thermal=
+_cpufreq_decrease=E2=80=99 defined but not used
+
+Remove unused declaration of =E2=80=98acpi_thermal_cpufreq_increase=E2=80=
+=99 and
+=E2=80=98acpi_thermal_cpufreq_decrease=E2=80=99
+
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/ac.c |   46 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
+ drivers/acpi/processor_thermal.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-Index: linux-2.6/drivers/acpi/ac.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ac.c
-+++ linux-2.6/drivers/acpi/ac.c
-@@ -100,24 +100,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
- #endif
--static int get_ac_property(struct power_supply *psy,
--			   enum power_supply_property psp,
--			   union power_supply_propval *val)
--{
--	struct acpi_ac *ac = to_acpi_ac(psy);
--	switch (psp) {
--	case POWER_SUPPLY_PROP_ONLINE:
--		val->intval = ac->state;
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
- 
--static enum power_supply_property ac_props[] = {
--	POWER_SUPPLY_PROP_ONLINE,
--};
- /* --------------------------------------------------------------------------
-                                AC Adapter Management
-    -------------------------------------------------------------------------- */
-@@ -140,6 +123,35 @@ static int acpi_ac_get_state(struct acpi
+Index: linux-2.6/drivers/acpi/processor_thermal.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/acpi/processor_thermal.c
++++ linux-2.6/drivers/acpi/processor_thermal.c
+@@ -156,15 +156,6 @@ static int cpufreq_set_cur_state(unsigne
  	return 0;
  }
- 
-+/* --------------------------------------------------------------------------
-+                            sysfs I/F
-+   -------------------------------------------------------------------------- */
-+static int get_ac_property(struct power_supply *psy,
-+			   enum power_supply_property psp,
-+			   union power_supply_propval *val)
-+{
-+	struct acpi_ac *ac = to_acpi_ac(psy);
-+
-+	if (!ac)
-+		return -ENODEV;
-+
-+	if (acpi_ac_get_state(ac))
-+		return -ENODEV;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_ONLINE:
-+		val->intval = ac->state;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static enum power_supply_property ac_props[] = {
-+	POWER_SUPPLY_PROP_ONLINE,
-+};
-+
- #ifdef CONFIG_ACPI_PROCFS_POWER
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
+=20
+-static int acpi_thermal_cpufreq_increase(unsigned int cpu)
+-{
+-	return -ENODEV;
+-}
+-static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
+-{
+-	return -ENODEV;
+-}
+-
+ #endif
+=20
+ int acpi_processor_get_limit_info(struct acpi_processor *pr)
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
