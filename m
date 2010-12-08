@@ -1,64 +1,59 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH] acpi: const-ify functions
-Date: Wed, 8 Dec 2010 21:17:36 +0200
-Message-ID: <20101208191736.GA6694@core2.telecom.by>
-References: <201012081925.10292.hanno@hboeck.de>
+From: Jack Steiner <steiner@sgi.com>
+Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
+Date: Wed, 8 Dec 2010 15:22:44 -0600
+Message-ID: <20101208212244.GA24280@sgi.com>
+References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com> <20100826171704.GA21584@sgi.com> <4C76AD82.2030105@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:33799 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756321Ab0LHTRn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Dec 2010 14:17:43 -0500
+Received: from relay3.sgi.com ([192.48.152.1]:35679 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750951Ab0LHVY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Dec 2010 16:24:27 -0500
 Content-Disposition: inline
-In-Reply-To: <201012081925.10292.hanno@hboeck.de>
+In-Reply-To: <4C76AD82.2030105@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanno =?iso-8859-1?Q?B=F6ck?= <hanno@hboeck.de>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>, lenb@kernel.org
+Cc: hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
 
-On Wed, Dec 08, 2010 at 07:25:10PM +0100, Hanno B=F6ck wrote:
-> Will const a couple of functions and variables. This is extracted
-> from grsecurity (with only a slight modification to limit a line
-> to 80 chars).
+On Thu, Aug 26, 2010 at 11:08:02AM -0700, H. Peter Anvin wrote:
+> On 08/26/2010 10:17 AM, Jack Steiner wrote:
+> > Map ACPI tables as WB on x86_64. No substantive changes to IA64.
+> > 
+> > 
+> > Signed-off-by: Jack Steiner <steiner@sgi.com>
+> > 
+> > ---
+> > V2 - Change the patch to unconditionally map ACPI tables as WB on x86_64.
+> >      I'm still some paranoid about this because of the potential imapct on
+> >      some platforms with weird BIOSs. However, note that on EFI-enabled
+> >      systems (like UV), the ACPI tables are already mapped as WB memory.
+> >      This is done in the EFI function efi_enter_virtual_mode().
+> >      The ACPI code in acpi_os_map_memory() is not currently aware of the
+> >      EFI mapping & currently maps the memory as UC. This seems like a bug.
+> > 
+> 
+> I really think that it's all a consequence of the fact that ioremap()
+> became implicitly UC when we added PAT support (being the more
+> conservative choice.)
+> 
+> Len, want to take this one or should I?
+> 
+> 	-hpa
 
-Why don't they do it themselves? :^)
+What is the upstream status of this patch? See the LKML discussion at:
 
-> Patch is against linux-acpi-2.6 git.
->=20
-> Similar patches have been sent in the past but not applied,
-> supposedly because they weren't sent to subsystem maintainers.
-> (I may continue to send similar extracts to other subsystems)
->=20
-> ---
-> Signed-off-by: Hanno Boeck <hanno@hboeck.de>
+	http://marc.info/?l=linux-kernel&m=128206079905826&w=2
+	http://marc.info/?l=linux-acpi&m=128284304032481&w=2
 
-Signed-off-by should be before --- -- it must make into changelog.
+We would like to get this patch into the distros but need upstream acceptance first.
 
-> diff -Naurp linux-acpi-1//drivers/acpi/battery.c linux-acpi-2/drivers=
-/acpi/battery.c
-> --- linux-acpi-1//drivers/acpi/battery.c	2010-12-08 18:42:26.18700000=
-5 +0100
-> +++ linux-acpi-2/drivers/acpi/battery.c	2010-12-08 18:42:53.595000204=
- +0100
-> @@ -851,7 +851,7 @@ DECLARE_FILE_FUNCTIONS(alarm);
->  	}
-> =20
->  static struct battery_file {
-> -	struct file_operations ops;
-> +	const struct file_operations ops;
+This patch substantially reduces the time to run ACPIDUMP on a large system:
+ 	527 seconds without the patch
+ 	  8 seconds with the patch
 
-Whoa, does this work?
+Is there something I should be doing? I can resend the patch if needed.
 
->  	mode_t mode;
->  	const char *name;
->  } acpi_battery_file[] =3D {
 
-It maybe better to call proc_create_date() by hand (and even handle
-errors gracefully?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- jack
