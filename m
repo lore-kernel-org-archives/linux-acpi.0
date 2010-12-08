@@ -1,61 +1,56 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 1/4] ACPI:  remove two unused functions
-Date: Wed, 08 Dec 2010 10:40:26 +0800
-Message-ID: <1291776026.19296.702.camel@rui>
+Subject: [PATCH 4/4] ACPI: update battery status first when querying from
+ sysfs
+Date: Wed, 08 Dec 2010 10:40:49 +0800
+Message-ID: <1291776049.19296.705.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:45933 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:1415 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755953Ab0LHCkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Dec 2010 21:40:55 -0500
+	id S1756043Ab0LHClE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Dec 2010 21:41:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, seblu@seblu.net, "Zhang, Rui" <rui.zhang@intel.com>
 
+Sometimes the Battery driver doesn't get notifications when it's
+plugged/unplugged. And this results in the incorrect Battery
+status reported by the power supply sysfs I/F.
 
-drivers/acpi/processor_thermal.c:159:12: warning: =E2=80=98acpi_thermal=
-_cpufreq_increase=E2=80=99 defined but not used
-drivers/acpi/processor_thermal.c:163:12: warning: =E2=80=98acpi_thermal=
-_cpufreq_decrease=E2=80=99 defined but not used
+Update Battery status first when querying from sysfs.
+http://marc.info/?l=linux-acpi&m=128855015826728&w=2
 
-Remove unused declaration of =E2=80=98acpi_thermal_cpufreq_increase=E2=80=
-=99 and
-=E2=80=98acpi_thermal_cpufreq_decrease=E2=80=99
-
+Tested_by: Seblu <seblu@seblu.net>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/processor_thermal.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/acpi/battery.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Index: linux-2.6/drivers/acpi/processor_thermal.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/acpi/processor_thermal.c
-+++ linux-2.6/drivers/acpi/processor_thermal.c
-@@ -156,15 +156,6 @@ static int cpufreq_set_cur_state(unsigne
- 	return 0;
- }
-=20
--static int acpi_thermal_cpufreq_increase(unsigned int cpu)
--{
--	return -ENODEV;
--}
--static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
--{
--	return -ENODEV;
--}
--
- #endif
-=20
- int acpi_processor_get_limit_info(struct acpi_processor *pr)
+Index: linux-2.6/drivers/acpi/battery.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/battery.c
++++ linux-2.6/drivers/acpi/battery.c
+@@ -130,6 +130,8 @@ struct acpi_battery {
+ 	unsigned long flags;
+ };
+ 
++static int acpi_battery_update(struct acpi_battery *battery);
++
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+ 
+ inline int acpi_battery_present(struct acpi_battery *battery)
+@@ -184,6 +186,9 @@ static int acpi_battery_get_property(str
+ 	int ret = 0;
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
++	if (acpi_battery_update(battery))
++		return -ENODEV;
++
+ 	if (acpi_battery_present(battery)) {
+ 		/* run battery update only if it is present */
+ 		acpi_battery_get_state(battery);
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
