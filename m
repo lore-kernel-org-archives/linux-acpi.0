@@ -1,56 +1,36 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 4/4] ACPI: update battery status first when querying from
- sysfs
-Date: Wed, 08 Dec 2010 10:40:49 +0800
-Message-ID: <1291776049.19296.705.camel@rui>
+From: "Jan Beulich" <JBeulich@novell.com>
+Subject: Re: [PATCH, resend] ACPI/HEST: avoid stack traces when	
+	 encountering duplicate source IDs
+Date: Wed, 08 Dec 2010 07:37:48 +0000
+Message-ID: <4CFF43DC0200007800026A59@vpn.id2.novell.com>
+References: <4CFE59A50200007800026700@vpn.id2.novell.com>
+ <1291768601.12648.663.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:1415 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756043Ab0LHClE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Dec 2010 21:41:04 -0500
+In-Reply-To: <1291768601.12648.663.camel@yhuang-dev>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, seblu@seblu.net, "Zhang, Rui" <rui.zhang@intel.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Sometimes the Battery driver doesn't get notifications when it's
-plugged/unplugged. And this results in the incorrect Battery
-status reported by the power supply sysfs I/F.
+>>> On 08.12.10 at 01:36, Huang Ying <ying.huang@intel.com> wrote:
+> On Tue, 2010-12-07 at 22:58 +0800, Jan Beulich wrote:
+>> Rather than trying to create duplicate platform devices, check for
+>> duplication up front.
+>> 
+>> Generally the kernel doesn't require uniqueness of the source IDs
+>> other than for obtaining unique platform device names (and making log
+>> message non-ambiguous) - therefore, it would be possible to simply
+>> replace eventual duplicate IDs with kernel assigned ones.
+> 
+> Do you have a machine with duplicated source ID in HEST?
 
-Update Battery status first when querying from sysfs.
-http://marc.info/?l=linux-acpi&m=128855015826728&w=2
+Yes (all IDs are identical), albeit one for which I'm not sure it (or
+its BIOS) are really fully production level. It's in any case quite
+a bit older than the code in Linux.
 
-Tested_by: Seblu <seblu@seblu.net>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/battery.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-Index: linux-2.6/drivers/acpi/battery.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/battery.c
-+++ linux-2.6/drivers/acpi/battery.c
-@@ -130,6 +130,8 @@ struct acpi_battery {
- 	unsigned long flags;
- };
- 
-+static int acpi_battery_update(struct acpi_battery *battery);
-+
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
- 
- inline int acpi_battery_present(struct acpi_battery *battery)
-@@ -184,6 +186,9 @@ static int acpi_battery_get_property(str
- 	int ret = 0;
- 	struct acpi_battery *battery = to_acpi_battery(psy);
- 
-+	if (acpi_battery_update(battery))
-+		return -ENODEV;
-+
- 	if (acpi_battery_present(battery)) {
- 		/* run battery update only if it is present */
- 		acpi_battery_get_state(battery);
-
+Jan
 
