@@ -1,98 +1,81 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 4/5] PNP: add framework for platform PNP quirks
-Date: Wed, 08 Dec 2010 14:36:22 -0700
-Message-ID: <20101208213621.13026.87155.stgit@bob.kio>
+Subject: [PATCH 2/5] x86: avoid BIOS area when allocating address space
+Date: Wed, 08 Dec 2010 14:36:11 -0700
+Message-ID: <20101208213611.13026.40888.stgit@bob.kio>
 References: <20101208213606.13026.47657.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20101208213606.13026.47657.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
 
-This allows platform quirks to fabricate PNP devices to describe things
-that should have been described via ACPI.  For example, if the BIOS writer
-forgets to describe a device, we may assign its address space to another
-device, causing a conflict.  We can avoid the conflict by making a fake PNP
-device to stand in for the one the BIOS missed.
+This implements arch_remove_reservations() so allocate_resource() can
+avoid any arch-specific reserved areas.  This currently just avoids the
+BIOS area (the first 1MB), but could be used for E820 reserved areas if
+that turns out to be necessary.
 
-In that case, there's no ACPI or PNPBIOS device, so we need a new
-pnp_protocol that doesn't go back to firmware for get/set/wakeup/
-suspend/etc.
+We previously avoided this area in pcibios_align_resource().  This patch
+moves the test from that PCI-specific path to a generic path, so *all*
+resource allocations will avoid this area.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- drivers/pnp/base.h   |    2 ++
- drivers/pnp/core.c   |    9 ++++++++-
- drivers/pnp/quirks.c |   15 +++++++++++++++
- 3 files changed, 25 insertions(+), 1 deletions(-)
+ arch/x86/kernel/Makefile   |    1 +
+ arch/x86/kernel/resource.c |   14 ++++++++++++++
+ arch/x86/pci/i386.c        |    3 ---
+ 3 files changed, 15 insertions(+), 3 deletions(-)
+ create mode 100644 arch/x86/kernel/resource.c
 
 
-diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-index 19bc736..dca301e 100644
---- a/drivers/pnp/base.h
-+++ b/drivers/pnp/base.h
-@@ -7,6 +7,8 @@ extern spinlock_t pnp_lock;
- extern struct device_attribute pnp_interface_attrs[];
- void *pnp_alloc(long size);
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 9e13763..1e99475 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -45,6 +45,7 @@ obj-y			+= pci-dma.o quirks.o i8237.o topology.o kdebugfs.o
+ obj-y			+= alternative.o i8253.o pci-nommu.o hw_breakpoint.o
+ obj-y			+= tsc.o io_delay.o rtc.o
+ obj-y			+= pci-iommu_table.o
++obj-y			+= resource.o
  
-+void platform_pnp_fixups(void);
+ obj-$(CONFIG_X86_TRAMPOLINE)	+= trampoline.o
+ obj-y				+= process.o
+diff --git a/arch/x86/kernel/resource.c b/arch/x86/kernel/resource.c
+new file mode 100644
+index 0000000..5dd6473
+--- /dev/null
++++ b/arch/x86/kernel/resource.c
+@@ -0,0 +1,14 @@
++#include <linux/ioport.h>
++#include <asm/e820.h>
 +
- int pnp_register_protocol(struct pnp_protocol *protocol);
- void pnp_unregister_protocol(struct pnp_protocol *protocol);
- 
-diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
-index 0f34d96..5076493 100644
---- a/drivers/pnp/core.c
-+++ b/drivers/pnp/core.c
-@@ -212,7 +212,14 @@ void __pnp_remove_device(struct pnp_dev *dev)
- 
- static int __init pnp_init(void)
- {
--	return bus_register(&pnp_bus_type);
-+	int ret;
-+
-+	ret = bus_register(&pnp_bus_type);
-+	if (ret)
-+		return ret;
-+
-+	platform_pnp_fixups();
-+	return 0;
- }
- 
- subsys_initcall(pnp_init);
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index dfbd5a6..f18bb69 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -15,6 +15,7 @@
- 
- #include <linux/types.h>
- #include <linux/kernel.h>
-+#include <linux/dmi.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
-@@ -337,3 +338,17 @@ void pnp_fixup_device(struct pnp_dev *dev)
- 		f->quirk_function(dev);
- 	}
- }
-+
-+static struct pnp_protocol pnp_fixup_protocol = {
-+	.name = "Plug and Play fixup",
-+};
-+
-+static const struct dmi_system_id pnp_fixup_table[] __initconst = {
-+	{}
-+};
-+
-+void __init platform_pnp_fixups(void)
++void arch_remove_reservations(struct resource *avail)
 +{
-+	pnp_register_protocol(&pnp_fixup_protocol);
-+	dmi_check_system(pnp_fixup_table);
++	/*
++	 * Trim out the area reserved for BIOS (low 1MB).  We could also remove
++	 * E820 "reserved" areas here.
++	 */
++	if (avail->flags & IORESOURCE_MEM) {
++		if (avail->start < BIOS_END)
++			avail->start = BIOS_END;
++	}
 +}
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index c4bb261..b261011 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -77,9 +77,6 @@ pcibios_align_resource(void *data, const struct resource *res,
+ 		 */
+ 		if (!skip_isa_ioresource_align(dev))
+ 			start &= ~0x300;
+-	} else if (res->flags & IORESOURCE_MEM) {
+-		if (start < BIOS_END)
+-			start = res->end;	/* fail; no space */
+ 	}
+ 	return start;
+ }
