@@ -1,50 +1,44 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [lm-sensors] Patch[2/2] Adding Interrupt Handling Support to
- Coretemp
-Date: Wed, 8 Dec 2010 22:16:45 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF04654105C0E06161@bgsmsx502.gar.corp.intel.com>
-References: <D6D887BA8C9DFF48B5233887EF04654105C0E05F61@bgsmsx502.gar.corp.intel.com>
- <20101208150650.GA28273@ericsson.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [lm-sensors] Patch[1/2] Adding Core and Package Thermal
+ Threshold Support to Coretemp
+Date: Wed, 8 Dec 2010 09:11:38 -0800
+Message-ID: <20101208171138.GA28901@ericsson.com>
+References: <D6D887BA8C9DFF48B5233887EF04654105C0E05F4E@bgsmsx502.gar.corp.intel.com>
+ <20101208162214.353e3899@endymion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26307 "EHLO mga11.intel.com"
+Received: from imr4.ericy.com ([198.24.6.8]:40964 "EHLO imr4.ericy.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752184Ab0LHQqt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Dec 2010 11:46:49 -0500
-In-Reply-To: <20101208150650.GA28273@ericsson.com>
-Content-Language: en-US
+	id S1754921Ab0LHRM2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Dec 2010 12:12:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20101208162214.353e3899@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-> > From: Durgadoss R <durgadoss.r@intel.com>
-> >
-> > Date: Tue, 7 Dec 2010 04:10:41 +0530
-> > Subject: [PATCH 2/2] Adding_Threshold_Interrupt_Handling_to_Coretemp
-> >
-> > This patch adds the interrupt handling for the core/package
-> > thermal thresholds in coretemp. The interrupts are routed to coretemp
-> > via therm_throt.c. Whenever an interrupt occurs, a notification is sent
-> > in the form of a netlink event to the user space.
-> >
-> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> >
-> After browsing through this and the previous patch, I think the functionality
-> should reside outside and be independent of hwmon. arch/x86/kernel/cpu or
-> drivers/platform/x86 might be better places for it, though I am not really
-> in a position to make that judgement.
+On Wed, Dec 08, 2010 at 10:22:14AM -0500, Jean Delvare wrote:
+> On Wed, 8 Dec 2010 14:40:29 +0530, R, Durgadoss wrote:
+> > Hi Fenghua,
+> > 
+> > This patch adds the core and package thermal threshold support to coretemp.c.
+> > These thresholds can be read/written using the hwmon sysfs interfaces
+> > temp1_core_thresh[0/1] and temp1_pkg_thresh[0/1].
+> 
+> The package temperature isn't currently supported by the coretemp
+> driver but by the pkgtemp driver. It makes no sense to add support for
+> package thermal threshold to coretemp as long as the pkgtemp functionality
+> hasn't been merged back into coretemp. This was the plan, BTW, I
+> objected to the very existence of a separate pkgtemp driver since day
+> 1, and I thought we had agreed that pkgtemp would be removed and its
+> functionality would be merged into coretemp.
+> 
+Doesn't seem to be happening. Maybe we should reject further changes (other than
+bug fixes) for those drivers until the cleanup has been done.
 
-I added the threshold support to hwmon because the existing coretemp
-driver provided a nice infrastructure for this. For eg: I do not
-have to create functions for reading current temperature, detecting
-the CPU model, checking the DTS support etc..
+What is your take on the ABI changes ? For me, there are two questions: Do we need
+new attributes ? If we do, what should be the attribute name(s) and semantics ?
 
-But If you are saying that, the coretemp driver itself(not just
-the threshold functionality), should be in a different location,
-then, as you said, I am also not in a position to make the judgement.
-
-Thanks,
-Durgadoss
+Guenter
