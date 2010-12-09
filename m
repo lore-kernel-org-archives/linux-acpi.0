@@ -1,429 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 6/6] ACPICA: Misc comments to minimize code divergence
-Date: Thu, 9 Dec 2010 23:32:33 +0100
-Message-ID: <201012092332.33896.rjw@sisk.pl>
-References: <1291651157.2197.88.camel@localhost>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 2/6] ACPICA: Rename some function and variable names
+Date: Thu, 9 Dec 2010 14:33:35 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BCADEC3D@orsmsx503.amr.corp.intel.com>
+References: <1291651120.2197.80.camel@localhost>
+ <201012092259.38254.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42067 "EHLO ogre.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:23139 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755875Ab0LIWdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:33:09 -0500
-In-Reply-To: <1291651157.2197.88.camel@localhost>
+	id S1752261Ab0LIWdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Dec 2010 17:33:41 -0500
+In-Reply-To: <201012092259.38254.rjw@sisk.pl>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Monday, December 06, 2010, Lin Ming wrote:
-> Modify/add some comments to minimize ACPICA/linux GPE code divergence.
-> 
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-> --- 
-> drivers/acpi/acpica/achware.h   |    2 +-
->  drivers/acpi/acpica/evgpe.c     |   23 ++++++++++++++---------
->  drivers/acpi/acpica/evgpeblk.c  |   18 ++++++++----------
->  drivers/acpi/acpica/evgpeinit.c |   24 ++++++++++++++++++++----
->  drivers/acpi/acpica/evxfgpe.c   |   32 +++++++++++++++++++++-----------
->  drivers/acpi/acpica/hwgpe.c     |   30 ++++++++++++++++++------------
->  6 files changed, 82 insertions(+), 47 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-> index 167470a..258d628 100644
-> --- a/drivers/acpi/acpica/achware.h
-> +++ b/drivers/acpi/acpica/achware.h
-> @@ -94,7 +94,7 @@ u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
->  			     struct acpi_gpe_register_info *gpe_register_info);
->  
->  acpi_status
-> -acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action);
-> +acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action);
->  
->  acpi_status
->  acpi_hw_disable_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
-> diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> index c9d9ecf..6cb679f 100644
-> --- a/drivers/acpi/acpica/evgpe.c
-> +++ b/drivers/acpi/acpica/evgpe.c
-> @@ -104,7 +104,7 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Clear the given GPE from stale events and enable it.
-> + * DESCRIPTION: Clear a GPE of stale events and enable it.
->   *
->   ******************************************************************************/
->  acpi_status
-> @@ -142,7 +142,7 @@ acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
->   *
->   * FUNCTION:    acpi_ev_add_gpe_reference
->   *
-> - * PARAMETERS:  gpe_event_info  - GPE to enable
-> + * PARAMETERS:  gpe_event_info          - Add a reference to this GPE
->   *
->   * RETURN:      Status
->   *
-> @@ -163,6 +163,9 @@ acpi_status acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info
->  
->  	gpe_event_info->runtime_count++;
->  	if (gpe_event_info->runtime_count == 1) {
-> +
-> +		/* Enable on first reference */
-> +
->  		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
->  		if (ACPI_SUCCESS(status)) {
->  			status = acpi_ev_enable_gpe(gpe_event_info);
-> @@ -180,7 +183,7 @@ acpi_status acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info
->   *
->   * FUNCTION:    acpi_ev_remove_gpe_reference
->   *
-> - * PARAMETERS:  gpe_event_info  - GPE to disable
-> + * PARAMETERS:  gpe_event_info          - Remove a reference to this GPE
->   *
->   * RETURN:      Status
->   *
-> @@ -201,6 +204,9 @@ acpi_status acpi_ev_remove_gpe_reference(struct acpi_gpe_event_info *gpe_event_i
->  
->  	gpe_event_info->runtime_count--;
->  	if (!gpe_event_info->runtime_count) {
-> +
-> +		/* Disable on last reference */
-> +
->  		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
->  		if (ACPI_SUCCESS(status)) {
->  			status = acpi_hw_low_set_gpe(gpe_event_info,
-> @@ -386,7 +392,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
->  			}
->  
->  			ACPI_DEBUG_PRINT((ACPI_DB_INTERRUPTS,
-> -					  "Read GPE Register at GPE%X: Status=%02X, Enable=%02X\n",
-> +					  "Read GPE Register at GPE%02X: Status=%02X, Enable=%02X\n",
->  					  gpe_register_info->base_gpe_number,
->  					  status_reg, enable_reg));
->  
-> @@ -567,7 +573,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->   ******************************************************************************/
->  
->  static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context)
-> - {
-> +{
->   	struct acpi_gpe_event_info *gpe_event_info = context;
->  
->  	(void)acpi_ev_finish_gpe(gpe_event_info);
-> @@ -659,8 +665,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
->  		status = acpi_hw_clear_gpe(gpe_event_info);
->  		if (ACPI_FAILURE(status)) {
->  			ACPI_EXCEPTION((AE_INFO, status,
-> -					"Unable to clear GPE[0x%2X]",
-> -					gpe_number));
-> +					"Unable to clear GPE%02X", gpe_number));
->  			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
->  		}
->  	}
-> @@ -719,7 +724,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
->  					 gpe_event_info);
->  		if (ACPI_FAILURE(status)) {
->  			ACPI_EXCEPTION((AE_INFO, status,
-> -					"Unable to queue handler for GPE[0x%2X] - event disabled",
-> +					"Unable to queue handler for GPE%2X - event disabled",
->  					gpe_number));
->  		}
->  		break;
-> @@ -732,7 +737,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
->  		 * a GPE to be enabled if it has no handler or method.
->  		 */
->  		ACPI_ERROR((AE_INFO,
-> -			    "No handler or method for GPE[0x%2X], disabling event",
-> +			    "No handler or method for GPE%02X, disabling event",
->  			    gpe_number));
->  
->  		break;
-> diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
-> index e2e8164..9acb869 100644
-> --- a/drivers/acpi/acpica/evgpeblk.c
-> +++ b/drivers/acpi/acpica/evgpeblk.c
-> @@ -361,9 +361,9 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
->  
->  	gpe_block->node = gpe_device;
->  	gpe_block->gpe_count = (u16)(register_count * ACPI_GPE_REGISTER_WIDTH);
-> +	gpe_block->initialized = FALSE;
->  	gpe_block->register_count = register_count;
->  	gpe_block->block_base_number = gpe_block_base_number;
-> -	gpe_block->initialized = FALSE;
->  
->  	ACPI_MEMCPY(&gpe_block->block_address, gpe_block_address,
->  		    sizeof(struct acpi_generic_address));
-> @@ -423,14 +423,12 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
->   *
->   * FUNCTION:    acpi_ev_initialize_gpe_block
->   *
-> - * PARAMETERS:  gpe_device          - Handle to the parent GPE block
-> - *              gpe_block           - Gpe Block info
-> + * PARAMETERS:  acpi_gpe_callback
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Initialize and enable a GPE block. First find and run any
-> - *              _PRT methods associated with the block, then enable the
-> - *              appropriate GPEs.
-> + * DESCRIPTION: Initialize and enable a GPE block. Enable GPEs that have
-> + *              associated methods.
->   *              Note: Assumes namespace is locked.
->   *
->   ******************************************************************************/
-> @@ -450,8 +448,8 @@ acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
->  	ACPI_FUNCTION_TRACE(ev_initialize_gpe_block);
->  
->  	/*
-> -	 * Ignore a null GPE block (e.g., if no GPE block 1 exists) and
-> -	 * GPE blocks that have been initialized already.
-> +	 * Ignore a null GPE block (e.g., if no GPE block 1 exists), and
-> +	 * any GPE blocks that have been initialized already.
->  	 */
->  	if (!gpe_block || gpe_block->initialized) {
->  		return_ACPI_STATUS(AE_OK);
-> @@ -459,8 +457,8 @@ acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
->  
->  	/*
->  	 * Enable all GPEs that have a corresponding method and have the
-> -	 * ACPI_GPE_CAN_WAKE flag unset.  Any other GPEs within this block must
-> -	 * be enabled via the acpi_enable_gpe() interface.
-> +	 * ACPI_GPE_CAN_WAKE flag unset. Any other GPEs within this block
-> +	 * must be enabled via the acpi_enable_gpe() interface.
->  	 */
->  	gpe_enabled_count = 0;
->  
-> diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
-> index 223dba2..beb3675 100644
-> --- a/drivers/acpi/acpica/evgpeinit.c
-> +++ b/drivers/acpi/acpica/evgpeinit.c
-> @@ -45,11 +45,27 @@
->  #include "accommon.h"
->  #include "acevents.h"
->  #include "acnamesp.h"
-> -#include "acinterp.h"
->  
->  #define _COMPONENT          ACPI_EVENTS
->  ACPI_MODULE_NAME("evgpeinit")
->  
-> +/*
-> + * Note: History of _PRW support in ACPICA
-> + *
-> + * Originally (2000 - 2010), the GPE initialization code performed a walk of
-> + * the entire namespace to execute the _PRW methods and detect all GPEs
-> + * capable of waking the system.
-> + *
-> + * As of 10/2010, the _PRW method execution has been removed since it is
-> + * actually unnecessary. The host OS must in fact execute all _PRW methods
-> + * in order to identify the device/power-resource dependencies. We now put
-> + * the onus on the host OS to identify the wake GPEs as part of this process
-> + * and to inform ACPICA of these GPEs via the acpi_setup_gpe_for_wake interface. This
-> + * not only reduces the complexity of the ACPICA initialization code, but in
-> + * some cases (on systems with very large namespaces) it should reduce the
-> + * kernel boot time as well.
-> + */
-> +
->  /*******************************************************************************
->   *
->   * FUNCTION:    acpi_ev_gpe_initialize
-> @@ -222,7 +238,7 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
->  	acpi_status status = AE_OK;
->  
->  	/*
-> -	 * 2) Find any _Lxx/_Exx GPE methods that have just been loaded.
-> +	 * Find any _Lxx/_Exx GPE methods that have just been loaded.
->  	 *
->  	 * Any GPEs that correspond to new _Lxx/_Exx methods are immediately
->  	 * enabled.
-> @@ -235,9 +251,9 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
->  		return;
->  	}
->  
-> +	walk_info.count = 0;
->  	walk_info.owner_id = table_owner_id;
->  	walk_info.execute_by_owner_id = TRUE;
-> -	walk_info.count = 0;
->  
->  	/* Walk the interrupt level descriptor list */
->  
-> @@ -298,7 +314,7 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
->   *                  xx     - is the GPE number [in HEX]
->   *
->   * If walk_info->execute_by_owner_id is TRUE, we only execute examine GPE methods
-> - *    with that owner.
-> + * with that owner.
->   *
->   ******************************************************************************/
->  
-> diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-> index fcf4a5c..416845b 100644
-> --- a/drivers/acpi/acpica/evxfgpe.c
-> +++ b/drivers/acpi/acpica/evxfgpe.c
-> @@ -55,13 +55,19 @@ ACPI_MODULE_NAME("evxfgpe")
->   *
->   * PARAMETERS:  None
->   *
-> - * RETURN:      None
-> + * RETURN:      Status
-> + *
-> + * DESCRIPTION: Complete GPE initialization and enable all GPEs that have
-> + *              associated _Lxx or _Exx methods and are not pointed to by any
-> + *              device _PRW methods (this indicates that these GPEs are
-> + *              generally intended for system or device wakeup. Such GPEs
-> + *              have to be enabled directly when the devices whose _PRW
-> + *              methods point to them are set up for wakeup signaling.)
->   *
-> - * DESCRIPTION: Enable all GPEs that have associated _Lxx or _Exx methods and
-> - *              are not pointed to by any device _PRW methods indicating that
-> - *              these GPEs are generally intended for system or device wakeup
-> - *              (such GPEs have to be enabled directly when the devices whose
-> - *              _PRW methods point to them are set up for wakeup signaling).
-> + * NOTE: Should be called after any GPEs are added to the system. Primarily,
-> + * after the system _PRW methods have been run, but also after a GPE Block
-> + * Device has been added or if any new GPE methods have been added via a
-> + * dynamic table load.
->   *
->   ******************************************************************************/
->  
-> @@ -252,7 +258,8 @@ ACPI_EXPORT_SYMBOL(acpi_setup_gpe_for_wake)
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Set or clear the GPE's wakeup enable mask bit.
-> + * DESCRIPTION: Set or clear the GPE's wakeup enable mask bit. The GPE must
-> + *              already be marked as a WAKE GPE.
->   *
->   ******************************************************************************/
->  
-> @@ -268,8 +275,10 @@ acpi_status acpi_set_gpe_wake_mask(acpi_handle gpe_device, u32 gpe_number, u8 ac
->  
->  	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
->  
-> -	/* Ensure that we have a valid GPE number */
-> -
-> +	/*
-> +	 * Ensure that we have a valid GPE number and that this GPE is in
-> +	 * fact a wake GPE
-> +	 */
->  	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
->  	if (!gpe_event_info) {
->  		status = AE_BAD_PARAMETER;
-> @@ -366,7 +375,7 @@ ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Get status of an event (general purpose)
-> + * DESCRIPTION: Get the current status of a GPE (signalled/not_signalled)
->   *
->   ******************************************************************************/
->  acpi_status
-> @@ -476,7 +485,8 @@ ACPI_EXPORT_SYMBOL(acpi_enable_all_runtime_gpes)
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Create and Install a block of GPE registers
-> + * DESCRIPTION: Create and Install a block of GPE registers. The GPEs are not
-> + *              enabled here.
->   *
->   ******************************************************************************/
->  acpi_status
-> diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-> index 7c6d485..85c3cbd 100644
-> --- a/drivers/acpi/acpica/hwgpe.c
-> +++ b/drivers/acpi/acpica/hwgpe.c
-> @@ -62,10 +62,10 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
->   * PARAMETERS:	gpe_event_info	    - Info block for the GPE
->   *		gpe_register_info   - Info block for the GPE register
->   *
-> - * RETURN:	Status
-> + * RETURN:	Register mask with a one in the GPE bit position
->   *
-> - * DESCRIPTION:	Compute GPE enable mask with one bit corresponding to the given
-> - *		GPE set.
-> + * DESCRIPTION: Compute the register mask for this GPE. One bit is set in the
-> + *              correct position for the input GPE.
->   *
->   ******************************************************************************/
->  
-> @@ -85,12 +85,12 @@ u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
->   *
->   * RETURN:	Status
->   *
-> - * DESCRIPTION: Enable or disable a single GPE in its enable register.
-> + * DESCRIPTION: Enable or disable a single GPE in the parent enable register.
->   *
->   ******************************************************************************/
->  
->  acpi_status
-> -acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
-> +acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
->  {
->  	struct acpi_gpe_register_info *gpe_register_info;
->  	acpi_status status;
-> @@ -113,14 +113,20 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
->  		return (status);
->  	}
->  
-> -	/* Set ot clear just the bit that corresponds to this GPE */
-> +	/* Set or clear just the bit that corresponds to this GPE */
->  
->  	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
->  						gpe_register_info);
->  	switch (action) {
->  	case ACPI_GPE_CONDITIONAL_ENABLE:
-> -		if (!(register_bit & gpe_register_info->enable_for_run))
-> +
-> +		/* Only enable if the enable_for_run bit is set */
-> +
-> +		if (!(register_bit & gpe_register_info->enable_for_run)) {
->  			return (AE_BAD_PARAMETER);
-> +		}
-> +
-> +		/*lint -fallthrough */
->  
->  	case ACPI_GPE_ENABLE:
->  		ACPI_SET_BIT(enable_mask, register_bit);
-> @@ -131,7 +137,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
->  		break;
->  
->  	default:
-> -		ACPI_ERROR((AE_INFO, "Invalid action\n"));
-> +		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u\n", action));
->  		return (AE_BAD_PARAMETER);
->  	}
->  
-> @@ -168,13 +174,13 @@ acpi_status acpi_hw_clear_gpe(struct acpi_gpe_event_info * gpe_event_info)
->  		return (AE_NOT_EXIST);
->  	}
->  
-> -	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
-> -						gpe_register_info);
-> -
->  	/*
->  	 * Write a one to the appropriate bit in the status register to
->  	 * clear this GPE.
->  	 */
-> +	register_bit =
-> +	    acpi_hw_get_gpe_register_bit(gpe_event_info, gpe_register_info);
-> +
->  	status = acpi_hw_write(register_bit,
->  			       &gpe_register_info->status_address);
->  
-> @@ -201,8 +207,8 @@ acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
->  	u32 in_byte;
->  	u32 register_bit;
->  	struct acpi_gpe_register_info *gpe_register_info;
-> -	acpi_status status;
->  	acpi_event_status local_event_status = 0;
-> +	acpi_status status;
->  
->  	ACPI_FUNCTION_ENTRY();
->  
-> 
-
+Rm9yIHRoZSBuZXh0IHRpbWUgd2UgYXR0ZW1wdCB0byBtYWtlIHN1Y2ggYSBsYXJnZSBBQ1BJQ0Eg
+Y2hhbmdlLCB3ZSBuZWVkIHRvIHB1dCBhIG1ldGhvZG9sb2d5IGluIHBsYWNlIHRvIHNpbXBsaWZ5
+IHRoaW5ncy4gSXQgaGFzIGJlZW4gdmVyeSBkaWZmaWN1bHQgZm9yIHVzIHRvIHRha2UgTGludXgg
+cGF0Y2hlcywgYmFja3BvcnQgYW5kIGludGVncmF0ZSBpbnRvIEFDUElDQSwgbWFrZSBhZGRpdGlv
+bmFsIGNoYW5nZXMsIHRoZW4gZm9yd2FyZCBwb3J0IHRoZSBmaW5hbCBBQ1BJQ0EgY2hhbmdlcyB0
+byBMaW51eCwgYW5kIHRoZW4gc2hvZWhvcm4gdGhlIGNvZGUgaW50byB0aGUgb3JpZ2luYWwgTGlu
+dXggcGF0Y2hlcy4NCg0KRGlmZmljdWx0IGFzIGluIHNldmVyYWwgdGltZXMgdGhlIHdvcmsuDQoN
+Ck1pbmcgaGFzIHdvcmtlZCB2ZXJ5IGhhcmQgdG8gZm9yd2FyZC1wb3J0IHRoZSBBQ1BJQ0EgY29k
+ZSBhbmQgdGhlbiBzaG9laG9ybiB0aGUgY2hhbmdlcyBpbnRvIHRoZSBvcmlnaW5hbCBMaW51eCBw
+YXRjaGVzLg0KDQpCdXQgd2UgY2FuJ3QgZG8gaXQgdGhpcyB3YXkgYWdhaW4uIA0KDQpXZSBhcmUg
+b3BlbiB0byBzdWdnZXN0aW9ucyBvbiBhIGJldHRlciB3YXkgdG8gZG8gdGhpcywgcGVyaGFwcyBM
+ZW4gY2FuIGhlbHAuDQoNCkJvYg0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9t
+OiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0BzaXNrLnBsXSANClNlbnQ6IFRodXJzZGF5
+LCBEZWNlbWJlciAwOSwgMjAxMCAyOjAwIFBNDQpUbzogTGluLCBNaW5nIE0NCkNjOiBMZW4gQnJv
+d247IE1vb3JlLCBSb2JlcnQ7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBS
+ZTogW1BBVENIIDIvNl0gQUNQSUNBOiBSZW5hbWUgc29tZSBmdW5jdGlvbiBhbmQgdmFyaWFibGUg
+bmFtZXMNCg0KT24gTW9uZGF5LCBEZWNlbWJlciAwNiwgMjAxMCwgTGluIE1pbmcgd3JvdGU6DQo+
+IFNvbWUgZnVuY3Rpb24gYW5kIHZhcmlhYmxlIG5hbWVzIGFyZSByZW5hbWVkIHRvIGJlIGNvbnNp
+c3RlbnQgd2l0aA0KPiBBQ1BJQ0EgY29kZSBiYXNlLg0KPiANCj4gYWNwaV9yYXdfZW5hYmxlX2dw
+ZSAtPiBhY3BpX2V2X2FkZF9ncGVfcmVmZXJlbmNlDQo+IGFjcGlfcmF3X2Rpc2FibGVfZ3BlIC0+
+IGFjcGlfZXZfcmVtb3ZlX2dwZV9yZWZlcmVuY2UNCj4gYWNwaV9ncGVfY2FuX3dha2UgLT4gYWNw
+aV9zZXR1cF9ncGVfZm9yX3dha2UNCj4gYWNwaV9ncGVfd2FrZXVwIC0+IGFjcGlfc2V0X2dwZV93
+YWtlX21hc2sNCj4gYWNwaV91cGRhdGVfZ3BlcyAtPiBhY3BpX3VwZGF0ZV9hbGxfZ3Blcw0KPiBh
+Y3BpX2FsbF9ncGVzX2luaXRpYWxpemVkIC0+IGFjcGlfZ2JsX2FsbF9ncGVzX2luaXRpYWxpemVk
+DQo+IGFjcGlfaGFuZGxlcl9pbmZvIC0+IGFjcGlfZ3BlX2hhbmRsZXJfaW5mbw0KPiAuLi4NCj4g
+DQo+IFNpZ25lZC1vZmYtYnk6IExpbiBNaW5nIDxtaW5nLm0ubGluQGludGVsLmNvbT4NCg0KV2Vs
+bCwgdGhhIGNoYW5nZXMgcmVsYXRlZCB0byBhY3BpX2V2X2dwZV9kaXNwYXRjaCgpIGRvIG5vdCBy
+ZWFsbHkgbWF0Y2ggdGhlDQpjaGFuZ2Vsb2cuICBJJ2QgcHJlZmVyIHRoZW0gdG8gZ28gaW50byBh
+IHNlcGFyYXRlIHBhdGNoIHdpdGggdGhlIHJpZ2h0DQpkZXNjcmlwdGlvbi4NCg0KLi4uICANCj4g
+IHUzMg0KPiAtYWNwaV9ldl9ncGVfZGlzcGF0Y2goc3RydWN0IGFjcGlfZ3BlX2V2ZW50X2luZm8g
+KmdwZV9ldmVudF9pbmZvLA0KPiArYWNwaV9ldl9ncGVfZGlzcGF0Y2goc3RydWN0IGFjcGlfbmFt
+ZXNwYWNlX25vZGUgKmdwZV9kZXZpY2UsDQo+ICsJCSAgICAgc3RydWN0IGFjcGlfZ3BlX2V2ZW50
+X2luZm8gKmdwZV9ldmVudF9pbmZvLA0KPiAgCQkgICAgIHUzMiBncGVfbnVtYmVyKTsNCj4gIA0K
+Li4uDQo+ICAJCQkJCWludF9zdGF0dXMgfD0NCj4gLQkJCQkJICAgIGFjcGlfZXZfZ3BlX2Rpc3Bh
+dGNoKCZncGVfYmxvY2stPg0KPiArCQkJCQkgICAgYWNwaV9ldl9ncGVfZGlzcGF0Y2goZ3BlX2Js
+b2NrLT4NCj4gKwkJCQkJCQkJIG5vZGUsDQo+ICsJCQkJCQkJCSAmZ3BlX2Jsb2NrLT4NCj4gIAkJ
+CQkJCWV2ZW50X2luZm9bKChhY3BpX3NpemUpIGkgKiBBQ1BJX0dQRV9SRUdJU1RFUl9XSURUSCkg
+KyBqXSwgaiArIGdwZV9yZWdpc3Rlcl9pbmZvLT5iYXNlX2dwZV9udW1iZXIpOw0KPiAgCQkJCX0N
+Cj4gIAkJCX0NCi4uLg0KPiBAQCAtNTg5LDcgKzU5Nyw5IEBAIGFjcGlfZXZfZ3BlX2Rpc3BhdGNo
+KHN0cnVjdCBhY3BpX2dwZV9ldmVudF9pbmZvICpncGVfZXZlbnRfaW5mbywgdTMyIGdwZV9udW1i
+ZXIpDQo+ICAJCSAqIElnbm9yZSByZXR1cm4gc3RhdHVzIGZvciBub3cuDQo+ICAJCSAqIFRCRDog
+bGVhdmUgR1BFIGRpc2FibGVkIG9uIGVycm9yPw0KPiAgCQkgKi8NCj4gLQkJKHZvaWQpZ3BlX2V2
+ZW50X2luZm8tPmRpc3BhdGNoLmhhbmRsZXItPmFkZHJlc3MoZ3BlX2V2ZW50X2luZm8tPg0KPiAr
+CQkodm9pZClncGVfZXZlbnRfaW5mby0+ZGlzcGF0Y2guaGFuZGxlci0+YWRkcmVzcyhncGVfZGV2
+aWNlLA0KPiArCQkJCQkJCQlncGVfbnVtYmVyLA0KPiArCQkJCQkJCQlncGVfZXZlbnRfaW5mby0+
+DQo+ICAJCQkJCQkJCWRpc3BhdGNoLg0KPiAgCQkJCQkJCQloYW5kbGVyLT4NCj4gIAkJCQkJCQkJ
+Y29udGV4dCk7DQouLi4NCg0KVGhhbmtzLA0KUmFmYWVsDQo=
