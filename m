@@ -1,132 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-Date: Fri, 10 Dec 2010 00:04:16 +0100
-Message-ID: <201012100004.16661.rjw@sisk.pl>
-References: <1291651120.2197.80.camel@localhost> <201012092351.21589.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D830858BCADEC96@orsmsx503.amr.corp.intel.com>
+From: Michael Derrick <z01@umina.net>
+Subject: Asus U30JC BIOS
+Date: Fri, 10 Dec 2010 10:10:50 +1100
+Message-ID: <AANLkTikyat4BHA_E5RhNh4RLbi76AnucjpO=BxdsYWjo@mail.gmail.com>
+References: <AANLkTinFo-T4BFTMj6GUpdZJwkn39Tx9j1LiUf5OvTEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42167 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752665Ab0LIXFM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 18:05:12 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BCADEC96@orsmsx503.amr.corp.intel.com>
+Received: from mail-iw0-f172.google.com ([209.85.214.172]:57796 "EHLO
+	mail-iw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752264Ab0LIXKu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Dec 2010 18:10:50 -0500
+Received: by iwn40 with SMTP id 40so4220209iwn.3
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Dec 2010 15:10:50 -0800 (PST)
+In-Reply-To: <AANLkTinFo-T4BFTMj6GUpdZJwkn39Tx9j1LiUf5OvTEA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: linux-acpi@vger.kernel.org
 
-On Thursday, December 09, 2010, Moore, Robert wrote:
-> I'm not talking about a single patch, but the entire process that has been cumbersome.
+Hi,
+The kernel requested the following information.
+Hope this helps,
+Michael Derrick
 
-The reason it has been so was that some ACPICA-related changes in Linux were
-not backported.  I don't know why that happened, but that's something we need
-to be much more careful about in the future.
+---------------------------
 
-Unfortunately, we sometimes need to make ACPICA changes in Linux urgently
-as bug fixes, so the workflow in which all changes would go through the ACPICA
-code base wouldn't be very practical.
-
-I think we need someone from your side to review proposed changes in Linux
-related to ACPICA and tell us which of them can be backported.  If a Linux
-patch is ACKed by this person, it should be backported to the ACPICA code
-base timely, ideally as soon as it appears in the Linus' tree or after a major
-kernel release is made.
-
-Thanks,
-Rafael
-
-
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
-> Sent: Thursday, December 09, 2010 2:51 PM
-> To: Moore, Robert
-> Cc: Lin, Ming M; Len Brown; linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-> 
-> On Thursday, December 09, 2010, Moore, Robert wrote:
-> > For the next time we attempt to make such a large ACPICA change, we need to put a methodology in place to simplify things. It has been very difficult for us to take Linux patches, backport and integrate into ACPICA, make additional changes, then forward port the final ACPICA changes to Linux, and then shoehorn the code into the original Linux patches.
-> > 
-> > Difficult as in several times the work.
-> > 
-> > Ming has worked very hard to forward-port the ACPICA code and then shoehorn the changes into the original Linux patches.
-> > 
-> > But we can't do it this way again. 
-> > 
-> > We are open to suggestions on a better way to do this, perhaps Len can help.
-> 
-> Well, I'm talking about a simple thing like splitting a patch into two pieces.
-> That's not going to take a lot of time IMO and the benefit is that more people
-> may actually understand what's being done.
-> 
-> Moreover, if anyone hits a problem related to one of your patches, it's vital
-> to be able to figure out which change caused it to happen.
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
-> > Sent: Thursday, December 09, 2010 2:00 PM
-> > To: Lin, Ming M
-> > Cc: Len Brown; Moore, Robert; linux-acpi@vger.kernel.org
-> > Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-> > 
-> > On Monday, December 06, 2010, Lin Ming wrote:
-> > > Some function and variable names are renamed to be consistent with
-> > > ACPICA code base.
-> > > 
-> > > acpi_raw_enable_gpe -> acpi_ev_add_gpe_reference
-> > > acpi_raw_disable_gpe -> acpi_ev_remove_gpe_reference
-> > > acpi_gpe_can_wake -> acpi_setup_gpe_for_wake
-> > > acpi_gpe_wakeup -> acpi_set_gpe_wake_mask
-> > > acpi_update_gpes -> acpi_update_all_gpes
-> > > acpi_all_gpes_initialized -> acpi_gbl_all_gpes_initialized
-> > > acpi_handler_info -> acpi_gpe_handler_info
-> > > ...
-> > > 
-> > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > 
-> > Well, tha changes related to acpi_ev_gpe_dispatch() do not really match the
-> > changelog.  I'd prefer them to go into a separate patch with the right
-> > description.
-> > 
-> > ...  
-> > >  u32
-> > > -acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
-> > > +acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
-> > > +		     struct acpi_gpe_event_info *gpe_event_info,
-> > >  		     u32 gpe_number);
-> > >  
-> > ...
-> > >  					int_status |=
-> > > -					    acpi_ev_gpe_dispatch(&gpe_block->
-> > > +					    acpi_ev_gpe_dispatch(gpe_block->
-> > > +								 node,
-> > > +								 &gpe_block->
-> > >  						event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
-> > >  				}
-> > >  			}
-> > ...
-> > > @@ -589,7 +597,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
-> > >  		 * Ignore return status for now.
-> > >  		 * TBD: leave GPE disabled on error?
-> > >  		 */
-> > > -		(void)gpe_event_info->dispatch.handler->address(gpe_event_info->
-> > > +		(void)gpe_event_info->dispatch.handler->address(gpe_device,
-> > > +								gpe_number,
-> > > +								gpe_event_info->
-> > >  								dispatch.
-> > >  								handler->
-> > >  								context);
-> > ...
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> 
-> 
-
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251433] ACPI: BIOS
+_OSI(Linux) query ignored
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251434] ACPI: DMI S=
+ystem
+Vendor: ASUSTeK Computer Inc.
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251435] ACPI: DMI P=
+roduct
+Name: U30Jc
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251436] ACPI: DMI P=
+roduct
+Version: 1.0
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251437] ACPI: DMI B=
+oard Name: U30Jc
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251438] ACPI: DMI B=
+IOS
+Vendor: American Megatrends Inc.
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251439] ACPI: DMI B=
+IOS
+Date: 06/07/2010
+Dec=A0 4 14:27:21 Ambitious-DB kernel: [=A0=A0=A0 1.251440] ACPI: Pleas=
+e send
+DMI info above to linux-acpi@vger.kernel.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
