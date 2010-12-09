@@ -1,7 +1,7 @@
 From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH 6/7] ideapad: pass ideapad_priv as argument (part 1)
-Date: Thu,  9 Dec 2010 15:57:40 +0800
-Message-ID: <1291881460-4904-1-git-send-email-ike.pan@canonical.com>
+Subject: [PATCH 4/7] ideapad: select INPUT_SPARSEKMAP
+Date: Thu,  9 Dec 2010 15:57:20 +0800
+Message-ID: <1291881440-4846-1-git-send-email-ike.pan@canonical.com>
 References: <1291881376-4729-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1291881376-4729-1-git-send-email-ike.pan@canonical.com>
@@ -10,168 +10,34 @@ To: linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acp
 Cc: Matthew Garrett <mjg@redhat.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dave Hansen <dave@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Passing ideapad_priv as argument and try not to using too much global variable.
-This is part 1 for platform driver and input device.
+Thanks for Dave Hansen report the problem. If CONFIG_INPUT_SPARSEKMAP is not
+set, when building, you will have error message:
 
+  ERROR: "sparse_keymap_setup" [drivers/platform/x86/ideapad-laptop.ko] undefined!
+  ERROR: "sparse_keymap_free" [drivers/platform/x86/ideapad-laptop.ko] undefined!
+  ERROR: "sparse_keymap_report_event" [drivers/platform/x86/ideapad-laptop.ko] undefined!
+
+To select INPUT_SPARSEKMAP solve this issue.
+
+Ref: http://lkml.org/lkml/2010/12/2/340
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Ike Panhc <ike.pan@canonical.com>
 ---
- drivers/platform/x86/ideapad-laptop.c |   54 +++++++++++++++++----------------
- 1 files changed, 28 insertions(+), 26 deletions(-)
+ drivers/platform/x86/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
-index 2c4830c..eda7267 100644
---- a/drivers/platform/x86/ideapad-laptop.c
-+++ b/drivers/platform/x86/ideapad-laptop.c
-@@ -299,37 +299,37 @@ static struct attribute_group ideapad_attribute_group = {
- 	.attrs = ideapad_attributes
- };
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index faec777..879d266 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -226,6 +226,7 @@ config IDEAPAD_LAPTOP
+ 	tristate "Lenovo IdeaPad Laptop Extras"
+ 	depends on ACPI
+ 	depends on RFKILL
++	select INPUT_SPARSEKMAP
+ 	help
+ 	  This is a driver for the rfkill switches on Lenovo IdeaPad netbooks.
  
--static int __devinit ideapad_platform_init(void)
-+static int __devinit ideapad_platform_init(struct ideapad_private *priv)
- {
- 	int result;
- 
--	ideapad_priv->platform_device = platform_device_alloc("Ideapad", -1);
--	if (!ideapad_priv->platform_device)
-+	priv->platform_device = platform_device_alloc("Ideapad", -1);
-+	if (!priv->platform_device)
- 		return -ENOMEM;
--	platform_set_drvdata(ideapad_priv->platform_device, ideapad_priv);
-+	platform_set_drvdata(priv->platform_device, priv);
- 
--	result = platform_device_add(ideapad_priv->platform_device);
-+	result = platform_device_add(priv->platform_device);
- 	if (result)
- 		goto fail_platform_device;
- 
--	result = sysfs_create_group(&ideapad_priv->platform_device->dev.kobj,
-+	result = sysfs_create_group(&priv->platform_device->dev.kobj,
- 				    &ideapad_attribute_group);
- 	if (result)
- 		goto fail_sysfs;
- 	return 0;
- 
- fail_sysfs:
--	platform_device_del(ideapad_priv->platform_device);
-+	platform_device_del(priv->platform_device);
- fail_platform_device:
--	platform_device_put(ideapad_priv->platform_device);
-+	platform_device_put(priv->platform_device);
- 	return result;
- }
- 
--static void ideapad_platform_exit(void)
-+static void ideapad_platform_exit(struct ideapad_private *priv)
- {
--	sysfs_remove_group(&ideapad_priv->platform_device->dev.kobj,
-+	sysfs_remove_group(&priv->platform_device->dev.kobj,
- 			   &ideapad_attribute_group);
--	platform_device_unregister(ideapad_priv->platform_device);
-+	platform_device_unregister(priv->platform_device);
- }
- 
- /*
-@@ -341,7 +341,7 @@ static const struct key_entry ideapad_keymap[] = {
- 	{ KE_END, 0 },
- };
- 
--static int __devinit ideapad_input_init(void)
-+static int __devinit ideapad_input_init(struct ideapad_private *priv)
- {
- 	struct input_dev *inputdev;
- 	int error;
-@@ -355,7 +355,7 @@ static int __devinit ideapad_input_init(void)
- 	inputdev->name = "Ideapad extra buttons";
- 	inputdev->phys = "ideapad/input0";
- 	inputdev->id.bustype = BUS_HOST;
--	inputdev->dev.parent = &ideapad_priv->platform_device->dev;
-+	inputdev->dev.parent = &priv->platform_device->dev;
- 
- 	error = sparse_keymap_setup(inputdev, ideapad_keymap, NULL);
- 	if (error) {
-@@ -369,7 +369,7 @@ static int __devinit ideapad_input_init(void)
- 		goto err_free_keymap;
- 	}
- 
--	ideapad_priv->inputdev = inputdev;
-+	priv->inputdev = inputdev;
- 	return 0;
- 
- err_free_keymap:
-@@ -379,16 +379,17 @@ err_free_dev:
- 	return error;
- }
- 
--static void __devexit ideapad_input_exit(void)
-+static void __devexit ideapad_input_exit(struct ideapad_private *priv)
- {
--	sparse_keymap_free(ideapad_priv->inputdev);
--	input_unregister_device(ideapad_priv->inputdev);
--	ideapad_priv->inputdev = NULL;
-+	sparse_keymap_free(priv->inputdev);
-+	input_unregister_device(priv->inputdev);
-+	priv->inputdev = NULL;
- }
- 
--static void ideapad_input_report(unsigned long scancode)
-+static void ideapad_input_report(struct ideapad_private *priv,
-+				 unsigned long scancode)
- {
--	sparse_keymap_report_event(ideapad_priv->inputdev, scancode, 1, true);
-+	sparse_keymap_report_event(priv->inputdev, scancode, 1, true);
- }
- 
- /*
-@@ -415,11 +416,11 @@ static int __devinit ideapad_acpi_add(struct acpi_device *adevice)
- 	priv->handle = adevice->handle;
- 	dev_set_drvdata(&adevice->dev, priv);
- 
--	ret = ideapad_platform_init();
-+	ret = ideapad_platform_init(priv);
- 	if (ret)
- 		goto platform_failed;
- 
--	ret = ideapad_input_init();
-+	ret = ideapad_input_init(priv);
- 	if (ret)
- 		goto input_failed;
- 
-@@ -432,7 +433,7 @@ static int __devinit ideapad_acpi_add(struct acpi_device *adevice)
- 	return 0;
- 
- input_failed:
--	ideapad_platform_exit();
-+	ideapad_platform_exit(priv);
- platform_failed:
- 	kfree(priv);
- 	return ret;
-@@ -445,8 +446,8 @@ static int __devexit ideapad_acpi_remove(struct acpi_device *adevice, int type)
- 
- 	for (i = IDEAPAD_DEV_WLAN; i < IDEAPAD_DEV_KILLSW; i++)
- 		ideapad_unregister_rfkill(adevice, i);
--	ideapad_input_exit();
--	ideapad_platform_exit();
-+	ideapad_input_exit(priv);
-+	ideapad_platform_exit(priv);
- 	dev_set_drvdata(&adevice->dev, NULL);
- 	kfree(priv);
- 
-@@ -455,6 +456,7 @@ static int __devexit ideapad_acpi_remove(struct acpi_device *adevice, int type)
- 
- static void ideapad_acpi_notify(struct acpi_device *adevice, u32 event)
- {
-+	struct ideapad_private *priv = dev_get_drvdata(&adevice->dev);
- 	acpi_handle handle = adevice->handle;
- 	unsigned long vpc1, vpc2, vpc_bit;
- 
-@@ -469,7 +471,7 @@ static void ideapad_acpi_notify(struct acpi_device *adevice, u32 event)
- 			if (vpc_bit == 9)
- 				ideapad_sync_rfk_state(adevice);
- 			else
--				ideapad_input_report(vpc_bit);
-+				ideapad_input_report(priv, vpc_bit);
- 		}
- 	}
- }
 -- 
 1.7.1
