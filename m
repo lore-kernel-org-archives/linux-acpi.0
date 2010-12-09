@@ -1,46 +1,60 @@
-From: Namhyung Kim <namhyung@gmail.com>
-Subject: [PATCH] ACPI: fix section mismatch warning
-Date: Thu,  9 Dec 2010 12:35:12 +0900
-Message-ID: <1291865712-31557-1-git-send-email-namhyung@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:56920 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086Ab0LIDfk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Dec 2010 22:35:40 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jack Steiner <steiner@sgi.com>
+Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
+Date: Wed, 8 Dec 2010 21:50:25 -0600
+Message-ID: <20101209035025.GB6697@sgi.com>
+References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com> <20100826171704.GA21584@sgi.com> <4C76AD82.2030105@zytor.com> <20101208212244.GA24280@sgi.com> <4D00308B.2040009@zytor.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4D00308B.2040009@zytor.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: lenb@kernel.org, hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Annotate acpi_os_initialize1() as __init to fix following warning:
+On Wed, Dec 08, 2010 at 05:27:39PM -0800, H. Peter Anvin wrote:
+> On 12/08/2010 01:22 PM, Jack Steiner wrote:
+> > 
+> > This patch substantially reduces the time to run ACPIDUMP on a large system:
+> >  	527 seconds without the patch
+> >  	  8 seconds with the patch
+> > 
+> 
+> This is probably the worst possible motivation you can give here.
+> Bootup time is much more of an issue.
+> 
+> However, this really needs Len's ack.
 
-  LD      vmlinux.o
-  MODPOST vmlinux.o
-WARNING: vmlinux.o(.text+0x231587): Section mismatch in reference from the function
-	 acpi_os_initialize1() to the function .init.text:acpi_osi_setup_late()
-The function acpi_os_initialize1() references
-the function __init acpi_osi_setup_late().
-This is often because acpi_os_initialize1 lacks a __init
-annotation or the annotation of acpi_osi_setup_late is wrong.
+Sorry - should have included more info from the original posting.
+The boot time speedup is the most critical. From the original mail:
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
----
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+	...
+	The following experimental patch changes the kernel mapping for ACPI tables
+	to CACHED. This eliminates the page attibute conflict & allows users to map
+	the tables CACHEABLE. This significantly speeds up boot:
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 966feddf6b1b..f7227e990b0f 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1530,7 +1530,7 @@ acpi_status __init acpi_os_initialize(void)
- 	return AE_OK;
- }
- 
--acpi_status acpi_os_initialize1(void)
-+acpi_status __init acpi_os_initialize1(void)
- {
- 	kacpid_wq = create_workqueue("kacpid");
- 	kacpi_notify_wq = create_workqueue("kacpi_notify");
--- 
-1.7.3.3.400.g93cef
+	        38 minutes without the patch
+		27 minutes with the patch
+		        ~30% improvement
+	...
 
+(Since the original posting, we've made additional reductions in
+boot times. The absolute improvement from this patch is still the same
+but the percentage improvement is now larger).
+
+
+This is on a large SGI system. Boot time is reduced on smaller systems
+but obviously the improvement is much less.
+
+See the original mail for more details.
+
+Len - the original patch had the cached/uncached mapping controlled by a
+platform attribute (I'm paranoid). However, the community concensus was
+that cached mappings were safe for all platforms.
+
+
+
+
+
+--- jack
