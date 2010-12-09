@@ -1,46 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/6] ACPICA: Global event handler
-Date: Thu, 9 Dec 2010 23:45:08 +0100
-Message-ID: <201012092345.08562.rjw@sisk.pl>
-References: <1291651147.2197.87.camel@localhost> <201012092331.36656.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D830858BCADEC40@orsmsx503.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/3] X86: Revamp reboot behaviour to match Windows more
+	closely
+Date: Thu, 9 Dec 2010 22:51:42 +0000
+Message-ID: <20101209225142.GA25215@srcf.ucam.org>
+References: <1291931204-5854-1-git-send-email-mjg@redhat.com> <4D015741.7090500@zytor.com> <20101209223201.GA23894@srcf.ucam.org> <4D015914.1040009@zytor.com> <20101209223847.GA24452@srcf.ucam.org> <4D015ACF.1050105@zytor.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42121 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752114Ab0LIWpp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:45:45 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BCADEC40@orsmsx503.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4D015ACF.1050105@zytor.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, December 09, 2010, Moore, Robert wrote:
-> It's part of ACPICA until I get feedback from:
-> 
-> Apple
-> FreeBSD
-> HPUX
-> Solaris
+On Thu, Dec 09, 2010 at 02:40:15PM -0800, H. Peter Anvin wrote:
+> On 12/09/2010 02:38 PM, Matthew Garrett wrote:
+>>> Windows doesn't get validated on old hardware.
+>>
+>> XP does this, and older hardware predates the version of the ACPI spec
+>> that introduced this flag.
+>>
+>
+> ACPI is very buggy on early implementations, presumably because WHQL had  
+> not yet been extended to include it.  That is exactly why we combine  
+> these kinds of things with a date check.
 
-I know, but that doesn't mean I have to like it. :-)
+I'm afraid I don't understand your argument. The date cutoff would be on 
+the order of 2001 (anything after this will have been tested with XP). 
+The spec that defines this behaviour only came into existence in August 
+2000, and any older hardware will be missing the flag that indicates 
+that this feature is supported. It doesn't seem realistic to believe 
+that there's any real body of hardware that sets the flag but otherwise 
+has a broken implementation.
 
-
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
-> Sent: Thursday, December 09, 2010 2:32 PM
-> To: Lin, Ming M
-> Cc: Moore, Robert; linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 5/6] ACPICA: Global event handler
-> 
-> On Monday, December 06, 2010, Lin Ming wrote:
-> > The global event handler is called whenever a general purpose
-> > or fixed ACPI event occurs.
-> 
-> Well, you know my opinion about this one ...
-> 
-> Thanks,
-> Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
