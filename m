@@ -1,58 +1,38 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI: fix section mismatch warning
-Date: Thu, 09 Dec 2010 13:05:15 +0800
-Message-ID: <1291871115.1715.116.camel@rui>
-References: <1291865712-31557-1-git-send-email-namhyung@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
+Date: Thu, 09 Dec 2010 01:12:57 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012090104320.27964@x980>
+References: <20100722152220.GA18290@sgi.com>
+ <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com>
+ <20100826171704.GA21584@sgi.com> <4C76AD82.2030105@zytor.com>
+ <20101208212244.GA24280@sgi.com> <4D00308B.2040009@zytor.com>
+ <20101209035025.GB6697@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54298 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750711Ab0LIFE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 00:04:57 -0500
-In-Reply-To: <1291865712-31557-1-git-send-email-namhyung@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20101209035025.GB6697@sgi.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jack Steiner <steiner@sgi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
 List-Id: linux-acpi@vger.kernel.org
-To: Namhyung Kim <namhyung@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, 2010-12-09 at 11:35 +0800, Namhyung Kim wrote:
-> Annotate acpi_os_initialize1() as __init to fix following warning:
-> 
->   LD      vmlinux.o
->   MODPOST vmlinux.o
-> WARNING: vmlinux.o(.text+0x231587): Section mismatch in reference from the function
-> 	 acpi_os_initialize1() to the function .init.text:acpi_osi_setup_late()
-> The function acpi_os_initialize1() references
-> the function __init acpi_osi_setup_late().
-> This is often because acpi_os_initialize1 lacks a __init
-> annotation or the annotation of acpi_osi_setup_late is wrong.
-> 
-> Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Jack,
 
-yes, this is the same patch as
-https://patchwork.kernel.org/patch/389432/
+I agree that we should try to map cached always,
+and that we should try do the same thing on all platforms.
+
+I favor continuing to map the tables in-place.
+Yes, Toshiba has a quirk and we copy the tables there.
+But frankly, we have no idea what the heck Toshiba is doing
+and we don't want every platform to pay the price because
+of some vendor specific evil.
+
+Please send an upstream ready version of this RFC
+(checkpatch clean), labled with "PATCH".
 
 thanks,
-rui
-
-> ---
->  drivers/acpi/osl.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 966feddf6b1b..f7227e990b0f 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1530,7 +1530,7 @@ acpi_status __init acpi_os_initialize(void)
->  	return AE_OK;
->  }
->  
-> -acpi_status acpi_os_initialize1(void)
-> +acpi_status __init acpi_os_initialize1(void)
->  {
->  	kacpid_wq = create_workqueue("kacpid");
->  	kacpi_notify_wq = create_workqueue("kacpi_notify");
+Len Brown, Intel Open Source Technology Center
 
 
+ps. acpidump can be updated to use /sys/firmware/acpi/tables
+to get rid of the mmap stuff.  That is someplace on our todo list...
