@@ -1,29 +1,79 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 4/4] ACPI: update battery status first when querying from
- sysfs
-Date: Thu, 09 Dec 2010 15:35:06 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012091535030.27964@x980>
-References: <1291776049.19296.705.camel@rui>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH 1/3] X86: Revamp reboot behaviour to match Windows more closely
+Date: Thu,  9 Dec 2010 16:46:42 -0500
+Message-ID: <1291931204-5854-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:52987 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754026Ab0LIUfU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Dec 2010 15:35:20 -0500
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LD600J8BH6KCU92@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 09 Dec 2010 14:35:09 -0600 (CST)
-In-reply-to: <1291776049.19296.705.camel@rui>
+Received: from mx1.redhat.com ([209.132.183.28]:24890 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754145Ab0LIVrZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Dec 2010 16:47:25 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, seblu@seblu.net
+To: x86@kernel.org
+Cc: hpa@zytor.com, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-applied
+Windows reboots by hitting the ACPI reboot vector (if available), trying
+the keyboard controller, hitting the ACPI reboot vector again and then
+giving the keyboard controller one last go. Rework our reboot process a
+little to default to matching this behaviour, although we'll fall through
+to attempting a triple fault if nothing else works.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ arch/x86/kernel/reboot.c |   23 ++++++++++++++++++++++-
+ 1 files changed, 22 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+index c495aa8..c770e66 100644
+--- a/arch/x86/kernel/reboot.c
++++ b/arch/x86/kernel/reboot.c
+@@ -34,7 +34,7 @@ EXPORT_SYMBOL(pm_power_off);
+ 
+ static const struct desc_ptr no_idt = {};
+ static int reboot_mode;
+-enum reboot_type reboot_type = BOOT_KBD;
++enum reboot_type reboot_type = BOOT_ACPI;
+ int reboot_force;
+ 
+ #if defined(CONFIG_X86_32) && defined(CONFIG_SMP)
+@@ -538,9 +538,23 @@ void __attribute__((weak)) mach_reboot_fixups(void)
+ {
+ }
+ 
++/*
++ * Windows does the following on reboot:
++ * 1) If the FADT has the ACPI reboot register flag set, try it
++ * 2) If still alive, write to the keyboard controller
++ * 3) If still alive, write to the ACPI reboot register again
++ * 4) Ig still alive, write to the keyboard controller again
++ *
++ * If the machine is still alive at this stage, it gives up. We default to
++ * following the same pattern, except that if we're still alive after (4) we'll
++ * try to force a triple fault and then cycle between hitting the keyboard
++ * controller and doing that
++ */
+ static void native_machine_emergency_restart(void)
+ {
+ 	int i;
++	int attempt = 0;
++	int orig_reboot_type = reboot_type;
+ 
+ 	if (reboot_emergency)
+ 		emergency_vmx_disable_all();
+@@ -562,6 +576,13 @@ static void native_machine_emergency_restart(void)
+ 				outb(0xfe, 0x64); /* pulse reset low */
+ 				udelay(50);
+ 			}
++			if (attempt == 0 && orig_reboot_type == BOOT_ACPI) {
++				attempt = 1;
++				reboot_type = BOOT_ACPI;
++			} else {
++				reboot_type = BOOT_TRIPLE;
++			}
++			break;
+ 
+ 		case BOOT_TRIPLE:
+ 			load_idt(&no_idt);
+-- 
+1.7.3.2
 
