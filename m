@@ -1,102 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-Date: Thu, 9 Dec 2010 23:51:21 +0100
-Message-ID: <201012092351.21589.rjw@sisk.pl>
-References: <1291651120.2197.80.camel@localhost> <201012092259.38254.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D830858BCADEC3D@orsmsx503.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 2/6] ACPICA: Rename some function and variable names
+Date: Thu, 9 Dec 2010 14:53:02 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BCADEC96@orsmsx503.amr.corp.intel.com>
+References: <1291651120.2197.80.camel@localhost>
+ <201012092259.38254.rjw@sisk.pl>
+ <4911F71203A09E4D9981D27F9D830858BCADEC3D@orsmsx503.amr.corp.intel.com>
+ <201012092351.21589.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42130 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:51524 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756548Ab0LIWwI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:52:08 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BCADEC3D@orsmsx503.amr.corp.intel.com>
+	id S1753293Ab0LIWxF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Dec 2010 17:53:05 -0500
+In-Reply-To: <201012092351.21589.rjw@sisk.pl>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, December 09, 2010, Moore, Robert wrote:
-> For the next time we attempt to make such a large ACPICA change, we need to put a methodology in place to simplify things. It has been very difficult for us to take Linux patches, backport and integrate into ACPICA, make additional changes, then forward port the final ACPICA changes to Linux, and then shoehorn the code into the original Linux patches.
-> 
-> Difficult as in several times the work.
-> 
-> Ming has worked very hard to forward-port the ACPICA code and then shoehorn the changes into the original Linux patches.
-> 
-> But we can't do it this way again. 
-> 
-> We are open to suggestions on a better way to do this, perhaps Len can help.
-
-Well, I'm talking about a simple thing like splitting a patch into two pieces.
-That's not going to take a lot of time IMO and the benefit is that more people
-may actually understand what's being done.
-
-Moreover, if anyone hits a problem related to one of your patches, it's vital
-to be able to figure out which change caused it to happen.
-
-Thanks,
-Rafael
-
-
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
-> Sent: Thursday, December 09, 2010 2:00 PM
-> To: Lin, Ming M
-> Cc: Len Brown; Moore, Robert; linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-> 
-> On Monday, December 06, 2010, Lin Ming wrote:
-> > Some function and variable names are renamed to be consistent with
-> > ACPICA code base.
-> > 
-> > acpi_raw_enable_gpe -> acpi_ev_add_gpe_reference
-> > acpi_raw_disable_gpe -> acpi_ev_remove_gpe_reference
-> > acpi_gpe_can_wake -> acpi_setup_gpe_for_wake
-> > acpi_gpe_wakeup -> acpi_set_gpe_wake_mask
-> > acpi_update_gpes -> acpi_update_all_gpes
-> > acpi_all_gpes_initialized -> acpi_gbl_all_gpes_initialized
-> > acpi_handler_info -> acpi_gpe_handler_info
-> > ...
-> > 
-> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> 
-> Well, tha changes related to acpi_ev_gpe_dispatch() do not really match the
-> changelog.  I'd prefer them to go into a separate patch with the right
-> description.
-> 
-> ...  
-> >  u32
-> > -acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
-> > +acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
-> > +		     struct acpi_gpe_event_info *gpe_event_info,
-> >  		     u32 gpe_number);
-> >  
-> ...
-> >  					int_status |=
-> > -					    acpi_ev_gpe_dispatch(&gpe_block->
-> > +					    acpi_ev_gpe_dispatch(gpe_block->
-> > +								 node,
-> > +								 &gpe_block->
-> >  						event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
-> >  				}
-> >  			}
-> ...
-> > @@ -589,7 +597,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
-> >  		 * Ignore return status for now.
-> >  		 * TBD: leave GPE disabled on error?
-> >  		 */
-> > -		(void)gpe_event_info->dispatch.handler->address(gpe_event_info->
-> > +		(void)gpe_event_info->dispatch.handler->address(gpe_device,
-> > +								gpe_number,
-> > +								gpe_event_info->
-> >  								dispatch.
-> >  								handler->
-> >  								context);
-> ...
-> 
-> Thanks,
-> Rafael
-> 
-
+SSdtIG5vdCB0YWxraW5nIGFib3V0IGEgc2luZ2xlIHBhdGNoLCBidXQgdGhlIGVudGlyZSBwcm9j
+ZXNzIHRoYXQgaGFzIGJlZW4gY3VtYmVyc29tZS4NCg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0gDQpTZW50
+OiBUaHVyc2RheSwgRGVjZW1iZXIgMDksIDIwMTAgMjo1MSBQTQ0KVG86IE1vb3JlLCBSb2JlcnQN
+CkNjOiBMaW4sIE1pbmcgTTsgTGVuIEJyb3duOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0K
+U3ViamVjdDogUmU6IFtQQVRDSCAyLzZdIEFDUElDQTogUmVuYW1lIHNvbWUgZnVuY3Rpb24gYW5k
+IHZhcmlhYmxlIG5hbWVzDQoNCk9uIFRodXJzZGF5LCBEZWNlbWJlciAwOSwgMjAxMCwgTW9vcmUs
+IFJvYmVydCB3cm90ZToNCj4gRm9yIHRoZSBuZXh0IHRpbWUgd2UgYXR0ZW1wdCB0byBtYWtlIHN1
+Y2ggYSBsYXJnZSBBQ1BJQ0EgY2hhbmdlLCB3ZSBuZWVkIHRvIHB1dCBhIG1ldGhvZG9sb2d5IGlu
+IHBsYWNlIHRvIHNpbXBsaWZ5IHRoaW5ncy4gSXQgaGFzIGJlZW4gdmVyeSBkaWZmaWN1bHQgZm9y
+IHVzIHRvIHRha2UgTGludXggcGF0Y2hlcywgYmFja3BvcnQgYW5kIGludGVncmF0ZSBpbnRvIEFD
+UElDQSwgbWFrZSBhZGRpdGlvbmFsIGNoYW5nZXMsIHRoZW4gZm9yd2FyZCBwb3J0IHRoZSBmaW5h
+bCBBQ1BJQ0EgY2hhbmdlcyB0byBMaW51eCwgYW5kIHRoZW4gc2hvZWhvcm4gdGhlIGNvZGUgaW50
+byB0aGUgb3JpZ2luYWwgTGludXggcGF0Y2hlcy4NCj4gDQo+IERpZmZpY3VsdCBhcyBpbiBzZXZl
+cmFsIHRpbWVzIHRoZSB3b3JrLg0KPiANCj4gTWluZyBoYXMgd29ya2VkIHZlcnkgaGFyZCB0byBm
+b3J3YXJkLXBvcnQgdGhlIEFDUElDQSBjb2RlIGFuZCB0aGVuIHNob2Vob3JuIHRoZSBjaGFuZ2Vz
+IGludG8gdGhlIG9yaWdpbmFsIExpbnV4IHBhdGNoZXMuDQo+IA0KPiBCdXQgd2UgY2FuJ3QgZG8g
+aXQgdGhpcyB3YXkgYWdhaW4uIA0KPiANCj4gV2UgYXJlIG9wZW4gdG8gc3VnZ2VzdGlvbnMgb24g
+YSBiZXR0ZXIgd2F5IHRvIGRvIHRoaXMsIHBlcmhhcHMgTGVuIGNhbiBoZWxwLg0KDQpXZWxsLCBJ
+J20gdGFsa2luZyBhYm91dCBhIHNpbXBsZSB0aGluZyBsaWtlIHNwbGl0dGluZyBhIHBhdGNoIGlu
+dG8gdHdvIHBpZWNlcy4NClRoYXQncyBub3QgZ29pbmcgdG8gdGFrZSBhIGxvdCBvZiB0aW1lIElN
+TyBhbmQgdGhlIGJlbmVmaXQgaXMgdGhhdCBtb3JlIHBlb3BsZQ0KbWF5IGFjdHVhbGx5IHVuZGVy
+c3RhbmQgd2hhdCdzIGJlaW5nIGRvbmUuDQoNCk1vcmVvdmVyLCBpZiBhbnlvbmUgaGl0cyBhIHBy
+b2JsZW0gcmVsYXRlZCB0byBvbmUgb2YgeW91ciBwYXRjaGVzLCBpdCdzIHZpdGFsDQp0byBiZSBh
+YmxlIHRvIGZpZ3VyZSBvdXQgd2hpY2ggY2hhbmdlIGNhdXNlZCBpdCB0byBoYXBwZW4uDQoNClRo
+YW5rcywNClJhZmFlbA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTog
+UmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0gDQo+IFNlbnQ6IFRodXJzZGF5
+LCBEZWNlbWJlciAwOSwgMjAxMCAyOjAwIFBNDQo+IFRvOiBMaW4sIE1pbmcgTQ0KPiBDYzogTGVu
+IEJyb3duOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiBTdWJq
+ZWN0OiBSZTogW1BBVENIIDIvNl0gQUNQSUNBOiBSZW5hbWUgc29tZSBmdW5jdGlvbiBhbmQgdmFy
+aWFibGUgbmFtZXMNCj4gDQo+IE9uIE1vbmRheSwgRGVjZW1iZXIgMDYsIDIwMTAsIExpbiBNaW5n
+IHdyb3RlOg0KPiA+IFNvbWUgZnVuY3Rpb24gYW5kIHZhcmlhYmxlIG5hbWVzIGFyZSByZW5hbWVk
+IHRvIGJlIGNvbnNpc3RlbnQgd2l0aA0KPiA+IEFDUElDQSBjb2RlIGJhc2UuDQo+ID4gDQo+ID4g
+YWNwaV9yYXdfZW5hYmxlX2dwZSAtPiBhY3BpX2V2X2FkZF9ncGVfcmVmZXJlbmNlDQo+ID4gYWNw
+aV9yYXdfZGlzYWJsZV9ncGUgLT4gYWNwaV9ldl9yZW1vdmVfZ3BlX3JlZmVyZW5jZQ0KPiA+IGFj
+cGlfZ3BlX2Nhbl93YWtlIC0+IGFjcGlfc2V0dXBfZ3BlX2Zvcl93YWtlDQo+ID4gYWNwaV9ncGVf
+d2FrZXVwIC0+IGFjcGlfc2V0X2dwZV93YWtlX21hc2sNCj4gPiBhY3BpX3VwZGF0ZV9ncGVzIC0+
+IGFjcGlfdXBkYXRlX2FsbF9ncGVzDQo+ID4gYWNwaV9hbGxfZ3Blc19pbml0aWFsaXplZCAtPiBh
+Y3BpX2dibF9hbGxfZ3Blc19pbml0aWFsaXplZA0KPiA+IGFjcGlfaGFuZGxlcl9pbmZvIC0+IGFj
+cGlfZ3BlX2hhbmRsZXJfaW5mbw0KPiA+IC4uLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IExp
+biBNaW5nIDxtaW5nLm0ubGluQGludGVsLmNvbT4NCj4gDQo+IFdlbGwsIHRoYSBjaGFuZ2VzIHJl
+bGF0ZWQgdG8gYWNwaV9ldl9ncGVfZGlzcGF0Y2goKSBkbyBub3QgcmVhbGx5IG1hdGNoIHRoZQ0K
+PiBjaGFuZ2Vsb2cuICBJJ2QgcHJlZmVyIHRoZW0gdG8gZ28gaW50byBhIHNlcGFyYXRlIHBhdGNo
+IHdpdGggdGhlIHJpZ2h0DQo+IGRlc2NyaXB0aW9uLg0KPiANCj4gLi4uICANCj4gPiAgdTMyDQo+
+ID4gLWFjcGlfZXZfZ3BlX2Rpc3BhdGNoKHN0cnVjdCBhY3BpX2dwZV9ldmVudF9pbmZvICpncGVf
+ZXZlbnRfaW5mbywNCj4gPiArYWNwaV9ldl9ncGVfZGlzcGF0Y2goc3RydWN0IGFjcGlfbmFtZXNw
+YWNlX25vZGUgKmdwZV9kZXZpY2UsDQo+ID4gKwkJICAgICBzdHJ1Y3QgYWNwaV9ncGVfZXZlbnRf
+aW5mbyAqZ3BlX2V2ZW50X2luZm8sDQo+ID4gIAkJICAgICB1MzIgZ3BlX251bWJlcik7DQo+ID4g
+IA0KPiAuLi4NCj4gPiAgCQkJCQlpbnRfc3RhdHVzIHw9DQo+ID4gLQkJCQkJICAgIGFjcGlfZXZf
+Z3BlX2Rpc3BhdGNoKCZncGVfYmxvY2stPg0KPiA+ICsJCQkJCSAgICBhY3BpX2V2X2dwZV9kaXNw
+YXRjaChncGVfYmxvY2stPg0KPiA+ICsJCQkJCQkJCSBub2RlLA0KPiA+ICsJCQkJCQkJCSAmZ3Bl
+X2Jsb2NrLT4NCj4gPiAgCQkJCQkJZXZlbnRfaW5mb1soKGFjcGlfc2l6ZSkgaSAqIEFDUElfR1BF
+X1JFR0lTVEVSX1dJRFRIKSArIGpdLCBqICsgZ3BlX3JlZ2lzdGVyX2luZm8tPmJhc2VfZ3BlX251
+bWJlcik7DQo+ID4gIAkJCQl9DQo+ID4gIAkJCX0NCj4gLi4uDQo+ID4gQEAgLTU4OSw3ICs1OTcs
+OSBAQCBhY3BpX2V2X2dwZV9kaXNwYXRjaChzdHJ1Y3QgYWNwaV9ncGVfZXZlbnRfaW5mbyAqZ3Bl
+X2V2ZW50X2luZm8sIHUzMiBncGVfbnVtYmVyKQ0KPiA+ICAJCSAqIElnbm9yZSByZXR1cm4gc3Rh
+dHVzIGZvciBub3cuDQo+ID4gIAkJICogVEJEOiBsZWF2ZSBHUEUgZGlzYWJsZWQgb24gZXJyb3I/
+DQo+ID4gIAkJICovDQo+ID4gLQkJKHZvaWQpZ3BlX2V2ZW50X2luZm8tPmRpc3BhdGNoLmhhbmRs
+ZXItPmFkZHJlc3MoZ3BlX2V2ZW50X2luZm8tPg0KPiA+ICsJCSh2b2lkKWdwZV9ldmVudF9pbmZv
+LT5kaXNwYXRjaC5oYW5kbGVyLT5hZGRyZXNzKGdwZV9kZXZpY2UsDQo+ID4gKwkJCQkJCQkJZ3Bl
+X251bWJlciwNCj4gPiArCQkJCQkJCQlncGVfZXZlbnRfaW5mby0+DQo+ID4gIAkJCQkJCQkJZGlz
+cGF0Y2guDQo+ID4gIAkJCQkJCQkJaGFuZGxlci0+DQo+ID4gIAkJCQkJCQkJY29udGV4dCk7DQo+
+IC4uLg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQoNCg==
