@@ -1,86 +1,45 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 2/6] ACPICA: Rename some function and variable names
-Date: Thu, 9 Dec 2010 14:53:02 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858BCADEC96@orsmsx503.amr.corp.intel.com>
-References: <1291651120.2197.80.camel@localhost>
- <201012092259.38254.rjw@sisk.pl>
- <4911F71203A09E4D9981D27F9D830858BCADEC3D@orsmsx503.amr.corp.intel.com>
- <201012092351.21589.rjw@sisk.pl>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 1/3] X86: Revamp reboot behaviour to match Windows more
+ closely
+Date: Thu, 09 Dec 2010 14:53:35 -0800
+Message-ID: <4D015DEF.9000302@zytor.com>
+References: <1291931204-5854-1-git-send-email-mjg@redhat.com> <4D015741.7090500@zytor.com> <20101209223201.GA23894@srcf.ucam.org> <4D015914.1040009@zytor.com> <20101209223847.GA24452@srcf.ucam.org> <4D015ACF.1050105@zytor.com> <20101209225142.GA25215@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51524 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753293Ab0LIWxF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:53:05 -0500
-In-Reply-To: <201012092351.21589.rjw@sisk.pl>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101209225142.GA25215@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SSdtIG5vdCB0YWxraW5nIGFib3V0IGEgc2luZ2xlIHBhdGNoLCBidXQgdGhlIGVudGlyZSBwcm9j
-ZXNzIHRoYXQgaGFzIGJlZW4gY3VtYmVyc29tZS4NCg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0gDQpTZW50
-OiBUaHVyc2RheSwgRGVjZW1iZXIgMDksIDIwMTAgMjo1MSBQTQ0KVG86IE1vb3JlLCBSb2JlcnQN
-CkNjOiBMaW4sIE1pbmcgTTsgTGVuIEJyb3duOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0K
-U3ViamVjdDogUmU6IFtQQVRDSCAyLzZdIEFDUElDQTogUmVuYW1lIHNvbWUgZnVuY3Rpb24gYW5k
-IHZhcmlhYmxlIG5hbWVzDQoNCk9uIFRodXJzZGF5LCBEZWNlbWJlciAwOSwgMjAxMCwgTW9vcmUs
-IFJvYmVydCB3cm90ZToNCj4gRm9yIHRoZSBuZXh0IHRpbWUgd2UgYXR0ZW1wdCB0byBtYWtlIHN1
-Y2ggYSBsYXJnZSBBQ1BJQ0EgY2hhbmdlLCB3ZSBuZWVkIHRvIHB1dCBhIG1ldGhvZG9sb2d5IGlu
-IHBsYWNlIHRvIHNpbXBsaWZ5IHRoaW5ncy4gSXQgaGFzIGJlZW4gdmVyeSBkaWZmaWN1bHQgZm9y
-IHVzIHRvIHRha2UgTGludXggcGF0Y2hlcywgYmFja3BvcnQgYW5kIGludGVncmF0ZSBpbnRvIEFD
-UElDQSwgbWFrZSBhZGRpdGlvbmFsIGNoYW5nZXMsIHRoZW4gZm9yd2FyZCBwb3J0IHRoZSBmaW5h
-bCBBQ1BJQ0EgY2hhbmdlcyB0byBMaW51eCwgYW5kIHRoZW4gc2hvZWhvcm4gdGhlIGNvZGUgaW50
-byB0aGUgb3JpZ2luYWwgTGludXggcGF0Y2hlcy4NCj4gDQo+IERpZmZpY3VsdCBhcyBpbiBzZXZl
-cmFsIHRpbWVzIHRoZSB3b3JrLg0KPiANCj4gTWluZyBoYXMgd29ya2VkIHZlcnkgaGFyZCB0byBm
-b3J3YXJkLXBvcnQgdGhlIEFDUElDQSBjb2RlIGFuZCB0aGVuIHNob2Vob3JuIHRoZSBjaGFuZ2Vz
-IGludG8gdGhlIG9yaWdpbmFsIExpbnV4IHBhdGNoZXMuDQo+IA0KPiBCdXQgd2UgY2FuJ3QgZG8g
-aXQgdGhpcyB3YXkgYWdhaW4uIA0KPiANCj4gV2UgYXJlIG9wZW4gdG8gc3VnZ2VzdGlvbnMgb24g
-YSBiZXR0ZXIgd2F5IHRvIGRvIHRoaXMsIHBlcmhhcHMgTGVuIGNhbiBoZWxwLg0KDQpXZWxsLCBJ
-J20gdGFsa2luZyBhYm91dCBhIHNpbXBsZSB0aGluZyBsaWtlIHNwbGl0dGluZyBhIHBhdGNoIGlu
-dG8gdHdvIHBpZWNlcy4NClRoYXQncyBub3QgZ29pbmcgdG8gdGFrZSBhIGxvdCBvZiB0aW1lIElN
-TyBhbmQgdGhlIGJlbmVmaXQgaXMgdGhhdCBtb3JlIHBlb3BsZQ0KbWF5IGFjdHVhbGx5IHVuZGVy
-c3RhbmQgd2hhdCdzIGJlaW5nIGRvbmUuDQoNCk1vcmVvdmVyLCBpZiBhbnlvbmUgaGl0cyBhIHBy
-b2JsZW0gcmVsYXRlZCB0byBvbmUgb2YgeW91ciBwYXRjaGVzLCBpdCdzIHZpdGFsDQp0byBiZSBh
-YmxlIHRvIGZpZ3VyZSBvdXQgd2hpY2ggY2hhbmdlIGNhdXNlZCBpdCB0byBoYXBwZW4uDQoNClRo
-YW5rcywNClJhZmFlbA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTog
-UmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0gDQo+IFNlbnQ6IFRodXJzZGF5
-LCBEZWNlbWJlciAwOSwgMjAxMCAyOjAwIFBNDQo+IFRvOiBMaW4sIE1pbmcgTQ0KPiBDYzogTGVu
-IEJyb3duOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiBTdWJq
-ZWN0OiBSZTogW1BBVENIIDIvNl0gQUNQSUNBOiBSZW5hbWUgc29tZSBmdW5jdGlvbiBhbmQgdmFy
-aWFibGUgbmFtZXMNCj4gDQo+IE9uIE1vbmRheSwgRGVjZW1iZXIgMDYsIDIwMTAsIExpbiBNaW5n
-IHdyb3RlOg0KPiA+IFNvbWUgZnVuY3Rpb24gYW5kIHZhcmlhYmxlIG5hbWVzIGFyZSByZW5hbWVk
-IHRvIGJlIGNvbnNpc3RlbnQgd2l0aA0KPiA+IEFDUElDQSBjb2RlIGJhc2UuDQo+ID4gDQo+ID4g
-YWNwaV9yYXdfZW5hYmxlX2dwZSAtPiBhY3BpX2V2X2FkZF9ncGVfcmVmZXJlbmNlDQo+ID4gYWNw
-aV9yYXdfZGlzYWJsZV9ncGUgLT4gYWNwaV9ldl9yZW1vdmVfZ3BlX3JlZmVyZW5jZQ0KPiA+IGFj
-cGlfZ3BlX2Nhbl93YWtlIC0+IGFjcGlfc2V0dXBfZ3BlX2Zvcl93YWtlDQo+ID4gYWNwaV9ncGVf
-d2FrZXVwIC0+IGFjcGlfc2V0X2dwZV93YWtlX21hc2sNCj4gPiBhY3BpX3VwZGF0ZV9ncGVzIC0+
-IGFjcGlfdXBkYXRlX2FsbF9ncGVzDQo+ID4gYWNwaV9hbGxfZ3Blc19pbml0aWFsaXplZCAtPiBh
-Y3BpX2dibF9hbGxfZ3Blc19pbml0aWFsaXplZA0KPiA+IGFjcGlfaGFuZGxlcl9pbmZvIC0+IGFj
-cGlfZ3BlX2hhbmRsZXJfaW5mbw0KPiA+IC4uLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IExp
-biBNaW5nIDxtaW5nLm0ubGluQGludGVsLmNvbT4NCj4gDQo+IFdlbGwsIHRoYSBjaGFuZ2VzIHJl
-bGF0ZWQgdG8gYWNwaV9ldl9ncGVfZGlzcGF0Y2goKSBkbyBub3QgcmVhbGx5IG1hdGNoIHRoZQ0K
-PiBjaGFuZ2Vsb2cuICBJJ2QgcHJlZmVyIHRoZW0gdG8gZ28gaW50byBhIHNlcGFyYXRlIHBhdGNo
-IHdpdGggdGhlIHJpZ2h0DQo+IGRlc2NyaXB0aW9uLg0KPiANCj4gLi4uICANCj4gPiAgdTMyDQo+
-ID4gLWFjcGlfZXZfZ3BlX2Rpc3BhdGNoKHN0cnVjdCBhY3BpX2dwZV9ldmVudF9pbmZvICpncGVf
-ZXZlbnRfaW5mbywNCj4gPiArYWNwaV9ldl9ncGVfZGlzcGF0Y2goc3RydWN0IGFjcGlfbmFtZXNw
-YWNlX25vZGUgKmdwZV9kZXZpY2UsDQo+ID4gKwkJICAgICBzdHJ1Y3QgYWNwaV9ncGVfZXZlbnRf
-aW5mbyAqZ3BlX2V2ZW50X2luZm8sDQo+ID4gIAkJICAgICB1MzIgZ3BlX251bWJlcik7DQo+ID4g
-IA0KPiAuLi4NCj4gPiAgCQkJCQlpbnRfc3RhdHVzIHw9DQo+ID4gLQkJCQkJICAgIGFjcGlfZXZf
-Z3BlX2Rpc3BhdGNoKCZncGVfYmxvY2stPg0KPiA+ICsJCQkJCSAgICBhY3BpX2V2X2dwZV9kaXNw
-YXRjaChncGVfYmxvY2stPg0KPiA+ICsJCQkJCQkJCSBub2RlLA0KPiA+ICsJCQkJCQkJCSAmZ3Bl
-X2Jsb2NrLT4NCj4gPiAgCQkJCQkJZXZlbnRfaW5mb1soKGFjcGlfc2l6ZSkgaSAqIEFDUElfR1BF
-X1JFR0lTVEVSX1dJRFRIKSArIGpdLCBqICsgZ3BlX3JlZ2lzdGVyX2luZm8tPmJhc2VfZ3BlX251
-bWJlcik7DQo+ID4gIAkJCQl9DQo+ID4gIAkJCX0NCj4gLi4uDQo+ID4gQEAgLTU4OSw3ICs1OTcs
-OSBAQCBhY3BpX2V2X2dwZV9kaXNwYXRjaChzdHJ1Y3QgYWNwaV9ncGVfZXZlbnRfaW5mbyAqZ3Bl
-X2V2ZW50X2luZm8sIHUzMiBncGVfbnVtYmVyKQ0KPiA+ICAJCSAqIElnbm9yZSByZXR1cm4gc3Rh
-dHVzIGZvciBub3cuDQo+ID4gIAkJICogVEJEOiBsZWF2ZSBHUEUgZGlzYWJsZWQgb24gZXJyb3I/
-DQo+ID4gIAkJICovDQo+ID4gLQkJKHZvaWQpZ3BlX2V2ZW50X2luZm8tPmRpc3BhdGNoLmhhbmRs
-ZXItPmFkZHJlc3MoZ3BlX2V2ZW50X2luZm8tPg0KPiA+ICsJCSh2b2lkKWdwZV9ldmVudF9pbmZv
-LT5kaXNwYXRjaC5oYW5kbGVyLT5hZGRyZXNzKGdwZV9kZXZpY2UsDQo+ID4gKwkJCQkJCQkJZ3Bl
-X251bWJlciwNCj4gPiArCQkJCQkJCQlncGVfZXZlbnRfaW5mby0+DQo+ID4gIAkJCQkJCQkJZGlz
-cGF0Y2guDQo+ID4gIAkJCQkJCQkJaGFuZGxlci0+DQo+ID4gIAkJCQkJCQkJY29udGV4dCk7DQo+
-IC4uLg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQoNCg==
+On 12/09/2010 02:51 PM, Matthew Garrett wrote:
+> On Thu, Dec 09, 2010 at 02:40:15PM -0800, H. Peter Anvin wrote:
+>> On 12/09/2010 02:38 PM, Matthew Garrett wrote:
+>>>> Windows doesn't get validated on old hardware.
+>>>
+>>> XP does this, and older hardware predates the version of the ACPI spec
+>>> that introduced this flag.
+>>>
+>>
+>> ACPI is very buggy on early implementations, presumably because WHQL had
+>> not yet been extended to include it.  That is exactly why we combine
+>> these kinds of things with a date check.
+>
+> I'm afraid I don't understand your argument. The date cutoff would be on
+> the order of 2001 (anything after this will have been tested with XP).
+> The spec that defines this behaviour only came into existence in August
+> 2000, and any older hardware will be missing the flag that indicates
+> that this feature is supported. It doesn't seem realistic to believe
+> that there's any real body of hardware that sets the flag but otherwise
+> has a broken implementation.
+>
+
+2001 is probably a good date, then.
+
+It's pretty safe you'll see the bit being set on systems which are older 
+than that, even if it was not defined at the time it was created -- just 
+being garbage.  That's par for the course in BIOS land.
+
+	-hpa
