@@ -1,32 +1,46 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [RFC  - V2] - Mapping ACPI tables as CACHED
-Date: Wed, 08 Dec 2010 17:27:39 -0800
-Message-ID: <4D00308B.2040009@zytor.com>
-References: <20100722152220.GA18290@sgi.com> <20100724001449.GA9618@khazad-dum.debian.net> <4C743C0F.2010101@zytor.com> <20100826171704.GA21584@sgi.com> <4C76AD82.2030105@zytor.com> <20101208212244.GA24280@sgi.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Namhyung Kim <namhyung@gmail.com>
+Subject: [PATCH] ACPI: fix section mismatch warning
+Date: Thu,  9 Dec 2010 12:35:12 +0900
+Message-ID: <1291865712-31557-1-git-send-email-namhyung@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:49266 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753375Ab0LIB3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Dec 2010 20:29:16 -0500
-In-Reply-To: <20101208212244.GA24280@sgi.com>
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:56920 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086Ab0LIDfk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Dec 2010 22:35:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Steiner <steiner@sgi.com>
-Cc: lenb@kernel.org, hmh@hmh.eng.br, mingo@elte.hu, tglx@linutronix.de, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/08/2010 01:22 PM, Jack Steiner wrote:
-> 
-> This patch substantially reduces the time to run ACPIDUMP on a large system:
->  	527 seconds without the patch
->  	  8 seconds with the patch
-> 
+Annotate acpi_os_initialize1() as __init to fix following warning:
 
-This is probably the worst possible motivation you can give here.
-Bootup time is much more of an issue.
+  LD      vmlinux.o
+  MODPOST vmlinux.o
+WARNING: vmlinux.o(.text+0x231587): Section mismatch in reference from the function
+	 acpi_os_initialize1() to the function .init.text:acpi_osi_setup_late()
+The function acpi_os_initialize1() references
+the function __init acpi_osi_setup_late().
+This is often because acpi_os_initialize1 lacks a __init
+annotation or the annotation of acpi_osi_setup_late is wrong.
 
-However, this really needs Len's ack.
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+---
+ drivers/acpi/osl.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-	-hpa
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 966feddf6b1b..f7227e990b0f 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1530,7 +1530,7 @@ acpi_status __init acpi_os_initialize(void)
+ 	return AE_OK;
+ }
+ 
+-acpi_status acpi_os_initialize1(void)
++acpi_status __init acpi_os_initialize1(void)
+ {
+ 	kacpid_wq = create_workqueue("kacpid");
+ 	kacpi_notify_wq = create_workqueue("kacpi_notify");
+-- 
+1.7.3.3.400.g93cef
+
