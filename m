@@ -1,35 +1,78 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/3] ACPICA: Fix access width for reset vector
-Date: Thu, 9 Dec 2010 23:26:01 +0000
-Message-ID: <20101209232601.GA26343@srcf.ucam.org>
-References: <1291931204-5854-1-git-send-email-mjg@redhat.com> <1291931204-5854-2-git-send-email-mjg@redhat.com> <4D016241.5090503@zytor.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH 4/6] ACPICA: Implicit notify support
+Date: Fri, 10 Dec 2010 08:18:47 +0800
+Message-ID: <1291940327.10384.48.camel@minggr.sh.intel.com>
+References: <1291651138.2197.86.camel@localhost>
+	 <201012092330.43478.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35099 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264Ab0LIX0K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Dec 2010 18:26:10 -0500
-Content-Disposition: inline
-In-Reply-To: <4D016241.5090503@zytor.com>
+Received: from mga11.intel.com ([192.55.52.93]:53132 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752604Ab0LJAPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Dec 2010 19:15:04 -0500
+In-Reply-To: <201012092330.43478.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Dec 09, 2010 at 03:12:01PM -0800, H. Peter Anvin wrote:
-> On 12/09/2010 01:46 PM, Matthew Garrett wrote:
->> Section 4.7.3.6 of the ACPI specification requires that the register width
->> of the reset vector be 8 bits. Windows simply hardcodes the access to be
->> a byte and ignores the width provided in the FADT, so make sure that we
->> do the same.
->>
->> Signed-off-by: Matthew Garrett<mjg@redhat.com>
->
-> Does anyone have an acpidump from a machine with an ALi 1535 southbridge?
+On Fri, 2010-12-10 at 06:30 +0800, Rafael J. Wysocki wrote:
+> On Monday, December 06, 2010, Lin Ming wrote:
+> > This feature provides an automatic device notification for wake devices
+> > when a wakeup GPE occurs and there is no corresponding GPE method or
+> > handler. Rather than ignoring such a GPE, an implicit AML Notify
+> > operation is performed on the parent device object.
+> > This feature is not part of the ACPI specification and is provided for
+> > Windows compatibility only. 
+> > 
+> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> 
+> This patch does two things at a time, while only one is mentioned in the
+> changelog.  The second one is that you change the local variable in
+> acpi_ev_asynch_execute_gpe_method() back into a pointer:
+> 
+> ...
+> >  
+> >  static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+> >  {
+> > -	struct acpi_gpe_event_info *gpe_event_info = (void *)context;
+> > +	struct acpi_gpe_event_info *gpe_event_info = context;
+> >  	acpi_status status;
+> > -	struct acpi_gpe_event_info local_gpe_event_info;
+> > +	struct acpi_gpe_event_info *local_gpe_event_info;
+> >  	struct acpi_evaluate_info *info;
+> >  
+> >  	ACPI_FUNCTION_TRACE(ev_asynch_execute_gpe_method);
+> >  
+> > +	/* Allocate a local GPE block */
+> > +
+> > +	local_gpe_event_info =
+> > +	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_event_info));
+> > +	if (!local_gpe_event_info) {
+> > +		ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "while handling a GPE"));
+> > +		return_VOID;
+> > +	}
+> > +
+> >  	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+> >  	if (ACPI_FAILURE(status)) {
+> >  		return_VOID;
+> > @@ -468,7 +479,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+> >  	 * Take a snapshot of the GPE info for this level - we copy the info to
+> >  	 * prevent a race condition with remove_handler/remove_block.
+> >  	 */
+> > -	ACPI_MEMCPY(&local_gpe_event_info, gpe_event_info,
+> > +	ACPI_MEMCPY(local_gpe_event_info, gpe_event_info,
+> >  		    sizeof(struct acpi_gpe_event_info));
+> > 
+> 
+> etc. and that should go into a separate patch.
+> 
+> I mean, first fix this local variable mess and _then_ introdiuce the new
+> feature.  Doing both in one step is guaranteed to confuse people.
 
-I've got one from an HP nx9005. It's only a revision 1 FADT, so there's 
-no reset register defined.
+OK, I'll separate it.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks for review.
+
