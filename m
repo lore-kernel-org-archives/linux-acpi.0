@@ -1,79 +1,184 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
-Date: Fri, 10 Dec 2010 08:25:55 +0800
-Message-ID: <1291940755.10384.49.camel@minggr.sh.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 2/6] ACPICA: Rename some function and variable names
+Date: Thu, 9 Dec 2010 17:09:19 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BCADEE40@orsmsx503.amr.corp.intel.com>
 References: <1291651120.2197.80.camel@localhost>
-	 <201012092259.38254.rjw@sisk.pl>
+ <201012092351.21589.rjw@sisk.pl>
+ <4911F71203A09E4D9981D27F9D830858BCADEC96@orsmsx503.amr.corp.intel.com>
+ <201012100004.16661.rjw@sisk.pl>
+ <2B60D52015C3A84D9B0C6DFBF46A9C9F01B7892217@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62711 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:14438 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757548Ab0LJAWC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Dec 2010 19:22:02 -0500
-In-Reply-To: <201012092259.38254.rjw@sisk.pl>
+	id S1757629Ab0LJBJX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Dec 2010 20:09:23 -0500
+In-Reply-To: <2B60D52015C3A84D9B0C6DFBF46A9C9F01B7892217@orsmsx503.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "'Rafael J. Wysocki'" <rjw@sisk.pl>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, 'Len Brown' <lenb@kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, 'Matthew Garrett' <mjg59@srcf.ucam.org>
 
-On Fri, 2010-12-10 at 05:59 +0800, Rafael J. Wysocki wrote:
-> On Monday, December 06, 2010, Lin Ming wrote:
-> > Some function and variable names are renamed to be consistent with
-> > ACPICA code base.
-> > 
-> > acpi_raw_enable_gpe -> acpi_ev_add_gpe_reference
-> > acpi_raw_disable_gpe -> acpi_ev_remove_gpe_reference
-> > acpi_gpe_can_wake -> acpi_setup_gpe_for_wake
-> > acpi_gpe_wakeup -> acpi_set_gpe_wake_mask
-> > acpi_update_gpes -> acpi_update_all_gpes
-> > acpi_all_gpes_initialized -> acpi_gbl_all_gpes_initialized
-> > acpi_handler_info -> acpi_gpe_handler_info
-> > ...
-> > 
-> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> 
-> Well, tha changes related to acpi_ev_gpe_dispatch() do not really match the
-> changelog.  I'd prefer them to go into a separate patch with the right
-> description.
+Anyway, we just released the code in ACPICA today. I want to thank you and everyone involved for all the good work. I'm confident that we have made a major improvement in the GPE support.
 
-OK, will split it.
+Bob
 
-Thanks.
 
-> 
-> ...  
-> >  u32
-> > -acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
-> > +acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
-> > +		     struct acpi_gpe_event_info *gpe_event_info,
-> >  		     u32 gpe_number);
-> >  
-> ...
-> >  					int_status |=
-> > -					    acpi_ev_gpe_dispatch(&gpe_block->
-> > +					    acpi_ev_gpe_dispatch(gpe_block->
-> > +								 node,
-> > +								 &gpe_block->
-> >  						event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
-> >  				}
-> >  			}
-> ...
-> > @@ -589,7 +597,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
-> >  		 * Ignore return status for now.
-> >  		 * TBD: leave GPE disabled on error?
-> >  		 */
-> > -		(void)gpe_event_info->dispatch.handler->address(gpe_event_info->
-> > +		(void)gpe_event_info->dispatch.handler->address(gpe_device,
-> > +								gpe_number,
-> > +								gpe_event_info->
-> >  								dispatch.
-> >  								handler->
-> >  								context);
-> ...
-> 
-> Thanks,
-> Rafael
-
+>-----Original Message-----
+>From: Moore, Robert
+>Sent: Thursday, December 09, 2010 3:14 PM
+>To: Rafael J. Wysocki
+>Cc: Lin, Ming M; Len Brown; linux-acpi@vger.kernel.org; Matthew Garrett
+>Subject: RE: [PATCH 2/6] ACPICA: Rename some function and variable names
+>
+>Yes, I think this has been a problem in the past, where changes have been
+>made that cannot be backported, thus increasing the acpica<->linux
+>divergence.
+>
+>Next year, we are making the reduction of this divergence a high priority,
+>so we will be very close to the issues.
+>
+>
+>
+>-----Original Message-----
+>From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>Sent: Thursday, December 09, 2010 3:04 PM
+>To: Moore, Robert
+>Cc: Lin, Ming M; Len Brown; linux-acpi@vger.kernel.org; Matthew Garrett
+>Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
+>
+>On Thursday, December 09, 2010, Moore, Robert wrote:
+>> I'm not talking about a single patch, but the entire process that has
+>been cumbersome.
+>
+>The reason it has been so was that some ACPICA-related changes in Linux
+>were
+>not backported.  I don't know why that happened, but that's something we
+>need
+>to be much more careful about in the future.
+>
+>Unfortunately, we sometimes need to make ACPICA changes in Linux urgently
+>as bug fixes, so the workflow in which all changes would go through the
+>ACPICA
+>code base wouldn't be very practical.
+>
+>I think we need someone from your side to review proposed changes in Linux
+>related to ACPICA and tell us which of them can be backported.  If a Linux
+>patch is ACKed by this person, it should be backported to the ACPICA code
+>base timely, ideally as soon as it appears in the Linus' tree or after a
+>major
+>kernel release is made.
+>
+>Thanks,
+>Rafael
+>
+>
+>> -----Original Message-----
+>> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>> Sent: Thursday, December 09, 2010 2:51 PM
+>> To: Moore, Robert
+>> Cc: Lin, Ming M; Len Brown; linux-acpi@vger.kernel.org
+>> Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable names
+>>
+>> On Thursday, December 09, 2010, Moore, Robert wrote:
+>> > For the next time we attempt to make such a large ACPICA change, we
+>need to put a methodology in place to simplify things. It has been very
+>difficult for us to take Linux patches, backport and integrate into ACPICA,
+>make additional changes, then forward port the final ACPICA changes to
+>Linux, and then shoehorn the code into the original Linux patches.
+>> >
+>> > Difficult as in several times the work.
+>> >
+>> > Ming has worked very hard to forward-port the ACPICA code and then
+>shoehorn the changes into the original Linux patches.
+>> >
+>> > But we can't do it this way again.
+>> >
+>> > We are open to suggestions on a better way to do this, perhaps Len can
+>help.
+>>
+>> Well, I'm talking about a simple thing like splitting a patch into two
+>pieces.
+>> That's not going to take a lot of time IMO and the benefit is that more
+>people
+>> may actually understand what's being done.
+>>
+>> Moreover, if anyone hits a problem related to one of your patches, it's
+>vital
+>> to be able to figure out which change caused it to happen.
+>>
+>> Thanks,
+>> Rafael
+>>
+>>
+>> > -----Original Message-----
+>> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>> > Sent: Thursday, December 09, 2010 2:00 PM
+>> > To: Lin, Ming M
+>> > Cc: Len Brown; Moore, Robert; linux-acpi@vger.kernel.org
+>> > Subject: Re: [PATCH 2/6] ACPICA: Rename some function and variable
+>names
+>> >
+>> > On Monday, December 06, 2010, Lin Ming wrote:
+>> > > Some function and variable names are renamed to be consistent with
+>> > > ACPICA code base.
+>> > >
+>> > > acpi_raw_enable_gpe -> acpi_ev_add_gpe_reference
+>> > > acpi_raw_disable_gpe -> acpi_ev_remove_gpe_reference
+>> > > acpi_gpe_can_wake -> acpi_setup_gpe_for_wake
+>> > > acpi_gpe_wakeup -> acpi_set_gpe_wake_mask
+>> > > acpi_update_gpes -> acpi_update_all_gpes
+>> > > acpi_all_gpes_initialized -> acpi_gbl_all_gpes_initialized
+>> > > acpi_handler_info -> acpi_gpe_handler_info
+>> > > ...
+>> > >
+>> > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+>> >
+>> > Well, tha changes related to acpi_ev_gpe_dispatch() do not really match
+>the
+>> > changelog.  I'd prefer them to go into a separate patch with the right
+>> > description.
+>> >
+>> > ...
+>> > >  u32
+>> > > -acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
+>> > > +acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+>> > > +		     struct acpi_gpe_event_info *gpe_event_info,
+>> > >  		     u32 gpe_number);
+>> > >
+>> > ...
+>> > >  					int_status |=
+>> > > -					    acpi_ev_gpe_dispatch(&gpe_block->
+>> > > +					    acpi_ev_gpe_dispatch(gpe_block->
+>> > > +								 node,
+>> > > +								 &gpe_block->
+>> > >  						event_info[((acpi_size) i *
+>ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
+>> > >  				}
+>> > >  			}
+>> > ...
+>> > > @@ -589,7 +597,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info
+>*gpe_event_info, u32 gpe_number)
+>> > >  		 * Ignore return status for now.
+>> > >  		 * TBD: leave GPE disabled on error?
+>> > >  		 */
+>> > > -		(void)gpe_event_info->dispatch.handler-
+>>address(gpe_event_info->
+>> > > +		(void)gpe_event_info->dispatch.handler-
+>>address(gpe_device,
+>> > > +								gpe_number,
+>> > > +								gpe_event_info->
+>> > >  								dispatch.
+>> > >  								handler->
+>> > >  								context);
+>> > ...
+>> >
+>> > Thanks,
+>> > Rafael
+>> >
+>>
+>>
 
