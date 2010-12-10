@@ -1,41 +1,59 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] ACPI: Make sure the FADT is at least rev 2 before using the reset register
-Date: Fri, 10 Dec 2010 12:57:51 -0500
-Message-ID: <1292003871-13979-1-git-send-email-mjg@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40477 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754873Ab0LJR6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Dec 2010 12:58:10 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation
+ in reserved areas
+Date: Fri, 10 Dec 2010 12:30:08 -0800
+Message-ID: <20101210123008.7fed582d@jbarnes-desktop>
+References: <20101208213606.13026.47657.stgit@bob.kio>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101208213606.13026.47657.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org
-Cc: hpa@zytor.com, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-The reset register was only introduced with version 2 of the FADT, so we
-should check that the FADT revision before trusting its contents.
+On Wed, 08 Dec 2010 14:36:06 -0700
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/reboot.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> This adds arch_remove_reservations(), which an arch can implement if it
+> needs to protect part of the address space from allocation.
+> 
+> Sometimes that can be done by just requesting a resource.  This hook is to
+> cover cases where protected area doesn't fit well in the hierarchical
+> resource tree.  For example, x86 BIOS E820 reservations are not related
+> to devices, so they may overlap part of, all of, or more than a device
+> resource.
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
 
-diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-index 4870aaa..a6c77e8b 100644
---- a/drivers/acpi/reboot.c
-+++ b/drivers/acpi/reboot.c
-@@ -15,6 +15,11 @@ void acpi_reboot(void)
- 
- 	rr = &acpi_gbl_FADT.reset_register;
- 
-+	/* ACPI reset register was only introduced with v2 of the FADT */
-+
-+	if (acpi_gbl_FADT.header.revision < 2)
-+		return;
-+
- 	/* Is the reset register supported? The spec says we should be
- 	 * checking the bit width and bit offset, but Windows ignores
- 	 * these fields */
+Hm, this is bigger than the simple change of just avoiding the high 2M;
+Linus have you checked it out yet?  It's nicer than simply adjusting
+PCIBIOS_MAX_MEM since it will affect all resource callers rather than
+just PCI, but it's definitely bigger.
+
+If you want just the simple change for 2.6.37 I can push that, but
+we'll need to get a tested-by from Matthew:
+
+  diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+  index ca0437c..aef9f77 100644
+  --- a/arch/x86/include/asm/pci.h
+  +++ b/arch/x86/include/asm/pci.h
+  @@ -141,7 +141,7 @@ void dma32_reserve_bootmem(void);
+
+   /* generic pci stuff */
+   #include <asm-generic/pci.h>
+  -#define PCIBIOS_MAX_MEM_32 0xffffffff
+  +#define PCIBIOS_MAX_MEM_32 0xfff00000
+
+   #ifdef CONFIG_NUMA
+   /* Returns the node based on pci bus */
+
+and I'll queue up this set for 2.6.38.
+
+Thanks,
 -- 
-1.7.3.2
-
+Jesse Barnes, Intel Open Source Technology Center
