@@ -1,80 +1,75 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation in reserved areas
-Date: Fri, 10 Dec 2010 14:07:24 -0700
-Message-ID: <201012101407.24419.bjorn.helgaas@hp.com>
-References: <20101208213606.13026.47657.stgit@bob.kio> <20101210123008.7fed582d@jbarnes-desktop> <20101210123609.73c12a23@jbarnes-desktop>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] PCI: _OSC "supported" field should contain supported features, not enabled ones
+Date: Fri, 10 Dec 2010 17:40:01 -0500
+Message-ID: <1292020801-15629-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20101210123609.73c12a23@jbarnes-desktop>
 Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>, Matthew Garrett <mjg@redhat.com>, Dan Williams <dcbw@redhat.com>, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, linux-pci@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, December 10, 2010 01:36:09 pm Jesse Barnes wrote:
-> [Actually cc'ing Matthew this time]
-> 
-> On Fri, 10 Dec 2010 12:30:08 -0800
-> Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
-> 
-> > On Wed, 08 Dec 2010 14:36:06 -0700
-> > Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > 
-> > > 
-> > > This adds arch_remove_reservations(), which an arch can implement if it
-> > > needs to protect part of the address space from allocation.
-> > > 
-> > > Sometimes that can be done by just requesting a resource.  This hook is to
-> > > cover cases where protected area doesn't fit well in the hierarchical
-> > > resource tree.  For example, x86 BIOS E820 reservations are not related
-> > > to devices, so they may overlap part of, all of, or more than a device
-> > > resource.
-> > > 
-> > > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > > ---
-> > 
-> > Hm, this is bigger than the simple change of just avoiding the high 2M;
-> > Linus have you checked it out yet?  It's nicer than simply adjusting
-> > PCIBIOS_MAX_MEM since it will affect all resource callers rather than
-> > just PCI, but it's definitely bigger.
+>From testing with Windows, the call to the PCI root _OSC method includes
+the full set of features supported by the operating system even if the
+hardware has already indicated that it doesn't support ASPM or MSI.
+https://bugzilla.redhat.com/show_bug.cgi?id=638912 is a case where making
+the _OSC call will incorrectly configure the chipset unless the supported
+field has bits 1, 2 and 4 set. Rework the functionality to ensure that
+we match this behaviour.
 
-Dan Williams also reproduced the problem on a 2530p and tested this
-series (though I think he actually tested a backport in Fedora):
-  https://bugzilla.kernel.org/show_bug.cgi?id=23542#c7
-  https://bugzilla.kernel.org/show_bug.cgi?id=23542#c23
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/pci_root.c |   24 +++++++++---------------
+ 1 files changed, 9 insertions(+), 15 deletions(-)
 
-The simple PCIBIOS_MAX_MEM_32 change below will fix the 2530p problem,
-but it won't help fix the nx6325 problem Rafael reported; details at:
-  https://bugzilla.kernel.org/show_bug.cgi?id=23332#c20
-
-Rafael did confirm on #acpi Wednesday that the full series fixed
-his nx6325.
-
-Bjorn
-
-> > If you want just the simple change for 2.6.37 I can push that, but
-> > we'll need to get a tested-by from Matthew:
-> > 
-> >   diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-> >   index ca0437c..aef9f77 100644
-> >   --- a/arch/x86/include/asm/pci.h
-> >   +++ b/arch/x86/include/asm/pci.h
-> >   @@ -141,7 +141,7 @@ void dma32_reserve_bootmem(void);
-> > 
-> >    /* generic pci stuff */
-> >    #include <asm-generic/pci.h>
-> >   -#define PCIBIOS_MAX_MEM_32 0xffffffff
-> >   +#define PCIBIOS_MAX_MEM_32 0xfff00000
-> > 
-> >    #ifdef CONFIG_NUMA
-> >    /* Returns the node based on pci bus */
-> > 
-> > and I'll queue up this set for 2.6.38.
-> > 
-> > Thanks,
-> 
-> 
-> 
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 96668ad..afb5d08 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -450,7 +450,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	struct acpi_pci_root *root;
+ 	acpi_handle handle;
+ 	struct acpi_device *child;
+-	u32 flags, base_flags;
++	u32 flags;
+ 
+ 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+ 	if (!root)
+@@ -498,10 +498,15 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	device->driver_data = root;
+ 
+ 	/*
+-	 * All supported architectures that use ACPI have support for
+-	 * PCI domains, so we indicate this in _OSC support capabilities.
++	 * Indicate support for various _OSC capabilities. These match
++	 * what the operating system supports, not what the hardware supports,
++	 * so they shouldn't be conditional on functionality that's been
++	 * blacklisted
+ 	 */
+-	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
++	flags = OSC_EXT_PCI_CONFIG_SUPPORT | OSC_ACTIVE_STATE_PWR_SUPPORT |
++		OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
++		OSC_PCI_SEGMENT_GROUPS_SUPPORT | OSC_MSI_SUPPORT;
++
+ 	acpi_pci_osc_support(root, flags);
+ 
+ 	/*
+@@ -555,17 +560,6 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	list_for_each_entry(child, &device->children, node)
+ 		acpi_pci_bridge_scan(child);
+ 
+-	/* Indicate support for various _OSC capabilities. */
+-	if (pci_ext_cfg_avail(root->bus->self))
+-		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
+-	if (pcie_aspm_enabled())
+-		flags |= OSC_ACTIVE_STATE_PWR_SUPPORT |
+-			OSC_CLOCK_PWR_CAPABILITY_SUPPORT;
+-	if (pci_msi_enabled())
+-		flags |= OSC_MSI_SUPPORT;
+-	if (flags != base_flags)
+-		acpi_pci_osc_support(root, flags);
+-
+ 	pci_acpi_add_bus_pm_notifier(device, root->bus);
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+-- 
+1.7.3.2
