@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Resend][PATCH 2/3] ACPI / PM: Drop acpi_bus_get_power()
-Date: Sat, 11 Dec 2010 23:44:39 +0100
-Message-ID: <201012112344.39592.rjw@sisk.pl>
+Subject: [Resend][PATCH 1/3] Platform / x86: Make fujitsu_laptop use acpi_bus_update_power()
+Date: Sat, 11 Dec 2010 23:43:26 +0100
+Message-ID: <201012112343.26591.rjw@sisk.pl>
 References: <201012112339.53105.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46480 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:46478 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751712Ab0LKWqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751682Ab0LKWqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sat, 11 Dec 2010 17:46:32 -0500
 In-Reply-To: <201012112339.53105.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -20,58 +20,36 @@ Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There are no more users of acpi_bus_get_power(), so it can be
-dropped.  Moreover, it should be dropped, because it modifies
-the device->power.state field of an ACPI device without updating
-the reference counters of the device's power resources, which is
-wrong.
+Use the new function acpi_bus_update_power(), which is safer than
+acpi_bus_get_power(), for getting device power state in
+acpi_fujitsu_add() and acpi_fujitsu_hotkey_add().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 ---
- drivers/acpi/bus.c      |   19 -------------------
- include/acpi/acpi_bus.h |    1 -
- 2 files changed, 20 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Index: linux-2.6/drivers/acpi/bus.c
+Index: linux-2.6/drivers/platform/x86/fujitsu-laptop.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -236,25 +236,6 @@ static int __acpi_bus_get_power(struct a
- }
+--- linux-2.6.orig/drivers/platform/x86/fujitsu-laptop.c
++++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c
+@@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_
+ 	if (error)
+ 		goto err_free_input_dev;
  
+-	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
++	result = acpi_bus_update_power(fujitsu->acpi_handle, &state);
+ 	if (result) {
+ 		printk(KERN_ERR "Error reading power state\n");
+ 		goto err_unregister_input_dev;
+@@ -857,7 +857,7 @@ static int acpi_fujitsu_hotkey_add(struc
+ 	if (error)
+ 		goto err_free_input_dev;
  
--int acpi_bus_get_power(acpi_handle handle, int *state)
--{
--	struct acpi_device *device;
--	int result;
--
--	result = acpi_bus_get_device(handle, &device);
--	if (result)
--		return result;
--
--	result = __acpi_bus_get_power(device, state);
--	if (result)
--		return result;
--
--	device->power.state = *state;
--	return 0;
--}
--EXPORT_SYMBOL(acpi_bus_get_power);
--
--
- static int __acpi_bus_set_power(struct acpi_device *device, int state)
- {
- 	int result = 0;
-Index: linux-2.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -327,7 +327,6 @@ void acpi_bus_data_handler(acpi_handle h
- acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 				       unsigned long long *sta);
- int acpi_bus_get_status(struct acpi_device *device);
--int acpi_bus_get_power(acpi_handle handle, int *state);
- int acpi_bus_set_power(acpi_handle handle, int state);
- int acpi_bus_update_power(acpi_handle handle, int *state_p);
- bool acpi_bus_power_manageable(acpi_handle handle);
+-	result = acpi_bus_get_power(fujitsu_hotkey->acpi_handle, &state);
++	result = acpi_bus_update_power(fujitsu_hotkey->acpi_handle, &state);
+ 	if (result) {
+ 		printk(KERN_ERR "Error reading power state\n");
+ 		goto err_unregister_input_dev;
 
