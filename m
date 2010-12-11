@@ -1,67 +1,28 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation
- in reserved areas
-Date: Fri, 10 Dec 2010 17:37:49 -0800
-Message-ID: <20101210173749.7ec3cc28@jbarnes-desktop>
-References: <20101208213606.13026.47657.stgit@bob.kio>
-	<20101210123008.7fed582d@jbarnes-desktop>
-	<20101210123609.73c12a23@jbarnes-desktop>
-	<201012101407.24419.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI/PNP: avoid section mismatch warning
+Date: Sat, 11 Dec 2010 00:55:46 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012110055420.28169@x980>
+References: <4CFE5B5D0200007800026730@vpn.id2.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201012101407.24419.bjorn.helgaas@hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>, Matthew Garrett <mjg@redhat.com>, Dan Williams <dcbw@redhat.com>, rjw@sisk.pl
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:52715 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885Ab0LKF4U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Dec 2010 00:56:20 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LD90001Z1T1UE03@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 10 Dec 2010 23:55:55 -0600 (CST)
+In-reply-to: <4CFE5B5D0200007800026730@vpn.id2.novell.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jan Beulich <JBeulich@novell.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 10 Dec 2010 14:07:24 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+applied
 
-> On Friday, December 10, 2010 01:36:09 pm Jesse Barnes wrote:
-> > [Actually cc'ing Matthew this time]
-> > 
-> > On Fri, 10 Dec 2010 12:30:08 -0800
-> > Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
-> > 
-> > > On Wed, 08 Dec 2010 14:36:06 -0700
-> > > Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > > 
-> > > > 
-> > > > This adds arch_remove_reservations(), which an arch can implement if it
-> > > > needs to protect part of the address space from allocation.
-> > > > 
-> > > > Sometimes that can be done by just requesting a resource.  This hook is to
-> > > > cover cases where protected area doesn't fit well in the hierarchical
-> > > > resource tree.  For example, x86 BIOS E820 reservations are not related
-> > > > to devices, so they may overlap part of, all of, or more than a device
-> > > > resource.
-> > > > 
-> > > > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > > > ---
-> > > 
-> > > Hm, this is bigger than the simple change of just avoiding the high 2M;
-> > > Linus have you checked it out yet?  It's nicer than simply adjusting
-> > > PCIBIOS_MAX_MEM since it will affect all resource callers rather than
-> > > just PCI, but it's definitely bigger.
-> 
-> Dan Williams also reproduced the problem on a 2530p and tested this
-> series (though I think he actually tested a backport in Fedora):
->   https://bugzilla.kernel.org/show_bug.cgi?id=23542#c7
->   https://bugzilla.kernel.org/show_bug.cgi?id=23542#c23
-> 
-> The simple PCIBIOS_MAX_MEM_32 change below will fix the 2530p problem,
-> but it won't help fix the nx6325 problem Rafael reported; details at:
->   https://bugzilla.kernel.org/show_bug.cgi?id=23332#c20
-> 
-> Rafael did confirm on #acpi Wednesday that the full series fixed
-> his nx6325.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Thanks, I'll add Dan and Rafael's tested-bys to the patches (they're
-already in my for-linus tree).  Unless Linus has a problem with them
-I'll send them over to him this weekend or Monday.
-
--- 
-Jesse Barnes, Intel Open Source Technology Center
