@@ -1,27 +1,30 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] acpi: fix _OSI string setup regression
-Date: Sat, 11 Dec 2010 01:32:17 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012110132060.28169@x980>
-References: <1291884652.10384.46.camel@minggr.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: ACPI patches for Linux-2.6.37-rc5
+Date: Sat, 11 Dec 2010 02:06:25 -0500
+Message-ID: <1292051200-13689-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:45244 "EHLO
+Received: from vms173009pub.verizon.net ([206.46.173.9]:51338 "EHLO
 	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab0LKGcW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Dec 2010 01:32:22 -0500
+	with ESMTP id S1750885Ab0LKHGq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Dec 2010 02:06:46 -0500
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
  by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LD9003IG3HXM7W0@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 11 Dec 2010 00:32:21 -0600 (CST)
-In-reply-to: <1291884652.10384.46.camel@minggr.sh.intel.com>
+ with ESMTPA id <0LD9000GK538CCW0@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 11 Dec 2010 01:06:46 -0600 (CST)
+Received: from localhost.localdomain (x980 [127.0.0.1])
+	by localhost.localdomain (8.14.4/8.14.4) with ESMTP id oBB76gC6010370	for
+ <linux-acpi@vger.kernel.org>; Sat, 11 Dec 2010 02:06:43 -0500
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.4/8.14.4/Submit)
+ id oBB76fCe010127	for linux-acpi@vger.kernel.org; Sat,
+ 11 Dec 2010 02:06:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-applied (replacing previous version of this patch)
+These patches are queued for 2.6.37-rc5.
+Please let me know if you have troubles with any of them,
+or if you've got additional candidates for 2.6.37-rc.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
