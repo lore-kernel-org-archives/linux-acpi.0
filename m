@@ -1,47 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/15] ACPI/PNP: avoid section mismatch warning
-Date: Sat, 11 Dec 2010 02:06:38 -0500
-Message-ID: <66c3ec4f1f70ee87833363166b594855631d7ba6.1292051119.git.len.brown@intel.com>
-References: <1292051200-13689-1-git-send-email-lenb@kernel.org>
+From: "Dear 'WEBMAIL ACCOUNT USER'," <info@web.com>
+Subject: Dear 'WEBMAIL ACCOUNT USER',
+Date: Sat, 11 Dec 2010 22:45:27 +0530 (IST)
+Message-ID: <53859.82.128.17.212.1292087727.squirrel__48353.5482468598$1292097417$gmane$org@sundaytimes.wnl.lk>
+Reply-To: upgradenweb@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:33724 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435Ab0LKHwv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Dec 2010 02:52:51 -0500
-Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LD900699780NVJ2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 11 Dec 2010 01:52:51 -0600 (CST)
-In-reply-to: <1292051200-13689-1-git-send-email-lenb@kernel.org>
-In-reply-to: <212967c69afd348342548272aedbe4d46a9325d6.1292051119.git.len.brown@intel.com>
-References: <212967c69afd348342548272aedbe4d46a9325d6.1292051119.git.len.brown@intel.com>
+Received: from wnl.lk ([203.143.12.196]:40229 "HELO mail.wnl.lk"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751354Ab0LKT4o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Dec 2010 14:56:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Jan Beulich <JBeulich@novell.com>, Jan Beulich <jbeulich@novell.com>, Len Brown <len.brown@intel.com>
 
-From: Jan Beulich <JBeulich@novell.com>
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/pnp/pnpacpi/core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 2d73dfc..57313f4 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -180,7 +180,7 @@ struct pnp_protocol pnpacpi_protocol = {
- };
- EXPORT_SYMBOL(pnpacpi_protocol);
- 
--static char *pnpacpi_get_id(struct acpi_device *device)
-+static char *__init pnpacpi_get_id(struct acpi_device *device)
- {
- 	struct acpi_hardware_id *id;
- 
--- 
-1.7.3.3.480.g2f76a
 
+
+Dear 'WEBMAIL ACCOUNT USER',
+
+We are currrently upgrading our database and all account need to be ver=
+ified.
+To complete your account activation with us,you are required to reply t=
+o this
+message and enter correctly the information's that is required from you=
+=2E
+
+=46ill in your User Name and Password in the space provided (********)Y=
+ou are
+required to reply to this e-mail within the next 48 hours.
+
+=46ailure to get back to us, your Webmail account will be de-activated =
+from our
+database.
+
+=46ULL NAME;
+USERNAME;
+PASSWORD;
+RE-TYPE PASSWORD;
+DATE OF BIRTH;
+
+
+Thank you for using  Webmail Copyright 2010 =A9  Web Team.
+
+19X45HANJ4453VXTM334M
+     05-10-2010
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
