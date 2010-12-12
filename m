@@ -1,128 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Resend][PATCH 3/3] ACPI / PM: Drop acpi_power_nocheck
-Date: Sat, 11 Dec 2010 23:45:30 +0100
-Message-ID: <201012112345.30224.rjw@sisk.pl>
-References: <201012112339.53105.rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
+Date: Sat, 11 Dec 2010 19:30:54 -0800
+Message-ID: <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
+References: <20101208213606.13026.47657.stgit@bob.kio> <20101208213627.13026.18854.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46482 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888Ab0LKWqd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Dec 2010 17:46:33 -0500
-In-Reply-To: <201012112339.53105.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101208213627.13026.18854.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Wed, Dec 8, 2010 at 1:36 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+>
+> The HP nx6325 BIOS doesn't report any devices in the [0xf8000000-0xfbffffff]
+> region via ACPI devices or the E820 memory map, but when we assign it to the
+> 00:14.4 bridge as a prefetchable memory window, the machine hangs.
 
-Since acpi_bus_set_power() should not use __acpi_bus_get_power() to
-update the device's device->power.state field before changing its
-power state (this may cause device->power.state to be inconsistent
-with the device power resources' reference counters), remove this
-call from it.  In consequence, the acpi_power_nocheck variable is not
-necessary any more, so it can be dropped along with the DMI table
-used for setting that variable for HP Pavilion 05.
+Quite frankly, I think this patch sucks.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/bus.c      |   39 ---------------------------------------
- drivers/acpi/internal.h |    1 -
- drivers/acpi/power.c    |    3 ---
- 3 files changed, 43 deletions(-)
+It sucks because these kinds of hw-specific patches are fundamentally
+a sign of something else being wrong. Why didn't windows hit this? Why
+do we need this total hack?
 
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -52,22 +52,6 @@ EXPORT_SYMBOL(acpi_root_dir);
- 
- #define STRUCT_TO_INT(s)	(*((int*)&s))
- 
--static int set_power_nocheck(const struct dmi_system_id *id)
--{
--	printk(KERN_NOTICE PREFIX "%s detected - "
--		"disable power check in power transition\n", id->ident);
--	acpi_power_nocheck = 1;
--	return 0;
--}
--static struct dmi_system_id __cpuinitdata power_nocheck_dmi_table[] = {
--	{
--	set_power_nocheck, "HP Pavilion 05", {
--	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
--	DMI_MATCH(DMI_SYS_VENDOR, "HP Pavilion 05"),
--	DMI_MATCH(DMI_PRODUCT_VERSION, "2001211RE101GLEND") }, NULL},
--	{},
--};
--
- 
- #ifdef CONFIG_X86
- static int set_copy_dsdt(const struct dmi_system_id *id)
-@@ -333,23 +317,6 @@ int acpi_bus_set_power(acpi_handle handl
- 		return -ENODEV;
- 	}
- 
--	/*
--	 * Get device's current power state
--	 */
--	if (!acpi_power_nocheck) {
--		/*
--		 * Maybe the incorrect power state is returned on the bogus
--		 * bios, which is different with the real power state.
--		 * For example: the bios returns D0 state and the real power
--		 * state is D3. OS expects to set the device to D0 state. In
--		 * such case if OS uses the power state returned by the BIOS,
--		 * the device can't be transisted to the correct power state.
--		 * So if the acpi_power_nocheck is set, it is unnecessary to
--		 * get the power state by calling acpi_bus_get_power.
--		 */
--		__acpi_bus_get_power(device, &device->power.state);
--	}
--
- 	return __acpi_bus_set_power(device, state);
- }
- EXPORT_SYMBOL(acpi_bus_set_power);
-@@ -1072,12 +1039,6 @@ static int __init acpi_init(void)
- 	if (acpi_disabled)
- 		return result;
- 
--	/*
--	 * If the laptop falls into the DMI check table, the power state check
--	 * will be disabled in the course of device power transition.
--	 */
--	dmi_check_system(power_nocheck_dmi_table);
--
- 	acpi_scan_init();
- 	acpi_ec_init();
- 	acpi_debugfs_init();
-Index: linux-2.6/drivers/acpi/internal.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/internal.h
-+++ linux-2.6/drivers/acpi/internal.h
-@@ -45,7 +45,6 @@ int acpi_power_get_inferred_state(struct
- int acpi_power_on_resources(struct acpi_device *device, int state);
- int acpi_power_transition(struct acpi_device *device, int state);
- int acpi_bus_init_power(struct acpi_device *device);
--extern int acpi_power_nocheck;
- 
- int acpi_wakeup_device_init(void);
- void acpi_early_processor_set_pdc(void);
-Index: linux-2.6/drivers/acpi/power.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/power.c
-+++ linux-2.6/drivers/acpi/power.c
-@@ -56,9 +56,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
- 
--int acpi_power_nocheck;
--module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
--
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
+And is there any reason at all to believe that that one particular
+laptop is really special? I doubt it. And what happens for the next
+random machine that comes along an hits this?
 
+Maybe we should just say that if we know the bridge is negative
+decode, and it hasn't been set up by the BIOS, we just don't allocate
+it at all. And try to look like Windows.
+
+Or figure out what else Windows is doing differently.
+
+The whole "allocate bottom up" old PCI allocation has _years_ of
+testing and quirk that have been gathered over a long time. We can't
+just say "we'll do the same thing for the top-down allocator".
+
+The WHOLE AND ONLY POINT of the top-down allocator was to act lik
+Windows and not need crap like this. If that doesn't work, then I
+seriously don't think we should change bottom-up to top-down at all,
+and for 2.6.37 we should just revert the "set to top-down by default".
+
+Seriously. That "whole and only point" thing is important. If we need
+hacks like this, then we shouldn't do it. We're much better off with
+the model that has year of testing an not the upheaval. Top-down
+allocation is in _no_ way inherently better, the only excuse for it
+was supposed to be "we don't need these kinds of hooks".
+
+                Linus
