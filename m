@@ -1,60 +1,62 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation
- in reserved areas
-Date: Sat, 11 Dec 2010 20:16:15 -0800
-Message-ID: <20101211201615.79186de7@jbarnes-desktop>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
+Date: Sun, 12 Dec 2010 15:23:21 +1000
+Message-ID: <AANLkTimOHk5KHQy=DyLfi-rG9m-M=yR2RO1e_mRnD3zR@mail.gmail.com>
 References: <20101208213606.13026.47657.stgit@bob.kio>
-	<20101210123008.7fed582d@jbarnes-desktop>
-	<20101210123609.73c12a23@jbarnes-desktop>
-	<201012101407.24419.bjorn.helgaas@hp.com>
-	<20101210173749.7ec3cc28@jbarnes-desktop>
-	<AANLkTi=b5pq+RhA1DpyyRaLEQxQFOrf4aEXHrG-Qjqbt@mail.gmail.com>
+	<20101208213627.13026.18854.stgit@bob.kio>
+	<AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=b5pq+RhA1DpyyRaLEQxQFOrf4aEXHrG-Qjqbt@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>, Matthew Garrett <mjg@redhat.com>, Dan Williams <dcbw@redhat.com>, rjw@sisk.pl
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 11 Dec 2010 19:34:05 -0800
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Sun, Dec 12, 2010 at 1:30 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Wed, Dec 8, 2010 at 1:36 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+>>
+>> The HP nx6325 BIOS doesn't report any devices in the [0xf8000000-0xfbffffff]
+>> region via ACPI devices or the E820 memory map, but when we assign it to the
+>> 00:14.4 bridge as a prefetchable memory window, the machine hangs.
+>
+> Quite frankly, I think this patch sucks.
+>
+> It sucks because these kinds of hw-specific patches are fundamentally
+> a sign of something else being wrong. Why didn't windows hit this? Why
+> do we need this total hack?
+>
+> And is there any reason at all to believe that that one particular
+> laptop is really special? I doubt it. And what happens for the next
+> random machine that comes along an hits this?
+>
+> Maybe we should just say that if we know the bridge is negative
+> decode, and it hasn't been set up by the BIOS, we just don't allocate
+> it at all. And try to look like Windows.
+>
+> Or figure out what else Windows is doing differently.
+>
+> The whole "allocate bottom up" old PCI allocation has _years_ of
+> testing and quirk that have been gathered over a long time. We can't
+> just say "we'll do the same thing for the top-down allocator".
+>
+> The WHOLE AND ONLY POINT of the top-down allocator was to act lik
+> Windows and not need crap like this. If that doesn't work, then I
+> seriously don't think we should change bottom-up to top-down at all,
+> and for 2.6.37 we should just revert the "set to top-down by default".
+>
+> Seriously. That "whole and only point" thing is important. If we need
+> hacks like this, then we shouldn't do it. We're much better off with
+> the model that has year of testing an not the upheaval. Top-down
+> allocation is in _no_ way inherently better, the only excuse for it
+> was supposed to be "we don't need these kinds of hooks".
 
-> On Fri, Dec 10, 2010 at 5:37 PM, Jesse Barnes <jbarnes@virtuousgeek.o=
-rg> wrote:
-> >
-> > Thanks, I'll add Dan and Rafael's tested-bys to the patches (they'r=
-e
-> > already in my for-linus tree). =C2=A0Unless Linus has a problem wit=
-h them
-> > I'll send them over to him this weekend or Monday.
->=20
-> See my other email I just sent out.
->=20
-> I really am not going to take some totally new experimental and hacky
-> major PCI resource management thing this late in the -rc game. No way=
-,
-> no how.
->=20
-> If the top-down allocator is causing regressions that cannot be fixed
-> by _simple_ patches, we're simply going to have to undo it. What's th=
-e
-> advantage of top-down? None. Not if we then need all this crap, which
-> we could as easily do on top of the bottom-up one WITHOUT any
-> regressions.
->=20
-> Why isn't anybody else questioning the whole basic premise here?
+I agree, I've got an NX6125 predecessor of this and I'll take any
+money that is has an equally insane BIOS, considering its the worst
+laptop in my pile in nearly every way imaginable.
 
-Questioning the whole premise is fine, but so far we've gone in (or at
-least think we're going in) a consistent direction: behave like Windows
-on platforms designed for Windows to avoid bugs that Windows doesn't
-hit and enable all the same devices Windows allows.
+and I suspect the HP laptop braindamage won't end with those two.
 
-But yes, I really don't like the nx6325 patch either; there's obviously
-something we're still missing that's preventing us from doing the right
-thing on that platform.  Quirking it isn't a good long term answer.
-
---=20
-Jesse Barnes, Intel Open Source Technology Center
+Dave.
