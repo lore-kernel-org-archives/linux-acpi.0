@@ -1,92 +1,53 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
-Date: Sat, 11 Dec 2010 23:17:43 -0700
-Message-ID: <20101212061743.GA4974@helgaas.com>
-References: <20101208213606.13026.47657.stgit@bob.kio>
- <20101208213627.13026.18854.stgit@bob.kio>
- <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation in reserved areas
+Date: Sun, 12 Dec 2010 14:20:56 +0100
+Message-ID: <201012121420.57217.rjw@sisk.pl>
+References: <20101208213606.13026.47657.stgit@bob.kio> <AANLkTi=b5pq+RhA1DpyyRaLEQxQFOrf4aEXHrG-Qjqbt@mail.gmail.com> <20101211201615.79186de7@jbarnes-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101211201615.79186de7@jbarnes-desktop>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>, Matthew Garrett <mjg@redhat.com>, Dan Williams <dcbw@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Dec 11, 2010 at 07:30:54PM -0800, Linus Torvalds wrote:
-> On Wed, Dec 8, 2010 at 1:36 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> >
-> > The HP nx6325 BIOS doesn't report any devices in the [0xf8000000-0xfbffffff]
-> > region via ACPI devices or the E820 memory map, but when we assign it to the
-> > 00:14.4 bridge as a prefetchable memory window, the machine hangs.
+On Sunday, December 12, 2010, Jesse Barnes wrote:
+> On Sat, 11 Dec 2010 19:34:05 -0800
+> Linus Torvalds <torvalds@linux-foundation.org> wrote:
 > 
-> Quite frankly, I think this patch sucks.
+> > On Fri, Dec 10, 2010 at 5:37 PM, Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+> > >
+> > > Thanks, I'll add Dan and Rafael's tested-bys to the patches (they're
+> > > already in my for-linus tree).  Unless Linus has a problem with them
+> > > I'll send them over to him this weekend or Monday.
+> > 
+> > See my other email I just sent out.
+> > 
+> > I really am not going to take some totally new experimental and hacky
+> > major PCI resource management thing this late in the -rc game. No way,
+> > no how.
+> > 
+> > If the top-down allocator is causing regressions that cannot be fixed
+> > by _simple_ patches, we're simply going to have to undo it. What's the
+> > advantage of top-down? None. Not if we then need all this crap, which
+> > we could as easily do on top of the bottom-up one WITHOUT any
+> > regressions.
+> > 
+> > Why isn't anybody else questioning the whole basic premise here?
 > 
-> It sucks because these kinds of hw-specific patches are fundamentally
-> a sign of something else being wrong. Why didn't windows hit this? Why
-> do we need this total hack?
-
-I agree, it *does* suck, and I *am* quite worried about how many
-issues like this we might trip over.
-
-Windows didn't hit this because of other differences:
-  - Windows relies on subtractive decode; Linux programs a window
-  - Windows gives the downstream CardBus bridge a 4K and a 64M mem window;
-    Linux gives it two 64M windows
-  - Windows doesn't align the CardBus windows on their size; Linux does
-
-Under Windows, the CardBus windows don't conflict with the unreported
-devices.  The larger windows allocated by Linux do.  So relying on
-subtractive decode would work until we plug in a CardBus device that
-expects to *use* that area, and then the device won't work.
-
-> And is there any reason at all to believe that that one particular
-> laptop is really special? I doubt it. And what happens for the next
-> random machine that comes along an hits this?
+> Questioning the whole premise is fine, but so far we've gone in (or at
+> least think we're going in) a consistent direction: behave like Windows
+> on platforms designed for Windows to avoid bugs that Windows doesn't
+> hit and enable all the same devices Windows allows.
 > 
-> Maybe we should just say that if we know the bridge is negative
-> decode, and it hasn't been set up by the BIOS, we just don't allocate
-> it at all. And try to look like Windows.
+> But yes, I really don't like the nx6325 patch either; there's obviously
+> something we're still missing that's preventing us from doing the right
+> thing on that platform.  Quirking it isn't a good long term answer.
 
-I do like this idea more than I did at first, even though it's not a
-complete fix, because it's much better to have a non-working CardBus
-device than a hanging machine.  But I guess we'd still want to fix
-that device, and then we're back at a hw-specific quirk like this one.
-Maybe we should do both (leave the bridge alone and keep the quirk).
+OK, so I guess the best thing we can do for 2.6.37 is to revert
+1af3c2e (x86: allocate space within a region top-down), right?
 
-> Or figure out what else Windows is doing differently.
-> 
-> The whole "allocate bottom up" old PCI allocation has _years_ of
-> testing and quirk that have been gathered over a long time. We can't
-> just say "we'll do the same thing for the top-down allocator".
-
-True (although most of the quirks I can think of are in the form of
-hard-coded legacy device reservations, and we're keeping those).
-
-If we didn't care about host bridge _CRS, there'd be no reason to
-change the old PCI allocation scheme.  But I think we *do* care and
-will care more in the future.  We frequently assign resources to
-devices the BIOS didn't configure, and that only works if we're lucky
-or there's only one host bridge.
-
-> The WHOLE AND ONLY POINT of the top-down allocator was to act lik
-> Windows and not need crap like this. If that doesn't work, then I
-> seriously don't think we should change bottom-up to top-down at all,
-> and for 2.6.37 we should just revert the "set to top-down by default".
-> 
-> Seriously. That "whole and only point" thing is important. If we need
-> hacks like this, then we shouldn't do it. We're much better off with
-> the model that has year of testing an not the upheaval. Top-down
-> allocation is in _no_ way inherently better, the only excuse for it
-> was supposed to be "we don't need these kinds of hooks".
-
-Not really -- the main point here is to make multi-host bridge
-machines work reliably, and I really don't see a way to do that
-without using _CRS.
-
-If we're going to use _CRS, I think in the long run we'll be better
-off if we do it similarly to Windows, despite these early problems.
-
-Bjorn
+Rafael
