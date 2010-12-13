@@ -1,27 +1,39 @@
 From: Ike Panhc <ike.pan@canonical.com>
-Subject: Re: [PATCH v2 0/7] ideapad: hotkey enablement
-Date: Mon, 13 Dec 2010 16:49:28 +0800
-Message-ID: <4D05DE18.3060500@canonical.com>
-References: <1291881376-4729-1-git-send-email-ike.pan@canonical.com> <AANLkTimUpXe34tSzvOJ_oo=fyqdAhwkk6xnN10BbdWrH@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimUpXe34tSzvOJ_oo=fyqdAhwkk6xnN10BbdWrH@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: [PATCH v3 0/6] ideapad: hotkey enablement
+Date: Mon, 13 Dec 2010 17:59:44 +0800
+Message-ID: <1292234384-2599-1-git-send-email-ike.pan@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dave Hansen <dave@linux.vnet.ibm.com>, Corentin Chary <corentin.chary@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/09/2010 04:39 PM, Corentin Chary wrote:
->> acpi_handle is still a global variable becuase we need to pass handle pointer
->> to rfk_set with its opcode but only one data argument available.
-> 
-> Of course there is only one data argument available, but since it's a
-> void *, you
-> can use a struct with your handle and the opcode :).
-> 
+Here are the enablement patches for hotkey events on ideapads and these patches
+are made against current checkout of mainline kernel.
 
-I have tried it. It needs to copy the same handle three times to each struture.
-Since we only have an acpi handle, I think to have it global will let driver
-easy read.
+After last time posting on LKML, there are several feedback and these patches
+are modified.
+
+>From Dmitry Torokhov, squash the select INPUT_SPARSEKMAP patch and hotkey
+enablement patch.
+>From Corentin Chary, add documentation about the usage of sysfs node
+>From Dave Hansen, change the platform node name from Ideapad to ideapad
+
+These patches are available in the git repository at:
+  git://kernel.ubuntu.com/ikepanhc/ideapad-laptop.git ideapad-laptop
+
+
+
+Ike Panhc (6):
+  ideapad: add platform driver for ideapad
+  ideapad: let camera power control entry under platform driver
+  ideapad: add hotkey support
+  ideapad: add markups, unify comments and return result when init
+  ideapad: pass ideapad_priv as argument (part 1)
+  ideapad: pass ideapad_priv as argument (part 2)
+
+ .../ABI/testing/sysfs-platform-ideapad-laptop      |    6 +
+ drivers/platform/x86/Kconfig                       |    1 +
+ drivers/platform/x86/ideapad-laptop.c              |  259 ++++++++++++++------
+ 3 files changed, 186 insertions(+), 80 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-ideapad-laptop
