@@ -1,56 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Do not save/restore NVS on Sony Vaio VGN-NW130D
-Date: Sun, 12 Dec 2010 21:10:42 +0100
-Message-ID: <201012122110.42717.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: Make sure the FADT is at least rev 2 before
+ using the reset register
+Date: Mon, 13 Dec 2010 08:16:36 +0800
+Message-ID: <1292199396.1715.143.camel@rui>
+References: <1292003871-13979-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1292003871-13979-1-git-send-email-mjg@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Adriano <adriano.vilela@yahoo.com>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: "x86@kernel.org" <x86@kernel.org>, "hpa@zytor.com" <hpa@zytor.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Sat, 2010-12-11 at 01:57 +0800, Matthew Garrett wrote:
+> The reset register was only introduced with version 2 of the FADT, so we
+> should check that the FADT revision before trusting its contents.
+> 
+does the current code break anything?
+I'm curious about how you found this bug. :)
 
-The saving of the NVS memory area during suspend and restoring it
-during resume causes problems to appear on Sony Vaio VGN-NW130D, so
-blacklist that machine to avoid those problems.
+thanks,
+rui
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=23002
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-tested-by: Adriano <adriano.vilela@yahoo.com>
----
-
-Hi Len,
-
-Another Vaio needing acpi_sleep=nonvs, please apply.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/sleep.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -427,6 +427,14 @@ static struct dmi_system_id __initdata a
- 		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
- 		},
- 	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-NW130D",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> ---
+>  drivers/acpi/reboot.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+> index 4870aaa..a6c77e8b 100644
+> --- a/drivers/acpi/reboot.c
+> +++ b/drivers/acpi/reboot.c
+> @@ -15,6 +15,11 @@ void acpi_reboot(void)
+>  
+>  	rr = &acpi_gbl_FADT.reset_register;
+>  
+> +	/* ACPI reset register was only introduced with v2 of the FADT */
+> +
+> +	if (acpi_gbl_FADT.header.revision < 2)
+> +		return;
+> +
+>  	/* Is the reset register supported? The spec says we should be
+>  	 * checking the bit width and bit offset, but Windows ignores
+>  	 * these fields */
