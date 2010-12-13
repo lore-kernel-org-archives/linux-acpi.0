@@ -1,177 +1,59 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH 5/6] ideapad: pass ideapad_priv as argument (part 1)
-Date: Mon, 13 Dec 2010 18:01:01 +0800
-Message-ID: <1292234461-2744-1-git-send-email-ike.pan@canonical.com>
-References: <1292234384-2599-1-git-send-email-ike.pan@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1292234384-2599-1-git-send-email-ike.pan@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg@redhat.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dave Hansen <dave@linux.vnet.ibm.com>, Corentin Chary <corentin.chary@gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 1/5] resources: add arch hook for preventing allocation
+ in reserved areas
+Date: Mon, 13 Dec 2010 14:47:39 +0100
+Message-ID: <20101213134739.GA27941@elte.hu>
+References: <20101208213606.13026.47657.stgit@bob.kio>
+ <AANLkTi=b5pq+RhA1DpyyRaLEQxQFOrf4aEXHrG-Qjqbt@mail.gmail.com>
+ <20101211201615.79186de7@jbarnes-desktop>
+ <201012121420.57217.rjw@sisk.pl>
+ <20101213054334.GA15856@helgaas.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:40684 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757617Ab0LMNs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:48:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20101213054334.GA15856@helgaas.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Adam Belay <abelay@mit.edu>, Matthew Garrett <mjg@redhat.com>, Dan Williams <dcbw@redhat.com>
 
-Passing ideapad_priv as argument and try not to using too much global variable.
-This is part 1 for platform driver and input device.
 
-Signed-off-by: Ike Panhc <ike.pan@canonical.com>
----
- drivers/platform/x86/ideapad-laptop.c |   54 +++++++++++++++++----------------
- 1 files changed, 28 insertions(+), 26 deletions(-)
+* Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
-index 3c6c5b5..37fe0d0 100644
---- a/drivers/platform/x86/ideapad-laptop.c
-+++ b/drivers/platform/x86/ideapad-laptop.c
-@@ -301,37 +301,37 @@ static struct attribute_group ideapad_attribute_group = {
- 	.attrs = ideapad_attributes
- };
- 
--static int __devinit ideapad_platform_init(void)
-+static int __devinit ideapad_platform_init(struct ideapad_private *priv)
- {
- 	int result;
- 
--	ideapad_priv->platform_device = platform_device_alloc("ideapad", -1);
--	if (!ideapad_priv->platform_device)
-+	priv->platform_device = platform_device_alloc("ideapad", -1);
-+	if (!priv->platform_device)
- 		return -ENOMEM;
--	platform_set_drvdata(ideapad_priv->platform_device, ideapad_priv);
-+	platform_set_drvdata(priv->platform_device, priv);
- 
--	result = platform_device_add(ideapad_priv->platform_device);
-+	result = platform_device_add(priv->platform_device);
- 	if (result)
- 		goto fail_platform_device;
- 
--	result = sysfs_create_group(&ideapad_priv->platform_device->dev.kobj,
-+	result = sysfs_create_group(&priv->platform_device->dev.kobj,
- 				    &ideapad_attribute_group);
- 	if (result)
- 		goto fail_sysfs;
- 	return 0;
- 
- fail_sysfs:
--	platform_device_del(ideapad_priv->platform_device);
-+	platform_device_del(priv->platform_device);
- fail_platform_device:
--	platform_device_put(ideapad_priv->platform_device);
-+	platform_device_put(priv->platform_device);
- 	return result;
- }
- 
--static void ideapad_platform_exit(void)
-+static void ideapad_platform_exit(struct ideapad_private *priv)
- {
--	sysfs_remove_group(&ideapad_priv->platform_device->dev.kobj,
-+	sysfs_remove_group(&priv->platform_device->dev.kobj,
- 			   &ideapad_attribute_group);
--	platform_device_unregister(ideapad_priv->platform_device);
-+	platform_device_unregister(priv->platform_device);
- }
- 
- /*
-@@ -343,7 +343,7 @@ static const struct key_entry ideapad_keymap[] = {
- 	{ KE_END, 0 },
- };
- 
--static int __devinit ideapad_input_init(void)
-+static int __devinit ideapad_input_init(struct ideapad_private *priv)
- {
- 	struct input_dev *inputdev;
- 	int error;
-@@ -357,7 +357,7 @@ static int __devinit ideapad_input_init(void)
- 	inputdev->name = "Ideapad extra buttons";
- 	inputdev->phys = "ideapad/input0";
- 	inputdev->id.bustype = BUS_HOST;
--	inputdev->dev.parent = &ideapad_priv->platform_device->dev;
-+	inputdev->dev.parent = &priv->platform_device->dev;
- 
- 	error = sparse_keymap_setup(inputdev, ideapad_keymap, NULL);
- 	if (error) {
-@@ -371,7 +371,7 @@ static int __devinit ideapad_input_init(void)
- 		goto err_free_keymap;
- 	}
- 
--	ideapad_priv->inputdev = inputdev;
-+	priv->inputdev = inputdev;
- 	return 0;
- 
- err_free_keymap:
-@@ -381,16 +381,17 @@ err_free_dev:
- 	return error;
- }
- 
--static void __devexit ideapad_input_exit(void)
-+static void __devexit ideapad_input_exit(struct ideapad_private *priv)
- {
--	sparse_keymap_free(ideapad_priv->inputdev);
--	input_unregister_device(ideapad_priv->inputdev);
--	ideapad_priv->inputdev = NULL;
-+	sparse_keymap_free(priv->inputdev);
-+	input_unregister_device(priv->inputdev);
-+	priv->inputdev = NULL;
- }
- 
--static void ideapad_input_report(unsigned long scancode)
-+static void ideapad_input_report(struct ideapad_private *priv,
-+				 unsigned long scancode)
- {
--	sparse_keymap_report_event(ideapad_priv->inputdev, scancode, 1, true);
-+	sparse_keymap_report_event(priv->inputdev, scancode, 1, true);
- }
- 
- /*
-@@ -417,11 +418,11 @@ static int __devinit ideapad_acpi_add(struct acpi_device *adevice)
- 	priv->handle = adevice->handle;
- 	dev_set_drvdata(&adevice->dev, priv);
- 
--	ret = ideapad_platform_init();
-+	ret = ideapad_platform_init(priv);
- 	if (ret)
- 		goto platform_failed;
- 
--	ret = ideapad_input_init();
-+	ret = ideapad_input_init(priv);
- 	if (ret)
- 		goto input_failed;
- 
-@@ -434,7 +435,7 @@ static int __devinit ideapad_acpi_add(struct acpi_device *adevice)
- 	return 0;
- 
- input_failed:
--	ideapad_platform_exit();
-+	ideapad_platform_exit(priv);
- platform_failed:
- 	kfree(priv);
- 	return ret;
-@@ -447,8 +448,8 @@ static int __devexit ideapad_acpi_remove(struct acpi_device *adevice, int type)
- 
- 	for (i = IDEAPAD_DEV_WLAN; i < IDEAPAD_DEV_KILLSW; i++)
- 		ideapad_unregister_rfkill(adevice, i);
--	ideapad_input_exit();
--	ideapad_platform_exit();
-+	ideapad_input_exit(priv);
-+	ideapad_platform_exit(priv);
- 	dev_set_drvdata(&adevice->dev, NULL);
- 	kfree(priv);
- 
-@@ -457,6 +458,7 @@ static int __devexit ideapad_acpi_remove(struct acpi_device *adevice, int type)
- 
- static void ideapad_acpi_notify(struct acpi_device *adevice, u32 event)
- {
-+	struct ideapad_private *priv = dev_get_drvdata(&adevice->dev);
- 	acpi_handle handle = adevice->handle;
- 	unsigned long vpc1, vpc2, vpc_bit;
- 
-@@ -471,7 +473,7 @@ static void ideapad_acpi_notify(struct acpi_device *adevice, u32 event)
- 			if (vpc_bit == 9)
- 				ideapad_sync_rfk_state(adevice);
- 			else
--				ideapad_input_report(vpc_bit);
-+				ideapad_input_report(priv, vpc_bit);
- 		}
- 	}
- }
--- 
-1.7.1
+> > OK, so I guess the best thing we can do for 2.6.37 is to revert 1af3c2e (x86: 
+> > allocate space within a region top-down), right?
+> 
+> That's a possibility, but I'm not sure it's the best.  It would avoid the nx6325 
+> landmine, but we could easily step on a different one on other machines.
+> 
+> If Windows uses the end of available space first, that's the best-tested 
+> territory, and I think it's better to try to stay in it rather revert 1af3c2e and 
+> start mapping different territory that really isn't tested by Windows at all.
+> 
+> On the nx6325, we stray out of that tested territory because Linux opens windows 
+> on subtractive-decode bridges and allocates more space to CardBus bridges.
+> 
+> I think it'd be fairly simple to leave subtractive-decode bridges alone, and that 
+> might make the nx6325 work well enough for .37, even without the quirk.  This 
+> feels like a change that might be the right thing to do in general.  Using 
+> subtractive rather than positive decode would give up a little performance, but I 
+> doubt it's important
+
+Is there a patch for that that people could try?
+
+The regression needs to be addressed one way or another: either by improving the 
+"compatible with Windows" approach to actually work (without quirks), or by 
+reverting to the tested-for-years Linux solution.
+
+( What we always try to avoid is trading in a set of regressions for another set of 
+  regressions. That way lies madness, it can not result in reliable, provable 
+  progress. )
+
+Thanks,
+
+	Ingo
