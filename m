@@ -1,49 +1,140 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
-Date: Tue, 14 Dec 2010 12:44:51 -0800
-Message-ID: <AANLkTi=a4kOssPYfdYHW5yn9q03=2_6v4bZeCj4iGsUi@mail.gmail.com>
-References: <20101208213606.13026.47657.stgit@bob.kio> <20101208213627.13026.18854.stgit@bob.kio>
- <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
- <20101212061743.GA4974@helgaas.com> <AANLkTikogB78xPGiQZpg6nWKYVffr61A_Adm0a+C3mbR@mail.gmail.com>
+From: Jack Steiner <steiner@sgi.com>
+Subject: [PATCH] - Mapping ACPI tables as CACHED
+Date: Tue, 14 Dec 2010 16:09:32 -0600
+Message-ID: <20101214220932.GA1206@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40980 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759597Ab0LNUpm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Dec 2010 15:45:42 -0500
-In-Reply-To: <AANLkTikogB78xPGiQZpg6nWKYVffr61A_Adm0a+C3mbR@mail.gmail.com>
+Received: from relay2.sgi.com ([192.48.179.30]:56002 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753085Ab0LNWJh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Dec 2010 17:09:37 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+To: lenb@kernel.org
+Cc: hpa@zytor.com, hmh@hmh.eng.br, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
 
-On Tue, Dec 14, 2010 at 12:34 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> That's a maintainable approach. But it's maintainable ONLY if we then
-> don't do other random changes that invalidates all the years of
-> testing we've had.
+Map ACPI tables as WB on x86_64. No substantive changes to IA64.
 
-Btw, looking at all the x86-specific commits that have gone in, I'm
-*extremely* unhappy that they apparently stopped honoring that
-"resource_alloc_from_bottom" flag that I explicitly asked for.
+Large SGI UV systems (3072p, 5TB) take a long time to boot. A significant
+part of the boot time is scanning ACPI tables. ACPI tables on UV systems
+are located in RAM memory that is physically attached to node 0.
 
-So it looks like it's not enough to just set that flag. We have to
-actually revert all the commits in this area as broken.
+User programs (ex., acpidump) read the ACPI tables by mapping them thru
+/dev/mem.  Although mmap tries to map the tables as CACHED, there are
+existing kernel UNCACHED mapping that conflict and the tables end up as
+being mapped UNCACHED.  (See the call to track_pfn_vma_new() in
+remap_pfn_range()).
 
-Which is sad, but since they clearly *are* broken and don't honor the
-flag that was there explicitly to avoid this problem and make it easy
-to test reverting it, I'm really pissed off. The WHOLE POINT of that
-flag was to give people an option to say "use the old resource
-allocation order because the new one doesn't work for me".
+Much of the access is to small fields (bytes (checksums), shorts, etc).
+Late in boot, there is significant scanning of the ACPI tables that take
+place from nodes other than zero. Since the tables are not cached, each
+reference accesses physical memory that is attached to remote nodes. These
+memory requests must cross the numalink interconnect which adds several
+hundred nsec to each access. This slows the boot process.  Access from
+node 0, although faster, is still very slow.
 
-So at this point the only question is whether I should just revert the
-whole effing lot, or whether there are patches to fix the code to
-honor the "allocate from bottom" bit and then just set it by default
-again.
 
-Bjorn? Preferences?
 
-                           Linus
+The following patch changes the kernel mapping for ACPI tables
+to CACHED. This eliminates the page attibute conflict & allows users to map
+the tables CACHEABLE. This significantly speeds up boot:
+
+        38 minutes without the patch
+        27 minutes with the patch
+                ~30% improvement
+
+Time to run ACPIDUMP on a large system:
+        527 seconds without the patch
+          8 seconds with the patch
+
+
+
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+
+---
+(resend of earlier patch)
+	http://marc.info/?l=linux-kernel&m=128206079905826&w=2
+	http://marc.info/?l=linux-acpi&m=128284304032481&w=2
+
+
+V2 - Change the patch to unconditionally map ACPI tables as WB on x86_64.
+
+V3 - same as V2 except updated to 2.6.37-rc5
+
+
+---
+ arch/ia64/kernel/acpi.c     |    6 ++++++
+ arch/x86/kernel/acpi/boot.c |   14 ++++++++++++++
+ drivers/acpi/osl.c          |    2 +-
+ include/linux/acpi.h        |    1 +
+ 4 files changed, 22 insertions(+), 1 deletion(-)
+
+Index: linux/arch/ia64/kernel/acpi.c
+===================================================================
+--- linux.orig/arch/ia64/kernel/acpi.c	2010-12-14 15:51:33.230235579 -0600
++++ linux/arch/ia64/kernel/acpi.c	2010-12-14 16:02:26.718529904 -0600
+@@ -176,6 +176,12 @@ void __init __acpi_unmap_table(char *map
+ {
+ }
+ 
++char *__init __acpi_map_table_permanent(unsigned long phys_addr,
++					unsigned long size)
++{
++	return ioremap(phys_addr, size);
++}
++
+ /* --------------------------------------------------------------------------
+                             Boot-time Table Parsing
+    -------------------------------------------------------------------------- */
+Index: linux/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux.orig/arch/x86/kernel/acpi/boot.c	2010-12-14 15:51:33.230235579 -0600
++++ linux/arch/x86/kernel/acpi/boot.c	2010-12-14 15:52:06.070227289 -0600
+@@ -167,6 +167,20 @@ void __init __acpi_unmap_table(char *map
+ 	early_iounmap(map, size);
+ }
+ 
++/*
++ * Permanently map memory for ACPI. Map ACPI tables and RAM as WB,
++ * other regions as UC.
++ */
++char *__init __acpi_map_table_permanent(unsigned long phys, unsigned long size)
++{
++	if (e820_all_mapped(phys, phys + size, E820_RAM) ||
++			e820_all_mapped(phys, phys + size, E820_ACPI) ||
++			e820_all_mapped(phys, phys + size, E820_NVS))
++		return ioremap_cache((unsigned long)phys, size);
++	 else
++		return ioremap(phys, size);
++}
++
+ #ifdef CONFIG_X86_LOCAL_APIC
+ static int __init acpi_parse_madt(struct acpi_table_header *table)
+ {
+Index: linux/drivers/acpi/osl.c
+===================================================================
+--- linux.orig/drivers/acpi/osl.c	2010-12-14 15:51:33.230235579 -0600
++++ linux/drivers/acpi/osl.c	2010-12-14 15:52:06.098240079 -0600
+@@ -324,7 +324,7 @@ acpi_os_map_memory(acpi_physical_address
+ 
+ 	pg_off = round_down(phys, PAGE_SIZE);
+ 	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+-	virt = ioremap(pg_off, pg_sz);
++	virt = __acpi_map_table_permanent(pg_off, pg_sz);
+ 	if (!virt) {
+ 		kfree(map);
+ 		return NULL;
+Index: linux/include/linux/acpi.h
+===================================================================
+--- linux.orig/include/linux/acpi.h	2010-12-14 15:51:33.230235579 -0600
++++ linux/include/linux/acpi.h	2010-12-14 16:03:23.042529564 -0600
+@@ -77,6 +77,7 @@ typedef int (*acpi_table_handler) (struc
+ typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
+ 
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
++char *__acpi_map_table_permanent(unsigned long phys_addr, unsigned long size);
+ void __acpi_unmap_table(char *map, unsigned long size);
+ int early_acpi_boot_init(void);
+ int acpi_boot_init (void);
