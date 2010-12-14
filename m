@@ -1,85 +1,119 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Early kernel messages are overflowing the static log buffer
-Date: Mon, 13 Dec 2010 15:58:15 -0800
-Message-ID: <4D06B317.2090608@sgi.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [Resend][PATCH 0/3] ACPI / PM: Patches missing from
+	linux-acpi-2.6/test
+Date: Tue, 14 Dec 2010 09:21:36 +0800
+Message-ID: <1292289696.3983.60.camel@localhost.localdomain>
+References: <201012112339.53105.rjw@sisk.pl>
+	 <1292229322.3983.29.camel@localhost.localdomain>
+	 <201012132225.05149.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:58984 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756859Ab0LMX6W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Dec 2010 18:58:22 -0500
+Received: from mga02.intel.com ([134.134.136.20]:2105 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758834Ab0LNB1e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Dec 2010 20:27:34 -0500
+In-Reply-To: <201012132225.05149.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Len Brown <lenb@kernel.org>
-Cc: Jack Steiner <steiner@sgi.com>, Lori Gilbertson <loriann@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+
+On Tue, 2010-12-14 at 05:25 +0800, Rafael J. Wysocki wrote:
+> On Monday, December 13, 2010, ykzhao wrote:
+> > On Sun, 2010-12-12 at 06:39 +0800, Rafael J. Wysocki wrote:
+> > > Hi Len,
+> > >=20
+> > > The following three patches seem to have been dropped from your '=
+test' branch.
+> > >=20
+> > > If that happened by accident, please reapply.  Otherwise, please =
+let me know
+> > > what's wrong with the patches so that I can fix them.
+> > >=20
+> > > [1/3] - Make fujitsu_laptop use acpi_bus_update_power() instead o=
+f
+> > >         acpi_bus_get_power() which is unsafe.
+> >=20
+> > =EF=BB=BFIt seems that the function of acpi_bus_update_power not on=
+ly obtains
+> > the current power state, but also set the corresponding power state=
+=2E
+> > Right?
+>=20
+> Yes, it does.
+>=20
+> > If the device reports the bogus power state, maybe we will set the
+> > incorrect power state for the corresponding device when using the
+> > function of acpi_bus_update_power instead of acpi_bus_get_power.
+>=20
+> Please actually look at acpi_bus_get_power() (being removed by [2/3])=
+ and note
+> that it _also_ modifies device->power.state (it doesn't return the st=
+ate, actually),
+> so if the returned state is really bogus, we'll have a mismatch betwe=
+en
+> device->power.state and the real state of the device.  This cannot be=
+ good.
+
+The device->power.state is also updated in the function of
+acpi_bus_get_power. But it won't try to call the _PSC or _ON/OFF method
+to really change the corresponding power state. It only reports the
+corresponding power state.=20
+
+> In the case of acpi_bus_update_power() we at least _try_ to keep the =
+two things
+> in sync.
+
+Yes. I agree that the acpi_bus_update_power can always assure that the
+two things are in sync state. But =EF=BB=BFsome systems will report the=
+ bogus
+power state although we already set another power state(For example:
+Maybe it reports that it is in D3 state because of bogus BIOS code). In
+such case if we try to turn off the corresponding power resource by
+using _PSC/_ON/_OFF method, maybe we will cut off the power supply for
+these devices.
 
 
-Hi Ingo,
+> Note, this is _essentially_ important for power resources (if
+> acpi_bus_get_power() is used, the refcounts are _guaranteed_ not to b=
+e in sync
+> with device->power.state in some situations).
+>=20
+> > In such case maybe the device can't work well.=20
+> >=20
+> > The bogus power state is reported for some devices on some laptops.=
+ For
+> > example:=20
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=3D8049
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=3D11000
+>=20
+> These bugs are about acpi_bus_set_power() doing the acpi_bus_get_powe=
+r()
+> before setting the state, which is wrong and is being removed by my p=
+revious
+> patches (now in the Len's tree).
 
-We have a problem on customer sites in that the early log buffer
-messages overflow the static 128M log buffer before the log_buffer_len
-parameter can be processed.  This causes a major problem when we
-are trying to debug a kernel panic from the customer's panic dump.
+It seems that another point is missed in previous patch.=20
+   Before the reworking patch of power resource, the force_power_state
+flag is used when setting the corresponding power state for some ACPI
+devices(For example: Fan). This flag will still force to call the
+_PSC/_ON/_OFF method even when it is already the same as the target
+state. Maybe this is to workaround the BIOS issue that the power state
+is not reported correctly first time.
 
-I've tried processing the log_buffer_len as soon as possible,
-(right after the setup of Bootmem on Node 0), but I still lose 
-quite a bit.  I think I've calculated that there are about
-192M of messages output on a 2048 processor 128 node 4TB system
-before the log buffer can be dynamically reallocated.  And this
-increases the complexity a bit because this is in arch dependent
-code, so a generic reallocation routine is still needed.
+   Not sure whether my above understanding is reasonable.
 
-And distros are against any attempt to increase the size of the
-static log buffer so that's not really an option.
+Thanks.
+    Yakui
+  =20
+>=20
+> Thanks,
+> Rafael
 
-So it seems we need to reduce the number of messages.  
-
-The voluminous message sources before buffer reallocation are:
-
-[    0.000000]  BIOS-e820: 0000000000000000 - 000000000008f000 (usable)                                              
-...
-[    0.000000] EFI: mem00: type=3, attr=0xf, range=[0x0000000000000000-0x0000000000001000) (0MB)                     [    
-...
-[    0.000000] modified physical RAM map:
-[    0.000000]  modified: 0000000000000000 - 0000000000001000 (usable)                         
-...
-[    0.000000] SRAT: PXM 0 -> APIC 0 -> Node 0
-...
-[    0.000000] Bootmem setup node 0 0000000000000000-0000000800000000
-[    0.000000]   NODE_DATA [000000000000e100 - 00000000000420ff]
-[    0.000000]   bootmap [0000000000100000 -  00000000001fffff] pages 100
-...
-[    0.000000] early_node_map[137] active PFN ranges
-[    0.000000]     0: 0x00000000 -> 0x00000001
-...
-[    0.000000] On node 1 totalpages: 8388608
-[    0.000000]   Normal zone: 114688 pages used for memmap
-[    0.000000]   Normal zone: 8273920 pages, LIFO batch:31
-...
-[    0.000000] ACPI: X2APIC (apic_id[0x00] uid[0x00] enabled)
-...
-[    0.000000] PM: Registered nosave memory: 0000000000001000 - 0000000000006000
-...
-[    0.000000] pcpu-alloc: [000] 0000 0001 0002 0003 0004 0005 0006 0007 1024 1025 1026 1027 1028 1029 1030 1031
-
-What I'm asking is which of these would be most acceptable to
-either remove or replace with some sort of message reduction?
-Note that a lot of the messages are completely redundant.  Like
-the Bootmem setup generally has exactly the same information
-(spread over 15 lines), for each of the 128 Nodes.
-
-One patch that I still have was David's "reduce srat verbosity in
-the kernel log" that was rejected by you as too complex.  This
-would have resulted in about a 16:1 reduction in SRAT: messages,
-without loss of an information.  Before I start another doomed patch,
-I'd like to find out the guidelines.  Remember, no one really looks
-at these messages unless the system panics, usually during startup.
-So the information here may be key to diagnosing the problem.
-
-Thanks,
-Mike
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
