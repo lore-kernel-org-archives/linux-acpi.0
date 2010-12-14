@@ -1,40 +1,53 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH 0/3_v14] IPMI/ACPI: Install the ACPI IPMI opregion
-Date: Tue, 14 Dec 2010 08:11:15 -0600
-Message-ID: <4D077B03.5020102@acm.org>
-References: <1291774218-6834-1-git-send-email-yakui.zhao@intel.com>
- <alpine.LFD.2.00.1012140020390.23573@x980>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [lm-sensors] [Patch] Adding threshold support to coretemp
+Date: Tue, 14 Dec 2010 10:24:35 -0800
+Message-ID: <20101214182435.GA32358@ericsson.com>
+References: <D6D887BA8C9DFF48B5233887EF04654105C1109439@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:50920 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab0LNOL1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Dec 2010 09:11:27 -0500
-Received: from wf-rch.minyard.local ([unknown] [173.57.145.237])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LDF001HC8QTFOF0@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 14 Dec 2010 08:11:22 -0600 (CST)
-In-reply-to: <alpine.LFD.2.00.1012140020390.23573@x980>
+Received: from imr4.ericy.com ([198.24.6.8]:41733 "EHLO imr4.ericy.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757116Ab0LNSZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Dec 2010 13:25:32 -0500
+Content-Disposition: inline
+In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C1109439@bgsmsx502.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, openipmi-developer@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On 12/13/2010 11:21 PM, Len Brown wrote:
-> Corey,
-> Most of the code is in drivers/acpi, but that depends on the ipmi part.
-> Shall I take all three patches in the acpi-test tree?
->
-> thanks,
-> Len Brown, Intel Open Source Technology Center
->    
-I was trying to figure out what to do with these, so yes, I think that 
-pulling them into the acpi-test tree is good.  They won't get tested any 
-other way, I don't think.
+On Tue, Dec 14, 2010 at 06:55:35AM -0500, R, Durgadoss wrote:
+> Hi Jean/Fenghua,
+> 
+> I am submitting a patch to enable core thermal threshold
+> Support to coretemp.c. There are two core thermal thresholds
+> available through sysfs interfaces temp1_core_thresh[0/1].
+> 
+> The expectation is that thresh0 is lesser than the current temperature
+> and thresh1 is higher than the current temperature. Whenever the current
+> temperature crosses these limits, an interrupt is generated.
+> This interrupt is handles by the user space to do power
+> Management via CPU throttling, etc..
+> 
+> This patch is generated against stable Linux-2.6 kernel.
+> 
+> Kindly review and merge.
+> ------------------------------------------------------------------
+> From: Durgadoss R <durgadoss.r@intel.com>
+> 
+> Date: Tue, 14 Dec 2010 05:10:27 +0530
+> Subject: [PATCH] Adding_threshold_support_to_coretemp
+> 
+> This patch adds the core thermal threshold support to coretemp.c.
+> These thresholds can be read/written using the sysfs interface
+> temp1_core_thresh[0/1]. These can be used to generate interrupts,
+> to do dynamic power management.
+> 
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> 
+I am not inclined to look further into this patch until the ABI questions are resolved.
+As written, the patch gets my NACK simply because it introduces random driver specific
+new ABI attributes.
 
-Thanks,
-
--corey
+Guenter
