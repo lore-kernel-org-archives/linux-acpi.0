@@ -1,41 +1,34 @@
-From: Sedat Dilek <sedat.dilek@googlemail.com>
-Subject: Re: [PATCH 0/13] ACPI / PM: Rework power resources management
-Date: Tue, 14 Dec 2010 10:20:41 +0100
-Message-ID: <AANLkTi=0B2MHz-8ENz4+enkuB3KivPobLwaEc_BFEhQb@mail.gmail.com>
-References: <AANLkTimahUpEL3cV6pFhkN8KqrphfVMSOw8xAN2=9jPy@mail.gmail.com>
-	<AANLkTinarEEaJMLORBV9YozJ3GnFFVMJ-NOQhzRVJ0en@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [lm-sensors] Patch[1/1] Adding Core Thermal Threshold Support
+ to_Coretemp
+Date: Tue, 14 Dec 2010 15:36:43 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF04654105C1109391@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF04654105C1077008@bgsmsx502.gar.corp.intel.com>
+ <4D059217.9070905@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinarEEaJMLORBV9YozJ3GnFFVMJ-NOQhzRVJ0en@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, len.brown@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, platform-driver-x86@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:34875 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753953Ab0LNKG5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Dec 2010 05:06:57 -0500
+In-Reply-To: <4D059217.9070905@linux.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Mon, Dec 13, 2010 at 4:43 PM, Sedat Dilek <sedat.dilek@googlemail.com> wrote:
-> Hi Rafael,
->
-> nice to see your patchset is in linux-next (next-20101213) now.
-> More precisely in linux-acpi-2.6: 1/13 + 2/13 in release and rest/13
-> in test GIT branch.
->
-> What about the fix
-> "Platform-x86-Make-fujitsu_laptop-use-acpi_bus_update_power.patch"
-> [1]?
-> Will this go over platform-x86/linux-next into linux-next GIT tree?
-> Are you co-ordinating this with mjg?
->
-> Regards,
-> - Sedat -
->
-> [1] https://patchwork.kernel.org/patch/357422/
-> [2] http://git.kernel.org/?p=linux/kernel/git/mjg59/platform-drivers-x86.git;a=shortlog;h=refs/heads/linux-next
->
-
-Thanks, the patch is now included in linux-next (next-20101214) (see [1]).
-
-- Sedat -
-
-[1] http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=5fd12c41e206d6bfda6eef1ed50e995a293e0777
+SGkgR29uZywNCg0KPiA+ICsJLyogTWFzayB0aGUgdGhlcm1hbCB2ZWN0b3IgaW4gdGhlIGxhcGlj
+ICovDQo+ID4gKwlsID0gYXBpY19yZWFkKEFQSUNfTFZUVEhNUik7DQo+ID4gKwlhcGljX3dyaXRl
+KEFQSUNfTFZUVEhNUiwgbCB8IEFQSUNfTFZUX01BU0tFRCk7DQo+ID4gKw0KPiA+ICsJcmRtc3Jf
+b25fY3B1KGRhdGEtPmlkLCBNU1JfSUEzMl9USEVSTV9JTlRFUlJVUFQsJmVheCwmZWR4KTsNCj4g
+DQo+IGFwaWNfd3JpdGUgYW5kIHJkbXNyX29uX2NwdSBtYXliZSBkb24ndCBwb2ludCB0byB0aGUg
+c2FtZSBDUFUuDQo+IE1heWJlIGl0IGlzIGEgcG90ZW50aWFsIGlzc3VlLiBUaGUgYmVsb3cgYXBp
+Y194eHggZXRjLiBhcmUgc2FtZSBzaXR1YXRpb25zLg0KDQpZZXMuIEFncmVlZC4gRmlndXJlZCBv
+dXQgdGhhdCB0aGVyZSBpcyBhIHdheSB0byBleGVjdXRlIGEgZnVuY3Rpb24gb24gYQ0KcGFydGlj
+dWxhciBDUFUsIGlmIHdlIGtub3cgY3B1LT5pZC4gU28sIHNoYWxsIG1vZGlmeSB0aGUgcGF0Y2gg
+YWNjb3JkaW5nbHkNCmFuZCBzdWJtaXQgaXQuIA0KU29ycnkgZm9yIHRoZSBsYXRlIHJlc3BvbnNl
+LiBJdCB0b29rIHNvbWUgdGltZSB0byBmaW5kIG91dCBob3cgdG8gZG8gdGhpcy4NCg0KDQpUaGFu
+a3MsDQpEdXJnYWRvc3MNCg==
