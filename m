@@ -1,48 +1,81 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH -v4 0/3] ACPI, APEI,
- Report GHES error information via printk
-Date: Mon, 13 Dec 2010 23:43:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012132343100.16730@x980>
-References: <1291688551-14395-1-git-send-email-ying.huang@intel.com>
+Subject: Re: [PATCH 1/7] ACPI: delete CONFIG_ACPI_PROCFS_POWER
+Date: Mon, 13 Dec 2010 23:59:39 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012132356120.23573@x980>
+References: <1291619053.19296.575.camel@rui>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:47685 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758001Ab0LNEnx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Dec 2010 23:43:53 -0500
-In-reply-to: <1291688551-14395-1-git-send-email-ying.huang@intel.com>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:63383 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758105Ab0LNE7z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Dec 2010 23:59:55 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LDE004TRJ7H6Q55@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 13 Dec 2010 22:59:49 -0600 (CST)
+In-reply-to: <1291619053.19296.575.camel@rui>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, 7 Dec 2010, Huang Ying wrote:
+On Mon, 6 Dec 2010, Zhang Rui wrote:
 
-> The recent consensus is that hardware error should be reported via printk.
-> This patch adds printk support to APEI GHES.
 > 
-> v4:
+> CONFIG_ACPI_PROCFS_POWER is introduced to use the ac and battery driver
+> procfs I/F even if CONFIG_ACPI_PROCFS is cleared.
+> This is not useful anymore because we want to use the sysfs I/F of
+> these drivers, and remove the deprecated procfs I/F permanently in 2.6.39.
 > 
-> - Remove pr_pfx, use printk directly
+> So delete this kernel config and fold into CONFIG_ACPI_PROCFS.
 
-v4 applied to acpi-test
+Per our discussion tonight, lets keep CONFIG_ACPI_PROCFS.
+We just changed it to default to =n in 2.6.36, and even
+that caused complaints -- so there are still users out
+there of /proc/acpi/batter, even though /sys/class/power_supply
+shipped in 2007.
+
+In 2.6.38, lets add it to feature-removal.txt,
+say for a year from now, and add a (single) run-time
+warning on access.
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
 
+> Sign-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/Kconfig   |   15 ---------------
+>  drivers/acpi/Makefile  |    2 +-
+>  drivers/acpi/ac.c      |   20 ++++++++++----------
+>  drivers/acpi/battery.c |   20 ++++++++++----------
+>  drivers/acpi/sbs.c     |   20 ++++++++++----------
+>  5 files changed, 31 insertions(+), 46 deletions(-)
 > 
-> v3:
-> 
-> - Add document for output format per Andrew's comments
-> - Move pr_pfx into printk.h, hope it is useful for others too
-> - Fixes some issues according to comments
-> 
-> v2:
-> 
-> - Some minor adjustment of PCIe error section definition and printk format
-> 
-> [PATCH -v4 1/3] Add CPER PCIe error section structure and constants definition
-> [PATCH -v4 2/3] ACPI, APEI, Add APEI generic error status printing support
-> [PATCH -v4 3/3] ACPI, APEI, Report GHES error information via printk
-> 
+> Index: linux-2.6/drivers/acpi/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/Kconfig
+> +++ linux-2.6/drivers/acpi/Kconfig
+> @@ -62,21 +62,6 @@ config ACPI_PROCFS
+>  
+>  	  Say N to delete /proc/acpi/ files that have moved to /sys/
+>  
+> -config ACPI_PROCFS_POWER
+> -	bool "Deprecated power /proc/acpi directories"
+> -	depends on PROC_FS
+> -	help
+> -	  For backwards compatibility, this option allows
+> -          deprecated power /proc/acpi/ directories to exist, even when
+> -          they have been replaced by functions in /sys.
+> -          The deprecated directories (and their replacements) include:
+> -	  /proc/acpi/battery/* (/sys/class/power_supply/*)
+> -	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
+> -	  This option has no effect on /proc/acpi/ directories
+> -	  and functions, which do not yet exist in /sys
+> -
+> -	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
+> -
+>  config ACPI_POWER_METER
+>  	tristate "ACPI 4.0 power meter"
+>  	depends on HWMON
