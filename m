@@ -1,30 +1,53 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
-Date: Wed, 15 Dec 2010 11:21:42 -0800
-Message-ID: <AANLkTik7_6Oc6jcjQVVBmJ13LRFMopEg6qEdB43zMMz5@mail.gmail.com>
-References: <20101208213606.13026.47657.stgit@bob.kio> <20101215062650.GB2728@helgaas.com>
- <AANLkTi=U+CTn=RDvYG0w6JK0Owv_TEc9YNtAtm9DeLKi@mail.gmail.com> <201012151118.30512.bjorn.helgaas@hp.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: update return value in EC gpe handler
+Date: Wed, 15 Dec 2010 12:04:08 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BF9AAEB9@orsmsx503.amr.corp.intel.com>
+References: <1292399228.10384.175.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201012151118.30512.bjorn.helgaas@hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:24915 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754849Ab0LOUEL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Dec 2010 15:04:11 -0500
+In-Reply-To: <1292399228.10384.175.camel@minggr.sh.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Lin, Ming M" <ming.m.lin@intel.com>, lenb <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Dec 15, 2010 at 10:18 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> =
-wrote:
->
-> So here's my proposal for .37:
-> =A0- Keep the current state of _CRS enabled by default (for 2008
-> =A0 =A0and newer machines).
-> =A0- Allocate bottom-up always
-> =A0- Avoid E820 reservations
-
-Sounds sane to me. And yes, the fact that the BIOS tends to allocate
-things top-down probably does mean that the whole bottom-up approach
-tends to be the safer model.
-
-                          Linus
+SSdtIG5vdCBzdXJlIHRoYXQgdGhpcyBpcyB0aGUgY29ycmVjdCB0aGluZyB0byBkby4NCg0KQUNQ
+SV9SRUVOQUJMRV9HUEUgaXMgYSBuZXcgR1BFIGhhbmRsZXIgcmV0dXJuIHZhbHVlIHRoYXQgaW1w
+bGllcyB0byBBQ1BJQ0EgdGhhdCB0aGUgR1BFIGhhcyBiZWVuIGZ1bGx5IGhhbmRsZWQgd2l0aGlu
+IHRoZSAoc3luY2hyb25vdXMsIGludGVycnVwdC1sZXZlbCkgR1BFIGhhbmRsZXIgYW5kIGlzIHJl
+YWR5IHRvIGJlIGNsZWFyZWQgKGlmIG5lY2Vzc2FyeSkgYW5kIHJlLWVuYWJsZWQuDQoNClRoZSBh
+Y3BpX2ZpbmlzaF9ncGUgaXMgYSBuZXcgaW50ZXJmYWNlIGRvZXMgdGhlIHNhbWUgdGhpbmcsIGJ1
+dCBpcyBpbnRlbmRlZCB0byBiZSBjYWxsZWQgZnJvbSBhbiBhc3luY2hyb25vdXMgR1BFIGhhbmRs
+ZXIgYWZ0ZXIgdGhlIEdQRSBwcm9jZXNzaW5nIGlzIGNvbXBsZXRlZC4gSXQgbG9va3MgdG8gbWUg
+dGhhdCB0aGUgRUMgR1BFIGhhbmRsZXIgaXMgbW9zdGx5IGFzeW5jaHJvbm91cywgc28gSSBzdXNw
+ZWN0IHRoYXQgc29tZXdoZXJlIGluIHRoZSBFQyBkcml2ZXIsIGEgY2FsbCB0byBhY3BpX2Zpbmlz
+aF9ncGUgc2hvdWxkIHJlcGxhY2UgYSBjb3VwbGUgb2YgY2FsbHMgdG8gY2xlYXIgdGhlIEdQRSBh
+bmQgcmUtZW5hYmxlIGl0LiBUaGF0IGlzIHRoZSBwdXJwb3NlIG9mIHRoaXMgaW50ZXJmYWNlLCB0
+byByZWxpZXZlIHRoZSBoYW5kbGVyIG9mIGRlY2lkaW5nIHdoZXRoZXIgdG8gY2xlYXIgdGhlIEdQ
+RSBvciBub3QgKGxldmVsIHZzLiBlZGdlKSBhbmQgdGhlbiByZS1lbmFibGluZyBpdC4NCg0KQm9i
+DQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IExpbiwgTWluZyBNIA0KU2Vu
+dDogVHVlc2RheSwgRGVjZW1iZXIgMTQsIDIwMTAgMTE6NDcgUE0NClRvOiBsZW5iDQpDYzogTW9v
+cmUsIFJvYmVydDsgUmFmYWVsIEouIFd5c29ja2k7IGxpbnV4LWFjcGkNClN1YmplY3Q6IFtQQVRD
+SF0gYWNwaTogdXBkYXRlIHJldHVybiB2YWx1ZSBpbiBFQyBncGUgaGFuZGxlcg0KDQpFQyBncGUg
+aGFuZGxlciBzaG91bGQgcmV0dXJuIEFDUElfUkVFTkFCTEVfR1BFLCBzbyBhY3BpX2V2X2dwZV9k
+aXNwYXRjaA0KY2FuIGNsZWFyIGFuZCByZWVuYWJsZSB0aGUgR1BFLg0KDQpTaWduZWQtb2ZmLWJ5
+OiBMaW4gTWluZyA8bWluZy5tLmxpbkBpbnRlbC5jb20+DQotLS0NCg0KTGVuLCANCg0KSSBmb3Jn
+b3QgdG8gdXBkYXRlIEVDIGdwZSBoYW5kbGVyIHJldHVybiB2YWx1ZSBpbiB0aGUgc2VyaWVzIG9m
+IA0KIltQQVRDSCB2MiAwLzhdIE1pbmltaXplIEFDUElDQS9saW51eCBHUEUgY29kZSBkaXZlcmdl
+bmNlIi4NClRoaXMgaXMgdGhlIGZpeC4NCg0KIGRyaXZlcnMvYWNwaS9lYy5jIHwgICAgMiArLQ0K
+IDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KDQpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9hY3BpL2VjLmMgYi9kcml2ZXJzL2FjcGkvZWMuYw0KaW5kZXggZTE1
+NDM5YS4uOGEwZTkwNyAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvYWNwaS9lYy5jDQorKysgYi9kcml2
+ZXJzL2FjcGkvZWMuYw0KQEAgLTYxOSw3ICs2MTksNyBAQCBzdGF0aWMgdTMyIGFjcGlfZWNfZ3Bl
+X2hhbmRsZXIoYWNwaV9oYW5kbGUgZ3BlX2RldmljZSwNCiAJCXdha2VfdXAoJmVjLT53YWl0KTsN
+CiAJCWVjX2NoZWNrX3NjaShlYywgYWNwaV9lY19yZWFkX3N0YXR1cyhlYykpOw0KIAl9DQotCXJl
+dHVybiBBQ1BJX0lOVEVSUlVQVF9IQU5ETEVEOw0KKwlyZXR1cm4gQUNQSV9SRUVOQUJMRV9HUEU7
+DQogfQ0KIA0KIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCg0K
