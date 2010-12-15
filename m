@@ -1,711 +1,282 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [RFC] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
- notification type support
-Date: Wed, 15 Dec 2010 13:34:02 +0800
-Message-ID: <1292391242.12648.1202.camel@yhuang-dev>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
+Date: Tue, 14 Dec 2010 23:02:27 -0700
+Message-ID: <20101215060227.GA2728@helgaas.com>
+References: <20101208213606.13026.47657.stgit@bob.kio>
+ <20101208213627.13026.18854.stgit@bob.kio>
+ <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
+ <20101212061743.GA4974@helgaas.com>
+ <AANLkTikogB78xPGiQZpg6nWKYVffr61A_Adm0a+C3mbR@mail.gmail.com>
+ <AANLkTi=a4kOssPYfdYHW5yn9q03=2_6v4bZeCj4iGsUi@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34068 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141Ab0LOFeG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 00:34:06 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=a4kOssPYfdYHW5yn9q03=2_6v4bZeCj4iGsUi@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Generic Hardware Error Source provides a way to report platform
-hardware errors (such as that from chipset). It works in so called
-"Firmware First" mode, that is, hardware errors are reported to
-firmware firstly, then reported to Linux by firmware. This way, some
-non-standard hardware error registers or non-standard hardware link
-can be checked by firmware to produce more valuable hardware error
-information for Linux.
+On Tue, Dec 14, 2010 at 12:44:51PM -0800, Linus Torvalds wrote:
+> On Tue, Dec 14, 2010 at 12:34 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> >
+> > That's a maintainable approach. But it's maintainable ONLY if we then
+> > don't do other random changes that invalidates all the years of
+> > testing we've had.
+> 
+> Btw, looking at all the x86-specific commits that have gone in, I'm
+> *extremely* unhappy that they apparently stopped honoring that
+> "resource_alloc_from_bottom" flag that I explicitly asked for.
+> 
+> So it looks like it's not enough to just set that flag. We have to
+> actually revert all the commits in this area as broken.
+> 
+> Which is sad, but since they clearly *are* broken and don't honor the
+> flag that was there explicitly to avoid this problem and make it easy
+> to test reverting it, I'm really pissed off. The WHOLE POINT of that
+> flag was to give people an option to say "use the old resource
+> allocation order because the new one doesn't work for me".
+> 
+> So at this point the only question is whether I should just revert the
+> whole effing lot, or whether there are patches to fix the code to
+> honor the "allocate from bottom" bit and then just set it by default
+> again.
 
-This patch adds POLL/IRQ/NMI notification types support.
+I'm not sure there's value in having both "pci=nocrs" and
+"resource_alloc_from_bottom" flags.  What if I made it so
+we allocate top-down if and only if we're using _CRS?
 
-Because the memory area used to transfer hardware error information
-from BIOS to Linux can be determined only in NMI, IRQ or timer
-handler, but general ioremap can not be used in atomic context, so a
-special version of atomic ioremap is implemented for that.
+Then old boxes where we don't look at _CRS would use the same
+bottom-up behavior they always have (this is another major
+screwup in the current tree -- we currently do top-down on
+these boxes for no good reason).
 
-Known issue:
+And on new boxes, we default to using _CRS and allocating
+top-down, but if that doesn't work, we can use "pci=nocrs"
+and go back to the old "ignore _CRS and allocate bottom-up"
+behavior.
 
-- Error information can not be printed for recoverable errors notified
-  via NMI, because printk is not NMI-safe. Will fix this via delay
-  printing to IRQ context via irq_work or make printk NMI-safe.
+Here's a sample patch which I will test and document if you
+think it's a reasonable approach:
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
----
- arch/x86/kernel/acpi/boot.c |    1 
- arch/x86/kernel/dumpstack.c |    1 
- drivers/acpi/apei/ghes.c    |  428 ++++++++++++++++++++++++++++++++++----------
- kernel/panic.c              |    1 
- lib/ioremap.c               |    2 
- mm/vmalloc.c                |    1 
- 6 files changed, 345 insertions(+), 89 deletions(-)
 
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -504,6 +504,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned in
+commit e39250083dbdd0b42e886aa858d0ffbc86e618c4
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Tue Dec 14 22:10:16 2010 -0700
+
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 21c6746..85268f8 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -769,7 +769,6 @@ void __init setup_arch(char **cmdline_p)
  
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+ 	x86_init.oem.arch_setup();
  
- int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
- {
---- a/arch/x86/kernel/dumpstack.c
-+++ b/arch/x86/kernel/dumpstack.c
-@@ -240,6 +240,7 @@ unsigned __kprobes long oops_begin(void)
- 	bust_spinlocks(1);
- 	return flags;
- }
-+EXPORT_SYMBOL_GPL(oops_begin);
- 
- void __kprobes oops_end(unsigned long flags, struct pt_regs *regs, int signr)
- {
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -12,10 +12,6 @@
-  * For more information about Generic Hardware Error Source, please
-  * refer to ACPI Specification version 4.0, section 17.3.2.6
-  *
-- * Now, only SCI notification type and memory errors are
-- * supported. More notification type and hardware error type will be
-- * added later.
-- *
-  * Copyright 2010 Intel Corp.
-  *   Author: Huang Ying <ying.huang@intel.com>
-  *
-@@ -39,15 +35,18 @@
- #include <linux/acpi.h>
- #include <linux/io.h>
- #include <linux/interrupt.h>
-+#include <linux/timer.h>
- #include <linux/cper.h>
- #include <linux/kdebug.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
- #include <linux/ratelimit.h>
-+#include <linux/vmalloc.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
- #include <asm/mce.h>
-+#include <asm/tlbflush.h>
- 
- #include "apei-internal.h"
- 
-@@ -56,42 +55,132 @@
- #define GHES_ESTATUS_MAX_SIZE		65536
- 
- /*
-- * One struct ghes is created for each generic hardware error
-- * source.
-- *
-+ * One struct ghes is created for each generic hardware error source.
-  * It provides the context for APEI hardware error timer/IRQ/SCI/NMI
-- * handler. Handler for one generic hardware error source is only
-- * triggered after the previous one is done. So handler can uses
-- * struct ghes without locking.
-+ * handler.
-  *
-  * estatus: memory buffer for error status block, allocated during
-  * HEST parsing.
-  */
- #define GHES_TO_CLEAR		0x0001
-+#define GHES_EXITING		0x0002
- 
- struct ghes {
- 	struct acpi_hest_generic *generic;
- 	struct acpi_hest_generic_status *estatus;
--	struct list_head list;
- 	u64 buffer_paddr;
- 	unsigned long flags;
-+	union {
-+		struct list_head list;
-+		struct timer_list timer;
-+		unsigned int irq;
-+	};
- };
- 
-+static int ghes_panic_timeout	__read_mostly = 30;
+-	resource_alloc_from_bottom = 0;
+ 	iomem_resource.end = (1ULL << boot_cpu_data.x86_phys_bits) - 1;
+ 	setup_memory_map();
+ 	parse_setup_data();
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 0972315..ca770fc 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -68,6 +68,9 @@ void __init pci_acpi_crs_quirks(void)
+ 	       "if necessary, use \"pci=%s\" and report a bug\n",
+ 	       pci_use_crs ? "Using" : "Ignoring",
+ 	       pci_use_crs ? "nocrs" : "use_crs");
 +
- /*
-- * Error source lists, one list for each notification method. The
-- * members in lists are struct ghes.
-+ * All error sources notified with SCI shares one notifier function,
-+ * so they need to be linked and checked one by one.  This is applied
-+ * to NMI too.
-  *
-- * The list members are only added in HEST parsing and deleted during
-- * module_exit, that is, single-threaded. So no lock is needed for
-- * that.
-- *
-- * But the mutual exclusion is needed between members adding/deleting
-- * and timer/IRQ/SCI/NMI handler, which may traverse the list. RCU is
-- * used for that.
-+ * RCU is used for these lists, so ghes_list_mutex is only used for
-+ * list changing, not for traversing.
-  */
- static LIST_HEAD(ghes_sci);
-+static LIST_HEAD(ghes_nmi);
- static DEFINE_MUTEX(ghes_list_mutex);
- 
-+/*
-+ * NMI may be triggered on any CPU, so ghes_nmi_lock is used for
-+ * mutual exclusion.
-+ */
-+static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
-+
-+/*
-+ * Because the memory area used to transfer hardware error information
-+ * from BIOS to Linux can be determined only in NMI, IRQ or timer
-+ * handler, but general ioremap can not be used in atomic context, so
-+ * a special version of atomic ioremap is implemented for that.
-+ */
-+
-+/*
-+ * Two virtual pages are used, one for NMI context, the other for
-+ * IRQ/PROCESS context
-+ */
-+#define GHES_IOREMAP_PAGES		2
-+#define GHES_IOREMAP_NMI_PAGE(base)	(base)
-+#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
-+
-+/* virtual memory area for atomic ioremap */
-+static struct vm_struct *ghes_ioremap_area;
-+/*
-+ * These 2 spinlock is used to prevent atomic ioremap virtual memory
-+ * area from being mapped simultaneously.
-+ */
-+static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
-+static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
-+
-+static int ghes_ioremap_init(void)
-+{
-+	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
-+		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
-+	if (!ghes_ioremap_area) {
-+		pr_err(
-+GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void ghes_ioremap_exit(void)
-+{
-+	free_vm_area(ghes_ioremap_area);
-+}
-+
-+static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
-+{
-+	unsigned long vaddr;
-+
-+	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
-+	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+
-+	return (void __iomem *)vaddr;
-+}
-+
-+static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
-+{
-+	unsigned long vaddr;
-+
-+	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
-+	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+
-+	return (void __iomem *)vaddr;
-+}
-+
-+static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
-+{
-+	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
-+	void *base = ghes_ioremap_area->addr;
-+
-+	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_NMI_PAGE(base));
-+	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
-+	__flush_tlb_one(vaddr);
-+}
-+
-+static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
-+{
-+	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
-+	void *base = ghes_ioremap_area->addr;
-+
-+	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_IRQ_PAGE(base));
-+	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
-+	__flush_tlb_one(vaddr);
-+}
-+
- static struct ghes *ghes_new(struct acpi_hest_generic *generic)
- {
- 	struct ghes *ghes;
-@@ -102,15 +191,14 @@ static struct ghes *ghes_new(struct acpi
- 	if (!ghes)
- 		return ERR_PTR(-ENOMEM);
- 	ghes->generic = generic;
--	INIT_LIST_HEAD(&ghes->list);
- 	rc = acpi_pre_map_gar(&generic->error_status_address);
- 	if (rc)
- 		goto err_free;
- 	error_block_length = generic->error_block_length;
- 	if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
--		pr_warning(FW_WARN GHES_PFX
--			   "Error status block length is too long: %u for "
--			   "generic hardware error source: %d.\n",
-+		pr_warning(
-+FW_WARN GHES_PFX "Error status block length is too long: %u for \n"
-+"generic hardware error source: %d.\n",
- 			   error_block_length, generic->header.source_id);
- 		error_block_length = GHES_ESTATUS_MAX_SIZE;
- 	}
-@@ -159,22 +247,41 @@ static inline int ghes_severity(int seve
- 	}
++	if (pci_use_crs)
++		resource_alloc_from_top = 1;
  }
  
--/* SCI handler run in work queue, so ioremap can be used here */
--static int ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
--				 int from_phys)
-+static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
-+				  int from_phys)
+ static acpi_status
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index c4bb261..57a1374 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -65,9 +65,16 @@ pcibios_align_resource(void *data, const struct resource *res,
+ 			resource_size_t size, resource_size_t align)
  {
--	void *vaddr;
--
--	vaddr = ioremap_cache(paddr, len);
--	if (!vaddr)
--		return -ENOMEM;
--	if (from_phys)
--		memcpy(buffer, vaddr, len);
--	else
--		memcpy(vaddr, buffer, len);
--	iounmap(vaddr);
--
--	return 0;
-+	void __iomem *vaddr;
-+	unsigned long flags = 0;
-+	int in_nmi = in_nmi();
-+	u64 offset;
-+	u32 trunk;
+ 	struct pci_dev *dev = data;
+-	resource_size_t start = round_down(res->end - size + 1, align);
++	resource_size_t start;
 +
-+	while (len > 0) {
-+		offset = paddr - (paddr & PAGE_MASK);
-+		if (in_nmi) {
-+			raw_spin_lock(&ghes_ioremap_lock_nmi);
-+			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
-+		} else {
-+			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-+			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
++	if (resource_alloc_from_top)
++		start = round_down(res->end - size + 1, align);
++	else
++		start = res->start;
+ 
+ 	if (res->flags & IORESOURCE_IO) {
++		if (skip_isa_ioresource_align(dev))
++			return start;
+ 
+ 		/*
+ 		 * If we're avoiding ISA aliases, the largest contiguous I/O
+@@ -75,11 +82,18 @@ pcibios_align_resource(void *data, const struct resource *res,
+ 		 * all 256-byte and smaller alignments, so the result will
+ 		 * still be correctly aligned.
+ 		 */
+-		if (!skip_isa_ioresource_align(dev))
++		if (resource_alloc_from_top)
+ 			start &= ~0x300;
++		else if (start & 0x300)
++			start = (start + 0x3ff) & ~0x3ff;
++
+ 	} else if (res->flags & IORESOURCE_MEM) {
+-		if (start < BIOS_END)
+-			start = res->end;	/* fail; no space */
++		if (start < BIOS_END) {
++			if (resource_alloc_from_top)
++				start = res->end;	/* fail; no space */
++			else
++				start = BIOS_END;
 +		}
-+		trunk = PAGE_SIZE - offset;
-+		trunk = min(trunk, len);
-+		if (from_phys)
-+			memcpy_fromio(buffer, vaddr + offset, trunk);
-+		else
-+			memcpy_toio(vaddr + offset, buffer, trunk);
-+		len -= trunk;
-+		paddr += trunk;
-+		buffer += trunk;
-+		if (in_nmi) {
-+			ghes_iounmap_nmi(vaddr);
-+			raw_spin_unlock(&ghes_ioremap_lock_nmi);
-+		} else {
-+			ghes_iounmap_irq(vaddr);
-+			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
-+		}
-+	}
- }
- 
- static int ghes_read_estatus(struct ghes *ghes, int silent)
-@@ -187,18 +294,17 @@ static int ghes_read_estatus(struct ghes
- 	rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
- 	if (rc) {
- 		if (!silent && printk_ratelimit())
--			pr_warning(FW_WARN GHES_PFX
--"Failed to read error status block address for hardware error source: %d.\n",
-+			pr_warning(
-+FW_WARN GHES_PFX "Failed to read error status block address for\n"
-+"hardware error source: %d.\n",
- 				   g->header.source_id);
- 		return -EIO;
  	}
- 	if (!buf_paddr)
- 		return -ENOENT;
- 
--	rc = ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
--				   sizeof(*ghes->estatus), 1);
--	if (rc)
--		return rc;
-+	ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
-+			      sizeof(*ghes->estatus), 1);
- 	if (!ghes->estatus->block_status)
- 		return -ENOENT;
- 
-@@ -213,17 +319,15 @@ static int ghes_read_estatus(struct ghes
- 		goto err_read_block;
- 	if (apei_estatus_check_header(ghes->estatus))
- 		goto err_read_block;
--	rc = ghes_copy_tofrom_phys(ghes->estatus + 1,
--				   buf_paddr + sizeof(*ghes->estatus),
--				   len - sizeof(*ghes->estatus), 1);
--	if (rc)
--		return rc;
-+	ghes_copy_tofrom_phys(ghes->estatus + 1,
-+			      buf_paddr + sizeof(*ghes->estatus),
-+			      len - sizeof(*ghes->estatus), 1);
- 	if (apei_estatus_check(ghes->estatus))
- 		goto err_read_block;
- 	rc = 0;
- 
- err_read_block:
--	if (rc && !silent)
-+	if (rc && !silent && printk_ratelimit())
- 		pr_warning(FW_WARN GHES_PFX
- 			   "Failed to read error status block!\n");
- 	return rc;
-@@ -293,6 +397,44 @@ out:
- 	return 0;
+ 	return start;
  }
- 
-+static void ghes_add_timer(struct ghes *ghes)
-+{
-+	struct acpi_hest_generic *g = ghes->generic;
-+	unsigned long expire;
-+
-+	if (!g->notify.poll_interval) {
-+		pr_warning(
-+FW_WARN GHES_PFX "Poll interval is 0 for generic hardware\n"
-+"error source: %d, disabled.",
-+			   g->header.source_id);
-+		return;
-+	}
-+	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-+	ghes->timer.expires = round_jiffies_relative(expire);
-+	add_timer(&ghes->timer);
-+}
-+
-+static void ghes_poll_func(unsigned long data)
-+{
-+	struct ghes *ghes = (void *)data;
-+
-+	ghes_proc(ghes);
-+	if (!(ghes->flags & GHES_EXITING))
-+		ghes_add_timer(ghes);
-+}
-+
-+static irqreturn_t ghes_irq_func(int irq, void *data)
-+{
-+	struct ghes *ghes = data;
-+	int rc;
-+
-+	rc = ghes_proc(ghes);
-+	if (rc)
-+		return IRQ_NONE;
-+
-+	return IRQ_HANDLED;
-+}
-+
- static int ghes_notify_sci(struct notifier_block *this,
- 				  unsigned long event, void *data)
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 003170e..bd59bc5 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -160,7 +160,7 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
+ 					  resource_size_t),
+ 		void *alignf_data)
  {
-@@ -309,10 +451,63 @@ static int ghes_notify_sci(struct notifi
+-	int ret = -ENOMEM;
++	int i, ret = -ENOMEM;
+ 	struct resource *r;
+ 	resource_size_t max = -1;
+ 	unsigned int type = res->flags & IORESOURCE_TYPE_BITS;
+@@ -171,26 +171,51 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
+ 	if (!(res->flags & IORESOURCE_MEM_64))
+ 		max = PCIBIOS_MAX_MEM_32;
+ 
+-	/* Look for space at highest addresses first */
+-	r = pci_bus_find_resource_prev(bus, type, NULL);
+-	for ( ; r; r = pci_bus_find_resource_prev(bus, type, r)) {
+-		/* type_mask must match */
+-		if ((res->flags ^ r->flags) & type_mask)
+-			continue;
+-
+-		/* We cannot allocate a non-prefetching resource
+-		   from a pre-fetching area */
+-		if ((r->flags & IORESOURCE_PREFETCH) &&
+-		    !(res->flags & IORESOURCE_PREFETCH))
+-			continue;
+-
+-		/* Ok, try it out.. */
+-		ret = allocate_resource(r, res, size,
+-					r->start ? : min,
+-					max, align,
+-					alignf, alignf_data);
+-		if (ret == 0)
+-			break;
++	if (resource_alloc_from_top) {
++		/* Look for space at highest addresses first */
++		r = pci_bus_find_resource_prev(bus, type, NULL);
++		for ( ; r; r = pci_bus_find_resource_prev(bus, type, r)) {
++			/* type_mask must match */
++			if ((res->flags ^ r->flags) & type_mask)
++				continue;
++
++			/* We cannot allocate a non-prefetching resource
++			   from a pre-fetching area */
++			if ((r->flags & IORESOURCE_PREFETCH) &&
++			    !(res->flags & IORESOURCE_PREFETCH))
++				continue;
++
++			/* Ok, try it out.. */
++			ret = allocate_resource(r, res, size,
++						r->start ? : min,
++						max, align,
++						alignf, alignf_data);
++			if (ret == 0)
++				break;
++		}
++	} else {
++		pci_bus_for_each_resource(bus, r, i) {
++			if (!r)
++				continue;
++
++			/* type_mask must match */
++			if ((res->flags ^ r->flags) & type_mask)
++				continue;
++
++			/* We cannot allocate a non-prefetching resource
++			   from a pre-fetching area */
++			if ((r->flags & IORESOURCE_PREFETCH) &&
++			    !(res->flags & IORESOURCE_PREFETCH))
++				continue;
++
++			/* Ok, try it out.. */
++			ret = allocate_resource(r, res, size,
++						r->start ? : min,
++						max, align,
++						alignf, alignf_data);
++			if (ret == 0)
++				break;
++		}
+ 	}
  	return ret;
  }
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index d377ea8..d427cd5 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -112,7 +112,7 @@ struct resource_list {
+ /* PC/ISA/whatever - the normal PC address spaces: IO and memory */
+ extern struct resource ioport_resource;
+ extern struct resource iomem_resource;
+-extern int resource_alloc_from_bottom;
++extern int resource_alloc_from_top;
  
-+static int ghes_notify_nmi(struct notifier_block *this,
-+				  unsigned long cmd, void *data)
-+{
-+	struct ghes *ghes, *ghes_global = NULL;
-+	int sev, sev_global = -1;
-+	int ret = NOTIFY_DONE;
-+
-+	if (cmd != DIE_NMI && cmd != DIE_NMI_IPI)
-+		return ret;
-+
-+	raw_spin_lock(&ghes_nmi_lock);
-+	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
-+		if (ghes_read_estatus(ghes, 1)) {
-+			ghes_clear_estatus(ghes);
-+			continue;
-+		}
-+		sev = ghes_severity(ghes->estatus->error_severity);
-+		if (sev > sev_global) {
-+			sev_global = sev;
-+			ghes_global = ghes;
-+		}
-+		ret = NOTIFY_STOP;
-+	}
-+
-+	if (ret == NOTIFY_DONE)
-+		goto out;
-+
-+	if (sev_global >= GHES_SEV_PANIC) {
-+		oops_begin();
-+		ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global);
-+		/* reboot to log the error! */
-+		if (panic_timeout == 0)
-+			panic_timeout = ghes_panic_timeout;
-+		panic("Fatal hardware error!");
-+	}
-+
-+	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
-+		if (!(ghes->flags & GHES_TO_CLEAR))
-+			continue;
-+		/* Do not print estatus because printk is not NMI safe */
-+		ghes_do_proc(ghes);
-+		ghes_clear_estatus(ghes);
-+	}
-+
-+out:
-+	raw_spin_unlock(&ghes_nmi_lock);
-+	return ret;
-+}
-+
- static struct notifier_block ghes_notifier_sci = {
- 	.notifier_call = ghes_notify_sci,
- };
+ extern struct resource *request_resource_conflict(struct resource *root, struct resource *new);
+ extern int request_resource(struct resource *root, struct resource *new);
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 9fad33e..275b414 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -41,21 +41,13 @@ EXPORT_SYMBOL(iomem_resource);
+ static DEFINE_RWLOCK(resource_lock);
  
-+static struct notifier_block ghes_notifier_nmi = {
-+	.notifier_call = ghes_notify_nmi,
-+};
-+
- static int __devinit ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
-@@ -323,18 +518,33 @@ static int __devinit ghes_probe(struct p
- 	if (!generic->enabled)
- 		return -ENODEV;
- 
--	if (generic->error_block_length <
--	    sizeof(struct acpi_hest_generic_status)) {
--		pr_warning(FW_BUG GHES_PFX
--"Invalid error block length: %u for generic hardware error source: %d\n",
--			   generic->error_block_length,
-+	switch (generic->notify.type) {
-+	case ACPI_HEST_NOTIFY_POLLED:
-+	case ACPI_HEST_NOTIFY_EXTERNAL:
-+	case ACPI_HEST_NOTIFY_SCI:
-+	case ACPI_HEST_NOTIFY_NMI:
-+		break;
-+	case ACPI_HEST_NOTIFY_LOCAL:
-+		pr_warning(
-+GHES_PFX "Generic hardware error source: %d notified via local interrupt\n"
-+"is not supported!\n",
- 			   generic->header.source_id);
- 		goto err;
-+	default:
-+		pr_warning(
-+FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware\n"
-+"error source: %d\n",
-+			   generic->notify.type, generic->header.source_id);
-+		goto err;
- 	}
--	if (generic->records_to_preallocate == 0) {
--		pr_warning(FW_BUG GHES_PFX
--"Invalid records to preallocate: %u for generic hardware error source: %d\n",
--			   generic->records_to_preallocate,
-+
-+	rc = -EIO;
-+	if (generic->error_block_length <
-+	    sizeof(struct acpi_hest_generic_status)) {
-+		pr_warning(
-+FW_BUG GHES_PFX "Invalid error block length: %u for generic hardware\n"
-+"error source: %d\n",
-+			   generic->error_block_length,
- 			   generic->header.source_id);
- 		goto err;
- 	}
-@@ -344,38 +554,45 @@ static int __devinit ghes_probe(struct p
- 		ghes = NULL;
- 		goto err;
- 	}
--	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
-+	switch (generic->notify.type) {
-+	case ACPI_HEST_NOTIFY_POLLED:
-+		ghes->timer.function = ghes_poll_func;
-+		ghes->timer.data = (unsigned long)ghes;
-+		init_timer_deferrable(&ghes->timer);
-+		ghes_add_timer(ghes);
-+		break;
-+	case ACPI_HEST_NOTIFY_EXTERNAL:
-+		/* External interrupt vector is GSI */
-+		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
-+			pr_err(
-+GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
-+			       generic->header.source_id);
-+			goto err;
-+		}
-+		if (request_irq(ghes->irq, ghes_irq_func,
-+				0, "GHES IRQ", ghes)) {
-+			pr_err(
-+GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
-+			       generic->header.source_id);
-+			goto err;
-+		}
-+		break;
-+	case ACPI_HEST_NOTIFY_SCI:
- 		mutex_lock(&ghes_list_mutex);
- 		if (list_empty(&ghes_sci))
- 			register_acpi_hed_notifier(&ghes_notifier_sci);
- 		list_add_rcu(&ghes->list, &ghes_sci);
- 		mutex_unlock(&ghes_list_mutex);
--	} else {
--		unsigned char *notify = NULL;
+ /*
+- * By default, we allocate free space bottom-up.  The architecture can request
+- * top-down by clearing this flag.  The user can override the architecture's
+- * choice with the "resource_alloc_from_bottom" kernel boot option, but that
+- * should only be a debugging tool.
++ * By default, we allocate free space bottom-up, as we have done in the past.
++ * Architectures can request top-down by setting "resource_alloc_from_top".
++ * On x86, we do this when we use PCI host bridge ACPI _CRS information.
++ * If the user turns off _CRS with "pci=nocrs", we use the default bottom-up
++ * allocation strategy.
+  */
+-int resource_alloc_from_bottom = 1;
 -
--		switch (generic->notify.type) {
--		case ACPI_HEST_NOTIFY_POLLED:
--			notify = "POLL";
--			break;
--		case ACPI_HEST_NOTIFY_EXTERNAL:
--		case ACPI_HEST_NOTIFY_LOCAL:
--			notify = "IRQ";
--			break;
--		case ACPI_HEST_NOTIFY_NMI:
--			notify = "NMI";
--			break;
--		}
--		if (notify) {
--			pr_warning(GHES_PFX
--"Generic hardware error source: %d notified via %s is not supported!\n",
--				   generic->header.source_id, notify);
--		} else {
--			pr_warning(FW_WARN GHES_PFX
--"Unknown notification type: %u for generic hardware error source: %d\n",
--			generic->notify.type, generic->header.source_id);
--		}
--		rc = -ENODEV;
--		goto err;
-+		break;
-+	case ACPI_HEST_NOTIFY_NMI:
-+		mutex_lock(&ghes_list_mutex);
-+		if (list_empty(&ghes_nmi))
-+			register_die_notifier(&ghes_notifier_nmi);
-+		list_add_rcu(&ghes->list, &ghes_nmi);
-+		mutex_unlock(&ghes_list_mutex);
-+		break;
-+	default:
-+		BUG();
- 	}
- 	platform_set_drvdata(ghes_dev, ghes);
+-static __init int setup_alloc_from_bottom(char *s)
+-{
+-	printk(KERN_INFO
+-	       "resource: allocating from bottom-up; please report a bug\n");
+-	resource_alloc_from_bottom = 1;
+-	return 0;
+-}
+-early_param("resource_alloc_from_bottom", setup_alloc_from_bottom);
++int resource_alloc_from_top;
  
-@@ -396,7 +613,14 @@ static int __devexit ghes_remove(struct
- 	ghes = platform_get_drvdata(ghes_dev);
- 	generic = ghes->generic;
- 
-+	ghes->flags |= GHES_EXITING;
- 	switch (generic->notify.type) {
-+	case ACPI_HEST_NOTIFY_POLLED:
-+		del_timer_sync(&ghes->timer);
-+		break;
-+	case ACPI_HEST_NOTIFY_EXTERNAL:
-+		free_irq(ghes->irq, ghes);
-+		break;
- 	case ACPI_HEST_NOTIFY_SCI:
- 		mutex_lock(&ghes_list_mutex);
- 		list_del_rcu(&ghes->list);
-@@ -404,12 +628,23 @@ static int __devexit ghes_remove(struct
- 			unregister_acpi_hed_notifier(&ghes_notifier_sci);
- 		mutex_unlock(&ghes_list_mutex);
- 		break;
-+	case ACPI_HEST_NOTIFY_NMI:
-+		mutex_lock(&ghes_list_mutex);
-+		list_del_rcu(&ghes->list);
-+		if (list_empty(&ghes_nmi))
-+			unregister_die_notifier(&ghes_notifier_nmi);
-+		mutex_unlock(&ghes_list_mutex);
-+		/*
-+		 * To synchronize with NMI handler, ghes can only be
-+		 * freed after NMI handler finishes.
-+		 */
-+		synchronize_rcu();
-+		break;
- 	default:
- 		BUG();
- 		break;
- 	}
- 
--	synchronize_rcu();
- 	ghes_fini(ghes);
- 	kfree(ghes);
- 
-@@ -429,6 +664,8 @@ static struct platform_driver ghes_platf
- 
- static int __init ghes_init(void)
+ static void *r_next(struct seq_file *m, void *v, loff_t *pos)
  {
-+	int rc;
-+
- 	if (acpi_disabled)
- 		return -ENODEV;
+@@ -545,10 +537,10 @@ int allocate_resource(struct resource *root, struct resource *new,
+ 		alignf = simple_align_resource;
  
-@@ -437,12 +674,25 @@ static int __init ghes_init(void)
- 		return -EINVAL;
- 	}
- 
--	return platform_driver_register(&ghes_platform_driver);
-+	rc = ghes_ioremap_init();
-+	if (rc)
-+		goto err;
-+
-+	rc = platform_driver_register(&ghes_platform_driver);
-+	if (rc)
-+		goto err_ioremap_exit;
-+
-+	return 0;
-+err_ioremap_exit:
-+	ghes_ioremap_exit();
-+err:
-+	return rc;
- }
- 
- static void __exit ghes_exit(void)
- {
- 	platform_driver_unregister(&ghes_platform_driver);
-+	ghes_ioremap_exit();
- }
- 
- module_init(ghes_init);
---- a/kernel/panic.c
-+++ b/kernel/panic.c
-@@ -34,6 +34,7 @@ static int pause_on_oops_flag;
- static DEFINE_SPINLOCK(pause_on_oops_lock);
- 
- int panic_timeout;
-+EXPORT_SYMBOL_GPL(panic_timeout);
- 
- ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
- 
---- a/lib/ioremap.c
-+++ b/lib/ioremap.c
-@@ -9,6 +9,7 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/io.h>
-+#include <linux/module.h>
- #include <asm/cacheflush.h>
- #include <asm/pgtable.h>
- 
-@@ -90,3 +91,4 @@ int ioremap_page_range(unsigned long add
- 
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(ioremap_page_range);
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -1175,6 +1175,7 @@ void unmap_kernel_range_noflush(unsigned
- {
- 	vunmap_page_range(addr, addr + size);
- }
-+EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
- 
- /**
-  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
-
-
+ 	write_lock(&resource_lock);
+-	if (resource_alloc_from_bottom)
+-		err = find_resource(root, new, size, min, max, align, alignf, alignf_data);
+-	else
++	if (resource_alloc_from_top)
+ 		err = find_resource_from_top(root, new, size, min, max, align, alignf, alignf_data);
++	else
++		err = find_resource(root, new, size, min, max, align, alignf, alignf_data);
+ 	if (err >= 0 && __request_resource(root, new))
+ 		err = -EBUSY;
+ 	write_unlock(&resource_lock);
