@@ -1,31 +1,57 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] - Mapping ACPI tables as CACHED
-Date: Wed, 15 Dec 2010 14:18:43 -0800
-Message-ID: <4D093EC3.7000308@zytor.com>
-References: <20101214220932.GA1206@sgi.com> <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com> <alpine.LFD.2.00.1012142302110.4878@x980> <20101215164635.GA27373@sgi.com> <alpine.LFD.2.00.1012151536510.21167@x980>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Resend][PATCH 0/3] ACPI / PM: Patches missing from linux-acpi-2.6/test
+Date: Wed, 15 Dec 2010 23:20:09 +0100
+Message-ID: <201012152320.09384.rjw@sisk.pl>
+References: <201012112339.53105.rjw@sisk.pl> <201012142124.37270.rjw@sisk.pl> <1292379455.3983.129.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:54940 "EHLO mail.zytor.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:59297 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752155Ab0LOWSy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:18:54 -0500
-In-Reply-To: <alpine.LFD.2.00.1012151536510.21167@x980>
+	id S1753419Ab0LOWVA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Dec 2010 17:21:00 -0500
+In-Reply-To: <1292379455.3983.129.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jack Steiner <steiner@sgi.com>, hmh@hmh.eng.br, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
+To: ykzhao <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 12/15/2010 01:16 PM, Len Brown wrote:
+On Wednesday, December 15, 2010, ykzhao wrote:
+> On Wed, 2010-12-15 at 04:24 +0800, Rafael J. Wysocki wrote:
+> > On Tuesday, December 14, 2010, ykzhao wrote:
+> > > On Tue, 2010-12-14 at 05:25 +0800, Rafael J. Wysocki wrote:
+> > > > On Monday, December 13, 2010, ykzhao wrote:
+> > > > > On Sun, 2010-12-12 at 06:39 +0800, Rafael J. Wysocki wrote:
+...
+> > 
+> > The force_power_state was _only_ a workaround for the case when
+> > acpi_bus_set_power() called acpi_bus_get_power() and apparently received
+> > a wrong value from it on some systems (two of them had been identified, one was
+> > blacklisted in the end).  However, after my changes acpi_bus_set_power()
+> > doesn't call acpi_bus_get_power() (or any equivalent) any more, so this
+> > workaround isn't necessary any more either.
 > 
-> I'll bet we can improve the boot sequence so that
-> some of the stuff we do before we have cached mappings
-> we can do with cached mappings...
-> We checksum all the tables, enumerate the CPUs and the APICs
-> all using non-cached mappings....
-> 
+> The flag of force_power_state will force it to do the transition of
+> power state even when the target state is already the same as the
+> current power state. Without this flag, it will skip the power
+> transition if the two states are consistent. This is useful under the
+> following cases: (The FAN device is used as an example)
+>     1. The initial state is reported as D0 state (But we don't know
+> whether the FAN device is really turned on)
+>     2. If we expect to turn on the corresponding FAN device for the
+> first time(put it into D0 state),  it will skip the power transition as
+> the check of "state == device->power.state". In such case it will be
+> better that the power transition is forced in order to assure that the
+> FAN device is turned on by calling the _PSC/_ON object. 
 
-I don't think we have any reason to use uncached mappings, ever...
+Before my changes the force_power_state device flag was used only by the fan
+driver in two places: in acpi_fan_add() (ie. during fan initialization) and in
+acpi_fan_resume().  In both cases it was used to make acpi_bus_set_power()
+accept the state read by acpi_bus_get_power().  In both cases
+acpi_bus_update_power() can be used to obtain _exactly_ the same result,
+so the flag is not necessary any more.
 
-	-hpa
+Thanks,
+Rafael
