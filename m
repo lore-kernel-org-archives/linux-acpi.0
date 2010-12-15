@@ -1,39 +1,51 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: acpi_battery_init() boot speed
-Date: Wed, 15 Dec 2010 03:00:54 -0800
-Message-ID: <20101215030054.0aae9e1e@infradead.org>
-References: <alpine.LFD.2.00.1012150308260.4878@x980>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [lm-sensors] [Patch] Adding threshold support to coretemp
+Date: Wed, 15 Dec 2010 17:59:15 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF04654105C1109A9B@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF04654105C1109439@bgsmsx502.gar.corp.intel.com>
+ <20101214182435.GA32358@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:45043 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab0LOK6U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Dec 2010 05:58:20 -0500
-In-Reply-To: <alpine.LFD.2.00.1012150308260.4878@x980>
+Received: from mga02.intel.com ([134.134.136.20]:55470 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753452Ab0LOM3U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Dec 2010 07:29:20 -0500
+In-Reply-To: <20101214182435.GA32358@ericsson.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Wed, 15 Dec 2010 03:13:50 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
+Hi Guenter,
 
-> Hi Arjan,
-> I hoped that the test patch below would help acpi_battery_init()
-> on machines where it runs a lot of AML.  I have a lenovo s10-3
-> where it was taking 900ms, and this patch seemed to reduce
-> it to 600ms.  However, I measured again and it seems to have
-> gone _up_ to 1300ms - so perhaps there is some other factor
-> determining how long that routine is taking?
+> > ------------------------------------------------------------------
+> > From: Durgadoss R <durgadoss.r@intel.com>
+> >
+> > Date: Tue, 14 Dec 2010 05:10:27 +0530
+> > Subject: [PATCH] Adding_threshold_support_to_coretemp
+> >
+> > This patch adds the core thermal threshold support to coretemp.c.
+> > These thresholds can be read/written using the sysfs interface
+> > temp1_core_thresh[0/1]. These can be used to generate interrupts,
+> > to do dynamic power management.
+> >
+> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> >
+> I am not inclined to look further into this patch until the ABI questions are
+> resolved.
+> As written, the patch gets my NACK simply because it introduces random driver
+> specific
+> new ABI attributes.
+> 
 
-that's still a long time (we boot all other drivers including KMS in
-0.5 seconds combined)
+Since the Hardware supports the programming of thresholds, I added this support
+in the driver. I had to add new attributes, since there are no existing attributes,
+that support these thresholds.
+Could you please suggest any better way(s) of enabling this support ?
+I can add documentation for these attributes in Doc/hwmon/sysfs-interface.
 
-wonder if this stuff is polling some battery property ?
-(like discharge rate or something)
-
-wonder if the code could do just enough to register the device, and
-do everything else in the background?
-
+Thanks,
+Durga
