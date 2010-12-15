@@ -1,59 +1,44 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [RFC PATCH] ACPICA: Improve GPE detect
-Date: Wed, 15 Dec 2010 15:59:36 +0800
-Message-ID: <1292399976.10384.187.camel@minggr.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: acpi_battery_init() boot speed
+Date: Wed, 15 Dec 2010 03:13:50 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012150308260.4878@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:8764 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840Ab0LOHyk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 02:54:40 -0500
+Received: from vms173009pub.verizon.net ([206.46.173.9]:50534 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753228Ab0LOIN6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Dec 2010 03:13:58 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LDG00DDOMV5SV20@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 15 Dec 2010 02:13:58 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-acpi@vger.kernel.org
 
-Hi, Rafael
+Hi Arjan,
+I hoped that the test patch below would help acpi_battery_init()
+on machines where it runs a lot of AML.  I have a lenovo s10-3
+where it was taking 900ms, and this patch seemed to reduce
+it to 600ms.  However, I measured again and it seems to have
+gone _up_ to 1300ms - so perhaps there is some other factor
+determining how long that routine is taking?
 
-Currently, the ACPICA GPE interrupt handler reads all the GPE registers to
-detect which GPEs, if any, have fired. This is done on each and every SCI,
-since there is no way to know up front if any GPEs have been raised.
+-Len
 
-However, since ACPICA internally keeps a GPE enable mask for every GPE
-register, it may be possible to ignore any GPE registers whose internal
-GPE enable mask is zero. This would eliminate reading the status and enable
-registers for that particular GPE register pair.
-
-http://www.acpica.org/bugzilla/show_bug.cgi?id=884
-
-I have tested suspend/resume and it works OK.
-What do you think about below simple patch?
-
-Thanks.
----
- drivers/acpi/acpica/evgpe.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 7c339d3..49fab43 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -373,6 +373,14 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
- 
- 			gpe_register_info = &gpe_block->register_info[i];
- 
-+			if (!gpe_register_info->enable_for_run &&
-+				!gpe_register_info->enable_for_wake) {
-+
-+				/* Disabled for both "runtime" and "wakeup", move on */
-+
-+				continue;
-+			}
-+
- 			/* Read the Status Register */
- 
- 			status =
-
-
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 65b25a3..4658f61 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -271,7 +271,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+ 		/*
+ 		* ioremap checks to ensure this is in reserved space
+ 		*/
+-		return ioremap((unsigned long)phys, size);
++		return ioremap_cache((unsigned long)phys, size);
+ 	else
+ 		return __acpi_map_table((unsigned long)phys, size);
+ }
