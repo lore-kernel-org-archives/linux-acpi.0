@@ -1,57 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Resend][PATCH 0/3] ACPI / PM: Patches missing from linux-acpi-2.6/test
-Date: Wed, 15 Dec 2010 23:20:09 +0100
-Message-ID: <201012152320.09384.rjw@sisk.pl>
-References: <201012112339.53105.rjw@sisk.pl> <201012142124.37270.rjw@sisk.pl> <1292379455.3983.129.camel@localhost.localdomain>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [RFC PATCH] ACPICA: Improve GPE detect
+Date: Wed, 15 Dec 2010 14:57:47 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
+References: <1292399976.10384.187.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59297 "EHLO ogre.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:48967 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753419Ab0LOWVA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:21:00 -0500
-In-Reply-To: <1292379455.3983.129.camel@localhost.localdomain>
+	id S1752520Ab0LOW5q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Dec 2010 17:57:46 -0500
+In-Reply-To: <1292399976.10384.187.camel@minggr.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Lin, Ming M" <ming.m.lin@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, December 15, 2010, ykzhao wrote:
-> On Wed, 2010-12-15 at 04:24 +0800, Rafael J. Wysocki wrote:
-> > On Tuesday, December 14, 2010, ykzhao wrote:
-> > > On Tue, 2010-12-14 at 05:25 +0800, Rafael J. Wysocki wrote:
-> > > > On Monday, December 13, 2010, ykzhao wrote:
-> > > > > On Sun, 2010-12-12 at 06:39 +0800, Rafael J. Wysocki wrote:
-...
-> > 
-> > The force_power_state was _only_ a workaround for the case when
-> > acpi_bus_set_power() called acpi_bus_get_power() and apparently received
-> > a wrong value from it on some systems (two of them had been identified, one was
-> > blacklisted in the end).  However, after my changes acpi_bus_set_power()
-> > doesn't call acpi_bus_get_power() (or any equivalent) any more, so this
-> > workaround isn't necessary any more either.
-> 
-> The flag of force_power_state will force it to do the transition of
-> power state even when the target state is already the same as the
-> current power state. Without this flag, it will skip the power
-> transition if the two states are consistent. This is useful under the
-> following cases: (The FAN device is used as an example)
->     1. The initial state is reported as D0 state (But we don't know
-> whether the FAN device is really turned on)
->     2. If we expect to turn on the corresponding FAN device for the
-> first time(put it into D0 state),  it will skip the power transition as
-> the check of "state == device->power.state". In such case it will be
-> better that the power transition is forced in order to assure that the
-> FAN device is turned on by calling the _PSC/_ON object. 
-
-Before my changes the force_power_state device flag was used only by the fan
-driver in two places: in acpi_fan_add() (ie. during fan initialization) and in
-acpi_fan_resume().  In both cases it was used to make acpi_bus_set_power()
-accept the state read by acpi_bus_get_power().  In both cases
-acpi_bus_update_power() can be used to obtain _exactly_ the same result,
-so the flag is not necessary any more.
-
-Thanks,
-Rafael
+KwkJCWlmICghZ3BlX3JlZ2lzdGVyX2luZm8tPmVuYWJsZV9mb3JfcnVuICYmDQorCQkJCSFncGVf
+cmVnaXN0ZXJfaW5mby0+ZW5hYmxlX2Zvcl93YWtlKSB7DQoNCkkgd291bGQgYml0d2lzZSBPUiB0
+aGVtIHRvZ2V0aGVyIGZpcnN0DQoNCisJCQlpZiAoIShncGVfcmVnaXN0ZXJfaW5mby0+ZW5hYmxl
+X2Zvcl9ydW4gfA0KKwkJCQlncGVfcmVnaXN0ZXJfaW5mby0+ZW5hYmxlX2Zvcl93YWtlKSkgew0K
+DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTGluLCBNaW5nIE0gDQpTZW50OiBX
+ZWRuZXNkYXksIERlY2VtYmVyIDE1LCAyMDEwIDEyOjAwIEFNDQpUbzogUmFmYWVsIEouIFd5c29j
+a2kNCkNjOiBsZW5iOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpDQpTdWJqZWN0OiBbUkZDIFBB
+VENIXSBBQ1BJQ0E6IEltcHJvdmUgR1BFIGRldGVjdA0KDQpIaSwgUmFmYWVsDQoNCkN1cnJlbnRs
+eSwgdGhlIEFDUElDQSBHUEUgaW50ZXJydXB0IGhhbmRsZXIgcmVhZHMgYWxsIHRoZSBHUEUgcmVn
+aXN0ZXJzIHRvDQpkZXRlY3Qgd2hpY2ggR1BFcywgaWYgYW55LCBoYXZlIGZpcmVkLiBUaGlzIGlz
+IGRvbmUgb24gZWFjaCBhbmQgZXZlcnkgU0NJLA0Kc2luY2UgdGhlcmUgaXMgbm8gd2F5IHRvIGtu
+b3cgdXAgZnJvbnQgaWYgYW55IEdQRXMgaGF2ZSBiZWVuIHJhaXNlZC4NCg0KSG93ZXZlciwgc2lu
+Y2UgQUNQSUNBIGludGVybmFsbHkga2VlcHMgYSBHUEUgZW5hYmxlIG1hc2sgZm9yIGV2ZXJ5IEdQ
+RQ0KcmVnaXN0ZXIsIGl0IG1heSBiZSBwb3NzaWJsZSB0byBpZ25vcmUgYW55IEdQRSByZWdpc3Rl
+cnMgd2hvc2UgaW50ZXJuYWwNCkdQRSBlbmFibGUgbWFzayBpcyB6ZXJvLiBUaGlzIHdvdWxkIGVs
+aW1pbmF0ZSByZWFkaW5nIHRoZSBzdGF0dXMgYW5kIGVuYWJsZQ0KcmVnaXN0ZXJzIGZvciB0aGF0
+IHBhcnRpY3VsYXIgR1BFIHJlZ2lzdGVyIHBhaXIuDQoNCmh0dHA6Ly93d3cuYWNwaWNhLm9yZy9i
+dWd6aWxsYS9zaG93X2J1Zy5jZ2k/aWQ9ODg0DQoNCkkgaGF2ZSB0ZXN0ZWQgc3VzcGVuZC9yZXN1
+bWUgYW5kIGl0IHdvcmtzIE9LLg0KV2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgYmVsb3cgc2ltcGxl
+IHBhdGNoPw0KDQpUaGFua3MuDQotLS0NCiBkcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMgfCAg
+ICA4ICsrKysrKysrDQogMSBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDAgZGVsZXRp
+b25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMgYi9kcml2
+ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMNCmluZGV4IDdjMzM5ZDMuLjQ5ZmFiNDMgMTAwNjQ0DQot
+LS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMNCisrKyBiL2RyaXZlcnMvYWNwaS9hY3Bp
+Y2EvZXZncGUuYw0KQEAgLTM3Myw2ICszNzMsMTQgQEAgdTMyIGFjcGlfZXZfZ3BlX2RldGVjdChz
+dHJ1Y3QgYWNwaV9ncGVfeHJ1cHRfaW5mbyAqIGdwZV94cnVwdF9saXN0KQ0KIA0KIAkJCWdwZV9y
+ZWdpc3Rlcl9pbmZvID0gJmdwZV9ibG9jay0+cmVnaXN0ZXJfaW5mb1tpXTsNCiANCisJCQlpZiAo
+IWdwZV9yZWdpc3Rlcl9pbmZvLT5lbmFibGVfZm9yX3J1biAmJg0KKwkJCQkhZ3BlX3JlZ2lzdGVy
+X2luZm8tPmVuYWJsZV9mb3Jfd2FrZSkgew0KKw0KKwkJCQkvKiBEaXNhYmxlZCBmb3IgYm90aCAi
+cnVudGltZSIgYW5kICJ3YWtldXAiLCBtb3ZlIG9uICovDQorDQorCQkJCWNvbnRpbnVlOw0KKwkJ
+CX0NCisNCiAJCQkvKiBSZWFkIHRoZSBTdGF0dXMgUmVnaXN0ZXIgKi8NCiANCiAJCQlzdGF0dXMg
+PQ0KDQoNCg==
