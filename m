@@ -1,35 +1,82 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] - Mapping ACPI tables as CACHED
-Date: Tue, 14 Dec 2010 22:17:29 -0800
-Message-ID: <4D085D79.4010308@zytor.com>
-References: <20101214220932.GA1206@sgi.com> <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com> <alpine.LFD.2.00.1012142302110.4878@x980> <alpine.LFD.2.00.1012142317450.4878@x980>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 5/5] PNP: HP nx6325 fixup: reserve unreported resources
+Date: Tue, 14 Dec 2010 23:26:51 -0700
+Message-ID: <20101215062650.GB2728@helgaas.com>
+References: <20101208213606.13026.47657.stgit@bob.kio>
+ <20101208213627.13026.18854.stgit@bob.kio>
+ <AANLkTinhHkqpVQp10y6uRp9ug73iXRuF4Bed2okPOdit@mail.gmail.com>
+ <20101212061743.GA4974@helgaas.com>
+ <AANLkTikogB78xPGiQZpg6nWKYVffr61A_Adm0a+C3mbR@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:46139 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926Ab0LOGRk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 01:17:40 -0500
-In-Reply-To: <alpine.LFD.2.00.1012142317450.4878@x980>
+Received: from qmta14.emeryville.ca.mail.comcast.net ([76.96.27.212]:59517
+	"EHLO qmta14.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752641Ab0LOG0x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Dec 2010 01:26:53 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTikogB78xPGiQZpg6nWKYVffr61A_Adm0a+C3mbR@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jack Steiner <steiner@sgi.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 
-On 12/14/2010 08:35 PM, Len Brown wrote:
+On Tue, Dec 14, 2010 at 12:34:20PM -0800, Linus Torvalds wrote:
+> On Sat, Dec 11, 2010 at 10:17 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> >
+> > Not really -- the main point here is to make multi-host bridge
+> > machines work reliably, and I really don't see a way to do that
+> > without using _CRS.
+> >
+> > If we're going to use _CRS, I think in the long run we'll be better
+> > off if we do it similarly to Windows, despite these early problems.
 > 
-> I'm not sure the concept of checking against E820
-> is better than simply calling ioremap_cache() always.
+> It's not about any "despite these early problems".
 > 
+> It's about "clearly we're not doing things at all like Windows, and
+> it's just broken".
+> 
+> The thing is, we will never be able to match Windows exactly. It may
+> well have random hardcoded quirks we simply don't know about.
 
-I don't think it is.  On most systems, non-RAM will be forced uncachable
-by the MTRRs anyway, and if we find systems which have problems, we
-should be doing this forcing in the PAT subsystem, not in ACPI.
+Granted.
 
-	-hpa
+> I'm perfectly happy with you aiming to use _CRS. I am _not_ happy with
+> you then using that as an excuse to then do things that don't work.
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+I don't want to do things that make you unhappy :)  
 
+> We will NOT start doing random BIOS-specific quirks just because
+> top-down allocations hit other bugs than bottom-up ones do. Just no.
+> We'll continue doing that we have tried to do, which is to perhaps
+> have quirks that are specific to *hardware* (like the ones in
+> drivers/pci/quirks.c) and just filling in stuff that some BIOSes are
+> known to get wrong.
+
+I've only proposed one BIOS-specific quirk, which is the one for the
+nx6325 unreported regions, and I identified things we do differently
+than Windows that explain why we see the problem and Windows doesn't.
+
+If we stop opening windows on subtractive-decode bridges, we don't
+need that quirk to avoid the hang.  We will still need it if we
+want to use more than 40-odd MB of space on a PC Card.
+
+I'm pretty confident that if we could find PC Cards that require
+enough space, they wouldn't work under Windows either.
+
+I don't know whether the other patches in this series make you
+unhappy.  I'm really not happy with how I implemented the avoidance
+of ACPI devices when doing PCI allocation, but I do think we need
+to avoid them *somehow*, and I was looking for a minimal quick
+fix at this point in the cycle.
+
+Avoiding ACPI devices fixes the Matthew's 2530p problem.  We can
+also avoid that particular problem with the simple PCIBIOS_MAX_MEM_32
+change you proposed.  However, avoiding ACPI devices fixes other
+problems at the same time, such as this one:
+    https://bugzilla.kernel.org/show_bug.cgi?id=23802
+where we put the intel-gtt "flush page" on top of an ACPI TPM
+device.
+
+Bjorn
