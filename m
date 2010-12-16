@@ -1,48 +1,31 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 0/9] PCI: revert to allocating bottom-up, avoid E820
- areas
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH 6/9] resources: add arch hook for preventing allocation in
+ reserved areas
 Date: Thu, 16 Dec 2010 14:03:21 -0800
-Message-ID: <20101216140321.1a75ccef@jbarnes-desktop>
-References: <20101216173614.8185.19462.stgit@bob.kio>
-	<AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
+Message-ID: <AANLkTindCiEeHDhDJhc9o-iZHvts2d1QnH2CxmDtgb6=@mail.gmail.com>
+References: <20101216173614.8185.19462.stgit@bob.kio> <20101216173846.8185.82045.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
+In-Reply-To: <20101216173846.8185.82045.stgit@bob.kio>
 Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 16 Dec 2010 13:59:33 -0800
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+>
+> This adds arch_remove_reservations(), which an arch can implement if it
+> needs to protect part of the address space from allocation.
 
-> On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com>=
- wrote:
-> >
-> > So I think the best band-aid for now is to revert to bottom-up allo=
-cation
-> > and do a better job of avoiding E820 reserved areas. =C2=A0Obviousl=
-y, it's not
-> > complete because we could still trip over ACPI devices (as in 23802=
-), but
-> > that's a problem we've always had and it's not as likely if we go b=
-ottom-up.
->=20
-> Ok, ack for this series. Have we got testers for it? In particular,
-> have the people who have seen regressions been notified of this new
-> series?
->=20
-> That said, let's just try to merge it quickly so that we get maximal
-> coverage before the holiday season starts. Jesse, it makes sense
-> through your tree, but if you'd rather me take it directly, I can do
-> that.
+Oh, I just realized - we've had gcc (or maybe "as") bugs when the weak
+symbol is in the same compilation unit as the caller, and some part of
+the toolchain just ends up short-circuiting it (either gcc inlines it,
+or maybe it was that as resolves it early). Making the "weak" part not
+work, because it binds strongly.
 
-I'll pull it into my tree and send you a pull req tomorrow if that's
-ok.  I have a couple of fixes besides this, but I have to drop Bjorn's
-earlier series...
+It may be that we don't support those gcc versions any more, but I
+thought I'd bring the issue up. It's safer to put the weak functions
+in some other file if possible.
 
-Thanks,
---=20
-Jesse Barnes, Intel Open Source Technology Center
+                              Linus
