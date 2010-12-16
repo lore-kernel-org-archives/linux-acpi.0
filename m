@@ -1,85 +1,44 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [lm-sensors] [Patch] Adding threshold support to coretemp
-Date: Thu, 16 Dec 2010 06:59:51 -0800
-Message-ID: <20101216145951.GA7775@ericsson.com>
-References: <D6D887BA8C9DFF48B5233887EF04654105C1109439@bgsmsx502.gar.corp.intel.com>
- <20101214182435.GA32358@ericsson.com>
- <D6D887BA8C9DFF48B5233887EF04654105C1109A9B@bgsmsx502.gar.corp.intel.com>
- <20101215151015.GA3573@ericsson.com>
- <D6D887BA8C9DFF48B5233887EF04654105C1109F74@bgsmsx502.gar.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / Hotplug: Fix unexpected driver unregister in pciehp_acpi.c
+Date: Thu, 16 Dec 2010 16:59:39 +0100
+Message-ID: <201012161659.39804.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imr4.ericy.com ([198.24.6.8]:43135 "EHLO imr4.ericy.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:33228 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756088Ab0LPPAs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Dec 2010 10:00:48 -0500
-Content-Disposition: inline
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C1109F74@bgsmsx502.gar.corp.intel.com>
+	id S1756104Ab0LPQAY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Dec 2010 11:00:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Thu, Dec 16, 2010 at 05:48:58AM -0500, R, Durgadoss wrote:
-[ ... ]
-> 
-> These are thresholds only. But their corresponding documentation in sysfs-interface
-> reflects completely different meaning from what these thresholds do. When we program
-> these thresholds, we get an interrupt, if the current temperature goes below the
-> lower threshold (thresh0) or above the upper threshold (thresh1). As per the documentation,
-> none of these existing attributes generate interrupt like this. In fact, I had an
-> idea to use _max and _min. Then the meaning will be contradictory. Hence I refrained,
-> from using that.
-> 
-temp[1-*]_min   Temperature min value.
-temp[1-*]_max   Temperature max value.
-temp[1-*]_max_hyst
-                Temperature hysteresis value for max limit.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-I don't see a limitation in use here. It only says min/max/hysteresis value, nor what
-that means or implies, nor if there can an interrupt be associated with it.
-I don't see anything contradictory.
+If pcie_ports_disabled is set, pcie_port_service_register() returns
+error code and select_detection_mode() should not attempt to
+unregister dummy_driver and use dummy_slots.  It should return
+PCIEHP_DETECT_ACPI immediately instead.
 
-> Here also, the _max and _crit have already been used. Even if we redefine,
-> it will not adhere to the Documentation. Since the thresh0 and thresh1 both,
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/hotplug/pciehp_acpi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Again, why ? Where would it not adhere to the documentation ?
-
-> are lesser than _crit, I feel it's not really nice to use _emergency.
-> (But if that's the only way and we all are Ok with that, I can use it,
-> with a bit of change in Documentation..)
-> 
-Not really.
-
-> > I don't know how the "THRESHOLD" and the "TARGET" temperature relate to each
-> > other.
-> > Maybe you could simply use tempX_max as upper threshold (where it exists),
-> > with MSR_IA32_TEMPERATURE_TARGET as initial value, and define and use
-> > tempX_max_hyst
-> > to calculate the lower threshold.
-> 
-> The _thresh value is lower than _max, which in turn is lower than _crit.
-> The newer generation of CPU's don't support the IA32_TEMP_TARGET register,
-> and hence the _max is almost never used. But since it has already been used,
-> as "ttarget", I can't use it for this upper threshold. Otherwise, I do not
-> have any problem in using _min and _max. Though, we have to modify the
-> documentation. I am proposing this idea, since you said "redefine" old ones if
-> necessary. Please let me know your opinion here.
-> 
-As you state yourself, IA32_TEMP_TARGET is no longer supported, and it is only used
-to set the value of _max (ie to instantiate ttarget). What is done with it subsequently
-is another question. And if the CPUs supporting IA32_TEMP_TARGET don't support the
-threshold registers, the question does not even arise.
-
-> I understand there are available spare attributes; but seems like they have been
-> defined with some other meaning. I also wanted to refrain from introducing
-> new attributes as much as possible. But, because of the above-mentioned issues,
-> I had to arrive at this solution.
-> 
-My recommendation would be to use _max as upper threshold, instantiate it with IA32_TEMP_TARGET
-if supported, and make it writable. Then use _max_threshold for the lower threshold.
-I don't see any problem with that. Then explain in Documentation/sysfs/coretemp what 
-exactly happens if the limits are reached.
-
-Guenter
+Index: linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/hotplug/pciehp_acpi.c
++++ linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
+@@ -115,7 +115,8 @@ static struct pcie_port_service_driver _
+ static int __init select_detection_mode(void)
+ {
+ 	struct dummy_slot *slot, *tmp;
+-	pcie_port_service_register(&dummy_driver);
++	if (pcie_port_service_register(&dummy_driver))
++		return PCIEHP_DETECT_ACPI;
+ 	pcie_port_service_unregister(&dummy_driver);
+ 	list_for_each_entry_safe(slot, tmp, &dummy_slots, list) {
+ 		list_del(&slot->list);
