@@ -1,52 +1,45 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RFC PATCH] ACPICA: Improve GPE detect
-Date: Wed, 15 Dec 2010 14:57:47 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
-References: <1292399976.10384.187.camel@minggr.sh.intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: RE: [RFC] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
+ notification type support
+Date: Thu, 16 Dec 2010 08:45:06 +0800
+Message-ID: <1292460306.12648.1207.camel@yhuang-dev>
+References: <1292391242.12648.1202.camel@yhuang-dev>
+	 <987664A83D2D224EAE907B061CE93D530193C9D504@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:48967 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:12058 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752520Ab0LOW5q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:57:46 -0500
-In-Reply-To: <1292399976.10384.187.camel@minggr.sh.intel.com>
-Content-Language: en-US
+	id S1751728Ab0LPApL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Dec 2010 19:45:11 -0500
+In-Reply-To: <987664A83D2D224EAE907B061CE93D530193C9D504@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-KwkJCWlmICghZ3BlX3JlZ2lzdGVyX2luZm8tPmVuYWJsZV9mb3JfcnVuICYmDQorCQkJCSFncGVf
-cmVnaXN0ZXJfaW5mby0+ZW5hYmxlX2Zvcl93YWtlKSB7DQoNCkkgd291bGQgYml0d2lzZSBPUiB0
-aGVtIHRvZ2V0aGVyIGZpcnN0DQoNCisJCQlpZiAoIShncGVfcmVnaXN0ZXJfaW5mby0+ZW5hYmxl
-X2Zvcl9ydW4gfA0KKwkJCQlncGVfcmVnaXN0ZXJfaW5mby0+ZW5hYmxlX2Zvcl93YWtlKSkgew0K
-DQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTGluLCBNaW5nIE0gDQpTZW50OiBX
-ZWRuZXNkYXksIERlY2VtYmVyIDE1LCAyMDEwIDEyOjAwIEFNDQpUbzogUmFmYWVsIEouIFd5c29j
-a2kNCkNjOiBsZW5iOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpDQpTdWJqZWN0OiBbUkZDIFBB
-VENIXSBBQ1BJQ0E6IEltcHJvdmUgR1BFIGRldGVjdA0KDQpIaSwgUmFmYWVsDQoNCkN1cnJlbnRs
-eSwgdGhlIEFDUElDQSBHUEUgaW50ZXJydXB0IGhhbmRsZXIgcmVhZHMgYWxsIHRoZSBHUEUgcmVn
-aXN0ZXJzIHRvDQpkZXRlY3Qgd2hpY2ggR1BFcywgaWYgYW55LCBoYXZlIGZpcmVkLiBUaGlzIGlz
-IGRvbmUgb24gZWFjaCBhbmQgZXZlcnkgU0NJLA0Kc2luY2UgdGhlcmUgaXMgbm8gd2F5IHRvIGtu
-b3cgdXAgZnJvbnQgaWYgYW55IEdQRXMgaGF2ZSBiZWVuIHJhaXNlZC4NCg0KSG93ZXZlciwgc2lu
-Y2UgQUNQSUNBIGludGVybmFsbHkga2VlcHMgYSBHUEUgZW5hYmxlIG1hc2sgZm9yIGV2ZXJ5IEdQ
-RQ0KcmVnaXN0ZXIsIGl0IG1heSBiZSBwb3NzaWJsZSB0byBpZ25vcmUgYW55IEdQRSByZWdpc3Rl
-cnMgd2hvc2UgaW50ZXJuYWwNCkdQRSBlbmFibGUgbWFzayBpcyB6ZXJvLiBUaGlzIHdvdWxkIGVs
-aW1pbmF0ZSByZWFkaW5nIHRoZSBzdGF0dXMgYW5kIGVuYWJsZQ0KcmVnaXN0ZXJzIGZvciB0aGF0
-IHBhcnRpY3VsYXIgR1BFIHJlZ2lzdGVyIHBhaXIuDQoNCmh0dHA6Ly93d3cuYWNwaWNhLm9yZy9i
-dWd6aWxsYS9zaG93X2J1Zy5jZ2k/aWQ9ODg0DQoNCkkgaGF2ZSB0ZXN0ZWQgc3VzcGVuZC9yZXN1
-bWUgYW5kIGl0IHdvcmtzIE9LLg0KV2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgYmVsb3cgc2ltcGxl
-IHBhdGNoPw0KDQpUaGFua3MuDQotLS0NCiBkcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMgfCAg
-ICA4ICsrKysrKysrDQogMSBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDAgZGVsZXRp
-b25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMgYi9kcml2
-ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMNCmluZGV4IDdjMzM5ZDMuLjQ5ZmFiNDMgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3BlLmMNCisrKyBiL2RyaXZlcnMvYWNwaS9hY3Bp
-Y2EvZXZncGUuYw0KQEAgLTM3Myw2ICszNzMsMTQgQEAgdTMyIGFjcGlfZXZfZ3BlX2RldGVjdChz
-dHJ1Y3QgYWNwaV9ncGVfeHJ1cHRfaW5mbyAqIGdwZV94cnVwdF9saXN0KQ0KIA0KIAkJCWdwZV9y
-ZWdpc3Rlcl9pbmZvID0gJmdwZV9ibG9jay0+cmVnaXN0ZXJfaW5mb1tpXTsNCiANCisJCQlpZiAo
-IWdwZV9yZWdpc3Rlcl9pbmZvLT5lbmFibGVfZm9yX3J1biAmJg0KKwkJCQkhZ3BlX3JlZ2lzdGVy
-X2luZm8tPmVuYWJsZV9mb3Jfd2FrZSkgew0KKw0KKwkJCQkvKiBEaXNhYmxlZCBmb3IgYm90aCAi
-cnVudGltZSIgYW5kICJ3YWtldXAiLCBtb3ZlIG9uICovDQorDQorCQkJCWNvbnRpbnVlOw0KKwkJ
-CX0NCisNCiAJCQkvKiBSZWFkIHRoZSBTdGF0dXMgUmVnaXN0ZXIgKi8NCiANCiAJCQlzdGF0dXMg
-PQ0KDQoNCg==
+On Thu, 2010-12-16 at 00:40 +0800, Luck, Tony wrote:
+> >Because the memory area used to transfer hardware error information
+> >from BIOS to Linux can be determined only in NMI, IRQ or timer
+> >handler, but general ioremap can not be used in atomic context, so a
+> >special version of atomic ioremap is implemented for that.
+> >
+> >Known issue:
+> >
+> >- Error information can not be printed for recoverable errors notified
+> >  via NMI, because printk is not NMI-safe. Will fix this via delay
+> >  printing to IRQ context via irq_work or make printk NMI-safe.
+> 
+> Would it be possible to defer the "ioremap" to a work queue too? Then
+> we wouldn't need the special versions of ioremap.
+
+For recoverable error, we can defer the "ioremap" to a work queue,
+because most recoverable action can take place only there in fact. But
+for fatal error, I think it is too late to be processed in a work queue,
+we need go panic as soon as possible to prevent data corruption.
+
+Best Regards,
+Huang Ying
+
+
