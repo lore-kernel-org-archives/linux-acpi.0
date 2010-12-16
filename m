@@ -1,45 +1,118 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: acpi_battery_init() boot speed
-Date: Wed, 15 Dec 2010 20:58:45 -0800
-Message-ID: <20101215205845.3e13fad2@infradead.org>
-References: <alpine.LFD.2.00.1012150308260.4878@x980>
-	<20101215030054.0aae9e1e@infradead.org>
-	<alpine.LFD.2.00.1012151517090.21167@x980>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [lm-sensors] [Patch] Adding threshold support to coretemp
+Date: Thu, 16 Dec 2010 16:18:58 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF04654105C1109F74@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF04654105C1109439@bgsmsx502.gar.corp.intel.com>
+ <20101214182435.GA32358@ericsson.com>
+ <D6D887BA8C9DFF48B5233887EF04654105C1109A9B@bgsmsx502.gar.corp.intel.com>
+ <20101215151015.GA3573@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:58232 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463Ab0LPE4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Dec 2010 23:56:07 -0500
-In-Reply-To: <alpine.LFD.2.00.1012151517090.21167@x980>
+Received: from mga14.intel.com ([143.182.124.37]:48849 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753852Ab0LPKtG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2010 05:49:06 -0500
+In-Reply-To: <20101215151015.GA3573@ericsson.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Wed, 15 Dec 2010 15:27:44 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
+Hi Guenter,
+
+Thanks for the suggestions.
+I need clarification on some of the things you mentioned here.
+Kindly help.
+
+> > Since the Hardware supports the programming of thresholds, I added this
+> support
+> > in the driver. I had to add new attributes, since there are no existing
+> attributes,
+> > that support these thresholds.
+> > Could you please suggest any better way(s) of enabling this support ?
+> > I can add documentation for these attributes in Doc/hwmon/sysfs-interface.
+> >
+> At least two.
+> 
+> 1) Use existing ABI attributes. The coretemp driver doesn't use all available
+> attributes
+> for low/high temperatures, so you could pick unused ones (and if necessary
+> redefine the ones
+> already used). We have
+> 	lcrit
+> 	min
+> 	max
+> 	crit
+> 	emergency
+> 
+> All those attributes are ultimately thresholds; no reason not to use them.
+
+These are thresholds only. But their corresponding documentation in sysfs-interface
+reflects completely different meaning from what these thresholds do. When we program
+these thresholds, we get an interrupt, if the current temperature goes below the
+lower threshold (thresh0) or above the upper threshold (thresh1). As per the documentation,
+none of these existing attributes generate interrupt like this. In fact, I had an
+idea to use _max and _min. Then the meaning will be contradictory. Hence I refrained,
+from using that.
 
 > 
-> > wonder if this stuff is polling some battery property ?
-> > (like discharge rate or something)
+> Furthermore, the two thresholds are really upper/lower temperature targets
+> which
+> result in requesting a specific action. As such, it is really just one (upper)
+> threshold
+> with an associated hysteresis value to undo the action caused by the upper
+> threshold.
+> So you could use
+> 	tempX_max
+> 	tempX_max_hyst
+> or
+> 	tempX_crit
+> 	tempX_crit_hyst
+> or
+> 	tempX_emergency
+> 	tempX_emergency_hyst
+> instead to reflect this meaning.
 > 
-> Is there a simple way to get a profile that starts when
-> acpi_battery_init() is called and ends when it returns?
+
+Here also, the _max and _crit have already been used. Even if we redefine,
+it will not adhere to the Documentation. Since the thresh0 and thresh1 both,
+are lesser than _crit, I feel it's not really nice to use _emergency.
+(But if that's the only way and we all are Ok with that, I can use it,
+with a bit of change in Documentation..)
+
+> I don't know how the "THRESHOLD" and the "TARGET" temperature relate to each
+> other.
+> Maybe you could simply use tempX_max as upper threshold (where it exists),
+> with MSR_IA32_TEMPERATURE_TARGET as initial value, and define and use
+> tempX_max_hyst
+> to calculate the lower threshold.
+
+The _thresh value is lower than _max, which in turn is lower than _crit.
+The newer generation of CPU's don't support the IA32_TEMP_TARGET register,
+and hence the _max is almost never used. But since it has already been used,
+as "ttarget", I can't use it for this upper threshold. Otherwise, I do not
+have any problem in using _min and _max. Though, we have to modify the
+documentation. I am proposing this idea, since you said "redefine" old ones if
+necessary. Please let me know your opinion here.
+
 > 
-> Note that acpi_battery_init() is not 900ms on all boxes --
-> I had to poke around to find a slow one.  My arrandale
-> laptop runs acpi_battery_init in 71 ms.
+> 2) Define new attribute names which can be used as generic ABI, such as
+> 	tempX_threshold
+> 	tempX_threshold_hyst
+> 
+> Right now I don't really see the need for additional attributes, since there
+> are spare ones
+> available, so 2) is less likely to be accepted. You would have to make a really
+> good case
+> for it, and not just to me but convince Jean as well.
 
-make it a module, and run "perf top" while in an other terminal you do
+I understand there are available spare attributes; but seems like they have been
+defined with some other meaning. I also wanted to refrain from introducing
+new attributes as much as possible. But, because of the above-mentioned issues,
+I had to arrive at this solution.
 
-while :; do modprobe acpi_battery ; rmmod acpi_battery  ; done
-
-
-
--- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Thanks,
+Durga
