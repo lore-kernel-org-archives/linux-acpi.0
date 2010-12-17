@@ -1,95 +1,67 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: acpi_battery_init() boot speed
-Date: Thu, 16 Dec 2010 23:31:18 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012162329360.20940@x980>
-References: <alpine.LFD.2.00.1012150308260.4878@x980>
- <20101215030054.0aae9e1e@infradead.org>
- <alpine.LFD.2.00.1012151517090.21167@x980>
- <20101215205845.3e13fad2@infradead.org>
+Subject: Re: [PATCH] eliminate the usage of printk_ratelimit
+Date: Fri, 17 Dec 2010 01:27:26 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012170123140.20940@x980>
+References: <1292408294-30584-1-git-send-email-gong.chen@linux.intel.com>
+ <1292408294-30584-2-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:49493 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab0LQEbY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2010 23:31:24 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:52854 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841Ab0LQG1c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Dec 2010 01:27:32 -0500
 Received: from localhost.localdomain ([unknown] [74.104.161.234])
- by vms173003.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LDK00BG61W8X824@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 16 Dec 2010 22:31:21 -0600 (CST)
-In-reply-to: <20101215205845.3e13fad2@infradead.org>
+ with ESMTPA id <0LDK001SX79THO84@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 17 Dec 2010 00:27:30 -0600 (CST)
+In-reply-to: <1292408294-30584-2-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
+To: Chen Gong <gong.chen@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org
 
+On Wed, 15 Dec 2010, Chen Gong wrote:
 
-> make it a module, and run "perf top" while in an other terminal you do
+> To avoid messages to be suppressed, use __ratelimit to
+> substitute printk_ratelimit.
 > 
-> while :; do modprobe acpi_battery ; rmmod acpi_battery  ; done
+> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+> ---
+>  drivers/acpi/apei/ghes.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 51905d0..29d38ad 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -180,13 +180,15 @@ static int ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+>  static int ghes_read_estatus(struct ghes *ghes, int silent)
+>  {
+>  	struct acpi_hest_generic *g = ghes->generic;
+> +	/* Not more than 2 messages every 5 seconds */
+> +	static DEFINE_RATELIMIT_STATE(ratelimit, 5*HZ, 2);
+>  	u64 buf_paddr;
+>  	u32 len;
+>  	int rc;
+>  
+>  	rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
+>  	if (rc) {
+> -		if (!silent && printk_ratelimit())
+> +		if (!silent && __ratelimit(&ratelimit))
 
-----------------------------------------------------------------------
-   PerfTop:     747 irqs/sec  kernel:94.5%  exact:  0.0% [1000Hz cycles],  
-(all, 2 CPUs)
-----------------------------------------------------------------------
+So you want to change 10 messages/5s into 2 messages/5s?
 
-             samples  pcnt function            DSO
-             _______ _____ ___________________ _______________________
+That isn't a very big change.
 
-             2502.00 28.4% intel_idle          [kernel.kallsyms]      
-              802.00  9.1% acpi_os_read_port   [kernel.kallsyms]      
-              735.00  8.4% read_hpet           [kernel.kallsyms]      
-              559.00  6.4% check_poison_obj    [kernel.kallsyms]      
-              286.00  3.3% acpi_ec_gpe_handler [kernel.kallsyms]      
-              208.00  2.4% cache_free_debugche [kernel.kallsyms]      
-              200.00  2.3% cache_alloc_debugch [kernel.kallsyms]      
-              169.00  1.9% kmem_cache_alloc    [kernel.kallsyms]      
-              138.00  1.6% acpi_debug_print    [kernel.kallsyms]      
-               90.00  1.0% hpet_next_event     [kernel.kallsyms]      
-               88.00  1.0% kmem_cache_free     [kernel.kallsyms]      
-               83.00  0.9% acpi_os_write_port  [kernel.kallsyms]      
-               74.00  0.8% acpi_ps_parse_loop  [kernel.kallsyms]      
-               72.00  0.8% find_busiest_group  [kernel.kallsyms]      
-               72.00  0.8% schedule            [kernel.kallsyms]      
-               58.00  0.7% _raw_spin_lock_irqs [kernel.kallsyms]      
-               58.00  0.7% acpi_ps_get_opcode_ [kernel.kallsyms]      
-               56.00  0.6% advance_transaction [kernel.kallsyms]      
-               54.00  0.6% menu_select         [kernel.kallsyms]      
-               52.00  0.6% __might_sleep       [kernel.kallsyms]      
-               47.00  0.5% ktime_get           [kernel.kallsyms]      
-               41.00  0.5% __virt_addr_valid   [kernel.kallsyms]      
-               38.00  0.4% start_transaction   [kernel.kallsyms]      
-               38.00  0.4% acpi_ec_transaction [kernel.kallsyms]      
-               36.00  0.4% dbg_redzone2        [kernel.kallsyms]      
-               36.00  0.4% _raw_spin_unlock_ir [kernel.kallsyms]      
-               35.00  0.4% tick_nohz_stop_sche [kernel.kallsyms]      
-               33.00  0.4% acpi_ps_complete_op [kernel.kallsyms]      
-               32.00  0.4% sched_clock         [kernel.kallsyms]      
-               32.00  0.4% getnstimeofday      [kernel.kallsyms]      
-               32.00  0.4% __switch_to         [kernel.kallsyms]      
-               31.00  0.4% acpi_ds_exec_end_op [kernel.kallsyms]      
-               31.00  0.4% ec_check_ibf0       [kernel.kallsyms]      
-               31.00  0.4% irq_entries_start   [kernel.kallsyms]      
-               30.00  0.3% acpi_hw_read        [kernel.kallsyms]      
-               30.00  0.3% acpi_ev_gpe_detect  [kernel.kallsyms]      
-               29.00  0.3% acpi_ec_transaction [kernel.kallsyms]      
-               28.00  0.3% acpi_ut_update_obje [kernel.kallsyms]      
-               27.00  0.3% acpi_ut_update_ref_ [kernel.kallsyms]      
-               26.00  0.3% acpi_hw_validate_io [kernel.kallsyms]      
-               25.00  0.3% acpi_hw_read_port   [kernel.kallsyms]      
-               24.00  0.3% find_symbol_in_sect [kernel.kallsyms]      
-               24.00  0.3% __GI___strcmp_ssse3 /lib64/libc-2.12.90.so 
-               23.00  0.3% __phys_addr         [kernel.kallsyms]      
-               23.00  0.3% acpi_ex_resolve_ope [kernel.kallsyms]      
-               21.00  0.2% select_task_rq_fair [kernel.kallsyms]      
-               21.00  0.2% acpi_hw_validate_re [kernel.kallsyms]      
-               21.00  0.2% enqueue_task_fair   [kernel.kallsyms]      
-               20.00  0.2% cpuidle_idle_call   [kernel.kallsyms]      
-               19.00  0.2% find_next_bit       [kernel.kallsyms]      
-               19.00  0.2% ns_to_timeval       [kernel.kallsyms]      
-               19.00  0.2% _raw_spin_lock      [kernel.kallsyms]      
-               19.00  0.2% acpi_ut_allocate_ob [kernel.kallsyms]      
-               19.00  0.2% acpi_ut_create_gene [kernel.kallsyms]      
-               19.00  0.2% g_hash_table_lookup libglib-2.0.so.0.2600.0
-               18.00  0.2% sched_clock_local   [kernel.kallsyms] 
+Is using ratelimit better than using printk_once()?
+
+-Len
+
+>  			pr_warning(FW_WARN GHES_PFX
+>  "Failed to read error status block address for hardware error source: %d.\n",
+>  				   g->header.source_id);
+> -- 
+> 1.7.3.1.120.g38a18
+
