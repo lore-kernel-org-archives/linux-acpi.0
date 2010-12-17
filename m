@@ -1,45 +1,89 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/9] PCI: revert to allocating bottom-up, avoid E820 areas
-Date: Fri, 17 Dec 2010 09:00:55 -0700
-Message-ID: <201012170900.56415.bjorn.helgaas@hp.com>
-References: <20101216173614.8185.19462.stgit@bob.kio> <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH] ACPICA: Improve GPE detect
+Date: Fri, 17 Dec 2010 21:23:13 +0100
+Message-ID: <201012172123.13502.rjw@sisk.pl>
+References: <1292399976.10384.187.camel@minggr.sh.intel.com> <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:36453 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753020Ab0LQUYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Dec 2010 15:24:01 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thursday, December 16, 2010 02:59:33 pm Linus Torvalds wrote:
-> On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> >
-> > So I think the best band-aid for now is to revert to bottom-up allocation
-> > and do a better job of avoiding E820 reserved areas.  Obviously, it's not
-> > complete because we could still trip over ACPI devices (as in 23802), but
-> > that's a problem we've always had and it's not as likely if we go bottom-up.
+On Wednesday, December 15, 2010, Moore, Robert wrote:
+> +			if (!gpe_register_info->enable_for_run &&
+> +				!gpe_register_info->enable_for_wake) {
 > 
-> Ok, ack for this series. Have we got testers for it? In particular,
-> have the people who have seen regressions been notified of this new
-> series?
+> I would bitwise OR them together first
+> 
+> +			if (!(gpe_register_info->enable_for_run |
+> +				gpe_register_info->enable_for_wake)) {
 
-I put the patches in these bugzillas:
+Well, I think a || would be a little better (they are treated as flags rather
+than bit patterns everywhere else), but I generally agree.
 
-    https://bugzilla.kernel.org/show_bug.cgi?id=16228 (Dell T3500)
-    https://bugzilla.kernel.org/show_bug.cgi?id=23132 (Dell 1545)
-    https://bugzilla.kernel.org/show_bug.cgi?id=23542 (HP 2530p)
-    https://bugzilla.kernel.org/show_bug.cgi?id=23802 (PCI / TPM conflict)
+The patch looks good apart from this.
 
-Bernard Wiedemann reported success for 16228 on a Dell T3500.  No
-news yet on the others.
+Thanks,
+Rafael
 
-For this one:
 
-    https://bugzilla.kernel.org/show_bug.cgi?id=23332 (HP nx6325)
+> -----Original Message-----
+> From: Lin, Ming M 
+> Sent: Wednesday, December 15, 2010 12:00 AM
+> To: Rafael J. Wysocki
+> Cc: lenb; Moore, Robert; linux-acpi
+> Subject: [RFC PATCH] ACPICA: Improve GPE detect
+> 
+> Hi, Rafael
+> 
+> Currently, the ACPICA GPE interrupt handler reads all the GPE registers to
+> detect which GPEs, if any, have fired. This is done on each and every SCI,
+> since there is no way to know up front if any GPEs have been raised.
+> 
+> However, since ACPICA internally keeps a GPE enable mask for every GPE
+> register, it may be possible to ignore any GPE registers whose internal
+> GPE enable mask is zero. This would eliminate reading the status and enable
+> registers for that particular GPE register pair.
+> 
+> http://www.acpica.org/bugzilla/show_bug.cgi?id=884
+> 
+> I have tested suspend/resume and it works OK.
+> What do you think about below simple patch?
+> 
+> Thanks.
+> ---
+>  drivers/acpi/acpica/evgpe.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+> index 7c339d3..49fab43 100644
+> --- a/drivers/acpi/acpica/evgpe.c
+> +++ b/drivers/acpi/acpica/evgpe.c
+> @@ -373,6 +373,14 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
+>  
+>  			gpe_register_info = &gpe_block->register_info[i];
+>  
+> +			if (!gpe_register_info->enable_for_run &&
+> +				!gpe_register_info->enable_for_wake) {
+> +
+> +				/* Disabled for both "runtime" and "wakeup", move on */
+> +
+> +				continue;
+> +			}
+> +
+>  			/* Read the Status Register */
+>  
+>  			status =
+> 
+> 
+> 
 
-I have an nx6325 and tested it myself.
-
-Bjorn
