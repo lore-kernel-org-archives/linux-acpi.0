@@ -1,95 +1,49 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: use ioremap_cache()
-Date: Fri, 17 Dec 2010 03:08:27 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012170307080.20940@x980>
-References: <20101214220932.GA1206@sgi.com>
- <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com>
- <alpine.LFD.2.00.1012142302110.4878@x980> <20101215164635.GA27373@sgi.com>
- <alpine.LFD.2.00.1012151536510.21167@x980>
- <alpine.LFD.2.00.1012162149370.20940@x980>
+Subject: Re: acpi_battery_init() boot speed
+Date: Fri, 17 Dec 2010 03:46:12 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012170341160.20940@x980>
+References: <alpine.LFD.2.00.1012150308260.4878@x980>
+ <20101215030054.0aae9e1e@infradead.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:63305 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750Ab0LQIIt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Dec 2010 03:08:49 -0500
-In-reply-to: <alpine.LFD.2.00.1012162149370.20940@x980>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:60784 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413Ab0LQIqP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Dec 2010 03:46:15 -0500
+Received: from localhost.localdomain ([unknown] [74.104.161.234])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LDK00BHKDP2UJ14@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 17 Dec 2010 02:46:15 -0600 (CST)
+In-reply-to: <20101215030054.0aae9e1e@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Steiner <steiner@sgi.com>
-Cc: hpa@zytor.com, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
+> wonder if the code could do just enough to register the device, and
+> do everything else in the background?
 
-Although the temporary boot-time ACPI table mappings
-were set up with CPU caching enabled, the permanent table
-mappings and AML run-time region memory accesses were
-set up with ioremap(), which on x86 is a synonym for
-ioremap_nocache().
+or do it later on demand...
 
-Changing this to ioremap_cache() improves performance as
-seen when accessing the tables via acpidump,
-or /sys/firmware/acpi/tables.  It should also improve
-AML run-time performance.
+This patch reduces acpi_battery_init() time
+on the Lenovo S10-3 from 901,603 usec to 657 usec.
 
-No change on ia64.
+AFAICT, the battery monitor etc worked fine.
 
-Reported-by: Jack Steiner <steiner@sgi.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/ia64/include/asm/io.h |    5 +++++
- drivers/acpi/osl.c         |    6 +++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 95649d3..79e8ba3 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -943,7 +943,6 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
+ 			"_BIX", &handle)))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+-	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+ #endif
 
-diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
-index cc8335e..009a7e0 100644
---- a/arch/ia64/include/asm/io.h
-+++ b/arch/ia64/include/asm/io.h
-@@ -426,6 +426,11 @@ extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size)
- extern void iounmap (volatile void __iomem *addr);
- extern void __iomem * early_ioremap (unsigned long phys_addr, unsigned long size);
- extern void early_iounmap (volatile void __iomem *addr, unsigned long size);
-+static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned long size)
-+{
-+	return ioremap(unsigned long phys_addr, unsigned long size);
-+}
-+
- 
- /*
-  * String version of IO memory access ops:
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 966fedd..85eba53 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -324,7 +324,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
- 
- 	pg_off = round_down(phys, PAGE_SIZE);
- 	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
--	virt = ioremap(pg_off, pg_sz);
-+	virt = ioremap_cache(pg_off, pg_sz);
- 	if (!virt) {
- 		kfree(map);
- 		return NULL;
-@@ -646,7 +646,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
- 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
- 	rcu_read_unlock();
- 	if (!virt_addr) {
--		virt_addr = ioremap(phys_addr, size);
-+		virt_addr = ioremap_cache(phys_addr, size);
- 		unmap = 1;
- 	}
- 	if (!value)
-@@ -682,7 +682,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
- 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
- 	rcu_read_unlock();
- 	if (!virt_addr) {
--		virt_addr = ioremap(phys_addr, size);
-+		virt_addr = ioremap_cache(phys_addr, size);
- 		unmap = 1;
- 	}
- 
--- 
-1.7.3.3.557.gb5c17
 
 
