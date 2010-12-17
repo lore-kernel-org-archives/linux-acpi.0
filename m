@@ -1,89 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH] ACPICA: Improve GPE detect
-Date: Fri, 17 Dec 2010 21:23:13 +0100
-Message-ID: <201012172123.13502.rjw@sisk.pl>
-References: <1292399976.10384.187.camel@minggr.sh.intel.com> <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [RFC PATCH] ACPICA: Improve GPE detect
+Date: Fri, 17 Dec 2010 12:48:18 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BFA791BA@orsmsx503.amr.corp.intel.com>
+References: <1292399976.10384.187.camel@minggr.sh.intel.com>
+ <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
+ <201012172123.13502.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36453 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:22627 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753020Ab0LQUYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Dec 2010 15:24:01 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BF9AB116@orsmsx503.amr.corp.intel.com>
+	id S1755287Ab0LQUsZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Dec 2010 15:48:25 -0500
+In-Reply-To: <201012172123.13502.rjw@sisk.pl>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: "Lin, Ming M" <ming.m.lin@intel.com>, lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, December 15, 2010, Moore, Robert wrote:
-> +			if (!gpe_register_info->enable_for_run &&
-> +				!gpe_register_info->enable_for_wake) {
-> 
-> I would bitwise OR them together first
-> 
-> +			if (!(gpe_register_info->enable_for_run |
-> +				gpe_register_info->enable_for_wake)) {
-
-Well, I think a || would be a little better (they are treated as flags rather
-than bit patterns everywhere else), but I generally agree.
-
-The patch looks good apart from this.
-
-Thanks,
-Rafael
-
-
-> -----Original Message-----
-> From: Lin, Ming M 
-> Sent: Wednesday, December 15, 2010 12:00 AM
-> To: Rafael J. Wysocki
-> Cc: lenb; Moore, Robert; linux-acpi
-> Subject: [RFC PATCH] ACPICA: Improve GPE detect
-> 
-> Hi, Rafael
-> 
-> Currently, the ACPICA GPE interrupt handler reads all the GPE registers to
-> detect which GPEs, if any, have fired. This is done on each and every SCI,
-> since there is no way to know up front if any GPEs have been raised.
-> 
-> However, since ACPICA internally keeps a GPE enable mask for every GPE
-> register, it may be possible to ignore any GPE registers whose internal
-> GPE enable mask is zero. This would eliminate reading the status and enable
-> registers for that particular GPE register pair.
-> 
-> http://www.acpica.org/bugzilla/show_bug.cgi?id=884
-> 
-> I have tested suspend/resume and it works OK.
-> What do you think about below simple patch?
-> 
-> Thanks.
-> ---
->  drivers/acpi/acpica/evgpe.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> index 7c339d3..49fab43 100644
-> --- a/drivers/acpi/acpica/evgpe.c
-> +++ b/drivers/acpi/acpica/evgpe.c
-> @@ -373,6 +373,14 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
->  
->  			gpe_register_info = &gpe_block->register_info[i];
->  
-> +			if (!gpe_register_info->enable_for_run &&
-> +				!gpe_register_info->enable_for_wake) {
-> +
-> +				/* Disabled for both "runtime" and "wakeup", move on */
-> +
-> +				continue;
-> +			}
-> +
->  			/* Read the Status Register */
->  
->  			status =
-> 
-> 
-> 
-
+VGhleSBhcmUgOCBlbmFibGUgYml0cyBwZXIgZ3BlX3JlZ2lzdGVyLg0KDQpTbywgbWF5IGFzIHdl
+bGwgT1IgdGhlbSB0b2dldGhlciBmaXJzdCBhbmQgdXNlIGEgc2luZ2xlIGNvbXBhcmUuDQoNCg0K
+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWls
+dG86cmp3QHNpc2sucGxdIA0KU2VudDogRnJpZGF5LCBEZWNlbWJlciAxNywgMjAxMCAxMjoyMyBQ
+TQ0KVG86IE1vb3JlLCBSb2JlcnQNCkNjOiBMaW4sIE1pbmcgTTsgbGVuYjsgbGludXgtYWNwaQ0K
+U3ViamVjdDogUmU6IFtSRkMgUEFUQ0hdIEFDUElDQTogSW1wcm92ZSBHUEUgZGV0ZWN0DQoNCk9u
+IFdlZG5lc2RheSwgRGVjZW1iZXIgMTUsIDIwMTAsIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ICsJ
+CQlpZiAoIWdwZV9yZWdpc3Rlcl9pbmZvLT5lbmFibGVfZm9yX3J1biAmJg0KPiArCQkJCSFncGVf
+cmVnaXN0ZXJfaW5mby0+ZW5hYmxlX2Zvcl93YWtlKSB7DQo+IA0KPiBJIHdvdWxkIGJpdHdpc2Ug
+T1IgdGhlbSB0b2dldGhlciBmaXJzdA0KPiANCj4gKwkJCWlmICghKGdwZV9yZWdpc3Rlcl9pbmZv
+LT5lbmFibGVfZm9yX3J1biB8DQo+ICsJCQkJZ3BlX3JlZ2lzdGVyX2luZm8tPmVuYWJsZV9mb3Jf
+d2FrZSkpIHsNCg0KV2VsbCwgSSB0aGluayBhIHx8IHdvdWxkIGJlIGEgbGl0dGxlIGJldHRlciAo
+dGhleSBhcmUgdHJlYXRlZCBhcyBmbGFncyByYXRoZXINCnRoYW4gYml0IHBhdHRlcm5zIGV2ZXJ5
+d2hlcmUgZWxzZSksIGJ1dCBJIGdlbmVyYWxseSBhZ3JlZS4NCg0KVGhlIHBhdGNoIGxvb2tzIGdv
+b2QgYXBhcnQgZnJvbSB0aGlzLg0KDQpUaGFua3MsDQpSYWZhZWwNCg0KDQo+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IExpbiwgTWluZyBNIA0KPiBTZW50OiBXZWRuZXNkYXks
+IERlY2VtYmVyIDE1LCAyMDEwIDEyOjAwIEFNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBD
+YzogbGVuYjsgTW9vcmUsIFJvYmVydDsgbGludXgtYWNwaQ0KPiBTdWJqZWN0OiBbUkZDIFBBVENI
+XSBBQ1BJQ0E6IEltcHJvdmUgR1BFIGRldGVjdA0KPiANCj4gSGksIFJhZmFlbA0KPiANCj4gQ3Vy
+cmVudGx5LCB0aGUgQUNQSUNBIEdQRSBpbnRlcnJ1cHQgaGFuZGxlciByZWFkcyBhbGwgdGhlIEdQ
+RSByZWdpc3RlcnMgdG8NCj4gZGV0ZWN0IHdoaWNoIEdQRXMsIGlmIGFueSwgaGF2ZSBmaXJlZC4g
+VGhpcyBpcyBkb25lIG9uIGVhY2ggYW5kIGV2ZXJ5IFNDSSwNCj4gc2luY2UgdGhlcmUgaXMgbm8g
+d2F5IHRvIGtub3cgdXAgZnJvbnQgaWYgYW55IEdQRXMgaGF2ZSBiZWVuIHJhaXNlZC4NCj4gDQo+
+IEhvd2V2ZXIsIHNpbmNlIEFDUElDQSBpbnRlcm5hbGx5IGtlZXBzIGEgR1BFIGVuYWJsZSBtYXNr
+IGZvciBldmVyeSBHUEUNCj4gcmVnaXN0ZXIsIGl0IG1heSBiZSBwb3NzaWJsZSB0byBpZ25vcmUg
+YW55IEdQRSByZWdpc3RlcnMgd2hvc2UgaW50ZXJuYWwNCj4gR1BFIGVuYWJsZSBtYXNrIGlzIHpl
+cm8uIFRoaXMgd291bGQgZWxpbWluYXRlIHJlYWRpbmcgdGhlIHN0YXR1cyBhbmQgZW5hYmxlDQo+
+IHJlZ2lzdGVycyBmb3IgdGhhdCBwYXJ0aWN1bGFyIEdQRSByZWdpc3RlciBwYWlyLg0KPiANCj4g
+aHR0cDovL3d3dy5hY3BpY2Eub3JnL2J1Z3ppbGxhL3Nob3dfYnVnLmNnaT9pZD04ODQNCj4gDQo+
+IEkgaGF2ZSB0ZXN0ZWQgc3VzcGVuZC9yZXN1bWUgYW5kIGl0IHdvcmtzIE9LLg0KPiBXaGF0IGRv
+IHlvdSB0aGluayBhYm91dCBiZWxvdyBzaW1wbGUgcGF0Y2g/DQo+IA0KPiBUaGFua3MuDQo+IC0t
+LQ0KPiAgZHJpdmVycy9hY3BpL2FjcGljYS9ldmdwZS5jIHwgICAgOCArKysrKysrKw0KPiAgMSBm
+aWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9ldmdwZS5jIGIvZHJpdmVycy9hY3BpL2FjcGlj
+YS9ldmdwZS5jDQo+IGluZGV4IDdjMzM5ZDMuLjQ5ZmFiNDMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
+cnMvYWNwaS9hY3BpY2EvZXZncGUuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2Z3Bl
+LmMNCj4gQEAgLTM3Myw2ICszNzMsMTQgQEAgdTMyIGFjcGlfZXZfZ3BlX2RldGVjdChzdHJ1Y3Qg
+YWNwaV9ncGVfeHJ1cHRfaW5mbyAqIGdwZV94cnVwdF9saXN0KQ0KPiAgDQo+ICAJCQlncGVfcmVn
+aXN0ZXJfaW5mbyA9ICZncGVfYmxvY2stPnJlZ2lzdGVyX2luZm9baV07DQo+ICANCj4gKwkJCWlm
+ICghZ3BlX3JlZ2lzdGVyX2luZm8tPmVuYWJsZV9mb3JfcnVuICYmDQo+ICsJCQkJIWdwZV9yZWdp
+c3Rlcl9pbmZvLT5lbmFibGVfZm9yX3dha2UpIHsNCj4gKw0KPiArCQkJCS8qIERpc2FibGVkIGZv
+ciBib3RoICJydW50aW1lIiBhbmQgIndha2V1cCIsIG1vdmUgb24gKi8NCj4gKw0KPiArCQkJCWNv
+bnRpbnVlOw0KPiArCQkJfQ0KPiArDQo+ICAJCQkvKiBSZWFkIHRoZSBTdGF0dXMgUmVnaXN0ZXIg
+Ki8NCj4gIA0KPiAgCQkJc3RhdHVzID0NCj4gDQo+IA0KPiANCg0K
