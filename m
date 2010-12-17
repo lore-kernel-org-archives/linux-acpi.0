@@ -1,38 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] - Mapping ACPI tables as CACHED
-Date: Thu, 16 Dec 2010 21:54:44 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012162149370.20940@x980>
-References: <20101214220932.GA1206@sgi.com>
- <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com>
- <alpine.LFD.2.00.1012142302110.4878@x980> <20101215164635.GA27373@sgi.com>
- <alpine.LFD.2.00.1012151536510.21167@x980>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 0/9] PCI: revert to allocating bottom-up, avoid E820 areas
+Date: Thu, 16 Dec 2010 19:00:02 -0800
+Message-ID: <4D0AD232.8020107@zytor.com>
+References: <20101216173614.8185.19462.stgit@bob.kio> <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:36942 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114Ab0LQCzF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Dec 2010 21:55:05 -0500
-In-reply-to: <alpine.LFD.2.00.1012151536510.21167@x980>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Steiner <steiner@sgi.com>
-Cc: hpa@zytor.com, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, tony.luck@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gbeshers@sgi.com
 
-> I'll bet we can improve the boot sequence so that
-> some of the stuff we do before we have cached mappings
-> we can do with cached mappings...
+On 12/16/2010 01:59 PM, Linus Torvalds wrote:
+> On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+>>
+>> So I think the best band-aid for now is to revert to bottom-up allocation
+>> and do a better job of avoiding E820 reserved areas.  Obviously, it's not
+>> complete because we could still trip over ACPI devices (as in 23802), but
+>> that's a problem we've always had and it's not as likely if we go bottom-up.
+> 
+> Ok, ack for this series. Have we got testers for it? In particular,
+> have the people who have seen regressions been notified of this new
+> series?
+> 
 
-Nope, that is a losing bet...
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 
-The early mappings are temporary, but they are cached,
-for they use __pgprot(__PAGE_KERNEL_IO), which is 
-(__PAGE_KERNEL | _PAGE_IOMAP)
+... for the series as well.  For what it's worth.
 
-rather than __pgprot(__PAGE_KERNEL_IO_NOCACHE) or its variants.
-
-We just need to update the permanent mappings to match.
-
-cheers,
-Len Brown, Intel Open Source Technology Center
-
+	-hpa
