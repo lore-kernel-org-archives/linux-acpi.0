@@ -1,210 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH, regression fix] ACPI: Execute _PRW for devices reported as inactive or not present
-Date: Fri, 17 Dec 2010 22:34:01 +0100
-Message-ID: <201012172234.02026.rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: update return value in EC gpe handler
+Date: Fri, 17 Dec 2010 23:17:21 +0100
+Message-ID: <201012172317.21272.rjw@sisk.pl>
+References: <1292399228.10384.175.camel@minggr.sh.intel.com> <4911F71203A09E4D9981D27F9D830858BF9AAEB9@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36622 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:36677 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756507Ab0LQVek (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Dec 2010 16:34:40 -0500
+	id S1755662Ab0LQWSM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Dec 2010 17:18:12 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858BF9AAEB9@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Wednesday, December 15, 2010, Moore, Robert wrote:
+> I'm not sure that this is the correct thing to do.
+> 
+> ACPI_REENABLE_GPE is a new GPE handler return value that implies to ACPICA that the GPE has been fully handled within the (synchronous, interrupt-level) GPE handler and is ready to be cleared (if necessary) and re-enabled.
+> 
+> The acpi_finish_gpe is a new interface does the same thing, but is intended to be called from an asynchronous GPE handler after the GPE processing is completed. It looks to me that the EC GPE handler is mostly asynchronous, so I suspect that somewhere in the EC driver, a call to acpi_finish_gpe should replace a couple of calls to clear the GPE and re-enable it. That is the purpose of this interface, to relieve the handler of deciding whether to clear the GPE or not (level vs. edge) and then re-enabling it.
 
-If a device is reported as inactive or not present by its _STA
-control method, acpi_bus_check_add() skips it without evaluating its
-_PRW method.  This leads to a problem when the device's _PRW method
-points to a GPE, because in that case the GPE may be enabled by
-ACPICA during the subsequent acpi_update_gpes() call which, in
-turn, may cause a GPE storm to appear.
+You're generally right, but that would involve a major rework of the EC driver,
+while I think at the moment we should try to retain the current behavior.
 
-To avoid this issue, make acpi_bus_check_add() evaluate _PRW for
-inactive or not present devices and register the wakeup GPE
-information returned by them, so that acpi_update_gpes() does not
-enable their GPEs unnecessarily.
+I wonder, though, if the return value should be
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Matthew Garrett <mjg@redhat.com>
----
-
-Hi Len,
-
-This patch fixes a post-2.6.36 regression introduced in the course of the GPE
-rework, please apply.
+(ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE)
 
 Thanks,
 Rafael
 
----
- drivers/acpi/scan.c |   97 ++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 60 insertions(+), 37 deletions(-)
 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -705,54 +705,85 @@ static int acpi_bus_get_perf_flags(struc
- }
- 
- static acpi_status
--acpi_bus_extract_wakeup_device_power_package(struct acpi_device *device,
--					     union acpi_object *package)
-+acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
-+					     struct acpi_device_wakeup *wakeup)
- {
--	int i = 0;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *package = NULL;
- 	union acpi_object *element = NULL;
-+	acpi_status status;
-+	int i = 0;
- 
--	if (!device || !package || (package->package.count < 2))
-+	if (!wakeup)
- 		return AE_BAD_PARAMETER;
- 
-+	/* _PRW */
-+	status = acpi_evaluate_object(handle, "_PRW", NULL, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRW"));
-+		return status;
-+	}
-+
-+	package = (union acpi_object *)buffer.pointer;
-+
-+	if (!package || (package->package.count < 2)) {
-+		status = AE_BAD_DATA;
-+		goto out;
-+	}
-+
- 	element = &(package->package.elements[0]);
--	if (!element)
--		return AE_BAD_PARAMETER;
-+	if (!element) {
-+		status = AE_BAD_DATA;
-+		goto out;
-+	}
- 	if (element->type == ACPI_TYPE_PACKAGE) {
- 		if ((element->package.count < 2) ||
- 		    (element->package.elements[0].type !=
- 		     ACPI_TYPE_LOCAL_REFERENCE)
--		    || (element->package.elements[1].type != ACPI_TYPE_INTEGER))
--			return AE_BAD_DATA;
--		device->wakeup.gpe_device =
-+		    || (element->package.elements[1].type != ACPI_TYPE_INTEGER)) {
-+			status = AE_BAD_DATA;
-+			goto out;
-+		}
-+		wakeup->gpe_device =
- 		    element->package.elements[0].reference.handle;
--		device->wakeup.gpe_number =
-+		wakeup->gpe_number =
- 		    (u32) element->package.elements[1].integer.value;
- 	} else if (element->type == ACPI_TYPE_INTEGER) {
--		device->wakeup.gpe_number = element->integer.value;
--	} else
--		return AE_BAD_DATA;
-+		wakeup->gpe_device = NULL;
-+		wakeup->gpe_number = element->integer.value;
-+	} else {
-+		status = AE_BAD_DATA;
-+		goto out;
-+	}
- 
- 	element = &(package->package.elements[1]);
- 	if (element->type != ACPI_TYPE_INTEGER) {
--		return AE_BAD_DATA;
-+		status = AE_BAD_DATA;
-+		goto out;
- 	}
--	device->wakeup.sleep_state = element->integer.value;
-+	wakeup->sleep_state = element->integer.value;
- 
- 	if ((package->package.count - 2) > ACPI_MAX_HANDLES) {
--		return AE_NO_MEMORY;
-+		status = AE_NO_MEMORY;
-+		goto out;
- 	}
--	device->wakeup.resources.count = package->package.count - 2;
--	for (i = 0; i < device->wakeup.resources.count; i++) {
-+	wakeup->resources.count = package->package.count - 2;
-+	for (i = 0; i < wakeup->resources.count; i++) {
- 		element = &(package->package.elements[i + 2]);
--		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
--			return AE_BAD_DATA;
-+		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
-+			status = AE_BAD_DATA;
-+			goto out;
-+		}
- 
--		device->wakeup.resources.handles[i] = element->reference.handle;
-+		wakeup->resources.handles[i] = element->reference.handle;
- 	}
- 
--	acpi_gpe_can_wake(device->wakeup.gpe_device, device->wakeup.gpe_number);
-+	acpi_gpe_can_wake(wakeup->gpe_device, wakeup->gpe_number);
- 
--	return AE_OK;
-+ out:
-+	kfree(buffer.pointer);
-+
-+	return status;
- }
- 
- static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-@@ -787,26 +818,15 @@ static void acpi_bus_set_run_wake_flags(
- static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
- {
- 	acpi_status status = 0;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *package = NULL;
- 	int psw_error;
- 
--	/* _PRW */
--	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRW"));
--		goto end;
--	}
--
--	package = (union acpi_object *)buffer.pointer;
--	status = acpi_bus_extract_wakeup_device_power_package(device, package);
-+	status = acpi_bus_extract_wakeup_device_power_package(device->handle,
-+							      &device->wakeup);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Extracting _PRW package"));
- 		goto end;
- 	}
- 
--	kfree(buffer.pointer);
--
- 	device->wakeup.flags.valid = 1;
- 	device->wakeup.prepare_count = 0;
- 	acpi_bus_set_run_wake_flags(device);
-@@ -1368,6 +1388,7 @@ static acpi_status acpi_bus_check_add(ac
- 	struct acpi_bus_ops *ops = context;
- 	int type;
- 	unsigned long long sta;
-+	struct acpi_device_wakeup wakeup;
- 	struct acpi_device *device;
- 	acpi_status status;
- 	int result;
-@@ -1377,8 +1398,10 @@ static acpi_status acpi_bus_check_add(ac
- 		return AE_OK;
- 
- 	if (!(sta & ACPI_STA_DEVICE_PRESENT) &&
--	    !(sta & ACPI_STA_DEVICE_FUNCTIONING))
-+	    !(sta & ACPI_STA_DEVICE_FUNCTIONING)) {
-+		acpi_bus_extract_wakeup_device_power_package(handle, &wakeup);
- 		return AE_CTRL_DEPTH;
-+	}
- 
- 	/*
- 	 * We may already have an acpi_device from a previous enumeration.  If
+
+> -----Original Message-----
+> From: Lin, Ming M 
+> Sent: Tuesday, December 14, 2010 11:47 PM
+> To: lenb
+> Cc: Moore, Robert; Rafael J. Wysocki; linux-acpi
+> Subject: [PATCH] acpi: update return value in EC gpe handler
+> 
+> EC gpe handler should return ACPI_REENABLE_GPE, so acpi_ev_gpe_dispatch
+> can clear and reenable the GPE.
+> 
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
+> 
+> Len, 
+> 
+> I forgot to update EC gpe handler return value in the series of 
+> "[PATCH v2 0/8] Minimize ACPICA/linux GPE code divergence".
+> This is the fix.
+> 
+>  drivers/acpi/ec.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index e15439a..8a0e907 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -619,7 +619,7 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+>  		wake_up(&ec->wait);
+>  		ec_check_sci(ec, acpi_ec_read_status(ec));
+>  	}
+> -	return ACPI_INTERRUPT_HANDLED;
+> +	return ACPI_REENABLE_GPE;
+>  }
+>  
+>  /* --------------------------------------------------------------------------
+> 
+> 
+> 
+
