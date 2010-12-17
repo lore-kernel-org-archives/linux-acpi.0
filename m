@@ -1,62 +1,45 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: acpi_battery_init() boot speed
-Date: Fri, 17 Dec 2010 08:02:35 -0800
-Message-ID: <20101217080235.50838925@infradead.org>
-References: <alpine.LFD.2.00.1012150308260.4878@x980>
-	<20101215030054.0aae9e1e@infradead.org>
-	<alpine.LFD.2.00.1012170341160.20940@x980>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/9] PCI: revert to allocating bottom-up, avoid E820 areas
+Date: Fri, 17 Dec 2010 09:00:55 -0700
+Message-ID: <201012170900.56415.bjorn.helgaas@hp.com>
+References: <20101216173614.8185.19462.stgit@bob.kio> <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33686 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755521Ab0LQP7x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Dec 2010 10:59:53 -0500
-In-Reply-To: <alpine.LFD.2.00.1012170341160.20940@x980>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikqmfWhLuTiP8tPqcCGMZUe=iDOJVUZGy8pnRL0@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-On Fri, 17 Dec 2010 03:46:12 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
+On Thursday, December 16, 2010 02:59:33 pm Linus Torvalds wrote:
+> On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> >
+> > So I think the best band-aid for now is to revert to bottom-up allocation
+> > and do a better job of avoiding E820 reserved areas.  Obviously, it's not
+> > complete because we could still trip over ACPI devices (as in 23802), but
+> > that's a problem we've always had and it's not as likely if we go bottom-up.
+> 
+> Ok, ack for this series. Have we got testers for it? In particular,
+> have the people who have seen regressions been notified of this new
+> series?
 
-> > wonder if the code could do just enough to register the device, and
-> > do everything else in the background?
-> 
-> or do it later on demand...
+I put the patches in these bugzillas:
 
-that makes complete sense...
+    https://bugzilla.kernel.org/show_bug.cgi?id=16228 (Dell T3500)
+    https://bugzilla.kernel.org/show_bug.cgi?id=23132 (Dell 1545)
+    https://bugzilla.kernel.org/show_bug.cgi?id=23542 (HP 2530p)
+    https://bugzilla.kernel.org/show_bug.cgi?id=23802 (PCI / TPM conflict)
 
-but you can even just do that async.. to cut down the time of first
-use....
+Bernard Wiedemann reported success for 16228 on a Dell T3500.  No
+news yet on the others.
 
-if you want I can propose a patch for that based on the patch below...
-> 
-> This patch reduces acpi_battery_init() time
-> on the Lenovo S10-3 from 901,603 usec to 657 usec.
-> 
-> AFAICT, the battery monitor etc worked fine.
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 95649d3..79e8ba3 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -943,7 +943,6 @@ static int acpi_battery_add(struct acpi_device
-> *device) if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
->  			"_BIX", &handle)))
->  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-> -	acpi_battery_update(battery);
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	result = acpi_battery_add_fs(device);
->  #endif
-> 
-> 
-> 
+For this one:
 
+    https://bugzilla.kernel.org/show_bug.cgi?id=23332 (HP nx6325)
 
--- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+I have an nx6325 and tested it myself.
+
+Bjorn
