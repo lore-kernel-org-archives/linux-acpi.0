@@ -1,108 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH] ACPICA: Improve GPE detect
-Date: Fri, 17 Dec 2010 23:25:12 +0100
-Message-ID: <201012172325.13108.rjw@sisk.pl>
-References: <1292399976.10384.187.camel@minggr.sh.intel.com> <201012172123.13502.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D830858BFA791BA@orsmsx503.amr.corp.intel.com>
+Subject: [Resend][PATCH] PCI / Hotplug: Fix unexpected driver unregister in pciehp_acpi.c
+Date: Sat, 18 Dec 2010 13:29:45 +0100
+Message-ID: <201012181329.46071.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36690 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570Ab0LQW0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Dec 2010 17:26:13 -0500
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858BFA791BA@orsmsx503.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Lin, Ming M" <ming.m.lin@intel.com>, lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Friday, December 17, 2010, Moore, Robert wrote:
-> They are 8 enable bits per gpe_register.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-That's correct, sorry.
+If pcie_ports_disabled is set, pcie_port_service_register() returns
+error code and select_detection_mode() should not attempt to
+unregister dummy_driver and use dummy_slots.  It should return
+PCIEHP_DETECT_ACPI immediately instead.
 
-> So, may as well OR them together first and use a single compare.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
 
-Exactly.
+Hi Jesse,
 
+I'm not sure if you've got this patch.  It fixes a problem introduced in the
+2.6.37 merge window, so I guess it should be merged before 2.6.37 final.
 
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
-> Sent: Friday, December 17, 2010 12:23 PM
-> To: Moore, Robert
-> Cc: Lin, Ming M; lenb; linux-acpi
-> Subject: Re: [RFC PATCH] ACPICA: Improve GPE detect
-> 
-> On Wednesday, December 15, 2010, Moore, Robert wrote:
-> > +			if (!gpe_register_info->enable_for_run &&
-> > +				!gpe_register_info->enable_for_wake) {
-> > 
-> > I would bitwise OR them together first
-> > 
-> > +			if (!(gpe_register_info->enable_for_run |
-> > +				gpe_register_info->enable_for_wake)) {
-> 
-> Well, I think a || would be a little better (they are treated as flags rather
-> than bit patterns everywhere else), but I generally agree.
-> 
-> The patch looks good apart from this.
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> > -----Original Message-----
-> > From: Lin, Ming M 
-> > Sent: Wednesday, December 15, 2010 12:00 AM
-> > To: Rafael J. Wysocki
-> > Cc: lenb; Moore, Robert; linux-acpi
-> > Subject: [RFC PATCH] ACPICA: Improve GPE detect
-> > 
-> > Hi, Rafael
-> > 
-> > Currently, the ACPICA GPE interrupt handler reads all the GPE registers to
-> > detect which GPEs, if any, have fired. This is done on each and every SCI,
-> > since there is no way to know up front if any GPEs have been raised.
-> > 
-> > However, since ACPICA internally keeps a GPE enable mask for every GPE
-> > register, it may be possible to ignore any GPE registers whose internal
-> > GPE enable mask is zero. This would eliminate reading the status and enable
-> > registers for that particular GPE register pair.
-> > 
-> > http://www.acpica.org/bugzilla/show_bug.cgi?id=884
-> > 
-> > I have tested suspend/resume and it works OK.
-> > What do you think about below simple patch?
-> > 
-> > Thanks.
-> > ---
-> >  drivers/acpi/acpica/evgpe.c |    8 ++++++++
-> >  1 files changed, 8 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> > index 7c339d3..49fab43 100644
-> > --- a/drivers/acpi/acpica/evgpe.c
-> > +++ b/drivers/acpi/acpica/evgpe.c
-> > @@ -373,6 +373,14 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
-> >  
-> >  			gpe_register_info = &gpe_block->register_info[i];
-> >  
-> > +			if (!gpe_register_info->enable_for_run &&
-> > +				!gpe_register_info->enable_for_wake) {
-> > +
-> > +				/* Disabled for both "runtime" and "wakeup", move on */
-> > +
-> > +				continue;
-> > +			}
-> > +
-> >  			/* Read the Status Register */
-> >  
-> >  			status =
-> > 
-> > 
-> > 
-> 
-> 
+Details in https://bugzilla.kernel.org/show_bug.cgi?id=20232#c23 .
 
+Thanks,
+Rafael
+
+---
+ drivers/pci/hotplug/pciehp_acpi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/hotplug/pciehp_acpi.c
++++ linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
+@@ -115,7 +115,8 @@ static struct pcie_port_service_driver _
+ static int __init select_detection_mode(void)
+ {
+ 	struct dummy_slot *slot, *tmp;
+-	pcie_port_service_register(&dummy_driver);
++	if (pcie_port_service_register(&dummy_driver))
++		return PCIEHP_DETECT_ACPI;
+ 	pcie_port_service_unregister(&dummy_driver);
+ 	list_for_each_entry_safe(slot, tmp, &dummy_slots, list) {
+ 		list_del(&slot->list);
