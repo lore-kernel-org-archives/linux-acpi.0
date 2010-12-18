@@ -1,52 +1,139 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Resend][PATCH] PCI / Hotplug: Fix unexpected driver unregister in pciehp_acpi.c
-Date: Sat, 18 Dec 2010 13:29:45 +0100
-Message-ID: <201012181329.46071.rjw@sisk.pl>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: acpi throttling: Use this_cpu_has and simplify code
+Date: Sat, 18 Dec 2010 16:50:24 +0100
+Message-ID: <4D0CD840.2050100@gmail.com>
+References: <20101214162842.542421046@linux.com>  <20101214162855.392020353@linux.com> <1292345072.5934.32.camel@edumazet-laptop> <alpine.DEB.2.00.1012141055220.17229@router.home> <4D07A2B7.8080405@zytor.com> <alpine.DEB.2.00.1012141109470.17229@router.home> <4D07A7CB.7010205@zytor.com> <4D07A95C.7030703@kernel.org> <4D0814AF.7080209@zytor.com> <4D08ECEF.3040909@kernel.org> <4D08EE57.8010602@zytor.com> <4D08EF4E.8070403@kernel.org> <4D0A3AF2.50508@gmail.com> <alpine.DEB.2.00.1012161215200.21588@router.home>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f66.google.com ([209.85.214.66]:38150 "EHLO
+	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755295Ab0LRPu2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Dec 2010 10:50:28 -0500
+In-Reply-To: <alpine.DEB.2.00.1012161215200.21588@router.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoph Lameter <cl@linux.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Eric Dumazet <eric.dumazet@gmail.com>, akpm@linux-foundation.org, Pekka Enberg <penberg@cs.helsinki.fi>, linux-kernel@vger.kernel.org, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+(cc'ing ACPI ppl and quoting the whole body)
 
-If pcie_ports_disabled is set, pcie_port_service_register() returns
-error code and select_detection_mode() should not attempt to
-unregister dummy_driver and use dummy_slots.  It should return
-PCIEHP_DETECT_ACPI immediately instead.
+On 12/16/2010 07:16 PM, Christoph Lameter wrote:
+> 
+> With the this_cpu_xx we no longer need to pass an acpi
+> structure to the msr management code. Simplifies code and improves
+> performance.
+> 
+> Signed-off-by: Christoph Lameter <cl@linux.com>
+> 
+> ---
+>  drivers/acpi/processor_throttling.c |   32 ++++++++++----------------------
+>  1 file changed, 10 insertions(+), 22 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/processor_throttling.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_throttling.c	2010-12-16 11:56:57.000000000 -0600
+> +++ linux-2.6/drivers/acpi/processor_throttling.c	2010-12-16 12:00:17.000000000 -0600
+> @@ -662,20 +662,14 @@ static int acpi_processor_get_throttling
+>  }
+> 
+>  #ifdef CONFIG_X86
+> -static int acpi_throttling_rdmsr(struct acpi_processor *pr,
+> -					u64 *value)
+> +static int acpi_throttling_rdmsr(u64 *value)
+>  {
+> -	struct cpuinfo_x86 *c;
+>  	u64 msr_high, msr_low;
+> -	unsigned int cpu;
+>  	u64 msr = 0;
+>  	int ret = -1;
+> 
+> -	cpu = pr->id;
+> -	c = &cpu_data(cpu);
+> -
+> -	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
+> -		!cpu_has(c, X86_FEATURE_ACPI)) {
+> +	if ((this_cpu_read(cpu_info.x86_vendor) != X86_VENDOR_INTEL) ||
+> +		!this_cpu_has(X86_FEATURE_ACPI)) {
+>  		printk(KERN_ERR PREFIX
+>  			"HARDWARE addr space,NOT supported yet\n");
+>  	} else {
+> @@ -690,18 +684,13 @@ static int acpi_throttling_rdmsr(struct
+>  	return ret;
+>  }
+> 
+> -static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
+> +static int acpi_throttling_wrmsr(u64 value)
+>  {
+> -	struct cpuinfo_x86 *c;
+> -	unsigned int cpu;
+>  	int ret = -1;
+>  	u64 msr;
+> 
+> -	cpu = pr->id;
+> -	c = &cpu_data(cpu);
+> -
+> -	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
+> -		!cpu_has(c, X86_FEATURE_ACPI)) {
+> +	if ((this_cpu_read(cpu_info.x86_vendor) != X86_VENDOR_INTEL) ||
+> +		!this_cpu_has(X86_FEATURE_ACPI)) {
+>  		printk(KERN_ERR PREFIX
+>  			"HARDWARE addr space,NOT supported yet\n");
+>  	} else {
+> @@ -713,15 +702,14 @@ static int acpi_throttling_wrmsr(struct
+>  	return ret;
+>  }
+>  #else
+> -static int acpi_throttling_rdmsr(struct acpi_processor *pr,
+> -				u64 *value)
+> +static int acpi_throttling_rdmsr(u64 *value)
+>  {
+>  	printk(KERN_ERR PREFIX
+>  		"HARDWARE addr space,NOT supported yet\n");
+>  	return -1;
+>  }
+> 
+> -static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
+> +static int acpi_throttling_wrmsr(u64 value)
+>  {
+>  	printk(KERN_ERR PREFIX
+>  		"HARDWARE addr space,NOT supported yet\n");
+> @@ -753,7 +741,7 @@ static int acpi_read_throttling_status(s
+>  		ret = 0;
+>  		break;
+>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> -		ret = acpi_throttling_rdmsr(pr, value);
+> +		ret = acpi_throttling_rdmsr(value);
+>  		break;
+>  	default:
+>  		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
+> @@ -786,7 +774,7 @@ static int acpi_write_throttling_state(s
+>  		ret = 0;
+>  		break;
+>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> -		ret = acpi_throttling_wrmsr(pr, value);
+> +		ret = acpi_throttling_wrmsr(value);
+>  		break;
+>  	default:
+>  		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
+> 
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+It's bothersome that these methods don't have any indication that
+they're bound to local CPU when they can't be called with @pr for
+another CPU as MSRs can only be accessed from local CPU.
 
-Hi Jesse,
+In the longer run, it would be nice if there's an indication that this
+is only for the local CPU and maybe a WARN_ON_ONCE().  Maybe dropping
+@pr and using this_cpu_*() is better for performance too?
 
-I'm not sure if you've got this patch.  It fixes a problem introduced in the
-2.6.37 merge window, so I guess it should be merged before 2.6.37 final.
+Anyways, the above doesn't make the situation any worse, so...
 
-Details in https://bugzilla.kernel.org/show_bug.cgi?id=20232#c23 .
+ Acked-by: Tejun Heo <tj@kernel.org>
 
-Thanks,
-Rafael
+I think this one too fits the x86 tree better.
 
----
- drivers/pci/hotplug/pciehp_acpi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Thanks.
 
-Index: linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
-===================================================================
---- linux-2.6.orig/drivers/pci/hotplug/pciehp_acpi.c
-+++ linux-2.6/drivers/pci/hotplug/pciehp_acpi.c
-@@ -115,7 +115,8 @@ static struct pcie_port_service_driver _
- static int __init select_detection_mode(void)
- {
- 	struct dummy_slot *slot, *tmp;
--	pcie_port_service_register(&dummy_driver);
-+	if (pcie_port_service_register(&dummy_driver))
-+		return PCIEHP_DETECT_ACPI;
- 	pcie_port_service_unregister(&dummy_driver);
- 	list_for_each_entry_safe(slot, tmp, &dummy_slots, list) {
- 		list_del(&slot->list);
+-- 
+tejun
