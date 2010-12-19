@@ -1,139 +1,122 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: acpi throttling: Use this_cpu_has and simplify code
-Date: Sat, 18 Dec 2010 16:50:24 +0100
-Message-ID: <4D0CD840.2050100@gmail.com>
-References: <20101214162842.542421046@linux.com>  <20101214162855.392020353@linux.com> <1292345072.5934.32.camel@edumazet-laptop> <alpine.DEB.2.00.1012141055220.17229@router.home> <4D07A2B7.8080405@zytor.com> <alpine.DEB.2.00.1012141109470.17229@router.home> <4D07A7CB.7010205@zytor.com> <4D07A95C.7030703@kernel.org> <4D0814AF.7080209@zytor.com> <4D08ECEF.3040909@kernel.org> <4D08EE57.8010602@zytor.com> <4D08EF4E.8070403@kernel.org> <4D0A3AF2.50508@gmail.com> <alpine.DEB.2.00.1012161215200.21588@router.home>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 8/9] x86: avoid E820 regions when allocating address space
+Date: Sun, 19 Dec 2010 01:50:50 -0800
+Message-ID: <AANLkTim68DbGeWbYKYx3_WOGFkA8KZFVHFyEFGtXt-cr@mail.gmail.com>
+References: <20101216173614.8185.19462.stgit@bob.kio>
+	<20101216173856.8185.98094.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f66.google.com ([209.85.214.66]:38150 "EHLO
-	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755295Ab0LRPu2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Dec 2010 10:50:28 -0500
-In-Reply-To: <alpine.DEB.2.00.1012161215200.21588@router.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20101216173856.8185.98094.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Lameter <cl@linux.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Eric Dumazet <eric.dumazet@gmail.com>, akpm@linux-foundation.org, Pekka Enberg <penberg@cs.helsinki.fi>, linux-kernel@vger.kernel.org, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-(cc'ing ACPI ppl and quoting the whole body)
-
-On 12/16/2010 07:16 PM, Christoph Lameter wrote:
-> 
-> With the this_cpu_xx we no longer need to pass an acpi
-> structure to the msr management code. Simplifies code and improves
-> performance.
-> 
-> Signed-off-by: Christoph Lameter <cl@linux.com>
-> 
+On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> w=
+rote:
+>
+> When we allocate address space, e.g., to assign it to a PCI device, d=
+on't
+> allocate anything mentioned in the BIOS E820 memory map.
+>
+> On recent machines (2008 and newer), we assign PCI resources from the
+> windows described by the ACPI PCI host bridge _CRS. =A0On many Dell
+> machines, these windows overlap some E820 reserved areas, e.g.,
+>
+> =A0 =A0BIOS-e820: 00000000bfe4dc00 - 00000000c0000000 (reserved)
+> =A0 =A0pci_root PNP0A03:00: host bridge window [mem 0xbff00000-0xdfff=
+ffff]
+>
+> If we put devices at 0xbff00000, they don't work, probably because
+> that's really RAM, not I/O memory. =A0This patch prevents that by rem=
+oving
+> the 0xbfe4dc00-0xbfffffff area from the "available" resource.
+>
+> I'm not very happy with this solution because Windows solves the prob=
+lem
+> differently (it seems to ignore E820 reserved areas and it allocates
+> top-down instead of bottom-up; details at comment 45 of the bugzilla
+> below). =A0That means we're vulnerable to BIOS defects that Windows w=
+ould not
+> trip over. =A0For example, if BIOS described a device in ACPI but did=
+n't
+> mention it in E820, Windows would work fine but Linux would fail.
+>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D16228
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > ---
->  drivers/acpi/processor_throttling.c |   32 ++++++++++----------------------
->  1 file changed, 10 insertions(+), 22 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/processor_throttling.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_throttling.c	2010-12-16 11:56:57.000000000 -0600
-> +++ linux-2.6/drivers/acpi/processor_throttling.c	2010-12-16 12:00:17.000000000 -0600
-> @@ -662,20 +662,14 @@ static int acpi_processor_get_throttling
->  }
-> 
->  #ifdef CONFIG_X86
-> -static int acpi_throttling_rdmsr(struct acpi_processor *pr,
-> -					u64 *value)
-> +static int acpi_throttling_rdmsr(u64 *value)
->  {
-> -	struct cpuinfo_x86 *c;
->  	u64 msr_high, msr_low;
-> -	unsigned int cpu;
->  	u64 msr = 0;
->  	int ret = -1;
-> 
-> -	cpu = pr->id;
-> -	c = &cpu_data(cpu);
-> -
-> -	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
-> -		!cpu_has(c, X86_FEATURE_ACPI)) {
-> +	if ((this_cpu_read(cpu_info.x86_vendor) != X86_VENDOR_INTEL) ||
-> +		!this_cpu_has(X86_FEATURE_ACPI)) {
->  		printk(KERN_ERR PREFIX
->  			"HARDWARE addr space,NOT supported yet\n");
->  	} else {
-> @@ -690,18 +684,13 @@ static int acpi_throttling_rdmsr(struct
->  	return ret;
->  }
-> 
-> -static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
-> +static int acpi_throttling_wrmsr(u64 value)
->  {
-> -	struct cpuinfo_x86 *c;
-> -	unsigned int cpu;
->  	int ret = -1;
->  	u64 msr;
-> 
-> -	cpu = pr->id;
-> -	c = &cpu_data(cpu);
-> -
-> -	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
-> -		!cpu_has(c, X86_FEATURE_ACPI)) {
-> +	if ((this_cpu_read(cpu_info.x86_vendor) != X86_VENDOR_INTEL) ||
-> +		!this_cpu_has(X86_FEATURE_ACPI)) {
->  		printk(KERN_ERR PREFIX
->  			"HARDWARE addr space,NOT supported yet\n");
->  	} else {
-> @@ -713,15 +702,14 @@ static int acpi_throttling_wrmsr(struct
->  	return ret;
->  }
->  #else
-> -static int acpi_throttling_rdmsr(struct acpi_processor *pr,
-> -				u64 *value)
-> +static int acpi_throttling_rdmsr(u64 *value)
->  {
->  	printk(KERN_ERR PREFIX
->  		"HARDWARE addr space,NOT supported yet\n");
->  	return -1;
->  }
-> 
-> -static int acpi_throttling_wrmsr(struct acpi_processor *pr, u64 value)
-> +static int acpi_throttling_wrmsr(u64 value)
->  {
->  	printk(KERN_ERR PREFIX
->  		"HARDWARE addr space,NOT supported yet\n");
-> @@ -753,7 +741,7 @@ static int acpi_read_throttling_status(s
->  		ret = 0;
->  		break;
->  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-> -		ret = acpi_throttling_rdmsr(pr, value);
-> +		ret = acpi_throttling_rdmsr(value);
->  		break;
->  	default:
->  		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
-> @@ -786,7 +774,7 @@ static int acpi_write_throttling_state(s
->  		ret = 0;
->  		break;
->  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-> -		ret = acpi_throttling_wrmsr(pr, value);
-> +		ret = acpi_throttling_wrmsr(value);
->  		break;
->  	default:
->  		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
-> 
+>
+> =A0arch/x86/kernel/resource.c | =A0 38 ++++++++++++++++++++++++++++++=
++++++++-
+> =A01 files changed, 37 insertions(+), 1 deletions(-)
+>
+>
+> diff --git a/arch/x86/kernel/resource.c b/arch/x86/kernel/resource.c
+> index 407a900..89638af 100644
+> --- a/arch/x86/kernel/resource.c
+> +++ b/arch/x86/kernel/resource.c
+> @@ -1,11 +1,47 @@
+> =A0#include <linux/ioport.h>
+> =A0#include <asm/e820.h>
+>
+> +static void resource_clip(struct resource *res, resource_size_t star=
+t,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 resource_size_t end=
+)
+> +{
+> + =A0 =A0 =A0 resource_size_t low =3D 0, high =3D 0;
+> +
+> + =A0 =A0 =A0 if (res->end < start || res->start > end)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return; =A0 =A0 =A0 =A0 /* no conflict =
+*/
+> +
+> + =A0 =A0 =A0 if (res->start < start)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 low =3D start - res->start;
+> +
+> + =A0 =A0 =A0 if (res->end > end)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 high =3D res->end - end;
+> +
+> + =A0 =A0 =A0 /* Keep the area above or below the conflict, whichever=
+ is larger */
+> + =A0 =A0 =A0 if (low > high)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res->end =3D start - 1;
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res->start =3D end + 1;
+> +}
+> +
+> +static void remove_e820_regions(struct resource *avail)
+> +{
+> + =A0 =A0 =A0 int i;
+> + =A0 =A0 =A0 struct e820entry *entry;
+> +
+> + =A0 =A0 =A0 for (i =3D 0; i < e820.nr_map; i++) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 entry =3D &e820.map[i];
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 resource_clip(avail, entry->addr,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 entry->addr=
+ + entry->size - 1);
+> + =A0 =A0 =A0 }
+> +}
+> +
+> =A0void arch_remove_reservations(struct resource *avail)
+> =A0{
+> - =A0 =A0 =A0 /* Trim out BIOS area (low 1MB) */
+> + =A0 =A0 =A0 /* Trim out BIOS area (low 1MB) and E820 regions */
+> =A0 =A0 =A0 =A0if (avail->flags & IORESOURCE_MEM) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (avail->start < BIOS_END)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0avail->start =3D BIOS_=
+END;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 remove_e820_regions(avail);
+> =A0 =A0 =A0 =A0}
+> =A0}
 
-It's bothersome that these methods don't have any indication that
-they're bound to local CPU when they can't be called with @pr for
-another CPU as MSRs can only be accessed from local CPU.
+that looks expensive. it will keep going through e820 tables...
 
-In the longer run, it would be nice if there's an indication that this
-is only for the local CPU and maybe a WARN_ON_ONCE().  Maybe dropping
-@pr and using this_cpu_*() is better for performance too?
+but e820 should have been reserved in resource tree...
 
-Anyways, the above doesn't make the situation any worse, so...
+So why we need to check e820 again?
 
- Acked-by: Tejun Heo <tj@kernel.org>
-
-I think this one too fits the x86 tree better.
-
-Thanks.
-
--- 
-tejun
+Yinghai
