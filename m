@@ -1,122 +1,182 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 8/9] x86: avoid E820 regions when allocating address space
-Date: Sun, 19 Dec 2010 01:50:50 -0800
-Message-ID: <AANLkTim68DbGeWbYKYx3_WOGFkA8KZFVHFyEFGtXt-cr@mail.gmail.com>
-References: <20101216173614.8185.19462.stgit@bob.kio>
-	<20101216173856.8185.98094.stgit@bob.kio>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / PCIe: Clear Root PME Status bits during early resume
+Date: Sun, 19 Dec 2010 11:49:40 +0100
+Message-ID: <201012191149.40547.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20101216173856.8185.98094.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Adam Belay <abelay@mit.edu>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 16, 2010 at 9:38 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> w=
-rote:
->
-> When we allocate address space, e.g., to assign it to a PCI device, d=
-on't
-> allocate anything mentioned in the BIOS E820 memory map.
->
-> On recent machines (2008 and newer), we assign PCI resources from the
-> windows described by the ACPI PCI host bridge _CRS. =A0On many Dell
-> machines, these windows overlap some E820 reserved areas, e.g.,
->
-> =A0 =A0BIOS-e820: 00000000bfe4dc00 - 00000000c0000000 (reserved)
-> =A0 =A0pci_root PNP0A03:00: host bridge window [mem 0xbff00000-0xdfff=
-ffff]
->
-> If we put devices at 0xbff00000, they don't work, probably because
-> that's really RAM, not I/O memory. =A0This patch prevents that by rem=
-oving
-> the 0xbfe4dc00-0xbfffffff area from the "available" resource.
->
-> I'm not very happy with this solution because Windows solves the prob=
-lem
-> differently (it seems to ignore E820 reserved areas and it allocates
-> top-down instead of bottom-up; details at comment 45 of the bugzilla
-> below). =A0That means we're vulnerable to BIOS defects that Windows w=
-ould not
-> trip over. =A0For example, if BIOS described a device in ACPI but did=
-n't
-> mention it in E820, Windows would work fine but Linux would fail.
->
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D16228
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
->
-> =A0arch/x86/kernel/resource.c | =A0 38 ++++++++++++++++++++++++++++++=
-+++++++-
-> =A01 files changed, 37 insertions(+), 1 deletions(-)
->
->
-> diff --git a/arch/x86/kernel/resource.c b/arch/x86/kernel/resource.c
-> index 407a900..89638af 100644
-> --- a/arch/x86/kernel/resource.c
-> +++ b/arch/x86/kernel/resource.c
-> @@ -1,11 +1,47 @@
-> =A0#include <linux/ioport.h>
-> =A0#include <asm/e820.h>
->
-> +static void resource_clip(struct resource *res, resource_size_t star=
-t,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 resource_size_t end=
-)
-> +{
-> + =A0 =A0 =A0 resource_size_t low =3D 0, high =3D 0;
-> +
-> + =A0 =A0 =A0 if (res->end < start || res->start > end)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return; =A0 =A0 =A0 =A0 /* no conflict =
-*/
-> +
-> + =A0 =A0 =A0 if (res->start < start)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 low =3D start - res->start;
-> +
-> + =A0 =A0 =A0 if (res->end > end)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 high =3D res->end - end;
-> +
-> + =A0 =A0 =A0 /* Keep the area above or below the conflict, whichever=
- is larger */
-> + =A0 =A0 =A0 if (low > high)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res->end =3D start - 1;
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res->start =3D end + 1;
-> +}
-> +
-> +static void remove_e820_regions(struct resource *avail)
-> +{
-> + =A0 =A0 =A0 int i;
-> + =A0 =A0 =A0 struct e820entry *entry;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < e820.nr_map; i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 entry =3D &e820.map[i];
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 resource_clip(avail, entry->addr,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 entry->addr=
- + entry->size - 1);
-> + =A0 =A0 =A0 }
-> +}
-> +
-> =A0void arch_remove_reservations(struct resource *avail)
-> =A0{
-> - =A0 =A0 =A0 /* Trim out BIOS area (low 1MB) */
-> + =A0 =A0 =A0 /* Trim out BIOS area (low 1MB) and E820 regions */
-> =A0 =A0 =A0 =A0if (avail->flags & IORESOURCE_MEM) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (avail->start < BIOS_END)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0avail->start =3D BIOS_=
-END;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 remove_e820_regions(avail);
-> =A0 =A0 =A0 =A0}
-> =A0}
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-that looks expensive. it will keep going through e820 tables...
+I noticed that PCI Express PMEs don't work on my Toshiba Portege R500
+after the system has been woken up from a sleep state by a PME
+(through Wake-on-LAN).  After some investigation it turned out that
+the BIOS didn't clear the Root PME Status bit in the root port that
+received the wakeup PME and since the Requester ID was also set in
+the port's Root Status register, subsequent PMEs didn't trigger
+interrupts.
 
-but e820 should have been reserved in resource tree...
+This problem can be avoided by clearing the Root PME Status bits in
+all PCI Express root ports during early resume (it needs to be done
+in pci_pm_default_resume_early() and not in the port's resume
+routine, because it's generally necessary even if the PCI Express
+port driver is not used).
 
-So why we need to check e820 again?
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-driver.c |    7 +++++++
+ drivers/pci/pci.c        |   16 ++++++++++++++++
+ drivers/pci/pcie/pme.c   |   27 ++++-----------------------
+ include/linux/pci.h      |    1 +
+ include/linux/pci_regs.h |    2 ++
+ 5 files changed, 30 insertions(+), 23 deletions(-)
 
-Yinghai
+Index: linux-2.6/drivers/pci/pci-driver.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-driver.c
++++ linux-2.6/drivers/pci/pci-driver.c
+@@ -456,6 +456,13 @@ static void pci_pm_default_resume_early(
+ {
+ 	pci_restore_standard_config(pci_dev);
+ 	pci_fixup_device(pci_fixup_resume_early, pci_dev);
++	/*
++	 * Some BIOSes forget to clear Root PME Status bits after system wakeup
++	 * which breaks ACPI-based runtime wakeup on PCI Express, so clear those
++	 * bits now just in case (shouldn't hurt).
++	 */
++	if(pci_is_pcie(pci_dev) && pci_dev->pcie_type == PCI_EXP_TYPE_ROOT_PORT)
++		pcie_pme_clear_root_status(pci_dev);
+ }
+ 
+ #endif
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1266,6 +1266,22 @@ int pci_set_pcie_reset_state(struct pci_
+ }
+ 
+ /**
++ * pcie_pme_clear_root_status - Clear root port PME interrupt status.
++ * @dev: PCIe root port or event collector.
++ */
++void pcie_pme_clear_root_status(struct pci_dev *dev)
++{
++	int rtsta_pos;
++	u32 rtsta;
++
++	rtsta_pos = pci_pcie_cap(dev) + PCI_EXP_RTSTA;
++
++	pci_read_config_dword(dev, rtsta_pos, &rtsta);
++	rtsta |= PCI_EXP_RTSTA_PME;
++	pci_write_config_dword(dev, rtsta_pos, rtsta);
++}
++
++/**
+  * pci_check_pme_status - Check if given device has generated PME.
+  * @dev: Device to check.
+  *
+Index: linux-2.6/drivers/pci/pcie/pme.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/pme.c
++++ linux-2.6/drivers/pci/pcie/pme.c
+@@ -26,9 +26,6 @@
+ #include "../pci.h"
+ #include "portdrv.h"
+ 
+-#define PCI_EXP_RTSTA_PME	0x10000 /* PME status */
+-#define PCI_EXP_RTSTA_PENDING	0x20000 /* PME pending */
+-
+ /*
+  * If this switch is set, MSI will not be used for PCIe PME signaling.  This
+  * causes the PCIe port driver to use INTx interrupts only, but it turns out
+@@ -74,22 +71,6 @@ void pcie_pme_interrupt_enable(struct pc
+ }
+ 
+ /**
+- * pcie_pme_clear_status - Clear root port PME interrupt status.
+- * @dev: PCIe root port or event collector.
+- */
+-static void pcie_pme_clear_status(struct pci_dev *dev)
+-{
+-	int rtsta_pos;
+-	u32 rtsta;
+-
+-	rtsta_pos = pci_pcie_cap(dev) + PCI_EXP_RTSTA;
+-
+-	pci_read_config_dword(dev, rtsta_pos, &rtsta);
+-	rtsta |= PCI_EXP_RTSTA_PME;
+-	pci_write_config_dword(dev, rtsta_pos, rtsta);
+-}
+-
+-/**
+  * pcie_pme_walk_bus - Scan a PCI bus for devices asserting PME#.
+  * @bus: PCI bus to scan.
+  *
+@@ -253,7 +234,7 @@ static void pcie_pme_work_fn(struct work
+ 			 * Clear PME status of the port.  If there are other
+ 			 * pending PMEs, the status will be set again.
+ 			 */
+-			pcie_pme_clear_status(port);
++			pcie_pme_clear_root_status(port);
+ 
+ 			spin_unlock_irq(&data->lock);
+ 			pcie_pme_handle_request(port, rtsta & 0xffff);
+@@ -378,7 +359,7 @@ static int pcie_pme_probe(struct pcie_de
+ 
+ 	port = srv->port;
+ 	pcie_pme_interrupt_enable(port, false);
+-	pcie_pme_clear_status(port);
++	pcie_pme_clear_root_status(port);
+ 
+ 	ret = request_irq(srv->irq, pcie_pme_irq, IRQF_SHARED, "PCIe PME", srv);
+ 	if (ret) {
+@@ -402,7 +383,7 @@ static int pcie_pme_suspend(struct pcie_
+ 
+ 	spin_lock_irq(&data->lock);
+ 	pcie_pme_interrupt_enable(port, false);
+-	pcie_pme_clear_status(port);
++	pcie_pme_clear_root_status(port);
+ 	data->noirq = true;
+ 	spin_unlock_irq(&data->lock);
+ 
+@@ -422,7 +403,7 @@ static int pcie_pme_resume(struct pcie_d
+ 
+ 	spin_lock_irq(&data->lock);
+ 	data->noirq = false;
+-	pcie_pme_clear_status(port);
++	pcie_pme_clear_root_status(port);
+ 	pcie_pme_interrupt_enable(port, true);
+ 	spin_unlock_irq(&data->lock);
+ 
+Index: linux-2.6/include/linux/pci_regs.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci_regs.h
++++ linux-2.6/include/linux/pci_regs.h
+@@ -496,6 +496,8 @@
+ #define  PCI_EXP_RTCTL_CRSSVE	0x10	/* CRS Software Visibility Enable */
+ #define PCI_EXP_RTCAP		30	/* Root Capabilities */
+ #define PCI_EXP_RTSTA		32	/* Root Status */
++#define PCI_EXP_RTSTA_PME	0x10000 /* PME status */
++#define PCI_EXP_RTSTA_PENDING	0x20000 /* PME pending */
+ #define PCI_EXP_DEVCAP2		36	/* Device Capabilities 2 */
+ #define  PCI_EXP_DEVCAP2_ARI	0x20	/* Alternative Routing-ID */
+ #define PCI_EXP_DEVCTL2		40	/* Device Control 2 */
+Index: linux-2.6/include/linux/pci.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci.h
++++ linux-2.6/include/linux/pci.h
+@@ -821,6 +821,7 @@ int pci_back_from_sleep(struct pci_dev *
+ bool pci_dev_run_wake(struct pci_dev *dev);
+ bool pci_check_pme_status(struct pci_dev *dev);
+ void pci_pme_wakeup_bus(struct pci_bus *bus);
++void pcie_pme_clear_root_status(struct pci_dev *dev);
+ 
+ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+ 				  bool enable)
