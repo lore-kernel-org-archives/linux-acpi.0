@@ -1,46 +1,43 @@
-From: =?UTF-8?q?Jan=20F=C3=BCsting?= <jan.fuesting@gmx.de>
-Subject: [PATCH 2/2] ACPI: Fixed some coding style issues in fan.c and battery.c
-Date: Tue, 21 Dec 2010 22:41:20 +0100
-Message-ID: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
+From: Len Brown <lenb@kernel.org>
+Subject: acpidump updated in pmtools
+Date: Tue, 21 Dec 2010 17:39:10 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1012211734280.2583@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:38492 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753221Ab0LUVli (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Dec 2010 16:41:38 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:42168 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753522Ab0LUWjO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Dec 2010 17:39:14 -0500
+Received: from localhost.localdomain ([unknown] [108.7.186.163])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LDS007UQUXC8XP1@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 21 Dec 2010 16:39:13 -0600 (CST)
+Received: from localhost.localdomain (x980 [127.0.0.1])
+	by localhost.localdomain (8.14.4/8.14.4) with ESMTP id oBLMdBVm002010	for
+ <linux-acpi@vger.kernel.org>; Tue, 21 Dec 2010 17:39:12 -0500
+Received: from localhost (lenb@localhost)
+	by localhost.localdomain (8.14.4/8.14.4/Submit) with ESMTP id oBLMdAU4001999
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Dec 2010 17:39:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Jan=20F=C3=BCsting?= <jan.fuesting@gmx.de>
+To: linux-acpi@vger.kernel.org
 
-=46ixed some coding style issues in fan.c and battery.c
+The latest version of acpidump in the pmtools package
+grabs the dynamic tables, as advertised in
+/sys/firmare/acpi/tables/dynamic/*
 
-Signed-off-by: Jan F=C3=BCsting <jan.fuesting@gmx.de>
----
- drivers/acpi/battery.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+It was possible to get these before by invoking
+acpidump with address and length params, but
+now the common case is covered automatically,
+as the tables that were loaded as of when
+acpidump was run are captured.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 16fc4df..35d0c6f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -580,7 +580,7 @@ static void acpi_battery_quirks(struct acpi_battery=
- *battery)
- {
- 	if (dmi_name_in_vendors("Acer") && battery->power_unit)
- 		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
--}=09
-+}
-=20
- /*
-  * According to the ACPI spec, some kinds of primary batteries can
---=20
-1.7.2.3
+http://userweb.kernel.org/~lenb/acpi/utils/
+pmtools-20101221.tar.gz or later
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks to Yakui Zhao for this update.
+
+cheers,
+Len Brown, Intel Open Source Technology Center
