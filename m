@@ -1,38 +1,74 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: acpi throttling: Use this_cpu_has and simplify code
-Date: Tue, 21 Dec 2010 16:43:24 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.1012211638470.3769@router.home>
-References: <20101214162842.542421046@linux.com>  <20101214162855.392020353@linux.com> <1292345072.5934.32.camel@edumazet-laptop> <alpine.DEB.2.00.1012141055220.17229@router.home> <4D07A2B7.8080405@zytor.com> <alpine.DEB.2.00.1012141109470.17229@router.home>
- <4D07A7CB.7010205@zytor.com> <4D07A95C.7030703@kernel.org> <4D0814AF.7080209@zytor.com> <4D08ECEF.3040909@kernel.org> <4D08EE57.8010602@zytor.com> <4D08EF4E.8070403@kernel.org> <4D0A3AF2.50508@gmail.com> <alpine.DEB.2.00.1012161215200.21588@router.home>
- <4D0CD840.2050100@gmail.com>
+From: Thiago Farina <tfransosi@gmail.com>
+Subject: Re: [PATCH 2/2] ACPI: Fixed some coding style issues in fan.c and battery.c
+Date: Tue, 21 Dec 2010 21:41:41 -0200
+Message-ID: <AANLkTi=Jg=hzNJoDAYm5H569+M7JmQXjYtHYU=JE+Hs2@mail.gmail.com>
+References: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4D0CD840.2050100@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Eric Dumazet <eric.dumazet@gmail.com>, akpm@linux-foundation.org, Pekka Enberg <penberg@cs.helsinki.fi>, linux-kernel@vger.kernel.org, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:58420 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751799Ab0LUXln convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Dec 2010 18:41:43 -0500
+In-Reply-To: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?B?SmFuIEbDvHN0aW5n?= <jan.fuesting@gmx.de>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, 18 Dec 2010, Tejun Heo wrote:
+On Tue, Dec 21, 2010 at 7:41 PM, Jan F=C3=BCsting <jan.fuesting@gmx.de>=
+ wrote:
+> Fixed some coding style issues in fan.c and battery.c
+>
+Which kind of coding style issues you have fixed? Looking at the diff
+I couldn't figure out the *issues* as described in the commit message.
+Care to resend describing which coding style issues you are fixing?
 
-> It's bothersome that these methods don't have any indication that
-> they're bound to local CPU when they can't be called with @pr for
-> another CPU as MSRs can only be accessed from local CPU.
+Also the diff shows a change only in batter.c. Did you forget
+something (fan.c) ?
 
-Right.
+Thanks.
 
-> In the longer run, it would be nice if there's an indication that this
-> is only for the local CPU and maybe a WARN_ON_ONCE().  Maybe dropping
-> @pr and using this_cpu_*() is better for performance too?
+Ah, another thing, you have repeated the subject in the commit
+message, if they almost the same except the ACPI, then no need to
+repeat it in the commit message.
 
-That is precisely the difficulty with many other functions that take
-pointers to cpu_info. If we can establish that they are called *only* with
-pointers to the current cpu then we can improve the function by dropping
-the parameter and using this_cpu ops to access the cpu_info fields.
-
-Using this_cpu ops instead of access to a field of a struct pointed to by
-an array avoids an addition of pointers and replacest with a operation
-that essentially takes a global address with a segment prefix. It reduces
-register pressure and avoids the additions of pointers but it will encode
-the address in the instruction.
+> Signed-off-by: Jan F=C3=BCsting <jan.fuesting@gmx.de>
+> ---
+> =C2=A0drivers/acpi/battery.c | =C2=A0 =C2=A02 +-
+> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 16fc4df..35d0c6f 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -580,7 +580,7 @@ static void acpi_battery_quirks(struct acpi_batte=
+ry *battery)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (dmi_name_in_vendors("Acer") && battery=
+->power_unit)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0set_bit(ACPI_B=
+ATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+> -}
+> +}
+>
+> =C2=A0/*
+> =C2=A0* According to the ACPI spec, some kinds of primary batteries c=
+an
+> --
+> 1.7.2.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+> Please read the FAQ at =C2=A0http://www.tux.org/lkml/
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
