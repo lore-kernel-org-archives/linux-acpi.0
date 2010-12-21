@@ -1,36 +1,44 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: s2ram broken for a docked ThinkPad T400 since kernel 2.6.32-rcX
-Date: Tue, 21 Dec 2010 10:42:41 -0700
-Message-ID: <201012211042.42182.bjorn.helgaas@hp.com>
-References: <201012211745.19725.toralf.foerster@gmx.de>
+From: =?UTF-8?q?Jan=20F=C3=BCsting?= <jan.fuesting@gmx.de>
+Subject: [PATCH 2/2] ACPI: Fixed some coding style issues in fan.c and battery.c
+Date: Tue, 21 Dec 2010 22:41:20 +0100
+Message-ID: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:9050 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751183Ab0LURmz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Dec 2010 12:42:55 -0500
-In-Reply-To: <201012211745.19725.toralf.foerster@gmx.de>
+Received: from mailout-de.gmx.net ([213.165.64.22]:38492 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753221Ab0LUVli (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Dec 2010 16:41:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toralf =?utf-8?q?F=C3=B6rster?= <toralf.foerster@gmx.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Jan=20F=C3=BCsting?= <jan.fuesting@gmx.de>
 
-On Tuesday, December 21, 2010 09:45:19 am Toralf F=C3=B6rster wrote:
-> the details are in https://bugzilla.kernel.org/show_bug.cgi?id=3D1510=
-0#c39=20
->=20
-> I'd like to point you to this via email b/c I'm unsure whether this b=
-ut report=20
-> is on your radar or not currently.
+=46ixed some coding style issues in fan.c and battery.c
 
-Thanks for pointing me at this; I did not have it on my list at all,
-and you've been suffering with this for a long time :-(
+Signed-off-by: Jan F=C3=BCsting <jan.fuesting@gmx.de>
+---
+ drivers/acpi/battery.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'll add more comments in the bugzilla.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 16fc4df..35d0c6f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -580,7 +580,7 @@ static void acpi_battery_quirks(struct acpi_battery=
+ *battery)
+ {
+ 	if (dmi_name_in_vendors("Acer") && battery->power_unit)
+ 		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+-}=09
++}
+=20
+ /*
+  * According to the ACPI spec, some kinds of primary batteries can
+--=20
+1.7.2.3
 
-Bjorn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
