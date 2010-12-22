@@ -1,51 +1,52 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH] percpu: print out alloc information with KERN_DEBUG
- instead of KERN_INFO
-Date: Wed, 22 Dec 2010 14:22:08 +0100
-Message-ID: <20101222132208.GB8061@htj.dyndns.org>
-References: <4D06B317.2090608@sgi.com>
- <20101222130946.GC13412@elte.hu>
- <20101222131719.GA8061@htj.dyndns.org>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: Early kernel messages are overflowing the static log buffer
+Date: Wed, 22 Dec 2010 10:56:45 -0800
+Message-ID: <4D1249ED.9040008@sgi.com>
+References: <4D06B317.2090608@sgi.com> <20101222130946.GC13412@elte.hu> <20101222131719.GA8061@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:57555 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751863Ab0LVNWM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Dec 2010 08:22:12 -0500
-Content-Disposition: inline
+Received: from relay3.sgi.com ([192.48.152.1]:58702 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751704Ab0LVS4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Dec 2010 13:56:53 -0500
 In-Reply-To: <20101222131719.GA8061@htj.dyndns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Travis <travis@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Lori Gilbertson <loriann@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Lori Gilbertson <loriann@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Now that percpu allocator is mostly stable, there is no reason to
-print alloc information with KERN_INFO and clutter the boot messages.
-Switch it to KERN_DEBUG.
+Thanks.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Travis <travis@sgi.com>
----
-Applied to percpu#for-linus.  Will push out in several days.  Thanks.
+I have a patchset almost ready for submission.  We have a giant
+system (6 racks with some huge amount of nodes) for a few more
+days, and the buffer still overflowed with my changes.  So I'm
+making one more tweak to cut down the amount of characters 
+generated without losing information.
 
- mm/percpu.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Tejun Heo wrote:
+> Hello,
+> 
+> On Wed, Dec 22, 2010 at 02:09:46PM +0100, Ingo Molnar wrote:
+>>> [    0.000000] pcpu-alloc: [000] 0000 0001 0002 0003 0004 0005 0006 0007 1024 1025 1026 1027 1028 1029 1030 1031
+>>>
+>>> What I'm asking is which of these would be most acceptable to
+>>> either remove or replace with some sort of message reduction?
+>> The pcpu alloc messages look entirely superfluous and zappable - make them 
+>> KERN_DEBUG perhaps (and Cc: Tejun)?
+> 
+> Yeap, with percpu allocator now mostly stable, I don't think the
+> message needs to be KERN_INFO anymore.  I'll change it to KERN_DEBUG.
+> 
+> Thanks.
+> 
 
-diff --git a/mm/percpu.c b/mm/percpu.c
-index efe8168..02ba912 100644
---- a/mm/percpu.c
-+++ b/mm/percpu.c
-@@ -1268,7 +1268,7 @@ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
- 
- 	/* we're done parsing the input, undefine BUG macro and dump config */
- #undef PCPU_SETUP_BUG_ON
--	pcpu_dump_alloc_info(KERN_INFO, ai);
-+	pcpu_dump_alloc_info(KERN_DEBUG, ai);
- 
- 	pcpu_nr_groups = ai->nr_groups;
- 	pcpu_group_offsets = group_offsets;
--- 
-1.7.1
+This doesn't really help the log buffer overflow problem as KERN_DEBUG
+messages still end up in the buffer.  The pr_debug() macro does compile
+out the messages if the system does not have KERNEL debug set, though
+distros also have this set as a default.
+
+Thanks,
+Mike
 
