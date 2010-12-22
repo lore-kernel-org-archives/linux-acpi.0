@@ -1,74 +1,82 @@
-From: Thiago Farina <tfransosi@gmail.com>
-Subject: Re: [PATCH 2/2] ACPI: Fixed some coding style issues in fan.c and battery.c
-Date: Tue, 21 Dec 2010 21:41:41 -0200
-Message-ID: <AANLkTi=Jg=hzNJoDAYm5H569+M7JmQXjYtHYU=JE+Hs2@mail.gmail.com>
-References: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: Early kernel messages are overflowing the static log buffer
+Date: Wed, 22 Dec 2010 14:09:46 +0100
+Message-ID: <20101222130946.GC13412@elte.hu>
+References: <4D06B317.2090608@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:58420 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799Ab0LUXln convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Dec 2010 18:41:43 -0500
-In-Reply-To: <1292967680-14208-1-git-send-email-jan.fuesting@gmx.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4D06B317.2090608@sgi.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Travis <travis@sgi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Lori Gilbertson <loriann@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?SmFuIEbDvHN0aW5n?= <jan.fuesting@gmx.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 21, 2010 at 7:41 PM, Jan F=C3=BCsting <jan.fuesting@gmx.de>=
- wrote:
-> Fixed some coding style issues in fan.c and battery.c
->
-Which kind of coding style issues you have fixed? Looking at the diff
-I couldn't figure out the *issues* as described in the commit message.
-Care to resend describing which coding style issues you are fixing?
 
-Also the diff shows a change only in batter.c. Did you forget
-something (fan.c) ?
+* Mike Travis <travis@sgi.com> wrote:
 
-Thanks.
+> So it seems we need to reduce the number of messages.
 
-Ah, another thing, you have repeated the subject in the commit
-message, if they almost the same except the ACPI, then no need to
-repeat it in the commit message.
+Absolutely!
 
-> Signed-off-by: Jan F=C3=BCsting <jan.fuesting@gmx.de>
-> ---
-> =C2=A0drivers/acpi/battery.c | =C2=A0 =C2=A02 +-
-> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 16fc4df..35d0c6f 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -580,7 +580,7 @@ static void acpi_battery_quirks(struct acpi_batte=
-ry *battery)
-> =C2=A0{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (dmi_name_in_vendors("Acer") && battery=
-->power_unit)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0set_bit(ACPI_B=
-ATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
-> -}
-> +}
->
-> =C2=A0/*
-> =C2=A0* According to the ACPI spec, some kinds of primary batteries c=
-an
-> --
-> 1.7.2.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> Please read the FAQ at =C2=A0http://www.tux.org/lkml/
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The voluminous message sources before buffer reallocation are:
+> 
+> [    0.000000]  BIOS-e820: 0000000000000000 - 000000000008f000
+> (usable)                                              ...
+> [    0.000000] EFI: mem00: type=3, attr=0xf,
+> range=[0x0000000000000000-0x0000000000001000) (0MB)
+> [    ...
+> [    0.000000] modified physical RAM map:
+> [    0.000000]  modified: 0000000000000000 - 0000000000001000
+> (usable)                         ...
+> [    0.000000] SRAT: PXM 0 -> APIC 0 -> Node 0
+> ...
+> [    0.000000] Bootmem setup node 0 0000000000000000-0000000800000000
+> [    0.000000]   NODE_DATA [000000000000e100 - 00000000000420ff]
+> [    0.000000]   bootmap [0000000000100000 -  00000000001fffff] pages 100
+> ...
+> [    0.000000] early_node_map[137] active PFN ranges
+> [    0.000000]     0: 0x00000000 -> 0x00000001
+> ...
+> [    0.000000] On node 1 totalpages: 8388608
+> [    0.000000]   Normal zone: 114688 pages used for memmap
+> [    0.000000]   Normal zone: 8273920 pages, LIFO batch:31
+> ...
+> [    0.000000] ACPI: X2APIC (apic_id[0x00] uid[0x00] enabled)
+> ...
+> [    0.000000] PM: Registered nosave memory: 0000000000001000 - 0000000000006000
+> ...
+> [    0.000000] pcpu-alloc: [000] 0000 0001 0002 0003 0004 0005 0006 0007 1024 1025 1026 1027 1028 1029 1030 1031
+> 
+> What I'm asking is which of these would be most acceptable to
+> either remove or replace with some sort of message reduction?
+
+The pcpu alloc messages look entirely superfluous and zappable - make them 
+KERN_DEBUG perhaps (and Cc: Tejun)?
+
+> Note that a lot of the messages are completely redundant.  Like
+> the Bootmem setup generally has exactly the same information
+> (spread over 15 lines), for each of the 128 Nodes.
+
+Yeah.
+
+> One patch that I still have was David's "reduce srat verbosity in
+> the kernel log" that was rejected by you as too complex.  This
+> would have resulted in about a 16:1 reduction in SRAT: messages,
+> without loss of an information.  Before I start another doomed patch,
+> I'd like to find out the guidelines.  Remember, no one really looks
+> at these messages unless the system panics, usually during startup.
+> So the information here may be key to diagnosing the problem.
+
+Mind resending that patch again? Maybe we can find a simpler solution. I almost 
+never NAK patches permanently - there can always be reasons i missed, or better 
+implementations.
+
+We dont want to lose physical memory layout information - it's useful in many other 
+types of post mortem analysis and we dont want to force people to reboot into some 
+debug kernel just to be able to report essential bits.
+
+Thanks,
+
+	Ingo
