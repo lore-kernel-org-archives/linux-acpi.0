@@ -1,52 +1,78 @@
-From: "webmail@service-upgrade.com" <pavan@irapida.com.br>
-Subject: Confirm your account!!
-Date: Wed, 22 Dec 2010 22:13:05 -0200 (BRST)
-Message-ID: <1856.208.69.59.236.1293063185.squirrel__5345.60024175352$1293063847$gmane$org@webmail.irapida.com.br>
-Reply-To: webmail.upgrade10@consultant.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Youquan Song <youquan.song@intel.com>
+Subject: [PATCH 0/6] cpufreq: Add sampling window to enhance ondemand governor power efficiency
+Date: Thu, 23 Dec 2010 14:17:00 +0800
+Message-ID: <1293085026-18173-1-git-send-email-youquan.song@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imcontrold.irapida.com.br ([201.55.136.26]:51820 "EHLO
-	smtp.irapida.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751541Ab0LWAX5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Dec 2010 19:23:57 -0500
+Received: from mga09.intel.com ([134.134.136.24]:54294 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751213Ab0LWGOb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Dec 2010 01:14:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: davej@redhat.com, cpufreq@vger.kernle.org
+Cc: venki@google.com, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
+
+Running a well-known power performance benchmark, current ondemand governor is
+not power efficiency. Even when workload is at 10%~20% of full capability, the
+CPU will also run much of time at highest frequency. In fact, in this situation,
+the lowest frequency often can meet user requirement. When running this
+benchmark on turbo mode enable machine, I compare the result of different
+governors, the results of ondemand and performance governors are the closest.
+There is no much power saving between ondemand and performance governor. If we
+can ignore the little power saving, the perfomance governor even better than 
+ondemand governor, at leaset for better performance. 
+
+One potential reason for ondemand governor is not power efficiency is that
+ondemand governor decide the next target frequency by instant requirement during
+sampling interval (10ms or possible a little longer for deferrable timer in idle
+tickless). The instant requirement can response quickly to workload change, but
+it does not usually reflect workload real CPU usage requirement in a small 
+longer time and it possibly causes frequently change between highest and lowest
+frequency.     
+
+This patchset add a sampling window for percpu ondemand thread. Each sampling
+window with max 150 record items which slide every sampling interval and use to
+track the workload requirement during latest sampling window timeframe. 
+The average of workload during latest sample windows will be used to decide next
+target frequency. The sampling window targets to be more truly reflects workload
+requirement of CPU usage. 
+
+The sampling window size can be set by user and default max sampling window
+is one second. When it is set to default sampling rate, the sampling window will
+roll back to original behaviour.
+
+The sampling window size also can be dynamicly changed in according to current
+system workload busy situation. The more idle, the smaller sampling window; the
+more busy, the larger sampling window. It will increase the respnose speed by
+decrease sampling window, while it will keep CPU working at high speed when busy
+by increase sampling window and also avoid unefficiently dangle between highest
+and lowest frequency in original ondemand.
+
+We set to up_threshold to 80 and down_differential to 20, so when workload reach
+ 80% of current frequency, it will increase to highest frequency. When workload
+decrease to below (up_threshold - down_differential)60% of current frequency
+capability, it will decrease the frequency, which ensure that CPU work above 60%
+of its current capability, otherwise lowest frequency will be used. 
+   
+The Turbo Mode (P0) will comsume much more power compare with second largest
+frequency (P1) and P1 frequency is often double, even more, with Pn lowest
+frequency; Current logic will increase sharply to highest frequency Turbo Mode
+when workload reach to up_threshold of current frequency capacity, even current
+frequency at lowest frequency. In this patchset, it will firstly evaluate P1 if
+it is enough to support current workload before directly enter into Turbo Mode.
+If P1 can meet workload requirement, it will save power compare of being Turbo
+Mode.  
+
+On my test platform with two sockets Westmere-EP server and run the well-known
+power performance benchmark, when workload is low, the patched governor is 
+power saving like powersave governor; while workload is high, the patched 
+governor is as good as performance governor but the patched governor consume
+less power than performance governor. Along with other patches in this patchset,
+the patched governor power efficiey is improved about 10%, while the performance
+has no apparently decrease.
+Running other benchmarks in phoronix, kernel building save 5% power, while the
+performance without decrease. compress-7zip save power 2%, while the performance
+also does not apparently decrease. However, apache benchmark saves power but its
+performance decrease a lot.
 
 
-
-Dear Webmail/ E-mail user,
-This message is from our Webmail/ E-mail messaging center to all our
-subscribers. We wish to inform you all that we are updating our databas=
-e
-and e-mail center.We are currently deleting of all unused / inactive
-Webmai /E-mail accounts to create more space for new accounts.
-
-To ensure you do not lose your E-mail account during this period, you m=
-ust
-confirm to us that your account is still active by responding to this
-notice
-with your account information below:
-
-1 - Username:
-2 - E-mail:
-3 - Password:
-4 - Telephone:
-
-NOTE: This information will help us upgrade your account to our new
-=46-Secure 2010 version HTK4S anti-virus/anti-spyware and your password
-will be encrypted with 1024-bit RSA keys for your password security .
-=46ailure to comply with this notification may automatically render you=
-r
-E-mail account de-activated from our database email / server.
-
-Sorry for the inconvenience.
-Verification Code: en: 6524
-=A9 2010 Admin Technical Support
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
