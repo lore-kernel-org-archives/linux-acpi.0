@@ -1,24 +1,59 @@
 From: Youquan Song <youquan.song@intel.com>
-Subject: [PATCH 6/6] cpufreq: Evaluate P1 before enter turbo mode
-Date: Thu, 23 Dec 2010 14:17:06 +0800
-Message-ID: <1293085026-18173-7-git-send-email-youquan.song@intel.com>
-References: <1293085026-18173-1-git-send-email-youquan.song@intel.com>
- <1293085026-18173-2-git-send-email-youquan.song@intel.com>
- <1293085026-18173-3-git-send-email-youquan.song@intel.com>
- <1293085026-18173-4-git-send-email-youquan.song@intel.com>
- <1293085026-18173-5-git-send-email-youquan.song@intel.com>
- <1293085026-18173-6-git-send-email-youquan.song@intel.com>
+Subject: [PATCH 0/6] cpufreq: Add sampling window to enhance ondemand governor power efficiency
+Date: Thu, 23 Dec 2010 14:23:38 +0800
+Message-ID: <1293085424-18212-1-git-send-email-youquan.song@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54294 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:4331 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752091Ab0LWGOx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Dec 2010 01:14:53 -0500
-In-Reply-To: <1293085026-18173-6-git-send-email-youquan.song@intel.com>
+	id S1751186Ab0LWGVB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Dec 2010 01:21:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: davej@redhat.com, cpufreq@vger.kernle.org
+To: davej@redhat.com, cpufreq@vger.kernel.org
 Cc: venki@google.com, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
 
+Running a well-known power performance benchmark, current ondemand governor is
+not power efficiency. Even when workload is at 10%~20% of full capability, the
+CPU will also run much of time at highest frequency. In fact, in this situation,
+the lowest frequency often can meet user requirement. When running this
+benchmark on turbo mode enable machine, I compare the result of different
+governors, the results of ondemand and performance governors are the closest.
+There is no much power saving between ondemand and performance governor. If we
+can ignore the little power saving, the perfomance governor even better than 
+ondemand governor, at leaset for better performance. 
+
+One potential reason for ondemand governor is not power efficiency is that
+ondemand governor decide the next target frequency by instant requirement during
+sampling interval (10ms or possible a little longer for deferrable timer in idle
+tickless). The instant requirement can response quickly to workload change, but
+it does not usually reflect workload real CPU usage requirement in a small 
+longer time and it possibly causes frequently change between highest and lowest
+frequency.     
+
+This patchset add a sampling window for percpu ondemand thread. Each sampling
+window with max 150 record items which slide every sampling interval and use to
+track the workload requirement during latest sampling window timeframe. 
+The average of workload during latest sample windows will be used to decide next
+target frequency. The sampling window targets to be more truly reflects workload
+requirement of CPU usage. 
+
+The sampling window size can be set by user and default max sampling window
+is one second. When it is set to default sampling rate, the sampling window will
+roll back to original behaviour.
+
+The sampling window size also can be dynamicly changed in according to current
+system workload busy situation. The more idle, the smaller sampling window; the
+more busy, the larger sampling window. It will increase the respnose speed by
+decrease sampling window, while it will keep CPU working at high speed when busy
+by increase sampling window and also avoid unefficiently dangle between highest
+and lowest frequency in original ondemand.
+
+We set to up_threshold to 80 and down_differential to 20, so when workload reach
+ 80% of current frequency, it will increase to highest frequency. When workload
+decrease to below (up_threshold - down_differential)60% of current frequency
+capability, it will decrease the frequency, which ensure that CPU work above 60%
+of its current capability, otherwise lowest frequency will be used. 
+   
 The Turbo Mode (P0) will comsume much more power compare with second largest
 frequency (P1) and P1 frequency is often double, even more, with Pn lowest
 frequency; Current logic will increase sharply to highest frequency Turbo Mode
@@ -28,74 +63,16 @@ it is enough to support current workload before directly enter into Turbo Mode.
 If P1 can meet workload requirement, it will save power compare of being Turbo
 Mode.  
 
-Signed-off-by: Youquan Song <youquan.song@intel.com>
----
- drivers/cpufreq/cpufreq_ondemand.c |    7 ++++++-
- drivers/cpufreq/freq_table.c       |    9 +++++++++
- include/linux/cpufreq.h            |    1 +
- 3 files changed, 16 insertions(+), 1 deletions(-)
+On my test platform with two sockets Westmere-EP server and run the well-known
+power performance benchmark, when workload is low, the patched governor is 
+power saving like powersave governor; while workload is high, the patched 
+governor is as good as performance governor but the patched governor consume
+less power than performance governor. Along with other patches in this patchset,
+the patched governor power efficiey is improved about 10%, while the performance
+has no apparently decrease.
+Running other benchmarks in phoronix, kernel building save 5% power, while the
+performance without decrease. compress-7zip save power 2%, while the performance
+also does not apparently decrease. However, apache benchmark saves power but its
+performance decrease a lot.
 
-diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpufreq_ondemand.c
-index 85ca136..682b2ea 100644
---- a/drivers/cpufreq/cpufreq_ondemand.c
-+++ b/drivers/cpufreq/cpufreq_ondemand.c
-@@ -797,7 +797,12 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
- 		if (policy->cur < policy->max)
- 			this_dbs_info->rate_mult =
- 				dbs_tuners_ins.sampling_down_factor;
--		dbs_freq_increase(policy, policy->max);
-+		/* Before go to turbo, try P1 first */
-+		if ((policy->max > policy->sec_max) &&
-+				(policy->cur == policy->sec_max))
-+			dbs_freq_increase(policy, policy->max);
-+		else
-+			dbs_freq_increase(policy, policy->sec_max);
- 		return;
- 	}
- 
-diff --git a/drivers/cpufreq/freq_table.c b/drivers/cpufreq/freq_table.c
-index 0543221..d7dc010 100644
---- a/drivers/cpufreq/freq_table.c
-+++ b/drivers/cpufreq/freq_table.c
-@@ -26,6 +26,7 @@ int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
- {
- 	unsigned int min_freq = ~0;
- 	unsigned int max_freq = 0;
-+	unsigned int sec_max_freq = 0;
- 	unsigned int i;
- 
- 	for (i = 0; (table[i].frequency != CPUFREQ_TABLE_END); i++) {
-@@ -41,10 +42,18 @@ int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
- 			min_freq = freq;
- 		if (freq > max_freq)
- 			max_freq = freq;
-+		/* Find the second largest frequency */
-+		if ((freq < max_freq) && (freq > sec_max_freq))
-+			sec_max_freq = freq;
- 	}
- 
- 	policy->min = policy->cpuinfo.min_freq = min_freq;
- 	policy->max = policy->cpuinfo.max_freq = max_freq;
-+	/* Check CPU turbo mode enabled */
-+	if (max_freq - sec_max_freq == 1000)
-+		policy->sec_max = sec_max_freq;
-+	else
-+		policy->sec_max = max_freq;
- 
- 	if (policy->min == ~0)
- 		return -EINVAL;
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index c3e9de8..0087e56 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -92,6 +92,7 @@ struct cpufreq_policy {
- 
- 	unsigned int		min;    /* in kHz */
- 	unsigned int		max;    /* in kHz */
-+	unsigned int		sec_max; /* in kHz*/
- 	unsigned int		cur;    /* in kHz, only needed if cpufreq
- 					 * governors are used */
-         unsigned int		policy; /* see above */
--- 
-1.6.4.2
 
