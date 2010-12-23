@@ -1,48 +1,120 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH 0/6] cpufreq: Add sampling window to enhance ondemand
- governor power efficiency
-Date: Thu, 23 Dec 2010 21:51:48 +0100
-Message-ID: <20101223205148.GB6441__11816.6775246666$1293138577$gmane$org@comet.dominikbrodowski.net>
-References: <1293085424-18212-1-git-send-email-youquan.song@intel.com>
- <20101223110020.GC18363@comet.dominikbrodowski.net>
- <20101223173402.GA3821@redhat.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] acpi: Update battery information on notification 0x81
+Date: Thu, 23 Dec 2010 21:16:38 +0000
+Message-ID: <20101223211638.GA7862@srcf.ucam.org>
+References: <1281990739-17912-1-git-send-email-mjg@redhat.com> <20101215171928.GA17746@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar-3.linta.de ([188.40.101.200]:49045 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752021Ab0LWVIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Dec 2010 16:08:55 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:51401 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655Ab0LWVQm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Dec 2010 16:16:42 -0500
 Content-Disposition: inline
-In-Reply-To: <20101223173402.GA3821@redhat.com>
+In-Reply-To: <20101215171928.GA17746@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, Youquan Song <youquan.song@intel.com>, cpufreq@vger.kernel.org, venki@google.com, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, ken
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org
 
-Hey,
+A notification event 0x81 from an ACPI battery device requires us to
+re-read the battery information structure. Do so, and if the battery's
+reporting units have changed (as is the case on some Thinkpads) destroy
+and recreate the battery in order to populate the fields correctly.
 
-On Thu, Dec 23, 2010 at 12:34:02PM -0500, Dave Jones wrote:
-> On Thu, Dec 23, 2010 at 12:00:20PM +0100, Dominik Brodowski wrote:
->  > Interesting approach, but seems to be quite different from what "ondemand"
->  > does at the moment. And, as David Niemi pointed out, it seems to be more
->  > Intel-specific. Therefore, what do you think about adding this different
->  > algorithm as a different governor, and keep the "ondemand" algorithm more or
->  > less as it is?
-> 
-> I'm hesitant to merge more governors. (We already have too many imo).
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
 
-AFAICS, we do have two in-kernel dynamic frequency scaling governors, one of
-which doesn't seem to get much usage (conservative)...
+Respun against Linus master
 
-> The userspace logic for automatically deciding which is the best one to use is
-> already pretty hairy, so any additional ones at this point would have to be
-> accompanied with some really compelling reasons why the existing ones can't
-> be fixed in an acceptable manner.
+ drivers/acpi/battery.c |   24 +++++++++++++++++-------
+ 1 files changed, 17 insertions(+), 7 deletions(-)
 
-Well, if the underlying alogrithm is fundamentally different -- such as when
-looking at sampling windows instead of the past one window -- this seems to
-be a "compelling" reason to me. Especially if one governor works well on
-certain platforms, and the other one works better on other platforms.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 9fb9d5a..8da9c88 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -130,7 +130,7 @@ struct acpi_battery {
+ 	unsigned long flags;
+ };
+ 
+-static int acpi_battery_update(struct acpi_battery *battery);
++static int acpi_battery_update(struct acpi_battery *battery, bool get_info);
+ 
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+ 
+@@ -186,7 +186,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 	int ret = 0;
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if (acpi_battery_update(battery))
++	if (acpi_battery_update(battery, false))
+ 		return -ENODEV;
+ 
+ 	if (acpi_battery_present(battery)) {
+@@ -610,9 +610,11 @@ static void acpi_battery_quirks2(struct acpi_battery *battery)
+ 	}
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery)
++static int acpi_battery_update(struct acpi_battery *battery, bool get_info)
+ {
+ 	int result, old_present = acpi_battery_present(battery);
++	int old_power_unit = battery->power_unit;
++
+ 	result = acpi_battery_get_status(battery);
+ 	if (result)
+ 		return result;
+@@ -631,6 +633,14 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	}
+ 	if (!battery->bat.dev)
+ 		sysfs_add_battery(battery);
++	if (get_info) {
++		acpi_battery_get_info(battery);
++		if (old_power_unit != battery->power_unit) {
++			/* The battery has changed its reporting units */
++			sysfs_remove_battery(battery);
++			sysfs_add_battery(battery);
++		}
++	}
+ 	result = acpi_battery_get_state(battery);
+ 	acpi_battery_quirks2(battery);
+ 	return result;
+@@ -808,7 +818,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
+ static int acpi_battery_read(int fid, struct seq_file *seq)
+ {
+ 	struct acpi_battery *battery = seq->private;
+-	int result = acpi_battery_update(battery);
++	int result = acpi_battery_update(battery, false);
+ 	return acpi_print_funcs[fid](seq, result);
+ }
+ 
+@@ -919,7 +929,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ 	if (!battery)
+ 		return;
+ 	old = battery->bat.dev;
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, (event == ACPI_BATTERY_NOTIFY_INFO));
+ 	acpi_bus_generate_proc_event(device, event,
+ 				     acpi_battery_present(battery));
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+@@ -948,7 +958,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
+ 			"_BIX", &handle)))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, false);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+ #endif
+@@ -989,7 +999,7 @@ static int acpi_battery_resume(struct acpi_device *device)
+ 		return -EINVAL;
+ 	battery = acpi_driver_data(device);
+ 	battery->update_time = 0;
+-	acpi_battery_update(battery);
++	acpi_battery_update(battery, true);
+ 	return 0;
+ }
 
-Best,
-	Dominik
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
