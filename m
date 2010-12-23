@@ -1,55 +1,43 @@
-From: Venkatesh Pallipadi <venki@google.com>
-Subject: Re: [PATCH 6/6] cpufreq: Evaluate P1 before enter turbo mode
-Date: Thu, 23 Dec 2010 10:13:54 -0800
-Message-ID: <AANLkTi=XkMqUSfO076mVqGCHv-Kw-jnuL8dZiN17ypqZ@mail.gmail.com>
-References: <1293085424-18212-1-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-2-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-3-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-4-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-5-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-6-git-send-email-youquan.song@intel.com>
-	<1293085424-18212-7-git-send-email-youquan.song@intel.com>
-	<20101223105730.GB18363@comet.dominikbrodowski.net>
-	<20101223143859.GA1402@srcf.ucam.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [Resend][PATCH] PCI / Hotplug: Fix unexpected driver unregister
+ in pciehp_acpi.c
+Date: Thu, 23 Dec 2010 12:52:10 -0800
+Message-ID: <20101223125210.07cc350f@jbarnes-desktop>
+References: <201012181329.46071.rjw@sisk.pl>
+	<4D0EA38C.2090003@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <20101223143859.GA1402@srcf.ucam.org>
-Sender: cpufreq-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, Youquan Song <youquan.song@intel.com>, davej@redhat.com, cpufreq@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Youquan Song <youquan.song@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from oproxy2-pub.bluehost.com ([67.222.39.60]:34615 "HELO
+	oproxy2-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751938Ab0LWUwN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Dec 2010 15:52:13 -0500
+In-Reply-To: <4D0EA38C.2090003@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Thu, Dec 23, 2010 at 6:38 AM, Matthew Garrett <mjg@redhat.com> wrote:
-> On Thu, Dec 23, 2010 at 11:57:30AM +0100, Dominik Brodowski wrote:
->
->> NACK. First of all, why is it only a "turbo mode" if it's 1000 kHz
->> difference?
->
-> I believe that that's how it's supposed to be defined for Intel systems,
-> but you're right that this doesn't belong in generic code. AMD have
-> support for enabling/disabling their equivalent functionality through
-> sysfs - I'd say that copying that interface and using it to limit the
-> set of p-states provided to the core makes more sense.
->
+On Mon, 20 Dec 2010 09:30:04 +0900
+Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
 
-If this 1000kHz hack is needed, it should be in acpi-cpufreq driver
-along with Intel CPU and Turbo mode capability check..
-I had a change earlier and I don't think I ever pushed it out. But, it
-was doing the max freq transition on turbo capable CPUs in 2 steps.
-Something like:
-- cpu is in one of the low freqs.
-- ondemand asks for highest freq.
-- acpi-cpufreq will check whether the CPU is turbo capable and will
-only switch to non-turbo peak freq as first step.
-- If ondemand asks for highest freq again, acpi-cpufreq will then
-switch to turbo freq.
+> (2010/12/18 21:29), Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki<rjw@sisk.pl>
+> > 
+> > If pcie_ports_disabled is set, pcie_port_service_register() returns
+> > error code and select_detection_mode() should not attempt to
+> > unregister dummy_driver and use dummy_slots.  It should return
+> > PCIEHP_DETECT_ACPI immediately instead.
+> > 
+> > Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
+> 
+> Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> Acked-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> 
+> 
 
-Something like that would probably help the problem here?
+Applied to my for-linus branch, thanks guys.
 
-Thanks,
-Venki
-
-
-Thanks,
-Venki
+-- 
+Jesse Barnes, Intel Open Source Technology Center
