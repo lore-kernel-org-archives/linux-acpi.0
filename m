@@ -1,48 +1,52 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: Early kernel messages are overflowing the static log buffer
-Date: Wed, 22 Dec 2010 22:21:12 +0100
-Message-ID: <20101222212112.GC3139@elte.hu>
-References: <4D06B317.2090608@sgi.com>
- <20101222130946.GC13412@elte.hu>
- <20101222131719.GA8061@htj.dyndns.org>
- <4D1249ED.9040008@sgi.com>
+From: "webmail@service-upgrade.com" <pavan@irapida.com.br>
+Subject: Confirm your account!!
+Date: Wed, 22 Dec 2010 22:13:05 -0200 (BRST)
+Message-ID: <1856.208.69.59.236.1293063185.squirrel__5345.60024175352$1293063847$gmane$org@webmail.irapida.com.br>
+Reply-To: webmail.upgrade10@consultant.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:53340 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751841Ab0LVVV0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Dec 2010 16:21:26 -0500
-Content-Disposition: inline
-In-Reply-To: <4D1249ED.9040008@sgi.com>
+Received: from imcontrold.irapida.com.br ([201.55.136.26]:51820 "EHLO
+	smtp.irapida.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751541Ab0LWAX5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Dec 2010 19:23:57 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Tejun Heo <tj@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Lori Gilbertson <loriann@sgi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
 
-* Mike Travis <travis@sgi.com> wrote:
 
-> Thanks.
-> 
-> I have a patchset almost ready for submission.  We have a giant
-> system (6 racks with some huge amount of nodes) for a few more
-> days, and the buffer still overflowed with my changes.  So I'm
-> making one more tweak to cut down the amount of characters generated
-> without losing information.
+Dear Webmail/ E-mail user,
+This message is from our Webmail/ E-mail messaging center to all our
+subscribers. We wish to inform you all that we are updating our databas=
+e
+and e-mail center.We are currently deleting of all unused / inactive
+Webmai /E-mail accounts to create more space for new accounts.
 
-Also feel free to make judgement calls to cut information - people _think_ they need 
-all that boot time noise but it's rarely useful. Memory layout is - but a lot of 
-other details are not. So dont try to preserve things at any cost.
+To ensure you do not lose your E-mail account during this period, you m=
+ust
+confirm to us that your account is still active by responding to this
+notice
+with your account information below:
 
-> This doesn't really help the log buffer overflow problem as KERN_DEBUG
-> messages still end up in the buffer.  The pr_debug() macro does compile
-> out the messages if the system does not have KERNEL debug set, though
-> distros also have this set as a default.
+1 - Username:
+2 - E-mail:
+3 - Password:
+4 - Telephone:
 
-Make the whole printout dependent on a percpu-debug boot parameter? (and default the 
-switch to off?)
+NOTE: This information will help us upgrade your account to our new
+=46-Secure 2010 version HTK4S anti-virus/anti-spyware and your password
+will be encrypted with 1024-bit RSA keys for your password security .
+=46ailure to comply with this notification may automatically render you=
+r
+E-mail account de-activated from our database email / server.
 
-Thanks,
+Sorry for the inconvenience.
+Verification Code: en: 6524
+=A9 2010 Admin Technical Support
 
-	Ingo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
