@@ -1,81 +1,30 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH 6/6] cpufreq: Evaluate P1 before enter turbo mode
-Date: Thu, 23 Dec 2010 11:57:30 +0100
-Message-ID: <20101223105730.GB18363@comet.dominikbrodowski.net>
-References: <1293085424-18212-1-git-send-email-youquan.song@intel.com>
- <1293085424-18212-2-git-send-email-youquan.song@intel.com>
- <1293085424-18212-3-git-send-email-youquan.song@intel.com>
- <1293085424-18212-4-git-send-email-youquan.song@intel.com>
- <1293085424-18212-5-git-send-email-youquan.song@intel.com>
- <1293085424-18212-6-git-send-email-youquan.song@intel.com>
- <1293085424-18212-7-git-send-email-youquan.song@intel.com>
+From: Youquan Song <youquan.song@linux.intel.com>
+Subject: Re: [PATCH 0/6] cpufreq: Add sampling window to enhance ondemand
+	governor power efficiency
+Date: Thu, 23 Dec 2010 22:06:27 -0500
+Message-ID: <20101224030627.GA9850__47286.2589209855$1293112665$gmane$org@linux-youquan.bj.intel.com>
+References: <1293085424-18212-1-git-send-email-youquan.song@intel.com> <20101223110020.GC18363@comet.dominikbrodowski.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:15640 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751493Ab0LWN5h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Dec 2010 08:57:37 -0500
 Content-Disposition: inline
-In-Reply-To: <1293085424-18212-7-git-send-email-youquan.song@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Youquan Song <youquan.song@intel.com>
-Cc: davej@redhat.com, cpufreq@vger.kernel.org, venki@google.com, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Youquan Song <youquan.song@linux.intel.com>
+In-Reply-To: <20101223110020.GC18363@comet.dominikbrodowski.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>, Youquan Song <youquan.song@intel.com>, davej@redhat.com, cpufreq@vger.kernel.org, venki@google.com, arjan@linux.intel.com, lenb@kernel.
 
-Hey,
+> Interesting approach, but seems to be quite different from what "ondemand"
+> does at the moment. And, as David Niemi pointed out, it seems to be more
+> Intel-specific. Therefore, what do you think about adding this different
+> algorithm as a different governor, and keep the "ondemand" algorithm more or
+> less as it is?
 
-On Thu, Dec 23, 2010 at 02:23:44PM +0800, Youquan Song wrote:
-> diff --git a/drivers/cpufreq/freq_table.c b/drivers/cpufreq/freq_table.c
-> index 0543221..d7dc010 100644
-> --- a/drivers/cpufreq/freq_table.c
-> +++ b/drivers/cpufreq/freq_table.c
-> @@ -26,6 +26,7 @@ int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
->  {
->  	unsigned int min_freq = ~0;
->  	unsigned int max_freq = 0;
-> +	unsigned int sec_max_freq = 0;
->  	unsigned int i;
->  
->  	for (i = 0; (table[i].frequency != CPUFREQ_TABLE_END); i++) {
-> @@ -41,10 +42,18 @@ int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
->  			min_freq = freq;
->  		if (freq > max_freq)
->  			max_freq = freq;
-> +		/* Find the second largest frequency */
-> +		if ((freq < max_freq) && (freq > sec_max_freq))
-> +			sec_max_freq = freq;
->  	}
->  
->  	policy->min = policy->cpuinfo.min_freq = min_freq;
->  	policy->max = policy->cpuinfo.max_freq = max_freq;
-> +	/* Check CPU turbo mode enabled */
-> +	if (max_freq - sec_max_freq == 1000)
-> +		policy->sec_max = sec_max_freq;
-> +	else
-> +		policy->sec_max = max_freq;
->  
->  	if (policy->min == ~0)
->  		return -EINVAL;
-> diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-> index c3e9de8..0087e56 100644
-> --- a/include/linux/cpufreq.h
-> +++ b/include/linux/cpufreq.h
-> @@ -92,6 +92,7 @@ struct cpufreq_policy {
->  
->  	unsigned int		min;    /* in kHz */
->  	unsigned int		max;    /* in kHz */
-> +	unsigned int		sec_max; /* in kHz*/
->  	unsigned int		cur;    /* in kHz, only needed if cpufreq
->  					 * governors are used */
->          unsigned int		policy; /* see above */
+Good suggestion! I will write a different governor soon if nobody
+oppose.
 
-NACK. First of all, why is it only a "turbo mode" if it's 1000 kHz
-difference? Second, I don't like to put such an additional level into the
-generic cpufreq code -- it just looks to be too chipset/CPU-specific. Third,
-it isn't open to different turbo modes, e.g. if future CPUs offer a
-"super-turbo", a "turbo" and a "semi-turbo" mode. Finally, if (certain) 
-governors really really need to become aware of the individual
-frequency steps -- something we avoided in the past -- we could extend
-struct cpufreq_policy to optionally(!) contain a reference to the struct
-cpufreq_frequency_table array. And add a "power_usage" parameter to that
-struct, which could then be evaluated by the governor.
-
-Best,
-	Dominik
+Thanks
+-Youquan
