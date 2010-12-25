@@ -1,34 +1,53 @@
-From: James Cloos <cloos@jhcloos.com>
-Subject: Re: [PATCH 0/6] cpufreq: Add sampling window to enhance ondemand governor power efficiency
-Date: Fri, 24 Dec 2010 23:24:48 -0500
-Message-ID: <m3zkrueaxj.fsf@jhcloos.com>
-References: <1293085424-18212-1-git-send-email-youquan.song@intel.com>
-	<20101223110020.GC18363@comet.dominikbrodowski.net>
-	<20101223173402.GA3821@redhat.com>
-	<20101223205148.GB6441@comet.dominikbrodowski.net>
+From: GLOBAL TELECOM LTD <joe@globalmail11.com>
+Subject: HOTEL/MOTEL PHONES!!!!!!!
+Date: Sat, 25 Dec 2010 21:58:58 +0000
+Message-ID: <1293314338.149@collaborationhost.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="US-ASCII"; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eagle.jhcloos.com ([207.210.242.212]:47197 "EHLO
-	eagle.jhcloos.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753248Ab0LYEy4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Dec 2010 23:54:56 -0500
-In-Reply-To: <20101223205148.GB6441@comet.dominikbrodowski.net> (Dominik
-	Brodowski's message of "Thu, 23 Dec 2010 21:51:48 +0100")
+Received: from mail127.messagelabs.com ([216.82.250.115]:42101 "EHLO
+	mail127.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab0LYV66 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Dec 2010 16:58:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Dave Jones <davej@redhat.com>, Youquan Song <youquan.song@intel.com>, cpufreq@vger.kernel.org, venki@google.com, arjan@linux.intel.com, lenb@kernel.org, suresh.b.siddha@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Youquan Song <youquan.song@linux.intel.com>
+To: linux-acpi@vger.kernel.org
 
->>>>> "DB" == Dominik Brodowski <linux@dominikbrodowski.net> writes:
+			GLOBAL TELECOM LTD
 
-DB> AFAICS, we have two in-kernel dynamic frequency scaling governors, one of
-DB> which doesn't seem to get much usage (conservative)...
+		        NORTEL PHONES SALE!!!!!!!
 
-Isn't conservative the recommended choice for AMD processors?
 
-Or has that changed?
+1.NORTEL C3060 CORDLESS SETS WITH POWER!!!      $65 EA/OFFER
 
--JimC
--- 
-James Cloos <cloos@jhcloos.com>         OpenPGP: 1024D/ED7DAEA6
+2.TELEDEX L2S/DIAMOND A				$56/$29EA
+
+3.HITACHI 700 SELECT SETS 700                   $115 EA 
+4.TELEMATRIX 2702/2802		    	        $43/$56EA 
+      
+5.NORTEL 2616 2K/9K CHEAP 29/43			$20/$34EA
+
+6.NORSTAR 7310/7208				$20/$16EA
+
+7.NEC DTU-16D1/DTP-16D1                         $56/$56EA
+
+8.MERLIN MLX-10D/28D/20L   			$43/$92EA
+						
+9.ISDN PHONES 8510D/8520D/8528D			$56/$92/$92EA
+
+10.TONE COMMANDER 6210T/6220T/I2022     	$56/$92/155 SALE! 
+         
+11.ISDN NTBX81/80 AA/NT1B300	    		$43/43EA
+
+BUYING!!!!!!! TELRADAVANTI/NEC DTH16/COMDIAL/ALL IP SETS/ESI/NORTEL 
+PHONES/AVAYA IP PHONES/3COM.
+
+ALL BRANDS PHONE SALES!!!!   ALL PHONES TESTED AND WARRANTED.
+
+GLOBAL TELECOM LTD  
+CALL JOE: 409-744-7777   
+EMAIL:  MYBIDZ@GMAIL.COM
+
+
+
+
