@@ -1,12 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/33] ACPI / PM: Drop acpi_power_nocheck
-Date: Sun, 26 Dec 2010 17:43:37 -0500
-Message-ID: <2553b6467757c772437d7b3c91c8417e99dc902d.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 12/33] ACPI / Fan: Rework the handling of power resources
+Date: Sun, 26 Dec 2010 17:43:33 -0500
+Message-ID: <4e3524e82a31d1daaee56fa05b7b18936f554bc4.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:51680 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142Ab0LZW6w (ORCPT
+	with ESMTP id S1753152Ab0LZW6w (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:52 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
  by vms173011.mailsrvcs.net
@@ -23,112 +23,131 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Since acpi_bus_set_power() should not use __acpi_bus_get_power() to
-update the device's device->power.state field before changing its
-power state (this may cause device->power.state to be inconsistent
-with the device power resources' reference counters), remove this
-call from it.  In consequence, the acpi_power_nocheck variable is not
-necessary any more, so it can be dropped along with the DMI table
-used for setting that variable for HP Pavilion 05.
+Use the new function acpi_bus_update_power() for manipulating power
+resources used by ACPI fan devices, which allows them to be put into
+the right state during initialization and resume.  Consequently,
+remove the flags.force_power_state field from struct acpi_device,
+which is not necessary any more.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |   39 ---------------------------------------
- drivers/acpi/internal.h |    1 -
- drivers/acpi/power.c    |    3 ---
- 3 files changed, 0 insertions(+), 43 deletions(-)
+ drivers/acpi/bus.c      |    2 +-
+ drivers/acpi/fan.c      |   27 +++++++--------------------
+ drivers/acpi/thermal.c  |    5 +++--
+ include/acpi/acpi_bus.h |    3 +--
+ 4 files changed, 12 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 0baa5f9..7ced61f 100644
+index 4786401..2ee83b5 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -52,22 +52,6 @@ EXPORT_SYMBOL(acpi_root_dir);
+@@ -266,7 +266,7 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
  
- #define STRUCT_TO_INT(s)	(*((int*)&s))
+ 	/* Make sure this is a valid target state */
  
--static int set_power_nocheck(const struct dmi_system_id *id)
--{
--	printk(KERN_NOTICE PREFIX "%s detected - "
--		"disable power check in power transition\n", id->ident);
--	acpi_power_nocheck = 1;
--	return 0;
--}
--static struct dmi_system_id __cpuinitdata power_nocheck_dmi_table[] = {
--	{
--	set_power_nocheck, "HP Pavilion 05", {
--	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
--	DMI_MATCH(DMI_SYS_VENDOR, "HP Pavilion 05"),
--	DMI_MATCH(DMI_PRODUCT_VERSION, "2001211RE101GLEND") }, NULL},
--	{},
--};
--
+-	if ((state == device->power.state) && !device->flags.force_power_state) {
++	if (state == device->power.state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
+ 				  state));
+ 		return 0;
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 6004908..467479f 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -86,7 +86,7 @@ static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long
+ 	if (!device)
+ 		return -EINVAL;
  
- #ifdef CONFIG_X86
- static int set_copy_dsdt(const struct dmi_system_id *id)
-@@ -333,23 +317,6 @@ int acpi_bus_set_power(acpi_handle handle, int state)
- 		return -ENODEV;
- 	}
- 
--	/*
--	 * Get device's current power state
--	 */
--	if (!acpi_power_nocheck) {
--		/*
--		 * Maybe the incorrect power state is returned on the bogus
--		 * bios, which is different with the real power state.
--		 * For example: the bios returns D0 state and the real power
--		 * state is D3. OS expects to set the device to D0 state. In
--		 * such case if OS uses the power state returned by the BIOS,
--		 * the device can't be transisted to the correct power state.
--		 * So if the acpi_power_nocheck is set, it is unnecessary to
--		 * get the power state by calling acpi_bus_get_power.
--		 */
--		__acpi_bus_get_power(device, &device->power.state);
--	}
--
- 	return __acpi_bus_set_power(device, state);
- }
- EXPORT_SYMBOL(acpi_bus_set_power);
-@@ -1072,12 +1039,6 @@ static int __init acpi_init(void)
- 	if (acpi_disabled)
+-	result = acpi_bus_get_power(device->handle, &acpi_state);
++	result = acpi_bus_update_power(device->handle, &acpi_state);
+ 	if (result)
  		return result;
  
--	/*
--	 * If the laptop falls into the DMI check table, the power state check
--	 * will be disabled in the course of device power transition.
--	 */
--	dmi_check_system(power_nocheck_dmi_table);
--
- 	acpi_scan_init();
- 	acpi_ec_init();
- 	acpi_debugfs_init();
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 7493e6c..8df5d70 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -45,7 +45,6 @@ int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
- int acpi_power_on_resources(struct acpi_device *device, int state);
- int acpi_power_transition(struct acpi_device *device, int state);
- int acpi_bus_init_power(struct acpi_device *device);
--extern int acpi_power_nocheck;
+@@ -123,7 +123,6 @@ static struct thermal_cooling_device_ops fan_cooling_ops = {
+ static int acpi_fan_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+-	int state = 0;
+ 	struct thermal_cooling_device *cdev;
  
- int acpi_wakeup_device_init(void);
- void acpi_early_processor_set_pdc(void);
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 0cb4eab..0003f10 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -56,9 +56,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 	if (!device)
+@@ -132,16 +131,12 @@ static int acpi_fan_add(struct acpi_device *device)
+ 	strcpy(acpi_device_name(device), "Fan");
+ 	strcpy(acpi_device_class(device), ACPI_FAN_CLASS);
  
--int acpi_power_nocheck;
--module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+-	result = acpi_bus_get_power(device->handle, &state);
++	result = acpi_bus_update_power(device->handle, NULL);
+ 	if (result) {
+-		printk(KERN_ERR PREFIX "Reading power state\n");
++		printk(KERN_ERR PREFIX "Setting initial power state\n");
+ 		goto end;
+ 	}
+ 
+-	device->flags.force_power_state = 1;
+-	acpi_bus_set_power(device->handle, state);
+-	device->flags.force_power_state = 0;
 -
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
+ 	cdev = thermal_cooling_device_register("Fan", device,
+ 						&fan_cooling_ops);
+ 	if (IS_ERR(cdev)) {
+@@ -200,22 +195,14 @@ static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state)
+ 
+ static int acpi_fan_resume(struct acpi_device *device)
+ {
+-	int result = 0;
+-	int power_state = 0;
++	int result;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	result = acpi_bus_get_power(device->handle, &power_state);
+-	if (result) {
+-		printk(KERN_ERR PREFIX
+-				  "Error reading fan power state\n");
+-		return result;
+-	}
+-
+-	device->flags.force_power_state = 1;
+-	acpi_bus_set_power(device->handle, power_state);
+-	device->flags.force_power_state = 0;
++	result = acpi_bus_update_power(device->handle, NULL);
++	if (result)
++		printk(KERN_ERR PREFIX "Error updating fan power state\n");
+ 
+ 	return result;
+ }
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 5a27b0a..2607e17 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -1059,8 +1059,9 @@ static int acpi_thermal_resume(struct acpi_device *device)
+ 			break;
+ 		tz->trips.active[i].flags.enabled = 1;
+ 		for (j = 0; j < tz->trips.active[i].devices.count; j++) {
+-			result = acpi_bus_get_power(tz->trips.active[i].devices.
+-			    handles[j], &power_state);
++			result = acpi_bus_update_power(
++					tz->trips.active[i].devices.handles[j],
++					&power_state);
+ 			if (result || (power_state != ACPI_STATE_D0)) {
+ 				tz->trips.active[i].flags.enabled = 0;
+ 				break;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 5d2c4c5..8912580 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -149,8 +149,7 @@ struct acpi_device_flags {
+ 	u32 power_manageable:1;
+ 	u32 performance_manageable:1;
+ 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
+-	u32 force_power_state:1;
+-	u32 reserved:22;
++	u32 reserved:23;
+ };
+ 
+ /* File System */
 -- 
 1.7.3.3.557.gb5c17
 
