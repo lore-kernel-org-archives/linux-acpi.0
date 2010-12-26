@@ -1,110 +1,110 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/33] ACPI / PM: Prevent acpi_power_get_inferred_state() from
- making changes
-Date: Sun, 26 Dec 2010 17:43:25 -0500
-Message-ID: <e396b2c88c8bb3ac5fba8fe359d59151484e0b0e.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 01/33] PNP: Compile all pnp built-in stuff in one module
+ namespace
+Date: Sun, 26 Dec 2010 17:43:22 -0500
+Message-ID: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:34856 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001Ab0LZWoP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:44:15 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:61058 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753014Ab0LZWoQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:44:16 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LE2003GD4HPKET3@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:44:14 -0600 (CST)
+ with ESMTPA id <0LE200ETP4HDC0J8@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:44:07 -0600 (CST)
 In-reply-to: <1293403434-12054-1-git-send-email-lenb@kernel.org>
-In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
-References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Thomas Renninger <trenn@suse.de>
 
-acpi_power_get_inferred_state() should not update
-device->power.state behind the back of its caller, so make it return
-the state via a pointer instead.
+This is cleanup mostly, nothing urgent.
+I came up with it when looking at dynamic debug which can
+enable pr_debug messages at runtime or boot param
+for a specific module.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Advantages:
+  - Any pnp code can make use of the moduleparam.h interface, the modules
+    will show up as pnp.param.
+  - Passing pnp.ddebug as kernel boot param will enable all pnp debug messages
+    with my previous patch and CONFIG_DYNAMIC_DEBUG enabled.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |    3 ++-
- drivers/acpi/internal.h |    2 +-
- drivers/acpi/power.c    |   12 ++++--------
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/pnp/Makefile         |    6 ++++--
+ drivers/pnp/isapnp/Makefile  |    6 +++---
+ drivers/pnp/pnpacpi/Makefile |    3 ++-
+ drivers/pnp/pnpbios/Makefile |    5 +++--
+ 4 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index d68bd61..a9fe8e6 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -222,7 +222,8 @@ int acpi_bus_get_power(acpi_handle handle, int *state)
- 		 * indirectly (via power resources).
- 		 */
- 		if (device->power.flags.power_resources) {
--			result = acpi_power_get_inferred_state(device);
-+			result = acpi_power_get_inferred_state(device,
-+							&device->power.state);
- 			if (result)
- 				return result;
- 		} else if (device->power.flags.explicit_get) {
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index a212bfe..2cc0148 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -41,7 +41,7 @@ static inline int acpi_debugfs_init(void) { return 0; }
- int acpi_power_init(void);
- int acpi_device_sleep_wake(struct acpi_device *dev,
-                            int enable, int sleep_state, int dev_state);
--int acpi_power_get_inferred_state(struct acpi_device *device);
-+int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
- int acpi_power_transition(struct acpi_device *device, int state);
- extern int acpi_power_nocheck;
+diff --git a/drivers/pnp/Makefile b/drivers/pnp/Makefile
+index 8de3775..bfba893 100644
+--- a/drivers/pnp/Makefile
++++ b/drivers/pnp/Makefile
+@@ -2,11 +2,13 @@
+ # Makefile for the Linux Plug-and-Play Support.
+ #
  
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 4c9c2fb..9bd1b60 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -423,19 +423,16 @@ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
-                              Device Power Management
-    -------------------------------------------------------------------------- */
+-obj-y		:= core.o card.o driver.o resource.o manager.o support.o interface.o quirks.o
++obj-y		:= pnp.o
++
++pnp-y		:= core.o card.o driver.o resource.o manager.o support.o interface.o quirks.o
  
--int acpi_power_get_inferred_state(struct acpi_device *device)
-+int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
- {
- 	int result = 0;
- 	struct acpi_handle_list *list = NULL;
- 	int list_state = 0;
- 	int i = 0;
+ obj-$(CONFIG_PNPACPI)		+= pnpacpi/
+ obj-$(CONFIG_PNPBIOS)		+= pnpbios/
+ obj-$(CONFIG_ISAPNP)		+= isapnp/
  
+ # pnp_system_init goes after pnpacpi/pnpbios init
+-obj-y				+= system.o
++pnp-y				+= system.o
+diff --git a/drivers/pnp/isapnp/Makefile b/drivers/pnp/isapnp/Makefile
+index cac18bb..6e607aa 100644
+--- a/drivers/pnp/isapnp/Makefile
++++ b/drivers/pnp/isapnp/Makefile
+@@ -1,7 +1,7 @@
+ #
+ # Makefile for the kernel ISAPNP driver.
+ #
++obj-y			+= pnp.o
++pnp-y			:= core.o compat.o
+ 
+-isapnp-proc-$(CONFIG_PROC_FS) = proc.o
 -
--	if (!device)
-+	if (!device || !state)
- 		return -EINVAL;
+-obj-y := core.o compat.o $(isapnp-proc-y)
++pnp-$(CONFIG_PROC_FS)	+= proc.o
+diff --git a/drivers/pnp/pnpacpi/Makefile b/drivers/pnp/pnpacpi/Makefile
+index 905326f..40c93da 100644
+--- a/drivers/pnp/pnpacpi/Makefile
++++ b/drivers/pnp/pnpacpi/Makefile
+@@ -1,5 +1,6 @@
+ #
+ # Makefile for the kernel PNPACPI driver.
+ #
++obj-y += pnp.o
  
--	device->power.state = ACPI_STATE_UNKNOWN;
--
- 	/*
- 	 * We know a device's inferred power state when all the resources
- 	 * required for a given D-state are 'on'.
-@@ -450,13 +447,12 @@ int acpi_power_get_inferred_state(struct acpi_device *device)
- 			return result;
+-obj-y := core.o rsparser.o
++pnp-y := core.o rsparser.o
+diff --git a/drivers/pnp/pnpbios/Makefile b/drivers/pnp/pnpbios/Makefile
+index 3cd3ed7..240b0ff 100644
+--- a/drivers/pnp/pnpbios/Makefile
++++ b/drivers/pnp/pnpbios/Makefile
+@@ -1,7 +1,8 @@
+ #
+ # Makefile for the kernel PNPBIOS driver.
+ #
++obj-y := pnp.o
  
- 		if (list_state == ACPI_POWER_RESOURCE_STATE_ON) {
--			device->power.state = i;
-+			*state = i;
- 			return 0;
- 		}
- 	}
+-pnpbios-proc-$(CONFIG_PNPBIOS_PROC_FS) = proc.o
++pnp-y := core.o bioscalls.o rsparser.o
  
--	device->power.state = ACPI_STATE_D3;
--
-+	*state = ACPI_STATE_D3;
- 	return 0;
- }
- 
+-obj-y := core.o bioscalls.o rsparser.o $(pnpbios-proc-y)
++pnp-$(CONFIG_PNPBIOS_PROC_FS) += proc.o
 -- 
 1.7.3.3.557.gb5c17
 
