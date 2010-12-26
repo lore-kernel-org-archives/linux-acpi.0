@@ -1,632 +1,424 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 26/33] ACPI, APEI,
- Add APEI generic error status printing support
-Date: Sun, 26 Dec 2010 17:43:47 -0500
-Message-ID: <f59c55d04b43bd72df8efa692dd07224fe94d1ac.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 24/33] ACPICA: Misc comments to minimize code divergence
+Date: Sun, 26 Dec 2010 17:43:45 -0500
+Message-ID: <eb371d4153b24096e489cceae7c9d005162371df.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:51680 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753171Ab0LZW7D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:59:03 -0500
+	with ESMTP id S1753142Ab0LZW64 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:56 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LE200DX055VNMD4@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:57 -0600 (CST)
+ linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:55 -0600 (CST)
 In-reply-to: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Huang Ying <ying.huang@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-In APEI, Hardware error information reported by firmware to Linux
-kernel is in the data structure of APEI generic error status (struct
-acpi_hes_generic_status).  While now printk is used by Linux kernel to
-report hardware error information to user space.
+Modify/add some comments to minimize ACPICA/linux GPE code divergence.
 
-So, this patch adds printing support for the data structure, so that
-the corresponding hardware error information can be reported to user
-space via printk.
-
-PCIe AER information printing is not implemented yet.  Will refactor the
-original PCIe AER information printing code to avoid code duplicating.
-
-The output format is as follow:
-
-<error record> :=
-APEI generic hardware error status
-severity: <integer>, <severity string>
-section: <integer>, severity: <integer>, <severity string>
-flags: <integer>
-<section flags strings>
-fru_id: <uuid string>
-fru_text: <string>
-section_type: <section type string>
-<section data>
-
-<severity string>* := recoverable | fatal | corrected | info
-
-<section flags strings># :=
-[primary][, containment warning][, reset][, threshold exceeded]\
-[, resource not accessible][, latent error]
-
-<section type string> := generic processor error | memory error | \
-PCIe error | unknown, <uuid string>
-
-<section data> :=
-<generic processor section data> | <memory section data> | \
-<pcie section data> | <null>
-
-<generic processor section data> :=
-[processor_type: <integer>, <proc type string>]
-[processor_isa: <integer>, <proc isa string>]
-[error_type: <integer>
-<proc error type strings>]
-[operation: <integer>, <proc operation string>]
-[flags: <integer>
-<proc flags strings>]
-[level: <integer>]
-[version_info: <integer>]
-[processor_id: <integer>]
-[target_address: <integer>]
-[requestor_id: <integer>]
-[responder_id: <integer>]
-[IP: <integer>]
-
-<proc type string>* := IA32/X64 | IA64
-
-<proc isa string>* := IA32 | IA64 | X64
-
-<processor error type strings># :=
-[cache error][, TLB error][, bus error][, micro-architectural error]
-
-<proc operation string>* := unknown or generic | data read | data write | \
-instruction execution
-
-<proc flags strings># :=
-[restartable][, precise IP][, overflow][, corrected]
-
-<memory section data> :=
-[error_status: <integer>]
-[physical_address: <integer>]
-[physical_address_mask: <integer>]
-[node: <integer>]
-[card: <integer>]
-[module: <integer>]
-[bank: <integer>]
-[device: <integer>]
-[row: <integer>]
-[column: <integer>]
-[bit_position: <integer>]
-[requestor_id: <integer>]
-[responder_id: <integer>]
-[target_id: <integer>]
-[error_type: <integer>, <mem error type string>]
-
-<mem error type string>* :=
-unknown | no error | single-bit ECC | multi-bit ECC | \
-single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
-target abort | parity error | watchdog timeout | invalid address | \
-mirror Broken | memory sparing | scrub corrected error | \
-scrub uncorrected error
-
-<pcie section data> :=
-[port_type: <integer>, <pcie port type string>]
-[version: <integer>.<integer>]
-[command: <integer>, status: <integer>]
-[device_id: <integer>:<integer>:<integer>.<integer>
-slot: <integer>
-secondary_bus: <integer>
-vendor_id: <integer>, device_id: <integer>
-class_code: <integer>]
-[serial number: <integer>, <integer>]
-[bridge: secondary_status: <integer>, control: <integer>]
-
-<pcie port type string>* := PCIe end point | legacy PCI end point | \
-unknown | unknown | root port | upstream switch port | \
-downstream switch port | PCIe to PCI/PCI-X bridge | \
-PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
-root complex event collector
-
-Where, [] designate corresponding content is optional
-
-All <field string> description with * has the following format:
-
-field: <integer>, <field string>
-
-Where value of <integer> should be the position of "string" in <field
-string> description. Otherwise, <field string> will be "unknown".
-
-All <field strings> description with # has the following format:
-
-field: <integer>
-<field strings>
-
-Where each string in <fields strings> corresponding to one set bit of
-<integer>. The bit position is the position of "string" in <field
-strings> description.
-
-For more detailed explanation of every field, please refer to UEFI
-specification version 2.3 or later, section Appendix N: Common
-Platform Error Record.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/acpi/apei/output_format.txt |  122 +++++++++++
- drivers/acpi/apei/apei-internal.h         |    2 +
- drivers/acpi/apei/cper.c                  |  311 +++++++++++++++++++++++++++++
- 3 files changed, 435 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/acpi/apei/output_format.txt
+ drivers/acpi/acpica/achware.h   |    2 +-
+ drivers/acpi/acpica/evgpe.c     |   21 +++++++++++++--------
+ drivers/acpi/acpica/evgpeblk.c  |   18 ++++++++----------
+ drivers/acpi/acpica/evgpeinit.c |   24 ++++++++++++++++++++----
+ drivers/acpi/acpica/evxfgpe.c   |   32 +++++++++++++++++++++-----------
+ drivers/acpi/acpica/hwgpe.c     |   30 ++++++++++++++++++------------
+ 6 files changed, 81 insertions(+), 46 deletions(-)
 
-diff --git a/Documentation/acpi/apei/output_format.txt b/Documentation/acpi/apei/output_format.txt
-new file mode 100644
-index 0000000..9146952
---- /dev/null
-+++ b/Documentation/acpi/apei/output_format.txt
-@@ -0,0 +1,122 @@
-+                     APEI output format
-+                     ~~~~~~~~~~~~~~~~~~
-+
-+APEI uses printk as hardware error reporting interface, the output
-+format is as follow.
-+
-+<error record> :=
-+APEI generic hardware error status
-+severity: <integer>, <severity string>
-+section: <integer>, severity: <integer>, <severity string>
-+flags: <integer>
-+<section flags strings>
-+fru_id: <uuid string>
-+fru_text: <string>
-+section_type: <section type string>
-+<section data>
-+
-+<severity string>* := recoverable | fatal | corrected | info
-+
-+<section flags strings># :=
-+[primary][, containment warning][, reset][, threshold exceeded]\
-+[, resource not accessible][, latent error]
-+
-+<section type string> := generic processor error | memory error | \
-+PCIe error | unknown, <uuid string>
-+
-+<section data> :=
-+<generic processor section data> | <memory section data> | \
-+<pcie section data> | <null>
-+
-+<generic processor section data> :=
-+[processor_type: <integer>, <proc type string>]
-+[processor_isa: <integer>, <proc isa string>]
-+[error_type: <integer>
-+<proc error type strings>]
-+[operation: <integer>, <proc operation string>]
-+[flags: <integer>
-+<proc flags strings>]
-+[level: <integer>]
-+[version_info: <integer>]
-+[processor_id: <integer>]
-+[target_address: <integer>]
-+[requestor_id: <integer>]
-+[responder_id: <integer>]
-+[IP: <integer>]
-+
-+<proc type string>* := IA32/X64 | IA64
-+
-+<proc isa string>* := IA32 | IA64 | X64
-+
-+<processor error type strings># :=
-+[cache error][, TLB error][, bus error][, micro-architectural error]
-+
-+<proc operation string>* := unknown or generic | data read | data write | \
-+instruction execution
-+
-+<proc flags strings># :=
-+[restartable][, precise IP][, overflow][, corrected]
-+
-+<memory section data> :=
-+[error_status: <integer>]
-+[physical_address: <integer>]
-+[physical_address_mask: <integer>]
-+[node: <integer>]
-+[card: <integer>]
-+[module: <integer>]
-+[bank: <integer>]
-+[device: <integer>]
-+[row: <integer>]
-+[column: <integer>]
-+[bit_position: <integer>]
-+[requestor_id: <integer>]
-+[responder_id: <integer>]
-+[target_id: <integer>]
-+[error_type: <integer>, <mem error type string>]
-+
-+<mem error type string>* :=
-+unknown | no error | single-bit ECC | multi-bit ECC | \
-+single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
-+target abort | parity error | watchdog timeout | invalid address | \
-+mirror Broken | memory sparing | scrub corrected error | \
-+scrub uncorrected error
-+
-+<pcie section data> :=
-+[port_type: <integer>, <pcie port type string>]
-+[version: <integer>.<integer>]
-+[command: <integer>, status: <integer>]
-+[device_id: <integer>:<integer>:<integer>.<integer>
-+slot: <integer>
-+secondary_bus: <integer>
-+vendor_id: <integer>, device_id: <integer>
-+class_code: <integer>]
-+[serial number: <integer>, <integer>]
-+[bridge: secondary_status: <integer>, control: <integer>]
-+
-+<pcie port type string>* := PCIe end point | legacy PCI end point | \
-+unknown | unknown | root port | upstream switch port | \
-+downstream switch port | PCIe to PCI/PCI-X bridge | \
-+PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
-+root complex event collector
-+
-+Where, [] designate corresponding content is optional
-+
-+All <field string> description with * has the following format:
-+
-+field: <integer>, <field string>
-+
-+Where value of <integer> should be the position of "string" in <field
-+string> description. Otherwise, <field string> will be "unknown".
-+
-+All <field strings> description with # has the following format:
-+
-+field: <integer>
-+<field strings>
-+
-+Where each string in <fields strings> corresponding to one set bit of
-+<integer>. The bit position is the position of "string" in <field
-+strings> description.
-+
-+For more detailed explanation of every field, please refer to UEFI
-+specification version 2.3 or later, section Appendix N: Common
-+Platform Error Record.
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index 18df1e9..ef0581f 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -109,6 +109,8 @@ static inline u32 apei_estatus_len(struct acpi_hest_generic_status *estatus)
- 		return sizeof(*estatus) + estatus->data_length;
- }
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index 167470a..258d628 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -94,7 +94,7 @@ u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
+ 			     struct acpi_gpe_register_info *gpe_register_info);
  
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
- #endif
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index f4cf2fc..31464a0 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -46,6 +46,317 @@ u64 cper_next_record_id(void)
- }
- EXPORT_SYMBOL_GPL(cper_next_record_id);
+ acpi_status
+-acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action);
++acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action);
  
-+static const char *cper_severity_strs[] = {
-+	"recoverable",
-+	"fatal",
-+	"corrected",
-+	"info",
-+};
+ acpi_status
+ acpi_hw_disable_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 3bcf5ef..7c339d3 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -104,7 +104,7 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Clear the given GPE from stale events and enable it.
++ * DESCRIPTION: Clear a GPE of stale events and enable it.
+  *
+  ******************************************************************************/
+ acpi_status
+@@ -142,7 +142,7 @@ acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+  *
+  * FUNCTION:    acpi_ev_add_gpe_reference
+  *
+- * PARAMETERS:  gpe_event_info  - GPE to enable
++ * PARAMETERS:  gpe_event_info          - Add a reference to this GPE
+  *
+  * RETURN:      Status
+  *
+@@ -163,6 +163,9 @@ acpi_status acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info
+ 
+ 	gpe_event_info->runtime_count++;
+ 	if (gpe_event_info->runtime_count == 1) {
 +
-+static const char *cper_severity_str(unsigned int severity)
-+{
-+	return severity < ARRAY_SIZE(cper_severity_strs) ?
-+		cper_severity_strs[severity] : "unknown";
-+}
++		/* Enable on first reference */
 +
+ 		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
+ 		if (ACPI_SUCCESS(status)) {
+ 			status = acpi_ev_enable_gpe(gpe_event_info);
+@@ -180,7 +183,7 @@ acpi_status acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info
+  *
+  * FUNCTION:    acpi_ev_remove_gpe_reference
+  *
+- * PARAMETERS:  gpe_event_info  - GPE to disable
++ * PARAMETERS:  gpe_event_info          - Remove a reference to this GPE
+  *
+  * RETURN:      Status
+  *
+@@ -201,6 +204,9 @@ acpi_status acpi_ev_remove_gpe_reference(struct acpi_gpe_event_info *gpe_event_i
+ 
+ 	gpe_event_info->runtime_count--;
+ 	if (!gpe_event_info->runtime_count) {
++
++		/* Disable on last reference */
++
+ 		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
+ 		if (ACPI_SUCCESS(status)) {
+ 			status = acpi_hw_low_set_gpe(gpe_event_info,
+@@ -386,7 +392,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
+ 			}
+ 
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INTERRUPTS,
+-					  "Read GPE Register at GPE%X: Status=%02X, Enable=%02X\n",
++					  "Read GPE Register at GPE%02X: Status=%02X, Enable=%02X\n",
+ 					  gpe_register_info->base_gpe_number,
+ 					  status_reg, enable_reg));
+ 
+@@ -660,8 +666,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 		status = acpi_hw_clear_gpe(gpe_event_info);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+-					"Unable to clear GPE[0x%2X]",
+-					gpe_number));
++					"Unable to clear GPE%02X", gpe_number));
+ 			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+ 		}
+ 	}
+@@ -720,7 +725,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 					 gpe_event_info);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+-					"Unable to queue handler for GPE[0x%2X] - event disabled",
++					"Unable to queue handler for GPE%2X - event disabled",
+ 					gpe_number));
+ 		}
+ 		break;
+@@ -733,7 +738,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 		 * a GPE to be enabled if it has no handler or method.
+ 		 */
+ 		ACPI_ERROR((AE_INFO,
+-			    "No handler or method for GPE[0x%2X], disabling event",
++			    "No handler or method for GPE%02X, disabling event",
+ 			    gpe_number));
+ 
+ 		break;
+diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
+index e2e8164..9acb869 100644
+--- a/drivers/acpi/acpica/evgpeblk.c
++++ b/drivers/acpi/acpica/evgpeblk.c
+@@ -361,9 +361,9 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
+ 
+ 	gpe_block->node = gpe_device;
+ 	gpe_block->gpe_count = (u16)(register_count * ACPI_GPE_REGISTER_WIDTH);
++	gpe_block->initialized = FALSE;
+ 	gpe_block->register_count = register_count;
+ 	gpe_block->block_base_number = gpe_block_base_number;
+-	gpe_block->initialized = FALSE;
+ 
+ 	ACPI_MEMCPY(&gpe_block->block_address, gpe_block_address,
+ 		    sizeof(struct acpi_generic_address));
+@@ -423,14 +423,12 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
+  *
+  * FUNCTION:    acpi_ev_initialize_gpe_block
+  *
+- * PARAMETERS:  gpe_device          - Handle to the parent GPE block
+- *              gpe_block           - Gpe Block info
++ * PARAMETERS:  acpi_gpe_callback
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Initialize and enable a GPE block. First find and run any
+- *              _PRT methods associated with the block, then enable the
+- *              appropriate GPEs.
++ * DESCRIPTION: Initialize and enable a GPE block. Enable GPEs that have
++ *              associated methods.
+  *              Note: Assumes namespace is locked.
+  *
+  ******************************************************************************/
+@@ -450,8 +448,8 @@ acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ 	ACPI_FUNCTION_TRACE(ev_initialize_gpe_block);
+ 
+ 	/*
+-	 * Ignore a null GPE block (e.g., if no GPE block 1 exists) and
+-	 * GPE blocks that have been initialized already.
++	 * Ignore a null GPE block (e.g., if no GPE block 1 exists), and
++	 * any GPE blocks that have been initialized already.
+ 	 */
+ 	if (!gpe_block || gpe_block->initialized) {
+ 		return_ACPI_STATUS(AE_OK);
+@@ -459,8 +457,8 @@ acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ 
+ 	/*
+ 	 * Enable all GPEs that have a corresponding method and have the
+-	 * ACPI_GPE_CAN_WAKE flag unset.  Any other GPEs within this block must
+-	 * be enabled via the acpi_enable_gpe() interface.
++	 * ACPI_GPE_CAN_WAKE flag unset. Any other GPEs within this block
++	 * must be enabled via the acpi_enable_gpe() interface.
+ 	 */
+ 	gpe_enabled_count = 0;
+ 
+diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
+index 223dba2..beb3675 100644
+--- a/drivers/acpi/acpica/evgpeinit.c
++++ b/drivers/acpi/acpica/evgpeinit.c
+@@ -45,11 +45,27 @@
+ #include "accommon.h"
+ #include "acevents.h"
+ #include "acnamesp.h"
+-#include "acinterp.h"
+ 
+ #define _COMPONENT          ACPI_EVENTS
+ ACPI_MODULE_NAME("evgpeinit")
+ 
 +/*
-+ * cper_print_bits - print strings for set bits
-+ * @pfx: prefix for each line, including log level and prefix string
-+ * @bits: bit mask
-+ * @strs: string array, indexed by bit position
-+ * @strs_size: size of the string array: @strs
++ * Note: History of _PRW support in ACPICA
 + *
-+ * For each set bit in @bits, print the corresponding string in @strs.
-+ * If the output length is longer than 80, multiple line will be
-+ * printed, with @pfx is printed at the beginning of each line.
++ * Originally (2000 - 2010), the GPE initialization code performed a walk of
++ * the entire namespace to execute the _PRW methods and detect all GPEs
++ * capable of waking the system.
++ *
++ * As of 10/2010, the _PRW method execution has been removed since it is
++ * actually unnecessary. The host OS must in fact execute all _PRW methods
++ * in order to identify the device/power-resource dependencies. We now put
++ * the onus on the host OS to identify the wake GPEs as part of this process
++ * and to inform ACPICA of these GPEs via the acpi_setup_gpe_for_wake interface. This
++ * not only reduces the complexity of the ACPICA initialization code, but in
++ * some cases (on systems with very large namespaces) it should reduce the
++ * kernel boot time as well.
 + */
-+static void cper_print_bits(const char *pfx, unsigned int bits,
-+			    const char *strs[], unsigned int strs_size)
-+{
-+	int i, len = 0;
-+	const char *str;
-+	char buf[84];
 +
-+	for (i = 0; i < strs_size; i++) {
-+		if (!(bits & (1U << i)))
-+			continue;
-+		str = strs[i];
-+		if (len && len + strlen(str) + 2 > 80) {
-+			printk("%s\n", buf);
-+			len = 0;
-+		}
-+		if (!len)
-+			len = snprintf(buf, sizeof(buf), "%s%s", pfx, str);
-+		else
-+			len += snprintf(buf+len, sizeof(buf)-len, ", %s", str);
-+	}
-+	if (len)
-+		printk("%s\n", buf);
-+}
-+
-+static const char *cper_proc_type_strs[] = {
-+	"IA32/X64",
-+	"IA64",
-+};
-+
-+static const char *cper_proc_isa_strs[] = {
-+	"IA32",
-+	"IA64",
-+	"X64",
-+};
-+
-+static const char *cper_proc_error_type_strs[] = {
-+	"cache error",
-+	"TLB error",
-+	"bus error",
-+	"micro-architectural error",
-+};
-+
-+static const char *cper_proc_op_strs[] = {
-+	"unknown or generic",
-+	"data read",
-+	"data write",
-+	"instruction execution",
-+};
-+
-+static const char *cper_proc_flag_strs[] = {
-+	"restartable",
-+	"precise IP",
-+	"overflow",
-+	"corrected",
-+};
-+
-+static void cper_print_proc_generic(const char *pfx,
-+				    const struct cper_sec_proc_generic *proc)
-+{
-+	if (proc->validation_bits & CPER_PROC_VALID_TYPE)
-+		printk("%s""processor_type: %d, %s\n", pfx, proc->proc_type,
-+		       proc->proc_type < ARRAY_SIZE(cper_proc_type_strs) ?
-+		       cper_proc_type_strs[proc->proc_type] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ISA)
-+		printk("%s""processor_isa: %d, %s\n", pfx, proc->proc_isa,
-+		       proc->proc_isa < ARRAY_SIZE(cper_proc_isa_strs) ?
-+		       cper_proc_isa_strs[proc->proc_isa] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ERROR_TYPE) {
-+		printk("%s""error_type: 0x%02x\n", pfx, proc->proc_error_type);
-+		cper_print_bits(pfx, proc->proc_error_type,
-+				cper_proc_error_type_strs,
-+				ARRAY_SIZE(cper_proc_error_type_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_OPERATION)
-+		printk("%s""operation: %d, %s\n", pfx, proc->operation,
-+		       proc->operation < ARRAY_SIZE(cper_proc_op_strs) ?
-+		       cper_proc_op_strs[proc->operation] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_FLAGS) {
-+		printk("%s""flags: 0x%02x\n", pfx, proc->flags);
-+		cper_print_bits(pfx, proc->flags, cper_proc_flag_strs,
-+				ARRAY_SIZE(cper_proc_flag_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_LEVEL)
-+		printk("%s""level: %d\n", pfx, proc->level);
-+	if (proc->validation_bits & CPER_PROC_VALID_VERSION)
-+		printk("%s""version_info: 0x%016llx\n", pfx, proc->cpu_version);
-+	if (proc->validation_bits & CPER_PROC_VALID_ID)
-+		printk("%s""processor_id: 0x%016llx\n", pfx, proc->proc_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_TARGET_ADDRESS)
-+		printk("%s""target_address: 0x%016llx\n",
-+		       pfx, proc->target_addr);
-+	if (proc->validation_bits & CPER_PROC_VALID_REQUESTOR_ID)
-+		printk("%s""requestor_id: 0x%016llx\n",
-+		       pfx, proc->requestor_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_RESPONDER_ID)
-+		printk("%s""responder_id: 0x%016llx\n",
-+		       pfx, proc->responder_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_IP)
-+		printk("%s""IP: 0x%016llx\n", pfx, proc->ip);
-+}
-+
-+static const char *cper_mem_err_type_strs[] = {
-+	"unknown",
-+	"no error",
-+	"single-bit ECC",
-+	"multi-bit ECC",
-+	"single-symbol chipkill ECC",
-+	"multi-symbol chipkill ECC",
-+	"master abort",
-+	"target abort",
-+	"parity error",
-+	"watchdog timeout",
-+	"invalid address",
-+	"mirror Broken",
-+	"memory sparing",
-+	"scrub corrected error",
-+	"scrub uncorrected error",
-+};
-+
-+static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-+{
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-+		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
-+		printk("%s""physical_address: 0x%016llx\n",
-+		       pfx, mem->physical_addr);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK)
-+		printk("%s""physical_address_mask: 0x%016llx\n",
-+		       pfx, mem->physical_addr_mask);
-+	if (mem->validation_bits & CPER_MEM_VALID_NODE)
-+		printk("%s""node: %d\n", pfx, mem->node);
-+	if (mem->validation_bits & CPER_MEM_VALID_CARD)
-+		printk("%s""card: %d\n", pfx, mem->card);
-+	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
-+		printk("%s""module: %d\n", pfx, mem->module);
-+	if (mem->validation_bits & CPER_MEM_VALID_BANK)
-+		printk("%s""bank: %d\n", pfx, mem->bank);
-+	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
-+		printk("%s""device: %d\n", pfx, mem->device);
-+	if (mem->validation_bits & CPER_MEM_VALID_ROW)
-+		printk("%s""row: %d\n", pfx, mem->row);
-+	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
-+		printk("%s""column: %d\n", pfx, mem->column);
-+	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
-+		printk("%s""bit_position: %d\n", pfx, mem->bit_pos);
-+	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
-+		printk("%s""requestor_id: 0x%016llx\n", pfx, mem->requestor_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
-+		printk("%s""responder_id: 0x%016llx\n", pfx, mem->responder_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
-+		printk("%s""target_id: 0x%016llx\n", pfx, mem->target_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
-+		u8 etype = mem->error_type;
-+		printk("%s""error_type: %d, %s\n", pfx, etype,
-+		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
-+		       cper_mem_err_type_strs[etype] : "unknown");
-+	}
-+}
-+
-+static const char *cper_pcie_port_type_strs[] = {
-+	"PCIe end point",
-+	"legacy PCI end point",
-+	"unknown",
-+	"unknown",
-+	"root port",
-+	"upstream switch port",
-+	"downstream switch port",
-+	"PCIe to PCI/PCI-X bridge",
-+	"PCI/PCI-X to PCIe bridge",
-+	"root complex integrated endpoint device",
-+	"root complex event collector",
-+};
-+
-+static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie)
-+{
-+	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
-+		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
-+		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-+		       cper_pcie_port_type_strs[pcie->port_type] : "unknown");
-+	if (pcie->validation_bits & CPER_PCIE_VALID_VERSION)
-+		printk("%s""version: %d.%d\n", pfx,
-+		       pcie->version.major, pcie->version.minor);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_COMMAND_STATUS)
-+		printk("%s""command: 0x%04x, status: 0x%04x\n", pfx,
-+		       pcie->command, pcie->status);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_DEVICE_ID) {
-+		const __u8 *p;
-+		printk("%s""device_id: %04x:%02x:%02x.%x\n", pfx,
-+		       pcie->device_id.segment, pcie->device_id.bus,
-+		       pcie->device_id.device, pcie->device_id.function);
-+		printk("%s""slot: %d\n", pfx,
-+		       pcie->device_id.slot >> CPER_PCIE_SLOT_SHIFT);
-+		printk("%s""secondary_bus: 0x%02x\n", pfx,
-+		       pcie->device_id.secondary_bus);
-+		printk("%s""vendor_id: 0x%04x, device_id: 0x%04x\n", pfx,
-+		       pcie->device_id.vendor_id, pcie->device_id.device_id);
-+		p = pcie->device_id.class_code;
-+		printk("%s""class_code: %02x%02x%02x\n", pfx, p[0], p[1], p[2]);
-+	}
-+	if (pcie->validation_bits & CPER_PCIE_VALID_SERIAL_NUMBER)
-+		printk("%s""serial number: 0x%04x, 0x%04x\n", pfx,
-+		       pcie->serial_number.lower, pcie->serial_number.upper);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_BRIDGE_CONTROL_STATUS)
-+		printk(
-+	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
-+	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
-+}
-+
-+static const char *apei_estatus_section_flag_strs[] = {
-+	"primary",
-+	"containment warning",
-+	"reset",
-+	"threshold exceeded",
-+	"resource not accessible",
-+	"latent error",
-+};
-+
-+static void apei_estatus_print_section(
-+	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
-+{
-+	uuid_le *sec_type = (uuid_le *)gdata->section_type;
-+	__u16 severity;
-+
-+	severity = gdata->error_severity;
-+	printk("%s""section: %d, severity: %d, %s\n", pfx, sec_no, severity,
-+	       cper_severity_str(severity));
-+	printk("%s""flags: 0x%02x\n", pfx, gdata->flags);
-+	cper_print_bits(pfx, gdata->flags, apei_estatus_section_flag_strs,
-+			ARRAY_SIZE(apei_estatus_section_flag_strs));
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+		printk("%s""fru_id: %pUl\n", pfx, (uuid_le *)gdata->fru_id);
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+		printk("%s""fru_text: %.20s\n", pfx, gdata->fru_text);
-+
-+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_GENERIC)) {
-+		struct cper_sec_proc_generic *proc_err = (void *)(gdata + 1);
-+		printk("%s""section_type: general processor error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*proc_err))
-+			cper_print_proc_generic(pfx, proc_err);
-+		else
-+			goto err_section_too_small;
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-+		printk("%s""section_type: memory error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*mem_err))
-+			cper_print_mem(pfx, mem_err);
-+		else
-+			goto err_section_too_small;
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
-+		struct cper_sec_pcie *pcie = (void *)(gdata + 1);
-+		printk("%s""section_type: PCIe error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*pcie))
-+			cper_print_pcie(pfx, pcie);
-+		else
-+			goto err_section_too_small;
-+	} else
-+		printk("%s""section type: unknown, %pUl\n", pfx, sec_type);
-+
-+	return;
-+
-+err_section_too_small:
-+	pr_err(FW_WARN "error section length is too small\n");
-+}
-+
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus)
-+{
-+	struct acpi_hest_generic_data *gdata;
-+	unsigned int data_len, gedata_len;
-+	int sec_no = 0;
-+	__u16 severity;
-+
-+	printk("%s""APEI generic hardware error status\n", pfx);
-+	severity = estatus->error_severity;
-+	printk("%s""severity: %d, %s\n", pfx, severity,
-+	       cper_severity_str(severity));
-+	data_len = estatus->data_length;
-+	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-+	while (data_len > sizeof(*gdata)) {
-+		gedata_len = gdata->error_data_length;
-+		apei_estatus_print_section(pfx, gdata, sec_no);
-+		data_len -= gedata_len + sizeof(*gdata);
-+		sec_no++;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(apei_estatus_print);
-+
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus)
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ev_gpe_initialize
+@@ -222,7 +238,7 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
+ 	acpi_status status = AE_OK;
+ 
+ 	/*
+-	 * 2) Find any _Lxx/_Exx GPE methods that have just been loaded.
++	 * Find any _Lxx/_Exx GPE methods that have just been loaded.
+ 	 *
+ 	 * Any GPEs that correspond to new _Lxx/_Exx methods are immediately
+ 	 * enabled.
+@@ -235,9 +251,9 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
+ 		return;
+ 	}
+ 
++	walk_info.count = 0;
+ 	walk_info.owner_id = table_owner_id;
+ 	walk_info.execute_by_owner_id = TRUE;
+-	walk_info.count = 0;
+ 
+ 	/* Walk the interrupt level descriptor list */
+ 
+@@ -298,7 +314,7 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
+  *                  xx     - is the GPE number [in HEX]
+  *
+  * If walk_info->execute_by_owner_id is TRUE, we only execute examine GPE methods
+- *    with that owner.
++ * with that owner.
+  *
+  ******************************************************************************/
+ 
+diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
+index fcf4a5c..416845b 100644
+--- a/drivers/acpi/acpica/evxfgpe.c
++++ b/drivers/acpi/acpica/evxfgpe.c
+@@ -55,13 +55,19 @@ ACPI_MODULE_NAME("evxfgpe")
+  *
+  * PARAMETERS:  None
+  *
+- * RETURN:      None
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Complete GPE initialization and enable all GPEs that have
++ *              associated _Lxx or _Exx methods and are not pointed to by any
++ *              device _PRW methods (this indicates that these GPEs are
++ *              generally intended for system or device wakeup. Such GPEs
++ *              have to be enabled directly when the devices whose _PRW
++ *              methods point to them are set up for wakeup signaling.)
+  *
+- * DESCRIPTION: Enable all GPEs that have associated _Lxx or _Exx methods and
+- *              are not pointed to by any device _PRW methods indicating that
+- *              these GPEs are generally intended for system or device wakeup
+- *              (such GPEs have to be enabled directly when the devices whose
+- *              _PRW methods point to them are set up for wakeup signaling).
++ * NOTE: Should be called after any GPEs are added to the system. Primarily,
++ * after the system _PRW methods have been run, but also after a GPE Block
++ * Device has been added or if any new GPE methods have been added via a
++ * dynamic table load.
+  *
+  ******************************************************************************/
+ 
+@@ -252,7 +258,8 @@ ACPI_EXPORT_SYMBOL(acpi_setup_gpe_for_wake)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Set or clear the GPE's wakeup enable mask bit.
++ * DESCRIPTION: Set or clear the GPE's wakeup enable mask bit. The GPE must
++ *              already be marked as a WAKE GPE.
+  *
+  ******************************************************************************/
+ 
+@@ -268,8 +275,10 @@ acpi_status acpi_set_gpe_wake_mask(acpi_handle gpe_device, u32 gpe_number, u8 ac
+ 
+ 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 
+-	/* Ensure that we have a valid GPE number */
+-
++	/*
++	 * Ensure that we have a valid GPE number and that this GPE is in
++	 * fact a wake GPE
++	 */
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+ 	if (!gpe_event_info) {
+ 		status = AE_BAD_PARAMETER;
+@@ -366,7 +375,7 @@ ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Get status of an event (general purpose)
++ * DESCRIPTION: Get the current status of a GPE (signalled/not_signalled)
+  *
+  ******************************************************************************/
+ acpi_status
+@@ -476,7 +485,8 @@ ACPI_EXPORT_SYMBOL(acpi_enable_all_runtime_gpes)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Create and Install a block of GPE registers
++ * DESCRIPTION: Create and Install a block of GPE registers. The GPEs are not
++ *              enabled here.
+  *
+  ******************************************************************************/
+ acpi_status
+diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+index 7c6d485..85c3cbd 100644
+--- a/drivers/acpi/acpica/hwgpe.c
++++ b/drivers/acpi/acpica/hwgpe.c
+@@ -62,10 +62,10 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+  * PARAMETERS:	gpe_event_info	    - Info block for the GPE
+  *		gpe_register_info   - Info block for the GPE register
+  *
+- * RETURN:	Status
++ * RETURN:	Register mask with a one in the GPE bit position
+  *
+- * DESCRIPTION:	Compute GPE enable mask with one bit corresponding to the given
+- *		GPE set.
++ * DESCRIPTION: Compute the register mask for this GPE. One bit is set in the
++ *              correct position for the input GPE.
+  *
+  ******************************************************************************/
+ 
+@@ -85,12 +85,12 @@ u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
+  *
+  * RETURN:	Status
+  *
+- * DESCRIPTION: Enable or disable a single GPE in its enable register.
++ * DESCRIPTION: Enable or disable a single GPE in the parent enable register.
+  *
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
++acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
  {
- 	if (estatus->data_length &&
+ 	struct acpi_gpe_register_info *gpe_register_info;
+ 	acpi_status status;
+@@ -113,14 +113,20 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
+ 		return (status);
+ 	}
+ 
+-	/* Set ot clear just the bit that corresponds to this GPE */
++	/* Set or clear just the bit that corresponds to this GPE */
+ 
+ 	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
+ 						gpe_register_info);
+ 	switch (action) {
+ 	case ACPI_GPE_CONDITIONAL_ENABLE:
+-		if (!(register_bit & gpe_register_info->enable_for_run))
++
++		/* Only enable if the enable_for_run bit is set */
++
++		if (!(register_bit & gpe_register_info->enable_for_run)) {
+ 			return (AE_BAD_PARAMETER);
++		}
++
++		/*lint -fallthrough */
+ 
+ 	case ACPI_GPE_ENABLE:
+ 		ACPI_SET_BIT(enable_mask, register_bit);
+@@ -131,7 +137,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 action)
+ 		break;
+ 
+ 	default:
+-		ACPI_ERROR((AE_INFO, "Invalid action\n"));
++		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u\n", action));
+ 		return (AE_BAD_PARAMETER);
+ 	}
+ 
+@@ -168,13 +174,13 @@ acpi_status acpi_hw_clear_gpe(struct acpi_gpe_event_info * gpe_event_info)
+ 		return (AE_NOT_EXIST);
+ 	}
+ 
+-	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
+-						gpe_register_info);
+-
+ 	/*
+ 	 * Write a one to the appropriate bit in the status register to
+ 	 * clear this GPE.
+ 	 */
++	register_bit =
++	    acpi_hw_get_gpe_register_bit(gpe_event_info, gpe_register_info);
++
+ 	status = acpi_hw_write(register_bit,
+ 			       &gpe_register_info->status_address);
+ 
+@@ -201,8 +207,8 @@ acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
+ 	u32 in_byte;
+ 	u32 register_bit;
+ 	struct acpi_gpe_register_info *gpe_register_info;
+-	acpi_status status;
+ 	acpi_event_status local_event_status = 0;
++	acpi_status status;
+ 
+ 	ACPI_FUNCTION_ENTRY();
+ 
 -- 
 1.7.3.3.557.gb5c17
 
