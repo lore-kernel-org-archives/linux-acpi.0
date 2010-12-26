@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/33] ACPI / PM: Introduce function for refcounting device
- power resources
-Date: Sun, 26 Dec 2010 17:43:27 -0500
-Message-ID: <43a307e3d06003baf88b033e231e8911ceb21533.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 09/33] ACPI / PM: Add function for updating device power state
+ consistently
+Date: Sun, 26 Dec 2010 17:43:30 -0500
+Message-ID: <b3cff9aacd6bde7c86585a9cca4e45aa29e1c410.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:61195 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab0LZWoo (ORCPT
+	with ESMTP id S1753059Ab0LZWoo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:44:44 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LE200FWN4I3JSG0@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:44:28 -0600 (CST)
+ with ESMTPA id <0LE2000SM4IGJPT5@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:44:41 -0600 (CST)
 In-reply-to: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
@@ -24,51 +24,160 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce function acpi_power_on_resources() that reference counts
-and possibly turns on ACPI power resources for a given device and
-a given power state of it.
+Add function acpi_bus_update_power() for reading the actual power
+state of an ACPI device and updating its device->power.state field
+in such a way that its power resources' reference counters will
+remain consistent with that field.
 
-This function will be used for reference counting device power
-resources during initialization.
+For this purpose introduce __acpi_bus_set_power() setting the
+power state of an ACPI device without updating its
+device->power.state field and make acpi_bus_set_power() and
+acpi_bus_update_power() use it (acpi_bus_set_power() retains the
+current behavior for now).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/internal.h |    1 +
- drivers/acpi/power.c    |    8 ++++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/acpi/bus.c      |   90 ++++++++++++++++++++++++++++++++---------------
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 62 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 2cc0148..433a8ee 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -42,6 +42,7 @@ int acpi_power_init(void);
- int acpi_device_sleep_wake(struct acpi_device *dev,
-                            int enable, int sleep_state, int dev_state);
- int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
-+int acpi_power_on_resources(struct acpi_device *device, int state);
- int acpi_power_transition(struct acpi_device *device, int state);
- extern int acpi_power_nocheck;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4534510..19decee 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -255,44 +255,17 @@ int acpi_bus_get_power(acpi_handle handle, int *state)
+ EXPORT_SYMBOL(acpi_bus_get_power);
  
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 95fedbd..0cb4eab 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -485,6 +485,14 @@ int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
- 	return 0;
+ 
+-int acpi_bus_set_power(acpi_handle handle, int state)
++static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+-	struct acpi_device *device = NULL;
+ 	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
+ 
+-
+-	result = acpi_bus_get_device(handle, &device);
+-	if (result)
+-		return result;
+-
+-	if ((state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
++	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
+ 		return -EINVAL;
+ 
+ 	/* Make sure this is a valid target state */
+ 
+-	if (!device->flags.power_manageable) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device `[%s]' is not power manageable\n",
+-				kobject_name(&device->dev.kobj)));
+-		return -ENODEV;
+-	}
+-	/*
+-	 * Get device's current power state
+-	 */
+-	if (!acpi_power_nocheck) {
+-		/*
+-		 * Maybe the incorrect power state is returned on the bogus
+-		 * bios, which is different with the real power state.
+-		 * For example: the bios returns D0 state and the real power
+-		 * state is D3. OS expects to set the device to D0 state. In
+-		 * such case if OS uses the power state returned by the BIOS,
+-		 * the device can't be transisted to the correct power state.
+-		 * So if the acpi_power_nocheck is set, it is unnecessary to
+-		 * get the power state by calling acpi_bus_get_power.
+-		 */
+-		acpi_bus_get_power(device->handle, &device->power.state);
+-	}
+ 	if ((state == device->power.state) && !device->flags.force_power_state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
+ 				  state));
+@@ -362,6 +335,42 @@ int acpi_bus_set_power(acpi_handle handle, int state)
+ 	return result;
  }
  
-+int acpi_power_on_resources(struct acpi_device *device, int state)
++
++int acpi_bus_set_power(acpi_handle handle, int state)
 +{
-+	if (!device || state < ACPI_STATE_D0 || state > ACPI_STATE_D3)
-+		return -EINVAL;
++	struct acpi_device *device;
++	int result;
 +
-+	return acpi_power_on_list(&device->power.states[state].resources);
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return result;
++
++	if (!device->flags.power_manageable) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				"Device [%s] is not power manageable\n",
++				dev_name(&device->dev)));
++		return -ENODEV;
++	}
++
++	/*
++	 * Get device's current power state
++	 */
++	if (!acpi_power_nocheck) {
++		/*
++		 * Maybe the incorrect power state is returned on the bogus
++		 * bios, which is different with the real power state.
++		 * For example: the bios returns D0 state and the real power
++		 * state is D3. OS expects to set the device to D0 state. In
++		 * such case if OS uses the power state returned by the BIOS,
++		 * the device can't be transisted to the correct power state.
++		 * So if the acpi_power_nocheck is set, it is unnecessary to
++		 * get the power state by calling acpi_bus_get_power.
++		 */
++		__acpi_bus_get_power(device, &device->power.state);
++	}
++
++	return __acpi_bus_set_power(device, state);
 +}
+ EXPORT_SYMBOL(acpi_bus_set_power);
+ 
+ 
+@@ -389,6 +398,29 @@ int acpi_bus_init_power(struct acpi_device *device)
+ }
+ 
+ 
++int acpi_bus_update_power(acpi_handle handle, int *state_p)
++{
++	struct acpi_device *device;
++	int state;
++	int result;
 +
- int acpi_power_transition(struct acpi_device *device, int state)
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return result;
++
++	result = __acpi_bus_get_power(device, &state);
++	if (result)
++		return result;
++
++	result = __acpi_bus_set_power(device, state);
++	if (!result && state_p)
++		*state_p = state;
++
++	return result;
++}
++EXPORT_SYMBOL_GPL(acpi_bus_update_power);
++
++
+ bool acpi_bus_power_manageable(acpi_handle handle)
  {
- 	int result;
+ 	struct acpi_device *device;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 359ef11..5d2c4c5 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -330,6 +330,7 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+ int acpi_bus_get_status(struct acpi_device *device);
+ int acpi_bus_get_power(acpi_handle handle, int *state);
+ int acpi_bus_set_power(acpi_handle handle, int state);
++int acpi_bus_update_power(acpi_handle handle, int *state_p);
+ bool acpi_bus_power_manageable(acpi_handle handle);
+ bool acpi_bus_can_wakeup(acpi_handle handle);
+ #ifdef CONFIG_ACPI_PROC_EVENT
 -- 
 1.7.3.3.557.gb5c17
 
