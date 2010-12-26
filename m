@@ -1,153 +1,266 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/33] ACPI / Fan: Rework the handling of power resources
-Date: Sun, 26 Dec 2010 17:43:33 -0500
-Message-ID: <4e3524e82a31d1daaee56fa05b7b18936f554bc4.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 13/33] thermal: Add event notification to thermal framework
+Date: Sun, 26 Dec 2010 17:43:34 -0500
+Message-ID: <6ddd9e91dc47c4bf5a1b8260b317552df711345e.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:51680 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753152Ab0LZW6w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:52 -0500
+	with ESMTP id S1753152Ab0LZW6x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:53 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LE200DX055VNMD4@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:51 -0600 (CST)
+ linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:53 -0600 (CST)
 In-reply-to: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: "R.Durgadoss" <durgadoss.r@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: R.Durgadoss <durgadoss.r@intel.com>
 
-Use the new function acpi_bus_update_power() for manipulating power
-resources used by ACPI fan devices, which allows them to be put into
-the right state during initialization and resume.  Consequently,
-remove the flags.force_power_state field from struct acpi_device,
-which is not necessary any more.
+This patch adds event notification support to the generic
+thermal sysfs framework in the kernel. The notification is in the
+form of a netlink event.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: R.Durgadoss <durgadoss.r@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |    2 +-
- drivers/acpi/fan.c      |   27 +++++++--------------------
- drivers/acpi/thermal.c  |    5 +++--
- include/acpi/acpi_bus.h |    3 +--
- 4 files changed, 12 insertions(+), 25 deletions(-)
+ Documentation/ABI/stable/thermal-notification |    4 +
+ Documentation/thermal/sysfs-api.txt           |   12 +++
+ drivers/thermal/thermal_sys.c                 |  103 ++++++++++++++++++++++++-
+ include/linux/thermal.h                       |   32 ++++++++
+ 4 files changed, 150 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/ABI/stable/thermal-notification
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4786401..2ee83b5 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -266,7 +266,7 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+diff --git a/Documentation/ABI/stable/thermal-notification b/Documentation/ABI/stable/thermal-notification
+new file mode 100644
+index 0000000..9723e8b
+--- /dev/null
++++ b/Documentation/ABI/stable/thermal-notification
+@@ -0,0 +1,4 @@
++What:		A notification mechanism for thermal related events
++Description:
++	This interface enables notification for thermal related events.
++	The notification is in the form of a netlink event.
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index cb3d15b..b61e46f 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -278,3 +278,15 @@ method, the sys I/F structure will be built like this:
+     |---name:			acpitz
+     |---temp1_input:		37000
+     |---temp1_crit:		100000
++
++4. Event Notification
++
++The framework includes a simple notification mechanism, in the form of a
++netlink event. Netlink socket initialization is done during the _init_
++of the framework. Drivers which intend to use the notification mechanism
++just need to call generate_netlink_event() with two arguments viz
++(originator, event). Typically the originator will be an integer assigned
++to a thermal_zone_device when it registers itself with the framework. The
++event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
++THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
++crosses any of the configured thresholds.
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 13c72c6..760e045 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -32,6 +32,8 @@
+ #include <linux/thermal.h>
+ #include <linux/spinlock.h>
+ #include <linux/reboot.h>
++#include <net/netlink.h>
++#include <net/genetlink.h>
  
- 	/* Make sure this is a valid target state */
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+@@ -58,6 +60,22 @@ static LIST_HEAD(thermal_tz_list);
+ static LIST_HEAD(thermal_cdev_list);
+ static DEFINE_MUTEX(thermal_list_lock);
  
--	if ((state == device->power.state) && !device->flags.force_power_state) {
-+	if (state == device->power.state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
- 				  state));
- 		return 0;
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 6004908..467479f 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -86,7 +86,7 @@ static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long
- 	if (!device)
- 		return -EINVAL;
++static unsigned int thermal_event_seqnum;
++
++static struct genl_family thermal_event_genl_family = {
++	.id = GENL_ID_GENERATE,
++	.name = THERMAL_GENL_FAMILY_NAME,
++	.version = THERMAL_GENL_VERSION,
++	.maxattr = THERMAL_GENL_ATTR_MAX,
++};
++
++static struct genl_multicast_group thermal_event_mcgrp = {
++	.name = THERMAL_GENL_MCAST_GROUP_NAME,
++};
++
++static int genetlink_init(void);
++static void genetlink_exit(void);
++
+ static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+ {
+ 	int err;
+@@ -1214,6 +1232,82 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
  
--	result = acpi_bus_get_power(device->handle, &acpi_state);
-+	result = acpi_bus_update_power(device->handle, &acpi_state);
- 	if (result)
- 		return result;
+ EXPORT_SYMBOL(thermal_zone_device_unregister);
  
-@@ -123,7 +123,6 @@ static struct thermal_cooling_device_ops fan_cooling_ops = {
- static int acpi_fan_add(struct acpi_device *device)
++int generate_netlink_event(u32 orig, enum events event)
++{
++	struct sk_buff *skb;
++	struct nlattr *attr;
++	struct thermal_genl_event *thermal_event;
++	void *msg_header;
++	int size;
++	int result;
++
++	/* allocate memory */
++	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
++				nla_total_size(0);
++
++	skb = genlmsg_new(size, GFP_ATOMIC);
++	if (!skb)
++		return -ENOMEM;
++
++	/* add the genetlink message header */
++	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
++				 &thermal_event_genl_family, 0,
++				 THERMAL_GENL_CMD_EVENT);
++	if (!msg_header) {
++		nlmsg_free(skb);
++		return -ENOMEM;
++	}
++
++	/* fill the data */
++	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
++			sizeof(struct thermal_genl_event));
++
++	if (!attr) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	thermal_event = nla_data(attr);
++	if (!thermal_event) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
++
++	thermal_event->orig = orig;
++	thermal_event->event = event;
++
++	/* send multicast genetlink message */
++	result = genlmsg_end(skb, msg_header);
++	if (result < 0) {
++		nlmsg_free(skb);
++		return result;
++	}
++
++	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
++	if (result)
++		printk(KERN_INFO "failed to send netlink event:%d", result);
++
++	return result;
++}
++EXPORT_SYMBOL(generate_netlink_event);
++
++static int genetlink_init(void)
++{
++	int result;
++
++	result = genl_register_family(&thermal_event_genl_family);
++	if (result)
++		return result;
++
++	result = genl_register_mc_group(&thermal_event_genl_family,
++					&thermal_event_mcgrp);
++	if (result)
++		genl_unregister_family(&thermal_event_genl_family);
++	return result;
++}
++
+ static int __init thermal_init(void)
  {
  	int result = 0;
--	int state = 0;
- 	struct thermal_cooling_device *cdev;
- 
- 	if (!device)
-@@ -132,16 +131,12 @@ static int acpi_fan_add(struct acpi_device *device)
- 	strcpy(acpi_device_name(device), "Fan");
- 	strcpy(acpi_device_class(device), ACPI_FAN_CLASS);
- 
--	result = acpi_bus_get_power(device->handle, &state);
-+	result = acpi_bus_update_power(device->handle, NULL);
- 	if (result) {
--		printk(KERN_ERR PREFIX "Reading power state\n");
-+		printk(KERN_ERR PREFIX "Setting initial power state\n");
- 		goto end;
+@@ -1225,9 +1319,15 @@ static int __init thermal_init(void)
+ 		mutex_destroy(&thermal_idr_lock);
+ 		mutex_destroy(&thermal_list_lock);
  	}
- 
--	device->flags.force_power_state = 1;
--	acpi_bus_set_power(device->handle, state);
--	device->flags.force_power_state = 0;
--
- 	cdev = thermal_cooling_device_register("Fan", device,
- 						&fan_cooling_ops);
- 	if (IS_ERR(cdev)) {
-@@ -200,22 +195,14 @@ static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state)
- 
- static int acpi_fan_resume(struct acpi_device *device)
- {
--	int result = 0;
--	int power_state = 0;
-+	int result;
- 
- 	if (!device)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_power(device->handle, &power_state);
--	if (result) {
--		printk(KERN_ERR PREFIX
--				  "Error reading fan power state\n");
--		return result;
--	}
--
--	device->flags.force_power_state = 1;
--	acpi_bus_set_power(device->handle, power_state);
--	device->flags.force_power_state = 0;
-+	result = acpi_bus_update_power(device->handle, NULL);
-+	if (result)
-+		printk(KERN_ERR PREFIX "Error updating fan power state\n");
- 
++	result = genetlink_init();
  	return result;
  }
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 5a27b0a..2607e17 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -1059,8 +1059,9 @@ static int acpi_thermal_resume(struct acpi_device *device)
- 			break;
- 		tz->trips.active[i].flags.enabled = 1;
- 		for (j = 0; j < tz->trips.active[i].devices.count; j++) {
--			result = acpi_bus_get_power(tz->trips.active[i].devices.
--			    handles[j], &power_state);
-+			result = acpi_bus_update_power(
-+					tz->trips.active[i].devices.handles[j],
-+					&power_state);
- 			if (result || (power_state != ACPI_STATE_D0)) {
- 				tz->trips.active[i].flags.enabled = 0;
- 				break;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 5d2c4c5..8912580 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -149,8 +149,7 @@ struct acpi_device_flags {
- 	u32 power_manageable:1;
- 	u32 performance_manageable:1;
- 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
--	u32 force_power_state:1;
--	u32 reserved:22;
-+	u32 reserved:23;
- };
  
- /* File System */
++static void genetlink_exit(void)
++{
++	genl_unregister_family(&thermal_event_genl_family);
++}
++
+ static void __exit thermal_exit(void)
+ {
+ 	class_unregister(&thermal_class);
+@@ -1235,7 +1335,8 @@ static void __exit thermal_exit(void)
+ 	idr_destroy(&thermal_cdev_idr);
+ 	mutex_destroy(&thermal_idr_lock);
+ 	mutex_destroy(&thermal_list_lock);
++	genetlink_exit();
+ }
+ 
+-subsys_initcall(thermal_init);
++fs_initcall(thermal_init);
+ module_exit(thermal_exit);
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 1de8b9e..7846449 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -127,6 +127,37 @@ struct thermal_zone_device {
+ 	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
+ #endif
+ };
++/* Adding event notification support elements */
++#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
++#define THERMAL_GENL_VERSION                    0x01
++#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
++
++enum events {
++	THERMAL_AUX0,
++	THERMAL_AUX1,
++	THERMAL_CRITICAL,
++	THERMAL_DEV_FAULT,
++};
++
++struct thermal_genl_event {
++	u32 orig;
++	enum events event;
++};
++/* attributes of thermal_genl_family */
++enum {
++	THERMAL_GENL_ATTR_UNSPEC,
++	THERMAL_GENL_ATTR_EVENT,
++	__THERMAL_GENL_ATTR_MAX,
++};
++#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
++
++/* commands supported by the thermal_genl_family */
++enum {
++	THERMAL_GENL_CMD_UNSPEC,
++	THERMAL_GENL_CMD_EVENT,
++	__THERMAL_GENL_CMD_MAX,
++};
++#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+ 
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+ 							 struct
+@@ -146,5 +177,6 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 							       thermal_cooling_device_ops
+ 							       *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
++extern int generate_netlink_event(u32 orig, enum events event);
+ 
+ #endif /* __THERMAL_H__ */
 -- 
 1.7.3.3.557.gb5c17
 
