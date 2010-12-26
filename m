@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 21/33] ACPICA: Fix local variable mess in
- acpi_ev_asynch_execute_gpe_method
-Date: Sun, 26 Dec 2010 17:43:42 -0500
-Message-ID: <c677fa3e740b06ef3621bdc2c896eb3c42a4e6ea.1293403342.git.len.brown@intel.com>
+Subject: [PATCH 19/33] ACPICA: New GPE handler callback definition
+Date: Sun, 26 Dec 2010 17:43:40 -0500
+Message-ID: <333428ae4fec5a29e1973c0e1bed425435f9cd54.1293403342.git.len.brown@intel.com>
 References: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:51680 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142Ab0LZW6x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:53 -0500
+	with ESMTP id S1753142Ab0LZW6z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Dec 2010 17:58:55 -0500
 Received: from localhost.localdomain ([unknown] [108.7.186.163])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LE200DX055VNMD4@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:52 -0600 (CST)
+ linux-acpi@vger.kernel.org; Sun, 26 Dec 2010 16:58:53 -0600 (CST)
 In-reply-to: <1293403434-12054-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1293403342.git.len.brown@intel.com>
@@ -24,150 +23,208 @@ Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Lin Ming <ming.m.lin@intel.com>
 
-Change the local variable in acpi_ev_asynch_execute_gpe_method()
-back into a pointer as ACPICA code base does.
+The new GPE handler callback has 2 additional parameters, gpe_device and
+gpe_number.
+
+typedef
+u32 (*acpi_gpe_handler) (acpi_handle gpe_device, u32 gpe_number, void *context);
 
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/evgpe.c |   57 ++++++++++++++++++++++++++++++++++---------
- 1 files changed, 45 insertions(+), 12 deletions(-)
+ drivers/acpi/acpica/acevents.h   |    3 ++-
+ drivers/acpi/acpica/aclocal.h    |    6 +++---
+ drivers/acpi/acpica/evgpe.c      |   14 ++++++++++----
+ drivers/acpi/acpica/evxface.c    |   10 +++++-----
+ drivers/acpi/ec.c                |    3 ++-
+ drivers/char/ipmi/ipmi_si_intf.c |    3 ++-
+ include/acpi/acpixf.h            |    4 ++--
+ include/acpi/actypes.h           |    3 +++
+ 8 files changed, 29 insertions(+), 17 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index ce2af07..ebb467f 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -112,7 +112,8 @@ acpi_ev_initialize_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ acpi_status acpi_ev_delete_gpe_block(struct acpi_gpe_block_info *gpe_block);
+ 
+ u32
+-acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
++acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
++		     struct acpi_gpe_event_info *gpe_event_info,
+ 		     u32 gpe_number);
+ 
+ /*
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 2f841d0..6a71f8e 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -408,8 +408,8 @@ struct acpi_predefined_data {
+ 
+ /* Dispatch info for each GPE -- either a method or handler, cannot be both */
+ 
+-struct acpi_handler_info {
+-	acpi_event_handler address;	/* Address of handler, if any */
++struct acpi_gpe_handler_info {
++	acpi_gpe_handler address;	/* Address of handler, if any */
+ 	void *context;		/* Context to be passed to handler */
+ 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level (saved) */
+ 	u8 original_flags;      /* Original (pre-handler) GPE info */
+@@ -418,7 +418,7 @@ struct acpi_handler_info {
+ 
+ union acpi_gpe_dispatch_info {
+ 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level */
+-	struct acpi_handler_info *handler;  /* Installed GPE handler */
++	struct acpi_gpe_handler_info *handler;  /* Installed GPE handler */
+ };
+ 
+ /*
 diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 3fb621e..c259995 100644
+index 005c170..3fb621e 100644
 --- a/drivers/acpi/acpica/evgpe.c
 +++ b/drivers/acpi/acpica/evgpe.c
-@@ -52,6 +52,8 @@ ACPI_MODULE_NAME("evgpe")
- /* Local prototypes */
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context);
- 
-+static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context);
-+
- /*******************************************************************************
+@@ -409,7 +409,9 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
+ 					 * or method.
+ 					 */
+ 					int_status |=
+-					    acpi_ev_gpe_dispatch(&gpe_block->
++					    acpi_ev_gpe_dispatch(gpe_block->
++								 node,
++								 &gpe_block->
+ 						event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
+ 				}
+ 			}
+@@ -542,7 +544,8 @@ static void acpi_ev_asynch_enable_gpe(void *context)
   *
-  * FUNCTION:    acpi_ev_update_gpe_enable_mask
-@@ -441,17 +443,25 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
-  *              an interrupt handler.
+  * FUNCTION:    acpi_ev_gpe_dispatch
   *
+- * PARAMETERS:  gpe_event_info  - Info for this GPE
++ * PARAMETERS:  gpe_device      - Device node. NULL for GPE0/GPE1
++ *              gpe_event_info  - Info for this GPE
+  *              gpe_number      - Number relative to the parent GPE block
+  *
+  * RETURN:      INTERRUPT_HANDLED or INTERRUPT_NOT_HANDLED
+@@ -555,7 +558,8 @@ static void acpi_ev_asynch_enable_gpe(void *context)
   ******************************************************************************/
--static void acpi_ev_asynch_enable_gpe(void *context);
  
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+ u32
+-acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
++acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
++		    struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
  {
--	struct acpi_gpe_event_info *gpe_event_info = (void *)context;
-+	struct acpi_gpe_event_info *gpe_event_info = context;
  	acpi_status status;
--	struct acpi_gpe_event_info local_gpe_event_info;
-+	struct acpi_gpe_event_info *local_gpe_event_info;
- 	struct acpi_evaluate_info *info;
  
- 	ACPI_FUNCTION_TRACE(ev_asynch_execute_gpe_method);
- 
-+	/* Allocate a local GPE block */
-+
-+	local_gpe_event_info =
-+	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_event_info));
-+	if (!local_gpe_event_info) {
-+		ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "while handling a GPE"));
-+		return_VOID;
-+	}
-+
- 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
- 	if (ACPI_FAILURE(status)) {
- 		return_VOID;
-@@ -468,7 +478,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Take a snapshot of the GPE info for this level - we copy the info to
- 	 * prevent a race condition with remove_handler/remove_block.
- 	 */
--	ACPI_MEMCPY(&local_gpe_event_info, gpe_event_info,
-+	ACPI_MEMCPY(local_gpe_event_info, gpe_event_info,
- 		    sizeof(struct acpi_gpe_event_info));
- 
- 	status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-@@ -480,7 +490,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Must check for control method type dispatch one more time to avoid a
- 	 * race with ev_gpe_install_handler
- 	 */
--	if ((local_gpe_event_info.flags & ACPI_GPE_DISPATCH_MASK) ==
-+	if ((local_gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
- 	    ACPI_GPE_DISPATCH_METHOD) {
- 
- 		/* Allocate the evaluation information block */
-@@ -494,7 +504,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			 * control method that corresponds to this GPE
- 			 */
- 			info->prefix_node =
--			    local_gpe_event_info.dispatch.method_node;
-+			    local_gpe_event_info->dispatch.method_node;
- 			info->flags = ACPI_IGNORE_RETURN_VALUE;
- 
- 			status = acpi_ns_evaluate(info);
-@@ -505,20 +515,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"while evaluating GPE method [%4.4s]",
- 					acpi_ut_get_node_name
--					(local_gpe_event_info.dispatch.
-+					(local_gpe_event_info->dispatch.
- 					 method_node)));
- 		}
- 	}
-+
- 	/* Defer enabling of GPE until all notify handlers are done */
--	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
--				gpe_event_info);
-+
-+	status = acpi_os_execute(OSL_NOTIFY_HANDLER,
-+				 acpi_ev_asynch_enable_gpe,
-+				 local_gpe_event_info);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(local_gpe_event_info);
-+	}
- 	return_VOID;
- }
- 
--static void acpi_ev_asynch_enable_gpe(void *context)
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ev_asynch_enable_gpe
-+ *
-+ * PARAMETERS:  Context (gpe_event_info) - Info for this GPE
-+ *              Callback from acpi_os_execute
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Asynchronous clear/enable for GPE. This allows the GPE to
-+ *              complete.
-+ *
-+ ******************************************************************************/
-+
-+static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context)
- {
- 	struct acpi_gpe_event_info *gpe_event_info = context;
- 	acpi_status status;
-+
- 	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
- 	    ACPI_GPE_LEVEL_TRIGGERED) {
- 		/*
-@@ -527,7 +558,7 @@ static void acpi_ev_asynch_enable_gpe(void *context)
+@@ -593,7 +597,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
+ 		 * Ignore return status for now.
+ 		 * TBD: leave GPE disabled on error?
  		 */
- 		status = acpi_hw_clear_gpe(gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
--			return_VOID;
-+			goto exit;
- 		}
- 	}
+-		(void)gpe_event_info->dispatch.handler->address(gpe_event_info->
++		(void)gpe_event_info->dispatch.handler->address(gpe_device,
++								gpe_number,
++								gpe_event_info->
+ 								dispatch.
+ 								handler->
+ 								context);
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index 042a6d6..d193b90 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -671,10 +671,10 @@ ACPI_EXPORT_SYMBOL(acpi_remove_notify_handler)
+ acpi_status
+ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 			 u32 gpe_number,
+-			 u32 type, acpi_event_handler address, void *context)
++			 u32 type, acpi_gpe_handler address, void *context)
+ {
+ 	struct acpi_gpe_event_info *gpe_event_info;
+-	struct acpi_handler_info *handler;
++	struct acpi_gpe_handler_info *handler;
+ 	acpi_status status;
+ 	acpi_cpu_flags flags;
  
-@@ -537,7 +568,9 @@ static void acpi_ev_asynch_enable_gpe(void *context)
- 	 */
- 	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_CONDITIONAL_ENABLE);
+@@ -693,7 +693,7 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
  
--	return_VOID;
-+exit:
-+	ACPI_FREE(gpe_event_info);
-+	return;
+ 	/* Allocate memory for the handler object */
+ 
+-	handler = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_handler_info));
++	handler = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_handler_info));
+ 	if (!handler) {
+ 		status = AE_NO_MEMORY;
+ 		goto unlock_and_exit;
+@@ -777,10 +777,10 @@ ACPI_EXPORT_SYMBOL(acpi_install_gpe_handler)
+  ******************************************************************************/
+ acpi_status
+ acpi_remove_gpe_handler(acpi_handle gpe_device,
+-			u32 gpe_number, acpi_event_handler address)
++			u32 gpe_number, acpi_gpe_handler address)
+ {
+ 	struct acpi_gpe_event_info *gpe_event_info;
+-	struct acpi_handler_info *handler;
++	struct acpi_gpe_handler_info *handler;
+ 	acpi_status status;
+ 	acpi_cpu_flags flags;
+ 
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 372ff80..e15439a 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -606,7 +606,8 @@ static int ec_check_sci(struct acpi_ec *ec, u8 state)
+ 	return 0;
  }
  
- /*******************************************************************************
+-static u32 acpi_ec_gpe_handler(void *data)
++static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
++	u32 gpe_number, void *data)
+ {
+ 	struct acpi_ec *ec = data;
+ 
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 035da9e..c4bacc6 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -1928,7 +1928,8 @@ static void __devinit hardcode_find_bmc(void)
+ static int acpi_failure;
+ 
+ /* For GPE-type interrupts. */
+-static u32 ipmi_acpi_gpe(void *context)
++static u32 ipmi_acpi_gpe(acpi_handle gpe_device,
++	u32 gpe_number, void *context)
+ {
+ 	struct smi_info *smi_info = context;
+ 	unsigned long   flags;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 5f8ccf1..b806e56 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -258,11 +258,11 @@ acpi_remove_address_space_handler(acpi_handle device,
+ acpi_status
+ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 			 u32 gpe_number,
+-			 u32 type, acpi_event_handler address, void *context);
++			 u32 type, acpi_gpe_handler address, void *context);
+ 
+ acpi_status
+ acpi_remove_gpe_handler(acpi_handle gpe_device,
+-			u32 gpe_number, acpi_event_handler address);
++			u32 gpe_number, acpi_gpe_handler address);
+ 
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_install_exception_handler(acpi_exception_handler handler);
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index e738939..b9575ad 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -897,6 +897,9 @@ typedef void
+ typedef u32(*acpi_event_handler) (void *context);
+ 
+ typedef
++u32 (*acpi_gpe_handler) (acpi_handle gpe_device, u32 gpe_number, void *context);
++
++typedef
+ void (*acpi_notify_handler) (acpi_handle device, u32 value, void *context);
+ 
+ typedef
 -- 
 1.7.3.3.557.gb5c17
 
