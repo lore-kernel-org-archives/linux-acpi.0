@@ -1,53 +1,44 @@
-From: GLOBAL TELECOM LTD <joe@globalmail11.com>
-Subject: HOTEL/MOTEL PHONES!!!!!!!
-Date: Sat, 25 Dec 2010 21:58:58 +0000
-Message-ID: <1293314338.149@collaborationhost.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / ACPICA: Disable GPEs during initialization
+Date: Sun, 26 Dec 2010 12:47:06 +0100
+Message-ID: <201012261247.06858.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail127.messagelabs.com ([216.82.250.115]:42101 "EHLO
-	mail127.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977Ab0LYV66 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Dec 2010 16:58:58 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:52375 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752004Ab0LZLrc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Dec 2010 06:47:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-			GLOBAL TELECOM LTD
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-		        NORTEL PHONES SALE!!!!!!!
+GPEs with corresponding _Lxx/_Exx control methods need to be disabled
+during initialization in case they have been enabled by the BIOS, so
+that they don't fire up until they are enabled by acpi_update_gpes().
 
+References: https://bugzilla.kernel.org/show_bug.cgi?id=25412
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/acpica/evgpeinit.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-1.NORTEL C3060 CORDLESS SETS WITH POWER!!!      $65 EA/OFFER
-
-2.TELEDEX L2S/DIAMOND A				$56/$29EA
-
-3.HITACHI 700 SELECT SETS 700                   $115 EA 
-4.TELEMATRIX 2702/2802		    	        $43/$56EA 
-      
-5.NORTEL 2616 2K/9K CHEAP 29/43			$20/$34EA
-
-6.NORSTAR 7310/7208				$20/$16EA
-
-7.NEC DTU-16D1/DTP-16D1                         $56/$56EA
-
-8.MERLIN MLX-10D/28D/20L   			$43/$92EA
-						
-9.ISDN PHONES 8510D/8520D/8528D			$56/$92/$92EA
-
-10.TONE COMMANDER 6210T/6220T/I2022     	$56/$92/155 SALE! 
-         
-11.ISDN NTBX81/80 AA/NT1B300	    		$43/43EA
-
-BUYING!!!!!!! TELRADAVANTI/NEC DTH16/COMDIAL/ALL IP SETS/ESI/NORTEL 
-PHONES/AVAYA IP PHONES/3COM.
-
-ALL BRANDS PHONE SALES!!!!   ALL PHONES TESTED AND WARRANTED.
-
-GLOBAL TELECOM LTD  
-CALL JOE: 409-744-7777   
-EMAIL:  MYBIDZ@GMAIL.COM
-
-
-
-
+Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c
++++ linux-2.6/drivers/acpi/acpica/evgpeinit.c
+@@ -408,6 +408,9 @@ acpi_ev_match_gpe_method(acpi_handle obj
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
++	/* Disable the GPE in case it's been enabled already. */
++	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
++
+ 	/*
+ 	 * Add the GPE information from above to the gpe_event_info block for
+ 	 * use during dispatch of this GPE.
