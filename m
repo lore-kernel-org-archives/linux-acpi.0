@@ -1,40 +1,36 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH] ACPI: use ioremap_cache()
-Date: Tue, 28 Dec 2010 13:02:20 +0800
-Message-ID: <1293512540.10593.46.camel@sli10-conroe>
-References: <20101214220932.GA1206@sgi.com>
-	 <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com>
-	 <alpine.LFD.2.00.1012142302110.4878@x980> <20101215164635.GA27373@sgi.com>
-	 <alpine.LFD.2.00.1012151536510.21167@x980>
-	 <alpine.LFD.2.00.1012162149370.20940@x980>
-	 <alpine.LFD.2.00.1012170307080.20940@x980>
-	 <1293506460.10593.43.camel@sli10-conroe>  <4D195AFF.9020106@zytor.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] ACPI / ACPICA: Disable GPEs during initialization
+Date: Tue, 28 Dec 2010 10:49:43 +0100
+Message-ID: <201012281049.43624.rjw@sisk.pl>
+References: <1293403143-11922-1-git-send-email-lenb@kernel.org> <201012272116.23678.rjw@sisk.pl> <1293497455.2565.328.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29938 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:58549 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750718Ab0L1FD1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Dec 2010 00:03:27 -0500
-In-Reply-To: <4D195AFF.9020106@zytor.com>
+	id S1751588Ab0L1JuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Dec 2010 04:50:23 -0500
+In-Reply-To: <1293497455.2565.328.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "gbeshers@sgi.com" <gbeshers@sgi.com>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-On Tue, 2010-12-28 at 11:35 +0800, H. Peter Anvin wrote:
-> On 12/27/2010 07:21 PM, Shaohua Li wrote:
-> > RCRB is a memory mapped io. In ICH, it's chipset configuration
-> > registers. this range can't be cached.
-> > I thought we should add a check like
-> > if page is E820_RAM or E820_ACPI then
-> > 	cached_map
-> > else
-> > 	uncached_map
-> > we have page_is_ram() API which just checks E820_RAM, I thought we can
-> > add a new API to check E820_ACPI.
+On Tuesday, December 28, 2010, Lin Ming wrote:
+> On Tue, 2010-12-28 at 04:16 +0800, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > The patch below is needed in the ACPICA core.
 > 
-> For x86, that is handled by the MTRRs; 
-does it cause any problem if the pat and mtrr doesn't match?
+> Thanks, and I'm also looking at below patch
+> 
+> ACPI / ACPICA: Fix global lock acquisition
+> https://bugzilla.novell.com/show_bug.cgi?id=637377#c82
 
+OK, thanks!
+
+I guess I should send it to the list, then.
+
+Rafael
