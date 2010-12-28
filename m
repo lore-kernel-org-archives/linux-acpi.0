@@ -1,39 +1,37 @@
-From: Toralf =?utf-8?q?F=C3=B6rster?= <toralf.foerster@gmx.de>
-Subject: unmet direct dependencies (ACPI && EXPERIMENTAL)
-Date: Tue, 28 Dec 2010 15:53:16 +0100
-Message-ID: <201012281553.16922.toralf.foerster@gmx.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/4] ACPI / PM: Use standard device wakeup facilities for ACPI wakeup devices
+Date: Tue, 28 Dec 2010 16:25:36 +0100
+Message-ID: <201012281625.36191.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:44767 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752188Ab0L1OxT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Dec 2010 09:53:19 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:60269 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751733Ab0L1PcY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Dec 2010 10:32:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-Hello,
+Hi,
 
-a "make randconfig 1>/dev/null" gave today :
+This series of patches causes standard device wakeup facilities to be used
+with ACPI wakeup devices, like buttons.
 
-warning: (ACPI_HOTPLUG_CPU && ACPI && ACPI_PROCESSOR && HOTPLUG_CPU) se=
-lects=20
-ACPI_CONTAINER which has unmet direct dependencies (ACPI && EXPERIMENTA=
-L)
+[1/4] - Modify /proc/acpi/wakeup not to enable multiple devices at a time to
+        wake up the system from sleep states, even if they share a GPE.
 
-for the current git kernel sources.
-Is this an already known issue ?
+[2/4] - Use standard device wakeup flags for handling ACPI wakeup devices.
 
---=20
-MfG/Kind regards
-Toralf F=C3=B6rster
+[3/4] - Remove special ACPI wakeup flags.
 
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+[4/4] - Report wakeup events for ACPI buttons and lids.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patches have been tested with Toshiba Portege R500.
+
+Thanks,
+Rafael
+
