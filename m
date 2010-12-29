@@ -1,16 +1,22 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PCI / ACPI: Request _OSC control once for each root bridge
-Date: Wed, 29 Dec 2010 13:24:44 +0100
-Message-ID: <201012291324.45074.rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Request _OSC control once for each root bridge (v2)
+Date: Wed, 29 Dec 2010 20:18:29 +0100
+Message-ID: <201012292018.29382.rjw@sisk.pl>
+References: <201012291324.45074.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39800 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753773Ab0L2TTS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Dec 2010 14:19:18 -0500
+In-Reply-To: <201012291324.45074.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
@@ -23,14 +29,24 @@ a given root complex.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/pci_root.c         |   31 +++++++++++++++++++++++++++++++
+
+Hi,
+
+The previous version wouldn't work correctly with pcie_ports=compat.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/pci_root.c         |   32 ++++++++++++++++++++++++++++++++
  drivers/pci/pci.h               |    8 --------
  drivers/pci/pcie/aer/aerdrv.c   |    1 +
  drivers/pci/pcie/aer/aerdrv.h   |    3 ---
+ drivers/pci/pcie/portdrv.h      |    3 ---
  drivers/pci/pcie/portdrv_acpi.c |   23 ++++-------------------
  include/linux/pci-acpi.h        |    6 ++++++
- include/linux/pci.h             |    8 ++++++++
- 7 files changed, 50 insertions(+), 30 deletions(-)
+ include/linux/pci.h             |   11 +++++++++++
+ 8 files changed, 54 insertions(+), 33 deletions(-)
 
 Index: linux-2.6/drivers/acpi/pci_root.c
 ===================================================================
@@ -48,11 +64,12 @@ Index: linux-2.6/drivers/acpi/pci_root.c
  static const struct acpi_device_id root_device_ids[] = {
  	{"PNP0A03", 0},
  	{"", 0},
-@@ -566,6 +571,32 @@ static int __devinit acpi_pci_root_add(s
+@@ -566,6 +571,33 @@ static int __devinit acpi_pci_root_add(s
  	if (flags != base_flags)
  		acpi_pci_osc_support(root, flags);
  
-+	if ((flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
++	if (!pcie_ports_disabled
++	    && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
 +		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
 +			| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
 +			| OSC_PCI_EXPRESS_PME_CONTROL;
@@ -147,7 +164,17 @@ Index: linux-2.6/include/linux/pci.h
 ===================================================================
 --- linux-2.6.orig/include/linux/pci.h
 +++ linux-2.6/include/linux/pci.h
-@@ -1002,6 +1002,14 @@ static inline int pcie_aspm_enabled(void
+@@ -993,6 +993,9 @@ extern void pci_restore_msi_state(struct
+ extern int pci_msi_enabled(void);
+ #endif
+ 
++extern bool pcie_ports_disabled;
++extern bool pcie_ports_auto;
++
+ #ifndef CONFIG_PCIEASPM
+ static inline int pcie_aspm_enabled(void)
+ {
+@@ -1002,6 +1005,14 @@ static inline int pcie_aspm_enabled(void
  extern int pcie_aspm_enabled(void);
  #endif
  
@@ -210,3 +237,18 @@ Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
  #include <linux/sched.h>
  #include <linux/kernel.h>
  #include <linux/errno.h>
+Index: linux-2.6/drivers/pci/pcie/portdrv.h
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/portdrv.h
++++ linux-2.6/drivers/pci/pcie/portdrv.h
+@@ -20,9 +20,6 @@
+ 
+ #define get_descriptor_id(type, service) (((type - 4) << 4) | service)
+ 
+-extern bool pcie_ports_disabled;
+-extern bool pcie_ports_auto;
+-
+ extern struct bus_type pcie_port_bus_type;
+ extern int pcie_port_device_register(struct pci_dev *dev);
+ #ifdef CONFIG_PM
+
