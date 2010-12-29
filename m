@@ -1,34 +1,212 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] ACPI: use ioremap_cache()
-Date: Tue, 28 Dec 2010 12:12:15 -0800
-Message-ID: <4D1A449F.50002@zytor.com>
-References: <20101214220932.GA1206@sgi.com>	 <alpine.LFD.2.00.1012141903210.25387@x980> <20101215024136.GB19601@sgi.com>	 <alpine.LFD.2.00.1012142302110.4878@x980> <20101215164635.GA27373@sgi.com>	 <alpine.LFD.2.00.1012151536510.21167@x980>	 <alpine.LFD.2.00.1012162149370.20940@x980>	 <alpine.LFD.2.00.1012170307080.20940@x980>	 <1293506460.10593.43.camel@sli10-conroe>  <4D195AFF.9020106@zytor.com> <1293512540.10593.46.camel@sli10-conroe>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Request _OSC control once for each root bridge
+Date: Wed, 29 Dec 2010 13:24:44 +0100
+Message-ID: <201012291324.45074.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:56619 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750837Ab0L1UM0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Dec 2010 15:12:26 -0500
-In-Reply-To: <1293512540.10593.46.camel@sli10-conroe>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Jack Steiner <steiner@sgi.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "gbeshers@sgi.com" <gbeshers@sgi.com>
 
-On 12/27/2010 09:02 PM, Shaohua Li wrote:
->>
->> For x86, that is handled by the MTRRs; 
-> does it cause any problem if the pat and mtrr doesn't match?
-> 
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-No, the interaction rules between PAT and MTRR are well-defined; see the
-SDM 3A.  If they weren't we would have huge problems with SMM.
+Move the evaluation of acpi_pci_osc_control_set() (to request control
+of PCI Express native features) into acpi_pci_root_add() to avoid
+calling it many times for the same root complex with the same
+arguments.  Additionally, check if all of the requisite _OSC
+support bits are set before calling acpi_pci_osc_control_set() for
+a given root complex.
 
-	-hpa
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/pci_root.c         |   31 +++++++++++++++++++++++++++++++
+ drivers/pci/pci.h               |    8 --------
+ drivers/pci/pcie/aer/aerdrv.c   |    1 +
+ drivers/pci/pcie/aer/aerdrv.h   |    3 ---
+ drivers/pci/pcie/portdrv_acpi.c |   23 ++++-------------------
+ include/linux/pci-acpi.h        |    6 ++++++
+ include/linux/pci.h             |    8 ++++++++
+ 7 files changed, 50 insertions(+), 30 deletions(-)
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
-
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -47,6 +47,11 @@ static int acpi_pci_root_add(struct acpi
+ static int acpi_pci_root_remove(struct acpi_device *device, int type);
+ static int acpi_pci_root_start(struct acpi_device *device);
+ 
++#define ACPI_PCIE_REQ_SUPPORT (OSC_EXT_PCI_CONFIG_SUPPORT \
++				| OSC_ACTIVE_STATE_PWR_SUPPORT \
++				| OSC_CLOCK_PWR_CAPABILITY_SUPPORT \
++				| OSC_MSI_SUPPORT)
++
+ static const struct acpi_device_id root_device_ids[] = {
+ 	{"PNP0A03", 0},
+ 	{"", 0},
+@@ -566,6 +571,32 @@ static int __devinit acpi_pci_root_add(s
+ 	if (flags != base_flags)
+ 		acpi_pci_osc_support(root, flags);
+ 
++	if ((flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
++		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
++			| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
++			| OSC_PCI_EXPRESS_PME_CONTROL;
++
++		if (pci_aer_available()) {
++			if (aer_acpi_firmware_first())
++				dev_dbg(root->bus->bridge,
++					"PCIe errors handled by BIOS.\n");
++			else
++				flags |= OSC_PCI_EXPRESS_AER_CONTROL;
++		}
++
++		dev_info(root->bus->bridge,
++			"Requesting ACPI _OSC control (0x%02x)\n", flags);
++
++		status = acpi_pci_osc_control_set(device->handle, &flags,
++					OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
++		if (ACPI_SUCCESS(status))
++			dev_info(root->bus->bridge,
++				"ACPI _OSC control (0x%02x) granted\n", flags);
++		else
++			dev_dbg(root->bus->bridge,
++				"ACPI _OSC request failed (code %d)\n", status);
++	}
++
+ 	pci_acpi_add_bus_pm_notifier(device, root->bus);
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+Index: linux-2.6/drivers/pci/pcie/portdrv_acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/portdrv_acpi.c
++++ linux-2.6/drivers/pci/pcie/portdrv_acpi.c
+@@ -33,7 +33,7 @@
+  */
+ int pcie_port_acpi_setup(struct pci_dev *port, int *srv_mask)
+ {
+-	acpi_status status;
++	struct acpi_pci_root *root;
+ 	acpi_handle handle;
+ 	u32 flags;
+ 
+@@ -44,26 +44,11 @@ int pcie_port_acpi_setup(struct pci_dev
+ 	if (!handle)
+ 		return -EINVAL;
+ 
+-	flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
+-		| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
+-		| OSC_PCI_EXPRESS_PME_CONTROL;
+-
+-	if (pci_aer_available()) {
+-		if (aer_acpi_firmware_first())
+-			dev_dbg(&port->dev, "PCIe errors handled by BIOS.\n");
+-		else
+-			flags |= OSC_PCI_EXPRESS_AER_CONTROL;
+-	}
+-
+-	status = acpi_pci_osc_control_set(handle, &flags,
+-					OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
+-	if (ACPI_FAILURE(status)) {
+-		dev_dbg(&port->dev, "ACPI _OSC request failed (code %d)\n",
+-			status);
++	root = acpi_pci_find_root(handle);
++	if (!root)
+ 		return -ENODEV;
+-	}
+ 
+-	dev_info(&port->dev, "ACPI _OSC control granted for 0x%02x\n", flags);
++	flags = root->osc_control_set;
+ 
+ 	*srv_mask = PCIE_PORT_SERVICE_VC;
+ 	if (flags & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
+Index: linux-2.6/drivers/pci/pci.h
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.h
++++ linux-2.6/drivers/pci/pci.h
+@@ -146,14 +146,6 @@ static inline void pci_no_msi(void) { }
+ static inline void pci_msi_init_pci_dev(struct pci_dev *dev) { }
+ #endif
+ 
+-#ifdef CONFIG_PCIEAER
+-void pci_no_aer(void);
+-bool pci_aer_available(void);
+-#else
+-static inline void pci_no_aer(void) { }
+-static inline bool pci_aer_available(void) { return false; }
+-#endif
+-
+ static inline int pci_no_d1d2(struct pci_dev *dev)
+ {
+ 	unsigned int parent_dstates = 0;
+Index: linux-2.6/include/linux/pci.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci.h
++++ linux-2.6/include/linux/pci.h
+@@ -1002,6 +1002,14 @@ static inline int pcie_aspm_enabled(void
+ extern int pcie_aspm_enabled(void);
+ #endif
+ 
++#ifdef CONFIG_PCIEAER
++void pci_no_aer(void);
++bool pci_aer_available(void);
++#else
++static inline void pci_no_aer(void) { }
++static inline bool pci_aer_available(void) { return false; }
++#endif
++
+ #ifndef CONFIG_PCIE_ECRC
+ static inline void pcie_set_ecrc_checking(struct pci_dev *dev)
+ {
+Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.h
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.h
++++ linux-2.6/drivers/pci/pcie/aer/aerdrv.h
+@@ -132,7 +132,6 @@ static inline int aer_osc_setup(struct p
+ 
+ #ifdef CONFIG_ACPI_APEI
+ extern int pcie_aer_get_firmware_first(struct pci_dev *pci_dev);
+-extern bool aer_acpi_firmware_first(void);
+ #else
+ static inline int pcie_aer_get_firmware_first(struct pci_dev *pci_dev)
+ {
+@@ -140,8 +139,6 @@ static inline int pcie_aer_get_firmware_
+ 		return pci_dev->__aer_firmware_first;
+ 	return 0;
+ }
+-
+-static inline bool aer_acpi_firmware_first(void) { return false; }
+ #endif
+ 
+ static inline void pcie_aer_force_firmware_first(struct pci_dev *pci_dev,
+Index: linux-2.6/include/linux/pci-acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci-acpi.h
++++ linux-2.6/include/linux/pci-acpi.h
+@@ -40,4 +40,10 @@ static inline acpi_handle acpi_find_root
+ { return NULL; }
+ #endif
+ 
++#ifdef CONFIG_ACPI_APEI
++extern bool aer_acpi_firmware_first(void);
++#else
++static inline bool aer_acpi_firmware_first(void) { return false; }
++#endif
++
+ #endif	/* _PCI_ACPI_H_ */
+Index: linux-2.6/drivers/pci/pcie/aer/aerdrv.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/aer/aerdrv.c
++++ linux-2.6/drivers/pci/pcie/aer/aerdrv.c
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/pci.h>
++#include <linux/pci-acpi.h>
+ #include <linux/sched.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
