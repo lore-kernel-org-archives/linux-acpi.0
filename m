@@ -1,111 +1,68 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [patch]intel_idle: open broadcast clock event
-Date: Fri, 31 Dec 2010 16:14:47 +0800
-Message-ID: <1293783287.10593.61.camel@sli10-conroe>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [Resend][PATCH 1/3] Platform / x86: Make fujitsu_laptop use acpi_bus_update_power()
+Date: Sat, 1 Jan 2011 13:04:03 +1030 (CST)
+Message-ID: <201101010234.p012Y3F0019523@mercury.physics.adelaide.edu.au>
+References: <201012112343.26591.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:56363 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537Ab0LaIPM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Dec 2010 03:15:12 -0500
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:36649 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751768Ab1AACxq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 Dec 2010 21:53:46 -0500
+In-Reply-To: <201012112343.26591.rjw@sisk.pl> from "Rafael J. Wysocki" at Dec 11, 2010 11:43:26 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Intel_idle driver doesn't open broadcast clock events which will cause
-boot hang.
+Hi guys
 
-Reported-and-tested-by: Yan Zheng <zheng.z.yan@intel.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+For a whole variety of reasons which are too complicated to go into now
+(including but not limited to me not being on the direct "to" list), I
+missed this when it was posted in early-to-mid December.
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index c131d58..9e1017a 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -59,6 +59,8 @@
- #include <linux/hrtimer.h>	/* ktime_get_real() */
- #include <trace/events/power.h>
- #include <linux/sched.h>
-+#include <linux/notifier.h>
-+#include <linux/cpu.h>
- #include <asm/mwait.h>
- 
- #define INTEL_IDLE_VERSION "0.4"
-@@ -73,6 +75,7 @@ static int max_cstate = MWAIT_MAX_NUM_CSTATES - 1;
- 
- static unsigned int mwait_substates;
- 
-+#define LAPIC_TIMER_ALWAYS_RELIABLE 0xFFFFFFFF
- /* Reliable LAPIC Timer States, bit 1 for C1 etc.  */
- static unsigned int lapic_timer_reliable_states = (1 << 1);	 /* Default to only C1 */
- 
-@@ -244,6 +247,39 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state)
- 	return usec_delta;
- }
- 
-+static void __setup_broadcast_timer(void *arg)
-+{
-+	unsigned long reason = (unsigned long)arg;
-+	int cpu = smp_processor_id();
-+
-+	reason = reason ?
-+		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
-+
-+	clockevents_notify(reason, &cpu);
-+}
-+
-+static int __cpuinit setup_broadcast_cpuhp_notify(struct notifier_block *n,
-+		unsigned long action, void *hcpu)
-+{
-+	int hotcpu = (unsigned long)hcpu;
-+
-+	switch (action & 0xf) {
-+	case CPU_ONLINE:
-+		smp_call_function_single(hotcpu, __setup_broadcast_timer,
-+			(void *)true, 1);
-+		break;
-+	case CPU_DOWN_PREPARE:
-+		smp_call_function_single(hotcpu, __setup_broadcast_timer,
-+			(void *)false, 1);
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __cpuinitdata setup_broadcast_notifier = {
-+	.notifier_call = setup_broadcast_cpuhp_notify,
-+};
-+
- /*
-  * intel_idle_probe()
-  */
-@@ -306,7 +342,11 @@ static int intel_idle_probe(void)
- 	}
- 
- 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
--		lapic_timer_reliable_states = 0xFFFFFFFF;
-+		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
-+	else {
-+		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
-+		register_cpu_notifier(&setup_broadcast_notifier);
-+	}
- 
- 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
- 		" model 0x%X\n", boot_cpu_data.x86_model);
-@@ -429,6 +469,11 @@ static void __exit intel_idle_exit(void)
- 	intel_idle_cpuidle_devices_uninit();
- 	cpuidle_unregister_driver(&intel_idle_driver);
- 
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-+		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
-+		unregister_cpu_notifier(&setup_broadcast_notifier);
-+	}
-+
- 	return;
- }
- 
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Use the new function acpi_bus_update_power(), which is safer than
+> acpi_bus_get_power(), for getting device power state in
+> acpi_fujitsu_add() and acpi_fujitsu_hotkey_add().
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Reported-and-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+> ---
+>  drivers/platform/x86/fujitsu-laptop.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6/drivers/platform/x86/fujitsu-laptop.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/platform/x86/fujitsu-laptop.c
+> +++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c
+> @@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_
+>  	if (error)
+>  		goto err_free_input_dev;
+>  
+> -	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
+> +	result = acpi_bus_update_power(fujitsu->acpi_handle, &state);
+>  	if (result) {
+>  		printk(KERN_ERR "Error reading power state\n");
+>  		goto err_unregister_input_dev;
+> @@ -857,7 +857,7 @@ static int acpi_fujitsu_hotkey_add(struc
+>  	if (error)
+>  		goto err_free_input_dev;
+>  
+> -	result = acpi_bus_get_power(fujitsu_hotkey->acpi_handle, &state);
+> +	result = acpi_bus_update_power(fujitsu_hotkey->acpi_handle, &state);
+>  	if (result) {
+>  		printk(KERN_ERR "Error reading power state\n");
+>  		goto err_unregister_input_dev;
+> 
 
+For what it's worth and in case it's important, here's a belated ack:
 
+Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+
+Regards
+  jonathan
