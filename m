@@ -1,50 +1,43 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 06/32] acpi: kacpi*_wq don't need WQ_MEM_RECLAIM
-Date: Mon,  3 Jan 2011 14:49:29 +0100
-Message-ID: <1294062595-30097-7-git-send-email-tj@kernel.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1294062595-30097-1-git-send-email-tj@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Tejun Heo <tj@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] acpi: Update battery information on notification 0x81
+Date: Mon, 3 Jan 2011 17:59:15 +0000
+Message-ID: <20110103175915.GA789@srcf.ucam.org>
+References: <1281990739-17912-1-git-send-email-mjg@redhat.com> <20101215171928.GA17746@srcf.ucam.org> <20101223211638.GA7862@srcf.ucam.org> <201012232323.42702.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51990 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755550Ab1ACR7W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jan 2011 12:59:22 -0500
+Content-Disposition: inline
+In-Reply-To: <201012232323.42702.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-ACPI workqueues aren't used during memory reclaming.  Use
-alloc_workqueue() to create workqueues w/o rescuers.
+On Thu, Dec 23, 2010 at 11:23:42PM +0100, Rafael J. Wysocki wrote:
 
-If the purpose of the separation between kacpid_wq and kacpi_notify_wq
-was to give notifications better response time, kacpi_notify_wq can be
-dropped and kacpi_wq can be created with higher @max_active.
+> As I've already said on IRC, I'd simply add a new function like:
+> 
+> void acpi_battery_refresh(struct acpi_battery *battery)
+> {
+> 	if (!battery->bat.dev)
+> 		return;
+> 	acpi_battery_get_info(battery);
+> 	/* The battery may have changed its reporting units */
+> 	sysfs_remove_battery(battery);
+> 	sysfs_add_battery(battery);
+> }
+> 
+> and call it before acpi_battery_update()
+> (a) in acpi_battery_resume()
+> (b) in acpi_battery_notify() if event == ACPI_BATTERY_NOTIFY_INFO
+> 
+> That would be more straightforward IMHO.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
-Only compile tested.  Please feel free to take it into the subsystem
-tree or simply ack - I'll route it through the wq tree.
+That might be more reasonable. Want to send that, or shall I?
 
-Thanks.
-
- drivers/acpi/osl.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 055d7b7..c961e18 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1573,9 +1573,9 @@ acpi_status __init acpi_os_initialize(void)
- 
- acpi_status __init acpi_os_initialize1(void)
- {
--	kacpid_wq = create_workqueue("kacpid");
--	kacpi_notify_wq = create_workqueue("kacpi_notify");
--	kacpi_hotplug_wq = create_workqueue("kacpi_hotplug");
-+	kacpid_wq = alloc_workqueue("kacpid", 0, 1);
-+	kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
-+	kacpi_hotplug_wq = alloc_workqueue("kacpi_hotplug", 0, 1);
- 	BUG_ON(!kacpid_wq);
- 	BUG_ON(!kacpi_notify_wq);
- 	BUG_ON(!kacpi_hotplug_wq);
 -- 
-1.7.1
+Matthew Garrett | mjg59@srcf.ucam.org
