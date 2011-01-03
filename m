@@ -1,113 +1,50 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: vga switcheroo not working / crashing the machine on i915/nvidia
- hybrid. (ASUS U30JC)
-Date: Mon, 3 Jan 2011 12:32:49 +0100
-Message-ID: <AANLkTinRHN50G8iHR1dxgS+6GraGYpYuEUqjhYoLThv3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:37218 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753095Ab1ACLcu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jan 2011 06:32:50 -0500
-Received: by qwa26 with SMTP id 26so13279996qwa.19
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Jan 2011 03:32:50 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tejun Heo <tj@kernel.org>
+Subject: [PATCH 06/32] acpi: kacpi*_wq don't need WQ_MEM_RECLAIM
+Date: Mon,  3 Jan 2011 14:49:29 +0100
+Message-ID: <1294062595-30097-7-git-send-email-tj@kernel.org>
+References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294062595-30097-1-git-send-email-tj@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Tejun Heo <tj@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello.
+ACPI workqueues aren't used during memory reclaming.  Use
+alloc_workqueue() to create workqueues w/o rescuers.
 
-In my double-carded ASUS U30JC (nvidia + intel i915) I do the following:
+If the purpose of the separation between kacpid_wq and kacpi_notify_wq
+was to give notifications better response time, kacpi_notify_wq can be
+dropped and kacpi_wq can be created with higher @max_active.
 
-stop X
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+Only compile tested.  Please feel free to take it into the subsystem
+tree or simply ack - I'll route it through the wq tree.
 
-This is the output of /sys/kernel/debug/vgaswitcheroo/switch
+Thanks.
 
-daphne linux # cat /sys/kernel/debug/vgaswitcheroo/switch
-0: :Pwr:0000:01:00.0
-1:+:Pwr:0000:00:02.0 (intel graphic card in use, ok)
+ drivers/acpi/osl.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-echo "DDIS" > /sys/kernel/debug/vgaswitcheroo/switch does not change
-the output above (intel remains marked as active)
-
-echo "OFF" > /sys/kernel/debug/vgaswitcheroo/switch
-
-seems to switch off Nvidia card, because the output above becomes:
-0: :Off:0000:01:00.0
-1:+:Pwr:0000:00:02.0
-
-restarting X completely freezes the machine, black screen (need to power down
-by
-pressing the power button).
-
-
-ASUS U30JC Nvidia (nouveau) + intel i915.
-
-Kernel 2.6.35
-x11-base/xorg-server 1.9.2.902
-x11-drivers/xf86-video-nouveau 0.0.16_pre20101010
-
-Shutting down the Nvidia graphic card via acpi_call
-https://github.com/mkottman/acpi_call
-produces the same freeze after trying to restart X.
-
-Same problem with kernel 2.6.36 and acpi_call.
-Did not try vga switcheroo on 2.6.36 due to problems with that kernel
-https://bugzilla.kernel.org/show_bug.cgi?id=24542
-
-The branch in the drm-testing repo
-http://git.kernel.org/?p=linux/kernel/git/airlied/drm-testing.git;a=shortlog;h=refs/heads/drm-nvidia-switch
-does not solve the issue.
-
-
-echo "OFF" > /sys/kernel/debug/vgaswitcheroo/switch
-
-produces in dmesg:
-
-Dec  8 00:06:18 daphne kernel: VGA switcheroo: switched nouveau off
-Dec  8 00:06:18 daphne kernel: [drm] nouveau 0000:01:00.0: Disabling fbcon
-acceleration...
-Dec  8 00:06:18 daphne kernel: [drm] nouveau 0000:01:00.0: Unpinning
-framebuffer(s)...
-Dec  8 00:06:18 daphne kernel: [drm] nouveau 0000:01:00.0: Evicting buffers...
-Dec  8 00:06:18 daphne kernel: [drm] nouveau 0000:01:00.0: Idling channels...
-Dec  8 00:06:18 daphne kernel: [drm] nouveau 0000:01:00.0: Suspending GPU
-objects...
-Dec  8 00:06:19 daphne kernel: [drm] nouveau 0000:01:00.0: And we're gone!
-Dec  8 00:06:19 daphne kernel: nouveau 0000:01:00.0: PCI INT A disabled
-Dec  8 00:06:19 daphne kernel: nouveau 0000:01:00.0: power state changed by
-ACPI to D3
-
-which seems to be correct.
-
-The crash taking place when restarting X does not leave any trace on dmesg.
-
-Thanks in advance.
-
-Giacomo.
-Elettra Synchrotron Radiation Facility
-Trieste, IT.
-
---
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-* iqfire-wall, un progetto
-  open source che implementa un
-  filtro di pacchetti di rete per Linux,
-  e` disponibile per il download qui:
-  http://sourceforge.net/projects/ipfire-wall
-
-* Informazioni e pagina web ufficiale:
-  http://www.giacomos.it/iqfire/index.html
-
-- - - - - - - - - - - - - - - - - - - - - -
-
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 055d7b7..c961e18 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1573,9 +1573,9 @@ acpi_status __init acpi_os_initialize(void)
+ 
+ acpi_status __init acpi_os_initialize1(void)
+ {
+-	kacpid_wq = create_workqueue("kacpid");
+-	kacpi_notify_wq = create_workqueue("kacpi_notify");
+-	kacpi_hotplug_wq = create_workqueue("kacpi_hotplug");
++	kacpid_wq = alloc_workqueue("kacpid", 0, 1);
++	kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
++	kacpi_hotplug_wq = alloc_workqueue("kacpi_hotplug", 0, 1);
+ 	BUG_ON(!kacpid_wq);
+ 	BUG_ON(!kacpi_notify_wq);
+ 	BUG_ON(!kacpi_hotplug_wq);
+-- 
+1.7.1
