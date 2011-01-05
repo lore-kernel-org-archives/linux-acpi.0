@@ -1,107 +1,61 @@
-From: yakui.zhao@intel.com
-Subject: [Patch 3/3] Pmtools: Add one option to dump ACPI table by maping /dev/mem
-Date: Wed,  5 Jan 2011 09:35:33 +0800
-Message-ID: <1294191333-7381-4-git-send-email-yakui.zhao@intel.com>
-References: <1294191333-7381-1-git-send-email-yakui.zhao@intel.com>
- <1294191333-7381-2-git-send-email-yakui.zhao@intel.com>
- <1294191333-7381-3-git-send-email-yakui.zhao@intel.com>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: suspend hangs at platform phase [was: mmotm 2010-12-23-16-58
+ uploaded]
+Date: Wed, 05 Jan 2011 22:36:04 +0100
+Message-ID: <4D24E444.6080308@gmail.com>
+References: <201012240132.oBO1W8Ub022207@imap1.linux-foundation.org> <4D232352.2030809@gmail.com> <4D234F8E.7080102@gmail.com> <201101042357.08600.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32664 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab1AEBel (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Jan 2011 20:34:41 -0500
-In-Reply-To: <1294191333-7381-3-git-send-email-yakui.zhao@intel.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43297 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350Ab1AEVgK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jan 2011 16:36:10 -0500
+In-Reply-To: <201101042357.08600.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: akpm@linux-foundation.org, mm-commits@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, steiner@sgi.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+On 01/04/2011 11:57 PM, Rafael J. Wysocki wrote:
+> On Tuesday, January 04, 2011, Jiri Slaby wrote:
+>> On 01/04/2011 02:40 PM, Jiri Slaby wrote:
+>>> On 12/24/2010 01:58 AM, akpm@linux-foundation.org wrote:
+>>>> The mm-of-the-moment snapshot 2010-12-23-16-58 has been uploaded to
+>>>
+>>> Hi, this kernel regresses with respect to suspend to ram in comparison
+>>> with mmotm 2010-12-16-14-56.
+>>>
+>>> This is OK:
+>>> echo devices > /sys/power/pm_test
+>>> pm-suspend
+>>> This hangs at suspend phase:
+>>> echo platform > /sys/power/pm_test
+>>> pm-suspend
+> 
+> Hmm.  So it looks like _PTS hangs?
 
-Some tables are missing under the directory of /sys/firmware/acpi/tables.
-For example: RSDT, RSDP. 
-In order to dump the missing table, Add one option to dump ACPI table by maping
-/dev/mem directly instead of enumerating /sys/firmware/acpi/tables.
+No _PST here :).
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- acpidump/acpidump.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+>>> Note that this kernel is based on next-20101221. Should I try newer (and
+>>> clean) -next?
+>>
+>> Ok, bisected down to:
+>> 16dc39c98a6ca56a27f22f7ac6731d8223237a2e is first bad commit
+>> commit 16dc39c98a6ca56a27f22f7ac6731d8223237a2e
+...
+>> Revert of that patch fixes the problem.
+> 
+> Can you send a dmesg output and acpidump output from the failing system, please?
 
-Index: pmtools/acpidump/acpidump.c
-===================================================================
---- pmtools.orig/acpidump/acpidump.c
-+++ pmtools/acpidump/acpidump.c
-@@ -456,7 +456,7 @@ static void usage(const char *progname)
- {
- 	puts("Usage:");
- 	printf("%s [--addr 0x1234][--table DSDT][--output filename]"
--		"[--binary][--length 0x456][--help]\n", progname);
-+		"[--binary][--memory][--length 0x456][--help]\n", progname);
- 	puts("\t--addr 0x1234 or -a 0x1234 -- look for tables at this physical address");
- 	puts("\t--table DSDT or -t DSDT -- only dump table with DSDT signature");
- 	puts("\t--output filename or -o filename -- redirect output from stdin to filename");
-@@ -464,6 +464,7 @@ static void usage(const char *progname)
- 	puts("\t--length 0x456 or -l 0x456 -- works only with --addr, dump physical memory"
- 		"\n\t\tregion without trying to understand it's contents");
- 	puts("\t--skip 2 or -s 2 -- skip 2 tables of the given name and output only 3rd one");
-+	puts("\t--memory or -m Use the /dev/mem to dump acpi tables");
- 	puts("\t--help or -h -- this help message");
- 	exit(0);
- }
-@@ -475,12 +476,13 @@ static struct option long_options[] = {
- 	{"binary", 0, 0, 0},
- 	{"length", 1, 0, 0},
- 	{"skip", 1, 0, 0},
-+	{"memory", 0, 0, 0},
- 	{"help", 0, 0, 0},
- 	{0, 0, 0, 0}
- };
- int main(int argc, char **argv)
- {
--	int option_index, c, fd;
-+	int option_index, c, fd, skip_table;
- 	u8 *raw;
- 	struct acpi_rsdp_descriptor rsdpx, *x = 0;
- 	char *filename = 0;
-@@ -490,9 +492,10 @@ int main(int argc, char **argv)
- 	connect = 0;
- 	addr = length = 0;
- 	skip = 0;
-+	skip_table = 0;
- 	while (1) {
- 		option_index = 0;
--		c = getopt_long(argc, argv, "a:t:o:bl:s:h",
-+		c = getopt_long(argc, argv, "a:t:o:bml:s:h",
- 				    long_options, &option_index);
- 		if (c == -1)
- 			break;
-@@ -519,6 +522,9 @@ int main(int argc, char **argv)
- 				skip = strtoul(optarg, (char **)NULL, 10);
- 				break;
- 			case 6:
-+				skip_table = 1;
-+				break;
-+			case 7:
- 				usage(argv[0]);
- 				exit(0);
- 			}
-@@ -541,6 +547,9 @@ int main(int argc, char **argv)
- 		case 's':
- 			skip = strtoul(optarg, (char **)NULL, 10);
- 			break;
-+		case 'm':
-+			skip_table = 1;
-+			break;
- 		case 'h':
- 			usage(argv[0]);
- 			exit(0);
-@@ -580,7 +589,7 @@ int main(int argc, char **argv)
- 	 * in dumping ACPI table, fall back to the conventional dumping
- 	 * mechanism by mapping /dev/mem.
- 	 */
--	if (acpi_dump_firmware_table(fd)) {
-+	if (!skip_table && acpi_dump_firmware_table(fd)) {
- 		acpi_dump_dynamic_SSDT(fd);
- 		close(fd);
- 		return 0;
+Here they are:
+http://www.fi.muni.cz/~xslaby/sklad/panics/dmesg-no-susp.txt
+http://www.fi.muni.cz/~xslaby/sklad/adump.txt
+
+They are captured from the mmotm minus 16dc39c98a6ca56 if that's OK?
+Ignore the BUG there, it's caused by qemu and fixed in later -next.
+
+regards,
+-- 
+js
