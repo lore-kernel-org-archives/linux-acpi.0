@@ -1,90 +1,37 @@
-From: Petr Vandrovec <petr@vandrovec.name>
-Subject: Re: [Bug 25042] New: RAM buffer I/O resource badly interacts with
- memory hot-add
-Date: Tue, 4 Jan 2011 15:55:09 -0800
-Message-ID: <AANLkTik0pMQJQgK656QsrMokxtF1q_6=UKxgMa5WVM-R@mail.gmail.com>
-References: <bug-25042-27@https.bugzilla.kernel.org/>
-	<20110104135148.112d89c5.akpm@linux-foundation.org>
-	<AANLkTinJ9P_B_0p+Y4VsuN+SjiWz2ai9WrNJFHwk=Mm+@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: yakui.zhao@intel.com
+Subject: [Patch 0/3] Pmtools: Add the support of dumping ACPI table through /sys/firmware/acpi/tables
+Date: Wed,  5 Jan 2011 09:35:30 +0800
+Message-ID: <1294191333-7381-1-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:56850 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146Ab1ADXzK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jan 2011 18:55:10 -0500
-Received: by qwa26 with SMTP id 26so15113576qwa.19
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Jan 2011 15:55:09 -0800 (PST)
-In-Reply-To: <AANLkTinJ9P_B_0p+Y4VsuN+SjiWz2ai9WrNJFHwk=Mm+@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:32664 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751169Ab1AEBei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Jan 2011 20:34:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org, akataria@vmware.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
-On Tue, Jan 4, 2011 at 2:32 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Tue, Jan 4, 2011 at 1:51 PM, Andrew Morton <akpm@linux-foundation.=
-org> wrote:
->>> Linus's commit 45fbe3ee01b8e463b28c2751b5dcc0cbdc142d90 in May 2009=
- added code
->>> to create 'RAM buffer' above top of RAM to ensure that I/O resource=
-s do not
->>> start immediately after RAM, but sometime later. =A0Originally it w=
-as enforcing
->>> 32MB alignment, now it enforces 64MB. =A0Which means that in VMs wi=
-th memory size
->>> which is not multiple of 64MB there will be additional 'RAM buffer'=
- resource
->>> present:
->>>
->>> 100000000-1003fffff : System RAM
->>> 100400000-103ffffff : RAM buffer
->
-> I'd suggest just working around it by hotplugging in 64MB chunks.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Unfortunately that does not work - kernels configured for sparsemem
-hate adding memory in chunks smaller than section size - regions with
-end aligned to 128MB, and at least 128MB large is requirement for
-x86-64.  If smaller region is added, then either non-existent memory
-is activated, or nothing happens at all, depending on exact values and
-kernel versions.  So we align end of the hot-added region to 128MB on
-x86-64, and 1GB on ia32.  But we do not align start because there was
-no need...
+Hi
+    This patch set is to add the support of dumping ACPI table through the
+interface of /sys/firmware/acpi/tables. It contains the following three patches.
+They are based on pmtools-20101221 under 
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
-> IOW, the old "it hurts when I do that - don't do that then" solution
-> to the problem. There is no reason why a VM should export some random
-> 8MB-aligned region that I can see.
+	[Patch 1/3]: Clean up patch (Complain the table name of dynamic SSDT table
+with the wrong checksum)
 
-It just adds memory where it ended - power-on memory ended at
-0x1003ffff, and so it now platform naturally tries to continue where
-it left off - from 0x10040000 to 0x10ffffff.  It has no idea that OS
-inside has some special requirements, and OS inside unfortunately does
-not support _PRS/_SRS on memory devices either, so we cannot offer
-possible choices hoping that guest will pick one it likes more than
-default placement/size.
+	[Patch 2/3]: Prefer dumping the ACPI table through /sys/firmware/acpi/tables
+	This patch adds the support of dumping ACPI table through the interface of
+/sys/firmware/acpi/tables. And this mechansim is preferred. In case it fails in
+dumping ACPI table, it will then fall back to the conventional dumping mechanism
+by mapping /dev/mem.(For example: when the system is booted with ACPI disabled,
+we can't dump ACPI table through /sys/firmware/acpi/tables any more).
 
-> That said, I do repeat: why the hell do you keep digging that hole in
-> the first place. Do memory hotplug in 256MB chunks, naturally aligned=
-,
-> and don't bother with any of this crazy crap.
+	[Patch 3/3]: Add one option to dump ACPI table through mapping /dev/mem.
+	
 
-So that we can provide contiguous memory area to the VM, and layout of
-VM created with some amount of memory is same as VM which was
-hot-added to the required size - that's important for supporting
-hibernate, and it is easier to implement than discontiguous ranges.
-
-I've modified code so that we hot-add two regions, first to align
-memory size to 256MB (that one is not activated successfully if memory
-size is not multiple of 64MB, but we cannot do smaller due to
-sparsemem restrictions listed above), and add remaining (if more than
-256MB is added) from there.  That makes workaround similar to clash
-between OPROM base addresses assigned by kernel and ranges reserved in
-SRAT for memory hot-add...
-
-Petr
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards.
+    Yakui
