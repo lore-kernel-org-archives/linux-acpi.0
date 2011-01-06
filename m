@@ -1,67 +1,98 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend hangs at platform phase [was: mmotm 2010-12-23-16-58 uploaded]
-Date: Thu, 6 Jan 2011 00:28:43 +0100
-Message-ID: <201101060028.43342.rjw@sisk.pl>
-References: <201012240132.oBO1W8Ub022207@imap1.linux-foundation.org> <201101052339.46453.rjw@sisk.pl> <4D24F4A9.8010301@gmail.com>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [Bug 25042] New: RAM buffer I/O resource badly interacts with
+ memory hot-add
+Date: Thu, 6 Jan 2011 11:12:31 +0900
+Message-ID: <20110106111231.4fc98855.kamezawa.hiroyu@jp.fujitsu.com>
+References: <bug-25042-27@https.bugzilla.kernel.org/>
+	<20110104135148.112d89c5.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35491 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752903Ab1AEX3l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Jan 2011 18:29:41 -0500
-In-Reply-To: <4D24F4A9.8010301@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20110104135148.112d89c5.akpm@linux-foundation.org>
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, petr@vandrovec.name, akataria@vmware.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: akpm@linux-foundation.org, mm-commits@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, steiner@sgi.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wednesday, January 05, 2011, Jiri Slaby wrote:
-> On 01/05/2011 11:39 PM, Rafael J. Wysocki wrote:
-> > On Wednesday, January 05, 2011, Jiri Slaby wrote:
-> >> On 01/04/2011 11:57 PM, Rafael J. Wysocki wrote:
-> >>> On Tuesday, January 04, 2011, Jiri Slaby wrote:
-> >>>> On 01/04/2011 02:40 PM, Jiri Slaby wrote:
-> >>>>> On 12/24/2010 01:58 AM, akpm@linux-foundation.org wrote:
-> >>>>>> The mm-of-the-moment snapshot 2010-12-23-16-58 has been uploaded to
-> >>>>>
-> >>>>> Hi, this kernel regresses with respect to suspend to ram in comparison
-> >>>>> with mmotm 2010-12-16-14-56.
-> >>>>>
-> >>>>> This is OK:
-> >>>>> echo devices > /sys/power/pm_test
-> >>>>> pm-suspend
-> >>>>> This hangs at suspend phase:
-> >>>>> echo platform > /sys/power/pm_test
-> >>>>> pm-suspend
-> >>>
-> >>> Hmm.  So it looks like _PTS hangs?
-> >>
-> >> No _PST here :).
+On Tue, 4 Jan 2011 13:51:48 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
+
+> 
+> (switched to email.  Please respond via emailed reply-to-all, not via the
+> bugzilla web interface).
+> 
+> I'm not sure who to blame here so I'll just spray it at everyone I've
+> ever met ;)
+> 
+> On Thu, 16 Dec 2010 23:00:12 GMT
+> bugzilla-daemon@bugzilla.kernel.org wrote:
+> 
+> > https://bugzilla.kernel.org/show_bug.cgi?id=25042
 > > 
-> > I really meant _PTS and yes, there is one and it does quite a lot of
-> > interesting stuff.
-> 
-> Yeah, I grepped for _PTS, but in a wrong file. My bad.
-> 
-> > Are you able to collect serial console (or equivalent) logs from that machine?
-> 
-> Unfortunately I don't have a second machine with serial port. What
-> exactly you want to dig out of the logs? Will netconsole work at that phase?
+> >            Summary: RAM buffer I/O resource badly interacts with memory
+> >                     hot-add
+> >            Product: Memory Management
+> >            Version: 2.5
+> >     Kernel Version: 2.6.35
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: Other
+> >         AssignedTo: akpm@linux-foundation.org
+> >         ReportedBy: petr@vandrovec.name
+> >                 CC: akataria@vmware.com
+> >         Regression: Yes
+> > 
+> > 
+> > Created an attachment (id=40502)
+> >  --> (https://bugzilla.kernel.org/attachment.cgi?id=40502)
+> > /proc/iomem after issuing hot-add, one from 3076 to 3200, other from 3200 to
+> > 3456MB
+> > 
+> > Linus's commit 45fbe3ee01b8e463b28c2751b5dcc0cbdc142d90 in May 2009 added code
+> > to create 'RAM buffer' above top of RAM to ensure that I/O resources do not
+> > start immediately after RAM, but sometime later.  Originally it was enforcing
+> > 32MB alignment, now it enforces 64MB.  Which means that in VMs with memory size
+> > which is not multiple of 64MB there will be additional 'RAM buffer' resource
+> > present:
+> > 
+> > 100000000-1003fffff : System RAM
+> > 100400000-103ffffff : RAM buffer
+> > 
+> > When we try to hot-add memory, kernel complains that there was resource
+> > conflict with this fake 'RAM buffer' and hot-added memory is not recognized:
+> > 
+> > [  115.324952] Hotplug Mem Device 
+> > [  115.325549] System RAM resource 100400000 - 10fffffff cannot be added
+> > [  115.325553] ACPI:memory_hp:add_memory failed
+> > [  115.326519] ACPI:memory_hp:Error in acpi_memory_enable_device
+> > [  115.327183] acpi_memhotplug: probe of PNP0C80:00 failed with error -22
+> > [  115.327347] 
+> > [  115.327350]  driver data not found
+> > [  115.328808] ACPI:memory_hp:Cannot find driver data
+> > 
+> > For now we've modified hotplug code to split hot-added request into smaller
+> > ranges, so only first <= 252MB are unusable, rather than whole xxxGB chunk, but
+> > if 'RAM buffer' could be made dependent on memory hot-plug not available on the
+> > platform, it would be much better.
+> > 
 
-I don't think so, the adapter will have been already suspended.
+Hmm ? Why do you need to place "hot-added" memory's address range next to System
+RAM ? Sparsemem allows sparse memory layout.
 
-Hmm.  I guess you can boot with no_console_suspend in the kernel command line
-and use the video console to get some debug info.  At this point we would like
-to know where exactly it hangs, so you'd need to enable AML tracing in the
-kernel and basically see what's printed last. :-)
+Is it very difficult ?
 
-Two more questions:
-(1) Does the failing machine power off correctly with the kernel that fails to
-    suspend?
-(2) Is the failing suspend behavior reproducible if you run
-    "echo disk > /sys/power/state" instead of "pm-suspend" in the platform test?
 
-Rafael
+Thanks,
+-Kame
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom policy in Canada: sign http://dissolvethecrtc.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
