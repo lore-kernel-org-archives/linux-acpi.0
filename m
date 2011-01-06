@@ -1,87 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/11] ACPI / PM: Do not enable multiple devices to wake up simultaneously
-Date: Thu, 6 Jan 2011 23:33:30 +0100
-Message-ID: <201101062333.30960.rjw@sisk.pl>
-References: <201101062331.17079.rjw@sisk.pl>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 10/11] ACPI: Drop device flag wake_capable
+Date: Thu, 6 Jan 2011 15:52:28 -0800 (PST)
+Message-ID: <511724.91814.qm@web180315.mail.gq1.yahoo.com>
+References: <201101062341.27705.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37866 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752782Ab1AFWnd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jan 2011 17:43:33 -0500
-In-Reply-To: <201101062331.17079.rjw@sisk.pl>
+Received: from nm16.bullet.mail.ne1.yahoo.com ([98.138.90.79]:42213 "HELO
+	nm16.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755074Ab1AFXw3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jan 2011 18:52:29 -0500
+In-Reply-To: <201101062341.27705.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
 
-If a device is enabled to wake up the system from sleep states via
-/proc/acpi/wakeup and there are other devices associated with the
-same wakeup GPE, all of these devices are automatically enabled to
-wake up the system.  This isn't correct, because the fact the GPE is
-shared need not imply that wakeup power has to be enabled for all the
-devices at the same time (i.e. it is possible that one device will
-have its wakeup power enabled and it will wake up the system from a
-sleep state if the shared wakeup GPE is enabled, while another device
-having its wakeup power disabled will not wake up the system even
-though the GPE is enabled).  Rework acpi_system_write_wakeup_device()
-so that it only enables wakeup for one device at a time.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/proc.c |   26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+--- On Thu, 1/6/11, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-Index: linux-2.6/drivers/acpi/proc.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/proc.c
-+++ linux-2.6/drivers/acpi/proc.c
-@@ -341,7 +341,6 @@ acpi_system_write_wakeup_device(struct f
- 	char strbuf[5];
- 	char str[5] = "";
- 	unsigned int len = count;
--	struct acpi_device *found_dev = NULL;
- 
- 	if (len > 4)
- 		len = 4;
-@@ -363,33 +362,10 @@ acpi_system_write_wakeup_device(struct f
- 		if (!strncmp(dev->pnp.bus_id, str, 4)) {
- 			dev->wakeup.state.enabled =
- 			    dev->wakeup.state.enabled ? 0 : 1;
--			found_dev = dev;
-+			physical_device_enable_wakeup(dev);
- 			break;
- 		}
- 	}
--	if (found_dev) {
--		physical_device_enable_wakeup(found_dev);
--		list_for_each_safe(node, next, &acpi_wakeup_device_list) {
--			struct acpi_device *dev = container_of(node,
--							       struct
--							       acpi_device,
--							       wakeup_list);
--
--			if ((dev != found_dev) &&
--			    (dev->wakeup.gpe_number ==
--			     found_dev->wakeup.gpe_number)
--			    && (dev->wakeup.gpe_device ==
--				found_dev->wakeup.gpe_device)) {
--				printk(KERN_WARNING
--				       "ACPI: '%s' and '%s' have the same GPE, "
--				       "can't disable/enable one separately\n",
--				       dev->pnp.bus_id, found_dev->pnp.bus_id);
--				dev->wakeup.state.enabled =
--				    found_dev->wakeup.state.enabled;
--				physical_device_enable_wakeup(dev);
--			}
--		}
--	}
- 	mutex_unlock(&acpi_device_lock);
- 	return count;
- }
 
+>=20
+> The wake_capable ACPI device flag is not necessary, because
+> it is
+> only used in scan.c for recording the information
+
+
+Only  for ACPI, yes? Generically, it records data for any
+wake-capable dvice, and is not ACPI-specific...
+
+My bias is that ACPI should  work the way other PM
+solutions/hardware work, not collect special cases
+unique to ACPI (kind of like this.) ...
+
+ that _PRW
+> is
+> present for the given device.=A0 That information is
+> only used by
+> acpi_add_single_object() to decide whether or not to call
+> acpi_bus_get_wakeup_device_flags(), so the flag may be
+> dropped
+> if the _PRW check is moved to
+> acpi_bus_get_wakeup_device_flags().
+
+Only if you presume ACPI ....
+
+I'm glad to see that generic-vs-ACPI duplication
+of flags vanishing; way back when I started to add
+wakeup support, I had to stop part way through ACPI
+in large part because wake didn't work well yet in the Linux PM
+framework, except for select non-ACPI HW.
+(Starting with a USB subset: OTG and hub port sleep and ewakeup); oh, a=
+lso GPIO wake on some HW, e.g.
+or buttons, and switches like MMC/SD card detect. ISTR that stuff still=
+ wierds out a bit as it goes
+through Linux-ACPI.
+
+Also, to the extent that the ACPI code was supposed
+to be generic and not Linux-specific, I thought Len
+or someone from Intel should drive such issues.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
