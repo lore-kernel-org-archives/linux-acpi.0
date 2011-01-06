@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 8/11] ACPI / PM: Check status of power resources under mutexes
-Date: Thu, 6 Jan 2011 23:38:57 +0100
-Message-ID: <201101062338.57967.rjw@sisk.pl>
+Subject: [PATCH 7/11] ACPI / PM: Rename acpi_power_off_device()
+Date: Thu, 6 Jan 2011 23:38:04 +0100
+Message-ID: <201101062338.04737.rjw@sisk.pl>
 References: <201101062331.17079.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37904 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:37885 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753685Ab1AFWoD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jan 2011 17:44:03 -0500
+	id S1754482Ab1AFWn7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jan 2011 17:43:59 -0500
 In-Reply-To: <201101062331.17079.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,75 +20,44 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, 
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-It certainly is not a good idea to execute _ON or _OFF and _STA
-for the same power resource at the same time which may happen in
-some circumstances in theory.  To prevent that from happening,
-read the power state of each power resource under its mutex, as
-that will prevent the sate from being changed at the same time.
+Rename acpi_power_off_device() to acpi_power_off() in analogy with
+acpi_power_on().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/power.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ drivers/acpi/power.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 Index: linux-2.6/drivers/acpi/power.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/power.c
 +++ linux-2.6/drivers/acpi/power.c
-@@ -145,9 +145,8 @@ static int acpi_power_get_state(acpi_han
- 
- static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- {
--	int result = 0, state1;
--	u32 i = 0;
--
-+	int cur_state;
-+	int i = 0;
- 
- 	if (!list || !state)
- 		return -EINVAL;
-@@ -155,25 +154,33 @@ static int acpi_power_get_list_state(str
- 	/* The state of the list is 'on' IFF all resources are 'on'. */
- 
- 	for (i = 0; i < list->count; i++) {
--		/*
--		 * The state of the power resource can be obtained by
--		 * using the ACPI handle. In such case it is unnecessary to
--		 * get the Power resource first and then get its state again.
--		 */
--		result = acpi_power_get_state(list->handles[i], &state1);
-+		struct acpi_power_resource *resource;
-+		acpi_handle handle = list->handles[i];
-+		int result;
-+
-+		result = acpi_power_get_context(handle, &resource);
- 		if (result)
- 			return result;
- 
--		*state = state1;
-+		mutex_lock(&resource->resource_lock);
- 
--		if (*state != ACPI_POWER_RESOURCE_STATE_ON)
-+		result = acpi_power_get_state(handle, &cur_state);
-+
-+		mutex_unlock(&resource->resource_lock);
-+
-+		if (result)
-+			return result;
-+
-+		if (cur_state != ACPI_POWER_RESOURCE_STATE_ON)
- 			break;
- 	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource list is %s\n",
--			  *state ? "on" : "off"));
-+			  cur_state ? "on" : "off"));
- 
--	return result;
-+	*state = cur_state;
-+
-+	return 0;
+@@ -219,7 +219,7 @@ static int acpi_power_on(acpi_handle han
+ 	return result;
  }
  
- static int __acpi_power_on(struct acpi_power_resource *resource)
+-static int acpi_power_off_device(acpi_handle handle)
++static int acpi_power_off(acpi_handle handle)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+@@ -268,7 +268,7 @@ static void __acpi_power_off_list(struct
+ 	int i;
+ 
+ 	for (i = num_res - 1; i >= 0 ; i--)
+-		acpi_power_off_device(list->handles[i]);
++		acpi_power_off(list->handles[i]);
+ }
+ 
+ static void acpi_power_off_list(struct acpi_handle_list *list)
+@@ -430,8 +430,7 @@ int acpi_disable_wakeup_device_power(str
+ 
+ 	/* Close power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		int ret = acpi_power_off_device(
+-				dev->wakeup.resources.handles[i]);
++		int ret = acpi_power_off(dev->wakeup.resources.handles[i]);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
 
