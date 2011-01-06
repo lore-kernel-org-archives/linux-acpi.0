@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 11/11] ACPI / Battery: Update information on info notification and resume
-Date: Thu, 6 Jan 2011 23:42:27 +0100
-Message-ID: <201101062342.28168.rjw@sisk.pl>
+Subject: [PATCH 9/11] ACPI: Always check if _PRW is present before trying to evaluate it
+Date: Thu, 6 Jan 2011 23:40:00 +0100
+Message-ID: <201101062340.00868.rjw@sisk.pl>
 References: <201101062331.17079.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -11,62 +11,47 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201101062331.17079.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Andreas Mohr <andi@lisas.de>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-A notification event 0x81 from an ACPI battery device requires us to
-re-read the battery information structure.  Follow this requirement
-and remove and re-create the battery's attibutes in sysfs so that
-they reflect the reporting units used by the battery at the moment
-(those units may actually change sometimes at run time, which happens
-on some Thinkpads).
+Before evaluating _PRW for devices that are reported as inactive or
+not present by their _STA control methods we should check if those
+methods are actually present (otherwise the evaulation of _PRW will
+obviously fail and a scary message will be printed unnecessarily).
 
-The approach used in this patch was suggested by Matthew Garrett.
-
+Reported-by: Andreas Mohr <andi@lisas.de>
+Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/battery.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/scan.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Index: linux-2.6/drivers/acpi/battery.c
+Index: linux-2.6/drivers/acpi/scan.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/battery.c
-+++ linux-2.6/drivers/acpi/battery.c
-@@ -631,6 +631,17 @@ static int acpi_battery_update(struct ac
- 	return result;
- }
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -1388,7 +1388,6 @@ static acpi_status acpi_bus_check_add(ac
+ 	struct acpi_bus_ops *ops = context;
+ 	int type;
+ 	unsigned long long sta;
+-	struct acpi_device_wakeup wakeup;
+ 	struct acpi_device *device;
+ 	acpi_status status;
+ 	int result;
+@@ -1399,7 +1398,13 @@ static acpi_status acpi_bus_check_add(ac
  
-+static void acpi_battery_refresh(struct acpi_battery *battery)
-+{
-+	if (!battery->bat.dev)
-+		return;
+ 	if (!(sta & ACPI_STA_DEVICE_PRESENT) &&
+ 	    !(sta & ACPI_STA_DEVICE_FUNCTIONING)) {
+-		acpi_bus_extract_wakeup_device_power_package(handle, &wakeup);
++		struct acpi_device_wakeup wakeup;
++		acpi_handle temp;
 +
-+	acpi_battery_get_info(battery);
-+	/* The battery may have changed its reporting units. */
-+	sysfs_remove_battery(battery);
-+	sysfs_add_battery(battery);
-+}
-+
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
-@@ -914,6 +925,8 @@ static void acpi_battery_notify(struct a
- 	if (!battery)
- 		return;
- 	old = battery->bat.dev;
-+	if (event == ACPI_BATTERY_NOTIFY_INFO)
-+		acpi_battery_refresh(battery);
- 	acpi_battery_update(battery);
- 	acpi_bus_generate_proc_event(device, event,
- 				     acpi_battery_present(battery));
-@@ -983,6 +996,7 @@ static int acpi_battery_resume(struct ac
- 	if (!device)
- 		return -EINVAL;
- 	battery = acpi_driver_data(device);
-+	acpi_battery_refresh(battery);
- 	battery->update_time = 0;
- 	acpi_battery_update(battery);
- 	return 0;
++		status = acpi_get_handle(handle, "_PRW", &temp);
++		if (ACPI_SUCCESS(status))
++			acpi_bus_extract_wakeup_device_power_package(handle,
++								     &wakeup);
+ 		return AE_CTRL_DEPTH;
+ 	}
+ 
