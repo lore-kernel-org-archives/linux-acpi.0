@@ -1,43 +1,212 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 8/9] perf timechart: Map power:cpu_idle events to the corresponding cpuidle state
-Date: Fri, 7 Jan 2011 11:52:11 +0100
-Message-ID: <201101071152.11407.trenn@suse.de>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-9-git-send-email-trenn@suse.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI / ACPICA: Fix global lock acquisition
+Date: Fri, 7 Jan 2011 12:27:13 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858BFD9B10E@orsmsx503.amr.corp.intel.com>
+References: <201012281105.39478.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1294396190-23031-9-git-send-email-trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-perf-users@vger.kernel.org
-Cc: mingo@elte.hu, arjan@linux.intel.com, lenb@kernel.org, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Frederic Weisbecker <fweisbec@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:16153 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755052Ab1AGU1Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jan 2011 15:27:16 -0500
+In-Reply-To: <201012281105.39478.rjw@sisk.pl>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, Thomas Renninger <trenn@suse.de>
 
-Argh, forgot guilt refresh on this one.
-The changelog could be a bit more detailed by adding:
+Hi Rafael,
 
-On Friday 07 January 2011 11:29:49 Thomas Renninger wrote:
-> Before, power:cpu_idle events were very specific X86 Intel mwait events.
-> This got fixed with previous patches and cpu_idle events are now thrown by
-> all cpuidle drivers and can be mapped to the corresponding cpuidle state
-> in /sys.
-> 
-> This patch reads out the corresponding cpuidle name of a cpu_idle event
-> and uses it in the title line of the chart (c-states Cx in x86, omap2
-> - DDR self refresh states for various arm archs).
-> 
-> It also reads out the corresponding abbr(eviation) and uses the string
-> to draw the cpu idle occurences. This needs a short (3 letter) string
-> to keep the overview in the chart.
+We are integrating this change into ACPICA. So far, looks good, I like the solution. I will send you the integrated functions when I'm finished, for your review. As always, it is a little tricky because of various Linux<->ACPICA divergences.
 
-All features/fixes this patch includes:
-  - Read up cpuidle events from sysfs if available
-    and thus make them architecture independent
-  - Use (free) green color to display idle events in the chart,
-    red is also used by "Blocked IO" event(s)
-  - Fix wrong class="rect.cX" to class="cX" idle box svg drawing
-    definitions. This fixes up black idle drawings for eog (eye of gnome)
-    and firefox (inkscape somehow could handle the broken case).
+Bob
 
-    Thomas
+
+>-----Original Message-----
+>From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>Sent: Tuesday, December 28, 2010 2:06 AM
+>To: ACPI Devel Maling List
+>Cc: Len Brown; Lin, Ming M; Moore, Robert; Thomas Renninger
+>Subject: [PATCH] ACPI / ACPICA: Fix global lock acquisition
+>
+>From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+>There are two problems with the ACPICA's current implementation of
+>the global lock acquisition.  First, acpi_ev_global_lock_handler(),
+>which in fact is an interface to the outside of the kernel, doesn't
+>validate its input, so it only works correctly if the other side
+>(i.e. the ACPI firmware) is fully specification-compliant (as far
+>as the global lock is concerned).  Unfortunately, that's known not
+>to be the case on some systems (i.e. we get spurious global lock
+>signaling interrupts without the pending flag set on some systems).
+>Second, acpi_ev_global_lock_handler() attempts to acquire the global
+>lock on behalf of a thread waiting for it without checking if there
+>actually is such a thread.  Both of these shortcomings need to be
+>addressed to prevent all possible race conditions from happening.
+>
+>Rework acpi_ev_global_lock_handler() so that it doesn't try to
+>acquire the global lock and make it signal the availability of the
+>global lock to the waiting thread instead.  Make sure that the
+>availability of the global lock can only be signaled when there
+>is a thread waiting for it and that it can't be signaled more than
+>once in a row (to keep acpi_gbl_global_lock_semaphore in balance).
+>
+>Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+>---
+> drivers/acpi/acpica/evmisc.c |   94 +++++++++++++++++++++++++-------------
+>-----
+> 1 file changed, 55 insertions(+), 39 deletions(-)
+>
+>Index: linux-2.6/drivers/acpi/acpica/evmisc.c
+>===================================================================
+>--- linux-2.6.orig/drivers/acpi/acpica/evmisc.c
+>+++ linux-2.6/drivers/acpi/acpica/evmisc.c
+>@@ -284,41 +284,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_no
+>  * RETURN:      ACPI_INTERRUPT_HANDLED
+>  *
+>  * DESCRIPTION: Invoked directly from the SCI handler when a global lock
+>- *              release interrupt occurs. Attempt to acquire the global
+>lock,
+>- *              if successful, signal the thread waiting for the lock.
+>+ *              release interrupt occurs.  If there's a thread waiting for
+>+ *              the global lock, signal it.
+>  *
+>  * NOTE: Assumes that the semaphore can be signaled from interrupt level.
+>If
+>  * this is not possible for some reason, a separate thread will have to be
+>  * scheduled to do this.
+>  *
+>
+>***************************************************************************
+>***/
+>+static u8 acpi_ev_global_lock_pending;
+>+static spinlock_t _acpi_ev_global_lock_pending_lock;
+>+#define acpi_ev_global_lock_pending_lock
+>&_acpi_ev_global_lock_pending_lock
+>
+> static u32 acpi_ev_global_lock_handler(void *context)
+> {
+>-	u8 acquired = FALSE;
+>+	acpi_status status;
+>+	acpi_cpu_flags flags;
+>
+>-	/*
+>-	 * Attempt to get the lock.
+>-	 *
+>-	 * If we don't get it now, it will be marked pending and we will
+>-	 * take another interrupt when it becomes free.
+>-	 */
+>-	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
+>-	if (acquired) {
+>+	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
+>
+>-		/* Got the lock, now wake all threads waiting for it */
+>+	if (!acpi_ev_global_lock_pending) {
+>+		goto out;
+>+	}
+>
+>-		acpi_gbl_global_lock_acquired = TRUE;
+>-		/* Send a unit to the semaphore */
+>+	/* Send a unit to the semaphore */
+>
+>-		if (ACPI_FAILURE
+>-		    (acpi_os_signal_semaphore
+>-		     (acpi_gbl_global_lock_semaphore, 1))) {
+>-			ACPI_ERROR((AE_INFO,
+>-				    "Could not signal Global Lock semaphore"));
+>-		}
+>+	status = acpi_os_signal_semaphore(acpi_gbl_global_lock_semaphore, 1);
+>+	if (ACPI_FAILURE(status)) {
+>+		ACPI_ERROR((AE_INFO, "Could not signal Global Lock
+>semaphore"));
+> 	}
+>
+>+	acpi_ev_global_lock_pending = FALSE;
+>+
+>+ out:
+>+	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
+>+
+> 	return (ACPI_INTERRUPT_HANDLED);
+> }
+>
+>@@ -415,6 +415,7 @@ static int acpi_ev_global_lock_acquired;
+>
+> acpi_status acpi_ev_acquire_global_lock(u16 timeout)
+> {
+>+	acpi_cpu_flags flags;
+> 	acpi_status status = AE_OK;
+> 	u8 acquired = FALSE;
+>
+>@@ -467,32 +468,47 @@ acpi_status acpi_ev_acquire_global_lock(
+> 		return_ACPI_STATUS(AE_OK);
+> 	}
+>
+>-	/* Attempt to acquire the actual hardware lock */
+>+	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
+>+
+>+	do {
+>+
+>+		/* Attempt to acquire the actual hardware lock */
+>
+>-	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
+>-	if (acquired) {
+>+		ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
+>+		if (acquired) {
+>+			acpi_gbl_global_lock_acquired = TRUE;
+>
+>-		/* We got the lock */
+>+			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+>+					  "Acquired hardware Global Lock\n"));
+>+			break;
+>+		}
+>+
+>+		acpi_ev_global_lock_pending = TRUE;
+>+
+>+		acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
+>
+>+		/*
+>+		 * Did not get the lock. The pending bit was set above, and we
+>+		 * must wait until we get the global lock released interrupt.
+>+		 */
+> 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+>-				  "Acquired hardware Global Lock\n"));
+>+				  "Waiting for hardware Global Lock\n"));
+>
+>-		acpi_gbl_global_lock_acquired = TRUE;
+>-		return_ACPI_STATUS(AE_OK);
+>-	}
+>+		/*
+>+		 * Wait for handshake with the global lock interrupt handler.
+>+		 * This interface releases the interpreter if we must wait.
+>+		 */
+>+		status = acpi_ex_system_wait_semaphore(
+>+						acpi_gbl_global_lock_semaphore,
+>+						ACPI_WAIT_FOREVER);
+>
+>-	/*
+>-	 * Did not get the lock. The pending bit was set above, and we must
+>now
+>-	 * wait until we get the global lock released interrupt.
+>-	 */
+>-	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Waiting for hardware Global
+>Lock\n"));
+>+		flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
+>
+>-	/*
+>-	 * Wait for handshake with the global lock interrupt handler.
+>-	 * This interface releases the interpreter if we must wait.
+>-	 */
+>-	status =
+>acpi_ex_system_wait_semaphore(acpi_gbl_global_lock_semaphore,
+>-					       ACPI_WAIT_FOREVER);
+>+	} while (ACPI_SUCCESS(status));
+>+
+>+	acpi_ev_global_lock_pending = FALSE;
+>+
+>+	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
+>
+> 	return_ACPI_STATUS(status);
+> }
