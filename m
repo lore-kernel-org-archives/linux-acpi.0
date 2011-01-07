@@ -1,65 +1,43 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/9] acpi: Use ACPI C-state type instead of enumeration value to export cpuidle state name
-Date: Fri,  7 Jan 2011 11:29:42 +0100
-Message-ID: <1294396190-23031-2-git-send-email-trenn@suse.de>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de>
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <1294396190-23031-1-git-send-email-trenn@suse.de>
-Sender: linux-perf-users-owner@vger.kernel.org
-Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, lenb@kernel.org, j-pihet@ti.com, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 8/9] perf timechart: Map power:cpu_idle events to the corresponding cpuidle state
+Date: Fri, 7 Jan 2011 11:52:11 +0100
+Message-ID: <201101071152.11407.trenn@suse.de>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-9-git-send-email-trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294396190-23031-9-git-send-email-trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-perf-users@vger.kernel.org
+Cc: mingo@elte.hu, arjan@linux.intel.com, lenb@kernel.org, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Frederic Weisbecker <fweisbec@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In the former /proc/acpi/processor/power/* there were Cx showing the
-enumerated number/amount of C-states and type[Cy] which is
-what should get shown as the cpuidle state name.
+Argh, forgot guilt refresh on this one.
+The changelog could be a bit more detailed by adding:
 
-Typically on latest Nehalem and later CPUs, BIOS vendors miss
-out C2 and C3 wrongly shows up as C2.
+On Friday 07 January 2011 11:29:49 Thomas Renninger wrote:
+> Before, power:cpu_idle events were very specific X86 Intel mwait events.
+> This got fixed with previous patches and cpu_idle events are now thrown by
+> all cpuidle drivers and can be mapped to the corresponding cpuidle state
+> in /sys.
+> 
+> This patch reads out the corresponding cpuidle name of a cpu_idle event
+> and uses it in the title line of the chart (c-states Cx in x86, omap2
+> - DDR self refresh states for various arm archs).
+> 
+> It also reads out the corresponding abbr(eviation) and uses the string
+> to draw the cpu idle occurences. This needs a short (3 letter) string
+> to keep the overview in the chart.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: arjan@linux.intel.com
-CC: lenb@kernel.org
-CC: linux-acpi@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
----
- drivers/acpi/processor_idle.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+All features/fixes this patch includes:
+  - Read up cpuidle events from sysfs if available
+    and thus make them architecture independent
+  - Use (free) green color to display idle events in the chart,
+    red is also used by "Blocked IO" event(s)
+  - Fix wrong class="rect.cX" to class="cX" idle box svg drawing
+    definitions. This fixes up black idle drawings for eog (eye of gnome)
+    and firefox (inkscape somehow could handle the broken case).
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index dcb38f8..104ae77 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1008,7 +1008,6 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- #endif
- 		cpuidle_set_statedata(state, cx);
- 
--		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
- 		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
- 		state->exit_latency = cx->latency;
- 		state->target_residency = cx->latency * latency_factor;
-@@ -1016,6 +1015,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- 		state->flags = 0;
- 		switch (cx->type) {
- 			case ACPI_STATE_C1:
-+			snprintf(state->name, CPUIDLE_NAME_LEN, "C1");
- 			state->flags |= CPUIDLE_FLAG_SHALLOW;
- 			if (cx->entry_method == ACPI_CSTATE_FFH)
- 				state->flags |= CPUIDLE_FLAG_TIME_VALID;
-@@ -1025,6 +1025,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- 			break;
- 
- 			case ACPI_STATE_C2:
-+			snprintf(state->name, CPUIDLE_NAME_LEN, "C2");
- 			state->flags |= CPUIDLE_FLAG_BALANCED;
- 			state->flags |= CPUIDLE_FLAG_TIME_VALID;
- 			state->enter = acpi_idle_enter_simple;
-@@ -1032,6 +1033,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- 			break;
- 
- 			case ACPI_STATE_C3:
-+			snprintf(state->name, CPUIDLE_NAME_LEN, "C3");
- 			state->flags |= CPUIDLE_FLAG_DEEP;
- 			state->flags |= CPUIDLE_FLAG_TIME_VALID;
- 			state->flags |= CPUIDLE_FLAG_CHECK_BM;
--- 
-1.7.3.1
+    Thomas
