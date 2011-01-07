@@ -1,71 +1,119 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3/3] ACPI / ACPICA: Disable GPEs during initialization
-Date: Fri, 7 Jan 2011 12:41:31 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858BFD9B12E@orsmsx503.amr.corp.intel.com>
-References: <1293403143-11922-1-git-send-email-lenb@kernel.org>
-  <5acdb1af907d5908b4942d425c0983f353dd8fc5.1293403093.git.len.brown@intel.com>
- <201012272116.23678.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/9] acpi: Use ACPI C-state type instead of enumeration
+ value to export cpuidle state name
+Date: Fri, 07 Jan 2011 15:45:18 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101071529100.20609@x980>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de>
+ <1294396190-23031-2-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:16008 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab1AGUle convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jan 2011 15:41:34 -0500
-In-Reply-To: <201012272116.23678.rjw@sisk.pl>
-Content-Language: en-US
+Received: from vms173017pub.verizon.net ([206.46.173.17]:33141 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab1AGUpg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jan 2011 15:45:36 -0500
+In-reply-to: <1294396190-23031-2-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Rafael,
+On Fri, 7 Jan 2011, Thomas Renninger wrote:
 
-Rather than disabling GPE bits one-by-one, I'd like to disable all GPE bits in all GPE registers within the block at the time the block is installed, by clearing/disabling entire registers with a single write. This would cover all the weird hardware and BIOS possibilities in one fell swoop. I believe that this was the original behavior of ACPICA.
+> In the former /proc/acpi/processor/power/* there were Cx showing the
+> enumerated number/amount of C-states and type[Cy] which is
+> what should get shown as the cpuidle state name.
+> 
+> Typically on latest Nehalem and later CPUs, BIOS vendors miss
+> out C2 and C3 wrongly shows up as C2.
 
-Bob
+I think this patch will cause more confusion than it will fix.
 
+It assumes that all states of type C2 should have the name "C2"
+and all the states of type "C3" should have the name "C3".
+But some systems may have more than one state of each type...
 
->-----Original Message-----
->From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
->Sent: Monday, December 27, 2010 12:16 PM
->To: Lin, Ming M; Moore, Robert
->Cc: Len Brown; linux-acpi@vger.kernel.org; Brown, Len
->Subject: Re: [PATCH 3/3] ACPI / ACPICA: Disable GPEs during initialization
->
->Hi,
->
->The patch below is needed in the ACPICA core.
->
->On Sunday, December 26, 2010, Len Brown wrote:
->> From: Rafael J. Wysocki <rjw@sisk.pl>
->>
->> GPEs with corresponding _Lxx/_Exx control methods need to be disabled
->> during initialization in case they have been enabled by the BIOS, so
->> that they don't fire up until they are enabled by acpi_update_gpes().
->>
->> References: https://bugzilla.kernel.org/show_bug.cgi?id=25412
->> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
->> Signed-off-by: Len Brown <len.brown@intel.com>
->> ---
->>  drivers/acpi/acpica/evgpeinit.c |    3 +++
->>  1 files changed, 3 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/evgpeinit.c
->b/drivers/acpi/acpica/evgpeinit.c
->> index 2c7def9..4c8dea5 100644
->> --- a/drivers/acpi/acpica/evgpeinit.c
->> +++ b/drivers/acpi/acpica/evgpeinit.c
->> @@ -408,6 +408,9 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
->>  		return_ACPI_STATUS(AE_OK);
->>  	}
->>
->> +	/* Disable the GPE in case it's been enabled already. */
->> +	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
->> +
->>  	/*
->>  	 * Add the GPE information from above to the gpe_event_info block for
->>  	 * use during dispatch of this GPE.
->>
+also, the state->name is somewhat arbitrary.
 
+You'll notice that intel_idle uses the hardware C-state names
+such as NHM-C1, NHM-C3, NHM-C6 - to match the (arbitrary)
+names in the hardware documentation.  We could call those
+states Moe/Larry/Curley just as well.
+
+If somebody wants to know what the state _is_,
+then the state->desc field shows them in un-ambiguous
+terms, "MWAIT 0x10" etc.
+
+if somebody wants to simply enumerate the states,
+so they can use acpi.max_cstate=N, for example, then
+cpuidle already enumerates them in 
+/sys/devices/system/cpu/cpu0/cpuidle/state%d
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+ps. the thing about "mising C2".  That isn't a bug.
+That is actually BIOS writer's attempt to not break
+the installed base of Linux.  NHM doesn't actually
+have any ACPI C3-type states, just C2-type states.
+But in NHM, the LAPIC timer stops in C2-type states,
+so the BIOS advertises them as C2-type to make sure
+that an old version of Linux doesn't attempt to
+use the LAPIC timer in those states.
+(we switched to not trusting the LAPIC timer even
+in C2-type states a while back, but the installed
+base never gets updated)
+
+pps. I do think we need to be able to dump
+the _CST, as we lost the ACPI type info that
+was in /proc/acpi/processor/*/power and we
+may need it to debug some systems.
+
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: arjan@linux.intel.com
+> CC: lenb@kernel.org
+> CC: linux-acpi@vger.kernel.org
+> CC: linux-kernel@vger.kernel.org
+> ---
+>  drivers/acpi/processor_idle.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index dcb38f8..104ae77 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1008,7 +1008,6 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+>  #endif
+>  		cpuidle_set_statedata(state, cx);
+>  
+> -		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
+>  		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
+>  		state->exit_latency = cx->latency;
+>  		state->target_residency = cx->latency * latency_factor;
+> @@ -1016,6 +1015,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+>  		state->flags = 0;
+>  		switch (cx->type) {
+>  			case ACPI_STATE_C1:
+> +			snprintf(state->name, CPUIDLE_NAME_LEN, "C1");
+>  			state->flags |= CPUIDLE_FLAG_SHALLOW;
+>  			if (cx->entry_method == ACPI_CSTATE_FFH)
+>  				state->flags |= CPUIDLE_FLAG_TIME_VALID;
+> @@ -1025,6 +1025,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+>  			break;
+>  
+>  			case ACPI_STATE_C2:
+> +			snprintf(state->name, CPUIDLE_NAME_LEN, "C2");
+>  			state->flags |= CPUIDLE_FLAG_BALANCED;
+>  			state->flags |= CPUIDLE_FLAG_TIME_VALID;
+>  			state->enter = acpi_idle_enter_simple;
+> @@ -1032,6 +1033,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+>  			break;
+>  
+>  			case ACPI_STATE_C3:
+> +			snprintf(state->name, CPUIDLE_NAME_LEN, "C3");
+>  			state->flags |= CPUIDLE_FLAG_DEEP;
+>  			state->flags |= CPUIDLE_FLAG_TIME_VALID;
+>  			state->flags |= CPUIDLE_FLAG_CHECK_BM;
+> -- 
+> 1.7.3.1
+> 
