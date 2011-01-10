@@ -1,47 +1,94 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: 2.6.37-rc8: Reported regressions from 2.6.36
-Date: Mon, 10 Jan 2011 00:08:13 -0800 (PST)
-Message-ID: <20110110.000813.173856001.davem@davemloft.net>
-References: <96DQe4a_2tH.A.cFB.l27GNB@chimera>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <96DQe4a_2tH.A.cFB.l27GNB@chimera>
-Sender: linux-scsi-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-kernel@vger.kernel.org, maciej.rutecki@gmail.com, florian@mickler.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, kernel-testers@vger.kernel.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org, dri-devel@lists.freedesktop.org
+From: yakui.zhao@intel.com
+Subject: [PATCH 1/2] ACPI: Check the returned value of set_cpus_allowed_ptr before T-state operation
+Date: Mon, 10 Jan 2011 16:35:44 +0800
+Message-ID: <1294648545-32193-1-git-send-email-yakui.zhao@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:45855 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751820Ab1AJIeH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jan 2011 03:34:07 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Date: Wed, 29 Dec 2010 23:59:38 +0100 (CET)
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=24592
-> Subject		: 2.6.37-rc5: NULL pointer oops in selinux_socket_unix_stream_connect
-> Submitter	: Jeremy Fitzhardinge <jeremy@goop.org>
-> Date		: 2010-12-08 21:09 (22 days old)
-> Message-ID	: <4CFFF3F3.90100@goop.org>
-> References	: http://marc.info/?l=linux-kernel&m=129184256629712&w=2
+Now before it executes the T-state operation on one CPU, it will try to
+migrate to the target CPU. Especially this is required on the system that
+uses the MSR_IA32_THERMAL_CONTROL register to switch T-state.
+But unfortunately it doesn't check whether the migration is successful or not.
+In such case we will get/set the incorrect T-state on the offline CPU as
+it fails in the migration to the offline CPU.
 
-This bug is intended to be fixed by:
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/processor_throttling.c |   24 +++++++++++++++++++++---
+ 1 files changed, 21 insertions(+), 3 deletions(-)
 
-commit 3610cda53f247e176bcbb7a7cca64bc53b12acdb
-Author: David S. Miller <davem@davemloft.net>
-Date:   Wed Jan 5 15:38:53 2011 -0800
-
-    af_unix: Avoid socket->sk NULL OOPS in stream connect security hooks.
-    
-    unix_release() can asynchornously set socket->sk to NULL, and
-    it does so without holding the unix_state_lock() on "other"
-    during stream connects.
-    
-    However, the reverse mapping, sk->sk_socket, is only transitioned
-    to NULL under the unix_state_lock().
-    
-    Therefore make the security hooks follow the reverse mapping instead
-    of the forward mapping.
-    
-    Reported-by: Jeremy Fitzhardinge <jeremy@goop.org>
-    Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index ff36327..ffc859c 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -876,7 +876,11 @@ static int acpi_processor_get_throttling(struct acpi_processor *pr)
+ 	 */
+ 	cpumask_copy(saved_mask, &current->cpus_allowed);
+ 	/* FIXME: use work_on_cpu() */
+-	set_cpus_allowed_ptr(current, cpumask_of(pr->id));
++	if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
++		/* Can't migrate to the target pr->id CPU. Exit */
++		free_cpumask_var(saved_mask);
++		return -ENODEV;
++	}
+ 	ret = pr->throttling.acpi_processor_get_throttling(pr);
+ 	/* restore the previous state */
+ 	set_cpus_allowed_ptr(current, saved_mask);
+@@ -1051,6 +1055,14 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+ 		return -ENOMEM;
+ 	}
+ 
++	if (cpu_is_offline(pr->id)) {
++		/*
++		 * the cpu pointed by pr->id is offline. Unnecessary to change
++		 * the throttling state any more.
++		 */
++		return -ENODEV;
++	}
++
+ 	cpumask_copy(saved_mask, &current->cpus_allowed);
+ 	t_state.target_state = state;
+ 	p_throttling = &(pr->throttling);
+@@ -1074,7 +1086,11 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+ 	 */
+ 	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
+ 		/* FIXME: use work_on_cpu() */
+-		set_cpus_allowed_ptr(current, cpumask_of(pr->id));
++		if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
++			/* Can't migrate to the pr->id CPU. Exit */
++			ret = -ENODEV;
++			goto exit;
++		}
+ 		ret = p_throttling->acpi_processor_set_throttling(pr,
+ 						t_state.target_state, force);
+ 	} else {
+@@ -1106,7 +1122,8 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+ 			}
+ 			t_state.cpu = i;
+ 			/* FIXME: use work_on_cpu() */
+-			set_cpus_allowed_ptr(current, cpumask_of(i));
++			if (set_cpus_allowed_ptr(current, cpumask_of(i)))
++				continue;
+ 			ret = match_pr->throttling.
+ 				acpi_processor_set_throttling(
+ 				match_pr, t_state.target_state, force);
+@@ -1126,6 +1143,7 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+ 	/* restore the previous state */
+ 	/* FIXME: use work_on_cpu() */
+ 	set_cpus_allowed_ptr(current, saved_mask);
++exit:
+ 	free_cpumask_var(online_throttling_cpus);
+ 	free_cpumask_var(saved_mask);
+ 	return ret;
+-- 
+1.5.4.5
 
