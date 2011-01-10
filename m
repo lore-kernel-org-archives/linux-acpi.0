@@ -1,65 +1,29 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH -next] thermal: depends on NET
-Date: Mon, 10 Jan 2011 09:00:59 -0800
-Message-ID: <20110110090059.6f4d739d.randy.dunlap@oracle.com>
-References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>
-	<20101213112033.d0060e6c.randy.dunlap@oracle.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/2] ACPI: Check the returned value of set_cpus_allowed_ptr
+ before T-state operation
+Date: Mon, 10 Jan 2011 12:35:40 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101101235330.25082@x980>
+References: <1294648545-32193-1-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:24795 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363Ab1AJRDF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jan 2011 12:03:05 -0500
-In-Reply-To: <20101213112033.d0060e6c.randy.dunlap@oracle.com>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:38915 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606Ab1AJRfu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jan 2011 12:35:50 -0500
+Received: from localhost.localdomain ([unknown] [108.7.58.61])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LET003UJI7J0AI6@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 10 Jan 2011 11:35:44 -0600 (CST)
+In-reply-to: <1294648545-32193-1-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, akpm <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, 13 Dec 2010 11:20:33 -0800 Randy Dunlap wrote:
+applied to acpi-test
 
-This is still needed in linux-next 20110110.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Adding linux-acpi.
-
-Ping.  Is anybody there?  It has only been 4 weeks now with no reply...
-
-
-
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> ERROR: "genl_register_family" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "genl_unregister_family" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "init_net" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "__alloc_skb" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "netlink_broadcast" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "kfree_skb" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "genl_register_mc_group" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "nla_reserve" [drivers/thermal/thermal_sys.ko] undefined!
-> ERROR: "skb_put" [drivers/thermal/thermal_sys.ko] undefined!
-> 
-> Reported-by: Zimny Lech <napohybelskurwysynom2010@gmail.com>
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/thermal/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> --- linux-next-20101213.orig/drivers/thermal/Kconfig
-> +++ linux-next-20101213/drivers/thermal/Kconfig
-> @@ -4,6 +4,7 @@
->  
->  menuconfig THERMAL
->  	tristate "Generic Thermal sysfs driver"
-> +	depends on NET
->  	help
->  	  Generic Thermal Sysfs driver offers a generic mechanism for
->  	  thermal management. Usually it's made up of one or more thermal
-> --
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
