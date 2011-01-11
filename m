@@ -1,88 +1,64 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for January 11 (build errors/warnings summary)
-Date: Tue, 11 Jan 2011 09:14:23 -0800
-Message-ID: <20110111091423.818b5a15.randy.dunlap@oracle.com>
-References: <20110111143357.abe434a5.sfr@canb.auug.org.au>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] cpuidle: Make cpuidle_enable_device() call poll_idle_init()
+Date: Tue, 11 Jan 2011 21:52:19 +0100
+Message-ID: <201101112152.19642.rjw@sisk.pl>
+References: <201101080029.20744.rjw@sisk.pl> <201101110105.54166.rjw@sisk.pl> <201101111037.00543.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:53463 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276Ab1AKROt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jan 2011 12:14:49 -0500
-In-Reply-To: <20110111143357.abe434a5.sfr@canb.auug.org.au>
+Received: from ogre.sisk.pl ([217.79.144.158]:52947 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753995Ab1AKUxJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jan 2011 15:53:09 -0500
+In-Reply-To: <201101111037.00543.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-wireless@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, driverdevel <devel@driverdev.osuosl.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Tue, 11 Jan 2011 14:33:57 +1100 Stephen Rothwell wrote:
+On Tuesday, January 11, 2011, Thomas Renninger wrote:
+> On Tuesday 11 January 2011 01:05:53 Rafael J. Wysocki wrote:
+> > On Tuesday, January 11, 2011, Rafael J. Wysocki wrote:
+> > > On Tuesday, January 11, 2011, Len Brown wrote:
+> > > > >  /**
+> > > > >   * cpuidle_enable_device - enables idle PM for a CPU
+> > > > >   * @dev: the CPU
+> > > > > @@ -176,6 +215,8 @@ int cpuidle_enable_device(struct cpuidle
+> > > > >  		ret = __cpuidle_register_device(dev);
+> > > > >  		if (ret)
+> > > > >  			return ret;
+> > > > > +	} else {
+> > > > > +		poll_idle_init(dev);
+> > > > >  	}
+> > > > 
+> > > > how about calling poll_idle_init() unconditionally here
+> > > > and deleting the call to it from within __cpuidle_register_device()?
+> > > 
+> > > Fine by me, as long as poll_idle_init() is called before the conditional. :-)
+> > 
+> > In fact, it even doesn't need to be called before the conditional.
+> > 
+> > So fine by me anyway.
+> What exactly was broken?
+> Is it only sysfs values?
 
-> Hi all,
-> 
-> Reminder: do not add any v2.6.39 material to your linux-next included
-> trees until after v2.6.38-rc1 is released.
-> 
-> Changes since 20110110:
+Not only that, the entire state[0] was busted.
 
+> Looks like an uninitialized "poll" state can cause cpuidle
+> to not enter "poll" state when it should or enter "poll" when
+> it should not.
+> Hm, if cpuidle would try to call state[0]->enter,
+> it might even segfault?
 
-drivers/thermal/thermal_sys.c build fails when CONFIG_NET is not enabled
-Patch has been posted but not merged.
+Yes, in theory.
 
+> Even not that many machines might be affected because most won't
+> implement runtime C-state changes, shouldn't this still be
+> submitted for stable@ kernels?
 
-drivers/acpi/internal.h:94: warning: no return statement in function returning non-void
+I think it should.
 
-
-drivers/staging/ath6kl/os/linux/cfg80211.c:1378: warning: initialization from incompatible pointer type
-drivers/staging/ath6kl/os/linux/cfg80211.c:1386: warning: initialization from incompatible pointer type
-drivers/staging/ath6kl/os/linux/ioctl.c: In function 'ar6000_ioctl':
-drivers/staging/ath6kl/os/linux/ioctl.c:4673: warning: the frame size of 1852 bytes is larger than 1024 bytes
-
-
-drivers/staging/rt2860/common/mlme.c: In function 'BssTableSortByRssi':
-drivers/staging/rt2860/common/mlme.c:4200: warning: the frame size of 1568 bytes is larger than 1024 bytes
-drivers/staging/rt2860/common/cmm_aes.c: In function 'AES_GTK_KEY_WRAP':
-drivers/staging/rt2860/common/cmm_aes.c:1248: warning: the frame size of 1084 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta/sync.c: In function 'PeerBeaconAtScanAction':
-drivers/staging/rt2860/sta/sync.c:663: warning: the frame size of 1248 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta/sync.c: In function 'PeerBeacon':
-drivers/staging/rt2860/sta/sync.c:1697: warning: the frame size of 1296 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta/sync.c: In function 'PeerBeaconAtJoinAction':
-drivers/staging/rt2860/sta/sync.c:1033: warning: the frame size of 1256 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta/sync.c: In function 'MlmeStartReqAction':
-drivers/staging/rt2860/sta/sync.c:545: warning: the frame size of 1060 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta/connect.c: In function 'CntlOidScanProc':
-drivers/staging/rt2860/sta/connect.c:321: warning: the frame size of 1596 bytes is larger than 1024 bytes
-drivers/staging/rt2860/rt_linux.c: In function 'send_monitor_packets':
-drivers/staging/rt2860/rt_linux.c:903: warning: the frame size of 1080 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta_ioctl.c: In function 'rt_ioctl_iwaplist':
-drivers/staging/rt2860/sta_ioctl.c:721: warning: the frame size of 1296 bytes is larger than 1024 bytes
-drivers/staging/rt2860/sta_ioctl.c: In function 'rt_ioctl_siwmlme':
-drivers/staging/rt2860/sta_ioctl.c:1615: warning: the frame size of 1584 bytes is larger than 1024 bytes
-
-
-drivers/staging/vt6655/device_main.c: In function 'device_ioctl':
-drivers/staging/vt6655/device_main.c:3579: warning: the frame size of 1296 bytes is larger than 1024 bytes
-drivers/staging/vt6655/iwctl.c: In function 'iwctl_giwaplist':
-drivers/staging/vt6655/iwctl.c:817: warning: the frame size of 1296 bytes is larger than 1024 bytes
-
-
-drivers/media/radio/radio-aimslab.c:76: error: implicit declaration of function 'msleep'
-(reported yesterday by Geert)
-
-
-arch/x86/kernel/e820.c:734: error: implicit declaration of function 'suspend_nvs_register'
-when CONFIG_ACPI is not enabled
-
-
-fs/btrfs/ctree.h:1003: error: field 'super_kobj' has incomplete type
-fs/btrfs/ctree.h:1074: error: field 'root_kobj' has incomplete type
-needs <linux/kobject.h>
-(already reported)
-
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Thanks,
+Rafael
