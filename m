@@ -1,43 +1,20 @@
-From: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
-Subject: [2.6.37] Debugging shutdown issues
-Date: Tue, 11 Jan 2011 13:50:08 +0200
-Message-ID: <201101111350.08448.ozan@pardus.org.tr>
+From: Robert Smith <b.cao@tesco.net>
+Subject: Investment
+Date: Tue, 11 Jan 2011 16:21:21 +0000
+Message-ID: <20110111162121.8GSQQ.985028.root@web09-winn.ispmail.private.ntl.com>
+Reply-To: roberts101@rediffmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:60725 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754510Ab1AKLzZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jan 2011 06:55:25 -0500
+Received: from mtaout02-winn.ispmail.ntl.com ([81.103.221.48]:19883 "EHLO
+	mtaout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756125Ab1AKQV2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jan 2011 11:21:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
 
-Hi,
 
-I have many reports regarding shutdown hangs and reboots-instead-of-shu=
-tdown for 2.6.37 but I
-don't really know how to help them in debugging. All they see and say i=
-s that the computer
-is not powered off instead stays at terminal.
-
-The reboots-instead-of-shutdown bug seems to hit some Sony Vaio and Del=
-l notebooks. There are
-similar bug reports and forum entries mentioning about the same problem=
- but none of them contains
-valuable information.
-
-Any hint/help/clue will be appreciated
-Thanks,
-
----
-Ozan =C3=87a=C4=9Flayan
-TUBITAK/UEKAE - Pardus Linux
-http://www.pardus.org.tr/eng
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+GWould you be interested in a  legitimate Investment offer in your country? Get back to me via my email for details :( roberts101@rediffmail.com ) 
