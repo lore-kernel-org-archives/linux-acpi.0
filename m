@@ -1,30 +1,31 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH]intel_idle: open broadcast clock event - resend
-Date: Wed, 12 Jan 2011 03:34:46 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101120334260.18883@x980>
-References: <1294623493.1949.589.camel@sli10-conroe>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: ACPICA patches for 2.6.38 -v2
+Date: Wed, 12 Jan 2011 04:38:01 -0500
+Message-ID: <1294825090-21150-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:55320 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171Ab1ALIev (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 03:34:51 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:44692 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984Ab1ALJiQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 04:38:16 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173017.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LEW00LE1II26S80@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 02:34:51 -0600 (CST)
-In-reply-to: <1294623493.1949.589.camel@sli10-conroe>
+ with ESMTPA id <0LEW006WRLFRYRA0@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 03:38:16 -0600 (CST)
+Received: from localhost.localdomain (x980 [127.0.0.1])
+	by localhost.localdomain (8.14.4/8.14.4) with ESMTP id p0C9cDFu021189	for
+ <linux-acpi@vger.kernel.org>; Wed, 12 Jan 2011 04:38:13 -0500
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.4/8.14.4/Submit)
+ id p0C9cC2N021187	for linux-acpi@vger.kernel.org; Wed,
+ 12 Jan 2011 04:38:12 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-applied
-
-sounds like we should backport this to .stable too.
+v2
+refreshed the series on top of v2.6.37
+incorporated Rafael's fix for "ACPICA: Implicit notify support"
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
 
