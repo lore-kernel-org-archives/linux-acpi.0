@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 5/9] ACPICA: Fix local variable mess in
- acpi_ev_asynch_execute_gpe_method
-Date: Wed, 12 Jan 2011 04:38:06 -0500
-Message-ID: <5a284cd75d635e3c5db0210dc9a9a44c6839f460.1294824789.git.len.brown@intel.com>
+Subject: [PATCH 7/9] ACPICA: Global event handler
+Date: Wed, 12 Jan 2011 04:38:08 -0500
+Message-ID: <a0fcdb237fcd4eaa7e5009b28ef5be07415f287d.1294824789.git.len.brown@intel.com>
 References: <1294825090-21150-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:61909 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755998Ab1ALJi2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 04:38:28 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:50726 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755998Ab1ALJib (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 04:38:31 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173013.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LEW0043KLG25JB3@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 03:38:27 -0600 (CST)
+ with ESMTPA id <0LEW0031CLG6TQB0@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 03:38:31 -0600 (CST)
 In-reply-to: <1294825090-21150-1-git-send-email-lenb@kernel.org>
 In-reply-to: <3cfd53d53f700a225716294842b1a843326dea21.1294824789.git.len.brown@intel.com>
 References: <3cfd53d53f700a225716294842b1a843326dea21.1294824789.git.len.brown@intel.com>
@@ -24,150 +23,258 @@ Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Lin Ming <ming.m.lin@intel.com>
 
-Change the local variable in acpi_ev_asynch_execute_gpe_method()
-back into a pointer as ACPICA code base does.
+The global event handler is called whenever a general purpose
+or fixed ACPI event occurs.
+
+Also update Linux OSL to collect events counter with
+global event handler.
 
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/evgpe.c |   57 ++++++++++++++++++++++++++++++++++---------
- 1 files changed, 45 insertions(+), 12 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    5 ++++
+ drivers/acpi/acpica/evevent.c  |   12 ++++++++-
+ drivers/acpi/acpica/evgpe.c    |    9 ++++++-
+ drivers/acpi/acpica/evxface.c  |   51 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/utglobal.c |    1 +
+ drivers/acpi/sysfs.c           |   19 +++++++++++++-
+ include/acpi/acpixf.h          |    4 +++
+ include/acpi/actypes.h         |    8 ++++++
+ 8 files changed, 104 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index fc69464..9bb69c5 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -146,6 +146,9 @@ u8 acpi_gbl_system_awake_and_running;
+ 
+ extern u32 acpi_gbl_nesting_level;
+ 
++ACPI_EXTERN u32 acpi_gpe_count;
++ACPI_EXTERN u32 acpi_fixed_event_count[ACPI_NUM_FIXED_EVENTS];
++
+ /* Support for dynamic control method tracing mechanism */
+ 
+ ACPI_EXTERN u32 acpi_gbl_original_dbg_level;
+@@ -371,6 +374,8 @@ ACPI_EXTERN struct acpi_gpe_xrupt_info *acpi_gbl_gpe_xrupt_list_head;
+ ACPI_EXTERN struct acpi_gpe_block_info
+ *acpi_gbl_gpe_fadt_blocks[ACPI_MAX_GPE_BLOCKS];
+ ACPI_EXTERN u8 acpi_gbl_all_gpes_initialized;
++ACPI_EXTERN ACPI_GBL_EVENT_HANDLER acpi_gbl_global_event_handler;
++ACPI_EXTERN void *acpi_gbl_global_event_handler_context;
+ 
+ /*****************************************************************************
+  *
+diff --git a/drivers/acpi/acpica/evevent.c b/drivers/acpi/acpica/evevent.c
+index c61c303..e5e313c 100644
+--- a/drivers/acpi/acpica/evevent.c
++++ b/drivers/acpi/acpica/evevent.c
+@@ -217,9 +217,17 @@ u32 acpi_ev_fixed_event_detect(void)
+ 		     status_bit_mask)
+ 		    && (fixed_enable & acpi_gbl_fixed_event_info[i].
+ 			enable_bit_mask)) {
++			/*
++			 * Found an active (signalled) event. Invoke global event
++			 * handler if present.
++			 */
++			acpi_fixed_event_count[i]++;
++			if (acpi_gbl_global_event_handler) {
++				acpi_gbl_global_event_handler
++				    (ACPI_EVENT_TYPE_FIXED, NULL, i,
++				     acpi_gbl_global_event_handler_context);
++			}
+ 
+-			/* Found an active (signalled) event */
+-			acpi_os_fixed_event_count(i);
+ 			int_status |= acpi_ev_fixed_event_dispatch(i);
+ 		}
+ 	}
 diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 3fb621e..c259995 100644
+index 2dbca95..3bcf5ef 100644
 --- a/drivers/acpi/acpica/evgpe.c
 +++ b/drivers/acpi/acpica/evgpe.c
-@@ -52,6 +52,8 @@ ACPI_MODULE_NAME("evgpe")
- /* Local prototypes */
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context);
+@@ -642,7 +642,14 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
  
-+static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context);
+ 	ACPI_FUNCTION_TRACE(ev_gpe_dispatch);
+ 
+-	acpi_os_gpe_count(gpe_number);
++	/* Invoke global event handler if present */
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ev_update_gpe_enable_mask
-@@ -441,17 +443,25 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
-  *              an interrupt handler.
-  *
-  ******************************************************************************/
--static void acpi_ev_asynch_enable_gpe(void *context);
- 
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- {
--	struct acpi_gpe_event_info *gpe_event_info = (void *)context;
-+	struct acpi_gpe_event_info *gpe_event_info = context;
- 	acpi_status status;
--	struct acpi_gpe_event_info local_gpe_event_info;
-+	struct acpi_gpe_event_info *local_gpe_event_info;
- 	struct acpi_evaluate_info *info;
- 
- 	ACPI_FUNCTION_TRACE(ev_asynch_execute_gpe_method);
- 
-+	/* Allocate a local GPE block */
-+
-+	local_gpe_event_info =
-+	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_event_info));
-+	if (!local_gpe_event_info) {
-+		ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "while handling a GPE"));
-+		return_VOID;
++	acpi_gpe_count++;
++	if (acpi_gbl_global_event_handler) {
++		acpi_gbl_global_event_handler(ACPI_EVENT_TYPE_GPE, gpe_device,
++					      gpe_number,
++					      acpi_gbl_global_event_handler_context);
 +	}
+ 
+ 	/*
+ 	 * If edge-triggered, clear the GPE status bit now. Note that
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index d193b90..1226689 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -92,6 +92,57 @@ acpi_status acpi_install_exception_handler(acpi_exception_handler handler)
+ 
+ ACPI_EXPORT_SYMBOL(acpi_install_exception_handler)
+ #endif				/*  ACPI_FUTURE_USAGE  */
 +
- 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
- 	if (ACPI_FAILURE(status)) {
- 		return_VOID;
-@@ -468,7 +478,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Take a snapshot of the GPE info for this level - we copy the info to
- 	 * prevent a race condition with remove_handler/remove_block.
- 	 */
--	ACPI_MEMCPY(&local_gpe_event_info, gpe_event_info,
-+	ACPI_MEMCPY(local_gpe_event_info, gpe_event_info,
- 		    sizeof(struct acpi_gpe_event_info));
- 
- 	status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-@@ -480,7 +490,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Must check for control method type dispatch one more time to avoid a
- 	 * race with ev_gpe_install_handler
- 	 */
--	if ((local_gpe_event_info.flags & ACPI_GPE_DISPATCH_MASK) ==
-+	if ((local_gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
- 	    ACPI_GPE_DISPATCH_METHOD) {
- 
- 		/* Allocate the evaluation information block */
-@@ -494,7 +504,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			 * control method that corresponds to this GPE
- 			 */
- 			info->prefix_node =
--			    local_gpe_event_info.dispatch.method_node;
-+			    local_gpe_event_info->dispatch.method_node;
- 			info->flags = ACPI_IGNORE_RETURN_VALUE;
- 
- 			status = acpi_ns_evaluate(info);
-@@ -505,20 +515,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"while evaluating GPE method [%4.4s]",
- 					acpi_ut_get_node_name
--					(local_gpe_event_info.dispatch.
-+					(local_gpe_event_info->dispatch.
- 					 method_node)));
- 		}
- 	}
-+
- 	/* Defer enabling of GPE until all notify handlers are done */
--	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
--				gpe_event_info);
-+
-+	status = acpi_os_execute(OSL_NOTIFY_HANDLER,
-+				 acpi_ev_asynch_enable_gpe,
-+				 local_gpe_event_info);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(local_gpe_event_info);
-+	}
- 	return_VOID;
- }
- 
--static void acpi_ev_asynch_enable_gpe(void *context)
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ev_asynch_enable_gpe
++ * FUNCTION:    acpi_install_global_event_handler
 + *
-+ * PARAMETERS:  Context (gpe_event_info) - Info for this GPE
-+ *              Callback from acpi_os_execute
++ * PARAMETERS:  Handler         - Pointer to the global event handler function
++ *              Context         - Value passed to the handler on each event
 + *
-+ * RETURN:      None
++ * RETURN:      Status
 + *
-+ * DESCRIPTION: Asynchronous clear/enable for GPE. This allows the GPE to
-+ *              complete.
++ * DESCRIPTION: Saves the pointer to the handler function. The global handler
++ *              is invoked upon each incoming GPE and Fixed Event. It is
++ *              invoked at interrupt level at the time of the event dispatch.
++ *              Can be used to update event counters, etc.
 + *
 + ******************************************************************************/
++acpi_status
++acpi_install_global_event_handler(ACPI_GBL_EVENT_HANDLER handler, void *context)
++{
++	acpi_status status;
 +
-+static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context)
- {
- 	struct acpi_gpe_event_info *gpe_event_info = context;
- 	acpi_status status;
++	ACPI_FUNCTION_TRACE(acpi_install_global_event_handler);
 +
- 	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
- 	    ACPI_GPE_LEVEL_TRIGGERED) {
- 		/*
-@@ -527,7 +558,7 @@ static void acpi_ev_asynch_enable_gpe(void *context)
- 		 */
- 		status = acpi_hw_clear_gpe(gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
--			return_VOID;
-+			goto exit;
- 		}
- 	}
++	/* Parameter validation */
++
++	if (!handler) {
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++	}
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Don't allow two handlers. */
++
++	if (acpi_gbl_global_event_handler) {
++		status = AE_ALREADY_EXISTS;
++		goto cleanup;
++	}
++
++	acpi_gbl_global_event_handler = handler;
++	acpi_gbl_global_event_handler_context = context;
++
++      cleanup:
++	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
++	return_ACPI_STATUS(status);
++}
++
++ACPI_EXPORT_SYMBOL(acpi_install_global_event_handler)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_install_fixed_event_handler
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index a99c32a..508537f 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -778,6 +778,7 @@ acpi_status acpi_ut_init_globals(void)
+ 	acpi_gbl_init_handler = NULL;
+ 	acpi_gbl_table_handler = NULL;
+ 	acpi_gbl_interface_handler = NULL;
++	acpi_gbl_global_event_handler = NULL;
  
-@@ -537,7 +568,9 @@ static void acpi_ev_asynch_enable_gpe(void *context)
- 	 */
- 	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_CONDITIONAL_ENABLE);
+ 	/* Global Lock support */
  
--	return_VOID;
-+exit:
-+	ACPI_FREE(gpe_event_info);
-+	return;
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index f8588f8..61891e7 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -438,7 +438,7 @@ static void delete_gpe_attr_array(void)
+ 	return;
  }
  
- /*******************************************************************************
+-void acpi_os_gpe_count(u32 gpe_number)
++static void gpe_count(u32 gpe_number)
+ {
+ 	acpi_gpe_count++;
+ 
+@@ -454,7 +454,7 @@ void acpi_os_gpe_count(u32 gpe_number)
+ 	return;
+ }
+ 
+-void acpi_os_fixed_event_count(u32 event_number)
++static void fixed_event_count(u32 event_number)
+ {
+ 	if (!all_counters)
+ 		return;
+@@ -468,6 +468,16 @@ void acpi_os_fixed_event_count(u32 event_number)
+ 	return;
+ }
+ 
++static void acpi_gbl_event_handler(u32 event_type, acpi_handle device,
++	u32 event_number, void *context)
++{
++	if (event_type == ACPI_EVENT_TYPE_GPE)
++		gpe_count(event_number);
++
++	if (event_type == ACPI_EVENT_TYPE_FIXED)
++		fixed_event_count(event_number);
++}
++
+ static int get_status(u32 index, acpi_event_status *status,
+ 		      acpi_handle *handle)
+ {
+@@ -601,6 +611,7 @@ end:
+ 
+ void acpi_irq_stats_init(void)
+ {
++	acpi_status status;
+ 	int i;
+ 
+ 	if (all_counters)
+@@ -619,6 +630,10 @@ void acpi_irq_stats_init(void)
+ 	if (all_counters == NULL)
+ 		goto fail;
+ 
++	status = acpi_install_global_event_handler(acpi_gbl_event_handler, NULL);
++	if (ACPI_FAILURE(status))
++		goto fail;
++
+ 	counter_attrs = kzalloc(sizeof(struct kobj_attribute) * (num_counters),
+ 				GFP_KERNEL);
+ 	if (counter_attrs == NULL)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 9de6a17..e8142d5 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -229,6 +229,10 @@ acpi_status
+ acpi_install_initialization_handler(acpi_init_handler handler, u32 function);
+ 
+ acpi_status
++acpi_install_global_event_handler(ACPI_GBL_EVENT_HANDLER handler,
++				 void *context);
++
++acpi_status
+ acpi_install_fixed_event_handler(u32 acpi_event,
+ 				 acpi_event_handler handler, void *context);
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index d7274ee..939a431 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -895,6 +895,14 @@ typedef void
+ /*
+  * Various handlers and callback procedures
+  */
++typedef
++void (*ACPI_GBL_EVENT_HANDLER) (u32 event_type,
++			       acpi_handle device,
++			       u32 event_number, void *context);
++
++#define ACPI_EVENT_TYPE_GPE         0
++#define ACPI_EVENT_TYPE_FIXED       1
++
+ typedef u32(*acpi_event_handler) (void *context);
+ 
+ typedef
 -- 
 1.7.4.rc1.7.g2cf08
 
