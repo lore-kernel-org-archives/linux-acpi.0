@@ -1,36 +1,42 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/9] X86/perf: fix power:cpu_idle double end events and throw cpu_idle events from the cpuidle layer
-Date: Wed, 12 Jan 2011 16:16:54 +0100
-Message-ID: <201101121616.54613.trenn@suse.de>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-4-git-send-email-trenn@suse.de> <alpine.LFD.2.02.1101120141330.19140@x980>
+Subject: Re: ACPI patches for 2.6.38-merge
+Date: Wed, 12 Jan 2011 16:23:29 +0100
+Message-ID: <201101121623.30134.trenn@suse.de>
+References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.02.1101120141330.19140@x980>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, Robert Schoene <robert.schoene@tu-dresden.de>, Frederic Weisbecker <fweisbec@gmail.com>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:53718 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754416Ab1ALPXc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jan 2011 10:23:32 -0500
+In-Reply-To: <1294827582-4620-1-git-send-email-lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, matthew@wil.cx
 
-On Wednesday 12 January 2011 07:42:59 Len Brown wrote:
-> I'm happy to see the trace point move up into cpuidle from intel_idle.
+On Wednesday 12 January 2011 11:18:54 Len Brown wrote:
+> Here is the Queue of ACPI patches for 2.6.38-merge
+> They apply on top of the ACPICA series I just sent.
 > 
-> If somebody is picking this up in a perf tree,
-> Acked-by: Len Brown <len.brown@intel.com>
-> 
-> else I can put it in the idle tree, let me know.
-I didn't know you have an idle tree.
+> Please let me know if you have troubles with any of them.
+Could you also add:
+https://bugzilla.kernel.org/attachment.cgi?id=43252
 
-If you can push this one through the idle tree that would be great.
+This is attachment of comment #4 in bug:
+https://bugzilla.kernel.org/show_bug.cgi?id=26342
 
-I'll go through the rest of my patches and resubmit
-in some days as soon as some things are clarified.
+I could not runtime test it, but it's printk modification
+only anyway.
 
-But I need this one to still be included in .38.
-Please tell me if this could be a problem.
+Would be great if Matthew could have a quick look into dmesg of
+his affected machine once he booted a recent, fixed rcX kernel
+in some weeks. It's not worth to explicitly compile and
+test the patch.
 
 Thanks,
 
-  Thomas
+   Thomas
