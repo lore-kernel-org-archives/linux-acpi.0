@@ -1,142 +1,142 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 26/48] ACPI: Reevaluate whether the T-state is supported or not
- after cpu is online/offline
-Date: Wed, 12 Jan 2011 05:19:20 -0500
-Message-ID: <5a344a505093dd65f82f338ffdb7208321b3630e.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 33/48] ACPI / PM: Add functions for manipulating lists of power
+ resources
+Date: Wed, 12 Jan 2011 05:19:27 -0500
+Message-ID: <d2ef555b57292cd818934636ac8e3414cc2a6762.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:49219 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:49185 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755434Ab1ALSAX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:23 -0500
+	with ESMTP id S1755434Ab1ALSAV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:21 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LEX007SA8OAUAI1@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:22 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:20 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-After one CPU is offlined, it is unnecessary to switch T-state for it.
-So it will be better that the throttling is disabled after the cpu
-is offline.
-At the same time after one cpu is online, we should check whether
-the T-state is supported and then set the corresponding T-state
-flag.
+ACPI device power resources should be reference counted during
+device initialization, so that their reference counters are always
+up to date.  It is convenient to do that with the help of a function
+that will reference count and possibly turn on power resources in
+a given list, so introduce that function, acpi_power_on_list().
+For symmetry, introduce acpi_power_off_list() for performing the
+reverse operation and use the both of them to simplify
+acpi_power_transition().
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_driver.c     |    5 +++
- drivers/acpi/processor_throttling.c |   52 +++++++++++++++++++++++++++++++++++
- include/acpi/processor.h            |    6 ++++
- 3 files changed, 63 insertions(+), 0 deletions(-)
+ drivers/acpi/power.c |   67 ++++++++++++++++++++++++++++---------------------
+ 1 files changed, 38 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 85e4804..c8a0ca2 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -478,8 +478,13 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
- 	if (action == CPU_ONLINE && pr) {
- 		acpi_processor_ppc_has_changed(pr, 0);
- 		acpi_processor_cst_has_changed(pr);
-+		acpi_processor_reevaluate_tstate(pr, action);
- 		acpi_processor_tstate_has_changed(pr);
- 	}
-+	if (action == CPU_DEAD && pr) {
-+		/* invalidate the flag.throttling after one CPU is offline */
-+		acpi_processor_reevaluate_tstate(pr, action);
-+	}
- 	return NOTIFY_OK;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 9bd1b60..95fedbd 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -266,6 +266,35 @@ static int acpi_power_off_device(acpi_handle handle)
+ 	return result;
  }
  
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index ffc859c..4305d56 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -370,6 +370,58 @@ int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
- }
- 
- /*
-+ * This function is used to reevaluate whether the T-state is valid
-+ * after one CPU is onlined/offlined.
-+ * It is noted that it won't reevaluate the following properties for
-+ * the T-state.
-+ *	1. Control method.
-+ *	2. the number of supported T-state
-+ *	3. TSD domain
-+ */
-+void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
-+					unsigned long action)
++static void __acpi_power_off_list(struct acpi_handle_list *list, int num_res)
++{
++	int i;
++
++	for (i = num_res - 1; i >= 0 ; i--)
++		acpi_power_off_device(list->handles[i]);
++}
++
++static void acpi_power_off_list(struct acpi_handle_list *list)
++{
++	__acpi_power_off_list(list, list->count);
++}
++
++static int acpi_power_on_list(struct acpi_handle_list *list)
 +{
 +	int result = 0;
++	int i;
 +
-+	if (action == CPU_DEAD) {
-+		/* When one CPU is offline, the T-state throttling
-+		 * will be invalidated.
-+		 */
-+		pr->flags.throttling = 0;
-+		return;
-+	}
-+	/* the following is to recheck whether the T-state is valid for
-+	 * the online CPU
-+	 */
-+	if (!pr->throttling.state_count) {
-+		/* If the number of T-state is invalid, it is
-+		 * invalidated.
-+		 */
-+		pr->flags.throttling = 0;
-+		return;
-+	}
-+	pr->flags.throttling = 1;
-+
-+	/* Disable throttling (if enabled).  We'll let subsequent
-+	 * policy (e.g.thermal) decide to lower performance if it
-+	 * so chooses, but for now we'll crank up the speed.
-+	 */
-+
-+	result = acpi_processor_get_throttling(pr);
-+	if (result)
-+		goto end;
-+
-+	if (pr->throttling.state) {
-+		result = acpi_processor_set_throttling(pr, 0, false);
-+		if (result)
-+			goto end;
++	for (i = 0; i < list->count; i++) {
++		result = acpi_power_on(list->handles[i]);
++		if (result) {
++			__acpi_power_off_list(list, i);
++			break;
++		}
 +	}
 +
-+end:
-+	if (result)
-+		pr->flags.throttling = 0;
++	return result;
 +}
-+/*
-  * _PTC - Processor Throttling Control (and status) register location
-  */
- static int acpi_processor_get_throttling_control(struct acpi_processor *pr)
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 1b62102..55192ac 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -324,6 +324,12 @@ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- int acpi_processor_get_throttling_info(struct acpi_processor *pr);
- extern int acpi_processor_set_throttling(struct acpi_processor *pr,
- 					 int state, bool force);
-+/*
-+ * Reevaluate whether the T-state is invalid after one cpu is
-+ * onlined/offlined. In such case the flags.throttling will be updated.
-+ */
-+extern void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
-+			unsigned long action);
- extern const struct file_operations acpi_processor_throttling_fops;
- extern void acpi_processor_throttling_init(void);
- /* in processor_idle.c */
++
+ /**
+  * acpi_device_sleep_wake - execute _DSW (Device Sleep Wake) or (deprecated in
+  *                          ACPI 3.0) _PSW (Power State Wake)
+@@ -458,10 +487,7 @@ int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
+ 
+ int acpi_power_transition(struct acpi_device *device, int state)
+ {
+-	int result = 0;
+-	struct acpi_handle_list *cl = NULL;	/* Current Resources */
+-	struct acpi_handle_list *tl = NULL;	/* Target Resources */
+-	int i = 0;
++	int result;
+ 
+ 	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
+ 		return -EINVAL;
+@@ -473,37 +499,20 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ 	    || (device->power.state > ACPI_STATE_D3))
+ 		return -ENODEV;
+ 
+-	cl = &device->power.states[device->power.state].resources;
+-	tl = &device->power.states[state].resources;
+-
+ 	/* TBD: Resources must be ordered. */
+ 
+ 	/*
+ 	 * First we reference all power resources required in the target list
+-	 * (e.g. so the device doesn't lose power while transitioning).
++	 * (e.g. so the device doesn't lose power while transitioning).  Then,
++	 * we dereference all power resources used in the current list.
+ 	 */
+-	for (i = 0; i < tl->count; i++) {
+-		result = acpi_power_on(tl->handles[i]);
+-		if (result)
+-			goto end;
+-	}
++	result = acpi_power_on_list(&device->power.states[state].resources);
++	if (!result)
++		acpi_power_off_list(
++			&device->power.states[device->power.state].resources);
+ 
+-	/*
+-	 * Then we dereference all power resources used in the current list.
+-	 */
+-	for (i = 0; i < cl->count; i++) {
+-		result = acpi_power_off_device(cl->handles[i]);
+-		if (result)
+-			goto end;
+-	}
+-
+-     end:
+-	if (result)
+-		device->power.state = ACPI_STATE_UNKNOWN;
+-	else {
+-	/* We shouldn't change the state till all above operations succeed */
+-		device->power.state = state;
+-	}
++	/* We shouldn't change the state unless the above operations succeed. */
++	device->power.state = result ? ACPI_STATE_UNKNOWN : state;
+ 
+ 	return result;
+ }
 -- 
 1.7.4.rc1.7.g2cf08
 
