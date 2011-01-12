@@ -1,279 +1,704 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 28/48] thermal: Add event notification to thermal framework
-Date: Wed, 12 Jan 2011 05:19:22 -0500
-Message-ID: <4cb18728709683c91a5f6f8d5f337bfb498b089a.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 31/48] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
+ notification type support
+Date: Wed, 12 Jan 2011 05:19:25 -0500
+Message-ID: <81e88fdc432a1552401d6e91a984dcccce72b8dc.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:49351 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755466Ab1ALSAf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:35 -0500
+	with ESMTP id S1755558Ab1ALSAg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:36 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LEX007SA8OAUAI1@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:34 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:36 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "R.Durgadoss" <durgadoss.r@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: R.Durgadoss <durgadoss.r@intel.com>
+From: Huang Ying <ying.huang@intel.com>
 
-This patch adds event notification support to the generic
-thermal sysfs framework in the kernel. The notification is in the
-form of a netlink event.
+Generic Hardware Error Source provides a way to report platform
+hardware errors (such as that from chipset). It works in so called
+"Firmware First" mode, that is, hardware errors are reported to
+firmware firstly, then reported to Linux by firmware. This way, some
+non-standard hardware error registers or non-standard hardware link
+can be checked by firmware to produce more valuable hardware error
+information for Linux.
 
-Signed-off-by: R.Durgadoss <durgadoss.r@intel.com>
+This patch adds POLL/IRQ/NMI notification types support.
+
+Because the memory area used to transfer hardware error information
+from BIOS to Linux can be determined only in NMI, IRQ or timer
+handler, but general ioremap can not be used in atomic context, so a
+special version of atomic ioremap is implemented for that.
+
+Known issue:
+
+- Error information can not be printed for recoverable errors notified
+  via NMI, because printk is not NMI-safe. Will fix this via delay
+  printing to IRQ context via irq_work or make printk NMI-safe.
+
+v2:
+
+- adjust printk format per comments.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/ABI/stable/thermal-notification |    4 +
- Documentation/thermal/sysfs-api.txt           |   12 +++
- drivers/thermal/Kconfig                       |    1 +
- drivers/thermal/thermal_sys.c                 |  103 ++++++++++++++++++++++++-
- include/linux/thermal.h                       |   32 ++++++++
- 5 files changed, 151 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/ABI/stable/thermal-notification
+ arch/x86/kernel/acpi/boot.c |    1 +
+ arch/x86/kernel/dumpstack.c |    1 +
+ drivers/acpi/apei/ghes.c    |  406 ++++++++++++++++++++++++++++++++++---------
+ kernel/panic.c              |    1 +
+ lib/ioremap.c               |    2 +
+ mm/vmalloc.c                |    1 +
+ 6 files changed, 328 insertions(+), 84 deletions(-)
 
-diff --git a/Documentation/ABI/stable/thermal-notification b/Documentation/ABI/stable/thermal-notification
-new file mode 100644
-index 0000000..9723e8b
---- /dev/null
-+++ b/Documentation/ABI/stable/thermal-notification
-@@ -0,0 +1,4 @@
-+What:		A notification mechanism for thermal related events
-+Description:
-+	This interface enables notification for thermal related events.
-+	The notification is in the form of a netlink event.
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index cb3d15b..b61e46f 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -278,3 +278,15 @@ method, the sys I/F structure will be built like this:
-     |---name:			acpitz
-     |---temp1_input:		37000
-     |---temp1_crit:		100000
-+
-+4. Event Notification
-+
-+The framework includes a simple notification mechanism, in the form of a
-+netlink event. Netlink socket initialization is done during the _init_
-+of the framework. Drivers which intend to use the notification mechanism
-+just need to call generate_netlink_event() with two arguments viz
-+(originator, event). Typically the originator will be an integer assigned
-+to a thermal_zone_device when it registers itself with the framework. The
-+event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
-+THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
-+crosses any of the configured thresholds.
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index bf7c687..f7a5dba 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -4,6 +4,7 @@
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 71232b9..c2d0baa 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -504,6 +504,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
  
- menuconfig THERMAL
- 	tristate "Generic Thermal sysfs driver"
-+	depends on NET
- 	help
- 	  Generic Thermal Sysfs driver offers a generic mechanism for
- 	  thermal management. Usually it's made up of one or more thermal
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 13c72c6..760e045 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -32,6 +32,8 @@
- #include <linux/thermal.h>
- #include <linux/spinlock.h>
- #include <linux/reboot.h>
-+#include <net/netlink.h>
-+#include <net/genetlink.h>
- 
- MODULE_AUTHOR("Zhang Rui");
- MODULE_DESCRIPTION("Generic thermal management sysfs support");
-@@ -58,6 +60,22 @@ static LIST_HEAD(thermal_tz_list);
- static LIST_HEAD(thermal_cdev_list);
- static DEFINE_MUTEX(thermal_list_lock);
- 
-+static unsigned int thermal_event_seqnum;
-+
-+static struct genl_family thermal_event_genl_family = {
-+	.id = GENL_ID_GENERATE,
-+	.name = THERMAL_GENL_FAMILY_NAME,
-+	.version = THERMAL_GENL_VERSION,
-+	.maxattr = THERMAL_GENL_ATTR_MAX,
-+};
-+
-+static struct genl_multicast_group thermal_event_mcgrp = {
-+	.name = THERMAL_GENL_MCAST_GROUP_NAME,
-+};
-+
-+static int genetlink_init(void);
-+static void genetlink_exit(void);
-+
- static int get_idr(struct idr *idr, struct mutex *lock, int *id)
- {
- 	int err;
-@@ -1214,6 +1232,82 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
- 
- EXPORT_SYMBOL(thermal_zone_device_unregister);
- 
-+int generate_netlink_event(u32 orig, enum events event)
-+{
-+	struct sk_buff *skb;
-+	struct nlattr *attr;
-+	struct thermal_genl_event *thermal_event;
-+	void *msg_header;
-+	int size;
-+	int result;
-+
-+	/* allocate memory */
-+	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
-+				nla_total_size(0);
-+
-+	skb = genlmsg_new(size, GFP_ATOMIC);
-+	if (!skb)
-+		return -ENOMEM;
-+
-+	/* add the genetlink message header */
-+	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
-+				 &thermal_event_genl_family, 0,
-+				 THERMAL_GENL_CMD_EVENT);
-+	if (!msg_header) {
-+		nlmsg_free(skb);
-+		return -ENOMEM;
-+	}
-+
-+	/* fill the data */
-+	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
-+			sizeof(struct thermal_genl_event));
-+
-+	if (!attr) {
-+		nlmsg_free(skb);
-+		return -EINVAL;
-+	}
-+
-+	thermal_event = nla_data(attr);
-+	if (!thermal_event) {
-+		nlmsg_free(skb);
-+		return -EINVAL;
-+	}
-+
-+	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
-+
-+	thermal_event->orig = orig;
-+	thermal_event->event = event;
-+
-+	/* send multicast genetlink message */
-+	result = genlmsg_end(skb, msg_header);
-+	if (result < 0) {
-+		nlmsg_free(skb);
-+		return result;
-+	}
-+
-+	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
-+	if (result)
-+		printk(KERN_INFO "failed to send netlink event:%d", result);
-+
-+	return result;
-+}
-+EXPORT_SYMBOL(generate_netlink_event);
-+
-+static int genetlink_init(void)
-+{
-+	int result;
-+
-+	result = genl_register_family(&thermal_event_genl_family);
-+	if (result)
-+		return result;
-+
-+	result = genl_register_mc_group(&thermal_event_genl_family,
-+					&thermal_event_mcgrp);
-+	if (result)
-+		genl_unregister_family(&thermal_event_genl_family);
-+	return result;
-+}
-+
- static int __init thermal_init(void)
- {
- 	int result = 0;
-@@ -1225,9 +1319,15 @@ static int __init thermal_init(void)
- 		mutex_destroy(&thermal_idr_lock);
- 		mutex_destroy(&thermal_list_lock);
- 	}
-+	result = genetlink_init();
- 	return result;
+ 	return 0;
  }
++EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
  
-+static void genetlink_exit(void)
-+{
-+	genl_unregister_family(&thermal_event_genl_family);
-+}
-+
- static void __exit thermal_exit(void)
+ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
  {
- 	class_unregister(&thermal_class);
-@@ -1235,7 +1335,8 @@ static void __exit thermal_exit(void)
- 	idr_destroy(&thermal_cdev_idr);
- 	mutex_destroy(&thermal_idr_lock);
- 	mutex_destroy(&thermal_list_lock);
-+	genetlink_exit();
+diff --git a/arch/x86/kernel/dumpstack.c b/arch/x86/kernel/dumpstack.c
+index 6e8752c..d34cf80 100644
+--- a/arch/x86/kernel/dumpstack.c
++++ b/arch/x86/kernel/dumpstack.c
+@@ -240,6 +240,7 @@ unsigned __kprobes long oops_begin(void)
+ 	bust_spinlocks(1);
+ 	return flags;
  }
++EXPORT_SYMBOL_GPL(oops_begin);
  
--subsys_initcall(thermal_init);
-+fs_initcall(thermal_init);
- module_exit(thermal_exit);
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 1de8b9e..7846449 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -127,6 +127,37 @@ struct thermal_zone_device {
- 	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
- #endif
+ void __kprobes oops_end(unsigned long flags, struct pt_regs *regs, int signr)
+ {
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 51905d0..d1d484d 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -12,10 +12,6 @@
+  * For more information about Generic Hardware Error Source, please
+  * refer to ACPI Specification version 4.0, section 17.3.2.6
+  *
+- * Now, only SCI notification type and memory errors are
+- * supported. More notification type and hardware error type will be
+- * added later.
+- *
+  * Copyright 2010 Intel Corp.
+  *   Author: Huang Ying <ying.huang@intel.com>
+  *
+@@ -39,15 +35,18 @@
+ #include <linux/acpi.h>
+ #include <linux/io.h>
+ #include <linux/interrupt.h>
++#include <linux/timer.h>
+ #include <linux/cper.h>
+ #include <linux/kdebug.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <linux/ratelimit.h>
++#include <linux/vmalloc.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+ #include <asm/mce.h>
++#include <asm/tlbflush.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -56,42 +55,131 @@
+ #define GHES_ESTATUS_MAX_SIZE		65536
+ 
+ /*
+- * One struct ghes is created for each generic hardware error
+- * source.
+- *
++ * One struct ghes is created for each generic hardware error source.
+  * It provides the context for APEI hardware error timer/IRQ/SCI/NMI
+- * handler. Handler for one generic hardware error source is only
+- * triggered after the previous one is done. So handler can uses
+- * struct ghes without locking.
++ * handler.
+  *
+  * estatus: memory buffer for error status block, allocated during
+  * HEST parsing.
+  */
+ #define GHES_TO_CLEAR		0x0001
++#define GHES_EXITING		0x0002
+ 
+ struct ghes {
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
+-	struct list_head list;
+ 	u64 buffer_paddr;
+ 	unsigned long flags;
++	union {
++		struct list_head list;
++		struct timer_list timer;
++		unsigned int irq;
++	};
  };
-+/* Adding event notification support elements */
-+#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-+#define THERMAL_GENL_VERSION                    0x01
-+#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
-+
-+enum events {
-+	THERMAL_AUX0,
-+	THERMAL_AUX1,
-+	THERMAL_CRITICAL,
-+	THERMAL_DEV_FAULT,
-+};
-+
-+struct thermal_genl_event {
-+	u32 orig;
-+	enum events event;
-+};
-+/* attributes of thermal_genl_family */
-+enum {
-+	THERMAL_GENL_ATTR_UNSPEC,
-+	THERMAL_GENL_ATTR_EVENT,
-+	__THERMAL_GENL_ATTR_MAX,
-+};
-+#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
-+
-+/* commands supported by the thermal_genl_family */
-+enum {
-+	THERMAL_GENL_CMD_UNSPEC,
-+	THERMAL_GENL_CMD_EVENT,
-+	__THERMAL_GENL_CMD_MAX,
-+};
-+#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
  
- struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
- 							 struct
-@@ -146,5 +177,6 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 							       thermal_cooling_device_ops
- 							       *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
-+extern int generate_netlink_event(u32 orig, enum events event);
++static int ghes_panic_timeout	__read_mostly = 30;
++
+ /*
+- * Error source lists, one list for each notification method. The
+- * members in lists are struct ghes.
++ * All error sources notified with SCI shares one notifier function,
++ * so they need to be linked and checked one by one.  This is applied
++ * to NMI too.
+  *
+- * The list members are only added in HEST parsing and deleted during
+- * module_exit, that is, single-threaded. So no lock is needed for
+- * that.
+- *
+- * But the mutual exclusion is needed between members adding/deleting
+- * and timer/IRQ/SCI/NMI handler, which may traverse the list. RCU is
+- * used for that.
++ * RCU is used for these lists, so ghes_list_mutex is only used for
++ * list changing, not for traversing.
+  */
+ static LIST_HEAD(ghes_sci);
++static LIST_HEAD(ghes_nmi);
+ static DEFINE_MUTEX(ghes_list_mutex);
  
- #endif /* __THERMAL_H__ */
++/*
++ * NMI may be triggered on any CPU, so ghes_nmi_lock is used for
++ * mutual exclusion.
++ */
++static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
++
++/*
++ * Because the memory area used to transfer hardware error information
++ * from BIOS to Linux can be determined only in NMI, IRQ or timer
++ * handler, but general ioremap can not be used in atomic context, so
++ * a special version of atomic ioremap is implemented for that.
++ */
++
++/*
++ * Two virtual pages are used, one for NMI context, the other for
++ * IRQ/PROCESS context
++ */
++#define GHES_IOREMAP_PAGES		2
++#define GHES_IOREMAP_NMI_PAGE(base)	(base)
++#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
++
++/* virtual memory area for atomic ioremap */
++static struct vm_struct *ghes_ioremap_area;
++/*
++ * These 2 spinlock is used to prevent atomic ioremap virtual memory
++ * area from being mapped simultaneously.
++ */
++static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
++static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
++
++static int ghes_ioremap_init(void)
++{
++	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
++		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
++	if (!ghes_ioremap_area) {
++		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void ghes_ioremap_exit(void)
++{
++	free_vm_area(ghes_ioremap_area);
++}
++
++static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
++{
++	unsigned long vaddr;
++
++	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
++	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
++			   pfn << PAGE_SHIFT, PAGE_KERNEL);
++
++	return (void __iomem *)vaddr;
++}
++
++static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
++{
++	unsigned long vaddr;
++
++	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
++	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
++			   pfn << PAGE_SHIFT, PAGE_KERNEL);
++
++	return (void __iomem *)vaddr;
++}
++
++static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
++{
++	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
++	void *base = ghes_ioremap_area->addr;
++
++	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_NMI_PAGE(base));
++	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
++	__flush_tlb_one(vaddr);
++}
++
++static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
++{
++	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
++	void *base = ghes_ioremap_area->addr;
++
++	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_IRQ_PAGE(base));
++	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
++	__flush_tlb_one(vaddr);
++}
++
+ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+ {
+ 	struct ghes *ghes;
+@@ -102,7 +190,6 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+ 	if (!ghes)
+ 		return ERR_PTR(-ENOMEM);
+ 	ghes->generic = generic;
+-	INIT_LIST_HEAD(&ghes->list);
+ 	rc = acpi_pre_map_gar(&generic->error_status_address);
+ 	if (rc)
+ 		goto err_free;
+@@ -159,22 +246,41 @@ static inline int ghes_severity(int severity)
+ 	}
+ }
+ 
+-/* SCI handler run in work queue, so ioremap can be used here */
+-static int ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+-				 int from_phys)
++static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
++				  int from_phys)
+ {
+-	void *vaddr;
+-
+-	vaddr = ioremap_cache(paddr, len);
+-	if (!vaddr)
+-		return -ENOMEM;
+-	if (from_phys)
+-		memcpy(buffer, vaddr, len);
+-	else
+-		memcpy(vaddr, buffer, len);
+-	iounmap(vaddr);
+-
+-	return 0;
++	void __iomem *vaddr;
++	unsigned long flags = 0;
++	int in_nmi = in_nmi();
++	u64 offset;
++	u32 trunk;
++
++	while (len > 0) {
++		offset = paddr - (paddr & PAGE_MASK);
++		if (in_nmi) {
++			raw_spin_lock(&ghes_ioremap_lock_nmi);
++			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
++		} else {
++			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
++			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
++		}
++		trunk = PAGE_SIZE - offset;
++		trunk = min(trunk, len);
++		if (from_phys)
++			memcpy_fromio(buffer, vaddr + offset, trunk);
++		else
++			memcpy_toio(vaddr + offset, buffer, trunk);
++		len -= trunk;
++		paddr += trunk;
++		buffer += trunk;
++		if (in_nmi) {
++			ghes_iounmap_nmi(vaddr);
++			raw_spin_unlock(&ghes_ioremap_lock_nmi);
++		} else {
++			ghes_iounmap_irq(vaddr);
++			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
++		}
++	}
+ }
+ 
+ static int ghes_read_estatus(struct ghes *ghes, int silent)
+@@ -195,10 +301,8 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
+ 	if (!buf_paddr)
+ 		return -ENOENT;
+ 
+-	rc = ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
+-				   sizeof(*ghes->estatus), 1);
+-	if (rc)
+-		return rc;
++	ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
++			      sizeof(*ghes->estatus), 1);
+ 	if (!ghes->estatus->block_status)
+ 		return -ENOENT;
+ 
+@@ -213,17 +317,15 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
+ 		goto err_read_block;
+ 	if (apei_estatus_check_header(ghes->estatus))
+ 		goto err_read_block;
+-	rc = ghes_copy_tofrom_phys(ghes->estatus + 1,
+-				   buf_paddr + sizeof(*ghes->estatus),
+-				   len - sizeof(*ghes->estatus), 1);
+-	if (rc)
+-		return rc;
++	ghes_copy_tofrom_phys(ghes->estatus + 1,
++			      buf_paddr + sizeof(*ghes->estatus),
++			      len - sizeof(*ghes->estatus), 1);
+ 	if (apei_estatus_check(ghes->estatus))
+ 		goto err_read_block;
+ 	rc = 0;
+ 
+ err_read_block:
+-	if (rc && !silent)
++	if (rc && !silent && printk_ratelimit())
+ 		pr_warning(FW_WARN GHES_PFX
+ 			   "Failed to read error status block!\n");
+ 	return rc;
+@@ -293,6 +395,42 @@ out:
+ 	return 0;
+ }
+ 
++static void ghes_add_timer(struct ghes *ghes)
++{
++	struct acpi_hest_generic *g = ghes->generic;
++	unsigned long expire;
++
++	if (!g->notify.poll_interval) {
++		pr_warning(FW_WARN GHES_PFX "Poll interval is 0 for generic hardware error source: %d, disabled.\n",
++			   g->header.source_id);
++		return;
++	}
++	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
++	ghes->timer.expires = round_jiffies_relative(expire);
++	add_timer(&ghes->timer);
++}
++
++static void ghes_poll_func(unsigned long data)
++{
++	struct ghes *ghes = (void *)data;
++
++	ghes_proc(ghes);
++	if (!(ghes->flags & GHES_EXITING))
++		ghes_add_timer(ghes);
++}
++
++static irqreturn_t ghes_irq_func(int irq, void *data)
++{
++	struct ghes *ghes = data;
++	int rc;
++
++	rc = ghes_proc(ghes);
++	if (rc)
++		return IRQ_NONE;
++
++	return IRQ_HANDLED;
++}
++
+ static int ghes_notify_sci(struct notifier_block *this,
+ 				  unsigned long event, void *data)
+ {
+@@ -309,10 +447,63 @@ static int ghes_notify_sci(struct notifier_block *this,
+ 	return ret;
+ }
+ 
++static int ghes_notify_nmi(struct notifier_block *this,
++				  unsigned long cmd, void *data)
++{
++	struct ghes *ghes, *ghes_global = NULL;
++	int sev, sev_global = -1;
++	int ret = NOTIFY_DONE;
++
++	if (cmd != DIE_NMI)
++		return ret;
++
++	raw_spin_lock(&ghes_nmi_lock);
++	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
++		if (ghes_read_estatus(ghes, 1)) {
++			ghes_clear_estatus(ghes);
++			continue;
++		}
++		sev = ghes_severity(ghes->estatus->error_severity);
++		if (sev > sev_global) {
++			sev_global = sev;
++			ghes_global = ghes;
++		}
++		ret = NOTIFY_STOP;
++	}
++
++	if (ret == NOTIFY_DONE)
++		goto out;
++
++	if (sev_global >= GHES_SEV_PANIC) {
++		oops_begin();
++		ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global);
++		/* reboot to log the error! */
++		if (panic_timeout == 0)
++			panic_timeout = ghes_panic_timeout;
++		panic("Fatal hardware error!");
++	}
++
++	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
++		if (!(ghes->flags & GHES_TO_CLEAR))
++			continue;
++		/* Do not print estatus because printk is not NMI safe */
++		ghes_do_proc(ghes);
++		ghes_clear_estatus(ghes);
++	}
++
++out:
++	raw_spin_unlock(&ghes_nmi_lock);
++	return ret;
++}
++
+ static struct notifier_block ghes_notifier_sci = {
+ 	.notifier_call = ghes_notify_sci,
+ };
+ 
++static struct notifier_block ghes_notifier_nmi = {
++	.notifier_call = ghes_notify_nmi,
++};
++
+ static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ {
+ 	struct acpi_hest_generic *generic;
+@@ -323,18 +514,27 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ 	if (!generic->enabled)
+ 		return -ENODEV;
+ 
+-	if (generic->error_block_length <
+-	    sizeof(struct acpi_hest_generic_status)) {
+-		pr_warning(FW_BUG GHES_PFX
+-"Invalid error block length: %u for generic hardware error source: %d\n",
+-			   generic->error_block_length,
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_NMI:
++		break;
++	case ACPI_HEST_NOTIFY_LOCAL:
++		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
+ 			   generic->header.source_id);
+ 		goto err;
++	default:
++		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
++			   generic->notify.type, generic->header.source_id);
++		goto err;
+ 	}
+-	if (generic->records_to_preallocate == 0) {
+-		pr_warning(FW_BUG GHES_PFX
+-"Invalid records to preallocate: %u for generic hardware error source: %d\n",
+-			   generic->records_to_preallocate,
++
++	rc = -EIO;
++	if (generic->error_block_length <
++	    sizeof(struct acpi_hest_generic_status)) {
++		pr_warning(FW_BUG GHES_PFX "Invalid error block length: %u for generic hardware error source: %d\n",
++			   generic->error_block_length,
+ 			   generic->header.source_id);
+ 		goto err;
+ 	}
+@@ -344,38 +544,43 @@ static int __devinit ghes_probe(struct platform_device *ghes_dev)
+ 		ghes = NULL;
+ 		goto err;
+ 	}
+-	if (generic->notify.type == ACPI_HEST_NOTIFY_SCI) {
++	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++		ghes->timer.function = ghes_poll_func;
++		ghes->timer.data = (unsigned long)ghes;
++		init_timer_deferrable(&ghes->timer);
++		ghes_add_timer(ghes);
++		break;
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++		/* External interrupt vector is GSI */
++		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
++			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
++			       generic->header.source_id);
++			goto err;
++		}
++		if (request_irq(ghes->irq, ghes_irq_func,
++				0, "GHES IRQ", ghes)) {
++			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
++			       generic->header.source_id);
++			goto err;
++		}
++		break;
++	case ACPI_HEST_NOTIFY_SCI:
+ 		mutex_lock(&ghes_list_mutex);
+ 		if (list_empty(&ghes_sci))
+ 			register_acpi_hed_notifier(&ghes_notifier_sci);
+ 		list_add_rcu(&ghes->list, &ghes_sci);
+ 		mutex_unlock(&ghes_list_mutex);
+-	} else {
+-		unsigned char *notify = NULL;
+-
+-		switch (generic->notify.type) {
+-		case ACPI_HEST_NOTIFY_POLLED:
+-			notify = "POLL";
+-			break;
+-		case ACPI_HEST_NOTIFY_EXTERNAL:
+-		case ACPI_HEST_NOTIFY_LOCAL:
+-			notify = "IRQ";
+-			break;
+-		case ACPI_HEST_NOTIFY_NMI:
+-			notify = "NMI";
+-			break;
+-		}
+-		if (notify) {
+-			pr_warning(GHES_PFX
+-"Generic hardware error source: %d notified via %s is not supported!\n",
+-				   generic->header.source_id, notify);
+-		} else {
+-			pr_warning(FW_WARN GHES_PFX
+-"Unknown notification type: %u for generic hardware error source: %d\n",
+-			generic->notify.type, generic->header.source_id);
+-		}
+-		rc = -ENODEV;
+-		goto err;
++		break;
++	case ACPI_HEST_NOTIFY_NMI:
++		mutex_lock(&ghes_list_mutex);
++		if (list_empty(&ghes_nmi))
++			register_die_notifier(&ghes_notifier_nmi);
++		list_add_rcu(&ghes->list, &ghes_nmi);
++		mutex_unlock(&ghes_list_mutex);
++		break;
++	default:
++		BUG();
+ 	}
+ 	platform_set_drvdata(ghes_dev, ghes);
+ 
+@@ -396,7 +601,14 @@ static int __devexit ghes_remove(struct platform_device *ghes_dev)
+ 	ghes = platform_get_drvdata(ghes_dev);
+ 	generic = ghes->generic;
+ 
++	ghes->flags |= GHES_EXITING;
+ 	switch (generic->notify.type) {
++	case ACPI_HEST_NOTIFY_POLLED:
++		del_timer_sync(&ghes->timer);
++		break;
++	case ACPI_HEST_NOTIFY_EXTERNAL:
++		free_irq(ghes->irq, ghes);
++		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
+ 		mutex_lock(&ghes_list_mutex);
+ 		list_del_rcu(&ghes->list);
+@@ -404,12 +616,23 @@ static int __devexit ghes_remove(struct platform_device *ghes_dev)
+ 			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
++	case ACPI_HEST_NOTIFY_NMI:
++		mutex_lock(&ghes_list_mutex);
++		list_del_rcu(&ghes->list);
++		if (list_empty(&ghes_nmi))
++			unregister_die_notifier(&ghes_notifier_nmi);
++		mutex_unlock(&ghes_list_mutex);
++		/*
++		 * To synchronize with NMI handler, ghes can only be
++		 * freed after NMI handler finishes.
++		 */
++		synchronize_rcu();
++		break;
+ 	default:
+ 		BUG();
+ 		break;
+ 	}
+ 
+-	synchronize_rcu();
+ 	ghes_fini(ghes);
+ 	kfree(ghes);
+ 
+@@ -429,6 +652,8 @@ static struct platform_driver ghes_platform_driver = {
+ 
+ static int __init ghes_init(void)
+ {
++	int rc;
++
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+@@ -437,12 +662,25 @@ static int __init ghes_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	return platform_driver_register(&ghes_platform_driver);
++	rc = ghes_ioremap_init();
++	if (rc)
++		goto err;
++
++	rc = platform_driver_register(&ghes_platform_driver);
++	if (rc)
++		goto err_ioremap_exit;
++
++	return 0;
++err_ioremap_exit:
++	ghes_ioremap_exit();
++err:
++	return rc;
+ }
+ 
+ static void __exit ghes_exit(void)
+ {
+ 	platform_driver_unregister(&ghes_platform_driver);
++	ghes_ioremap_exit();
+ }
+ 
+ module_init(ghes_init);
+diff --git a/kernel/panic.c b/kernel/panic.c
+index 4c13b1a..991bb87 100644
+--- a/kernel/panic.c
++++ b/kernel/panic.c
+@@ -34,6 +34,7 @@ static int pause_on_oops_flag;
+ static DEFINE_SPINLOCK(pause_on_oops_lock);
+ 
+ int panic_timeout;
++EXPORT_SYMBOL_GPL(panic_timeout);
+ 
+ ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
+ 
+diff --git a/lib/ioremap.c b/lib/ioremap.c
+index 5730ecd..da4e2ad 100644
+--- a/lib/ioremap.c
++++ b/lib/ioremap.c
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/io.h>
++#include <linux/module.h>
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
+ 
+@@ -90,3 +91,4 @@ int ioremap_page_range(unsigned long addr,
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(ioremap_page_range);
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index eb5cc7d..816f074 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -1175,6 +1175,7 @@ void unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
+ {
+ 	vunmap_page_range(addr, addr + size);
+ }
++EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
+ 
+ /**
+  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
 -- 
 1.7.4.rc1.7.g2cf08
 
