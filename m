@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/48] ACPI / ACPICA: Fix global lock acquisition
-Date: Wed, 12 Jan 2011 05:19:13 -0500
-Message-ID: <9cd031441a4fd09273b7c2beb337d0b2683d104c.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 15/48] PM / ACPI: Move NVS saving and restoring code to
+ drivers/acpi
+Date: Wed, 12 Jan 2011 05:19:09 -0500
+Message-ID: <976513dbfc1547c7b1822566923058655f0c32fd.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:49319 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:49262 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755547Ab1ALSAb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:31 -0500
+	with ESMTP id S1755547Ab1ALSA3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:29 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LEX007SA8OAUAI1@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:31 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:28 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
@@ -23,173 +24,160 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There are two problems with the ACPICA's current implementation of
-the global lock acquisition.  First, acpi_ev_global_lock_handler(),
-which in fact is an interface to the outside of the kernel, doesn't
-validate its input, so it only works correctly if the other side
-(i.e. the ACPI firmware) is fully specification-compliant (as far
-as the global lock is concerned).  Unfortunately, that's known not
-to be the case on some systems (i.e. we get spurious global lock
-signaling interrupts without the pending flag set on some systems).
-Second, acpi_ev_global_lock_handler() attempts to acquire the global
-lock on behalf of a thread waiting for it without checking if there
-actually is such a thread.  Both of these shortcomings need to be
-addressed to prevent all possible race conditions from happening.
-
-Rework acpi_ev_global_lock_handler() so that it doesn't try to
-acquire the global lock and make it signal the availability of the
-global lock to the waiting thread instead.  Make sure that the
-availability of the global lock can only be signaled when there
-is a thread waiting for it and that it can't be signaled more than
-once in a row (to keep acpi_gbl_global_lock_semaphore in balance).
+The saving of the ACPI NVS area during hibernation and suspend and
+restoring it during the subsequent resume is entirely specific to
+ACPI, so move it to drivers/acpi and drop the CONFIG_SUSPEND_NVS
+configuration option which is redundant.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/evmisc.c |   94 ++++++++++++++++++++++++-----------------
- 1 files changed, 55 insertions(+), 39 deletions(-)
+ arch/x86/kernel/e820.c               |    1 +
+ drivers/acpi/Makefile                |    2 +-
+ drivers/acpi/internal.h              |    8 ++++++++
+ {kernel/power => drivers/acpi}/nvs.c |    0
+ include/linux/acpi.h                 |    9 +++++++++
+ include/linux/suspend.h              |   17 -----------------
+ kernel/power/Kconfig                 |    5 -----
+ kernel/power/Makefile                |    1 -
+ 8 files changed, 19 insertions(+), 24 deletions(-)
+ rename {kernel/power => drivers/acpi}/nvs.c (100%)
 
-diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
-index fcaed9f..8e31bb5 100644
---- a/drivers/acpi/acpica/evmisc.c
-+++ b/drivers/acpi/acpica/evmisc.c
-@@ -284,41 +284,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_notify_dispatch(void *context)
-  * RETURN:      ACPI_INTERRUPT_HANDLED
-  *
-  * DESCRIPTION: Invoked directly from the SCI handler when a global lock
-- *              release interrupt occurs. Attempt to acquire the global lock,
-- *              if successful, signal the thread waiting for the lock.
-+ *              release interrupt occurs.  If there's a thread waiting for
-+ *              the global lock, signal it.
-  *
-  * NOTE: Assumes that the semaphore can be signaled from interrupt level. If
-  * this is not possible for some reason, a separate thread will have to be
-  * scheduled to do this.
-  *
-  ******************************************************************************/
-+static u8 acpi_ev_global_lock_pending;
-+static spinlock_t _acpi_ev_global_lock_pending_lock;
-+#define acpi_ev_global_lock_pending_lock &_acpi_ev_global_lock_pending_lock
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 0c2b7ef..294f26d 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -14,6 +14,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
++#include <linux/acpi.h>
+ #include <linux/firmware-map.h>
+ #include <linux/memblock.h>
  
- static u32 acpi_ev_global_lock_handler(void *context)
- {
--	u8 acquired = FALSE;
-+	acpi_status status;
-+	acpi_cpu_flags flags;
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 3d031d0..9cc9f2c 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -24,7 +24,7 @@ acpi-y				+= atomicio.o
+ # sleep related files
+ acpi-y				+= wakeup.o
+ acpi-y				+= sleep.o
+-acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
++acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o nvs.o
  
--	/*
--	 * Attempt to get the lock.
--	 *
--	 * If we don't get it now, it will be marked pending and we will
--	 * take another interrupt when it becomes free.
--	 */
--	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
--	if (acquired) {
-+	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
  
--		/* Got the lock, now wake all threads waiting for it */
-+	if (!acpi_ev_global_lock_pending) {
-+		goto out;
-+	}
+ #
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index a212bfe..7c23b76 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -82,8 +82,16 @@ extern int acpi_sleep_init(void);
  
--		acpi_gbl_global_lock_acquired = TRUE;
--		/* Send a unit to the semaphore */
-+	/* Send a unit to the semaphore */
+ #ifdef CONFIG_ACPI_SLEEP
+ int acpi_sleep_proc_init(void);
++int suspend_nvs_alloc(void);
++void suspend_nvs_free(void);
++int suspend_nvs_save(void);
++void suspend_nvs_restore(void);
+ #else
+ static inline int acpi_sleep_proc_init(void) { return 0; }
++static inline int suspend_nvs_alloc(void) { return 0; }
++static inline void suspend_nvs_free(void) {}
++static inline int suspend_nvs_save(void) {}
++static inline void suspend_nvs_restore(void) {}
+ #endif
  
--		if (ACPI_FAILURE
--		    (acpi_os_signal_semaphore
--		     (acpi_gbl_global_lock_semaphore, 1))) {
--			ACPI_ERROR((AE_INFO,
--				    "Could not signal Global Lock semaphore"));
--		}
-+	status = acpi_os_signal_semaphore(acpi_gbl_global_lock_semaphore, 1);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_ERROR((AE_INFO, "Could not signal Global Lock semaphore"));
- 	}
+ #endif /* _ACPI_INTERNAL_H_ */
+diff --git a/kernel/power/nvs.c b/drivers/acpi/nvs.c
+similarity index 100%
+rename from kernel/power/nvs.c
+rename to drivers/acpi/nvs.c
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 67c91b4..fa7ed6a98 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -254,6 +254,15 @@ void __init acpi_old_suspend_ordering(void);
+ void __init acpi_nvs_nosave(void);
+ #endif /* CONFIG_PM_SLEEP */
  
-+	acpi_ev_global_lock_pending = FALSE;
++#ifdef CONFIG_ACPI_SLEEP
++int suspend_nvs_register(unsigned long start, unsigned long size);
++#else
++static inline int suspend_nvs_register(unsigned long a, unsigned long b)
++{
++	return 0;
++}
++#endif
 +
-+ out:
-+	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
-+
- 	return (ACPI_INTERRUPT_HANDLED);
- }
+ struct acpi_osc_context {
+ 	char *uuid_str; /* uuid string */
+ 	int rev;
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index acb7d91..0e288e3 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -258,23 +258,6 @@ static inline int hibernate(void) { return -ENOSYS; }
+ static inline bool system_entering_hibernation(void) { return false; }
+ #endif /* CONFIG_HIBERNATION */
  
-@@ -415,6 +415,7 @@ static int acpi_ev_global_lock_acquired;
+-#ifdef CONFIG_SUSPEND_NVS
+-extern int suspend_nvs_register(unsigned long start, unsigned long size);
+-extern int suspend_nvs_alloc(void);
+-extern void suspend_nvs_free(void);
+-extern int suspend_nvs_save(void);
+-extern void suspend_nvs_restore(void);
+-#else /* CONFIG_SUSPEND_NVS */
+-static inline int suspend_nvs_register(unsigned long a, unsigned long b)
+-{
+-	return 0;
+-}
+-static inline int suspend_nvs_alloc(void) { return 0; }
+-static inline void suspend_nvs_free(void) {}
+-static inline int suspend_nvs_save(void) {}
+-static inline void suspend_nvs_restore(void) {}
+-#endif /* CONFIG_SUSPEND_NVS */
+-
+ #ifdef CONFIG_PM_SLEEP
+ void save_processor_state(void);
+ void restore_processor_state(void);
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+index a5aff3e..2657299 100644
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -100,13 +100,9 @@ config PM_SLEEP_ADVANCED_DEBUG
+ 	depends on PM_ADVANCED_DEBUG
+ 	default n
  
- acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- {
-+	acpi_cpu_flags flags;
- 	acpi_status status = AE_OK;
- 	u8 acquired = FALSE;
+-config SUSPEND_NVS
+-       bool
+-
+ config SUSPEND
+ 	bool "Suspend to RAM and standby"
+ 	depends on PM && ARCH_SUSPEND_POSSIBLE
+-	select SUSPEND_NVS if HAS_IOMEM
+ 	default y
+ 	---help---
+ 	  Allow the system to enter sleep states in which main memory is
+@@ -140,7 +136,6 @@ config HIBERNATION
+ 	depends on PM && SWAP && ARCH_HIBERNATION_POSSIBLE
+ 	select LZO_COMPRESS
+ 	select LZO_DECOMPRESS
+-	select SUSPEND_NVS if HAS_IOMEM
+ 	---help---
+ 	  Enable the suspend to disk (STD) functionality, which is usually
+ 	  called "hibernation" in user interfaces.  STD checkpoints the
+diff --git a/kernel/power/Makefile b/kernel/power/Makefile
+index f9063c6..120a158 100644
+--- a/kernel/power/Makefile
++++ b/kernel/power/Makefile
+@@ -10,6 +10,5 @@ obj-$(CONFIG_SUSPEND)		+= suspend.o
+ obj-$(CONFIG_PM_TEST_SUSPEND)	+= suspend_test.o
+ obj-$(CONFIG_HIBERNATION)	+= hibernate.o snapshot.o swap.o user.o \
+ 				   block_io.o
+-obj-$(CONFIG_SUSPEND_NVS)	+= nvs.o
  
-@@ -467,32 +468,47 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
--	/* Attempt to acquire the actual hardware lock */
-+	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
-+
-+	do {
-+
-+		/* Attempt to acquire the actual hardware lock */
-+
-+		ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
-+		if (acquired) {
-+			acpi_gbl_global_lock_acquired = TRUE;
-+
-+			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-+					  "Acquired hardware Global Lock\n"));
-+			break;
-+		}
- 
--	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
--	if (acquired) {
-+		acpi_ev_global_lock_pending = TRUE;
- 
--		/* We got the lock */
-+		acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
- 
-+		/*
-+		 * Did not get the lock. The pending bit was set above, and we
-+		 * must wait until we get the global lock released interrupt.
-+		 */
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "Acquired hardware Global Lock\n"));
-+				  "Waiting for hardware Global Lock\n"));
- 
--		acpi_gbl_global_lock_acquired = TRUE;
--		return_ACPI_STATUS(AE_OK);
--	}
-+		/*
-+		 * Wait for handshake with the global lock interrupt handler.
-+		 * This interface releases the interpreter if we must wait.
-+		 */
-+		status = acpi_ex_system_wait_semaphore(
-+						acpi_gbl_global_lock_semaphore,
-+						ACPI_WAIT_FOREVER);
- 
--	/*
--	 * Did not get the lock. The pending bit was set above, and we must now
--	 * wait until we get the global lock released interrupt.
--	 */
--	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Waiting for hardware Global Lock\n"));
-+		flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
- 
--	/*
--	 * Wait for handshake with the global lock interrupt handler.
--	 * This interface releases the interpreter if we must wait.
--	 */
--	status = acpi_ex_system_wait_semaphore(acpi_gbl_global_lock_semaphore,
--					       ACPI_WAIT_FOREVER);
-+	} while (ACPI_SUCCESS(status));
-+
-+	acpi_ev_global_lock_pending = FALSE;
-+
-+	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
- 
- 	return_ACPI_STATUS(status);
- }
+ obj-$(CONFIG_MAGIC_SYSRQ)	+= poweroff.o
 -- 
 1.7.4.rc1.7.g2cf08
 
