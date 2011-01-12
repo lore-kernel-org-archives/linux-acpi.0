@@ -1,26 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI / PM: Fix build problems for !CONFIG_ACPI related to
- NVS rework
-Date: Wed, 12 Jan 2011 16:12:19 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101121612160.19754@x980>
-References: <20110112141822.c29314c4.sfr@canb.auug.org.au>
- <201101122135.55567.rjw@sisk.pl> <4D2E13C9.7030704@oracle.com>
- <201101122203.20657.rjw@sisk.pl>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: on builds/randconfigs (was: [PATCH -next] thermal: depends on
+ NET)
+Date: Wed, 12 Jan 2011 13:18:00 -0800
+Message-ID: <20110112131800.d64c1a86.akpm@linux-foundation.org>
+References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>
+	<20101213112033.d0060e6c.randy.dunlap@oracle.com>
+	<20110110090059.6f4d739d.randy.dunlap@oracle.com>
+	<alpine.LFD.2.02.1101120008590.19140@x980>
+	<4D2DE97C.2000205@oracle.com>
+	<alpine.LFD.2.02.1101121257580.18873@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:62559 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755539Ab1ALVMm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 16:12:42 -0500
-In-reply-to: <201101122203.20657.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1101121257580.18873@x980>
+Sender: linux-next-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Jiri Slaby <jslaby@suse.cz>, linux-acpi@vger.kernel.org
 
-applied
+On Wed, 12 Jan 2011 13:35:10 -0500 (EST)
+Len Brown <lenb@kernel.org> wrote:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> Do I care about the phantom configs that would be possible
+> if these false dependencies were not in place.  No,
+> not until somebody invents such a system,
+> and may be not even then.
+> 
+> Is there a user out there on LKML who can dream up
+> a use for one of these phantom configs and claim that
+> his life will end if he'd prevented from building it?
+> Sure.  Does he suffer from a total lack of perspective?
+> Yes.
 
+These unusable config combinations should be prevented via Kconfig. 
+That prevents users from selecting them, which otherwise adds to
+our workload and to theirs.  It also prevents false-positives
+during our useful randconfig testing.
