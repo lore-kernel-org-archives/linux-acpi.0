@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 9/9] ACPICA: Update version to 20101209
-Date: Wed, 12 Jan 2011 00:54:56 -0500
-Message-ID: <e88731b1b5a4e1d34f9025f136ab32655b97b395.1294811633.git.len.brown@intel.com>
+Subject: [PATCH 4/9] ACPICA: Remove unused function declarations
+Date: Wed, 12 Jan 2011 00:54:51 -0500
+Message-ID: <cd3fce6b770976be6d8a2ffe6583f86db6ae2b4b.1294811633.git.len.brown@intel.com>
 References: <1294811696-19966-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:59224 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754738Ab1ALFzT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 00:55:19 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:42645 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754750Ab1ALFzV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 00:55:21 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173001.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LEW004MQB46RXQ0@vms173001.mailsrvcs.net> for
+ with ESMTPA id <0LEW00GFHB3WXET5@vms173003.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Tue, 11 Jan 2011 23:55:19 -0600 (CST)
 In-reply-to: <1294811696-19966-1-git-send-email-lenb@kernel.org>
 In-reply-to: <3bfa77e8004c7f2516afc05b4aea2a0c07ed196d.1294811633.git.len.brown@intel.com>
@@ -19,32 +19,41 @@ References: <3bfa77e8004c7f2516afc05b4aea2a0c07ed196d.1294811633.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Lin Ming <ming.m.lin@intel.com>
 
-Version 20101209.
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/acevents.h |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index e8142d5..241b8a0 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -47,7 +47,7 @@
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index ebb467f..04a83fe 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -51,8 +51,6 @@ acpi_status acpi_ev_initialize_events(void);
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
+ acpi_status acpi_ev_install_xrupt_handlers(void);
  
--#define ACPI_CA_VERSION                 0x20101013
-+#define ACPI_CA_VERSION                 0x20101209
+-acpi_status acpi_ev_install_fadt_gpes(void);
+-
+ u32 acpi_ev_fixed_event_detect(void);
  
- #include "actypes.h"
- #include "actbl.h"
+ /*
+@@ -127,10 +125,6 @@ acpi_status
+ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+ 			 u32 level, void *context, void **return_value);
+ 
+-acpi_status
+-acpi_ev_match_prw_and_gpe(acpi_handle obj_handle,
+-			  u32 level, void *context, void **return_value);
+-
+ /*
+  * evgpeutil - GPE utilities
+  */
 -- 
 1.7.4.rc1.7.g2cf08
 
