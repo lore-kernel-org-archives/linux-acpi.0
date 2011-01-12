@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/48] ACPI, APEI,
- Add APEI generic error status printing support
-Date: Wed, 12 Jan 2011 05:18:59 -0500
-Message-ID: <f59c55d04b43bd72df8efa692dd07224fe94d1ac.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 06/48] ACPI, APEI, Report GHES error information via printk
+Date: Wed, 12 Jan 2011 05:19:00 -0500
+Message-ID: <32c361f574f85fa47600d84900598e2efc99082e.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:56225 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab1ALKUA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 05:20:00 -0500
+Received: from vms173011pub.verizon.net ([206.46.173.11]:41614 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752131Ab1ALKUC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 05:20:02 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173003.mailsrvcs.net
+ by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LEW0035TNDATQG0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 04:20:00 -0600 (CST)
+ with ESMTPA id <0LEW00H0FNDCFDF7@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 04:20:01 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
@@ -24,609 +23,66 @@ Cc: Huang Ying <ying.huang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Huang Ying <ying.huang@intel.com>
 
-In APEI, Hardware error information reported by firmware to Linux
-kernel is in the data structure of APEI generic error status (struct
-acpi_hes_generic_status).  While now printk is used by Linux kernel to
-report hardware error information to user space.
-
-So, this patch adds printing support for the data structure, so that
-the corresponding hardware error information can be reported to user
-space via printk.
-
-PCIe AER information printing is not implemented yet.  Will refactor the
-original PCIe AER information printing code to avoid code duplicating.
-
-The output format is as follow:
-
-<error record> :=
-APEI generic hardware error status
-severity: <integer>, <severity string>
-section: <integer>, severity: <integer>, <severity string>
-flags: <integer>
-<section flags strings>
-fru_id: <uuid string>
-fru_text: <string>
-section_type: <section type string>
-<section data>
-
-<severity string>* := recoverable | fatal | corrected | info
-
-<section flags strings># :=
-[primary][, containment warning][, reset][, threshold exceeded]\
-[, resource not accessible][, latent error]
-
-<section type string> := generic processor error | memory error | \
-PCIe error | unknown, <uuid string>
-
-<section data> :=
-<generic processor section data> | <memory section data> | \
-<pcie section data> | <null>
-
-<generic processor section data> :=
-[processor_type: <integer>, <proc type string>]
-[processor_isa: <integer>, <proc isa string>]
-[error_type: <integer>
-<proc error type strings>]
-[operation: <integer>, <proc operation string>]
-[flags: <integer>
-<proc flags strings>]
-[level: <integer>]
-[version_info: <integer>]
-[processor_id: <integer>]
-[target_address: <integer>]
-[requestor_id: <integer>]
-[responder_id: <integer>]
-[IP: <integer>]
-
-<proc type string>* := IA32/X64 | IA64
-
-<proc isa string>* := IA32 | IA64 | X64
-
-<processor error type strings># :=
-[cache error][, TLB error][, bus error][, micro-architectural error]
-
-<proc operation string>* := unknown or generic | data read | data write | \
-instruction execution
-
-<proc flags strings># :=
-[restartable][, precise IP][, overflow][, corrected]
-
-<memory section data> :=
-[error_status: <integer>]
-[physical_address: <integer>]
-[physical_address_mask: <integer>]
-[node: <integer>]
-[card: <integer>]
-[module: <integer>]
-[bank: <integer>]
-[device: <integer>]
-[row: <integer>]
-[column: <integer>]
-[bit_position: <integer>]
-[requestor_id: <integer>]
-[responder_id: <integer>]
-[target_id: <integer>]
-[error_type: <integer>, <mem error type string>]
-
-<mem error type string>* :=
-unknown | no error | single-bit ECC | multi-bit ECC | \
-single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
-target abort | parity error | watchdog timeout | invalid address | \
-mirror Broken | memory sparing | scrub corrected error | \
-scrub uncorrected error
-
-<pcie section data> :=
-[port_type: <integer>, <pcie port type string>]
-[version: <integer>.<integer>]
-[command: <integer>, status: <integer>]
-[device_id: <integer>:<integer>:<integer>.<integer>
-slot: <integer>
-secondary_bus: <integer>
-vendor_id: <integer>, device_id: <integer>
-class_code: <integer>]
-[serial number: <integer>, <integer>]
-[bridge: secondary_status: <integer>, control: <integer>]
-
-<pcie port type string>* := PCIe end point | legacy PCI end point | \
-unknown | unknown | root port | upstream switch port | \
-downstream switch port | PCIe to PCI/PCI-X bridge | \
-PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
-root complex event collector
-
-Where, [] designate corresponding content is optional
-
-All <field string> description with * has the following format:
-
-field: <integer>, <field string>
-
-Where value of <integer> should be the position of "string" in <field
-string> description. Otherwise, <field string> will be "unknown".
-
-All <field strings> description with # has the following format:
-
-field: <integer>
-<field strings>
-
-Where each string in <fields strings> corresponding to one set bit of
-<integer>. The bit position is the position of "string" in <field
-strings> description.
-
-For more detailed explanation of every field, please refer to UEFI
-specification version 2.3 or later, section Appendix N: Common
-Platform Error Record.
+printk is one of the methods to report hardware errors to user space.
+This patch implements hardware error reporting for GHES via printk.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/acpi/apei/output_format.txt |  122 +++++++++++
- drivers/acpi/apei/apei-internal.h         |    2 +
- drivers/acpi/apei/cper.c                  |  311 +++++++++++++++++++++++++++++
- 3 files changed, 435 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/acpi/apei/output_format.txt
+ drivers/acpi/apei/ghes.c |   25 +++++++++++++++++++++----
+ 1 files changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/acpi/apei/output_format.txt b/Documentation/acpi/apei/output_format.txt
-new file mode 100644
-index 0000000..9146952
---- /dev/null
-+++ b/Documentation/acpi/apei/output_format.txt
-@@ -0,0 +1,122 @@
-+                     APEI output format
-+                     ~~~~~~~~~~~~~~~~~~
-+
-+APEI uses printk as hardware error reporting interface, the output
-+format is as follow.
-+
-+<error record> :=
-+APEI generic hardware error status
-+severity: <integer>, <severity string>
-+section: <integer>, severity: <integer>, <severity string>
-+flags: <integer>
-+<section flags strings>
-+fru_id: <uuid string>
-+fru_text: <string>
-+section_type: <section type string>
-+<section data>
-+
-+<severity string>* := recoverable | fatal | corrected | info
-+
-+<section flags strings># :=
-+[primary][, containment warning][, reset][, threshold exceeded]\
-+[, resource not accessible][, latent error]
-+
-+<section type string> := generic processor error | memory error | \
-+PCIe error | unknown, <uuid string>
-+
-+<section data> :=
-+<generic processor section data> | <memory section data> | \
-+<pcie section data> | <null>
-+
-+<generic processor section data> :=
-+[processor_type: <integer>, <proc type string>]
-+[processor_isa: <integer>, <proc isa string>]
-+[error_type: <integer>
-+<proc error type strings>]
-+[operation: <integer>, <proc operation string>]
-+[flags: <integer>
-+<proc flags strings>]
-+[level: <integer>]
-+[version_info: <integer>]
-+[processor_id: <integer>]
-+[target_address: <integer>]
-+[requestor_id: <integer>]
-+[responder_id: <integer>]
-+[IP: <integer>]
-+
-+<proc type string>* := IA32/X64 | IA64
-+
-+<proc isa string>* := IA32 | IA64 | X64
-+
-+<processor error type strings># :=
-+[cache error][, TLB error][, bus error][, micro-architectural error]
-+
-+<proc operation string>* := unknown or generic | data read | data write | \
-+instruction execution
-+
-+<proc flags strings># :=
-+[restartable][, precise IP][, overflow][, corrected]
-+
-+<memory section data> :=
-+[error_status: <integer>]
-+[physical_address: <integer>]
-+[physical_address_mask: <integer>]
-+[node: <integer>]
-+[card: <integer>]
-+[module: <integer>]
-+[bank: <integer>]
-+[device: <integer>]
-+[row: <integer>]
-+[column: <integer>]
-+[bit_position: <integer>]
-+[requestor_id: <integer>]
-+[responder_id: <integer>]
-+[target_id: <integer>]
-+[error_type: <integer>, <mem error type string>]
-+
-+<mem error type string>* :=
-+unknown | no error | single-bit ECC | multi-bit ECC | \
-+single-symbol chipkill ECC | multi-symbol chipkill ECC | master abort | \
-+target abort | parity error | watchdog timeout | invalid address | \
-+mirror Broken | memory sparing | scrub corrected error | \
-+scrub uncorrected error
-+
-+<pcie section data> :=
-+[port_type: <integer>, <pcie port type string>]
-+[version: <integer>.<integer>]
-+[command: <integer>, status: <integer>]
-+[device_id: <integer>:<integer>:<integer>.<integer>
-+slot: <integer>
-+secondary_bus: <integer>
-+vendor_id: <integer>, device_id: <integer>
-+class_code: <integer>]
-+[serial number: <integer>, <integer>]
-+[bridge: secondary_status: <integer>, control: <integer>]
-+
-+<pcie port type string>* := PCIe end point | legacy PCI end point | \
-+unknown | unknown | root port | upstream switch port | \
-+downstream switch port | PCIe to PCI/PCI-X bridge | \
-+PCI/PCI-X to PCIe bridge | root complex integrated endpoint device | \
-+root complex event collector
-+
-+Where, [] designate corresponding content is optional
-+
-+All <field string> description with * has the following format:
-+
-+field: <integer>, <field string>
-+
-+Where value of <integer> should be the position of "string" in <field
-+string> description. Otherwise, <field string> will be "unknown".
-+
-+All <field strings> description with # has the following format:
-+
-+field: <integer>
-+<field strings>
-+
-+Where each string in <fields strings> corresponding to one set bit of
-+<integer>. The bit position is the position of "string" in <field
-+strings> description.
-+
-+For more detailed explanation of every field, please refer to UEFI
-+specification version 2.3 or later, section Appendix N: Common
-+Platform Error Record.
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index 18df1e9..ef0581f 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -109,6 +109,8 @@ static inline u32 apei_estatus_len(struct acpi_hest_generic_status *estatus)
- 		return sizeof(*estatus) + estatus->data_length;
- }
- 
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 0d505e5..51905d0 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -43,6 +43,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/ratelimit.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+@@ -255,11 +256,26 @@ static void ghes_do_proc(struct ghes *ghes)
+ 		}
  #endif
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index f4cf2fc..31464a0 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -46,6 +46,317 @@ u64 cper_next_record_id(void)
- }
- EXPORT_SYMBOL_GPL(cper_next_record_id);
+ 	}
++}
  
-+static const char *cper_severity_strs[] = {
-+	"recoverable",
-+	"fatal",
-+	"corrected",
-+	"info",
-+};
-+
-+static const char *cper_severity_str(unsigned int severity)
+-	if (!processed && printk_ratelimit())
+-		pr_warning(GHES_PFX
+-		"Unknown error record from generic hardware error source: %d\n",
+-			   ghes->generic->header.source_id);
++static void ghes_print_estatus(const char *pfx, struct ghes *ghes)
 +{
-+	return severity < ARRAY_SIZE(cper_severity_strs) ?
-+		cper_severity_strs[severity] : "unknown";
-+}
++	/* Not more than 2 messages every 5 seconds */
++	static DEFINE_RATELIMIT_STATE(ratelimit, 5*HZ, 2);
 +
-+/*
-+ * cper_print_bits - print strings for set bits
-+ * @pfx: prefix for each line, including log level and prefix string
-+ * @bits: bit mask
-+ * @strs: string array, indexed by bit position
-+ * @strs_size: size of the string array: @strs
-+ *
-+ * For each set bit in @bits, print the corresponding string in @strs.
-+ * If the output length is longer than 80, multiple line will be
-+ * printed, with @pfx is printed at the beginning of each line.
-+ */
-+static void cper_print_bits(const char *pfx, unsigned int bits,
-+			    const char *strs[], unsigned int strs_size)
-+{
-+	int i, len = 0;
-+	const char *str;
-+	char buf[84];
-+
-+	for (i = 0; i < strs_size; i++) {
-+		if (!(bits & (1U << i)))
-+			continue;
-+		str = strs[i];
-+		if (len && len + strlen(str) + 2 > 80) {
-+			printk("%s\n", buf);
-+			len = 0;
-+		}
-+		if (!len)
-+			len = snprintf(buf, sizeof(buf), "%s%s", pfx, str);
++	if (pfx == NULL) {
++		if (ghes_severity(ghes->estatus->error_severity) <=
++		    GHES_SEV_CORRECTED)
++			pfx = KERN_WARNING HW_ERR;
 +		else
-+			len += snprintf(buf+len, sizeof(buf)-len, ", %s", str);
++			pfx = KERN_ERR HW_ERR;
 +	}
-+	if (len)
-+		printk("%s\n", buf);
-+}
-+
-+static const char *cper_proc_type_strs[] = {
-+	"IA32/X64",
-+	"IA64",
-+};
-+
-+static const char *cper_proc_isa_strs[] = {
-+	"IA32",
-+	"IA64",
-+	"X64",
-+};
-+
-+static const char *cper_proc_error_type_strs[] = {
-+	"cache error",
-+	"TLB error",
-+	"bus error",
-+	"micro-architectural error",
-+};
-+
-+static const char *cper_proc_op_strs[] = {
-+	"unknown or generic",
-+	"data read",
-+	"data write",
-+	"instruction execution",
-+};
-+
-+static const char *cper_proc_flag_strs[] = {
-+	"restartable",
-+	"precise IP",
-+	"overflow",
-+	"corrected",
-+};
-+
-+static void cper_print_proc_generic(const char *pfx,
-+				    const struct cper_sec_proc_generic *proc)
-+{
-+	if (proc->validation_bits & CPER_PROC_VALID_TYPE)
-+		printk("%s""processor_type: %d, %s\n", pfx, proc->proc_type,
-+		       proc->proc_type < ARRAY_SIZE(cper_proc_type_strs) ?
-+		       cper_proc_type_strs[proc->proc_type] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ISA)
-+		printk("%s""processor_isa: %d, %s\n", pfx, proc->proc_isa,
-+		       proc->proc_isa < ARRAY_SIZE(cper_proc_isa_strs) ?
-+		       cper_proc_isa_strs[proc->proc_isa] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_ERROR_TYPE) {
-+		printk("%s""error_type: 0x%02x\n", pfx, proc->proc_error_type);
-+		cper_print_bits(pfx, proc->proc_error_type,
-+				cper_proc_error_type_strs,
-+				ARRAY_SIZE(cper_proc_error_type_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_OPERATION)
-+		printk("%s""operation: %d, %s\n", pfx, proc->operation,
-+		       proc->operation < ARRAY_SIZE(cper_proc_op_strs) ?
-+		       cper_proc_op_strs[proc->operation] : "unknown");
-+	if (proc->validation_bits & CPER_PROC_VALID_FLAGS) {
-+		printk("%s""flags: 0x%02x\n", pfx, proc->flags);
-+		cper_print_bits(pfx, proc->flags, cper_proc_flag_strs,
-+				ARRAY_SIZE(cper_proc_flag_strs));
-+	}
-+	if (proc->validation_bits & CPER_PROC_VALID_LEVEL)
-+		printk("%s""level: %d\n", pfx, proc->level);
-+	if (proc->validation_bits & CPER_PROC_VALID_VERSION)
-+		printk("%s""version_info: 0x%016llx\n", pfx, proc->cpu_version);
-+	if (proc->validation_bits & CPER_PROC_VALID_ID)
-+		printk("%s""processor_id: 0x%016llx\n", pfx, proc->proc_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_TARGET_ADDRESS)
-+		printk("%s""target_address: 0x%016llx\n",
-+		       pfx, proc->target_addr);
-+	if (proc->validation_bits & CPER_PROC_VALID_REQUESTOR_ID)
-+		printk("%s""requestor_id: 0x%016llx\n",
-+		       pfx, proc->requestor_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_RESPONDER_ID)
-+		printk("%s""responder_id: 0x%016llx\n",
-+		       pfx, proc->responder_id);
-+	if (proc->validation_bits & CPER_PROC_VALID_IP)
-+		printk("%s""IP: 0x%016llx\n", pfx, proc->ip);
-+}
-+
-+static const char *cper_mem_err_type_strs[] = {
-+	"unknown",
-+	"no error",
-+	"single-bit ECC",
-+	"multi-bit ECC",
-+	"single-symbol chipkill ECC",
-+	"multi-symbol chipkill ECC",
-+	"master abort",
-+	"target abort",
-+	"parity error",
-+	"watchdog timeout",
-+	"invalid address",
-+	"mirror Broken",
-+	"memory sparing",
-+	"scrub corrected error",
-+	"scrub uncorrected error",
-+};
-+
-+static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-+{
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-+		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
-+		printk("%s""physical_address: 0x%016llx\n",
-+		       pfx, mem->physical_addr);
-+	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK)
-+		printk("%s""physical_address_mask: 0x%016llx\n",
-+		       pfx, mem->physical_addr_mask);
-+	if (mem->validation_bits & CPER_MEM_VALID_NODE)
-+		printk("%s""node: %d\n", pfx, mem->node);
-+	if (mem->validation_bits & CPER_MEM_VALID_CARD)
-+		printk("%s""card: %d\n", pfx, mem->card);
-+	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
-+		printk("%s""module: %d\n", pfx, mem->module);
-+	if (mem->validation_bits & CPER_MEM_VALID_BANK)
-+		printk("%s""bank: %d\n", pfx, mem->bank);
-+	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
-+		printk("%s""device: %d\n", pfx, mem->device);
-+	if (mem->validation_bits & CPER_MEM_VALID_ROW)
-+		printk("%s""row: %d\n", pfx, mem->row);
-+	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
-+		printk("%s""column: %d\n", pfx, mem->column);
-+	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
-+		printk("%s""bit_position: %d\n", pfx, mem->bit_pos);
-+	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
-+		printk("%s""requestor_id: 0x%016llx\n", pfx, mem->requestor_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
-+		printk("%s""responder_id: 0x%016llx\n", pfx, mem->responder_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
-+		printk("%s""target_id: 0x%016llx\n", pfx, mem->target_id);
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
-+		u8 etype = mem->error_type;
-+		printk("%s""error_type: %d, %s\n", pfx, etype,
-+		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
-+		       cper_mem_err_type_strs[etype] : "unknown");
-+	}
-+}
-+
-+static const char *cper_pcie_port_type_strs[] = {
-+	"PCIe end point",
-+	"legacy PCI end point",
-+	"unknown",
-+	"unknown",
-+	"root port",
-+	"upstream switch port",
-+	"downstream switch port",
-+	"PCIe to PCI/PCI-X bridge",
-+	"PCI/PCI-X to PCIe bridge",
-+	"root complex integrated endpoint device",
-+	"root complex event collector",
-+};
-+
-+static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie)
-+{
-+	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
-+		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
-+		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-+		       cper_pcie_port_type_strs[pcie->port_type] : "unknown");
-+	if (pcie->validation_bits & CPER_PCIE_VALID_VERSION)
-+		printk("%s""version: %d.%d\n", pfx,
-+		       pcie->version.major, pcie->version.minor);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_COMMAND_STATUS)
-+		printk("%s""command: 0x%04x, status: 0x%04x\n", pfx,
-+		       pcie->command, pcie->status);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_DEVICE_ID) {
-+		const __u8 *p;
-+		printk("%s""device_id: %04x:%02x:%02x.%x\n", pfx,
-+		       pcie->device_id.segment, pcie->device_id.bus,
-+		       pcie->device_id.device, pcie->device_id.function);
-+		printk("%s""slot: %d\n", pfx,
-+		       pcie->device_id.slot >> CPER_PCIE_SLOT_SHIFT);
-+		printk("%s""secondary_bus: 0x%02x\n", pfx,
-+		       pcie->device_id.secondary_bus);
-+		printk("%s""vendor_id: 0x%04x, device_id: 0x%04x\n", pfx,
-+		       pcie->device_id.vendor_id, pcie->device_id.device_id);
-+		p = pcie->device_id.class_code;
-+		printk("%s""class_code: %02x%02x%02x\n", pfx, p[0], p[1], p[2]);
-+	}
-+	if (pcie->validation_bits & CPER_PCIE_VALID_SERIAL_NUMBER)
-+		printk("%s""serial number: 0x%04x, 0x%04x\n", pfx,
-+		       pcie->serial_number.lower, pcie->serial_number.upper);
-+	if (pcie->validation_bits & CPER_PCIE_VALID_BRIDGE_CONTROL_STATUS)
++	if (__ratelimit(&ratelimit)) {
 +		printk(
-+	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
-+	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
-+}
-+
-+static const char *apei_estatus_section_flag_strs[] = {
-+	"primary",
-+	"containment warning",
-+	"reset",
-+	"threshold exceeded",
-+	"resource not accessible",
-+	"latent error",
-+};
-+
-+static void apei_estatus_print_section(
-+	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
-+{
-+	uuid_le *sec_type = (uuid_le *)gdata->section_type;
-+	__u16 severity;
-+
-+	severity = gdata->error_severity;
-+	printk("%s""section: %d, severity: %d, %s\n", pfx, sec_no, severity,
-+	       cper_severity_str(severity));
-+	printk("%s""flags: 0x%02x\n", pfx, gdata->flags);
-+	cper_print_bits(pfx, gdata->flags, apei_estatus_section_flag_strs,
-+			ARRAY_SIZE(apei_estatus_section_flag_strs));
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+		printk("%s""fru_id: %pUl\n", pfx, (uuid_le *)gdata->fru_id);
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+		printk("%s""fru_text: %.20s\n", pfx, gdata->fru_text);
-+
-+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_GENERIC)) {
-+		struct cper_sec_proc_generic *proc_err = (void *)(gdata + 1);
-+		printk("%s""section_type: general processor error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*proc_err))
-+			cper_print_proc_generic(pfx, proc_err);
-+		else
-+			goto err_section_too_small;
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-+		printk("%s""section_type: memory error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*mem_err))
-+			cper_print_mem(pfx, mem_err);
-+		else
-+			goto err_section_too_small;
-+	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
-+		struct cper_sec_pcie *pcie = (void *)(gdata + 1);
-+		printk("%s""section_type: PCIe error\n", pfx);
-+		if (gdata->error_data_length >= sizeof(*pcie))
-+			cper_print_pcie(pfx, pcie);
-+		else
-+			goto err_section_too_small;
-+	} else
-+		printk("%s""section type: unknown, %pUl\n", pfx, sec_type);
-+
-+	return;
-+
-+err_section_too_small:
-+	pr_err(FW_WARN "error section length is too small\n");
-+}
-+
-+void apei_estatus_print(const char *pfx,
-+			const struct acpi_hest_generic_status *estatus)
-+{
-+	struct acpi_hest_generic_data *gdata;
-+	unsigned int data_len, gedata_len;
-+	int sec_no = 0;
-+	__u16 severity;
-+
-+	printk("%s""APEI generic hardware error status\n", pfx);
-+	severity = estatus->error_severity;
-+	printk("%s""severity: %d, %s\n", pfx, severity,
-+	       cper_severity_str(severity));
-+	data_len = estatus->data_length;
-+	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-+	while (data_len > sizeof(*gdata)) {
-+		gedata_len = gdata->error_data_length;
-+		apei_estatus_print_section(pfx, gdata, sec_no);
-+		data_len -= gedata_len + sizeof(*gdata);
-+		sec_no++;
++	"%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
++	pfx, ghes->generic->header.source_id);
++		apei_estatus_print(pfx, ghes->estatus);
 +	}
-+}
-+EXPORT_SYMBOL_GPL(apei_estatus_print);
-+
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus)
- {
- 	if (estatus->data_length &&
+ }
+ 
+ static int ghes_proc(struct ghes *ghes)
+@@ -269,6 +285,7 @@ static int ghes_proc(struct ghes *ghes)
+ 	rc = ghes_read_estatus(ghes, 0);
+ 	if (rc)
+ 		goto out;
++	ghes_print_estatus(NULL, ghes);
+ 	ghes_do_proc(ghes);
+ 
+ out:
 -- 
 1.7.4.rc1.7.g2cf08
 
