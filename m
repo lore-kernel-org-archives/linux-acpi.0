@@ -1,13 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 41/48] Platform / x86: Make fujitsu_laptop use
- acpi_bus_update_power()
-Date: Wed, 12 Jan 2011 05:19:35 -0500
-Message-ID: <40b7397579e006c0f9cf4de58e9ccc350e06308f.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 44/48] ACPI / PM: Rename acpi_power_off_device()
+Date: Wed, 12 Jan 2011 05:19:38 -0500
+Message-ID: <36237fa0a711c309a38d7a7a9aed727e0eb76449.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:64394 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755146Ab1ALRAb (ORCPT
+	with ESMTP id S1754799Ab1ALRAb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 12:00:31 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173019.mailsrvcs.net
@@ -24,39 +23,47 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Use the new function acpi_bus_update_power(), which is safer than
-acpi_bus_get_power(), for getting device power state in
-acpi_fujitsu_add() and acpi_fujitsu_hotkey_add().
+Rename acpi_power_off_device() to acpi_power_off() in analogy with
+acpi_power_on().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/fujitsu-laptop.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/power.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index f44cd26..cf6c472 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -689,7 +689,7 @@ static int acpi_fujitsu_add(struct acpi_device *device)
- 	if (error)
- 		goto err_free_input_dev;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 0003f10..ac02af4 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -219,7 +219,7 @@ static int acpi_power_on(acpi_handle handle)
+ 	return result;
+ }
  
--	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
-+	result = acpi_bus_update_power(fujitsu->acpi_handle, &state);
- 	if (result) {
- 		printk(KERN_ERR "Error reading power state\n");
- 		goto err_unregister_input_dev;
-@@ -857,7 +857,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- 	if (error)
- 		goto err_free_input_dev;
+-static int acpi_power_off_device(acpi_handle handle)
++static int acpi_power_off(acpi_handle handle)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+@@ -268,7 +268,7 @@ static void __acpi_power_off_list(struct acpi_handle_list *list, int num_res)
+ 	int i;
  
--	result = acpi_bus_get_power(fujitsu_hotkey->acpi_handle, &state);
-+	result = acpi_bus_update_power(fujitsu_hotkey->acpi_handle, &state);
- 	if (result) {
- 		printk(KERN_ERR "Error reading power state\n");
- 		goto err_unregister_input_dev;
+ 	for (i = num_res - 1; i >= 0 ; i--)
+-		acpi_power_off_device(list->handles[i]);
++		acpi_power_off(list->handles[i]);
+ }
+ 
+ static void acpi_power_off_list(struct acpi_handle_list *list)
+@@ -430,8 +430,7 @@ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
+ 
+ 	/* Close power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		int ret = acpi_power_off_device(
+-				dev->wakeup.resources.handles[i]);
++		int ret = acpi_power_off(dev->wakeup.resources.handles[i]);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
 -- 
 1.7.4.rc1.7.g2cf08
 
