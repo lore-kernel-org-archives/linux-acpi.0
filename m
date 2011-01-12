@@ -1,55 +1,24 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] cpuidle: CPUIDLE_FLAG_CHECK_BM is omap3_idle specific
-Date: Wed, 12 Jan 2011 03:04:03 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101120303160.19140@x980>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de>
- <1294396190-23031-6-git-send-email-trenn@suse.de>
- <alpine.LFD.2.02.1101120159400.19140@x980>
- <alpine.LFD.2.02.1101120229060.19140@x980>
- <alpine.LFD.2.02.1101120235390.19140@x980>
- <alpine.LFD.2.02.1101120258550.19140@x980>
- <alpine.LFD.2.02.1101120301530.19140@x980>
+Subject: Re: [PATCH -v2] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
+ notification type support
+Date: Wed, 12 Jan 2011 03:06:41 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101120306310.19140@x980>
+References: <1294814695.4596.12.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-reply-to: <alpine.LFD.2.02.1101120301530.19140@x980>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-perf-users@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:49115 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932177Ab1ALIGq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 03:06:46 -0500
+In-reply-to: <1294814695.4596.12.camel@yhuang-dev>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Len Brown <len.brown@intel.com>
+applied to acpi test on top of apei branch
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    2 ++
- include/linux/cpuidle.h           |    1 -
- 2 files changed, 2 insertions(+), 1 deletions(-)
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0d50b45..f9be4e3 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -47,6 +47,8 @@
- 
- #define OMAP3_STATE_MAX OMAP3_STATE_C7
- 
-+#define CPUIDLE_FLAG_CHECK_BM	0x10000	/* use omap3_enter_idle_bm() */
-+
- struct omap3_processor_cx {
- 	u8 valid;
- 	u8 type;
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 6be722c..36719ea 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -47,7 +47,6 @@ struct cpuidle_state {
- 
- /* Idle State Flags */
- #define CPUIDLE_FLAG_TIME_VALID	(0x01) /* is residency time measurable? */
--#define CPUIDLE_FLAG_CHECK_BM	(0x02) /* BM activity will exit state */
- #define CPUIDLE_FLAG_IGNORE	(0x100) /* ignore during this idle period */
- 
- #define CPUIDLE_DRIVER_FLAGS_MASK (0xFFFF0000)
--- 
-1.7.4.rc1.7.g2cf08
