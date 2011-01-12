@@ -1,64 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] cpuidle: Make cpuidle_enable_device() call poll_idle_init()
-Date: Tue, 11 Jan 2011 21:52:19 +0100
-Message-ID: <201101112152.19642.rjw@sisk.pl>
-References: <201101080029.20744.rjw@sisk.pl> <201101110105.54166.rjw@sisk.pl> <201101111037.00543.trenn@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
+ notification type support
+Date: Tue, 11 Jan 2011 23:55:24 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101112341350.11311@x980>
+References: <1294362425.18956.7.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52947 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753995Ab1AKUxJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:53:09 -0500
-In-Reply-To: <201101111037.00543.trenn@suse.de>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:50318 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754077Ab1ALEzp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jan 2011 23:55:45 -0500
+In-reply-to: <1294362425.18956.7.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, January 11, 2011, Thomas Renninger wrote:
-> On Tuesday 11 January 2011 01:05:53 Rafael J. Wysocki wrote:
-> > On Tuesday, January 11, 2011, Rafael J. Wysocki wrote:
-> > > On Tuesday, January 11, 2011, Len Brown wrote:
-> > > > >  /**
-> > > > >   * cpuidle_enable_device - enables idle PM for a CPU
-> > > > >   * @dev: the CPU
-> > > > > @@ -176,6 +215,8 @@ int cpuidle_enable_device(struct cpuidle
-> > > > >  		ret = __cpuidle_register_device(dev);
-> > > > >  		if (ret)
-> > > > >  			return ret;
-> > > > > +	} else {
-> > > > > +		poll_idle_init(dev);
-> > > > >  	}
-> > > > 
-> > > > how about calling poll_idle_init() unconditionally here
-> > > > and deleting the call to it from within __cpuidle_register_device()?
-> > > 
-> > > Fine by me, as long as poll_idle_init() is called before the conditional. :-)
-> > 
-> > In fact, it even doesn't need to be called before the conditional.
-> > 
-> > So fine by me anyway.
-> What exactly was broken?
-> Is it only sysfs values?
+>        if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
+>-               pr_warning(FW_WARN GHES_PFX
+>-                          "Error status block length is too long: %u for "
+>-                          "generic hardware error source: %d.\n",
+>+               pr_warning(
+>+FW_WARN GHES_PFX "Error status block length is too long: %u for \n"
+>+"generic hardware error source: %d.\n",
+>                           error_block_length, generic->header.source_id);
+>                error_block_length = GHES_ESTATUS_MAX_SIZE;
 
-Not only that, the entire state[0] was busted.
+Hi Ying,
 
-> Looks like an uninitialized "poll" state can cause cpuidle
-> to not enter "poll" state when it should or enter "poll" when
-> it should not.
-> Hm, if cpuidle would try to call state[0]->enter,
-> it might even segfault?
+I assume that you are tweaking these pr_warning() lines
+to beautify the output, but as far as source
+code readability, I liked the previous syntax better.
 
-Yes, in theory.
+Although maintainer's opinions vary, I generally do not
+strictly enforce the 80 column rule for printk strings.
+Ie. I think that code readability with good whitespace
+indentation plus printk string grep-ability are more
+important than strictly fitting within 80-columns.
 
-> Even not that many machines might be affected because most won't
-> implement runtime C-state changes, shouldn't this still be
-> submitted for stable@ kernels?
-
-I think it should.
-
-Thanks,
-Rafael
+thanks,
+Len Brown, Intel Open Source Technology Center
