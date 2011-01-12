@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 22/48] ACPI / PM: Drop special ACPI wakeup flags
-Date: Wed, 12 Jan 2011 05:19:16 -0500
-Message-ID: <7fa69baf29de8c77a6b32c054df2abb8f11f8aa4.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 48/48] ACPI / Battery: Update information on info notification
+ and resume
+Date: Wed, 12 Jan 2011 05:19:42 -0500
+Message-ID: <da8aeb92d4853f37e281f11fddf61f9c7d84c3cd.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:64394 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755330Ab1ALRAi (ORCPT
+	with ESMTP id S1752214Ab1ALRAi (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 12:00:38 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LEX001MR5WB77F2@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 11:00:32 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 11:00:35 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
@@ -23,60 +24,61 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Drop special ACPI wakeup flags, wakeup.state.enabled and
-wakeup.flags.always_enabled, that aren't necessary any more after
-we've started to use standard device wakeup flags for handling ACPI
-wakeup devices.
+A notification event 0x81 from an ACPI battery device requires us to
+re-read the battery information structure.  Follow this requirement
+and remove and re-create the battery's attibutes in sysfs so that
+they reflect the reporting units used by the battery at the moment
+(those units may actually change sometimes at run time, which happens
+on some Thinkpads).
+
+The approach used in this patch was suggested by Matthew Garrett.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/glue.c     |    5 +----
- include/acpi/acpi_bus.h |    6 ------
- 2 files changed, 1 insertions(+), 10 deletions(-)
+ drivers/acpi/battery.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 78b0164..7c47ed5 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -167,11 +167,8 @@ static int acpi_bind_one(struct device *dev, acpi_handle handle)
- 				"firmware_node");
- 		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
- 				"physical_node");
--		if (acpi_dev->wakeup.flags.valid) {
-+		if (acpi_dev->wakeup.flags.valid)
- 			device_set_wakeup_capable(dev, true);
--			device_set_wakeup_enable(dev,
--						acpi_dev->wakeup.state.enabled);
--		}
- 	}
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 2a31421..68bc227 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -631,6 +631,17 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	return result;
+ }
  
++static void acpi_battery_refresh(struct acpi_battery *battery)
++{
++	if (!battery->bat.dev)
++		return;
++
++	acpi_battery_get_info(battery);
++	/* The battery may have changed its reporting units. */
++	sysfs_remove_battery(battery);
++	sysfs_add_battery(battery);
++}
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -916,6 +927,8 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ 	if (!battery)
+ 		return;
+ 	old = battery->bat.dev;
++	if (event == ACPI_BATTERY_NOTIFY_INFO)
++		acpi_battery_refresh(battery);
+ 	acpi_battery_update(battery);
+ 	acpi_bus_generate_proc_event(device, event,
+ 				     acpi_battery_present(battery));
+@@ -985,6 +998,7 @@ static int acpi_battery_resume(struct acpi_device *device)
+ 	if (!device)
+ 		return -EINVAL;
+ 	battery = acpi_driver_data(device);
++	acpi_battery_refresh(battery);
+ 	battery->update_time = 0;
+ 	acpi_battery_update(battery);
  	return 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 359ef11..f2499f5 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -242,20 +242,14 @@ struct acpi_device_perf {
- struct acpi_device_wakeup_flags {
- 	u8 valid:1;		/* Can successfully enable wakeup? */
- 	u8 run_wake:1;		/* Run-Wake GPE devices */
--	u8 always_enabled:1;	/* Run-wake devices that are always enabled */
- 	u8 notifier_present:1;  /* Wake-up notify handler has been installed */
- };
- 
--struct acpi_device_wakeup_state {
--	u8 enabled:1;
--};
--
- struct acpi_device_wakeup {
- 	acpi_handle gpe_device;
- 	u64 gpe_number;
- 	u64 sleep_state;
- 	struct acpi_handle_list resources;
--	struct acpi_device_wakeup_state state;
- 	struct acpi_device_wakeup_flags flags;
- 	int prepare_count;
- 	int run_wake_count;
 -- 
 1.7.4.rc1.7.g2cf08
 
