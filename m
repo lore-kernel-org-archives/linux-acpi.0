@@ -1,19 +1,22 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 21/48] ACPI / PM: Use device wakeup flags for handling ACPI
- wakeup devices
-Date: Wed, 12 Jan 2011 05:19:15 -0500
-Message-ID: <f2b56bc808addb908a5bf435d9b942c02af9a7c4.1294827492.git.len.brown@intel.com>
+Subject: [PATCH 27/48] PNP / ACPI: Use DEVICE_ACPI_HANDLE() for device ACPI
+ handle access
+Date: Wed, 12 Jan 2011 05:19:21 -0500
+Message-ID: <cc8e7a355c1ec64b06a5b8126c47c5cb47f44fce.1294827492.git.len.brown@intel.com>
 References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:49319 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:49351 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755558Ab1ALSAc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:32 -0500
+	with ESMTP id S1755558Ab1ALSAe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 13:00:34 -0500
 Received: from localhost.localdomain ([unknown] [108.7.58.61])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LEX007SA8OAUAI1@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:32 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 12 Jan 2011 12:00:33 -0600 (CST)
 In-reply-to: <1294827582-4620-1-git-send-email-lenb@kernel.org>
 In-reply-to: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
 References: <803711afdbea5c6a6dd2b46eca76097f6d50fb53.1294827492.git.len.brown@intel.com>
@@ -22,164 +25,217 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-There are ACPI devices (buttons and the laptop lid) that can wake up
-the system from sleep states and have no "physical" companion
-devices.  The ACPI subsystem uses two flags, wakeup.state.enabled and
-wakeup.flags.always_enabled, for handling those devices, but they
-are not accessible through the standard device wakeup infrastructure.
-User space can only control them via the /proc/acpi/wakeup interface
-that is not really convenient (e.g. the way in which devices are
-enabled to wake up the system is not portable between different
-systems, because it requires one to know the devices' "names" used in
-the system's ACPI tables).
+The PNP ACPI driver squirrels the ACPI handles of PNP devices' ACPI
+companions, but this isn't correct, because those handles should be
+accessed using the DEVICE_ACPI_HANDLE() macro operating on struct
+device objects.
 
-To address this problem, use standard device wakeup flags instead of
-the special ACPI flags for handling those devices.  In particular,
-use device_set_wakeup_capable() to mark the ACPI wakeup devices
-during initialization and use device_set_wakeup_enable() to allow
-or disallow them to wake up the system from sleep states.  Rework
-the /proc/acpi/wakeup interface to take these changes into account.
+Using DEVICE_ACPI_HANDLE() in the PNP ACPI driver instead of the
+driver's own copies of the ACPI handles allows us to avoid a problem
+with docking stations where a machine docked before suspend to RAM
+and undocked while suspended crashes during the subsequent resume (in
+that case the ACPI companion of the PNP device in question doesn't
+exist any more while the device is being resumed).  It also allows us
+to avoid the problem where suspend to RAM fails when the machine was
+undocked while suspended before (again, the ACPI companion of the PNP
+device is not present any more while it is being suspended).
 
+This change doesn't fix all of the the PNP ACPI driver's problems
+with PNP devices in docking stations (generally speaking, the driver
+has no idea that devices can come and go and doesn't even attempt to
+handle such events), but at least it makes suspend work for the
+users of docking stations who don't use the PNP devices located in
+there.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=3D15100
+
+Reported-and-tested-by: Toralf F=C3=B6rster <toralf.foerster@gmx.de>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/button.c |    4 ++--
- drivers/acpi/proc.c   |   19 +++++++++++++------
- drivers/acpi/scan.c   |    2 +-
- drivers/acpi/wakeup.c |   18 ++++++++++--------
- 4 files changed, 26 insertions(+), 17 deletions(-)
+ drivers/pnp/driver.c       |    7 ++-
+ drivers/pnp/pnpacpi/core.c |   93 +++++++++++++++++++++++++++++++-----=
+-------
+ 2 files changed, 72 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 71ef9cd..234c104 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -426,7 +426,7 @@ static int acpi_button_add(struct acpi_device *device)
- 		acpi_enable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
- 		device->wakeup.run_wake_count++;
--		device->wakeup.state.enabled = 1;
-+		device_set_wakeup_enable(&device->dev, true);
- 	}
- 
- 	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
-@@ -449,7 +449,7 @@ static int acpi_button_remove(struct acpi_device *device, int type)
- 		acpi_disable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
- 		device->wakeup.run_wake_count--;
--		device->wakeup.state.enabled = 0;
-+		device_set_wakeup_enable(&device->dev, false);
- 	}
- 
- 	acpi_button_remove_fs(device);
-diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
-index 129effb..f5f9869 100644
---- a/drivers/acpi/proc.c
-+++ b/drivers/acpi/proc.c
-@@ -311,7 +311,9 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
- 			   dev->pnp.bus_id,
- 			   (u32) dev->wakeup.sleep_state,
- 			   dev->wakeup.flags.run_wake ? '*' : ' ',
--			   dev->wakeup.state.enabled ? "enabled" : "disabled");
-+			   (device_may_wakeup(&dev->dev)
-+			     || (ldev && device_may_wakeup(ldev))) ?
-+			       "enabled" : "disabled");
- 		if (ldev)
- 			seq_printf(seq, "%s:%s",
- 				   ldev->bus ? ldev->bus->name : "no-bus",
-@@ -328,8 +330,10 @@ static void physical_device_enable_wakeup(struct acpi_device *adev)
- {
- 	struct device *dev = acpi_get_physical_device(adev->handle);
- 
--	if (dev && device_can_wakeup(dev))
--		device_set_wakeup_enable(dev, adev->wakeup.state.enabled);
-+	if (dev && device_can_wakeup(dev)) {
-+		bool enable = !device_may_wakeup(dev);
-+		device_set_wakeup_enable(dev, enable);
+diff --git a/drivers/pnp/driver.c b/drivers/pnp/driver.c
+index d1dbb9d..00e9403 100644
+--- a/drivers/pnp/driver.c
++++ b/drivers/pnp/driver.c
+@@ -189,8 +189,11 @@ static int pnp_bus_resume(struct device *dev)
+ 	if (!pnp_drv)
+ 		return 0;
+=20
+-	if (pnp_dev->protocol->resume)
+-		pnp_dev->protocol->resume(pnp_dev);
++	if (pnp_dev->protocol->resume) {
++		error =3D pnp_dev->protocol->resume(pnp_dev);
++		if (error)
++			return error;
 +	}
+=20
+ 	if (pnp_can_write(pnp_dev)) {
+ 		error =3D pnp_start_dev(pnp_dev);
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 57313f4..ca84d50 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -81,12 +81,19 @@ static int pnpacpi_get_resources(struct pnp_dev *de=
+v)
+=20
+ static int pnpacpi_set_resources(struct pnp_dev *dev)
+ {
+-	struct acpi_device *acpi_dev =3D dev->data;
+-	acpi_handle handle =3D acpi_dev->handle;
++	struct acpi_device *acpi_dev;
++	acpi_handle handle;
+ 	struct acpi_buffer buffer;
+ 	int ret;
+=20
+ 	pnp_dbg(&dev->dev, "set resources\n");
++
++	handle =3D DEVICE_ACPI_HANDLE(&dev->dev);
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) =
+{
++		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
++		return -ENODEV;
++	}
++
+ 	ret =3D pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+@@ -105,12 +112,18 @@ static int pnpacpi_set_resources(struct pnp_dev *=
+dev)
+=20
+ static int pnpacpi_disable_resources(struct pnp_dev *dev)
+ {
+-	struct acpi_device *acpi_dev =3D dev->data;
+-	acpi_handle handle =3D acpi_dev->handle;
++	struct acpi_device *acpi_dev;
++	acpi_handle handle;
+ 	int ret;
+=20
+ 	dev_dbg(&dev->dev, "disable resources\n");
+=20
++	handle =3D DEVICE_ACPI_HANDLE(&dev->dev);
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) =
+{
++		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
++		return 0;
++	}
++
+ 	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+ 	ret =3D 0;
+ 	if (acpi_bus_power_manageable(handle))
+@@ -124,46 +137,74 @@ static int pnpacpi_disable_resources(struct pnp_d=
+ev *dev)
+ #ifdef CONFIG_ACPI_SLEEP
+ static bool pnpacpi_can_wakeup(struct pnp_dev *dev)
+ {
+-	struct acpi_device *acpi_dev =3D dev->data;
+-	acpi_handle handle =3D acpi_dev->handle;
++	struct acpi_device *acpi_dev;
++	acpi_handle handle;
++
++	handle =3D DEVICE_ACPI_HANDLE(&dev->dev);
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) =
+{
++		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
++		return false;
++	}
+=20
+ 	return acpi_bus_can_wakeup(handle);
  }
- 
- static ssize_t
-@@ -360,9 +364,12 @@ acpi_system_write_wakeup_device(struct file *file,
- 			continue;
- 
- 		if (!strncmp(dev->pnp.bus_id, str, 4)) {
--			dev->wakeup.state.enabled =
--			    dev->wakeup.state.enabled ? 0 : 1;
--			physical_device_enable_wakeup(dev);
-+			if (device_can_wakeup(&dev->dev)) {
-+				bool enable = !device_may_wakeup(&dev->dev);
-+				device_set_wakeup_enable(&dev->dev, enable);
-+			} else {
-+				physical_device_enable_wakeup(dev);
-+			}
- 			break;
- 		}
+=20
+ static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
+ {
+-	struct acpi_device *acpi_dev =3D dev->data;
+-	acpi_handle handle =3D acpi_dev->handle;
+-	int power_state;
++	struct acpi_device *acpi_dev;
++	acpi_handle handle;
++	int error =3D 0;
++
++	handle =3D DEVICE_ACPI_HANDLE(&dev->dev);
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) =
+{
++		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
++		return 0;
++	}
+=20
+ 	if (device_can_wakeup(&dev->dev)) {
+-		int rc =3D acpi_pm_device_sleep_wake(&dev->dev,
++		error =3D acpi_pm_device_sleep_wake(&dev->dev,
+ 				device_may_wakeup(&dev->dev));
++		if (error)
++			return error;
++	}
++
++	if (acpi_bus_power_manageable(handle)) {
++		int power_state =3D acpi_pm_device_sleep_state(&dev->dev, NULL);
++
++		if (power_state < 0)
++			power_state =3D (state.event =3D=3D PM_EVENT_ON) ?
++					ACPI_STATE_D0 : ACPI_STATE_D3;
+=20
+-		if (rc)
+-			return rc;
++		/*
++		 * acpi_bus_set_power() often fails (keyboard port can't be
++		 * powered-down?), and in any case, our return value is ignored
++		 * by pnp_bus_suspend().  Hence we don't revert the wakeup
++		 * setting if the set_power fails.
++		 */
++		error =3D acpi_bus_set_power(handle, power_state);
  	}
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 29ef505..bf7acbf 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -803,7 +803,7 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
- 	/* Power button, Lid switch always enable wakeup */
- 	if (!acpi_match_device_ids(device, button_device_ids)) {
- 		device->wakeup.flags.run_wake = 1;
--		device->wakeup.flags.always_enabled = 1;
-+		device_set_wakeup_capable(&device->dev, true);
- 		return;
- 	}
- 
-diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-index f62a50c..f252d0d 100644
---- a/drivers/acpi/wakeup.c
-+++ b/drivers/acpi/wakeup.c
-@@ -37,11 +37,12 @@ void acpi_enable_wakeup_devices(u8 sleep_state)
- 			container_of(node, struct acpi_device, wakeup_list);
- 
- 		if (!dev->wakeup.flags.valid
--		    || !(dev->wakeup.state.enabled || dev->wakeup.prepare_count)
--		    || sleep_state > (u32) dev->wakeup.sleep_state)
-+		    || sleep_state > (u32) dev->wakeup.sleep_state
-+		    || !(device_may_wakeup(&dev->dev)
-+		        || dev->wakeup.prepare_count))
- 			continue;
- 
--		if (dev->wakeup.state.enabled)
-+		if (device_may_wakeup(&dev->dev))
- 			acpi_enable_wakeup_device_power(dev, sleep_state);
- 
- 		/* The wake-up power should have been enabled already. */
-@@ -63,14 +64,15 @@ void acpi_disable_wakeup_devices(u8 sleep_state)
- 			container_of(node, struct acpi_device, wakeup_list);
- 
- 		if (!dev->wakeup.flags.valid
--		    || !(dev->wakeup.state.enabled || dev->wakeup.prepare_count)
--		    || (sleep_state > (u32) dev->wakeup.sleep_state))
-+		    || sleep_state > (u32) dev->wakeup.sleep_state
-+		    || !(device_may_wakeup(&dev->dev)
-+		        || dev->wakeup.prepare_count))
- 			continue;
- 
- 		acpi_gpe_wakeup(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
- 				ACPI_GPE_DISABLE);
- 
--		if (dev->wakeup.state.enabled)
-+		if (device_may_wakeup(&dev->dev))
- 			acpi_disable_wakeup_device_power(dev);
- 	}
+-	power_state =3D acpi_pm_device_sleep_state(&dev->dev, NULL);
+-	if (power_state < 0)
+-		power_state =3D (state.event =3D=3D PM_EVENT_ON) ?
+-				ACPI_STATE_D0 : ACPI_STATE_D3;
+-
+-	/* acpi_bus_set_power() often fails (keyboard port can't be
+-	 * powered-down?), and in any case, our return value is ignored
+-	 * by pnp_bus_suspend().  Hence we don't revert the wakeup
+-	 * setting if the set_power fails.
+-	 */
+-	return acpi_bus_set_power(handle, power_state);
++
++	return error;
  }
-@@ -84,8 +86,8 @@ int __init acpi_wakeup_device_init(void)
- 		struct acpi_device *dev = container_of(node,
- 						       struct acpi_device,
- 						       wakeup_list);
--		if (dev->wakeup.flags.always_enabled)
--			dev->wakeup.state.enabled = 1;
-+		if (device_can_wakeup(&dev->dev))
-+			device_set_wakeup_enable(&dev->dev, true);
- 	}
- 	mutex_unlock(&acpi_device_lock);
- 	return 0;
--- 
+=20
+ static int pnpacpi_resume(struct pnp_dev *dev)
+ {
+-	struct acpi_device *acpi_dev =3D dev->data;
+-	acpi_handle handle =3D acpi_dev->handle;
++	struct acpi_device *acpi_dev;
++	acpi_handle handle =3D DEVICE_ACPI_HANDLE(&dev->dev);
++	int error =3D 0;
++
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) =
+{
++		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
++		return -ENODEV;
++	}
+=20
+ 	if (device_may_wakeup(&dev->dev))
+ 		acpi_pm_device_sleep_wake(&dev->dev, false);
+-	return acpi_bus_set_power(handle, ACPI_STATE_D0);
++
++	if (acpi_bus_power_manageable(handle))
++		error =3D acpi_bus_set_power(handle, ACPI_STATE_D0);
++
++	return error;
+ }
+ #endif
+=20
+--=20
 1.7.4.rc1.7.g2cf08
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
