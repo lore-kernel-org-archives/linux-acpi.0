@@ -1,50 +1,41 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI
- notification type support
-Date: Wed, 12 Jan 2011 13:00:26 +0800
-Message-ID: <1294808427.4596.7.camel@yhuang-dev>
-References: <1294362425.18956.7.camel@yhuang-dev>
-	 <alpine.LFD.2.02.1101112341350.11311@x980>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH -next] thermal: depends on NET
+Date: Wed, 12 Jan 2011 00:18:39 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101120008590.19140@x980>
+References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>
+ <20101213112033.d0060e6c.randy.dunlap@oracle.com>
+ <20110110090059.6f4d739d.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:60537 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751006Ab1ALFAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jan 2011 00:00:30 -0500
-In-Reply-To: <alpine.LFD.2.02.1101112341350.11311@x980>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:44681 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780Ab1ALFSr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 00:18:47 -0500
+In-reply-to: <20110110090059.6f4d739d.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: linux-acpi@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, akpm <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>
 
-On Wed, 2011-01-12 at 12:55 +0800, Len Brown wrote:
-> >        if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
-> >-               pr_warning(FW_WARN GHES_PFX
-> >-                          "Error status block length is too long: %u for "
-> >-                          "generic hardware error source: %d.\n",
-> >+               pr_warning(
-> >+FW_WARN GHES_PFX "Error status block length is too long: %u for \n"
-> >+"generic hardware error source: %d.\n",
-> >                           error_block_length, generic->header.source_id);
-> >                error_block_length = GHES_ESTATUS_MAX_SIZE;
-> 
-> Hi Ying,
-> 
-> I assume that you are tweaking these pr_warning() lines
-> to beautify the output, but as far as source
-> code readability, I liked the previous syntax better.
-> 
-> Although maintainer's opinions vary, I generally do not
-> strictly enforce the 80 column rule for printk strings.
-> Ie. I think that code readability with good whitespace
-> indentation plus printk string grep-ability are more
-> important than strictly fitting within 80-columns.
+> > --- linux-next-20101213.orig/drivers/thermal/Kconfig
+> > +++ linux-next-20101213/drivers/thermal/Kconfig
+> > @@ -4,6 +4,7 @@
+> >  
+> >  menuconfig THERMAL
+> >  	tristate "Generic Thermal sysfs driver"
+> > +	depends on NET
 
-OK. I will keep the previous format.
+I've added this line to the offending patch.
 
-Best Regards,
-Huang Ying
+While I agree that randconfig build testing
+is theoretically useful, in recent memory
+its results do not seem particularly relevant
+to useful configs.
 
+Perhaps it would be a good idea to spend some time
+making non-useful configs impossible, and thus focus
+the testing where it will be of more benefit?
 
+thanks,
+Len Brown, Intel Open Source Technology Center
