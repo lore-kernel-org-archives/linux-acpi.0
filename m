@@ -1,49 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 28/48] thermal: Add event notification to thermal framework
-Date: Thu, 13 Jan 2011 14:41:52 +0100
-Message-ID: <201101131441.52603.trenn@suse.de>
-References: <1294827582-4620-1-git-send-email-lenb@kernel.org> <201101131247.21031.trenn@suse.de> <D6D887BA8C9DFF48B5233887EF04654109447419AB@bgsmsx502.gar.corp.intel.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
+Date: Thu, 13 Jan 2011 10:42:29 -0500
+Message-ID: <13258.1294933349@localhost>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-5-git-send-email-trenn@suse.de> <alpine.LFD.2.02.1101120150570.19140@x980> <201101121437.51122.trenn@suse.de>
+            <alpine.LFD.2.02.1101121705130.19754@x980>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: multipart/signed; boundary="==_Exmh_1294933349_5688P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:57509 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756811Ab1AMNlz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jan 2011 08:41:55 -0500
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654109447419AB@bgsmsx502.gar.corp.intel.com>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:59034 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756090Ab1AMPqU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jan 2011 10:46:20 -0500
+In-Reply-To: Your message of "Wed, 12 Jan 2011 17:25:12 EST."
+             <alpine.LFD.2.02.1101121705130.19754@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thursday 13 January 2011 13:36:19 R, Durgadoss wrote:
-> > > I wonder why this one got exported at all.
-> > > > It's only used in thermal_sys.c for now?
-> > > > I hope I didn't oversee a follow up patch in another
-> > > > driver which already makes use of it.
-> > > >
-> > >
-> > > There is a patch to add threshold support to hwmon/coretemp.c
-> > > that uses this events. This patch is getting reviewed upstream.
-> > I wonder what the best way is to sync it with my updates
-> > if Len accepts them.
-> > Is the coretemp patch from you as well?
-> > It is queued for another tree I expect?
-> > Do you mind to repost it with a hint that it has to get synced
-> > with this one?
-> > 
+--==_Exmh_1294933349_5688P
+Content-Type: text/plain; charset=us-ascii
+
+On Wed, 12 Jan 2011 17:25:12 EST, Len Brown said:
+
+> > But by sysfs convention a separate file must be used
+> > if two data are passed to userspace which is the case here.
 > 
-> The corresponding coretemp patch is from me only.
-> Anyway, I have to submit the coretemp again(due to some fixes..)
-> to the lm-sensors lists. This time when I submit it, I will
-> mention that it has to be synced with this latest patch.
+> what two data?
+> 
+> It is fine for a string to include space characters.
 
-Or Len ignores my patch (the seconde, renaming one) and you pick
-it up, extend it with the coretemp func and resubmit it
-after everything got merged to Linus.
-This should ensure no compile errors show up in linux-next or 
-wherever...
+I think Thomas is concerned that although when you actually read a /sys
+file, you know it's one string, that fact can get easily lost and cause issues
+down the road. Consider this code:
 
-   Thomas
+foo=`cat /sys/some/file`
+bar=`cat /sys/other/file`
+baz=`cat /sys/third/file`
+echo $foo $bar $baz | awk '{print $2 $3}'
+
+Suddenly your output isn't what you expected...
+
+--==_Exmh_1294933349_5688P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFNLx1lcC3lWbTT17ARAh+5AKDO3njvfdeLwHRolBhga5tdWk17GQCfQjna
+5NRZO5tAIu4zmvbxJ2zLUe4=
+=B2BS
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1294933349_5688P--
+
