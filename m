@@ -1,52 +1,307 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: on builds/randconfigs (was: [PATCH -next] thermal: depends on NET)
-Date: Wed, 12 Jan 2011 20:08:42 -0800
-Message-ID: <AANLkTikJjg330KDvOZZ4agg2dZV6np-rW06=PEuZRSPa@mail.gmail.com>
-References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au> <alpine.LFD.2.02.1101121257580.18873@x980>
- <20110112131800.d64c1a86.akpm@linux-foundation.org> <201101122224.54330.rjw@sisk.pl>
- <alpine.LFD.2.02.1101121654000.19754@x980> <20110113114446.cba7a01f.sfr@canb.auug.org.au>
- <1294890340.26623.383.camel@gandalf.stny.rr.com> <20110113144803.ab311f36.sfr@canb.auug.org.au>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 28/48] thermal: Add event notification to thermal framework
+Date: Thu, 13 Jan 2011 12:07:00 +0100
+Message-ID: <201101131207.01290.trenn@suse.de>
+References: <1294827582-4620-1-git-send-email-lenb@kernel.org> <4cb18728709683c91a5f6f8d5f337bfb498b089a.1294827492.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20110113144803.ab311f36.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>, Michal Marek <mmarek@suse.cz>
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:40997 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932930Ab1AMLHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jan 2011 06:07:03 -0500
+In-Reply-To: <4cb18728709683c91a5f6f8d5f337bfb498b089a.1294827492.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "R.Durgadoss" <durgadoss.r@intel.com>
 
-On Wed, Jan 12, 2011 at 7:48 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> Hi Steve,
->
-> On Wed, 12 Jan 2011 22:45:40 -0500 Steven Rostedt <rostedt@goodmis.org> wrote:
->>
->> What happens if you have foo depends on bar || fib ?
->>
->> Do you automatically enable bar and fib?
->
-> The plan was to error out and let the user decide ... or behave as we do
-> and just warn?
+On Wednesday 12 January 2011 11:19:22 Len Brown wrote:
 
-One thing to notice is that a lot of the "a || b" conditionals tend to
-be cases where one of the expressions is a known constant 'y'.
+>  menuconfig THERMAL
+>  	tristate "Generic Thermal sysfs driver"
+> +	depends on NET
+A dependency from the thermal driver to CONFIG_NET should
+be avoided if possible.
 
-In other words, the most common case of "a || b" tends to be things
-like "X86 || MIPS || POWER.." or possibly "PCI || ISA", where one of
-the options will have been hard-coded by the initial architecture
-config file - and would generally not be something that the user sets
-at all.
+Please consider to apply below patch on top.
+Also the code is a bit nicer arranged with this one and all netlink
+specific stuff is at one place.
 
-Now that may not be _universally_ true, but a quick grep certainly
-supports the notion that that is a very common case.
+Based on latest acpi test branch, drivers/thermal compile tested
+with and without CONFIG_NET.
 
-So I think we want the rule to be:
+     Thomas
 
- - check all entries in the "||" chain - and if one of them is already
-set to 'y', then just ignore the dependency as trivially fulfilled
+---
+thermal: Avoid CONFIG_NET compile dependency
 
- - if all are 'n' or unknown, error out (or warn)
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: R.Durgadoss <durgadoss.r@intel.com>
+CC: Len Brown <len.brown@intel.com>
 
-and I think there won't be all that many cases where people get the
-error in practice.
+---
+ drivers/thermal/Kconfig       |    1 -
+ drivers/thermal/thermal_sys.c |  177 ++++++++++++++++++++++-------------------
+ include/linux/thermal.h       |    5 +-
+ 3 files changed, 98 insertions(+), 85 deletions(-)
 
-                      Linus
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index f7a5dba..bf7c687 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -4,7 +4,6 @@
+ 
+ menuconfig THERMAL
+ 	tristate "Generic Thermal sysfs driver"
+-	depends on NET
+ 	help
+ 	  Generic Thermal Sysfs driver offers a generic mechanism for
+ 	  thermal management. Usually it's made up of one or more thermal
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 7d0e63c..5bbacff 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -32,8 +32,6 @@
+ #include <linux/thermal.h>
+ #include <linux/spinlock.h>
+ #include <linux/reboot.h>
+-#include <net/netlink.h>
+-#include <net/genetlink.h>
+ 
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+@@ -60,6 +58,10 @@ static LIST_HEAD(thermal_tz_list);
+ static LIST_HEAD(thermal_cdev_list);
+ static DEFINE_MUTEX(thermal_list_lock);
+ 
++#ifdef CONFIG_NET /* needed for netlink messages */
++#include <net/netlink.h>
++#include <net/genetlink.h>
++
+ static unsigned int thermal_event_seqnum;
+ 
+ static struct genl_family thermal_event_genl_family = {
+@@ -76,6 +78,96 @@ static struct genl_multicast_group thermal_event_mcgrp = {
+ static int genetlink_init(void);
+ static void genetlink_exit(void);
+ 
++int generate_netlink_event(u32 orig, enum events event)
++{
++	struct sk_buff *skb;
++	struct nlattr *attr;
++	struct thermal_genl_event *thermal_event;
++	void *msg_header;
++	int size;
++	int result;
++
++	/* allocate memory */
++	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
++				nla_total_size(0);
++
++	skb = genlmsg_new(size, GFP_ATOMIC);
++	if (!skb)
++		return -ENOMEM;
++
++	/* add the genetlink message header */
++	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
++				 &thermal_event_genl_family, 0,
++				 THERMAL_GENL_CMD_EVENT);
++	if (!msg_header) {
++		nlmsg_free(skb);
++		return -ENOMEM;
++	}
++
++	/* fill the data */
++	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
++			sizeof(struct thermal_genl_event));
++
++	if (!attr) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	thermal_event = nla_data(attr);
++	if (!thermal_event) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
++
++	thermal_event->orig = orig;
++	thermal_event->event = event;
++
++	/* send multicast genetlink message */
++	result = genlmsg_end(skb, msg_header);
++	if (result < 0) {
++		nlmsg_free(skb);
++		return result;
++	}
++
++	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
++	if (result)
++		printk(KERN_INFO "failed to send netlink event:%d", result);
++
++	return result;
++}
++EXPORT_SYMBOL(generate_netlink_event);
++
++static int genetlink_init(void)
++{
++	int result;
++
++	result = genl_register_family(&thermal_event_genl_family);
++	if (result)
++		return result;
++
++	result = genl_register_mc_group(&thermal_event_genl_family,
++					&thermal_event_mcgrp);
++	if (result)
++		genl_unregister_family(&thermal_event_genl_family);
++	return result;
++}
++
++static void genetlink_exit(void)
++{
++	genl_unregister_family(&thermal_event_genl_family);
++}
++
++#else
++
++static void genetlink_exit(void) {};
++static int genetlink_init(void) { return 0; }
++int generate_netlink_event(u32 orig, enum events event) { return 0; }
++EXPORT_SYMBOL(generate_netlink_event);
++
++#endif /* CONFIG_NET */
++
+ static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+ {
+ 	int err;
+@@ -1225,82 +1317,6 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+ 
+ EXPORT_SYMBOL(thermal_zone_device_unregister);
+ 
+-int generate_netlink_event(u32 orig, enum events event)
+-{
+-	struct sk_buff *skb;
+-	struct nlattr *attr;
+-	struct thermal_genl_event *thermal_event;
+-	void *msg_header;
+-	int size;
+-	int result;
+-
+-	/* allocate memory */
+-	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
+-				nla_total_size(0);
+-
+-	skb = genlmsg_new(size, GFP_ATOMIC);
+-	if (!skb)
+-		return -ENOMEM;
+-
+-	/* add the genetlink message header */
+-	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
+-				 &thermal_event_genl_family, 0,
+-				 THERMAL_GENL_CMD_EVENT);
+-	if (!msg_header) {
+-		nlmsg_free(skb);
+-		return -ENOMEM;
+-	}
+-
+-	/* fill the data */
+-	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
+-			sizeof(struct thermal_genl_event));
+-
+-	if (!attr) {
+-		nlmsg_free(skb);
+-		return -EINVAL;
+-	}
+-
+-	thermal_event = nla_data(attr);
+-	if (!thermal_event) {
+-		nlmsg_free(skb);
+-		return -EINVAL;
+-	}
+-
+-	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
+-
+-	thermal_event->orig = orig;
+-	thermal_event->event = event;
+-
+-	/* send multicast genetlink message */
+-	result = genlmsg_end(skb, msg_header);
+-	if (result < 0) {
+-		nlmsg_free(skb);
+-		return result;
+-	}
+-
+-	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
+-	if (result)
+-		printk(KERN_INFO "failed to send netlink event:%d", result);
+-
+-	return result;
+-}
+-EXPORT_SYMBOL(generate_netlink_event);
+-
+-static int genetlink_init(void)
+-{
+-	int result;
+-
+-	result = genl_register_family(&thermal_event_genl_family);
+-	if (result)
+-		return result;
+-
+-	result = genl_register_mc_group(&thermal_event_genl_family,
+-					&thermal_event_mcgrp);
+-	if (result)
+-		genl_unregister_family(&thermal_event_genl_family);
+-	return result;
+-}
+-
+ static int __init thermal_init(void)
+ {
+ 	int result = 0;
+@@ -1316,11 +1332,6 @@ static int __init thermal_init(void)
+ 	return result;
+ }
+ 
+-static void genetlink_exit(void)
+-{
+-	genl_unregister_family(&thermal_event_genl_family);
+-}
+-
+ static void __exit thermal_exit(void)
+ {
+ 	class_unregister(&thermal_class);
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 8651556..1c31614 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -127,6 +127,8 @@ struct thermal_zone_device {
+ 	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
+ #endif
+ };
++
++#ifdef CONFIG_NET
+ /* Adding event notification support elements */
+ #define THERMAL_GENL_FAMILY_NAME                "thermal_event"
+ #define THERMAL_GENL_VERSION                    0x01
+@@ -158,6 +160,8 @@ enum {
+ 	__THERMAL_GENL_CMD_MAX,
+ };
+ #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
++#endif
++extern int generate_netlink_event(u32 orig, enum events event);
+ 
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+ 		const struct thermal_zone_device_ops *, int tc1, int tc2,
+@@ -172,6 +176,5 @@ void thermal_zone_device_update(struct thermal_zone_device *);
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+-extern int generate_netlink_event(u32 orig, enum events event);
+ 
+ #endif /* __THERMAL_H__ */
