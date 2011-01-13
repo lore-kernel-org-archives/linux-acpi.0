@@ -1,51 +1,65 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
-Date: Thu, 13 Jan 2011 00:39:18 +0100
-Message-ID: <201101130039.19519.trenn@suse.de>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <201101121437.51122.trenn@suse.de> <alpine.LFD.2.02.1101121705130.19754@x980>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: on builds/randconfigs (was: [PATCH -next] thermal: depends on
+ NET)
+Date: Thu, 13 Jan 2011 11:44:46 +1100
+Message-ID: <20110113114446.cba7a01f.sfr@canb.auug.org.au>
+References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>
+	<alpine.LFD.2.02.1101121257580.18873@x980>
+	<20110112131800.d64c1a86.akpm@linux-foundation.org>
+	<201101122224.54330.rjw@sisk.pl>
+	<alpine.LFD.2.02.1101121654000.19754@x980>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__13_Jan_2011_11_44_46_+1100_zmrtz.6A9nI0lFb9"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55136 "EHLO mx2.suse.de"
+Received: from chilli.pcug.org.au ([203.10.76.44]:45781 "EHLO smtps.tip.net.au"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845Ab1ALXjD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jan 2011 18:39:03 -0500
-In-Reply-To: <alpine.LFD.2.02.1101121705130.19754@x980>
+	id S1756605Ab1AMAo5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jan 2011 19:44:57 -0500
+In-Reply-To: <alpine.LFD.2.02.1101121654000.19754@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>, Michal Marek <mmarek@suse.cz>, Steven Rostedt <rostedt@goodmis.org>, Linus <torvalds@linux-foundation.org>
 
-On Wednesday 12 January 2011 23:25:12 Len Brown wrote:
-> > > If the display tools can only handle 3 characters,
-> > > then why not have them simply use the 1st 3 characters
-> > > of the existing name field?
-> 
-> > You mean use:
-> > C3 NHM
-> > instead of
-> > NHM-C3
-> > for intel_idle?
-> 
-> Yes.
-> is there a reason that would be a problem?
-A much more elegant solution came to my mind:
-I'll rewrite the perf timechart patch to do:
-Title:   C-stateName1 [1] , C-stateName2 [2]
-and later I will refer to the states by 1, 2, ...
-Eventually a:
-Description:
-[1] C-stateDescription1
-[2] C-stateDescription2
-...
-can be put somewhere as well.
+--Signature=_Thu__13_Jan_2011_11_44_46_+1100_zmrtz.6A9nI0lFb9
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please ignore this patch.
+Hi all,
 
-Stupid that I didn't think of that in the first place.
+On Wed, 12 Jan 2011 16:58:26 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
+>
+> Kconfig select needs to be fixed so that it is not possible to
+> select something if that something's dependencies are not met.
 
-Thanks,
+So, should the config step fail if such a thing is attempted, or just not
+honour the "select"?
 
-   Thomas
+BTW, Linus asked me to investigate the alternative of having "select"
+(recursively) automatically set the dependencies if they are not already
+set ...
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Thu__13_Jan_2011_11_44_46_+1100_zmrtz.6A9nI0lFb9
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJNLkr/AAoJEDMEi1NhKgbstocH/1ekmaRvF96s6Bb6j2kdqjxK
+NIRjyXSVORvubLeseJ5pvHRsikHyfYtlJyQrYuikvc5jFlM8T30OyhJ6eSBb1M+A
+4xX7a+oTV7jF1xdeD7zNbJJNwStpSO47uwfrQvwjh9xteL9CAy973351FggUa0J7
+txLRLhs650WVl0K0ejnWmQNKyVqLVOAToRWAqGBBFKDrVkifeweLFbGBWDkyNmZj
+YHQEFaneQ4mg7bVxIAz4JUtEMQ0roKMW2lO/xVUXvRE8gHYs1fnxRiHKoYZRf/yu
++z7+M3lnPlAY54AU+EIx1ThFGT9ZCpSkI+QMIKZ7i6zQxJFaJ+yM/DvGvUERpsQ=
+=7cyQ
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__13_Jan_2011_11_44_46_+1100_zmrtz.6A9nI0lFb9--
