@@ -1,45 +1,46 @@
-From: Michal Marek <mmarek@suse.cz>
-Subject: Re: on builds/randconfigs
-Date: Thu, 13 Jan 2011 13:23:06 +0100
-Message-ID: <4D2EEEAA.7040200@suse.cz>
-References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au> <alpine.LFD.2.02.1101121257580.18873@x980> <20110112131800.d64c1a86.akpm@linux-foundation.org> <201101122224.54330.rjw@sisk.pl> <alpine.LFD.2.02.1101121654000.19754@x980>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 28/48] thermal: Add event notification to thermal
+ framework
+Date: Thu, 13 Jan 2011 18:06:19 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF04654109447419AB@bgsmsx502.gar.corp.intel.com>
+References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
+ <201101131221.43797.trenn@suse.de>
+ <D6D887BA8C9DFF48B5233887EF0465410944741961@bgsmsx502.gar.corp.intel.com>
+ <201101131247.21031.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:55532 "EHLO mx1.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:24948 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756576Ab1AMMXI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jan 2011 07:23:08 -0500
-In-Reply-To: <alpine.LFD.2.02.1101121654000.19754@x980>
+	id S932547Ab1AMMgX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jan 2011 07:36:23 -0500
+In-Reply-To: <201101131247.21031.trenn@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimn@jasper.es, Arnaud Lacombe <lacombar@gmail.com>, Vegard Nossum <vegard.nossum@gmail.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 12.1.2011 22:58, Len Brown wrote:
->>> These unusable config combinations should be prevented via Kconfig. 
->>> That prevents users from selecting them, which otherwise adds to
->>> our workload and to theirs.  It also prevents false-positives
->>> during our useful randconfig testing.
->>
->> But it is kind of difficult to achieve IMhO.  For example, there are options
->> that are only SELECTed if something else is set, but randconfig doesn't seem
->> to care.
+> > I wonder why this one got exported at all.
+> > > It's only used in thermal_sys.c for now?
+> > > I hope I didn't oversee a follow up patch in another
+> > > driver which already makes use of it.
+> > >
+> >
+> > There is a patch to add threshold support to hwmon/coretemp.c
+> > that uses this events. This patch is getting reviewed upstream.
+> I wonder what the best way is to sync it with my updates
+> if Len accepts them.
+> Is the coretemp patch from you as well?
+> It is queued for another tree I expect?
+> Do you mind to repost it with a hint that it has to get synced
+> with this one?
 > 
-> Kconfig select needs to be fixed so that it is not possible to
-> select something if that something's dependencies are not met.
 
-Right now, it issues a warning in such case. I think changing it to a
-fatal error would be too premature, not long ago there were a couple of
-annoying false positives.
+The corresponding coretemp patch is from me only.
+Anyway, I have to submit the coretemp again(due to some fixes..)
+to the lm-sensors lists. This time when I submit it, I will
+mention that it has to be synced with this latest patch.
 
-But from the rest of the thread, I conclude that you actually meant "not
-possible to select something if that something's dependencies CANNOT be
-met", i.e. automatically select dependencies if that is possible. That
-was actually one of the goals of Vegard Nossum's GSoC poject last year,
-but I haven't heard of any outcome yet. Vegard, is there something we
-could use, be it code or mistakes we could learn from?
-
-Thanks,
-Michal
+Durga
