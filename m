@@ -1,23 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: on builds/randconfigs (was: [PATCH -next] thermal: depends on NET)
-Date: Wed, 12 Jan 2011 22:31:55 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101122226340.19754@x980>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: on builds/randconfigs (was: [PATCH -next] thermal: depends on
+ NET)
+Date: Wed, 12 Jan 2011 22:45:40 -0500
+Message-ID: <1294890340.26623.383.camel@gandalf.stny.rr.com>
 References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>
- <alpine.LFD.2.02.1101121257580.18873@x980>
- <20110112131800.d64c1a86.akpm@linux-foundation.org>
- <201101122224.54330.rjw@sisk.pl> <alpine.LFD.2.02.1101121654000.19754@x980>
- <20110113114446.cba7a01f.sfr@canb.auug.org.au>
+	 <alpine.LFD.2.02.1101121257580.18873@x980>
+	 <20110112131800.d64c1a86.akpm@linux-foundation.org>
+	 <201101122224.54330.rjw@sisk.pl> <alpine.LFD.2.02.1101121654000.19754@x980>
+	 <20110113114446.cba7a01f.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-reply-to: <20110113114446.cba7a01f.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>, Michal Marek <mmarek@suse.cz>, Steven Rostedt <rostedt@goodmis.org>, Linus <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:49263 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab1AMDpo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jan 2011 22:45:44 -0500
+In-Reply-To: <20110113114446.cba7a01f.sfr@canb.auug.org.au>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimny Lech <napohybelskurwysynom2010@gmail.com>, Michal Marek <mmarek@suse.cz>, Linus <torvalds@linux-foundation.org>
 
-On Thu, 13 Jan 2011, Stephen Rothwell wrote:
-
+On Thu, 2011-01-13 at 11:44 +1100, Stephen Rothwell wrote:
 > Hi all,
 > 
 > On Wed, 12 Jan 2011 16:58:26 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
@@ -31,18 +36,12 @@ On Thu, 13 Jan 2011, Stephen Rothwell wrote:
 > BTW, Linus asked me to investigate the alternative of having "select"
 > (recursively) automatically set the dependencies if they are not already
 > set ...
+> 
 
-I expect that users want to interact only with select.
+What happens if you have foo depends on bar || fib ?
 
-See feature X, enable feature X, and feature X
-selects what is necessary to support what the user requested...
+Do you automatically enable bar and fib?
 
-user interact with "depends-on", by comparison, is torture.
-Users are not offered options unless the options
-already have all of their dependencies met.
-If they manually edit the config file and enable such
-options, make oldconfig magically throws away their choices.
-That drives people crazy.
+-- Steve
 
-cheers,
-Len Brown, Intel Open Source Technology Center
+
