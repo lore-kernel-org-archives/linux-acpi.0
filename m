@@ -1,59 +1,44 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 5/5] ACPI: Tie ACPI backlight devices to PCI devices if possible
-Date: Fri, 14 Jan 2011 14:24:25 -0500
-Message-ID: <1295033065-13450-5-git-send-email-mjg@redhat.com>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: BUG: spinlock bad magic on CPU#0
+Date: Fri, 14 Jan 2011 14:26:08 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101141424330.9760@x980>
+References: <20110114140803.GA4003@swordfish>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295033065-13450-1-git-send-email-mjg@redhat.com>
+In-reply-to: <20110114140803.GA4003@swordfish>
 Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net, Matthew Garrett <mjg@redhat.com>
+To: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dual-GPU machines may provide more than one ACPI backlight interface. Tie
-the backlight device to the GPU in order to allow userspace to identify
-the correct interface.
+On Fri, 14 Jan 2011, Sergey Senozhatsky wrote:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/video.c |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletions(-)
+> Hello,
+> 
+> Acer Aspire  5741g
+> 2.6.37-git11
+> 
+> Got this trace today:
+> 
+> [    0.814609] ACPI: EC: Look up EC in DSDT
+> [    0.825556] BUG: spinlock bad magic on CPU#0, swapper/1
+> [    0.825639]  lock: ffffffff8242fa90, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
+> [    0.825741] Pid: 1, comm: swapper Not tainted 2.6.37-dbg-git11-07456-gdbc61c6-dirty #359
+> [    0.825841] Call Trace:
+> [    0.825923]  [<ffffffff81247919>] ? spin_bug+0x9c/0xa3
+> [    0.826004]  [<ffffffff812479e9>] ? do_raw_spin_lock+0x29/0x122
+> [    0.826093]  [<ffffffff814867e5>] ? _raw_spin_lock_irqsave+0x56/0x60
+> [    0.826181]  [<ffffffff81275e8a>] ? acpi_os_acquire_lock+0x9/0xb
+> [    0.826264]  [<ffffffff81275e8a>] ? acpi_os_acquire_lock+0x9/0xb
+> [    0.826350]  [<ffffffff81288fad>] ? acpi_ev_acquire_global_lock+0x10b/0x206
+> [    0.826438]  [<ffffffff8129620c>] ? acpi_ex_acquire_mutex_object+0xa3/0x11d
+> [    0.826525]  [<ffffffff812952e3>] ? acpi_ex_acquire_global_lock+0x61/0xa2
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index a9eec8c..a18e497 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -782,6 +782,9 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 
- 	if (acpi_video_backlight_support()) {
- 		struct backlight_properties props;
-+		struct pci_dev *pdev;
-+		acpi_handle acpi_parent;
-+		struct device *parent = NULL;
- 		int result;
- 		static int count = 0;
- 		char *name;
-@@ -794,10 +797,20 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 			return;
- 		count++;
- 
-+		acpi_get_parent(device->dev->handle, &acpi_parent);
-+
-+		pdev = acpi_get_pci_dev(acpi_parent);
-+		if (pdev) {
-+			parent = &pdev->dev;
-+			pci_dev_put(pdev);
-+		}
-+
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.type = BACKLIGHT_FIRMWARE;
- 		props.max_brightness = device->brightness->count - 3;
--		device->backlight = backlight_device_register(name, NULL, device,
-+		device->backlight = backlight_device_register(name,
-+							      parent,
-+							      device,
- 							      &acpi_backlight_ops,
- 							      &props);
- 		kfree(name);
--- 
-1.7.3.4
+Does the failure go away if you revert this commit?
+
+commit 9cd031441a4fd09273b7c2beb337d0b2683d104c
+    ACPI / ACPICA: Fix global lock acquisition
+
+thanks,
+Len Brown, Intel Open Source Technology Center
