@@ -1,59 +1,41 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
-Date: Thu, 13 Jan 2011 10:42:29 -0500
-Message-ID: <13258.1294933349@localhost>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-5-git-send-email-trenn@suse.de> <alpine.LFD.2.02.1101120150570.19140@x980> <201101121437.51122.trenn@suse.de>
-            <alpine.LFD.2.02.1101121705130.19754@x980>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 28/48] thermal: Add event notification to thermal framework
+Date: Thu, 13 Jan 2011 22:35:16 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101132232130.9760@x980>
+References: <1294827582-4620-1-git-send-email-lenb@kernel.org>
+ <4cb18728709683c91a5f6f8d5f337bfb498b089a.1294827492.git.len.brown@intel.com>
+ <201101131207.01290.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1294933349_5688P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:59034 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756090Ab1AMPqU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jan 2011 10:46:20 -0500
-In-Reply-To: Your message of "Wed, 12 Jan 2011 17:25:12 EST."
-             <alpine.LFD.2.02.1101121705130.19754@x980>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:33236 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757499Ab1ANDfW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jan 2011 22:35:22 -0500
+Received: from localhost.localdomain ([unknown] [108.7.58.61])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LEZ00J1ATYWATU4@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 13 Jan 2011 21:35:21 -0600 (CST)
+In-reply-to: <201101131207.01290.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, "R.Durgadoss" <durgadoss.r@intel.com>
 
---==_Exmh_1294933349_5688P
-Content-Type: text/plain; charset=us-ascii
+> A dependency from the thermal driver to CONFIG_NET should
+> be avoided if possible.
 
-On Wed, 12 Jan 2011 17:25:12 EST, Len Brown said:
+Who is using CONFIG_THERMAL without CONFIG_NET today?
 
-> > But by sysfs convention a separate file must be used
-> > if two data are passed to userspace which is the case here.
-> 
-> what two data?
-> 
-> It is fine for a string to include space characters.
+Frankly, I'm tempted to make ACPI (falsely) depend on NET
+just to reduce the number of configs we have to test.
 
-I think Thomas is concerned that although when you actually read a /sys
-file, you know it's one string, that fact can get easily lost and cause issues
-down the road. Consider this code:
+I completely agree with your rename patch,
+the name exported shouldn't be so generic.
+Durgadoss, as Thomas suggests, please update that
+and the dependent driver at the same time.
 
-foo=`cat /sys/some/file`
-bar=`cat /sys/other/file`
-baz=`cat /sys/third/file`
-echo $foo $bar $baz | awk '{print $2 $3}'
-
-Suddenly your output isn't what you expected...
-
---==_Exmh_1294933349_5688P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFNLx1lcC3lWbTT17ARAh+5AKDO3njvfdeLwHRolBhga5tdWk17GQCfQjna
-5NRZO5tAIu4zmvbxJ2zLUe4=
-=B2BS
------END PGP SIGNATURE-----
-
---==_Exmh_1294933349_5688P--
+thanks,
+Len Brown, Intel Open Source Technology Center
 
