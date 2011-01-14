@@ -1,261 +1,73 @@
-From: Anca Emanuel <anca.emanuel@gmail.com>
-Subject: Re: [PATCH 4/5] nouveau: Change the backlight parent device to the
- connector, not the PCI dev
-Date: Fri, 14 Jan 2011 21:30:19 +0200
-Message-ID: <AANLkTikLsie3YNQHQR8Boaj22DLuWpqZJ0JkGqf-uCtd@mail.gmail.com>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
-	<1295033065-13450-4-git-send-email-mjg@redhat.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT] ACPI patches for 2.6.38-merge
+Date: Fri, 14 Jan 2011 11:40:34 -0800
+Message-ID: <AANLkTinXh_rgzTw8i85MKef0beTf3mszNZOvYpAUSneA@mail.gmail.com>
+References: <alpine.LFD.2.02.1101132237190.9760@x980>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45110 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229Ab1ANTaU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jan 2011 14:30:20 -0500
-In-Reply-To: <1295033065-13450-4-git-send-email-mjg@redhat.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34139 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751490Ab1ANTrg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jan 2011 14:47:36 -0500
+In-Reply-To: <alpine.LFD.2.02.1101132237190.9760@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: akpm@linux-foundation.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 14, 2011 at 9:24 PM, Matthew Garrett <mjg@redhat.com> wrote=
-:
-> We may eventually end up with per-connector backlights, especially wi=
-th
-> ddcci devices. Make sure that the parent node for the backlight devic=
-e is
-> the connector rather than the PCI device.
+On Thu, Jan 13, 2011 at 7:50 PM, Len Brown <lenb@kernel.org> wrote:
 >
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> ---
-> =A0drivers/gpu/drm/nouveau/nouveau_backlight.c | =A0 24 +++++++++++++=
-+----------
-> =A0drivers/gpu/drm/nouveau/nouveau_connector.c | =A0 =A09 +++++++++
-> =A0drivers/gpu/drm/nouveau/nouveau_drv.h =A0 =A0 =A0 | =A0 =A08 ++++-=
----
-> =A0drivers/gpu/drm/nouveau/nouveau_state.c =A0 =A0 | =A0 =A06 ------
-> =A04 files changed, 27 insertions(+), 20 deletions(-)
+> please pull from:
 >
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gp=
-u/drm/nouveau/nouveau_backlight.c
-> index 18d7bcc..00a55df 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
-> @@ -88,10 +88,11 @@ static const struct backlight_ops nv50_bl_ops =3D=
- {
-> =A0 =A0 =A0 =A0.update_status =3D nv50_set_intensity,
-> =A0};
->
-> -static int nouveau_nv40_backlight_init(struct drm_device *dev)
-> +static int nouveau_nv40_backlight_init(struct drm_connector *connect=
-or)
-> =A0{
-> - =A0 =A0 =A0 struct backlight_properties props;
-> + =A0 =A0 =A0 struct drm_device *dev =3D connector->dev;
-> =A0 =A0 =A0 =A0struct drm_nouveau_private *dev_priv =3D dev->dev_priv=
-ate;
-> + =A0 =A0 =A0 struct backlight_properties props;
-> =A0 =A0 =A0 =A0struct backlight_device *bd;
->
-> =A0 =A0 =A0 =A0if (!(nv_rd32(dev, NV40_PMC_BACKLIGHT) & NV40_PMC_BACK=
-LIGHT_MASK))
-> @@ -100,7 +101,7 @@ static int nouveau_nv40_backlight_init(struct drm=
-_device *dev)
-> =A0 =A0 =A0 =A0memset(&props, 0, sizeof(struct backlight_properties))=
-;
-> =A0 =A0 =A0 =A0props.type =3D BACKLIGHT_RAW;
-> =A0 =A0 =A0 =A0props.max_brightness =3D 31;
-> - =A0 =A0 =A0 bd =3D backlight_device_register("nv_backlight", &dev->=
-pdev->dev, dev,
-> + =A0 =A0 =A0 bd =3D backlight_device_register("nv_backlight", &conne=
-ctor->kdev, dev,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 &nv40_bl_ops, &props);
-> =A0 =A0 =A0 =A0if (IS_ERR(bd))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(bd);
-> @@ -112,10 +113,11 @@ static int nouveau_nv40_backlight_init(struct d=
-rm_device *dev)
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> -static int nouveau_nv50_backlight_init(struct drm_device *dev)
-> +static int nouveau_nv50_backlight_init(struct drm_connector *connect=
-or)
-> =A0{
-> - =A0 =A0 =A0 struct backlight_properties props;
-> + =A0 =A0 =A0 struct drm_device *dev =3D connector->dev;
-> =A0 =A0 =A0 =A0struct drm_nouveau_private *dev_priv =3D dev->dev_priv=
-ate;
-> + =A0 =A0 =A0 struct backlight_properties props;
-> =A0 =A0 =A0 =A0struct backlight_device *bd;
->
-> =A0 =A0 =A0 =A0if (!nv_rd32(dev, NV50_PDISPLAY_SOR_BACKLIGHT))
-> @@ -124,7 +126,7 @@ static int nouveau_nv50_backlight_init(struct drm=
-_device *dev)
-> =A0 =A0 =A0 =A0memset(&props, 0, sizeof(struct backlight_properties))=
-;
-> =A0 =A0 =A0 =A0props.type =3D BACKLIGHT_RAW;
-> =A0 =A0 =A0 =A0props.max_brightness =3D 1025;
-> - =A0 =A0 =A0 bd =3D backlight_device_register("nv_backlight", &dev->=
-pdev->dev, dev,
-> + =A0 =A0 =A0 bd =3D backlight_device_register("nv_backlight", &conne=
-ctor->kdev, dev,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 &nv50_bl_ops, &props);
-> =A0 =A0 =A0 =A0if (IS_ERR(bd))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(bd);
-> @@ -135,8 +137,9 @@ static int nouveau_nv50_backlight_init(struct drm=
-_device *dev)
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> -int nouveau_backlight_init(struct drm_device *dev)
-> +int nouveau_backlight_init(struct drm_connector *connector)
-> =A0{
-> + =A0 =A0 =A0 struct drm_device *dev =3D connector->dev;
-> =A0 =A0 =A0 =A0struct drm_nouveau_private *dev_priv =3D dev->dev_priv=
-ate;
->
-> =A0#ifdef CONFIG_ACPI
-> @@ -149,9 +152,9 @@ int nouveau_backlight_init(struct drm_device *dev=
-)
->
-> =A0 =A0 =A0 =A0switch (dev_priv->card_type) {
-> =A0 =A0 =A0 =A0case NV_40:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return nouveau_nv40_backlight_init(dev)=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return nouveau_nv40_backlight_init(conn=
-ector);
-> =A0 =A0 =A0 =A0case NV_50:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return nouveau_nv50_backlight_init(dev)=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return nouveau_nv50_backlight_init(conn=
-ector);
-> =A0 =A0 =A0 =A0default:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
-> =A0 =A0 =A0 =A0}
-> @@ -159,8 +162,9 @@ int nouveau_backlight_init(struct drm_device *dev=
-)
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> -void nouveau_backlight_exit(struct drm_device *dev)
-> +void nouveau_backlight_exit(struct drm_connector *connector)
-> =A0{
-> + =A0 =A0 =A0 struct drm_device *dev =3D connector->dev;
-> =A0 =A0 =A0 =A0struct drm_nouveau_private *dev_priv =3D dev->dev_priv=
-ate;
->
-> =A0 =A0 =A0 =A0if (dev_priv->backlight) {
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.c b/drivers/gp=
-u/drm/nouveau/nouveau_connector.c
-> index a21e000..3a1ecc7 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_connector.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_connector.c
-> @@ -116,6 +116,10 @@ nouveau_connector_destroy(struct drm_connector *=
-connector)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0nouveau_connector_hotplug, connector);
-> =A0 =A0 =A0 =A0}
->
-> + =A0 =A0 =A0 if (connector->connector_type =3D=3D DRM_MODE_CONNECTOR=
-_LVDS ||
-> + =A0 =A0 =A0 =A0 =A0 connector->connector_type =3D=3D DRM_MODE_CONNE=
-CTOR_eDP)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nouveau_backlight_exit(connector);
-> +
-> =A0 =A0 =A0 =A0kfree(nv_connector->edid);
-> =A0 =A0 =A0 =A0drm_sysfs_connector_remove(connector);
-> =A0 =A0 =A0 =A0drm_connector_cleanup(connector);
-> @@ -893,6 +897,11 @@ nouveau_connector_create(struct drm_device *dev,=
- int index)
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0drm_sysfs_connector_add(connector);
-> +
-> + =A0 =A0 =A0 if (connector->connector_type =3D=3D DRM_MODE_CONNECTOR=
-_LVDS ||
-> + =A0 =A0 =A0 =A0 =A0 connector->connector_type =3D=3D DRM_MODE_CONNE=
-CTOR_eDP)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nouveau_backlight_init(connector);
-> +
-> =A0 =A0 =A0 =A0dcb->drm =3D connector;
-> =A0 =A0 =A0 =A0return dcb->drm;
->
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/=
-nouveau/nouveau_drv.h
-> index 46e3257..1918ed1 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_drv.h
-> +++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
-> @@ -999,15 +999,15 @@ static inline int nouveau_acpi_edid(struct drm_=
-device *dev, struct drm_connector
->
-> =A0/* nouveau_backlight.c */
-> =A0#ifdef CONFIG_DRM_NOUVEAU_BACKLIGHT
-> -extern int nouveau_backlight_init(struct drm_device *);
-> -extern void nouveau_backlight_exit(struct drm_device *);
-> +extern int nouveau_backlight_init(struct drm_connector *);
-> +extern void nouveau_backlight_exit(struct drm_connector *);
-> =A0#else
-> -static inline int nouveau_backlight_init(struct drm_device *dev)
-> +static inline int nouveau_backlight_init(struct drm_connector *dev)
-> =A0{
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
->
-> -static inline void nouveau_backlight_exit(struct drm_device *dev) { =
-}
-> +static inline void nouveau_backlight_exit(struct drm_connector *dev)=
- { }
-> =A0#endif
->
-> =A0/* nouveau_bios.c */
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_state.c b/drivers/gpu/dr=
-m/nouveau/nouveau_state.c
-> index a54fc43..f688f04 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_state.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_state.c
-> @@ -738,10 +738,6 @@ nouveau_card_init(struct drm_device *dev)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_fence;
-> =A0 =A0 =A0 =A0}
->
-> - =A0 =A0 =A0 ret =3D nouveau_backlight_init(dev);
-> - =A0 =A0 =A0 if (ret)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 NV_ERROR(dev, "Error %d registering bac=
-klight\n", ret);
-> -
-> =A0 =A0 =A0 =A0nouveau_fbcon_init(dev);
-> =A0 =A0 =A0 =A0drm_kms_helper_poll_init(dev);
-> =A0 =A0 =A0 =A0return 0;
-> @@ -793,8 +789,6 @@ static void nouveau_card_takedown(struct drm_devi=
-ce *dev)
-> =A0 =A0 =A0 =A0struct drm_nouveau_private *dev_priv =3D dev->dev_priv=
-ate;
-> =A0 =A0 =A0 =A0struct nouveau_engine *engine =3D &dev_priv->engine;
->
-> - =A0 =A0 =A0 nouveau_backlight_exit(dev);
-> -
-> =A0 =A0 =A0 =A0if (!engine->graph.accel_blocked) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nouveau_fence_fini(dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nouveau_channel_put_unlocked(&dev_priv=
-->channel);
-> --
-> 1.7.3.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-Hi Matthew Garrett,
-I have problems with nouveau.
-Do you know ?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Grr. I'm bisecting now, but this seems to cause
+
+[    1.033920] ACPI: EC: Look up EC in DSDT
+[    1.033976] BUG: spinlock bad magic on CPU#0, swapper/1
+[    1.034038]  lock: ffffffff824353f0, .magic: 00000000, .owner:
+<none>/-1, .owner_cpu: 0
+[    1.034100] Pid: 1, comm: swapper Not tainted 2.6.37-07310-gd73b388 #14
+[    1.034161] Call Trace:
+[    1.034216]  [<ffffffff812482a1>] ? spin_bug+0x9c/0xa3
+[    1.034276]  [<ffffffff81248371>] ? do_raw_spin_lock+0x29/0x137
+[    1.034337]  [<ffffffff81556af5>] ? _raw_spin_lock_irqsave+0x49/0x53
+[    1.034399]  [<ffffffff812747f0>] ? acpi_os_acquire_lock+0x9/0xb
+[    1.034461]  [<ffffffff8128819f>] ? acpi_ex_system_wait_mutex+0x1d/0x4e
+[    1.034522]  [<ffffffff812747f0>] ? acpi_os_acquire_lock+0x9/0xb
+[    1.034583]  [<ffffffff812825bd>] ? acpi_ev_acquire_global_lock+0xaf/0x12e
+[    1.034645]  [<ffffffff81289b3e>] ? acpi_ex_acquire_mutex_object+0x39/0x63
+[    1.034707]  [<ffffffff8128992b>] ? acpi_ex_acquire_global_lock+0x24/0x46
+[    1.034769]  [<ffffffff812853ec>] ? acpi_ex_read_data_from_field+0x11c/0x160
+[    1.034833]  [<ffffffff81060e70>] ? trace_hardirqs_on+0xd/0xf
+[    1.034893]  [<ffffffff8128a29d>] ? acpi_ex_resolve_node_to_value+0x19d/0x22c
+[    1.034956]  [<ffffffff81285db7>] ? acpi_ex_resolve_to_value+0x203/0x20c
+[    1.035018]  [<ffffffff8128030e>] ? acpi_ds_evaluate_name_path+0x7b/0xf9
+[    1.035079]  [<ffffffff8127eca3>] ? acpi_ds_exec_end_op+0x9b/0x3e4
+[    1.035140]  [<ffffffff81291458>] ? acpi_ps_parse_loop+0x7b8/0x950
+[    1.035201]  [<ffffffff81290820>] ? acpi_ps_parse_aml+0x94/0x2b8
+[    1.035261]  [<ffffffff81291cae>] ? acpi_ps_execute_method+0x1c9/0x273
+[    1.035322]  [<ffffffff8128d152>] ? acpi_ns_evaluate+0xda/0x1a5
+[    1.035382]  [<ffffffff81294da6>] ? acpi_ut_evaluate_object+0x72/0x19b
+[    1.035456]  [<ffffffff81294f34>] ? acpi_ut_execute_STA+0x21/0x50
+[    1.035528]  [<ffffffff8128c998>] ? acpi_ns_get_device_callback+0x12b/0x16f
+[    1.035602]  [<ffffffff81055ebd>] ? up+0x34/0x3b
+[    1.035671]  [<ffffffff8128e978>] ? acpi_ns_walk_namespace+0xbb/0x17b
+[    1.035744]  [<ffffffff8128c86d>] ? acpi_ns_get_device_callback+0x0/0x16f
+[    1.035817]  [<ffffffff8128c856>] ? acpi_get_devices+0x61/0x78
+[    1.035888]  [<ffffffff81279059>] ? ec_parse_device+0x0/0xa0
+[    1.035960]  [<ffffffff81b3e188>] ? acpi_ec_ecdt_probe+0x107/0x1da
+[    1.036032]  [<ffffffff81295b37>] ? acpi_enable_subsystem+0x82/0x8b
+[    1.036102]  [<ffffffff81b3dce7>] ? acpi_init+0x0/0x105
+[    1.036172]  [<ffffffff81b3db38>] ? acpi_bus_init+0x2e/0x1dd
+[    1.036244]  [<ffffffff8123d58e>] ? kobject_create_and_add+0x37/0x68
+[    1.036317]  [<ffffffff81b3dd58>] ? acpi_init+0x71/0x105
+[    1.036387]  [<ffffffff810002ee>] ? do_one_initcall+0x7a/0x130
+[    1.036459]  [<ffffffff81b19ccb>] ? kernel_init+0x143/0x1c7
+
+on my sandybridge machine. I see somebody else reported it too, so
+it's not just preproduction hardware.
+
+                   Linus
