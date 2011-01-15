@@ -1,127 +1,198 @@
-From: Andres Salomon <dilinger@queued.net>
-Subject: Re: [PATCH] ACPI: don't attempt to use hest_tab unless
- !acpi_pci_disabled
-Date: Fri, 14 Jan 2011 23:54:37 -0800
-Message-ID: <20110114235437.669f820d@queued.net>
-References: <20110114181620.188e7a62@queued.net>
-	<alpine.LFD.2.02.1101142310240.2551@x980>
+From: Ben Skeggs <skeggsb@gmail.com>
+Subject: Re: [PATCH 4/5] nouveau: Change the backlight parent device to the
+ connector, not the PCI dev
+Date: Sat, 15 Jan 2011 19:49:07 +1000
+Message-ID: <1295084953.2013.0.camel@nisroch>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
+	 <1295033065-13450-4-git-send-email-mjg@redhat.com>
+Reply-To: skeggsb@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.02.1101142310240.2551@x980>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:49202 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab1AOJtl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jan 2011 04:49:41 -0500
+In-Reply-To: <1295033065-13450-4-git-send-email-mjg@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: akpm@linux-foundation.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net
 
-On Fri, 14 Jan 2011 23:24:27 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
-
-[...]
-> > This patch causes apei_hest_parse to check both hest_disabled and
-> > acpi_pci_disabled before continuing.  With it, the XO-1 boots
-> > properly.
+On Fri, 2011-01-14 at 14:24 -0500, Matthew Garrett wrote:
+> We may eventually end up with per-connector backlights, especially with
+> ddcci devices. Make sure that the parent node for the backlight device is
+> the connector rather than the PCI device.
 > 
-> The X0-1 has no ACPI support, and thus you are running
-> with acpi_disabled=1, yes?
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Ben Skeggs <bskeggs@redhat.com>
 
-The XO-1 has no ACPI support, but ACPI support is enabled in the kernel
-(as the XO-1.5 does have ACPI support, and the same kernel is used
-between both) and I'm not passing any arguments to the kernel regarding
-it. The kernel's ACPI code detects that it's not there and disables it
-(the kernel message that's seen is "ACPI: Interpreter disabled.")
-
-This is what sets apci_pci_disabled to 1; I'm not doing it manually.
-
+> ---
+>  drivers/gpu/drm/nouveau/nouveau_backlight.c |   24 ++++++++++++++----------
+>  drivers/gpu/drm/nouveau/nouveau_connector.c |    9 +++++++++
+>  drivers/gpu/drm/nouveau/nouveau_drv.h       |    8 ++++----
+>  drivers/gpu/drm/nouveau/nouveau_state.c     |    6 ------
+>  4 files changed, 27 insertions(+), 20 deletions(-)
 > 
-> It would be better for the fix to depend on acpi_disabled.
-> acpi_disbled=1 is a supported configuration, while
-> acpi_pci_disabled is a just a debug flag, maybe someday
-> it will go away.
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> index 18d7bcc..00a55df 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> +++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> @@ -88,10 +88,11 @@ static const struct backlight_ops nv50_bl_ops = {
+>  	.update_status = nv50_set_intensity,
+>  };
+>  
+> -static int nouveau_nv40_backlight_init(struct drm_device *dev)
+> +static int nouveau_nv40_backlight_init(struct drm_connector *connector)
+>  {
+> -	struct backlight_properties props;
+> +	struct drm_device *dev = connector->dev;
+>  	struct drm_nouveau_private *dev_priv = dev->dev_private;
+> +	struct backlight_properties props;
+>  	struct backlight_device *bd;
+>  
+>  	if (!(nv_rd32(dev, NV40_PMC_BACKLIGHT) & NV40_PMC_BACKLIGHT_MASK))
+> @@ -100,7 +101,7 @@ static int nouveau_nv40_backlight_init(struct drm_device *dev)
+>  	memset(&props, 0, sizeof(struct backlight_properties));
+>  	props.type = BACKLIGHT_RAW;
+>  	props.max_brightness = 31;
+> -	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
+> +	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+>  				       &nv40_bl_ops, &props);
+>  	if (IS_ERR(bd))
+>  		return PTR_ERR(bd);
+> @@ -112,10 +113,11 @@ static int nouveau_nv40_backlight_init(struct drm_device *dev)
+>  	return 0;
+>  }
+>  
+> -static int nouveau_nv50_backlight_init(struct drm_device *dev)
+> +static int nouveau_nv50_backlight_init(struct drm_connector *connector)
+>  {
+> -	struct backlight_properties props;
+> +	struct drm_device *dev = connector->dev;
+>  	struct drm_nouveau_private *dev_priv = dev->dev_private;
+> +	struct backlight_properties props;
+>  	struct backlight_device *bd;
+>  
+>  	if (!nv_rd32(dev, NV50_PDISPLAY_SOR_BACKLIGHT))
+> @@ -124,7 +126,7 @@ static int nouveau_nv50_backlight_init(struct drm_device *dev)
+>  	memset(&props, 0, sizeof(struct backlight_properties));
+>  	props.type = BACKLIGHT_RAW;
+>  	props.max_brightness = 1025;
+> -	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
+> +	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+>  				       &nv50_bl_ops, &props);
+>  	if (IS_ERR(bd))
+>  		return PTR_ERR(bd);
+> @@ -135,8 +137,9 @@ static int nouveau_nv50_backlight_init(struct drm_device *dev)
+>  	return 0;
+>  }
+>  
+> -int nouveau_backlight_init(struct drm_device *dev)
+> +int nouveau_backlight_init(struct drm_connector *connector)
+>  {
+> +	struct drm_device *dev = connector->dev;
+>  	struct drm_nouveau_private *dev_priv = dev->dev_private;
+>  
+>  #ifdef CONFIG_ACPI
+> @@ -149,9 +152,9 @@ int nouveau_backlight_init(struct drm_device *dev)
+>  
+>  	switch (dev_priv->card_type) {
+>  	case NV_40:
+> -		return nouveau_nv40_backlight_init(dev);
+> +		return nouveau_nv40_backlight_init(connector);
+>  	case NV_50:
+> -		return nouveau_nv50_backlight_init(dev);
+> +		return nouveau_nv50_backlight_init(connector);
+>  	default:
+>  		break;
+>  	}
+> @@ -159,8 +162,9 @@ int nouveau_backlight_init(struct drm_device *dev)
+>  	return 0;
+>  }
+>  
+> -void nouveau_backlight_exit(struct drm_device *dev)
+> +void nouveau_backlight_exit(struct drm_connector *connector)
+>  {
+> +	struct drm_device *dev = connector->dev;
+>  	struct drm_nouveau_private *dev_priv = dev->dev_private;
+>  
+>  	if (dev_priv->backlight) {
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.c b/drivers/gpu/drm/nouveau/nouveau_connector.c
+> index a21e000..3a1ecc7 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_connector.c
+> +++ b/drivers/gpu/drm/nouveau/nouveau_connector.c
+> @@ -116,6 +116,10 @@ nouveau_connector_destroy(struct drm_connector *connector)
+>  				      nouveau_connector_hotplug, connector);
+>  	}
+>  
+> +	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
+> +	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
+> +		nouveau_backlight_exit(connector);
+> +
+>  	kfree(nv_connector->edid);
+>  	drm_sysfs_connector_remove(connector);
+>  	drm_connector_cleanup(connector);
+> @@ -893,6 +897,11 @@ nouveau_connector_create(struct drm_device *dev, int index)
+>  	}
+>  
+>  	drm_sysfs_connector_add(connector);
+> +
+> +	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
+> +	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
+> +		nouveau_backlight_init(connector);
+> +
+>  	dcb->drm = connector;
+>  	return dcb->drm;
+>  
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
+> index 46e3257..1918ed1 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_drv.h
+> +++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
+> @@ -999,15 +999,15 @@ static inline int nouveau_acpi_edid(struct drm_device *dev, struct drm_connector
+>  
+>  /* nouveau_backlight.c */
+>  #ifdef CONFIG_DRM_NOUVEAU_BACKLIGHT
+> -extern int nouveau_backlight_init(struct drm_device *);
+> -extern void nouveau_backlight_exit(struct drm_device *);
+> +extern int nouveau_backlight_init(struct drm_connector *);
+> +extern void nouveau_backlight_exit(struct drm_connector *);
+>  #else
+> -static inline int nouveau_backlight_init(struct drm_device *dev)
+> +static inline int nouveau_backlight_init(struct drm_connector *dev)
+>  {
+>  	return 0;
+>  }
+>  
+> -static inline void nouveau_backlight_exit(struct drm_device *dev) { }
+> +static inline void nouveau_backlight_exit(struct drm_connector *dev) { }
+>  #endif
+>  
+>  /* nouveau_bios.c */
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_state.c b/drivers/gpu/drm/nouveau/nouveau_state.c
+> index a54fc43..f688f04 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_state.c
+> +++ b/drivers/gpu/drm/nouveau/nouveau_state.c
+> @@ -738,10 +738,6 @@ nouveau_card_init(struct drm_device *dev)
+>  			goto out_fence;
+>  	}
+>  
+> -	ret = nouveau_backlight_init(dev);
+> -	if (ret)
+> -		NV_ERROR(dev, "Error %d registering backlight\n", ret);
+> -
+>  	nouveau_fbcon_init(dev);
+>  	drm_kms_helper_poll_init(dev);
+>  	return 0;
+> @@ -793,8 +789,6 @@ static void nouveau_card_takedown(struct drm_device *dev)
+>  	struct drm_nouveau_private *dev_priv = dev->dev_private;
+>  	struct nouveau_engine *engine = &dev_priv->engine;
+>  
+> -	nouveau_backlight_exit(dev);
+> -
+>  	if (!engine->graph.accel_blocked) {
+>  		nouveau_fence_fini(dev);
+>  		nouveau_channel_put_unlocked(&dev_priv->channel);
 
-Ah, ok.  The reason I went with acpi_pci_disabled is because that's
-acpi_pci_root_init() checks, and that's what specifies whether or not
-acpi_hest_init gets called.. but it's all the same to me. :)
 
-> 
-> Looks like acpi_hest_init() bails for acpi_disabled,
-> and thus hest_ghes_dev_register()doens't run and invoke
-> apei_hest_parse(), so we are set there.
-> 
-> Seems like drivers/pci/pcie/aer/aerdrv_acpi.c,
-> should not invoke apei_hest_parse() when acpi_disabled=1.
-> Either that or we have to have apei_hest_parse(),
-> which is exported to modules check acpi_disabled --
-> and its callers need to check for failure.
-
->From a safety standpoint, I'd prefer to have apei_hest_parse
-check for acpi_disabled, rather than relying on clients to know to
-check for it.  Here's an updated patch.
-
-
-
-
-
-From: Andres Salomon <dilinger@queued.net>
-
-I've hit the following oops on boot on an XO-1:
-
-[    0.662755] BUG: unable to handle kernel NULL pointer dereference at 00000024
-[    0.666349] IP: [<c11a0514>] apei_hest_parse+0xbc/0xcc
-[    0.666349] *pde = 00000000
-[    0.666349] Oops: 0000 [#1] SMP
-[    0.666349] last sysfs file:
-[    0.666349] Modules linked in:
-[    0.666349]
-[    0.666349] Pid: 1, comm: swapper Not tainted 2.6.37+ #74 /
-[    0.666349] EIP: 0060:[<c11a0514>] EFLAGS: 00010206 CPU: 0
-[    0.666349] EIP is at apei_hest_parse+0xbc/0xcc
-[    0.666349] EAX: 00000028 EBX: 00000000 ECX: 00000000 EDX: 00000000
-[    0.666349] ESI: 00000001 EDI: 00000000 EBP: c1161171 ESP: cb441fa8
-[    0.666349]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-[    0.666349] Process swapper (pid: 1, ti=cb440000 task=cb43c000 task.ti=cb440000)
-[    0.666349] Stack:
-[    0.666349]  c1450960 00000001 00000020 c141fa10 c11611aa c141fa1e c1001151 00000000
-[    0.666349]  c1450960 00000001 00000020 00000000 c1401346 00000000 c1401221 00000000
-[    0.666349]  c10034be 00000000 00000000 00000000 00000000 00000000
-[    0.666349] Call Trace:
-[    0.666349]  [<c141fa10>] ? aer_service_init+0x0/0x22
-[    0.666349]  [<c11611aa>] ? aer_acpi_firmware_first+0x15/0x22
-[    0.666349]  [<c141fa1e>] ? aer_service_init+0xe/0x22
-[    0.666349]  [<c1001151>] ? do_one_initcall+0x68/0x10f
-[    0.666349]  [<c1401346>] ? kernel_init+0x125/0x19d
-[    0.666349]  [<c1401221>] ? kernel_init+0x0/0x19d
-[    0.666349]  [<c10034be>] ? kernel_thread_helper+0x6/0x10
-[    0.666349] Code: 76 18 0f b7 40 02 50 68 c2 ae 35 c1 e8 3e e8 0f 00 b8 ea ff ff ff 59 5b eb 1c 89 fa ff d5 85 c0 75 14 89 f0 43 8b 0d 50 ed 3f c1 <3b> 59
- 24 0f 82 64 ff ff ff 31 c0 5b 5e 5f 5d c3 8b 50 0c 8d 4a
-
-The apei_hest_parse function is using hest_tab, which hasn't been initialized.
-This is because acpi_hest_init has never been called (as acpi_pci_disabled is 1,
-so it never gets called from acpi_pci_root_init), and hest_disabled is never
-set to 1.  When the aer_driver calls apei_hest_parse, the hest_disabled check
-passes, and it oopses processing hest_tab.
-
-This patch causes apei_hest_parse to check both hest_disabled and
-acpi_disabled before continuing.
-
-Signed-off-by: Andres Salomon <dilinger@queued.net>
----
- drivers/acpi/apei/hest.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 4ee58e7..7262eaf 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -89,7 +89,7 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
- 	struct acpi_hest_header *hest_hdr;
- 	int i, rc, len;
- 
--	if (hest_disable)
-+	if (hest_disable || acpi_disabled)
- 		return -EINVAL;
- 
- 	hest_hdr = (struct acpi_hest_header *)(hest_tab + 1);
--- 
-1.7.2.3
