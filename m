@@ -1,66 +1,22 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: don't attempt to use hest_tab unless !acpi_pci_disabled
-Date: Sat, 15 Jan 2011 14:01:18 +0100
-Message-ID: <201101151401.18846.rjw@sisk.pl>
-References: <20110114181620.188e7a62@queued.net> <alpine.LFD.2.02.1101142310240.2551@x980> <20110114235437.669f820d@queued.net>
+From: Michal Marek <mmarek@suse.cz>
+Subject: Re: on builds/randconfigs
+Date: Sat, 15 Jan 2011 17:09:35 +0100
+Message-ID: <4D31C6BF.4000402@suse.cz>
+References: <20101213163607.0b0a7c3a.sfr@canb.auug.org.au>	<alpine.LFD.2.02.1101121257580.18873@x980>	<20110112131800.d64c1a86.akpm@linux-foundation.org>	<201101122224.54330.rjw@sisk.pl>	<alpine.LFD.2.02.1101121654000.19754@x980>	<4D2EEEAA.7040200@suse.cz> <AANLkTinpjHZgKhLN19kn=0o6aXbMAJEooEUtHSxGyotm@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38349 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752911Ab1AONCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Jan 2011 08:02:08 -0500
-In-Reply-To: <20110114235437.669f820d@queued.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinpjHZgKhLN19kn=0o6aXbMAJEooEUtHSxGyotm@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Zhang Rui <rui.zhang@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zimn@jasper.es, Arnaud Lacombe <lacombar@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andres Salomon <dilinger@queued.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Saturday, January 15, 2011, Andres Salomon wrote:
-> On Fri, 14 Jan 2011 23:24:27 -0500 (EST)
-> Len Brown <lenb@kernel.org> wrote:
-> 
-> [...]
-> > > This patch causes apei_hest_parse to check both hest_disabled and
-> > > acpi_pci_disabled before continuing.  With it, the XO-1 boots
-> > > properly.
-> > 
-> > The X0-1 has no ACPI support, and thus you are running
-> > with acpi_disabled=1, yes?
-> 
-> The XO-1 has no ACPI support, but ACPI support is enabled in the kernel
-> (as the XO-1.5 does have ACPI support, and the same kernel is used
-> between both) and I'm not passing any arguments to the kernel regarding
-> it. The kernel's ACPI code detects that it's not there and disables it
-> (the kernel message that's seen is "ACPI: Interpreter disabled.")
-> 
-> This is what sets apci_pci_disabled to 1; I'm not doing it manually.
+Dne 15.1.2011 13:24, Vegard Nossum napsal(a):
+> I'll be happy to give a tour of the satconfig code if you or anybody
+> else would like to start hacking on it.
 
-Hmm.  Does the appended patch help instead?
+Sure, I'm interested!
 
-Rafael
-
----
- drivers/acpi/pci_root.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -631,11 +631,11 @@ static int acpi_pci_root_remove(struct a
- 
- static int __init acpi_pci_root_init(void)
- {
-+	acpi_hest_init();
-+
- 	if (acpi_pci_disabled)
- 		return 0;
- 
--	acpi_hest_init();
--
- 	pci_acpi_crs_quirks();
- 	if (acpi_bus_register_driver(&acpi_pci_root_driver) < 0)
- 		return -ENODEV;
+Michal
