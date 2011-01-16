@@ -1,31 +1,129 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: FW: ACPI Warning: Invalid length for Pm1aControlBlock: 32,
-	using default 16 (20090903/tbfadt-607)
-Date: Sat, 15 Jan 2011 23:00:54 +0000
-Message-ID: <20110115230053.GA22873@srcf.ucam.org>
-References: <88E058D95F1C6047975B85AB9C600B1F6DB20525AF@GVW1342EXA.americas.hpqcorp.net>
+From: Andres Salomon <dilinger@queued.net>
+Subject: Re: [PATCH] ACPI: don't attempt to use hest_tab unless
+ !acpi_pci_disabled
+Date: Sat, 15 Jan 2011 19:24:22 -0800
+Message-ID: <20110115192422.706af049@queued.net>
+References: <20110114181620.188e7a62@queued.net>
+	<201101152138.11183.rjw@sisk.pl>
+	<20110115124242.4f9ae65d@queued.net>
+	<201101152148.43791.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34123 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab1AOXBH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jan 2011 18:01:07 -0500
-Content-Disposition: inline
-In-Reply-To: <88E058D95F1C6047975B85AB9C600B1F6DB20525AF@GVW1342EXA.americas.hpqcorp.net>
+Received: from LUNGE.MIT.EDU ([18.54.1.69]:60072 "EHLO lunge.queued.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754246Ab1APDY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 15 Jan 2011 22:24:27 -0500
+In-Reply-To: <201101152148.43791.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Berahalli, Sreenivasa Reddy" <sreenivasa-reddy.berahalli@hp.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Fri, Jan 14, 2011 at 06:33:13PM +0000, Berahalli, Sreenivasa Reddy wrote:
+On Sat, 15 Jan 2011 21:48:43 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> This warning message means the length of register in the ACPI tables and the default values are different.
-> We see it as  over-aggressive check in Linux, with no issue.
+> On Saturday, January 15, 2011, Andres Salomon wrote:
+> > On Sat, 15 Jan 2011 21:38:10 +0100
+> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> > 
+> > > On Saturday, January 15, 2011, Andres Salomon wrote:
+> > > > On Sat, 15 Jan 2011 14:01:18 +0100
+> > > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> > > > 
+> > > > > On Saturday, January 15, 2011, Andres Salomon wrote:
+> > > > > > On Fri, 14 Jan 2011 23:24:27 -0500 (EST)
+> > > > > > Len Brown <lenb@kernel.org> wrote:
+> > > > > > 
+> > > > > > [...]
+> > > > > > > > This patch causes apei_hest_parse to check both
+> > > > > > > > hest_disabled and acpi_pci_disabled before continuing.
+> > > > > > > > With it, the XO-1 boots properly.
+> > > > > > > 
+> > > > > > > The X0-1 has no ACPI support, and thus you are running
+> > > > > > > with acpi_disabled=1, yes?
+> > > > > > 
+> > > > > > The XO-1 has no ACPI support, but ACPI support is enabled
+> > > > > > in the kernel (as the XO-1.5 does have ACPI support, and
+> > > > > > the same kernel is used between both) and I'm not passing
+> > > > > > any arguments to the kernel regarding it. The kernel's ACPI
+> > > > > > code detects that it's not there and disables it (the
+> > > > > > kernel message that's seen is "ACPI: Interpreter disabled.")
+> > > > > > 
+> > > > > > This is what sets apci_pci_disabled to 1; I'm not doing it
+> > > > > > manually.
+> > > > > 
+> > > > > Hmm.  Does the appended patch help instead?
+> > > > 
+> > > > Nope.  acpi_hest_init returns immediately if acpi_disabled, and
+> > > > thus never sets hest_disable.  You either need to set
+> > > > hest_disable, or ensure apei_hest_parse checks more than just
+> > > > hest_disable.
+> > > 
+> > > OK, so the new one below should help, right?
+> > 
+> > Yes, that looks better
+> 
+> OK
+> 
+> > (though you probably just want to use 'goto err;' instead).
+> 
+> Indeed.
+> 
+> > I can test it later today.
+> 
+> Cool, thanks.  Please try the version below with the 'goto'.
+> 
+> Rafael
 
-Linux sees it as a deviation between the BIOS and the spec, which may 
-cause issues if it turns out that we treat this behaviour differently to 
-tested operating systems. Why not fix your BIOS?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Yep, just tested it out; it works fine.
+
+
+> 
+> ---
+>  drivers/acpi/apei/hest.c |    6 +++---
+>  drivers/acpi/pci_root.c  |    4 ++--
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/pci_root.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/pci_root.c
+> +++ linux-2.6/drivers/acpi/pci_root.c
+> @@ -631,11 +631,11 @@ static int acpi_pci_root_remove(struct a
+>  
+>  static int __init acpi_pci_root_init(void)
+>  {
+> +	acpi_hest_init();
+> +
+>  	if (acpi_pci_disabled)
+>  		return 0;
+>  
+> -	acpi_hest_init();
+> -
+>  	pci_acpi_crs_quirks();
+>  	if (acpi_bus_register_driver(&acpi_pci_root_driver) < 0)
+>  		return -ENODEV;
+> Index: linux-2.6/drivers/acpi/apei/hest.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/apei/hest.c
+> +++ linux-2.6/drivers/acpi/apei/hest.c
+> @@ -201,14 +201,14 @@ void __init acpi_hest_init(void)
+>  	int rc = -ENODEV;
+>  	unsigned int ghes_count = 0;
+>  
+> -	if (acpi_disabled)
+> -		return;
+> -
+>  	if (hest_disable) {
+>  		pr_info(HEST_PFX "Table parsing disabled.\n");
+>  		return;
+>  	}
+>  
+> +	if (acpi_disabled)
+> +		goto err;
+> +
+>  	status = acpi_get_table(ACPI_SIG_HEST, 0,
+>  				(struct acpi_table_header
+> **)&hest_tab); if (status == AE_NOT_FOUND) {
