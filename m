@@ -1,83 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: don't attempt to use hest_tab unless !acpi_pci_disabled
-Date: Sun, 16 Jan 2011 20:28:33 +0100
-Message-ID: <201101162028.33572.rjw@sisk.pl>
-References: <20110114181620.188e7a62@queued.net> <201101152148.43791.rjw@sisk.pl> <20110115192422.706af049@queued.net>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] ACPI: Fix memory leak in
+ acpi_ev_asynch_execute_gpe_method().
+Date: Sun, 16 Jan 2011 20:37:52 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39809 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753772Ab1APT3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Jan 2011 14:29:30 -0500
-In-Reply-To: <20110115192422.706af049@queued.net>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:15914 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753754Ab1APThx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jan 2011 14:37:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andres Salomon <dilinger@queued.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-On Sunday, January 16, 2011, Andres Salomon wrote:
-> On Sat, 15 Jan 2011 21:48:43 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Saturday, January 15, 2011, Andres Salomon wrote:
-> > > On Sat, 15 Jan 2011 21:38:10 +0100
-> > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > > 
-> > > > On Saturday, January 15, 2011, Andres Salomon wrote:
-> > > > > On Sat, 15 Jan 2011 14:01:18 +0100
-> > > > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > > > > 
-> > > > > > On Saturday, January 15, 2011, Andres Salomon wrote:
-> > > > > > > On Fri, 14 Jan 2011 23:24:27 -0500 (EST)
-> > > > > > > Len Brown <lenb@kernel.org> wrote:
-> > > > > > > 
-> > > > > > > [...]
-> > > > > > > > > This patch causes apei_hest_parse to check both
-> > > > > > > > > hest_disabled and acpi_pci_disabled before continuing.
-> > > > > > > > > With it, the XO-1 boots properly.
-> > > > > > > > 
-> > > > > > > > The X0-1 has no ACPI support, and thus you are running
-> > > > > > > > with acpi_disabled=1, yes?
-> > > > > > > 
-> > > > > > > The XO-1 has no ACPI support, but ACPI support is enabled
-> > > > > > > in the kernel (as the XO-1.5 does have ACPI support, and
-> > > > > > > the same kernel is used between both) and I'm not passing
-> > > > > > > any arguments to the kernel regarding it. The kernel's ACPI
-> > > > > > > code detects that it's not there and disables it (the
-> > > > > > > kernel message that's seen is "ACPI: Interpreter disabled.")
-> > > > > > > 
-> > > > > > > This is what sets apci_pci_disabled to 1; I'm not doing it
-> > > > > > > manually.
-> > > > > > 
-> > > > > > Hmm.  Does the appended patch help instead?
-> > > > > 
-> > > > > Nope.  acpi_hest_init returns immediately if acpi_disabled, and
-> > > > > thus never sets hest_disable.  You either need to set
-> > > > > hest_disable, or ensure apei_hest_parse checks more than just
-> > > > > hest_disable.
-> > > > 
-> > > > OK, so the new one below should help, right?
-> > > 
-> > > Yes, that looks better
-> > 
-> > OK
-> > 
-> > > (though you probably just want to use 'goto err;' instead).
-> > 
-> > Indeed.
-> > 
-> > > I can test it later today.
-> > 
-> > Cool, thanks.  Please try the version below with the 'goto'.
-> > 
-> > Rafael
-> 
-> 
-> Yep, just tested it out; it works fine.
+We will leak the memory allocated to 'local_gpe_event_info' if 
+'acpi_ut_acquire_mutex()' fails or if 'acpi_ev_valid_gpe_event()' fails in 
+drivers/acpi/acpica/evgpe.c::acpi_ev_asynch_execute_gpe_method().
 
-Great, thanks!
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ evgpe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Rafael
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 7c339d3..b6de1fb 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -471,6 +471,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+ 
+ 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+ 	if (ACPI_FAILURE(status)) {
++		ACPI_FREE(local_gpe_event_info);
+ 		return_VOID;
+ 	}
+ 
+@@ -478,6 +479,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+ 
+ 	if (!acpi_ev_valid_gpe_event(gpe_event_info)) {
+ 		status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
++		ACPI_FREE(local_gpe_event_info);
+ 		return_VOID;
+ 	}
+ 
+
+-- 
+Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
+
