@@ -1,52 +1,46 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: [PATCH] ACPI: Fix memory leak in
- acpi_ev_asynch_execute_gpe_method().
-Date: Sun, 16 Jan 2011 20:37:52 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/2] PCI / ACPI: Fix build of the AER driver for CONFIG_ACPI unset
+Date: Sun, 16 Jan 2011 20:42:43 +0100
+Message-ID: <201101162042.43341.rjw@sisk.pl>
+References: <201101162041.02419.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:15914 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754Ab1APThx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jan 2011 14:37:53 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201101162041.02419.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Andres Salomon <dilinger@queued.net>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-We will leak the memory allocated to 'local_gpe_event_info' if 
-'acpi_ut_acquire_mutex()' fails or if 'acpi_ev_valid_gpe_event()' fails in 
-drivers/acpi/acpica/evgpe.c::acpi_ev_asynch_execute_gpe_method().
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+After commit 415e12b (PCI/ACPI: Request _OSC control once for each
+root bridge (v3)) include/linux/pci-acpi.h is included by
+drivers/pci/pcie/aer/aerdrv.c and if CONFIG_ACPI is unset, the
+bogus and unnecessary alternative definition of
+acpi_find_root_bridge_handle() causes a build error to occur.
+
+Remove the offending piece of garbage.
+
+Reported-and-tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- evgpe.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pci-acpi.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 7c339d3..b6de1fb 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -471,6 +471,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+Index: linux-2.6/include/linux/pci-acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci-acpi.h
++++ linux-2.6/include/linux/pci-acpi.h
+@@ -35,9 +35,6 @@ static inline acpi_handle acpi_pci_get_b
+ 	return acpi_get_pci_rootbridge_handle(pci_domain_nr(pbus),
+ 					      pbus->number);
+ }
+-#else
+-static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+-{ return NULL; }
+ #endif
  
- 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
- 	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(local_gpe_event_info);
- 		return_VOID;
- 	}
- 
-@@ -478,6 +479,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 
- 	if (!acpi_ev_valid_gpe_event(gpe_event_info)) {
- 		status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-+		ACPI_FREE(local_gpe_event_info);
- 		return_VOID;
- 	}
- 
-
--- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+ #ifdef CONFIG_ACPI_APEI
