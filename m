@@ -1,129 +1,48 @@
-From: Andres Salomon <dilinger@queued.net>
-Subject: Re: [PATCH] ACPI: don't attempt to use hest_tab unless
- !acpi_pci_disabled
-Date: Sat, 15 Jan 2011 19:24:22 -0800
-Message-ID: <20110115192422.706af049@queued.net>
-References: <20110114181620.188e7a62@queued.net>
-	<201101152138.11183.rjw@sisk.pl>
-	<20110115124242.4f9ae65d@queued.net>
-	<201101152148.43791.rjw@sisk.pl>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: ACPI notify handler and reentrancy of WMI device.
+Date: Sun, 16 Jan 2011 19:18:31 +0100
+Message-ID: <AANLkTi=hBDt+Ej+hNcxxnw4ZjPZ930kR13DVjtt50zwD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from LUNGE.MIT.EDU ([18.54.1.69]:60072 "EHLO lunge.queued.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754246Ab1APDY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Jan 2011 22:24:27 -0500
-In-Reply-To: <201101152148.43791.rjw@sisk.pl>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:39625 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab1APSSc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jan 2011 13:18:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: platform-driver-x86@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Sat, 15 Jan 2011 21:48:43 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+Hi,
+I currently trying to fix a bug on the Eeepc 1000H with eeepc-wmi.
 
-> On Saturday, January 15, 2011, Andres Salomon wrote:
-> > On Sat, 15 Jan 2011 21:38:10 +0100
-> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > 
-> > > On Saturday, January 15, 2011, Andres Salomon wrote:
-> > > > On Sat, 15 Jan 2011 14:01:18 +0100
-> > > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > > > 
-> > > > > On Saturday, January 15, 2011, Andres Salomon wrote:
-> > > > > > On Fri, 14 Jan 2011 23:24:27 -0500 (EST)
-> > > > > > Len Brown <lenb@kernel.org> wrote:
-> > > > > > 
-> > > > > > [...]
-> > > > > > > > This patch causes apei_hest_parse to check both
-> > > > > > > > hest_disabled and acpi_pci_disabled before continuing.
-> > > > > > > > With it, the XO-1 boots properly.
-> > > > > > > 
-> > > > > > > The X0-1 has no ACPI support, and thus you are running
-> > > > > > > with acpi_disabled=1, yes?
-> > > > > > 
-> > > > > > The XO-1 has no ACPI support, but ACPI support is enabled
-> > > > > > in the kernel (as the XO-1.5 does have ACPI support, and
-> > > > > > the same kernel is used between both) and I'm not passing
-> > > > > > any arguments to the kernel regarding it. The kernel's ACPI
-> > > > > > code detects that it's not there and disables it (the
-> > > > > > kernel message that's seen is "ACPI: Interpreter disabled.")
-> > > > > > 
-> > > > > > This is what sets apci_pci_disabled to 1; I'm not doing it
-> > > > > > manually.
-> > > > > 
-> > > > > Hmm.  Does the appended patch help instead?
-> > > > 
-> > > > Nope.  acpi_hest_init returns immediately if acpi_disabled, and
-> > > > thus never sets hest_disable.  You either need to set
-> > > > hest_disable, or ensure apei_hest_parse checks more than just
-> > > > hest_disable.
-> > > 
-> > > OK, so the new one below should help, right?
-> > 
-> > Yes, that looks better
-> 
-> OK
-> 
-> > (though you probably just want to use 'goto err;' instead).
-> 
-> Indeed.
-> 
-> > I can test it later today.
-> 
-> Cool, thanks.  Please try the version below with the 'goto'.
-> 
-> Rafael
+I got an acpi notify handler. The notify is triggered when I call WMBC().
+In this notify handler, I must re-call WMBC (with some other arguments, it won't
+notify again this time).
 
+If I do that, I'll get:
+[  176.920391] ACPI Error (dswload-0802): [_T_0] Namespace lookup
+failure, AE_ALREADY_EXISTS
+[  176.920416] ACPI Exception: AE_ALREADY_EXISTS, During name
+lookup/catalog (20100428/psloop-231)
+[  176.920439] ACPI Error (psparse-0537): Method parse/execution
+failed [\AMW0.WMBC] (Node f7023b88), AE_ALREADY_EXISTS
+[  176.920469] ACPI: Marking method WMBC as Serialized because of
+AE_ALREADY_EXISTS error
 
-Yep, just tested it out; it works fine.
+Then it'll work.
 
+What's the best way to avoid that ?
+- Is there some way to tell acpica that this method should be serialized ?
+- Is there some way to finish the execution of the first WMBC call in
+the notify handler ?
+- Should I use a work queue, and do what I have to do later (when the
+previous call is finished) ?
+- anything else ?
 
-> 
-> ---
->  drivers/acpi/apei/hest.c |    6 +++---
->  drivers/acpi/pci_root.c  |    4 ++--
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/pci_root.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -631,11 +631,11 @@ static int acpi_pci_root_remove(struct a
->  
->  static int __init acpi_pci_root_init(void)
->  {
-> +	acpi_hest_init();
-> +
->  	if (acpi_pci_disabled)
->  		return 0;
->  
-> -	acpi_hest_init();
-> -
->  	pci_acpi_crs_quirks();
->  	if (acpi_bus_register_driver(&acpi_pci_root_driver) < 0)
->  		return -ENODEV;
-> Index: linux-2.6/drivers/acpi/apei/hest.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/apei/hest.c
-> +++ linux-2.6/drivers/acpi/apei/hest.c
-> @@ -201,14 +201,14 @@ void __init acpi_hest_init(void)
->  	int rc = -ENODEV;
->  	unsigned int ghes_count = 0;
->  
-> -	if (acpi_disabled)
-> -		return;
-> -
->  	if (hest_disable) {
->  		pr_info(HEST_PFX "Table parsing disabled.\n");
->  		return;
->  	}
->  
-> +	if (acpi_disabled)
-> +		goto err;
-> +
->  	status = acpi_get_table(ACPI_SIG_HEST, 0,
->  				(struct acpi_table_header
-> **)&hest_tab); if (status == AE_NOT_FOUND) {
+Thanks,
+
+-- 
+Corentin Chary
+http://xf.iksaif.net
