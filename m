@@ -1,39 +1,78 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: Re: [PATCH] ACPI: Fix memory leak in
- acpi_ev_asynch_execute_gpe_method().
-Date: Mon, 17 Jan 2011 19:32:10 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1101171931420.27021@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net> <alpine.LFD.2.02.1101162313220.3244@x980>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Resume from Memory very slow on 2.6.37+
+Date: Mon, 17 Jan 2011 11:55:12 -0700
+Message-ID: <E87738D94A6AD54789B5B8D1BAEB06CC700C91588E@azsmsx503.amr.corp.intel.com>
+References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:14567 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914Ab1AQScK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 13:32:10 -0500
-In-Reply-To: <alpine.LFD.2.02.1101162313220.3244@x980>
+Received: from mga03.intel.com ([143.182.124.21]:24984 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751538Ab1AQSzh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 13:55:37 -0500
+In-Reply-To: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>
+To: Jeff Chua <jeff.chua.linux@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sun, 16 Jan 2011, Len Brown wrote:
+added Linux-acpi to cc
 
-> Looks like this bug was added by 
-> 5a284cd75d635e3c5db0210dc9a9a44c6839f460
-> (ACPICA: Fix local variable mess in acpi_ev_asynch_execute_gpe_method).
+> -----Original Message-----
+> From: Jeff Chua [mailto:jeff.chua.linux@gmail.com]
+> Sent: Monday, January 17, 2011 8:36 AM
+> To: Rafael J. Wysocki; Brown, Len; Jack Steiner; Linus Torvalds
+> Subject: Resume from Memory very slow on 2.6.37+
 > 
-> The good news is that it is new in 2.6.38-merge
-> Also, I doubt that these error cases actually
-> occur in any significant frequency in practice.
+> I've just tried the recent linux git pull
+> (e78bf5e6cbe837daa6ab628a5f679548742994d3) and suspend-to-memory
+> works, but resume takes a very long time (30 seconds doing nothing).
 > 
-> Thanks for the find.
+> Bisected and it says first bad commit is
+> ca9b600be38c73b7d25acfb8b7e4e9a9e941d881
 > 
-You're welcome. Can I assume that you'll merge it and push it up-stream 
-from here?
+> commit ca9b600be38c73b7d25acfb8b7e4e9a9e941d881
+> Author: Rafael J. Wysocki <rjw@sisk.pl>
+> Date:   Fri Jan 7 01:45:58 2011 +0100
+> 
+>     ACPI / PM: Make suspend_nvs_save() use acpi_os_map_memory()
+> 
+>     It turns out that the NVS memory region that suspend_nvs_save()
+>     attempts to map has been already mapped by acpi_os_map_memory(), so
+>     suspend_nvs_save() should better use acpi_os_map_memory() for mapping
+>     memory to avoid conflicts.
+> 
+>     Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> 
+> I reverted the following commits, and system resumes without waiting ...
+> 
+> commit ca9b600be38c73b7d25acfb8b7e4e9a9e941d881
+> Author: Rafael J. Wysocki <rjw@sisk.pl>
+> Date:   Fri Jan 7 01:45:58 2011 +0100
+> 
+>     ACPI / PM: Make suspend_nvs_save() use acpi_os_map_memory()
+> 
+> commit 6d5bbf00d251cc73223a71422d69e069dc2e0b8d
+> Author: Len Brown <len.brown@intel.com>
+> Date:   Fri Jan 7 01:46:40 2011 +0100
+> 
+>     ACPI: Use ioremap_cache()
+> 
+> commit d146df18c13d16e321efa8ef9b57c95c3bec1722
+> Author: Rafael J. Wysocki <rjw@sisk.pl>
+> Date:   Fri Jan 7 01:44:28 2011 +0100
+> 
+>     ACPI / PM: Update file information and the list of includes in nvs.c
+> 
+> 
+> Notebook is Lenovo X201s. 8GB RAM. 256GB SSD.
 
--- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please.
+any difference if you boot with acpi_sleep=nonvs ?
+
+thanks,
+-Len
 
