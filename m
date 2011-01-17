@@ -1,57 +1,75 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH] ACPI: Fix memory leak in
- acpi_ev_asynch_execute_gpe_method().
-Date: Mon, 17 Jan 2011 09:47:11 +0800
-Message-ID: <1295228831.28388.84.camel@minggr.sh.intel.com>
-References: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net>
+Subject: Re: ACPI notify handler and reentrancy of WMI device.
+Date: Mon, 17 Jan 2011 10:05:42 +0800
+Message-ID: <1295229942.28388.87.camel@minggr.sh.intel.com>
+References: <AANLkTi=hBDt+Ej+hNcxxnw4ZjPZ930kR13DVjtt50zwD@mail.gmail.com>
+	 <AANLkTim0auvcUeDSO7QGSVbj0A+g88FSon7-qT6KzBHd@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14051 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:52933 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751729Ab1AQBqp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Jan 2011 20:46:45 -0500
-In-Reply-To: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net>
+	id S1751798Ab1AQCFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Jan 2011 21:05:22 -0500
+In-Reply-To: <AANLkTim0auvcUeDSO7QGSVbj0A+g88FSon7-qT6KzBHd@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Mon, 2011-01-17 at 03:37 +0800, Jesper Juhl wrote:
-> We will leak the memory allocated to 'local_gpe_event_info' if 
-> 'acpi_ut_acquire_mutex()' fails or if 'acpi_ev_valid_gpe_event()' fails in 
-> drivers/acpi/acpica/evgpe.c::acpi_ev_asynch_execute_gpe_method().
-> 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  evgpe.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> index 7c339d3..b6de1fb 100644
-> --- a/drivers/acpi/acpica/evgpe.c
-> +++ b/drivers/acpi/acpica/evgpe.c
-> @@ -471,6 +471,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  
->  	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
->  	if (ACPI_FAILURE(status)) {
-> +		ACPI_FREE(local_gpe_event_info);
->  		return_VOID;
->  	}
->  
-> @@ -478,6 +479,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  
->  	if (!acpi_ev_valid_gpe_event(gpe_event_info)) {
->  		status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-> +		ACPI_FREE(local_gpe_event_info);
->  		return_VOID;
->  	}
->  
-> 
 
-Acked-by: Lin Ming <ming.m.lin@intel.com>
+> From: Corentin Chary <corentin.chary@gmail.com>
+> Date: Mon, Jan 17, 2011 at 2:18 AM
+> Subject: ACPI notify handler and reentrancy of WMI device.
+> To: linux acpi <linux-acpi@vger.kernel.org>
+> Cc: platform-driver-x86@vger.kernel.org, Len Brown
+> <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+> 
+> 
+> Hi,
+> I currently trying to fix a bug on the Eeepc 1000H with eeepc-wmi.
+> 
+> I got an acpi notify handler. The notify is triggered when I call WMBC().
+> In this notify handler, I must re-call WMBC (with some other arguments, it won't
+> notify again this time).
+> 
+> If I do that, I'll get:
+> [  176.920391] ACPI Error (dswload-0802): [_T_0] Namespace lookup
+> failure, AE_ALREADY_EXISTS
+> [  176.920416] ACPI Exception: AE_ALREADY_EXISTS, During name
+> lookup/catalog (20100428/psloop-231)
+> [  176.920439] ACPI Error (psparse-0537): Method parse/execution
+> failed [\AMW0.WMBC] (Node f7023b88), AE_ALREADY_EXISTS
+> [  176.920469] ACPI: Marking method WMBC as Serialized because of
+> AE_ALREADY_EXISTS error
 
-Thanks.
+Hi, 
+
+Could you attach the acpidump output?
+
+Thanks,
+Lin Ming
+
+> 
+> Then it'll work.
+> 
+> What's the best way to avoid that ?
+> - Is there some way to tell acpica that this method should be serialized ?
+> - Is there some way to finish the execution of the first WMBC call in
+> the notify handler ?
+> - Should I use a work queue, and do what I have to do later (when the
+> previous call is finished) ?
+> - anything else ?
+> 
+> Thanks,
+> 
+> --
+> Corentin Chary
+> http://xf.iksaif.net
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
