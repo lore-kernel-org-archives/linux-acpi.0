@@ -1,66 +1,39 @@
-From: Shougang Group <info@yahoo.com>
-Subject: (unknown)
-Date: Mon, 17 Jan 2011 14:05:38 +0100
-Message-ID: <20110117140538.9fv0e0g03uo0wg0s__29981.1980141842$1295271541$gmane$org@webmail.ens-cachan.fr>
-Reply-To: zhu-jimin22@hotmail.com
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: Re: [PATCH] ACPI: Fix memory leak in
+ acpi_ev_asynch_execute_gpe_method().
+Date: Mon, 17 Jan 2011 19:32:10 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1101171931420.27021@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1101162033531.13377@swampdragon.chaosbits.net> <alpine.LFD.2.02.1101162313220.3244@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ariane2.ens-cachan.fr ([138.231.176.54]:40724 "EHLO
-	ariane2.ens-cachan.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200Ab1AQNiu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 08:38:50 -0500
-Subject: 
-Content-Disposition: inline
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:14567 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914Ab1AQScK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 13:32:10 -0500
+In-Reply-To: <alpine.LFD.2.02.1101162313220.3244@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>
 
+On Sun, 16 Jan 2011, Len Brown wrote:
 
-Shougang Group
-106, Huang, Jingmin Guangzhou,
-Guangdong 529000 China.
-Website: www.shougang.com.cn
+> Looks like this bug was added by 
+> 5a284cd75d635e3c5db0210dc9a9a44c6839f460
+> (ACPICA: Fix local variable mess in acpi_ev_asynch_execute_gpe_method).
+> 
+> The good news is that it is new in 2.6.38-merge
+> Also, I doubt that these error cases actually
+> occur in any significant frequency in practice.
+> 
+> Thanks for the find.
+> 
+You're welcome. Can I assume that you'll merge it and push it up-stream 
+from here?
 
-This is an official request for a payment collection agent on behalf of
-Shougang Group. We are iron and steel company with principal business in steel
-manufacturing and trading.
-
-We are looking for a funds collector in USA, Canada, Mexico, Europe and UK.
-Salary is 12% of every payment you receive from our customers. All  
-charges such
-as tax and transfer charges will be deducted from the balance 88%. Details of
-your account is not needed in this transaction.
-
-Note: If you have a present job, you can still be part of our business as your
-service to us would not disturb with your working hours at all.If you are
-interested, fill the informations below and send back to me via my email: zhu-
-jimin22@hotmail.com
-
-(1)Your Full names:
-(2)Your Complete Address:
-a. City:
-b. State:
-c. Zip code:
-d. Country:
-(3)Tele/cell numbers:
-(4)Occupation:
-(5)Gender:
-(6)Age:
-(7)Email:
-
-On behalf of Shougang Group, Please accept my sincerest appreciation  
-in advance
-for your willingness to be our funds collector agent, as we look forward to
-your prompt response to our request.
-
-
-Respectfully,
-Mr. Zhu Jimin (secretary)
-Shougang Group.
-
-
-
-
+-- 
+Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
 
