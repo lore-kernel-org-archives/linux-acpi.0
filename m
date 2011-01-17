@@ -1,46 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Suggested readings about ACPI
-Date: Sun, 16 Jan 2011 23:46:25 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101162344030.21642@x980>
-References: <4D33672D.6040804@pardus.org.tr>
- <20110117020630.GA14058@srcf.ucam.org>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: ACPI notify handler and reentrancy of WMI device.
+Date: Mon, 17 Jan 2011 07:51:25 +0100
+Message-ID: <AANLkTinfP+-L2T4oggiTpMwE74V6kxgcrStHumYGiH23@mail.gmail.com>
+References: <AANLkTi=hBDt+Ej+hNcxxnw4ZjPZ930kR13DVjtt50zwD@mail.gmail.com>
+	<AANLkTim0auvcUeDSO7QGSVbj0A+g88FSon7-qT6KzBHd@mail.gmail.com>
+	<1295229942.28388.87.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:46134 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135Ab1AQEqd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jan 2011 23:46:33 -0500
-Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LF5005MHH9KJAP1@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 16 Jan 2011 22:46:32 -0600 (CST)
-In-reply-to: <20110117020630.GA14058@srcf.ucam.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:51044 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab1AQGv2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 01:51:28 -0500
+In-Reply-To: <1295229942.28388.87.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: =?UTF-8?Q?Ozan_=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>, linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-> > I want to get my hands dirty about ACPI and ACPI on Linux. I started  
-> > reading the spec but I don't know how far can I progress with it :)
+>> I got an acpi notify handler. The notify is triggered when I call WM=
+BC().
+>> In this notify handler, I must re-call WMBC (with some other argumen=
+ts, it won't
+>> notify again this time).
+>>
+>> If I do that, I'll get:
+>> [ =C2=A0176.920391] ACPI Error (dswload-0802): [_T_0] Namespace look=
+up
+>> failure, AE_ALREADY_EXISTS
+>> [ =C2=A0176.920416] ACPI Exception: AE_ALREADY_EXISTS, During name
+>> lookup/catalog (20100428/psloop-231)
+>> [ =C2=A0176.920439] ACPI Error (psparse-0537): Method parse/executio=
+n
+>> failed [\AMW0.WMBC] (Node f7023b88), AE_ALREADY_EXISTS
+>> [ =C2=A0176.920469] ACPI: Marking method WMBC as Serialized because =
+of
+>> AE_ALREADY_EXISTS error
 >
-> Try starting with version 1.0 of the spec - the core functionality 
-> hasn't changed much, and it's *much* shorter than the current version.
+> Could you attach the acpidump output?
 
-Good suggestion.
+Here it is, and here is the patch I did (I used the workqueue solution
+in this one):
 
-> > I also found some driver examples for ACPI and WMI on LWN. There's Colin  
-> > Ian King's blog which seems very rich in terms of debugging.
-> >
-> > Any other suggestions, readings, guidings, do's and dont-do's would be  
-> > very much appreciated.
+http://git.iksaif.net/?p=3Dacpi4asus.git;a=3Dblobdiff;f=3Ddrivers/platf=
+orm/x86/eeepc-wmi.c;h=3D725239860bad8d97dabf8b3db4086d6df4b7820b;hp=3D0=
+d8217d1478028071859ba1a503ba226b3cb33a0;hb=3D1eac4d6a6fb632314a464e7d52=
+e1dcb1e4780931;hpb=3D5c5d1a036bb7d38153c6d2102767ef51e5d94ce3
 
-http://www.acpica.org/
-http://lesswatts.org/projects/acpi/
+(check eeepc_rfkill_notify, it's triggered when the wlan rfkill is
+blocked: WMBC is called to disable the wlan card, it send a
+notification, the handler is called, the handler want to check the
+wlan card status, it calls WMBC again).
+Thanks;
 
-each has a couple of references that may be useful.
-
-cheers,
-Len Brown, Intel Open Source Technology Center
-
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
