@@ -1,56 +1,30 @@
-From: Jeff Chua <jeff.chua.linux@gmail.com>
-Subject: Re: [linux-pm] Resume from Memory very slow on 2.6.37+
-Date: Tue, 18 Jan 2011 09:14:43 +0800
-Message-ID: <AANLkTi=nGmW=3XGRzxJ1avbz-PcE_QSdVBddOM1yMiBh@mail.gmail.com>
-References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com>
-	<201101172349.06993.rjw@sisk.pl>
-	<201101180114.42664.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Len Brown <lenb@kernel.org>
+Subject: ACPICA patches queued for upstream
+Date: Mon, 17 Jan 2011 20:22:57 -0500
+Message-ID: <1295313783-3490-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:33201 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab1ARBOo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 20:14:44 -0500
-Received: by iwn9 with SMTP id 9so5243870iwn.19
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Jan 2011 17:14:43 -0800 (PST)
-In-Reply-To: <201101180114.42664.rjw@sisk.pl>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:64799 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753122Ab1ARBXJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 20:23:09 -0500
+Received: from localhost.localdomain ([unknown] [108.7.58.61])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LF700ECI2IJXSM4@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 17 Jan 2011 19:23:09 -0600 (CST)
+Received: from localhost.localdomain (x980 [127.0.0.1])
+	by localhost.localdomain (8.14.4/8.14.4) with ESMTP id p0I1N5Dq003526	for
+ <linux-acpi@vger.kernel.org>; Mon, 17 Jan 2011 20:23:05 -0500
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.4/8.14.4/Submit)
+ id p0I1N5l5003524	for linux-acpi@vger.kernel.org; Mon,
+ 17 Jan 2011 20:23:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Tue, Jan 18, 2011 at 2:55 AM, Brown, Len <len.brown@intel.com> wrote=
-:
-> added Linux-acpi to cc
->
-> any difference if you boot with acpi_sleep=3Dnonvs ?
+Please let me know if you see troubles
+with any of these patches
 
-That works.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-On Tue, Jan 18, 2011 at 8:14 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> What happens if you replace the acpi_os_map_memory() in
->> suspend_nvs_save() with ioremap_cache() and the acpi_os_unmap_memory=
-() in
->> suspend_nvs_free() with iounmap() ?
->
-> IOW, can you please test if the patch below makes a difference?
-> =A0drivers/acpi/nvs.c | =A0 =A06 +++---
-> =A01 file changed, 3 insertions(+), 3 deletions(-)
-
-That works too.
-
-Now I have another problem which might be totally unrelated. Just
-realized that my notebook can't suspend to "disk" ... used to work
-last week. So, something has changed as well. May be someone has
-already reported/fixed this.
-
-
-Thanks,
-Jeff
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
