@@ -1,69 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Jeff Chua <jeff.chua.linux@gmail.com>
 Subject: Re: [linux-pm] Resume from Memory very slow on 2.6.37+
-Date: Tue, 18 Jan 2011 01:14:42 +0100
-Message-ID: <201101180114.42664.rjw@sisk.pl>
-References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com> <201101172349.06993.rjw@sisk.pl>
+Date: Tue, 18 Jan 2011 09:14:43 +0800
+Message-ID: <AANLkTi=nGmW=3XGRzxJ1avbz-PcE_QSdVBddOM1yMiBh@mail.gmail.com>
+References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com>
+	<201101172349.06993.rjw@sisk.pl>
+	<201101180114.42664.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46163 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753215Ab1ARAPN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Jan 2011 19:15:13 -0500
-In-Reply-To: <201101172349.06993.rjw@sisk.pl>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33201 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab1ARBOo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jan 2011 20:14:44 -0500
+Received: by iwn9 with SMTP id 9so5243870iwn.19
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Jan 2011 17:14:43 -0800 (PST)
+In-Reply-To: <201101180114.42664.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: linux-pm@lists.linux-foundation.org, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday, January 17, 2011, Rafael J. Wysocki wrote:
-> On Monday, January 17, 2011, Jeff Chua wrote:
-> > I've just tried the recent linux git pull
-> > (e78bf5e6cbe837daa6ab628a5f679548742994d3) and suspend-to-memory
-> > works, but resume takes a very long time (30 seconds doing nothing).
-> > 
-> > Bisected and it says first bad commit is
-> > ca9b600be38c73b7d25acfb8b7e4e9a9e941d881
-> 
-> Hmm.  That's probably because acpi_os_unmap_memory() does the
-> synchronize_rcu(), but I have no idea why it might cause a problem to
-> occur in suspend_nvs_free().
-> 
-> What happens if you replace the acpi_os_map_memory() in
-> suspend_nvs_save() with ioremap_cache() and the acpi_os_unmap_memory() in
-> suspend_nvs_free() with iounmap() ?
+On Tue, Jan 18, 2011 at 2:55 AM, Brown, Len <len.brown@intel.com> wrote=
+:
+> added Linux-acpi to cc
+>
+> any difference if you boot with acpi_sleep=3Dnonvs ?
 
-IOW, can you please test if the patch below makes a difference?
+That works.
 
-Rafael
+On Tue, Jan 18, 2011 at 8:14 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> What happens if you replace the acpi_os_map_memory() in
+>> suspend_nvs_save() with ioremap_cache() and the acpi_os_unmap_memory=
+() in
+>> suspend_nvs_free() with iounmap() ?
+>
+> IOW, can you please test if the patch below makes a difference?
+> =A0drivers/acpi/nvs.c | =A0 =A06 +++---
+> =A01 file changed, 3 insertions(+), 3 deletions(-)
 
----
- drivers/acpi/nvs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+That works too.
 
-Index: linux-2.6/drivers/acpi/nvs.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/nvs.c
-+++ linux-2.6/drivers/acpi/nvs.c
-@@ -80,7 +80,7 @@ void suspend_nvs_free(void)
- 			free_page((unsigned long)entry->data);
- 			entry->data = NULL;
- 			if (entry->kaddr) {
--				acpi_os_unmap_memory(entry->kaddr, entry->size);
-+				iounmap(entry->kaddr);
- 				entry->kaddr = NULL;
- 			}
- 		}
-@@ -114,8 +114,8 @@ int suspend_nvs_save(void)
- 
- 	list_for_each_entry(entry, &nvs_list, node)
- 		if (entry->data) {
--			entry->kaddr = acpi_os_map_memory(entry->phys_start,
--							  entry->size);
-+			entry->kaddr = ioremap_cache(entry->phys_start,
-+						     entry->size);
- 			if (!entry->kaddr) {
- 				suspend_nvs_free();
- 				return -ENOMEM;
+Now I have another problem which might be totally unrelated. Just
+realized that my notebook can't suspend to "disk" ... used to work
+last week. So, something has changed as well. May be someone has
+already reported/fixed this.
+
+
+Thanks,
+Jeff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
