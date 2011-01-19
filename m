@@ -1,122 +1,76 @@
 From: Mike Travis <travis@sgi.com>
-Subject: [PATCH 3/6] x86: Minimize initial Bootmem messages
-Date: Wed, 19 Jan 2011 17:01:09 -0600
-Message-ID: <20110119230106.817577441@gulag1.americas.sgi.com>
+Subject: [PATCH 5/6] x86: Minimize SRAT messages
+Date: Wed, 19 Jan 2011 17:01:11 -0600
+Message-ID: <20110119230107.134657025@gulag1.americas.sgi.com>
 References: <20110119230106.341785959@gulag1.americas.sgi.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay3.sgi.com ([192.48.152.1]:40729 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753850Ab1ASXBK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jan 2011 18:01:10 -0500
-Content-Disposition: inline; filename=minimize-bootmem-msgs
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=minimize-srat-msgs
+Sender: linux-kernel-owner@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Lori Gilbertson <loriann@sgi.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The majority of Bootmem setup information is repeated for
-every node.  Minimize the output by showing early reservations
-only once unless it changes for a specific node, and condense
-the first three lines into one line.
+Condense the SRAT: messages to show all APIC id's for the
+node on a single line.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
 Reviewed-by: Jack Steiner <steiner@sgi.com>
 Reviewed-by: Robin Holt <holt@sgi.com>
 ---
- arch/x86/kernel/e820.c |   31 ++++++++++++++++++++++---------
- arch/x86/mm/numa_64.c  |   12 +++---------
- 2 files changed, 25 insertions(+), 18 deletions(-)
+ arch/x86/mm/srat_64.c |   16 ++++++++++++----
+ drivers/acpi/numa.c   |    3 +++
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
---- linux-2.6.32.orig/arch/x86/kernel/e820.c
-+++ linux-2.6.32/arch/x86/kernel/e820.c
-@@ -922,29 +922,42 @@ void __init free_early(u64 start, u64 en
- 
- void __init early_res_to_bootmem(u64 start, u64 end)
+--- linux-2.6.32.orig/arch/x86/mm/srat_64.c
++++ linux-2.6.32/arch/x86/mm/srat_64.c
+@@ -115,6 +115,7 @@ acpi_numa_x2apic_affinity_init(struct ac
  {
--	int i, count;
-+	int i, count, same = 1;
- 	u64 final_start, final_end;
-+	static struct early_res pres[MAX_EARLY_RES];
+ 	int pxm, node;
+ 	int apic_id;
++	static int last_node = -1, last_pxm = -1;
  
- 	count  = 0;
--	for (i = 0; i < MAX_EARLY_RES && early_res[i].end; i++)
-+	for (i = 0; i < MAX_EARLY_RES && early_res[i].end; i++) {
-+		/* remove redundant messages */
-+		if (pres[i].start != early_res[i].start ||
-+		    pres[i].end != early_res[i].end) {
-+			pres[i].start = early_res[i].start;
-+			pres[i].end = early_res[i].end;
-+			same =  0;
-+		}
- 		count++;
-+	}
-+	if (same) {
-+		pr_cont("ER:%d %llx+%llx\n", count, start, end-start);
-+		return;
-+	}
-+
-+	pr_info("Early Reservations: %d [%llx+%llx]\n",
-+		count, start, end-start);
- 
--	printk(KERN_INFO "(%d early reservations) ==> bootmem [%010llx - %010llx]\n",
--			 count, start, end);
- 	for (i = 0; i < count; i++) {
- 		struct early_res *r = &early_res[i];
--		printk(KERN_INFO "  #%d [%010llx - %010llx] %16s", i,
-+		pr_info("  #%d [%010llx - %010llx] %16s", i,
- 			r->start, r->end, r->name);
- 		final_start = max(start, r->start);
- 		final_end = min(end, r->end);
- 		if (final_start >= final_end) {
--			printk(KERN_CONT "\n");
-+			pr_cont("\n");
- 			continue;
- 		}
--		printk(KERN_CONT " ==> [%010llx - %010llx]\n",
--			final_start, final_end);
-+		pr_cont(" ==> [%010llx - %010llx]\n", final_start, final_end);
- 		reserve_bootmem_generic(final_start, final_end - final_start,
--				BOOTMEM_DEFAULT);
-+			BOOTMEM_DEFAULT);
- 	}
+ 	if (srat_disabled())
+ 		return;
+@@ -136,8 +137,16 @@ acpi_numa_x2apic_affinity_init(struct ac
+ 	apicid_to_node[apic_id] = node;
+ 	node_set(node, cpu_nodes_parsed);
+ 	acpi_numa = 1;
+-	printk(KERN_INFO "SRAT: PXM %u -> APIC %u -> Node %u\n",
+-	       pxm, apic_id, node);
++	if (node != last_node) {
++		pr_info("SRAT: Node %u: PXM:APIC %u:%u",
++		       node, pxm, apic_id);
++		last_node = node;
++		last_pxm = pxm;
++	} else if (pxm != last_pxm) {
++		pr_cont(" %u:%u", pxm, apic_id);
++		last_pxm = pxm;
++	} else
++		pr_cont(" :%u", apic_id);
  }
  
---- linux-2.6.32.orig/arch/x86/mm/numa_64.c
-+++ linux-2.6.32/arch/x86/mm/numa_64.c
-@@ -201,9 +201,6 @@ setup_node_bootmem(int nodeid, unsigned
+ /* Callback for Proximity Domain -> LAPIC mapping */
+@@ -294,8 +303,7 @@ acpi_numa_memory_affinity_init(struct ac
+ 			nd->end = end;
+ 	}
  
- 	start = roundup(start, ZONE_ALIGN);
- 
--	printk(KERN_INFO "Bootmem setup node %d %016lx-%016lx\n", nodeid,
+-	printk(KERN_INFO "SRAT: Node %u PXM %u %lx-%lx\n", node, pxm,
 -	       start, end);
--
- 	start_pfn = start >> PAGE_SHIFT;
- 	last_pfn = end >> PAGE_SHIFT;
++	pr_info("SRAT: Node %u PXM %u %lx+%lx\n", node, pxm, start, end-start);
+ 	e820_register_active_regions(node, start >> PAGE_SHIFT,
+ 				     end >> PAGE_SHIFT);
  
-@@ -219,8 +216,6 @@ setup_node_bootmem(int nodeid, unsigned
- 	if (node_data[nodeid] == (void *)cache_alias_offset)
- 		return;
- 	nodedata_phys = __pa(node_data[nodeid]);
--	printk(KERN_INFO "  NODE_DATA [%016lx - %016lx]\n", nodedata_phys,
--		nodedata_phys + pgdat_size - 1);
- 
- 	memset(NODE_DATA(nodeid), 0, sizeof(pg_data_t));
- 	NODE_DATA(nodeid)->bdata = &bootmem_node_data[nodeid];
-@@ -258,12 +253,11 @@ setup_node_bootmem(int nodeid, unsigned
- 					 bootmap_start >> PAGE_SHIFT,
- 					 start_pfn, last_pfn);
- 
--	printk(KERN_INFO "  bootmap [%016lx -  %016lx] pages %lx\n",
--		 bootmap_start, bootmap_start + bootmap_size - 1,
--		 bootmap_pages);
--
- 	free_bootmem_with_active_regions(nodeid, end);
- 
-+	pr_info("Bootmem Node %d: data %lx map %lx+%lx pgs %lx ",
-+		nodeid, start, bootmap_start, bootmap_size, bootmap_pages);
+--- linux-2.6.32.orig/drivers/acpi/numa.c
++++ linux-2.6.32/drivers/acpi/numa.c
+@@ -290,6 +290,9 @@ int __init acpi_numa_init(void)
+ 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+ 		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
+ 				      acpi_parse_x2apic_affinity, NR_CPUS);
++		/* insure trailing newline is output */
++		pr_cont("\n");
 +
- 	/*
- 	 * convert early reserve to bootmem reserve earlier
- 	 * otherwise early_node_mem could use early reserved mem
+ 		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
+ 				      acpi_parse_processor_affinity, NR_CPUS);
+ 		acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
 
 -- 
