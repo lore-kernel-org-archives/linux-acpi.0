@@ -1,130 +1,90 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 11/11] ACPI / PM: Make NVS save/restore code use slightly less memory
-Date: Thu, 20 Jan 2011 12:37:34 +0100
-Message-ID: <201101201237.34551.rjw@sisk.pl>
+Subject: [PATCH 7/11] ACPI: Make acpi_os_map_memory() avoid creating unnecessary mappings
+Date: Thu, 20 Jan 2011 12:33:35 +0100
+Message-ID: <201101201233.35621.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60072 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755605Ab1ATLjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jan 2011 06:39:15 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201101201226.41021.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Remove the unnecessary field phys_start from struct nvs_page and
-rework the code in nvs.c to reflect that change.
+Modify acpi_os_map_memory() so that it doesn't call acpi_os_ioremap()
+unconditionally every time it is executed (except when
+acpi_gbl_permanent_mmap is unset), which pretty much defeats the
+purpose of maintaining the list of ACPI iomaps in osl.c.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/nvs.c |   45 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 17 deletions(-)
+ drivers/acpi/osl.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-Index: linux-2.6/drivers/acpi/nvs.c
+Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/nvs.c
-+++ linux-2.6/drivers/acpi/nvs.c
-@@ -22,7 +22,6 @@
-  */
- 
- struct nvs_page {
--	unsigned long phys_start;
- 	unsigned int size;
- 	void *kaddr;
- 	void *data;
-@@ -31,6 +30,8 @@ struct nvs_page {
- };
- 
- static LIST_HEAD(nvs_list);
-+static unsigned long nvs_start;
-+static unsigned int nvs_offset;
- 
- /**
-  *	suspend_nvs_register - register platform NVS memory region to save
-@@ -44,25 +45,28 @@ static LIST_HEAD(nvs_list);
- int suspend_nvs_register(unsigned long start, unsigned long size)
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -302,7 +302,7 @@ acpi_map_lookup_virt(void __iomem *virt,
+ void __iomem *__init_refok
+ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
  {
- 	struct nvs_page *entry, *next;
-+	unsigned int offset;
+-	struct acpi_ioremap *map, *tmp_map;
++	struct acpi_ioremap *map;
+ 	void __iomem *virt;
+ 	acpi_physical_address pg_off;
+ 	acpi_size pg_sz;
+@@ -315,14 +315,25 @@ acpi_os_map_memory(acpi_physical_address
+ 	if (!acpi_gbl_permanent_mmap)
+ 		return __acpi_map_table((unsigned long)phys, size);
  
-+	nvs_start = round_down(start, PAGE_SIZE);
-+	nvs_offset = start - nvs_start;
-+	offset = nvs_offset;
- 	while (size > 0) {
--		unsigned int nr_bytes;
-+		unsigned int nr_bytes = PAGE_SIZE - offset;
- 
- 		entry = kzalloc(sizeof(struct nvs_page), GFP_KERNEL);
- 		if (!entry)
--			goto Error;
-+			goto err_out;
- 
- 		list_add_tail(&entry->node, &nvs_list);
--		entry->phys_start = start;
--		nr_bytes = PAGE_SIZE - (start & ~PAGE_MASK);
- 		entry->size = (size < nr_bytes) ? size : nr_bytes;
- 
- 		start += entry->size;
- 		size -= entry->size;
-+		offset -= offset;
- 	}
- 	return 0;
- 
-- Error:
-+ err_out:
- 	list_for_each_entry_safe(entry, next, &nvs_list, node) {
- 		list_del(&entry->node);
- 		kfree(entry);
-@@ -117,25 +121,32 @@ int suspend_nvs_alloc(void)
- int suspend_nvs_save(void)
- {
- 	struct nvs_page *entry;
-+	unsigned long page_addr = nvs_start;
-+	unsigned int offset = nvs_offset;
- 
- 	printk(KERN_INFO "PM: Saving platform NVS memory\n");
- 
--	list_for_each_entry(entry, &nvs_list, node)
--		if (entry->data) {
--			unsigned long phys = entry->phys_start;
--			unsigned int size = entry->size;
-+	list_for_each_entry(entry, &nvs_list, node) {
-+		unsigned long phys = page_addr + offset;
-+		unsigned int size = entry->size;
- 
--			entry->kaddr = acpi_os_get_iomem(phys, size);
--			if (!entry->kaddr) {
--				entry->kaddr = acpi_os_ioremap(phys, size);
--				entry->unmap = true;
--			}
-+		if (!entry->data)
-+			return -ENOMEM;
++	mutex_lock(&acpi_ioremap_lock);
++	/* Check if there's a suitable mapping already. */
++	map = acpi_map_lookup(phys, size);
++	if (map) {
++		kref_get(&map->ref);
++		goto out;
++	}
 +
-+		entry->kaddr = acpi_os_get_iomem(phys, size);
-+		if (!entry->kaddr) {
-+			entry->kaddr = acpi_os_ioremap(phys, size);
- 			if (!entry->kaddr) {
- 				suspend_nvs_free();
--				return -ENOMEM;
-+				return -EIO;
- 			}
--			memcpy(entry->data, entry->kaddr, entry->size);
-+			entry->unmap = true;
- 		}
-+		memcpy(entry->data, entry->kaddr, entry->size);
-+
-+		page_addr += PAGE_SIZE;
-+		offset -= offset;
+ 	map = kzalloc(sizeof(*map), GFP_KERNEL);
+-	if (!map)
++	if (!map) {
++		mutex_unlock(&acpi_ioremap_lock);
+ 		return NULL;
 +	}
  
- 	return 0;
+ 	pg_off = round_down(phys, PAGE_SIZE);
+ 	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+ 	virt = acpi_os_ioremap(pg_off, pg_sz);
+ 	if (!virt) {
++		mutex_unlock(&acpi_ioremap_lock);
+ 		kfree(map);
+ 		return NULL;
+ 	}
+@@ -333,19 +344,10 @@ acpi_os_map_memory(acpi_physical_address
+ 	map->size = pg_sz;
+ 	kref_init(&map->ref);
+ 
+-	mutex_lock(&acpi_ioremap_lock);
+-	/* Check if page has already been mapped. */
+-	tmp_map = acpi_map_lookup(phys, size);
+-	if (tmp_map) {
+-		kref_get(&tmp_map->ref);
+-		mutex_unlock(&acpi_ioremap_lock);
+-		iounmap(map->virt);
+-		kfree(map);
+-		return tmp_map->virt + (phys - tmp_map->phys);
+-	}
+ 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+-	mutex_unlock(&acpi_ioremap_lock);
+ 
++ out:
++	mutex_unlock(&acpi_ioremap_lock);
+ 	return map->virt + (phys - map->phys);
  }
-
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
