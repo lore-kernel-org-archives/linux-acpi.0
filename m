@@ -1,107 +1,129 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/11] ACPI: Avoid walking the list of iomaps in osl.c twice in a row
-Date: Thu, 20 Jan 2011 12:32:41 +0100
-Message-ID: <201101201232.41628.rjw@sisk.pl>
+Subject: [PATCH 8/11] ACPI: Do not use krefs under a mutex in osl.c
+Date: Thu, 20 Jan 2011 12:34:57 +0100
+Message-ID: <201101201234.57619.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60059 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755056Ab1ATLjH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jan 2011 06:39:07 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201101201226.41021.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make acpi_os_unmap_generic_address() use acpi_map_lookup() to find
-the desired iomap and drop the reference to it directly (and
-eventually remove it if necessary) instead of calling
-acpi_os_unmap_memory(), which requires us to walk the list of ACPI
-iomaps twice in a row (first, to get the virtual address associated
-with the iomap and second, to get the iomap itself).
+The reference counting of ACPI iomaps is carried out entirely under
+acpi_ioremap_lock, so it is sufficient to use simple counters instead
+of krefs for this purpose.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ drivers/acpi/osl.c |   36 ++++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
 Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/osl.c
 +++ linux-2.6/drivers/acpi/osl.c
-@@ -358,6 +358,13 @@ static void acpi_kref_del_iomap(struct k
- 	list_del_rcu(&map->list);
+@@ -105,7 +105,7 @@ struct acpi_ioremap {
+ 	void __iomem *virt;
+ 	acpi_physical_address phys;
+ 	acpi_size size;
+-	struct kref ref;
++	unsigned long refcount;
+ };
+ 
+ static LIST_HEAD(acpi_ioremaps);
+@@ -319,7 +319,7 @@ acpi_os_map_memory(acpi_physical_address
+ 	/* Check if there's a suitable mapping already. */
+ 	map = acpi_map_lookup(phys, size);
+ 	if (map) {
+-		kref_get(&map->ref);
++		map->refcount++;
+ 		goto out;
+ 	}
+ 
+@@ -342,7 +342,7 @@ acpi_os_map_memory(acpi_physical_address
+ 	map->virt = virt;
+ 	map->phys = pg_off;
+ 	map->size = pg_sz;
+-	kref_init(&map->ref);
++	map->refcount = 1;
+ 
+ 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+ 
+@@ -352,25 +352,24 @@ acpi_os_map_memory(acpi_physical_address
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+ 
+-static void acpi_kref_del_iomap(struct kref *ref)
++static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+ {
+-	struct acpi_ioremap *map;
+-
+-	map = container_of(ref, struct acpi_ioremap, ref);
+-	list_del_rcu(&map->list);
++	if (!--map->refcount)
++		list_del_rcu(&map->list);
  }
  
-+static void acpi_os_remove_map(struct acpi_ioremap *map)
-+{
-+	synchronize_rcu();
-+	iounmap(map->virt);
-+	kfree(map);
-+}
-+
- void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+-static void acpi_os_remove_map(struct acpi_ioremap *map)
++static void acpi_os_map_cleanup(struct acpi_ioremap *map)
  {
- 	struct acpi_ioremap *map;
-@@ -372,20 +379,14 @@ void __ref acpi_os_unmap_memory(void __i
- 	map = acpi_map_lookup_virt(virt, size);
- 	if (!map) {
- 		mutex_unlock(&acpi_ioremap_lock);
--		printk(KERN_ERR PREFIX "%s: bad address %p\n", __func__, virt);
--		dump_stack();
-+		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
- 		return;
- 	}
--
- 	del = kref_put(&map->ref, acpi_kref_del_iomap);
- 	mutex_unlock(&acpi_ioremap_lock);
- 
--	if (!del)
--		return;
--
 -	synchronize_rcu();
 -	iounmap(map->virt);
 -	kfree(map);
-+	if (del)
-+		acpi_os_remove_map(map);
++	if (!map->refcount) {
++		synchronize_rcu();
++		iounmap(map->virt);
++		kfree(map);
++	}
+ }
+ 
+ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ {
+ 	struct acpi_ioremap *map;
+-	int del;
+ 
+ 	if (!acpi_gbl_permanent_mmap) {
+ 		__acpi_unmap_table(virt, size);
+@@ -384,11 +383,10 @@ void __ref acpi_os_unmap_memory(void __i
+ 		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
+ 		return;
+ 	}
+-	del = kref_put(&map->ref, acpi_kref_del_iomap);
++	acpi_os_drop_map_ref(map);
+ 	mutex_unlock(&acpi_ioremap_lock);
+ 
+-	if (del)
+-		acpi_os_remove_map(map);
++	acpi_os_map_cleanup(map);
  }
  EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
  
-@@ -414,8 +415,8 @@ static int acpi_os_map_generic_address(s
- 
+@@ -418,7 +416,6 @@ static int acpi_os_map_generic_address(s
  static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
  {
--	void __iomem *virt;
--	acpi_size size = addr->bit_width / 8;
-+	struct acpi_ioremap *map;
-+	int del;
+ 	struct acpi_ioremap *map;
+-	int del;
  
  	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
  		return;
-@@ -424,10 +425,16 @@ static void acpi_os_unmap_generic_addres
+@@ -432,11 +429,10 @@ static void acpi_os_unmap_generic_addres
+ 		mutex_unlock(&acpi_ioremap_lock);
  		return;
- 
- 	mutex_lock(&acpi_ioremap_lock);
--	virt = acpi_map_vaddr_lookup(addr->address, size);
-+	map = acpi_map_lookup(addr->address, addr->bit_width / 8);
-+	if (!map) {
-+		mutex_unlock(&acpi_ioremap_lock);
-+		return;
-+	}
-+	del = kref_put(&map->ref, acpi_kref_del_iomap);
+ 	}
+-	del = kref_put(&map->ref, acpi_kref_del_iomap);
++	acpi_os_drop_map_ref(map);
  	mutex_unlock(&acpi_ioremap_lock);
  
--	acpi_os_unmap_memory(virt, size);
-+	if (del)
-+		acpi_os_remove_map(map);
+-	if (del)
+-		acpi_os_remove_map(map);
++	acpi_os_map_cleanup(map);
  }
  
  #ifdef ACPI_FUTURE_USAGE
-
