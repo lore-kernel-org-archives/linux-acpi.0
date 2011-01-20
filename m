@@ -1,43 +1,49 @@
-From: Mike Travis <travis@sgi.com>
-Subject: [PATCH 6/6] printk: Minimize time zero output
-Date: Wed, 19 Jan 2011 17:01:12 -0600
-Message-ID: <20110119230107.276901215@gulag1.americas.sgi.com>
-References: <20110119230106.341785959@gulag1.americas.sgi.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=minimize-time-zero-msgs
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Lori Gilbertson <loriann@sgi.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Jeff Chua <jeff.chua.linux@gmail.com>
+Subject: Re: [linux-pm] Resume from Memory very slow on 2.6.37+
+Date: Thu, 20 Jan 2011 09:21:30 +0800
+Message-ID: <AANLkTinvz=syQgiWkQLgu2ssutBNccKuyxdPcGj97npU@mail.gmail.com>
+References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com>
+	<201101190238.18529.rjw@sisk.pl>
+	<AANLkTimf3B=z1DCA2q+yi-ccyAJwmjkB_g8EP=ZTehmn@mail.gmail.com>
+	<201101192219.07569.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:42042 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754597Ab1ATBVb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jan 2011 20:21:31 -0500
+Received: by iyj18 with SMTP id 18so47572iyj.19
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jan 2011 17:21:30 -0800 (PST)
+In-Reply-To: <201101192219.07569.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <len.brown@intel.com>, linux-pm@lists.linux-foundation.org, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Reduce the length for time zero messages by only printing "[0] ".
+On Thu, Jan 20, 2011 at 5:19 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> OK, I'd like you to test the two patches I'll send in replies to this
+> message.
+> [1/2] - It will go back to using ioremap_cache() for NVS pages alloca=
+tions.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Reviewed-by: Jack Steiner <steiner@sgi.com>
-Reviewed-by: Robin Holt <holt@sgi.com>
----
- kernel/printk.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Applied. This one makes resume effective.
 
---- linux-2.6.32.orig/kernel/printk.c
-+++ linux-2.6.32/kernel/printk.c
-@@ -806,11 +806,14 @@ asmlinkage int vprintk(const char *fmt,
- 				unsigned long nanosec_rem;
- 
- 				t = cpu_clock(printk_cpu);
--				nanosec_rem = do_div(t, 1000000000);
--				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
-+				if (likely(t)) {
-+					nanosec_rem = do_div(t, 1000000000);
-+					tlen = sprintf(tbuf, "[%5lu.%06lu] ",
- 						(unsigned long) t,
- 						nanosec_rem / 1000);
--
-+				} else {
-+					tlen = sprintf(tbuf, "[0] ");
-+				}
- 				for (tp = tbuf; tp < tbuf + tlen; tp++)
- 					emit_log_char(*tp);
- 				printed_len += tlen;
+> [2/2] - This one will move suspend_nvs_free() before device drivers' =
+resume
+> =A0 =A0 =A0 =A0callbacks (should avoid conflicts with the drivers' ma=
+ppings).
 
--- 
+Applied. This one makes no difference. Without applying [1/2], this
+one makes resume hangs, so definitely needs to go along with [1/2].
+
+Applied both and I've tried a few cycles and resume still working ok.
+
+Thanks,
+Jeff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
