@@ -1,83 +1,94 @@
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: [PATCH] acpi: debugfs: fix buffer overflows, double free
-Date: Thu, 20 Jan 2011 23:08:06 +0300
-Message-ID: <1295554086-23873-1-git-send-email-segoon@openwall.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
+Date: Thu, 20 Jan 2011 21:57:16 +0100
+Message-ID: <201101202157.16813.rjw@sisk.pl>
+References: <201101201226.41021.rjw@sisk.pl> <AANLkTikVRHfu2KhH4yi2VerkRXBdCODedCDORmpEzRXO@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58665 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1ATUIP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2011 15:08:15 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:35023 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754276Ab1ATU6B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jan 2011 15:58:01 -0500
+In-Reply-To: <AANLkTikVRHfu2KhH4yi2VerkRXBdCODedCDORmpEzRXO@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kernel-janitors@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-File position is not controlled, it may lead to overwrites of arbitrary
-kernel memory.  Also the code may kfree() the same pointer multiple
-times.
+On Thursday, January 20, 2011, Jeff Chua wrote:
+> On Thu, Jan 20, 2011 at 7:26 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+> > [10/11] - Make the NVS code use existing iomaps if possible.
+> 
+> Seems ok.
+> 
+> > [11/11] - (cleanup) Remove an unnecessary field from struct nvs_page.
+> 
+> This seems to have an issue. Notebook tries to suspend ... then resume
+> immediately.
 
-One more flaw is still present: if multiple processes open the file then
-all 3 static variables are shared, leading to various race conditions.
-They should be moved to file->private_data.
+That's unexpected.  Please apply the debug patch below in addition to the
+whole series and send a dmesg output containing a (failing) suspend attempt
+(with the patch applied).
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Thanks,
+Rafael
+
+
 ---
- drivers/acpi/debugfs.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/acpi/nvs.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-index 5df67f1..384f7ab 100644
---- a/drivers/acpi/debugfs.c
-+++ b/drivers/acpi/debugfs.c
-@@ -26,7 +26,9 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 			size_t count, loff_t *ppos)
- {
- 	static char *buf;
--	static int uncopied_bytes;
-+	static u32 max_size;
-+	static u32 uncopied_bytes;
+Index: linux-2.6/drivers/acpi/nvs.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/nvs.c
++++ linux-2.6/drivers/acpi/nvs.c
+@@ -87,9 +87,15 @@ void suspend_nvs_free(void)
+ 			entry->data = NULL;
+ 			if (entry->kaddr) {
+ 				if (entry->unmap) {
++					pr_info("%s: Unmapping %p\n", __func__,
++						entry->kaddr);
 +
- 	struct acpi_table_header table;
- 	acpi_status status;
- 
-@@ -37,19 +39,24 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 		if (copy_from_user(&table, user_buf,
- 				   sizeof(struct acpi_table_header)))
- 			return -EFAULT;
--		uncopied_bytes = table.length;
--		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
-+		uncopied_bytes = max_size = table.length;
-+		buf = kzalloc(max_size, GFP_KERNEL);
- 		if (!buf)
- 			return -ENOMEM;
- 	}
- 
--	if (uncopied_bytes < count) {
--		kfree(buf);
-+	if (buf == NULL)
-+		return -EINVAL;
+ 					iounmap(entry->kaddr);
+ 					entry->unmap = false;
+ 				} else {
++					pr_info("%s: Dropping %p\n", __func__,
++						entry->kaddr);
 +
-+	if ((*ppos > max_size) ||
-+	    (*ppos + count > max_size) ||
-+	    (*ppos + count < count) ||
-+	    (count > uncopied_bytes))
- 		return -EINVAL;
--	}
+ 					acpi_os_unmap_memory(entry->kaddr,
+ 							     entry->size);
+ 				}
+@@ -139,9 +145,17 @@ int suspend_nvs_save(void)
+ 			if (!entry->kaddr) {
+ 				suspend_nvs_free();
+ 				return -EIO;
++			} else {
++				pr_info("%s: Mapped %p\n", __func__,
++					entry->kaddr);
+ 			}
+ 			entry->unmap = true;
++		} else {
++			pr_info("%s: Got address %p\n", __func__, entry->kaddr);
+ 		}
++		pr_info("%s: Saving %p <- %p\n", __func__,
++			entry->data, entry->kaddr);
++
+ 		memcpy(entry->data, entry->kaddr, entry->size);
  
- 	if (copy_from_user(buf + (*ppos), user_buf, count)) {
- 		kfree(buf);
-+		buf = NULL;
- 		return -EFAULT;
- 	}
+ 		page_addr += PAGE_SIZE;
+@@ -164,6 +178,10 @@ void suspend_nvs_restore(void)
+ 	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
  
-@@ -59,6 +66,7 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 	if (!uncopied_bytes) {
- 		status = acpi_install_method(buf);
- 		kfree(buf);
-+		buf = NULL;
- 		if (ACPI_FAILURE(status))
- 			return -EINVAL;
- 		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
--- 
-1.7.0.4
-
+ 	list_for_each_entry(entry, &nvs_list, node)
+-		if (entry->data)
++		if (entry->data) {
++			pr_info("%s: Restoring %p -> %p\n", __func__,
++				entry->data, entry->kaddr);
++
+ 			memcpy(entry->kaddr, entry->data, entry->size);
++		}
+ }
