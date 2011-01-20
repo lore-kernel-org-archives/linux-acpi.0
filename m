@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 8/11] ACPI: Do not use krefs under a mutex in osl.c
-Date: Thu, 20 Jan 2011 12:34:57 +0100
-Message-ID: <201101201234.57619.rjw@sisk.pl>
+Subject: [PATCH 3/11] ACPI: Fix acpi_os_read_memory() and acpi_os_write_memory()
+Date: Thu, 20 Jan 2011 12:30:09 +0100
+Message-ID: <201101201230.10048.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,114 +16,91 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The reference counting of ACPI iomaps is carried out entirely under
-acpi_ioremap_lock, so it is sufficient to use simple counters instead
-of krefs for this purpose.
+The functions acpi_os_read_memory() and acpi_os_write_memory() do
+two wrong things.  First, they shouldn't call rcu_read_unlock()
+before the looked up address is actually used for I/O, because in
+that case the mapping it belongs to may be removed before the I/O
+is done.  Second, they shouldn't use the physical address if
+there's no mapping for it, because that may lead to problems (at
+least for the "write" case it's like sending data to a random
+physical address in the hope it's going to work).
+
+Make the rcu_read_unlock() be called by these functions when the I/O
+is complete and modify them to dump stack and return error code if
+the requested physical address is not present in the ACPI iomaps.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c |   36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ drivers/acpi/osl.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
 Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/osl.c
 +++ linux-2.6/drivers/acpi/osl.c
-@@ -105,7 +105,7 @@ struct acpi_ioremap {
- 	void __iomem *virt;
- 	acpi_physical_address phys;
- 	acpi_size size;
--	struct kref ref;
-+	unsigned long refcount;
- };
- 
- static LIST_HEAD(acpi_ioremaps);
-@@ -319,7 +319,7 @@ acpi_os_map_memory(acpi_physical_address
- 	/* Check if there's a suitable mapping already. */
- 	map = acpi_map_lookup(phys, size);
- 	if (map) {
--		kref_get(&map->ref);
-+		map->refcount++;
- 		goto out;
- 	}
- 
-@@ -342,7 +342,7 @@ acpi_os_map_memory(acpi_physical_address
- 	map->virt = virt;
- 	map->phys = pg_off;
- 	map->size = pg_sz;
--	kref_init(&map->ref);
-+	map->refcount = 1;
- 
- 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
- 
-@@ -352,25 +352,24 @@ acpi_os_map_memory(acpi_physical_address
- }
- EXPORT_SYMBOL_GPL(acpi_os_map_memory);
- 
--static void acpi_kref_del_iomap(struct kref *ref)
-+static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+@@ -638,17 +638,17 @@ acpi_os_read_memory(acpi_physical_addres
  {
--	struct acpi_ioremap *map;
+ 	u32 dummy;
+ 	void __iomem *virt_addr;
+-	int size = width / 8, unmap = 0;
++
++	if (!value)
++		value = &dummy;
+ 
+ 	rcu_read_lock();
+-	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+-	rcu_read_unlock();
++	virt_addr = acpi_map_vaddr_lookup(phys_addr, width / 8);
+ 	if (!virt_addr) {
+-		virt_addr = acpi_os_ioremap(phys_addr, size);
+-		unmap = 1;
++		rcu_read_unlock();
++		WARN(true, "Address not mapped: %llx\n", phys_addr);
++		return AE_BAD_ADDRESS;
+ 	}
+-	if (!value)
+-		value = &dummy;
+ 
+ 	switch (width) {
+ 	case 8:
+@@ -663,9 +663,7 @@ acpi_os_read_memory(acpi_physical_addres
+ 	default:
+ 		BUG();
+ 	}
 -
--	map = container_of(ref, struct acpi_ioremap, ref);
--	list_del_rcu(&map->list);
-+	if (!--map->refcount)
-+		list_del_rcu(&map->list);
+-	if (unmap)
+-		iounmap(virt_addr);
++	rcu_read_unlock();
+ 
+ 	return AE_OK;
  }
- 
--static void acpi_os_remove_map(struct acpi_ioremap *map)
-+static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+@@ -674,14 +672,13 @@ acpi_status
+ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
  {
--	synchronize_rcu();
--	iounmap(map->virt);
--	kfree(map);
-+	if (!map->refcount) {
-+		synchronize_rcu();
-+		iounmap(map->virt);
-+		kfree(map);
-+	}
- }
+ 	void __iomem *virt_addr;
+-	int size = width / 8, unmap = 0;
  
- void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
- {
- 	struct acpi_ioremap *map;
--	int del;
- 
- 	if (!acpi_gbl_permanent_mmap) {
- 		__acpi_unmap_table(virt, size);
-@@ -384,11 +383,10 @@ void __ref acpi_os_unmap_memory(void __i
- 		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
- 		return;
+ 	rcu_read_lock();
+-	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+-	rcu_read_unlock();
++	virt_addr = acpi_map_vaddr_lookup(phys_addr, width / 8);
+ 	if (!virt_addr) {
+-		virt_addr = acpi_os_ioremap(phys_addr, size);
+-		unmap = 1;
++		rcu_read_unlock();
++		WARN(true, "Address not mapped: %llx\n", phys_addr);
++		return AE_BAD_ADDRESS;
  	}
--	del = kref_put(&map->ref, acpi_kref_del_iomap);
-+	acpi_os_drop_map_ref(map);
- 	mutex_unlock(&acpi_ioremap_lock);
  
--	if (del)
--		acpi_os_remove_map(map);
-+	acpi_os_map_cleanup(map);
- }
- EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
- 
-@@ -418,7 +416,6 @@ static int acpi_os_map_generic_address(s
- static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
- {
- 	struct acpi_ioremap *map;
--	int del;
- 
- 	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		return;
-@@ -432,11 +429,10 @@ static void acpi_os_unmap_generic_addres
- 		mutex_unlock(&acpi_ioremap_lock);
- 		return;
+ 	switch (width) {
+@@ -697,9 +694,7 @@ acpi_os_write_memory(acpi_physical_addre
+ 	default:
+ 		BUG();
  	}
--	del = kref_put(&map->ref, acpi_kref_del_iomap);
-+	acpi_os_drop_map_ref(map);
- 	mutex_unlock(&acpi_ioremap_lock);
+-
+-	if (unmap)
+-		iounmap(virt_addr);
++	rcu_read_unlock();
  
--	if (del)
--		acpi_os_remove_map(map);
-+	acpi_os_map_cleanup(map);
+ 	return AE_OK;
  }
- 
- #ifdef ACPI_FUTURE_USAGE
