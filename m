@@ -1,57 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/11] ACPI / PM: Call suspend_nvs_free() earlier during resume
-Date: Thu, 20 Jan 2011 12:28:57 +0100
-Message-ID: <201101201228.57812.rjw@sisk.pl>
-References: <201101201226.41021.rjw@sisk.pl>
+Subject: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
+Date: Thu, 20 Jan 2011 12:26:40 +0100
+Message-ID: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60034 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755056Ab1ATLij (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jan 2011 06:38:39 -0500
-In-Reply-To: <201101201226.41021.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi Len,
 
-It turns out that some device drivers map pages from the ACPI NVS
-region during resume using ioremap(), which conflicts with the
-ioremap_cache() used for mapping those pages by the NVS save/restore
-code in nvs.c.
+The following series of patches implements some fixes of the ACPI iomaps
+management.  I found the problems trying to resolve the issue of creating
+iomaps of regions that have been mapped already when we save the NVS region.
 
-Make the NVS pages mapped by the code in nvs.c be unmapped before
-device drivers' resume routines run.
+The first two patches are the same as https://patchwork.kernel.org/patch/490071/
+(except for the changelog) and https://patchwork.kernel.org/patch/490061/,
+respectively, and they are 2.6.38 regression fix material.  The other patches
+are not that urgent, because the related issues are generally long-standing,
+but some bugs addressed by them (especially [3/11]) may be actively hurting
+people right now, so the patches look suitable for .38 to me as well, but this
+is your call.
 
-Tested-by: Jeff Chua <jeff.chua.linux@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[1/11] - Introduce acpi_os_ioremap() to be called by ACPI code creating
+         iomaps, so that they are mapped in the consistent way.
 
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -166,6 +166,7 @@ static void acpi_pm_finish(void)
- 	u32 acpi_state = acpi_target_sleep_state;
- 
- 	acpi_ec_unblock_transactions();
-+	suspend_nvs_free();
- 
- 	if (acpi_state == ACPI_STATE_S0)
- 		return;
-@@ -186,7 +187,6 @@ static void acpi_pm_finish(void)
-  */
- static void acpi_pm_end(void)
- {
--	suspend_nvs_free();
- 	/*
- 	 * This is necessary in case acpi_pm_finish() is not called during a
- 	 * failing transition to a sleep state.
+[2/11] - Move the call to suspend_nvs_free() to acpi_pm_finish() so that it's
+         executed before device drivers' resume routines to avoid possible
+         iomaps conflicts.
 
+[3/11] - Fix routines for reading and writing iomem (RCU bug and mapping
+         regions on the fly).
+
+[4/11] - (cleanup) Do not export local functions in osl.c.
+
+[5/11] - Use a mutex (instead of a spinlock) for the locking of iomap
+         manipulations in osl.c.
+
+[6/11] - Avoid unnecessary walks of the list of iomaps in osl.c.
+
+[7/11] - Avoid creating iomaps for regions that have been mapped already.
+
+[8/11] - Replace krefs used for iomap refcounting with simple reference
+         counters (they are manipulated under a lock anyway).
+
+[9/11] - Introduce function for getting a reference to an ACPI iomap (to be
+         used by the NVS save/restore code).
+
+[10/11] - Make the NVS code use existing iomaps if possible.
+
+[11/11] - (cleanup) Remove an unnecessary field from struct nvs_page.
+
+The patches have been tested on HP nx6325, Toshiba Portege R500 and Acer
+Ferrari One without causing any visible problems to happen.  Also Jeff has
+tested [1/11] and [2/11] and he reports that they fix the synchronize_rcu()
+problem for him.  [Jeff, can you test the whole series, please, and see if
+it doesn't introduce any new issues, [10/11] in particular?]
+
+Thanks,
+Rafael
