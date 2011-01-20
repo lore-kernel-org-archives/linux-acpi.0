@@ -1,46 +1,65 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 3/5] radeon: Expose backlight class device for legacy
-	LVDS encoder
-Date: Wed, 19 Jan 2011 18:12:13 -0800
-Message-ID: <20110119181213.8e301c33.akpm@linux-foundation.org>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
-	<1295033065-13450-3-git-send-email-mjg@redhat.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: Patch[1/1]:ThermalFramework:Fix_crash_during_hwmon_unregister
+Date: Thu, 20 Jan 2011 14:56:03 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1295033065-13450-3-git-send-email-mjg@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, Michel =?ISO-8859-1?Q?D=E4nzer?= <daenzer@vmware.com>, intel-gfx@lists.freedesktop.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:37821 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752110Ab1ATJ1h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2011 04:27:37 -0500
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 14 Jan 2011 14:24:23 -0500
-Matthew Garrett <mjg@redhat.com> wrote:
+Hi Len/Rui,
 
-> From: Michel D__nzer <michel@daenzer.net>
-> 
-> Allows e.g. power management daemons to control the backlight level. Inspired
-> by the corresponding code in radeonfb.
-> 
-> (Updated to add backlight type and make the connector the parent device - mjg)
-> 
+This patch fixes the following bug:
+The thermal framework creates a temp*_crit interface, only when
+the get_crit_temp pointer is defined. But during the _unregister_
+path, without checking for the function definition, it is trying to
+remove the temp*_crit interface.
 
-x86_64 allmodconfig:
+There can be a situation, where a driver registers with the framework
+and does not have a temp*_crit interface. When this driver attempts to
+unregister, this will cause a kernel crash.
 
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c: In function 'radeon_legacy_lvds_update':
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:64: error: 'struct radeon_encoder_atom_dig' has no member named 'bl_dev'
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:65: error: 'struct radeon_encoder_atom_dig' has no member named 'backlight_level'
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:69: error: 'struct radeon_encoder_lvds' has no member named 'bl_dev'
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:70: error: 'struct radeon_encoder_lvds' has no member named 'backlight_level'
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c: In function 'radeon_legacy_lvds_dpms':
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:144: error: 'struct radeon_encoder_atom_dig' has no member named 'dpms_mode'
-drivers/gpu/drm/radeon/radeon_legacy_encoders.c:147: error: 'struct radeon_encoder_lvds' has no member named 'dpms_mode'
+------------------------------------------------
+From: Durgadoss R <durgadoss.r@intel.com>
+
+Date: Thu, 20 Jan 2011 02:40:56 +0530
+Subject: [PATCH] Thermal_Framework-Fix_crash_during_hwmon_unregister
+
+This patch fixes the following bug:
+The thermal framework creates a temp*_crit interface, only when
+the get_crit_temp pointer is defined. But during the _unregister_
+path, without checking for the function definition, it is trying to
+remove the temp*_crit interface.
+
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+
+---
+ drivers/thermal/thermal_sys.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 13c72c6..eef2e14 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -556,7 +556,8 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
+ 
+ 	tz->hwmon = NULL;
+ 	device_remove_file(hwmon->device, &tz->temp_input.attr);
+-	device_remove_file(hwmon->device, &tz->temp_crit.attr);
++	if (tz->ops->get_crit_temp)
++		device_remove_file(hwmon->device, &tz->temp_crit.attr);
+ 
+ 	mutex_lock(&thermal_list_lock);
+ 	list_del(&tz->hwmon_node);
+-- 
+1.6.5.2
+
