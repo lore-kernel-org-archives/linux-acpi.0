@@ -1,65 +1,56 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: Patch[1/1]:ThermalFramework:Fix_crash_during_hwmon_unregister
-Date: Thu, 20 Jan 2011 14:56:03 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: ACPI notify handler and reentrancy of WMI device.
+Date: Thu, 20 Jan 2011 17:55:11 +0800
+Message-ID: <1295517311.11852.7.camel@minggr.sh.intel.com>
+References: <AANLkTi=hBDt+Ej+hNcxxnw4ZjPZ930kR13DVjtt50zwD@mail.gmail.com>
+	 <AANLkTim0auvcUeDSO7QGSVbj0A+g88FSon7-qT6KzBHd@mail.gmail.com>
+	 <1295229942.28388.87.camel@minggr.sh.intel.com>
+	 <AANLkTinfP+-L2T4oggiTpMwE74V6kxgcrStHumYGiH23@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:37821 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752110Ab1ATJ1h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2011 04:27:37 -0500
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinfP+-L2T4oggiTpMwE74V6kxgcrStHumYGiH23@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Len/Rui,
+On Mon, 2011-01-17 at 14:51 +0800, Corentin Chary wrote:
+> >> I got an acpi notify handler. The notify is triggered when I call WMBC().
+> >> In this notify handler, I must re-call WMBC (with some other arguments, it won't
+> >> notify again this time).
+> >>
+> >> If I do that, I'll get:
+> >> [  176.920391] ACPI Error (dswload-0802): [_T_0] Namespace lookup
+> >> failure, AE_ALREADY_EXISTS
+> >> [  176.920416] ACPI Exception: AE_ALREADY_EXISTS, During name
+> >> lookup/catalog (20100428/psloop-231)
+> >> [  176.920439] ACPI Error (psparse-0537): Method parse/execution
+> >> failed [\AMW0.WMBC] (Node f7023b88), AE_ALREADY_EXISTS
+> >> [  176.920469] ACPI: Marking method WMBC as Serialized because of
+> >> AE_ALREADY_EXISTS error
+> >
+> > Could you attach the acpidump output?
+> 
+> Here it is, and here is the patch I did (I used the workqueue solution
+> in this one):
+> 
+> http://git.iksaif.net/?p=acpi4asus.git;a=blobdiff;f=drivers/platform/x86/eeepc-wmi.c;h=725239860bad8d97dabf8b3db4086d6df4b7820b;hp=0d8217d1478028071859ba1a503ba226b3cb33a0;hb=1eac4d6a6fb632314a464e7d52e1dcb1e4780931;hpb=5c5d1a036bb7d38153c6d2102767ef51e5d94ce3
+> 
+> (check eeepc_rfkill_notify, it's triggered when the wlan rfkill is
+> blocked: WMBC is called to disable the wlan card, it send a
+> notification, the handler is called, the handler want to check the
+> wlan card status, it calls WMBC again).
+> Thanks;
+> 
 
-This patch fixes the following bug:
-The thermal framework creates a temp*_crit interface, only when
-the get_crit_temp pointer is defined. But during the _unregister_
-path, without checking for the function definition, it is trying to
-remove the temp*_crit interface.
+Sorry for late reply.
 
-There can be a situation, where a driver registers with the framework
-and does not have a temp*_crit interface. When this driver attempts to
-unregister, this will cause a kernel crash.
+WMBC is not an ACPI spec defined method (which always start with "_",
+_ADR, _DSW etc), the driver should only call ACPI spec defined method.
+What does this method do?
 
-------------------------------------------------
-From: Durgadoss R <durgadoss.r@intel.com>
+And, I don't see any call to WMBC in eeepc-wmi.c or above patch.
 
-Date: Thu, 20 Jan 2011 02:40:56 +0530
-Subject: [PATCH] Thermal_Framework-Fix_crash_during_hwmon_unregister
-
-This patch fixes the following bug:
-The thermal framework creates a temp*_crit interface, only when
-the get_crit_temp pointer is defined. But during the _unregister_
-path, without checking for the function definition, it is trying to
-remove the temp*_crit interface.
-
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-
----
- drivers/thermal/thermal_sys.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 13c72c6..eef2e14 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -556,7 +556,8 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
- 
- 	tz->hwmon = NULL;
- 	device_remove_file(hwmon->device, &tz->temp_input.attr);
--	device_remove_file(hwmon->device, &tz->temp_crit.attr);
-+	if (tz->ops->get_crit_temp)
-+		device_remove_file(hwmon->device, &tz->temp_crit.attr);
- 
- 	mutex_lock(&thermal_list_lock);
- 	list_del(&tz->hwmon_node);
--- 
-1.6.5.2
-
+Lin Ming
