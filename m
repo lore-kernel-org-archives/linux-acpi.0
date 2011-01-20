@@ -1,48 +1,48 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Intel-gfx] [PATCH 2/5] i915: Add native backlight control
-Date: Thu, 20 Jan 2011 15:13:49 -0800
-Message-ID: <20110120151349.49cf3ebb.akpm@linux-foundation.org>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
-	<1295033065-13450-2-git-send-email-mjg@redhat.com>
-	<20112101000015@lilem.mirepesht> <20112101004346@lilem.mirepesht>
+Subject: Re: [PATCH 1/6] printk: Allocate kernel log buffer earlier
+Date: Thu, 20 Jan 2011 15:50:21 -0800
+Message-ID: <20110120155021.c39387c3.akpm@linux-foundation.org>
+References: <20110119230106.341785959@gulag1.americas.sgi.com>
+	<20110119230106.527741713@gulag1.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <20112101004346@lilem.mirepesht>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Ali Gholami Rudi <aliqrudi@gmail.com>
-Cc: intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, Matthew Garrett <mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36497 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755229Ab1ATXvF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jan 2011 18:51:05 -0500
+In-Reply-To: <20110119230106.527741713@gulag1.americas.sgi.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Lori Gilbertson <loriann@sgi.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 21 Jan 2011 00:43:46 +0330
-Ali Gholami Rudi <aliqrudi@gmail.com> wrote:
+On Wed, 19 Jan 2011 17:01:07 -0600
+Mike Travis <travis@sgi.com> wrote:
 
-> Ali Gholami Rudi <aliqrudi@gmail.com> wrote:
-> > I tried to apply this patch but I get:
-> > 
-> > 	drivers/gpu/drm/i915/intel_panel.c: In function 'intel_panel_setup_backlight':
-> > 	drivers/gpu/drm/i915/intel_panel.c:319: error: 'struct backlight_properties' has no member named 'type'
-> > 	drivers/gpu/drm/i915/intel_panel.c:319: error: 'BACKLIGHT_RAW' undeclared (first use in this function)
-> > 	drivers/gpu/drm/i915/intel_panel.c:319: error: (Each undeclared identifier is reported only once
-> > 	drivers/gpu/drm/i915/intel_panel.c:319: error: for each function it appears in.)
+> On larger systems, because of the numerous ACPI, Bootmem and EFI
+> messages, the static log buffer overflows before the larger one
+> specified by the log_buf_len param is allocated.  Minimize the
+> overflow by allocating the new log buffer as soon as possible.
 > 
-> After applying patch 1/5, the patch applied cleanly.
-> Now I can change the brightness using
-> /sys/class/backlight/intel_backlight/brightness.
-> So it does fix my issue.
+> All arch's are covered by the "setup_log_buf" in start_kernel().
+> The x86 arch allocates it right after bootmem is created.
 > 
+> ...
+>
+> +void setup_log_buf(void);
+>
+> ...
+>
+> +void __init setup_log_buf(void)
+>
 
-So we have a patch ordering issue and the
-radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch
-build error.
+It's a PITA but the declaration should have the __init tag as well.  We
+have had at least one instance where failing to do this caused an arch
+(arm) to emit a short-mode address offset to a function which it
+thought was in the same section as the callsite.  Only the target was
+in a different section from the callsite and the linker couldn't fit
+the needed offset into the operand.
 
-Matthew, I'll drop 'em all for now.
