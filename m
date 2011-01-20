@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/11] ACPI: Fix acpi_os_read_memory() and acpi_os_write_memory()
-Date: Thu, 20 Jan 2011 12:30:09 +0100
-Message-ID: <201101201230.10048.rjw@sisk.pl>
+Subject: [PATCH 5/11] ACPI: Change acpi_ioremap_lock into a mutex
+Date: Thu, 20 Jan 2011 12:31:41 +0100
+Message-ID: <201101201231.41625.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,91 +16,106 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The functions acpi_os_read_memory() and acpi_os_write_memory() do
-two wrong things.  First, they shouldn't call rcu_read_unlock()
-before the looked up address is actually used for I/O, because in
-that case the mapping it belongs to may be removed before the I/O
-is done.  Second, they shouldn't use the physical address if
-there's no mapping for it, because that may lead to problems (at
-least for the "write" case it's like sending data to a random
-physical address in the hope it's going to work).
-
-Make the rcu_read_unlock() be called by these functions when the I/O
-is complete and modify them to dump stack and return error code if
-the requested physical address is not present in the ACPI iomaps.
+There's no reason why acpi_ioremap_lock has to be a spinlock,
+because all of the functions it is used in may sleep anyway and
+there's no reason why it should be locked with interrupts off.
+Use a mutex instead (that's going to allow us to put some more
+operations under the lock later).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c |   31 +++++++++++++------------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+ drivers/acpi/osl.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
 Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/osl.c
 +++ linux-2.6/drivers/acpi/osl.c
-@@ -638,17 +638,17 @@ acpi_os_read_memory(acpi_physical_addres
+@@ -109,7 +109,7 @@ struct acpi_ioremap {
+ };
+ 
+ static LIST_HEAD(acpi_ioremaps);
+-static DEFINE_SPINLOCK(acpi_ioremap_lock);
++static DEFINE_MUTEX(acpi_ioremap_lock);
+ 
+ static void __init acpi_osi_setup_late(void);
+ 
+@@ -303,7 +303,6 @@ void __iomem *__init_refok
+ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
  {
- 	u32 dummy;
- 	void __iomem *virt_addr;
--	int size = width / 8, unmap = 0;
-+
-+	if (!value)
-+		value = &dummy;
+ 	struct acpi_ioremap *map, *tmp_map;
+-	unsigned long flags;
+ 	void __iomem *virt;
+ 	acpi_physical_address pg_off;
+ 	acpi_size pg_sz;
+@@ -334,18 +333,18 @@ acpi_os_map_memory(acpi_physical_address
+ 	map->size = pg_sz;
+ 	kref_init(&map->ref);
  
- 	rcu_read_lock();
--	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	rcu_read_unlock();
-+	virt_addr = acpi_map_vaddr_lookup(phys_addr, width / 8);
- 	if (!virt_addr) {
--		virt_addr = acpi_os_ioremap(phys_addr, size);
--		unmap = 1;
-+		rcu_read_unlock();
-+		WARN(true, "Address not mapped: %llx\n", phys_addr);
-+		return AE_BAD_ADDRESS;
+-	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	mutex_lock(&acpi_ioremap_lock);
+ 	/* Check if page has already been mapped. */
+ 	tmp_map = acpi_map_lookup(phys, size);
+ 	if (tmp_map) {
+ 		kref_get(&tmp_map->ref);
+-		spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++		mutex_unlock(&acpi_ioremap_lock);
+ 		iounmap(map->virt);
+ 		kfree(map);
+ 		return tmp_map->virt + (phys - tmp_map->phys);
  	}
--	if (!value)
--		value = &dummy;
+ 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
+-	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++	mutex_unlock(&acpi_ioremap_lock);
  
- 	switch (width) {
- 	case 8:
-@@ -663,9 +663,7 @@ acpi_os_read_memory(acpi_physical_addres
- 	default:
- 		BUG();
- 	}
--
--	if (unmap)
--		iounmap(virt_addr);
-+	rcu_read_unlock();
- 
- 	return AE_OK;
+ 	return map->virt + (phys - map->phys);
  }
-@@ -674,14 +672,13 @@ acpi_status
- acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
+@@ -362,7 +361,6 @@ static void acpi_kref_del_iomap(struct k
+ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
  {
- 	void __iomem *virt_addr;
--	int size = width / 8, unmap = 0;
+ 	struct acpi_ioremap *map;
+-	unsigned long flags;
+ 	int del;
  
- 	rcu_read_lock();
--	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	rcu_read_unlock();
-+	virt_addr = acpi_map_vaddr_lookup(phys_addr, width / 8);
- 	if (!virt_addr) {
--		virt_addr = acpi_os_ioremap(phys_addr, size);
--		unmap = 1;
-+		rcu_read_unlock();
-+		WARN(true, "Address not mapped: %llx\n", phys_addr);
-+		return AE_BAD_ADDRESS;
+ 	if (!acpi_gbl_permanent_mmap) {
+@@ -370,17 +368,17 @@ void __ref acpi_os_unmap_memory(void __i
+ 		return;
  	}
  
- 	switch (width) {
-@@ -697,9 +694,7 @@ acpi_os_write_memory(acpi_physical_addre
- 	default:
- 		BUG();
+-	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	mutex_lock(&acpi_ioremap_lock);
+ 	map = acpi_map_lookup_virt(virt, size);
+ 	if (!map) {
+-		spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++		mutex_unlock(&acpi_ioremap_lock);
+ 		printk(KERN_ERR PREFIX "%s: bad address %p\n", __func__, virt);
+ 		dump_stack();
+ 		return;
  	}
--
--	if (unmap)
--		iounmap(virt_addr);
-+	rcu_read_unlock();
  
- 	return AE_OK;
+ 	del = kref_put(&map->ref, acpi_kref_del_iomap);
+-	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++	mutex_unlock(&acpi_ioremap_lock);
+ 
+ 	if (!del)
+ 		return;
+@@ -417,7 +415,6 @@ static int acpi_os_map_generic_address(s
+ static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+ {
+ 	void __iomem *virt;
+-	unsigned long flags;
+ 	acpi_size size = addr->bit_width / 8;
+ 
+ 	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
+@@ -426,9 +423,9 @@ static void acpi_os_unmap_generic_addres
+ 	if (!addr->address || !addr->bit_width)
+ 		return;
+ 
+-	spin_lock_irqsave(&acpi_ioremap_lock, flags);
++	mutex_lock(&acpi_ioremap_lock);
+ 	virt = acpi_map_vaddr_lookup(addr->address, size);
+-	spin_unlock_irqrestore(&acpi_ioremap_lock, flags);
++	mutex_unlock(&acpi_ioremap_lock);
+ 
+ 	acpi_os_unmap_memory(virt, size);
  }
