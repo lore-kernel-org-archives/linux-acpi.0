@@ -1,42 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Resume from Memory very slow on 2.6.37+
-Date: Thu, 20 Jan 2011 02:50:30 +0100
-Message-ID: <201101200250.30459.rjw@sisk.pl>
-References: <AANLkTimBEnKTuR5aQyXvpZX8grQPw1eCaVgP-k9yBXhv@mail.gmail.com> <201101192219.07569.rjw@sisk.pl> <AANLkTinvz=syQgiWkQLgu2ssutBNccKuyxdPcGj97npU@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 3/5] radeon: Expose backlight class device for legacy
+	LVDS encoder
+Date: Wed, 19 Jan 2011 18:12:13 -0800
+Message-ID: <20110119181213.8e301c33.akpm@linux-foundation.org>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
+	<1295033065-13450-3-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57639 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752527Ab1ATBvT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jan 2011 20:51:19 -0500
-In-Reply-To: <AANLkTinvz=syQgiWkQLgu2ssutBNccKuyxdPcGj97npU@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1295033065-13450-3-git-send-email-mjg@redhat.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, Michel =?ISO-8859-1?Q?D=E4nzer?= <daenzer@vmware.com>, intel-gfx@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>, Len Brown <lenb@kernel.org>
-Cc: Len Brown <len.brown@intel.com>, linux-pm@lists.linux-foundation.org, Jack Steiner <steiner@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thursday, January 20, 2011, Jeff Chua wrote:
-> On Thu, Jan 20, 2011 at 5:19 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > OK, I'd like you to test the two patches I'll send in replies to this
-> > message.
-> > [1/2] - It will go back to using ioremap_cache() for NVS pages allocations.
-> 
-> Applied. This one makes resume effective.
-> 
-> > [2/2] - This one will move suspend_nvs_free() before device drivers' resume
-> >        callbacks (should avoid conflicts with the drivers' mappings).
-> 
-> Applied. This one makes no difference. Without applying [1/2], this
-> one makes resume hangs, so definitely needs to go along with [1/2].
-> 
-> Applied both and I've tried a few cycles and resume still working ok.
+On Fri, 14 Jan 2011 14:24:23 -0500
+Matthew Garrett <mjg@redhat.com> wrote:
 
-OK, thanks.
+> From: Michel D__nzer <michel@daenzer.net>
+> 
+> Allows e.g. power management daemons to control the backlight level. Inspired
+> by the corresponding code in radeonfb.
+> 
+> (Updated to add backlight type and make the connector the parent device - mjg)
+> 
 
-Len, can you push https://patchwork.kernel.org/patch/490071/ and
-https://patchwork.kernel.org/patch/490061/ to Linus, please?
+x86_64 allmodconfig:
 
-Rafael
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c: In function 'radeon_legacy_lvds_update':
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:64: error: 'struct radeon_encoder_atom_dig' has no member named 'bl_dev'
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:65: error: 'struct radeon_encoder_atom_dig' has no member named 'backlight_level'
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:69: error: 'struct radeon_encoder_lvds' has no member named 'bl_dev'
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:70: error: 'struct radeon_encoder_lvds' has no member named 'backlight_level'
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c: In function 'radeon_legacy_lvds_dpms':
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:144: error: 'struct radeon_encoder_atom_dig' has no member named 'dpms_mode'
+drivers/gpu/drm/radeon/radeon_legacy_encoders.c:147: error: 'struct radeon_encoder_lvds' has no member named 'dpms_mode'
