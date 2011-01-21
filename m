@@ -1,90 +1,84 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: regression 2.6.37 -> 2.6.38-rc1: after suspend backlight
- cannot be adjusted
-Date: Fri, 21 Jan 2011 05:16:34 +0100
-Message-ID: <1295583394.2613.47.camel@edumazet-laptop>
-References: <20110121015529.GD9796@gamma.logic.tuwien.ac.at>
-	 <1295583107.2613.45.camel@edumazet-laptop>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Occasional (too common) suspend problem
+Date: Thu, 20 Jan 2011 20:50:36 -0800
+Message-ID: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59415 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788Ab1AUEQk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jan 2011 23:16:40 -0500
-In-Reply-To: <1295583107.2613.45.camel@edumazet-laptop>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34359 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751827Ab1AUEvc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jan 2011 23:51:32 -0500
+Received: from mail-iy0-f174.google.com (mail-iy0-f174.google.com [209.85.210.174])
+	(authenticated bits=0)
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0L4ovUE015480
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=FAIL)
+	for <linux-acpi@vger.kernel.org>; Thu, 20 Jan 2011 20:50:57 -0800
+Received: by iyj18 with SMTP id 18so1308114iyj.19
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jan 2011 20:50:56 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>Linux-pm mailing list <linu>
 
-Le vendredi 21 janvier 2011 =C3=A0 05:11 +0100, Eric Dumazet a =C3=A9cr=
-it :
-> Le vendredi 21 janvier 2011 =C3=A0 10:55 +0900, Norbert Preining a =C3=
-=A9crit :
-> > Hi everyone,
-> >=20
-> > (please Cc)
-> >=20
-> > going to 2.6.38-rc1 I see the following regression: After reboot I
-> > can easily adjust the backlight with the keys on my keyboard, but=20
-> > after a suspend-to-ram this does not work anymore.
-> >=20
-> > This is a Sony laptop, and backlight is controlled by the video
-> > acpi driver AFAIR.
-> >=20
->=20
-> Hi Norbert
->=20
-> Maybe this is the problem Linus had to bisect, you could try his patc=
-h :
->=20
-> http://marc.info/?l=3Dlinux-netdev&m=3D129556877919576&w=3D2
->=20
-> Thanks !
->=20
+So I have one remaining problem on my nasty EeePC problem child
+computer, and this one I cannot bisect simply because it's so flaky.
 
-Or just pull linux-2.6, since patch is now committed
+The exact same kernel may suspend and resume many many times in a row,
+and then I reboot it, and it hangs on the first suspend. Very
+occasionally the machine comes back when I press a key, and resumes
+ok. Most of the time it does not - it's just dead to the world, and
+there are no logs to go by. I even tried pm_trace, and that didn't get
+me anywhere, although I once got a hash match:
 
-commit 28e58ee8ce1f0e69c207f747b7b9054b071e328d
-Author: Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu Jan 20 16:21:59 2011 -0800
+  hash matches drivers/base/power/main.c:555
 
-    Fix broken "pipe: use event aware wakeups" optimization
-   =20
-    Commit e462c448fdc8 ("pipe: use event aware wakeups") optimized the=
- pipe
-    event wakeup calls to avoid wakeups if the events do not match the
-    requested set.
-   =20
-    However, the optimization was buggy, in that it didn't actually use=
- the
-    correct sets for the events: when we make room for more data to be
-    written, the pipe poll() routine will return both the POLLOUT _and_
-    POLLWRNORM bits.  Similarly for read.
-   =20
-    And most critically, when a pipe is released, that will potentially
-    result in POLLHUP|POLLERR (depending on whether it was the last rea=
-der
-    or writer), not just the regular POLLIN|POLLOUT.
-   =20
-    This bug showed itself as a hung gnome-screensaver-dialog process, =
-stuck
-    forever (or at least until it was poked by a signal or by being tra=
-ced)
-    in a poll() system call.
-   =20
-    Cc: Davide Libenzi <davidel@xmailserver.org>
-    Cc: David S. Miller <davem@davemloft.net>
-    Cc: Eric Dumazet <eric.dumazet@gmail.com>
-    Cc: Jens Axboe <axboe@kernel.dk>
-    Cc: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+which is the last part of a deivice_resume(), but none of the devices
+matched, so that didn't really give any information at all.
 
+So I have very little to go on.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+However, at least one time when it failed and came back (remember:
+very rare), I did get that suspend sequence printouts logged. Here's a
+_good_ suspend:
+
+  ...
+  [   79.596367] PM: Saving platform NVS memory
+  [   79.596378] Disabling non-boot CPUs ...
+  [   79.700053] CPU 1 is now offline
+  [   79.700565] PM: Restoring platform NVS memory
+  [   79.700565] Enabling non-boot CPUs ...
+  [   79.700565] Booting Node 0 Processor 1 APIC 0x1
+  [   79.597894] Initializing CPU#1
+  ...
+
+and here's the one that failed and then ended up coming back on a keypress:
+
+  ...
+  [   54.628375] PM: Saving platform NVS memory
+  [   54.628387] Disabling non-boot CPUs ...
+  [   63.554966] ACPI Exception: AE_BAD_PARAMETER, Returned by Handler
+for [EmbeddedControl] (20110112/evregion-474)
+  [   63.554992] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.SBRG.EC0_.RCTP] (Node f5c2dea0), AE_BAD_PARAMETER
+(20110112/psparse-536)
+  [   63.555022] ACPI Error: Method parse/execution failed
+[\_TZ_.RTMP] (Node f5c32fa8), AE_BAD_PARAMETER (20110112/psparse-536)
+  [   63.555047] ACPI Error: Method parse/execution failed
+[\_TZ_.TZ00._TMP] (Node f5c34018), AE_BAD_PARAMETER
+(20110112/psparse-536)
+  [   63.555079] Thermal: failed to read out thermal zone 0
+  [   63.556361] CPU 1 is now offline
+  [   63.556944] PM: Restoring platform NVS memory
+  [   63.556944] Enabling non-boot CPUs ...
+  [   63.556944] Booting Node 0 Processor 1 APIC 0x1
+  [   63.556279] Initializing CPU#1
+  ...
+
+which really doesn't tell me much, except that clearly something in
+ACPI-land is unhappy, and it looks thermal-related (that last error
+message comes from thermal_zone_device_update()).
+
+Any ideas?
+
+                    Linus
