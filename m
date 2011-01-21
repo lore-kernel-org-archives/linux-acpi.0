@@ -1,124 +1,43 @@
 From: Mike Travis <travis@sgi.com>
-Subject: [PATCH 3/6] x86: Minimize initial Bootmem messages
-Date: Fri, 21 Jan 2011 14:25:05 -0600
-Message-ID: <20110121202503.329746830@gulag1.americas.sgi.com>
+Subject: [PATCH 6/6] printk: Minimize time zero output
+Date: Fri, 21 Jan 2011 14:25:08 -0600
+Message-ID: <20110121202504.796868924@gulag1.americas.sgi.com>
 References: <20110121202502.090169599@gulag1.americas.sgi.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:45239 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752179Ab1AUUZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Jan 2011 15:25:05 -0500
-Content-Disposition: inline; filename=minimize-bootmem-msgs
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=minimize-time-zero-msgs
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Lori Gilbertson <loriann@sgi.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The majority of Bootmem setup information is repeated for
-every node.  Minimize the output by showing early reservations
-only once unless it changes for a specific node, and condense
-the first three lines into one line.
-
-v1: Added pertinent __init & __initdata specifiers.
+Reduce the length for time zero messages by only printing "[0] ".
 
 Signed-off-by: Mike Travis <travis@sgi.com>
 Reviewed-by: Jack Steiner <steiner@sgi.com>
 Reviewed-by: Robin Holt <holt@sgi.com>
 ---
- arch/x86/kernel/e820.c |   31 ++++++++++++++++++++++---------
- arch/x86/mm/numa_64.c  |   12 +++---------
- 2 files changed, 25 insertions(+), 18 deletions(-)
+ kernel/printk.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- linux-2.6.32.orig/arch/x86/kernel/e820.c
-+++ linux-2.6.32/arch/x86/kernel/e820.c
-@@ -922,29 +922,42 @@ void __init free_early(u64 start, u64 en
+--- linux-2.6.32.orig/kernel/printk.c
++++ linux-2.6.32/kernel/printk.c
+@@ -805,11 +805,14 @@ asmlinkage int vprintk(const char *fmt,
+ 				unsigned long nanosec_rem;
  
- void __init early_res_to_bootmem(u64 start, u64 end)
- {
--	int i, count;
-+	int i, count, same = 1;
- 	u64 final_start, final_end;
-+	static struct early_res prev[MAX_EARLY_RES] __initdata;
- 
- 	count  = 0;
--	for (i = 0; i < MAX_EARLY_RES && early_res[i].end; i++)
-+	for (i = 0; i < MAX_EARLY_RES && early_res[i].end; i++) {
-+		/* remove redundant messages */
-+		if (prev[i].start != early_res[i].start ||
-+		    prev[i].end != early_res[i].end) {
-+			prev[i].start = early_res[i].start;
-+			prev[i].end = early_res[i].end;
-+			same =  0;
-+		}
- 		count++;
-+	}
-+	if (same) {
-+		pr_cont("ER:%d %llx+%llx\n", count, start, end-start);
-+		return;
-+	}
-+
-+	pr_info("Early Reservations: %d [%llx+%llx]\n",
-+		count, start, end-start);
- 
--	printk(KERN_INFO "(%d early reservations) ==> bootmem [%010llx - %010llx]\n",
--			 count, start, end);
- 	for (i = 0; i < count; i++) {
- 		struct early_res *r = &early_res[i];
--		printk(KERN_INFO "  #%d [%010llx - %010llx] %16s", i,
-+		pr_info("  #%d [%010llx - %010llx] %16s", i,
- 			r->start, r->end, r->name);
- 		final_start = max(start, r->start);
- 		final_end = min(end, r->end);
- 		if (final_start >= final_end) {
--			printk(KERN_CONT "\n");
-+			pr_cont("\n");
- 			continue;
- 		}
--		printk(KERN_CONT " ==> [%010llx - %010llx]\n",
--			final_start, final_end);
-+		pr_cont(" ==> [%010llx - %010llx]\n", final_start, final_end);
- 		reserve_bootmem_generic(final_start, final_end - final_start,
--				BOOTMEM_DEFAULT);
-+			BOOTMEM_DEFAULT);
- 	}
- }
- 
---- linux-2.6.32.orig/arch/x86/mm/numa_64.c
-+++ linux-2.6.32/arch/x86/mm/numa_64.c
-@@ -201,9 +201,6 @@ setup_node_bootmem(int nodeid, unsigned
- 
- 	start = roundup(start, ZONE_ALIGN);
- 
--	printk(KERN_INFO "Bootmem setup node %d %016lx-%016lx\n", nodeid,
--	       start, end);
+ 				t = cpu_clock(printk_cpu);
+-				nanosec_rem = do_div(t, 1000000000);
+-				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
++				if (likely(t)) {
++					nanosec_rem = do_div(t, 1000000000);
++					tlen = sprintf(tbuf, "[%5lu.%06lu] ",
+ 						(unsigned long) t,
+ 						nanosec_rem / 1000);
 -
- 	start_pfn = start >> PAGE_SHIFT;
- 	last_pfn = end >> PAGE_SHIFT;
- 
-@@ -219,8 +216,6 @@ setup_node_bootmem(int nodeid, unsigned
- 	if (node_data[nodeid] == (void *)cache_alias_offset)
- 		return;
- 	nodedata_phys = __pa(node_data[nodeid]);
--	printk(KERN_INFO "  NODE_DATA [%016lx - %016lx]\n", nodedata_phys,
--		nodedata_phys + pgdat_size - 1);
- 
- 	memset(NODE_DATA(nodeid), 0, sizeof(pg_data_t));
- 	NODE_DATA(nodeid)->bdata = &bootmem_node_data[nodeid];
-@@ -258,12 +253,11 @@ setup_node_bootmem(int nodeid, unsigned
- 					 bootmap_start >> PAGE_SHIFT,
- 					 start_pfn, last_pfn);
- 
--	printk(KERN_INFO "  bootmap [%016lx -  %016lx] pages %lx\n",
--		 bootmap_start, bootmap_start + bootmap_size - 1,
--		 bootmap_pages);
--
- 	free_bootmem_with_active_regions(nodeid, end);
- 
-+	pr_info("Bootmem Node %d: data %lx map %lx+%lx pgs %lx ",
-+		nodeid, start, bootmap_start, bootmap_size, bootmap_pages);
-+
- 	/*
- 	 * convert early reserve to bootmem reserve earlier
- 	 * otherwise early_node_mem could use early reserved mem
++				} else {
++					tlen = sprintf(tbuf, "[0] ");
++				}
+ 				for (tp = tbuf; tp < tbuf + tlen; tp++)
+ 					emit_log_char(*tp);
+ 				printed_len += tlen;
 
 -- 
