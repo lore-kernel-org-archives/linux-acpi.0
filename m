@@ -1,99 +1,211 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: ACPI notify handler and reentrancy of WMI device.
-Date: Fri, 21 Jan 2011 20:55:06 +0100
-Message-ID: <AANLkTiknFN1R-_HsoD6QEyEEJ6wb7v6_uCAPFh9DmzEr@mail.gmail.com>
-References: <AANLkTi=hBDt+Ej+hNcxxnw4ZjPZ930kR13DVjtt50zwD@mail.gmail.com>
-	<AANLkTim0auvcUeDSO7QGSVbj0A+g88FSon7-qT6KzBHd@mail.gmail.com>
-	<1295229942.28388.87.camel@minggr.sh.intel.com>
-	<AANLkTinfP+-L2T4oggiTpMwE74V6kxgcrStHumYGiH23@mail.gmail.com>
-	<1295517311.11852.7.camel@minggr.sh.intel.com>
-	<AANLkTi=o8U78t4zMY9t6=mLdBgFu4VSb_KGPk4xy98e9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Mike Travis <travis@sgi.com>
+Subject: [PATCH 4/6] x86: Minimize initial e820 messages
+Date: Fri, 21 Jan 2011 14:25:06 -0600
+Message-ID: <20110121202503.821139610@gulag1.americas.sgi.com>
+References: <20110121202502.090169599@gulag1.americas.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:43278 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752369Ab1AUTzH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jan 2011 14:55:07 -0500
-In-Reply-To: <AANLkTi=o8U78t4zMY9t6=mLdBgFu4VSb_KGPk4xy98e9@mail.gmail.com>
+Received: from relay3.sgi.com ([192.48.152.1]:36102 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752603Ab1AUUZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jan 2011 15:25:05 -0500
+Content-Disposition: inline; filename=minimize-e820-msgs
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Lori Gilbertson <loriann@sgi.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Jan 20, 2011 at 11:00 AM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Thu, Jan 20, 2011 at 10:55 AM, Lin Ming <ming.m.lin@intel.com> wro=
-te:
->> On Mon, 2011-01-17 at 14:51 +0800, Corentin Chary wrote:
->>> >> I got an acpi notify handler. The notify is triggered when I cal=
-l WMBC().
->>> >> In this notify handler, I must re-call WMBC (with some other arg=
-uments, it won't
->>> >> notify again this time).
->>> >>
->>> >> If I do that, I'll get:
->>> >> [ =C2=A0176.920391] ACPI Error (dswload-0802): [_T_0] Namespace =
-lookup
->>> >> failure, AE_ALREADY_EXISTS
->>> >> [ =C2=A0176.920416] ACPI Exception: AE_ALREADY_EXISTS, During na=
-me
->>> >> lookup/catalog (20100428/psloop-231)
->>> >> [ =C2=A0176.920439] ACPI Error (psparse-0537): Method parse/exec=
-ution
->>> >> failed [\AMW0.WMBC] (Node f7023b88), AE_ALREADY_EXISTS
->>> >> [ =C2=A0176.920469] ACPI: Marking method WMBC as Serialized beca=
-use of
->>> >> AE_ALREADY_EXISTS error
->>> >
->>> > Could you attach the acpidump output?
->>>
->>> Here it is, and here is the patch I did (I used the workqueue solut=
-ion
->>> in this one):
->>>
->>> http://git.iksaif.net/?p=3Dacpi4asus.git;a=3Dblobdiff;f=3Ddrivers/p=
-latform/x86/eeepc-wmi.c;h=3D725239860bad8d97dabf8b3db4086d6df4b7820b;hp=
-=3D0d8217d1478028071859ba1a503ba226b3cb33a0;hb=3D1eac4d6a6fb632314a464e=
-7d52e1dcb1e4780931;hpb=3D5c5d1a036bb7d38153c6d2102767ef51e5d94ce3
->>>
->>> (check eeepc_rfkill_notify, it's triggered when the wlan rfkill is
->>> blocked: WMBC is called to disable the wlan card, it send a
->>> notification, the handler is called, the handler want to check the
->>> wlan card status, it calls WMBC again).
->>> Thanks;
->>>
->>
->> Sorry for late reply.
->>
->> WMBC is not an ACPI spec defined method (which always start with "_"=
-,
->> _ADR, _DSW etc), the driver should only call ACPI spec defined metho=
-d.
->> What does this method do?
->>
->> And, I don't see any call to WMBC in eeepc-wmi.c or above patch.
->
-> It's a wmi driver, so it calls wmi_evaluate_method, wich internally
-> will call \AMW0.WMBC for this GUID.
-> Sorry for the confusion.
->
-> I finally found a solut^W^W workaround:
-> http://git.iksaif.net/?p=3Dacpi4asus.git;a=3Dcommitdiff;h=3Daa8ff8f23=
-b2f99da9371da9154d3e523b964f054;hp=3Dd13f17d9657d7161884e289cc2ac6efb41=
-4a6ff9
+Minimize the early e820 messages by printing less characters
+for the address range as well as not expanding the type info
+for each entry.
 
-As I thought, using a mutex here introduce a lot of potential deadlock =
-=2E..
-Any Idea ?
+Also the "modified physical RAM map" was mostly a duplicate of
+the original e820 memory map printout.  Minimize the output
+by only printing those entries that were actually modified.
 
+v1: Added pertinent __init & __initdata specifiers
+    Changed some inlines to __init functions to avoid the
+    the compiler un-inlining them into the wrong section.
 
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Mike Travis <travis@sgi.com>
+Reviewed-by: Jack Steiner <steiner@sgi.com>
+Reviewed-by: Robin Holt <holt@sgi.com>
+---
+ arch/x86/kernel/e820.c |  107 +++++++++++++++++++++++++++----------------------
+ arch/x86/kernel/efi.c  |   10 ++--
+ 2 files changed, 66 insertions(+), 51 deletions(-)
+
+--- linux-2.6.32.orig/arch/x86/kernel/e820.c
++++ linux-2.6.32/arch/x86/kernel/e820.c
+@@ -44,6 +44,8 @@
+  */
+ struct e820map e820;
+ struct e820map e820_saved;
++struct e820map e820_prev __initdata;
++int e820_prev_saved __initdata;
+ 
+ /* For PCI or other memory-mapped resources */
+ unsigned long pci_mem_start = 0xaeedbabe;
+@@ -137,42 +139,69 @@ void __init e820_saved_add_region(u64 st
+ 	__e820_add_region(&e820_saved, start, size, type);
+ }
+ 
+-static void __init e820_print_type(u32 type)
++static const char * __init e820_type_to_string(int e820_type)
+ {
+-	switch (type) {
+-	case E820_RAM:
++	switch (e820_type) {
+ 	case E820_RESERVED_KERN:
+-		printk(KERN_CONT "(usable)");
+-		break;
+-	case E820_RESERVED:
+-		printk(KERN_CONT "(reserved)");
+-		break;
+-	case E820_ACPI:
+-		printk(KERN_CONT "(ACPI data)");
+-		break;
+-	case E820_NVS:
+-		printk(KERN_CONT "(ACPI NVS)");
+-		break;
+-	case E820_UNUSABLE:
+-		printk(KERN_CONT "(unusable)");
+-		break;
+-	default:
+-		printk(KERN_CONT "type %u", type);
+-		break;
++	case E820_RAM:	return "System RAM";
++	case E820_ACPI:	return "ACPI Tables";
++	case E820_NVS:	return "ACPI Non-volatile Storage";
++	case E820_UNUSABLE:	return "Unusable memory";
++	default:	return "reserved";
+ 	}
+ }
+ 
++/* compare new entry with old */
++static int __init not_modified(int i, int j)
++{
++	for (; j < e820_prev.nr_map &&
++		e820_prev.map[j].addr <= e820.map[i].addr; j++) {
++
++		if (e820.map[i].addr == e820_prev.map[j].addr &&
++		    e820.map[i].size == e820_prev.map[j].size &&
++		    e820.map[i].type == e820_prev.map[j].type)
++			return j;
++	}
++	return 0;
++}
++
++static void __init e820_print_header(void)
++{
++	pr_info("types: (%d)=%s (%d)=%s (%d)=%s (%d)=%s (%d)=%s\n",
++		E820_RAM, e820_type_to_string(E820_RAM),
++		E820_RESERVED, e820_type_to_string(E820_RESERVED),
++		E820_ACPI, e820_type_to_string(E820_ACPI),
++		E820_NVS, e820_type_to_string(E820_NVS),
++		E820_UNUSABLE, e820_type_to_string(E820_UNUSABLE));
++}
++
+ void __init e820_print_map(char *who)
+ {
+-	int i;
++	int i, j = 0;
++	int hdr = 0;
++	int mod = strcmp(who, "modified") == 0;
+ 
+ 	for (i = 0; i < e820.nr_map; i++) {
+-		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
+-		       (unsigned long long) e820.map[i].addr,
+-		       (unsigned long long)
+-		       (e820.map[i].addr + e820.map[i].size));
+-		e820_print_type(e820.map[i].type);
+-		printk(KERN_CONT "\n");
++		/* only print those entries that were really modified */
++		if (mod)
++			j = not_modified(i, j);
++
++		if (!j) {
++			if (!hdr++)
++				e820_print_header();
++
++			pr_info("%s: %Lx+%Lx (%d)\n", who,
++			       (unsigned long long) e820.map[i].addr,
++			       (unsigned long long) e820.map[i].size,
++			       e820.map[i].type);
++		}
++	}
++	if (!hdr)
++		pr_info("<none>\n");
++
++	if (!e820_prev_saved) {
++		memcpy(&e820_prev, &e820, sizeof(struct e820map));
++		e820_prev_saved = 1;
+ 	}
+ }
+ 
+@@ -449,13 +478,11 @@ static u64 __init __e820_update_range(st
+ 		size = ULLONG_MAX - start;
+ 
+ 	end = start + size;
+-	printk(KERN_DEBUG "e820 update range: %016Lx - %016Lx ",
++	pr_debug("e820 update range: %Lx+%Lx %s ==> %s\n",
+ 		       (unsigned long long) start,
+-		       (unsigned long long) end);
+-	e820_print_type(old_type);
+-	printk(KERN_CONT " ==> ");
+-	e820_print_type(new_type);
+-	printk(KERN_CONT "\n");
++		       (unsigned long long) size,
++			e820_type_to_string(old_type),
++			e820_type_to_string(new_type));
+ 
+ 	for (i = 0; i < e820x->nr_map; i++) {
+ 		struct e820entry *ei = &e820x->map[i];
+@@ -564,7 +591,7 @@ void __init update_e820(void)
+ 	if (sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &nr_map))
+ 		return;
+ 	e820.nr_map = nr_map;
+-	printk(KERN_INFO "modified physical RAM map:\n");
++	printk(KERN_INFO "physical RAM map entries that were modified:\n");
+ 	e820_print_map("modified");
+ }
+ static void __init update_e820_saved(void)
+@@ -1328,18 +1355,6 @@ void __init finish_e820_parsing(void)
+ 	}
+ }
+ 
+-static inline const char *e820_type_to_string(int e820_type)
+-{
+-	switch (e820_type) {
+-	case E820_RESERVED_KERN:
+-	case E820_RAM:	return "System RAM";
+-	case E820_ACPI:	return "ACPI Tables";
+-	case E820_NVS:	return "ACPI Non-volatile Storage";
+-	case E820_UNUSABLE:	return "Unusable memory";
+-	default:	return "reserved";
+-	}
+-}
+-
+ /*
+  * Mark e820 reserved areas as busy for the resource manager.
+  */
+--- linux-2.6.32.orig/arch/x86/kernel/efi.c
++++ linux-2.6.32/arch/x86/kernel/efi.c
+@@ -306,11 +306,11 @@ static void __init print_efi_memmap(void
+ 	     p < memmap.map_end;
+ 	     p += memmap.desc_size, i++) {
+ 		md = p;
+-		printk(KERN_INFO PFX "mem%02u: type=%u, attr=0x%llx, "
+-			"range=[0x%016llx-0x%016llx) (%lluMB)\n",
+-			i, md->type, md->attribute, md->phys_addr,
+-			md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT),
+-			(md->num_pages >> (20 - EFI_PAGE_SHIFT)));
++		pr_info(PFX
++			"mem%u: range %llx+%llx (%lluMB) type %u attr %llx\n",
++			i, md->phys_addr, md->num_pages << EFI_PAGE_SHIFT,
++			(md->num_pages >> (20 - EFI_PAGE_SHIFT)),
++			md->type, md->attribute);
+ 	}
+ }
+ #endif  /*  EFI_DEBUG  */
+
+-- 
