@@ -1,74 +1,66 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Occasional (too common) suspend problem
-Date: Fri, 21 Jan 2011 15:26:53 +0800
-Message-ID: <1295594813.1866.747.camel@rui>
-References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
+Subject: Re: regression 2.6.37 -> 2.6.38-rc1: after suspend backlight
+	cannot be adjusted
+Date: Fri, 21 Jan 2011 15:28:25 +0800
+Message-ID: <1295594905.1866.749.camel@rui>
+References: <20110121015529.GD9796@gamma.logic.tuwien.ac.at>
+	 <1295583107.2613.45.camel@edumazet-laptop>
+	 <1295583394.2613.47.camel@edumazet-laptop>
+	 <20110121015529.GD9796@gamma.logic.tuwien.ac.at>
+	 <1295583107.2613.45.camel@edumazet-laptop>
+	 <20110121064614.GA23310@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50831 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35543 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745Ab1AUH1V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Jan 2011 02:27:21 -0500
-In-Reply-To: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
+	id S1752886Ab1AUH27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jan 2011 02:28:59 -0500
+In-Reply-To: <20110121064614.GA23310@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+To: Norbert Preining <preining@logic.at>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Fri, 2011-01-21 at 12:50 +0800, Linus Torvalds wrote:
-> So I have one remaining problem on my nasty EeePC problem child
-> computer, and this one I cannot bisect simply because it's so flaky.
-> 
-> The exact same kernel may suspend and resume many many times in a row,
-> and then I reboot it, and it hangs on the first suspend. Very
-> occasionally the machine comes back when I press a key, and resumes
-> ok. Most of the time it does not - it's just dead to the world, and
-> there are no logs to go by. I even tried pm_trace, and that didn't get
-> me anywhere, although I once got a hash match:
-> 
->   hash matches drivers/base/power/main.c:555
-> 
-> which is the last part of a deivice_resume(), but none of the devices
-> matched, so that didn't really give any information at all.
-> 
-> So I have very little to go on.
-> 
-> However, at least one time when it failed and came back (remember:
-> very rare), I did get that suspend sequence printouts logged. Here's a
-> _good_ suspend:
-> 
->   ...
->   [   79.596367] PM: Saving platform NVS memory
->   [   79.596378] Disabling non-boot CPUs ...
->   [   79.700053] CPU 1 is now offline
->   [   79.700565] PM: Restoring platform NVS memory
->   [   79.700565] Enabling non-boot CPUs ...
->   [   79.700565] Booting Node 0 Processor 1 APIC 0x1
->   [   79.597894] Initializing CPU#1
->   ...
-> 
-> and here's the one that failed and then ended up coming back on a keypress:
-> 
->   ...
->   [   54.628375] PM: Saving platform NVS memory
->   [   54.628387] Disabling non-boot CPUs ...
->   [   63.554966] ACPI Exception: AE_BAD_PARAMETER, Returned by Handler
-> for [EmbeddedControl] (20110112/evregion-474)
->   [   63.554992] ACPI Error: Method parse/execution failed
-> [\_SB_.PCI0.SBRG.EC0_.RCTP] (Node f5c2dea0), AE_BAD_PARAMETER
-> (20110112/psparse-536)
->   [   63.555022] ACPI Error: Method parse/execution failed
-> [\_TZ_.RTMP] (Node f5c32fa8), AE_BAD_PARAMETER (20110112/psparse-536)
->   [   63.555047] ACPI Error: Method parse/execution failed
-> [\_TZ_.TZ00._TMP] (Node f5c34018), AE_BAD_PARAMETER
-> (20110112/psparse-536)
->   [   63.555079] Thermal: failed to read out thermal zone 0
-
-is this a 2.6.38-rc1 regression?
-can you attach the acpidump output of this machine?
+how do you change the backlight? hotkeys?
+does changing /sys/class/backlight/acpi_video0/brightness work for you?
 
 thanks,
 rui
+
+On Fri, 2011-01-21 at 14:46 +0800, Norbert Preining wrote:
+> Hi Eric, hi all
+> 
+> On Fr, 21 Jan 2011, Eric Dumazet wrote:
+> > Maybe this is the problem Linus had to bisect, you could try his patch :
+> 
+> > Or just pull linux-2.6, since patch is now committed
+> > 
+> > commit 28e58ee8ce1f0e69c207f747b7b9054b071e328d
+> 
+> I am now running on top of 8d99641f6c1a so I have this patch included,
+> but still see the same problem. Adjustment *before* suspend works,
+> afterwards does not.
+> 
+> Can someone give me a quick notive how to bisect only those commits
+> that touch the relevant parts? acpi?
+> 
+> Best wishes
+> 
+> Norbert
+> ------------------------------------------------------------------------
+> Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
+> JAIST, Japan                                 TeX Live & Debian Developer
+> DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+> ------------------------------------------------------------------------
+> POTT SHRIGLEY (n.)
+> Dried remains of a week-old casserole, eaten when extremely drunk at
+> two a.m.
+> 			--- Douglas Adams, The Meaning of Liff
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
