@@ -1,79 +1,29 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: regression 2.6.37 -> 2.6.38-rc1: after suspend backlight
-	cannot be adjusted
-Date: Fri, 21 Jan 2011 15:29:58 +0800
-Message-ID: <1295594998.1866.750.camel@rui>
-References: <20110121015529.GD9796@gamma.logic.tuwien.ac.at>
-	 <1295583107.2613.45.camel@edumazet-laptop>
-	 <1295583394.2613.47.camel@edumazet-laptop>
-	 <20110121015529.GD9796@gamma.logic.tuwien.ac.at>
-	 <1295583107.2613.45.camel@edumazet-laptop>
-	 <20110121064614.GA23310@gamma.logic.tuwien.ac.at>
-	 <1295594905.1866.749.camel@rui>
+From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH] acpi: debugfs: fix buffer overflows, double free
+Date: Fri, 21 Jan 2011 08:06:22 +0000 (UTC)
+Message-ID: <ihbepu$jbj$2@dough.gmane.org>
+References: <1295554086-23873-1-git-send-email-segoon@openwall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60643 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751532Ab1AUHa0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Jan 2011 02:30:26 -0500
-In-Reply-To: <1295594905.1866.749.camel@rui>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.orglinux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-btw, please attach the acpidump of this laptop.
+On Thu, 20 Jan 2011 23:08:06 +0300, Vasiliy Kulikov wrote:
 
-thanks,
-rui
-
-On Fri, 2011-01-21 at 15:28 +0800, Zhang Rui wrote:
-> how do you change the backlight? hotkeys?
-> does changing /sys/class/backlight/acpi_video0/brightness work for you?
+> File position is not controlled, it may lead to overwrites of arbitrary
+> kernel memory.  Also the code may kfree() the same pointer multiple
+> times.
 > 
-> thanks,
-> rui
+> One more flaw is still present: if multiple processes open the file then
+> all 3 static variables are shared, leading to various race conditions.
+> They should be moved to file->private_data.
 > 
-> On Fri, 2011-01-21 at 14:46 +0800, Norbert Preining wrote:
-> > Hi Eric, hi all
-> > 
-> > On Fr, 21 Jan 2011, Eric Dumazet wrote:
-> > > Maybe this is the problem Linus had to bisect, you could try his patch :
-> > 
-> > > Or just pull linux-2.6, since patch is now committed
-> > > 
-> > > commit 28e58ee8ce1f0e69c207f747b7b9054b071e328d
-> > 
-> > I am now running on top of 8d99641f6c1a so I have this patch included,
-> > but still see the same problem. Adjustment *before* suspend works,
-> > afterwards does not.
-> > 
-> > Can someone give me a quick notive how to bisect only those commits
-> > that touch the relevant parts? acpi?
-> > 
-> > Best wishes
-> > 
-> > Norbert
-> > ------------------------------------------------------------------------
-> > Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-> > JAIST, Japan                                 TeX Live & Debian Developer
-> > DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-> > ------------------------------------------------------------------------
-> > POTT SHRIGLEY (n.)
-> > Dried remains of a week-old casserole, eaten when extremely drunk at
-> > two a.m.
-> > 			--- Douglas Adams, The Meaning of Liff
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
 
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
 
+Thanks.
