@@ -1,72 +1,39 @@
-From: Len Brown <lenb@kernel.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: Occasional (too common) suspend problem
-Date: Fri, 21 Jan 2011 17:25:42 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101211701330.3924@x980>
+Date: Fri, 21 Jan 2011 14:33:17 -0800
+Message-ID: <AANLkTi=cbNWQ4eFiZQxE6BrJrhbj+w1MjDGdSmG8oUPv@mail.gmail.com>
 References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
- <alpine.LFD.2.02.1101211550190.3924@x980>
+ <alpine.LFD.2.02.1101211550190.3924@x980> <alpine.LFD.2.02.1101211701330.3924@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:33212 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384Ab1AUW0L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jan 2011 17:26:11 -0500
-Received: from localhost.localdomain ([unknown] [108.7.58.61])
- by vms173013.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LFE003Q58YZ0RP9@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 21 Jan 2011 16:26:10 -0600 (CST)
-In-reply-to: <alpine.LFD.2.02.1101211550190.3924@x980>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35429 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750889Ab1AUWe2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jan 2011 17:34:28 -0500
+Received: from mail-iy0-f174.google.com (mail-iy0-f174.google.com [209.85.210.174])
+	(authenticated bits=0)
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0LMXbgC006459
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=FAIL)
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Jan 2011 14:33:37 -0800
+Received: by iyj18 with SMTP id 18so2161282iyj.19
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Jan 2011 14:33:37 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.02.1101211701330.3924@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-> > and here's the one that failed and then ended up coming back on a keypress:
-> > 
-> >   ...
-> >   [   54.628375] PM: Saving platform NVS memory
-> >   [   54.628387] Disabling non-boot CPUs ...
-> >   [   63.554966] ACPI Exception: AE_BAD_PARAMETER, Returned by Handler
-> > for [EmbeddedControl] (20110112/evregion-474)
-> >   [   63.554992] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.SBRG.EC0_.RCTP] (Node f5c2dea0), AE_BAD_PARAMETER
-> > (20110112/psparse-536)
-> >   [   63.555022] ACPI Error: Method parse/execution failed
-> > [\_TZ_.RTMP] (Node f5c32fa8), AE_BAD_PARAMETER (20110112/psparse-536)
-> >   [   63.555047] ACPI Error: Method parse/execution failed
-> > [\_TZ_.TZ00._TMP] (Node f5c34018), AE_BAD_PARAMETER
-> > (20110112/psparse-536)
-> >   [   63.555079] Thermal: failed to read out thermal zone 0
-> >   [   63.556361] CPU 1 is now offline
-> >   [   63.556944] PM: Restoring platform NVS memory
-> >   [   63.556944] Enabling non-boot CPUs ...
-> >   [   63.556944] Booting Node 0 Processor 1 APIC 0x1
-> >   [   63.556279] Initializing CPU#1
-> >   ...
-> > 
-> > which really doesn't tell me much, except that clearly something in
-> > ACPI-land is unhappy, and it looks thermal-related (that last error
-> > message comes from thermal_zone_device_update()).
-> 
-> The thermal code failed to get the current
-> temperature (via AML "_TMP" method) because
-> the embedded controller (or our interface to it) malfunctioned.
+On Fri, Jan 21, 2011 at 2:25 PM, Len Brown <lenb@kernel.org> wrote:
+>
+> I don't know if fixing that symptom will fix the suspend
+> problem, but it can't hurt.
 
-Hmm, on looking closer with Rafael, we discovered that
-this isn't the EC malfunctioning, these messages result
-from us disabling the EC via acpi_ec_block_transactions().
+Any particular patch/hack you had in mind for me to test? I'm leaving
+for LCA tomorrow, I'll happily test anything. Once I'm on the road,
+I'll still have access to that thing, but it's pitifully slow and will
+be the only computer I have available, so I won't be doing lots of
+random testng.
 
-Apparently you've got a thermal zone with polling enabled
-every 30 seconds.  These are quite rare, I've only seen
-them on asus boxes.  This timeout happened during suspend
-when EC was disabled and thus the message.  We should have 
-frozen that work-queue...
-
-I don't know if fixing that symptom will fix the suspend
-problem, but it can't hurt.
-
--Len Brown, Intel Open Source Technology Center
-
-
-
+                 Linus
