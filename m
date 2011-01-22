@@ -1,45 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Occasional (too common) suspend problem
-Date: Sat, 22 Jan 2011 00:28:37 +0100
-Message-ID: <201101220028.38105.rjw@sisk.pl>
-References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com> <AANLkTi=_-bMsp1K-thY+4wUMC5wDMVT+8m=fmVEx_wqE@mail.gmail.com> <201101220016.46227.rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Occasional (too common) suspend problem
+Date: Fri, 21 Jan 2011 16:23:17 -0800
+Message-ID: <AANLkTi=Tkf9MYmSmCX6CZ9Ymgqo8S1HmRkBn+Uvr2KUb@mail.gmail.com>
+References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
+ <201101212342.01646.rjw@sisk.pl> <AANLkTi=_-bMsp1K-thY+4wUMC5wDMVT+8m=fmVEx_wqE@mail.gmail.com>
+ <201101220016.46227.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41250 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753863Ab1AUX3P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Jan 2011 18:29:15 -0500
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53426 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755123Ab1AVAYI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jan 2011 19:24:08 -0500
+Received: from mail-iw0-f174.google.com (mail-iw0-f174.google.com [209.85.214.174])
+	(authenticated bits=0)
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0M0Ndxr015459
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=FAIL)
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Jan 2011 16:23:39 -0800
+Received: by iwn9 with SMTP id 9so2241810iwn.19
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Jan 2011 16:23:37 -0800 (PST)
 In-Reply-To: <201101220016.46227.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-On Saturday, January 22, 2011, Rafael J. Wysocki wrote:
-> On Friday, January 21, 2011, Linus Torvalds wrote:
-> > On Fri, Jan 21, 2011 at 2:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > >
-> > > Something like this, perhaps.  It doesn't blow up my Toshiba test box, so
-> > > hopefully it won't blow up yours ...
-> > 
-> > Failed suspend on the very first try..
-> 
-> Well, so it's not this problem (which was a red herring).
-> 
+On Fri, Jan 21, 2011 at 3:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
 > I wonder if you can reproduce the failure with the
-> 
+>
 > # echo core > /sys/power/pm_test
 > # echo mem > /sys/power/state
-> 
-> test?  I think you can even try to run the second command in a tight loop
+>
+> test? =A0I think you can even try to run the second command in a tigh=
+t loop
 > (the first one simply triggers a switch) and see what happens.
 
-Hmm, this is a long shot.
+I don't think I can. I did 60 of those "echo mem > /sys/power/state"
+in a row on top of current -git.
 
-Can you try to change acpi_os_ioremap() in your current tree so that it calls
-ioremap() instead of ioremap_cache() and see if that makes a difference?
+So I do think that the problem is connected to the actual sleeping part=
+=2E
 
-Rafael
+Or - and perhaps more likely - it's connected to the lid event, and
+how that interacts with user space and then eventually triggers the
+sleep event (which is quite likely - as mentioned, I think I've only
+ever seen the problem when I'm physically at the machine).
+
+                     Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
