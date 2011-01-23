@@ -1,43 +1,139 @@
-From: Dave Airlie <airlied@linux.ie>
-Subject: Re: Occasional (too common) suspend problem
-Date: Sun, 23 Jan 2011 01:02:16 +0000 (GMT)
-Message-ID: <alpine.DEB.2.00.1101230059220.13826@skynet.skynet.ie>
-References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com> <AANLkTi=Tkf9MYmSmCX6CZ9Ymgqo8S1HmRkBn+Uvr2KUb@mail.gmail.com> <AANLkTikv55eQfNaCGLm-2pA3Ndyi9ZEzb4xn64D3u0ww@mail.gmail.com> <201101221110.17786.rjw@sisk.pl>
- <AANLkTik2sUJb9G5sA_Zr9_Q1=rJdYkgRe-MgTb0zhwc2@mail.gmail.com> <AANLkTikJVFEOgD_i+ghFupJksy2X_G1outhMmhPbP1Yd@mail.gmail.com>
+From: Ali Gholami Rudi <aliqrudi@gmail.com>
+Subject: Re: [PATCH 2/5] i915: Add native backlight control
+Date: Sun, 23 Jan 2011 08:15:39 +0330
+Message-ID: <20112301081539@lilem.mirepesht>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com>
+	<1295033065-13450-2-git-send-email-mjg@redhat.com>
+	<20112101000015@lilem.mirepesht> <20112101004346@lilem.mirepesht>
+	<20110120151349.49cf3ebb.akpm@linux-foundation.org>
+	<20110121004359.GA6422@srcf.ucam.org>
+	<20110120170337.94d83333.akpm@linux-foundation.org>
+	<20110121045754.GA9897@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:54386 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980Ab1AWBCm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Jan 2011 20:02:42 -0500
-In-Reply-To: <AANLkTikJVFEOgD_i+ghFupJksy2X_G1outhMmhPbP1Yd@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <20110121045754.GA9897@srcf.ucam.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Chris Wilson <chris@chris-wilson.co.uk>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-On Sat, 22 Jan 2011, Linus Torvalds wrote:
+Hi,
 
-> code, and I'm hereby adding some of the i915 people to the mix.
-> Because one of the main things that the pm-suspend scripts do is
-> things like
-> 
->         local con
->         for con in /sys/class/graphics/*/state; do
->                 [ -f $con ] || continue
->                 echo 1 >"${con}"
->         done
+Now I'm getting this in my dmesg (1/5 and 2/5 still applied to -rc1):
 
-These caused me problems before esp when lockdep was setting 
-oops_in_progress, but I repaired that and if X is running the VT 
-should be in graphics mode and these end up doing nothing. Though there 
-could be a race.
+	ACPI: thermal control disabled
+	Non-volatile memory driver v1.3
+	Linux agpgart interface v0.103
+	agpgart-intel 0000:00:00.0: Intel 965GME/GLE Chipset
+	agpgart-intel 0000:00:00.0: detected gtt size: 524288K total, 262144K mappable
+	agpgart-intel 0000:00:00.0: detected 8192K stolen memory
+	agpgart-intel 0000:00:00.0: AGP aperture is 256M @ 0xd0000000
+	[drm] Initialized drm 1.1.0 20060810
+	i915 0000:00:02.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+	i915 0000:00:02.0: setting latency timer to 64
+	ioremap error for 0x3f7c5000-0x3f7c8000, requested 0x10, got 0x0
+	i915 0000:00:02.0: irq 42 for MSI/MSI-X
+	[drm] Supports vblank timestamp caching Rev 1 (10.10.2010).
+	[drm] Driver supports precise vblank timestamp query.
+	ACPI: Deprecated procfs I/F for battery is loaded, please retry with CONFIG_ACPI_PROCFS_POWER cleared
+	ACPI: Battery Slot [C245] (battery present)
+	------------[ cut here ]------------
+	WARNING: at fs/sysfs/dir.c:455 sysfs_add_one+0x6e/0x83()
+	Hardware name: Compaq 610
+	sysfs: cannot create duplicate filename '/devices/pci0000:00/0000:00:02.0/drm/card0/card0-LVDS-1/intel_backlight'
+	Modules linked in:
+	Pid: 1, comm: swapper Not tainted 2.6.38-rc1+ #47
+	Call Trace:
+	 [<c1026828>] ? warn_slowpath_common+0x65/0x7a
+	 [<c10b9404>] ? sysfs_add_one+0x6e/0x83
+	 [<c10268a1>] ? warn_slowpath_fmt+0x26/0x2a
+	 [<c10b9404>] ? sysfs_add_one+0x6e/0x83
+	 [<c10b9b6d>] ? create_dir+0x56/0x89
+	 [<c10b9c1f>] ? sysfs_create_dir+0x7f/0x94
+	 [<c1111b14>] ? kobject_add_internal+0xab/0x15a
+	 [<c1111c74>] ? kobject_add_varg+0x31/0x3d
+	 [<c1111cea>] ? kobject_add+0x43/0x49
+	 [<c11c1e14>] ? device_add+0x8f/0x4c0
+	 [<c101dd19>] ? complete_all+0x35/0x3f
+	 [<c11c7983>] ? device_pm_init+0x26/0x37
+	 [<c11c2257>] ? device_register+0x12/0x15
+	 [<c11354a1>] ? backlight_device_register+0xe4/0x133
+	 [<c11b141a>] ? intel_panel_setup_backlight+0x58/0xa1
+	 [<c11a74b1>] ? intel_modeset_init+0xa46/0xbca
+	 [<c119297c>] ? i915_driver_load+0xab5/0xc0c
+	 [<c1189140>] ? drm_get_pci_dev+0x130/0x20f
+	 [<c12e3c47>] ? i915_pci_probe+0xd/0xf
+	 [<c1122356>] ? local_pci_probe+0xe/0x10
+	 [<c11229a4>] ? pci_device_probe+0x43/0x66
+	 [<c11c3b43>] ? driver_probe_device+0x81/0xfd
+	 [<c11c3c02>] ? __driver_attach+0x43/0x5f
+	 [<c11c3533>] ? bus_for_each_dev+0x3d/0x67
+	 [<c11c39fb>] ? driver_attach+0x14/0x16
+	 [<c11c3bbf>] ? __driver_attach+0x0/0x5f
+	 [<c11c2fc6>] ? bus_add_driver+0x9d/0x1cd
+	 [<c11c3e2f>] ? driver_register+0x79/0xe0
+	 [<c1122b69>] ? __pci_register_driver+0x38/0x95
+	 [<c118924c>] ? drm_pci_init+0x2d/0x85
+	 [<c11836b7>] ? drm_init+0x4c/0x4e
+	 [<c14df3de>] ? i915_init+0x67/0x69
+	 [<c100115e>] ? do_one_initcall+0x71/0x113
+	 [<c14df377>] ? i915_init+0x0/0x69
+	 [<c14c530a>] ? kernel_init+0x109/0x185
+	 [<c14c5201>] ? kernel_init+0x0/0x185
+	 [<c1002cb6>] ? kernel_thread_helper+0x6/0x10
+	---[ end trace a1a080aaf8d35408 ]---
+	kobject_add_internal failed for intel_backlight with -EEXIST, don't try to register things with the same name in the same directory.
+	Pid: 1, comm: swapper Tainted: G        W   2.6.38-rc1+ #47
+	Call Trace:
+	 [<c1111b7a>] ? kobject_add_internal+0x111/0x15a
+	 [<c1111b9b>] ? kobject_add_internal+0x132/0x15a
+	 [<c1111c74>] ? kobject_add_varg+0x31/0x3d
+	 [<c1111cea>] ? kobject_add+0x43/0x49
+	 [<c11c1e14>] ? device_add+0x8f/0x4c0
+	 [<c101dd19>] ? complete_all+0x35/0x3f
+	 [<c11c7983>] ? device_pm_init+0x26/0x37
+	 [<c11c2257>] ? device_register+0x12/0x15
+	 [<c11354a1>] ? backlight_device_register+0xe4/0x133
+	 [<c11b141a>] ? intel_panel_setup_backlight+0x58/0xa1
+	 [<c11a74b1>] ? intel_modeset_init+0xa46/0xbca
+	 [<c119297c>] ? i915_driver_load+0xab5/0xc0c
+	 [<c1189140>] ? drm_get_pci_dev+0x130/0x20f
+	 [<c12e3c47>] ? i915_pci_probe+0xd/0xf
+	 [<c1122356>] ? local_pci_probe+0xe/0x10
+	 [<c11229a4>] ? pci_device_probe+0x43/0x66
+	 [<c11c3b43>] ? driver_probe_device+0x81/0xfd
+	 [<c11c3c02>] ? __driver_attach+0x43/0x5f
+	 [<c11c3533>] ? bus_for_each_dev+0x3d/0x67
+	 [<c11c39fb>] ? driver_attach+0x14/0x16
+	 [<c11c3bbf>] ? __driver_attach+0x0/0x5f
+	 [<c11c2fc6>] ? bus_add_driver+0x9d/0x1cd
+	 [<c11c3e2f>] ? driver_register+0x79/0xe0
+	 [<c1122b69>] ? __pci_register_driver+0x38/0x95
+	 [<c118924c>] ? drm_pci_init+0x2d/0x85
+	 [<c11836b7>] ? drm_init+0x4c/0x4e
+	 [<c14df3de>] ? i915_init+0x67/0x69
+	 [<c100115e>] ? do_one_initcall+0x71/0x113
+	 [<c14df377>] ? i915_init+0x0/0x69
+	 [<c14c530a>] ? kernel_init+0x109/0x185
+	 [<c14c5201>] ? kernel_init+0x0/0x185
+	 [<c1002cb6>] ? kernel_thread_helper+0x6/0x10
+	[drm:intel_panel_setup_backlight] *ERROR* Failed to register backlight: -17
+	vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=io+mem,decodes=io+mem:owns=io+mem
+	[drm] initialized overlay support
+	Console: switching to colour frame buffer device 170x48
+	fb0: inteldrmfb frame buffer device
+	drm: registered panic notifier
+	[drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
 
-With -rc2 on my Thinkpad T60p, radeon r500 GPU, Intel T2500 (2 core), I 
-just got a reboot on resume, after a pm-suspend. I'll do some more 
-experiments later if I get some time.
-
-does pm-suspend work from init 3? if not does nomodeset init 3 work?
-
-Dave.
+Thanks,
+Ali
