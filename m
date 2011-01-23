@@ -1,33 +1,28 @@
 From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
 Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
  laptops)
-Date: Sun, 23 Jan 2011 18:49:05 +0200
-Message-ID: <4D3C5C01.4040408@pardus.org.tr>
-References: <4D3C3B1E.1080500@pardus.org.tr> <4D3C42A5.6060909@t-online.de>
+Date: Sun, 23 Jan 2011 18:56:44 +0200
+Message-ID: <4D3C5DCC.9010107@pardus.org.tr>
+References: <4D3C3B1E.1080500@pardus.org.tr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4D3C42A5.6060909@t-online.de>
+In-Reply-To: <4D3C3B1E.1080500@pardus.org.tr>
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?UTF-8?B?UmljaGFyZCBTY2jDvHR6?= <r.schtz@t-online.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-On 23.01.2011 17:00, Richard Sch=C3=BCtz wrote:
+On 23.01.2011 16:28, Ozan =C3=87a=C4=9Flayan wrote:
 
->
-> Looks like these are all Intel machines. Do they use intel_idle for t=
-he
-> CPU powersaving features?
-> (cat /sys/devices/system/cpu/cpuidle/current_driver)
+> "Asus N61JQ hangs at shutdown unless lapic is passed"
+> (Not reported upstream yet, I've only downstream bug report which is
+> Turkish)
+> http://bugs.pardus.org.tr/show_bug.cgi?id=3D15969
 
-Well at least on F50SV and N61JQ they use acpi_idle (this is what dmesg=
-=20
-output says).
-
-I'll open a bug for N61JQ as I've got detailed information about it.
+Asus N61JQ is reported upstream:
+https://bugzilla.kernel.org/show_bug.cgi?id=3D27412
 
 
 --=20
