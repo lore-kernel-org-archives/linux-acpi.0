@@ -1,19 +1,53 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Intel-gfx] [PATCH 2/5] i915: Add native backlight control
-Date: Sun, 23 Jan 2011 04:56:50 +0000
-Message-ID: <20110123045650.GA29156@srcf.ucam.org>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <1295033065-13450-2-git-send-email-mjg@redhat.com> <20112101000015@lilem.mirepesht> <20112101004346@lilem.mirepesht> <20110120151349.49cf3ebb.akpm@linux-foundation.org> <20110121004359.GA6422@srcf.ucam.org> <20110120170337.94d83333.akpm@linux-foundation.org> <20110121045754.GA9897@srcf.ucam.org> <20112301081539@lilem.mirepesht>
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+Subject: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
+Date: Sun, 23 Jan 2011 16:28:46 +0200
+Message-ID: <4D3C3B1E.1080500@pardus.org.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20112301081539@lilem.mirepesht>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ali Gholami Rudi <aliqrudi@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lider.pardus.org.tr ([193.140.100.216]:37926 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996Ab1AWO2n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Jan 2011 09:28:43 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl
 
-Well, that's odd. I'll look into it this week.
+Hi,
+
+I'm getting a lot of bug reports about hanging boot/shutdowns on these days.
+
+Most of the affected hardware are ASUS laptops. The problem is that I 
+don't have access to any of those problematic laptops and the users are 
+not able at all to debug/bisect what is going on. However, I have 
+collected dmesgs of good/bad boots, acpidump, etc.
+
+Here are the current status:
+
+"Asus F50SV does not boot unless lapic is passed"
+   https://bugzilla.kernel.org/show_bug.cgi?id=26502
+
+"Regression between 2.6.35-020635-rc1 and 2.6.35-020635 breaks acpi 
+support on Asus X71 laptop"
+   https://bugs.launchpad.net/ubuntu/+source/linux-meta/+bug/689796
+
+"Asus N61JQ hangs at shutdown unless lapic is passed"
+(Not reported upstream yet, I've only downstream bug report which is 
+Turkish)
+   http://bugs.pardus.org.tr/show_bug.cgi?id=15969
+
+"Asus X61S does not boot unless acpi=off is given"
+(Not reported upstream yet, I've only downstream bug report which is 
+Turkish)
+   http://bugs.pardus.org.tr/show_bug.cgi?id=16322
+(I've told the reporter to try with nolapic, it will probably fix the 
+issue but until confirmed acpi=off is the only solution. 2.6.36 was fine)
+
+I'll post more bugs in here as I've found them.
+
+Thanks,
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Pardus Linux
+http://www.pardus.org.tr/eng
