@@ -1,74 +1,43 @@
-From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-Subject: [PATCH 1/1] Probe for output switch method when searching video devices.
-Date: Sun, 23 Jan 2011 18:22:34 +0100
-Message-ID: <1295803354-5298-1-git-send-email-kernel@mkarcher.dialup.fu-berlin.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps
+ management
+Date: Sun, 23 Jan 2011 16:20:37 -0200
+Message-ID: <20110123182037.GH24071@khazad-dum.debian.net>
+References: <201101201226.41021.rjw@sisk.pl>
+ <201101212206.37469.rjw@sisk.pl>
+ <AANLkTimEoAhO9TRx4Aq7NnTTt6G-u+cHJRyAMjSAJgTm@mail.gmail.com>
+ <201101221013.10239.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53319 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751107Ab1AWSUk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Jan 2011 13:20:40 -0500
+Content-Disposition: inline
+In-Reply-To: <201101221013.10239.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org
 
-This patch reverts one hunk of 677bd810eedce61edf15452491781ff046b92edc
-"ACPI video: remove output switching control", namely the removal of
-probing for _DOS/_DOD when searching for video devices.
+On Sat, 22 Jan 2011, Rafael J. Wysocki wrote:
+> > I discovered CONFIG_THINKPAD_ACPI caused suspend-to-disk to hang. I
+> > need the Thinkpad ACPI to control the fan and bluetooth. It looks like
+> > the thinkpad acpi is trying acquire locks while suspending.  Disabling
+> > cmos, light, led and hotkeys makes suspend-to-disk works again.
+> 
+> Well, we should tell the thinkpad_acpi maintainer about that, then (CCed).
 
-This is needed on some Fujitsu Laptops (at least S7110, P8010) for the
-ACPI backlight interface to work, as an these machines, neither ROM nor
-posting methods are available, and after removal of output switching,
-none of the caps triggers, which prevents the backlight search from
-being entered.
+What are the requirements re. mutexes for sleep-to-disk versus sleep-to-ram?
 
-Tested on a Fujitsu Lifebook S7110 and Fujitsu Lifebook P8010.
-This probably fixes https://bugzilla.kernel.org/show_bug.cgi?id=27312
-for the people who have no entry in /sys/class/backlight.
+Did something change in that area that caused the driver to hang?  A pointer
+to the ML threads, documentation, or patchset/git commit with those changes
+would be enough answer, and I will pursue it from there.
 
-This is the complete list of public (starting with "_") methods implemented
-on the S7110, BIOS rev 1.34:
-
-\_SB_.PCI0.GFX0._ADR
-\_SB_.PCI0.GFX0._DOS
-\_SB_.PCI0.GFX0._DOD
-\_SB_.PCI0.GFX0.CRT._ADR
-\_SB_.PCI0.GFX0.CRT._DCS
-\_SB_.PCI0.GFX0.CRT._DGS
-\_SB_.PCI0.GFX0.CRT._DSS
-\_SB_.PCI0.GFX0.LCD._ADR
-\_SB_.PCI0.GFX0.LCD._BCL
-\_SB_.PCI0.GFX0.LCD._BCM
-\_SB_.PCI0.GFX0.LCD._BQC
-\_SB_.PCI0.GFX0.LCD._DCS
-\_SB_.PCI0.GFX0.LCD._DGS
-\_SB_.PCI0.GFX0.LCD._DSS
-\_SB_.PCI0.GFX0.LCD._PS0
-\_SB_.PCI0.GFX0.LCD._PS3
-\_SB_.PCI0.GFX0.TV._ADR
-\_SB_.PCI0.GFX0.TV._DCS
-\_SB_.PCI0.GFX0.TV._DGS
-\_SB_.PCI0.GFX0.TV._DSS
-\_SB_.PCI0.GFX0.DVI._ADR
-\_SB_.PCI0.GFX0.DVI._DCS
-\_SB_.PCI0.GFX0.DVI._DGS
-\_SB_.PCI0.GFX0.DVI._DSS
-
-Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
----
- drivers/acpi/video_detect.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 42d3d72..5af3479 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -82,6 +82,11 @@ long acpi_is_video_device(struct acpi_device *device)
- 	if (!device)
- 		return 0;
- 
-+	/* Is this device able to support video switching ? */
-+	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
-+	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
-+		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
-+
- 	/* Is this device able to retrieve a video ROM ? */
- 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
 -- 
-1.7.2.3
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
