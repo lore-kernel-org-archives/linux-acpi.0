@@ -1,61 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.38-rc2: acpi backlight control missing
-Date: Sat, 22 Jan 2011 20:43:07 +0100
-Message-ID: <201101222043.07703.rjw@sisk.pl>
-References: <1295693349.2120.3.camel@localhost.localdomain>
+From: Jeff Chua <jeff.chua.linux@gmail.com>
+Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
+Date: Sun, 23 Jan 2011 08:14:57 +0800
+Message-ID: <AANLkTikstr=vY=1S7A4Pudg3u=k4eJ7HRz6tWwAq4N-v@mail.gmail.com>
+References: <201101201226.41021.rjw@sisk.pl>
+	<201101221025.49327.rjw@sisk.pl>
+	<AANLkTi=MDyaPj9D+28NWRRK13qhJfKw098xPPhwrGZoa@mail.gmail.com>
+	<201101222012.14028.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295693349.2120.3.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Meyer <thomas@m3y3r.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@gver.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:41816 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947Ab1AWAO6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Jan 2011 19:14:58 -0500
+In-Reply-To: <201101222012.14028.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Saturday, January 22, 2011, Thomas Meyer wrote:
-> with 2.6.38-rc2 the acpi backlight is gone:
-> 
-> $ ll /sys/devices/virtual/backlight 
-> ls: cannot access /sys/devices/virtual/backlight: No such file or directory
-> 
-> $ ll /sys/class/backlight/
-> total 0
-> 
-> with 2.6.37:
-> $ ll /sys/devices/virtual/backlight
-> insgesamt 0
-> drwxr-xr-x. 3 root root 0 22. Jan 2011  acpi_video0
-> 
-> $ ll /sys/class/backlight/
-> insgesamt 0
-> lrwxrwxrwx. 1 root root 0 22. Jan 2011  acpi_video0
-> -> ../../devices/virtual/backlight/acpi_video0
-> 
-> dmesg:
-> 
-> $ grep -i video dmesg-3*.txt
-> dmesg-37.txt:[    0.216370] pci 0000:00:02.0: Boot video device
-> dmesg-37.txt:[    1.102662] input: Video Bus as /devices/LNXSYSTM:00/device:00/PNP0A08:00/LNXVIDEO:00/input/input4
-> dmesg-37.txt:[    1.102670] ACPI: Video Device [OVGA] (multi-head: yes  rom: no  post: no)
-> dmesg-37.txt:[   18.843946] Linux video capture interface: v2.00
-> dmesg-37.txt:[   19.189825] uvcvideo: Found UVC 1.00 device WebCam (064e:a102)
-> dmesg-37.txt:[   19.207062] usbcore: registered new interface driver uvcvideo
-> dmesg-37.txt:[   19.207065] USB Video Class driver (v1.0.0)
-> dmesg-38.txt:[    0.215527] pci 0000:00:02.0: Boot video device
-> dmesg-38.txt:[   19.466882] Linux video capture interface: v2.00
-> dmesg-38.txt:[   19.503083] uvcvideo: Found UVC 1.00 device WebCam (064e:a102)
-> dmesg-38.txt:[   19.520292] usbcore: registered new interface driver uvcvideo
-> dmesg-38.txt:[   19.520295] USB Video Class driver (v1.0.0)
-> 
-> $ grep ACPI_VIDEO /boot/config-2.6.3[78]*
-> /boot/config-2.6.37:CONFIG_ACPI_VIDEO=y
-> /boot/config-2.6.38-rc2:CONFIG_ACPI_VIDEO=y
-> 
-> any ideas?
+On Sun, Jan 23, 2011 at 3:12 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Saturday, January 22, 2011, Jeff Chua wrote:
+>> 2011/1/22 Rafael J. Wysocki <rjw@sisk.pl>:
+>> > On Saturday, January 22, 2011, Jeff Chua wrote:
+>>
+>> > means that my patch [11/11] _and_ the replacement are totally wron=
+g, because you have
+>> > _multiple_ NVS regions. =A0That really helped, thanks a lot.
+>>
+>> Would it be different if I offline all CPUs before suspending to ram=
+?
+>> It seems to help with suspending to disk.
+>
+> No, that doesn't matter. =A0NVS regions are just sitting there regard=
+less of
+> what happens at run time.
 
-Not really, but Matthew may have some (CCed).
+Strange. If I didn't offline, it hanged during suspend even without
+thinkpad_acpi. I could see that the suspend code does the offline
+automatically, but executing the offline before calling suspend makes
+it no hanging.
 
-Thanks,
-Rafael
+Jeff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
