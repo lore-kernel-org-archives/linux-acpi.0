@@ -1,30 +1,74 @@
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Sun, 23 Jan 2011 18:56:44 +0200
-Message-ID: <4D3C5DCC.9010107@pardus.org.tr>
-References: <4D3C3B1E.1080500@pardus.org.tr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4D3C3B1E.1080500@pardus.org.tr>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl
+From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+Subject: [PATCH 1/1] Probe for output switch method when searching video devices.
+Date: Sun, 23 Jan 2011 18:22:34 +0100
+Message-ID: <1295803354-5298-1-git-send-email-kernel@mkarcher.dialup.fu-berlin.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 23.01.2011 16:28, Ozan =C3=87a=C4=9Flayan wrote:
+This patch reverts one hunk of 677bd810eedce61edf15452491781ff046b92edc
+"ACPI video: remove output switching control", namely the removal of
+probing for _DOS/_DOD when searching for video devices.
 
-> "Asus N61JQ hangs at shutdown unless lapic is passed"
-> (Not reported upstream yet, I've only downstream bug report which is
-> Turkish)
-> http://bugs.pardus.org.tr/show_bug.cgi?id=3D15969
+This is needed on some Fujitsu Laptops (at least S7110, P8010) for the
+ACPI backlight interface to work, as an these machines, neither ROM nor
+posting methods are available, and after removal of output switching,
+none of the caps triggers, which prevents the backlight search from
+being entered.
 
-Asus N61JQ is reported upstream:
-https://bugzilla.kernel.org/show_bug.cgi?id=3D27412
+Tested on a Fujitsu Lifebook S7110 and Fujitsu Lifebook P8010.
+This probably fixes https://bugzilla.kernel.org/show_bug.cgi?id=27312
+for the people who have no entry in /sys/class/backlight.
 
+This is the complete list of public (starting with "_") methods implemented
+on the S7110, BIOS rev 1.34:
 
---=20
-Pardus Linux
-http://www.pardus.org.tr/eng
+\_SB_.PCI0.GFX0._ADR
+\_SB_.PCI0.GFX0._DOS
+\_SB_.PCI0.GFX0._DOD
+\_SB_.PCI0.GFX0.CRT._ADR
+\_SB_.PCI0.GFX0.CRT._DCS
+\_SB_.PCI0.GFX0.CRT._DGS
+\_SB_.PCI0.GFX0.CRT._DSS
+\_SB_.PCI0.GFX0.LCD._ADR
+\_SB_.PCI0.GFX0.LCD._BCL
+\_SB_.PCI0.GFX0.LCD._BCM
+\_SB_.PCI0.GFX0.LCD._BQC
+\_SB_.PCI0.GFX0.LCD._DCS
+\_SB_.PCI0.GFX0.LCD._DGS
+\_SB_.PCI0.GFX0.LCD._DSS
+\_SB_.PCI0.GFX0.LCD._PS0
+\_SB_.PCI0.GFX0.LCD._PS3
+\_SB_.PCI0.GFX0.TV._ADR
+\_SB_.PCI0.GFX0.TV._DCS
+\_SB_.PCI0.GFX0.TV._DGS
+\_SB_.PCI0.GFX0.TV._DSS
+\_SB_.PCI0.GFX0.DVI._ADR
+\_SB_.PCI0.GFX0.DVI._DCS
+\_SB_.PCI0.GFX0.DVI._DGS
+\_SB_.PCI0.GFX0.DVI._DSS
+
+Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+---
+ drivers/acpi/video_detect.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 42d3d72..5af3479 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -82,6 +82,11 @@ long acpi_is_video_device(struct acpi_device *device)
+ 	if (!device)
+ 		return 0;
+ 
++	/* Is this device able to support video switching ? */
++	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
++	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
++		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
++
+ 	/* Is this device able to retrieve a video ROM ? */
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy)))
+ 		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
+-- 
+1.7.2.3
