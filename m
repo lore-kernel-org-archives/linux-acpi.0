@@ -1,41 +1,49 @@
-From: Rich Coe <Richard.Coe@med.ge.com>
-Subject: Re: acpi_button: random oops on boot
-Date: Mon, 24 Jan 2011 12:48:13 -0600
-Message-ID: <20110124124813.bb03c6fe.Richard.Coe@med.ge.com>
-References: <1291477752.5096.27.camel@Tobias-Karnat>
-	<1291679699.6246.11.camel@Tobias-Karnat>
-	<20101207051521.GA16804@helgaas.com>
-	<201101241403.21707.trenn@suse.de>
-	<1295892786.3265.48.camel@Tobias-Karnat>
+From: "mikakobina" <kobina@centrum.sk>
+Subject: From Mr Minka Kobina Bank of Ghana
+Date: Mon, 24 Jan 2011 20:39:39 +0100
+Message-ID: <20110124193939.6CC98100FDB64@mail1001.cent>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod5og110.obsmtp.com ([64.18.0.20]:36196 "EHLO
-	exprod5og110.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab1AXSqA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jan 2011 13:46:00 -0500
-In-Reply-To: <1295892786.3265.48.camel@Tobias-Karnat>
+Received: from gmmr8.centrum.cz ([90.183.38.151]:42784 "EHLO gmmr1.centrum.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751813Ab1AXTjq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 14:39:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tobias Karnat <tobias.karnat@googlemail.com>
-Cc: Thomas Renninger <trenn@suse.de>, richard.coe@med.ge.com, jslaby@novell.com, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, 24 Jan 2011 19:13:06 +0100
-Tobias Karnat <tobias.karnat@googlemail.com> wrote:
-> Am Montag, den 24.01.2011, 14:03 +0100 schrieb Thomas Renninger:
-> I hope Rich is still interested in a solution as I am. The bad thing is
-> that the latest working version I had been running on that machine was
-> ancient 2.6.23. So this problem is a regression, which I would have
-> noticed earlier, if I had updated that machine more often.
-> 
-> It is not an hardware problem [...]
 
-I don't think it's a hardware problem either.  
+Attn Sir/Madam
 
-I reproduced this on later kernels, 2.6.36 (I think). 
-I've been working on a project that's almost finished, then I plan on going
-back to tracking down this issue.
-
-Rich
--- 
+=C2=A0
+How are you doing? this Minka Kobina,=C2=A0 Reaching you from Bank of G=
+hana, in respect of=C2=A0 your fund that was deposited under our bank, =
+for the past years and some months now, that we have not hard from you,=
+ So that is why I have reached you with this email to know if the owner=
+ of this email contact which was suppose to be the receiver of this dep=
+osited funds still exist, And please because of time let me go directly=
+ to what i want to tell you, please be aware that bank of Ghana Will be=
+ going for there 5th year re-search very soon and every money under our=
+ bank suppose to be transfer before we proceed with this re search, and=
+ that is why I quickly reached you with this email privately so that yo=
+u will contact our head office in respect of your funds. Please if this=
+ email has been delivered to you, and you know that you are the rightfu=
+l owner of this email address, please respond to me and re-confirming A=
+mount you are expecting so that I will provide you with our banking det=
+ails
+ . Email telephone fax number, including our website, for you to contac=
+t our head office, in respect of the transfer of your funds ok,
+=C2=A0
+Please take note I wait for your respond o know if this email has been =
+delivered to the rightful owner of this email address=E2=80=A6
+=C2=A0
+Best Regard, From"
+Mr Minka Kobina
+Bank Of Ghana, Accountant Manager
+Tama Branch Office Accra-Ghana,
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
