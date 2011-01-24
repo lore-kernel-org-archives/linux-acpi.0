@@ -1,90 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 5/8] ACPI: Make acpi_os_map_memory() avoid creating unnecessary mappings
-Date: Tue, 25 Jan 2011 00:29:35 +0100
-Message-ID: <201101250029.35999.rjw@sisk.pl>
+Subject: [PATCH 8/8] ACPI / PM: Use existing ACPI iomaps for NVS save/restore (v2)
+Date: Tue, 25 Jan 2011 00:32:07 +0100
+Message-ID: <201101250032.07423.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl> <201101250025.10817.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:35696 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753341Ab1AXXdY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 18:33:24 -0500
 In-Reply-To: <201101250025.10817.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Modify acpi_os_map_memory() so that it doesn't call acpi_os_ioremap()
-unconditionally every time it is executed (except when
-acpi_gbl_permanent_mmap is unset), which pretty much defeats the
-purpose of maintaining the list of ACPI iomaps in osl.c.
+Modify the NVS save/restore code to use acpi_os_get_iomem() and
+acpi_os_unmap_memory() to acquire and release references to ACPI
+iomaps, respectively.  If there's no ACPI iomap corresponding to the
+given NVS page, acpi_os_ioremap() is used to map that page and
+iounmap() is used to unmap it during resume.  [If the page is not
+present in the ACPI iomaps already, it doesn't make sense to add its
+mapping to the list of ACPI iomaps, because it's going to be thrown
+away during the subsequent resume anyway.]
+
+Testing on my HP nx6325 shows that approx. 90% of the NVS pages
+have already been mapped by ACPI before suspend and are present in
+the ACPI iomaps on this box, so this change appears to be the right
+thing to do in general.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ drivers/acpi/nvs.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-Index: linux-2.6/drivers/acpi/osl.c
+Index: linux-2.6/drivers/acpi/nvs.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -302,7 +302,7 @@ acpi_map_lookup_virt(void __iomem *virt,
- void __iomem *__init_refok
- acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+--- linux-2.6.orig/drivers/acpi/nvs.c
++++ linux-2.6/drivers/acpi/nvs.c
+@@ -26,6 +26,7 @@ struct nvs_page {
+ 	unsigned int size;
+ 	void *kaddr;
+ 	void *data;
++	bool unmap;
+ 	struct list_head node;
+ };
+ 
+@@ -44,6 +45,9 @@ int suspend_nvs_register(unsigned long s
  {
--	struct acpi_ioremap *map, *tmp_map;
-+	struct acpi_ioremap *map;
- 	void __iomem *virt;
- 	acpi_physical_address pg_off;
- 	acpi_size pg_sz;
-@@ -315,14 +315,25 @@ acpi_os_map_memory(acpi_physical_address
- 	if (!acpi_gbl_permanent_mmap)
- 		return __acpi_map_table((unsigned long)phys, size);
+ 	struct nvs_page *entry, *next;
  
-+	mutex_lock(&acpi_ioremap_lock);
-+	/* Check if there's a suitable mapping already. */
-+	map = acpi_map_lookup(phys, size);
-+	if (map) {
-+		kref_get(&map->ref);
-+		goto out;
-+	}
++	pr_info("PM: Registering ACPI NVS region at %lx (%ld bytes)\n",
++		start, size);
 +
- 	map = kzalloc(sizeof(*map), GFP_KERNEL);
--	if (!map)
-+	if (!map) {
-+		mutex_unlock(&acpi_ioremap_lock);
- 		return NULL;
-+	}
+ 	while (size > 0) {
+ 		unsigned int nr_bytes;
  
- 	pg_off = round_down(phys, PAGE_SIZE);
- 	pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
- 	virt = acpi_os_ioremap(pg_off, pg_sz);
- 	if (!virt) {
-+		mutex_unlock(&acpi_ioremap_lock);
- 		kfree(map);
- 		return NULL;
- 	}
-@@ -333,19 +344,10 @@ acpi_os_map_memory(acpi_physical_address
- 	map->size = pg_sz;
- 	kref_init(&map->ref);
+@@ -81,7 +85,13 @@ void suspend_nvs_free(void)
+ 			free_page((unsigned long)entry->data);
+ 			entry->data = NULL;
+ 			if (entry->kaddr) {
+-				iounmap(entry->kaddr);
++				if (entry->unmap) {
++					iounmap(entry->kaddr);
++					entry->unmap = false;
++				} else {
++					acpi_os_unmap_memory(entry->kaddr,
++							     entry->size);
++				}
+ 				entry->kaddr = NULL;
+ 			}
+ 		}
+@@ -115,8 +125,14 @@ int suspend_nvs_save(void)
  
--	mutex_lock(&acpi_ioremap_lock);
--	/* Check if page has already been mapped. */
--	tmp_map = acpi_map_lookup(phys, size);
--	if (tmp_map) {
--		kref_get(&tmp_map->ref);
--		mutex_unlock(&acpi_ioremap_lock);
--		iounmap(map->virt);
--		kfree(map);
--		return tmp_map->virt + (phys - tmp_map->phys);
--	}
- 	list_add_tail_rcu(&map->list, &acpi_ioremaps);
--	mutex_unlock(&acpi_ioremap_lock);
- 
-+ out:
-+	mutex_unlock(&acpi_ioremap_lock);
- 	return map->virt + (phys - map->phys);
- }
- EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+ 	list_for_each_entry(entry, &nvs_list, node)
+ 		if (entry->data) {
+-			entry->kaddr = acpi_os_ioremap(entry->phys_start,
+-						    entry->size);
++			unsigned long phys = entry->phys_start;
++			unsigned int size = entry->size;
++
++			entry->kaddr = acpi_os_get_iomem(phys, size);
++			if (!entry->kaddr) {
++				entry->kaddr = acpi_os_ioremap(phys, size);
++				entry->unmap = !!entry->kaddr;
++			}
+ 			if (!entry->kaddr) {
+ 				suspend_nvs_free();
+ 				return -ENOMEM;
+
