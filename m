@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 7/8] ACPI: Introduce acpi_os_get_iomem()
-Date: Tue, 25 Jan 2011 00:30:52 +0100
-Message-ID: <201101250030.53131.rjw@sisk.pl>
+Subject: [PATCH 1/8] ACPI: Fix acpi_os_read_memory() and acpi_os_write_memory() (v2)
+Date: Tue, 25 Jan 2011 00:26:47 +0100
+Message-ID: <201101250026.47590.rjw@sisk.pl>
 References: <201101201226.41021.rjw@sisk.pl> <201101250025.10817.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35691 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:35669 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753278Ab1AXXdW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jan 2011 18:33:22 -0500
+	id S1753237Ab1AXXdG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 18:33:06 -0500
 In-Reply-To: <201101250025.10817.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,51 +20,95 @@ Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, 
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce function acpi_os_get_iomem() that may be used by its callers
-to get a reference to an ACPI iomap.
+The functions acpi_os_read_memory() and acpi_os_write_memory() do
+two wrong things.  First, they shouldn't call rcu_read_unlock()
+before the looked up address is actually used for I/O, because in
+that case the iomap it belongs to may be removed before the I/O
+is done.  Second, if they have to create a new mapping, they should
+check the returned virtual address and tell the caller that the
+operation failed if it is NULL (in fact, I think they even should not
+attempt to map an address that's not present in one of the existing
+ACPI iomaps, because that may cause problems to happen when they are
+called from nonpreemptible context and their callers ought to know
+what they are doing and map the requisite memory regions beforehand).
+
+Make these functions call rcu_read_unlock() when the I/O is complete
+(or if it's necessary to map the given address "on the fly") and
+return an error code if the requested physical address is not present
+in the existing ACPI iomaps and cannot be mapped.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c      |   16 ++++++++++++++++
- include/linux/acpi_io.h |    2 ++
- 2 files changed, 18 insertions(+)
+ drivers/acpi/osl.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
 Index: linux-2.6/drivers/acpi/osl.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/osl.c
 +++ linux-2.6/drivers/acpi/osl.c
-@@ -285,6 +285,22 @@ acpi_map_vaddr_lookup(acpi_physical_addr
- 	return NULL;
- }
+@@ -636,17 +636,21 @@ EXPORT_SYMBOL(acpi_os_write_port);
+ acpi_status
+ acpi_os_read_memory(acpi_physical_address phys_addr, u32 * value, u32 width)
+ {
+-	u32 dummy;
+ 	void __iomem *virt_addr;
+-	int size = width / 8, unmap = 0;
++	unsigned int size = width / 8;
++	bool unmap = false;
++	u32 dummy;
  
-+void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size)
-+{
-+	struct acpi_ioremap *map;
-+	void __iomem *virt = NULL;
+ 	rcu_read_lock();
+ 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+-	rcu_read_unlock();
+ 	if (!virt_addr) {
++		rcu_read_unlock();
+ 		virt_addr = acpi_os_ioremap(phys_addr, size);
+-		unmap = 1;
++		if (!virt_addr)
++			return AE_BAD_ADDRESS;
++		unmap = true;
+ 	}
 +
-+	mutex_lock(&acpi_ioremap_lock);
-+	map = acpi_map_lookup(phys, size);
-+	if (map) {
-+		virt = map->virt + (phys - map->phys);
-+		map->refcount++;
-+	}
-+	mutex_unlock(&acpi_ioremap_lock);
-+	return virt;
-+}
-+EXPORT_SYMBOL_GPL(acpi_os_get_iomem);
-+
- /* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static struct acpi_ioremap *
- acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
-Index: linux-2.6/include/linux/acpi_io.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi_io.h
-+++ linux-2.6/include/linux/acpi_io.h
-@@ -10,4 +10,6 @@ static inline void __iomem *acpi_os_iore
-        return ioremap_cache(phys, size);
- }
+ 	if (!value)
+ 		value = &dummy;
  
-+void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
-+
- #endif
+@@ -666,6 +670,8 @@ acpi_os_read_memory(acpi_physical_addres
+ 
+ 	if (unmap)
+ 		iounmap(virt_addr);
++	else
++		rcu_read_unlock();
+ 
+ 	return AE_OK;
+ }
+@@ -674,14 +680,17 @@ acpi_status
+ acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
+ {
+ 	void __iomem *virt_addr;
+-	int size = width / 8, unmap = 0;
++	unsigned int size = width / 8;
++	bool unmap = false;
+ 
+ 	rcu_read_lock();
+ 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+-	rcu_read_unlock();
+ 	if (!virt_addr) {
++		rcu_read_unlock();
+ 		virt_addr = acpi_os_ioremap(phys_addr, size);
+-		unmap = 1;
++		if (!virt_addr)
++			return AE_BAD_ADDRESS;
++		unmap = true;
+ 	}
+ 
+ 	switch (width) {
+@@ -700,6 +709,8 @@ acpi_os_write_memory(acpi_physical_addre
+ 
+ 	if (unmap)
+ 		iounmap(virt_addr);
++	else
++		rcu_read_unlock();
+ 
+ 	return AE_OK;
+ }
 
