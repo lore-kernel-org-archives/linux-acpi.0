@@ -1,60 +1,97 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps
- management
-Date: Sun, 23 Jan 2011 21:15:12 -0200
-Message-ID: <20110123231512.GB11203@khazad-dum.debian.net>
-References: <201101201226.41021.rjw@sisk.pl>
- <201101221013.10239.rjw@sisk.pl>
- <20110123182037.GH24071@khazad-dum.debian.net>
- <201101232135.32510.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: re: Rename exported func generate_netlink_event to
+ thermal_netlink_event
+Date: Mon, 24 Jan 2011 08:24:13 +0800
+Message-ID: <1295828653.1866.751.camel@rui>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F503@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201101232135.32510.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:15062 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752608Ab1AXAZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Jan 2011 19:25:36 -0500
+In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541094482F503@bgsmsx502.gar.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sun, 23 Jan 2011, Rafael J. Wysocki wrote:
-> On Sunday, January 23, 2011, Henrique de Moraes Holschuh wrote:
-> > On Sat, 22 Jan 2011, Rafael J. Wysocki wrote:
-> > > > I discovered CONFIG_THINKPAD_ACPI caused suspend-to-disk to hang. I
-> > > > need the Thinkpad ACPI to control the fan and bluetooth. It looks like
-> > > > the thinkpad acpi is trying acquire locks while suspending.  Disabling
-> > > > cmos, light, led and hotkeys makes suspend-to-disk works again.
-> > > 
-> > > Well, we should tell the thinkpad_acpi maintainer about that, then (CCed).
-> > 
-> > What are the requirements re. mutexes for sleep-to-disk versus sleep-to-ram?
+On Fri, 2011-01-21 at 18:49 +0800, R, Durgadoss wrote:
+> Hi Len,
 > 
-> No difference.  Basically, there are two differences between suspend and
-> hibernation, as far as drivers are concerned:
-> (1) It's better to use the ->freeze()/->thaw() and ->poweroff()/->restore()
->     callbacks for hibernation.
-> (2) It may be _much_ more difficult to get free memory during hibernation
->     (so theoretically attempts to get memory during hibernation are more likely
->     to block).
+> I tested this patch from Thomas.
+> This works fine for me.
+> 
+> Could you please apply this on top of the old patch?
+> 
+> Thanks,
+> Durga
+> --------------------------------------------
+> thermal: Rename exported func generate_netlink_event to thermal_netlink_event
+> 
+> Tested-by: Durgadoss R <durgadoss.r@intel.com>
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: R.Durgadoss <durgadoss.r@intel.com>
+> CC: Len Brown <len.brown@intel.com>
+> 
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-So, if there is nothing wrong with mutex use by itself...
+> ---
+>  drivers/thermal/thermal_sys.c |    8 ++++----
+>  include/linux/thermal.h       |    2 +-
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 5bbacff..02283f3 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -78,7 +78,7 @@ static struct genl_multicast_group thermal_event_mcgrp = {
+>  static int genetlink_init(void);
+>  static void genetlink_exit(void);
+>  
+> -int generate_netlink_event(u32 orig, enum events event)
+> +int thermal_netlink_event(u32 orig, enum events event)
+>  {
+>  	struct sk_buff *skb;
+>  	struct nlattr *attr;
+> @@ -137,7 +137,7 @@ int generate_netlink_event(u32 orig, enum events event)
+>  
+>  	return result;
+>  }
+> -EXPORT_SYMBOL(generate_netlink_event);
+> +EXPORT_SYMBOL(thermal_netlink_event);
+>  
+>  static int genetlink_init(void)
+>  {
+> @@ -163,8 +163,8 @@ static void genetlink_exit(void)
+>  
+>  static void genetlink_exit(void) {};
+>  static int genetlink_init(void) { return 0; }
+> -int generate_netlink_event(u32 orig, enum events event) { return 0; }
+> -EXPORT_SYMBOL(generate_netlink_event);
+> +int thermal_netlink_event(u32 orig, enum events event) { return 0; }
+> +EXPORT_SYMBOL(thermal_netlink_event);
+>  
+>  #endif /* CONFIG_NET */
+>  
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 1c31614..c24756e 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -161,7 +161,7 @@ enum {
+>  };
+>  #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+>  #endif
+> -extern int generate_netlink_event(u32 orig, enum events event);
+> +extern int thermal_netlink_event(u32 orig, enum events event);
+>  
+>  struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+>  		const struct thermal_zone_device_ops *, int tc1, int tc2,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thinkpad-acpi calls the thinkpad firmware (using normal ACPI method calls),
-which does SMI traps into the SMBIOS to do whatever it wants done.  And that
-includes writing to the NVS (both the peecee RTC CMOS, and ACPI-backed
-"NVS").
 
-> Besides, the problem reported by Jeff seems to be caused by CPU hotplug.
-
-Something weird going on with CPU hotplug could throw Lenovo's
-way-too-complex-for-comfort SMM firmware out of wack alright.
-
-That can be checked.  Lobotomize the driver so that it does not do the acpi
-calls in the suspend path (but keep everything else).  If it still locks, it
-is not the firmware.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
