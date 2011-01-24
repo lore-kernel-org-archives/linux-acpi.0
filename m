@@ -1,78 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/8] ACPI: Do not export functions that are only used in osl.c
-Date: Tue, 25 Jan 2011 00:27:37 +0100
-Message-ID: <201101250027.37509.rjw@sisk.pl>
-References: <201101201226.41021.rjw@sisk.pl> <201101250025.10817.rjw@sisk.pl>
+Subject: [PATCH 0/8] ACPI: Fixes and cleanups related to iomaps management (v2)
+Date: Tue, 25 Jan 2011 00:25:10 +0100
+Message-ID: <201101250025.10817.rjw@sisk.pl>
+References: <201101201226.41021.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35665 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178Ab1AXXdE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jan 2011 18:33:04 -0500
-In-Reply-To: <201101250025.10817.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201101201226.41021.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi Len,
 
-The functions acpi_os_map_generic_address() and
-acpi_os_unmap_generic_address() are only used in drivers/acpi/osl.c,
-so make them static and remove the extern definitions of them from
-include/linux/acpi_io.h.
+The following series of patches implements some fixes of the ACPI iomaps
+management.  I found the problems trying to resolve the issue of creating
+iomaps of regions that have been mapped already when we save the NVS region.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/osl.c      |    6 ++----
- include/linux/acpi_io.h |    3 ---
- 2 files changed, 2 insertions(+), 7 deletions(-)
+To me, they are not extremely urgent, because the related issues are generally
+long-standing, but some bugs addressed by them (especially [1/9]) may be
+actively hurting people right now, so they look suitable for .38 as well.
+This is your call, though.
+ 
+[1/8] - Fix routines for reading and writing iomem (RCU bug; new version of the
+        patch).
 
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -397,7 +397,7 @@ void __init early_acpi_os_unmap_memory(v
- 		__acpi_unmap_table(virt, size);
- }
- 
--int acpi_os_map_generic_address(struct acpi_generic_address *addr)
-+static int acpi_os_map_generic_address(struct acpi_generic_address *addr)
- {
- 	void __iomem *virt;
- 
-@@ -413,9 +413,8 @@ int acpi_os_map_generic_address(struct a
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(acpi_os_map_generic_address);
- 
--void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
-+static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
- {
- 	void __iomem *virt;
- 	unsigned long flags;
-@@ -433,7 +432,6 @@ void acpi_os_unmap_generic_address(struc
- 
- 	acpi_os_unmap_memory(virt, size);
- }
--EXPORT_SYMBOL_GPL(acpi_os_unmap_generic_address);
- 
- #ifdef ACPI_FUTURE_USAGE
- acpi_status
-Index: linux-2.6/include/linux/acpi_io.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi_io.h
-+++ linux-2.6/include/linux/acpi_io.h
-@@ -10,7 +10,4 @@ static inline void __iomem *acpi_os_iore
-        return ioremap_cache(phys, size);
- }
- 
--int acpi_os_map_generic_address(struct acpi_generic_address *addr);
--void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
--
- #endif
+[2/8] - (cleanup) Do not export local functions in osl.c (this one is the same
+        as https://patchwork.kernel.org/patch/491551/).
 
+[3/8] - Use a mutex (instead of a spinlock) for the locking of iomap
+        manipulations in osl.c (same as
+        https://patchwork.kernel.org/patch/491751/).
+
+[4/8] - Avoid unnecessary walks of the list of iomaps in osl.c (same as
+        https://patchwork.kernel.org/patch/491671/).
+
+[5/8] - Avoid creating iomaps for regions that have been mapped already (same
+         as https://patchwork.kernel.org/patch/491741/).
+
+[6/8] - Replace krefs used for iomap refcounting with simple reference
+        counters (they are manipulated under a lock anyway; same as
+        https://patchwork.kernel.org/patch/491681/).
+
+[7/8] - Introduce function for getting a reference to an ACPI iomap (to be
+        used by the NVS save/restore code; same as
+        https://patchwork.kernel.org/patch/491701/).
+
+[8/8] - Make the NVS code use existing iomaps if possible (new version).
+
+The patches have been tested on HP nx6325, Toshiba Portege R500 and Acer
+Ferrari One without causing any visible problems to happen.
+ 
+Thanks,
+Rafael
