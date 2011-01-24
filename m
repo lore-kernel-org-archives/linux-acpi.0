@@ -1,54 +1,60 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: User tool for configuring wake-up devices
-Date: Mon, 24 Jan 2011 15:09:47 +0100
-Message-ID: <201101241509.48032.trenn@suse.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Thermal kernel events API to userspace - Was: Re: thermal:
+ Avoid CONFIG_NET compile dependency
+Date: Mon, 24 Jan 2011 14:07:47 -0200
+Message-ID: <20110124160747.GD6424@khazad-dum.debian.net>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
+ <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
+ <201101241135.23576.trenn@suse.de>
+ <201101241407.28376.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:59904 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751946Ab1AXOJu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jan 2011 09:09:50 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43058 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753331Ab1AXQHv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 11:07:51 -0500
+Content-Disposition: inline
+In-Reply-To: <201101241407.28376.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org
-Cc: oneukum@suse.de
+To: Thomas Renninger <trenn@suse.de>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>, jdelvare@novell.com, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Kay Sievers <kay.sievers@vrfy.org>, linux-perf-users@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-trace-users@vger.kernel.org
 
-Hi,
+On Mon, 24 Jan 2011, Thomas Renninger wrote:
+> I wonder whether netlink is the way to go for thermal
+> events at all.
+> Sending an udev event would already contain the sysfs
+> path to the thermal device. A variable which thermal event
+> got thrown could get added and userspace can read out the rest
+> easily from sysfs files. But I expect udev is not intended
+> for such general events?
 
-some time ago we talked about a userspace tool
-which can enable specific devices to be able to
-wake the machine up from suspend.
+udev is heavyweight in the userspace side, we'd be much better off using the
+ACPI event interface (which is netlink), or a new one to deliver system
+status events, instead of continously abusing udev for this stuff.
 
-While Rafael solved that for network directly
-in the driver iirc (should work via ethtool now),
-there wasn't any outcome for
-other devices (usb, key, mouse, generic ACPI implementation
-reading out device's sysfs path...) to activate them as
-wakeup devices in a userfriendly way?
+> > > Also, the thermal_aux0 and _aux1, we can use the final format specified by you.
+> > > enum events {
+> > >  	THERMAL_CRITICAL,
+> > >  	/* user defined thermal events */
+> > >  	THERMAL_USER_AUX0,
+> > >  	THERMAL_USER_AUX1,
+> > >  	THERMAL_DEV_FAULT,
+> > >  };
 
-Oliver just asked me for a tool to e.g. configure
-and enable usb or other devices as wake-up devices.
+Please give us at least two levels of thermal alarm: critical and emergency
+(or warning and critical -- it doesn't matter much, as long as there are at
+least two levels, and which one comes first is defined by the
+specification).  I'd have immediate use for them on thinkpads.
 
-I quickly googled and found:
-  - acpitools (http://sourceforge.net/projects/acpitool)
-    rather old, I doubt it does any sysfs reads to find
-    out which devices could be configured and of what
-    type they are?
+It is probably best to have three levels (warning, critical, emergency).
+Best not to tie the API/ABI to the notion of "too hot", one can also alarm
+when it starts to get to cold.
 
-  - acpi-wakeup
-    even less feature rich...
-
-In sysfs is this supposed to work via:
-/sys/devices/.../power/wakeup_active
-now?
-
-How are users supposed to enable devices for suspend wake up?
-Are there any tools already which are worth packaging
-or is such a tool waiting for implementation?
-
-Thanks,
-
-   Thomas
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
