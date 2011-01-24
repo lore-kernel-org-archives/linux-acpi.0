@@ -1,75 +1,44 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: backlight gone?
-Date: Mon, 24 Jan 2011 11:24:50 +0800
-Message-ID: <1295839490.1866.798.camel@rui>
-References: <20110124025720.GA25734@gamma.logic.tuwien.ac.at>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: thermal: Avoid CONFIG_NET compile dependency
+Date: Mon, 24 Jan 2011 10:09:26 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
+	 <201101211312.16929.trenn@suse.de> <1295832150.1866.797.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:3618 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:46556 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753041Ab1AXD0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Jan 2011 22:26:13 -0500
-In-Reply-To: <20110124025720.GA25734@gamma.logic.tuwien.ac.at>
+	id S1751892Ab1AXEja (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Jan 2011 23:39:30 -0500
+In-Reply-To: <1295832150.1866.797.camel@rui>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-does this patch help?
-https://patchwork.kernel.org/patch/499221/
-
-thanks,
-rui
-
-On Mon, 2011-01-24 at 10:57 +0800, Norbert Preining wrote:
-> Hi everyone,
-> 
-> I have seen that on lkml, too, and experience it myself: Suddenly the
-> backlight is gone:
-> [    2.018622] No ACPI video bus found
-> up to 2.6.37 there was one ...
-> 
-> There are some other things regarding i915/drm in my dmesg:
-> [    1.520109] [drm] Initialized drm 1.1.0 20060810
-> [    1.520190] i915 0000:00:02.0: power state changed by ACPI to D0
-> [    1.520246] i915 0000:00:02.0: power state changed by ACPI to D0
-> [    1.520305] i915 0000:00:02.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-> [    1.520363] i915 0000:00:02.0: setting latency timer to 64
-> [    1.572889] i915 0000:00:02.0: irq 43 for MSI/MSI-X
-> [    1.572895] [drm] Supports vblank timestamp caching Rev 1 (10.10.2010).
-> [    1.572952] [drm] Driver supports precise vblank timestamp query.
-> [    1.573312] [drm:intel_dsm_pci_probe] *ERROR* failed to get supported _DSM functions
-> [    1.620092] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=io+mem,decodes=io+mem:owns=io+mem
-> [    2.015219] Console: switching to colour frame buffer device 200x56
-> [    2.018568] fb0: inteldrmfb frame buffer device
-> [    2.018590] drm: registered panic notifier
-> [    2.018622] No ACPI video bus found
-> [    2.018842] [drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
-> 
-> That is with latest git kernel.
-> 
-> Anything else needed here?
-> 
-> Best wishes
-> 
-> Norbert
-> ------------------------------------------------------------------------
-> Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-> JAIST, Japan                                 TeX Live & Debian Developer
-> DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-> ------------------------------------------------------------------------
-> BOOK	There is a theory which states that if ever anyone discovers
-> 	exactly what the Universe is for and why it is here, it will
-> 	instantly disappear and be replaced by something even more
-> 	bizarrely inexeplicable.
-> 	There is another theory which states that this has already happened.
->                  --- Introduction to Fit the Seventh.
->                  --- Douglas Adams, The Hitchhikers Guide to the Galaxy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+SGkgUnVpLA0KDQo+IA0KPiBJTU8sDQo+IGVudW0gZXZlbnRzIHsNCj4gICAgICAgIFRIRVJNQUxf
+QVVYMCwNCj4gICAgICAgIFRIRVJNQUxfQVVYMSwNCj4gICAgICAgIFRIRVJNQUxfQ1JJVElDQUws
+DQo+ICAgICAgICBUSEVSTUFMX0RFVl9GQVVMVCwNCj4gfTsNCj4gc2hvdWxkIG5vdCBiZSBpbmNs
+dWRlZCBpbiB0aGUgaWZkZWYgY2FzZS4NCj4gDQo+IEJUVzogRHVyZ2Fkb3NzLCB3aGF0IGRvZXMg
+VEhFUk1BTF9BVVgwIGFuZCBUSEVSTUFMX0FVWDEgbWVhbj8NCj4gU29ycnkgSSBtaXNzZWQgdGhp
+cyBpbiB0aGUgb3JpZ2luYWwgcGF0Y2gsIGJ1dCB0aGVzZSB0d28gZXZlbnRzIGRvIG5vdA0KPiBs
+b29rIGxpa2Ugc29tZXRoaW5nIHRoZSBnZW5lcmljIHRoZXJtYWwgZHJpdmVyIGtub3dzLg0KPiAN
+Cj4gSWYgeW91IHJlYWxseSBuZWVkIHRoZXNlIGtpbmQgb2YgZXZlbnRzLCBJJ2QgcHJlZmVyIHNv
+bWV0aGluZyBsaWtlIHRoaXM6DQo+IGVudW0gZXZlbnRzIHsNCj4gCVRIRVJNQUxfQ1JJVElDQUws
+DQo+IAkvKiB1c2VyIGRlZmluZWQgdGhlcm1hbCBldmVudHMgKi8NCj4gCVRFSFJNQUxfVVNFUjAs
+DQo+IAlURUhSTUFMX1VTRVIxLA0KPiAJVEhFUk1BTF9ERVZfRkFVTFQsDQo+IH07DQo+IA0KPiBv
+cg0KPiBlbnVtIGV2ZW50cyB7DQo+IAlUSEVSTUFMX0NSSVRJQ0FMLA0KPiAJLyogdXNlciBkZWZp
+bmVkIHRoZXJtYWwgZXZlbnRzICovDQo+IAlURUhSTUFMX1VTRVJfQVVYMCwNCj4gCVRFSFJNQUxf
+VVNFUl9BVVgxLA0KPiAJVEhFUk1BTF9ERVZfRkFVTFQsDQo+IH07DQo+IA0KPiANCj4gPiBUaGVy
+ZWZvcmUgcGxlYXNlIGFwcGx5IHRoaXMgb25lIGFzIGl0IGlzLg0KPiA+DQo+IHdoaWNoIG9uZT8g
+ZG8gSSBtaXNzIHNvbWV0aGluZyBhZ2Fpbj8gOikNCj4gDQoNClRoaXMgcmVmZXJzIHRvIHRoZSBw
+YXRjaCB0aGF0IHlvdSBhY2tub3dsZWRnZWQuDQpTbywgeW91IGFyZSBub3QgbWlzc2luZyBhbnkg
+cGF0Y2ggaW4gdGhlIG1pZGRsZS4NCg0KQWxzbywgdGhlIHRoZXJtYWxfYXV4MCBhbmQgX2F1eDEs
+IHdlIGNhbiB1c2UgdGhlIGZpbmFsIGZvcm1hdCBzcGVjaWZpZWQgYnkgeW91Lg0KZW51bSBldmVu
+dHMgew0KIAlUSEVSTUFMX0NSSVRJQ0FMLA0KIAkvKiB1c2VyIGRlZmluZWQgdGhlcm1hbCBldmVu
+dHMgKi8NCiAJVEhFUk1BTF9VU0VSX0FVWDAsDQogCVRIRVJNQUxfVVNFUl9BVVgxLA0KIAlUSEVS
+TUFMX0RFVl9GQVVMVCwNCiB9Ow0KVGhhbmtzIGZvciB0aGUgc3VnZ2VzdGlvbiwgUnVpLg0KDQpS
+ZWdhcmRzLA0KRHVyZ2ENCg0K
