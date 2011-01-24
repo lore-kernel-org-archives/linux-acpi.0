@@ -1,60 +1,72 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Thermal kernel events API to userspace - Was: Re: thermal:
- Avoid CONFIG_NET compile dependency
-Date: Mon, 24 Jan 2011 14:07:47 -0200
-Message-ID: <20110124160747.GD6424@khazad-dum.debian.net>
-References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
- <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
- <201101241135.23576.trenn@suse.de>
- <201101241407.28376.trenn@suse.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] User tool for configuring wake-up devices
+Date: Mon, 24 Jan 2011 11:17:01 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1101241107330.2030-100000@iolanthe.rowland.org>
+References: <201101241509.48032.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43058 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753331Ab1AXQHv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jan 2011 11:07:51 -0500
-Content-Disposition: inline
-In-Reply-To: <201101241407.28376.trenn@suse.de>
+Received: from iolanthe.rowland.org ([192.131.102.54]:46554 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751878Ab1AXQRD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jan 2011 11:17:03 -0500
+In-Reply-To: <201101241509.48032.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Renninger <trenn@suse.de>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>, jdelvare@novell.com, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Kay Sievers <kay.sievers@vrfy.org>, linux-perf-users@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-trace-users@vger.kernel.org
+Cc: David Brownell <david-b@pacbell.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org, oneukum@suse.de
 
 On Mon, 24 Jan 2011, Thomas Renninger wrote:
-> I wonder whether netlink is the way to go for thermal
-> events at all.
-> Sending an udev event would already contain the sysfs
-> path to the thermal device. A variable which thermal event
-> got thrown could get added and userspace can read out the rest
-> easily from sysfs files. But I expect udev is not intended
-> for such general events?
 
-udev is heavyweight in the userspace side, we'd be much better off using the
-ACPI event interface (which is netlink), or a new one to deliver system
-status events, instead of continously abusing udev for this stuff.
+> Hi,
+> 
+> some time ago we talked about a userspace tool
+> which can enable specific devices to be able to
+> wake the machine up from suspend.
+> 
+> While Rafael solved that for network directly
+> in the driver iirc (should work via ethtool now),
+> there wasn't any outcome for
+> other devices (usb, key, mouse, generic ACPI implementation
+> reading out device's sysfs path...) to activate them as
+> wakeup devices in a userfriendly way?
 
-> > > Also, the thermal_aux0 and _aux1, we can use the final format specified by you.
-> > > enum events {
-> > >  	THERMAL_CRITICAL,
-> > >  	/* user defined thermal events */
-> > >  	THERMAL_USER_AUX0,
-> > >  	THERMAL_USER_AUX1,
-> > >  	THERMAL_DEV_FAULT,
-> > >  };
+I'm not aware of any.  (Note that keyboard devices are supposed to be
+enabled for wakeup by default, although this may not yet be implemented
+in all the keyboard drivers.)
 
-Please give us at least two levels of thermal alarm: critical and emergency
-(or warning and critical -- it doesn't matter much, as long as there are at
-least two levels, and which one comes first is defined by the
-specification).  I'd have immediate use for them on thinkpads.
+> Oliver just asked me for a tool to e.g. configure
+> and enable usb or other devices as wake-up devices.
+> 
+> I quickly googled and found:
+>   - acpitools (http://sourceforge.net/projects/acpitool)
+>     rather old, I doubt it does any sysfs reads to find
+>     out which devices could be configured and of what
+>     type they are?
+> 
+>   - acpi-wakeup
+>     even less feature rich...
+> 
+> In sysfs is this supposed to work via:
+> /sys/devices/.../power/wakeup_active
+> now?
 
-It is probably best to have three levels (warning, critical, emergency).
-Best not to tie the API/ABI to the notion of "too hot", one can also alarm
-when it starts to get to cold.
+The filename is just "wakeup", not "wakeup_active".  It's worth 
+pointing out that for USB devices, one must enable wakeup both on the 
+device itself and also on the host controller for the device's bus.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+> How are users supposed to enable devices for suspend wake up?
+
+By writing "enabled" to the sysfs file.  Writing "disabled" to the file 
+has the opposite effect.
+
+Currently this is done by udev rules, by desktop config programs, or by
+manually adding lines to system shell scripts.
+
+> Are there any tools already which are worth packaging
+> or is such a tool waiting for implementation?
+
+I don't know of any tools capable of handling this.
+
+Alan Stern
+
