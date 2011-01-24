@@ -1,62 +1,107 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
-Date: Mon, 24 Jan 2011 22:37:43 +0100
-Message-ID: <201101242237.44269.rjw@sisk.pl>
-References: <201101201226.41021.rjw@sisk.pl> <201101232135.32510.rjw@sisk.pl> <20110123231512.GB11203@khazad-dum.debian.net>
+Subject: [PATCH 4/8] ACPI: Avoid walking the list of memory mappings in osl.c twice in a row
+Date: Tue, 25 Jan 2011 00:28:51 +0100
+Message-ID: <201101250028.52136.rjw@sisk.pl>
+References: <201101201226.41021.rjw@sisk.pl> <201101250025.10817.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35385 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:35666 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892Ab1AXViB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jan 2011 16:38:01 -0500
-In-Reply-To: <20110123231512.GB11203@khazad-dum.debian.net>
+	id S1752776Ab1AXXdE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 18:33:04 -0500
+In-Reply-To: <201101250025.10817.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Monday, January 24, 2011, Henrique de Moraes Holschuh wrote:
-> On Sun, 23 Jan 2011, Rafael J. Wysocki wrote:
-> > On Sunday, January 23, 2011, Henrique de Moraes Holschuh wrote:
-> > > On Sat, 22 Jan 2011, Rafael J. Wysocki wrote:
-> > > > > I discovered CONFIG_THINKPAD_ACPI caused suspend-to-disk to hang. I
-> > > > > need the Thinkpad ACPI to control the fan and bluetooth. It looks like
-> > > > > the thinkpad acpi is trying acquire locks while suspending.  Disabling
-> > > > > cmos, light, led and hotkeys makes suspend-to-disk works again.
-> > > > 
-> > > > Well, we should tell the thinkpad_acpi maintainer about that, then (CCed).
-> > > 
-> > > What are the requirements re. mutexes for sleep-to-disk versus sleep-to-ram?
-> > 
-> > No difference.  Basically, there are two differences between suspend and
-> > hibernation, as far as drivers are concerned:
-> > (1) It's better to use the ->freeze()/->thaw() and ->poweroff()/->restore()
-> >     callbacks for hibernation.
-> > (2) It may be _much_ more difficult to get free memory during hibernation
-> >     (so theoretically attempts to get memory during hibernation are more likely
-> >     to block).
-> 
-> So, if there is nothing wrong with mutex use by itself...
-> 
-> Thinkpad-acpi calls the thinkpad firmware (using normal ACPI method calls),
-> which does SMI traps into the SMBIOS to do whatever it wants done.  And that
-> includes writing to the NVS (both the peecee RTC CMOS, and ACPI-backed
-> "NVS").
-> 
-> > Besides, the problem reported by Jeff seems to be caused by CPU hotplug.
-> 
-> Something weird going on with CPU hotplug could throw Lenovo's
-> way-too-complex-for-comfort SMM firmware out of wack alright.
-> 
-> That can be checked.  Lobotomize the driver so that it does not do the acpi
-> calls in the suspend path (but keep everything else).  If it still locks, it
-> is not the firmware.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-It turns out there's a bug in intel_idle causing people a lot of pain with CPU
-hotplugging.  Should be fixed now it the Linus' tree.
+Make acpi_os_unmap_generic_address() use acpi_map_lookup() to find
+the desired iomap and drop the reference to it directly (and
+eventually remove it if necessary) instead of calling
+acpi_os_unmap_memory(), which requires us to walk the list of ACPI
+iomaps twice in a row (first, to get the virtual address associated
+with the iomap and second, to get the iomap itself).
 
-Thanks,
-Rafael
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/osl.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
+
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -358,6 +358,13 @@ static void acpi_kref_del_iomap(struct k
+ 	list_del_rcu(&map->list);
+ }
+ 
++static void acpi_os_remove_map(struct acpi_ioremap *map)
++{
++	synchronize_rcu();
++	iounmap(map->virt);
++	kfree(map);
++}
++
+ void __ref acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ {
+ 	struct acpi_ioremap *map;
+@@ -372,20 +379,14 @@ void __ref acpi_os_unmap_memory(void __i
+ 	map = acpi_map_lookup_virt(virt, size);
+ 	if (!map) {
+ 		mutex_unlock(&acpi_ioremap_lock);
+-		printk(KERN_ERR PREFIX "%s: bad address %p\n", __func__, virt);
+-		dump_stack();
++		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
+ 		return;
+ 	}
+-
+ 	del = kref_put(&map->ref, acpi_kref_del_iomap);
+ 	mutex_unlock(&acpi_ioremap_lock);
+ 
+-	if (!del)
+-		return;
+-
+-	synchronize_rcu();
+-	iounmap(map->virt);
+-	kfree(map);
++	if (del)
++		acpi_os_remove_map(map);
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+ 
+@@ -414,8 +415,8 @@ static int acpi_os_map_generic_address(s
+ 
+ static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+ {
+-	void __iomem *virt;
+-	acpi_size size = addr->bit_width / 8;
++	struct acpi_ioremap *map;
++	int del;
+ 
+ 	if (addr->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 		return;
+@@ -424,10 +425,16 @@ static void acpi_os_unmap_generic_addres
+ 		return;
+ 
+ 	mutex_lock(&acpi_ioremap_lock);
+-	virt = acpi_map_vaddr_lookup(addr->address, size);
++	map = acpi_map_lookup(addr->address, addr->bit_width / 8);
++	if (!map) {
++		mutex_unlock(&acpi_ioremap_lock);
++		return;
++	}
++	del = kref_put(&map->ref, acpi_kref_del_iomap);
+ 	mutex_unlock(&acpi_ioremap_lock);
+ 
+-	acpi_os_unmap_memory(virt, size);
++	if (del)
++		acpi_os_remove_map(map);
+ }
+ 
+ #ifdef ACPI_FUTURE_USAGE
+
