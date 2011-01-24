@@ -1,44 +1,58 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: thermal: Avoid CONFIG_NET compile dependency
-Date: Mon, 24 Jan 2011 10:09:26 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
-References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
-	 <201101211312.16929.trenn@suse.de> <1295832150.1866.797.camel@rui>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Occasional (too common) suspend problem
+Date: Mon, 24 Jan 2011 17:22:05 +1000
+Message-ID: <AANLkTimSv5Myv14Kys2OTgm=wH=8DFPFeeUSkEfg-+b1@mail.gmail.com>
+References: <AANLkTikBRf00H_6YcS9nsnJG68WguDzL_AvNTRyDWRY=@mail.gmail.com>
+ <201101222017.40389.rjw@sisk.pl> <AANLkTikSZTZ+mSWcjs2LQGOTbbKY+SAb5YEjP+GDSK0+@mail.gmail.com>
+ <201101232229.49494.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46556 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892Ab1AXEja (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Jan 2011 23:39:30 -0500
-In-Reply-To: <1295832150.1866.797.camel@rui>
-Content-Language: en-US
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51203 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751580Ab1AXHWz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 02:22:55 -0500
+Received: from mail-iy0-f174.google.com (mail-iy0-f174.google.com [209.85.210.174])
+	(authenticated bits=0)
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0O7MQtG023477
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=FAIL)
+	for <linux-acpi@vger.kernel.org>; Sun, 23 Jan 2011 23:22:26 -0800
+Received: by iyj18 with SMTP id 18so3675423iyj.19
+        for <linux-acpi@vger.kernel.org>; Sun, 23 Jan 2011 23:22:25 -0800 (PST)
+In-Reply-To: <201101232229.49494.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Jesse Barnes <jbarnes@virtuousgeek.org>, Dave Airlie <airlied@linux.ie>, Len Brown <lenb@kernel.org>, Jeff Chua <jeff.chua.linux@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-SGkgUnVpLA0KDQo+IA0KPiBJTU8sDQo+IGVudW0gZXZlbnRzIHsNCj4gICAgICAgIFRIRVJNQUxf
-QVVYMCwNCj4gICAgICAgIFRIRVJNQUxfQVVYMSwNCj4gICAgICAgIFRIRVJNQUxfQ1JJVElDQUws
-DQo+ICAgICAgICBUSEVSTUFMX0RFVl9GQVVMVCwNCj4gfTsNCj4gc2hvdWxkIG5vdCBiZSBpbmNs
-dWRlZCBpbiB0aGUgaWZkZWYgY2FzZS4NCj4gDQo+IEJUVzogRHVyZ2Fkb3NzLCB3aGF0IGRvZXMg
-VEhFUk1BTF9BVVgwIGFuZCBUSEVSTUFMX0FVWDEgbWVhbj8NCj4gU29ycnkgSSBtaXNzZWQgdGhp
-cyBpbiB0aGUgb3JpZ2luYWwgcGF0Y2gsIGJ1dCB0aGVzZSB0d28gZXZlbnRzIGRvIG5vdA0KPiBs
-b29rIGxpa2Ugc29tZXRoaW5nIHRoZSBnZW5lcmljIHRoZXJtYWwgZHJpdmVyIGtub3dzLg0KPiAN
-Cj4gSWYgeW91IHJlYWxseSBuZWVkIHRoZXNlIGtpbmQgb2YgZXZlbnRzLCBJJ2QgcHJlZmVyIHNv
-bWV0aGluZyBsaWtlIHRoaXM6DQo+IGVudW0gZXZlbnRzIHsNCj4gCVRIRVJNQUxfQ1JJVElDQUws
-DQo+IAkvKiB1c2VyIGRlZmluZWQgdGhlcm1hbCBldmVudHMgKi8NCj4gCVRFSFJNQUxfVVNFUjAs
-DQo+IAlURUhSTUFMX1VTRVIxLA0KPiAJVEhFUk1BTF9ERVZfRkFVTFQsDQo+IH07DQo+IA0KPiBv
-cg0KPiBlbnVtIGV2ZW50cyB7DQo+IAlUSEVSTUFMX0NSSVRJQ0FMLA0KPiAJLyogdXNlciBkZWZp
-bmVkIHRoZXJtYWwgZXZlbnRzICovDQo+IAlURUhSTUFMX1VTRVJfQVVYMCwNCj4gCVRFSFJNQUxf
-VVNFUl9BVVgxLA0KPiAJVEhFUk1BTF9ERVZfRkFVTFQsDQo+IH07DQo+IA0KPiANCj4gPiBUaGVy
-ZWZvcmUgcGxlYXNlIGFwcGx5IHRoaXMgb25lIGFzIGl0IGlzLg0KPiA+DQo+IHdoaWNoIG9uZT8g
-ZG8gSSBtaXNzIHNvbWV0aGluZyBhZ2Fpbj8gOikNCj4gDQoNClRoaXMgcmVmZXJzIHRvIHRoZSBw
-YXRjaCB0aGF0IHlvdSBhY2tub3dsZWRnZWQuDQpTbywgeW91IGFyZSBub3QgbWlzc2luZyBhbnkg
-cGF0Y2ggaW4gdGhlIG1pZGRsZS4NCg0KQWxzbywgdGhlIHRoZXJtYWxfYXV4MCBhbmQgX2F1eDEs
-IHdlIGNhbiB1c2UgdGhlIGZpbmFsIGZvcm1hdCBzcGVjaWZpZWQgYnkgeW91Lg0KZW51bSBldmVu
-dHMgew0KIAlUSEVSTUFMX0NSSVRJQ0FMLA0KIAkvKiB1c2VyIGRlZmluZWQgdGhlcm1hbCBldmVu
-dHMgKi8NCiAJVEhFUk1BTF9VU0VSX0FVWDAsDQogCVRIRVJNQUxfVVNFUl9BVVgxLA0KIAlUSEVS
-TUFMX0RFVl9GQVVMVCwNCiB9Ow0KVGhhbmtzIGZvciB0aGUgc3VnZ2VzdGlvbiwgUnVpLg0KDQpS
-ZWdhcmRzLA0KRHVyZ2ENCg0K
+On Mon, Jan 24, 2011 at 7:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> There's one more thing that may be related. =A0Apparently, we've made=
+ something
+> recently that's causing lots of problems with boot and poweroff for A=
+sus
+> machines (https://lkml.org/lkml/2011/1/23/54). =A0The Asus BIOSes evi=
+dently
+> don't like something we do, but I have no idea what that may be at th=
+is point.
+
+Yeah, I think there's something there. In fact, I'm getting pretty
+sure of it. Because I have now twice seen the _shutdown_ end up
+halting, and guess what? When I press a key, it then finishes the
+shutdown.
+
+Sound familiar?
+
+The last thing printed is the "Disabling non-boot CPU's" thing or
+whatever. I didn't take a picture, and it obviously doesn't get logged
+(since it's after the processes have been killed), but it definitely
+smelled like "Uhhuh, same problem as with suspend".
+
+                   Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
