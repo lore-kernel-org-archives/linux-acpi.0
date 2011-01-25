@@ -1,53 +1,69 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: thermal: Avoid CONFIG_NET compile dependency
-Date: Tue, 25 Jan 2011 10:48:43 +0100
-Message-ID: <201101251048.43227.jdelvare@suse.de>
-References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com> <201101241135.23576.trenn@suse.de> <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Thermal kernel events API to userspace - Was: Re: thermal: Avoid CONFIG_NET compile dependency
+Date: Tue, 25 Jan 2011 11:12:28 +0100
+Message-ID: <201101251112.28340.trenn@suse.de>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com> <20110124160747.GD6424@khazad-dum.debian.net> <1295942269.1866.1201.camel@rui>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43570 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751356Ab1AYJsp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jan 2011 04:48:45 -0500
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-perf-users-owner@vger.kernel.org>
+In-Reply-To: <1295942269.1866.1201.camel@rui>
+Sender: linux-perf-users-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "R, Durgadoss" <durgadoss.r@intel.com>, "jdelvare@novell.com" <jdelvare@novell.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Kay Sievers <kay.sievers@vrfy.org>, "linux-perf-users@vger.kernel.org" <linux-perf-users@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-trace-users@vger.kernel.org" <linux-trace-users@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Yu, Fenghua" <fenghua.yu@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>
 
-On Tuesday 25 January 2011 05:47:56 am R, Durgadoss wrote:
-> > The thermal_netlink_events could then only be declared for
-> > thermal_sys.c scope, so that other drivers cannot misuse them
-> > and the netlink event can then get triggered by the driver through
-> > thermal driver callbacks.
-> 
-> Yep!! This was my initial idea, with which I added the netlink
->  support here.
-> 
-> If we make the coretemp register with the thermal framework, we have
->  to modify the sysfs _store and _show functions a bit. Hence, the
->  coretemp people were not very happy with the idea of making coretemp
->  register with the thermal framework. So, I just added support to the
->  core thresholds, and when current temperature crosses them, it sends
->  a netlink event.
+On Tuesday, January 25, 2011 08:57:49 AM Zhang Rui wrote:
+> On Tue, 2011-01-25 at 00:07 +0800, Henrique de Moraes Holschuh wrote:
+> > On Mon, 24 Jan 2011, Thomas Renninger wrote:
+> > > I wonder whether netlink is the way to go for thermal
+> > > events at all.
+> > > Sending an udev event would already contain the sysfs
+> > > path to the thermal device. A variable which thermal event
+> > > got thrown could get added and userspace can read out the rest
+> > > easily from sysfs files. But I expect udev is not intended
+> > > for such general events?
+> > 
+> > udev is heavyweight in the userspace side, we'd be much better off using the
+> > ACPI event interface (which is netlink), or a new one to deliver system
+> > status events, instead of continously abusing udev for this stuff.
+> > 
+> > > > > Also, the thermal_aux0 and _aux1, we can use the final format specified by you.
+> > > > > enum events {
+> > > > >  	THERMAL_CRITICAL,
+> > > > >  	/* user defined thermal events */
+> > > > >  	THERMAL_USER_AUX0,
+> > > > >  	THERMAL_USER_AUX1,
+> > > > >  	THERMAL_DEV_FAULT,
+> > > > >  };
+> > 
+> > Please give us at least two levels of thermal alarm: critical and emergency
+> > (or warning and critical -- it doesn't matter much, as long as there are at
+> > least two levels, and which one comes first is defined by the
+> > specification).  I'd have immediate use for them on thinkpads.
+What kind of thinkpad specific events are these and what actions
+should be taken if they happen?
+ 
+> > It is probably best to have three levels (warning, critical, emergency).
+> > Best not to tie the API/ABI to the notion of "too hot", one can also alarm
+> > when it starts to get to cold.
+> > 
+> when it's the "too hot" case, what kind of action should be taken upon
+> the warning/critical/emergency events?
+> I mean what's the difference between these three levels.
+I could imagine there is quite some HW out there
+with quite different thermal events.
+What other actions userspace would take beside logging the event,
+telling the user that a fan is switched on, CPU or whatever device
+gets throttled. Logging such specific info can only be implemented
+in the driver itself and would get lost when exporting things through
+a generic thermal interface.
 
-I don't remember the details, but one thing for sure if that you can't 
-change the format of existing attributes the hwmon subsystem (and 
-libsensors) is using. These are standardized per 
-Documentation/hwmon/sysfs-interface, so they can't be changed. But there 
-is no problem with registering a second class device with the thermal 
-subsystem and adding whatever attributes you want to have there.
+I wonder which events would need userspace to take specific
+(configured) actions at all and what kind of action it could be.
 
-Obviously we want to avoid too much redundancy between hwmon and 
-thermal. But I can understand that this isn't always possible due to 
-historical constraints.
+What is THERMAL_USER_AUX0?
+When will it get thrown and what is userspace expected to do?
 
-Another problem is that we really want pkgtemp to be merged with 
-coretemp before intrusive changes are made to these drivers.
-
--- 
-Jean Delvare
-Suse L3
+    Thomas
