@@ -1,48 +1,105 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Mon, 24 Jan 2011 21:56:02 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1101242154090.6097@x980>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com>
- <4D3DDDA4.2080202@yahoo.fr>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: thermal: Avoid CONFIG_NET compile dependency
+Date: Tue, 25 Jan 2011 10:17:56 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
+ <1295832150.1866.797.camel@rui>
+ <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
+ <201101241135.23576.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:41137 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672Ab1AYC4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jan 2011 21:56:10 -0500
-In-reply-to: <4D3DDDA4.2080202@yahoo.fr>
+Received: from mga11.intel.com ([192.55.52.93]:55902 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752475Ab1AYEsE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Jan 2011 23:48:04 -0500
+In-Reply-To: <201101241135.23576.trenn@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lionel Debroux <lionel_debroux@yahoo.fr>
-Cc: =?UTF-8?Q?Ozan_=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl, colin.king@canonical.com
+To: Thomas Renninger <trenn@suse.de>, "jdelvare@novell.com" <jdelvare@novell.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>
 
-> >>> * 2.6.35 series: .4 and .6 boot successfully, .8 and .10 fail;
-> >>> * 2.6.36 series: -rc2 boots successfully, .1 fails;
-> >>> * 2.6.37 series: -rc4 fails.
-> >>
-> >> So it's probably a commit to the mainline tree which was picked
-> >> by 2.6.35 maintainer to the stable tree (probably it was CC'ed)
-> >> cause this.
-> >>
-> >> Does passing nolapic or acpi=off cures the issue?
-> > IIRC, I tested at least one of these, without improvement.
-> > I'll test again tonight, when I can physically access the
-> > computer.
-> None of nolapic, acpi=off, nolapic acpi=off enables 2.6.35.8 to boot
-> on my ASUS F3Jv-AS022P.
-> The kernel line is
-> kernel /boot/vmlinuz root=/dev/sda9 nomce vga=791 nomodeset
-> I've attached the 2.6.35.6 config.
-
-looks like you've bisected as far as:
-2.6.35.6 good
-2.6.35.8 bad
-
-can you try 2.6.35.7 and continue on to find which specific patch
-in .stable broke your machine?
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+SGkgVGhvbWFzLA0KDQo+IGVudW0gZXZlbnRzIHsNCj4gPiAgCVRIRVJNQUxfQ1JJVElDQUwsDQo+
+ID4gIAkvKiB1c2VyIGRlZmluZWQgdGhlcm1hbCBldmVudHMgKi8NCj4gPiAgCVRIRVJNQUxfVVNF
+Ul9BVVgwLA0KPiA+ICAJVEhFUk1BTF9VU0VSX0FVWDEsDQo+ID4gIAlUSEVSTUFMX0RFVl9GQVVM
+VCwNCj4gPiAgfTsNCj4gU29tZXRoaW5nIGVsc2UuLi4NCj4gSSd2ZSBub3cgc2VlbiB5b3VyIEhX
+IHNwZWNpZmljIGNvcmUvcGtnIHRlbXAgdGhyZXNob2xkIHN1cHBvcnQuDQo+IEkgZGlkbid0IGxv
+b2sgYXQgaXQgdGhhdCBjbG9zZWx5LCBidXQgaWYgeW91IGludHJvZHVjZSBnZW5lcmljDQo+IHRo
+ZXJtYWwgbmV0bGluayBldmVudHMgaW4gdGhlIHRoZXJtYWwgZHJpdmVyIHRob3NlIHNob3VsZCBt
+YXRjaA0KPiBhbGwga2luZCBvZiBwb3NzaWJsZSB0aGVybWFsIGV2ZW50cywgbm90IG9ubHkgdGhl
+IG9uY2UgaW50cm9kdWNlZA0KPiBieSB0aGUgZHJpdmVyIHlvdSBhZGRlZC4NCj4gDQo+IEZvciBl
+eGFtcGxlIGl0IHdvdWxkIGJlIGdyZWF0IHRvIGdldCB0aGUgQUNQSSBzcGVjaWZpYyB0aGVybWFs
+DQo+IGV2ZW50cyB3aGljaCBhcmUgY3VycmVudGx5IGV4cG9ydGVkIGFzIEFDUEkgZHJpdmVuIG9u
+ZXM6DQo+IGRyaXZlcnMvYWNwaS90aGVybWFsLmM6YWNwaV90aGVybWFsX25vdGlmeSgpDQo+IGlu
+dGVncmF0ZWQgdGhlcmUgYXMgd2VsbC4gU28gdGhlcmUgc2hvdWxkIGFsc28gYmUgZXZlbnRzIGxp
+a2U6DQo+ID4gIAlUSEVSTUFMX0NSSVRJQ0FMLA0KPiA+ICAJLyogdXNlciBkZWZpbmVkIHRoZXJt
+YWwgZXZlbnRzICovDQo+ID4gIAlUSEVSTUFMX1VTRVJfQVVYMCwNCj4gPiAgCVRIRVJNQUxfVVNF
+Ul9BVVgxLA0KPiA+ICAJVEhFUk1BTF9ERVZfRkFVTFQsDQo+IFRIRVJNQUxfUEFTU0lWRQ0KPiBU
+SEVSTUFMX0FDVElWRQ0KPiBUSEVSTUFMX0hPVA0KPiANCg0KSSBhbSBmaW5lIHdpdGggYWRkaW5n
+IHRoZXNlIGV2ZW50cyBhbHNvIHRvIHRoZSBlbnVtIGhlcmUuLg0KDQo+IEF0IHNvbWUgcG9pbnQg
+b2YgdGltZSB3ZSBzaG91bGQgYmUgYWJsZQ0KPiB0byBnZXQgcmlkIG9mIHRoZSBBQ1BJIHNwZWNp
+ZmljIHRoZXJtYWwgZXZlbnRzIGF0IGFsbD8NCj4gVGhlcmUgc2VlbSB0byBiZSBub3RoaW5nIGxp
+a2UgYSBraW5kIG9mDQo+ICJhdmFpbGFibGUgbmV0bGluayBldmVudHMgYW5kIHRoZWlyIGZvcm1h
+dCIgQVBJIGluIERvY3VtZW50YXRpb24uDQo+IEVhY2ggZHJpdmVyIHNlZW0gdG8gZG8gdGhpcyBh
+bmQgZG9jdW1lbnQgaXQgaXRzZWxmLg0KPiBCdXQgYXMgaXQgaXMgYW4gaW50ZXJmYWNlIHRvIHVz
+ZXJzcGFjZSwgdGhlc2UgdGhlcm1hbCBuZXRsaW5rIGV2ZW50cw0KPiBzaG91bGQgZ2V0IGRvY3Vt
+ZW50ZWQgaW46DQo+IERvY3VtZW50YXRpb24vdGhlcm1hbA0KPiANCg0KSSBkaWQgYWRkIGEgc2lt
+cGxlIGRvY3VtZW50YXRpb24gdG8gRG9jdW1lbnRhdGlvbi90aGVybWFsL3N5c2ZzX2FwaS50eHQu
+DQpUaGlzIGlzIHVuZGVyIDQuRXZlbnQgTm90aWZpY2F0aW9uLi5CdXQgSSBkaWQgbm90IGFjY291
+bnQgZm9yIF9QQVNTSVZFLA0KX0hPVCBldGMuLiBNYXkgaWYgd2UgYWxsIGFncmVlIHRvIG1lcmdl
+IGFsbCBldmVudHMgdW5kZXIgdGhpcyBvbmUgZW51bSwNCkkgY2FuIGFkZCBtb3JlIGRlc2NyaXB0
+aW9uIHRoZXJlLg0KDQo+IEN1cnJlbnRseSB5b3Ugb25seSBleHBvcnQgb25lIG9mIHRoZSBhYm92
+ZSA0IHRoZXJtYWwgZXZlbnRzIGFzIGENCj4gbnVtYmVyIHZpYSBuZXRsaW5rLCByaWdodD8NCg0K
+UmlnaHQuDQoNCj4gQXJlIHRoZXJlIGFueSB1c2Vyc3BhY2UgcHJvZ3JhbXMgeW91IGhhdmUgaW4g
+bWluZCB3aGljaCBzaG91bGQgbWFrZQ0KPiB1c2Ugb2YgaXQ/DQoNClllcy4gSSBhbSB3b3JraW5n
+IG9uIGEgc2ltcGxlIHVzZXIgc3BhY2UgcHJvZ3JhbSB0byBjYXRjaCB0aGVzZSBuZXRsaW5rIGV2
+ZW50cy4NCg0KPiBTb21lIGRhdGEgd2hpY2ggc2hvdWxkIGdldCBleHBvcnRlZCBhcyB3ZWxsOg0K
+PiAgICAtIFRoZSB0ZW1wZXJhdHVyZSBpZiBhdmFpbGFibGUNCj4gICAgLSBUaGUgbnVtYmVyIG9m
+IHRoZSB0aGVybWFsIHpvbmUsIGUuZy4gaWYgMCwgdXNlcnNwYWNlIGNhbiBsb29rDQo+ICAgICAg
+dXAgc3lzZnMgZm9yIGZ1cnRoZXIgaW5mbyBpbjoNCj4gICAgICAvc3lzL2RldmljZXMvdmlydHVh
+bC90aGVybWFsL3RoZXJtYWxfem9uZTAvKg0KPiAgICAtIFRoZSB0cmlwIHBvaW50IGFmZmVjdGVk
+IGlmIGFueSwgZS5nLiBpZiAwLCB1c2Vyc3BhY2UgY2FuIGxvb2sgaXQgdXANCj4gICAgICBpbiBz
+eXNmcyBmb3IgZnVydGhlciBpbmZvOg0KPiAgICAgIC9zeXMvZGV2aWNlcy92aXJ0dWFsL3RoZXJt
+YWwvdGhlcm1hbF96b25lMC90cmlwX3BvaW50XzBfe3RlbXAsdHlwZX0NCj4gICAgLSBtb3JlPw0K
+PiANCj4gRWhoLCB0aGlzIGNvcmUgYW5kIHBhY2thZ2UgdGhlcm1hbCBkcml2ZXIgeW91IGFkZGVk
+IHRocmVzaG9sZCBzdXBwb3J0LA0KPiBkb2VzIHRoaXMgc29tZWhvdyByZWdpc3RlciBhcyBhIHRo
+ZXJtYWwgZHJpdmVyPw0KPiBJIGNhbiBzZWUgdGhhdCBpdCByZWdpc3RlcnMgZm9yIGh3bW9uOiBo
+d21vbl9kZXZpY2VfcmVnaXN0ZXIoJnBkZXYtPmRldik7DQo+IEJ1dCBpcyBpdCBzb21laG93IGNv
+bm5lY3RlZCB0byB0aGVybWFsX3N5cy5jIG90aGVyIHRoYW4gdGhhdCBpdCBqdXN0DQo+IHRocm93
+cyB5b3VyIG5ld2x5IGludHJvZHVjZWQgdGhlcm1hbF9uZXRsaW5rX2V2ZW50cz8NCj4gVGhpcyBk
+cml2ZXIgc2hvdWxkIGZpcnN0IHJlZ2lzdGVyIGFzIGEgdGhlcm1hbCBkcml2ZXIsIGV4cG9ydA0K
+PiB0cmlwIHBvaW50cyB0bzoNCj4gL3N5cy9kZXZpY2VzL3ZpcnR1YWwvdGhlcm1hbC90aGVybWFs
+X3pvbmUwL3RyaXBfcG9pbnRfMF97dGVtcCx0eXBlfQ0KPiBlLmcuDQo+IGNhdCB0cmlwX3BvaW50
+XzBfdHlwZQ0KPiBjcml0aWNhbA0KPiBjYXQgdHJpcF9wb2ludF8xX3R5cGUNCj4gdXNlcl9hdXgw
+DQo+IA0KPiBUaGUgdGhlcm1hbF9uZXRsaW5rX2V2ZW50cyBjb3VsZCB0aGVuIG9ubHkgYmUgZGVj
+bGFyZWQgZm9yDQo+IHRoZXJtYWxfc3lzLmMgc2NvcGUsIHNvIHRoYXQgb3RoZXIgZHJpdmVycyBj
+YW5ub3QgbWlzdXNlIHRoZW0NCj4gYW5kIHRoZSBuZXRsaW5rIGV2ZW50IGNhbiB0aGVuIGdldCB0
+cmlnZ2VyZWQgYnkgdGhlIGRyaXZlciB0aHJvdWdoDQo+IHRoZXJtYWwgZHJpdmVyIGNhbGxiYWNr
+cy4NCj4gDQoNClllcCEhIFRoaXMgd2FzIG15IGluaXRpYWwgaWRlYSwgd2l0aCB3aGljaCBJIGFk
+ZGVkIHRoZSBuZXRsaW5rIHN1cHBvcnQgaGVyZS4NCg0KSWYgd2UgbWFrZSB0aGUgY29yZXRlbXAg
+cmVnaXN0ZXIgd2l0aCB0aGUgdGhlcm1hbCBmcmFtZXdvcmssIHdlIGhhdmUgdG8gbW9kaWZ5DQp0
+aGUgc3lzZnMgX3N0b3JlIGFuZCBfc2hvdyBmdW5jdGlvbnMgYSBiaXQuIEhlbmNlLCB0aGUgY29y
+ZXRlbXAgcGVvcGxlIHdlcmUgbm90DQp2ZXJ5IGhhcHB5IHdpdGggdGhlIGlkZWEgb2YgbWFraW5n
+IGNvcmV0ZW1wIHJlZ2lzdGVyIHdpdGggdGhlIHRoZXJtYWwgZnJhbWV3b3JrLg0KU28sIEkganVz
+dCBhZGRlZCBzdXBwb3J0IHRvIHRoZSBjb3JlIHRocmVzaG9sZHMsIGFuZCB3aGVuIGN1cnJlbnQg
+DQp0ZW1wZXJhdHVyZSBjcm9zc2VzIHRoZW0sIGl0IHNlbmRzIGEgbmV0bGluayBldmVudC4NCg0K
+TW9yZW92ZXIsIEkgdGhvdWdodCBieSBtYWtpbmcgdGhlIGNvcmV0ZW1wIHJlZ2lzdGVyIHdpdGgg
+dGhlIGZyYW1ld29yaywNCldlIGNhbiBhZ2dyZWdhdGUgYWxsIHRoZXJtYWwgcmVsYXRlZCBjb21w
+b25lbnRzIGluIG9uZSBwbGFjZS4NClRoaXMgd2F5LCAvc3lzL2NsYXNzL3RoZXJtYWwvdGhlcm1h
+bF96b25lWzAtbl0gd2lsbCBnaXZlIGluZm9ybWF0aW9uIG9uDQpldmVyeSB0aGVybWFsIHNlbnNv
+ciBvbiB0aGUgc3lzdGVtLg0KDQpUaGUgc2Vjb25kIHBvaW50IHRvIHRoaXMgaXMsIGFueSBzZW5z
+b3IgY2FuIHNlbmQgYSB0aGVybWFsIG5ldGxpbmsgZXZlbnQsDQpXaXRoIGEgdW5pcXVlIGlkKHdo
+ZW4gYW55IGRyaXZlciByZWdpc3RlcnMgd2l0aCB0aGUgZnJhbWV3b3JrLi5pdA0KZ2l2ZXMgYSB1
+bmlxdWUgaWQpLiBJZiB0aGVyZSBpcyBhIHVzZXIgbGFuZCBjb2RlIHRoYXQgY2FuIGNhdGNoIG5l
+dGxpbmsgZXZlbnRzLA0KaXQgY2FuIGRpZmZlcmVudGlhdGUgdGhlIHNlbnNvcnMgd2l0aCB0aGUg
+aWQsIGFuZCB0YWtlIGFjdGlvbnMgYmFzZWQgb24gdGhhdC4NCg0KPiBSdWk6IFdoYXQgZG8geW91
+IHRoaW5rPw0KPiBUaGlzIGltcGxlbWVudGF0aW9uIGxvb2tzIG11Y2ggdG9vIHN0YXRpYywgY291
+bGQgeW91IGhlbHAgdG8gYmV0dGVyDQo+IGFkanVzdCBpdCB0byB0aGUgZ2VuZXJpYyB0aGVybWFs
+IGRyaXZlciBuZWVkcywgeW91IGtub3cgdGhpcyBzdHVmZiBiZXN0Lg0KDQpSdWkgaGVscGVkIG1l
+IGEgbG90IGluIGNsZWFuaW5nIHVwIHRoZSBuZXRsaW5rIGNvZGUgYW5kIGdldHRpbmcgaXQgaW4u
+DQpCdXQgdG8gbWFrZSB0aGlzIGFwcHJvYWNoIHdvcmssIHdlIG5lZWQgc3VwcG9ydCBmcm9tIGNv
+cmV0ZW1wIGNvZGUgYWxzby4NCg0KQ29weWluZyBHdWVudGVyIGFuZCBGZW5naHVhIHdobyBtYWlu
+dGFpbiB0aGUgY29yZXRlbXAgY29kZS4NCkd1ZW50ZXIgYW5kIEZlbmdodWEsIGtpbmRseSBsZXQg
+dXMga25vdyB5b3VyIG9waW5pb24gb24gdGhpcy4uDQoNClRoYW5rcywNCkR1cmdhDQo=
