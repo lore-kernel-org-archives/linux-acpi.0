@@ -1,48 +1,47 @@
-From: Jeff Chua <jeff.chua.linux@gmail.com>
-Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
-Date: Tue, 25 Jan 2011 17:43:22 +0800 (SGT)
-Message-ID: <Pine.LNX.4.64.1101251740380.3737@boston.corp.fedex.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: thermal: Avoid CONFIG_NET compile dependency
+Date: Tue, 25 Jan 2011 15:15:41 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF046541094488C038@bgsmsx502.gar.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
+ <201101241135.23576.trenn@suse.de>
+ <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
+ <201101251020.03299.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:61827 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751946Ab1AYJn3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jan 2011 04:43:29 -0500
+Received: from mga02.intel.com ([134.134.136.20]:57467 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752093Ab1AYJpq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jan 2011 04:45:46 -0500
+In-Reply-To: <201101251020.03299.trenn@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "jdelvare@novell.com" <jdelvare@novell.com>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>
 
-
-On Tue, Jan 25, 2011 at 5:37 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, January 24, 2011, Henrique de Moraes Holschuh wrote:
-> It turns out there's a bug in intel_idle causing people a lot of pain 
-> with CPU hotplugging.  Should be fixed now it the Linus' tree.
-
-Uh, I see the git fix now. Thanks. The workaround I did was to manually 
-offline all CPUs before suspend and that fixed it too.
-
-As for the thinkpad-acpi, here a little patch to disable all hotkeys so 
-that Fn-F4 works natively to suspend-to-memory when 
-CONFIG_THINKPAD_ACPI_HOTKEY_POLL is not set.
-
-Thanks,
-Jeff
-
---- lx/drivers/platform/x86/thinkpad_acpi.c.org	2011-01-22 21:48:05.000000000 +0800
-+++ lx/drivers/platform/x86/thinkpad_acpi.c	2011-01-22 21:55:14.000000000 +0800
-@@ -8776,10 +8776,12 @@
-  	{
-  		.data = &thinkpad_acpi_driver_data,
-  	},
-+#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-  	{
-  		.init = hotkey_init,
-  		.data = &hotkey_driver_data,
-  	},
-+#endif
-  	{
-  		.init = bluetooth_init,
-
-
+SGkgVGhvbWFzLA0KDQo+IA0KPiBJIHRoaW5rIGEgZ2VuZXJpYyB0aGVybWFsIG5ldGxpbmsgaW50
+ZXJmYWNlIGNhbiBnZXQNCj4gaW1wbGVtZW50ZWQgc2VwYXJhdGVseSwgYmVzdCB3aXRob3V0IGxv
+b2tpbmcgYXQgYW55IHNwZWNpZmljDQo+IGRyaXZlciBpbXBsZW1lbnRhdGlvbi4NCg0KQnkgZ2Vu
+ZXJpYyBpbnRlcmZhY2UsIEkgdW5kZXJzdGFuZCwgYW55IHRoZXJtYWwgcmVsYXRlZCBkcml2ZXIs
+DQpTaG91bGQgYmUgYWJsZSB0byB1c2UgaXQsIGJ5IHNlbmRpbmcgbmV0bGluayBldmVudHMgd2l0
+aCBhDQpPcmlnaW5hdG9yIG9mIHRoZSBldmVudCwgYW5kIHRoZSB0eXBlIG9mIHRoZSBldmVudChh
+cyB3ZSBkaXNjdXNzZWQNCmVhcmxpZXIsIHRoaXMgdHlwZSBpcyBvbmUgaW4gdGhlIGVudW0uLikN
+Cg0KV2UgY2FuIGFkZCBtb3JlIGRldGFpbHMsIHRvIHRoZSBlbnVtIGFuZCBlbmhhbmNlIHRoZSBn
+ZW5lcmljIG5ldGxpbmsNCkludGVyZmFjZS4NCg0KVGhlIHByb2JsZW0gSSBzZWUgaXMsIGhvdyBk
+byB3ZSBnZXQgYSB1bmlxdWUgb3JpZ2luYXRvciBpZCwNCmZvciBldmVyeSB0aGVybWFsIGRyaXZl
+ciB0aGF0IHdhbnRzIHRvIHNlbmQgZXZlbnRzLCB1bmxlc3MgaXQNCnJlZ2lzdGVycyB3aXRoIHRo
+ZSB0aGVybWFsIGZyYW1ld29yaz8NClNvbWUgdGhvdWdodHM6DQoxLiBXZSBzaG91bGQgZGVmaW5l
+IGEgbGlzdCBvZiBvcmlnaW5hdG9ycyBhcyBhbiBlbnVtKGxpa2UgZXZlbnRfdHlwZSkNCjIuIEp1
+c3QgdXNlIHRoZSBnZXRfaWQgZnVuY3Rpb24odG8gZ2VuZXJhdGUgdW5pcXVlIGlkcykgZnJvbSB0
+aGVybWFsIGZyYW1ld29yaw0KICAgd2l0aG91dCByZWdpc3RlcmluZyB3aXRoIGl0Lg0KDQpLaW5k
+bHkgbGV0IG1lIGtub3cgeW91ciB0aG91Z2h0cyBvbiB0aGlzLg0KDQo+IEJlc3Qgd291bGQgYmUg
+dG8gcmV2ZXJ0IHRoZSBjdXJyZW50IHBhdGNoIGFuZCBzZW5kIGEgbW9yZSBnZW5lcmljDQo+IGlt
+cGxlbWVudGF0aW9uIHdpdGggYXQgbGVhc3QgdGhlc2UgaW4gQ0MgKG9yIG90aGVyIGxpc3RzIG1h
+aW50YWluaW5nDQo+IGRyaXZlcnMgd2hvIG1pZ2h0IG1ha2UgdXNlIG9mIGl0KToNCj4gcGxhdGZv
+cm0tZHJpdmVyLXg4NkB2Z2VyLmtlcm5lbC5vcmcNCj4gbGludXgtcG1AbGlzdHMubGludXgtZm91
+bmRhdGlvbi5vcmcNCj4gDQo+IFRoZW4gcGVvcGxlIGNhbiBicmluZyBpbiB0aGVpciBuZWVkcyBh
+bmQgZXZlbnR1YWxseQ0KPiBjb21lIHVwIHdpdGggY29kZSBtYWtpbmcgdXNlIG9mIGl0Lg0KDQpJ
+IGNhbiBkbyB0aGUgY2xlYW51cCwgb25jZSB3ZSBmaW5hbGl6ZSBob3cgdG8gZ28gYWJvdXQgaXQu
+DQoNClRoYW5rcywNCkR1cmdhDQoNCg==
