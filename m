@@ -1,44 +1,48 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: thermal: Avoid CONFIG_NET compile dependency
-Date: Tue, 25 Jan 2011 10:20:02 +0100
-Message-ID: <201101251020.03299.trenn@suse.de>
-References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com> <201101241135.23576.trenn@suse.de> <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
+From: Jeff Chua <jeff.chua.linux@gmail.com>
+Subject: Re: [PATCH 0/11] ACPI: Fixes and cleanups related to iomaps management
+Date: Tue, 25 Jan 2011 17:43:22 +0800 (SGT)
+Message-ID: <Pine.LNX.4.64.1101251740380.3737@boston.corp.fedex.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42421 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751695Ab1AYJUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jan 2011 04:20:06 -0500
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:61827 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751946Ab1AYJn3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jan 2011 04:43:29 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "jdelvare@novell.com" <jdelvare@novell.com>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org
 
-On Tuesday, January 25, 2011 05:47:56 AM R, Durgadoss wrote:
-> Hi Thomas,
-...
-> If we make the coretemp register with the thermal framework, we have to modify
-> the sysfs _store and _show functions a bit. Hence, the coretemp people were not
-> very happy with the idea of making coretemp register with the thermal framework.
-> So, I just added support to the core thresholds, and when current 
-> temperature crosses them, it sends a netlink event.
-Can you give a pointer to this discussion if there is any.
 
-I think a generic thermal netlink interface can get
-implemented separately, best without looking at any specific
-driver implementation.
+On Tue, Jan 25, 2011 at 5:37 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, January 24, 2011, Henrique de Moraes Holschuh wrote:
+> It turns out there's a bug in intel_idle causing people a lot of pain 
+> with CPU hotplugging.  Should be fixed now it the Linus' tree.
 
-Best would be to revert the current patch and send a more generic
-implementation with at least these in CC (or other lists maintaining
-drivers who might make use of it):
-platform-driver-x86@vger.kernel.org
-linux-pm@lists.linux-foundation.org
+Uh, I see the git fix now. Thanks. The workaround I did was to manually 
+offline all CPUs before suspend and that fixed it too.
 
-Then people can bring in their needs and eventually
-come up with code making use of it.
+As for the thinkpad-acpi, here a little patch to disable all hotkeys so 
+that Fn-F4 works natively to suspend-to-memory when 
+CONFIG_THINKPAD_ACPI_HOTKEY_POLL is not set.
 
-   Thomas
+Thanks,
+Jeff
+
+--- lx/drivers/platform/x86/thinkpad_acpi.c.org	2011-01-22 21:48:05.000000000 +0800
++++ lx/drivers/platform/x86/thinkpad_acpi.c	2011-01-22 21:55:14.000000000 +0800
+@@ -8776,10 +8776,12 @@
+  	{
+  		.data = &thinkpad_acpi_driver_data,
+  	},
++#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+  	{
+  		.init = hotkey_init,
+  		.data = &hotkey_driver_data,
+  	},
++#endif
+  	{
+  		.init = bluetooth_init,
+
+
