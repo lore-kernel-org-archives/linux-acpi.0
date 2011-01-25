@@ -1,39 +1,44 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: thermal: Avoid CONFIG_NET compile dependency
-Date: Tue, 25 Jan 2011 14:13:43 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF046541094488BFBE@bgsmsx502.gar.corp.intel.com>
-References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
-	 <1295832150.1866.797.camel@rui>
-	 <D6D887BA8C9DFF48B5233887EF046541094488B86F@bgsmsx502.gar.corp.intel.com>
-	 <201101241135.23576.trenn@suse.de> <1295942062.1866.1198.camel@rui>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: thermal: Avoid CONFIG_NET compile dependency
+Date: Tue, 25 Jan 2011 10:20:02 +0100
+Message-ID: <201101251020.03299.trenn@suse.de>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com> <201101241135.23576.trenn@suse.de> <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:33783 "EHLO mga09.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:42421 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab1AYIqN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jan 2011 03:46:13 -0500
-In-Reply-To: <1295942062.1866.1198.camel@rui>
-Content-Language: en-US
+	id S1751695Ab1AYJUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jan 2011 04:20:06 -0500
+In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541094488BDF5@bgsmsx502.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>
-Cc: "jdelvare@novell.com" <jdelvare@novell.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "jdelvare@novell.com" <jdelvare@novell.com>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>
 
-SGkgUnVpLA0KDQo+IEkgdGhpbmsgYSB0aGVybWFsIHpvbmUgaWQgYW5kIGFuIGV2ZW50IGlkIGlz
-IGVub3VnaC4NCj4gQXBwbGljYXRpb25zIHNob3VsZCByZXNjYW4gL3N5cy9jbGFzcy9wb3dlcl9z
-dXBwbHkvIHRvIHNlZSB3aGF0IGlzDQo+IGFjdHVhbGx5IGdvaW5nIG9uLiA6KQ0KPiANCg0KSSBh
-Z3JlZSB3aXRoIHlvdSBoZXJlIFJ1aS4NCg0KPiBhIHF1ZXN0aW9uIGZvciBEdXJnYWRvc3MsDQo+
-IGludCB0aGVybWFsX25ldGxpbmtfZXZlbnQodTMyIG9yaWcsIGVudW0gZXZlbnRzIGV2ZW50KQ0K
-PiB3aGF0IGRvZXMgcGFyYW1ldGVyICJvcmlnIiBzdGFuZCBmb3I/DQo+IA0KQXMgeW91IG1lbnRp
-b25lZCwgaXQgaXMgdGhlIHRoZXJtYWxfem9uZSBpZC4NCkkgbmFtZWQgaXQgIm9yaWciIGZvciAi
-b3JpZ2luYXRvciIgb2YgdGhhdCBwYXJ0aWN1bGFyIGV2ZW50Lg0KDQo+IElmIHdlIG9ubHkgbmVl
-ZCB0byBjaGFuZ2UgdGhlIGVudW0gZXZlbnQsIHdoYXQgYWJvdXQgYSBwYXRjaCB0byBmaXggdGhl
-DQo+IGVudW0gZXZlbnQgZmlyc3QgYW5kIHRoZW4gc2hpcHBpbmcgdGhlIGNvcmV0ZW1wL3BrZ3Rl
-bXAgZHJpdmVyIHBhdGNoIG9uDQo+IHRvcCBvZiBpdD8NCj4gDQo+IHRoYW5rcywNCj4gcnVpDQo+
-ID4NCj4gPiAgICAgIFRob21hcw0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
-IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4gdGhl
-IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBNb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
-Lmh0bWwNCj4gDQoNCg==
+On Tuesday, January 25, 2011 05:47:56 AM R, Durgadoss wrote:
+> Hi Thomas,
+...
+> If we make the coretemp register with the thermal framework, we have to modify
+> the sysfs _store and _show functions a bit. Hence, the coretemp people were not
+> very happy with the idea of making coretemp register with the thermal framework.
+> So, I just added support to the core thresholds, and when current 
+> temperature crosses them, it sends a netlink event.
+Can you give a pointer to this discussion if there is any.
+
+I think a generic thermal netlink interface can get
+implemented separately, best without looking at any specific
+driver implementation.
+
+Best would be to revert the current patch and send a more generic
+implementation with at least these in CC (or other lists maintaining
+drivers who might make use of it):
+platform-driver-x86@vger.kernel.org
+linux-pm@lists.linux-foundation.org
+
+Then people can bring in their needs and eventually
+come up with code making use of it.
+
+   Thomas
