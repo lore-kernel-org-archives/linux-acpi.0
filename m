@@ -1,32 +1,109 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCHSET] workqueue: update workqueue users - replace
- create_workqueue()
-Date: Wed, 26 Jan 2011 12:46:49 +0800
-Message-ID: <20110126044649.GA2991@kroah.com>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
- <20110125142921.GB27510@htj.dyndns.org>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: Thermal kernel events API to userspace - Was: Re: thermal:
+ Avoid CONFIG_NET compile dependency
+Date: Wed, 26 Jan 2011 15:14:16 +0800
+Message-ID: <CF2F38D4AE21BB4CB845318E4C5ECB6731CC866A@shsmsx501.ccr.corp.intel.com>
+References: <D6D887BA8C9DFF48B5233887EF046541094482F511@bgsmsx502.gar.corp.intel.com>
+ <20110124160747.GD6424@khazad-dum.debian.net>
+ <1295942269.1866.1201.camel@rui> <201101251112.28340.trenn@suse.de>
+ <20110125161059.GD14803@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <reiserfs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110125142921.GB27510@htj.dyndns.org>
-Sender: reiserfs-devel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, davej@redhat.com, cpufreq@vger.kernel.org, Markus.Lidel@shadowconnect.com, tomas.winkler@intel.com, jayamohank@serverengines.com, andrew.vasquez@qlogic.com, James.Bottomley@HansenPartnership.com, linux-scsi@vger.kernel.org, tomof@acm.org, stf_xl@wp.pl, linux-usb@vger.kernel.org, tytso@mit.edu, mfasheh@suse.com, joel.becker@oracle.com, reiserfs-devel@vger.kernel.org, aelder@sgi.com, hch@infradead.org, ericvh@gmail.com, rminnich@sandia.gov, v9fs-developer@lists.sourceforge.net, lucho@ionkov.net, andy.grover@oracle.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <20110125161059.GD14803@khazad-dum.debian.net>
+Content-Language: en-US
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Thomas Renninger <trenn@suse.de>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "jdelvare@novell.com" <jdelvare@novell.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Kay Sievers <kay.sievers@vrfy.org>, "linux-perf-users@vger.kernel.org" <linux-perf-users@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-trace-users@vger.kernel.org" <linux-trace-users@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 25, 2011 at 03:29:21PM +0100, Tejun Heo wrote:
-> Hello,
+
+
+> -----Original Message-----
+> From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
+> Sent: Wednesday, January 26, 2011 12:11 AM
+> To: Thomas Renninger
+> Cc: Zhang, Rui; R, Durgadoss; jdelvare@novell.com; Len Brown; linux-
+> acpi@vger.kernel.org; Kay Sievers; linux-perf-users@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-trace-users@vger.kernel.org
+> Subject: Re: Thermal kernel events API to userspace - Was: Re: thermal:
+> Avoid CONFIG_NET compile dependency
+> Importance: High
 > 
-> There was no response for the following patches and I'm planning on
-> routing them through workqueue#for-2.6.39.  If you have an objection
-> or want to take the patch through a different tree, please let me
-> know.
+> On Tue, 25 Jan 2011, Thomas Renninger wrote:
+> > > > Please give us at least two levels of thermal alarm: critical and
+> emergency
+> > > > (or warning and critical -- it doesn't matter much, as long as
+> there are at
+> > > > least two levels, and which one comes first is defined by the
+> > > > specification).  I'd have immediate use for them on thinkpads.
+> > What kind of thinkpad specific events are these and what actions
+> > should be taken if they happen?
 > 
->  0019-usb-ueagle-atm-use-system_wq-instead-of-dedicated-wo.patch
+> So far:  Battery temperature critical and emergency, Generic system
+> sensor
+> temperature critical and emergency.
+> 
+> In all cases, the recommended actions are imediate notification for the
+> user, and in the case of the emergency level, immediate action, where
+> action
+> is "suspend to ram" or shutdown.
+> 
+> Right now all they do is to prinkt at suitable "horrible things are
+> about to
+> happen" severity levels (KERN_CRIT for critical, and KERN_ALERT for
+> emergency).  In a few sensible desktop environments and distros, this
+> causes
+> a notification to show up on the user's screen.
+> 
+> Oh, and it also relays the thinkpad-specific event through the ACPI
+> event
+> pipe, but I don't know of any userspace application doing something
+> with it,
+> and nobody ever tried to bribe me into writing one by suppling me with
+> a new
+> T-series thinkpad :)
+> 
+> > I wonder which events would need userspace to take specific
+> > (configured) actions at all and what kind of action it could be.
+> 
+> All of them can have sensible generic actions.  See my other email.
+> 
+> > What is THERMAL_USER_AUX0?
+> > When will it get thrown and what is userspace expected to do?
+> 
+> Good question.  What use are those "user defined" events in a generic
+> interface, anyway?  You will have to know exactly what device is
+> issuing the
+> "generic user defined" event, and what it means for that device.
+> 
+> When you need a device-specific interface, you design one that is well
+> defined, such as thinkpad-acpi's thinkpad-specific "acpi" events.  If
+> you
+> get any thinkpad-acpi specific event, you know exactly what it is, and
+> nothing else ever issues those events, so you will never get them from
+> somewhere else with a different meaning.
+>
+I think you are talking about something like this:
+enum events {
+	/* generic thermal event */
+	THERMAL_WARN,
+	THERMAL_EMERG,
+	THERMAL_CRIT,
+	/* coretemp thermal events */
+	TEHRMAL_CT_AUX0,
+	TEHRMAL_CT_AUX1,
+	/* Thinkpad battery thermal events */
+	THERMAL_TP_BAT_CRIT,
+	THERMAL_TP_BAT_EMERG,
+	THERMAL_DEV_FAULT,
+};
+Right?
 
-I've already taken this in my usb-next tree to go into .39.
 
-thanks,
-
-greg k-h
+> --
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
