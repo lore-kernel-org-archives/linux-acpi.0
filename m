@@ -1,41 +1,39 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHSET] workqueue: update workqueue users - replace
- create_workqueue()
-Date: Wed, 26 Jan 2011 11:40:08 +0100
-Message-ID: <20110126104008.GG12520@htj.dyndns.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
- <20110125142921.GB27510@htj.dyndns.org>
- <20110125162654.GA4795@redhat.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: linux-next: Tree for December 20 (acpi_video)
+Date: Wed, 26 Jan 2011 12:42:03 +0100
+Message-ID: <20110126114203.GA16754@elte.hu>
+References: <20101220200013.df8fbc88.sfr@canb.auug.org.au>
+ <20101220085340.7ba098b9.randy.dunlap@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110125162654.GA4795@redhat.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org
+In-Reply-To: <20101220085340.7ba098b9.randy.dunlap@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <lenb@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Luming Yu <luming.yu@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 25, 2011 at 11:26:54AM -0500, Dave Jones wrote:
-> On Tue, Jan 25, 2011 at 03:29:21PM +0100, Tejun Heo wrote:
->  > Hello,
->  > 
->  > There was no response for the following patches and I'm planning on
->  > routing them through workqueue#for-2.6.39.  If you have an objection
->  > or want to take the patch through a different tree, please let me
->  > know.
->  > ..
->  >  0007-cpufreq-use-system_wq-instead-of-dedicated-workqueue.patch
+
+* Randy Dunlap <randy.dunlap@oracle.com> wrote:
+
+> On Mon, 20 Dec 2010 20:00:13 +1100 Stephen Rothwell wrote:
 > 
-> Feel free to add my 
-> Signed-off-by: Dave Jones <davej@redhat.com> 
-> to this.
+> > Hi all,
+> > 
+> > [The mirroring on kernel.org is running slowly]
+> > 
+> > Changes since 20101217:
 > 
-> I looked it over, and didn't see anything objectionable.
+> 
+> ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
+> ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
 
-As the patch is going through wq tree, I added Acked-by instead of
-Signed-off-by.
+This bug has been reported two months ago, one month ago, it has been ignored twice 
+and now the bug has been pushed upstream and it's triggering there as well.
 
-Thank you.
+What's going on?
 
--- 
-tejun
+Thanks,
+
+	Ingo
