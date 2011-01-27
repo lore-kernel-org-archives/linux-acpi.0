@@ -1,45 +1,52 @@
-From: matthieu castet <castet.matthieu@free.fr>
-Subject: [RFC] merge 32/64 bits realmode wakeup code
-Date: Thu, 27 Jan 2011 22:56:34 +0100
-Message-ID: <4D41EA12.1030402@free.fr>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] merge 32/64 bits realmode wakeup code
+Date: Thu, 27 Jan 2011 23:53:59 +0100
+Message-ID: <201101272354.00042.rjw@sisk.pl>
+References: <4D41EA12.1030402@free.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020609000400080508010404"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:57911 "EHLO smtp6-g21.free.fr"
+Received: from ogre.sisk.pl ([217.79.144.158]:45886 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987Ab1A0V4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jan 2011 16:56:40 -0500
+	id S1753773Ab1A0Wyd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jan 2011 17:54:33 -0500
+In-Reply-To: <4D41EA12.1030402@free.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.orgLinux Kernel list <linux-kernel@vger.kernel.org>
+To: matthieu castet <castet.matthieu@free.fr>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
 
-This is a multi-part message in MIME format.
---------------020609000400080508010404
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thursday, January 27, 2011, matthieu castet wrote:
+> Hi,
+> 
+> this patch merge 32 and 64 realmode wakeup code :
+> - this mean less ifdef in code
+> - we could remove now unused field in wakeup_header (pmode_*)
+> - this allow to set the first 1 MB NX.
+> 
+> Do you think it is safe on all X86 32 bit machine ?
+> 
+> Matthieu
+> 
+> 
+> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
 
-Hi,
+It _looks_ sane, but it will require some serious testing.  I'm not sure,
+though, if we can get enough testing coverage without actually committing
+that change.
 
-this patch merge 32 and 64 realmode wakeup code :
-- this mean less ifdef in code
-- we could remove now unused field in wakeup_header (pmode_*)
-- this allow to set the first 1 MB NX.
+How much testing has it received so far?
 
-Do you think it is safe on all X86 32 bit machine ?
+[Patch appended below for the convenience of future reviewers.  Really,
+ please don't attach patches if you want people to comment them.  That's
+ a major inconvenience.  Please put them into the message body instead.]
 
-Matthieu
+Rafael
 
 
-Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
-
---------------020609000400080508010404
-Content-Type: text/x-diff;
- name="wake32_use_trampoline.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="wake32_use_trampoline.diff"
-
+---
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
 index 3ed5ad9..3baa11c 100644
 --- a/arch/x86/Kconfig
@@ -164,5 +171,3 @@ index 8508237..11f0387 100644
  .code16
  
  ENTRY(trampoline_data)
-
---------------020609000400080508010404--
