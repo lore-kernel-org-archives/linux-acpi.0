@@ -1,44 +1,168 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: cpu voltage change question
-Date: Thu, 27 Jan 2011 16:47:43 -0200
-Message-ID: <20110127184743.GH18579@khazad-dum.debian.net>
-References: <1296119453.4653.1.camel@genix>
- <4D41996C.1060600@cfl.rr.com>
- <AANLkTimrrD+mgwMMcqBNoZgOXfipG+XoCDGKVWOxYbRC@mail.gmail.com>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: [RFC] merge 32/64 bits realmode wakeup code
+Date: Thu, 27 Jan 2011 22:56:34 +0100
+Message-ID: <4D41EA12.1030402@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------020609000400080508010404"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33324 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889Ab1A0Srp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jan 2011 13:47:45 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTimrrD+mgwMMcqBNoZgOXfipG+XoCDGKVWOxYbRC@mail.gmail.com>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:57911 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750987Ab1A0V4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jan 2011 16:56:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mihn leigh <mihnsk@gmail.com>
-Cc: Phillip Susi <psusi@cfl.rr.com>, linux-acpi@vger.kernel.org
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.orgLinux Kernel list <linux-kernel@vger.kernel.org>
 
-On Thu, 27 Jan 2011, mihn leigh wrote:
-> Yes, you're right. As you said, MSR register contains the frequency
-> and voltage information of cpu. By writing the register, we can change
-> voltage as well (it's the information from intel datasheet). But, i
-> cannot find the detail of this register.
-> 
-> BTW, what's the reason that MSR register can not be changed in OS
-> level? is it only possible to change in BIOS?
+This is a multi-part message in MIME format.
+--------------020609000400080508010404
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Well, while we do provide users with enough rope to hang themselves as a
-regular friendly kernel service (especially if it is limited to root
-access), we usually refrain from giving them hand grenades with the safety
-pin removed...
+Hi,
 
-And sometimes the hardware does the same, and thus the notion of the
-write-once register was born.  I don't think it is the case here, but...
+this patch merge 32 and 64 realmode wakeup code :
+- this mean less ifdef in code
+- we could remove now unused field in wakeup_header (pmode_*)
+- this allow to set the first 1 MB NX.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Do you think it is safe on all X86 32 bit machine ?
+
+Matthieu
+
+
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+
+--------------020609000400080508010404
+Content-Type: text/x-diff;
+ name="wake32_use_trampoline.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="wake32_use_trampoline.diff"
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 3ed5ad9..3baa11c 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -219,7 +219,7 @@ config X86_HT
+ 
+ config X86_TRAMPOLINE
+ 	def_bool y
+-	depends on SMP || (64BIT && ACPI_SLEEP)
++	depends on SMP || ACPI_SLEEP
+ 
+ config X86_32_LAZY_GS
+ 	def_bool y
+diff --git a/arch/x86/kernel/acpi/realmode/wakeup.S b/arch/x86/kernel/acpi/realmode/wakeup.S
+index 28595d6..2c2d5b8 100644
+--- a/arch/x86/kernel/acpi/realmode/wakeup.S
++++ b/arch/x86/kernel/acpi/realmode/wakeup.S
+@@ -90,36 +90,10 @@ _start:
+ 
+ 	/* Do any other stuff... */
+ 
+-#ifndef CONFIG_64BIT
+-	/* This could also be done in C code... */
+-	movl	pmode_cr3, %eax
+-	movl	%eax, %cr3
+-
+-	movl	pmode_cr4, %ecx
+-	jecxz	1f
+-	movl	%ecx, %cr4
+-1:
+-	movl	pmode_efer, %eax
+-	movl	pmode_efer + 4, %edx
+-	movl	%eax, %ecx
+-	orl	%edx, %ecx
+-	jz	1f
+-	movl	$MSR_EFER, %ecx
+-	wrmsr
+-1:
+-
+-	lgdtl	pmode_gdt
+-
+-	/* This really couldn't... */
+-	movl	pmode_cr0, %eax
+-	movl	%eax, %cr0
+-	jmp	pmode_return
+-#else
+ 	pushw	$0
+ 	pushw	trampoline_segment
+ 	pushw	$0
+ 	lret
+-#endif
+ 
+ bogus_real_magic:
+ 1:
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 69fd72a..d32bef9 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -26,7 +26,7 @@ unsigned long acpi_realmode_flags;
+ /* address in low memory of the wakeup routine. */
+ static unsigned long acpi_realmode;
+ 
+-#if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
++#if defined(CONFIG_SMP)
+ static char temp_stack[4096];
+ #endif
+ 
+@@ -80,31 +80,24 @@ int acpi_save_state_mem(void)
+ 	header->wakeup_gdt[2] =
+ 		GDT_ENTRY(0x8093, acpi_wakeup_address, 0xfffff);
+ 
+-#ifndef CONFIG_64BIT
+-	store_gdt((struct desc_ptr *)&header->pmode_gdt);
+-
+-	if (rdmsr_safe(MSR_EFER, &header->pmode_efer_low,
+-		       &header->pmode_efer_high))
+-		header->pmode_efer_low = header->pmode_efer_high = 0;
+-#endif /* !CONFIG_64BIT */
+-
+ 	header->pmode_cr0 = read_cr0();
+ 	header->pmode_cr4 = read_cr4_safe();
+ 	header->realmode_flags = acpi_realmode_flags;
+ 	header->real_magic = 0x12345678;
+-
+-#ifndef CONFIG_64BIT
+-	header->pmode_entry = (u32)&wakeup_pmode_return;
+-	header->pmode_cr3 = (u32)__pa(&initial_page_table);
+-	saved_magic = 0x12345678;
+-#else /* CONFIG_64BIT */
+ 	header->trampoline_segment = setup_trampoline() >> 4;
+ #ifdef CONFIG_SMP
+ 	stack_start.sp = temp_stack + sizeof(temp_stack);
+ 	early_gdt_descr.address =
+ 			(unsigned long)get_cpu_gdt_table(smp_processor_id());
++#ifdef CONFIG_64BIT
+ 	initial_gs = per_cpu_offset(smp_processor_id());
+ #endif
++#endif
++
++#ifndef CONFIG_64BIT
++	initial_code = (unsigned long)&wakeup_pmode_return;
++	saved_magic = 0x12345678;
++#else
+ 	initial_code = (unsigned long)wakeup_long64;
+        saved_magic = 0x123456789abcdef0L;
+ #endif /* CONFIG_64BIT */
+diff --git a/arch/x86/kernel/trampoline_32.S b/arch/x86/kernel/trampoline_32.S
+index 8508237..11f0387 100644
+--- a/arch/x86/kernel/trampoline_32.S
++++ b/arch/x86/kernel/trampoline_32.S
+@@ -32,8 +32,12 @@
+ #include <asm/segment.h>
+ #include <asm/page_types.h>
+ 
+-/* We can free up trampoline after bootup if cpu hotplug is not supported. */
++#ifdef CONFIG_ACPI_SLEEP
++.section .rodata, "a", @progbits
++#else
++/* We can free up the trampoline after bootup if cpu hotplug is not supported. */
+ __CPUINITRODATA
++#endif
+ .code16
+ 
+ ENTRY(trampoline_data)
+
+--------------020609000400080508010404--
