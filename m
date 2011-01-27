@@ -1,142 +1,292 @@
-From: Lionel Debroux <lionel_debroux@yahoo.fr>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Thu, 27 Jan 2011 08:59:18 +0100
-Message-ID: <4D4125D6.4030309@yahoo.fr>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <4D3DDDA4.2080202@yahoo.fr> <alpine.LFD.2.02.1101242154090.6097@x980> <4D3FD00D.2040303@yahoo.fr>
+From: Daniel Stodden <dns@somacoma.net>
+Subject: ACPI-ish crashes on Lenovo T400,
+Date: Thu, 27 Jan 2011 00:03:29 -0800
+Message-ID: <1296115409.16034.27.camel@ramone.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm12-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.246]:28167
-	"HELO nm12-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751358Ab1A0H6l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jan 2011 02:58:41 -0500
-In-Reply-To: <4D3FD00D.2040303@yahoo.fr>
+Received: from somacoma.net ([62.75.137.225]:55576 "EHLO vs137225.vserver.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750934Ab1A0INp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jan 2011 03:13:45 -0500
+Received: from [192.168.178.21] (S0106001a4fead28f.vc.shawcable.net [24.84.12.180])
+	(Authenticated sender: dns)
+	by vs137225.vserver.de (Postfix) with ESMTPSA id 29BC94938004
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Jan 2011 09:03:31 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, rjw@sisk.pl, colin.king@canonical.com
-
-On 26.01.2011 08:41, Lionel Debroux wrote:
->>>>>> * 2.6.35 series: .4 and .6 boot successfully, .8 and .10 fail;
->>>>>> * 2.6.36 series: -rc2 boots successfully, .1 fails;
->>>>>> * 2.6.37 series: -rc4 fails.
->>>>>
->>>>> So it's probably a commit to the mainline tree which was picked
->>>>> by 2.6.35 maintainer to the stable tree (probably it was CC'ed)
->>>>> cause this.
->>>>>
->>>>> Does passing nolapic or acpi=off cures the issue?
->>>> IIRC, I tested at least one of these, without improvement.
->>>> I'll test again tonight, when I can physically access the
->>>> computer.
->>> None of nolapic, acpi=off, nolapic acpi=off enables 2.6.35.8 to
->>> boot on my ASUS F3Jv-AS022P.
->>> The kernel line is
->>> kernel /boot/vmlinuz root=/dev/sda9 nomce vga=791 nomodeset
->>> I've attached the 2.6.35.6 config.
->>
->> looks like you've bisected as far as:
->> 2.6.35.6 good
->> 2.6.35.8 bad
->>
->> can you try 2.6.35.7 and continue on to find which specific patch
->> in .stable broke your machine?
-> The bisection between 2.6.35.6 and 2.6.35.8 is in progress, two steps
-> left and no good kernel found yet (?!)
-> Due to not having physical access to the computer during work time, I
-> won't be able to finish until tonight.
-Bisection log of the
-git://git.kernel.org/pub/scm/linux/kernel/git/longterm/linux-2.6.35.y.git repository:
-
-$ git bisect log
-git bisect start
-# good: [7273c1c64b2d4cb0ddfa7682ec7ab71dfe906398] Linux 2.6.35.6
-git bisect good 7273c1c64b2d4cb0ddfa7682ec7ab71dfe906398
-# bad: [f16e6e4df8ec41328d7e0841bc17f2a587eb2c67] Linux 2.6.35.8
-git bisect bad f16e6e4df8ec41328d7e0841bc17f2a587eb2c67
-# bad: [cd1bbdfed8ff5047d96ed27a3ee7b881069daf03] reiserfs: fix
-dependency inversion between inode and reiserfs mutexes
-git bisect bad cd1bbdfed8ff5047d96ed27a3ee7b881069daf03
-# bad: [74352c5c9e2e5c914254d2588876c0c13333c6f5] V4L/DVB: gspca -
-sn9c20x: Bad transfer size of Bayer images
-git bisect bad 74352c5c9e2e5c914254d2588876c0c13333c6f5
-# bad: [dc7237c6b7b529c5da2776cbb8b68cc74d1555c3] HID: hidraw, fix a
-NULL pointer dereference in hidraw_ioctl
-git bisect bad dc7237c6b7b529c5da2776cbb8b68cc74d1555c3
-# bad: [e5d843fbf633dc65353bc08ee28f6b08ce651a4d] ALSA: hda - Add Dell
-Latitude E6400 model quirk
-git bisect bad e5d843fbf633dc65353bc08ee28f6b08ce651a4d
-# bad: [9f09ac68e7af2001a24242cbe0f6e40e89dd6c62] x86, cpu: After
-uncapping CPUID, re-run CPU feature detection
-git bisect bad 9f09ac68e7af2001a24242cbe0f6e40e89dd6c62
-
---- up to this point, all kernels reboot ~1s after the messsage noting
-vmlinuz being loaded disappears
-
-# bad: [ea8a52f9f4bcc3420c38ae07f8378a2f18443970] Linux 2.6.35.7
-git bisect bad ea8a52f9f4bcc3420c38ae07f8378a2f18443970
-
---- at this point, one commit before
-9f09ac68e7af2001a24242cbe0f6e40e89dd6c62, the behaviour changes: the
-computer does not reboot anymore, but it doesn't boot either. It hangs
-with a backlit but black LCD. I let it alone for several minutes, it
-didn't boot.
-I double-checked by swapping twice between this kernel and the previous
-one (9f09ac68e7af2001a24242cbe0f6e40e89dd6c62), falling back to the
-2.6.35.6 compiled in late September 2010 to get the computer to boot and
-swap kernels.
-
-# bad: [b0dd220aefe1ab80823cf13e9588c64fec151488] Xen: fix typo in
-previous patch
-git bisect bad b0dd220aefe1ab80823cf13e9588c64fec151488
-
---- at this point, the kernel reboots again as most of the kernels in
-this bisection did. The problem is,
-ea8a52f9f4bcc3420c38ae07f8378a2f18443970 is a tag commit...
-
-And obviously, bisection ends in:
-b0dd220aefe1ab80823cf13e9588c64fec151488 is the first bad commit
-commit b0dd220aefe1ab80823cf13e9588c64fec151488
-Author: James Dingwall <james.dingwall@amdocs.com>
-Date:   Mon Sep 27 09:37:17 2010 +0100
-
-    Xen: fix typo in previous patch
-
-    Correctly name the irq_chip structure to fix an immediate failure
-when booting
-    as a xen pv_ops guest with a NULL pointer exception. The missing 'x' was
-    introduced in commit [fb412a178502dc498430723b082a932f797e4763]
-applied to
-    2.6.3[25]-stable trees.  The commit to mainline was
-    [aaca49642b92c8a57d3ca5029a5a94019c7af69f] which did not have the
-problem.
-
-    Signed-off-by: James Dingwall <james@dingwall.me.uk>
-    Reported-by: Pawel Zuzelski <pawelz@pld-linux.org>
-    Tested-by: Pawel Zuzelski <pawelz@pld-linux.org>
-    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
-:040000 040000 81981a3f0c89adbdf28306b2dc23c631c815935f
-ca642d7b5a94ad56c6179ba4d90e2281076672b9 M      drivers
+To: linux-acpi@vger.kernel.org
 
 
+Hi all.
 
-But none of that makes any sense for multiple reasons...
-I guess it's time for me to:
-* try recompiling older kernel versions that I previously successfully
-compiled to a kernel in proper booting state. But the package
-installation history in Synaptic between September 27th 2010 (last
-working kernel so far) and November 23th 2010 (first bad kernel) doesn't
-show any upgrade of binutils or gcc...
-* try out other kernel series: 2.6.32, 2.6.34, 2.6.37 and the 2.6.38-rc
-series.
+Can somebody have a brief look at those crash traces and tell me what to
+try about it? It looks mildly c state and/or smp related.
+
+This is on a Lenovo T400 notebook, Intel P8400, 2 cores running a
+Ubuntu-Lucid 2.6.32 kernel. System does fine for a couple hours, then
+goes south all of a sudden. I'd blame it a broken board or memory if it
+were more random. No other hiccups.
+
+Affected core is apparently always CPU#1, apparently always idle, dying
+on either a #DF, or a fault in some acpi_idle_enter_. I set CPU#1 to
+offline this morning and since then the symptom seems gone. But I'd like
+to get it back online.
+
+Thanks very much. Hope I'm asking on the right list.
+
+Daniel
 
 
-Sorry for the noise...
+1)
+      KERNEL: /usr/lib/debug/boot/vmlinux-2.6.32-27-generic
+    DUMPFILE: VmCore
+        CPUS: 2
+        DATE: Mon Jan 24 23:10:16 2011
+      UPTIME: 01:24:59
+LOAD AVERAGE: 1.11, 0.73, 0.58
+       TASKS: 300
+    NODENAME: ramone
+     RELEASE: 2.6.32-27-generic
+     VERSION: #49-Ubuntu SMP Thu Dec 2 00:51:09 UTC 2010
+     MACHINE: x86_64  (2260 Mhz)
+      MEMORY: 2 GB
+       PANIC: "[ 5099.395584] Oops: 0000 [#2] SMP " (check log for
+details)
+         PID: 0
+     COMMAND: "swapper"
+        TASK: ffff88007a3f44a0  (1 of 2)  [THREAD_INFO:
+ffff880079800000]
+         CPU: 1
+       STATE: TASK_RUNNING (PANIC)
 
+crash> bt 
+PID: 0      TASK: ffff88007a3f44a0  CPU: 1   COMMAND: "swapper"
+ #0 [ffff880001c86af0] machine_kexec at ffffffff8103320b
+ #1 [ffff880001c86b50] crash_kexec at ffffffff810a8f68
+ #2 [ffff880001c86c20] oops_end at ffffffff81545268
+ #3 [ffff880001c86c50] no_context at ffffffff8103fa63
+ #4 [ffff880001c86c90] __bad_area_nosemaphore at ffffffff8103fc25
+ #5 [ffff880001c86ce0] bad_area_nosemaphore at ffffffff8103fcf3
+ #6 [ffff880001c86cf0] do_page_fault at ffffffff81546e44
+ #7 [ffff880001c86d40] page_fault at ffffffff815445d5
+ #8 [ffff880001c86dc8] show_stack_log_lvl at ffffffff81015073
+ #9 [ffff880001c86e50] show_registers at ffffffff810151c1
+#10 [ffff880001c86ec0] __die at ffffffff81545173
+#11 [ffff880001c86ef0] die at ffffffff81016128
+#12 [ffff880001c86f20] do_double_fault at ffffffff81013752
+#13 [ffff880001c86f50] double_fault at ffffffff81012fc5
+    [exception RIP: unknown or invalid address]
+    RIP: 00007ff607dd9482  RSP: ffff8800902ab110  RFLAGS: 00010202
+    RAX: 0000000000000000  RBX: 0000000001194920  RCX: 00000000e0167730
+    RDX: 0000000000000002  RSI: ffff8800902ab200  RDI: 00000000011a65a0
+    RBP: ffff880000000000   R8: 0000000000000000   R9: 0000000000000039
+    R10: 0000000000000000  R11: 0000000000000000  R12: 0000000000000001
+    R13: 0000000000000004  R14: 0000000000000000  R15: 0000000000000000
+    ORIG_RAX: ffffffffffffffff  CS: 0030  SS: 0018
+bt: WARNING: possibly bogus exception frame
+--- <exception stack> ---
+bt: cannot transition from exception stack to current process stack:
+    exception stack pointer: ffff880001c86af0
+      process stack pointer: ffff8800902ab110
+         current stack base: ffff880079800000
 
-Regards,
-Lionel.
+2)
+
+      KERNEL: /usr/lib/debug/boot/vmlinux-2.6.32-27-generic
+    DUMPFILE: VmCore
+        CPUS: 2
+        DATE: Tue Jan 25 01:37:22 2011
+      UPTIME: 02:26:25
+LOAD AVERAGE: 0.39, 0.44, 0.80
+       TASKS: 308
+    NODENAME: ramone
+     RELEASE: 2.6.32-27-generic
+     VERSION: #49-Ubuntu SMP Thu Dec 2 00:51:09 UTC 2010
+     MACHINE: x86_64  (2260 Mhz)
+      MEMORY: 2 GB
+       PANIC: "[ 8785.430388] Oops: 0000 [#1] SMP " (check log for
+details)
+         PID: 0
+     COMMAND: "swapper"
+        TASK: ffff88007a3f44a0  (1 of 2)  [THREAD_INFO:
+ffff880079800000]
+         CPU: 1
+       STATE: TASK_RUNNING (PANIC)
+
+crash> bt
+PID: 0      TASK: ffff88007a3f44a0  CPU: 1   COMMAND: "swapper"
+ #0 [ffff880079801b90] machine_kexec at ffffffff8103320b
+ #1 [ffff880079801bf0] crash_kexec at ffffffff810a8f68
+ #2 [ffff880079801cc0] oops_end at ffffffff81545268
+ #3 [ffff880079801cf0] no_context at ffffffff8103fa63
+ #4 [ffff880079801d30] __bad_area_nosemaphore at ffffffff8103fc25
+ #5 [ffff880079801d80] bad_area_nosemaphore at ffffffff8103fcf3
+ #6 [ffff880079801d90] do_page_fault at ffffffff81546e44
+ #7 [ffff880079801de0] page_fault at ffffffff815445d5
+ #8 [ffff880079801e68] acpi_idle_enter_bm at ffffffff8130ef74
+ #9 [ffff880079801ef0] cpuidle_idle_call at ffffffff81439e77
+#10 [ffff880079801f10] cpu_idle at ffffffff81010e73
+
+3)
+      KERNEL: /usr/lib/debug/boot/vmlinux-2.6.32-27-generic
+    DUMPFILE: VmCore
+        CPUS: 2
+        DATE: Tue Jan 25 02:30:03 2011
+      UPTIME: 00:51:50
+LOAD AVERAGE: 0.64, 0.65, 0.66
+       TASKS: 285
+    NODENAME: ramone
+     RELEASE: 2.6.32-27-generic
+     VERSION: #49-Ubuntu SMP Thu Dec 2 00:51:09 UTC 2010
+     MACHINE: x86_64  (2261 Mhz)
+      MEMORY: 2 GB
+       PANIC: "[ 3110.678958] Oops: 0010 [#1] SMP " (check log for
+details)
+         PID: 0
+     COMMAND: "swapper"
+        TASK: ffff88007a3f44a0  (1 of 2)  [THREAD_INFO:
+ffff880079800000]
+         CPU: 1
+       STATE: TASK_RUNNING (PANIC)
+
+crash> bt
+PID: 0      TASK: ffff88007a3f44a0  CPU: 1   COMMAND: "swapper"
+ #0 [ffff880079801b70] machine_kexec at ffffffff8103320b
+ #1 [ffff880079801bd0] crash_kexec at ffffffff810a8f68
+ #2 [ffff880079801ca0] oops_end at ffffffff81545268
+ #3 [ffff880079801cd0] no_context at ffffffff8103fa63
+ #4 [ffff880079801d10] __bad_area_nosemaphore at ffffffff8103fc25
+ #5 [ffff880079801d60] bad_area_nosemaphore at ffffffff8103fcf3
+ #6 [ffff880079801d70] do_page_fault at ffffffff81546e44
+ #7 [ffff880079801dc0] page_fault at ffffffff815445d5
+ #8 [ffff880079801e80] acpi_processor_ffh_cstate_enter at
+ffffffff8102cb72
+ #9 [ffff880079801e90] acpi_idle_do_entry at ffffffff8130ec56
+#10 [ffff880079801ea0] acpi_idle_enter_simple at ffffffff8130f0f7
+#11 [ffff880079801ef0] cpuidle_idle_call at ffffffff81439e77
+#12 [ffff880079801f10] cpu_idle at ffffffff81010e73
+
+4)
+      KERNEL: /usr/lib/debug/boot/vmlinux-2.6.32-27-generic
+    DUMPFILE: VmCore
+        CPUS: 2
+        DATE: Tue Jan 25 03:56:16 2011
+      UPTIME: 00:46:22
+LOAD AVERAGE: 0.44, 0.39, 0.36
+       TASKS: 320
+    NODENAME: ramone
+     RELEASE: 2.6.32-27-generic
+     VERSION: #49-Ubuntu SMP Thu Dec 2 00:51:09 UTC 2010
+     MACHINE: x86_64  (2260 Mhz)
+      MEMORY: 1.9 GB
+       PANIC: "[ 2782.085815] Oops: 0000 [#1] SMP " (check log for
+details)
+         PID: 0
+     COMMAND: "swapper"
+        TASK: ffff8800773f44a0  (1 of 2)  [THREAD_INFO:
+ffff880076800000]
+         CPU: 1
+       STATE: TASK_RUNNING (PANIC)
+
+crash> bt
+PID: 0      TASK: ffff8800773f44a0  CPU: 1   COMMAND: "swapper"
+ #0 [ffff880076801b90] machine_kexec at ffffffff8103320b
+ #1 [ffff880076801bf0] crash_kexec at ffffffff810a8f68
+ #2 [ffff880076801cc0] oops_end at ffffffff81545268
+ #3 [ffff880076801cf0] no_context at ffffffff8103fa63
+ #4 [ffff880076801d30] __bad_area_nosemaphore at ffffffff8103fc25
+ #5 [ffff880076801d80] bad_area_nosemaphore at ffffffff8103fcf3
+ #6 [ffff880076801d90] do_page_fault at ffffffff81546e44
+ #7 [ffff880076801de0] page_fault at ffffffff815445d5
+ #8 [ffff880076801e68] acpi_idle_enter_bm at ffffffff8130ef74
+ #9 [ffff880076801ef0] cpuidle_idle_call at ffffffff81439e77
+#10 [ffff880076801f10] cpu_idle at ffffffff81010e73
+
+5)
+      KERNEL: /usr/lib/debug/boot/vmlinux-2.6.32-27-generic
+    DUMPFILE: VmCore
+        CPUS: 2
+        DATE: Wed Jan 26 14:59:34 2011
+      UPTIME: 03:53:45
+LOAD AVERAGE: 1.19, 0.82, 0.56
+       TASKS: 343
+    NODENAME: ramone
+     RELEASE: 2.6.32-27-generic
+     VERSION: #49-Ubuntu SMP Thu Dec 2 00:51:09 UTC 2010
+     MACHINE: x86_64  (2260 Mhz)
+      MEMORY: 1.9 GB
+       PANIC: "[14025.298851] Oops: 0000 [#2] SMP " (check log for
+details)
+         PID: 0
+     COMMAND: "swapper"
+        TASK: ffff8800773f44a0  (1 of 2)  [THREAD_INFO:
+ffff880076800000]
+         CPU: 1
+       STATE: TASK_RUNNING (PANIC)
+
+crash> bt
+PID: 0      TASK: ffff8800773f44a0  CPU: 1   COMMAND: "swapper"
+ #0 [ffff880001c86af0] machine_kexec at ffffffff8103320b
+ #1 [ffff880001c86b50] crash_kexec at ffffffff810a8f68
+ #2 [ffff880001c86c20] oops_end at ffffffff81545268
+ #3 [ffff880001c86c50] no_context at ffffffff8103fa63
+ #4 [ffff880001c86c90] __bad_area_nosemaphore at ffffffff8103fc25
+ #5 [ffff880001c86ce0] bad_area_nosemaphore at ffffffff8103fcf3
+ #6 [ffff880001c86cf0] do_page_fault at ffffffff81546e44
+ #7 [ffff880001c86d40] page_fault at ffffffff815445d5
+ #8 [ffff880001c86dc8] show_stack_log_lvl at ffffffff81015073
+ #9 [ffff880001c86e50] show_registers at ffffffff810151c1
+#10 [ffff880001c86ec0] __die at ffffffff81545173
+#11 [ffff880001c86ef0] die at ffffffff81016128
+#12 [ffff880001c86f20] do_double_fault at ffffffff81013752
+#13 [ffff880001c86f50] double_fault at ffffffff81012fc5
+    [exception RIP: unknown or invalid address]
+    RIP: 00000000fff94120  RSP: ffff88008b183c30  RFLAGS: 00010202
+    RAX: 00000000fff94120  RBX: 0000000089a8bcd0  RCX: 0000000000000002
+    RDX: 0000000000000006  RSI: ffff880000000017  RDI: 0000000089a8bcd0
+    RBP: ffff88008b183c70   R8: 0000000000000000   R9: 0000000000000201
+    R10: 0000000000000000  R11: 000000010014f172  R12: 0000000000000001
+    R13: 0000000000000004  R14: 0000000000000000  R15: 0000000000000000
+    ORIG_RAX: ffffffffffffffff  CS: 0030  SS: 0018
+bt: WARNING: possibly bogus exception frame
+--- <exception stack> ---
+bt: cannot transition from exception stack to current process stack:
+    exception stack pointer: ffff880001c86af0
+      process stack pointer: ffff88008b183c30
+         current stack base: ffff880076800000
+
+$ cat /proc/cpuinfo 
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 23
+model name	: Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz
+stepping	: 6
+cpu MHz		: 800.000
+cache size	: 3072 KB
+physical id	: 0
+siblings	: 1
+core id		: 0
+cpu cores	: 1
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov
+pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm
+constant_tsc up arch_perfmon pebs bts rep_good aperfmperf pni dtes64
+monitor ds_cpl vmx smx est tm2 ssse3 cx16 xtpr pdcm sse4_1 lahf_lm
+tpr_shadow vnmi flexpriority
+bogomips	: 4521.08
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 36 bits physical, 48 bits virtual
+power management:
+
+-- 
+"Wire up your home and stay there."
+
