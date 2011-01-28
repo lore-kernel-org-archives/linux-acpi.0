@@ -1,270 +1,93 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at same
- time
-Date: Thu, 27 Jan 2011 19:09:20 -0800
-Message-ID: <4D423360.6080408@kernel.org>
+From: mihn <mihnsk@gmail.com>
+Subject: Re: cpu voltage change question
+Date: Fri, 28 Jan 2011 01:10:52 -0800
+Message-ID: <1296205852.26579.18.camel@genix>
+References: <1296119453.4653.1.camel@genix> <4D41996C.1060600@cfl.rr.com>
+	 <AANLkTimrrD+mgwMMcqBNoZgOXfipG+XoCDGKVWOxYbRC@mail.gmail.com>
+	 <AANLkTim=ZGBU8AD9_ub5gAL8YHn6EDoORsLvMc6M-3aU@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:24855 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754609Ab1A1DKc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jan 2011 22:10:32 -0500
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:59871 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755132Ab1A1JKh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jan 2011 04:10:37 -0500
+Received: by gxk9 with SMTP id 9so991558gxk.19
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Jan 2011 01:10:36 -0800 (PST)
+In-Reply-To: <AANLkTim=ZGBU8AD9_ub5gAL8YHn6EDoORsLvMc6M-3aU@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: =?UTF-8?Q?=E5=90=B4=E5=90=8D?= <wkq5325@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+
+Thanks for the reply.
+I'm happy to hear that OS can change MSR value.
+
+Yes. I noticed from intel i7 datasheet that IA32_PERF_CTL MSR register
+can change voltage and frequency at the same time.
+
+What i want to know is how to change voltage while keeping the frequenc=
+y
+unchanged.
+
+Say that current frequency is 2.8Ghz, and voltage is 1.5v.
+In this case, i just want to increase voltage to 1.6v w/o frequency
+changing.
+
+If i know the spec of IA32_PERF_CTL_MSR, then would it be possible?
+If not or if there's no way to get the spec of MSR, is there any
+possible way to achieve it?
+
+Thanks,
+mihn
 
 
-One system have mixing xapic and x2apic entries in MADT and SRAT.
-BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
-the cpus are with x2apic mode pre-enabled, still need to use xapic entries
-instead of x2apic entries.
+On Fri, 2011-01-28 at 14:16 +0800, =E5=90=B4=E5=90=8D wrote:
+> OS can change MSR value. If not, how cpufreq do the scaling job.
+> You just can't write frequency and voltage separately.
+> Because they are not separate.
+>=20
+> wkq
+>=20
+> 2011/1/28 mihn leigh <mihnsk@gmail.com>:
+> > Yes, you're right. As you said, MSR register contains the frequency
+> > and voltage information of cpu. By writing the register, we can cha=
+nge
+> > voltage as well (it's the information from intel datasheet). But, i
+> > cannot find the detail of this register.
+> >
+> > BTW, what's the reason that MSR register can not be changed in OS
+> > level? is it only possible to change in BIOS?
+> >
+> > Thanks.
+> >
+> > 2011/1/27 Phillip Susi <psusi@cfl.rr.com>:
+> >> On 1/27/2011 4:10 AM, mihn wrote:
+> >>> Hi,
+> >>>
+> >>> I want to change voltage and frequency seperately.
+> >>> With cpu-freq, i can change frequency, but cannot change voltage =
+AFAIK.
+> >>
+> >> The voltage is controlled by the platform and should already be se=
+t to a
+> >> level appropriate for that frequency.  AFAIK, recent intel cpus ha=
+ve
+> >> MSRs that configure the voltage for each P-state, but these are se=
+t up
+> >> by the bios and shouldn't need changed.
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acp=
+i" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 
-on 8 socket system with x2apic pre-enabled, will get out of order sequence:
-CPU0: socket0, core0, thread0.
-CPU1 - CPU 40: socket 4 - socket 7, thread 0
-CPU41 - CPU 80: socket 4 - socket 7, thread 1
-CPU81 - CPU 119: socket 0 - socket 3, thread 0
-CPU120 - CPU 159: socket 0 - socket 3, thread 1
 
-so max_cpus=80 will not get all thread0 now.
-
-Need to handle every entry in MADT at same time with xapic and x2apic.
-so we can honor sequence in MADT.
-
-We can use max_cpus= command line to use thread0 in every core,
-because recent MADT always have all thread0 at first.
-Also it could make the cpu to node mapping more sane.
-
-after patch will get
-CPU0 - CPU 79: socket 0 - socket 7, thread 0
-CPU80 - CPU 159: socket 0 - socket 7, thread 1
-
--v2: update some comments, and change to pass array pointer.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++-------
- drivers/acpi/numa.c         |   16 +++++++++---
- drivers/acpi/tables.c       |   57 +++++++++++++++++++++++++++++++++-----------
- include/linux/acpi.h        |    9 ++++++
- 4 files changed, 86 insertions(+), 26 deletions(-)
-
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -883,6 +883,7 @@ static int __init acpi_parse_madt_lapic_
- {
- 	int count;
- 	int x2count = 0;
-+	struct acpi_subtable_proc madt_proc[2];
- 
- 	if (!cpu_has_apic)
- 		return -ENODEV;
-@@ -907,10 +908,16 @@ static int __init acpi_parse_madt_lapic_
- 				      acpi_parse_sapic, MAX_LOCAL_APIC);
- 
- 	if (!count) {
--		x2count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC,
--					acpi_parse_x2apic, MAX_LOCAL_APIC);
--		count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC,
--					acpi_parse_lapic, MAX_LOCAL_APIC);
-+		memset(madt_proc, 0, sizeof(madt_proc));
-+		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC;
-+		madt_proc[0].handler = acpi_parse_lapic;
-+		madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC;
-+		madt_proc[1].handler = acpi_parse_x2apic;
-+		acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+					    sizeof(struct acpi_table_madt),
-+					    madt_proc, 2, MAX_LOCAL_APIC);
-+		count = madt_proc[0].count;
-+		x2count = madt_proc[1].count;
- 	}
- 	if (!count && !x2count) {
- 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
-@@ -922,11 +929,16 @@ static int __init acpi_parse_madt_lapic_
- 		return count;
- 	}
- 
--	x2count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI,
--				  acpi_parse_x2apic_nmi, 0);
--	count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_NMI, acpi_parse_lapic_nmi, 0);
-+	memset(madt_proc, 0, sizeof(madt_proc));
-+	madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC_NMI;
-+	madt_proc[0].handler = acpi_parse_lapic_nmi;
-+	madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC_NMI;
-+	madt_proc[1].handler = acpi_parse_x2apic_nmi;
-+	acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+				    sizeof(struct acpi_table_madt),
-+				    madt_proc, 2, 0);
-+	count = madt_proc[0].count;
-+	x2count = madt_proc[1].count;
- 	if (count < 0 || x2count < 0) {
- 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
- 		/* TBD: Cleanup to allow fallback to MPS */
-Index: linux-2.6/drivers/acpi/numa.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/numa.c
-+++ linux-2.6/drivers/acpi/numa.c
-@@ -284,10 +284,18 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
--				     acpi_parse_x2apic_affinity, 0);
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
--				     acpi_parse_processor_affinity, 0);
-+		struct acpi_subtable_proc srat_proc[2];
-+
-+		memset(srat_proc, 0, sizeof(srat_proc));
-+		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-+		srat_proc[0].handler = acpi_parse_processor_affinity;
-+		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
-+		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+
-+		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-+					    sizeof(struct acpi_table_srat),
-+					    srat_proc, 2, 0);
-+
- 		ret = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
-Index: linux-2.6/drivers/acpi/tables.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/tables.c
-+++ linux-2.6/drivers/acpi/tables.c
-@@ -201,10 +201,9 @@ void acpi_table_print_madt_entry(struct
- 
- 
- int __init
--acpi_table_parse_entries(char *id,
-+acpi_table_parse_entries_array(char *id,
- 			     unsigned long table_size,
--			     int entry_id,
--			     acpi_table_entry_handler handler,
-+			     struct acpi_subtable_proc *proc, int proc_num,
- 			     unsigned int max_entries)
- {
- 	struct acpi_table_header *table_header = NULL;
-@@ -212,12 +211,12 @@ acpi_table_parse_entries(char *id,
- 	unsigned int count = 0;
- 	unsigned long table_end;
- 	acpi_size tbl_size;
-+	int i;
- 
--	if (acpi_disabled)
-+	if (acpi_disabled) {
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
--
--	if (!handler)
--		return -EINVAL;
-+	}
- 
- 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
- 		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-@@ -226,6 +225,7 @@ acpi_table_parse_entries(char *id,
- 
- 	if (!table_header) {
- 		printk(KERN_WARNING PREFIX "%4.4s not present\n", id);
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
- 	}
- 
-@@ -238,19 +238,30 @@ acpi_table_parse_entries(char *id,
- 
- 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
- 	       table_end) {
--		if (entry->type == entry_id
--		    && (!max_entries || count++ < max_entries))
--			if (handler(entry, table_end)) {
--				early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-+		for (i = 0; i < proc_num; i++) {
-+			if (entry->type != proc[i].id)
-+				continue;
-+			if (max_entries && count++ >= max_entries)
-+				continue;
-+			if (proc[i].handler(entry, table_end)) {
-+				early_acpi_os_unmap_memory((char *)table_header,
-+								 tbl_size);
-+				proc[i].count = -EINVAL;
- 				return -EINVAL;
- 			}
-+			proc[i].count++;
-+			break;
-+		}
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
- 	}
- 	if (max_entries && count > max_entries) {
--		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x] ignored %i entries of "
--		       "%i found\n", id, entry_id, count - max_entries, count);
-+		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x ", id, proc[0].id);
-+		for (i = 1; i < proc_num; i++)
-+			printk(KERN_CONT " 0x%02x", proc[i].id);
-+		printk(KERN_CONT "] ignored %i entries of %i found\n",
-+		       count-max_entries, count);
- 	}
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-@@ -258,6 +269,26 @@ acpi_table_parse_entries(char *id,
- }
- 
- int __init
-+acpi_table_parse_entries(char *id,
-+			     unsigned long table_size,
-+			     int entry_id,
-+			     acpi_table_entry_handler handler,
-+			     unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc[1];
-+
-+	if (!handler)
-+		return -EINVAL;
-+
-+	memset(proc, 0, sizeof(proc));
-+	proc[0].id = entry_id;
-+	proc[0].handler = handler;
-+
-+	return acpi_table_parse_entries_array(id, table_size, proc, 1,
-+						 max_entries);
-+}
-+
-+int __init
- acpi_table_parse_madt(enum acpi_madt_type id,
- 		      acpi_table_entry_handler handler, unsigned int max_entries)
- {
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -76,6 +76,12 @@ typedef int (*acpi_table_handler) (struc
- 
- typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
- 
-+struct acpi_subtable_proc {
-+	int id;
-+	acpi_table_entry_handler handler;
-+	int count;
-+};
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
-@@ -86,6 +92,9 @@ int acpi_numa_init (void);
- 
- int acpi_table_init (void);
- int acpi_table_parse (char *id, acpi_table_handler handler);
-+int acpi_table_parse_entries_array(char *id, unsigned long table_size,
-+	struct acpi_subtable_proc *proc, int proc_num,
-+	unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 	int entry_id, acpi_table_entry_handler handler, unsigned int max_entries);
- int acpi_table_parse_madt (enum acpi_madt_type id, acpi_table_entry_handler handler, unsigned int max_entries);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
