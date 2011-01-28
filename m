@@ -1,62 +1,51 @@
-From: "ECOWAS/UNITED NATIONS" <info@un.org>
-Subject: (unknown)
-Date: Fri, 28 Jan 2011 13:31:16 +0200
-Message-ID: <71f2abd14d179d33b15fd4c11217b8d5.squirrel@webmail.comu.edu.tr>
-Reply-To: intercontinentalbamkplc@accountant.com
+From: Phillip Susi <psusi@cfl.rr.com>
+Subject: Re: cpu voltage change question
+Date: Fri, 28 Jan 2011 14:46:24 -0500
+Message-ID: <4D431D10.3070404@cfl.rr.com>
+References: <1296119453.4653.1.camel@genix> <4D41996C.1060600@cfl.rr.com>	 <AANLkTimrrD+mgwMMcqBNoZgOXfipG+XoCDGKVWOxYbRC@mail.gmail.com>	 <AANLkTim=ZGBU8AD9_ub5gAL8YHn6EDoORsLvMc6M-3aU@mail.gmail.com> <1296205852.26579.18.camel@genix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-9
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.comu.edu.tr ([193.255.97.15]:42096 "EHLO mail.comu.edu.tr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755001Ab1A1MNg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jan 2011 07:13:36 -0500
-Subject: 
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:49938 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752310Ab1A1Tpv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jan 2011 14:45:51 -0500
+In-Reply-To: <1296205852.26579.18.camel@genix>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mihn <mihnsk@gmail.com>
+Cc: =?UTF-8?B?5ZC05ZCN?= <wkq5325@gmail.com>, linux-acpi@vger.kernel.org
 
+On 1/28/2011 4:10 AM, mihn wrote:
+> Yes. I noticed from intel i7 datasheet that 	 MSR register
+> can change voltage and frequency at the same time.
+> 
+> What i want to know is how to change voltage while keeping the frequency
+> unchanged.
 
+Then you change the voltage and leave the frequency bits where they are
+at.  This should be blindingly obvious.
 
-2010 SCAM VICTIMS COMPENSATIONS PAYMENTS.
-YOUR REF/PAYMENTS CODE: IBN/06654 FOR $500,000 USD ONLY.
+> Say that current frequency is 2.8Ghz, and voltage is 1.5v.
+> In this case, i just want to increase voltage to 1.6v w/o frequency
+> changing.
 
-This is to bring to your notice that our bank (INTERCONTINENTAL BANK IN=
-TL.
-PLC) is
-delegated by the ECOWAS/UNITED NATIONS in Central Bank to pay victims
-of scam $500,000 (Five Hundred Thousand Dollars Only).
+This is not a sensible goal.  If it is running stable already at 1.5v,
+then you do not want to increase to 1.6v because that will just be a
+waste of power.  The reason to increase the voltage is so that you can
+increase the frequency.
 
-=46or verification you are to view the following link.
+> If i know the spec of IA32_PERF_CTL_MSR, then would it be possible?
+> If not or if there's no way to get the spec of MSR, is there any
+> possible way to achieve it?
 
-http://www.un.org/News/Press/docs/2003/ik344.doc.htm
+Good question.  I can not find it either.  The system programming guide
+just says that it is 16 bits and model specific.  The data sheet for the
+core i5 does not define its contents.
 
-You are to send the following information for remittance.
-
-Your Name.___________________________
-Address.___________________________
-Phone .___________________________
-Amount Defrauded.___________________________
-Age.__________________________
-Sex__________________________
-Country.________________________
-
-Send a copy of your response with the PAYMENT CODE
-NUMBER(IBN/06654).
-
-NAME: MRs.RHODA MIKE
-      SCAMMED VICTIM/REF/PAYMENTS CODE:
-      IBN/06654 $500,000 USD.
-
-
-Email: intercontinentalbankplc136@accountant.com
-
-Yours Faithfully,
-Mrs. Rosemary Peter
-PUBLIC RELATIONS OFFICER
-Copyright =A9 2010
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I thought there were supposed to be a few MSRs somewhere that held the
+VID codes that should be used to select the voltage for each P-state,
+and then you switch P-states by touching the address specified in the
+P-state table the bios provides in the DSDT, but the description of this
+MSR makes it sound like that is not correct.
