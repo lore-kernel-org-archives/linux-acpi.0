@@ -1,51 +1,45 @@
-From: Phillip Susi <psusi@cfl.rr.com>
-Subject: Re: cpu voltage change question
-Date: Fri, 28 Jan 2011 14:46:24 -0500
-Message-ID: <4D431D10.3070404@cfl.rr.com>
-References: <1296119453.4653.1.camel@genix> <4D41996C.1060600@cfl.rr.com>	 <AANLkTimrrD+mgwMMcqBNoZgOXfipG+XoCDGKVWOxYbRC@mail.gmail.com>	 <AANLkTim=ZGBU8AD9_ub5gAL8YHn6EDoORsLvMc6M-3aU@mail.gmail.com> <1296205852.26579.18.camel@genix>
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: Re: 2.6.38-rc2: acpi backlight control missing
+Date: Fri, 28 Jan 2011 22:12:05 +0100
+Message-ID: <1296249125.2006.7.camel@localhost.localdomain>
+References: <1295693349.2120.3.camel@localhost.localdomain>
+	 <201101222043.07703.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:49938 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310Ab1A1Tpv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jan 2011 14:45:51 -0500
-In-Reply-To: <1296205852.26579.18.camel@genix>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201101222043.07703.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, rui.zhang@intel.com, len.brown@intel.com
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: mihn <mihnsk@gmail.com>
-Cc: =?UTF-8?B?5ZC05ZCN?= <wkq5325@gmail.com>, linux-acpi@vger.kernel.org
 
-On 1/28/2011 4:10 AM, mihn wrote:
-> Yes. I noticed from intel i7 datasheet that 	 MSR register
-> can change voltage and frequency at the same time.
+Am Samstag, den 22.01.2011, 20:43 +0100 schrieb Rafael J. Wysocki:
+> On Saturday, January 22, 2011, Thomas Meyer wrote:
+> > with 2.6.38-rc2 the acpi backlight is gone:
+> > 
+> > any ideas?
 > 
-> What i want to know is how to change voltage while keeping the frequency
-> unchanged.
+> Not really, but Matthew may have some (CCed).
 
-Then you change the voltage and leave the frequency bits where they are
-at.  This should be blindingly obvious.
+Okay, found the problem.
 
-> Say that current frequency is 2.8Ghz, and voltage is 1.5v.
-> In this case, i just want to increase voltage to 1.6v w/o frequency
-> changing.
+This commit broke my backlight:
 
-This is not a sensible goal.  If it is running stable already at 1.5v,
-then you do not want to increase to 1.6v because that will just be a
-waste of power.  The reason to increase the voltage is so that you can
-increase the frequency.
+commit 677bd810eedce61edf15452491781ff046b92edc
+Author: Zhang Rui <rui.zhang@intel.com>
+Date:   Mon Dec 6 15:04:21 2010 +0800
 
-> If i know the spec of IA32_PERF_CTL_MSR, then would it be possible?
-> If not or if there's no way to get the spec of MSR, is there any
-> possible way to achieve it?
+    ACPI video: remove output switching control
 
-Good question.  I can not find it either.  The system programming guide
-just says that it is 16 bits and model specific.  The data sheet for the
-core i5 does not define its contents.
+This is because in function
+"acpi_is_video_device()" (drivers/acpi/video_detect.c) the backlight
+device is only checked when some video capabilities were found, but by
+removing the check for the VIDEO_OUTPUT_SWITCHING (that seems to be the
+only video capability on my system) the check for the backlight device
+isn't done anymore.
 
-I thought there were supposed to be a few MSRs somewhere that held the
-VID codes that should be used to select the voltage for each P-state,
-and then you switch P-states by touching the address specified in the
-P-state table the bios provides in the DSDT, but the description of this
-MSR makes it sound like that is not correct.
+by reverting above commit, the backlight is back again.
+
+kind regards
+thomas
