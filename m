@@ -1,45 +1,91 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: Re: 2.6.38-rc2: acpi backlight control missing
-Date: Fri, 28 Jan 2011 22:12:05 +0100
-Message-ID: <1296249125.2006.7.camel@localhost.localdomain>
-References: <1295693349.2120.3.camel@localhost.localdomain>
-	 <201101222043.07703.rjw@sisk.pl>
+From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: Re: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at
+ same time
+Date: Fri, 28 Jan 2011 18:01:44 -0800
+Message-ID: <1296266504.29747.70.camel@sbsiddha-MOBL3.sc.intel.com>
+References: <4D423360.6080408@kernel.org>
+Reply-To: Suresh Siddha <suresh.b.siddha@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201101222043.07703.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, rui.zhang@intel.com, len.brown@intel.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:57228 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754343Ab1A2CBf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Jan 2011 21:01:35 -0500
+In-Reply-To: <4D423360.6080408@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Am Samstag, den 22.01.2011, 20:43 +0100 schrieb Rafael J. Wysocki:
-> On Saturday, January 22, 2011, Thomas Meyer wrote:
-> > with 2.6.38-rc2 the acpi backlight is gone:
-> > 
-> > any ideas?
+On Thu, 2011-01-27 at 19:09 -0800, Yinghai Lu wrote:
+> One system have mixing xapic and x2apic entries in MADT and SRAT.
+> BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
+> the cpus are with x2apic mode pre-enabled, still need to use xapic entries
+> instead of x2apic entries.
+
+true. thats what the spec says.
+
+> on 8 socket system with x2apic pre-enabled, will get out of order sequence:
+> CPU0: socket0, core0, thread0.
+> CPU1 - CPU 40: socket 4 - socket 7, thread 0
+> CPU41 - CPU 80: socket 4 - socket 7, thread 1
+> CPU81 - CPU 119: socket 0 - socket 3, thread 0
+> CPU120 - CPU 159: socket 0 - socket 3, thread 1
 > 
-> Not really, but Matthew may have some (CCed).
+> so max_cpus=80 will not get all thread0 now.
+> 
+> Need to handle every entry in MADT at same time with xapic and x2apic.
+> so we can honor sequence in MADT.
 
-Okay, found the problem.
+hmm few things.
 
-This commit broke my backlight:
+So is your bios listing like this:
 
-commit 677bd810eedce61edf15452491781ff046b92edc
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Mon Dec 6 15:04:21 2010 +0800
+xapic entries for all thread-0
+x2apic entries for all thread-0
+xapic entries for all thread-1
+x2apic entries for all thread-1
 
-    ACPI video: remove output switching control
+What happens if some other bios lists like:
 
-This is because in function
-"acpi_is_video_device()" (drivers/acpi/video_detect.c) the backlight
-device is only checked when some video capabilities were found, but by
-removing the check for the VIDEO_OUTPUT_SWITCHING (that seems to be the
-only video capability on my system) the check for the backlight device
-isn't done anymore.
+all xapic entries
+followed by all x2apic entries
 
-by reverting above commit, the backlight is back again.
+or
 
-kind regards
-thomas
+all x2apic entries
+followed by all x2apic entries
+
+I am not sure if there is a strict recommendation by Intel bios writers
+guide to list all thread-0 first followed by thread-1. Even if there is
+a strict recommendation like that, I am sure there will be some bios's
+that don't follow the rules.
+
+Anyways two things.
+
+a) I don't want to complicate the code too much and still doesn't get
+the desired behavior when some bios has a different silly ordering.
+
+b) Also perhaps we need to make it more explicit. Like instead of
+relying on the "maxcpus=n/2" to boot all thread-0's, we should say it
+more explicitly like perhaps nosmt or noht (we used to have this kind of
+option before).  Or is it even worth to bother about this, given that we
+can boot all the cpu's and offline the SMT siblings.
+
+
+> We can use max_cpus= command line to use thread0 in every core,
+> because recent MADT always have all thread0 at first.
+> Also it could make the cpu to node mapping more sane.
+> 
+> after patch will get
+> CPU0 - CPU 79: socket 0 - socket 7, thread 0
+> CPU80 - CPU 159: socket 0 - socket 7, thread 1
+> 
+> -v2: update some comments, and change to pass array pointer.
+> 
+
+thanks,
+suresh
+
