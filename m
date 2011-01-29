@@ -1,126 +1,36 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at
- same time
-Date: Fri, 28 Jan 2011 18:17:53 -0800
-Message-ID: <AANLkTikm=pSoUsyBOF_L-eiw+B631G0fTEwNP7GZ2Gj1@mail.gmail.com>
-References: <4D423360.6080408@kernel.org>
-	<1296266504.29747.70.camel@sbsiddha-MOBL3.sc.intel.com>
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
+ laptops)
+Date: Sat, 29 Jan 2011 19:49:13 +0200
+Message-ID: <4D445319.5020803@pardus.org.tr>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101252038.25113.rjw@sisk.pl> <4D3F2869.3000406@pardus.org.tr> <201101252054.46647.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:54971 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab1A2CRy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jan 2011 21:17:54 -0500
-In-Reply-To: <1296266504.29747.70.camel@sbsiddha-MOBL3.sc.intel.com>
+Received: from lider.pardus.org.tr ([193.140.100.216]:46770 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634Ab1A2RtK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Jan 2011 12:49:10 -0500
+In-Reply-To: <201101252054.46647.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, colin.king@canonical.com
 
-On Fri, Jan 28, 2011 at 6:01 PM, Suresh Siddha
-<suresh.b.siddha@intel.com> wrote:
-> On Thu, 2011-01-27 at 19:09 -0800, Yinghai Lu wrote:
->> One system have mixing xapic and x2apic entries in MADT and SRAT.
->> BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
->> the cpus are with x2apic mode pre-enabled, still need to use xapic e=
-ntries
->> instead of x2apic entries.
->
-> true. thats what the spec says.
-
-I was thinking if cpus are with x2apic pre-enabled, we should have
-x2apic entries for them.
+On 25.01.2011 21:54, Rafael J. Wysocki wrote:
 
 >
->> on 8 socket system with x2apic pre-enabled, will get out of order se=
-quence:
->> CPU0: socket0, core0, thread0.
->> CPU1 - CPU 40: socket 4 - socket 7, thread 0
->> CPU41 - CPU 80: socket 4 - socket 7, thread 1
->> CPU81 - CPU 119: socket 0 - socket 3, thread 0
->> CPU120 - CPU 159: socket 0 - socket 3, thread 1
->>
->> so max_cpus=3D80 will not get all thread0 now.
->>
->> Need to handle every entry in MADT at same time with xapic and x2api=
-c.
->> so we can honor sequence in MADT.
+> If intel_idle is not active, then the patch will not help.
 >
-> hmm few things.
->
-> So is your bios listing like this:
->
-> xapic entries for all thread-0
-> x2apic entries for all thread-0
-> xapic entries for all thread-1
-> x2apic entries for all thread-1
+> However, it would be good to check if the affected systems work with
+> intel_idle + the above patch instead of acpi_idle.
 
-Yes. that is required by BIOS write guide, it says all thread 0 should
-come first.
-
->
-> What happens if some other bios lists like:
->
-> all xapic entries
-> followed by all x2apic entries
-
-assume should get
-
-CPU0: socket0, core0, thread0.
- CPU1 - CPU 80: socket 4 - socket 7, thread 0 and thread 1
- CPU81 - CPU 159: socket 0 - socket 3, thread 0 and thread 1
+intel_idle enabled and the patch above applied. Got 1 feedback for now 
+which tells that 1 out of 2 shutdown attempts failed. This is on Asus 
+N61JQ (https://bugzilla.kernel.org/show_bug.cgi?id=27412).
 
 
->
-> or
->
-> all x2apic entries
-> followed by all x2apic entries
-
-all x2apic ?
-
->
-> I am not sure if there is a strict recommendation by Intel bios write=
-rs
-> guide to list all thread-0 first followed by thread-1. Even if there =
-is
-> a strict recommendation like that, I am sure there will be some bios'=
-s
-> that don't follow the rules.
-
-our bios follow the BWG guide.
-
->
-> Anyways two things.
->
-> a) I don't want to complicate the code too much and still doesn't get
-> the desired behavior when some bios has a different silly ordering.
-
-we have right ordering according to ACPI 4.0 spec and BWG
-
-also i think that code is not that complicated.
-
->
-> b) Also perhaps we need to make it more explicit. Like instead of
-> relying on the "maxcpus=3Dn/2" to boot all thread-0's, we should say =
-it
-> more explicitly like perhaps nosmt or noht (we used to have this kind=
- of
-> option before). =A0Or is it even worth to bother about this, given th=
-at we
-> can boot all the cpu's and offline the SMT siblings.
-
-interesting, if we have nosmt or noht, we still need to boot that cpu
-to use cpuid to
-find out thread idx?
-
-Thanks
-
-Yinghai Lu
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Pardus Linux
+http://www.pardus.org.tr/eng
