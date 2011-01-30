@@ -1,51 +1,38 @@
-From: matthieu castet <castet.matthieu@free.fr>
-Subject: Re: [RFC] merge 32/64 bits realmode wakeup code
-Date: Sun, 30 Jan 2011 21:04:41 +0100
-Message-ID: <20110130210441.150e1006@mat-laptop>
-References: <4D41EA12.1030402@free.fr>
-	<201101272354.00042.rjw@sisk.pl>
-	<4D447C00.70709@free.fr>
-	<201101292215.57292.rjw@sisk.pl>
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
+ laptops)
+Date: Sun, 30 Jan 2011 22:30:39 +0200
+Message-ID: <4D45CA6F.8000002@pardus.org.tr>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101252038.25113.rjw@sisk.pl> <4D3F2869.3000406@pardus.org.tr> <201101252054.46647.rjw@sisk.pl> <4D445319.5020803@pardus.org.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:57741 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753841Ab1A3UEv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Jan 2011 15:04:51 -0500
-In-Reply-To: <201101292215.57292.rjw@sisk.pl>
+Received: from lider.pardus.org.tr ([193.140.100.216]:40021 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075Ab1A3Uak (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Jan 2011 15:30:40 -0500
+In-Reply-To: <4D445319.5020803@pardus.org.tr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org
+Cc: Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, colin.king@canonical.com
 
-Le Sat, 29 Jan 2011 22:15:57 +0100,
-"Rafael J. Wysocki" <rjw@sisk.pl> a =E9crit :
+On 29.01.2011 19:49, Ozan =C3=87a=C4=9Flayan wrote:
 
-> On Saturday, January 29, 2011, matthieu castet wrote:
-> > Rafael J. Wysocki a =E9crit :
-> > >=20
-> > > It _looks_ sane, but it will require some serious testing.  I'm
-> > > not sure, though, if we can get enough testing coverage without
-> > > actually committing that change.
-> > >=20
-> > > How much testing has it received so far?
-> > >=20
-> > Not too much only qemu with 1 and 2 core and a laptop with 1 cpu.
-> >=20
-> > Please note that with this patch we can also remove the gdt, idt,
-> > ldt stuff from arch/x86/kernel/acpi/wakeup_32.S
->=20
-> That's correct, but those changes can wait.=20
-Any idea how to test this patch with more configurations ?
+> intel_idle enabled and the patch above applied. Got 1 feedback for no=
+w
+> which tells that 1 out of 2 shutdown attempts failed. This is on Asus
+> N61JQ (https://bugzilla.kernel.org/show_bug.cgi?id=3D27412).
+>
+>
 
-Submitting it to tip ?=20
-But as resume regression showed, there aren't many user with 32 bits
-system using it.
+intel_idle + patch above doesn't help to the boot hang of Asus X61S.
 
-
-Matthieu
+--=20
+Pardus Linux
+http://www.pardus.org.tr/eng
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
