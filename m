@@ -1,83 +1,48 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: question about drivers/acpi/sysfs.c
-Date: Mon, 31 Jan 2011 17:29:01 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1101311719380.16049@pc-004.diku.dk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
+Date: Mon, 31 Jan 2011 19:24:32 +0100
+Message-ID: <201101311924.33098.rjw@sisk.pl>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101311123.14704.rjw@sisk.pl> <4D468F1F.8030704@t-online.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:54688 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751950Ab1AaSYu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jan 2011 13:24:50 -0500
+In-Reply-To: <4D468F1F.8030704@t-online.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Richard =?utf-8?q?Sch=C3=BCtz?= <r.schtz@t-online.de>
+Cc: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, colin.king@canonical.com
 
-The function acpi_tables_sysfs_init contains two calls to 
-kobject_create_and_add and then a loop, 
-and then at the end tests a function return value and returns either 0 or 
--EINVAL.  If the second call to kobject_create_and_add fails, then the 
-result of the first one is freed, returning -ENOMEM.  On the other hand, 
-inside the loop, there are some possible failures that don't free the 
-kobject_create_and_add allocated memory.  This memory does appear to be 
-accessible from a global pointer, acpi_kobj, but there is now one -ENOMEM 
-case where the data has been freed and one case (from inside the loop) 
-where it has not.  Also the data is not freed in the -EINVAL case.  (The 
-code is below).
+On Monday, January 31, 2011, Richard Sch=C3=BCtz wrote:
+> >>>> I'll compile a kernel with CONFIG_NO_HZ to see what happens but =
+how do I
+> >>>> disable cpuidle during boot? I've checked the kernel-parameters.=
+txt but
+> >>>> there's no cpuidle related boot parameter there.
+> >>>
+> >>> Booting with intel_idle.max_cstate=3D0 should do the trick.
+> >>
+> >> intel_idle.max_cstate=3D0 causes a fallback to the acpi_idle drive=
+r. So it
+> >> does not disable the C-states directly.
+> >
+> > What about not building the acpi_idle driver, then?
+>=20
+> Or just use the processor.max_cstate parameter then.
 
-On failure of an init function, should the data accessible from a global 
-variable be freed?  The loop also puts data in a list that also appears to 
-be accessible from a global pointer.  Should that be freed as well?
+As I wrote a couple of messages ago, https://lkml.org/lkml/2011/1/31/52=
+ .
 
-Overall, it seems clear that when things are only referenced by local 
-variables they should be cleaned up, but when they are referenced by 
-global variables, it is less clear what to do.
+Sure, that should do the trick too.
 
-thanks,
-julia
-
-
-
-static int acpi_tables_sysfs_init(void)
-{
-	struct acpi_table_attr *table_attr;
-	struct acpi_table_header *table_header = NULL;
-	int table_index = 0;
-	int result;
-
-	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
-	if (!tables_kobj)
-		goto err;
-
-	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
-	if (!dynamic_tables_kobj)
-		goto err_dynamic_tables;
-
-	do {
-		result = acpi_get_table_by_index(table_index, &table_header);
-		if (!result) {
-			table_index++;
-			table_attr = NULL;
-			table_attr =
-			    kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
-			if (!table_attr)
-				return -ENOMEM;
-
-			acpi_table_attr_init(table_attr, table_header);
-			result =
-			    sysfs_create_bin_file(tables_kobj,
-						  &table_attr->attr);
-			if (result) {
-				kfree(table_attr);
-				return result;
-			} else
-				list_add_tail(&table_attr->node,
-					      &acpi_table_attr_list);
-		}
-	} while (!result);
-	kobject_uevent(tables_kobj, KOBJ_ADD);
-	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
-	result = acpi_install_table_handler(acpi_sysfs_table_handler, NULL);
-
-	return result == AE_OK ? 0 : -EINVAL;
-err_dynamic_tables:
-	kobject_put(tables_kobj);
-err:
-	return -ENOMEM;
-}
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
