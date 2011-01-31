@@ -1,66 +1,83 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at
- same time
-Date: Mon, 31 Jan 2011 13:24:47 +0100
-Message-ID: <20110131122447.GA30149@elte.hu>
-References: <4D423360.6080408@kernel.org>
+From: Julia Lawall <julia@diku.dk>
+Subject: question about drivers/acpi/sysfs.c
+Date: Mon, 31 Jan 2011 17:29:01 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1101311719380.16049@pc-004.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:46050 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752452Ab1AaMZR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 Jan 2011 07:25:17 -0500
-Content-Disposition: inline
-In-Reply-To: <4D423360.6080408@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+
+The function acpi_tables_sysfs_init contains two calls to 
+kobject_create_and_add and then a loop, 
+and then at the end tests a function return value and returns either 0 or 
+-EINVAL.  If the second call to kobject_create_and_add fails, then the 
+result of the first one is freed, returning -ENOMEM.  On the other hand, 
+inside the loop, there are some possible failures that don't free the 
+kobject_create_and_add allocated memory.  This memory does appear to be 
+accessible from a global pointer, acpi_kobj, but there is now one -ENOMEM 
+case where the data has been freed and one case (from inside the loop) 
+where it has not.  Also the data is not freed in the -EINVAL case.  (The 
+code is below).
+
+On failure of an init function, should the data accessible from a global 
+variable be freed?  The loop also puts data in a list that also appears to 
+be accessible from a global pointer.  Should that be freed as well?
+
+Overall, it seems clear that when things are only referenced by local 
+variables they should be cleaned up, but when they are referenced by 
+global variables, it is less clear what to do.
+
+thanks,
+julia
 
 
-* Yinghai Lu <yinghai@kernel.org> wrote:
 
-> 
-> One system have mixing xapic and x2apic entries in MADT and SRAT.
-> BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
-> the cpus are with x2apic mode pre-enabled, still need to use xapic entries
-> instead of x2apic entries.
-> 
-> on 8 socket system with x2apic pre-enabled, will get out of order sequence:
-> CPU0: socket0, core0, thread0.
-> CPU1 - CPU 40: socket 4 - socket 7, thread 0
-> CPU41 - CPU 80: socket 4 - socket 7, thread 1
-> CPU81 - CPU 119: socket 0 - socket 3, thread 0
-> CPU120 - CPU 159: socket 0 - socket 3, thread 1
-> 
-> so max_cpus=80 will not get all thread0 now.
-> 
-> Need to handle every entry in MADT at same time with xapic and x2apic.
-> so we can honor sequence in MADT.
-> 
-> We can use max_cpus= command line to use thread0 in every core,
-> because recent MADT always have all thread0 at first.
-> Also it could make the cpu to node mapping more sane.
-> 
-> after patch will get
-> CPU0 - CPU 79: socket 0 - socket 7, thread 0
-> CPU80 - CPU 159: socket 0 - socket 7, thread 1
-> 
-> -v2: update some comments, and change to pass array pointer.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++-------
->  drivers/acpi/numa.c         |   16 +++++++++---
->  drivers/acpi/tables.c       |   57 +++++++++++++++++++++++++++++++++-----------
->  include/linux/acpi.h        |    9 ++++++
->  4 files changed, 86 insertions(+), 26 deletions(-)
+static int acpi_tables_sysfs_init(void)
+{
+	struct acpi_table_attr *table_attr;
+	struct acpi_table_header *table_header = NULL;
+	int table_index = 0;
+	int result;
 
-Seems useful - we can queue it up and can get it tested in the x86 tree if Len acks 
-the principle and the ACPI approach.
+	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
+	if (!tables_kobj)
+		goto err;
 
-Thanks,
+	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
+	if (!dynamic_tables_kobj)
+		goto err_dynamic_tables;
 
-	Ingo
+	do {
+		result = acpi_get_table_by_index(table_index, &table_header);
+		if (!result) {
+			table_index++;
+			table_attr = NULL;
+			table_attr =
+			    kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
+			if (!table_attr)
+				return -ENOMEM;
+
+			acpi_table_attr_init(table_attr, table_header);
+			result =
+			    sysfs_create_bin_file(tables_kobj,
+						  &table_attr->attr);
+			if (result) {
+				kfree(table_attr);
+				return result;
+			} else
+				list_add_tail(&table_attr->node,
+					      &acpi_table_attr_list);
+		}
+	} while (!result);
+	kobject_uevent(tables_kobj, KOBJ_ADD);
+	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
+	result = acpi_install_table_handler(acpi_sysfs_table_handler, NULL);
+
+	return result == AE_OK ? 0 : -EINVAL;
+err_dynamic_tables:
+	kobject_put(tables_kobj);
+err:
+	return -ENOMEM;
+}
