@@ -1,45 +1,66 @@
-From: =?UTF-8?B?UmljaGFyZCBTY2jDvHR6?= <r.schtz@t-online.de>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Mon, 31 Jan 2011 11:29:51 +0100
-Message-ID: <4D468F1F.8030704@t-online.de>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101311050.49722.rjw@sisk.pl> <4D468CF0.9040103@t-online.de> <201101311123.14704.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at
+ same time
+Date: Mon, 31 Jan 2011 13:24:47 +0100
+Message-ID: <20110131122447.GA30149@elte.hu>
+References: <4D423360.6080408@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout08.t-online.de ([194.25.134.20]:43965 "EHLO
-	mailout08.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab1AaKaD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jan 2011 05:30:03 -0500
-In-Reply-To: <201101311123.14704.rjw@sisk.pl>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:46050 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752452Ab1AaMZR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Jan 2011 07:25:17 -0500
+Content-Disposition: inline
+In-Reply-To: <4D423360.6080408@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, colin.king@canonical.com
+To: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
->>>> I'll compile a kernel with CONFIG_NO_HZ to see what happens but ho=
-w do I
->>>> disable cpuidle during boot? I've checked the kernel-parameters.tx=
-t but
->>>> there's no cpuidle related boot parameter there.
->>>
->>> Booting with intel_idle.max_cstate=3D0 should do the trick.
->>
->> intel_idle.max_cstate=3D0 causes a fallback to the acpi_idle driver.=
- So it
->> does not disable the C-states directly.
->
-> What about not building the acpi_idle driver, then?
 
-Or just use the processor.max_cstate parameter then.
+* Yinghai Lu <yinghai@kernel.org> wrote:
 
---=20
-Regards,
-Richard Sch=C3=BCtz
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> One system have mixing xapic and x2apic entries in MADT and SRAT.
+> BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
+> the cpus are with x2apic mode pre-enabled, still need to use xapic entries
+> instead of x2apic entries.
+> 
+> on 8 socket system with x2apic pre-enabled, will get out of order sequence:
+> CPU0: socket0, core0, thread0.
+> CPU1 - CPU 40: socket 4 - socket 7, thread 0
+> CPU41 - CPU 80: socket 4 - socket 7, thread 1
+> CPU81 - CPU 119: socket 0 - socket 3, thread 0
+> CPU120 - CPU 159: socket 0 - socket 3, thread 1
+> 
+> so max_cpus=80 will not get all thread0 now.
+> 
+> Need to handle every entry in MADT at same time with xapic and x2apic.
+> so we can honor sequence in MADT.
+> 
+> We can use max_cpus= command line to use thread0 in every core,
+> because recent MADT always have all thread0 at first.
+> Also it could make the cpu to node mapping more sane.
+> 
+> after patch will get
+> CPU0 - CPU 79: socket 0 - socket 7, thread 0
+> CPU80 - CPU 159: socket 0 - socket 7, thread 1
+> 
+> -v2: update some comments, and change to pass array pointer.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++-------
+>  drivers/acpi/numa.c         |   16 +++++++++---
+>  drivers/acpi/tables.c       |   57 +++++++++++++++++++++++++++++++++-----------
+>  include/linux/acpi.h        |    9 ++++++
+>  4 files changed, 86 insertions(+), 26 deletions(-)
+
+Seems useful - we can queue it up and can get it tested in the x86 tree if Len acks 
+the principle and the ACPI approach.
+
+Thanks,
+
+	Ingo
