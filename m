@@ -1,49 +1,298 @@
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Mon, 31 Jan 2011 22:42:49 +0200
-Message-ID: <4D471EC9.6030308@pardus.org.tr>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101311933.38050.rjw@sisk.pl> <4D4701B7.8030004@pardus.org.tr> <201101312012.42393.rjw@sisk.pl> <4D471D2F.7010008@pardus.org.tr>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: Patch[1/1]:Adding_Netlink_Support_to_ThermalFramework
+Date: Tue, 1 Feb 2011 12:26:19 +0530
+Message-ID: <D6D887BA8C9DFF48B5233887EF046541094494D951@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:38015 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672Ab1AaUmt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jan 2011 15:42:49 -0500
-In-Reply-To: <4D471D2F.7010008@pardus.org.tr>
+Received: from mga02.intel.com ([134.134.136.20]:60940 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750859Ab1BAG42 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Feb 2011 01:56:28 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?UTF-8?B?UmljaGFyZCBTY2jDvHR6?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 31.01.2011 22:35, Ozan =C3=87a=C4=9Flayan wrote:
+Hi All,
 
-> Well the only-booting-with-nolapic one doesn't boot with maxcpus=3D0.=
- Pff,
-> are there any compile-time(Kconfig) or runtime parameters related to
-> debugging various subsystems that you'll suggest which will show wher=
-e
-> the boot hangs? That way we can maybe pinpoint the issue to a specifi=
-c
-> function call.
->
->
+Here is a patch to add netlink event support to the thermal framework.
 
-Well I've actually a screenshot of the boot hang with tons of debugging=
-=20
-parameters passed to kernel. Maybe it will give you a clue. It hangs=20
-right after printing e820 system memory map.
+As we discussed earlier, the following are the major changes:
+1) Created a separate file thermal_netlink.c under /thermal/.
+2) Added documentation on the same under Doc../thermal/thermal_netlink.txt
+	a)I have left the THERMAL_WARN/EMERG/CRIT cases for Rui to add details
+	  on them.
+3) As per suggestion from Henry and Thomas, Included a separate list for
+   Devices (that can generate thermal events) and event types.
+	a) I have added the devices/event types that I could think off.
+	   Suggestions on this are most welcome.
 
-http://bugs.pardus.org.tr/attachment.cgi?id=3D6554
+Kindly review and let me know the comments.
+---------------------------------------------------------------------
+From: Durgadoss R <durgadoss.r@intel.com>
 
---=20
-Pardus Linux
-http://www.pardus.org.tr/eng
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Date: Tue, 1 Feb 2011 00:06:02 +0530
+Subject: [PATCH] Adding_Netlink_Support_to_ThermalFramework
+
+This patch adds Netlink Event Notification support to the thermal
+framework. Events are sent in the form of (originator, event). The list
+of possible originators and events are added in thermal.h. A detailed
+documentation for the same is added in Doc../thermal/thermal_netlink.txt
+
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+
+---
+ Documentation/thermal/thermal_netlink.txt |   45 ++++++++++++++
+ drivers/thermal/Kconfig                   |    7 ++
+ drivers/thermal/Makefile                  |    1 +
+ drivers/thermal/thermal_netlink.c         |   95 +++++++++++++++++++++++++++++
+ include/linux/thermal.h                   |   54 ++++++++++++++++
+ 5 files changed, 202 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/thermal/thermal_netlink.txt
+ create mode 100644 drivers/thermal/thermal_netlink.c
+
+diff --git a/Documentation/thermal/thermal_netlink.txt b/Documentation/thermal/thermal_netlink.txt
+new file mode 100644
+index 0000000..92e0900
+--- /dev/null
++++ b/Documentation/thermal/thermal_netlink.txt
+@@ -0,0 +1,45 @@
++Event Notification Support
++==========================
++
++0. Introduction
++---------------
++The generic thermal sysfs provides a set of interfaces for thermal zone
++devices (sensors) and thermal cooling devices (fan, processor...) to register
++with the thermal management solution and to be a part of it.
++
++The framework includes a simple notification mechanism, in the form of a
++netlink event. Netlink socket initialization is done during the _init_
++of the framework. Drivers which intend to use the notification mechanism
++must register with the thermal framework. Once registered, they will be
++assigned an unique id. They can call thermal_netlink_event() to send
++netlink events.
++
++This thermal_netlink_event function takes two arguments:
++	1.Originator id
++	2.Event Type
++
++The originator should be one of the devices added in the thermal_devices
++enum in the thermal.h. Likewise, the list of events have also been added
++as an enum in thermal.h.
++
++1. Events:
++----------
++The following are the list of events that the notification mechanism supports:
++1.THERMAL_WARN
++2.THERMAL_EMERG
++3.THERMAL_CRIT
++4.THERMAL_CT_AUX0
++    The coretemp module supports two thresholds for thermal management,
++    through IA32_THERM_INTERRUPT register. One of these thresholds is
++    lower than the current temperature and the other higher. When the CPU
++    temperature sensor crosses the programmed lower threshold, THERMAL_CT_AUX0
++    event is generated.
++5.THERMAL_CT_AUX1
++    This event is generated when the CPU temperature Sensor crosses the
++    programmed higher threshold limit.
++6.THERMAL_PT_AUX0
++    This is similar to the THERMAL_CT_AUX0, except that it is generated by
++    the package temperature sensor.
++7.THERMAL_PT_AUX1
++    This is similar to the THERMAL_CT_AUX1, except that it is generated by
++    the package temperature sensor.
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index bf7c687..7085794 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -22,3 +22,10 @@ config THERMAL_HWMON
+ 	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
+ 
+ 	  Say Y if your user-space is new enough.
++
++config THERMAL_NETLINK
++	tristate "Netlink Interface to Notify Thermal Events"
++	depends on THERMAL && NET
++	help
++	  Say Y here, if you want the thermal events to be notified via
++	  netlink events.
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index 31108a0..9ee8380 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -3,3 +3,4 @@
+ #
+ 
+ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
++obj-$(CONFIG_THERMAL_NETLINK)	+= thermal_netlink.o
+diff --git a/drivers/thermal/thermal_netlink.c b/drivers/thermal/thermal_netlink.c
+new file mode 100644
+index 0000000..1678a13
+--- /dev/null
++++ b/drivers/thermal/thermal_netlink.c
+@@ -0,0 +1,95 @@
++#include <net/genetlink.h>
++#include <linux/thermal.h>
++
++static unsigned int thermal_event_seqnum;
++
++static struct genl_family thermal_event_genl_family = {
++	.id = GENL_ID_GENERATE,
++	.name = THERMAL_GENL_FAMILY_NAME,
++	.version = THERMAL_GENL_VERSION,
++	.maxattr = THERMAL_GENL_ATTR_MAX,
++};
++
++static struct genl_multicast_group thermal_event_mcgrp = {
++	.name = THERMAL_GENL_MCAST_GROUP_NAME,
++};
++
++int thermal_netlink_event(enum thermal_devices orig, enum thermal_events event)
++{
++	struct sk_buff *skb;
++	struct nlattr *attr;
++	struct thermal_genl_event *thermal_event;
++	void *msg_header;
++	int size;
++	int result;
++
++	/* allocate memory */
++	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
++				nla_total_size(0);
++
++	skb = genlmsg_new(size, GFP_ATOMIC);
++	if (!skb)
++		return -ENOMEM;
++
++	/* add the genetlink message header */
++	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
++				 &thermal_event_genl_family, 0,
++				 THERMAL_GENL_CMD_EVENT);
++	if (!msg_header) {
++		nlmsg_free(skb);
++		return -ENOMEM;
++	}
++
++	/* fill the data */
++	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
++			sizeof(struct thermal_genl_event));
++
++	if (!attr) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	thermal_event = nla_data(attr);
++	if (!thermal_event) {
++		nlmsg_free(skb);
++		return -EINVAL;
++	}
++
++	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
++
++	thermal_event->device = orig;
++	thermal_event->event = event;
++
++	/* send multicast genetlink message */
++	result = genlmsg_end(skb, msg_header);
++	if (result < 0) {
++		nlmsg_free(skb);
++		return result;
++	}
++
++	return genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
++}
++
++static int __init thermal_netlink_init(void)
++{
++	int result;
++
++	result = genl_register_family(&thermal_event_genl_family);
++	if (result)
++		return result;
++
++	result = genl_register_mc_group(&thermal_event_genl_family,
++					&thermal_event_mcgrp);
++	if (result)
++		genl_unregister_family(&thermal_event_genl_family);
++	return result;
++}
++
++static void __exit thermal_netlink_exit(void)
++{
++	genl_unregister_family(&thermal_event_genl_family);
++}
++
++subsys_initcall(thermal_netlink_init);
++module_exit(thermal_netlink_exit);
++
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 1de8b9e..bd79d18 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -147,4 +147,58 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 							       *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+ 
++#ifdef CONFIG_NET
++
++/* Add Netlink Notification Support Elements */
++#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
++#define THERMAL_GENL_VERSION                    0x01
++#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
++
++enum thermal_events {
++	/* generic thermal events */
++	THERMAL_WARN,
++	THERMAL_EMERG,
++	THERMAL_CRIT,
++	/* coretemp thermal events */
++	THERMAL_CT_AUX0,
++	THERMAL_CT_AUX1,
++	/* pkgtemp thermal events */
++	THERMAL_PT_AUX0,
++	THERMAL_PT_AUX1,
++	/* Add other events, if any */
++};
++
++enum thermal_devices {
++	/* For multi-core CPUs */
++	THERMAL_CPU_CORE0 = 0,
++	THERMAL_GPU = 32,
++	THERMAL_BATTERY,
++	/* Add other devices, if any */
++};
++
++struct thermal_genl_event {
++	enum thermal_devices device;
++	enum thermal_events event;
++};
++
++/* attributes of thermal_genl_family */
++enum {
++	THERMAL_GENL_ATTR_UNSPEC,
++	THERMAL_GENL_ATTR_EVENT,
++	__THERMAL_GENL_ATTR_MAX,
++};
++#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
++
++/* commands supported by the thermal_genl_family */
++enum {
++	THERMAL_GENL_CMD_UNSPEC,
++	THERMAL_GENL_CMD_EVENT,
++	__THERMAL_GENL_CMD_MAX,
++};
++#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
++
++int thermal_netlink_event(enum thermal_devices, enum thermal_events);
++
++#endif /* CONFIG_NET */
++
+ #endif /* __THERMAL_H__ */
+-- 
+1.6.5.2
+
