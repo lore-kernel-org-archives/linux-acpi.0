@@ -1,298 +1,50 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: Patch[1/1]:Adding_Netlink_Support_to_ThermalFramework
-Date: Tue, 1 Feb 2011 12:26:19 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF046541094494D951@bgsmsx502.gar.corp.intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHSET] workqueue: update workqueue users - replace
+ create_workqueue()
+Date: Tue, 1 Feb 2011 11:44:21 +0100
+Message-ID: <20110201104421.GJ14211@htj.dyndns.org>
+References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+ <20110125142921.GB27510@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60940 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750859Ab1BAG42 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Feb 2011 01:56:28 -0500
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:48260 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951Ab1BAKo2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Feb 2011 05:44:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20110125142921.GB27510@htj.dyndns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, davej@redhat.com, cpufreq@vger.kernel.org, Markus.Lidel@shadowconnect.com, tomas.winkler@intel.com, jayamohank@serverengines.com, andrew.vasquez@qlogic.com, James.Bottomley@HansenPartnership.com, linux-scsi@vger.kernel.org, tomof@acm.org, stf_xl@wp.pl, linux-usb@vger.kernel.org, tytso@mit.edu, mfasheh@suse.com, joel.becker@oracle.com, reiserfs-devel@vger.kernel.org, aelder@sgi.com, hch@infradead.org, ericvh@gmail.com, rminnich@sandia.gov, v9fs-developer@lists.sourceforge.net, lucho@ionkov.net, andy.grover@oracle.com
 
-Hi All,
+On Tue, Jan 25, 2011 at 03:29:21PM +0100, Tejun Heo wrote:
+> Hello,
+> 
+> There was no response for the following patches and I'm planning on
+> routing them through workqueue#for-2.6.39.  If you have an objection
+> or want to take the patch through a different tree, please let me
+> know.
+> 
+>  0006-acpi-kacpi-_wq-don-t-need-WQ_MEM_RECLAIM.patch
+>  0007-cpufreq-use-system_wq-instead-of-dedicated-workqueue.patch
+>  0012-i2o-use-alloc_workqueue-instead-of-create_workqueue.patch
+>  0013-misc-iwmc3200top-use-system_wq-instead-of-dedicated-.patch
+>  0016-scsi-be2iscsi-qla2xxx-convert-to-alloc_workqueue.patch
+>  0018-scsi-scsi_tgt_lib-scsi_tgtd-isn-t-used-in-memory-rec.patch
+>  0019-usb-ueagle-atm-use-system_wq-instead-of-dedicated-wo.patch
+>  0025-ext4-convert-to-alloc_workqueue.patch
+>  0026-ocfs2-use-system_wq-instead-of-ocfs2_quota_wq.patch
+>  0027-reiserfs-make-commit_wq-use-the-default-concurrency-.patch
+>  0028-xfs-convert-to-alloc_workqueue.patch
+>  0029-net-9p-use-system_wq-instead-of-p9_mux_wq.patch
+>  0030-net-9p-replace-p9_poll_task-with-a-work.patch
+>  0031-rds-ib-use-system_wq-instead-of-rds_ib_fmr_wq.patch
 
-Here is a patch to add netlink event support to the thermal framework.
+Patches applied to wq#for-2.6.39 w/ collected acks added.
 
-As we discussed earlier, the following are the major changes:
-1) Created a separate file thermal_netlink.c under /thermal/.
-2) Added documentation on the same under Doc../thermal/thermal_netlink.txt
-	a)I have left the THERMAL_WARN/EMERG/CRIT cases for Rui to add details
-	  on them.
-3) As per suggestion from Henry and Thomas, Included a separate list for
-   Devices (that can generate thermal events) and event types.
-	a) I have added the devices/event types that I could think off.
-	   Suggestions on this are most welcome.
+Thank you.
 
-Kindly review and let me know the comments.
----------------------------------------------------------------------
-From: Durgadoss R <durgadoss.r@intel.com>
-
-Date: Tue, 1 Feb 2011 00:06:02 +0530
-Subject: [PATCH] Adding_Netlink_Support_to_ThermalFramework
-
-This patch adds Netlink Event Notification support to the thermal
-framework. Events are sent in the form of (originator, event). The list
-of possible originators and events are added in thermal.h. A detailed
-documentation for the same is added in Doc../thermal/thermal_netlink.txt
-
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-
----
- Documentation/thermal/thermal_netlink.txt |   45 ++++++++++++++
- drivers/thermal/Kconfig                   |    7 ++
- drivers/thermal/Makefile                  |    1 +
- drivers/thermal/thermal_netlink.c         |   95 +++++++++++++++++++++++++++++
- include/linux/thermal.h                   |   54 ++++++++++++++++
- 5 files changed, 202 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/thermal/thermal_netlink.txt
- create mode 100644 drivers/thermal/thermal_netlink.c
-
-diff --git a/Documentation/thermal/thermal_netlink.txt b/Documentation/thermal/thermal_netlink.txt
-new file mode 100644
-index 0000000..92e0900
---- /dev/null
-+++ b/Documentation/thermal/thermal_netlink.txt
-@@ -0,0 +1,45 @@
-+Event Notification Support
-+==========================
-+
-+0. Introduction
-+---------------
-+The generic thermal sysfs provides a set of interfaces for thermal zone
-+devices (sensors) and thermal cooling devices (fan, processor...) to register
-+with the thermal management solution and to be a part of it.
-+
-+The framework includes a simple notification mechanism, in the form of a
-+netlink event. Netlink socket initialization is done during the _init_
-+of the framework. Drivers which intend to use the notification mechanism
-+must register with the thermal framework. Once registered, they will be
-+assigned an unique id. They can call thermal_netlink_event() to send
-+netlink events.
-+
-+This thermal_netlink_event function takes two arguments:
-+	1.Originator id
-+	2.Event Type
-+
-+The originator should be one of the devices added in the thermal_devices
-+enum in the thermal.h. Likewise, the list of events have also been added
-+as an enum in thermal.h.
-+
-+1. Events:
-+----------
-+The following are the list of events that the notification mechanism supports:
-+1.THERMAL_WARN
-+2.THERMAL_EMERG
-+3.THERMAL_CRIT
-+4.THERMAL_CT_AUX0
-+    The coretemp module supports two thresholds for thermal management,
-+    through IA32_THERM_INTERRUPT register. One of these thresholds is
-+    lower than the current temperature and the other higher. When the CPU
-+    temperature sensor crosses the programmed lower threshold, THERMAL_CT_AUX0
-+    event is generated.
-+5.THERMAL_CT_AUX1
-+    This event is generated when the CPU temperature Sensor crosses the
-+    programmed higher threshold limit.
-+6.THERMAL_PT_AUX0
-+    This is similar to the THERMAL_CT_AUX0, except that it is generated by
-+    the package temperature sensor.
-+7.THERMAL_PT_AUX1
-+    This is similar to the THERMAL_CT_AUX1, except that it is generated by
-+    the package temperature sensor.
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index bf7c687..7085794 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -22,3 +22,10 @@ config THERMAL_HWMON
- 	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
- 
- 	  Say Y if your user-space is new enough.
-+
-+config THERMAL_NETLINK
-+	tristate "Netlink Interface to Notify Thermal Events"
-+	depends on THERMAL && NET
-+	help
-+	  Say Y here, if you want the thermal events to be notified via
-+	  netlink events.
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index 31108a0..9ee8380 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -3,3 +3,4 @@
- #
- 
- obj-$(CONFIG_THERMAL)		+= thermal_sys.o
-+obj-$(CONFIG_THERMAL_NETLINK)	+= thermal_netlink.o
-diff --git a/drivers/thermal/thermal_netlink.c b/drivers/thermal/thermal_netlink.c
-new file mode 100644
-index 0000000..1678a13
---- /dev/null
-+++ b/drivers/thermal/thermal_netlink.c
-@@ -0,0 +1,95 @@
-+#include <net/genetlink.h>
-+#include <linux/thermal.h>
-+
-+static unsigned int thermal_event_seqnum;
-+
-+static struct genl_family thermal_event_genl_family = {
-+	.id = GENL_ID_GENERATE,
-+	.name = THERMAL_GENL_FAMILY_NAME,
-+	.version = THERMAL_GENL_VERSION,
-+	.maxattr = THERMAL_GENL_ATTR_MAX,
-+};
-+
-+static struct genl_multicast_group thermal_event_mcgrp = {
-+	.name = THERMAL_GENL_MCAST_GROUP_NAME,
-+};
-+
-+int thermal_netlink_event(enum thermal_devices orig, enum thermal_events event)
-+{
-+	struct sk_buff *skb;
-+	struct nlattr *attr;
-+	struct thermal_genl_event *thermal_event;
-+	void *msg_header;
-+	int size;
-+	int result;
-+
-+	/* allocate memory */
-+	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
-+				nla_total_size(0);
-+
-+	skb = genlmsg_new(size, GFP_ATOMIC);
-+	if (!skb)
-+		return -ENOMEM;
-+
-+	/* add the genetlink message header */
-+	msg_header = genlmsg_put(skb, 0, thermal_event_seqnum++,
-+				 &thermal_event_genl_family, 0,
-+				 THERMAL_GENL_CMD_EVENT);
-+	if (!msg_header) {
-+		nlmsg_free(skb);
-+		return -ENOMEM;
-+	}
-+
-+	/* fill the data */
-+	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
-+			sizeof(struct thermal_genl_event));
-+
-+	if (!attr) {
-+		nlmsg_free(skb);
-+		return -EINVAL;
-+	}
-+
-+	thermal_event = nla_data(attr);
-+	if (!thermal_event) {
-+		nlmsg_free(skb);
-+		return -EINVAL;
-+	}
-+
-+	memset(thermal_event, 0, sizeof(struct thermal_genl_event));
-+
-+	thermal_event->device = orig;
-+	thermal_event->event = event;
-+
-+	/* send multicast genetlink message */
-+	result = genlmsg_end(skb, msg_header);
-+	if (result < 0) {
-+		nlmsg_free(skb);
-+		return result;
-+	}
-+
-+	return genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
-+}
-+
-+static int __init thermal_netlink_init(void)
-+{
-+	int result;
-+
-+	result = genl_register_family(&thermal_event_genl_family);
-+	if (result)
-+		return result;
-+
-+	result = genl_register_mc_group(&thermal_event_genl_family,
-+					&thermal_event_mcgrp);
-+	if (result)
-+		genl_unregister_family(&thermal_event_genl_family);
-+	return result;
-+}
-+
-+static void __exit thermal_netlink_exit(void)
-+{
-+	genl_unregister_family(&thermal_event_genl_family);
-+}
-+
-+subsys_initcall(thermal_netlink_init);
-+module_exit(thermal_netlink_exit);
-+
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 1de8b9e..bd79d18 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -147,4 +147,58 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 							       *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
- 
-+#ifdef CONFIG_NET
-+
-+/* Add Netlink Notification Support Elements */
-+#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-+#define THERMAL_GENL_VERSION                    0x01
-+#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
-+
-+enum thermal_events {
-+	/* generic thermal events */
-+	THERMAL_WARN,
-+	THERMAL_EMERG,
-+	THERMAL_CRIT,
-+	/* coretemp thermal events */
-+	THERMAL_CT_AUX0,
-+	THERMAL_CT_AUX1,
-+	/* pkgtemp thermal events */
-+	THERMAL_PT_AUX0,
-+	THERMAL_PT_AUX1,
-+	/* Add other events, if any */
-+};
-+
-+enum thermal_devices {
-+	/* For multi-core CPUs */
-+	THERMAL_CPU_CORE0 = 0,
-+	THERMAL_GPU = 32,
-+	THERMAL_BATTERY,
-+	/* Add other devices, if any */
-+};
-+
-+struct thermal_genl_event {
-+	enum thermal_devices device;
-+	enum thermal_events event;
-+};
-+
-+/* attributes of thermal_genl_family */
-+enum {
-+	THERMAL_GENL_ATTR_UNSPEC,
-+	THERMAL_GENL_ATTR_EVENT,
-+	__THERMAL_GENL_ATTR_MAX,
-+};
-+#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
-+
-+/* commands supported by the thermal_genl_family */
-+enum {
-+	THERMAL_GENL_CMD_UNSPEC,
-+	THERMAL_GENL_CMD_EVENT,
-+	__THERMAL_GENL_CMD_MAX,
-+};
-+#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
-+
-+int thermal_netlink_event(enum thermal_devices, enum thermal_events);
-+
-+#endif /* CONFIG_NET */
-+
- #endif /* __THERMAL_H__ */
 -- 
-1.6.5.2
-
+tejun
