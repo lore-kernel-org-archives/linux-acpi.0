@@ -1,110 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Avoid calling request_irq() many times for the same interrupt
-Date: Wed, 2 Feb 2011 01:58:15 +0100
-Message-ID: <201102020158.15663.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] gpu/stub: fix acpi_video build error, fix stub kconfig
+ dependencies
+Date: Wed, 2 Feb 2011 02:35:05 +0100
+Message-ID: <20110202013505.GD30557@elte.hu>
+References: <20101220200013.df8fbc88.sfr@canb.auug.org.au>
+ <20101220085340.7ba098b9.randy.dunlap@oracle.com>
+ <20110126114203.GA16754@elte.hu>
+ <20110201120323.GA6714@elte.hu>
+ <20110201111728.cb786487.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34207 "EHLO ogre.sisk.pl"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:57359 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753420Ab1BBA6v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Feb 2011 19:58:51 -0500
+	id S1751585Ab1BBBfd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Feb 2011 20:35:33 -0500
+Content-Disposition: inline
+In-Reply-To: <20110201111728.cb786487.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Luming Yu <luming.yu@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
 
-In principle acpi_os_install_interrupt_handler() may be called
-multiple times for different interrupts, either from
-acpi_ev_get_gpe_xrupt_block(), or from acpi_ev_install_sci_handler().
-However, it always attempts to request the same interrupt,
-acpi_gbl_FADT.sci_interrupt and it doesn't check whether or not this
-interrupt has already been requested.
+* Randy Dunlap <randy.dunlap@oracle.com> wrote:
 
-Modify this function so that it refuses to request interrupts other
-than acpi_gbl_FADT.sci_interrupt and change
-acpi_os_remove_interrupt_handler() so that it refuses to free such
-interrupts.  Use the observation that the only supported ACPI
-interrupt must be equal to acpi_gbl_FADT.sci_interrupt and drop an
-unnecessary variable acpi_irq_irq.
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> The comments under "config STUB_POULSBO" are close to correct,
+> but they are not being followed.  This patch updates them to reflect
+> the requirements for THERMAL.
+> 
+> This build error is caused by STUB_POULSBO selecting ACPI_VIDEO
+> when ACPI_VIDEO's config requirements are not met.
+> 
+> ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
+> ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-This change has been tested on Toshiba Portege R500 and HP nx6325
-without introducing any visible problems.
+Works fine here - thanks Randy!
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/osl.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+Tested-by: Ingo Molnar <mingo@elte.hu>
 
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -76,7 +76,6 @@ EXPORT_SYMBOL(acpi_in_debugger);
- extern char line_buf[80];
- #endif				/*ENABLE_DEBUGGER */
- 
--static unsigned int acpi_irq_irq;
- static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
-@@ -532,11 +531,15 @@ acpi_os_install_interrupt_handler(u32 gs
- 	acpi_irq_stats_init();
- 
- 	/*
--	 * Ignore the GSI from the core, and use the value in our copy of the
--	 * FADT. It may not be the same if an interrupt source override exists
--	 * for the SCI.
-+	 * ACPI interrupts different from the SCI in our copy of the FADT are
-+	 * not supported.
- 	 */
--	gsi = acpi_gbl_FADT.sci_interrupt;
-+	if (gsi != acpi_gbl_FADT.sci_interrupt)
-+		return AE_BAD_PARAMETER;
-+
-+	if (acpi_irq_handler)
-+		return AE_ALREADY_ACQUIRED;
-+
- 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
- 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not registered\n",
- 		       gsi);
-@@ -547,20 +550,20 @@ acpi_os_install_interrupt_handler(u32 gs
- 	acpi_irq_context = context;
- 	if (request_irq(irq, acpi_irq, IRQF_SHARED, "acpi", acpi_irq)) {
- 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
-+		acpi_irq_handler = NULL;
- 		return AE_NOT_ACQUIRED;
- 	}
--	acpi_irq_irq = irq;
- 
- 	return AE_OK;
- }
- 
- acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
- {
--	if (irq) {
--		free_irq(irq, acpi_irq);
--		acpi_irq_handler = NULL;
--		acpi_irq_irq = 0;
--	}
-+	if (irq != acpi_gbl_FADT.sci_interrupt)
-+		return AE_BAD_PARAMETER;
-+
-+	free_irq(irq, acpi_irq);
-+	acpi_irq_handler = NULL;
- 
- 	return AE_OK;
- }
-@@ -1619,7 +1622,7 @@ acpi_status __init acpi_os_initialize1(v
- acpi_status acpi_os_terminate(void)
- {
- 	if (acpi_irq_handler) {
--		acpi_os_remove_interrupt_handler(acpi_irq_irq,
-+		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
- 						 acpi_irq_handler);
- 	}
- 
+	Ingo
