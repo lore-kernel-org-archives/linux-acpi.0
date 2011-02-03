@@ -1,37 +1,36 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.38-rc3-git1: Reported regressions 2.6.36 -> 2.6.37
-Date: Thu, 3 Feb 2011 14:19:31 -0800
-Message-ID: <AANLkTin=YcecPX1AOpihPVJO3UOfrcjf0MFTu55dpEUy@mail.gmail.com>
-References: <e9vOd5LzdBK.A.dyD.h6eSNB@chimera> <AANLkTikELiGS+fM5WguZS=Fo-sSXmej1UnKWqCFmnE0k@mail.gmail.com>
- <s5haaid3xos.wl%tiwai@suse.de> <201102032009.17100.rjw@sisk.pl>
- <AANLkTi=suS1VDL=6EtT0D2=0c1DWwxdwZBBv=-BySNX-@mail.gmail.com> <AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
+Date: Thu, 3 Feb 2011 23:51:31 +0100
+Message-ID: <201102032351.31307.rjw@sisk.pl>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201102032304.46724.rjw@sisk.pl> <4D4B2883.4020701@pardus.org.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Carlos Mafra <crmafra2@gmail.com>, Keith Packard <keithp@keithp.com>, Dave Airlie <airlied@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D4B2883.4020701@pardus.org.tr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
+Cc: Richard =?utf-8?q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 3, 2011 at 2:10 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Maybe the right thing to do is to set it to 'unknown', something like this.
->
-> TOTALLY UNTESTED!
+On Thursday, February 03, 2011, Ozan =C3=87a=C4=9Flayan wrote:
+> On 04.02.2011 00:04, Rafael J. Wysocki wrote:
+>=20
+> >
+> > I guess we see a few different problems here.
+> >
+> > Can you remind me, please, what the known workarounds are?
+>=20
+> OK in summary:
+>=20
+> ASUS X71S - Doesn't boot without nolapic
+> ASUS F50SV - Doesn't boot without nolapic (latest tried and working 2=
+=2E6.31)
+> ASUS N61JQ - X out of Y shutdown hangs (Cured with nolapic too)
+>=20
+> Note that nolapic is the finer grained fix. acpi=3Doff fixes the issu=
+e too.
 
-Doing some grepping and "git blame", I found this: commit 032d2a0d068
-("drm/i915: Prevent double dpms on") which took a very similar
-approach, except it just uses "-1" directly instead of introducing
-that DRM_MODE_DPMS_UNKNOWN concept.
+Hmm.  Are those boxes uniprocessor running SMP kernels?
 
-So I suspect that my patch is going in the right direction, and
-judging by the comments in that commit, we probably should do this
-correctly at the dri level rather than have drivers see those stupid
-"let's set dpms to the state that it was already in". But that very
-much does require that kind of "UNKNOWN" state option.
-
-So maybe we can get that patch tested (and acked if it works)? Carlos, Takashi?
-
-                         Linus
+Rafael
