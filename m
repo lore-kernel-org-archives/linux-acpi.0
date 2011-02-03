@@ -1,52 +1,30 @@
-From: Carlos Mafra <crmafra2@gmail.com>
-Subject: Re: 2.6.38-rc3-git1: Reported regressions 2.6.36 -> 2.6.37
-Date: Thu, 3 Feb 2011 22:56:29 +0100
-Message-ID: <AANLkTi=suS1VDL=6EtT0D2=0c1DWwxdwZBBv=-BySNX-@mail.gmail.com>
-References: <e9vOd5LzdBK.A.dyD.h6eSNB@chimera>
-	<AANLkTikELiGS+fM5WguZS=Fo-sSXmej1UnKWqCFmnE0k@mail.gmail.com>
-	<s5haaid3xos.wl%tiwai@suse.de>
-	<201102032009.17100.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
+Date: Thu, 3 Feb 2011 23:04:46 +0100
+Message-ID: <201102032304.46724.rjw@sisk.pl>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101312352.30883.rjw@sisk.pl> <4D4B19D3.2080800@pardus.org.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38663 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735Ab1BCV4a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Feb 2011 16:56:30 -0500
-In-Reply-To: <201102032009.17100.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <4D4B19D3.2080800@pardus.org.tr>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
+Cc: Richard =?utf-8?q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Takashi Iwai <tiwai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Keith Packard <keithp@keithp.com>, Dave Airlie <airlied@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 
-On Thu, Feb 3, 2011 at 8:09 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, February 03, 2011, Takashi Iwai wrote:
->> At Thu, 3 Feb 2011 07:42:05 -0800,
->> Linus Torvalds wrote:
->> >
->> > On Thu, Feb 3, 2011 at 3:23 AM, Carlos R. Mafra <crmafra2@gmail.co=
-m> wrote:
->> > > On Thu =A03.Feb'11 at =A01:03:41 +0100, Rafael J. Wysocki wrote:
+On Thursday, February 03, 2011, Ozan =C3=87a=C4=9Flayan wrote:
+>=20
+> >
+> > Hmm.  Perhaps it's possible to test this patch on the affected boxe=
+s:
+> > https://bugzilla.kernel.org/attachment.cgi?id=3D45192
+>=20
+>=20
+> Still no change with the patch..
 
->> > Just to confirm, can you also check -rc3? I'm pretty sure nothing =
-has
->> > changed, but there were a few drm patches after -rc2, so it's alsw=
-ays
->> > good to double-check.
->>
->> The problem I reported in the bugzilla above is still present in
->> 2.6.38-rc3. =A0I'm pretty sure that's the same issue as Carlos' case=
-=2E
->
-> I added https://bugzilla.kernel.org/show_bug.cgi?id=3D24982 to the li=
-st of
-> post-2.6.36 regressions for further tracking.
+I guess we see a few different problems here.
 
-I also tested on 2.6.38-rc3+ now and the issue is not solved,
-just like Takashi expected.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can you remind me, please, what the known workarounds are?
+
+Rafael
