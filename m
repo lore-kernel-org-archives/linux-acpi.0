@@ -1,40 +1,37 @@
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus
- laptops)
-Date: Fri, 04 Feb 2011 00:13:23 +0200
-Message-ID: <4D4B2883.4020701@pardus.org.tr>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <201101312352.30883.rjw@sisk.pl> <4D4B19D3.2080800@pardus.org.tr> <201102032304.46724.rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.38-rc3-git1: Reported regressions 2.6.36 -> 2.6.37
+Date: Thu, 3 Feb 2011 14:19:31 -0800
+Message-ID: <AANLkTin=YcecPX1AOpihPVJO3UOfrcjf0MFTu55dpEUy@mail.gmail.com>
+References: <e9vOd5LzdBK.A.dyD.h6eSNB@chimera> <AANLkTikELiGS+fM5WguZS=Fo-sSXmej1UnKWqCFmnE0k@mail.gmail.com>
+ <s5haaid3xos.wl%tiwai@suse.de> <201102032009.17100.rjw@sisk.pl>
+ <AANLkTi=suS1VDL=6EtT0D2=0c1DWwxdwZBBv=-BySNX-@mail.gmail.com> <AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <201102032304.46724.rjw@sisk.pl>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?UTF-8?B?UmljaGFyZCBTY2jDvHR6?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Carlos Mafra <crmafra2@gmail.com>, Keith Packard <keithp@keithp.com>, Dave Airlie <airlied@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 04.02.2011 00:04, Rafael J. Wysocki wrote:
-
+On Thu, Feb 3, 2011 at 2:10 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> I guess we see a few different problems here.
+> Maybe the right thing to do is to set it to 'unknown', something like this.
 >
-> Can you remind me, please, what the known workarounds are?
+> TOTALLY UNTESTED!
 
-OK in summary:
+Doing some grepping and "git blame", I found this: commit 032d2a0d068
+("drm/i915: Prevent double dpms on") which took a very similar
+approach, except it just uses "-1" directly instead of introducing
+that DRM_MODE_DPMS_UNKNOWN concept.
 
-ASUS X71S - Doesn't boot without nolapic
-ASUS F50SV - Doesn't boot without nolapic (latest tried and working 2.6.31)
-ASUS N61JQ - X out of Y shutdown hangs (Cured with nolapic too)
+So I suspect that my patch is going in the right direction, and
+judging by the comments in that commit, we probably should do this
+correctly at the dri level rather than have drivers see those stupid
+"let's set dpms to the state that it was already in". But that very
+much does require that kind of "UNKNOWN" state option.
 
-Note that nolapic is the finer grained fix. acpi=off fixes the issue too.
+So maybe we can get that patch tested (and acked if it works)? Carlos, Takashi?
 
-Doesn't seem to be related to idle as processor.max_cstates=0 didn't help.
-
-This is 2.6.37, intel_idle enabled with 2 upstream patches mentioned 
-before + the mm fix.
-
-
--- 
-Pardus Linux
-http://www.pardus.org.tr/eng
+                         Linus
