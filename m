@@ -1,46 +1,53 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: 2.6.38-rc3-git1: Reported regressions 2.6.36 -> 2.6.37
-Date: Fri, 4 Feb 2011 11:42:33 +1000
-Message-ID: <AANLkTim-1MofNWc_PkmKE3dPWB3Ahe8d8jP_aUD5konx@mail.gmail.com>
-References: <e9vOd5LzdBK.A.dyD.h6eSNB@chimera>
-	<AANLkTikELiGS+fM5WguZS=Fo-sSXmej1UnKWqCFmnE0k@mail.gmail.com>
-	<s5haaid3xos.wl%tiwai@suse.de>
-	<201102032009.17100.rjw@sisk.pl>
-	<AANLkTi=suS1VDL=6EtT0D2=0c1DWwxdwZBBv=-BySNX-@mail.gmail.com>
-	<AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
-	<AANLkTin7kBur95H=UBcYEcjYsUkrdG8znX-7PFZ4rrHf@mail.gmail.com>
-	<AANLkTimQPPDyBwkN0HWM2+bPcbzVd8YHZvn2iR8MVzfL@mail.gmail.com>
-	<yund3n88v7x.fsf@aiko.keithp.com>
-	<AANLkTin-9a5Z3qq4t8UakRvgB1G3_CT2RLKMVaHXvnLr@mail.gmail.com>
+From: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
+Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
+Date: Fri, 4 Feb 2011 08:44:05 +0200
+Message-ID: <201102040844.05490.ozan@pardus.org.tr>
+References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <4D4B2883.4020701@pardus.org.tr> <201102032351.31307.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:47680 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877Ab1BDBme (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Feb 2011 20:42:34 -0500
-In-Reply-To: <AANLkTin-9a5Z3qq4t8UakRvgB1G3_CT2RLKMVaHXvnLr@mail.gmail.com>
+Received: from lider.pardus.org.tr ([193.140.100.216]:55073 "EHLO
+	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753572Ab1BDGuL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2011 01:50:11 -0500
+In-Reply-To: <201102032351.31307.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Keith Packard <keithp@keithp.com>, Carlos Mafra <crmafra2@gmail.com>, Dave Airlie <airlied@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Richard =?utf-8?q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-On Fri, Feb 4, 2011 at 11:11 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Thu, Feb 3, 2011 at 5:05 PM, Keith Packard <keithp@keithp.com> wrote:
->>
->> The goal is to make it so that when you *do* set a mode, DPMS gets set
->> to ON (as the monitor will actually be "on" at that point). Here's a
->> patch which does the DPMS_ON precisely when setting a mode.
->
-> Ok, patch looks sane, but it does leave me with the "what about the
-> 'fb_changed' case?" question. Is that case basically guaranteed to not
-> change any existing dpms state?
+Cuma 04 =C5=9Eubat 2011 g=C3=BCn=C3=BC (saat 00:51:31) Rafael J. Wysock=
+i =C5=9Funlar=C4=B1 yazm=C4=B1=C5=9Ft=C4=B1:
 
-Yes its inconsistent behaviour but nothing in the fb_changed case will
-affect the DPMS
-state. I expect we should probably do that so all paths via that
-function turn DPMS on,
-and it'll be consistent, might be something for 39.
+> Hmm.  Are those boxes uniprocessor running SMP kernels?
 
-Dave.
+The kernel is SMP.
+
+ASUS X61S is=20
+ CPU0: Intel(R) Core(TM)2 Duo CPU     P8700  @ 2.53GHz stepping 0a
+
+=4650SV has 2 CPU's too according to dmesg:
+[    0.000000] Processor #0 (Bootup-CPU)
+[    0.000000] Processor #1
+[    0.000000] I/O APIC #2 Version 20 at 0xFEC00000.
+[    0.000000] IOAPIC[0]: apic_id 2, version 20, address 0xfec00000, GS=
+I 0-23
+[    0.000000] Processors: 2
+[    0.000000] SMP: Allowing 2 CPUs, 0 hotplug CPUs
+
+ASUS N51JQ (occasional shutdown hang) has:
+CPU0: Intel(R) Core(TM) i7 CPU       Q 740  @ 1.73GHz stepping 05
+[    0.132435] Booting Node   0, Processors  #1 #2 #3 #4 #5 #6 #7 Ok.
+[    0.768809] Brought up 8 CPUs
+
+
+---
+Ozan =C3=87a=C4=9Flayan
+TUBITAK/UEKAE - Pardus Linux
+http://www.pardus.org.tr/eng
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
