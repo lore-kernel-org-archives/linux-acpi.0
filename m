@@ -1,53 +1,43 @@
-From: Ozan =?utf-8?q?=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
-Subject: Re: Common boot/shutdown issues with the latest 2.6.37 (Mostly Asus laptops)
-Date: Fri, 4 Feb 2011 08:44:05 +0200
-Message-ID: <201102040844.05490.ozan@pardus.org.tr>
-References: <556624.21214.qm@web28409.mail.ukl.yahoo.com> <4D4B2883.4020701@pardus.org.tr> <201102032351.31307.rjw@sisk.pl>
+From: "Carlos R. Mafra" <crmafra2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.38-rc3-git1: Reported regressions 2.6.36 -> 2.6.37
+Date: Fri, 4 Feb 2011 08:05:46 +0100
+Message-ID: <20110204070546.GA12621@linux-yscl.site>
+References: <e9vOd5LzdBK.A.dyD.h6eSNB@chimera>
+ <AANLkTikELiGS+fM5WguZS=Fo-sSXmej1UnKWqCFmnE0k@mail.gmail.com>
+ <s5haaid3xos.wl%tiwai@suse.de>
+ <201102032009.17100.rjw@sisk.pl>
+ <AANLkTi=suS1VDL=6EtT0D2=0c1DWwxdwZBBv=-BySNX-@mail.gmail.com>
+ <AANLkTi=7EOih=fY5FCvhQbewSc=3a49cYVaKJRWM+-3d@mail.gmail.com>
+ <AANLkTin7kBur95H=UBcYEcjYsUkrdG8znX-7PFZ4rrHf@mail.gmail.com>
+ <AANLkTimQPPDyBwkN0HWM2+bPcbzVd8YHZvn2iR8MVzfL@mail.gmail.com>
+ <yund3n88v7x.fsf@aiko.keithp.com>
+ <AANLkTin-9a5Z3qq4t8UakRvgB1G3_CT2RLKMVaHXvnLr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:55073 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753572Ab1BDGuL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Feb 2011 01:50:11 -0500
-In-Reply-To: <201102032351.31307.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTin-9a5Z3qq4t8UakRvgB1G3_CT2RLKMVaHXvnLr-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Keith Packard <keithp-aN4HjG94KOLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Mickler <florian-sVu6HhrpSfRAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Richard =?utf-8?q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Lionel Debroux <lionel_debroux@yahoo.fr>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-Cuma 04 =C5=9Eubat 2011 g=C3=BCn=C3=BC (saat 00:51:31) Rafael J. Wysock=
-i =C5=9Funlar=C4=B1 yazm=C4=B1=C5=9Ft=C4=B1:
+On Thu  3.Feb'11 at 17:11:14 -0800, Linus Torvalds wrote:
+> On Thu, Feb 3, 2011 at 5:05 PM, Keith Packard <keithp-aN4HjG94KOLQT0dZR+AlfA@public.gmane.org> wrote:
+> >
+> > The goal is to make it so that when you *do* set a mode, DPMS gets set
+> > to ON (as the monitor will actually be "on" at that point). Here's a
+> > patch which does the DPMS_ON precisely when setting a mode.
+> 
+> Ok, patch looks sane, but it does leave me with the "what about the
+> 'fb_changed' case?" question. Is that case basically guaranteed to not
+> change any existing dpms state?
+> 
+> > (note, this patch compiles, but is otherwise only lightly tested).
+> 
+> Carlos? Takashi? Ignore my crazy patch, try this one instead. Does it
+> fix things for you?
 
-> Hmm.  Are those boxes uniprocessor running SMP kernels?
+Yes! (tested on top of 2.6.38-rc3+).
 
-The kernel is SMP.
-
-ASUS X61S is=20
- CPU0: Intel(R) Core(TM)2 Duo CPU     P8700  @ 2.53GHz stepping 0a
-
-=4650SV has 2 CPU's too according to dmesg:
-[    0.000000] Processor #0 (Bootup-CPU)
-[    0.000000] Processor #1
-[    0.000000] I/O APIC #2 Version 20 at 0xFEC00000.
-[    0.000000] IOAPIC[0]: apic_id 2, version 20, address 0xfec00000, GS=
-I 0-23
-[    0.000000] Processors: 2
-[    0.000000] SMP: Allowing 2 CPUs, 0 hotplug CPUs
-
-ASUS N51JQ (occasional shutdown hang) has:
-CPU0: Intel(R) Core(TM) i7 CPU       Q 740  @ 1.73GHz stepping 05
-[    0.132435] Booting Node   0, Processors  #1 #2 #3 #4 #5 #6 #7 Ok.
-[    0.768809] Brought up 8 CPUs
-
-
----
-Ozan =C3=87a=C4=9Flayan
-TUBITAK/UEKAE - Pardus Linux
-http://www.pardus.org.tr/eng
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks to everyone involved!
