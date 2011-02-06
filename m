@@ -1,76 +1,68 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Updated][PATCH 1/2] ACPI / Wakeup: Enable button GPEs unconditionally during initialization
-Date: Sun, 6 Feb 2011 15:24:08 +0100
-Message-ID: <201102061524.08578.rjw@sisk.pl>
-References: <201102061418.56202.rjw@sisk.pl> <201102061420.17431.rjw@sisk.pl>
+Subject: Re: [PATCH 5/5] ACPI: Tie ACPI backlight devices to PCI devices if possible
+Date: Sun, 6 Feb 2011 21:35:07 +0100
+Message-ID: <201102062135.08171.rjw@sisk.pl>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <1295033065-13450-5-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47855 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752704Ab1BFOYQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2011 09:24:16 -0500
-In-Reply-To: <201102061420.17431.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295033065-13450-5-git-send-email-mjg@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: akpm@linux-foundation.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Ferenc =?utf-8?q?W=C3=A1gner?= <wferi@niif.hu>
 
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / Wakeup: Enable button GPEs unconditionally during initi=
-alization
+On Friday, January 14, 2011, Matthew Garrett wrote:
+> Dual-GPU machines may provide more than one ACPI backlight interface. Tie
+> the backlight device to the GPU in order to allow userspace to identify
+> the correct interface.
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Commit 9630bdd (ACPI: Use GPE reference counting to support shared
-GPEs) introduced a suspend regression where boxes resume immediately
-after being suspended due to the lid or sleep button wakeup status
-not being cleared properly.  This happens if the GPEs corresponding
-to those devices are not enabled all the time, which apparently is
-expected by some BIOSes.
+Sorry for the late response, but I've just realized there's a problem with this
+patch.
 
-To fix this problem, enable button and lid GPEs unconditionally
-during initialization and keep them enabled all the time, regardless
-of whether or not the ACPI button driver is used.
+> ---
+>  drivers/acpi/video.c |   15 ++++++++++++++-
+>  1 files changed, 14 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index a9eec8c..a18e497 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -782,6 +782,9 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  
+>  	if (acpi_video_backlight_support()) {
+>  		struct backlight_properties props;
+> +		struct pci_dev *pdev;
+> +		acpi_handle acpi_parent;
+> +		struct device *parent = NULL;
+>  		int result;
+>  		static int count = 0;
+>  		char *name;
+> @@ -794,10 +797,20 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  			return;
+>  		count++;
+>  
+> +		acpi_get_parent(device->dev->handle, &acpi_parent);
+> +
+> +		pdev = acpi_get_pci_dev(acpi_parent);
+> +		if (pdev) {
+> +			parent = &pdev->dev;
+> +			pci_dev_put(pdev);
+> +		}
 
-References: https://bugzilla.kernel.org/show_bug.cgi?id=3D27372
-Reported-and-tested-by: Ferenc W=C3=A1gner <wferi@niif.hu>
-Cc: stable@kernel.org
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+I'm afraid you can't do that or suspend problems will happen.
 
-Hi,
+Namely, the PM core assumes that parents will be registered before their
+children and it is a very strong assumption.  If violated, it may lead to
+a suspend sequence deadlock.
 
-This time with the correct diffstat.
+Unfortunately, it looks like the ACPI video device is registered before the
+PCI device that's becoming it's parent, so the above assumption will be
+violated.
 
 Thanks,
 Rafael
-
----
- drivers/acpi/wakeup.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/wakeup.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/acpi/wakeup.c
-+++ linux-2.6/drivers/acpi/wakeup.c
-@@ -86,8 +86,12 @@ int __init acpi_wakeup_device_init(void)
- 		struct acpi_device *dev =3D container_of(node,
- 						       struct acpi_device,
- 						       wakeup_list);
--		if (device_can_wakeup(&dev->dev))
-+		if (device_can_wakeup(&dev->dev)) {
-+			/* Button GPEs are supposed to be always enabled. */
-+			acpi_enable_gpe(dev->wakeup.gpe_device,
-+					dev->wakeup.gpe_number);
- 			device_set_wakeup_enable(&dev->dev, true);
-+		}
- 	}
- 	mutex_unlock(&acpi_device_lock);
- 	return 0;
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
