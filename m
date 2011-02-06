@@ -1,23 +1,25 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/2] ACPI / Wakeup: Enable button GPEs unconditionally during initialization
-Date: Sun, 6 Feb 2011 14:20:17 +0100
-Message-ID: <201102061420.17431.rjw@sisk.pl>
-References: <201102061418.56202.rjw@sisk.pl>
+Subject: [Updated][PATCH 1/2] ACPI / Wakeup: Enable button GPEs unconditionally during initialization
+Date: Sun, 6 Feb 2011 15:24:08 +0100
+Message-ID: <201102061524.08578.rjw@sisk.pl>
+References: <201102061418.56202.rjw@sisk.pl> <201102061420.17431.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47712 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:47855 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752491Ab1BFNVq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2011 08:21:46 -0500
-In-Reply-To: <201102061418.56202.rjw@sisk.pl>
+	id S1752704Ab1BFOYQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2011 09:24:16 -0500
+In-Reply-To: <201102061420.17431.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Ferenc =?utf-8?q?W=C3=A1gner?= <wferi@niif.hu>
 
 =46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI / Wakeup: Enable button GPEs unconditionally during initi=
+alization
 
 Commit 9630bdd (ACPI: Use GPE reference counting to support shared
 GPEs) introduced a suspend regression where boxes resume immediately
@@ -35,9 +37,17 @@ Reported-and-tested-by: Ferenc W=C3=A1gner <wferi@niif.hu>
 Cc: stable@kernel.org
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/button.c |   13 -------------
+
+Hi,
+
+This time with the correct diffstat.
+
+Thanks,
+Rafael
+
+---
  drivers/acpi/wakeup.c |    6 +++++-
- 2 files changed, 5 insertions(+), 14 deletions(-)
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 Index: linux-2.6/drivers/acpi/wakeup.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -59,7 +69,6 @@ Index: linux-2.6/drivers/acpi/wakeup.c
  	}
  	mutex_unlock(&acpi_device_lock);
  	return 0;
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
