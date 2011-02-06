@@ -1,43 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/5] ACPI: Tie ACPI backlight devices to PCI devices if possible
-Date: Sun, 6 Feb 2011 23:41:19 +0100
-Message-ID: <201102062341.19631.rjw@sisk.pl>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <201102062135.08171.rjw@sisk.pl> <20110206205619.GA21472@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 5/5] ACPI: Tie ACPI backlight devices to PCI devices if
+	possible
+Date: Sun, 6 Feb 2011 22:53:09 +0000
+Message-ID: <20110206225308.GA23557@srcf.ucam.org>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <201102062135.08171.rjw@sisk.pl> <20110206205619.GA21472@srcf.ucam.org> <201102062341.19631.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48576 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753259Ab1BFWlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Feb 2011 17:41:40 -0500
-In-Reply-To: <20110206205619.GA21472@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:45528 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab1BFWxQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Feb 2011 17:53:16 -0500
+Content-Disposition: inline
+In-Reply-To: <201102062341.19631.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: akpm@linux-foundation.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net
 
-On Sunday, February 06, 2011, Matthew Garrett wrote:
-> On Sun, Feb 06, 2011 at 09:35:07PM +0100, Rafael J. Wysocki wrote:
-> > > +		acpi_get_parent(device->dev->handle, &acpi_parent);
-> > > +
-> > > +		pdev = acpi_get_pci_dev(acpi_parent);
-> > > +		if (pdev) {
-> > > +			parent = &pdev->dev;
-> > > +			pci_dev_put(pdev);
-> > > +		}
-> > 
-> > I'm afraid you can't do that or suspend problems will happen.
+On Sun, Feb 06, 2011 at 11:41:19PM +0100, Rafael J. Wysocki wrote:
+> On Sunday, February 06, 2011, Matthew Garrett wrote:
+> > Ugh. Ok, how can we fix this?
 > 
-> Ugh. Ok, how can we fix this?
+> Not nicely, I'm afraid.
+> 
+> One possible way is to use device_pm_move_after() to rearrange the devices in
+> the PM core's suspend list, but that will happen in the video device being
+> suspended before the new parent (and resumed after it) -- of course, the only
+> option is to move the ACPI video device after the new parent.
 
-Not nicely, I'm afraid.
+Hang on. Didn't we already have a related issue with the acpi video 
+device being resumed before the video card, resulting in an SMI that 
+hung the system? I thought we'd arranged things such that resuming the 
+ACPI video device wouldn't actually do anything until after the PCI 
+device had been handled? It seems like the correct thing is definitely 
+for it to be suspended before and resumed after...
 
-One possible way is to use device_pm_move_after() to rearrange the devices in
-the PM core's suspend list, but that will happen in the video device being
-suspended before the new parent (and resumed after it) -- of course, the only
-option is to move the ACPI video device after the new parent.
-
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
