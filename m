@@ -1,27 +1,23 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/6] ACPI / PM: Do not switch interrupts off/on in acpi_hibernation_enter()
-Date: Mon, 7 Feb 2011 23:22:46 +0100
-Message-ID: <201102072322.47041.rjw@sisk.pl>
+Subject: [PATCH 2/6] ACPI / PM: Do not switch interrupts off/on in acpi_suspend_enter()
+Date: Mon, 7 Feb 2011 23:19:10 +0100
+Message-ID: <201102072319.10327.rjw@sisk.pl>
 References: <201102072316.41270.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51705 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753501Ab1BGWXl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Feb 2011 17:23:41 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201102072316.41270.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The function acpi_hibernation_enter() is always called with
-interrupts off, so it doesn't need to switch them off and on.
+The function acpi_suspend_enter() is always called with interrupts
+off, so it doesn't need to switch them off and on.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
@@ -32,21 +28,27 @@ Index: linux-2.6/drivers/acpi/sleep.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/sleep.c
 +++ linux-2.6/drivers/acpi/sleep.c
-@@ -457,16 +457,13 @@ static int acpi_hibernation_begin(void)
- static int acpi_hibernation_enter(void)
+@@ -243,7 +243,6 @@ static int acpi_suspend_begin(suspend_st
+ static int acpi_suspend_enter(suspend_state_t pm_state)
  {
  	acpi_status status = AE_OK;
 -	unsigned long flags = 0;
+ 	u32 acpi_state = acpi_target_sleep_state;
  
  	ACPI_FLUSH_CPU_CACHE();
+@@ -256,7 +255,6 @@ static int acpi_suspend_enter(suspend_st
+ 			return error;
+ 	}
  
 -	local_irq_save(flags);
- 	/* This shouldn't return.  If it returns, we have a problem */
- 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
--	local_irq_restore(flags);
+ 	switch (acpi_state) {
+ 	case ACPI_STATE_S1:
+ 		barrier();
+@@ -290,7 +288,6 @@ static int acpi_suspend_enter(suspend_st
+ 	/* Allow EC transactions to happen. */
+ 	acpi_ec_unblock_transactions_early();
  
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
-
+-	local_irq_restore(flags);
+ 	printk(KERN_DEBUG "Back to C!\n");
+ 
+ 	suspend_nvs_restore();
