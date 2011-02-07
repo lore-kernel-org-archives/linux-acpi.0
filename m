@@ -1,111 +1,34 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/6] ACPI / PM: Drop acpi_restore_state_mem()
-Date: Mon, 7 Feb 2011 23:18:02 +0100
-Message-ID: <201102072318.02829.rjw@sisk.pl>
-References: <201102072316.41270.rjw@sisk.pl>
+Subject: [PATCH 0/6] ACPI / PM: Simplifications of core suspend and hibernate code
+Date: Mon, 7 Feb 2011 23:16:41 +0100
+Message-ID: <201102072316.41270.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201102072316.41270.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51711 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752242Ab1BGWXo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Feb 2011 17:23:44 -0500
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi,
 
-The function acpi_restore_state_mem() has never been and most likely
-never will be used, so remove it.
+The following series of patches reduces complexity of the core suspend
+and hibernate code a bit.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/ia64/include/asm/acpi.h |    4 ++--
- arch/ia64/kernel/acpi.c      |    5 -----
- arch/x86/include/asm/acpi.h  |    3 +--
- arch/x86/kernel/acpi/sleep.c |    8 --------
- drivers/acpi/sleep.c         |    4 ----
- 5 files changed, 3 insertions(+), 21 deletions(-)
+[1/6] - Remove acpi_restore_state_mem() which isn't used.
+[2/6] - Do not turn interrupts on/off in acpi_suspend_enter().
+[3/6] - Move the "back to C" message and make it meaningful.
+[4/6] - Move the call to acpi_save_state_mem() towards do_suspend_lowlevel().
+[5/6] - Merge do_suspend_lowlevel() into acpi_save_state_mem().
+[6/6] - Do not turn interrupts on/off in acpi_hibernation_enter().
 
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -293,10 +293,6 @@ static int acpi_suspend_enter(suspend_st
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
- 
--	/* restore processor state */
--	if (acpi_state == ACPI_STATE_S3)
--		acpi_restore_state_mem();
--
- 	suspend_nvs_restore();
- 
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-Index: linux-2.6/arch/ia64/include/asm/acpi.h
-===================================================================
---- linux-2.6.orig/arch/ia64/include/asm/acpi.h
-+++ linux-2.6/arch/ia64/include/asm/acpi.h
-@@ -128,9 +128,9 @@ static inline const char *acpi_get_sysna
- int acpi_request_vector (u32 int_type);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- 
--/* routines for saving/restoring kernel state */
-+/* Routine for saving kernel state during suspend. */
- extern int acpi_save_state_mem(void);
--extern void acpi_restore_state_mem(void);
-+
- extern unsigned long acpi_wakeup_address;
- 
- /*
-Index: linux-2.6/arch/ia64/kernel/acpi.c
-===================================================================
---- linux-2.6.orig/arch/ia64/kernel/acpi.c
-+++ linux-2.6/arch/ia64/kernel/acpi.c
-@@ -1041,11 +1041,6 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
- int acpi_save_state_mem(void) { return 0; } 
- 
- /*
-- * acpi_restore_state()
-- */
--void acpi_restore_state_mem(void) {}
--
--/*
-  * do_suspend_lowlevel()
-  */
- void do_suspend_lowlevel(void) {}
-Index: linux-2.6/arch/x86/include/asm/acpi.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/acpi.h
-+++ linux-2.6/arch/x86/include/asm/acpi.h
-@@ -112,9 +112,8 @@ static inline void acpi_disable_pci(void
- 	acpi_noirq_set();
- }
- 
--/* routines for saving/restoring kernel state */
-+/* Routine for saving kernel state during suspend. */
- extern int acpi_save_state_mem(void);
--extern void acpi_restore_state_mem(void);
- 
- extern unsigned long acpi_wakeup_address;
- 
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -112,14 +112,6 @@ int acpi_save_state_mem(void)
- 	return 0;
- }
- 
--/*
-- * acpi_restore_state - undo effects of acpi_save_state_mem
-- */
--void acpi_restore_state_mem(void)
--{
--}
--
--
- /**
-  * acpi_reserve_wakeup_memory - do _very_ early ACPI initialisation
-  *
+I'm regarding these patches as 2.6.39 material, if there are no objections.
+
+Thanks,
+Rafael
