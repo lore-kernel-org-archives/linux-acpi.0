@@ -1,34 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/6] ACPI / PM: Simplifications of core suspend and hibernate code
-Date: Mon, 7 Feb 2011 23:16:41 +0100
-Message-ID: <201102072316.41270.rjw@sisk.pl>
+Subject: [PATCH] thermal: Use freezable workqueue
+Date: Tue, 8 Feb 2011 00:29:57 +0100
+Message-ID: <201102080029.57195.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51711 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:51905 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242Ab1BGWXo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Feb 2011 17:23:44 -0500
+	id S1755126Ab1BGXan (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Feb 2011 18:30:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Len Brown <len.brown@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The following series of patches reduces complexity of the core suspend
-and hibernate code a bit.
+If thermal polling is enabled, which for example is the case for
+ACPI thermal zones with the _TZP object defined, the thermal driver
+uses delayed work items for this purpose.  Unfortunately, since
+they are queued up using schedule_delayed_work(), the work function
+may be executed during system suspend or resume, which is not
+desirable.
 
-[1/6] - Remove acpi_restore_state_mem() which isn't used.
-[2/6] - Do not turn interrupts on/off in acpi_suspend_enter().
-[3/6] - Move the "back to C" message and make it meaningful.
-[4/6] - Move the call to acpi_save_state_mem() towards do_suspend_lowlevel().
-[5/6] - Merge do_suspend_lowlevel() into acpi_save_state_mem().
-[6/6] - Do not turn interrupts on/off in acpi_hibernation_enter().
+To prevent that from happening, use a freezable workqueue for
+queuing up delayed work items in the thermal driver.
 
-I'm regarding these patches as 2.6.39 material, if there are no objections.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/thermal/thermal_sys.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-Thanks,
-Rafael
+Index: linux-2.6/drivers/thermal/thermal_sys.c
+===================================================================
+--- linux-2.6.orig/drivers/thermal/thermal_sys.c
++++ linux-2.6/drivers/thermal/thermal_sys.c
+@@ -62,6 +62,20 @@ static DEFINE_MUTEX(thermal_list_lock);
+ 
+ static unsigned int thermal_event_seqnum;
+ 
++static struct workqueue_struct *thermal_wq;
++
++static int __init thermal_start_workqueue(void)
++{
++	thermal_wq = alloc_workqueue("thermal", WQ_FREEZEABLE, 0);
++	return thermal_wq ? 0 : -ENOMEM;
++}
++
++static inline void thermal_destroy_workqueue(void)
++{
++	if (thermal_wq)
++		destroy_workqueue(thermal_wq);
++}
++
+ static struct genl_family thermal_event_genl_family = {
+ 	.id = GENL_ID_GENERATE,
+ 	.name = THERMAL_GENL_FAMILY_NAME,
+@@ -611,10 +625,10 @@ static void thermal_zone_device_set_poll
+ 		return;
+ 
+ 	if (delay > 1000)
+-		schedule_delayed_work(&(tz->poll_queue),
++		queue_delayed_work(thermal_wq, &(tz->poll_queue),
+ 				      round_jiffies(msecs_to_jiffies(delay)));
+ 	else
+-		schedule_delayed_work(&(tz->poll_queue),
++		queue_delayed_work(thermal_wq, &(tz->poll_queue),
+ 				      msecs_to_jiffies(delay));
+ }
+ 
+@@ -1306,11 +1320,14 @@ static int __init thermal_init(void)
+ 	int result = 0;
+ 
+ 	result = class_register(&thermal_class);
++	if (!result)
++		result = thermal_start_workqueue();
+ 	if (result) {
+ 		idr_destroy(&thermal_tz_idr);
+ 		idr_destroy(&thermal_cdev_idr);
+ 		mutex_destroy(&thermal_idr_lock);
+ 		mutex_destroy(&thermal_list_lock);
++		thermal_destroy_workqueue();
+ 	}
+ 	result = genetlink_init();
+ 	return result;
+@@ -1328,6 +1345,7 @@ static void __exit thermal_exit(void)
+ 	idr_destroy(&thermal_cdev_idr);
+ 	mutex_destroy(&thermal_idr_lock);
+ 	mutex_destroy(&thermal_list_lock);
++	thermal_destroy_workqueue();
+ 	genetlink_exit();
+ }
+ 
