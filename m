@@ -1,48 +1,155 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/6] ACPI / PM: Modify the "low-level resume finished" message
-Date: Mon, 7 Feb 2011 23:19:55 +0100
-Message-ID: <201102072319.56040.rjw@sisk.pl>
+Subject: [PATCH 5/6] ACPI / PM: Merge do_suspend_lowlevel() into acpi_save_state_mem()
+Date: Mon, 7 Feb 2011 23:21:37 +0100
+Message-ID: <201102072321.37565.rjw@sisk.pl>
 References: <201102072316.41270.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51704 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753439Ab1BGWXl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Feb 2011 17:23:41 -0500
 In-Reply-To: <201102072316.41270.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Move the low-level resume completion message to the point where
-control goes back to acpi_suspend_enter() during resume and change
-it so that it's more informative.
+The function do_suspend_lowlevel() is specific to x86 and defined in
+assembly code, so it should be called from the x86 low-level suspend
+code rather than from acpi_suspend_enter().
+
+Merge do_suspend_lowlevel() into the x86's acpi_save_state_mem() and
+change the name of the latter to acpi_suspend_lowlevel(), so that the
+function's purpose is better reflected by its name.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/ia64/include/asm/acpi.h |    4 ++--
+ arch/ia64/kernel/acpi.c      |    9 ++-------
+ arch/x86/include/asm/acpi.h  |    4 ++--
+ arch/x86/kernel/acpi/sleep.c |    5 +++--
+ arch/x86/kernel/acpi/sleep.h |    2 ++
+ drivers/acpi/sleep.c         |    5 +----
+ 6 files changed, 12 insertions(+), 17 deletions(-)
 
 Index: linux-2.6/drivers/acpi/sleep.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/sleep.c
 +++ linux-2.6/drivers/acpi/sleep.c
-@@ -263,6 +263,7 @@ static int acpi_suspend_enter(suspend_st
+@@ -199,8 +199,6 @@ static void acpi_pm_end(void)
+ #endif /* CONFIG_ACPI_SLEEP */
+ 
+ #ifdef CONFIG_SUSPEND
+-extern void do_suspend_lowlevel(void);
+-
+ static u32 acpi_suspend_states[] = {
+ 	[PM_SUSPEND_ON] = ACPI_STATE_S0,
+ 	[PM_SUSPEND_STANDBY] = ACPI_STATE_S1,
+@@ -255,10 +253,9 @@ static int acpi_suspend_enter(suspend_st
+ 		break;
  
  	case ACPI_STATE_S3:
- 		do_suspend_lowlevel();
-+		pr_info(PREFIX "Low-level resume complete\n");
+-		error = acpi_save_state_mem();
++		error = acpi_suspend_lowlevel();
+ 		if (error)
+ 			return error;
+-		do_suspend_lowlevel();
+ 		pr_info(PREFIX "Low-level resume complete\n");
  		break;
  	}
+Index: linux-2.6/arch/ia64/include/asm/acpi.h
+===================================================================
+--- linux-2.6.orig/arch/ia64/include/asm/acpi.h
++++ linux-2.6/arch/ia64/include/asm/acpi.h
+@@ -128,8 +128,8 @@ static inline const char *acpi_get_sysna
+ int acpi_request_vector (u32 int_type);
+ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
  
-@@ -288,8 +289,6 @@ static int acpi_suspend_enter(suspend_st
- 	/* Allow EC transactions to happen. */
- 	acpi_ec_unblock_transactions_early();
+-/* Routine for saving kernel state during suspend. */
+-extern int acpi_save_state_mem(void);
++/* Low-level suspend routine. */
++extern int acpi_suspend_lowlevel(void);
  
--	printk(KERN_DEBUG "Back to C!\n");
+ extern unsigned long acpi_wakeup_address;
+ 
+Index: linux-2.6/arch/ia64/kernel/acpi.c
+===================================================================
+--- linux-2.6.orig/arch/ia64/kernel/acpi.c
++++ linux-2.6/arch/ia64/kernel/acpi.c
+@@ -1034,13 +1034,8 @@ int acpi_unregister_ioapic(acpi_handle h
+ EXPORT_SYMBOL(acpi_unregister_ioapic);
+ 
+ /*
+- * acpi_save_state_mem() - save kernel state
++ * acpi_suspend_lowlevel() - save kernel state and suspend.
+  *
+  * TBD when when IA64 starts to support suspend...
+  */
+-int acpi_save_state_mem(void) { return 0; } 
 -
- 	suspend_nvs_restore();
+-/*
+- * do_suspend_lowlevel()
+- */
+-void do_suspend_lowlevel(void) {}
++int acpi_suspend_lowlevel(void) { return 0; }
+Index: linux-2.6/arch/x86/include/asm/acpi.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/acpi.h
++++ linux-2.6/arch/x86/include/asm/acpi.h
+@@ -112,8 +112,8 @@ static inline void acpi_disable_pci(void
+ 	acpi_noirq_set();
+ }
  
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+-/* Routine for saving kernel state during suspend. */
+-extern int acpi_save_state_mem(void);
++/* Low-level suspend routine. */
++extern int acpi_suspend_lowlevel(void);
+ 
+ extern unsigned long acpi_wakeup_address;
+ 
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -31,14 +31,14 @@ static char temp_stack[4096];
+ #endif
+ 
+ /**
+- * acpi_save_state_mem - save kernel state
++ * acpi_suspend_lowlevel - save kernel state
+  *
+  * Create an identity mapped page table and copy the wakeup routine to
+  * low memory.
+  *
+  * Note that this is too late to change acpi_wakeup_address.
+  */
+-int acpi_save_state_mem(void)
++int acpi_suspend_lowlevel(void)
+ {
+ 	struct wakeup_header *header;
+ 
+@@ -109,6 +109,7 @@ int acpi_save_state_mem(void)
+        saved_magic = 0x123456789abcdef0L;
+ #endif /* CONFIG_64BIT */
+ 
++	do_suspend_lowlevel();
+ 	return 0;
+ }
+ 
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.h
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.h
++++ linux-2.6/arch/x86/kernel/acpi/sleep.h
+@@ -14,3 +14,5 @@ extern char swsusp_pg_dir[PAGE_SIZE];
+ 
+ extern unsigned long acpi_copy_wakeup_routine(unsigned long);
+ extern void wakeup_long64(void);
++
++extern void do_suspend_lowlevel(void);
+
