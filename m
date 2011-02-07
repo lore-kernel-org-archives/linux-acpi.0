@@ -1,48 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Subject: Re: [PATCH 5/5] ACPI: Tie ACPI backlight devices to PCI devices if possible
-Date: Mon, 7 Feb 2011 00:34:43 +0100
-Message-ID: <201102070034.43691.rjw@sisk.pl>
-References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <201102070001.25814.rjw@sisk.pl> <20110206230558.GA23889@srcf.ucam.org>
+Date: Mon, 7 Feb 2011 14:32:35 -0700
+Message-ID: <201102071432.35656.bjorn.helgaas@hp.com>
+References: <1295033065-13450-1-git-send-email-mjg@redhat.com> <20110206230558.GA23889@srcf.ucam.org> <201102070034.43691.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48708 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753438Ab1BFXfB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Feb 2011 18:35:01 -0500
-In-Reply-To: <20110206230558.GA23889@srcf.ucam.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:5032 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992Ab1BGVck (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Feb 2011 16:32:40 -0500
+In-Reply-To: <201102070034.43691.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, dri-devel@lists.freedesktop.org
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, dri-devel@lists.freedesktop.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>
 
-On Monday, February 07, 2011, Matthew Garrett wrote:
-> On Mon, Feb 07, 2011 at 12:01:25AM +0100, Rafael J. Wysocki wrote:
+On Sunday, February 06, 2011 04:34:43 pm Rafael J. Wysocki wrote:
 > 
-> > Yes, it seems so, but I'm not sure what the short term consequences of that
-> > change will be.  Perhaps there will be none. :-)
-> 
-> Ok, I'll have a play with that. Maybe we should be fixing this up 
-> somehow in the acpi-pci glue code? It seems wrong to have acpi devices 
-> resumed before the PCI device they're associated with.
+> Still, IMO, there is a design issue in the entire ACPI subsystem, because the
+> idea of "ACPI device" really is not well defined, so to speak.  Sometimes
+> they are just "device interfaces" that can be used to ask the firmware for
+> something (like in the case of the "ACPI devices" associated with PCI devices)
+> and sometimes they are "real devices" with real drivers.  The video device
+> apparently wants to be both at the same time, which is even more confusing. :-)
 
-Those device's don't have ACPI drivers and therefore they are not really
-suspended or resumed, so we don't need to fix anything in that area.
+I'm not familiar with video devices, but I agree, this situation does
+feel broken.  Is it the case that there's a PCI device as well as an
+ACPI namespace Device for the same piece of hardware?  If so, I assume
+the reason for the ACPI Device is to have a "standard" interface to
+a platform knob like backlight control.
 
-Still, IMO, there is a design issue in the entire ACPI subsystem, because the
-idea of "ACPI device" really is not well defined, so to speak.  Sometimes
-they are just "device interfaces" that can be used to ask the firmware for
-something (like in the case of the "ACPI devices" associated with PCI devices)
-and sometimes they are "real devices" with real drivers.  The video device
-apparently wants to be both at the same time, which is even more confusing. :-)
+In that case, it seems like we should rely on PCI for enumeration and
+driver binding, have some sort of hook the PCI driver could use to
+twiddle that knob (using the ACPI methods), and make the ACPI Device
+ineligible for driver binding.  In other words, it sounds like part
+of the problem is that we have two drivers binding to what's really
+a single piece of hardware.
 
-I _think_ that struct acpi_device shouldn't really contain the embedded device
-object and each of struct acpi_device objects should be pointed to by the
-archdata member of certain struct device.  In turn, struct acpi_device should
-contain a pointer to the struct device that it's pointed to by via the archdata
-field.  Then, the struct acpi_device objects will always be "device interfaces"
-and all of the device-driver interactions will be represented through their
-corresponding device objects.  That should allow us to avoid all of the
-suspend-resume complications (and all sorts of other ugliness).
+Bjorn
