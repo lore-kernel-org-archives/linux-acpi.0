@@ -1,74 +1,67 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: What's part of the ABI (breaking eeepc-wmi)
-Date: Tue, 8 Feb 2011 08:51:27 +0000
-Message-ID: <AANLkTim5kG-pZRpj+6ckOvuk5ZSJ_O7zbwBnC4JNQPtS@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] thermal: Use freezable workqueue
+Date: Tue, 8 Feb 2011 10:20:25 +0100
+Message-ID: <201102081020.25646.rjw@sisk.pl>
+References: <201102080029.57195.rjw@sisk.pl> <20110208044712.GA906@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46344 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379Ab1BHIv3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Feb 2011 03:51:29 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:52659 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751253Ab1BHJUk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Feb 2011 04:20:40 -0500
+In-Reply-To: <20110208044712.GA906@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: platform-driver-x86@vger.kernel.org
-Cc: linux acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <len.brown@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Tejun Heo <tj@kernel.org>
 
-Hi,
-I recently discovered that new Asus notebooks (eg: not Eeepc) are now
-shipped with an ACPI WMI device instead of the old ACPI Atkd device.
-Most of this device is similar to the Eeepc ACPI WMI device, except
-for keymap and event GUID.
+On Tuesday, February 08, 2011, Dmitry Torokhov wrote:
+> On Tue, Feb 08, 2011 at 12:29:57AM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > If thermal polling is enabled, which for example is the case for
+> > ACPI thermal zones with the _TZP object defined, the thermal driver
+> > uses delayed work items for this purpose.  Unfortunately, since
+> > they are queued up using schedule_delayed_work(), the work function
+> > may be executed during system suspend or resume, which is not
+> > desirable.
+> > 
+> > To prevent that from happening, use a freezable workqueue for
+> > queuing up delayed work items in the thermal driver.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/thermal/thermal_sys.c |   22 ++++++++++++++++++++--
+> >  1 file changed, 20 insertions(+), 2 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/thermal/thermal_sys.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/thermal/thermal_sys.c
+> > +++ linux-2.6/drivers/thermal/thermal_sys.c
+> > @@ -62,6 +62,20 @@ static DEFINE_MUTEX(thermal_list_lock);
+> >  
+> >  static unsigned int thermal_event_seqnum;
+> >  
+> > +static struct workqueue_struct *thermal_wq;
+> > +
+> > +static int __init thermal_start_workqueue(void)
+> > +{
+> > +	thermal_wq = alloc_workqueue("thermal", WQ_FREEZEABLE, 0);
+> 
+> Should probably be unbound as well.
 
-I could add support for these notebooks in eeepc-wmi, but that seems
-really weird.
+Yup, thanks.
 
-A first solution is to rename eeepc-wmi asus-wmi, and create an alias
-to make eeepc-wmi work. Then this driver would handle asus-wmi and
-eeepc-wmi platform drivers (it could also be splitted in 3
-files/modules, common/notebook/eeepc).
-But then, is it important to keep these strings ?
-- hotplug string ("eeepc-wifi")
-- rfkill names ("eeepc-xxxxx")
-- led names ("eeepc::xxxxxx")
-- input strings (.phys and .name)
+> FWIW, I would not mind if we had a global freezeable workqueue already
+> predefined. I could switch input_polldev and vmw_balloon to it and there
+> probably could be more users...
 
-If these strings should really be keeped for backward compatibility, I
-was thinking of something like that:
+Hmm, OK.
 
-----
-struct module;
-struct key_entry;
+Do you think we should add system_freezeable_wq to the set of predefined
+workqueues?
 
-static struct asus_wmi_driver {
-  const char                    *name;
-  struct module                 *owner;
-
-  const struct key_entry        *keymap;
-
-  int (*probe) (struct asus_wmi *asus);
-  int (*quirks) (struct asus_wmi *asus);
-
-  struct {
-    const char                  *input_name;
-    const char                  *input_phys;
-    const char                  *led_touchpad;
-    const char                  *hotplug_wlan;
-    const char                  *rfkill_wlan;
-    const char                  *rfkill_bluetooth;
-    const char                  *rfkill_wimax;
-    const char                  *rfkill_wwan3g;
-  } strings;
-
-  struct asus_wmi *device;
-};
-
-int asus_wmi_register_driver(struct asus_wmi_driver *driver);
-void asus_wmi_unregister_driver(struct asus_wmi_driver *driver);
-----
-
-Any thoughts on that ?
-
--- 
-Corentin Chary
-http://xf.iksaif.net
+Rafael
