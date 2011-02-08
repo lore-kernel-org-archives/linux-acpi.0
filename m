@@ -1,39 +1,32 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH wq#for-2.6.39] workqueue: add system_freezeable_wq
-Date: Tue, 8 Feb 2011 09:58:26 -0800
-Message-ID: <20110208175825.GE4476@core.coreip.homeip.net>
-References: <201102080029.57195.rjw@sisk.pl>
- <20110208044712.GA906@core.coreip.homeip.net>
- <201102081020.25646.rjw@sisk.pl>
- <20110208093212.GA6558@htj.dyndns.org>
- <20110208094155.GB6558@htj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Bugme-new] [Bug 28642] New: ACPI broken on DELL Latitude E6410 in 2.6.38-rc3
+Date: Wed, 9 Feb 2011 00:02:49 +0100
+Message-ID: <201102090002.49260.rjw@sisk.pl>
+References: <bug-28642-10286@https.bugzilla.kernel.org/> <20110208142550.7f96fd09.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:64890 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755130Ab1BHR6g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Feb 2011 12:58:36 -0500
-Content-Disposition: inline
-In-Reply-To: <20110208094155.GB6558@htj.dyndns.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55211 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751996Ab1BHXDa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Feb 2011 18:03:30 -0500
+In-Reply-To: <20110208142550.7f96fd09.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Adam Kovari <kovariadam@gmail.com>
 
-On Tue, Feb 08, 2011 at 10:41:55AM +0100, Tejun Heo wrote:
-> From de62c151df9b6568c67977920267392c432f340a Mon Sep 17 00:00:00 2001
-> From: Tejun Heo <tj@kernel.org>
-> Date: Tue, 8 Feb 2011 10:39:03 +0100
+On Tuesday, February 08, 2011, Andrew Morton wrote:
+> On Tue, 8 Feb 2011 22:22:21 GMT
+> bugzilla-daemon@bugzilla.kernel.org wrote:
 > 
-> Add system wide freezeable workqueue.
+> > https://bugzilla.kernel.org/show_bug.cgi?id=28642
 > 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> post-2.6.37, ACPI.
 
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Except that the reporter claims the problems started after .38-rc2, but no ACPI
+patches went in after -rc2.  What gives?
 
-And if, as Alan said, it could be "freezable" that would be great.
-
--- 
-Dmitry
+Rafael
