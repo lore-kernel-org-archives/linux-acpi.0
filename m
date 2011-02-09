@@ -1,28 +1,38 @@
-From: =?UTF-8?B?5ZC05ZCN?= <wkq5325@gmail.com>
-Subject: Xeon(R) CPU X3220 wrong frequency reading??
-Date: Wed, 9 Feb 2011 21:42:39 +0800
-Message-ID: <AANLkTi=108MYQiLTTf3ncVBr9vWttq_Qj4q4yLckamYG@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [RFC 1/2] lib, Make gen_pool memory allocator lockless
+Date: Wed, 9 Feb 2011 11:03:35 -0800
+Message-ID: <987664A83D2D224EAE907B061CE93D53019D18D43A@orsmsx505.amr.corp.intel.com>
+References: <1297236451-11331-1-git-send-email-ying.huang@intel.com>
+ <1297236451-11331-2-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47967 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755187Ab1BINmk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Feb 2011 08:42:40 -0500
-Received: by fxm20 with SMTP id 20so198164fxm.19
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Feb 2011 05:42:39 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:58318 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751139Ab1BITDi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Feb 2011 14:03:38 -0500
+In-Reply-To: <1297236451-11331-2-git-send-email-ying.huang@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Huang, Ying" <ying.huang@intel.com>, Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-Hi,
- My CPU is Xeon(R) X3220  2.4Ghz, but linux userspace governor gives 900Mhz.
-The strange problem is that sometimes userspace governor gives correct
-reading(after a new boot).
-Is it the processor frequency scaling problem or linux problem?
-(someone said it is hardware scaling mechanism) .
-But I think it is linux problem. right?
++static int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
++{
++	unsigned long val, nval;
++
++	nval = *addr;
++	do {
++		val = nval;
++		if (val & mask_to_set)
++			return -EBUSY;
++	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
++
++	return 0;
++}
 
-Thanks.
+Spin loops like this should have a call to cpu_relax(), shouldn't they?
 
-wkq
+-Tony
