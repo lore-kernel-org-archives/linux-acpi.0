@@ -1,33 +1,44 @@
-From: mihn leigh <mihnsk@gmail.com>
-Subject: cpu voltage scaling .. help me
-Date: Wed, 9 Feb 2011 23:59:52 -0800
-Message-ID: <AANLkTik4=7a1b4prYmw4Pn2b34_Cf-ur9wKQq2eSfu_Y@mail.gmail.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: RE: [RFC 1/2] lib, Make gen_pool memory allocator lockless
+Date: Thu, 10 Feb 2011 16:32:35 +0800
+Message-ID: <1297326755.32714.0.camel@yhuang-dev>
+References: <1297236451-11331-1-git-send-email-ying.huang@intel.com>
+	 <1297236451-11331-2-git-send-email-ying.huang@intel.com>
+	 <987664A83D2D224EAE907B061CE93D53019D18D43A@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48186 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752420Ab1BJH7x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Feb 2011 02:59:53 -0500
-Received: by wyb28 with SMTP id 28so1053981wyb.19
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Feb 2011 23:59:52 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:20271 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750991Ab1BJIcv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Feb 2011 03:32:51 -0500
+In-Reply-To: <987664A83D2D224EAE907B061CE93D53019D18D43A@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-Hi,
+On Thu, 2011-02-10 at 03:03 +0800, Luck, Tony wrote:
+> +static int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
+> +{
+> +	unsigned long val, nval;
+> +
+> +	nval = *addr;
+> +	do {
+> +		val = nval;
+> +		if (val & mask_to_set)
+> +			return -EBUSY;
+> +	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
+> +
+> +	return 0;
+> +}
+> 
+> Spin loops like this should have a call to cpu_relax(), shouldn't they?
 
-I want to change voltage and frequency seperately in intel i7 core(nehalem).
-With cpu-freq, i can change frequency, but cannot change voltage AFAIK.
+Thanks!  Sounds reasonable to me.  Will change it.
 
-I tried PHC "http://www.linux-phc.org", but change of voltage leads to
-frequency as well.
-Also, i tried to change IA32_PERF_CTL(MSR) register, but i also failed
-to fix the frequency while changing the voltage.
+Best Regards,
+Huang Ying
 
-Now, i have a plan to dig into PPC table, but i'm not sure if it's
-possible or not.
-Could you guys give me some infomartion how to change voltage seperately?
 
-Thanks,
-mihn
