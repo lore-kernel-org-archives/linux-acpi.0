@@ -1,44 +1,37 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: RE: [RFC 1/2] lib, Make gen_pool memory allocator lockless
-Date: Thu, 10 Feb 2011 16:32:35 +0800
-Message-ID: <1297326755.32714.0.camel@yhuang-dev>
-References: <1297236451-11331-1-git-send-email-ying.huang@intel.com>
-	 <1297236451-11331-2-git-send-email-ying.huang@intel.com>
-	 <987664A83D2D224EAE907B061CE93D53019D18D43A@orsmsx505.amr.corp.intel.com>
+From: Paul Compaore <paulcompaore12@gmail.com>
+Subject: Dear Friend,
+Date: Fri, 11 Feb 2011 11:47:20 +0900 (KST)
+Message-ID: <433291.26581.qm@web70805.mail.kr3.yahoo.com>
+Reply-To: paulcompaore14@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20271 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991Ab1BJIcv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Feb 2011 03:32:51 -0500
-In-Reply-To: <987664A83D2D224EAE907B061CE93D53019D18D43A@orsmsx505.amr.corp.intel.com>
+Received: from nm1-vm1.bullet.mail.kr3.yahoo.com ([111.67.240.243]:34319 "HELO
+	nm1-vm1.bullet.mail.kr3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932231Ab1BKCr3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Feb 2011 21:47:29 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-
-On Thu, 2011-02-10 at 03:03 +0800, Luck, Tony wrote:
-> +static int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
-> +{
-> +	unsigned long val, nval;
-> +
-> +	nval = *addr;
-> +	do {
-> +		val = nval;
-> +		if (val & mask_to_set)
-> +			return -EBUSY;
-> +	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
-> +
-> +	return 0;
-> +}
-> 
-> Spin loops like this should have a call to cpu_relax(), shouldn't they?
-
-Thanks!  Sounds reasonable to me.  Will change it.
-
-Best Regards,
-Huang Ying
 
 
+Dear Friend,
+
+I am Mr.Paul Compaore; I am in charge of auditing section in Banque Internationale Du Burkina (BIB). I need your urgent assistance to transfer the sum of ($11.3 million to your account. I will send you full details on how the business will be executed and also note that you will receive 50% of the above mentioned amount if you agree to assist me execute this business transaction. If you are interested and capable to handle this business transaction, come up with the information's shown below:- 
+
+1). Your full name: 
+2). Your contact cell phone number: 
+3). Your age: 
+4). Your sex: 
+5). Your occupations: 
+6). Your country and city:
+
+As soon as possible all these information's is submitted to me immediately i will send you full details of this business transaction on the receipt of your response.Reply to my private email: paulcompaore14@gmail.com
+
+Thanks.
+Mr Paul Compaore
+
+
+
+      
