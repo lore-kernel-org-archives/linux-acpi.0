@@ -1,8 +1,9 @@
-From: Microsoft Award =?iso-8859-1?b?qQ==?= <emaamendonca@rio.rj.gov.br>
-Subject: Final Notice!!!
-Date: Fri, 11 Feb 2011 22:56:30 -0200
-Message-ID: <20110211225630.15096ui6d0731gw8@webriomail.rio.rj.gov.br>
-Reply-To: claimsdepartment2011@hotmail.com
+From: Google Give-Away Promo =?iso-8859-1?b?qTIwMTE=?=
+	<ciepvlobos@rio.rj.gov.br>
+Subject: 500,000GBP was allocated to your e-mail
+Date: Sat, 12 Feb 2011 07:59:44 -0200
+Message-ID: <20110212075944.18845wg0var4qnks@webriomail.rio.rj.gov.br>
+Reply-To: mr.grahampoll17@hotmail.com
 Mime-Version: 1.0
 Content-Type: text/plain;
  charset=ISO-8859-1;
@@ -10,17 +11,17 @@ Content-Type: text/plain;
  format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from squid1.rio.rj.gov.br ([200.157.228.131]:43830 "EHLO
+Received: from squid1.rio.rj.gov.br ([200.157.228.131]:47854 "EHLO
 	squid1.rio.rj.gov.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758197Ab1BLBmV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Feb 2011 20:42:21 -0500
+	with ESMTP id S1752239Ab1BLKbR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Feb 2011 05:31:17 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-Ticket no: 60470937545 166You won 5200,000 Dollars.Send Name,Address,  
-Country and Tel No to Renning Harling at  
-(claimsdepartment2011@hotmail.com)
+ From google give-away promo, your email emerge a winner of  
+500,000GBP.You are advice to contact Mr Graham Poll Email:  
+graham.poll6@gmail.com for more information on claim.
 
