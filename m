@@ -1,83 +1,36 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: Patch[1/1]:ThermalFramework:Fix_crash_during_hwmon_unregister
-Date: Tue, 15 Feb 2011 10:43:33 +0530
-Message-ID: <D6D887BA8C9DFF48B5233887EF04654109470CECC6@bgsmsx502.gar.corp.intel.com>
-References: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Should asus-wmi provide a way to switch displays, and why
+ video_output class is unused
+Date: Tue, 15 Feb 2011 07:53:09 +0100
+Message-ID: <AANLkTimf3SL+BpzjVK=F9y4_dGnDp6ghmMKq5k=4hs0x@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40938 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891Ab1BOFQJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Feb 2011 00:16:09 -0500
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org
+Cc: linux acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Luming Yu <luming.yu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Len/Rui,
+Hi,
+In the ongoing effort to split eeepc-wmi, and add support for Asus WMI
+capable notebooks, I found that some of them are able to control
+dispay output.
+Currently, asus-laptop, asus_acpi and eeepc-laptop are also all able
+to do that, and they use a simple sysfs file with a bitmask to do
+that.
 
-Ping..Any comments/thoughts on this patch..?
+Now, I was searching the right, generic way to do that, and I found
+video_output class. The issue is that nobody, even acpi/video.ko, use
+it.
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of R, Durgadoss
-> Sent: Thursday, January 20, 2011 2:56 PM
-> To: Len Brown; Zhang, Rui
-> Cc: linux-acpi@vger.kernel.org
-> Subject: Patch[1/1]:ThermalFramework:Fix_crash_during_hwmon_unregister
-> 
-> Hi Len/Rui,
-> 
-> This patch fixes the following bug:
-> The thermal framework creates a temp*_crit interface, only when
-> the get_crit_temp pointer is defined. But during the _unregister_
-> path, without checking for the function definition, it is trying to
-> remove the temp*_crit interface.
-> 
-> There can be a situation, where a driver registers with the framework
-> and does not have a temp*_crit interface. When this driver attempts to
-> unregister, this will cause a kernel crash.
-> 
-> ------------------------------------------------
-> From: Durgadoss R <durgadoss.r@intel.com>
-> 
-> Date: Thu, 20 Jan 2011 02:40:56 +0530
-> Subject: [PATCH] Thermal_Framework-Fix_crash_during_hwmon_unregister
-> 
-> This patch fixes the following bug:
-> The thermal framework creates a temp*_crit interface, only when
-> the get_crit_temp pointer is defined. But during the _unregister_
-> path, without checking for the function definition, it is trying to
-> remove the temp*_crit interface.
-> 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> 
-> ---
->  drivers/thermal/thermal_sys.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 13c72c6..eef2e14 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -556,7 +556,8 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
-> 
->  	tz->hwmon = NULL;
->  	device_remove_file(hwmon->device, &tz->temp_input.attr);
-> -	device_remove_file(hwmon->device, &tz->temp_crit.attr);
-> +	if (tz->ops->get_crit_temp)
-> +		device_remove_file(hwmon->device, &tz->temp_crit.attr);
-> 
->  	mutex_lock(&thermal_list_lock);
->  	list_del(&tz->hwmon_node);
-> --
-> 1.6.5.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, what's the right way to do that ?
+
+Note, that in my case, I can't know what output are available, so
+anyway, using video_output would be a little tricky. But still, I'm
+not really comfortable adding another cryptic sysfs file, even with
+proper documentation in Docuementation/ABI/.
+
+Thanks,
+-- 
+Corentin Chary
+http://xf.iksaif.net
