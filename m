@@ -1,113 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] intel_idle: disable NHM/WSM HW C-state auto-demotion (v3)
-Date: Wed, 16 Feb 2011 01:22:00 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1102160119430.843@x980>
-References: <alpine.LFD.2.02.1101182150400.14668@x980>
- <alpine.LFD.2.02.1101190035200.14668@x980>
+From: Mathieu Malaterre <mathieu.malaterre@gmail.com>
+Subject: Question on Toshiba Satellite L670
+Date: Wed, 16 Feb 2011 17:29:50 +0100
+Message-ID: <AANLkTi=7wTTu6AsTTe=NPtayHWshQz9hH+sCnC8ZcVOz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:63681 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751606Ab1BPGWV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Feb 2011 01:22:21 -0500
-In-reply-to: <alpine.LFD.2.02.1101190035200.14668@x980>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:44834 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900Ab1BPQaN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Feb 2011 11:30:13 -0500
+Received: by gwj20 with SMTP id 20so673629gwj.19
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Feb 2011 08:30:12 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
+Dear all,
 
-Hardware C-state auto-demotion is a mechanism where the HW overrides
-the OS C-state request, instead demoting to a shallower state,
-which is less expensive, but saves less power.
+  I recently bought a new laptop, where I installed a debian system.
+However the ACPI output is a bit surprising on this machine:
 
-Modern Linux should generally get exactly the states it requests.
-In particular, when a CPU is taken off-line, it must not be demoted, else
-it can prevent the entire package from reaching deep C-states.
+$ acpi -V
+Battery 0: Discharging, 94%, 01:50:55 remaining
+Battery 0: design capacity 4500 mAh, last full capacity 4570 mAh = 100%
+Adapter 0: off-line
+Cooling 0: Processor 0 of 3
+Cooling 1: Processor 0 of 3
+Cooling 2: Processor 0 of 3
+Cooling 3: Processor 0 of 3
+Cooling 4: LCD 4 of 7
 
-https://bugzilla.kernel.org/show_bug.cgi?id=25252
+$ lsmod | grep acpi
+acpi_cpufreq            5571  1
+processor              29935  5 acpi_cpufreq
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/x86/include/asm/msr-index.h |    4 ++++
- drivers/idle/intel_idle.c        |   20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+Reading some online documentation (*) I should have something like a
+toshiba_acpi module loaded, right ?
 
-diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
-index 4d0dfa0..b75eeab 100644
---- a/arch/x86/include/asm/msr-index.h
-+++ b/arch/x86/include/asm/msr-index.h
-@@ -36,6 +36,10 @@
- #define MSR_IA32_PERFCTR1		0x000000c2
- #define MSR_FSB_FREQ			0x000000cd
- 
-+#define MSR_NHM_SNB_PKG_CST_CFG_CTL	0x000000e2
-+#define NHM_C3_AUTO_DEMOTE		(1UL << 25)
-+#define NHM_C1_AUTO_DEMOTE		(1UL << 26)
-+
- #define MSR_MTRRcap			0x000000fe
- #define MSR_IA32_BBL_CR_CTL		0x00000119
- 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 7acb32e..88998ac 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -62,6 +62,7 @@
- #include <linux/notifier.h>
- #include <linux/cpu.h>
- #include <asm/mwait.h>
-+#include <asm/msr.h>
- 
- #define INTEL_IDLE_VERSION "0.4"
- #define PREFIX "intel_idle: "
-@@ -85,6 +86,12 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state);
- static struct cpuidle_state *cpuidle_state_table;
- 
- /*
-+ * Hardware C-state auto-demotion may not always be optimal.
-+ * Indicate which enable bits to clear here.
-+ */
-+static unsigned int auto_demotion_disable_flags;
-+
-+/*
-  * Set this flag for states where the HW flushes the TLB for us
-  * and so we don't need cross-calls to keep it consistent.
-  * If this flag is set, SW flushes the TLB, so even if the
-@@ -285,6 +292,16 @@ static struct notifier_block __cpuinitdata setup_broadcast_notifier = {
- 	.notifier_call = setup_broadcast_cpuhp_notify,
- };
- 
-+static long auto_demotion_disable(void *enable_bits)
-+{
-+	unsigned long long msr_bits;
-+
-+	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+	msr_bits &= ~((unsigned long long)enable_bits);
-+	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+	return 0;
-+}
-+
- /*
-  * intel_idle_probe()
-  */
-@@ -328,6 +345,7 @@ static int intel_idle_probe(void)
- 	case 0x25:	/* Westmere */
- 	case 0x2C:	/* Westmere */
- 		cpuidle_state_table = nehalem_cstates;
-+		auto_demotion_disable_flags = NHM_C1_AUTO_DEMOTE | NHM_C3_AUTO_DEMOTE;
- 		break;
- 
- 	case 0x1C:	/* 28 - Atom Processor */
-@@ -440,6 +458,8 @@ static int intel_idle_cpuidle_devices_init(void)
- 			return -EIO;
- 		}
- 	}
-+	if (auto_demotion_disable_flags)
-+		smp_call_function(auto_demotion_disable, (void *)auto_demotion_disable_flags, 1);
- 
- 	return 0;
- }
+Is this the right place too ask this kind of question ? If so what
+else is needed to investigate what could be wrong on my setup ?
+
+Thanks !
 -- 
-1.7.4.1.26.g00e6e
-
+Mathieu
+(*) http://memebeam.org/toys/ToshibaAcpiDriver
