@@ -1,44 +1,54 @@
-From: Mike Travis <travis@sgi.com>
-Subject: [PATCH 4/5] printk: Minimize time zero output
-Date: Thu, 17 Feb 2011 12:51:35 -0600
-Message-ID: <20110217185132.576051720@gulag1.americas.sgi.com>
-References: <20110217185131.960038922@gulag1.americas.sgi.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=minimize-time-zero-msgs
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+From: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>
+Subject: Re: regression 2.6.38-rc4 -> 2.6.38-rc5 suspend fails
+Date: Thu, 17 Feb 2011 23:09:25 +0100
+Message-ID: <201102172309.26106.rwys@fuw.edu.pl>
+References: <20110217163300.GA7988@gamma.logic.tuwien.ac.at>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.fuw.edu.pl ([193.0.80.14]:36362 "EHLO mail.fuw.edu.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728Ab1BQW6R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Feb 2011 17:58:17 -0500
+In-Reply-To: <20110217163300.GA7988@gamma.logic.tuwien.ac.at>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Reduce the length for time zero messages by only printing "[0] ".
+On Thursday, February 17, 2011, Norbert Preining wrote:
+> Hi everyone,
+> 
+> (please Cc)
+> 
+> I have a regression here sinc e2.6.38-rc5 against -rc4, suspend does
+> not work anymore.
+> 
+> Suspend in rc5 stops with "some devices cannot be suspend":
+> [  186.824325] PM: Preparing system for mem sleep
+> [  187.368534] Freezing user space processes ... (elapsed 0.01 seconds) done.
+> [  187.384141] Freezing remaining freezable tasks ... (elapsed 0.01 seconds) done.
+> [  187.400154] PM: Entering mem sleep
+> [  187.400217] Suspending console(s) (use no_console_suspend to debug)
+> [  187.431788] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> [  187.431895] sd 0:0:0:0: [sda] Stopping disk
+> [  187.480078] tpm_tis 00:0a: Operation Timed out
+> [  187.480095] legacy_suspend(): pnp_bus_suspend+0x0/0x6a returns -62
+> [  187.480101] PM: Device 00:0a failed to suspend: error -62
+> [  187.919032] PM: Some devices failed to suspend
+> [  187.919108] sd 0:0:0:0: [sda] Starting disk
+> [  189.091224] PM: resume of devices complete after 1172.182 msecs
+> [  189.091687] PM: Finishing wakeup.
+> [  189.091691] Restarting tasks ... done.
+> [  189.107075] video LNXVIDEO:00: Restoring backlight state
+> 
+> Interestingly I don't see anything in lspci with 00:0a
 
-v2: updated to apply to x86-tip
+This is a PNP device.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Reviewed-by: Jack Steiner <steiner@sgi.com>
-Reviewed-by: Robin Holt <holt@sgi.com>
----
- kernel/printk.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+What happens if you revert commit 9b29050 (tpm_tis: Use timeouts returned from TPM)?
 
---- linux.orig/kernel/printk.c
-+++ linux/kernel/printk.c
-@@ -818,11 +818,13 @@ asmlinkage int vprintk(const char *fmt,
- 				unsigned long nanosec_rem;
- 
- 				t = cpu_clock(printk_cpu);
--				nanosec_rem = do_div(t, 1000000000);
--				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
-+				if (likely(t)) {
-+					nanosec_rem = do_div(t, 1000000000);
-+					tlen = sprintf(tbuf, "[%5lu.%06lu] ",
- 						(unsigned long) t,
- 						nanosec_rem / 1000);
--
-+				} else
-+					tlen = sprintf(tbuf, "[0] ");
- 				for (tp = tbuf; tp < tbuf + tlen; tp++)
- 					emit_log_char(*tp);
- 				printed_len += tlen;
+Rafael
 
--- 
