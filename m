@@ -1,21 +1,33 @@
-From: =?UTF-8?B?TWFjaWVqIEtvdGxpxYRza2k=?= <makotlinski@gmail.com>
-Subject: Re: regression 2.6.38-rc4 -> 2.6.38-rc5 suspend fails
-Date: Fri, 18 Feb 2011 16:27:27 +0100
-Message-ID: <4D5E8FDF.7040808@gmail.com>
+From: "Orbit Loans" <admin@uk.org>
+Subject: Loan
+Date: Fri, 18 Feb 2011 20:38:05 +0700 (WIT)
+Message-ID: <c927b5e23e4e86fde1b6ee32ca054303.squirrel@webmail.powertel.co.id>
+Reply-To: orbitfinancefirmltd@mail2uk.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59301 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528Ab1BRP1n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Feb 2011 10:27:43 -0500
-Received: by ewy5 with SMTP id 5so1583339ewy.19
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Feb 2011 07:27:42 -0800 (PST)
+Received: from [203.190.55.249] ([203.190.55.249]:51219 "EHLO
+	core-tomang.power.net.id" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752662Ab1BRQYP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Feb 2011 11:24:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I had the same problem on Toshiba Tecra M5 laptop.
-Reverting commit 9b29050 (tpm-tis: Use timeouts returned from TPM) 
-eliminated this problem.
+Good day,
+
+Do you have bad credit?
+Do you want to upgrade your business?
+
+I give loans to both private and public organizations at
+very low and considerable interest rates.
+
+For more information you could contact me at my email
+address below:orbitfinanceltduk@mail2uk.com
+
+
+Regards
+Hill Colin Neil Esq.
+
+
