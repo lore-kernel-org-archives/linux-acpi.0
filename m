@@ -1,7 +1,7 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
-Date: Mon, 21 Feb 2011 13:54:45 +0800
-Message-ID: <1298267685-7357-8-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
+Date: Mon, 21 Feb 2011 13:54:41 +0800
+Message-ID: <1298267685-7357-4-git-send-email-ying.huang@intel.com>
 References: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
@@ -10,370 +10,455 @@ To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some APEI GHES recoverable errors are reported via NMI, but printk is
-not safe in NMI context.
+APEI ERST firmware interface and implementation has no multiple users
+in mind.  For example, if there is four records in storage with ID: 1,
+2, 3 and 4, if two ERST readers enumerate the records via
+GET_NEXT_RECORD_ID as follow,
 
-To solve the issue, a lock-less memory allocator is used to allocate
-memory in NMI handler, save the error record into the allocated
-memory, put the error record into a lock-less list.  On the other
-hand, a irq_work is used to delay the operation from NMI context to
-IRQ context.  The irq_work IRQ handler will remove nodes from
-lock-less list, printk the error record and do some further processing
-include recovery operation, then free the memory.
+reader 1		reader 2
+1
+			2
+3
+			4
+-1
+			-1
+
+where -1 signals there is no more record ID.
+
+Reader 1 has no chance to check record 2 and 4, while reader 2 has no
+chance to check record 1 and 3.  And any other GET_NEXT_RECORD_ID will
+return -1, that is, other readers will has no chance to check any
+record even they are not cleared by anyone.
+
+This makes raw GET_NEXT_RECORD_ID not suitable for used by multiple
+users.
+
+To solve the issue, an in-memory ERST record ID cache is designed and
+implemented.  When enumerating record ID, the ID returned by
+GET_NEXT_RECORD_ID is added into cache in addition to be returned to
+caller.  So other readers can check the cache to get all record ID
+available.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/apei/Kconfig |    2 
- drivers/acpi/apei/ghes.c  |  186 ++++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 175 insertions(+), 13 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce-apei.c |   40 +++--
+ drivers/acpi/apei/erst-dbg.c          |   24 +++
+ drivers/acpi/apei/erst.c              |  235 +++++++++++++++++++++++++++-------
+ include/acpi/apei.h                   |    5 
+ 4 files changed, 240 insertions(+), 64 deletions(-)
 
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -11,6 +11,8 @@ config ACPI_APEI_GHES
- 	tristate "APEI Generic Hardware Error Source"
- 	depends on ACPI_APEI && X86
- 	select ACPI_HED
-+	select LLIST
-+	select GENERIC_ALLOCATOR
- 	help
- 	  Generic Hardware Error Source provides a way to report
- 	  platform hardware errors (such as that from chipset). It
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -42,6 +42,9 @@
- #include <linux/mutex.h>
- #include <linux/ratelimit.h>
- #include <linux/vmalloc.h>
-+#include <linux/irq_work.h>
-+#include <linux/llist.h>
-+#include <linux/genalloc.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -53,6 +56,15 @@
- #define GHES_PFX	"GHES: "
- 
- #define GHES_ESTATUS_MAX_SIZE		65536
-+#define GHES_ESOURCE_PREALLOC_MAX_SIZE	65536
-+
-+#define GHES_ESTATUS_POOL_MIN_ALLOC_ORDER	3
-+
-+#define GHES_ESTATUS_NODE_LEN(estatus_len)			\
-+	(sizeof(struct ghes_estatus_node) + (estatus_len))
-+#define GHES_ESTATUS_FROM_NODE(estatus_node)				\
-+	((struct acpi_hest_generic_status *)				\
-+	 ((struct ghes_estatus_node *)(estatus_node) + 1))
- 
- /*
-  * One struct ghes is created for each generic hardware error source.
-@@ -77,6 +89,11 @@ struct ghes {
- 	};
- };
- 
-+struct ghes_estatus_node {
-+	struct llist_node llnode;
-+	struct acpi_hest_generic *generic;
-+};
-+
- static int ghes_panic_timeout	__read_mostly = 30;
- 
- /*
-@@ -121,6 +138,19 @@ static struct vm_struct *ghes_ioremap_ar
- static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
- static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
- 
-+/*
-+ * printk is not safe in NMI context.  So in NMI handler, we allocate
-+ * required memory from lock-less memory allocator
-+ * (ghes_estatus_pool), save estatus into it, put them into lock-less
-+ * list (ghes_estatus_llist), then delay printk into IRQ context via
-+ * irq_work (ghes_proc_irq_work).  ghes_estatus_size_request record
-+ * required pool size by all NMI error source.
-+ */
-+static struct gen_pool *ghes_estatus_pool;
-+static unsigned long ghes_estatus_pool_size_request;
-+static struct llist_head ghes_estatus_llist;
-+static struct irq_work ghes_proc_irq_work;
-+
- static int ghes_ioremap_init(void)
+--- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
++++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+@@ -106,24 +106,34 @@ int apei_write_mce(struct mce *m)
+ ssize_t apei_read_mce(struct mce *m, u64 *record_id)
  {
- 	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
-@@ -180,6 +210,50 @@ static void ghes_iounmap_irq(void __iome
- 	__flush_tlb_one(vaddr);
+ 	struct cper_mce_record rcd;
+-	ssize_t len;
+-
+-	len = erst_read_next(&rcd.hdr, sizeof(rcd));
+-	if (len <= 0)
+-		return len;
+-	/* Can not skip other records in storage via ERST unless clear them */
+-	else if (len != sizeof(rcd) ||
+-		 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE)) {
+-		if (printk_ratelimit())
+-			pr_warning(
+-			"MCE-APEI: Can not skip the unknown record in ERST");
+-		return -EIO;
+-	}
++	int rc, pos;
+ 
++	rc = erst_get_record_id_begin(&pos);
++	if (rc)
++		return rc;
++retry:
++	rc = erst_get_record_id_next(&pos, record_id);
++	if (rc)
++		goto out;
++	/* no more record */
++	if (*record_id == APEI_ERST_INVALID_RECORD_ID)
++		goto out;
++	rc = erst_read(*record_id, &rcd.hdr, sizeof(rcd));
++	/* someone else has cleared the record, try next one */
++	if (rc == -ENOENT)
++		goto retry;
++	else if (rc < 0)
++		goto out;
++	/* try to skip other type records in storage */
++	else if (rc != sizeof(rcd) ||
++		 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE))
++		goto retry;
+ 	memcpy(m, &rcd.mce, sizeof(*m));
+-	*record_id = rcd.hdr.record_id;
++	rc = sizeof(*m);
++out:
++	erst_get_record_id_end();
+ 
+-	return sizeof(*m);
++	return rc;
  }
  
-+static int ghes_estatus_pool_init(void)
+ /* Check whether there is record in ERST */
+--- a/drivers/acpi/apei/erst-dbg.c
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -43,12 +43,27 @@ static DEFINE_MUTEX(erst_dbg_mutex);
+ 
+ static int erst_dbg_open(struct inode *inode, struct file *file)
+ {
++	int rc, *pos;
++
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
++	pos = (int *)&file->private_data;
++
++	rc = erst_get_record_id_begin(pos);
++	if (rc)
++		return rc;
++
+ 	return nonseekable_open(inode, file);
+ }
+ 
++static int erst_dbg_release(struct inode *inode, struct file *file)
 +{
-+	ghes_estatus_pool = gen_pool_create(GHES_ESTATUS_POOL_MIN_ALLOC_ORDER, -1);
-+	if (!ghes_estatus_pool)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
-+static void ghes_estatus_pool_exit(void)
-+{
-+	struct gen_pool_chunk *chunk;
-+
-+	gen_pool_for_each_chunk(chunk, ghes_estatus_pool)
-+		free_page(chunk->start_addr);
-+	gen_pool_destroy(ghes_estatus_pool);
-+}
-+
-+static int ghes_estatus_pool_expand(unsigned long len)
-+{
-+	unsigned long i, pages, size, addr;
-+	int ret;
-+
-+	ghes_estatus_pool_size_request += PAGE_ALIGN(len);
-+	size = gen_pool_size(ghes_estatus_pool);
-+	if (size >= ghes_estatus_pool_size_request)
-+		return 0;
-+	pages = (ghes_estatus_pool_size_request - size) / PAGE_SIZE;
-+	for (i = 0; i < pages; i++) {
-+		addr = __get_free_page(GFP_KERNEL);
-+		if (!addr)
-+			return -ENOMEM;
-+		ret = gen_pool_add(ghes_estatus_pool, addr, PAGE_SIZE, -1);
-+		if (ret)
-+			return ret;
-+	}
++	erst_get_record_id_end();
 +
 +	return 0;
 +}
 +
-+static void ghes_estatus_pool_shrink(unsigned long len)
-+{
-+	ghes_estatus_pool_size_request -= PAGE_ALIGN(len);
-+}
+ static long erst_dbg_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+ {
+ 	int rc;
+@@ -79,18 +94,20 @@ static long erst_dbg_ioctl(struct file *
+ static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
+ 			     size_t usize, loff_t *off)
+ {
+-	int rc;
++	int rc, *pos;
+ 	ssize_t len = 0;
+ 	u64 id;
+ 
+-	if (*off != 0)
++	if (*off)
+ 		return -EINVAL;
+ 
+ 	if (mutex_lock_interruptible(&erst_dbg_mutex) != 0)
+ 		return -EINTR;
+ 
++	pos = (int *)&filp->private_data;
 +
- static struct ghes *ghes_new(struct acpi_hest_generic *generic)
- {
- 	struct ghes *ghes;
-@@ -341,13 +415,13 @@ static void ghes_clear_estatus(struct gh
- 	ghes->flags &= ~GHES_TO_CLEAR;
- }
- 
--static void ghes_do_proc(struct ghes *ghes)
-+static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
- {
- 	int sev, processed = 0;
- 	struct acpi_hest_generic_data *gdata;
- 
--	sev = ghes_severity(ghes->estatus->error_severity);
--	apei_estatus_for_each_section(ghes->estatus, gdata) {
-+	sev = ghes_severity(estatus->error_severity);
-+	apei_estatus_for_each_section(estatus, gdata) {
- #ifdef CONFIG_X86_MCE
- 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
-@@ -360,13 +434,15 @@ static void ghes_do_proc(struct ghes *gh
- 	}
- }
- 
--static void ghes_print_estatus(const char *pfx, struct ghes *ghes)
-+static void ghes_print_estatus(const char *pfx,
-+			       const struct acpi_hest_generic *generic,
-+			       const struct acpi_hest_generic_status *estatus)
- {
- 	/* Not more than 2 messages every 5 seconds */
- 	static DEFINE_RATELIMIT_STATE(ratelimit, 5*HZ, 2);
- 
- 	if (pfx == NULL) {
--		if (ghes_severity(ghes->estatus->error_severity) <=
-+		if (ghes_severity(estatus->error_severity) <=
- 		    GHES_SEV_CORRECTED)
- 			pfx = KERN_WARNING HW_ERR;
- 		else
-@@ -375,8 +451,8 @@ static void ghes_print_estatus(const cha
- 	if (__ratelimit(&ratelimit)) {
- 		printk(
- 	"%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
--	pfx, ghes->generic->header.source_id);
--		apei_estatus_print(pfx, ghes->estatus);
-+	pfx, generic->header.source_id);
-+		apei_estatus_print(pfx, estatus);
- 	}
- }
- 
-@@ -387,8 +463,8 @@ static int ghes_proc(struct ghes *ghes)
- 	rc = ghes_read_estatus(ghes, 0);
+ retry_next:
+-	rc = erst_get_next_record_id(&id);
++	rc = erst_get_record_id_next(pos, &id);
  	if (rc)
  		goto out;
--	ghes_print_estatus(NULL, ghes);
--	ghes_do_proc(ghes);
-+	ghes_print_estatus(NULL, ghes->generic, ghes->estatus);
-+	ghes_do_proc(ghes->estatus);
- 
- out:
- 	ghes_clear_estatus(ghes);
-@@ -447,6 +523,40 @@ static int ghes_notify_sci(struct notifi
- 	return ret;
+ 	/* no more record */
+@@ -181,6 +198,7 @@ out:
+ static const struct file_operations erst_dbg_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= erst_dbg_open,
++	.release	= erst_dbg_release,
+ 	.read		= erst_dbg_read,
+ 	.write		= erst_dbg_write,
+ 	.unlocked_ioctl	= erst_dbg_ioctl,
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -429,6 +429,22 @@ ssize_t erst_get_record_count(void)
  }
+ EXPORT_SYMBOL_GPL(erst_get_record_count);
  
-+static void ghes_proc_in_irq(struct irq_work *irq_work)
-+{
-+	struct llist_node *llnode, *next, *tail = NULL;
-+	struct ghes_estatus_node *estatus_node;
-+	struct acpi_hest_generic_status *estatus;
-+	u32 len, node_len;
++#define ERST_RECORD_ID_CACHE_SIZE_MIN	16
++#define ERST_RECORD_ID_CACHE_SIZE_MAX	1024
 +
-+	/*
-+	 * Because the time order of estatus in list is reversed,
-+	 * revert it back to proper order.
-+	 */
-+	llnode = llist_del_all(&ghes_estatus_llist);
-+	while (llnode) {
-+		next = llnode->next;
-+		llnode->next = tail;
-+		tail = llnode;
-+		llnode = next;
-+	}
-+	llnode = tail;
-+	while (llnode) {
-+		next = llnode->next;
-+		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
-+					   llnode);
-+		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
-+		len = apei_estatus_len(estatus);
-+		node_len = GHES_ESTATUS_NODE_LEN(len);
-+		ghes_do_proc(estatus);
-+		ghes_print_estatus(NULL, estatus_node->generic, estatus);
-+		gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node,
-+			      node_len);
-+		llnode = next;
-+	}
-+}
++struct erst_record_id_cache {
++	struct mutex lock;
++	u64 *entries;
++	int len;
++	int size;
++	int refcount;
++};
 +
- static int ghes_notify_nmi(struct notifier_block *this,
- 				  unsigned long cmd, void *data)
++static struct erst_record_id_cache erst_record_id_cache = {
++	.lock = __MUTEX_INITIALIZER(erst_record_id_cache.lock),
++	.refcount = 0,
++};
++
+ static int __erst_get_next_record_id(u64 *record_id)
  {
-@@ -476,7 +586,8 @@ static int ghes_notify_nmi(struct notifi
- 
- 	if (sev_global >= GHES_SEV_PANIC) {
- 		oops_begin();
--		ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global);
-+		ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global->generic,
-+				   ghes_global->estatus);
- 		/* reboot to log the error! */
- 		if (panic_timeout == 0)
- 			panic_timeout = ghes_panic_timeout;
-@@ -484,12 +595,31 @@ static int ghes_notify_nmi(struct notifi
- 	}
- 
- 	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
-+#ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+		u32 len, node_len;
-+		struct ghes_estatus_node *estatus_node;
-+		struct acpi_hest_generic_status *estatus;
-+#endif
- 		if (!(ghes->flags & GHES_TO_CLEAR))
- 			continue;
--		/* Do not print estatus because printk is not NMI safe */
--		ghes_do_proc(ghes);
-+#ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+		/* Save estatus for further processing in IRQ context */
-+		len = apei_estatus_len(ghes->estatus);
-+		node_len = GHES_ESTATUS_NODE_LEN(len);
-+		estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool,
-+						      node_len);
-+		if (estatus_node) {
-+			estatus_node->generic = ghes->generic;
-+			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
-+			memcpy(estatus, ghes->estatus, len);
-+			llist_add(&estatus_node->llnode, &ghes_estatus_llist);
-+		}
-+#endif
- 		ghes_clear_estatus(ghes);
- 	}
-+#ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	irq_work_queue(&ghes_proc_irq_work);
-+#endif
- 
- out:
- 	raw_spin_unlock(&ghes_nmi_lock);
-@@ -504,10 +634,26 @@ static struct notifier_block ghes_notifi
- 	.notifier_call = ghes_notify_nmi,
- };
- 
-+static unsigned long ghes_esource_prealloc_size(
-+	const struct acpi_hest_generic *generic)
-+{
-+	unsigned long block_length, prealloc_records, prealloc_size;
-+
-+	block_length = min_t(unsigned long, generic->error_block_length,
-+			     GHES_ESTATUS_MAX_SIZE);
-+	prealloc_records = max_t(unsigned long,
-+				 generic->records_to_preallocate, 1);
-+	prealloc_size = min_t(unsigned long, block_length * prealloc_records,
-+			      GHES_ESOURCE_PREALLOC_MAX_SIZE);
-+
-+	return prealloc_size;
-+}
-+
- static int __devinit ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
- 	struct ghes *ghes = NULL;
-+	unsigned long len;
- 	int rc = -EINVAL;
- 
- 	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
-@@ -573,6 +719,8 @@ static int __devinit ghes_probe(struct p
- 		mutex_unlock(&ghes_list_mutex);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
-+		len = ghes_esource_prealloc_size(generic);
-+		ghes_estatus_pool_expand(len);
- 		mutex_lock(&ghes_list_mutex);
- 		if (list_empty(&ghes_nmi))
- 			register_die_notifier(&ghes_notifier_nmi);
-@@ -597,6 +745,7 @@ static int __devexit ghes_remove(struct
- {
- 	struct ghes *ghes;
- 	struct acpi_hest_generic *generic;
-+	unsigned long len;
- 
- 	ghes = platform_get_drvdata(ghes_dev);
- 	generic = ghes->generic;
-@@ -627,6 +776,8 @@ static int __devexit ghes_remove(struct
- 		 * freed after NMI handler finishes.
- 		 */
- 		synchronize_rcu();
-+		len = ghes_esource_prealloc_size(generic);
-+		ghes_estatus_pool_shrink(len);
- 		break;
- 	default:
- 		BUG();
-@@ -662,15 +813,23 @@ static int __init ghes_init(void)
- 		return -EINVAL;
- 	}
- 
-+	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
-+
- 	rc = ghes_ioremap_init();
- 	if (rc)
- 		goto err;
- 
--	rc = platform_driver_register(&ghes_platform_driver);
-+	rc = ghes_estatus_pool_init();
- 	if (rc)
- 		goto err_ioremap_exit;
- 
-+	rc = platform_driver_register(&ghes_platform_driver);
-+	if (rc)
-+		goto err_pool_exit;
-+
+ 	struct apei_exec_context ctx;
+@@ -443,26 +459,179 @@ static int __erst_get_next_record_id(u64
  	return 0;
-+err_pool_exit:
-+	ghes_estatus_pool_exit();
- err_ioremap_exit:
- 	ghes_ioremap_exit();
- err:
-@@ -680,6 +839,7 @@ err:
- static void __exit ghes_exit(void)
- {
- 	platform_driver_unregister(&ghes_platform_driver);
-+	ghes_estatus_pool_exit();
- 	ghes_ioremap_exit();
  }
  
++int erst_get_record_id_begin(int *pos)
++{
++	int rc;
++
++	if (erst_disable)
++		return -ENODEV;
++
++	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
++	if (rc)
++		return rc;
++	erst_record_id_cache.refcount++;
++	mutex_unlock(&erst_record_id_cache.lock);
++
++	*pos = 0;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(erst_get_record_id_begin);
++
++/* erst_record_id_cache.lock must be held by caller */
++static int __erst_record_id_cache_add_one(void)
++{
++	u64 id, prev_id, first_id;
++	int i, rc;
++	u64 *entries;
++	unsigned long flags;
++
++	id = prev_id = first_id = APEI_ERST_INVALID_RECORD_ID;
++retry:
++	raw_spin_lock_irqsave(&erst_lock, flags);
++	rc = __erst_get_next_record_id(&id);
++	raw_spin_unlock_irqrestore(&erst_lock, flags);
++	if (rc == -ENOENT)
++		return 0;
++	if (rc)
++		return rc;
++	if (id == APEI_ERST_INVALID_RECORD_ID)
++		return 0;
++	/* can not skip current ID, or loop back to first ID */
++	if (id == prev_id || id == first_id)
++		return 0;
++	if (first_id == APEI_ERST_INVALID_RECORD_ID)
++		first_id = id;
++	prev_id = id;
++
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (entries[i] == id)
++			break;
++	}
++	/* record id already in cache, try next */
++	if (i < erst_record_id_cache.len)
++		goto retry;
++	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
++		int new_size, alloc_size;
++		u64 *new_entries;
++
++		new_size = erst_record_id_cache.size * 2;
++		new_size = clamp_val(new_size, ERST_RECORD_ID_CACHE_SIZE_MIN,
++				     ERST_RECORD_ID_CACHE_SIZE_MAX);
++		if (new_size <= erst_record_id_cache.size) {
++			if (printk_ratelimit())
++				pr_warning(FW_WARN ERST_PFX
++					   "too many record ID!\n");
++			return 0;
++		}
++		alloc_size = new_size * sizeof(entries[0]);
++		if (alloc_size < PAGE_SIZE)
++			new_entries = kmalloc(alloc_size, GFP_KERNEL);
++		else
++			new_entries = vmalloc(alloc_size);
++		if (!new_entries)
++			return -ENOMEM;
++		memcpy(new_entries, entries,
++		       erst_record_id_cache.len * sizeof(entries[0]));
++		if (erst_record_id_cache.size < PAGE_SIZE)
++			kfree(entries);
++		else
++			vfree(entries);
++		erst_record_id_cache.entries = entries = new_entries;
++		erst_record_id_cache.size = new_size;
++	}
++	entries[i] = id;
++	erst_record_id_cache.len++;
++
++	return 1;
++}
++
+ /*
+  * Get the record ID of an existing error record on the persistent
+  * storage. If there is no error record on the persistent storage, the
+  * returned record_id is APEI_ERST_INVALID_RECORD_ID.
+  */
+-int erst_get_next_record_id(u64 *record_id)
++int erst_get_record_id_next(int *pos, u64 *record_id)
+ {
+-	int rc;
+-	unsigned long flags;
++	int rc = 0;
++	u64 *entries;
+ 
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
+-	raw_spin_lock_irqsave(&erst_lock, flags);
+-	rc = __erst_get_next_record_id(record_id);
+-	raw_spin_unlock_irqrestore(&erst_lock, flags);
++	/* must be enclosed by erst_get_record_id_begin/end */
++	BUG_ON(!erst_record_id_cache.refcount);
++	BUG_ON(*pos < 0 || *pos > erst_record_id_cache.len);
++
++	mutex_lock(&erst_record_id_cache.lock);
++	entries = erst_record_id_cache.entries;
++	for (; *pos < erst_record_id_cache.len; (*pos)++)
++		if (entries[*pos] != APEI_ERST_INVALID_RECORD_ID)
++			break;
++	/* found next record id in cache */
++	if (*pos < erst_record_id_cache.len) {
++		*record_id = entries[*pos];
++		(*pos)++;
++		goto out_unlock;
++	}
++
++	/* Try to add one more record ID to cache */
++	rc = __erst_record_id_cache_add_one();
++	if (rc < 0)
++		goto out_unlock;
++	/* successfully add one new ID */
++	if (rc == 1) {
++		*record_id = erst_record_id_cache.entries[*pos];
++		(*pos)++;
++		rc = 0;
++	} else {
++		*pos = -1;
++		*record_id = APEI_ERST_INVALID_RECORD_ID;
++	}
++out_unlock:
++	mutex_unlock(&erst_record_id_cache.lock);
+ 
+ 	return rc;
+ }
+-EXPORT_SYMBOL_GPL(erst_get_next_record_id);
++EXPORT_SYMBOL_GPL(erst_get_record_id_next);
++
++/* erst_record_id_cache.lock must be held by caller */
++static void __erst_record_id_cache_compact(void)
++{
++	int i, wpos = 0;
++	u64 *entries;
++
++	if (erst_record_id_cache.refcount)
++		return;
++
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
++			continue;
++		if (wpos != i)
++			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
++		wpos++;
++	}
++	erst_record_id_cache.len = wpos;
++}
++
++void erst_get_record_id_end(void)
++{
++	/*
++	 * erst_disable != 0 should be detected by invoker via the
++	 * return value of erst_get_record_id_begin/next, so this
++	 * function should not be called for erst_disable != 0.
++	 */
++	BUG_ON(erst_disable);
++
++	mutex_lock(&erst_record_id_cache.lock);
++	erst_record_id_cache.refcount--;
++	BUG_ON(erst_record_id_cache.refcount < 0);
++	__erst_record_id_cache_compact();
++	mutex_unlock(&erst_record_id_cache.lock);
++}
++EXPORT_SYMBOL_GPL(erst_get_record_id_end);
+ 
+ static int __erst_write_to_storage(u64 offset)
+ {
+@@ -703,56 +872,34 @@ ssize_t erst_read(u64 record_id, struct
+ }
+ EXPORT_SYMBOL_GPL(erst_read);
+ 
+-/*
+- * If return value > buflen, the buffer size is not big enough,
+- * else if return value = 0, there is no more record to read,
+- * else if return value < 0, something goes wrong,
+- * else everything is OK, and return value is record length
+- */
+-ssize_t erst_read_next(struct cper_record_header *record, size_t buflen)
+-{
+-	int rc;
+-	ssize_t len;
+-	unsigned long flags;
+-	u64 record_id;
+-
+-	if (erst_disable)
+-		return -ENODEV;
+-
+-	raw_spin_lock_irqsave(&erst_lock, flags);
+-	rc = __erst_get_next_record_id(&record_id);
+-	if (rc) {
+-		raw_spin_unlock_irqrestore(&erst_lock, flags);
+-		return rc;
+-	}
+-	/* no more record */
+-	if (record_id == APEI_ERST_INVALID_RECORD_ID) {
+-		raw_spin_unlock_irqrestore(&erst_lock, flags);
+-		return 0;
+-	}
+-
+-	len = __erst_read(record_id, record, buflen);
+-	raw_spin_unlock_irqrestore(&erst_lock, flags);
+-
+-	return len;
+-}
+-EXPORT_SYMBOL_GPL(erst_read_next);
+-
+ int erst_clear(u64 record_id)
+ {
+-	int rc;
++	int rc, i;
+ 	unsigned long flags;
++	u64 *entries;
+ 
+ 	if (erst_disable)
+ 		return -ENODEV;
+ 
++	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
++	if (rc)
++		return rc;
+ 	raw_spin_lock_irqsave(&erst_lock, flags);
+ 	if (erst_erange.attr & ERST_RANGE_NVRAM)
+ 		rc = __erst_clear_from_nvram(record_id);
+ 	else
+ 		rc = __erst_clear_from_storage(record_id);
+ 	raw_spin_unlock_irqrestore(&erst_lock, flags);
+-
++	if (rc)
++		goto out;
++	entries = erst_record_id_cache.entries;
++	for (i = 0; i < erst_record_id_cache.len; i++) {
++		if (entries[i] == record_id)
++			entries[i] = APEI_ERST_INVALID_RECORD_ID;
++	}
++	__erst_record_id_cache_compact();
++out:
++	mutex_unlock(&erst_record_id_cache.lock);
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(erst_clear);
+--- a/include/acpi/apei.h
++++ b/include/acpi/apei.h
+@@ -30,10 +30,11 @@ int apei_hest_parse(apei_hest_func_t fun
+ 
+ int erst_write(const struct cper_record_header *record);
+ ssize_t erst_get_record_count(void);
+-int erst_get_next_record_id(u64 *record_id);
++int erst_get_record_id_begin(int *pos);
++int erst_get_record_id_next(int *pos, u64 *record_id);
++void erst_get_record_id_end(void);
+ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
+ 		  size_t buflen);
+-ssize_t erst_read_next(struct cper_record_header *record, size_t buflen);
+ int erst_clear(u64 record_id);
+ 
+ #endif
