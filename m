@@ -1,257 +1,27 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
-Date: Mon, 21 Feb 2011 13:54:42 +0800
-Message-ID: <1298267685-7357-5-git-send-email-ying.huang@intel.com>
-References: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Should asus-wmi provide a way to switch displays, and why
+	video_output class is unused
+Date: Mon, 21 Feb 2011 20:24:02 +0000
+Message-ID: <20110221202402.GA22622@srcf.ucam.org>
+References: <AANLkTimf3SL+BpzjVK=F9y4_dGnDp6ghmMKq5k=4hs0x@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60137 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932083Ab1BUFy5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Feb 2011 00:54:57 -0500
-In-Reply-To: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:38986 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752692Ab1BUUYM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Feb 2011 15:24:12 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTimf3SL+BpzjVK=F9y4_dGnDp6ghmMKq5k=4hs0x@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Zhang Yanmin <yanmin.zhang@intel.com>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: platform-driver-x86@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Luming Yu <luming.yu@intel.com>
 
-When printing PCIe AER error information, each line is prefixed with
-PCIe device and driver information.  In original implementation, the
-prefix is generated when each line is printed.  In fact, all lines
-share the same prefix.  So this patch pre-generated the prefix, and
-use that one when each line is printed.
+Thought I'd replied to this already, but: Unless it's impossible for X 
+and the kernel to handle enabling a display without this, don't bother. 
+There's no reason for us to care about the combinations of outputs the
+BIOS wants to support.
 
-In addition to common prefix can be pre-generated, the trailing white
-spaces in string constants and NULLs in char * array constants can be
-removed too.  These can reduce the object file size further.
-
-The size of object file before and after changing is as follow:
-
-           text    data     bss     dec
-before:    3038       0       0    3038
-after:     2118       0       0    2118
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-CC: Jesse Barnes <jbarnes@virtuousgeek.org>
-CC: Zhang Yanmin <yanmin.zhang@intel.com>
----
- drivers/pci/pcie/aer/aerdrv_errprint.c |  123 ++++++++++++---------------------
- 1 file changed, 48 insertions(+), 75 deletions(-)
-
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -57,86 +57,44 @@
- 	(e & AER_DATA_LINK_LAYER_ERROR_MASK(t)) ? AER_DATA_LINK_LAYER_ERROR : \
- 	AER_TRANSACTION_LAYER_ERROR)
- 
--#define AER_PR(info, pdev, fmt, args...)				\
--	printk("%s%s %s: " fmt, (info->severity == AER_CORRECTABLE) ?	\
--		KERN_WARNING : KERN_ERR, dev_driver_string(&pdev->dev),	\
--		dev_name(&pdev->dev), ## args)
--
- /*
-  * AER error strings
-  */
--static char *aer_error_severity_string[] = {
-+static const char *aer_error_severity_string[] = {
- 	"Uncorrected (Non-Fatal)",
- 	"Uncorrected (Fatal)",
- 	"Corrected"
- };
- 
--static char *aer_error_layer[] = {
-+static const char *aer_error_layer[] = {
- 	"Physical Layer",
- 	"Data Link Layer",
- 	"Transaction Layer"
- };
--static char *aer_correctable_error_string[] = {
--	"Receiver Error        ",	/* Bit Position 0	*/
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	"Bad TLP               ",	/* Bit Position 6	*/
--	"Bad DLLP              ",	/* Bit Position 7	*/
--	"RELAY_NUM Rollover    ",	/* Bit Position 8	*/
--	NULL,
--	NULL,
--	NULL,
--	"Replay Timer Timeout  ",	/* Bit Position 12	*/
--	"Advisory Non-Fatal    ",	/* Bit Position 13	*/
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
-+
-+static const char *aer_correctable_error_string[] = {
-+	"Receiver Error",		/* Bit Position 0	*/
- 	NULL,
- 	NULL,
- 	NULL,
- 	NULL,
- 	NULL,
-+	"Bad TLP",			/* Bit Position 6	*/
-+	"Bad DLLP",			/* Bit Position 7	*/
-+	"RELAY_NUM Rollover",		/* Bit Position 8	*/
- 	NULL,
- 	NULL,
- 	NULL,
-+	"Replay Timer Timeout",		/* Bit Position 12	*/
-+	"Advisory Non-Fatal",		/* Bit Position 13	*/
- };
- 
--static char *aer_uncorrectable_error_string[] = {
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	"Data Link Protocol    ",	/* Bit Position 4	*/
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	NULL,
--	"Poisoned TLP          ",	/* Bit Position 12	*/
--	"Flow Control Protocol ",	/* Bit Position 13	*/
--	"Completion Timeout    ",	/* Bit Position 14	*/
--	"Completer Abort       ",	/* Bit Position 15	*/
--	"Unexpected Completion ",	/* Bit Position 16	*/
--	"Receiver Overflow     ",	/* Bit Position 17	*/
--	"Malformed TLP         ",	/* Bit Position 18	*/
--	"ECRC                  ",	/* Bit Position 19	*/
--	"Unsupported Request   ",	/* Bit Position 20	*/
-+static const char *aer_uncorrectable_error_string[] = {
- 	NULL,
- 	NULL,
- 	NULL,
- 	NULL,
-+	"Data Link Protocol",		/* Bit Position 4	*/
- 	NULL,
- 	NULL,
- 	NULL,
-@@ -144,19 +102,29 @@ static char *aer_uncorrectable_error_str
- 	NULL,
- 	NULL,
- 	NULL,
-+	"Poisoned TLP",			/* Bit Position 12	*/
-+	"Flow Control Protocol",	/* Bit Position 13	*/
-+	"Completion Timeout",		/* Bit Position 14	*/
-+	"Completer Abort",		/* Bit Position 15	*/
-+	"Unexpected Completion",	/* Bit Position 16	*/
-+	"Receiver Overflow",		/* Bit Position 17	*/
-+	"Malformed TLP",		/* Bit Position 18	*/
-+	"ECRC",				/* Bit Position 19	*/
-+	"Unsupported Request",		/* Bit Position 20	*/
- };
- 
--static char *aer_agent_string[] = {
-+static const char *aer_agent_string[] = {
- 	"Receiver ID",
- 	"Requester ID",
- 	"Completer ID",
- 	"Transmitter ID"
- };
- 
--static void __aer_print_error(struct aer_err_info *info, struct pci_dev *dev)
-+static void __aer_print_error(const char *prefix,
-+			      struct aer_err_info *info)
- {
- 	int i, status;
--	char *errmsg = NULL;
-+	const char *errmsg = NULL;
- 
- 	status = (info->status & ~info->mask);
- 
-@@ -165,15 +133,17 @@ static void __aer_print_error(struct aer
- 			continue;
- 
- 		if (info->severity == AER_CORRECTABLE)
--			errmsg = aer_correctable_error_string[i];
-+			errmsg = i < ARRAY_SIZE(aer_correctable_error_string) ?
-+				aer_correctable_error_string[i] : NULL;
- 		else
--			errmsg = aer_uncorrectable_error_string[i];
-+			errmsg = i < ARRAY_SIZE(aer_uncorrectable_error_string) ?
-+				aer_uncorrectable_error_string[i] : NULL;
- 
- 		if (errmsg)
--			AER_PR(info, dev, "   [%2d] %s%s\n", i, errmsg,
-+			printk("%s""   [%2d] %-22s%s\n", prefix, i, errmsg,
- 				info->first_error == i ? " (First)" : "");
- 		else
--			AER_PR(info, dev, "   [%2d] Unknown Error Bit%s\n", i,
-+			printk("%s""   [%2d] Unknown Error Bit%s\n", prefix, i,
- 				info->first_error == i ? " (First)" : "");
- 	}
- }
-@@ -181,11 +151,15 @@ static void __aer_print_error(struct aer
- void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- {
- 	int id = ((dev->bus->number << 8) | dev->devfn);
-+	char prefix[44];
-+
-+	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
-+		 (info->severity == AER_CORRECTABLE) ? KERN_WARNING : KERN_ERR,
-+		 dev_driver_string(&dev->dev), dev_name(&dev->dev));
- 
- 	if (info->status == 0) {
--		AER_PR(info, dev,
--			"PCIe Bus Error: severity=%s, type=Unaccessible, "
--			"id=%04x(Unregistered Agent ID)\n",
-+		printk("%s""PCIe Bus Error: severity=%s, type=Unaccessible, "
-+			"id=%04x(Unregistered Agent ID)\n", prefix,
- 			aer_error_severity_string[info->severity], id);
- 	} else {
- 		int layer, agent;
-@@ -193,23 +167,22 @@ void aer_print_error(struct pci_dev *dev
- 		layer = AER_GET_LAYER_ERROR(info->severity, info->status);
- 		agent = AER_GET_AGENT(info->severity, info->status);
- 
--		AER_PR(info, dev,
--			"PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
--			aer_error_severity_string[info->severity],
-+		printk("%s""PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
-+			prefix, aer_error_severity_string[info->severity],
- 			aer_error_layer[layer], id, aer_agent_string[agent]);
- 
--		AER_PR(info, dev,
--			"  device [%04x:%04x] error status/mask=%08x/%08x\n",
--			dev->vendor, dev->device, info->status, info->mask);
-+		printk("%s""  device [%04x:%04x] error status/mask=%08x/%08x\n",
-+			prefix, dev->vendor, dev->device,
-+			info->status, info->mask);
- 
--		__aer_print_error(info, dev);
-+		__aer_print_error(prefix, info);
- 
- 		if (info->tlp_header_valid) {
- 			unsigned char *tlp = (unsigned char *) &info->tlp;
--			AER_PR(info, dev, "  TLP Header:"
-+			printk("%s""  TLP Header:"
- 				" %02x%02x%02x%02x %02x%02x%02x%02x"
- 				" %02x%02x%02x%02x %02x%02x%02x%02x\n",
--				*(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
-+				prefix, *(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
- 				*(tlp + 7), *(tlp + 6), *(tlp + 5), *(tlp + 4),
- 				*(tlp + 11), *(tlp + 10), *(tlp + 9),
- 				*(tlp + 8), *(tlp + 15), *(tlp + 14),
-@@ -218,8 +191,8 @@ void aer_print_error(struct pci_dev *dev
- 	}
- 
- 	if (info->id && info->error_dev_num > 1 && info->id == id)
--		AER_PR(info, dev,
--			"  Error of this Agent(%04x) is reported first\n", id);
-+		printk("%s""  Error of this Agent(%04x) is reported first\n",
-+			prefix, id);
- }
- 
- void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
