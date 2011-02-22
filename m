@@ -1,39 +1,36 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] 2.6.38-rc5-git6: Reported regressions 2.6.36 -> 2.6.37
-Date: Tue, 22 Feb 2011 12:07:24 -0800
-Message-ID: <20110222200724.GB11679@kroah.com>
-References: <JwKd6rET8XO.A._ZC.gbuYNB@chimera>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [Intel-gfx] [PATCH 1/2] ACPI/Intel: Rework Opregion support
+Date: Tue, 22 Feb 2011 12:18:40 -0800
+Message-ID: <20110222121840.32a6e782@jbarnes-desktop>
+References: <1298404994-2907-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <JwKd6rET8XO.A._ZC.gbuYNB@chimera>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux SCSI List <linux-scsi@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:34706 "HELO
+	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751867Ab1BVUSp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Feb 2011 15:18:45 -0500
+In-Reply-To: <1298404994-2907-1-git-send-email-mjg@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, alan@linux.intel.com
 
-On Mon, Feb 21, 2011 at 11:29:26PM +0100, Rafael J. Wysocki wrote:
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=24582
-> Subject		: Kernel Oops at tty_buffer_request_room when using pppd program (2.6.37-rc4)
-> Submitter	: baoyb <baoyb@avit.org.cn>
-> Date		: 2010-12-08 13:55 (76 days old)
-> Message-ID	: <EF6DDE218DB34702B1FA84D6CD7EA771@baoyb>
-> References	: http://marc.info/?l=linux-kernel&m=129181763525738&w=2
-> Handled-By	: Jiri Slaby <jslaby@suse.cz>
-> Patch		: https://bugzilla.kernel.org/attachment.cgi?id=47872
+On Tue, 22 Feb 2011 15:03:13 -0500
+Matthew Garrett <mjg@redhat.com> wrote:
 
-This is queued up already for sending to Linus soon.
+> The Integrated Graphics Device opregion specification defines a mechanism
+> for the OS and system firmware to collaborate on various graphics-related
+> functionality. This is currently implemented in the i915 driver but isn't
+> strictly limited to these devices. Move it to a more generic location and
+> remove the i915 dependency, while simultaneously reworking i915 to make
+> use of the new driver.
 
-thanks,
+Nice, having it split out makes sense.  And I like the formalized
+interface between the driver and the OpRegion features.
 
-greg k-h
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+
+-- 
+Jesse Barnes, Intel Open Source Technology Center
