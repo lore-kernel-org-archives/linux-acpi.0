@@ -1,50 +1,74 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 2/6] x86: Minimize initial e820 messages
-Date: Tue, 22 Feb 2011 11:43:10 -0700
-Message-ID: <201102221143.10718.bjorn.helgaas@hp.com>
-References: <20110219024705.308511527@gulag1.americas.sgi.com> <20110219024705.695093866@gulag1.americas.sgi.com>
+From: Kees Cook <kees.cook@canonical.com>
+Subject: [PATCH] acpi: create CONFIG item for debugfs custom_method
+Date: Tue, 22 Feb 2011 11:32:50 -0800
+Message-ID: <20110222193250.GA23913@outflux.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:7532 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1BVSna (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Feb 2011 13:43:30 -0500
-In-Reply-To: <20110219024705.695093866@gulag1.americas.sgi.com>
+Received: from smtp.outflux.net ([198.145.64.163]:59515 "EHLO smtp.outflux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751985Ab1BVTdZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Feb 2011 14:33:25 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday, February 18, 2011 07:47:07 pm Mike Travis wrote:
-> Minimize the early e820 messages by printing less characters
-> for the address range as well as abbreviating the type info
-> for each entry.
+Since /sys/kernel/debug/acpi/custom_method can be used to write arbitrary
+kernel memory (http://jon.oberheide.org/files/american-sign-language.c),
+it should be able to be left out of the kernel for system owners that
+want to be as defensive as possible to potential attacks, even from the
+root user. See as examples: CONFIG_DEVKMEM, CONFIG_STRICT_DEVMEM, and
+/proc/sys/kernel/modules_disabled.
 
-> +			pr_info("%s: %Lx+%Lx (%s)\n", who,
-> +			       (unsigned long long) e820.map[i].addr,
-> +			       (unsigned long long) e820.map[i].size,
-> +			       e820_types(e820.map[i].type));
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+---
+ drivers/acpi/Kconfig   |   10 ++++++++++
+ drivers/acpi/debugfs.c |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-If we're going to change the way we print E820 ranges, I think
-we should make them consistent with the way we handle %pR, e.g.,
-use something like this:
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 2aa042a..726b7ea 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -381,6 +381,16 @@ config ACPI_HED
+ 	  which is used to report some hardware errors notified via
+ 	  SCI, mainly the corrected errors.
+ 
++config ACPI_DEBUG_CUSTOM_METHOD
++	bool "Debugging: Custom Method Insertion"
++	depends on DEBUG_FS
++	default n
++	help
++	  This creates the debugfs interface file "acpi/custom_method"
++	  used for loading custom ACPI methods. Note that this allows
++	  arbitrary kernel memory writing by the root user and is not
++	  recommended for normal systems.
++
+ source "drivers/acpi/apei/Kconfig"
+ 
+ endif	# ACPI
+diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+index 5df67f1..0240b15 100644
+--- a/drivers/acpi/debugfs.c
++++ b/drivers/acpi/debugfs.c
+@@ -20,6 +20,7 @@ module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+ MODULE_PARM_DESC(aml_debug_output,
+ 		 "To enable/disable the ACPI Debug Object output.");
+ 
++#ifdef CONFIG_ACPI_DEBUG_CUSTOM_METHOD
+ /* /sys/kernel/debug/acpi/custom_method */
+ 
+ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+@@ -92,3 +93,4 @@ err:
+ 		debugfs_remove(acpi_dir);
+ 	return -EINVAL;
+ }
++#endif
+-- 
+1.7.2.3
 
-    "%s: [mem %#018Lx-%#018Lx]"
-
-This is a little different because %pR wouldn't make the field
-so wide, but when we discussed this earlier, keeping the table
-alignment was thought to be important.  That discussion starts
-here: https://lkml.org/lkml/2010/9/22/248
-
-Same comment applies to the update, remove, PCI gap (which
-your patch currently doesn't touch), and EFI output.
-
-I know this kind of derails the whole "remove characters" point
-of your patch (and I support that in principle), but I do think
-consistency is important, too.  We have too many different ways
-of printing the same information.
-
-Bjorn
+-- 
+Kees Cook
+Ubuntu Security Team
