@@ -1,47 +1,87 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: xHCI Express Card failure -- ACPI related?
-Date: Wed, 23 Feb 2011 08:23:34 -0800
-Message-ID: <20110223162333.GA5660@xanatos>
-References: <20110223005513.GA2503@xanatos>
- <20110223015445.GA27481@srcf.ucam.org>
- <20110223145747.GA4627@xanatos>
- <20110223150922.GA9304@srcf.ucam.org>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 3/6] x86: Minimize SRAT messages
+Date: Wed, 23 Feb 2011 13:24:11 -0800
+Message-ID: <4D657AFB.4010501@sgi.com>
+References: <20110219024705.308511527@gulag1.americas.sgi.com> <20110219024705.828947738@gulag1.americas.sgi.com> <alpine.DEB.2.00.1102191725150.27722@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6730 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753920Ab1BWQXh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Feb 2011 11:23:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20110223150922.GA9304@srcf.ucam.org>
+Received: from relay3.sgi.com ([192.48.152.1]:57157 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753254Ab1BWVYS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Feb 2011 16:24:18 -0500
+In-Reply-To: <alpine.DEB.2.00.1102191725150.27722@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Feb 23, 2011 at 03:09:22PM +0000, Matthew Garrett wrote:
-> On Wed, Feb 23, 2011 at 06:57:47AM -0800, Sarah Sharp wrote:
-> > On Wed, Feb 23, 2011 at 01:54:45AM +0000, Matthew Garrett wrote:
-> > > On Tue, Feb 22, 2011 at 04:55:13PM -0800, Sarah Sharp wrote:
-> > > > I'm having an issue with an xHCI (USB 3.0 host controller) Express Card.
-> > > > This card works fine on 2.6.37, but on 2.6.38-rc5, when I plug in the
-> > > > card, I get this output in dmesg:
-> > > 
-> > > Is the controller associated with irq 23?
-> > 
-> > I think it is, before the xHCI driver switches to MSI/MSIX.  I'd have to
-> > disable MSI in 2.6.37 to confirm.
-> 
-> Mm. Sounds like it's the hardware generating a legacy IRQ after you've 
-> changed to MSI? Any chance this could be related to the irq 
-> synchronisation patches?
+[I was finally able to get some time on our large UV test system.]
 
-Could be related, but I'm not sure that's the issue.  I don't see any
-messages at all from the xHCI driver or the USB core about the new host
-before the "nobody cared" message appears (although it turned out I have
-CONFIG_USB_XHCI_HCD_DEBUGGING turned off).  AFAICT, the driver never
-gets loaded.  But if the xHCI driver failed in its init sequence...
-I'll check.
+Here are the stats testing on a system with 248 nodes, 606 EFI
+mem ranges, 1984 cores
 
-Sarah Sharp
+after get_log_buff_early:  (17% overflow)
+
+        [    0.000000] early log_buf free: -45723/262183(-17%)
+        [    0.000000] first line: : mem339: type=7, attr=0xf, range=[0x00000e6000000000-0x00000e6fff000000) (6552
+
+Here I enabled some cores that were disabled so now the system
+has 248 nodes, 606 EFI mem ranges, 2368 cores.
+
+after minimize-time-zero-msgs:  (5% overflow)
+
+[0] early log_buf free: -15184/262172(-5%)
+[0] first line: [0x000000007226e000-0x0000000072271000) (0MB) <6>[0] EFI: mem67: type=3, attr=0
+
+Condensing the SRAT: PXM APIC messages resulted in 26% space free
+in the early log buffer...
+
+Was 2368 lines (for 2368 cores):
+
+ 779 [0] SRAT: PXM 0 -> APIC 0x0000 -> Node 0
+ 780 [0] SRAT: PXM 0 -> APIC 0x0002 -> Node 0
+ 781 [0] SRAT: PXM 0 -> APIC 0x0004 -> Node 0
+ ...
+ 3145 [0] SRAT: PXM 247 -> APIC 0x3df0 -> Node 247
+ 3146 [0] SRAT: PXM 247 -> APIC 0x3df2 -> Node 247
+
+Now it's 248 lines (for 248 Nodes) (Nodes 0..191 have 10 core cpus.)
+
+ 777 [0] SRAT: Node 0: PXM:APIC 0:0 :2 :4 :16 :18 :32 :34 :36 :48 :50
+ 778 [0] SRAT: Node 1: PXM:APIC 1:64 :66 :68 :80 :82 :96 :98 :100 :112 :114
+ 779 [0] SRAT: Node 2: PXM:APIC 2:128 :130 :132 :144 :146 :160 :162 :164 :176 :178
+ ...
+ 968 [0] SRAT: Node 190: PXM:APIC 190:12160 :12162 :12164 :12176 :12178 :12192 :12194 :12196 :12208 :12210
+ 969 [0] SRAT: Node 191: PXM:APIC 191:12224 :12226 :12228 :12240 :12242 :12256 :12258 :12260 :12272 :12274
+ ...
+ 1023 [0] SRAT: Node 246: PXM:APIC 246:15744 :15746 :15748 :15760 :15778 :15780 :15792 :15794
+ 1024 [0] SRAT: Node 247: PXM:APIC 247:15808 :15810 :15812 :15826 :15840 :15844 :15856 :15858
+
+[0] early log_buf free: 69649/192523(26%)
+[0] first line: <6>[0] Initializing cgroup subsys cpuset <6>[0] Initializing cgroup subsys cpu                                       
+
+My question is is the above decimal satisfactory, or should it be hex as
+shown below?  (Which will add 8k bytes for the "0x" when there are 4096 cores
+but the hex values will be smaller.)
+
+ 821 [0] SRAT: Node 0: PXM:APIC 0:0x0 :0x2 :0x4 :0x10 :0x12 :0x20 :0x22 :0x24 :0x30 :0x32
+ 822 [0] SRAT: Node 1: PXM:APIC 1:0x40 :0x42 :0x44 :0x50 :0x52 :0x60 :0x62 :0x64 :0x70 :0x72
+ 823 [0] SRAT: Node 2: PXM:APIC 2:0x80 :0x82 :0x84 :0x90 :0x92 :0xa0 :0xa2 :0xa4 :0xb0 :0xb2
+...
+1011 [0] SRAT: Node 190: PXM:APIC 190:0x2f80 :0x2f82 :0x2f84 :0x2f90 :0x2f92 :0x2fa0 :0x2fa2 :0x2fa4 :0x2fb0 :0x2fb2
+1012 [0] SRAT: Node 191: PXM:APIC 191:0x2fc0 :0x2fc2 :0x2fc4 :0x2fd0 :0x2fd2 :0x2fe0 :0x2fe2 :0x2fe4 :0x2ff0 :0x2ff2
+...
+1067 [0] SRAT: Node 246: PXM:APIC 246:0x3d80 :0x3d82 :0x3d84 :0x3d90 :0x3da2 :0x3da4 :0x3db0 :0x3db2
+1068 [0] SRAT: Node 247: PXM:APIC 247:0x3dc0 :0x3dc2 :0x3dc4 :0x3dd2 :0x3de0 :0x3de4 :0x3df0 :0x3df2
+
+I will do some more study to see if affecting only these changes will
+be enough to not overflow the early log buffer in a max config system.
+
+(Btw, I have not figured out how to predict ahead of time that this
+APIC id is the last one on the Node to insert the '\n'.)
+
+Thanks,
+Mike
+
