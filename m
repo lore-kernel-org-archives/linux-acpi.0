@@ -1,179 +1,105 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFT][PATCH] ACPI / ACPICA: Implicit notify for multiple devices
-Date: Wed, 23 Feb 2011 23:05:44 +0100
-Message-ID: <201102232305.45005.rjw@sisk.pl>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 3/6] x86: Minimize SRAT messages
+Date: Wed, 23 Feb 2011 20:12:29 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.1102232007590.14576@chino.kir.corp.google.com>
+References: <20110219024705.308511527@gulag1.americas.sgi.com> <20110219024705.828947738@gulag1.americas.sgi.com> <alpine.DEB.2.00.1102191725150.27722@chino.kir.corp.google.com> <4D657AFB.4010501@sgi.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53178 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753155Ab1BWWFx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Feb 2011 17:05:53 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D657AFB.4010501@sgi.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Wed, 23 Feb 2011, Mike Travis wrote:
 
-Commit bba63a2 (ACPICA: Implicit notify support) introduced a
-mechanism that causes a notify request of type
-ACPI_NOTIFY_DEVICE_WAKE to be queued automatically by
-acpi_ev_asynch_execute_gpe_method() for the device whose _PRW points
-to the GPE being handled if that GPE is not associated with an
-_Lxx/_Exx method.  However, it turns out that on some systems there
-are multiple devices with _PRW pointing to the same GPE without
-_Lxx/_Exx and the mechanism introduced by commit bba63a2 needs to be
-extended so that "implicit" notify requests of type
-ACPI_NOTIFY_DEVICE_WAKE can be queued automatically for all those
-devices at the same time.
+> [I was finally able to get some time on our large UV test system.]
+> 
+> Here are the stats testing on a system with 248 nodes, 606 EFI
+> mem ranges, 1984 cores
+> 
+> after get_log_buff_early:  (17% overflow)
+> 
+>        [    0.000000] early log_buf free: -45723/262183(-17%)
+>        [    0.000000] first line: : mem339: type=7, attr=0xf,
+> range=[0x00000e6000000000-0x00000e6fff000000) (6552
+> 
+> Here I enabled some cores that were disabled so now the system
+> has 248 nodes, 606 EFI mem ranges, 2368 cores.
+> 
+> after minimize-time-zero-msgs:  (5% overflow)
+> 
+> [0] early log_buf free: -15184/262172(-5%)
+> [0] first line: [0x000000007226e000-0x0000000072271000) (0MB) <6>[0] EFI:
+> mem67: type=3, attr=0
+> 
+> Condensing the SRAT: PXM APIC messages resulted in 26% space free
+> in the early log buffer...
+> 
+> Was 2368 lines (for 2368 cores):
+> 
+> 779 [0] SRAT: PXM 0 -> APIC 0x0000 -> Node 0
+> 780 [0] SRAT: PXM 0 -> APIC 0x0002 -> Node 0
+> 781 [0] SRAT: PXM 0 -> APIC 0x0004 -> Node 0
+> ...
+> 3145 [0] SRAT: PXM 247 -> APIC 0x3df0 -> Node 247
+> 3146 [0] SRAT: PXM 247 -> APIC 0x3df2 -> Node 247
+> 
 
-Reported-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+Very cool, if you include these format changes from old to new in the 
+individual patch descriptions it would be great.
 
-Hi Matthew,
+> Now it's 248 lines (for 248 Nodes) (Nodes 0..191 have 10 core cpus.)
+> 
+> 777 [0] SRAT: Node 0: PXM:APIC 0:0 :2 :4 :16 :18 :32 :34 :36 :48 :50
+> 778 [0] SRAT: Node 1: PXM:APIC 1:64 :66 :68 :80 :82 :96 :98 :100 :112 :114
+> 779 [0] SRAT: Node 2: PXM:APIC 2:128 :130 :132 :144 :146 :160 :162 :164 :176
+> :178
+> ...
+> 968 [0] SRAT: Node 190: PXM:APIC 190:12160 :12162 :12164 :12176 :12178 :12192
+> :12194 :12196 :12208 :12210
+> 969 [0] SRAT: Node 191: PXM:APIC 191:12224 :12226 :12228 :12240 :12242 :12256
+> :12258 :12260 :12272 :12274
+> ...
+> 1023 [0] SRAT: Node 246: PXM:APIC 246:15744 :15746 :15748 :15760 :15778 :15780
+> :15792 :15794
+> 1024 [0] SRAT: Node 247: PXM:APIC 247:15808 :15810 :15812 :15826 :15840 :15844
+> :15856 :15858
+> 
 
-The patch below doesn't blow up my Toshiba test box, which is a good sign,
-but please test it on the boxes where you see the problem.
+Although they look a bit odd, I think these lines are easily parsable and 
+understood even without looking at the implementation.
 
-Thanks,
-Rafael
+> [0] early log_buf free: 69649/192523(26%)
+> [0] first line: <6>[0] Initializing cgroup subsys cpuset <6>[0] Initializing
+> cgroup subsys cpu                                       
+> My question is is the above decimal satisfactory, or should it be hex as
+> shown below?  (Which will add 8k bytes for the "0x" when there are 4096 cores
+> but the hex values will be smaller.)
+> 
+> 821 [0] SRAT: Node 0: PXM:APIC 0:0x0 :0x2 :0x4 :0x10 :0x12 :0x20 :0x22 :0x24
+> :0x30 :0x32
+> 822 [0] SRAT: Node 1: PXM:APIC 1:0x40 :0x42 :0x44 :0x50 :0x52 :0x60 :0x62
+> :0x64 :0x70 :0x72
+> 823 [0] SRAT: Node 2: PXM:APIC 2:0x80 :0x82 :0x84 :0x90 :0x92 :0xa0 :0xa2
+> :0xa4 :0xb0 :0xb2
+> ...
+> 1011 [0] SRAT: Node 190: PXM:APIC 190:0x2f80 :0x2f82 :0x2f84 :0x2f90 :0x2f92
+> :0x2fa0 :0x2fa2 :0x2fa4 :0x2fb0 :0x2fb2
+> 1012 [0] SRAT: Node 191: PXM:APIC 191:0x2fc0 :0x2fc2 :0x2fc4 :0x2fd0 :0x2fd2
+> :0x2fe0 :0x2fe2 :0x2fe4 :0x2ff0 :0x2ff2
+> ...
+> 1067 [0] SRAT: Node 246: PXM:APIC 246:0x3d80 :0x3d82 :0x3d84 :0x3d90 :0x3da2
+> :0x3da4 :0x3db0 :0x3db2
+> 1068 [0] SRAT: Node 247: PXM:APIC 247:0x3dc0 :0x3dc2 :0x3dc4 :0x3dd2 :0x3de0
+> :0x3de4 :0x3df0 :0x3df2
+> 
+> I will do some more study to see if affecting only these changes will
+> be enough to not overflow the early log buffer in a max config system.
+> 
 
----
- drivers/acpi/acpica/aclocal.h |    7 ++++++-
- drivers/acpi/acpica/evgpe.c   |   17 +++++++++++++----
- drivers/acpi/acpica/evxfgpe.c |   42 +++++++++++++++++++++++++++++++++---------
- 3 files changed, 52 insertions(+), 14 deletions(-)
-
-Index: linux-2.6/drivers/acpi/acpica/aclocal.h
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/aclocal.h
-+++ linux-2.6/drivers/acpi/acpica/aclocal.h
-@@ -416,10 +416,15 @@ struct acpi_gpe_handler_info {
- 	u8 originally_enabled;  /* True if GPE was originally enabled */
- };
- 
-+struct acpi_gpe_notify_object {
-+	struct acpi_namespace_node *node;
-+	struct acpi_gpe_notify_object *next;
-+};
-+
- union acpi_gpe_dispatch_info {
- 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level */
- 	struct acpi_gpe_handler_info *handler;  /* Installed GPE handler */
--	struct acpi_namespace_node *device_node;        /* Parent _PRW device for implicit notify */
-+	struct acpi_gpe_notify_object device;   /* List of _PRW devices for implicit notify */
- };
- 
- /*
-Index: linux-2.6/drivers/acpi/acpica/evxfgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evxfgpe.c
-+++ linux-2.6/drivers/acpi/acpica/evxfgpe.c
-@@ -198,7 +198,9 @@ acpi_setup_gpe_for_wake(acpi_handle wake
- 	acpi_status status = AE_BAD_PARAMETER;
- 	struct acpi_gpe_event_info *gpe_event_info;
- 	struct acpi_namespace_node *device_node;
-+	struct acpi_gpe_notify_object *notify_object;
- 	acpi_cpu_flags flags;
-+	u8 gpe_dispatch_mask;
- 
- 	ACPI_FUNCTION_TRACE(acpi_setup_gpe_for_wake);
- 
-@@ -221,27 +223,49 @@ acpi_setup_gpe_for_wake(acpi_handle wake
- 		goto unlock_and_exit;
- 	}
- 
-+	if (wake_device == ACPI_ROOT_OBJECT) {
-+		goto out;
-+	}
-+
- 	/*
- 	 * If there is no method or handler for this GPE, then the
- 	 * wake_device will be notified whenever this GPE fires (aka
- 	 * "implicit notify") Note: The GPE is assumed to be
- 	 * level-triggered (for windows compatibility).
- 	 */
--	if (((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
--	      ACPI_GPE_DISPATCH_NONE) && (wake_device != ACPI_ROOT_OBJECT)) {
-+	gpe_dispatch_mask = gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK;
-+	if (gpe_dispatch_mask != ACPI_GPE_DISPATCH_NONE
-+	    && gpe_dispatch_mask != ACPI_GPE_DISPATCH_NOTIFY) {
-+		goto out;
-+	}
- 
--		/* Validate wake_device is of type Device */
-+	/* Validate wake_device is of type Device */
- 
--		device_node = ACPI_CAST_PTR(struct acpi_namespace_node,
--					    wake_device);
--		if (device_node->type != ACPI_TYPE_DEVICE) {
--			goto unlock_and_exit;
--		}
-+	device_node = ACPI_CAST_PTR(struct acpi_namespace_node, wake_device);
-+	if (device_node->type != ACPI_TYPE_DEVICE) {
-+		goto unlock_and_exit;
-+	}
-+
-+	if (gpe_dispatch_mask == ACPI_GPE_DISPATCH_NONE) {
- 		gpe_event_info->flags = (ACPI_GPE_DISPATCH_NOTIFY |
- 					 ACPI_GPE_LEVEL_TRIGGERED);
--		gpe_event_info->dispatch.device_node = device_node;
-+		gpe_event_info->dispatch.device.node = device_node;
-+		gpe_event_info->dispatch.device.next = NULL;
-+	} else {
-+		/* There are multiple devices to notify implicitly. */
-+
-+		notify_object = ACPI_ALLOCATE_ZEROED(sizeof(*notify_object));
-+		if (!notify_object) {
-+			status = AE_NO_MEMORY;
-+			goto unlock_and_exit;
-+		}
-+
-+		notify_object->node = device_node;
-+		notify_object->next = gpe_event_info->dispatch.device.next;
-+		gpe_event_info->dispatch.device.next = notify_object;
- 	}
- 
-+ out:
- 	gpe_event_info->flags |= ACPI_GPE_CAN_WAKE;
- 	status = AE_OK;
- 
-Index: linux-2.6/drivers/acpi/acpica/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpe.c
-+++ linux-2.6/drivers/acpi/acpica/evgpe.c
-@@ -457,6 +457,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
- 	acpi_status status;
- 	struct acpi_gpe_event_info *local_gpe_event_info;
- 	struct acpi_evaluate_info *info;
-+	struct acpi_gpe_notify_object *notify_object;
- 
- 	ACPI_FUNCTION_TRACE(ev_asynch_execute_gpe_method);
- 
-@@ -508,10 +509,18 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
- 		 * from this thread -- because handlers may in turn run other
- 		 * control methods.
- 		 */
--		status =
--		    acpi_ev_queue_notify_request(local_gpe_event_info->dispatch.
--						 device_node,
--						 ACPI_NOTIFY_DEVICE_WAKE);
-+		status = acpi_ev_queue_notify_request(
-+				local_gpe_event_info->dispatch.device.node,
-+				ACPI_NOTIFY_DEVICE_WAKE);
-+
-+		notify_object = local_gpe_event_info->dispatch.device.next;
-+		while (ACPI_SUCCESS(status) && notify_object) {
-+			status = acpi_ev_queue_notify_request(
-+					notify_object->node,
-+					ACPI_NOTIFY_DEVICE_WAKE);
-+			notify_object = notify_object->next;
-+		}
-+
- 		break;
- 
- 	case ACPI_GPE_DISPATCH_METHOD:
+I still think we should try to emit the "0x" prefix for any values printed 
+in hexadecimal which may or may not be obvious (such as nodes 0 and 1 
+above), this is pretty standard.  The final decision would be up to Ingo, 
+though.
