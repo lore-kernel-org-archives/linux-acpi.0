@@ -1,36 +1,34 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFT][PATCH] ACPI / ACPICA: Implicit notify for multiple
-	devices
-Date: Thu, 24 Feb 2011 18:41:12 +0000
-Message-ID: <20110224184112.GA9850@srcf.ucam.org>
-References: <201102232305.45005.rjw@sisk.pl> <20110224154126.GA5285@srcf.ucam.org> <201102241938.37158.rjw@sisk.pl>
+From: "Ian Davies" <iandavies198@gmail.com>
+Subject: Please i wait to hear from you urgently, it very important
+Date: Thu, 24 Feb 2011 11:14:13 -0800
+Message-ID: <20110224200926.38A245E002C__5378.91192730076$1298602495$gmane$org@mail.dumlupinar.edu.tr>
+Reply-To: <iandavies822@yahoo.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:57186 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279Ab1BXSlW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Feb 2011 13:41:22 -0500
-Content-Disposition: inline
-In-Reply-To: <201102241938.37158.rjw@sisk.pl>
+Received: from dpusmtpgw.dpu.edu.tr ([194.27.43.31]:64593 "EHLO
+	dpusmtpgw.dumlupinar.edu.tr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753804Ab1BYCyc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Feb 2011 21:54:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-On Thu, Feb 24, 2011 at 07:38:36PM +0100, Rafael J. Wysocki wrote:
-> On Thursday, February 24, 2011, Matthew Garrett wrote:
-> > Works on my test Thinkpad - notifies get sent to both EHCI controllers 
-> > and the HDA hardware now.
-> > 
-> > Tested-by: Matthew Garrett <mjg@redhat.com>
-> 
-> Cool, thanks!
-> 
-> How urgent is this issue?
+I am Ian Davies ;an accredited vendor of Alliot Groups, a subsidiary firm of Emirates International Holding (EIH); A private equity funds holding company that focuses on hedge funds.
 
-Enabling PCI runtime PM on these machines could cause GPE storms without 
-waking the device.
+I have contacted you in the hope that you can be my associate by accepting to stand as the legal recipient to a Fixed-Income deposit, valued at 25MUSD by provind an International Offshore account to clear the funds.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Once I file your details as the new recipient to the funds, the fundswill be approved through the AUTOMATED CLEARING HOUSE (ACH) - A facility used by financial institutions to distribute electronic debit and credit entries to bank accounts and therefore settles such entries. Under the automated clearing house system. 
+
+
+upon approval of your details  as the new recipient; a Credit advice will be issued in your favor and the funds will clear in your account within three banking days. I am willing to give you 40% which is 10MUSD as your commission out of the 25MUSD for your assistance in providing an International Offshore account to clear the funds.
+
+
+I am confident you will be honest enough to adhere to our agreed commissions in spite of the 25MUSD coming through your account. I will need you to forward me your legal names address and phone to file your details on the fund as the new recipient in this first Quater of the financial fiscal year 2011.
+
+Looking forward to working with you.
+Ian Davies
+Accredited vendor
+Alliot Groups PS
+
