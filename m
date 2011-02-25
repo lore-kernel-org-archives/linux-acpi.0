@@ -1,34 +1,38 @@
-From: "Ian Davies" <iandavies198@gmail.com>
-Subject: Please i wait to hear from you urgently, it very important
-Date: Thu, 24 Feb 2011 11:14:13 -0800
-Message-ID: <20110224200926.38A245E002C__5378.91192730076$1298602495$gmane$org@mail.dumlupinar.edu.tr>
-Reply-To: <iandavies822@yahoo.no>
-Mime-Version: 1.0
-Content-Type: text/plain;charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 09/21]drivers:acpi:hwxface.c remove one to many l's in the word.
+Date: Thu, 24 Feb 2011 22:12:15 -0800
+Message-ID: <1298614335-3766-1-git-send-email-justinmattock@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dpusmtpgw.dpu.edu.tr ([194.27.43.31]:64593 "EHLO
-	dpusmtpgw.dumlupinar.edu.tr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753804Ab1BYCyc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Feb 2011 21:54:32 -0500
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58599 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879Ab1BYGMd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Feb 2011 01:12:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trivial@kernel.org
+Cc: lenb@kernel.org, ming.m.lin@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>
 
-I am Ian Davies ;an accredited vendor of Alliot Groups, a subsidiary firm of Emirates International Holding (EIH); A private equity funds holding company that focuses on hedge funds.
+The patch below removes an extra "l" in the word.
 
-I have contacted you in the hope that you can be my associate by accepting to stand as the legal recipient to a Fixed-Income deposit, valued at 25MUSD by provind an International Offshore account to clear the funds.
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-Once I file your details as the new recipient to the funds, the fundswill be approved through the AUTOMATED CLEARING HOUSE (ACH) - A facility used by financial institutions to distribute electronic debit and credit entries to bank accounts and therefore settles such entries. Under the automated clearing house system. 
+---
+ drivers/acpi/acpica/hwxface.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
-upon approval of your details  as the new recipient; a Credit advice will be issued in your favor and the funds will clear in your account within three banking days. I am willing to give you 40% which is 10MUSD as your commission out of the 25MUSD for your assistance in providing an International Offshore account to clear the funds.
-
-
-I am confident you will be honest enough to adhere to our agreed commissions in spite of the 25MUSD coming through your account. I will need you to forward me your legal names address and phone to file your details on the fund as the new recipient in this first Quater of the financial fiscal year 2011.
-
-Looking forward to working with you.
-Ian Davies
-Accredited vendor
-Alliot Groups PS
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 6f98d21..e48bc08 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -355,7 +355,7 @@ ACPI_EXPORT_SYMBOL(acpi_read_bit_register)
+  *
+  * PARAMETERS:  register_id     - ID of ACPI Bit Register to access
+  *              Value           - Value to write to the register, in bit
+- *                                position zero. The bit is automaticallly
++ *                                position zero. The bit is automatically
+  *                                shifted to the correct position.
+  *
+  * RETURN:      Status
+-- 
+1.7.4.1
 
