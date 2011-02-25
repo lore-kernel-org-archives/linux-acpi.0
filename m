@@ -1,62 +1,74 @@
 From: Mike Travis <travis@sgi.com>
-Subject: [PATCH 3/4] printk: Minimize time zero output
-Date: Fri, 25 Feb 2011 12:06:36 -0600
-Message-ID: <20110225180634.281487428@gulag1.americas.sgi.com>
-References: <20110225180633.857892225@gulag1.americas.sgi.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:42326 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756089Ab1BYSGi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Feb 2011 13:06:38 -0500
-Content-Disposition: inline; filename=minimize-time-zero-msgs
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 0/4] init: Shrink early messages to prevent overflowing the kernel log buffer
+Date: Fri, 25 Feb 2011 12:06:33 -0600
+Message-ID: <20110225180633.857892225@gulag1.americas.sgi.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
 Cc: David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Reduce the length for time zero messages by only printing "[0] ".
 
-Before:
-	[    0.000000] <message>
-After:
-	[0] <message>
+On larger systems, information in the kernel log is lost because
+there is so much early text printed, that it overflows the static
+log buffer before the log_buf_len kernel parameter can be processed,
+and a bigger log buffer allocated.
 
-There will be somewhere around 4000 to 5000 messages(*) on a fully
-configured large NUMA system, before allocation of the log buf can
-happen.  By removing 11 bytes from each the net gain will be from
-44,000 to 55,000 bytes of redundant information removed.
+Distros are relunctant to increase memory usage by increasing the
+size of the static log buffer, so minimize the problem by allocating
+the new log buffer as early as possible.  Unfortunately allocating
+early does not recover all the early messages, so we also need to
+reduce the amount of characters those early messages generate.
 
-(* - this is after the minimize-srat-msgs patch is applied.)
+Here are the stats testing on a system with 248 nodes, 606 EFI
+mem ranges, 1984 cores
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Reviewed-by: Jack Steiner <steiner@sgi.com>
-Reviewed-by: Robin Holt <holt@sgi.com>
----
- kernel/printk.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+after get_log_buff_early:  (17% overflow)
 
---- linux.orig/kernel/printk.c
-+++ linux/kernel/printk.c
-@@ -745,12 +745,17 @@ static inline int printk_emit_time(void)
- 	char tbuf[50], *tp;
- 	unsigned tlen;
- 	unsigned long long t;
--	unsigned long microsec_rem;
- 
- 	t = cpu_clock(printk_cpu);
--	microsec_rem = do_div(t, 1000000000) / 1000;
--	tlen = sprintf(tbuf, "[%5lu.%06lu] ", (unsigned long)t, microsec_rem);
-+	if (likely(t)) {
-+		unsigned long microsec_rem = do_div(t, 1000000000) / 1000;
- 
-+		tlen = sprintf(tbuf, "[%5lu.%06lu] ",
-+					(unsigned long)t, microsec_rem);
-+	} else {
-+		/* reduce byte count in log when time is zero */
-+		tlen = sprintf(tbuf, "[0] ");
-+	}
- 	for (tp = tbuf; tp < tbuf + tlen; tp++)
- 		emit_log_char(*tp);
- 
+	[    0.000000] early log_buf free: -45723/262183(-17%)
+	[    0.000000] first line: : mem339: type=7, attr=0xf, range=[0x00000e6000000000-0x00000e6fff000000) (6552
+
+Here I enabled some cores that were disabled so now the system
+has 248 nodes, 606 EFI mem ranges, 2368 cores.
+
+after minimize-time-zero-msgs:  (5% overflow)
+
+[0] early log_buf free: -15184/262172(-5%)
+[0] first line: [0x000000007226e000-0x0000000072271000) (0MB) <6>[0] EFI: mem67: type=3, attr=0
+
+after minimize-srat-msgs.v2: (28% free)
+
+[0] early log_buf free: 73556/188616(28%)
+[0] first line: <6>[0] Initializing cgroup subsys cpuset <6>[0] Initializing cgroup subsys cpu
+
+Some previous stats from testing these changes on our current lab
+UV systems.  (Both of these systems lost all of the e820 and EFI
+memmap ranges before the changes.)
+
+System X:
+	8,793,945,145,344 bytes of system memory
+	256 nodes
+	599 EFI Mem ranges
+	4096 cpu_ids
+	43% of static log buffer unused
+
+System Y:
+	11,779,115,188,224 bytes of system memory
+	492 Nodes
+	976 EFI Mem ranges
+	1968 cpu_ids
+	17% of static log buffer unused
+
+The last stat is how close the static log buffer came
+to overflowing.  While these resources are fairly close
+to today's max limits, there is not a lot of head room
+for growth.
+
+An alternative for the future might be to create a larger
+static log buffer in the __initdata section, and then
+always allocate a dynamically sized log buffer to replace
+it.  This would also allow shrinking the log buffer for
+memory tight situations.  But it would add complexity to
+the code.
 
 -- 
