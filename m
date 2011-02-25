@@ -1,38 +1,62 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 09/21]drivers:acpi:hwxface.c remove one to many l's in the word.
-Date: Thu, 24 Feb 2011 22:12:15 -0800
-Message-ID: <1298614335-3766-1-git-send-email-justinmattock@gmail.com>
+From: Mike Travis <travis@sgi.com>
+Subject: [PATCH 3/4] printk: Minimize time zero output
+Date: Fri, 25 Feb 2011 12:06:36 -0600
+Message-ID: <20110225180634.281487428@gulag1.americas.sgi.com>
+References: <20110225180633.857892225@gulag1.americas.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:58599 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab1BYGMd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Feb 2011 01:12:33 -0500
+Received: from relay2.sgi.com ([192.48.179.30]:42326 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756089Ab1BYSGi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Feb 2011 13:06:38 -0500
+Content-Disposition: inline; filename=minimize-time-zero-msgs
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trivial@kernel.org
-Cc: lenb@kernel.org, ming.m.lin@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-The patch below removes an extra "l" in the word.
+Reduce the length for time zero messages by only printing "[0] ".
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+Before:
+	[    0.000000] <message>
+After:
+	[0] <message>
 
+There will be somewhere around 4000 to 5000 messages(*) on a fully
+configured large NUMA system, before allocation of the log buf can
+happen.  By removing 11 bytes from each the net gain will be from
+44,000 to 55,000 bytes of redundant information removed.
+
+(* - this is after the minimize-srat-msgs patch is applied.)
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Reviewed-by: Jack Steiner <steiner@sgi.com>
+Reviewed-by: Robin Holt <holt@sgi.com>
 ---
- drivers/acpi/acpica/hwxface.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ kernel/printk.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
-index 6f98d21..e48bc08 100644
---- a/drivers/acpi/acpica/hwxface.c
-+++ b/drivers/acpi/acpica/hwxface.c
-@@ -355,7 +355,7 @@ ACPI_EXPORT_SYMBOL(acpi_read_bit_register)
-  *
-  * PARAMETERS:  register_id     - ID of ACPI Bit Register to access
-  *              Value           - Value to write to the register, in bit
-- *                                position zero. The bit is automaticallly
-+ *                                position zero. The bit is automatically
-  *                                shifted to the correct position.
-  *
-  * RETURN:      Status
+--- linux.orig/kernel/printk.c
++++ linux/kernel/printk.c
+@@ -745,12 +745,17 @@ static inline int printk_emit_time(void)
+ 	char tbuf[50], *tp;
+ 	unsigned tlen;
+ 	unsigned long long t;
+-	unsigned long microsec_rem;
+ 
+ 	t = cpu_clock(printk_cpu);
+-	microsec_rem = do_div(t, 1000000000) / 1000;
+-	tlen = sprintf(tbuf, "[%5lu.%06lu] ", (unsigned long)t, microsec_rem);
++	if (likely(t)) {
++		unsigned long microsec_rem = do_div(t, 1000000000) / 1000;
+ 
++		tlen = sprintf(tbuf, "[%5lu.%06lu] ",
++					(unsigned long)t, microsec_rem);
++	} else {
++		/* reduce byte count in log when time is zero */
++		tlen = sprintf(tbuf, "[0] ");
++	}
+ 	for (tp = tbuf; tp < tbuf + tlen; tp++)
+ 		emit_log_char(*tp);
+ 
+
 -- 
-1.7.4.1
-
