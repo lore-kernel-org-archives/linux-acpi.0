@@ -1,35 +1,32 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 1/4] printk: Allocate kernel log buffer earlier
-Date: Sun, 27 Feb 2011 13:15:18 +0100
-Message-ID: <20110227121518.GA19165@elte.hu>
-References: <20110225180633.857892225@gulag1.americas.sgi.com>
- <20110225180634.017570095@gulag1.americas.sgi.com>
- <20110227120949.GF16453@elte.hu>
+From: Pierre Tardy <tardyp@gmail.com>
+Subject: Re: [PATCH] intel_idle: disable NHM/WSM HW C-state auto-demotion (v3)
+Date: Sun, 27 Feb 2011 17:17:53 +0100
+Message-ID: <AANLkTinVCvUkmX3pnSy_Ah3fOm6hV-jAPrQXAQ971xnS@mail.gmail.com>
+References: <alpine.LFD.2.02.1101182150400.14668@x980>
+	<alpine.LFD.2.02.1101190035200.14668@x980>
+	<alpine.LFD.2.02.1102160119430.843@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:36830 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751911Ab1B0MPf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Feb 2011 07:15:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20110227120949.GF16453@elte.hu>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:62985 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab1B0QR4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Feb 2011 11:17:56 -0500
+In-Reply-To: <alpine.LFD.2.02.1102160119430.843@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-pm@lists.linux-foundation.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Wed, Feb 16, 2011 at 7:22 AM, Len Brown <lenb@kernel.org> wrote:
+> From: Len Brown <len.brown@intel.com>
+>
+> Hardware C-state auto-demotion is a mechanism where the HW overrides
+> the OS C-state request, instead demoting to a shallower state,
+> which is less expensive, but saves less power.
+I'm interrested, for pytimechart, to have trace information of what
+actual c-state got reached after each idle request.
+Do you have any info on how to get that?
 
-* Ingo Molnar <mingo@elte.hu> wrote:
-
-> You could avoid all this ugly workaround of bootmem limitations by moving the 
-> allocation to memblock_alloc() and desupporting the log_buf_len= boot parameter on 
-> non-memblock architectures.
-
-memblock_alloc() could return -ENOSYS on architectures that do not implement it - 
-thus enabling such optional features without ugly #ifdef CONFIG_HAVE_MEMBLOCK 
-conditionals.
-
-Thanks,
-
-	Ingo
+Regards
+Pierre
