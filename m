@@ -1,108 +1,76 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH upstream build breakage] acpi: several drivers depend on NET
-Date: Mon, 28 Feb 2011 09:03:32 -0800
-Message-ID: <20110228090332.9ffe2087.randy.dunlap@oracle.com>
-References: <20101220200013.df8fbc88.sfr@canb.auug.org.au>
-	<20101220085340.7ba098b9.randy.dunlap@oracle.com>
-	<20110126114203.GA16754@elte.hu>
-	<20110201120323.GA6714@elte.hu>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 1/4] printk: Allocate kernel log buffer earlier
+Date: Mon, 28 Feb 2011 11:14:57 -0800
+Message-ID: <4D6BF431.1090404@sgi.com>
+References: <20110225180633.857892225@gulag1.americas.sgi.com> <20110225180634.017570095@gulag1.americas.sgi.com> <20110227120949.GF16453@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20110201120323.GA6714@elte.hu>
-Sender: linux-next-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Luming Yu <luming.yu@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay1.sgi.com ([192.48.179.29]:54093 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753812Ab1B1TO7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Feb 2011 14:14:59 -0500
+In-Reply-To: <20110227120949.GF16453@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>
 
-On Tue, 1 Feb 2011 13:03:23 +0100 Ingo Molnar wrote:
 
-> * Ingo Molnar <mingo@elte.hu> wrote:
+
+Ingo Molnar wrote:
+> * Mike Travis <travis@sgi.com> wrote:
 > 
-> > * Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> > 
-> > > On Mon, 20 Dec 2010 20:00:13 +1100 Stephen Rothwell wrote:
-> > > 
-> > > > Hi all,
-> > > > 
-> > > > [The mirroring on kernel.org is running slowly]
-> > > > 
-> > > > Changes since 20101217:
-> > > 
-> > > ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
-> > > ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
-> > 
-> > This bug has been reported two months ago, one month ago, it has been ignored twice 
-> > and now the bug has been pushed upstream and it's triggering there as well.
-> > 
-> > What's going on?
+>> On larger systems, because of the numerous ACPI, Bootmem and EFI
+>> messages, the static log buffer overflows before the larger one
+>> specified by the log_buf_len param is allocated.  Minimize the
+>> potential for overflow by allocating the new log buffer as soon
+>> as possible.
+>>
+>> We do this by changing the log_buf_len from an early_param to a
+>> _setup param.  But _setup params are processed before the
+>> alloc_bootmem is available, so this function will now just save
+>> the requested log buf len.  The real work routine (setup_log_buf)
+>> is called after bootmem is available.
+>>
+>> Signed-off-by: Mike Travis <travis@sgi.com>
+>> Reviewed-by: Jack Steiner <steiner@sgi.com>
+>> Reviewed-by: Robin Holt <holt@sgi.com>
+>> ---
+>>  arch/x86/kernel/setup.c |    5 +++
+>>  include/linux/printk.h  |    4 ++
+>>  init/main.c             |    1 
+>>  kernel/printk.c         |   75 ++++++++++++++++++++++++++++--------------------
+>>  4 files changed, 54 insertions(+), 31 deletions(-)
 > 
-> *Tap*, *tap*, is this thing on? :)
+> Well, the modern allocation method is memblock - available on all major 
+> architectures.
 > 
-> acpi-video is still build-broken upstream, as of .38-rc3:
+> You could avoid all this ugly workaround of bootmem limitations by moving the 
+> allocation to memblock_alloc() and desupporting the log_buf_len= boot parameter
+> on non-memblock architectures.
+
+Is it really that ugly?  I thought in some ways it cleaned it up.
+
+I'm also hesitant to change code for other arch's when I can't test them.  This
+approach seemed to be the safest.
+
+> kernel log buffer size can be configured via the .config so they will not be left 
+> without larger buffers.
+
+We have asked about this, but distros are reluctant to increase memory usage
+for their entire installed base.  I think we're lucky they bumped it up to 256k
+from the default 128k.
+
 > 
->    MODPOST 651 modules
->  ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
->  ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
->  WARNING: modpost: Found 37 section mismatch(es).
->  To see full details build your kernel with:
->  'make CONFIG_DEBUG_SECTION_MISMATCH=y'
->  make[1]: *** [__modpost] Error 1
->  make: *** [modules] Error 2
+> Doing this should also have the advantage of getting all the early x86 messages into 
+> the larger buffer already, reducing the pressure to apply some of the other patches 
+> in your series.
+
+There are only two and both remove only redundant information.
+
 > 
-> Triggers in about 10% of all randconfig builds. Config attached.
-
-
-From: Randy Dunlap <randy.dunlap@oracle.com>
-
-Several ACPI drivers select THERMAL, but THERMAL depends on NET
-(for netlink).  Fix build breakage by making the ACPI drivers
-also depend on NET.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/acpi/Kconfig |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-This is what is needed to fix the breakage, but it seems
-that Len does not care.
-It would be better just to eliminate the netlink dependency.
-
-
---- linux-next-20110228.orig/drivers/acpi/Kconfig
-+++ linux-next-20110228/drivers/acpi/Kconfig
-@@ -163,7 +163,7 @@ config ACPI_BUTTON
- config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
--	depends on INPUT
-+	depends on INPUT && NET
- 	select THERMAL
- 	help
- 	  This driver implements the ACPI Extensions For Display Adapters
-@@ -177,6 +177,7 @@ config ACPI_VIDEO
- 
- config ACPI_FAN
- 	tristate "Fan"
-+	depends on NET
- 	select THERMAL
- 	default y
- 	help
-@@ -195,6 +196,7 @@ config ACPI_DOCK
- 
- config ACPI_PROCESSOR
- 	tristate "Processor"
-+	depends on NET
- 	select THERMAL
- 	select CPU_IDLE
- 	default y
-@@ -238,7 +240,7 @@ config ACPI_PROCESSOR_AGGREGATOR
- 
- config ACPI_THERMAL
- 	tristate "Thermal Zone"
--	depends on ACPI_PROCESSOR
-+	depends on ACPI_PROCESSOR && NET
- 	select THERMAL
- 	default y
- 	help
+> Thanks,
+> 
+> 	Ingo
