@@ -1,72 +1,129 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/4] printk: Allocate kernel log buffer earlier
-Date: Mon, 28 Feb 2011 11:46:58 -0800
-Message-ID: <AANLkTi=Sn6DKAjGHQjtWGiLGh8vpuS-vmXK=TMDrbjdv@mail.gmail.com>
-References: <20110225180633.857892225@gulag1.americas.sgi.com>
-	<20110225180634.017570095@gulag1.americas.sgi.com>
-	<20110227120949.GF16453@elte.hu>
-	<20110227121518.GA19165@elte.hu>
-	<4D6AFBB0.70401@kernel.org>
-	<4D6BF63D.2020404@sgi.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63763 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180Ab1B1Tq7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2011 14:46:59 -0500
-In-Reply-To: <4D6BF63D.2020404@sgi.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Johan Wessfeldt <johan.wessfeldt@gmail.com>
+Subject: [PATCH] acpi: Corrections of unchecked calls to request_region
+Date: Mon, 28 Feb 2011 20:56:48 +0100
+Message-ID: <1298923008-16796-1-git-send-email-johan.wessfeldt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Wessfeldt <johan.wessfeldt@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>, David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Mon, Feb 28, 2011 at 11:23 AM, Mike Travis <travis@sgi.com> wrote:
->
->
-> Yinghai Lu wrote:
->>
->> On 02/27/2011 04:15 AM, Ingo Molnar wrote:
->>>
->>> * Ingo Molnar <mingo@elte.hu> wrote:
->>>
->>>> You could avoid all this ugly workaround of bootmem limitations by
->>>> moving the allocation to memblock_alloc() and desupporting the log=
-_buf_len=3D
->>>> boot parameter on non-memblock architectures.
->>>
->>> memblock_alloc() could return -ENOSYS on architectures that do not
->>> implement it - thus enabling such optional features without ugly #i=
-fdef
->>> CONFIG_HAVE_MEMBLOCK conditionals.
->>
->> Mike,
->>
->> please check updated patch...
->>
->> with the memblock change, you don't need to change acpi SRAT handlin=
-g etc
->> any more.
->
-> I had to debug a weird ACPI -> Node mapping last week and the
-> "improved" SRAT messages helped that considerably. =A0It was
-> far easier to spot which Node didn't have the correct assignments.
-> I'd submit that patch even without needing fewer (like 512 lines
-> max instead of 4096 lines max) bytes in the log buffer.
+This patch introduces checks when acpi osl reserves resources by calling
+request_region.
 
-Your current change to ACPI srat is not complete yet.
+Please review:
+Is it valid to return early when acpi_request_region() fails?
 
-you only handle x2apic entries.
+Signed-off-by: Johan Wessfeldt <johan.wessfeldt@gmail.com>
+---
+ drivers/acpi/osl.c |   85 +++++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 57 insertions(+), 28 deletions(-)
 
-According to ACPI 4.0 spec, We should have mixed entries with apic
-entries and x2apic entries.
-apic entries are for apic id < 255.
-x2apic entries are for apic id > 255.
-
-Yinghai
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index c90c76a..5c8c521 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -166,48 +166,77 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 	return supported;
+ }
+ 
+-static void __init acpi_request_region (struct acpi_generic_address *addr,
++static int __init acpi_request_region(struct acpi_generic_address *addr,
+ 	unsigned int length, char *desc)
+ {
++	struct resource *pRes;
++
+ 	if (!addr->address || !length)
+-		return;
++		return -EIO;
+ 
+ 	/* Resources are never freed */
+-	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+-		request_region(addr->address, length, desc);
+-	else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-		request_mem_region(addr->address, length, desc);
++	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
++		pRes = request_region(addr->address, length, desc);
++		if (pRes == NULL)
++			return -EIO;
++
++	} else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++		pRes = request_mem_region(addr->address, length, desc);
++		if (pRes == NULL)
++			return -EIO;
++	}
++
++	return 0;
+ }
+ 
+ static int __init acpi_reserve_resources(void)
+ {
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1a_EVT_BLK");
++	if (!acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block,
++				 acpi_gbl_FADT.pm1_event_length,
++				 "ACPI PM1a_EVT_BLK"))
++		return -EIO;
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1b_EVT_BLK");
++	if (!acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block,
++				 acpi_gbl_FADT.pm1_event_length,
++				 "ACPI PM1b_EVT_BLK"))
++		return -EIO;
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1a_CNT_BLK");
++	if (!acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block,
++				 acpi_gbl_FADT.pm1_control_length,
++				 "ACPI PM1a_CNT_BLK"))
++		return -EIO;
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1b_CNT_BLK");
++	if (!acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block,
++				 acpi_gbl_FADT.pm1_control_length,
++				 "ACPI PM1b_CNT_BLK"))
++		return -EIO;
+ 
+-	if (acpi_gbl_FADT.pm_timer_length == 4)
+-		acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4, "ACPI PM_TMR");
++	if (acpi_gbl_FADT.pm_timer_length == 4) {
++		if (!acpi_request_region(&acpi_gbl_FADT.xpm_timer_block,
++					 4, "ACPI PM_TMR"))
++			return -EIO;
++	}
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block, acpi_gbl_FADT.pm2_control_length,
+-		"ACPI PM2_CNT_BLK");
++	if (!acpi_request_region(&acpi_gbl_FADT.xpm2_control_block,
++				 acpi_gbl_FADT.pm2_control_length,
++				 "ACPI PM2_CNT_BLK"))
++		return -EIO;
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+-	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
+-		acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
+-			       acpi_gbl_FADT.gpe0_block_length, "ACPI GPE0_BLK");
++	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1)) {
++		if (!acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
++					 acpi_gbl_FADT.gpe0_block_length,
++					 "ACPI GPE0_BLK"))
++			return -EIO;
++	}
+ 
+-	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
+-		acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
+-			       acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
++	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1)) {
++		if (!acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
++					 acpi_gbl_FADT.gpe1_block_length,
++					 "ACPI GPE1_BLK"))
++			return -EIO;
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.7.2.3
