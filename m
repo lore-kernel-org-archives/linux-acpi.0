@@ -1,187 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH upstream build breakage] acpi: several drivers depend on NET
-Date: Mon, 28 Feb 2011 23:42:59 +0100
-Message-ID: <201102282342.59407.rjw@sisk.pl>
-References: <20101220200013.df8fbc88.sfr@canb.auug.org.au> <20110228090332.9ffe2087.randy.dunlap@oracle.com> <201102282137.15390.rjw@sisk.pl>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/4] printk: Allocate kernel log buffer earlier
+Date: Mon, 28 Feb 2011 14:59:47 -0800
+Message-ID: <AANLkTi=Xf5RaF559QsRNijmG0YP7amkG569NZFhpt4QY@mail.gmail.com>
+References: <20110225180633.857892225@gulag1.americas.sgi.com>
+	<20110225180634.017570095@gulag1.americas.sgi.com>
+	<20110227120949.GF16453@elte.hu>
+	<20110227121518.GA19165@elte.hu>
+	<4D6AFBB0.70401@kernel.org>
+	<4D6BF63D.2020404@sgi.com>
+	<AANLkTi=Sn6DKAjGHQjtWGiLGh8vpuS-vmXK=TMDrbjdv@mail.gmail.com>
+	<4D6BFF46.3050001@sgi.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37653 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753102Ab1B1WnW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Feb 2011 17:43:22 -0500
-In-Reply-To: <201102282137.15390.rjw@sisk.pl>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60841 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752696Ab1B1W7s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Feb 2011 17:59:48 -0500
+In-Reply-To: <4D6BFF46.3050001@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Luming Yu <luming.yu@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>, David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Monday, February 28, 2011, Rafael J. Wysocki wrote:
-> On Monday, February 28, 2011, Randy Dunlap wrote:
-> > On Tue, 1 Feb 2011 13:03:23 +0100 Ingo Molnar wrote:
-> > 
-> > > * Ingo Molnar <mingo@elte.hu> wrote:
-> > > 
-> > > > * Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> > > > 
-> > > > > On Mon, 20 Dec 2010 20:00:13 +1100 Stephen Rothwell wrote:
-> > > > > 
-> > > > > > Hi all,
-> > > > > > 
-> > > > > > [The mirroring on kernel.org is running slowly]
-> > > > > > 
-> > > > > > Changes since 20101217:
-> > > > > 
-> > > > > ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
-> > > > > ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
-> > > > 
-> > > > This bug has been reported two months ago, one month ago, it has been ignored twice 
-> > > > and now the bug has been pushed upstream and it's triggering there as well.
-> > > > 
-> > > > What's going on?
-> > > 
-> > > *Tap*, *tap*, is this thing on? :)
-> > > 
-> > > acpi-video is still build-broken upstream, as of .38-rc3:
-> > > 
-> > >    MODPOST 651 modules
-> > >  ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
-> > >  ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
-> > >  WARNING: modpost: Found 37 section mismatch(es).
-> > >  To see full details build your kernel with:
-> > >  'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-> > >  make[1]: *** [__modpost] Error 1
-> > >  make: *** [modules] Error 2
-> > > 
-> > > Triggers in about 10% of all randconfig builds. Config attached.
-> > 
-> > 
-> > From: Randy Dunlap <randy.dunlap@oracle.com>
-> > 
-> > Several ACPI drivers select THERMAL, but THERMAL depends on NET
-> > (for netlink).  Fix build breakage by making the ACPI drivers
-> > also depend on NET.
-> 
-> Well, making ACPI_FAN depend on NET seems to be a kind of an overstretch to me.
-> A proper fix would be to disable the netlink interface in THERMAL when
-> NET is unset, I guess.  I'll see what can be done to that end (although I had
-> hoped that the people who introduced the breakage would handle it).
+On Mon, Feb 28, 2011 at 12:02 PM, Mike Travis <travis@sgi.com> wrote:
+>
+>
+> Yinghai Lu wrote:
+>>
+>> On Mon, Feb 28, 2011 at 11:23 AM, Mike Travis <travis@sgi.com> wrote=
+:
+>>>
+>>> Yinghai Lu wrote:
+>>>>
+>>>> On 02/27/2011 04:15 AM, Ingo Molnar wrote:
+>>>>>
+>>>>> * Ingo Molnar <mingo@elte.hu> wrote:
+>>>>>
+>>>>>> You could avoid all this ugly workaround of bootmem limitations =
+by
+>>>>>> moving the allocation to memblock_alloc() and desupporting the
+>>>>>> log_buf_len=3D
+>>>>>> boot parameter on non-memblock architectures.
+>>>>>
+>>>>> memblock_alloc() could return -ENOSYS on architectures that do no=
+t
+>>>>> implement it - thus enabling such optional features without ugly =
+#ifdef
+>>>>> CONFIG_HAVE_MEMBLOCK conditionals.
+>>>>
+>>>> Mike,
+>>>>
+>>>> please check updated patch...
+>>>>
+>>>> with the memblock change, you don't need to change acpi SRAT handl=
+ing
+>>>> etc
+>>>> any more.
+>>>
+>>> I had to debug a weird ACPI -> Node mapping last week and the
+>>> "improved" SRAT messages helped that considerably. =A0It was
+>>> far easier to spot which Node didn't have the correct assignments.
+>>> I'd submit that patch even without needing fewer (like 512 lines
+>>> max instead of 4096 lines max) bytes in the log buffer.
+>>
+>> Your current change to ACPI srat is not complete yet.
+>>
+>> you only handle x2apic entries.
+>>
+>> According to ACPI 4.0 spec, We should have mixed entries with apic
+>> entries and x2apic entries.
+>> apic entries are for apic id < 255.
+>> x2apic entries are for apic id > 255.
+>>
+>> Yinghai
+>
+> Are you sure you can run both "legacy" and "x2" apic modes in
+> the same SSI under the Intel or AMD rules?
+>
+No.
 
-OK, please check if the appended patch helps.  Admittedly, I only built it
-with CONFIG_NET set, so caveat emptor.
+According to ACPI 4.0 Spec:
+even the CPUs are with x2apic mode (aka pre-enabled in BIOS),
+if their apic id < 255, BIOS still need to use xapic entries for them.
 
-Thanks,
-Rafael
-
-
----
- drivers/thermal/Kconfig       |    1 -
- drivers/thermal/thermal_sys.c |   40 +++++++++++++++++++++-------------------
- include/linux/thermal.h       |    8 ++++++++
- 3 files changed, 29 insertions(+), 20 deletions(-)
-
-Index: linux-2.6/drivers/thermal/thermal_sys.c
-===================================================================
---- linux-2.6.orig/drivers/thermal/thermal_sys.c
-+++ linux-2.6/drivers/thermal/thermal_sys.c
-@@ -62,20 +62,6 @@ static DEFINE_MUTEX(thermal_list_lock);
- 
- static unsigned int thermal_event_seqnum;
- 
--static struct genl_family thermal_event_genl_family = {
--	.id = GENL_ID_GENERATE,
--	.name = THERMAL_GENL_FAMILY_NAME,
--	.version = THERMAL_GENL_VERSION,
--	.maxattr = THERMAL_GENL_ATTR_MAX,
--};
--
--static struct genl_multicast_group thermal_event_mcgrp = {
--	.name = THERMAL_GENL_MCAST_GROUP_NAME,
--};
--
--static int genetlink_init(void);
--static void genetlink_exit(void);
--
- static int get_idr(struct idr *idr, struct mutex *lock, int *id)
- {
- 	int err;
-@@ -1225,6 +1211,18 @@ void thermal_zone_device_unregister(stru
- 
- EXPORT_SYMBOL(thermal_zone_device_unregister);
- 
-+#ifdef CONFIG_NET
-+static struct genl_family thermal_event_genl_family = {
-+	.id = GENL_ID_GENERATE,
-+	.name = THERMAL_GENL_FAMILY_NAME,
-+	.version = THERMAL_GENL_VERSION,
-+	.maxattr = THERMAL_GENL_ATTR_MAX,
-+};
-+
-+static struct genl_multicast_group thermal_event_mcgrp = {
-+	.name = THERMAL_GENL_MCAST_GROUP_NAME,
-+};
-+
- int generate_netlink_event(u32 orig, enum events event)
- {
- 	struct sk_buff *skb;
-@@ -1301,6 +1299,15 @@ static int genetlink_init(void)
- 	return result;
- }
- 
-+static void genetlink_exit(void)
-+{
-+	genl_unregister_family(&thermal_event_genl_family);
-+}
-+#else /* !CONFIG_NET */
-+static inline int genetlink_init(void) { return 0; }
-+static inline void genetlink_exit(void) {}
-+#endif /* !CONFIG_NET */
-+
- static int __init thermal_init(void)
- {
- 	int result = 0;
-@@ -1316,11 +1323,6 @@ static int __init thermal_init(void)
- 	return result;
- }
- 
--static void genetlink_exit(void)
--{
--	genl_unregister_family(&thermal_event_genl_family);
--}
--
- static void __exit thermal_exit(void)
- {
- 	class_unregister(&thermal_class);
-Index: linux-2.6/include/linux/thermal.h
-===================================================================
---- linux-2.6.orig/include/linux/thermal.h
-+++ linux-2.6/include/linux/thermal.h
-@@ -172,6 +172,14 @@ void thermal_zone_device_update(struct t
- struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 		const struct thermal_cooling_device_ops *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
-+
-+#ifdef CONFIG_NET
- extern int generate_netlink_event(u32 orig, enum events event);
-+#else
-+static inline int generate_netlink_event(u32 orig, enum events event)
-+{
-+	return 0;
-+}
-+#endif
- 
- #endif /* __THERMAL_H__ */
-Index: linux-2.6/drivers/thermal/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/thermal/Kconfig
-+++ linux-2.6/drivers/thermal/Kconfig
-@@ -4,7 +4,6 @@
- 
- menuconfig THERMAL
- 	tristate "Generic Thermal sysfs driver"
--	depends on NET
- 	help
- 	  Generic Thermal Sysfs driver offers a generic mechanism for
- 	  thermal management. Usually it's made up of one or more thermal
+Yinghai
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
