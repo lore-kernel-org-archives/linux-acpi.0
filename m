@@ -1,147 +1,118 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: Corrections of unchecked calls to request_region
-Date: Mon, 28 Feb 2011 21:33:04 +0100
-Message-ID: <201102282133.04533.rjw@sisk.pl>
-References: <1298923008-16796-1-git-send-email-johan.wessfeldt@gmail.com>
+Subject: Re: [PATCH upstream build breakage] acpi: several drivers depend on NET
+Date: Mon, 28 Feb 2011 21:37:15 +0100
+Message-ID: <201102282137.15390.rjw@sisk.pl>
+References: <20101220200013.df8fbc88.sfr@canb.auug.org.au> <20110201120323.GA6714@elte.hu> <20110228090332.9ffe2087.randy.dunlap@oracle.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37409 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755190Ab1B1UdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Feb 2011 15:33:15 -0500
-In-Reply-To: <1298923008-16796-1-git-send-email-johan.wessfeldt@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20110228090332.9ffe2087.randy.dunlap@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Luming Yu <luming.yu@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Johan Wessfeldt <johan.wessfeldt@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, February 28, 2011, Johan Wessfeldt wrote:
-> This patch introduces checks when acpi osl reserves resources by calling
-> request_region.
+On Monday, February 28, 2011, Randy Dunlap wrote:
+> On Tue, 1 Feb 2011 13:03:23 +0100 Ingo Molnar wrote:
+> 
+> > * Ingo Molnar <mingo@elte.hu> wrote:
+> > 
+> > > * Randy Dunlap <randy.dunlap@oracle.com> wrote:
+> > > 
+> > > > On Mon, 20 Dec 2010 20:00:13 +1100 Stephen Rothwell wrote:
+> > > > 
+> > > > > Hi all,
+> > > > > 
+> > > > > [The mirroring on kernel.org is running slowly]
+> > > > > 
+> > > > > Changes since 20101217:
+> > > > 
+> > > > ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
+> > > > ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
+> > > 
+> > > This bug has been reported two months ago, one month ago, it has been ignored twice 
+> > > and now the bug has been pushed upstream and it's triggering there as well.
+> > > 
+> > > What's going on?
+> > 
+> > *Tap*, *tap*, is this thing on? :)
+> > 
+> > acpi-video is still build-broken upstream, as of .38-rc3:
+> > 
+> >    MODPOST 651 modules
+> >  ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
+> >  ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
+> >  WARNING: modpost: Found 37 section mismatch(es).
+> >  To see full details build your kernel with:
+> >  'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+> >  make[1]: *** [__modpost] Error 1
+> >  make: *** [modules] Error 2
+> > 
+> > Triggers in about 10% of all randconfig builds. Config attached.
+> 
+> 
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> Several ACPI drivers select THERMAL, but THERMAL depends on NET
+> (for netlink).  Fix build breakage by making the ACPI drivers
+> also depend on NET.
 
-Why is the patch necessary?
+Well, making ACPI_FAN depend on NET seems to be a kind of an overstretch to me.
+A proper fix would be to disable the netlink interface in THERMAL when
+NET is unset, I guess.  I'll see what can be done to that end (although I had
+hoped that the people who introduced the breakage would handle it).
 
-> Please review:
-> Is it valid to return early when acpi_request_region() fails?
-
-What do you mean by "return early"?
-
+Thanks,
 Rafael
 
 
-> Signed-off-by: Johan Wessfeldt <johan.wessfeldt@gmail.com>
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 > ---
->  drivers/acpi/osl.c |   85 +++++++++++++++++++++++++++++++++++-----------------
->  1 files changed, 57 insertions(+), 28 deletions(-)
+>  drivers/acpi/Kconfig |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index c90c76a..5c8c521 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -166,48 +166,77 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
->  	return supported;
->  }
->  
-> -static void __init acpi_request_region (struct acpi_generic_address *addr,
-> +static int __init acpi_request_region(struct acpi_generic_address *addr,
->  	unsigned int length, char *desc)
->  {
-> +	struct resource *pRes;
-> +
->  	if (!addr->address || !length)
-> -		return;
-> +		return -EIO;
->  
->  	/* Resources are never freed */
-> -	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-> -		request_region(addr->address, length, desc);
-> -	else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
-> -		request_mem_region(addr->address, length, desc);
-> +	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-> +		pRes = request_region(addr->address, length, desc);
-> +		if (pRes == NULL)
-> +			return -EIO;
-> +
-> +	} else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +		pRes = request_mem_region(addr->address, length, desc);
-> +		if (pRes == NULL)
-> +			return -EIO;
-> +	}
-> +
-> +	return 0;
->  }
->  
->  static int __init acpi_reserve_resources(void)
->  {
-> -	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
-> -		"ACPI PM1a_EVT_BLK");
-> +	if (!acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block,
-> +				 acpi_gbl_FADT.pm1_event_length,
-> +				 "ACPI PM1a_EVT_BLK"))
-> +		return -EIO;
->  
-> -	acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block, acpi_gbl_FADT.pm1_event_length,
-> -		"ACPI PM1b_EVT_BLK");
-> +	if (!acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block,
-> +				 acpi_gbl_FADT.pm1_event_length,
-> +				 "ACPI PM1b_EVT_BLK"))
-> +		return -EIO;
->  
-> -	acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block, acpi_gbl_FADT.pm1_control_length,
-> -		"ACPI PM1a_CNT_BLK");
-> +	if (!acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block,
-> +				 acpi_gbl_FADT.pm1_control_length,
-> +				 "ACPI PM1a_CNT_BLK"))
-> +		return -EIO;
->  
-> -	acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block, acpi_gbl_FADT.pm1_control_length,
-> -		"ACPI PM1b_CNT_BLK");
-> +	if (!acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block,
-> +				 acpi_gbl_FADT.pm1_control_length,
-> +				 "ACPI PM1b_CNT_BLK"))
-> +		return -EIO;
->  
-> -	if (acpi_gbl_FADT.pm_timer_length == 4)
-> -		acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4, "ACPI PM_TMR");
-> +	if (acpi_gbl_FADT.pm_timer_length == 4) {
-> +		if (!acpi_request_region(&acpi_gbl_FADT.xpm_timer_block,
-> +					 4, "ACPI PM_TMR"))
-> +			return -EIO;
-> +	}
->  
-> -	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block, acpi_gbl_FADT.pm2_control_length,
-> -		"ACPI PM2_CNT_BLK");
-> +	if (!acpi_request_region(&acpi_gbl_FADT.xpm2_control_block,
-> +				 acpi_gbl_FADT.pm2_control_length,
-> +				 "ACPI PM2_CNT_BLK"))
-> +		return -EIO;
->  
->  	/* Length of GPE blocks must be a non-negative multiple of 2 */
->  
-> -	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
-> -		acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
-> -			       acpi_gbl_FADT.gpe0_block_length, "ACPI GPE0_BLK");
-> +	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1)) {
-> +		if (!acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
-> +					 acpi_gbl_FADT.gpe0_block_length,
-> +					 "ACPI GPE0_BLK"))
-> +			return -EIO;
-> +	}
->  
-> -	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
-> -		acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
-> -			       acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
-> +	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1)) {
-> +		if (!acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
-> +					 acpi_gbl_FADT.gpe1_block_length,
-> +					 "ACPI GPE1_BLK"))
-> +			return -EIO;
-> +	}
->  
->  	return 0;
->  }
+> This is what is needed to fix the breakage, but it seems
+> that Len does not care.
+> It would be better just to eliminate the netlink dependency.
 > 
-
+> 
+> --- linux-next-20110228.orig/drivers/acpi/Kconfig
+> +++ linux-next-20110228/drivers/acpi/Kconfig
+> @@ -163,7 +163,7 @@ config ACPI_BUTTON
+>  config ACPI_VIDEO
+>  	tristate "Video"
+>  	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
+> -	depends on INPUT
+> +	depends on INPUT && NET
+>  	select THERMAL
+>  	help
+>  	  This driver implements the ACPI Extensions For Display Adapters
+> @@ -177,6 +177,7 @@ config ACPI_VIDEO
+>  
+>  config ACPI_FAN
+>  	tristate "Fan"
+> +	depends on NET
+>  	select THERMAL
+>  	default y
+>  	help
+> @@ -195,6 +196,7 @@ config ACPI_DOCK
+>  
+>  config ACPI_PROCESSOR
+>  	tristate "Processor"
+> +	depends on NET
+>  	select THERMAL
+>  	select CPU_IDLE
+>  	default y
+> @@ -238,7 +240,7 @@ config ACPI_PROCESSOR_AGGREGATOR
+>  
+>  config ACPI_THERMAL
+>  	tristate "Thermal Zone"
+> -	depends on ACPI_PROCESSOR
+> +	depends on ACPI_PROCESSOR && NET
+>  	select THERMAL
+>  	default y
+>  	help
+> 
+> 
