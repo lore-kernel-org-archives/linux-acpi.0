@@ -1,34 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/7] ACPI, APEI patches for 2.6.39
-Date: Wed, 02 Mar 2011 17:51:24 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1103021750250.12344@x980>
-References: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
+From: Jorge Bastos <mysql.jorge@decimal.pt>
+Subject: Re: [Bugme-new] [Bug 29922] New: irqpool crash
+Date: Wed, 02 Mar 2011 23:01:31 +0000
+Message-ID: <b6e05e5377137cf8d6e0a78ed1b9f60c@192.168.1.222>
+References: <bug-29922-10286@https.bugzilla.kernel.org/> <20110301152833.66dc5e6f.akpm@linux-foundation.org> <alpine.LFD.2.02.1103021721590.12344@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:49552 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757660Ab1CBWvs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 17:51:48 -0500
-In-reply-to: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
+Received: from smtp.decimal.pt ([195.23.114.76]:38706 "EHLO smtp.decimal.pt"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757965Ab1CBXIc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Mar 2011 18:08:32 -0500
+In-Reply-To: <alpine.LFD.2.02.1103021721590.12344@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Mon, 21 Feb 2011, Huang Ying wrote:
+Hi Len,
 
-> [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
-> [PATCH 2/7] lib, Add lock-less NULL terminated single list
-> [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
-> [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
-> [PATCH 5/7] ACPI, APEI, Add PCIe AER error information printing support
-> [PATCH 6/7] lib, Make gen_pool memory allocator lockless
-> [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
+> 
+> The dmesg is 2.6.35.11
+> Does any version of linux earlier or later work properly?
+> 
 
-I've put this series into acpi-test, so it will be visible in linux-next;
-but I'm not the right person to review the generic lockless stuff,
-who is?
+Well, I have no idea.
+With newer kernels I have other type of crash's with a mandatory reboot
+'cause the machine just stop's working.
+Since this is a production server I can't do that test for you :(
+Anyway I'd do that test for you if the machine wasn't production.
 
-thanks,
--Len Brown Intel Open Source Technology Center
+This crash I sent, didn't stop the machine as it continued working
+normally.
+
+What can I do to help track this? (other than using a newer kernel than
+2.6.35.11)
+
+Jorge,
