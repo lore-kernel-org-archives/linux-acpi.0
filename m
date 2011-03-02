@@ -1,78 +1,34 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [Bugme-new] [Bug 29922] New: irqpool crash
-Date: Wed, 02 Mar 2011 17:36:27 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1103021721590.12344@x980>
-References: <bug-29922-10286@https.bugzilla.kernel.org/>
- <20110301152833.66dc5e6f.akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/7] ACPI, APEI patches for 2.6.39
+Date: Wed, 02 Mar 2011 17:51:24 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1103021750250.12344@x980>
+References: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:59293 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757527Ab1CBWgu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 17:36:50 -0500
-In-reply-to: <20110301152833.66dc5e6f.akpm@linux-foundation.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:49552 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757660Ab1CBWvs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 17:51:48 -0500
+In-reply-to: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, mysql.jorge@decimal.pt
+To: Huang Ying <ying.huang@intel.com>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-> pci 0000:00:01.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+On Mon, 21 Feb 2011, Huang Ying wrote:
 
-This is a "hard coded IRQ", rather than a programmable PCI Link,
-so it doesn't look like this issue is related to ACPI
-interrupt routing.
+> [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+> [PATCH 2/7] lib, Add lock-less NULL terminated single list
+> [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
+> [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
+> [PATCH 5/7] ACPI, APEI, Add PCIe AER error information printing support
+> [PATCH 6/7] lib, Make gen_pool memory allocator lockless
+> [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
 
-There are multiple PCI devices associated with IRQ16,
-so it is likely one of them is pulling on the IRQ
-and the others can't quiesce it.
+I've put this series into acpi-test, so it will be visible in linux-next;
+but I'm not the right person to review the generic lockless stuff,
+who is?
 
-The output from acpidump attached to the bug report will help,
-as we can verify that the IRQ is associated w/ the
-PCI devices listed below.
-
-The dmesg is 2.6.35.11
-Does any version of linux earlier or later work properly?
-
-cheers,
--Len
-
-pci 0000:00:01.0: PME# supported from D0 D3hot D3cold
-pci 0000:00:01.0: PME# disabled
-pci 0000:00:01.0: PCI bridge to [bus 01-01]
-pci 0000:00:01.0:   bridge window [io  0xf000-0x0000] (disabled)
-pci 0000:00:01.0:   bridge window [mem 0xfbe00000-0xfbefffff]
-pci 0000:00:01.0:   bridge window [mem 0xfff00000-0x000fffff pref] 
-(disabled)
-pci 0000:00:01.0: PCI bridge to [bus 01-01]
-pci 0000:00:01.0:   bridge window [io  disabled]
-pci 0000:00:01.0:   bridge window [mem 0xfbe00000-0xfbefffff]
-pci 0000:00:01.0:   bridge window [mem pref disabled]
-pci 0000:00:01.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-pci 0000:00:01.0: setting latency timer to 64
-
-
-pci 0000:00:1c.0: PME# supported from D0 D3hot D3cold
-pci 0000:00:1c.0: PME# disabled
-pci 0000:00:1c.0: PCI bridge to [bus 02-02]
-pci 0000:00:1c.0:   bridge window [io  0xd000-0xdfff]
-pci 0000:00:1c.0:   bridge window [mem 0xfbc00000-0xfbcfffff]
-pci 0000:00:1c.0:   bridge window [mem 0xfff00000-0x000fffff pref] 
-(disabled)
-pci 0000:00:1c.0: BAR 15: assigned [mem 0xdb800000-0xdb9fffff 64bit pref]
-pci 0000:00:1c.0: PCI bridge to [bus 02-02]
-pci 0000:00:1c.0:   bridge window [io  0xd000-0xdfff]
-pci 0000:00:1c.0:   bridge window [mem 0xfbc00000-0xfbcfffff]
-pci 0000:00:1c.0:   bridge window [mem 0xdb800000-0xdb9fffff 64bit pref]
-pci 0000:00:1c.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-pci 0000:00:1c.0: setting latency timer to 64
-
-ahci 0000:02:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-ahci 0000:02:00.0: AHCI 0001.0000 32 slots 2 ports 3 Gbps 0x3 impl SATA 
-mode
-ahci 0000:02:00.0: flags: 64bit ncq pm led clo pmp pio slum part
-ahci 0000:02:00.0: setting latency timer to 64
-
-ata7: SATA max UDMA/133 abar m8192@0xfbcfe000 port 0xfbcfe100 irq 16
-ata8: SATA max UDMA/133 abar m8192@0xfbcfe000 port 0xfbcfe180 irq 16
-
+thanks,
+-Len Brown Intel Open Source Technology Center
