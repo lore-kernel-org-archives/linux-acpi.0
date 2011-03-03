@@ -1,84 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT] ACPI patches for 2.6.38-rc7
-Date: Wed, 02 Mar 2011 18:22:56 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1103021821240.12344@x980>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 0/7] ACPI, APEI patches for 2.6.39
+Date: Thu, 3 Mar 2011 01:01:12 +0100
+Message-ID: <20110303000112.GG32215@one.firstfloor.org>
+References: <1298267685-7357-1-git-send-email-ying.huang@intel.com> <alpine.LFD.2.02.1103021750250.12344@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:54345 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831Ab1CBXXU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 18:23:20 -0500
+Received: from one.firstfloor.org ([213.235.205.2]:33848 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756500Ab1CCABQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 19:01:16 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.02.1103021750250.12344@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Hi Linus,
+On Wed, Mar 02, 2011 at 05:51:24PM -0500, Len Brown wrote:
+> On Mon, 21 Feb 2011, Huang Ying wrote:
+> 
+> > [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+> > [PATCH 2/7] lib, Add lock-less NULL terminated single list
+> > [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
+> > [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
+> > [PATCH 5/7] ACPI, APEI, Add PCIe AER error information printing support
+> > [PATCH 6/7] lib, Make gen_pool memory allocator lockless
+> > [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
+> 
+> I've put this series into acpi-test, so it will be visible in linux-next;
+> but I'm not the right person to review the generic lockless stuff,
+> who is?
 
-please pull from: 
+I reviewed it earlier and it seemed good to me (unless it has 
+changed), but Linus wanted non Intel reviewers too. Any takers?
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-This will update the files shown below.
-
-thanks!
-Len Brown
-Intel Open Source Technology Center
-
- drivers/acpi/acpica/aclocal.h |    7 +++++-
- drivers/acpi/acpica/evgpe.c   |   17 ++++++++++++---
- drivers/acpi/acpica/evxfgpe.c |   42 ++++++++++++++++++++++++++++++++--------
- drivers/acpi/debugfs.c        |   20 +++++++++++++-----
- 4 files changed, 66 insertions(+), 20 deletions(-)
-
-through these commits:
-
-Rafael J. Wysocki (1):
-      ACPI / ACPICA: Implicit notify for multiple devices
-
-Vasiliy Kulikov (1):
-      ACPI / debugfs: Fix buffer overflows, double free
-
-with this log:
-
-commit 981858bd7a401aa9607d9f430d5de920025fc3ea
-Author: Rafael J. Wysocki <rjw@sisk.pl>
-Date:   Thu Feb 24 19:59:21 2011 +0100
-
-    ACPI / ACPICA: Implicit notify for multiple devices
-    
-    Commit bba63a2 (ACPICA: Implicit notify support) introduced a
-    mechanism that causes a notify request of type
-    ACPI_NOTIFY_DEVICE_WAKE to be queued automatically by
-    acpi_ev_asynch_execute_gpe_method() for the device whose _PRW points
-    to the GPE being handled if that GPE is not associated with an
-    _Lxx/_Exx method.  However, it turns out that on some systems there
-    are multiple devices with _PRW pointing to the same GPE without
-    _Lxx/_Exx and the mechanism introduced by commit bba63a2 needs to be
-    extended so that "implicit" notify requests of type
-    ACPI_NOTIFY_DEVICE_WAKE can be queued automatically for all those
-    devices at the same time.
-    
-    Reported-and-tested-by: Matthew Garrett <mjg@redhat.com>
-    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-commit 2949ad50711cc161721cf788711722eeeca33764
-Author: Vasiliy Kulikov <segoon@openwall.com>
-Date:   Sat Feb 19 14:18:08 2011 +0100
-
-    ACPI / debugfs: Fix buffer overflows, double free
-    
-    File position is not controlled, it may lead to overwrites of arbitrary
-    kernel memory.  Also the code may kfree() the same pointer multiple
-    times.
-    
-    One more flaw is still present: if multiple processes open the file then
-    all 3 static variables are shared, leading to various race conditions.
-    They should be moved to file->private_data.
-    
-    Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-    Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-    Reviewed-by: Eugene Teo <eugeneteo@kernel.org>
-    Cc: stable@kernel.org
-    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+-Andi
