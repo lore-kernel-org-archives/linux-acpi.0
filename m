@@ -1,38 +1,37 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 0/7] ACPI, APEI patches for 2.6.39
-Date: Thu, 3 Mar 2011 01:01:12 +0100
-Message-ID: <20110303000112.GG32215@one.firstfloor.org>
-References: <1298267685-7357-1-git-send-email-ying.huang@intel.com> <alpine.LFD.2.02.1103021750250.12344@x980>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Patch[1/1]:ThermalFramework:Fix_crash_during_hwmon_unregister
+Date: Wed, 02 Mar 2011 19:52:12 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1103021950390.12344@x980>
+References: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:33848 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756500Ab1CCABQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 19:01:16 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1103021750250.12344@x980>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:34836 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398Ab1CCAwW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 19:52:22 -0500
+Received: from localhost.localdomain ([unknown] [74.104.148.74])
+ by vms173005.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LHG004B3IF3TSN8@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 02 Mar 2011 18:52:18 -0600 (CST)
+In-reply-to: <D6D887BA8C9DFF48B5233887EF046541094482EE4F@bgsmsx502.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Mar 02, 2011 at 05:51:24PM -0500, Len Brown wrote:
-> On Mon, 21 Feb 2011, Huang Ying wrote:
-> 
-> > [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
-> > [PATCH 2/7] lib, Add lock-less NULL terminated single list
-> > [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
-> > [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
-> > [PATCH 5/7] ACPI, APEI, Add PCIe AER error information printing support
-> > [PATCH 6/7] lib, Make gen_pool memory allocator lockless
-> > [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
-> 
-> I've put this series into acpi-test, so it will be visible in linux-next;
-> but I'm not the right person to review the generic lockless stuff,
-> who is?
+i think you may have some problems at
+unregister_hwmon_device:
 
-I reviewed it earlier and it seemed good to me (unless it has 
-changed), but Linus wanted non Intel reviewers too. Any takers?
+because we unconditionally device_remove_file() there,
+even as the associated device_create_files failed.
 
--Andi
+please send just 1 copy of a patchin email,
+and remember, as funky as it sounds, the comments
+that are to be excluded from the check-in comment
+go below the first '---'
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
