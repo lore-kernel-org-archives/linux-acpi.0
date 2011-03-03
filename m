@@ -1,29 +1,29 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] staging: Use generic IGD opregion code for gma500
-Date: Wed, 02 Mar 2011 21:16:28 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1103022115120.12344@x980>
-References: <1298404994-2907-1-git-send-email-mjg@redhat.com>
- <1298404994-2907-2-git-send-email-mjg@redhat.com>
- <alpine.LFD.2.02.1103022114250.12344@x980>
+From: "Jan Beulich" <JBeulich@novell.com>
+Subject: Re: [PATCH 0/2] acpi: section annotation adjustments in
+	 processor driver
+Date: Thu, 03 Mar 2011 07:49:39 +0000
+Message-ID: <4D6F56230200007800034A7A@vpn.id2.novell.com>
+References: <4D5D5BBE02000078000327A5@vpn.id2.novell.com>
+ <alpine.LFD.2.02.1103022058450.12344@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:33845 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754658Ab1CCCQs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2011 21:16:48 -0500
-In-reply-to: <alpine.LFD.2.02.1103022114250.12344@x980>
+In-Reply-To: <alpine.LFD.2.02.1103022058450.12344@x980>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, alan@linux.intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-i mean to say that 1/2 was applied to acpi-test, rather than 2/2.
+>>> On 03.03.11 at 02:58, Len Brown <lenb@kernel.org> wrote:
+> how much memory does this patch set save?
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
 
-This one, of course, is on top of the gma500 driver
-that isn't upstream yet, so I guess greg will have
-to take this patch in the staging area for staging.
+On x86-64, patch 1 about 900 bytes, patch 2 about 400 bytes (plus
+the ia64 specific savings which I don't have at hand right now).
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Jan
 
