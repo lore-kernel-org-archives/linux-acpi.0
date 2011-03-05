@@ -1,30 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/6] ACPI / PM: Modify the "low-level resume finished" message
-Date: Fri, 4 Mar 2011 21:53:19 +0100
-Message-ID: <201103042153.19301.rjw@sisk.pl>
-References: <201102072316.41270.rjw@sisk.pl> <201102072319.56040.rjw@sisk.pl> <20110304153807.GE1358@ucw.cz>
+Subject: [RFT][PATCH] PCI / ACPI: Do not require MSI support for PCIe native features
+Date: Sat, 5 Mar 2011 22:54:48 +0100
+Message-ID: <201103052254.48515.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110304153807.GE1358@ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, LKML <linux-kernel@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:54947 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752197Ab1CEVyo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Mar 2011 16:54:44 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Friday, March 04, 2011, Pavel Machek wrote:
-> Hi!
-> 
-> > Move the low-level resume completion message to the point where
-> > control goes back to acpi_suspend_enter() during resume and change
-> > it so that it's more informative.
-> 
-> Well, doing some printk as soon as reasonably possible was helpful for
-> debugging in the past. I'd move it sooner, not later.
-> 
-> (If you see that message, it means that normal printk debugging can be
-> used, not exotic stuff like hashes in NVRAM).
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-That's what the patch is doing, isn't it?
+After commit 415e12b2379239973feab91850b0dce985c6058a
+(PCI/ACPI: Request _OSC control once for each root bridge (v3)) we
+require MSI to be supported so that we use _OSC to request control
+of PCIe native features (hotplug, AER, PME), but that appears to
+be overkill and causes problems to happen on some systems.  For
+this reason, request control of PCIe native features via _OSC
+even if MSI support is not enabled.
+
+Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+
+Hi,
+
+Sarah, please test this patch on your machine causing PCIe hotplug
+problems on top of the patch from https://patchwork.kernel.org/patch/612171/
+and on top of 2.6.38-rc6 or later.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/pci_root.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -50,8 +50,7 @@ static int acpi_pci_root_start(struct ac
+ 
+ #define ACPI_PCIE_REQ_SUPPORT (OSC_EXT_PCI_CONFIG_SUPPORT \
+ 				| OSC_ACTIVE_STATE_PWR_SUPPORT \
+-				| OSC_CLOCK_PWR_CAPABILITY_SUPPORT \
+-				| OSC_MSI_SUPPORT)
++				| OSC_CLOCK_PWR_CAPABILITY_SUPPORT)
+ 
+ static const struct acpi_device_id root_device_ids[] = {
+ 	{"PNP0A03", 0},
