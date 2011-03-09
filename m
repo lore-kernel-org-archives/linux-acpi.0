@@ -1,64 +1,64 @@
-From: "FedEx" <frank@devlyn.com.mx>
-Subject: FW:
-Date: Wed, 9 Mar 2011 06:08:27 -0600
-Message-ID: <2022e0eb9ebd8d54f4d29647a0936af0.squirrel__23027.1870423623$1299684519$gmane$org@webmail.devlyn.com.mx>
-Reply-To: fedex01@wildblue.net
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH]: cpufreq: pcc-cpufreq: don't load driver if get_freq fails during init.
+Date: Wed, 9 Mar 2011 17:09:40 +0100
+Message-ID: <201103091709.40464.trenn@suse.de>
+References: <20110309135906.6554.54389.sendpatchset@nchumbalkar.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 85.f6.78ae.static.theplanet.com ([174.120.246.133]:51343 "EHLO
-	nsc.nscmx.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751488Ab1CIP2a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2011 10:28:30 -0500
+Received: from cantor2.suse.de ([195.135.220.15]:41639 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932102Ab1CIQJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Mar 2011 11:09:42 -0500
+In-Reply-To: <20110309135906.6554.54389.sendpatchset@nchumbalkar.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Greg Kroah-Hartman <gregkh@novell.com>
 
+Good catch.
 
-Date: 8th  March, 2011.
-=46edEx=AE Claims Dept.
+On Wednesday, March 09, 2011 03:02:49 PM Naga Chumbalkar wrote:
+> 
+> Return 0 on failure. This will cause the initialization of the driver
+> to fail and prevent the driver from loading if the BIOS cannot handle
+> the PCC interface command to "get frequency". Otherwise, the driver
+> will load and display a very high value like "4294967274" (which is
+> actually -EINVAL) for frequency:
+> 
+> # cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq
+> 4294967274
+> 
+> Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+Reviewed-by: Thomas Renninger <trenn@suse.de>
 
-Data confirmation
+While this is not a regression, it's an easy fix.
+It should make sense to add:
+CC: stable@kernel.org
+?
 
-You have a registered package. CONTENT: Bank Draft of $920 000.00 USD i=
-n
-our custody. Registered by an Official of the United Nation (Protocal a=
-nd
-Liaison Service). Reg.# R-2267544490000. For your information the VAT a=
-nd
-COD have been paid. The only payment You are to make is $69 for the
-security keeping fees
+   Thomas
+> ---
+> 
+> diff --git a/arch/x86/kernel/cpu/cpufreq/pcc-cpufreq.c 
+b/arch/x86/kernel/cpu/cpufreq/pcc-cpufreq.c
+> index 4f6f679..4a5a42b 100644
+> --- a/arch/x86/kernel/cpu/cpufreq/pcc-cpufreq.c
+> +++ b/arch/x86/kernel/cpu/cpufreq/pcc-cpufreq.c
+> @@ -195,7 +195,7 @@ static unsigned int pcc_get_freq(unsigned int cpu)
+>  cmd_incomplete:
+>  	iowrite16(0, &pcch_hdr->status);
+>  	spin_unlock(&pcc_lock);
+> -	return -EINVAL;
+> +	return 0;
+>  }
+>  
+>  static int pcc_cpufreq_target(struct cpufreq_policy *policy,
+> --
+> To unsubscribe from this list: send the line "unsubscribe cpufreq" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Contact FedEx Delivery Department with details below:
-
-Name:  Mr . Larry Watts
-Email:fedexdeliveryservice11@wildblue.net
-Tel: +2348023111517
-
-You are to reconfirm your Postal address and telephone number for urgen=
-t
-service:
-
-=46ull Name:
-Address:
-City:
-Postal Address:
-Phone:
-Country:
-
-After confirmation of details our delivery team shall give you payment
-details For Customs clarification Form.
-
-Yours Faithfully,
-Mrs. Jose Saldanha
-=A9Federal Express Corporation
-All rights reserved. =A9 1995-2011 FedEx
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
