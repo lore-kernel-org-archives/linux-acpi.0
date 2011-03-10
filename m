@@ -1,44 +1,54 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH]: cpufreq: pcc-cpufreq: don't load driver if get_freq
- fails during init.
-Date: Wed, 9 Mar 2011 08:27:23 -0800
-Message-ID: <20110309162723.GA31459@suse.de>
-References: <20110309135906.6554.54389.sendpatchset@nchumbalkar.americas.hpqcorp.net>
- <201103091709.40464.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [BUG] Fans keep running, first found since v2.6.38-rc7
+Date: Thu, 10 Mar 2011 01:06:36 +0100
+Message-ID: <201103100106.36678.rjw@sisk.pl>
+References: <4d774c85.20f98e0a.2695.73ed@mx.google.com> <201103092125.43950.rjw@sisk.pl> <4d780a2f.231a8f0a.3b01.ffffa228@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201103091709.40464.trenn@suse.de>
-Sender: cpufreq-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Naga Chumbalkar <nagananda.chumbalkar@hp.com>, Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:43167 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750957Ab1CJAGs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Mar 2011 19:06:48 -0500
+In-Reply-To: <4d780a2f.231a8f0a.3b01.ffffa228@mx.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wang Lei <f3d27b@gmail.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Wed, Mar 09, 2011 at 05:09:40PM +0100, Thomas Renninger wrote:
-> Good catch.
+On Thursday, March 10, 2011, Wang Lei wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
-> On Wednesday, March 09, 2011 03:02:49 PM Naga Chumbalkar wrote:
-> > 
-> > Return 0 on failure. This will cause the initialization of the driver
-> > to fail and prevent the driver from loading if the BIOS cannot handle
-> > the PCC interface command to "get frequency". Otherwise, the driver
-> > will load and display a very high value like "4294967274" (which is
-> > actually -EINVAL) for frequency:
-> > 
-> > # cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq
-> > 4294967274
-> > 
-> > Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
-> Reviewed-by: Thomas Renninger <trenn@suse.de>
+> > On Wednesday, March 09, 2011, Wang Lei wrote:
+> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> >> 
+> >> >
+> >> > There was only one commit in that area since 2.6.38-rc6, but it shouldn't
+> >> > affect the functionality this way.
+> >> >
+> >> > Is yout thermal management controlled by ACPI?
+> >> >
+> >> > Rafael
+> >> 
+> >> Thanks for your reply!
+> >> 
+> >> How could I know that?
+> >
+> > What does "ls -l /sys/class/thermal/cooling_device0/device" say?
+> >
+> > Rafael
 > 
-> While this is not a regression, it's an easy fix.
-> It should make sense to add:
-> CC: stable@kernel.org
-> ?
+> [~]$ ls -l /sys/class/thermal/cooling_device0/device
+> lrwxrwxrwx 1 root root 0 Mar 10 07:13 /sys/class/thermal/cooling_device0/device -> ../../../LNXSYSTM:00/device:47/PNP0C0B:00
+> [~]$
 
-Yes you should :)
+That's ACPI.
 
-thanks,
+I don't know, however, which change might cause the problem to happen.
 
-greg k-h
+Can you bisect the commits between 2.6.38-rc6 and -rc7 to find the one that
+introduced the issue?
+
+Rafael
