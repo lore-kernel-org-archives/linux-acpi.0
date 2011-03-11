@@ -1,7 +1,7 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 4/4] ACPI: Make sure the FADT is at least rev 2 before using the reset register
-Date: Fri, 11 Mar 2011 16:12:20 -0500
-Message-ID: <1299877940-6870-4-git-send-email-mjg@redhat.com>
+Subject: [PATCH 2/4] ACPICA: Fix access width for reset vector
+Date: Fri, 11 Mar 2011 16:12:18 -0500
+Message-ID: <1299877940-6870-2-git-send-email-mjg@redhat.com>
 References: <1299877940-6870-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1299877940-6870-1-git-send-email-mjg@redhat.com>
@@ -10,29 +10,39 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, x86@kernel.org, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The reset register was only introduced with version 2 of the FADT, so we
-should check that the FADT revision before trusting its contents.
+Section 4.7.3.6 of the ACPI specification requires that the register width
+of the reset vector be 8 bits. Windows simply hardcodes the access to be
+a byte and ignores the width provided in the FADT, so make sure that we
+do the same.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/reboot.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/acpi/acpica/hwxface.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-index 4870aaa..a6c77e8b 100644
---- a/drivers/acpi/reboot.c
-+++ b/drivers/acpi/reboot.c
-@@ -15,6 +15,11 @@ void acpi_reboot(void)
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 6f98d21..f75f81a 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -80,14 +80,14 @@ acpi_status acpi_reset(void)
  
- 	rr = &acpi_gbl_FADT.reset_register;
+ 	if (reset_reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+ 		/*
+-		 * For I/O space, write directly to the OSL. This bypasses the port
+-		 * validation mechanism, which may block a valid write to the reset
+-		 * register.
++		 * For I/O space, write directly to the OSL. This
++		 * bypasses the port validation mechanism, which may
++		 * block a valid write to the reset register. Spec
++		 * section 4.7.3.6 requires register width to be 8.
+ 		 */
+ 		status =
+ 		    acpi_os_write_port((acpi_io_address) reset_reg->address,
+-				       acpi_gbl_FADT.reset_value,
+-				       reset_reg->bit_width);
++				       acpi_gbl_FADT.reset_value, 8);
+ 	} else {
+ 		/* Write the reset value to the reset register */
  
-+	/* ACPI reset register was only introduced with v2 of the FADT */
-+
-+	if (acpi_gbl_FADT.header.revision < 2)
-+		return;
-+
- 	/* Is the reset register supported? The spec says we should be
- 	 * checking the bit width and bit offset, but Windows ignores
- 	 * these fields */
 -- 
 1.7.4.1
