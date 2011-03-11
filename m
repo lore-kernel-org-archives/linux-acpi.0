@@ -1,113 +1,98 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: acer-wmi: rfkill and bluetooth enabling doesn't work as in
- 2.6.37
-Date: Thu, 10 Mar 2011 15:02:27 -0700
-Message-ID: <4D79E5230200002300029ADA@novprvlin0050.provo.novell.com>
+From: Wang Lei <f3d27b@gmail.com>
+Subject: Re: [BUG] Fans keep running, first found since v2.6.38-rc7
+Date: Fri, 11 Mar 2011 08:04:51 +0800
+Message-ID: <4d796b47.20f98e0a.2695.fffff615@mx.google.com>
+References: <4d774c85.20f98e0a.2695.73ed@mx.google.com>
+	<201103092125.43950.rjw@sisk.pl>
+	<4d780a2f.231a8f0a.3b01.ffffa228@mx.google.com>
+	<201103100106.36678.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Content-Disposition: inline
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:36085 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754074Ab1CKAWd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2011 19:22:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: oldium.pro@seznam.cz
-Cc: Joey Lee <JLee@novell.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Andreas Herrmann <andreas.herrmann3@amd.com>
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2011-03-10 =E6=96=BC 19:37 +0100=EF=BC=8COl=
-d=C5=99ich Jedli=C4=8Dka =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hi all,
->=20
-> This is about Acer WMI driver and bluetooth support. I hope I'm at th=
-e right=20
-> place with my question :-)
->=20
-> I tried to use bluetooth again on my Acer TravelMate 5730G and discov=
-ered a=20
-> usability problem. I've checked 2.6.38-rc7:
->=20
-> 0. On startup, the bluetooth LED is off, acer-bluetooth SW rfkill is =
-blocked.
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-Yes, this is right behavior.
+> On Thursday, March 10, 2011, Wang Lei wrote:
+>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>> 
+>> > On Wednesday, March 09, 2011, Wang Lei wrote:
+>> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>> >> 
+>> >> >
+>> >> > There was only one commit in that area since 2.6.38-rc6, but it shouldn't
+>> >> > affect the functionality this way.
+>> >> >
+>> >> > Is yout thermal management controlled by ACPI?
+>> >> >
+>> >> > Rafael
+>> >> 
+>> >> Thanks for your reply!
+>> >> 
+>> >> How could I know that?
+>> >
+>> > What does "ls -l /sys/class/thermal/cooling_device0/device" say?
+>> >
+>> > Rafael
+>> 
+>> [~]$ ls -l /sys/class/thermal/cooling_device0/device
+>> lrwxrwxrwx 1 root root 0 Mar 10 07:13 /sys/class/thermal/cooling_device0/device -> ../../../LNXSYSTM:00/device:47/PNP0C0B:00
+>> [~]$
+>
+> That's ACPI.
+>
+> I don't know, however, which change might cause the problem to happen.
+>
+> Can you bisect the commits between 2.6.38-rc6 and -rc7 to find the one that
+> introduced the issue?
+>
+> Rafael
 
-Because have a acer-wmi patch in 2.6.38 to sync the connection devices
-(wlan, bluetooth, 3G) status with BIOS.
-Acer BIOS fills-in the device initial states in SMBIOS when system boot=
-,
-then acer-wmi dirver sync this states with killswitch. By default, Acer
-BIOS set the bluetooth to off.
+Thanks, Rafael.
+Bisect stopped at commit 7f74f8f28a2bd9db9404f7d364e2097a0c42cc12
 
-> 1. I have to enable the HW bluetooth switch to get the bluetooth LED =
-running=20
-> (USB device appears in lsusb). The acer-bluetooth SW rfkill is unbloc=
-ked, the=20
-> SW rfkill of hci0 is blocked.
+--------------------
+[~/repository/kernel]$ git bisect good
+7f74f8f28a2bd9db9404f7d364e2097a0c42cc12 is the first bad commit
+commit 7f74f8f28a2bd9db9404f7d364e2097a0c42cc12
+Author: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date:   Thu Feb 24 15:53:46 2011 +0100
 
-Yes, this is also right behavior, because acer-wmi driver will maintain
-the killswitch status with BIOS.
+    x86 quirk: Fix polarity for IRQ0 pin2 override on SB800 systems
+    
+    On some SB800 systems polarity for IOAPIC pin2 is wrongly
+    specified as low active by BIOS. This caused system hangs after
+    resume from S3 when HPET was used in one-shot mode on such
+    systems because a timer interrupt was missed (HPET signal is
+    high active).
+    
+    For more details see:
+    
+      http://marc.info/?l=linux-kernel&m=129623757413868
+    
+    Tested-by: Manoj Iyer <manoj.iyer@canonical.com>
+    Tested-by: Andre Przywara <andre.przywara@amd.com>
+    Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+    Cc: Borislav Petkov <borislav.petkov@amd.com>
+    Cc: stable@kernel.org # 37.x, 32.x
+    LKML-Reference: <20110224145346.GD3658@alberich.amd.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
 
-> 2. Next I have to unblock SW rfkill on hci0 by a call to `rfkill unbl=
-ock=20
-> <number of hci0>`.
-> 3. Last I have to enable the HCI by the call to `hciconfig hci0 up`.
->=20
+:040000 040000 918adb3e08ef8cd258016dc46afab842e1be65fc 77d76d6f2451b16f963ce1ffe183aacfed9d994d M	arch
+[~/repository/kernel]$ 
+--------------------
 
-About 2. - 3.
-I thought the above behavior causes by rfkill-input reverse the hci0's
-killswitch when you pressed HW bluetooth, the HW bluetooth send out a
-KEY_BLUETHOOTH keycode then rfkill-input capture it to do hci0's status
-reverse.
-I suggest leave userland application to do killswitch, don't use
-rfkill-input.
+So, I Cc to Andreas Herrmann, hope you will notice and help fix this.
 
-You can do:
-	- Use rfkill unblock acer-bluetooth SW killswitch, don't use HW blueto=
-oth switch.
-	- If you still want to use HW bluetooth switch, then I suggest disable=
- your rfkill-input.
-	  Have 2 way:
-		+ Use urfkill daemon: http://www.freedesktop.org/wiki/Software/urfkil=
-l
-		  This is a userland daemon can lock the rfkill-input to disable it t=
-emporarily.
-		+ Direct set CONFIG_RFKILL_INPUT=3DN in kernel, but you will need to =
-rebuild kernel.
-		  After set rfkill-input disable, you need control killswitch from us=
-erland.
-		  You can control it by rfkill tool or also try urfkill daemon.
+Thanks, all you hackers!
 
-We are adding more feature in urfkill daemon, I and Gary's plan is use =
-urfkill daemon to replace
-the rfkill-input in kernel.
-
-> How is this supposed to work? I tried to use "rfkill.default_state=3D=
-1" on=20
-> kernel command line, but without any success.
->=20
-
-Yes, rfkill default_state doesn't help, because acer-wmi driver will
-sync the devices status from BIOS, it's right behavior.
-
-> When I boot into 2.6.37, the bluetooth LED goes ON automatically and =
-hciconfig=20
-> shows the hci0 as UP.
->=20
-
-Yes, that because acer-wmi didn't sync the bluetooth status with BIOS
-when system boot in 2.6.37 kernel.
-
-> Thanks.
->=20
-> Best regards,
-> Old=C5=99ich.
-
-
-Thank's
-Joey Lee
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Lei
