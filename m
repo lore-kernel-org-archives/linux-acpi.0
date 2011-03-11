@@ -1,128 +1,44 @@
-From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Subject: Re: [BUG] Fans keep running, first found since v2.6.38-rc7
-Date: Fri, 11 Mar 2011 15:28:54 +0100
-Message-ID: <20110311142854.GB4717@alberich.amd.com>
-References: <4d774c85.20f98e0a.2695.73ed@mx.google.com>
- <201103092125.43950.rjw@sisk.pl>
- <4d780a2f.231a8f0a.3b01.ffffa228@mx.google.com>
- <201103100106.36678.rjw@sisk.pl>
- <4d796b47.20f98e0a.2695.fffff615@mx.google.com>
- <20110311074156.GD13156@alberich.amd.com>
- <4d79fdbd.43392b0a.0aae.0712@mx.google.com>
- <20110311113839.GA4717@alberich.amd.com>
- <4d7a19c2.29788e0a.231c.1837@mx.google.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [ANNOUNCE] cpupowerutils - cpufrequtils extended with quite some features
+Date: Fri, 11 Mar 2011 15:56:01 +0000
+Message-ID: <AANLkTimFg+uYGbSi=Ci-+_e89TgLkyMB7PAJcnt7mzTc@mail.gmail.com>
+References: <201103111247.00212.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60718 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751488Ab1CKO3A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2011 09:29:00 -0500
-Content-Disposition: inline
-In-Reply-To: <4d7a19c2.29788e0a.231c.1837@mx.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103111247.00212.trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, discuss@lesswatts.org, power@bughost.org, cpufreq@vger.kernel.org, linux@dominikbrodowski.net, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, herrmann.der.user@googlemail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wang Lei <f3d27b@gmail.com>
-Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Fri, Mar 11, 2011 at 08:47:01PM +0800, Wang Lei wrote:
-> 
-> On 2011-03-11 19:38:39 +0800, Andreas wrote:
-> >
-> > Can you please try to boot -rc7 with kernel parameter acpi_skip_timer_override
-> > and send the same output (dmesg again also with apic=debug and lspci -nnxxxx)
-> >
-> >
-> > Thanks,
-> >
-> > Andreas
-> >
-> > PS: My assumption is that the patch in -rc7 leads to usage of IO-APIC
-> >     pin2 for timer interrupt (potentially I have broken chipset
-> >     revision determination for some SB600.)
+On Fri, Mar 11, 2011 at 11:46 AM, Thomas Renninger <trenn@suse.de> wrote:
+> Why is there need for another tool?
+> -----------------------------------
+>
+> CPU power consumption vs performance tuning is not about
+> CPU frequency switching anymore for quite some time.
+> Deep sleep states, traditional dynamic frequency scaling and
+> hidden turbo/boost frequencies are tight close together and
+> depend on each other. The first two exist on different architectures
+> like PPC, Itanium and ARM the latter only on X86.
+> On X86 the APU (CPU+GPU) will only run most efficiently if CPU
+> and GPU has proper power management in place.
+>
+> Users and Developers want to have *one* tool to get an overview what their
+> system supports and to monitor and debug CPU power management in detail.
+>
+> The tool should compile and work on as much architectures as
+> possible.
+>
 
-> Hi Andreas,
-> 
-> I did what you said, appended acpi_skip_timer_override when boot -rc7.
-> Now the fans work OK. I don't know why and I don't think this is the
-> final solution. If not, I'll wait.
+Hi Thomas,
+Do you think handling really vendor specific "boosts" like EeePC's SHE
+is in cpupower scope ?
+Still, it would not solve the issue of setting SHE mode in a standard
+way, or associating it with a governor.
+Thanks,
 
-Ok, the problem is that all SB[6-8]00 chipsets use the same PCI device ID.
-To differntiate the versions I need to check the revision ID.
-
-With my patch I removed some special treatment for SB600.
-(See http://support.amd.com/us/Embedded_TechDocs/46155_sb600_rrg_pub_3.03.pdf)
-
-           Revision ID/Class Code- R - 32 bits - [PCI_Reg: 08h]
-Field Name   Bits      Default                             Description
-RevisionID    7:0     11h /      This field reflects the ASIC revision.
-                      12h /      11h : For ASIC revision A11
-                      13h        12h : For ASIC revision A12
-                                 13h : For ASIC revision A13
-                                 For ASIC revisions after A13, by default this field will read 13h
-                                 still. However, if SMBUS PCI config 70h bit 8 is set to 1, a
-                                 hidden revision ID can be read from this field.
-
-The old code temporarily cleared bit 8 in PCI config 70h and received
-13h as revision for device 14.0 on your system (the "hidden revision
-ID" shown in your lspci output is 0x14 and that is what the new code
-is using). For SB700/SB800 PCI config 70h is reserved ("software
-should not write to it") and that is why I wanted to avoid accesses to
-that register. (See SB700 documentation
-http://support.amd.com/us/Embedded_TechDocs/43009_sb7xx_rrg_pub_1.00.pdf)
-
-So the right thing to do is to correct the check for SB600 to cover
-all SB600 revisions w/o depending on the setting of bit 8 in PCI
-config 70h.
-
-Attached patch should achieve this.
-Can you please test this patch on top of -rc7?
-
-
-Thanks a lot,
-
-Andreas
----
->From 8453f3aef2e2b89ba30877998dcbfc06f475e253 Mon Sep 17 00:00:00 2001
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Fri, 11 Mar 2011 15:16:47 +0100
-Subject: [PATCH] x86, quirk: Fix SB600 revision check
-
-Commit 7f74f8f28a2bd9db9404f7d364e2097a0c42cc12
-(x86 quirk: Fix polarity for IRQ0 pin2 override on SB800 systems)
-introduced a regression. It removed some SB600 specific code
-to determine the revision ID without adapting a corresponding
-revision ID check for SB600.
-
-See this mail thread
-http://marc.info/?l=linux-kernel&m=129980296006380&w=2
-
-This patch adapts the corresponding check to cover all SB600
-revisions.
-
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
----
- arch/x86/kernel/early-quirks.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/arch/x86/kernel/early-quirks.c b/arch/x86/kernel/early-quirks.c
-index 9efbdcc..3755ef4 100644
---- a/arch/x86/kernel/early-quirks.c
-+++ b/arch/x86/kernel/early-quirks.c
-@@ -159,7 +159,12 @@ static void __init ati_bugs_contd(int num, int slot, int func)
- 	if (rev >= 0x40)
- 		acpi_fix_pin2_polarity = 1;
- 
--	if (rev > 0x13)
-+	/*
-+	 * SB600: revisions 0x11, 0x12, 0x13, 0x14, ...
-+	 * SB700: revisions 0x39, 0x3a, ...
-+	 * SB800: revisions 0x40, 0x41, ...
-+	 */
-+	if (rev >= 0x39)
- 		return;
- 
- 	if (acpi_use_timer_override)
 -- 
-1.7.4.1
-
+Corentin Chary
+http://xf.iksaif.net
