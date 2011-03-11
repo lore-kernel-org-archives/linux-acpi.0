@@ -1,27 +1,23 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: acer-wmi: rfkill and bluetooth enabling doesn't work as in
- 2.6.37
-Date: Fri, 11 Mar 2011 14:45:37 -0700
-Message-ID: <4D7B32B10200002300029B5E@novprvlin0050.provo.novell.com>
-References: <4D79E5230200002300029ADA@novprvlin0050.provo.novell.com>
- <201103112154.09729.oldium.pro@seznam.cz>
- <4D7B2E010200002300029B57@novprvlin0050.provo.novell.com>
- <201103112234.42885.oldium.pro@seznam.cz>
+From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+Subject: Re: acer-wmi: rfkill and bluetooth enabling doesn't work as in 2.6.37
+Date: Fri, 11 Mar 2011 23:00:08 +0100
+Message-ID: <201103112300.09291.oldium.pro@seznam.cz>
+References: <4D79E5230200002300029ADA@novprvlin0050.provo.novell.com> <4D7B2E010200002300029B57@novprvlin0050.provo.novell.com> <201103112234.42885.oldium.pro@seznam.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:48189 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab1CKWAO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2011 17:00:14 -0500
 In-Reply-To: <201103112234.42885.oldium.pro@seznam.cz>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: oldium.pro@seznam.cz
+To: Joey Lee <jlee@novell.com>
 Cc: Al Cho <ACho@novell.com>, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-bluetooth@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-Hi Old=C5=99ich,
-
-=E6=96=BC =E4=BA=94=EF=BC=8C2011-03-11 =E6=96=BC 22:34 +0100=EF=BC=8COl=
-d=C5=99ich Jedli=C4=8Dka =E6=8F=90=E5=88=B0=EF=BC=9A
+On Friday 11 March 2011 22:34:42 Old=C5=99ich Jedli=C4=8Dka wrote:
 > Hi Joey Lee,
 >=20
 > On Friday 11 March 2011 22:25:37 Joey Lee wrote:
@@ -53,33 +49,30 @@ G and
 > > > > > > > discovered a usability problem. I've checked 2.6.38-rc7:
 > > > > > > >=20
 > > > > > > > 0. On startup, the bluetooth LED is off, acer-bluetooth S=
-W rfkill
-> > > > > > > is blocked.
+W
+> > > > > > > rfkill is blocked.
 > > > > > >=20
 > > > > > > Yes, this is right behavior.
 > > > > > >=20
 > > > > > > Because have a acer-wmi patch in 2.6.38 to sync the connect=
 ion
 > > > > > > devices (wlan, bluetooth, 3G) status with BIOS.
-> > > > > > Acer BIOS fills-in the device initial states in SMBIOS when=
- system
-> > > > > > boot, then acer-wmi dirver sync this states with killswitch=
-=2E By
-> > > > > > default, Acer BIOS set the bluetooth to off.
+> > > > > > Acer BIOS fills-in the device initial states in SMBIOS when
+> > > > > > system boot, then acer-wmi dirver sync this states with
+> > > > > > killswitch. By default, Acer BIOS set the bluetooth to off.
 > > > > > >=20
-> > > > > > > 1. I have to enable the HW bluetooth switch to get the bl=
-uetooth
-> > > > > > > LED running (USB device appears in lsusb). The acer-bluet=
-ooth SW
-> > > > > > > rfkill is unblocked, the SW rfkill of hci0 is blocked.
+> > > > > > > 1. I have to enable the HW bluetooth switch to get the
+> > > > > > > bluetooth LED running (USB device appears in lsusb). The
+> > > > > > > acer-bluetooth SW rfkill is unblocked, the SW rfkill of h=
+ci0
+> > > > > > > is blocked.
 > > > > > >=20
 > > > > > > Yes, this is also right behavior, because acer-wmi driver w=
 ill
 > > > > > > maintain the killswitch status with BIOS.
 > > > > > >=20
-> > > > > > > 2. Next I have to unblock SW rfkill on hci0 by a call to =
-`rfkill
-> > > > > > > unblock <number of hci0>`.
+> > > > > > > 2. Next I have to unblock SW rfkill on hci0 by a call to
+> > > > > > > `rfkill unblock <number of hci0>`.
 > > > > > > > 3. Last I have to enable the HCI by the call to `hciconfi=
 g hci0
 > > > > > > > up`.
@@ -119,25 +112,24 @@ ebuild
 > > disable rfkill-input?
 > >=20
 > > > > > > temporarily. + Direct set CONFIG_RFKILL_INPUT=3DN in kernel=
-, but you
-> > > > > > will need to rebuild kernel. After set rfkill-input disable=
-, you
-> > > > > > need control killswitch from userland. You can control it b=
-y
+, but
+> > > > > > you will need to rebuild kernel. After set rfkill-input dis=
+able,
+> > > > > > you need control killswitch from userland. You can control =
+it by
 > > > > > > rfkill tool or also try urfkill daemon.
 > > > > >=20
 > > > > > Actually this doesn't work. When I unblock the SW switch by
 > > > > > calling `rfkill unblock <number of acer-bluetooth>`, it unblo=
-cks the
-> > > > > SW killswitch, the bluetooth LED goes up, the hci0 shows-up (=
-USB
-> > > > > device and killswitch), but initial state of hci0's killswitc=
-h is
-> > > > > "blocked". So I still need to unblock it manually. I would pr=
-effer
-> > > > > to don't be forced to do step 2, also for the HW switch (whic=
-h
-> > > > > should do the same job I think).
+cks
+> > > > > the SW killswitch, the bluetooth LED goes up, the hci0 shows-=
+up
+> > > > > (USB device and killswitch), but initial state of hci0's
+> > > > > killswitch is "blocked". So I still need to unblock it manual=
+ly. I
+> > > > > would preffer to don't be forced to do step 2, also for the H=
+W
+> > > > > switch (which should do the same job I think).
 > > > > >=20
 > > > > > Cheers,
 > > > > > Old=C5=99ich.
@@ -229,19 +221,64 @@ Mfr=3D1,
 > > The above result is base on CONFIG_RFKILL_INPUT=3DN ?
 >=20
 > No, that was just a formatting problem of a "reply" to a mail. That w=
-asn't my=20
-> reaction, it was just a word from the previous line. I'm still using=20
+asn't
+> my reaction, it was just a word from the previous line. I'm still usi=
+ng
 > CONFIG_RFKILL_INPUT=3DY.
 >=20
 > Old=C5=99ich.
 >=20
+> > I just simply check the rfkill stuff,
+> > I found when CONFIG_RFKILL_INPUT set to enable and there have any d=
+river
+> > call rfkill_init_sw_state before register rfkill object, then rfkil=
+l
+> > will sync this state to all killswitch that have the same type and =
+also
+> > will set the same initial state to new killswitch have the same typ=
+e.
+> >=20
+> > Looks like rfkill will sync the state for the same type killswitch =
+if
+> > used rfkill_init_sw_state, I will do more detail debug and trace fo=
+r
+> > rfkill stuff, then find out solution.
 
-That's make sense now!
+I've added dump_trace() into hci_rfkill_set_block and the result is thi=
+s:
 
-Thank's for your bug report, I am tracing and try to find out solution.
-Joey Lee
+[   85.180724] hci_rfkill_set_block: f36bb800 name hci0 blocked 1
+[   85.180734] Pid: 8, comm: kworker/1:0 Not tainted 2.6.38-drm+ #106
+[   85.180740] Call Trace:
+[   85.180758]  [<c080ae7b>] ? hci_rfkill_set_block+0x3b/0x60
+[   85.180769]  [<c08a9b58>] ? rfkill_set_block+0x68/0xe0
+[   85.180778]  [<c08a9e36>] ? rfkill_sync_work+0x26/0x40
+[   85.180791]  [<c027e851>] ? process_one_work+0x121/0x370
+[   85.180802]  [<c0263a0b>] ? get_parent_ip+0xb/0x40
+[   85.180810]  [<c08a9e10>] ? rfkill_sync_work+0x0/0x40
+[   85.180820]  [<c027ee3c>] ? worker_thread+0x11c/0x3b0
+[   85.180831]  [<c027ed20>] ? worker_thread+0x0/0x3b0
+[   85.180840]  [<c0282144>] ? kthread+0x74/0x80
+[   85.180849]  [<c02820d0>] ? kthread+0x0/0x80
+[   85.180859]  [<c022f1f6>] ? kernel_thread_helper+0x6/0x10
 
+It goes from rfkill_sync_work. That is all I can do now, I guess you wi=
+ll be=20
+faster than me in finding the solution :-)
 
+Cheers,
+Old=C5=99ich.
+
+> >=20
+> >=20
+> > Thank's a lot!
+> > Joey Lee
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
