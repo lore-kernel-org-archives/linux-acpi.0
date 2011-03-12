@@ -1,59 +1,102 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: Re: [ANNOUNCE] cpupowerutils - cpufrequtils extended with quite
- some features
-Date: Sat, 12 Mar 2011 12:40:10 +0800
-Message-ID: <20110312044010.GB3634@zhy>
-References: <201103111247.00212.trenn@suse.de>
- <20110312043409.GA3634@zhy>
-Reply-To: Yong Zhang <yong.zhang0@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/8] ACPI: Use syscore_ops instead of sysdev class and sysdev
+Date: Sat, 12 Mar 2011 22:16:51 +0100
+Message-ID: <201103122216.51858.rjw@sisk.pl>
+References: <201103100131.58206.rjw@sisk.pl> <201103122212.40828.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110312043409.GA3634@zhy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, discuss@lesswatts.org, power@bughost.org, cpufreq@vger.kernel.org, linux@dominikbrodowski.net, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, herrmann.der.user@googlemail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:53644 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755422Ab1CLVWS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Mar 2011 16:22:18 -0500
+In-Reply-To: <201103122212.40828.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, mingo@redhat.com, tglx@linutronix.de, Dave Jones <davej@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Avi Kivity <avi@redhat.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Sat, Mar 12, 2011 at 12:34:09PM +0800, Yong Zhang wrote:
-> On Fri, Mar 11, 2011 at 12:46:59PM +0100, Thomas Renninger wrote:
-> > Happy testing..., if you have a recent machine, you'll like it!
-> > 
-> > After some testing phase it would be great to get this tool
-> > merged into the kernel git repo under:
-> > tools/power/cpupower
-> > and replace the Intel HW only supporting tools in tools/power/x86.
-> 
-> I got below output on my laptop:
-> 
->     |Mperf               || Idle_Stats                
-> CPU | C0   | Cx   | Freq || POLL | C1   | C2   | C3   
->    0| 36.00| 64.00|   820||1843411670376227.2|1843411670376692.2|  0.00|  0.00
->    1| 44.69| 55.31|   920||  0.00|  0.00|  0.00|  0.00
-> 
-> Seems below patch fix it:
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-forget the declaration of value :)
+ACPI uses a sysdev class and a sysdev for executing
+irqrouter_resume() before turning on interrupts on the boot CPU.
+However, since irqrouter_resume() ignores its argument, the entire
+mechanism may be replaced with a struct syscore_ops object which
+is considerably simpler.
 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
---- utils/helpers/sysfs-orig.c	2011-03-12 12:32:06.179827929 +0800
-+++ utils/helpers/sysfs.c	2011-03-12 12:35:21.512796546 +0800
-@@ -111,7 +111,7 @@
- 						     unsigned int idlestate,
- 						     enum idlestate_value which)
+ drivers/acpi/pci_link.c |   30 ++++++++----------------------
+ 1 file changed, 8 insertions(+), 22 deletions(-)
+
+Index: linux-2.6/drivers/acpi/pci_link.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_link.c
++++ linux-2.6/drivers/acpi/pci_link.c
+@@ -29,7 +29,7 @@
+  *	   for IRQ management (e.g. start()->_SRS).
+  */
+ 
+-#include <linux/sysdev.h>
++#include <linux/syscore_ops.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -757,14 +757,13 @@ static int acpi_pci_link_resume(struct a
+ 	return 0;
+ }
+ 
+-static int irqrouter_resume(struct sys_device *dev)
++static void irqrouter_resume(void)
  {
--	unsigned long value;
-+	unsigned long long value;
- 	unsigned int len;
- 	char linebuf[MAX_LINE_LEN];
- 	char *endp;
-@@ -126,7 +126,7 @@
- 		return 0;
+ 	struct acpi_pci_link *link;
+ 
+ 	list_for_each_entry(link, &acpi_link_list, list) {
+ 		acpi_pci_link_resume(link);
  	}
+-	return 0;
+ }
  
--	value = strtoul(linebuf, &endp, 0);
-+	value = strtoull(linebuf, &endp, 0);
+ static int acpi_pci_link_remove(struct acpi_device *device, int type)
+@@ -871,32 +870,19 @@ static int __init acpi_irq_balance_set(c
  
- 	if ( endp == linebuf || errno == ERANGE )
- 		return 0;
+ __setup("acpi_irq_balance", acpi_irq_balance_set);
+ 
+-/* FIXME: we will remove this interface after all drivers call pci_disable_device */
+-static struct sysdev_class irqrouter_sysdev_class = {
+-	.name = "irqrouter",
++static struct syscore_ops irqrouter_syscore_ops = {
+ 	.resume = irqrouter_resume,
+ };
+ 
+-static struct sys_device device_irqrouter = {
+-	.id = 0,
+-	.cls = &irqrouter_sysdev_class,
+-};
+-
+-static int __init irqrouter_init_sysfs(void)
++static int __init irqrouter_init_ops(void)
+ {
+-	int error;
++	if (!acpi_disabled && !acpi_noirq)
++		register_syscore_ops(&irqrouter_syscore_ops);
+ 
+-	if (acpi_disabled || acpi_noirq)
+-		return 0;
+-
+-	error = sysdev_class_register(&irqrouter_sysdev_class);
+-	if (!error)
+-		error = sysdev_register(&device_irqrouter);
+-
+-	return error;
++	return 0;
+ }
+ 
+-device_initcall(irqrouter_init_sysfs);
++device_initcall(irqrouter_init_ops);
+ 
+ static int __init acpi_pci_link_init(void)
+ {
+
