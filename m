@@ -1,140 +1,27 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] clean acpi wakeup code after merge
-Date: Sun, 13 Mar 2011 23:32:55 +0100
-Message-ID: <201103132332.55783.rjw@sisk.pl>
-References: <4D7D3F6B.8060504@free.fr>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 1/2] merge 32 and 64 realmode wakeup code
+Date: Sun, 13 Mar 2011 16:06:40 -0700
+Message-ID: <4D7D4E00.4080602@zytor.com>
+References: <4D7D3F4B.2070801@free.fr> <201103132331.57536.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55251 "EHLO ogre.sisk.pl"
+Received: from terminus.zytor.com ([198.137.202.10]:37711 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754853Ab1CMWck (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Mar 2011 18:32:40 -0400
-In-Reply-To: <4D7D3F6B.8060504@free.fr>
+	id S1755631Ab1CMXHT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Mar 2011 19:07:19 -0400
+In-Reply-To: <201103132331.57536.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: matthieu castet <castet.matthieu@free.fr>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Sunday, March 13, 2011, matthieu castet wrote:
+On 03/13/2011 03:31 PM, Rafael J. Wysocki wrote:
 > 
-> This remove unsued pmode_* entry in wakeup header and saved_*dt
-> in wakeup_32.
-> 
-> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
-
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-> ---
->  arch/x86/kernel/acpi/realmode/wakeup.S |    8 --------
->  arch/x86/kernel/acpi/realmode/wakeup.h |   11 +----------
->  arch/x86/kernel/acpi/sleep.c           |    2 --
->  arch/x86/kernel/acpi/wakeup_32.S       |   24 +-----------------------
->  4 files changed, 2 insertions(+), 43 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/acpi/realmode/wakeup.S b/arch/x86/kernel/acpi/realmode/wakeup.S
-> index 150a734..aefa400 100644
-> --- a/arch/x86/kernel/acpi/realmode/wakeup.S
-> +++ b/arch/x86/kernel/acpi/realmode/wakeup.S
-> @@ -20,14 +20,6 @@ _start:
->  		.globl	wakeup_header
->  wakeup_header:
->  video_mode:	.short	0	/* Video mode number */
-> -pmode_return:	.byte	0x66, 0xea	/* ljmpl */
-> -		.long	0	/* offset goes here */
-> -		.short	__KERNEL_CS
-> -pmode_cr0:	.long	0	/* Saved %cr0 */
-> -pmode_cr3:	.long	0	/* Saved %cr3 */
-> -pmode_cr4:	.long	0	/* Saved %cr4 */
-> -pmode_efer:	.quad	0	/* Saved EFER */
-> -pmode_gdt:	.quad	0
->  realmode_flags:	.long	0
->  real_magic:	.long	0
->  trampoline_segment:	.word 0
-> diff --git a/arch/x86/kernel/acpi/realmode/wakeup.h b/arch/x86/kernel/acpi/realmode/wakeup.h
-> index e1828c0..5f302e1 100644
-> --- a/arch/x86/kernel/acpi/realmode/wakeup.h
-> +++ b/arch/x86/kernel/acpi/realmode/wakeup.h
-> @@ -12,18 +12,9 @@
->  /* This must match data at wakeup.S */
->  struct wakeup_header {
->  	u16 video_mode;		/* Video mode number */
-> -	u16 _jmp1;		/* ljmpl opcode, 32-bit only */
-> -	u32 pmode_entry;	/* Protected mode resume point, 32-bit only */
-> -	u16 _jmp2;		/* CS value, 32-bit only */
-> -	u32 pmode_cr0;		/* Protected mode cr0 */
-> -	u32 pmode_cr3;		/* Protected mode cr3 */
-> -	u32 pmode_cr4;		/* Protected mode cr4 */
-> -	u32 pmode_efer_low;	/* Protected mode EFER */
-> -	u32 pmode_efer_high;
-> -	u64 pmode_gdt;
->  	u32 realmode_flags;
->  	u32 real_magic;
-> -	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
-> +	u16 trampoline_segment;	/* segment with trampoline code */
->  	u8  _pad1;
->  	u8  wakeup_jmp;
->  	u16 wakeup_jmp_off;
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 58a0b4b..bab18ed 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -67,8 +67,6 @@ int acpi_save_state_mem(void)
->  	header->wakeup_gdt[2] =
->  		GDT_ENTRY(0x8093, acpi_wakeup_address, 0xfffff);
->  
-> -	header->pmode_cr0 = read_cr0();
-> -	header->pmode_cr4 = read_cr4_safe();
->  	header->realmode_flags = acpi_realmode_flags;
->  	header->real_magic = 0x12345678;
->  	header->trampoline_segment = trampoline_address() >> 4;
-> diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-> index 13ab720..56f8de4 100644
-> --- a/arch/x86/kernel/acpi/wakeup_32.S
-> +++ b/arch/x86/kernel/acpi/wakeup_32.S
-> @@ -17,17 +17,7 @@ wakeup_pmode_return:
->  	movw	%ax, %fs
->  	movw	%ax, %gs
->  
-> -	# reload the gdt, as we need the full 32 bit address
-> -	lgdt	saved_gdt
-> -	lidt	saved_idt
-> -	lldt	saved_ldt
-> -	ljmp	$(__KERNEL_CS), $1f
-> -1:
-> -	movl	%cr3, %eax
-> -	movl	%eax, %cr3
-> -	wbinvd
-> -
-> -	# and restore the stack ... but you need gdt for this to work
-> +	# and restore the stack ...
->  	movl	saved_context_esp, %esp
->  
->  	movl	%cs:saved_magic, %eax
-> @@ -44,11 +34,6 @@ bogus_magic:
->  
->  
->  save_registers:
-> -	sgdt	saved_gdt
-> -	sidt	saved_idt
-> -	sldt	saved_ldt
-> -	str	saved_tss
-> -
->  	leal	4(%esp), %eax
->  	movl	%eax, saved_context_esp
->  	movl	%ebx, saved_context_ebx
-> @@ -91,10 +76,3 @@ ret_point:
->  ALIGN
->  ENTRY(saved_magic)	.long	0
->  ENTRY(saved_eip)	.long	0
-> -
-> -# saved registers
-> -saved_gdt:	.long	0,0
-> -saved_idt:	.long	0,0
-> -saved_ldt:	.long	0
-> -saved_tss:	.long	0
-> -
+> Apart from the remarks above it looks good.
 > 
 
+Indeed... if I get this quickly we can probably get it into .39.
+
+	-hpa
