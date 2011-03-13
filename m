@@ -1,102 +1,145 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/8] ACPI: Use syscore_ops instead of sysdev class and sysdev
-Date: Sat, 12 Mar 2011 22:16:51 +0100
-Message-ID: <201103122216.51858.rjw@sisk.pl>
-References: <201103100131.58206.rjw@sisk.pl> <201103122212.40828.rjw@sisk.pl>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: [PATCH 1/2] merge 32 and 64 realmode wakeup code
+Date: Sun, 13 Mar 2011 23:03:55 +0100
+Message-ID: <4D7D3F4B.2070801@free.fr>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53644 "EHLO ogre.sisk.pl"
+Received: from smtp6-g21.free.fr ([212.27.42.6]:45648 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755422Ab1CLVWS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Mar 2011 16:22:18 -0500
-In-Reply-To: <201103122212.40828.rjw@sisk.pl>
+	id S1751241Ab1CMWEG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Mar 2011 18:04:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, mingo@redhat.com, tglx@linutronix.de, Dave Jones <davej@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Avi Kivity <avi@redhat.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "H. Peter Anvin" <hpa@zytor.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+- this mean less ifdef in code
+- we could remove now unused field in wakeup_header (pmode_*)
 
-ACPI uses a sysdev class and a sysdev for executing
-irqrouter_resume() before turning on interrupts on the boot CPU.
-However, since irqrouter_resume() ignores its argument, the entire
-mechanism may be replaced with a struct syscore_ops object which
-is considerably simpler.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
 ---
- drivers/acpi/pci_link.c |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ arch/x86/kernel/acpi/realmode/wakeup.S |   26 --------------------------
+ arch/x86/kernel/acpi/sleep.c           |   25 +++++++++----------------
+ arch/x86/kernel/trampoline_32.S        |    4 ----
+ 3 files changed, 9 insertions(+), 46 deletions(-)
 
-Index: linux-2.6/drivers/acpi/pci_link.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_link.c
-+++ linux-2.6/drivers/acpi/pci_link.c
-@@ -29,7 +29,7 @@
-  *	   for IRQ management (e.g. start()->_SRS).
-  */
+diff --git a/arch/x86/kernel/acpi/realmode/wakeup.S b/arch/x86/kernel/acpi/realmode/wakeup.S
+index ead21b6..150a734 100644
+--- a/arch/x86/kernel/acpi/realmode/wakeup.S
++++ b/arch/x86/kernel/acpi/realmode/wakeup.S
+@@ -93,36 +93,10 @@ wakeup_code:
  
--#include <linux/sysdev.h>
-+#include <linux/syscore_ops.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -757,14 +757,13 @@ static int acpi_pci_link_resume(struct a
+ 	/* Do any other stuff... */
+ 
+-#ifndef CONFIG_64BIT
+-	/* This could also be done in C code... */
+-	movl	pmode_cr3, %eax
+-	movl	%eax, %cr3
+-
+-	movl	pmode_cr4, %ecx
+-	jecxz	1f
+-	movl	%ecx, %cr4
+-1:
+-	movl	pmode_efer, %eax
+-	movl	pmode_efer + 4, %edx
+-	movl	%eax, %ecx
+-	orl	%edx, %ecx
+-	jz	1f
+-	movl	$MSR_EFER, %ecx
+-	wrmsr
+-1:
+-
+-	lgdtl	pmode_gdt
+-
+-	/* This really couldn't... */
+-	movl	pmode_cr0, %eax
+-	movl	%eax, %cr0
+-	jmp	pmode_return
+-#else
+ 	pushw	$0
+ 	pushw	trampoline_segment
+ 	pushw	$0
+ 	lret
+-#endif
+ 
+ bogus_real_magic:
+ 1:
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 4572c58..58a0b4b 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -20,7 +20,7 @@
+ 
+ unsigned long acpi_realmode_flags;
+ 
+-#if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
++#if defined(CONFIG_SMP)
+ static char temp_stack[4096];
+ #endif
+ 
+@@ -67,33 +67,26 @@ int acpi_save_state_mem(void)
+ 	header->wakeup_gdt[2] =
+ 		GDT_ENTRY(0x8093, acpi_wakeup_address, 0xfffff);
+ 
+-#ifndef CONFIG_64BIT
+-	store_gdt((struct desc_ptr *)&header->pmode_gdt);
+-
+-	if (rdmsr_safe(MSR_EFER, &header->pmode_efer_low,
+-		       &header->pmode_efer_high))
+-		header->pmode_efer_low = header->pmode_efer_high = 0;
+-#endif /* !CONFIG_64BIT */
+-
+ 	header->pmode_cr0 = read_cr0();
+ 	header->pmode_cr4 = read_cr4_safe();
+ 	header->realmode_flags = acpi_realmode_flags;
+ 	header->real_magic = 0x12345678;
+-
+-#ifndef CONFIG_64BIT
+-	header->pmode_entry = (u32)&wakeup_pmode_return;
+-	header->pmode_cr3 = (u32)__pa(&initial_page_table);
+-	saved_magic = 0x12345678;
+-#else /* CONFIG_64BIT */
+ 	header->trampoline_segment = trampoline_address() >> 4;
+ #ifdef CONFIG_SMP
+ 	stack_start = (unsigned long)temp_stack + sizeof(temp_stack);
+ 	early_gdt_descr.address =
+ 			(unsigned long)get_cpu_gdt_table(smp_processor_id());
++#ifdef CONFIG_64BIT
+ 	initial_gs = per_cpu_offset(smp_processor_id());
+ #endif
++#endif
++
++#ifndef CONFIG_64BIT
++	initial_code = (unsigned long)&wakeup_pmode_return;
++	saved_magic = 0x12345678;
++#else
+ 	initial_code = (unsigned long)wakeup_long64;
+-       saved_magic = 0x123456789abcdef0L;
++	saved_magic = 0x123456789abcdef0L;
+ #endif /* CONFIG_64BIT */
+ 
  	return 0;
- }
+diff --git a/arch/x86/kernel/trampoline_32.S b/arch/x86/kernel/trampoline_32.S
+index 451c0a7..a726f60 100644
+--- a/arch/x86/kernel/trampoline_32.S
++++ b/arch/x86/kernel/trampoline_32.S
+@@ -32,8 +32,6 @@
+ #include <asm/segment.h>
+ #include <asm/page_types.h>
  
--static int irqrouter_resume(struct sys_device *dev)
-+static void irqrouter_resume(void)
- {
- 	struct acpi_pci_link *link;
- 
- 	list_for_each_entry(link, &acpi_link_list, list) {
- 		acpi_pci_link_resume(link);
- 	}
--	return 0;
- }
- 
- static int acpi_pci_link_remove(struct acpi_device *device, int type)
-@@ -871,32 +870,19 @@ static int __init acpi_irq_balance_set(c
- 
- __setup("acpi_irq_balance", acpi_irq_balance_set);
- 
--/* FIXME: we will remove this interface after all drivers call pci_disable_device */
--static struct sysdev_class irqrouter_sysdev_class = {
--	.name = "irqrouter",
-+static struct syscore_ops irqrouter_syscore_ops = {
- 	.resume = irqrouter_resume,
- };
- 
--static struct sys_device device_irqrouter = {
--	.id = 0,
--	.cls = &irqrouter_sysdev_class,
--};
+-#ifdef CONFIG_SMP
 -
--static int __init irqrouter_init_sysfs(void)
-+static int __init irqrouter_init_ops(void)
- {
--	int error;
-+	if (!acpi_disabled && !acpi_noirq)
-+		register_syscore_ops(&irqrouter_syscore_ops);
+ 	.section ".x86_trampoline","a"
+ 	.balign PAGE_SIZE
+ 	.code16
+@@ -79,5 +77,3 @@ ENTRY(trampoline_status)
  
--	if (acpi_disabled || acpi_noirq)
--		return 0;
+ .globl trampoline_end
+ trampoline_end:
 -
--	error = sysdev_class_register(&irqrouter_sysdev_class);
--	if (!error)
--		error = sysdev_register(&device_irqrouter);
--
--	return error;
-+	return 0;
- }
- 
--device_initcall(irqrouter_init_sysfs);
-+device_initcall(irqrouter_init_ops);
- 
- static int __init acpi_pci_link_init(void)
- {
+-#endif /* CONFIG_SMP */
+-- 
+1.7.4.1
 
