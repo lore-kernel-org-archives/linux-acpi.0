@@ -1,34 +1,40 @@
-From: Patricia Foster <pfoster@LANDMETRO.com>
-Subject: Web Mail User Alart : Important Notice!!! Your webmail Account
- Expires in 24 Hours!!!
-Date: Wed, 16 Mar 2011 17:00:40 -0400
-Message-ID: <20C467BBFF9BF847864C2C43D76321ED0EA9886C24@lmi-exchange2.LANDMETRO.COM>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFT][PATCH] PCI / ACPI: Do not require MSI support for PCIe native features
+Date: Thu, 17 Mar 2011 01:19:17 +0100
+Message-ID: <201103170119.17647.rjw@sisk.pl>
+References: <201103052254.48515.rjw@sisk.pl> <201103150100.17501.rjw@sisk.pl> <20110315190545.GA4165@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.landmetro.com ([74.9.68.38]:36767 "EHLO
-	lmi-exchange2.LANDMETRO.COM" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751757Ab1CPVFq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Mar 2011 17:05:46 -0400
-Content-Language: en-US
+Received: from ogre.sisk.pl ([217.79.144.158]:40094 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751920Ab1CQATQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Mar 2011 20:19:16 -0400
+In-Reply-To: <20110315190545.GA4165@xanatos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Important Notice!!! Your webmail Account Expires in 24 Hours!!!
+On Tuesday, March 15, 2011, Sarah Sharp wrote:
+> On Tue, Mar 15, 2011 at 01:00:17AM +0100, Rafael J. Wysocki wrote:
+> > Well, I must admit I have no idea what the problem is.  OK, in addition to the
+> > above changes, please replace the "pci_ext_cfg_avail(root->bus->self)" in the
+> > same file with "true" and see if _that_ helps.
+> 
+> Yay, that worked!  dmesg is attached.
 
-This message is from Administration centre Maintenance Policy, Your Web-mail Quota Has Exceeded The Set Quota/Limit
-Which Is 20GB. You Are Currently Running On 23GB Due To Hidden Files And Folder On YourMailbox.
-Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
+Good, at least we know what the problem is, now we only have to find the root
+cause. ;-)
 
-CLICK HERE<http://upgreade2011.do.am/index.html>
+So, pci_ext_cfg_avail(root->bus->self) returns 0 on your machine, which is kind
+of unexpected (to put it lightly), so very likely we have uncovered a bug
+in the init code.
 
-Failure To Click This Link And Validate Your Quota May Result In Loss Of Important Information
-In Your Mailbox/Or Cause Limited Access to it and may also result in the cancellation of your webmail account..
+Unfortunately, I may not be able to take care of this issue for the next few
+days, I'll let you know when I get back to it.
 
-Thank you for your cooperation.
-Web Mail Technical Services.
-
-________________________________
-The information contained in this message may be privileged and/or confidential and protected from disclosure. If the reader of this message is not the intended recipient or agent responsible for delivering this message to the intended recipient, you are hereby notified that any dissemination, distribution or copying of this communication is strictly prohibited. If you have received this communication in error, please notify the sender immediately by replying to this message and deleting the material from any computer.
+Thanks,
+Rafael
