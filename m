@@ -1,40 +1,95 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: Re: [Patch] acpi: introduce "acpi_addr=" parameter for kdump
-Date: Tue, 22 Mar 2011 14:31:44 +0800
-Message-ID: <4D884250.3040302@redhat.com>
-References: <1299766243-494-1-git-send-email-amwang@redhat.com> <20110310143923.GB29464@redhat.com> <m1oc5ig90b.fsf@fess.ebiederm.org> <20110310185019.GB23105@srcf.ucam.org> <4D86F2C2.9080707@redhat.com> <m1hbawkifj.fsf@fess.ebiederm.org> <20110321155629.GF2694@redhat.com>
+From: Kyle McMartin <kyle@mcmartin.ca>
+Subject: [PATCH] acpi_battery: fribble sysfs files from a resume notifier
+Date: Tue, 22 Mar 2011 16:19:50 -0400
+Message-ID: <20110322201950.GC11925@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20110321155629.GF2694@redhat.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, Takao Indoh <tindoh@redhat.com>, Randy Dunlap <rdunlap@xenotime.net>, Len Brown <lenb@kernel.org>, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:33500 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932077Ab1CVUT6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2011 16:19:58 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl
+Cc: mjg@redhat.com, len.brown@intel.com, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org
 
-=E4=BA=8E 2011=E5=B9=B403=E6=9C=8821=E6=97=A5 23:56, Vivek Goyal =E5=86=
-=99=E9=81=93:
->
-> Matthew and I were chatting in general about it couple of days back a=
-nd
-> mattew suggested how about if we embrace the idea of booting the kern=
-el
-> always in physical mode (both first and second) and keep that extra s=
-et
-> of pagetables around to make EFI calls. That way kexec/kdump should j=
-ust
-> work and kernel changes also might not be too much.
->
-> The potential problem with this is that this might expose various kin=
-d
-> of BIOS issues with different vendors as vendors might not test the
-> physical path.
+From: Kyle McMartin <kyle@redhat.com>
 
-=46irst I have to say I know a little about EFI.
+Commit da8aeb92 re-poked the battery on resume, but Linus reports that
+it broke his eee and partially reverted it in b23fffd7. Unfortunately
+this also results in my x201s giving crack values until the sysfs files
+are poked again. In the revert message, it was suggested that we poke it
+from a PM notifier, so let's do that.
 
-I am wondering what benefits we will lose if we use physical mode?
-comparing it with virtual mode? If very few, this could be a solution.
+With this in place, I haven't noticed the units going nutty on my
+gnome-power-manager across a dozen suspends or so...
 
-Thanks.
+Signed-off-by: Kyle McMartin <kyle@redhat.com>
+---
+
+ drivers/acpi/battery.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index ac1a599..fcc13ac 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -33,6 +33,7 @@
+ #include <linux/async.h>
+ #include <linux/dmi.h>
+ #include <linux/slab.h>
++#include <linux/suspend.h>
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ #include <linux/proc_fs.h>
+@@ -102,6 +103,7 @@ struct acpi_battery {
+ 	struct mutex lock;
+ 	struct power_supply bat;
+ 	struct acpi_device *device;
++	struct notifier_block pm_nb;
+ 	unsigned long update_time;
+ 	int rate_now;
+ 	int capacity_now;
+@@ -940,6 +942,21 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ 		power_supply_changed(&battery->bat);
+ }
+ 
++static int battery_notify(struct notifier_block *nb,
++			       unsigned long mode, void *_unused)
++{
++	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
++						    pm_nb);
++	switch (mode) {
++	case PM_POST_SUSPEND:
++		sysfs_remove_battery(battery);
++		sysfs_add_battery(battery);
++		break;
++	}
++
++	return 0;
++}
++
+ static int acpi_battery_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+@@ -972,6 +989,10 @@ static int acpi_battery_add(struct acpi_device *device)
+ #endif
+ 		kfree(battery);
+ 	}
++
++	battery->pm_nb.notifier_call = battery_notify;
++	register_pm_notifier(&battery->pm_nb);
++
+ 	return result;
+ }
+ 
+@@ -982,6 +1003,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 	battery = acpi_driver_data(device);
++	unregister_pm_notifier(&battery->pm_nb);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	acpi_battery_remove_fs(device);
+ #endif
