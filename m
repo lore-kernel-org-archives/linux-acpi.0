@@ -1,61 +1,40 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/7] ACPI, APEI patches for 2.6.39
-Date: Wed, 23 Mar 2011 00:16:25 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1103230013260.10549@x980>
-References: <1298267685-7357-1-git-send-email-ying.huang@intel.com>
- <alpine.LFD.2.02.1103021750250.12344@x980>
- <20110303000112.GG32215@one.firstfloor.org>
- <1300762892.3616.12.camel@yhuang-mobile.sh.intel.com>
+Subject: Re: ACPICA release 20110316 linuxized patches
+Date: Wed, 23 Mar 2011 00:19:14 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1103230018500.10549@x980>
+References: <1300772447.31224.8.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:57010 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853Ab1CWEQa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 00:16:30 -0400
-In-reply-to: <1300762892.3616.12.camel@yhuang-mobile.sh.intel.com>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:39049 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382Ab1CWETc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 00:19:32 -0400
+Received: from localhost.localdomain ([unknown] [74.104.148.74])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LIH007IITC7MPE0@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 22 Mar 2011 23:19:25 -0500 (CDT)
+In-reply-to: <1300772447.31224.8.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-> > > > [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
-> > > > [PATCH 2/7] lib, Add lock-less NULL terminated single list
 
-> > > > [PATCH 3/7] ACPI, APEI, Add ERST record ID cache
-> > > > [PATCH 4/7] PCIe, AER, use pre-generated prefix in error information printing
-> > > > [PATCH 5/7] ACPI, APEI, Add PCIe AER error information printing support
+> ACPICA release 20110316 linuxized patches attached.
+> This is a small release and below 2 patches from Rafael have been merged
+> into kernel, so I don't include them here.
+> 
+> ACPI / ACPICA: Avoid crashing if _PRW is defined for the root object
+> (2d55951)
+> ACPI / ACPICA: Fix global lock acquisition (9cd03144)
+> 
+> [PATCH 1/2] ACPICA: Header support for SLIC table
+> [PATCH 2/2] ACPICA: Update version to 20110316
 
-I'll submit just 3,4,5/7 for upstream w/ the ACPI tree.
-I'd like to see andrew take 1,2,6 (which now need to be refreshed)
-in mm and when they ship, that will enable 7/7, which is the reason
-that they exist.
+applied.
 
 thanks,
--Len
+Len Brown, Intel Open Source Technology Center
 
-> > > > [PATCH 6/7] lib, Make gen_pool memory allocator lockless
-> > > > [PATCH 7/7] ACPI, APEI, GHES, printk support for recoverable error via NMI
-> > > 
-> > > I've put this series into acpi-test, so it will be visible in linux-next;
-> > > but I'm not the right person to review the generic lockless stuff,
-> > > who is?
-> > 
-> > I reviewed it earlier and it seemed good to me (unless it has 
-> > changed), but Linus wanted non Intel reviewers too. Any takers?
-> 
-> As for
-> 
-> [PATCH 1/7] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
-> [PATCH 2/7] lib, Add lock-less NULL terminated single list
-> [PATCH 6/7] lib, Make gen_pool memory allocator lockless
-> 
-> they are general kernel patches.  I remember you have reviewed some
-> earlier version of these patches, and merged 1/2 into -mm tree.  Do you
-> have time to review these patches?  Although Andi has reviewed them, we
-> really need some non-Intel reviewers.
-> 
-> Thanks,
-> Huang Ying
-> b
-> 
