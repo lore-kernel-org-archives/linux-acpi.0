@@ -1,39 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI : remove CONFIG_ACPI_PROCFS_POWER and AC/Battery
- procfs I/F
-Date: Tue, 22 Mar 2011 23:23:44 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1103222322011.10549@x980>
-References: <1300844063.31379.4.camel@rui>
+Subject: Re: [PATCH 1/4] X86: Revamp reboot behaviour to match Windows more
+ closely
+Date: Tue, 22 Mar 2011 23:49:16 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1103222338180.10549@x980>
+References: <1299877940-6870-1-git-send-email-mjg@redhat.com>
+ <201103112308.18221.rjw@sisk.pl> <20110311221517.GA24173@srcf.ucam.org>
+ <201103112318.19678.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40651 "EHLO
+Received: from vms173001pub.verizon.net ([206.46.173.1]:50384 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab1CWDXy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2011 23:23:54 -0400
-Received: from localhost.localdomain ([unknown] [74.104.148.74])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LIH004HZQRN35U1@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 22 Mar 2011 22:23:50 -0500 (CDT)
-In-reply-to: <1300844063.31379.4.camel@rui>
+	with ESMTP id S1753046Ab1CWDtW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2011 23:49:22 -0400
+In-reply-to: <201103112318.19678.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-> Documentation/feature-removal-schedule.txt |   11 
-> drivers/acpi/Kconfig                       |   17 -
-> drivers/acpi/Makefile                      |    1 
-> drivers/acpi/ac.c                          |  128 
-> drivers/acpi/battery.c                     |  326 
-> drivers/acpi/cm_sbs.c                      |  105 ---------
-> drivers/acpi/sbs.c                         |  331 
->
-> 7 files changed, 5 insertions(+), 914 deletions(-)
+> > > Does this fix a particular problem observed in practice?
+> > 
+> > Yup. We're seeing an increasing number of machines that don't implement 
+> > the legacy keyboard controller at all and fail to reboot if you poke it. 
+> > The expectation appears to be that you use the ACPI reboot vector on 
+> > these machines.
+> 
+> So perhaps you can put a pointer or two into the changelog?  That would
+> show precisely that it's not just for pure Windows compatibility.
 
-Do the popular battery applets know how to use sysfs?
-We can't delete this code until they do.
+We've been through this before -- many times, in fact.
+There are lots of machines that reset only via ACPI,
+but when we cut the default over to ACPI, we had
+some regressions, and so that change was reverted.
+
+The most recent round started off as a DMI workaround:
+http://lkml.org/lkml/2010/1/3/56
+and it almost went upstream, but the expected refreshed
+patch never materialized.
+
+I think that Matthew's approach is more thorough than
+anything else we've tried before wrt compatibility.
+
+But we've found this area to be somewhat fragile in the past,
+and so if he succeeds in not breaking any machines,
+Matthew is officially my hero:-)
 
 thanks,
 Len Brown, Intel Open Source Technology Center
