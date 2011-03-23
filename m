@@ -1,118 +1,115 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 39/42] ACPICA: Header support for SLIC table
-Date: Wed, 23 Mar 2011 02:42:52 -0400
-Message-ID: <5cf4d7338ba23aa8d9eeaf313f16bb50494be369.1300862481.git.len.brown@intel.com>
+Subject: [PATCH 28/42] ACPI: use __cpuinit for the acpi_processor_set_pdc()
+ call tree
+Date: Wed, 23 Mar 2011 02:42:41 -0400
+Message-ID: <af10f941ab7807d8b0bb3c66e679d8a6bbbe7485.1300862481.git.len.brown@intel.com>
 References: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:33781 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345Ab1CWIHj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 04:07:39 -0400
+	with ESMTP id S1752187Ab1CWIHk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 04:07:40 -0400
 Received: from localhost.localdomain ([unknown] [74.104.148.74])
  by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LII00IQB3WFAQB4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 03:07:33 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 03:07:34 -0500 (CDT)
 In-reply-to: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 In-reply-to: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
 References: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Jan Beulich <JBeulich@novell.com>, Jan Beulich <jbeulich@novell.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Jan Beulich <JBeulich@novell.com>
 
-We finally have the definition for this table.
+Once acpi_map_lsapic() in ia64 follows how x86 treats it wrt section
+placement, the whole tree from acpi_processor_set_pdc() can become
+__cpuinit.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/actbl2.h |   64 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 63 insertions(+), 1 deletions(-)
+ arch/ia64/kernel/acpi.c       |    9 +++++++--
+ drivers/acpi/processor_core.c |    8 ++++----
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 0fc15df..58bdd05 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1,6 +1,6 @@
- /******************************************************************************
-  *
-- * Name: actbl2.h - ACPI Specification Revision 2.0 Tables
-+ * Name: actbl2.h - ACPI Table Definitions (tables not in ACPI spec)
-  *
-  *****************************************************************************/
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 90ebceb..522642d 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -803,7 +803,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+  *  ACPI based hotplug CPU support
+  */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static
++static __cpuinit
+ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+@@ -878,7 +878,7 @@ __init void prefill_possible_map(void)
+ 		set_cpu_possible(i, true);
+ }
  
-@@ -716,6 +716,68 @@ struct acpi_table_mchi {
+-int acpi_map_lsapic(acpi_handle handle, int *pcpu)
++static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *obj;
+@@ -929,6 +929,11 @@ int acpi_map_lsapic(acpi_handle handle, int *pcpu)
+ 	return (0);
+ }
  
- /*******************************************************************************
-  *
-+ * SLIC - Software Licensing Description Table
-+ *        Version 1
-+ *
-+ * Conforms to "OEM Activation 2.0 for Windows Vista Operating Systems",
-+ * Copyright 2006
-+ *
-+ ******************************************************************************/
-+
-+/* Basic SLIC table is only the common ACPI header */
-+
-+struct acpi_table_slic {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+};
-+
-+/* Common SLIC subtable header */
-+
-+struct acpi_slic_header {
-+	u32 type;
-+	u32 length;
-+};
-+
-+/* Values for Type field above */
-+
-+enum acpi_slic_type {
-+	ACPI_SLIC_TYPE_PUBLIC_KEY = 0,
-+	ACPI_SLIC_TYPE_WINDOWS_MARKER = 1,
-+	ACPI_SLIC_TYPE_RESERVED = 2	/* 2 and greater are reserved */
-+};
-+
-+/*
-+ * SLIC Sub-tables, correspond to Type in struct acpi_slic_header
-+ */
-+
-+/* 0: Public Key Structure */
-+
-+struct acpi_slic_key {
-+	struct acpi_slic_header header;
-+	u8 key_type;
-+	u8 version;
-+	u16 reserved;
-+	u32 algorithm;
-+	char magic[4];
-+	u32 bit_length;
-+	u32 exponent;
-+	u8 modulus[128];
-+};
-+
-+/* 1: Windows Marker Structure */
-+
-+struct acpi_slic_marker {
-+	struct acpi_slic_header header;
-+	u32 version;
-+	char oem_id[ACPI_OEM_ID_SIZE];	/* ASCII OEM identification */
-+	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];	/* ASCII OEM table identification */
-+	char windows_flag[8];
-+	u32 slic_version;
-+	u8 reserved[16];
-+	u8 signature[128];
-+};
-+
-+/*******************************************************************************
-+ *
-  * SPCR - Serial Port Console Redirection table
-  *        Version 1
-  *
++/* wrapper to silence section mismatch warning */
++int __ref acpi_map_lsapic(acpi_handle handle, int *pcpu)
++{
++	return _acpi_map_lsapic(handle, pcpu);
++}
+ EXPORT_SYMBOL(acpi_map_lsapic);
+ 
+ int acpi_unmap_lsapic(int cpu)
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index ac77dde..25bf17d 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -223,7 +223,7 @@ static bool __init processor_physically_present(acpi_handle handle)
+ 	return true;
+ }
+ 
+-static void acpi_set_pdc_bits(u32 *buf)
++static void __cpuinit acpi_set_pdc_bits(u32 *buf)
+ {
+ 	buf[0] = ACPI_PDC_REVISION_ID;
+ 	buf[1] = 1;
+@@ -235,7 +235,7 @@ static void acpi_set_pdc_bits(u32 *buf)
+ 	arch_acpi_set_pdc_bits(buf);
+ }
+ 
+-static struct acpi_object_list *acpi_processor_alloc_pdc(void)
++static struct acpi_object_list *__cpuinit acpi_processor_alloc_pdc(void)
+ {
+ 	struct acpi_object_list *obj_list;
+ 	union acpi_object *obj;
+@@ -278,7 +278,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
+  * _PDC is required for a BIOS-OS handshake for most of the newer
+  * ACPI processor features.
+  */
+-static int
++static int __cpuinit
+ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+ {
+ 	acpi_status status = AE_OK;
+@@ -306,7 +306,7 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+ 	return status;
+ }
+ 
+-void acpi_processor_set_pdc(acpi_handle handle)
++void __cpuinit acpi_processor_set_pdc(acpi_handle handle)
+ {
+ 	struct acpi_object_list *obj_list;
+ 
 -- 
 1.7.4.1.343.ga91df
 
