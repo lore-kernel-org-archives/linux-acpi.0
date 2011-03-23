@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 14/42] ACPI / PM: Merge do_suspend_lowlevel() into
- acpi_save_state_mem()
-Date: Wed, 23 Mar 2011 02:42:27 -0400
-Message-ID: <f1a2003e22f6b50ea21f7f4b38b38c5ebc9c8017.1300862481.git.len.brown@intel.com>
+Subject: [PATCH 16/42] ACPI: Avoid calling request_irq() many times for the
+ same interrupt
+Date: Wed, 23 Mar 2011 02:42:29 -0400
+Message-ID: <23fe36306ea489eef7dd88506bdcefdc8da39c91.1300862481.git.len.brown@intel.com>
 References: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:36988 "EHLO
+Received: from vms173001pub.verizon.net ([206.46.173.1]:36986 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919Ab1CWHHd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 03:07:33 -0400
+	with ESMTP id S1752729Ab1CWHHc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 03:07:32 -0400
 Received: from localhost.localdomain ([unknown] [74.104.148.74])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LII000XA14FEFN6@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 02:07:33 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 02:07:32 -0500 (CDT)
 In-reply-to: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 In-reply-to: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
 References: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
@@ -24,138 +24,96 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The function do_suspend_lowlevel() is specific to x86 and defined in
-assembly code, so it should be called from the x86 low-level suspend
-code rather than from acpi_suspend_enter().
+In principle acpi_os_install_interrupt_handler() may be called
+multiple times for different interrupts, either from
+acpi_ev_get_gpe_xrupt_block(), or from acpi_ev_install_sci_handler().
+However, it always attempts to request the same interrupt,
+acpi_gbl_FADT.sci_interrupt and it doesn't check whether or not this
+interrupt has already been requested.
 
-Merge do_suspend_lowlevel() into the x86's acpi_save_state_mem() and
-change the name of the latter to acpi_suspend_lowlevel(), so that the
-function's purpose is better reflected by its name.
+Modify this function so that it refuses to request interrupts other
+than acpi_gbl_FADT.sci_interrupt and change
+acpi_os_remove_interrupt_handler() so that it refuses to free such
+interrupts.  Use the observation that the only supported ACPI
+interrupt must be equal to acpi_gbl_FADT.sci_interrupt and drop an
+unnecessary variable acpi_irq_irq.
+
+This change has been tested on Toshiba Portege R500 and HP nx6325
+without introducing any visible problems.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/ia64/include/asm/acpi.h |    4 ++--
- arch/ia64/kernel/acpi.c      |    9 ++-------
- arch/x86/include/asm/acpi.h  |    4 ++--
- arch/x86/kernel/acpi/sleep.c |    5 +++--
- arch/x86/kernel/acpi/sleep.h |    2 ++
- drivers/acpi/sleep.c         |    5 +----
- 6 files changed, 12 insertions(+), 17 deletions(-)
+ drivers/acpi/osl.c |   27 +++++++++++++++------------
+ 1 files changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index db3986a..a06dfb1 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -128,8 +128,8 @@ static inline const char *acpi_get_sysname (void)
- int acpi_request_vector (u32 int_type);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index c90c76a..187dff9 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -76,7 +76,6 @@ EXPORT_SYMBOL(acpi_in_debugger);
+ extern char line_buf[80];
+ #endif				/*ENABLE_DEBUGGER */
  
--/* Routine for saving kernel state during suspend. */
--extern int acpi_save_state_mem(void);
-+/* Low-level suspend routine. */
-+extern int acpi_suspend_lowlevel(void);
+-static unsigned int acpi_irq_irq;
+ static acpi_osd_handler acpi_irq_handler;
+ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+@@ -516,11 +515,15 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+ 	acpi_irq_stats_init();
  
- extern unsigned long acpi_wakeup_address;
- 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 7cf2d10..a54d054 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -1034,13 +1034,8 @@ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
- EXPORT_SYMBOL(acpi_unregister_ioapic);
- 
- /*
-- * acpi_save_state_mem() - save kernel state
-+ * acpi_suspend_lowlevel() - save kernel state and suspend.
-  *
-  * TBD when when IA64 starts to support suspend...
-  */
--int acpi_save_state_mem(void) { return 0; } 
--
--/*
-- * do_suspend_lowlevel()
-- */
--void do_suspend_lowlevel(void) {}
-+int acpi_suspend_lowlevel(void) { return 0; }
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 47981f0..aa92684 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -112,8 +112,8 @@ static inline void acpi_disable_pci(void)
- 	acpi_noirq_set();
- }
- 
--/* Routine for saving kernel state during suspend. */
--extern int acpi_save_state_mem(void);
-+/* Low-level suspend routine. */
-+extern int acpi_suspend_lowlevel(void);
- 
- extern unsigned long acpi_wakeup_address;
- 
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index c27a483..5f1b747 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -29,14 +29,14 @@ static char temp_stack[4096];
- #endif
- 
- /**
-- * acpi_save_state_mem - save kernel state
-+ * acpi_suspend_lowlevel - save kernel state
-  *
-  * Create an identity mapped page table and copy the wakeup routine to
-  * low memory.
-  *
-  * Note that this is too late to change acpi_wakeup_address.
-  */
--int acpi_save_state_mem(void)
-+int acpi_suspend_lowlevel(void)
- {
- 	struct wakeup_header *header;
- 
-@@ -107,6 +107,7 @@ int acpi_save_state_mem(void)
-        saved_magic = 0x123456789abcdef0L;
- #endif /* CONFIG_64BIT */
- 
-+	do_suspend_lowlevel();
- 	return 0;
- }
- 
-diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
-index adbcbaa..31ce13f 100644
---- a/arch/x86/kernel/acpi/sleep.h
-+++ b/arch/x86/kernel/acpi/sleep.h
-@@ -14,3 +14,5 @@ extern char swsusp_pg_dir[PAGE_SIZE];
- 
- extern unsigned long acpi_copy_wakeup_routine(unsigned long);
- extern void wakeup_long64(void);
+ 	/*
+-	 * Ignore the GSI from the core, and use the value in our copy of the
+-	 * FADT. It may not be the same if an interrupt source override exists
+-	 * for the SCI.
++	 * ACPI interrupts different from the SCI in our copy of the FADT are
++	 * not supported.
+ 	 */
+-	gsi = acpi_gbl_FADT.sci_interrupt;
++	if (gsi != acpi_gbl_FADT.sci_interrupt)
++		return AE_BAD_PARAMETER;
 +
-+extern void do_suspend_lowlevel(void);
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 2307604..0a81bf1 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -199,8 +199,6 @@ static void acpi_pm_end(void)
- #endif /* CONFIG_ACPI_SLEEP */
- 
- #ifdef CONFIG_SUSPEND
--extern void do_suspend_lowlevel(void);
--
- static u32 acpi_suspend_states[] = {
- 	[PM_SUSPEND_ON] = ACPI_STATE_S0,
- 	[PM_SUSPEND_STANDBY] = ACPI_STATE_S1,
-@@ -255,10 +253,9 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 		break;
- 
- 	case ACPI_STATE_S3:
--		error = acpi_save_state_mem();
-+		error = acpi_suspend_lowlevel();
- 		if (error)
- 			return error;
--		do_suspend_lowlevel();
- 		pr_info(PREFIX "Low-level resume complete\n");
- 		break;
++	if (acpi_irq_handler)
++		return AE_ALREADY_ACQUIRED;
++
+ 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+ 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not registered\n",
+ 		       gsi);
+@@ -531,20 +534,20 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+ 	acpi_irq_context = context;
+ 	if (request_irq(irq, acpi_irq, IRQF_SHARED, "acpi", acpi_irq)) {
+ 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
++		acpi_irq_handler = NULL;
+ 		return AE_NOT_ACQUIRED;
  	}
+-	acpi_irq_irq = irq;
+ 
+ 	return AE_OK;
+ }
+ 
+ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+ {
+-	if (irq) {
+-		free_irq(irq, acpi_irq);
+-		acpi_irq_handler = NULL;
+-		acpi_irq_irq = 0;
+-	}
++	if (irq != acpi_gbl_FADT.sci_interrupt)
++		return AE_BAD_PARAMETER;
++
++	free_irq(irq, acpi_irq);
++	acpi_irq_handler = NULL;
+ 
+ 	return AE_OK;
+ }
+@@ -1603,7 +1606,7 @@ acpi_status __init acpi_os_initialize1(void)
+ acpi_status acpi_os_terminate(void)
+ {
+ 	if (acpi_irq_handler) {
+-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
++		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
+ 						 acpi_irq_handler);
+ 	}
+ 
 -- 
 1.7.4.1.343.ga91df
 
