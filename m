@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/42] ACPI: Introduce acpi_os_get_iomem()
-Date: Wed, 23 Mar 2011 02:42:19 -0400
-Message-ID: <13606a2de1996f8d83a9ce296f74022bdbadf712.1300862481.git.len.brown@intel.com>
+Subject: [PATCH 09/42] ACPI / Button: Avoid disabling wakeup unnecessarily on
+ remove
+Date: Wed, 23 Mar 2011 02:42:22 -0400
+Message-ID: <c19f9a84ec807da57fd75bbd9a3f2b8269611f79.1300862481.git.len.brown@intel.com>
 References: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:64808 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333Ab1CWGnS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 02:43:18 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:32934 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab1CWGnU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2011 02:43:20 -0400
 Received: from localhost.localdomain ([unknown] [74.104.148.74])
- by vms173001.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LII00BSV000GPD4@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 01:43:13 -0500 (CDT)
+ with ESMTPA id <0LII009VO006WYD1@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 23 Mar 2011 01:43:20 -0500 (CDT)
 In-reply-to: <1300862575-10206-1-git-send-email-lenb@kernel.org>
 In-reply-to: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
 References: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
@@ -23,53 +24,50 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce function acpi_os_get_iomem() that may be used by its callers
-to get a reference to an ACPI iomap.
+If a button device had already been enabled to wake up the system
+from sleep states before the button driver saw it, the driver
+shouldn't disable the device's wakeup capability when being detached
+from the device.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/osl.c      |   16 ++++++++++++++++
- include/linux/acpi_io.h |    2 ++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/acpi/button.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 5389f9f..52ca872 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -285,6 +285,22 @@ acpi_map_vaddr_lookup(acpi_physical_address phys, unsigned int size)
- 	return NULL;
- }
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index e643a09..12c28f4 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -98,6 +98,7 @@ struct acpi_button {
+ 	struct input_dev *input;
+ 	char phys[32];			/* for input device */
+ 	unsigned long pushed;
++	bool wakeup_enabled;
+ };
  
-+void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size)
-+{
-+	struct acpi_ioremap *map;
-+	void __iomem *virt = NULL;
-+
-+	mutex_lock(&acpi_ioremap_lock);
-+	map = acpi_map_lookup(phys, size);
-+	if (map) {
-+		virt = map->virt + (phys - map->phys);
-+		map->refcount++;
-+	}
-+	mutex_unlock(&acpi_ioremap_lock);
-+	return virt;
-+}
-+EXPORT_SYMBOL_GPL(acpi_os_get_iomem);
-+
- /* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static struct acpi_ioremap *
- acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
-diff --git a/include/linux/acpi_io.h b/include/linux/acpi_io.h
-index 28a3ae2..4afd710 100644
---- a/include/linux/acpi_io.h
-+++ b/include/linux/acpi_io.h
-@@ -10,4 +10,6 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-        return ioremap_cache(phys, size);
- }
+ static const struct file_operations acpi_button_info_fops = {
+@@ -430,7 +431,10 @@ static int acpi_button_add(struct acpi_device *device)
+ 		/* Button's GPE is run-wake GPE */
+ 		acpi_enable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device_set_wakeup_enable(&device->dev, true);
++		if (!device_may_wakeup(&device->dev)) {
++			device_set_wakeup_enable(&device->dev, true);
++			button->wakeup_enabled = true;
++		}
+ 	}
  
-+void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
-+
- #endif
+ 	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
+@@ -452,7 +456,8 @@ static int acpi_button_remove(struct acpi_device *device, int type)
+ 	if (device->wakeup.flags.valid) {
+ 		acpi_disable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device_set_wakeup_enable(&device->dev, false);
++		if (button->wakeup_enabled)
++			device_set_wakeup_enable(&device->dev, false);
+ 	}
+ 
+ 	acpi_button_remove_fs(device);
 -- 
 1.7.4.1.343.ga91df
 
