@@ -1,342 +1,168 @@
-From: Lin Ming <minggr@gmail.com>
-Subject: Re: [PATCH 3/3] ACPICA: Fix code divergence of global lock handling
-Date: Fri, 25 Mar 2011 11:07:49 +0800
-Message-ID: <AANLkTi=sO80QNBSiQzCuHgANi+Ug58bHP1L7=gnL9d3i@mail.gmail.com>
-References: <1300872396-16522-1-git-send-email-ming.m.lin@intel.com>
-	<1300872396-16522-4-git-send-email-ming.m.lin@intel.com>
-	<201103232133.58523.rjw@sisk.pl>
+From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+Subject: Re: acer-wmi: rfkill and bluetooth enabling doesn't work as in 2.6.37
+Date: Fri, 25 Mar 2011 07:29:12 +0100
+Message-ID: <201103250729.13550.oldium.pro@seznam.cz>
+References: <4D79E5230200002300029ADA@novprvlin0050.provo.novell.com> <4D8BDE29020000230002A585@novprvlin0050.provo.novell.com> <201103242234.03598.oldium.pro@seznam.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:48292 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757400Ab1CYDHt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2011 23:07:49 -0400
-Received: by iyb14 with SMTP id 14so60050iyb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Mar 2011 20:07:49 -0700 (PDT)
-In-Reply-To: <201103232133.58523.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <201103242234.03598.oldium.pro@seznam.cz>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Joey Lee <jlee@novell.com>
+Cc: davem@davemloft.net, marcel@holtmann.org, Al Cho <ACho@novell.com>, Gary Lin <GLin@novell.com>, johannes@sipsolutions.net, mjg59@srcf.ucam.org, alan-jenkins@tuffmail.co.uk, linux-acpi@vger.kernel.org, linux-bluetooth@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-2011/3/24 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Wednesday, March 23, 2011, Lin Ming wrote:
->> Commit 9cd0314(ACPI / ACPICA: Fix global lock acquisition) was backp=
-orted
->> into ACPICA code base, and some divergence was introduced.
->>
->> This patch fixed it,
->> - rename acpi_ev_global_lock_pending/acpi_ev_global_lock_pending_loc=
-k
->> =A0 to acpi_gbl_global_lock_pending/acpi_gbl_global_lock_pending_loc=
-k.
->>
->> - move the initialization of acpi_gbl_global_lock_pending_lock from
->> =A0 acpi_ut_mutex_initialize to acpi_ev_init_global_lock_handler.
->>
->> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
->
-> Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+My yesterday's e-mail probably didn't pass through the spam checks of m=
+ail=20
+server. If anybody needs to look at the missing attachments, I've place=
+d them=20
+at=20
 
-Len,
+  http://others-misc.oldium.net/attachments.tar.gz
 
-Could you consider applying these patches for 2.6.39-rc1?
+Cheers,
+Old=C5=99ich.
 
-Thanks,
-Lin Ming
-
->
->> ---
->> =A0drivers/acpi/acpica/acglobal.h | =A0 =A06 ++-
->> =A0drivers/acpi/acpica/evmisc.c =A0 | =A0 74 +++++++++++++++++++++--=
-----------------
->> =A0drivers/acpi/acpica/utmutex.c =A0| =A0 =A05 ---
->> =A03 files changed, 44 insertions(+), 41 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/ac=
-global.h
->> index 6d512fc..73863d8 100644
->> --- a/drivers/acpi/acpica/acglobal.h
->> +++ b/drivers/acpi/acpica/acglobal.h
->> @@ -214,13 +214,16 @@ ACPI_EXTERN struct acpi_mutex_info acpi_gbl_mu=
-tex_info[ACPI_NUM_MUTEX];
->>
->> =A0/*
->> =A0 * Global lock mutex is an actual AML mutex object
->> - * Global lock semaphore works in conjunction with the HW global lo=
-ck
->> + * Global lock semaphore works in conjunction with the actual globa=
-l lock
->> + * Global lock spinlock is used for "pending" handshake
->> =A0 */
->> =A0ACPI_EXTERN union acpi_operand_object *acpi_gbl_global_lock_mutex=
-;
->> =A0ACPI_EXTERN acpi_semaphore acpi_gbl_global_lock_semaphore;
->> +ACPI_EXTERN acpi_spinlock acpi_gbl_global_lock_pending_lock;
->> =A0ACPI_EXTERN u16 acpi_gbl_global_lock_handle;
->> =A0ACPI_EXTERN u8 acpi_gbl_global_lock_acquired;
->> =A0ACPI_EXTERN u8 acpi_gbl_global_lock_present;
->> +ACPI_EXTERN u8 acpi_gbl_global_lock_pending;
->>
->> =A0/*
->> =A0 * Spinlocks are used for interfaces that can be possibly called =
+On Thursday 24 March 2011 22:34:03 Old=C5=99ich Jedli=C4=8Dka wrote:
+> Hi Joey Lee,
+>=20
+> I've done some experiments, here are the results.
+>=20
+> On Thursday 24 March 2011 14:13:29 Joey Lee wrote:
+> > Hi Old=C5=99ich,
+> >=20
+> > Sorry bother you again, but after discuss with Johannes, he remind =
+me
+> > one import thing: maybe your BT HW key emit scancode and wmi event =
 at
->> @@ -228,7 +231,6 @@ ACPI_EXTERN u8 acpi_gbl_global_lock_present;
->> =A0 */
->> =A0ACPI_EXTERN acpi_spinlock acpi_gbl_gpe_lock; /* For GPE data stru=
-cts and registers */
->> =A0ACPI_EXTERN acpi_spinlock acpi_gbl_hardware_lock; =A0 =A0/* For A=
-CPI H/W except GPE registers */
->> -ACPI_EXTERN acpi_spinlock acpi_ev_global_lock_pending_lock; /* For =
-global lock */
->>
->> =A0/****************************************************************=
-*************
->> =A0 *
->> diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmi=
-sc.c
->> index 7dc8094..69a3b4a 100644
->> --- a/drivers/acpi/acpica/evmisc.c
->> +++ b/drivers/acpi/acpica/evmisc.c
->> @@ -284,39 +284,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_notify_d=
-ispatch(void *context)
->> =A0 * RETURN: =A0 =A0 =A0ACPI_INTERRUPT_HANDLED
->> =A0 *
->> =A0 * DESCRIPTION: Invoked directly from the SCI handler when a glob=
-al lock
->> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0release interrupt occurs. =A0If there=
-'s a thread waiting for
->> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0the global lock, signal it.
->> - *
->> - * NOTE: Assumes that the semaphore can be signaled from interrupt =
-level. If
->> - * this is not possible for some reason, a separate thread will hav=
-e to be
->> - * scheduled to do this.
->> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0release interrupt occurs. If there is=
- actually a pending
->> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0request for the lock, signal the wait=
-ing thread.
->> =A0 *
->> =A0 ****************************************************************=
-**************/
->> -static u8 acpi_ev_global_lock_pending;
->>
->> =A0static u32 acpi_ev_global_lock_handler(void *context)
->> =A0{
->> =A0 =A0 =A0 acpi_status status;
->> =A0 =A0 =A0 acpi_cpu_flags flags;
->>
->> - =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_ev_global_lock_pending=
-_lock);
->> + =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_gbl_global_lock_pendin=
-g_lock);
->>
->> - =A0 =A0 if (!acpi_ev_global_lock_pending) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* If a request for the global lock is not actually pend=
-ing,
->> + =A0 =A0 =A0* we are done. This handles "spurious" global lock inte=
-rrupts
->> + =A0 =A0 =A0* which are possible (and have been seen) with bad BIOS=
-s.
->> + =A0 =A0 =A0*/
->> + =A0 =A0 if (!acpi_gbl_global_lock_pending) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto cleanup_and_exit;
->> =A0 =A0 =A0 }
->>
->> - =A0 =A0 /* Send a unit to the semaphore */
->> -
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* Send a unit to the global lock semaphore. The actual =
-acquisition
->> + =A0 =A0 =A0* of the global lock will be performed by the waiting t=
-hread.
->> + =A0 =A0 =A0*/
->> =A0 =A0 =A0 status =3D acpi_os_signal_semaphore(acpi_gbl_global_lock=
-_semaphore, 1);
->> =A0 =A0 =A0 if (ACPI_FAILURE(status)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_ERROR((AE_INFO, "Could not signal G=
-lobal Lock semaphore"));
->> =A0 =A0 =A0 }
->>
->> - =A0 =A0 acpi_ev_global_lock_pending =3D FALSE;
->> + =A0 =A0 acpi_gbl_global_lock_pending =3D FALSE;
->>
->> - out:
->> - =A0 =A0 acpi_os_release_lock(acpi_ev_global_lock_pending_lock, fla=
-gs);
->> +cleanup_and_exit:
->>
->> + =A0 =A0 acpi_os_release_lock(acpi_gbl_global_lock_pending_lock, fl=
-ags);
->> =A0 =A0 =A0 return (ACPI_INTERRUPT_HANDLED);
->> =A0}
->>
->> @@ -350,14 +352,20 @@ acpi_status acpi_ev_init_global_lock_handler(v=
-oid)
->> =A0 =A0 =A0 =A0* Map to AE_OK, but mark global lock as not present. =
-Any attempt to
->> =A0 =A0 =A0 =A0* actually use the global lock will be flagged with a=
-n error.
->> =A0 =A0 =A0 =A0*/
->> + =A0 =A0 acpi_gbl_global_lock_present =3D FALSE;
->> =A0 =A0 =A0 if (status =3D=3D AE_NO_HARDWARE_RESPONSE) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_ERROR((AE_INFO,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "No response fro=
-m Global Lock hardware, disabling lock"));
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 acpi_gbl_global_lock_present =3D FALSE;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return_ACPI_STATUS(AE_OK);
->> =A0 =A0 =A0 }
->>
->> + =A0 =A0 status =3D acpi_os_create_lock(&acpi_gbl_global_lock_pendi=
-ng_lock);
->> + =A0 =A0 if (ACPI_FAILURE(status)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 return_ACPI_STATUS(status);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 acpi_gbl_global_lock_pending =3D FALSE;
->> =A0 =A0 =A0 acpi_gbl_global_lock_present =3D TRUE;
->> =A0 =A0 =A0 return_ACPI_STATUS(status);
->> =A0}
->> @@ -414,7 +422,7 @@ static int acpi_ev_global_lock_acquired;
->> =A0acpi_status acpi_ev_acquire_global_lock(u16 timeout)
->> =A0{
->> =A0 =A0 =A0 acpi_cpu_flags flags;
->> - =A0 =A0 acpi_status status =3D AE_OK;
->> + =A0 =A0 acpi_status status;
->> =A0 =A0 =A0 u8 acquired =3D FALSE;
->>
->> =A0 =A0 =A0 ACPI_FUNCTION_TRACE(ev_acquire_global_lock);
->> @@ -458,15 +466,15 @@ acpi_status acpi_ev_acquire_global_lock(u16 ti=
-meout)
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 /*
->> - =A0 =A0 =A0* Make sure that a global lock actually exists. If not,=
- just treat the
->> - =A0 =A0 =A0* lock as a standard mutex.
->> + =A0 =A0 =A0* Make sure that a global lock actually exists. If not,=
- just
->> + =A0 =A0 =A0* treat the lock as a standard mutex.
->> =A0 =A0 =A0 =A0*/
->> =A0 =A0 =A0 if (!acpi_gbl_global_lock_present) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 acpi_gbl_global_lock_acquired =3D TRUE;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return_ACPI_STATUS(AE_OK);
->> =A0 =A0 =A0 }
->>
->> - =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_ev_global_lock_pending=
-_lock);
->> + =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_gbl_global_lock_pendin=
-g_lock);
->>
->> =A0 =A0 =A0 do {
->>
->> @@ -475,20 +483,19 @@ acpi_status acpi_ev_acquire_global_lock(u16 ti=
-meout)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, =
-acquired);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (acquired) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 acpi_gbl_global_lock_acq=
-uired =3D TRUE;
->> -
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_DEBUG_PRINT((ACPI_D=
-B_EXEC,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 "Acquired hardware Global Lock\n"));
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 acpi_ev_global_lock_pending =3D TRUE;
->> -
->> - =A0 =A0 =A0 =A0 =A0 =A0 acpi_os_release_lock(acpi_ev_global_lock_p=
-ending_lock, flags);
->> -
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0* Did not get the lock. The pending bit=
- was set above, and we
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0* must wait until we get the global loc=
-k released interrupt.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* Did not get the lock. The pending bit=
- was set above, and
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* we must now wait until we receive the=
- global lock
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* released interrupt.
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 acpi_gbl_global_lock_pending =3D TRUE;
->> + =A0 =A0 =A0 =A0 =A0 =A0 acpi_os_release_lock(acpi_gbl_global_lock_=
-pending_lock, flags);
->> +
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Wai=
-ting for hardware Global Lock\n"));
->>
->> @@ -496,17 +503,16 @@ acpi_status acpi_ev_acquire_global_lock(u16 ti=
-meout)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Wait for handshake with the global =
-lock interrupt handler.
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* This interface releases the interpr=
-eter if we must wait.
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> - =A0 =A0 =A0 =A0 =A0 =A0 status =3D acpi_ex_system_wait_semaphore(
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 acpi_gbl_global_lock_semaphore,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 ACPI_WAIT_FOREVER);
->> + =A0 =A0 =A0 =A0 =A0 =A0 status =3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 acpi_ex_system_wait_semaphore
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (acpi_gbl_global_lock_semaphore, A=
-CPI_WAIT_FOREVER);
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_ev_glo=
-bal_lock_pending_lock);
->> + =A0 =A0 =A0 =A0 =A0 =A0 flags =3D acpi_os_acquire_lock(acpi_gbl_gl=
-obal_lock_pending_lock);
->>
->> =A0 =A0 =A0 } while (ACPI_SUCCESS(status));
->>
->> - =A0 =A0 acpi_ev_global_lock_pending =3D FALSE;
->> -
->> - =A0 =A0 acpi_os_release_lock(acpi_ev_global_lock_pending_lock, fla=
-gs);
->> + =A0 =A0 acpi_gbl_global_lock_pending =3D FALSE;
->> + =A0 =A0 acpi_os_release_lock(acpi_gbl_global_lock_pending_lock, fl=
-ags);
->>
->> =A0 =A0 =A0 return_ACPI_STATUS(status);
->> =A0}
->> diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utm=
-utex.c
->> index 519d4ee..7d797e2 100644
->> --- a/drivers/acpi/acpica/utmutex.c
->> +++ b/drivers/acpi/acpica/utmutex.c
->> @@ -93,11 +93,6 @@ acpi_status acpi_ut_mutex_initialize(void)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return_ACPI_STATUS (status);
->> =A0 =A0 =A0 }
->>
->> - =A0 =A0 status =3D acpi_os_create_lock (&acpi_ev_global_lock_pendi=
-ng_lock);
->> - =A0 =A0 if (ACPI_FAILURE (status)) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 return_ACPI_STATUS (status);
->> - =A0 =A0 }
->> -
->> =A0 =A0 =A0 /* Mutex for _OSI support */
->> =A0 =A0 =A0 status =3D acpi_os_create_mutex(&acpi_gbl_osi_mutex);
->> =A0 =A0 =A0 if (ACPI_FAILURE(status)) {
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > the same time.
+> >=20
+> > =E6=96=BC =E5=9B=9B=EF=BC=8C2011-03-24 =E6=96=BC 09:36 +0100=EF=BC=8C=
+Johannes Berg =E6=8F=90=E5=88=B0=EF=BC=9A
+> >=20
+> > > Hi Old=C5=99ich,
+> > >=20
+> > > > > Ah. So I guess when hci0 gets registered, the acer rfkill sta=
+te
+> > > > > hasn't been updated yet, hence registering hci0 as blocked.
+> > > >=20
+> > > > No, that is not the case. I can play with `rfkill list` immedia=
+tely
+> > > > after I press the HW bluetooth switch and show that hci0 is not=
+ there
+> > > > (still unregistered) while acer-bluetooth is already "unblocked=
+" -
+> > > > I've tried to run `rfkill list` repeatedly manually from consol=
+e
+> > > > immediately after I pressed the HW BT switch and acer-bluetooth=
+ was
+> > > > "unblocked" several runs while the hci0 wasn't there. When hci0
+> > > > appeared, it was "blocked".
+> > > >=20
+> > > > As I wrote, I didn't find anything changing the global state, w=
+hich
+> > > > is actually used to "block" the newly appearing hci0 (in the
+> > > > rfkill_sync_work method). It looks like the global state is jus=
+t
+> > > > "blocked" forever - and it is "blocked" as a side-effect of the=
+ call
+> > > > to rfkill_init_sw_state (changes permanent=3Dtrue) and then cal=
+l to
+> > > > rfkill_register from the acer-wmi driver. I can verify this in =
+the
+> > > > following days (that the global state stays the same all the ti=
+me).
+> > >=20
+> > > Well the global state would be changed by the KEY_BLUETOOTH input
+> > > event.
+> > >=20
+> > > But like I said, it's tricky in this case because multiple events=
+ come
+> > > from the same event source and race against each other.
+> > >=20
+> > > johannes
+> >=20
+> > My Acer TravelMate 8572 is commercial notebook, it only emit wmi ev=
+ent
+> > when press wifi key. But, as I remember, there have some acer consu=
+mer
+> > notebook emit both scancode and wmi event.
+> >=20
+> > New acer-wmi driver will transfer wmi event to keycode (e.g.
+> > KEY_BLUETOOTH), if EC also emit KEY_BLUETOOTH, the rfkill-input wil=
+l
+> >=20
+> > receive the key events twice, that means:
+> > 	global BT block (when system boot) -> BT unblock (from EC scancode=
+) ->
+> > 	BT
+> >=20
+> > block (from acer-wmi)
+> >=20
+> > Could you please help me to check?
+> >=20
+> > 	- If your distro still have HAL, please run:
+> > 		+ lshal -l -m
+> > 		+ press BT HW key 1 time
+> > 		then check does HAL receive KEY_BLUETOOTH twice?
+>=20
+> I didn't uninstall hal yet, so the output of `lshal -l -m` (only the
+> monitoring part) when I press once BT HW key is attached. I've also p=
+atched
+> the kernel to have more debug logging (see the attached diff and log)=
+ and
+> the result is that the handler method from rfkill/input.c is not call=
+ed,
+> the global state is once set to "blocked" and it keeps like that. I d=
+on't
+> know why the rfkill_event isn't called when I press the HW BT switch,=
+ it
+> could be part of my investigations in the following days.
+>=20
+> I've attached .config too, if you want to check that I missed somethi=
+ng
+> that is needed by Acer WMI.
+>=20
+> Cheers,
+> Old=C5=99ich.
+>=20
+> > 	- Or, please try the following patch, it removed
+> > =09
+> > 	  KEY_BLUETOOTH support in acer-wmi. If removed it but the BT kill=
+switch
+> > 	  still can reserve when you press BT HW key, that means not just
+> >=20
+> > 	  acer-wmi emit KEY_BLUETOOTH:
+> > Thank's a lot!
+> > Joey Lee
+> >=20
+> > >From 20b3b8ba26cb37c8a44d11645c2d8d1f5344cfd7 Mon Sep 17 00:00:00 =
+2001
+> >=20
+> > From: Lee, Chun-Yi <jlee@novell.com>
+> > Date: Thu, 24 Mar 2011 21:07:43 +0800
+> > Subject: [PATCH] remove KEY_BLUETOOTH for testing
+> >=20
+> >=20
+> > Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+> > ---
+> >=20
+> >  drivers/platform/x86/acer-wmi.c |    1 -
+> >  1 files changed, 0 insertions(+), 1 deletions(-)
+> >=20
+> > diff --git a/drivers/platform/x86/acer-wmi.c
+> > b/drivers/platform/x86/acer-wmi.c index c978470..554ee12 100644
+> > --- a/drivers/platform/x86/acer-wmi.c
+> > +++ b/drivers/platform/x86/acer-wmi.c
+> > @@ -102,7 +102,6 @@ enum acer_wmi_event_ids {
+> >=20
+> >  static const struct key_entry acer_wmi_keymap[] =3D {
+> > =20
+> >  	{KE_KEY, 0x01, {KEY_WLAN} },     /* WiFi */
+> >=20
+> > -	{KE_KEY, 0x12, {KEY_BLUETOOTH} },	/* BT */
+> >=20
+> >  	{KE_KEY, 0x21, {KEY_PROG1} },    /* Backup */
+> >  	{KE_KEY, 0x22, {KEY_PROG2} },    /* Arcade */
+> >  	{KE_KEY, 0x23, {KEY_PROG3} },    /* P_Key */
