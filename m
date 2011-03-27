@@ -1,54 +1,75 @@
-From: Mariusz Kozlowski <mk@lab.zgora.pl>
-Subject: [PATCH] ACPI battery: fix possible use after free in acpi_battery_add()
-Date: Sat, 26 Mar 2011 19:18:26 +0100
-Message-ID: <1301163506-7236-1-git-send-email-mk@lab.zgora.pl>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: acer-wmi: rfkill and bluetooth enabling doesn't work as in 2.6.37
+Date: Sun, 27 Mar 2011 10:09:29 -0700
+Message-ID: <20110327170928.GB30244@core.coreip.homeip.net>
+References: <4D79E5230200002300029ADA@novprvlin0050.provo.novell.com>
+ <201103242234.03598.oldium.pro@seznam.cz>
+ <4D8CE950020000230002A5DA@novprvlin0050.provo.novell.com>
+ <201103252022.26766.oldium.pro@seznam.cz>
+ <4D8DB372020000230002A653@novprvlin0050.provo.novell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from unix.wroclaw.pl ([94.23.28.62]:41529 "EHLO unix.wroclaw.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840Ab1CZSSj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Mar 2011 14:18:39 -0400
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:40302 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322Ab1C0RJg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Mar 2011 13:09:36 -0400
+Content-Disposition: inline
+In-Reply-To: <4D8DB372020000230002A653@novprvlin0050.provo.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Kyle McMartin <kyle@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mariusz Kozlowski <mk@lab.zgora.pl>
+To: Joey Lee <jlee@novell.com>
+Cc: oldium.pro@seznam.cz, davem@davemloft.net, marcel@holtmann.org, Al Cho <ACho@novell.com>, Gary Lin <GLin@novell.com>, johannes@sipsolutions.net, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-When acpi_battery_add_fs() fails 'battery' will be kfreed and then
-used again.
+On Fri, Mar 25, 2011 at 04:35:46PM -0600, Joey Lee wrote:
+> 
+> Thank's for your information, I will look at it.
+> 
+> Finally,
+> I borrow a Acer Aspire one ZG8 from Gary, it can reproduce your
+> situation.
+> 
+> The BAD thing is you are right, 
+> I CAN REPRODUCE rfkill-input didn't receive any input, it not make sense
+> because rfkill-input registered input handler.
+> 
+> The BT HW key still works because acer-wmi have polling to sync the
+> state with EC and killswitch, and EC also take care the BT device power
+> off job.
+> 
+> But, I also found SOMETIMES after system reboot, rfkill-input can
+> capture the key event.
+> We need find out why input handle didn't receive KEY_* event.
+> 
+> 
+> Hi, Dmitry 
+> 
+> Appreciate if you can give us any good suggestions!
+> Why keyboard emit KEY_BLUETOOTH, but rfkill-input, registered input
+> handler, can't capture it?
+> 
+> *** 06:32:42.972: lshal: device_condition,
+> udi=/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port_logicaldev_input
+>            condition_name=ButtonPressed
+>            condition_details=bluetooth
+> 
+> But, SOMETIMES after reboot system, rfkill-input can capture the key.
+> We are working on 2.6.38 kernel, and Acer notebook.
 
-Signed-off-by: Mariusz Kozlowski <mk@lab.zgora.pl>
----
- drivers/acpi/battery.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
+Hi Joey,
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index fcc13ac..27375e7 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -978,18 +978,15 @@ static int acpi_battery_add(struct acpi_device *device)
- 	acpi_battery_update(battery);
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
--#endif
--	if (!result) {
--		printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
--			ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
--			device->status.battery_present ? "present" : "absent");
--	} else {
--#ifdef CONFIG_ACPI_PROCFS_POWER
-+	if (result) {
- 		acpi_battery_remove_fs(device);
--#endif
- 		kfree(battery);
-+		return result;
- 	}
--
-+#endif
-+	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
-+		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
-+		device->status.battery_present ? "present" : "absent");
- 	battery->pm_nb.notifier_call = battery_notify;
- 	register_pm_notifier(&battery->pm_nb);
- 
+If you look in /proc/bus/input/devices do you see rfkill-input as
+actually bound to the device that has KEY_BLUETOOTH?
+
+Since it is atkbd that is emitting KEY_BLUETOOTH and this key is not in
+the default keymap I think you must be loading Acer-specific keymap via
+udev or some other mechanism, and I guess stumbling upon a deficiency in
+input layer: we do not re-match devices after changing keymap. So if
+rfkill-input was loaded before keymap was altered, then it will not bind
+to the keyboard even if you add KE_BLUETOOTH at a later time. Fixing
+this is something that was on my TODO list for a while now...
+
+Thaks.
+
 -- 
-1.7.0.4
-
+Dmitry
