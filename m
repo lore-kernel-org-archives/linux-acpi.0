@@ -1,62 +1,195 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: Remove sysfs_create_link from video driver
-Date: Mon, 28 Mar 2011 21:22:21 +0200
-Message-ID: <201103282122.21175.rjw@sisk.pl>
-References: <1301316362-2955-1-git-send-email-mjg@redhat.com>
+From: "A.M.Yassin" <1a.kyyassin@att.net>
+Subject: For your interest
+Date: Tue, 29 Mar 2011 07:07:18 +0400
+Message-ID: <122108.82590.qm@smtp109.sbc.mail.gq1.yahoo.com>
+Reply-To: <a.m.yassin@g.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_004D_01C2A9A6.6176AB7C"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49207 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530Ab1C1TWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Mar 2011 15:22:08 -0400
-In-Reply-To: <1301316362-2955-1-git-send-email-mjg@redhat.com>
+Received: from nm3-vm0.bullet.mail.sp2.yahoo.com ([98.139.90.230]:46529 "HELO
+	nm3-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752739Ab1C2DHb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Mar 2011 23:07:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jeff.chua.linux@gmail.com
 
-On Monday, March 28, 2011, Matthew Garrett wrote:
-> The acpi video driver attempts to explicitly create a sysfs link between
-> the acpi device and the associated PCI device. However, we're now also
-> doing this from the backlight core, which means that we get a backtrace
-> caused by a duplicate file. Remove the code and leave it up to the
-> backlight core.
-> 
-> Reported-by: Jeff Chua <jeff.chua.linux@gmail.com>
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+This is a multi-part message in MIME format.
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+------=_NextPart_000_004D_01C2A9A6.6176AB7C
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 
-> ---
->  drivers/acpi/video.c |    6 ------
->  1 files changed, 0 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index a18e497..31e9e10 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -824,11 +824,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
->  		device->backlight->props.brightness =
->  				acpi_video_get_brightness(device->backlight);
->  
-> -		result = sysfs_create_link(&device->backlight->dev.kobj,
-> -					   &device->dev->dev.kobj, "device");
-> -		if (result)
-> -			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> -
->  		device->cooling_dev = thermal_cooling_device_register("LCD",
->  					device->dev, &video_cooling_ops);
->  		if (IS_ERR(device->cooling_dev)) {
-> @@ -1381,7 +1376,6 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
->  		       "Cant remove video notify handler\n");
->  	}
->  	if (device->backlight) {
-> -		sysfs_remove_link(&device->backlight->dev.kobj, "device");
->  		backlight_device_unregister(device->backlight);
->  		device->backlight = NULL;
->  	}
-> 
+Greeting,
 
+My name is Mr. A. M. Yassin, I live and work in Abu Dhabi UAE. 
+I have an urgent business which I believe will interest you. 
+Find the enclose for details.
+
+For any reason you cannot open that attachment, please let me 
+know so that I can resend it in the body of the mail, thank you.
+
+I wait for your response, Thank you.
+
+Regards
+
+A. M. Yassin
+
+------=_NextPart_000_004D_01C2A9A6.6176AB7C
+Content-Type: application/octet-stream;
+	name="Interesting deal.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="Interesting deal.pdf"
+
+JVBERi0xLjUNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFn
+ZXMgMiAwIFIvTGFuZyhlbi1VUykgPj4NCmVuZG9iag0KMiAwIG9iag0KPDwv
+VHlwZS9QYWdlcy9Db3VudCAxL0tpZHNbIDMgMCBSXSA+Pg0KZW5kb2JqDQoz
+IDAgb2JqDQo8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL1Jlc291cmNlczw8
+L0ZvbnQ8PC9GMSA1IDAgUi9GMiA3IDAgUj4+L1Byb2NTZXRbL1BERi9UZXh0
+L0ltYWdlQi9JbWFnZUMvSW1hZ2VJXSA+Pi9NZWRpYUJveFsgMCAwIDYxMiA3
+OTJdIC9Db250ZW50cyA0IDAgUi9Hcm91cDw8L1R5cGUvR3JvdXAvUy9UcmFu
+c3BhcmVuY3kvQ1MvRGV2aWNlUkdCPj4vVGFicy9TPj4NCmVuZG9iag0KNCAw
+IG9iag0KPDwvRmlsdGVyL0ZsYXRlRGVjb2RlL0xlbmd0aCAzNzM5Pj4NCnN0
+cmVhbQ0KeJytW1uP28YVfjfg/zAPLSoB2jHvFNEnu3HcJHYSxFsUQdIHSuQu
+hV2T9HLpdf59z2WulGaloEVgrUTO9Vy+850zkzfXL1+8+jYWcSyjTFzfvHwR
+iwj+i0WZyCjJRJkmMtuK608vX0TiFj/evXzx2+rdOl89rK/SVduur5LV47pY
+HdZX2aq/Xcfxatqs/yOuv3/54i0M/+baDhrHpczdMX9biUBTPX9cyW1xYduo
+lIlu+9063q5Evb6Kk9WndVwGO1eZzIpF51q8qfu7NXQVMEC0+gm2e4PbpQ/a
+6b5db1kEosM9t/A9X7ViXSlJ4EPxGjruZvEN/Onq3QGbbEILSTLYauUvpINh
+adRAlzKWRex3cWb/F/TtD6CbR3zWNri411pz9U68/YRCog786BEnm/CrFEqA
+0CRfiSfdixrTcHYe0rng34Kt4hZmqkkizYSzUo8B1FFBk+e1WIBC8kxtZhjH
+4WFdcv+ZZrMr+MOdl3TMT4ZjVV2hJuEd9SN9wV6v1MZQQvf4gj6o3a5F00mU
+HGmUT9CKJml7klArdq1p0sLG1IRK2kJtmUYbeF76wasTMzkKiRmW0dVfYAQ9
+ZNsLMpVeTPiUVoJS2Hdi0BOJaSDVtEOvtve8VLexrDLPREI9tqnMlj1IsMPM
+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
+QQ8GrrxttNn0zIzutcEMxnwW9T7o9OcYpAONLnEy11027JbkVByv1X3GBz32
+vhP6uIqnYQgkY9SJxBkhJ6UsdPKg7kVpdliLW1Mob+3AQsXkiaIMXYGCb8d3
+O6eZftxyvcum0a7sWDX0rlOorW9sunXRG3wKxJDzN1K8QnnSKLMAi/jTRuQw
+QkTxOY/w5V8NjxzEzrmAJEZTETcoRExi40a4MzKMcxlpGU5dzb6GZwpPBx0U
+GGaotm+u3U1UJfBvGdEzuxNVQ9DZvuK8+8GKeVSeTKxTG0WHQUS7SNu7W2kc
+Q6EBpHiPZNLed7oDAoh4lhmGZxMOQLehd/j48ydPWj5RIjNjYzDESPBPS2Ay
+0QzOCa8GpMeFQ7vzVYZMnDnVU8cpa3WvB2+N/Cw+rtPV23/QzYZs9faar8Hg
+IP9mMkK1BnsIzJWGQbhnda7XIxmnYrlqT8496Jo9O4ZGAcyW9epVDv0HFTYu
+uXeTbCtzcYk7sG+pOEc2R740qlIH6T9YDcwyvHnhDnpu/rKUFxbPE4wN+n4A
+ppNulin65R3gpjYJybuhQVLBYKvO/6V43eOBhV8RPjwTaMvSX8LI4cA/l/DS
+mP9doBgIq9yf95yY8theozjXNq3wLN7WKtxrmDYNcq95B+/8JxWQXm/Ac5Mn
+Bd7OuqxtnNr/PwATEvlB/hq8+pDiJVevC5PnyTh5cBOQvPk9g6bOmZLXNnxc
+DtYTbvpfWOkCRQ0KZW5kc3RyZWFtDQplbmRvYmoNCjUgMCBvYmoNCjw8L1R5
+cGUvRm9udC9TdWJ0eXBlL1RydWVUeXBlL05hbWUvRjEvQmFzZUZvbnQvVGlt
+ZXMjMjBOZXcjMjBSb21hbi9FbmNvZGluZy9XaW5BbnNpRW5jb2RpbmcvRm9u
+dERlc2NyaXB0b3IgNiAwIFIvRmlyc3RDaGFyIDMyL0xhc3RDaGFyIDEyMS9X
+aWR0aHMgMTAgMCBSPj4NCmVuZG9iag0KNiAwIG9iag0KPDwvVHlwZS9Gb250
+RGVzY3JpcHRvci9Gb250TmFtZS9UaW1lcyMyME5ldyMyMFJvbWFuL0ZsYWdz
+IDMyL0l0YWxpY0FuZ2xlIDAvQXNjZW50IDg5MS9EZXNjZW50IC0yMTYvQ2Fw
+SGVpZ2h0IDY5My9BdmdXaWR0aCA0MDEvTWF4V2lkdGggMjU2OC9Gb250V2Vp
+Z2h0IDQwMC9YSGVpZ2h0IDI1MC9MZWFkaW5nIDQyL1N0ZW1WIDQwL0ZvbnRC
+Qm94WyAtNTY4IC0yMTYgMjAwMCA2OTNdID4+DQplbmRvYmoNCjcgMCBvYmoN
+Cjw8L1R5cGUvRm9udC9TdWJ0eXBlL1RydWVUeXBlL05hbWUvRjIvQmFzZUZv
+bnQvVGltZXMjMjBOZXcjMjBSb21hbixCb2xkL0VuY29kaW5nL1dpbkFuc2lF
+bmNvZGluZy9Gb250RGVzY3JpcHRvciA4IDAgUi9GaXJzdENoYXIgMzIvTGFz
+dENoYXIgODkvV2lkdGhzIDExIDAgUj4+DQplbmRvYmoNCjggMCBvYmoNCjw8
+L1R5cGUvRm9udERlc2NyaXB0b3IvRm9udE5hbWUvVGltZXMjMjBOZXcjMjBS
+b21hbixCb2xkL0ZsYWdzIDMyL0l0YWxpY0FuZ2xlIDAvQXNjZW50IDg5MS9E
+ZXNjZW50IC0yMTYvQ2FwSGVpZ2h0IDY3Ny9BdmdXaWR0aCA0MjcvTWF4V2lk
+dGggMjU1OC9Gb250V2VpZ2h0IDcwMC9YSGVpZ2h0IDI1MC9MZWFkaW5nIDQy
+L1N0ZW1WIDQyL0ZvbnRCQm94WyAtNTU4IC0yMTYgMjAwMCA2NzddID4+DQpl
+bmRvYmoNCjkgMCBvYmoNCjw8L0F1dGhvcihQZXRlcikvQ3JlYXRvcij+/wBN
+AGkAYwByAG8AcwBvAGYAdACuACAATwBmAGYAaQBjAGUAIABXAG8AcgBkACAA
+MgAwADAANykvQ3JlYXRpb25EYXRlKEQ6MjAxMDExMjcxMzMxNDMpIC9Nb2RE
+YXRlKEQ6MjAxMDExMjcxMzMxNDMpIC9Qcm9kdWNlcij+/wBNAGkAYwByAG8A
+cwBvAGYAdACuACAATwBmAGYAaQBjAGUAIABXAG8AcgBkACAAMgAwADAANyk+
+Pg0KZW5kb2JqDQoxMCAwIG9iag0KWyAyNTAgMCAwIDAgNTAwIDgzMyAwIDE4
+MCAzMzMgMzMzIDAgMCAyNTAgMzMzIDI1MCAyNzggNTAwIDAgNTAwIDAgNTAw
+IDUwMCA1MDAgNTAwIDAgMCAwIDI3OCAwIDAgMCAwIDAgNzIyIDY2NyA2Njcg
+NzIyIDYxMSA1NTYgNzIyIDcyMiAzMzMgMzg5IDcyMiA2MTEgODg5IDcyMiA3
+MjIgNTU2IDAgNjY3IDU1NiA2MTEgNzIyIDAgOTQ0IDAgNzIyIDAgMCAwIDAg
+MCAwIDAgNDQ0IDUwMCA0NDQgNTAwIDQ0NCAzMzMgNTAwIDUwMCAyNzggMCA1
+MDAgMjc4IDc3OCA1MDAgNTAwIDUwMCA1MDAgMzMzIDM4OSAyNzggNTAwIDUw
+MCA3MjIgNTAwIDUwMF0gDQplbmRvYmoNCjExIDAgb2JqDQpbIDI1MCAwIDAg
+MCAwIDAgMCAwIDAgMCAwIDAgMjUwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAw
+IDAgMCAwIDAgMCAwIDAgMCA3MjIgMCAwIDcyMiAwIDAgNzc4IDAgMzg5IDAg
+MCA2NjcgMCA3MjIgNzc4IDAgMCA3MjIgNTU2IDY2NyA3MjIgMCAwIDAgNzIy
+XSANCmVuZG9iag0KMTIgMCBvYmoNCjw8L1R5cGUvWFJlZi9TaXplIDEyL1db
+IDEgNCAyXSAvUm9vdCAxIDAgUi9JbmZvIDkgMCBSL0lEWzwxQTkyQTNFMjlC
+Q0RFRDRCOERDMzhDMDQ1OUY4MzU4MT48MUE5MkEzRTI5QkNERUQ0QjhEQzM4
+QzA0NTlGODM1ODE+XSAvRmlsdGVyL0ZsYXRlRGVjb2RlL0xlbmd0aCA1NT4+
+DQpzdHJlYW0NCnicY2AAgv//GYGkIAMDiPKDUG1gijEVTAl4Q6gfYErwGZgS
+mg6mhLvAlEg+mBLdwcAAAGKFCEUNCmVuZHN0cmVhbQ0KZW5kb2JqDQp4cmVm
+DQowIDEzDQowMDAwMDAwMDAwIDY1NTM1IGYNCjAwMDAwMDAwMTcgMDAwMDAg
+bg0KMDAwMDAwMDA3OCAwMDAwMCBuDQowMDAwMDAwMTM0IDAwMDAwIG4NCjAw
+MDAwMDAzNTcgMDAwMDAgbg0KMDAwMDAwNDE3MSAwMDAwMCBuDQowMDAwMDA0
+MzQ0IDAwMDAwIG4NCjAwMDAwMDQ1ODIgMDAwMDAgbg0KMDAwMDAwNDc1OSAw
+MDAwMCBuDQowMDAwMDA1MDAyIDAwMDAwIG4NCjAwMDAwMDUyMzEgMDAwMDAg
+bg0KMDAwMDAwNTU2MCAwMDAwMCBuDQowMDAwMDA1NzI3IDAwMDAwIG4NCnRy
+YWlsZXINCjw8L1NpemUgMTMvUm9vdCAxIDAgUi9JbmZvIDkgMCBSL0lEWzwx
+QTkyQTNFMjlCQ0RFRDRCOERDMzhDMDQ1OUY4MzU4MT48MUE5MkEzRTI5QkNE
+RUQ0QjhEQzM4QzA0NTlGODM1ODE+XSA+Pg0Kc3RhcnR4cmVmDQo1OTgxDQol
+JUVPRg0KeHJlZg0KMCAwDQp0cmFpbGVyDQo8PC9TaXplIDEzL1Jvb3QgMSAw
+IFIvSW5mbyA5IDAgUi9JRFs8MUE5MkEzRTI5QkNERUQ0QjhEQzM4QzA0NTlG
+ODM1ODE+PDFBOTJBM0UyOUJDREVENEI4REMzOEMwNDU5RjgzNTgxPl0gL1By
+ZXYgNTk4MS9YUmVmU3RtIDU3Mjc+Pg0Kc3RhcnR4cmVmDQo2Mzk2DQolJUVP
+Rg==
+
+------=_NextPart_000_004D_01C2A9A6.6176AB7C--
