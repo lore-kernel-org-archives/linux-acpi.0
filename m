@@ -1,53 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] acpi: Split out custom_method functionality into an own driver
-Date: Tue, 29 Mar 2011 23:29:14 +0200
-Message-ID: <201103292329.15026.rjw@sisk.pl>
-References: <1301401990-35469-1-git-send-email-trenn@suse.de> <201103292136.50214.rjw@sisk.pl> <201103292311.10991.trenn@suse.de>
+From: Sir Mark Thompson <atmclaims@cbn.com>
+Subject: ATM DEBIT CARD
+Date: Wed, 30 Mar 2011 03:55:13 +0300
+Message-ID: <71d5d895408fca6593be876e6e434d63__26485.1033491597$1301446960$gmane$org@upatras.gr>
+Reply-To: sirmarkthompson@hotmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53475 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752615Ab1C2V3H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Mar 2011 17:29:07 -0400
-In-Reply-To: <201103292311.10991.trenn@suse.de>
+Received: from nic.upatras.gr ([150.140.129.30]:58100 "HELO nic.upatras.gr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754799Ab1C3BCc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Mar 2011 21:02:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday, March 29, 2011, Thomas Renninger wrote:
-> On Tuesday 29 March 2011 21:36:50 Rafael J. Wysocki wrote:
-> > On Tuesday, March 29, 2011, Thomas Renninger wrote:
-> > > With /sys/kernel/debug/acpi/custom_method root can write
-> > > to arbitrary memory and increase his priveleges, even if
-> > > these are restricted.
-> > > 
-> > > -> Make this an own debug .config option and warn about the
-> > > security issue in the config description.
-> > > 
-> > > -> Still keep acpi/debugfs.c which now only creates and empty
-> > >    /sys/kernel/debug/acpi directory. There might be other
-> > >    users of it later.
-> > > 
-> > > Signed-off-by: Thomas Renninger <trenn@suse.de>
-> > > CC: Rafael J. Wysocki <rjw@sisk.pl>
-> > > CC: lenb@kernel.org
-> > > CC: rui.zhang@intel.com
-> > > CC: linux-acpi@vger.kernel.org
-> > 
-> > OK, but you don't need to move custom_method to a separate file.  Why
-> > are you doing that, exactly?
-> Because there may come other acpi debugfs stuff added there and then
-> it either needs ugly #ifdef logics inside the file or the split will be done then.
-> Separating the code belonging to this option into an own
-> file looks like the cleanest way to me.
 
-Well, I don't really expect anything else to depend on
-CONFIG_ACPI_CUSTOM_METHOD, or if it does, the options should be called
-differently, right?
 
-Thanks,
-Rafael
+-- 
+This officially inform you that the ATM card number 4278763100030014 with
+stock worth 6.8 million dollars has been accredited in your favour.Please
+contact Mr. Tony Kings with the following.
+Full Name:
+Delivery Address:
+Age:
+Occupation:
+Phone Number:
+Skype ID:
+Foreign passport:
+
+Best wishes.
+Sir Mark Thompson
