@@ -1,85 +1,92 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/3] acpi: Cleanup custom_method debug stuff
-Date: Thu, 31 Mar 2011 09:14:59 +0800
-Message-ID: <1301534099.11482.40.camel@rui>
-References: <1301401990-35469-1-git-send-email-trenn@suse.de>
-	 <1301401990-35469-3-git-send-email-trenn@suse.de>
-	 <1301449065.31460.75.camel@rui>  <201103301106.08827.trenn@suse.de>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/2] memblock: add error return when CONFIG_HAVE_MEMBLOCK
+ is not set
+Date: Wed, 30 Mar 2011 18:40:06 -0700
+Message-ID: <AANLkTi=eRgp0wqpwq-W=E7ptrnQuM837+J+enEA2wey-@mail.gmail.com>
+References: <20110225180633.857892225@gulag1.americas.sgi.com>
+	<20110225180634.017570095@gulag1.americas.sgi.com>
+	<20110227120949.GF16453@elte.hu>
+	<20110227121518.GA19165@elte.hu>
+	<4D6AFBB0.70401@kernel.org>
+	<4D6BF63D.2020404@sgi.com>
+	<AANLkTi=Sn6DKAjGHQjtWGiLGh8vpuS-vmXK=TMDrbjdv@mail.gmail.com>
+	<4D6BFF46.3050001@sgi.com>
+	<AANLkTi=Xf5RaF559QsRNijmG0YP7amkG569NZFhpt4QY@mail.gmail.com>
+	<4D93CDD7.8000708@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36404 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755440Ab1CaBQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Mar 2011 21:16:13 -0400
-In-Reply-To: <201103301106.08827.trenn@suse.de>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58025 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932823Ab1CaBkH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2011 21:40:07 -0400
+In-Reply-To: <4D93CDD7.8000708@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>, David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, 2011-03-30 at 17:06 +0800, Thomas Renninger wrote:
-> On Wednesday, March 30, 2011 03:37:45 AM Zhang Rui wrote:
-> > On Tue, 2011-03-29 at 20:33 +0800, Thomas Renninger wrote:
-> > > - Revert param aml_debug_output, it's not used.
-> > 
-> > NAK.
-> > 
-> > void
-> > acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
-> >                         u32 level, u32 index)
-> > {
-> > 	...
-> >         if (!acpi_gbl_enable_aml_debug_object &&
-> >             !(acpi_dbg_level & ACPI_LV_DEBUG_OBJECT)) {
-> >                 return_VOID;
-> >         }
-> > 	...
-> > }
-> > 
-> > Users can set acpi_gbl_enable_aml_debug_object via module parameter
-> > aml_bug_output, thus enable the ACPI Debug output at runtime.
-> Ah yes, I've overseen this one.
-> What is the advantage of:
-> /sys/module/acpi/parameters/aml_debug_output
-> over:
-> /sys/module/acpi/parameters/{debug_level,debug_layer}
-> ?
-> 
-> The first is also available even if CONFIG_ACPI_DEBUG
-> is not defined at all?
+On Wed, Mar 30, 2011 at 5:41 PM, Mike Travis <travis@sgi.com> wrote:
+> Subject: memblock: add error return when CONFIG_HAVE_MEMBLOCK is not =
+set
+> Author: Yinghai Lu <yinghai@kernel.org>
+>
+> =A0 =A0 =A0 =A0Add an error return if CONFIG_HAVE_MEMBLOCK is not set=
+ instead
+> =A0 =A0 =A0 =A0of having to add #ifdef CONFIG_HAVE_MEMBLOCK around bl=
+ocks of
+> =A0 =A0 =A0 =A0code calling that function.
+>
+> Signed-off-by: Mike Travis <travis@sgi.com>
+> ---
+> include/linux/memblock.h | =A0 =A09 ++++++++-
+> 1 file changed, 8 insertions(+), 1 deletion(-)
+>
+> --- linux.orig/include/linux/memblock.h
+> +++ linux/include/linux/memblock.h
+> @@ -2,6 +2,8 @@
+> #define _LINUX_MEMBLOCK_H
+> #ifdef __KERNEL__
+>
+> +#define MEMBLOCK_ERROR 0
+> +
+> #ifdef CONFIG_HAVE_MEMBLOCK
+> /*
+> =A0* Logical memory blocks.
+> @@ -20,7 +22,6 @@
+> #include <asm/memblock.h>
+>
+> #define INIT_MEMBLOCK_REGIONS =A0 128
+> -#define MEMBLOCK_ERROR =A0 =A0 =A0 =A0 0
+>
+> struct memblock_region {
+> =A0 =A0 =A0 =A0phys_addr_t base;
+> @@ -160,6 +161,12 @@ static inline unsigned long memblock_reg
+> #define __initdata_memblock
+> #endif
+>
+> +#else
+> +static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr=
+_t
+> align)
+> +{
+> + =A0 =A0 =A0 return MEMBLOCK_ERROR;
+> +}
+> +
+> #endif /* CONFIG_HAVE_MEMBLOCK */
+>
+> #endif /* __KERNEL__ */
+>
 
-right. Users can enable the ACPI Debug output w/o rebuilding the kernel.
+setup_log_buf will pass function pointer, So this one is not needed, ri=
+ght?
 
-> 
-> Yep, this is rather useful. I still would move the param into:
-> drivers/acpi/sysfs.c
-> if I touch this now anyway, where all the other
-> /sys tunables are flying around:
-> grep \/sys drivers/acpi/sysfs.c
->  * /sys/modules/acpi/parameters/debug_layer
->  * /sys/modules/acpi/parameters/debug_level
->  * /sys/modules/acpi/parameters/trace_method_name
->  * /sys/modules/acpi/parameters/trace_state
->  * /sys/modules/acpi/parameters/trace_debug_layer
->  * /sys/modules/acpi/parameters/trace_debug_level
-> /* /sys/module/acpi/parameters/acpica_version */
->  * /sys/firmware/acpi/tables/
->  * /sys/firmware/acpi/tables/dynamic/
->  * /sys/firmware/acpi/interrupts/
-> 
-> ...if that's fine with you.
-> 
-aml_debug_output is designed to be used together with the runtime
-control method override. And this is why I put it in debugfs.c rather
-than sysfs.c.
-I have no strong objection to your proposal because I'm really not sure
-which one is better. :p
+Thanks
 
-thanks,
-rui
-
->    Thomas
-
-
+Yinghai
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
