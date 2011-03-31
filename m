@@ -1,77 +1,124 @@
-From: Harald Dunkel <harri@afaics.de>
-Subject: Re: [Bugme-new] [Bug 32242] New: irq 18, nobody cared, nor did irqpoll
-Date: Thu, 31 Mar 2011 12:59:12 +0200
-Message-ID: <4D945E80.8080104@afaics.de>
-References: <bug-32242-10286@https.bugzilla.kernel.org/>
-	<20110330165140.c5ca5705.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20110330165140.c5ca5705.akpm@linux-foundation.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mtd@lists.infradead.org, bugzilla-daemon@bugzilla.kernel.org, linux-mmc@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 2/3] acpi: Cleanup custom_method debug stuff
+Date: Thu, 31 Mar 2011 13:36:39 +0200
+Message-ID: <1301571400-9861-2-git-send-email-trenn@suse.de>
+References: <1301571400-9861-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:58939 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751962Ab1CaLdo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Mar 2011 07:33:44 -0400
+In-Reply-To: <1301571400-9861-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+- Move param aml_debug_output to other params into sysfs.c
+- Split acpi_debugfs_init to prepare custom_method to be
+  an own .config option and driver.
 
-On 03/31/11 01:51, Andrew Morton wrote:
-> 
-> So both sdhci_irq and r852_irq were looking at the IRQ, but neither of
-> them were interested in it.
-> 
-> Could be that the bug lies in neither driver, at that something went
-> wrong with the system setup.  ACPI?
-> 
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Rafael J. Wysocki <rjw@sisk.pl>
+CC: lenb@kernel.org
+CC: rui.zhang@intel.com
+CC: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/debugfs.c  |   32 +++++++++++++-------------------
+ drivers/acpi/internal.h |    3 ++-
+ drivers/acpi/sysfs.c    |    8 ++++++++
+ 3 files changed, 23 insertions(+), 20 deletions(-)
 
-Currently I cannot reproduce it, with or without acpi. /var/log/messages
-shows this morning:
+diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+index 384f7ab..e7abc6e 100644
+--- a/drivers/acpi/debugfs.c
++++ b/drivers/acpi/debugfs.c
+@@ -12,13 +12,8 @@
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debugfs");
+ 
+-
+-/* /sys/modules/acpi/parameters/aml_debug_output */
+-
+-module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+-		   bool, 0644);
+-MODULE_PARM_DESC(aml_debug_output,
+-		 "To enable/disable the ACPI Debug Object output.");
++struct dentry *acpi_debugfs_dir;
++static struct dentry *cm_dentry;
+ 
+ /* /sys/kernel/debug/acpi/custom_method */
+ 
+@@ -80,23 +75,22 @@ static const struct file_operations cm_fops = {
+ 	.llseek = default_llseek,
+ };
+ 
+-int __init acpi_debugfs_init(void)
++static int __init acpi_custom_method_init(void)
+ {
+-	struct dentry *acpi_dir, *cm_dentry;
+-
+-	acpi_dir = debugfs_create_dir("acpi", NULL);
+-	if (!acpi_dir)
+-		goto err;
++	if (!acpi_debugfs_dir)
++		return -ENOENT;
+ 
+ 	cm_dentry = debugfs_create_file("custom_method", S_IWUSR,
+-					acpi_dir, NULL, &cm_fops);
++					acpi_debugfs_dir, NULL, &cm_fops);
+ 	if (!cm_dentry)
+-		goto err;
++		return -ENODEV;
+ 
+ 	return 0;
++}
++
++void __init acpi_debugfs_init(void)
++{
++	acpi_debugfs_dir = debugfs_create_dir("acpi", NULL);
+ 
+-err:
+-	if (acpi_dir)
+-		debugfs_remove(acpi_dir);
+-	return -EINVAL;
++	acpi_custom_method_init();
+ }
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index b1cc81a..afc1a1c 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -30,9 +30,10 @@ int acpi_scan_init(void);
+ int acpi_sysfs_init(void);
+ 
+ #ifdef CONFIG_DEBUG_FS
++extern struct dentry *acpi_debugfs_dir;
+ int acpi_debugfs_init(void);
+ #else
+-static inline int acpi_debugfs_init(void) { return 0; }
++static inline void acpi_debugfs_init(void) { return; }
+ #endif
+ 
+ /* --------------------------------------------------------------------------
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 61891e7..77255f2 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -220,6 +220,14 @@ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
+ 		  NULL, 0644);
+ #endif /* CONFIG_ACPI_DEBUG */
+ 
++
++/* /sys/modules/acpi/parameters/aml_debug_output */
++
++module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
++		   bool, 0644);
++MODULE_PARM_DESC(aml_debug_output,
++		 "To enable/disable the ACPI Debug Object output.");
++
+ /* /sys/module/acpi/parameters/acpica_version */
+ static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
+ {
+-- 
+1.7.3.4
 
-[    1.004550] sdhci: Secure Digital Host Controller Interface driver
-[    1.004552] sdhci: Copyright(c) Pierre Ossman
-[    1.005643] sdhci-pci 0000:03:01.1: SDHCI controller found [1180:0822] (rev 22)
-[    1.005662] sdhci-pci 0000:03:01.1: PCI INT B -> GSI 18 (level, low) -> IRQ 18
-[    1.007252] tg3.c:v3.116 (December 3, 2010)
-[    1.007268] tg3 0000:09:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[    1.007513] usbcore: registered new interface driver usbfs
-[    1.007537] usbcore: registered new interface driver hub
-[    1.010765] mmc0: SDHCI controller on PCI [0000:03:01.1] using DMA
-[    1.010775] sdhci-pci 0000:03:01.2: SDHCI controller found [1180:0843] (rev 12)
-[    1.010786] sdhci-pci 0000:03:01.2: PCI INT B -> GSI 18 (level, low) -> IRQ 18
-[    1.013877] mmc1: SDHCI controller on PCI [0000:03:01.2] using DMA
-:
-:
-[    8.216702] r852 0000:03:01.4: PCI INT B -> GSI 18 (level, low) -> IRQ 18
-[    8.243648] r852: driver loaded succesfully
-
-
-:-{
-
-When it comes back I will try to reboot with acpi=off.
-
-
-Regards
-
-Harri
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk2UXoAACgkQUTlbRTxpHjcragCghaLRrZJn7pkhbpkzfK0KjstI
-Sw8AniBuFLr0kIpE6ImtJ0b4hdQlILzW
-=ukS3
------END PGP SIGNATURE-----
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
