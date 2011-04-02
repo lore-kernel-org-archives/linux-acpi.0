@@ -1,52 +1,92 @@
-From: Andrea Gelmini <andrea.gelmini@gmail.com>
+From: Mattia Dongili <malattia@linux.it>
 Subject: Re: Regression 2.6.39-rc1 for sony-laptop
-Date: Sat, 2 Apr 2011 11:44:57 +0200
-Message-ID: <BANLkTikPjwowBge82viT+Ma5UnP0fA-pew@mail.gmail.com>
+Date: Sat, 2 Apr 2011 19:00:44 +0900
+Message-ID: <20110402100043.GA5890@kamineko.org>
 References: <AANLkTi=1xtjEZc2C1=W-v2oYbvvcGH9k_DGGXvJ8=swq@mail.gmail.com>
-	<20110401172241.GA26851@srcf.ucam.org>
+ <20110401172241.GA26851@srcf.ucam.org>
+ <BANLkTikPjwowBge82viT+Ma5UnP0fA-pew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110401172241.GA26851@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: anssi.hannula@iki.fi, linux-acpi@vger.kernel.org, axel.lin@gmail.com, trenn@suse.de, len.brown@intel.com, error27@gmail.com, malattia@linux.it, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:49944 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755483Ab1DBKAv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Apr 2011 06:00:51 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTikPjwowBge82viT+Ma5UnP0fA-pew@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrea Gelmini <andrea.gelmini@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, anssi.hannula@iki.fi, linux-acpi@vger.kernel.org, axel.lin@gmail.com, trenn@suse.de, len.brown@intel.com, error27@gmail.com, linux-kernel@vger.kernel.org
 
-2011/4/1 Matthew Garrett <mjg59@srcf.ucam.org>:
-> touch any Sony code. I'll take a look at the Sony patches, thanks for
-> the report!
+On Sat, Apr 02, 2011 at 11:44:57AM +0200, Andrea Gelmini wrote:
+> 2011/4/1 Matthew Garrett <mjg59@srcf.ucam.org>:
+> > touch any Sony code. I'll take a look at the Sony patches, thanks for
+> > the report!
+> 
+> Hi Matthew,
+>    and thanks a lot for your quick answer.
+>    Maybe I messed up with bisect trying to find the origin of two regression.
+>    One was this. The other one is this one.
+> 
+>    Hibernation (to disk, of course) doesn't work no more.
+>    Screen blanks and nothing happens. No HD activity, and so on. I also
+>    waited some minutes.
+> 
+>    Well, bisect blame this commit:
+> 
+> commit 2a4f0c81adcd1f812a63bc9106be2fd26f437730
+> Author: Mattia Dongili <malattia@linux.it>
+> Date:   Sat Feb 19 11:52:30 2011 +0900
+> 
+>     sony-laptop: cache handles and report them via sysfs
+> 
+>     Avoid calling into acpi each time we need to lookup a method handle
+>     and report the available handles to ease collection of information when
+>     debugging issues. Also move initialization of the platform driver
+>     earlier to allow adding files from other setup functions.
+> 
+>     Signed-off-by: Mattia Dongili <malattia@linux.it>
+>     Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+>  drivers/platform/x86/sony-laptop.c |   97 ++++++++++++++++++++++++++++++------
+>  1 files changed, 81 insertions(+), 16 deletions(-)
+> 
+>    Do you have any suggestion to better track down this issue?
+>    It's not possibile to simply revert it.
 
-Hi Matthew,
-   and thanks a lot for your quick answer.
-   Maybe I messed up with bisect trying to find the origin of two regression.
-   One was this. The other one is this one.
+As already reported the following patch should fix the issue:
 
-   Hibernation (to disk, of course) doesn't work no more.
-   Screen blanks and nothing happens. No HD activity, and so on. I also
-   waited some minutes.
-
-   Well, bisect blame this commit:
-
-commit 2a4f0c81adcd1f812a63bc9106be2fd26f437730
+commit 88d25cbfda526567dabf056a868d8ff5f22a962e
 Author: Mattia Dongili <malattia@linux.it>
-Date:   Sat Feb 19 11:52:30 2011 +0900
+Date:   Fri Apr 1 10:01:41 2011 +0900
 
-    sony-laptop: cache handles and report them via sysfs
-
-    Avoid calling into acpi each time we need to lookup a method handle
-    and report the available handles to ease collection of information when
-    debugging issues. Also move initialization of the platform driver
-    earlier to allow adding files from other setup functions.
-
+    sony-laptop: fix early NULL pointer dereference
+    
+    The SNC acpi driver could get early notifications before it fully
+    initializes and that could lead to dereferencing the sony_nc_handles
+    structure pointer that is still NULL at that stage.
+    Make sure we return early from the handle lookup function in these
+    cases.
+    
     Signed-off-by: Mattia Dongili <malattia@linux.it>
-    Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
- drivers/platform/x86/sony-laptop.c |   97 ++++++++++++++++++++++++++++++------
- 1 files changed, 81 insertions(+), 16 deletions(-)
-
-   Do you have any suggestion to better track down this issue?
-   It's not possibile to simply revert it.
-
-Thanks a lot for your time,
-Andrea
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index b2ce172..7082c55 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -810,6 +810,11 @@ static int sony_nc_handles_cleanup(struct platform_device *pd)
+ static int sony_find_snc_handle(int handle)
+ {
+ 	int i;
++
++	/* not initialized yet, return early */
++	if (!handles)
++		return -1;
++
+ 	for (i = 0; i < 0x10; i++) {
+ 		if (handles->cap[i] == handle) {
+ 			dprintk("found handle 0x%.4x (offset: 0x%.2x)\n",
+-- 
+mattia
+:wq!
