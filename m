@@ -1,36 +1,38 @@
-From: Peter Stuge <peter@stuge.se>
-Subject: Re: Lenovo resume from suspends hangs in i915_gpu_busy or so
-Date: Sun, 3 Apr 2011 03:30:46 +0200
-Message-ID: <20110403013046.28837.qmail@stuge.se>
-References: <20110401021055.GB6071@gamma.logic.tuwien.ac.at>
-	<20110401051511.GE9128@gamma.logic.tuwien.ac.at>
-	<20110401090817.01717af0@jbarnes-desktop>
-	<20110402002410.GL6464@gamma.logic.tuwien.ac.at>
+From: limp <johnkyr83@hotmail.com>
+Subject: Necessity of SMM/SMI use on ACPI x86 systems
+Date: Sun, 3 Apr 2011 12:40:47 +0100
+Message-ID: <SNT111-DS81E1BD67986CA3A41C144A7A00@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20110402002410.GL6464@gamma.logic.tuwien.ac.at>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from snt0-omc1-s23.snt0.hotmail.com ([65.55.90.34]:11289 "EHLO
+	snt0-omc1-s23.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751251Ab1DCLrA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Apr 2011 07:47:00 -0400
+Content-Language: en-gb
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Norbert Preining wrote:
-> > Do you see what scrolls by above the text you took a picture of
-> 
-> More than what I can see on the screen shot I cannot grasp.
+Dear all,
 
-Maybe try serial console, netconsole or usb debug device.
+I am doing some research regarding ACPI and SMM PM interfaces for the x86
+architecture.
 
+What I've found so far is that ACPI is the new trend for x86 PM and tends to
+eliminate the use of SMM/SMI.
+However, I am not quite sure if SMM/SMI mechanism can be completely
+ignored/not used in current systems.
+AFAIK, some ACPI AML BIOS code can trigger an SMI for handling specific
+events.
 
-//Peter
+Can anyone advise me if it's possible to write ACPI AML BIOS code that does
+whatever it was intended to be executed in SMM? In general, is there any
+*strong* argument saying that (at least) current systems cannot completely
+eliminate the use of SMIs?
+
+Thank you all in advance,
+
+Best wishes.
+
