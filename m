@@ -1,38 +1,28 @@
-From: limp <johnkyr83@hotmail.com>
-Subject: Necessity of SMM/SMI use on ACPI x86 systems
-Date: Sun, 3 Apr 2011 12:40:47 +0100
-Message-ID: <SNT111-DS81E1BD67986CA3A41C144A7A00@phx.gbl>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [PATCH] x86, ioapic: move acpi_get_override_irq to acpi.c
+Date: Sun, 3 Apr 2011 16:34:49 +0200
+Message-ID: <20110403163449.33a6a4dc@schatten.dmk.lab>
+References: <20110401075011.GD7594@elte.hu>
+	<1301672686-10096-1-git-send-email-florian@mickler.org>
+	<20110401182653.340abaa4@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from snt0-omc1-s23.snt0.hotmail.com ([65.55.90.34]:11289 "EHLO
-	snt0-omc1-s23.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751251Ab1DCLrA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Apr 2011 07:47:00 -0400
-Content-Language: en-gb
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110401182653.340abaa4@schatten.dmk.lab>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Florian Mickler <florian@mickler.org>, mingo@elte.hu, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, kurup_avinash@yahoo.com, maciej.rutecki@gmail.com, rjw@sisk.pl, sedat.dilek@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Dear all,
+On Fri, 1 Apr 2011 18:26:53 +0200
+Florian Mickler <florian@mickler.org> wrote:
 
-I am doing some research regarding ACPI and SMM PM interfaces for the x86
-architecture.
+> And how do I check compilation of !CONFIG_X86_IO_APIC?  
 
-What I've found so far is that ACPI is the new trend for x86 PM and tends to
-eliminate the use of SMM/SMI.
-However, I am not quite sure if SMM/SMI mechanism can be completely
-ignored/not used in current systems.
-AFAIK, some ACPI AML BIOS code can trigger an SMI for handling specific
-events.
+That was a real question, btw. Not just me mumbling around... make
+oldconfig always turns that symbol back on to =y ... and I couldn't find
+out why. 
 
-Can anyone advise me if it's possible to write ACPI AML BIOS code that does
-whatever it was intended to be executed in SMM? In general, is there any
-*strong* argument saying that (at least) current systems cannot completely
-eliminate the use of SMIs?
-
-Thank you all in advance,
-
-Best wishes.
-
+> Regards,
+> Flo
