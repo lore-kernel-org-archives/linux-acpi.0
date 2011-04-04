@@ -1,35 +1,46 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86, ioapic: move acpi_get_override_irq to acpi.c
-Date: Mon, 4 Apr 2011 17:00:35 +0200
-Message-ID: <20110404150035.GB11475@elte.hu>
-References: <20110401075011.GD7594@elte.hu>
- <1301672686-10096-1-git-send-email-florian@mickler.org>
- <20110401182653.340abaa4@schatten.dmk.lab>
- <20110403163449.33a6a4dc@schatten.dmk.lab>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Probably wrong temparature for thermal zone on HP DL380 G7
+ server
+Date: Mon, 4 Apr 2011 16:04:33 +0100
+Message-ID: <20110404150433.GA19455@srcf.ucam.org>
+References: <4D99F1D8020000A100005903@gwsmtp1.uni-regensburg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:40133 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601Ab1DDPEi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2011 11:04:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20110403163449.33a6a4dc@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, kurup_avinash@yahoo.com, maciej.rutecki@gmail.com, rjw@sisk.pl, sedat.dilek@gmail.com
+In-Reply-To: <4D99F1D8020000A100005903@gwsmtp1.uni-regensburg.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulrich Windl <Ulrich.Windl@rz.uni-regensburg.de>
+Cc: linux-acpi@vger.kernel.org
 
+On Mon, Apr 04, 2011 at 04:29:12PM +0200, Ulrich Windl wrote:
 
-* Florian Mickler <florian@mickler.org> wrote:
+> No support for device type: battery
+>      Thermal 1: ok, 8.0 degrees C
+> No support for device type: ac_adapter
 
-> On Fri, 1 Apr 2011 18:26:53 +0200
-> Florian Mickler <florian@mickler.org> wrote:
-> 
-> > And how do I check compilation of !CONFIG_X86_IO_APIC?  
-> 
-> That was a real question, btw. Not just me mumbling around... make
-> oldconfig always turns that symbol back on to =y ... and I couldn't find
-> out why. 
+>From the DSDT on a DL580 G7:
 
-'make ARCH=i386 allnoconfig' for example.
+    Scope (_TZ)
+    {
+        Name (\TEMP, 0x0AFF)
+...
+           Method (_TMP, 0, NotSerialized)
+            {
+                Store ("_TMP Method", Debug)
+                Return (TEMP)
+            }
 
-Thanks,
+And there's nothing else that touches TEMP (there's a different TEMP in 
+the CPU setup tables, but they're in different namespaces). So _TMP 
+always returns 0x0AFF, which is 2815, which is 281.5 kelvin, which is 
+8.3 degrees C.
 
-	Ingo
+Looks like a BIOS bug.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
