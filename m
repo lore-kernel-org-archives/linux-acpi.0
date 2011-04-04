@@ -1,59 +1,77 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: Re: Regression 2.6.39-rc1 for sony-laptop
-Date: Mon, 4 Apr 2011 10:37:17 +0300
-Message-ID: <BANLkTimJa3CSWouTMJD5V0ZuMa67YXy88Q@mail.gmail.com>
-References: <AANLkTi=1xtjEZc2C1=W-v2oYbvvcGH9k_DGGXvJ8=swq@mail.gmail.com>
-	<20110401172241.GA26851@srcf.ucam.org>
-	<BANLkTikPjwowBge82viT+Ma5UnP0fA-pew@mail.gmail.com>
-	<20110402100043.GA5890@kamineko.org>
-	<BANLkTikVGWM3T1y2XvwkHB+Yub5EhG1RPA@mail.gmail.com>
-	<20110402155549.GA6724@kamineko.org>
+From: limp <johnkyr83@hotmail.com>
+Subject: RE: Necessity of SMM/SMI use on ACPI x86 systems
+Date: Mon, 4 Apr 2011 14:41:45 +0100
+Message-ID: <SNT111-DS15AC3C0257159ED491332BA7A30@phx.gbl>
+References: <SNT111-DS81E1BD67986CA3A41C144A7A00@phx.gbl> <20110403153436.GA30667@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:33717 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751378Ab1DDHhT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2011 03:37:19 -0400
-In-Reply-To: <20110402155549.GA6724@kamineko.org>
+Received: from snt0-omc2-s38.snt0.hotmail.com ([65.55.90.113]:11871 "EHLO
+	snt0-omc2-s38.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751288Ab1DDNls (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2011 09:41:48 -0400
+In-Reply-To: <20110403153436.GA30667@srcf.ucam.org>
+Content-Language: en-gb
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Andrea Gelmini <andrea.gelmini@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, anssi.hannula@iki.fi, linux-acpi@vger.kernel.org, axel.lin@gmail.com, trenn@suse.de, len.brown@intel.com, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: 'Matthew Garrett' <mjg59@srcf.ucam.org>
 
-On 4/2/11, Mattia Dongili <malattia@linux.it> wrote:
-> On Sat, Apr 02, 2011 at 02:55:38PM +0300, Dan Carpenter wrote:
->> On 4/2/11, Mattia Dongili <malattia@linux.it> wrote:
->> > --- a/drivers/platform/x86/sony-laptop.c
->> > +++ b/drivers/platform/x86/sony-laptop.c
->> > @@ -810,6 +810,11 @@ static int sony_nc_handles_cleanup(struct
->> > platform_device *pd)
->> >  static int sony_find_snc_handle(int handle)
->> >  {
->> >  	int i;
->> > +
->> > +	/* not initialized yet, return early */
->> > +	if (!handles)
->> > +		return -1;
->>
->> -1 is -EPERM.  That's not the right error code here.  Maybe -EINVAL?
->
-> this error is not propagated to userspace. If necessary I can review all
-> error codes in the sony-laptop internal functions (where -1 is a fairly
-> common return code for error conditions).
+Thanks for the reply Matthew,
 
-That would be good, but it's going beyond the call of duty.  The main thing
-is to not introduce new slop.
+> It's a turing-complete language with full access to the hardware, so 
+> there's no reason why you can't entirely eliminate SMIs. The usual 
+> reason not to would be to retain commonality of code for non-ACPI 
+> environments like the setup screen.
 
->
-> I remember a discussion on LKML recently about error codes but I'm not
-> sure what the outcome was (if any).
->
+So, there is no case that SMIs can be irreplaceable? For example, when you
+go to S5 I know from coreboot developers that you need to disable bus
+mastering on all devices or the machine will not power off. Since the OS
+does not know this, and neither does acpi, the S5 sleep command will cause
+an SMI that disables BM and then goes to S5.
 
-People sometimes think -1 is a generic error code, but it's not.  It has
-a specific wrong meaning.  In fact, -1 is never the right error code.
-It's should
-either be -EPERM, or the appropriate error code.
+Furthermore, is ACPI AML BIOS code interruptible or not? 
+That is, what happens if an interrupt occurs during ACPI code execution? 
+Will it be pended and get served after the completion of ACPI code
+execution? 
+Furthermore, can a SMI interrupt ACPI code or not? 
 
-regards,
-dan carpenter
+One last question is regarding the location in memory of ACPI tables. Are
+they written to standard RAM or to a specially protected RAM similar to
+SMRAM? How ACPI tables can prevent the OS from corrupting them?
+
+Sorry for the large amount of questions raised ;)
+
+Kind regards,
+
+John K.
+
+
+
+
+
+
+-----Original Message-----
+From: Matthew Garrett [mailto:mjg59@srcf.ucam.org] 
+Sent: Sunday, April 03, 2011 4:35 PM
+To: limp
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: Necessity of SMM/SMI use on ACPI x86 systems
+
+On Sun, Apr 03, 2011 at 12:40:47PM +0100, limp wrote:
+
+> Can anyone advise me if it's possible to write ACPI AML BIOS code that
+does
+> whatever it was intended to be executed in SMM? In general, is there any
+> *strong* argument saying that (at least) current systems cannot completely
+> eliminate the use of SMIs?
+
+It's a turing-complete language with full access to the hardware, so 
+there's no reason why you can't entirely eliminate SMIs. The usual 
+reason not to would be to retain commonality of code for non-ACPI 
+environments like the setup screen.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
+
