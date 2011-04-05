@@ -1,91 +1,39 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: Re: sony-laptop: fix early NULL pointer dereference
-Date: Tue, 5 Apr 2011 15:50:56 +0300
-Message-ID: <BANLkTin43y37DDWo9hCLVi9Gua1C3O=Law@mail.gmail.com>
-References: <AANLkTi=1xtjEZc2C1=W-v2oYbvvcGH9k_DGGXvJ8=swq@mail.gmail.com>
-	<20110401172241.GA26851@srcf.ucam.org>
-	<BANLkTikPjwowBge82viT+Ma5UnP0fA-pew@mail.gmail.com>
-	<20110402100043.GA5890@kamineko.org>
-	<BANLkTikVGWM3T1y2XvwkHB+Yub5EhG1RPA@mail.gmail.com>
-	<20110402155549.GA6724@kamineko.org>
-	<BANLkTimJa3CSWouTMJD5V0ZuMa67YXy88Q@mail.gmail.com>
-	<20110404234448.GA24957@kamineko.org>
-	<BANLkTinYJHxO4KL6xEzQB1Q-YAdggNL9Wg@mail.gmail.com>
+From: Brennan Taylor <b4taylor@csclub.uwaterloo.ca>
+Subject: asus-laptop: Hangs during poweroff, but acpi appears to work.
+Date: Tue, 5 Apr 2011 14:23:44 -0400
+Message-ID: <20110405182344.GC1908@taurine.csclub.uwaterloo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40959 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169Ab1DEMu6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2011 08:50:58 -0400
-In-Reply-To: <BANLkTinYJHxO4KL6xEzQB1Q-YAdggNL9Wg@mail.gmail.com>
+Received: from caffeine.csclub.uwaterloo.ca ([129.97.134.17]:50034 "EHLO
+	caffeine.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753657Ab1DESXq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2011 14:23:46 -0400
+Received: from taurine (taurine.csclub.uwaterloo.ca [129.97.134.34])
+	by caffeine.csclub.uwaterloo.ca (Postfix) with SMTP id C99D42034
+	for <linux-acpi@vger.kernel.org>; Tue,  5 Apr 2011 14:23:44 -0400 (EDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thiago Farina <tfransosi@gmail.com>
-Cc: Mattia Dongili <malattia@linux.it>, Matthew Garrett <mjg59@srcf.ucam.org>, Andrea Gelmini <andrea.gelmini@gmail.com>, anssi.hannula@iki.fi, linux-acpi@vger.kernel.org, axel.lin@gmail.com, trenn@suse.de, len.brown@intel.com, linux-kernel@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On 4/5/11, Thiago Farina <tfransosi@gmail.com> wrote:
-> On Mon, Apr 4, 2011 at 8:44 PM, Mattia Dongili <malattia@linux.it> wrote:
->> Author: Mattia Dongili <malattia@linux.it>
->> Date:   Fri Apr 1 10:01:41 2011 +0900
->>
-> I think most of the patches doesn't include these above lines nor the
-> subject line in the description.
+I have an Asus N53JF-A1 laptop.
 
-Just ignore those lines.  It's a git thing.
+I am currently running archlinux with kernel version 2.6.37.5. The asus_laptop
+module is also loaded.
 
-> Also when submitting a patch to the
-> list, please don't forget to put [PATCH] on the subject line.
->
+When I turn the laptop off it prints "Power Off" then hangs.
 
-Yeah.  [patch v2].  But it's too late to fix that so don't worry about it.
+Reboot works and all other acpi features appear to work (both the files in
+/proc/acpi and whatever conky hooks into).
 
-> git format-patch should output the right format.
->
->>    sony-laptop: fix early NULL pointer dereference
->>
->>    The SNC acpi driver could get early notifications before it fully
->>    initializes and that could lead to dereferencing the sony_nc_handles
->>    structure pointer that is still NULL at that stage.
->>    Make sure we return early from the handle lookup function in these
->>    cases.
->>
->>    Signed-off-by: Mattia Dongili <malattia@linux.it>
->> ---
->>
->> Hi Matthew,
->> if it's not too late, can you pick this one up instead of the previous
->> one (89ec2feafaedd759e53346d641f60863a14cfb9e)?
->> If it's too late I'll try and do a round of return value fixes later.
+Archlinux users reported that installing 2.6.38.2 from the testing repos fixed
+their problems, but they did not fix mine.
 
-Don't worry about it.  Probably the real fix is to make checkpatch.pl
-complain if you return -1 instead of a proper error code.
+I also use the acpi_call module to write raw acpi calls so I can turn off the
+nvidia gpu when in linux (which is a giant power savings) but I have made sure
+that this module does not get loaded incase there was any interaction there.
 
->>
->> diff --git a/drivers/platform/x86/sony-laptop.c
->> b/drivers/platform/x86/sony-laptop.c
->> index b2ce172..de79c18 100644
->> --- a/drivers/platform/x86/sony-laptop.c
->> +++ b/drivers/platform/x86/sony-laptop.c
->> @@ -810,6 +810,11 @@ static int sony_nc_handles_cleanup(struct
->> platform_device *pd)
->>  static int sony_find_snc_handle(int handle)
->>  {
->>        int i;
->> +
->> +       /* not initialized yet, return early */
-> This comment is useless, it is just repeating what the codes does ;) I
-> think you can just remove it.
-
-Whatever...  Let's just merge this fix and let's move on.
-
-regards,
-dan carpenter
-
->
->> +       if (!handles)
->> +               return -EINVAL;
->> +
->>        for (i = 0; i < 0x10; i++) {
->>                if (handles->cap[i] == handle) {
->>                        dprintk("found handle 0x%.4x (offset: 0x%.2x)\n",
+If this isn't a known/fixed issue, is there a way for me to debug this more
+directly? Either increasing the verbosity of the powerdown, increasing the
+verbosity of what the kernel prints or even running gdb.
