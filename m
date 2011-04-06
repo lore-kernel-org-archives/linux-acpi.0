@@ -1,42 +1,49 @@
-From: Vitalie Lazu <vitalie@webng.md>
-Subject: Re: Kernel 2.6.38-1-amd64 can not reboot my iMac
-Date: Wed, 6 Apr 2011 17:57:20 +0300
-Message-ID: <201104061757.20209.vitalie@webng.md>
-References: <201104061255.00189.vitalie@webng.md> <201104061741.19380.vitalie@webng.md> <20110406145319.GA8718@srcf.ucam.org>
+From: simon@mungewell.org
+Subject: ACPI blocking I2C driver - Poulsbo
+Date: Wed, 6 Apr 2011 11:02:23 -0400
+Message-ID: <67d3106409027af35531bf7b42ca462c.squirrel@host171.canaca.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kirsan.md ([93.116.255.97]:45419 "EHLO mail.kirsan.md"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756386Ab1DFO5V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Apr 2011 10:57:21 -0400
-In-Reply-To: <20110406145319.GA8718@srcf.ucam.org>
+Received: from host171.canaca.com ([67.55.55.225]:47745 "EHLO
+	host171.canaca.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab1DFQEg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2011 12:04:36 -0400
+Received: from localhost ([127.0.0.1] helo=host171.canaca.com)
+	by host171.canaca.com with esmtpa (Exim 4.69)
+	(envelope-from <simon@mungewell.org>)
+	id 1Q7UFT-0005a2-JC
+	for linux-acpi@vger.kernel.org; Wed, 06 Apr 2011 11:02:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Miercuri 06 Aprilie 2011, Matthew Garrett wrote:
-> On Wed, Apr 06, 2011 at 05:41:19PM +0300, Vitalie Lazu wrote:
-> > Hello Matthew,
-> > 
-> > On Miercuri 06 Aprilie 2011, Matthew Garrett wrote:
-> > > Ought to be fixed in 2.6.40.
-> > 
-> > As I see on http://kernel.org/ that version is not released yet. Do you
-> > know a patch that can be applied to 2.6.38(Debian Sid) or 2.6.32 (Debian
-> > Squeeze)?
-> 
-> Take 6734fe57a07b2dd23ef1ef2ac1f790747e53eefc
-> f17d9cbf20c4734c4199caa6dee87047f2f8278f and
-> 95cf3e12e7f659e536215b37c67d46f3e2ce95cc from upstream, and then apply
-> https://patchwork.kernel.org/patch/685182/ on top.
+Hi all,
+I am chasing a problem on a Poulsbo based board where the ACPI subsystem
+is blocking a chunk of memory and preventing the Poulsbo I2C driver
+loading.
 
-Thank you.
+> --
+> [  403.809826] ACPI: resource (null) [io  0x0480-0x04bf] conflicts with
+> ACPI region PHO_ [io 0x4bc-0x4bc]
+> [  403.809834] ACPI: If an ACPI driver is available for this device, you
+> should use it instead of the native driver
+> [  403.809921] lpc_sch: probe of 0000:00:1f.0 failed with error -16
+> --
 
--- 
-Best regards,
-Vitalie
-WWW: http://vitalie.webng.md
+If I boot with 'acpi=off' kernel option, then I2C can function as expected.
+
+As far as I can see there is no reason why ACPI should be holding onto
+this address block, this block is shown in '/proc/ioports' but no driver
+listed.
+
+The board also contains a IET IT8516 SuperIO which interfaces to the
+charger/batteries/etc.
+
+dmidecode and acpidump logs under the original posting:
+http://thread.gmane.org/gmane.linux.drivers.i2c/8154/focus=8171
+
+Thanks in advance,
+Simon.
+
