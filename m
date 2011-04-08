@@ -1,70 +1,41 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Re: [PATCH 1/2] memblock: add error return when CONFIG_HAVE_MEMBLOCK
- is not set
-Date: Thu, 07 Apr 2011 12:43:16 -0700
-Message-ID: <4D9E13D4.3080702@sgi.com>
-References: <20110225180633.857892225@gulag1.americas.sgi.com>	<20110225180634.017570095@gulag1.americas.sgi.com>	<20110227120949.GF16453@elte.hu>	<20110227121518.GA19165@elte.hu>	<4D6AFBB0.70401@kernel.org>	<4D6BF63D.2020404@sgi.com>	<AANLkTi=Sn6DKAjGHQjtWGiLGh8vpuS-vmXK=TMDrbjdv@mail.gmail.com>	<4D6BFF46.3050001@sgi.com> <AANLkTi=Xf5RaF559QsRNijmG0YP7amkG569NZFhpt4QY@mail.gmail.com> <4D93CDD7.8000708@sgi.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH -v2 1/4] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+Date: Fri, 08 Apr 2011 08:32:28 +0800
+Message-ID: <4D9E579C.3030101@intel.com>
+References: <1302139746-1030-1-git-send-email-ying.huang@intel.com> <1302139746-1030-2-git-send-email-ying.huang@intel.com> <20110407173953.GB17049@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.179.29]:42639 "HELO relay.sgi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756565Ab1DGTnV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Apr 2011 15:43:21 -0400
-In-Reply-To: <4D93CDD7.8000708@sgi.com>
+Received: from mga09.intel.com ([134.134.136.24]:40647 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757197Ab1DHAch (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Apr 2011 20:32:37 -0400
+In-Reply-To: <20110407173953.GB17049@n2100.arm.linux.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>
-Cc: David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Richard Henderson <rth@twiddle.net>, Mikael Starvik <starvik@axis.com>, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Kyle McMartin <kyle@mcmartin.ca>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Chen Liqin <liqin.chen@sunplusct.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@redhat.com>, Chris Zankel <chris@zankel.net>
 
-Was there any further objections to these patches?
+On 04/08/2011 01:39 AM, Russell King - ARM Linux wrote:
+> On Thu, Apr 07, 2011 at 09:29:03AM +0800, Huang Ying wrote:
+>> cmpxchg() is widely used by lockless code, including NMI-safe lockless
+>> code.  But on some architectures, the cmpxchg() implementation is not
+>> NMI-safe, on these architectures the lockless code may need to a
+>> spin_trylock_irqsave() based implementation.
+>>
+>> This patch adds a Kconfig option: ARCH_HAVE_NMI_SAFE_CMPXCHG, so that
+>> NMI-safe lockless code can depend on it or provide different
+>> implementation according to it.
+>>
+>> On many architectures, cmpxchg is only NMI-safe for several specific
+>> operand sizes. So, ARCH_HAVE_NMI_SAFE_CMPXCHG define in this patch
+>> only guarantees cmpxchg is NMI-safe for sizeof(unsigned long).
+> 
+> As this no longer touches any ARM code, I thinky you can drop me from the
+> CC list.  Thanks.
 
-Mike Travis wrote:
-> Subject: memblock: add error return when CONFIG_HAVE_MEMBLOCK is not set
-> Author: Yinghai Lu <yinghai@kernel.org>
-> 
->     Add an error return if CONFIG_HAVE_MEMBLOCK is not set instead
->     of having to add #ifdef CONFIG_HAVE_MEMBLOCK around blocks of
->     code calling that function.
-> 
-> Signed-off-by: Mike Travis <travis@sgi.com>
-> ---
-> include/linux/memblock.h |    9 ++++++++-
-> 1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> --- linux.orig/include/linux/memblock.h
-> +++ linux/include/linux/memblock.h
-> @@ -2,6 +2,8 @@
-> #define _LINUX_MEMBLOCK_H
-> #ifdef __KERNEL__
-> 
-> +#define MEMBLOCK_ERROR    0
-> +
-> #ifdef CONFIG_HAVE_MEMBLOCK
-> /*
->  * Logical memory blocks.
-> @@ -20,7 +22,6 @@
-> #include <asm/memblock.h>
-> 
-> #define INIT_MEMBLOCK_REGIONS    128
-> -#define MEMBLOCK_ERROR        0
-> 
-> struct memblock_region {
->     phys_addr_t base;
-> @@ -160,6 +161,12 @@ static inline unsigned long memblock_reg
-> #define __initdata_memblock
-> #endif
-> 
-> +#else
-> +static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t 
-> align)
-> +{
-> +    return MEMBLOCK_ERROR;
-> +}
-> +
-> #endif /* CONFIG_HAVE_MEMBLOCK */
-> 
-> #endif /* __KERNEL__ */
-> 
-> 
+OK.  Will do this.
+
+Best Regards,
+Huang Ying
