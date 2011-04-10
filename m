@@ -1,37 +1,29 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 1/2] memblock: add error return when CONFIG_HAVE_MEMBLOCK
- is not set
-Date: Fri, 8 Apr 2011 08:40:55 +0200
-Message-ID: <20110408064055.GA14602@elte.hu>
-References: <20110225180634.017570095@gulag1.americas.sgi.com>
- <20110227120949.GF16453@elte.hu>
- <20110227121518.GA19165@elte.hu>
- <4D6AFBB0.70401@kernel.org>
- <4D6BF63D.2020404@sgi.com>
- <AANLkTi=Sn6DKAjGHQjtWGiLGh8vpuS-vmXK=TMDrbjdv@mail.gmail.com>
- <4D6BFF46.3050001@sgi.com>
- <AANLkTi=Xf5RaF559QsRNijmG0YP7amkG569NZFhpt4QY@mail.gmail.com>
- <4D93CDD7.8000708@sgi.com>
- <4D9E13D4.3080702@sgi.com>
+From: "GET BACK TO ME IMMEDIATELY" <googleservice@terra.es>
+Subject: GET BACK TO ME IMMEDIATELY
+Date: Sun, 10 Apr 2011 19:24:43 +0000 (UTC)
+Message-ID: <20110410152331.ACDDE29E7EAA__35427.4600199007$1302463482$gmane$org@mail.alsa.co.cr>
+Reply-To: <googleservice@terra.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4D9E13D4.3080702@sgi.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, David Rientjes <rientjes@google.com>, Jack Steiner <steiner@sgi.com>, Robin Holt <holt@sgi.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from logistix.cr ([201.201.66.140]:5288 "EHLO mail.alsa.co.cr"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754091Ab1DJTY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Apr 2011 15:24:27 -0400
+Date: Fri, 29 Apr 2011 05:51:55 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello 
 
-* Mike Travis <travis@sgi.com> wrote:
+I wish to ask for your consent for a partnership project that I would want both of us to execute mutually which is beneficial. However my name is Mr. Rodney Smith. Kindly get back to me to confirm the receipt of this massage so that I will give you full details of the project.
 
-> Was there any further objections to these patches?
+Send your reply to my private email at rodney_smith@ibibo.com 
 
-No big objections that i remember - so assuming review feedback has been 
-addressed please send the latest and greatest in a new thread, this one is 
-getting a bit deep :-)
+I am waiting for your permission.
 
-Thanks,
-
-	Ingo
+Warm regards
+Mr. Rodney Smith
+Email:smithrodney@ibibo.com
