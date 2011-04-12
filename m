@@ -1,57 +1,113 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: asus-wmi for Asus G73SW
-Date: Mon, 11 Apr 2011 11:11:39 +0200
-Message-ID: <BANLkTik36UznNKUWHQNBcMBvQa96BsVGgg@mail.gmail.com>
-References: <4D99038A.8080105@gmx.net>
-	<BANLkTimNYTFmywWsUJNfo3XtGcVwc8jBbA@mail.gmail.com>
-	<4D9A58BD.1030401@gmx.net>
-	<BANLkTinMbinPt9qL630+NwuCxGXrxehK+A@mail.gmail.com>
-	<BANLkTikUUVW=AmAXUsirxj7hVQWkjoFbBw@mail.gmail.com>
-	<4D9E4F65.8050307@gmx.net>
-	<BANLkTik9PXsEehunFEkVK2LtOxZdagbd+g@mail.gmail.com>
-	<4DA1D998.9090501@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4DA1D998.9090501@gmx.net>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Carsten Juttner <carjay@gmx.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
+From: Timothy Courrejou <timcour@gmail.com>
+Subject: [PATCH] ACPI: ac: fixed indentation, commenting and line length coding style issues
+Date: Mon, 11 Apr 2011 17:14:10 -0700
+Message-ID: <1302567250-6893-1-git-send-email-timcour@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46778 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756467Ab1DLAOW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2011 20:14:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Timothy Courrejou <timcour@gmail.com>
 
-> By default the brightness values are set to 10 (max_brightness) but changing any of them does not do anything (display stays at maximum brightness level).
->
-> Do you have an idea what could be missing?
-[...]
-> I used acpi_backlight=vendor and /sys/class/backlight/asus-nb-wmi shows up
-> as expected.
->
-> Also the kernel code that sets the brightness value in the asus-nb-wmi
-> driver works (no error is returned, also the changed values show up in
-> sysfs).
-> It just does not seem to get applied.
->
-> I found out that if after I switch to the console (alt+F1) changing the
-> brightness in sysfs suddenly does have an effect.
->
-> Since I use the proprietary nvidia driver (for full OpenGL 3D support) I
-> suspect that it has something to do with it.
-> I tried the Kubuntu Live installer CD which uses nouveau and changing the
-> brightness works for Xorg there, too (even using the generic acpi_backlight
-> code and the brightness value in acpi_video1).
->
-> I guess the Nvidia driver or something related to it is doing something
-> nasty here which keeps the brightness from being applied.
-> Switching back to Xorg from the console resets the value to 10 (I added some
-> debug output to update_bl_status) so that's not a workaround unfortunately.
->
-> Since I have no idea what actual piece of hardware controls the backlight I
-> wonder if it is part of the NVidia hardware and as soon as the nvidia driver
-> takes over it will no longer accept updates from the BIOS?
+Fixed coding style issues.
+---
+ drivers/acpi/ac.c |   36 ++++++++++++++++++------------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
-Unfortunatly I didn't found anything in the DSDT.
-CCing Zhang Rui, maybe he can help us here.
-
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 58c3f74..183a035 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -85,7 +85,7 @@ static struct acpi_driver acpi_ac_driver = {
+ 
+ struct acpi_ac {
+ 	struct power_supply charger;
+-	struct acpi_device * device;
++	struct acpi_device *device;
+ 	unsigned long long state;
+ };
+ 
+@@ -101,10 +101,9 @@ static const struct file_operations acpi_ac_fops = {
+ };
+ #endif
+ 
+-/* --------------------------------------------------------------------------
+-                               AC Adapter Management
+-   -------------------------------------------------------------------------- */
+-
++/*
++ * AC Adapter Management
++ */
+ static int acpi_ac_get_state(struct acpi_ac *ac)
+ {
+ 	acpi_status status = AE_OK;
+@@ -113,9 +112,11 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ 	if (!ac)
+ 		return -EINVAL;
+ 
+-	status = acpi_evaluate_integer(ac->device->handle, "_PSR", NULL, &ac->state);
++	status = acpi_evaluate_integer(ac->device->handle,
++				       "_PSR", NULL, &ac->state);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, status, "Error reading AC Adapter state"));
++		ACPI_EXCEPTION((AE_INFO, status,
++				"Error reading AC Adapter state"));
+ 		ac->state = ACPI_AC_STATUS_UNKNOWN;
+ 		return -ENODEV;
+ 	}
+@@ -123,9 +124,9 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ 	return 0;
+ }
+ 
+-/* --------------------------------------------------------------------------
+-                            sysfs I/F
+-   -------------------------------------------------------------------------- */
++/*
++ * sysfs I/F
++ */
+ static int get_ac_property(struct power_supply *psy,
+ 			   enum power_supply_property psp,
+ 			   union power_supply_propval *val)
+@@ -153,10 +154,10 @@ static enum power_supply_property ac_props[] = {
+ };
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+-/* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
+-   -------------------------------------------------------------------------- */
+ 
++/*
++ * FS Interface (/proc)
++ */
+ static struct proc_dir_entry *acpi_ac_dir;
+ 
+ static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
+@@ -229,10 +230,9 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
+ }
+ #endif
+ 
+-/* --------------------------------------------------------------------------
+-                                   Driver Model
+-   -------------------------------------------------------------------------- */
+-
++/*
++ * Driver Model
++ */
+ static void acpi_ac_notify(struct acpi_device *device, u32 event)
+ {
+ 	struct acpi_ac *ac = acpi_driver_data(device);
+@@ -298,7 +298,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       ac->state ? "on-line" : "off-line");
+ 
+-      end:
++end:
+ 	if (result) {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 		acpi_ac_remove_fs(device);
 -- 
-Corentin Chary
-http://xf.iksaif.net
+1.7.4.2
+
