@@ -1,88 +1,23 @@
-From: Kees Cook <kees.cook@canonical.com>
-Subject: Re: [PATCH] acpi: create CONFIG item for debugfs custom_method
-Date: Tue, 12 Apr 2011 17:20:59 -0700
-Message-ID: <20110413002059.GN4398@outflux.net>
-References: <20110222193250.GA23913@outflux.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:41048 "EHLO smtp.outflux.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847Ab1DMAVy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Apr 2011 20:21:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20110222193250.GA23913@outflux.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v3 0/4] ACPI, APEI, GHES, printk support for recoverable error via NMI
+Date: Wed, 13 Apr 2011 16:53:51 +0800
+Message-ID: <1302684835-14133-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi,
+v3:
 
-Any news on this? I think it's a no-brainer to let this be CONFIG-able.
+- Some changes to lock-less list based on Mathieu's comments
 
-Thanks!
+v2:
 
--Kees
+- Update some comments of llist per Mathieu's comments
 
-On Tue, Feb 22, 2011 at 11:32:50AM -0800, Kees Cook wrote:
-> Since /sys/kernel/debug/acpi/custom_method can be used to write arbitrary
-> kernel memory (http://jon.oberheide.org/files/american-sign-language.c),
-> it should be able to be left out of the kernel for system owners that
-> want to be as defensive as possible to potential attacks, even from the
-> root user. See as examples: CONFIG_DEVKMEM, CONFIG_STRICT_DEVMEM, and
-> /proc/sys/kernel/modules_disabled.
-> 
-> Signed-off-by: Kees Cook <kees.cook@canonical.com>
-> ---
->  drivers/acpi/Kconfig   |   10 ++++++++++
->  drivers/acpi/debugfs.c |    2 ++
->  2 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 2aa042a..726b7ea 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -381,6 +381,16 @@ config ACPI_HED
->  	  which is used to report some hardware errors notified via
->  	  SCI, mainly the corrected errors.
->  
-> +config ACPI_DEBUG_CUSTOM_METHOD
-> +	bool "Debugging: Custom Method Insertion"
-> +	depends on DEBUG_FS
-> +	default n
-> +	help
-> +	  This creates the debugfs interface file "acpi/custom_method"
-> +	  used for loading custom ACPI methods. Note that this allows
-> +	  arbitrary kernel memory writing by the root user and is not
-> +	  recommended for normal systems.
-> +
->  source "drivers/acpi/apei/Kconfig"
->  
->  endif	# ACPI
-> diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-> index 5df67f1..0240b15 100644
-> --- a/drivers/acpi/debugfs.c
-> +++ b/drivers/acpi/debugfs.c
-> @@ -20,6 +20,7 @@ module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
->  MODULE_PARM_DESC(aml_debug_output,
->  		 "To enable/disable the ACPI Debug Object output.");
->  
-> +#ifdef CONFIG_ACPI_DEBUG_CUSTOM_METHOD
->  /* /sys/kernel/debug/acpi/custom_method */
->  
->  static ssize_t cm_write(struct file *file, const char __user * user_buf,
-> @@ -92,3 +93,4 @@ err:
->  		debugfs_remove(acpi_dir);
->  	return -EINVAL;
->  }
-> +#endif
-> -- 
-> 1.7.2.3
-> 
-> -- 
-> Kees Cook
-> Ubuntu Security Team
--- 
-Kees Cook
-Ubuntu Security Team
+
+[PATCH -v3 1/4] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+[PATCH -v3 2/4] lib, Add lock-less NULL terminated single list
+[PATCH -v3 3/4] lib, Make gen_pool memory allocator lockless
+[PATCH -v3 4/4] ACPI, APEI, GHES, printk support for recoverable error via NMI
