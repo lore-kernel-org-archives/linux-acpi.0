@@ -1,72 +1,88 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH] x86, ioapic: move acpi_get_override_irq to acpi.c
-Date: Tue, 12 Apr 2011 21:53:50 +0200
-Message-ID: <20110412215350.50fb5cfa@schatten.dmk.lab>
-References: <20110401075011.GD7594@elte.hu>
-	<1301672686-10096-1-git-send-email-florian@mickler.org>
-	<20110412073929.GA26892@elte.hu>
+From: Kees Cook <kees.cook@canonical.com>
+Subject: Re: [PATCH] acpi: create CONFIG item for debugfs custom_method
+Date: Tue, 12 Apr 2011 17:20:59 -0700
+Message-ID: <20110413002059.GN4398@outflux.net>
+References: <20110222193250.GA23913@outflux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:39847 "EHLO mx01.d-labs.de"
+Received: from smtp.outflux.net ([198.145.64.163]:41048 "EHLO smtp.outflux.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756589Ab1DLTxz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Apr 2011 15:53:55 -0400
-In-Reply-To: <20110412073929.GA26892@elte.hu>
+	id S1751847Ab1DMAVy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Apr 2011 20:21:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20110222193250.GA23913@outflux.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, kurup_avinash@yahoo.com, maciej.rutecki@gmail.com, rjw@sisk.pl, sedat.dilek@gmail.com
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, 12 Apr 2011 09:39:29 +0200
-Ingo Molnar <mingo@elte.hu> wrote:
+Hi,
 
-> 
-> * Florian Mickler <florian@mickler.org> wrote:
-> 
-> > In order to get rid of the ugly CONFIG_ACPI ifdef, we move
-> > the function acpi_get_override_irq into acpi.c and add a new
-> > helper function ioapic_get_irq to io_apic.c.
-> > 
-> > Signed-off-by: Florian Mickler <florian@mickler.org>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-> > Cc: kurup_avinash@yahoo.com
-> > Cc: maciej.rutecki@gmail.com
-> > Cc: rjw@sisk.pl
-> > Cc: sedat.dilek@gmail.com
-> > LKML-Reference: <1301558489-4198-1-git-send-email-florian@mickler.org>
-> > ---
-> > 
-> > Hi Ingo,
-> > 
-> > Instead of exporting find_irq_entry, irq_trigger and irq_polarity, I added a 
-> > new helper function 'ioapic_get_irq(..)' and exported that. 
-> > 
-> > Also I did it as a seperate commit, since it is more of a cleanup and the other 
-> > commit is already tested... hope this is ok. 
-> 
-> Yeah, looks good in principle.
-> 
-> Mind porting to the latest x86 devel tree and resend the patch? I tried to 
-> apply your patch but there's a conflict. You can find the tree at:
-> 
->   http://people.redhat.com/mingo/tip.git/README
-> 
-> Thanks,
-> 
-> 	Ingo
+Any news on this? I think it's a no-brainer to let this be CONFIG-able.
 
-It does still apply on top of
+Thanks!
 
-[PATCH v2] x86, ioapic: Skip looking for ioapic overrides when ioapics
-are not present (<1301621025-3858-1-git-send-email-florian@mickler.org>)
+-Kees
 
-I'm going to send both patches as a reply to this message, since I
-have updated the $subject patch to also remove the #define
-acpi_get_override_irq in acpi.h ..
-
-Regards,
-Flo
-
+On Tue, Feb 22, 2011 at 11:32:50AM -0800, Kees Cook wrote:
+> Since /sys/kernel/debug/acpi/custom_method can be used to write arbitrary
+> kernel memory (http://jon.oberheide.org/files/american-sign-language.c),
+> it should be able to be left out of the kernel for system owners that
+> want to be as defensive as possible to potential attacks, even from the
+> root user. See as examples: CONFIG_DEVKMEM, CONFIG_STRICT_DEVMEM, and
+> /proc/sys/kernel/modules_disabled.
+> 
+> Signed-off-by: Kees Cook <kees.cook@canonical.com>
+> ---
+>  drivers/acpi/Kconfig   |   10 ++++++++++
+>  drivers/acpi/debugfs.c |    2 ++
+>  2 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 2aa042a..726b7ea 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -381,6 +381,16 @@ config ACPI_HED
+>  	  which is used to report some hardware errors notified via
+>  	  SCI, mainly the corrected errors.
+>  
+> +config ACPI_DEBUG_CUSTOM_METHOD
+> +	bool "Debugging: Custom Method Insertion"
+> +	depends on DEBUG_FS
+> +	default n
+> +	help
+> +	  This creates the debugfs interface file "acpi/custom_method"
+> +	  used for loading custom ACPI methods. Note that this allows
+> +	  arbitrary kernel memory writing by the root user and is not
+> +	  recommended for normal systems.
+> +
+>  source "drivers/acpi/apei/Kconfig"
+>  
+>  endif	# ACPI
+> diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+> index 5df67f1..0240b15 100644
+> --- a/drivers/acpi/debugfs.c
+> +++ b/drivers/acpi/debugfs.c
+> @@ -20,6 +20,7 @@ module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+>  MODULE_PARM_DESC(aml_debug_output,
+>  		 "To enable/disable the ACPI Debug Object output.");
+>  
+> +#ifdef CONFIG_ACPI_DEBUG_CUSTOM_METHOD
+>  /* /sys/kernel/debug/acpi/custom_method */
+>  
+>  static ssize_t cm_write(struct file *file, const char __user * user_buf,
+> @@ -92,3 +93,4 @@ err:
+>  		debugfs_remove(acpi_dir);
+>  	return -EINVAL;
+>  }
+> +#endif
+> -- 
+> 1.7.2.3
+> 
+> -- 
+> Kees Cook
+> Ubuntu Security Team
+-- 
+Kees Cook
+Ubuntu Security Team
