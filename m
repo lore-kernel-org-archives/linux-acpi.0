@@ -1,47 +1,41 @@
-From: Kyle McMartin <kmcmartin@redhat.com>
-Subject: Re: [PATCH 35/42] ACPI battery: fribble sysfs files from a resume
- notifier
-Date: Wed, 13 Apr 2011 06:37:51 -0400
-Message-ID: <20110413103750.GA8884@ihatethathostname.lab.bos.redhat.com>
-References: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
- <25be5821521640eb00b7eb219ffe59664510d073.1300862481.git.len.brown@intel.com>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: Re: [PATCH -v3 3/4] lib, Make gen_pool memory allocator lockless
+Date: Wed, 13 Apr 2011 17:07:57 -0400
+Message-ID: <20110413210757.GA11683@Krystal>
+References: <1302684835-14133-1-git-send-email-ying.huang@intel.com> <1302684835-14133-4-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1057 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756763Ab1DMPiZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Apr 2011 11:38:25 -0400
+Received: from mail.openrapids.net ([64.15.138.104]:47508 "EHLO
+	blackscsi.openrapids.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757779Ab1DMVH7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Apr 2011 17:07:59 -0400
 Content-Disposition: inline
-In-Reply-To: <25be5821521640eb00b7eb219ffe59664510d073.1300862481.git.len.brown@intel.com>
+In-Reply-To: <1302684835-14133-4-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Len,
+* Huang Ying (ying.huang@intel.com) wrote:
+[...]
+> + * rcu_read_lock and rcu_read_unlock is not used int gen_pool_alloc,
+> + * gen_pool_free, gen_pool_avail and gen_pool_size etc, because chunks
+> + * are only added into pool, not deleted from pool unless the pool
+> + * itself is destroyed.  If chunk will be deleted from pool,
+> + * rcu_read_lock and rcu_read_unlock should be uses in these
+> + * functions.
 
-Do we think this has baked enough for stable 2.6.38.3? I'd like to drop
-the patch from Fedora when we pull the next stable update in.
+So how do you protect between pool destruction and adding chunks into
+the pool ?
 
-Greg -- this is upstream commit
-25be5821521640eb00b7eb219ffe59664510d073.
+Thanks,
 
-regards, Kyle
+Mathieu
 
-On Wed, Mar 23, 2011 at 02:42:48AM -0400, Len Brown wrote:
-> From: Kyle McMartin <kyle@redhat.com>
-> 
-> Commit da8aeb92 re-poked the battery on resume, but Linus reports that
-> it broke his eee and partially reverted it in b23fffd7. Unfortunately
-> this also results in my x201s giving crack values until the sysfs files
-> are poked again. In the revert message, it was suggested that we poke it
-> from a PM notifier, so let's do that.
-> 
-> With this in place, I haven't noticed the units going nutty on my
-> gnome-power-manager across a dozen suspends or so...
-> 
-> Signed-off-by: Kyle McMartin <kyle@redhat.com>
-> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-
+-- 
+Mathieu Desnoyers
+Operating System Efficiency R&D Consultant
+EfficiOS Inc.
+http://www.efficios.com
