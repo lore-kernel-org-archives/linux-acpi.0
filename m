@@ -1,39 +1,36 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH -v3 3/4] lib, Make gen_pool memory allocator lockless
-Date: Thu, 14 Apr 2011 09:29:13 +0800
-Message-ID: <4DA64DE9.9050707@intel.com>
-References: <1302684835-14133-1-git-send-email-ying.huang@intel.com> <1302684835-14133-4-git-send-email-ying.huang@intel.com> <20110413210757.GA11683@Krystal>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: [RFC 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Thu, 14 Apr 2011 11:40:57 +0200
+Message-ID: <4DA6C129.8010001@suse.cz>
+References: <4C87A62E.30108@gmail.com> <1302598086-3622-1-git-send-email-jslaby@suse.cz> <20110412085622.43488ed9@jbarnes-desktop> <20110412155921.GA531@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7930 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752480Ab1DNB3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Apr 2011 21:29:16 -0400
-In-Reply-To: <20110413210757.GA11683@Krystal>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33734 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757284Ab1DNJlF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Apr 2011 05:41:05 -0400
+In-Reply-To: <20110412155921.GA531@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, jirislaby@gmail.com, Robert Hancock <hancockrwd@gmail.com>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 04/14/2011 05:07 AM, Mathieu Desnoyers wrote:
-> * Huang Ying (ying.huang@intel.com) wrote:
-> [...]
->> + * rcu_read_lock and rcu_read_unlock is not used int gen_pool_alloc,
->> + * gen_pool_free, gen_pool_avail and gen_pool_size etc, because chunks
->> + * are only added into pool, not deleted from pool unless the pool
->> + * itself is destroyed.  If chunk will be deleted from pool,
->> + * rcu_read_lock and rcu_read_unlock should be uses in these
->> + * functions.
+On 04/12/2011 05:59 PM, Matthew Garrett wrote:
+> On Tue, Apr 12, 2011 at 08:56:22AM -0700, Jesse Barnes wrote:
 > 
-> So how do you protect between pool destruction and adding chunks into
-> the pool ?
+>> I'll defer to the ACPI experts, Len or Matthew have you checked this
+>> one out?
+> 
+> Windows appears to work without this, so it seems likely that we're 
+> doing something wrong in some other sense, but I don't think we have a 
+> good idea as to what we're doing wrong...
 
-Because the pool itself will be freed when destruction, we need some
-mechanism outside of pool.  For example, if gen_pool_add() is called via
-device file IOCTL, we must un-register the device file first, and
-destroy the pool after the last reference to device has gone.
+Is there anything I can do about that? Provide some info, investigate
+what a particular code does in the kernel (e.g. acpi_pci_irq_enable) etc.?
 
-Best Regards,
-Huang Ying
+thanks,
+-- 
+js
+suse labs
