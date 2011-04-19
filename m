@@ -1,63 +1,33 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [RFC 4/4] ACPI, APEI, GHES: Add PCIe AER recovery support
-Date: Tue, 19 Apr 2011 09:43:39 +0800
-Message-ID: <1303177419-22466-4-git-send-email-ying.huang@intel.com>
-References: <1303177419-22466-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:33363 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802Ab1DSBnu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Apr 2011 21:43:50 -0400
-In-Reply-To: <1303177419-22466-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tino Keitel <tino.keitel@tikei.de>
+Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
+Date: Tue, 19 Apr 2011 22:22:12 +0200
+Message-ID: <20110419202212.GA15438@mac.home>
+References: <201104150053.37037.rjw@sisk.pl>
+ <Pine.LNX.4.44L0.1104151034580.2051-100000@iolanthe.rowland.org>
+ <20110415145457.GA27650@eazy.amigager.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110415145457.GA27650@eazy.amigager.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-aer_recover_queue() is called when recoverable PCIe AER errors are
-notified by firmware to do the recovery work.
+Hi,
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/ghes.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+I reverted some wakeup and ACPI related commits. When I reverted commit
+7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
+worked again and /proc/acpi/wakeup behaved as expected.
 
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -45,6 +45,8 @@
- #include <linux/irq_work.h>
- #include <linux/llist.h>
- #include <linux/genalloc.h>
-+#include <linux/pci.h>
-+#include <linux/aer.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -454,6 +456,27 @@ static void ghes_do_proc(const struct ac
- 			}
- #endif
- 		}
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-+				      CPER_SEC_PCIE)) {
-+			struct cper_sec_pcie *pcie_err;
-+			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-+			if (sev == GHES_SEV_RECOVERABLE &&
-+			    sec_sev == GHES_SEV_RECOVERABLE &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-+				unsigned int devfn;
-+				int aer_severity;
-+				devfn = PCI_DEVFN(pcie_err->device_id.device,
-+						  pcie_err->device_id.function);
-+				aer_severity = cper_severity_to_aer(sev);
-+				aer_recover_queue(pcie_err->device_id.segment,
-+						  pcie_err->device_id.bus,
-+						  devfn, aer_severity);
-+			}
-+
-+		}
-+#endif
- 	}
- }
- 
+So check this, I reverted the following commits to avoid conflicts and
+build failures:
+
+c19f9a84ec807da57fd75bbd9a3f2b8269611f79
+5190726765b40774c069e187a958e10ccd970e65
+2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
+f2b56bc808addb908a5bf435d9b942c02af9a7c4
+7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
+
+Regards,
+Tino
