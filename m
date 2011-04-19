@@ -1,92 +1,154 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH -v3 3/4] lib, Make gen_pool memory allocator lockless
-Date: Mon, 18 Apr 2011 19:42:16 +0800
-Message-ID: <BANLkTimfHARu=N_5izaNfZpGH78MPT7uDA@mail.gmail.com>
-References: <1302684835-14133-1-git-send-email-ying.huang@intel.com>
-	<1302684835-14133-4-git-send-email-ying.huang@intel.com>
-	<20110413210757.GA11683@Krystal>
-	<4DA7903B.5030508@intel.com>
-	<20110415164629.GA13983@Krystal>
-	<20110415174320.GA2283@linux.vnet.ibm.com>
-	<20110415174451.GB19644@Krystal>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Huang Ying <ying.huang@intel.com>
+Subject: [RFC 1/4] HWPoison: add memory_failure_queue()
+Date: Tue, 19 Apr 2011 09:43:36 +0800
+Message-ID: <1303177419-22466-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:48701 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab1DRLmS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Apr 2011 07:42:18 -0400
-In-Reply-To: <20110415174451.GB19644@Krystal>
+Received: from mga03.intel.com ([143.182.124.21]:27981 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751985Ab1DSBnp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Apr 2011 21:43:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Wu Fengguang <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Hi, Paul,
+memory_failure() is the entry point for HWPoison memory error
+recovery.  It must be called in process context.  But commonly
+hardware memory errors are notified via MCE or NMI, so some delayed
+execution mechanism must be used.  In MCE handler, a work queue + ring
+buffer mechanism is used.
 
-On Sat, Apr 16, 2011 at 1:44 AM, Mathieu Desnoyers
-<mathieu.desnoyers@efficios.com> wrote:
-> * Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
->> On Fri, Apr 15, 2011 at 12:46:29PM -0400, Mathieu Desnoyers wrote:
->> > * Huang Ying (ying.huang@intel.com) wrote:
->> > > On 04/14/2011 05:07 AM, Mathieu Desnoyers wrote:
->> > > > * Huang Ying (ying.huang@intel.com) wrote:
->> > > > [...]
->> > > >> + * rcu_read_lock and rcu_read_unlock is not used int gen_poo=
-l_alloc,
->> > > >> + * gen_pool_free, gen_pool_avail and gen_pool_size etc, beca=
-use chunks
->> > > >> + * are only added into pool, not deleted from pool unless th=
-e pool
->> > > >> + * itself is destroyed. =C2=A0If chunk will be deleted from =
-pool,
->> > > >> + * rcu_read_lock and rcu_read_unlock should be uses in these
->> > > >> + * functions.
->> > > >
->> > > > So how do you protect between pool destruction and adding chun=
-ks into
->> > > > the pool ?
->> > >
->> > > Because the pool itself will be freed when destruction, we need =
-some
->> > > mechanism outside of pool. =C2=A0For example, if gen_pool_add() =
-is called via
->> > > device file IOCTL, we must un-register the device file first, an=
-d
->> > > destroy the pool after the last reference to device has gone.
->> >
->> > I am concerned about the list_for_each_entry_rcu() (and thus
->> > rcu_dereference_raw()) used outside of rcu_read_lock/unlock pairs.
->> > Validation infrastructure as recently been added to RCU: it trigge=
-rs
->> > warnings when these situations are encountered in some RCU debuggi=
-ng
->> > configurations. The case of RCU list iteration is not covered by t=
-he
->> > checks, but it would make sense to be aware of it.
->> >
->> > So although it seems like your code does not require rcu read lock
->> > critical sections, I'd prefer to let Paul McKenney have a look.
->>
->> As long as you add elements and never remove them, then you can get
->> away with using list_for_each_entry_rcu() outside of an RCU read-sid=
-e
->> critical section. =C2=A0But please comment this -- it is all too eas=
-y
->> for someone to decide later to start deleting elements without also
->> inserting the needed rcu_read_lock() and rcu_read_unlock() pairs.
->>
->> But I have lost the thread -- what code am I supposed to look at?
->
-> You can have a look at https://lkml.org/lkml/2011/4/13/56
+In addition to MCE, now APEI (ACPI Platform Error Interface) GHES
+(Generic Hardware Error Source) can be used to report memory errors
+too.  To add support to APEI GHES memory recovery, a mechanism similar
+to that of MCE is implemented.  memory_failure_queue() is the new
+entry point that can be called in IRQ context.  The next step is to
+make MCE handler uses this interface too.
 
-What do you think about this patch and its usage of RCU?
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+---
+ include/linux/mm.h  |    1 
+ mm/memory-failure.c |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+)
 
-Best Regards,
-Huang Ying
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1641,6 +1641,7 @@ enum mf_flags {
+ };
+ extern void memory_failure(unsigned long pfn, int trapno);
+ extern int __memory_failure(unsigned long pfn, int trapno, int flags);
++extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);
+ extern int unpoison_memory(unsigned long pfn);
+ extern int sysctl_memory_failure_early_kill;
+ extern int sysctl_memory_failure_recovery;
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -52,6 +52,7 @@
+ #include <linux/swapops.h>
+ #include <linux/hugetlb.h>
+ #include <linux/memory_hotplug.h>
++#include <linux/kfifo.h>
+ #include "internal.h"
+ 
+ int sysctl_memory_failure_early_kill __read_mostly = 0;
+@@ -1182,6 +1183,97 @@ void memory_failure(unsigned long pfn, i
+ 	__memory_failure(pfn, trapno, 0);
+ }
+ 
++#define MEMORY_FAILURE_FIFO_ORDER	4
++#define MEMORY_FAILURE_FIFO_SIZE	(1 << MEMORY_FAILURE_FIFO_ORDER)
++
++struct memory_failure_entry {
++	unsigned long pfn;
++	int trapno;
++	int flags;
++};
++
++struct memory_failure_cpu {
++	DECLARE_KFIFO(fifo, struct memory_failure_entry,
++		      MEMORY_FAILURE_FIFO_SIZE);
++	spinlock_t lock;
++	struct work_struct work;
++};
++
++static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
++
++/**
++ * memory_failure_queue - Schedule handling memory failure of a page.
++ * @pfn: Page Number of the corrupted page
++ * @trapno: Trap number reported in the signal to user space.
++ * @flags: Flags for memory failure handling
++ *
++ * This function is called by the low level hardware error handler
++ * when it detects hardware memory corruption of a page. It schedules
++ * the recovering of error page, including dropping pages, killing
++ * processes etc.
++ *
++ * The function is primarily of use for corruptions that
++ * happen outside the current execution context (e.g. when
++ * detected by a background scrubber)
++ *
++ * Can run in IRQ context.
++ */
++void memory_failure_queue(unsigned long pfn, int trapno, int flags)
++{
++	struct memory_failure_cpu *mf_cpu;
++	unsigned long proc_flags;
++	struct memory_failure_entry entry = {
++		.pfn =		pfn,
++		.trapno =	trapno,
++		.flags =	flags,
++	};
++
++	mf_cpu = &get_cpu_var(memory_failure_cpu);
++	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
++	if (kfifo_put(&mf_cpu->fifo, &entry))
++		schedule_work_on(smp_processor_id(), &mf_cpu->work);
++	else
++		pr_err("Memory failure: buffer overflow when recovering memory failure at 0x%#lx\n",
++		       pfn);
++	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
++	put_cpu_var(memory_failure_cpu);
++}
++EXPORT_SYMBOL_GPL(memory_failure_queue);
++
++static void memory_failure_work_func(struct work_struct *work)
++{
++	struct memory_failure_cpu *mf_cpu;
++	struct memory_failure_entry entry = { 0, };
++	unsigned long proc_flags;
++	int gotten;
++
++	mf_cpu = &__get_cpu_var(memory_failure_cpu);
++	for (;;) {
++		spin_lock_irqsave(&mf_cpu->lock, proc_flags);
++		gotten = kfifo_get(&mf_cpu->fifo, &entry);
++		spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
++		if (!gotten)
++			break;
++		__memory_failure(entry.pfn, entry.trapno, entry.flags);
++	}
++}
++
++static int __init memory_failure_init(void)
++{
++	struct memory_failure_cpu *mf_cpu;
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		mf_cpu = &per_cpu(memory_failure_cpu, cpu);
++		spin_lock_init(&mf_cpu->lock);
++		INIT_KFIFO(mf_cpu->fifo);
++		INIT_WORK(&mf_cpu->work, memory_failure_work_func);
++	}
++
++	return 0;
++}
++core_initcall(memory_failure_init);
++
+ /**
+  * unpoison_memory - Unpoison a previously poisoned page
+  * @pfn: Page number of the to be unpoisoned page
