@@ -1,29 +1,64 @@
-From: Wu Fengguang <fengguang.wu@intel.com>
-Subject: Re: [RFC 1/4] HWPoison: add memory_failure_queue()
-Date: Wed, 20 Apr 2011 17:03:05 +0800
-Message-ID: <20110420090305.GB3761@localhost>
-References: <1303177419-22466-1-git-send-email-ying.huang@intel.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [linux-pm] [RFC PATCH V3 1/4] cpuidle: Move dev->last_residency update to driver	enter routine; remove dev->last_state
+Date: Wed, 20 Apr 2011 10:27:15 -0700
+Message-ID: <87pqog6dfw.fsf@ti.com>
+References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
+	<20110420065523.332.58678.stgit@tringupt.in.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:59224 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753019Ab1DTJDJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Apr 2011 05:03:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1303177419-22466-1-git-send-email-ying.huang@intel.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:37812 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751808Ab1DTR1U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Apr 2011 13:27:20 -0400
+In-Reply-To: <20110420065523.332.58678.stgit@tringupt.in.ibm.com> (Trinabh
+	Gupta's message of "Wed, 20 Apr 2011 12:25:34 +0530")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> +	if (kfifo_put(&mf_cpu->fifo, &entry))
-> +		schedule_work_on(smp_processor_id(), &mf_cpu->work);
-> +	else
-> +		pr_err("Memory failure: buffer overflow when recovering memory failure at 0x%#lx\n",
-> +		       pfn);
+Trinabh Gupta <trinabh@linux.vnet.ibm.com> writes:
 
-nitpick: "buffer overflow when recording memory failure at PFN ..."?
+> Cpuidle subsystem only suggests the state to enter and does not
+> guarantee if the suggested state is entered. The actual entered state
+> may be different because of software or hardware demotion. Software
+> demotion is done by the back-end cpuidle driver and can be accounted
+> correctly. Current cpuidle code uses last_state field to capture the
+> actual state entered and based on that updates the statistics for the
+> state entered.
+>
+> Ideally the driver enter routine should update the counters,
+> and it should return the state actually entered rather than the time
+> spent there. 
 
-Thanks,
-Fengguang
+OK, the return type was changed to return the state index instead of the
+time, but since the governors are still relying on dev->last_residency,
+drivers are required to update it.
+
+Because of that, why not keep the update of the  time/usage counters
+in common code rather than duplicating it (9 times in this patch) into 
+all the drivers?
+
+Something like the patch below should suffice.
+
+Kevin
+
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 845d3ef..875d241 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -91,6 +91,11 @@ static void cpuidle_idle_call(void)
+ 
+ 	entered_state = target_state->enter(dev, drv, next_state);
+ 
++	/* Update cpuidle counters */
++	dev->states_usage[entered_state].time += 
++		(unsigned long long)dev->last_residency;
++	dev->states_usage[entered_state].usage++;
++
+ 	trace_power_end(dev->cpu);
+ 	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
+ 
