@@ -1,65 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] [RFC PATCH V3 4/4] cpuidle: Single/Global registration
-	of idle states
-Date: Wed, 20 Apr 2011 10:33:25 -0700
-Message-ID: <87k4eo6d5m.fsf@ti.com>
-References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
-	<20110420065608.332.30043.stgit@tringupt.in.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
+Date: Wed, 20 Apr 2011 22:34:12 +0200
+Message-ID: <201104202234.12742.rjw@sisk.pl>
+References: <201104150053.37037.rjw@sisk.pl> <20110419202212.GA15438@mac.home> <201104192328.52652.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110420065608.332.30043.stgit@tringupt.in.ibm.com> (Trinabh
-	Gupta's message of "Wed, 20 Apr 2011 12:26:34 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Cc: venki@google.com, davinci-linux-open-source@linux.davincidsp.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, arjan@linux.intel.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39622 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751307Ab1DTUdp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Apr 2011 16:33:45 -0400
+In-Reply-To: <201104192328.52652.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tino Keitel <tino.keitel@tikei.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org
 
-Trinabh Gupta <trinabh@linux.vnet.ibm.com> writes:
+On Tuesday, April 19, 2011, Rafael J. Wysocki wrote:
+> On Tuesday, April 19, 2011, Tino Keitel wrote:
+> > Hi,
+> > 
+> > I reverted some wakeup and ACPI related commits. When I reverted commit
+> > 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
+> > worked again and /proc/acpi/wakeup behaved as expected.
+> 
+> Oh, I doubt that this particular one is the problem.
+> 
+> > So check this, I reverted the following commits to avoid conflicts and
+> > build failures:
+> > 
+> > c19f9a84ec807da57fd75bbd9a3f2b8269611f79
+> > 5190726765b40774c069e187a958e10ccd970e65
+> > 2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
+> > f2b56bc808addb908a5bf435d9b942c02af9a7c4
+> > 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
+> 
+> OK, thanks for narrowing this down, I'll have a look at it shortly.
 
-> With this patch there is single copy of cpuidle_states structure
-> instead of per-cpu. The statistics needed on per-cpu basis
-> by the governor are kept per-cpu. This simplifies the cpuidle
-> subsystem as state registration is done by single cpu only.
-> Having single copy of cpuidle_states saves memory. Rare case
-> of asymmetric C-states can be handled within the cpuidle driverand
-> architectures such as POWER do not have asymmetric C-states.
+I can reproduce the problem, but it seems to affect USB controllers only
+and, interestingly enough, it doesn't affect the EHCI controller on my test
+system.  So, it seems to be specific to USB at least to some extent.
 
-I haven't actually tested this series on OMAP yet, but it currently
-doesn't compile.
-
-The patch below (on top of your series) is required to compile on OMAP,
-I think it's doing what you intended, but please confirm.
-
-Kevin
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 6641574..ab77ba3 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -512,6 +512,7 @@ static int omap3_cpuidle_driver_init(void)
- 	int i, retval, count = 0;
- 	struct omap3_processor_cx *cx;
- 	struct cpuidle_state *state;
-+	struct cpuidle_driver *drv = &omap3_idle_driver;
- 
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	core_pd = pwrdm_lookup("core_pwrdm");
-@@ -532,7 +533,7 @@ static int omap3_cpuidle_driver_init(void)
- 		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
- 			omap3_enter_idle_bm : omap3_enter_idle;
- 		if (cx->type == OMAP3_STATE_C1)
--			dev->safe_state_index = count;
-+			drv->safe_state_index = count;
- 		sprintf(state->name, "C%d", count+1);
- 		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
- 		count++;
+Thanks,
+Rafael
