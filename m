@@ -1,47 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
-Date: Wed, 20 Apr 2011 22:34:12 +0200
-Message-ID: <201104202234.12742.rjw@sisk.pl>
-References: <201104150053.37037.rjw@sisk.pl> <20110419202212.GA15438@mac.home> <201104192328.52652.rjw@sisk.pl>
+Date: Wed, 20 Apr 2011 22:57:35 +0200
+Message-ID: <201104202257.36079.rjw@sisk.pl>
+References: <201104150053.37037.rjw@sisk.pl> <Pine.LNX.4.44L0.1104151034580.2051-100000@iolanthe.rowland.org> <20110415145457.GA27650@eazy.amigager.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39622 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:39704 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751307Ab1DTUdp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Apr 2011 16:33:45 -0400
-In-Reply-To: <201104192328.52652.rjw@sisk.pl>
+	id S1752202Ab1DTU5I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Apr 2011 16:57:08 -0400
+In-Reply-To: <20110415145457.GA27650@eazy.amigager.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@tikei.de>
+To: Tino Keitel <tino.keitel@gmx.de>
 Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org
 
-On Tuesday, April 19, 2011, Rafael J. Wysocki wrote:
-> On Tuesday, April 19, 2011, Tino Keitel wrote:
-> > Hi,
+On Friday, April 15, 2011, Tino Keitel wrote:
+> On Fri, Apr 15, 2011 at 10:38:47 -0400, Alan Stern wrote:
+> > On Fri, 15 Apr 2011, Rafael J. Wysocki wrote:
 > > 
-> > I reverted some wakeup and ACPI related commits. When I reverted commit
-> > 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
-> > worked again and /proc/acpi/wakeup behaved as expected.
-> 
-> Oh, I doubt that this particular one is the problem.
-> 
-> > So check this, I reverted the following commits to avoid conflicts and
-> > build failures:
+> > > On Friday, April 15, 2011, Tino Keitel wrote:
+> > > > Hi,
+> > > > 
+> > > > with 2.6.38, I enabled wakeup from suspend to RAM with the USB keyboard
+> > > > this way:
+> > > > 
+> > > > echo USB2 > /proc/acpi/wakeup
+> > > > 
+> > > > This does not work anymore with 2.6.39-rc3. Wakeup using the keyboard
+> > > > won't work, and the USB2 line in /proc/acpi/wakeup doesn't change to
+> > > > "enabled" after the echo command.
+> > > > 
+> > > > Is this intended? If yes, what is the new way to enable keyboard
+> > > > wakeup?
+> > > 
+> > > No, it's supposed to work IIRC.  I'll have a look at that code tomorrow.
 > > 
-> > c19f9a84ec807da57fd75bbd9a3f2b8269611f79
-> > 5190726765b40774c069e187a958e10ccd970e65
-> > 2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
-> > f2b56bc808addb908a5bf435d9b942c02af9a7c4
-> > 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
+> > Tino, can you check the contents of the power/wakeup files in the
+> > appropriate sysfs directories?  That would be the directory for the
+> > keyboard device itself and the directory for the USB host controller
+> > for the bus the keyboard is on.
+> > 
+> > By default, power/wakeup should be "enabled" for the keyboard device 
+> > and "disabled" for the host controller.  If you write "enabled" into 
+> > the host controller's file by hand, does that fix the problem?
 > 
-> OK, thanks for narrowing this down, I'll have a look at it shortly.
+> I already tried to write "enable" into all USB related wakeup files
+> yesterday, not change.
+> 
+> I'll check again how these files look like in 2.6.38, what sysfs
+> wakeup files change when writing into /proc/acpi/wakeup, and what
+> differences to 2.6.39-rc can be seen.
 
-I can reproduce the problem, but it seems to affect USB controllers only
-and, interestingly enough, it doesn't affect the EHCI controller on my test
-system.  So, it seems to be specific to USB at least to some extent.
+Please post the contents of /proc/acpi/wakeup (without reverting the commits
+you have identified as "bad").
 
 Thanks,
 Rafael
