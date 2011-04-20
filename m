@@ -1,95 +1,75 @@
-From: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
-Subject: [PATCH] drivers/acpi/utils.c: Fixed coding style issues
-Date: Wed, 20 Apr 2011 18:20:24 -0500
-Message-ID: <1303341624.11397.2.camel@ks-ubuntu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
+Date: Thu, 21 Apr 2011 01:50:45 +0200
+Message-ID: <201104210150.45988.rjw@sisk.pl>
+References: <201104150053.37037.rjw@sisk.pl> <20110415145457.GA27650@eazy.amigager.de> <20110419202212.GA15438@mac.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:7429 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab1DTXUZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2011 19:20:25 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110419202212.GA15438@mac.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tino Keitel <tino.keitel@tikei.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Karthigan Srinivasan <Karthigan.Srinivasan@hp.com>
 
->From e770496964bf749c30df8a19abbdfe0f79d64fb7 Mon Sep 17 00:00:00 2001
-From: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
-Date: Wed, 20 Apr 2011 18:14:10 -0500
-Subject: [PATCH] drivers/acpi/utils.c: Fixed coding style issues.
+On Tuesday, April 19, 2011, Tino Keitel wrote:
+> Hi,
+> 
+> I reverted some wakeup and ACPI related commits. When I reverted commit
+> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
+> worked again and /proc/acpi/wakeup behaved as expected.
+> 
+> So check this, I reverted the following commits to avoid conflicts and
+> build failures:
+> 
+> c19f9a84ec807da57fd75bbd9a3f2b8269611f79
+> 5190726765b40774c069e187a958e10ccd970e65
+> 2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
+> f2b56bc808addb908a5bf435d9b942c02af9a7c4
+> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
 
-Fixed brace and comment coding style issues in code.
+In fact, the problem is somewhere else.
 
-Signed-off-by: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
+It turns out that device_is_registered() may return true before
+the device's "power" directory in sysfs is created, which causes
+device_set_wakeup_capable() not to set dev->power.can_wakeup and
+that's why the /proc/acpi/wakeup interface doesn't work for
+some devices.
+
+Please try the patch below, it should help.
+
+Thanks,
+Rafael
+
 ---
- drivers/acpi/utils.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/base/power/main.c   |    1 +
+ drivers/base/power/wakeup.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index b002a47..2cf81a1 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -99,9 +99,9 @@ acpi_extract_package(union acpi_object *package,
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -63,6 +63,7 @@ void device_pm_init(struct device *dev)
+ 	dev->power.wakeup = NULL;
+ 	spin_lock_init(&dev->power.lock);
+ 	pm_runtime_init(dev);
++	INIT_LIST_HEAD(&dev->power.entry);
+ }
  
- 		union acpi_object *element = &(package->package.elements[i]);
+ /**
+Index: linux-2.6/drivers/base/power/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/wakeup.c
++++ linux-2.6/drivers/base/power/wakeup.c
+@@ -258,7 +258,7 @@ void device_set_wakeup_capable(struct de
+ 	if (!!dev->power.can_wakeup == !!capable)
+ 		return;
  
--		if (!element) {
-+		if (!element) 
- 			return AE_BAD_DATA;
--		}
-+		
- 
- 		switch (element->type) {
- 
-@@ -185,9 +185,9 @@ acpi_extract_package(union acpi_object *package,
- 		u8 **pointer = NULL;
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
-+		if (!element) 
- 			return AE_BAD_DATA;
--		}
-+		
- 
- 		switch (element->type) {
- 
-@@ -303,9 +303,9 @@ acpi_evaluate_reference(acpi_handle handle,
- 	u32 i = 0;
- 
- 
--	if (!list) {
-+	if (!list) 
- 		return AE_BAD_PARAMETER;
--	}
-+	
- 
- 	/* Evaluate object. */
- 
-@@ -337,9 +337,9 @@ acpi_evaluate_reference(acpi_handle handle,
- 		goto end;
- 	}
- 
--	if (package->package.count > ACPI_MAX_HANDLES) {
-+	if (package->package.count > ACPI_MAX_HANDLES) 
- 		return AE_NO_MEMORY;
--	}
-+	
- 	list->count = package->package.count;
- 
- 	/* Extract package data. */
-@@ -373,7 +373,7 @@ acpi_evaluate_reference(acpi_handle handle,
-       end:
- 	if (ACPI_FAILURE(status)) {
- 		list->count = 0;
--		//kfree(list->handles);
-+		/* kfree(list->handles);*/
- 	}
- 
- 	kfree(buffer.pointer);
--- 
-1.7.1
-
-
-
+-	if (device_is_registered(dev)) {
++	if (device_is_registered(dev) && !list_empty(&dev->power.entry)) {
+ 		if (capable) {
+ 			if (wakeup_sysfs_add(dev))
+ 				return;
