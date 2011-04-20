@@ -1,41 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
-Date: Tue, 19 Apr 2011 23:28:52 +0200
-Message-ID: <201104192328.52652.rjw@sisk.pl>
-References: <201104150053.37037.rjw@sisk.pl> <20110415145457.GA27650@eazy.amigager.de> <20110419202212.GA15438@mac.home>
+From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Subject: [RFC PATCH V3 0/4] cpuidle: global registration of idle states with
+	per-cpu statistics
+Date: Wed, 20 Apr 2011 12:25:15 +0530
+Message-ID: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36589 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753771Ab1DSV2Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Apr 2011 17:28:25 -0400
-In-Reply-To: <20110419202212.GA15438@mac.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com
+Cc: davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@tikei.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org
 
-On Tuesday, April 19, 2011, Tino Keitel wrote:
-> Hi,
-> 
-> I reverted some wakeup and ACPI related commits. When I reverted commit
-> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
-> worked again and /proc/acpi/wakeup behaved as expected.
+The core change in this series is to split the cpuidle_device structure 
+into parts that can be global and parts that has to remain per-cpu. 
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
 
-Oh, I doubt that this particular one is the problem.
+This patch series along with Len Brown's pm_idle() cleanup 
+(ref:https://lkml.org/lkml/2011/4/2/8) will simplify the cpuidle framework 
+and make it easy to port to other architectures like POWER.
 
-> So check this, I reverted the following commits to avoid conflicts and
-> build failures:
-> 
-> c19f9a84ec807da57fd75bbd9a3f2b8269611f79
-> 5190726765b40774c069e187a958e10ccd970e65
-> 2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
-> f2b56bc808addb908a5bf435d9b942c02af9a7c4
-> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
+References: 
+https://lkml.org/lkml/2011/2/10/37
+https://lkml.org/lkml/2011/3/25/52
 
-OK, thanks for narrowing this down, I'll have a look at it shortly.
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
 
-Rafael
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+  the respective low level drivers, so that the accounting can
+  be accurately maintained if the driver decides to demote the
+  chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+  widely used and the only use case was to allow software
+  demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+  functions can be absorbed within the cpuidle back-end
+  driver ad hence deprecating the prepare routine and the
+  CPUIDLE_FLAG_IGNORE flag.
+
+  - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+  cpuidle_state structure, so that the states can become read
+  only and hence made global.
+
+[4/4] - most APIs will now need to pass pointer to both global
+   cpuidle_driver and per-cpu cpuidle_device structure.
+
+Version 1 is at https://lkml.org/lkml/2011/3/22/161
+Version 2 is at https://lkml.org/lkml/2011/4/11/32
+
+Changes from V2:
+
+1. Enabled global registration for arm at91_idle_driver,
+  davinci_idle_driver, kirkwood_idle_driver, omap3_idle_driver cpuidle
+  drivers. Enabled global registration for x86 intel_idle_driver also.
+
+2. Made ladder governor follow new changed API. Thus both menu and ladder
+  governors work with these changes.
+
+This patch series applies on top of 2.6.39-rc2 and is tested on x86 Nehalem 
+system with multiple ACPI C-States with both acpi_idle and intel_idle
+cpuidle drivers. Note that this code is not tested for arm yet.
+
+Thanks,
+-Trinabh
