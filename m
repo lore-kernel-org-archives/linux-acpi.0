@@ -1,75 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] /proc/acpi/wakeup regression in 2.6.39-rc3
-Date: Thu, 21 Apr 2011 01:50:45 +0200
-Message-ID: <201104210150.45988.rjw@sisk.pl>
-References: <201104150053.37037.rjw@sisk.pl> <20110415145457.GA27650@eazy.amigager.de> <20110419202212.GA15438@mac.home>
+From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Subject: Re: [linux-pm] [RFC PATCH V3 1/4] cpuidle: Move dev->last_residency
+ update to driver	enter routine; remove dev->last_state
+Date: Thu, 21 Apr 2011 10:12:59 +0530
+Message-ID: <4DAFB5D3.1030804@linux.vnet.ibm.com>
+References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com> <20110420065523.332.58678.stgit@tringupt.in.ibm.com> <87pqog6dfw.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110419202212.GA15438@mac.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tino Keitel <tino.keitel@tikei.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e28smtp09.in.ibm.com ([122.248.162.9]:38038 "EHLO
+	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352Ab1DUEnI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2011 00:43:08 -0400
+In-Reply-To: <87pqog6dfw.fsf@ti.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday, April 19, 2011, Tino Keitel wrote:
-> Hi,
-> 
-> I reverted some wakeup and ACPI related commits. When I reverted commit
-> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4, wakeup using the keyboard
-> worked again and /proc/acpi/wakeup behaved as expected.
-> 
-> So check this, I reverted the following commits to avoid conflicts and
-> build failures:
-> 
-> c19f9a84ec807da57fd75bbd9a3f2b8269611f79
-> 5190726765b40774c069e187a958e10ccd970e65
-> 2a5d24286e8bdafdc272b37ec5bdd9e977b3767c
-> f2b56bc808addb908a5bf435d9b942c02af9a7c4
-> 7fa69baf29de8c77a6b32c054df2abb8f11f8aa4
 
-In fact, the problem is somewhere else.
 
-It turns out that device_is_registered() may return true before
-the device's "power" directory in sysfs is created, which causes
-device_set_wakeup_capable() not to set dev->power.can_wakeup and
-that's why the /proc/acpi/wakeup interface doesn't work for
-some devices.
+On 04/20/2011 10:57 PM, Kevin Hilman wrote:
+> Trinabh Gupta<trinabh@linux.vnet.ibm.com>  writes:
+>
+>> Cpuidle subsystem only suggests the state to enter and does not
+>> guarantee if the suggested state is entered. The actual entered state
+>> may be different because of software or hardware demotion. Software
+>> demotion is done by the back-end cpuidle driver and can be accounted
+>> correctly. Current cpuidle code uses last_state field to capture the
+>> actual state entered and based on that updates the statistics for the
+>> state entered.
+>>
+>> Ideally the driver enter routine should update the counters,
+>> and it should return the state actually entered rather than the time
+>> spent there.
+>
+> OK, the return type was changed to return the state index instead of the
+> time, but since the governors are still relying on dev->last_residency,
+> drivers are required to update it.
+>
+> Because of that, why not keep the update of the  time/usage counters
+> in common code rather than duplicating it (9 times in this patch) into
+> all the drivers?
 
-Please try the patch below, it should help.
+Hi Kevin,
+
+Thanks for your review. Yes, we can do like this and it would prevent
+duplication of code. I just wanted to make cpuidle handle only selection
+and entering of state, and leave everything else to the driver which
+knows best about these things.
+
+But both are functionally same and definitely statistics update inside
+cpuidle_idle_call() prevents duplication of code.
 
 Thanks,
-Rafael
-
----
- drivers/base/power/main.c   |    1 +
- drivers/base/power/wakeup.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/base/power/main.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/main.c
-+++ linux-2.6/drivers/base/power/main.c
-@@ -63,6 +63,7 @@ void device_pm_init(struct device *dev)
- 	dev->power.wakeup = NULL;
- 	spin_lock_init(&dev->power.lock);
- 	pm_runtime_init(dev);
-+	INIT_LIST_HEAD(&dev->power.entry);
- }
- 
- /**
-Index: linux-2.6/drivers/base/power/wakeup.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/wakeup.c
-+++ linux-2.6/drivers/base/power/wakeup.c
-@@ -258,7 +258,7 @@ void device_set_wakeup_capable(struct de
- 	if (!!dev->power.can_wakeup == !!capable)
- 		return;
- 
--	if (device_is_registered(dev)) {
-+	if (device_is_registered(dev) && !list_empty(&dev->power.entry)) {
- 		if (capable) {
- 			if (wakeup_sysfs_add(dev))
- 				return;
+-Trinabh
