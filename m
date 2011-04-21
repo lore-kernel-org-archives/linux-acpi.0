@@ -1,34 +1,50 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [RFC 1/4] HWPoison: add memory_failure_queue()
-Date: Thu, 21 Apr 2011 14:38:42 +0800
-Message-ID: <4DAFD0F2.5080708@intel.com>
-References: <1303177419-22466-1-git-send-email-ying.huang@intel.com> <20110420090305.GB3761@localhost>
+From: Nicolas Kaiser <nikai@nikai.net>
+Subject: Re: [PATCH] drivers/acpi/utils.c: Fixed coding style issues
+Date: Thu, 21 Apr 2011 10:28:15 +0200
+Message-ID: <20110421102815.5abf133e@absol.kitzblitz>
+References: <1303341624.11397.2.camel@ks-ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15425 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750858Ab1DUGio (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Apr 2011 02:38:44 -0400
-In-Reply-To: <20110420090305.GB3761@localhost>
+Received: from webhosting01.bon.m2soft.com ([195.38.20.32]:55328 "EHLO
+	webhosting01.bon.m2soft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752966Ab1DUIcd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Apr 2011 04:32:33 -0400
+In-Reply-To: <1303341624.11397.2.camel@ks-ubuntu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wu, Fengguang" <fengguang.wu@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi, Fengguang,
-
-On 04/20/2011 05:03 PM, Wu, Fengguang wrote:
->> +	if (kfifo_put(&mf_cpu->fifo, &entry))
->> +		schedule_work_on(smp_processor_id(), &mf_cpu->work);
->> +	else
->> +		pr_err("Memory failure: buffer overflow when recovering memory failure at 0x%#lx\n",
->> +		       pfn);
+* Karthigan Srinivasan <karthigan.srinivasan@hp.com>:
+> Fixed brace and comment coding style issues in code.
 > 
-> nitpick: "buffer overflow when recording memory failure at PFN ..."?
+> Signed-off-by: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
+> ---
+>  drivers/acpi/utils.c |   18 +++++++++---------
+>  1 files changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index b002a47..2cf81a1 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -99,9 +99,9 @@ acpi_extract_package(union acpi_object *package,
+>  
+>  		union acpi_object *element = &(package->package.elements[i]);
+>  
+> -		if (!element) {
+> +		if (!element) 
+                             ^
+You are introducing trailing whitespace.
 
-Yes, in fact we are not recovering now.  Or "s/recording/queuing/"?
+>  			return AE_BAD_DATA;
+> -		}
+> +		
+   ^^^^^^^^^^^^^
+For every pair of braces you clean away, you're adding
+two new coding style issues.
 
-Best Regards,
-Huang Ying
+Best regards,
+Nicolas Kaiser
