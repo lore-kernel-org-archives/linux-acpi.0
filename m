@@ -1,106 +1,37 @@
-From: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
-Subject: Re: [PATCH] drivers/acpi/utils.c: Fixed coding style issues
-Date: Thu, 21 Apr 2011 11:08:19 -0500
-Message-ID: <1303402099.11855.9.camel@ks-ubuntu>
-References: <1303341624.11397.2.camel@ks-ubuntu>
-	 <20110421102815.5abf133e@absol.kitzblitz>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [linux-pm] [RFC PATCH V3 4/4] cpuidle: Single/Global registration of idle states
+Date: Fri, 22 Apr 2011 16:06:42 -0700
+Message-ID: <871v0tvqbh.fsf@ti.com>
+References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
+	<20110420065608.332.30043.stgit@tringupt.in.ibm.com>
+	<87k4eo6d5m.fsf@ti.com> <4DAFB847.50404@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:21914 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750915Ab1DUQIV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2011 12:08:21 -0400
-In-Reply-To: <20110421102815.5abf133e@absol.kitzblitz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <4DAFB847.50404@linux.vnet.ibm.com> (Trinabh Gupta's message of
+	"Thu, 21 Apr 2011 10:23:27 +0530")
+Sender: linux-sh-owner@vger.kernel.org
+To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> You are introducing trailing whitespace.
-> 
-> >  			return AE_BAD_DATA;
-> > -		}
-> > +		
->    ^^^^^^^^^^^^^
-> For every pair of braces you clean away, you're adding
-> two new coding style issues.
+Hi Trinabh,
 
-Nicolas - appreciate your feedback and apologize for the error.  I have
-corrected these issues. Re-submitting patch below with corrections.
+Trinabh Gupta <trinabh@linux.vnet.ibm.com> writes:
 
-Best Regards,
-Karthigan Srinivasan.
+[...]
 
+> I just wanted to get comments on the design and understand how it
+> affects various architectures in question. It looks to me as if the
+> design should be okay and infact better for architectures like ARM
+> since they do not have different idle states for different cpus and
+> thus do not require per-cpu registration.  Global registration would
+> work and be simpler; please correct me if I am wrong.
 
-Fixed brace and comment coding style issues is code.
+Yes, I agree that the new design is better, I especially like that it's
+more clear (and expected) that final state decision making is to be done
+directly in the driver without the back-and-forth in the current setup.
 
-Signed-off-by: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
----
- drivers/acpi/utils.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
+Thanks,
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index b002a47..76eaac2 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -99,9 +99,8 @@ acpi_extract_package(union acpi_object *package,
- 
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
-+		if (!element)
- 			return AE_BAD_DATA;
--		}
- 
- 		switch (element->type) {
- 
-@@ -185,9 +184,8 @@ acpi_extract_package(union acpi_object *package,
- 		u8 **pointer = NULL;
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
-+		if (!element)
- 			return AE_BAD_DATA;
--		}
- 
- 		switch (element->type) {
- 
-@@ -303,9 +301,8 @@ acpi_evaluate_reference(acpi_handle handle,
- 	u32 i = 0;
- 
- 
--	if (!list) {
-+	if (!list)
- 		return AE_BAD_PARAMETER;
--	}
- 
- 	/* Evaluate object. */
- 
-@@ -337,9 +334,9 @@ acpi_evaluate_reference(acpi_handle handle,
- 		goto end;
- 	}
- 
--	if (package->package.count > ACPI_MAX_HANDLES) {
-+	if (package->package.count > ACPI_MAX_HANDLES)
- 		return AE_NO_MEMORY;
--	}
-+
- 	list->count = package->package.count;
- 
- 	/* Extract package data. */
-@@ -373,7 +370,7 @@ acpi_evaluate_reference(acpi_handle handle,
-       end:
- 	if (ACPI_FAILURE(status)) {
- 		list->count = 0;
--		//kfree(list->handles);
-+		/* kfree(list->handles); */
- 	}
- 
- 	kfree(buffer.pointer);
--- 
-1.7.1
-
-
-
+Kevin
