@@ -1,37 +1,32 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] [RFC PATCH V3 4/4] cpuidle: Single/Global registration of idle states
-Date: Fri, 22 Apr 2011 16:06:42 -0700
-Message-ID: <871v0tvqbh.fsf@ti.com>
-References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
-	<20110420065608.332.30043.stgit@tringupt.in.ibm.com>
-	<87k4eo6d5m.fsf@ti.com> <4DAFB847.50404@linux.vnet.ibm.com>
+From: "Mr Scott Carson" <info@bbc.com>
+Subject: Congratulation!!
+Date: Fri, 22 Apr 2011 14:01:50 -0300
+Message-ID: <aff8b236e7efdcb14c6e54885fc47b7c.squirrel@www.snr.gov.ar>
+Reply-To: scott__carsondesk12@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <4DAFB847.50404@linux.vnet.ibm.com> (Trinabh Gupta's message of
-	"Thu, 21 Apr 2011 10:23:27 +0530")
-Sender: linux-sh-owner@vger.kernel.org
-To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 86.8.80.200.static.host.ifxnw.com.ar ([200.80.8.86]:59903 "EHLO
+	mail.snr.gov.ar" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757370Ab1DXBUn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Apr 2011 21:20:43 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.snr.gov.ar (Postfix) with ESMTP id 171E723EC5
+	for <linux-acpi@vger.kernel.org>; Sat, 23 Apr 2011 21:52:24 -0300 (ART)
+Received: from mail.snr.gov.ar ([127.0.0.1])
+	by localhost (mail.snr.gov.ar [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id TRm-UMfHb75X for <linux-acpi@vger.kernel.org>;
+	Sat, 23 Apr 2011 21:52:09 -0300 (ART)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Trinabh,
+=A3500,000GBP has been awarded to you in the BBC Online Promo Held on t=
+he 12
+April 2011, send Name/Tel/Country to our office now.
 
-Trinabh Gupta <trinabh@linux.vnet.ibm.com> writes:
-
-[...]
-
-> I just wanted to get comments on the design and understand how it
-> affects various architectures in question. It looks to me as if the
-> design should be okay and infact better for architectures like ARM
-> since they do not have different idle states for different cpus and
-> thus do not require per-cpu registration.  Global registration would
-> work and be simpler; please correct me if I am wrong.
-
-Yes, I agree that the new design is better, I especially like that it's
-more clear (and expected) that final state decision making is to be done
-directly in the driver without the back-and-forth in the current setup.
-
-Thanks,
-
-Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
