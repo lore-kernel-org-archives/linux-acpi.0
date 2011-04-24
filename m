@@ -1,32 +1,53 @@
-From: "Mr Scott Carson" <info@bbc.com>
-Subject: Congratulation!!
-Date: Fri, 22 Apr 2011 14:01:50 -0300
-Message-ID: <aff8b236e7efdcb14c6e54885fc47b7c.squirrel@www.snr.gov.ar>
-Reply-To: scott__carsondesk12@live.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Peter Collingbourne <peter@pcc.me.uk>
+Subject: [PATCH] ACPI: EC: add another DMI check for ASUS hardware
+Date: Sun, 24 Apr 2011 04:44:22 +0100
+Message-ID: <1303616662-26527-1-git-send-email-peter@pcc.me.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 86.8.80.200.static.host.ifxnw.com.ar ([200.80.8.86]:59903 "EHLO
-	mail.snr.gov.ar" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757370Ab1DXBUn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Apr 2011 21:20:43 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.snr.gov.ar (Postfix) with ESMTP id 171E723EC5
-	for <linux-acpi@vger.kernel.org>; Sat, 23 Apr 2011 21:52:24 -0300 (ART)
-Received: from mail.snr.gov.ar ([127.0.0.1])
-	by localhost (mail.snr.gov.ar [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id TRm-UMfHb75X for <linux-acpi@vger.kernel.org>;
-	Sat, 23 Apr 2011 21:52:09 -0300 (ART)
+Received: from master.pcc.me.uk ([207.192.74.179]:53221 "EHLO master.pcc.me.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750807Ab1DXE2z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Apr 2011 00:28:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Peter Collingbourne <peter@pcc.me.uk>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-=A3500,000GBP has been awarded to you in the BBC Online Promo Held on t=
-he 12
-April 2011, send Name/Tel/Country to our office now.
+Commit 0adf3c746a73684b3f8c2821a584e1db998f61e9 introduced a regression
+by making the ECDT validation test for ASUS hardware more restrictive.
+The previous test used the dmi_name_in_vendors function which searches
+a number of DMI fields, while the new test checked only the BIOS
+vendor, which is known to not match on an ASUS F5GL laptop which
+requires ECDT validation.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Add a rule to ec_dmi_table based on an alternative DMI pattern for
+ASUS hardware as found elsewhere in the kernel.
+
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Peter Collingbourne <peter@pcc.me.uk>
+---
+According to a Google search [1], it seems unlikely that the ASUS 
+rule introduced by 0adf3c7 would ever match ASUS hardware.  I wonder
+if it is worth removing it.
+
+[1] http://www.google.com/search?q=%22bios%20information%20vendor%20asus%22
+
+ drivers/acpi/ec.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index fa848c4..30ca717 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -940,6 +940,9 @@ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
++	{
++	ec_validate_ecdt, "ASUS hardware", {
++	DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc.") }, NULL},
+ 	{},
+ };
+ 
+-- 
+1.7.1
+
