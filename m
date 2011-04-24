@@ -1,25 +1,34 @@
-From: "CONFIDENTIAL" <europaycen@hotmail.com>
-Subject: CONFIDENTIAL
-Date: Sun, 24 Apr 2011 21:31:46 +0000 (UTC)
-Message-ID: <20110424043614.756BB2A6BDEC@mail.alsa.co.cr>
-Reply-To: <europaycen@hotmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH 35/42] ACPI battery: fribble sysfs files from a
+ resume notifier
+Date: Sun, 24 Apr 2011 16:55:03 -0700
+Message-ID: <20110424235503.GC23014@kroah.com>
+References: <073b4964b3b75fd9e19bf3933b26d9c23591c9db.1300862481.git.len.brown@intel.com>
+ <25be5821521640eb00b7eb219ffe59664510d073.1300862481.git.len.brown@intel.com>
+ <20110413103750.GA8884@ihatethathostname.lab.bos.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from logistix.cr ([201.201.66.140]:1201 "EHLO mail.alsa.co.cr"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757792Ab1DXVba (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Apr 2011 17:31:30 -0400
-Date: Thu, 12 May 2011 19:03:56 +0200
+Received: from kroah.org ([198.145.64.141]:41633 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757791Ab1DYACj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Apr 2011 20:02:39 -0400
+Content-Disposition: inline
+In-Reply-To: <20110413103750.GA8884@ihatethathostname.lab.bos.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kyle McMartin <kmcmartin@redhat.com>
+Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Acknowledge,
+On Wed, Apr 13, 2011 at 06:37:51AM -0400, Kyle McMartin wrote:
+> Len,
+> 
+> Do we think this has baked enough for stable 2.6.38.3? I'd like to drop
+> the patch from Fedora when we pull the next stable update in.
+> 
+> Greg -- this is upstream commit
+> 25be5821521640eb00b7eb219ffe59664510d073.
 
-An Iraqi made a fixed deposit of $6.5m usd in my bank branch (Hang Seng Bank,Hong Kong) where am a director and he died with his entire family in the war leaving behind no next of kin, I?m ready to share 50/50 with you if you choose to stand as my deceased client next of kin. If interested mail me at the address below: 
-tongwon@ibibo.com  or
-tongwonhk@ibibo.com
-Yours Truly,
-Tong Won.
+Ok, now queued up, thanks.
+
+greg k-h
