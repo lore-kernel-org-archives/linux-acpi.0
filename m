@@ -1,55 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Avoid infinite recurrence while registering power resources
-Date: Mon, 25 Apr 2011 22:15:58 +0200
-Message-ID: <201104252215.58860.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA release 20110413 linuxized patches
+Date: Mon, 25 Apr 2011 16:50:52 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1104251648590.26994@x980>
+References: <1302829803.28930.12.camel@minggr.sh.intel.com>
+ <BANLkTik4NAmL+tJaecQ4pdmrpPZG8fw=Lw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48876 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751095Ab1DYUPv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Apr 2011 16:15:51 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:46465 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932367Ab1DYUvN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Apr 2011 16:51:13 -0400
+Received: from localhost.localdomain ([unknown] [74.104.148.74])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LK800DDV78WOSI2@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 25 Apr 2011 15:51:02 -0500 (CDT)
+In-reply-to: <BANLkTik4NAmL+tJaecQ4pdmrpPZG8fw=Lw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM mailing list <linux-pm@lists.linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Pascal Dormeau <pdormeau@free.fr>
+To: Lin Ming <minggr@gmail.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Mon, 25 Apr 2011, Lin Ming wrote:
 
-There is at least one BIOS with a DSDT containing a power resource
-object with a _PR0 entry pointing back to that power resource.  In
-consequence, while registering that power resource
-acpi_bus_get_power_flags() sees that it depends on itself and tries
-to register it again, which leads to an infinitely deep recurrence.
-This problem was introduced by commit bf325f9538d8c89312be305b9779e
-(ACPI / PM: Register power resource devices as soon as they are
-needed).
+> On Fri, Apr 15, 2011 at 9:10 AM, Lin Ming <ming.m.lin@intel.com> wrote:
+> > Hi, Len
+> >
+> > ACPICA release 20110413 linuxized patches attached.
+> > Build and tested on my notebook without problem.
+> >
+> > [PATCH 1/6] ACPICA: Split all internal Global Lock functions to new file - evglock
+> > [PATCH 2/6] ACPICA: Add more methods eligible for NULL package element removal
+> > [PATCH 3/6] ACPICA: Update internal address SpaceID for DataTable regions
+> > [PATCH 4/6] ACPICA: Move ACPI_NUM_PREDEFINED_REGIONS to a more appropriate place
+> > [PATCH 5/6] ACPICA: Execute an orphan _REG method under the EC device
+> > [PATCH 6/6] ACPICA: Update to version 20110413
+> 
+> Hi, Len
+> 
+> Have you applied this?
 
-To fix this problem use the observation that power resources cannot
-be power manageable and prevent acpi_bus_get_power_flags() from
-being called for power resource objects.
+No, I've been out of town since the 15th when you sent it (I'm back now).
 
-References: https://bugzilla.kernel.org/show_bug.cgi?id=31872
-Reported-and-tested-by: Pascal Dormeau <pdormeau@free.fr>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/scan.c |    4 ++++
- 1 file changed, 4 insertions(+)
+The acpica branch currently has this:
 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -943,6 +943,10 @@ static int acpi_bus_get_flags(struct acp
- 	if (ACPI_SUCCESS(status))
- 		device->flags.lockable = 1;
- 
-+	/* Power resources cannot be power manageable. */
-+	if (device->device_type == ACPI_BUS_TYPE_POWER)
-+		return 0;
-+
- 	/* Presence of _PS0|_PR0 indicates 'power manageable' */
- 	status = acpi_get_handle(device->handle, "_PS0", &temp);
- 	if (ACPI_FAILURE(status))
+Lin Ming (3):
+      ACPI: osl, add acpi_os_create_lock interface
+      ACPICA: Use acpi_os_create_lock interface
+      ACPICA: Fix code divergence of global lock handling
+
+cheers,
+-Len
+
