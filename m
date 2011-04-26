@@ -1,39 +1,45 @@
-From: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
-Subject: [PATCH]: ACPI: Fix comments that describe the DWORDs for _OSC
-Date: Tue, 26 Apr 2011 15:06:22 +0000 (UTC)
-Message-ID: <20110426150105.3041.66845.sendpatchset@nchumbalkar.americas.hpqcorp.net>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: power_meter driver location
+Date: Tue, 26 Apr 2011 18:25:43 +0200
+Message-ID: <20110426182543.0c102e55@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:10482 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756095Ab1DZPGZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Apr 2011 11:06:25 -0400
+Received: from zone0.gcu-squad.org ([212.85.147.21]:27389 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756600Ab1DZQZy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Apr 2011 12:25:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "Darrick J. Wong" <djwong@us.ibm.com>, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Made the _OSC comments more helpful to someone viewing the source.
+Hi Len, hi all,
 
-Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
----
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a2e910e..cdc8739 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -275,6 +275,7 @@ struct acpi_osc_context {
- acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- 
- /* platform-wide _OSC bits */
-+/* _OSC DW1 Definition (OS Support Fields) */
- #define OSC_SB_PAD_SUPPORT		1
- #define OSC_SB_PPC_OST_SUPPORT		2
- #define OSC_SB_PR3_SUPPORT		4
-@@ -290,7 +291,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- #define OSC_MSI_SUPPORT				16
- #define OSC_PCI_SUPPORT_MASKS			0x1f
- 
--/* _OSC DW1 Definition (OS Control Fields) */
-+/* _OSC DW2 Definition (OS Control Fields) */
- #define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	1
- #define OSC_SHPC_NATIVE_HP_CONTROL 		2
- #define OSC_PCI_EXPRESS_PME_CONTROL		4
+Currently the ACPI power meter driver lives in drivers/acpi, and
+depends on HWMON. I don't think it makes sense because, in the
+configuration menu, the user sees the ACPI options first, and HWMON
+comes later, so if HWMON is disabled, the user has no idea that the
+ACPI power meter driver exists. It happens that CONFIG_HWMON currently
+defaults to y so this scenario won't happen on new configurations, but
+it could still happen when people upgrade an old configuration. It
+could also happen that a user selects the ACPI power meter, then looks
+at the driver list under CONFIG_HWMON and decides that he/she doesn't
+need anything there and deselects HWMON, and disables the ACPI power
+meter driver as a result. Lastly, there is no guarantee that
+CONFIG_HWMON will default to y forever, I admit I'm unsure why it is
+that way.
+
+I think that it would make more sense to:
+* either move the ACPI power meter driver to drivers/hwmon, and treat
+  it like any other hardware monitoring driver, with a dependency on
+  ACPI;
+* or leave the ACPI power meter driver in drivrs/acpi, but turn the
+  "depends on HWMON" into "select HWMON", so it can't be hidden or
+  unselected by accident.
+
+Opinion anyone?
+
+-- 
+Jean Delvare
