@@ -1,56 +1,41 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] acpi: fix parameter type of acpi_get_node()
-Date: Wed, 27 Apr 2011 15:49:07 +0100
-Message-ID: <4DB84903020000780003E662@vpn.id2.novell.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management regression fixes for 2.6.39
+Date: Wed, 27 Apr 2011 22:47:07 +0200
+Message-ID: <201104272247.07545.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:58076 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759954Ab1D0Uqt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Apr 2011 16:46:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
 
-The extra (bogus) level of indirection worked only because acpi_handle
-itself is a pointer to void.
+Hi Linus,
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Please pull two power management regression fixes for 2.6.39 from:
 
----
- drivers/acpi/numa.c  |    2 +-
- include/linux/acpi.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git pm-fixes
 
---- 2.6.39-rc5/drivers/acpi/numa.c
-+++ 2.6.39-rc5-acpi-get-node/drivers/acpi/numa.c
-@@ -320,7 +320,7 @@ int acpi_get_pxm(acpi_handle h)
- 	return -1;
- }
+The first one fixes device initialization so that wakeup-related files are
+created for all wakeup-capable devices as appropriate and the other is a
+workaround for some BIOS brain damage that started to be visible and hurt
+people after recent changes in the handling of ACPI power resources.
  
--int acpi_get_node(acpi_handle *handle)
-+int acpi_get_node(acpi_handle handle)
- {
- 	int pxm, node = -1;
- 
---- 2.6.39-rc5/include/linux/acpi.h
-+++ 2.6.39-rc5-acpi-get-node/include/linux/acpi.h
-@@ -223,13 +223,13 @@ extern void acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
- int acpi_get_pxm(acpi_handle handle);
--int acpi_get_node(acpi_handle *handle);
-+int acpi_get_node(acpi_handle handle);
- #else
- static inline int acpi_get_pxm(acpi_handle handle)
- {
- 	return 0;
- }
--static inline int acpi_get_node(acpi_handle *handle)
-+static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
- }
 
+ drivers/acpi/scan.c         |    4 ++++
+ drivers/base/power/main.c   |    1 +
+ drivers/base/power/wakeup.c |    2 +-
+ 3 files changed, 6 insertions(+), 1 deletions(-)
 
+---------------
+
+Rafael J. Wysocki (2):
+      PM / Wakeup: Fix initialization of wakeup-related device sysfs files
+      ACPI / PM: Avoid infinite recurrence while registering power resources
 
