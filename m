@@ -1,531 +1,91 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: Re: [PATCH -v4 3/4] lib, Make gen_pool memory allocator lockless
-Date: Thu, 28 Apr 2011 10:37:38 -0400
-Message-ID: <20110428143738.GA19161@Krystal>
-References: <1303806878-333-1-git-send-email-ying.huang@intel.com> <1303806878-333-4-git-send-email-ying.huang@intel.com>
+From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Subject: [RFC PATCH V4 0/4] cpuidle: global registration of idle states with
+	per-cpu statistics
+Date: Thu, 28 Apr 2011 22:02:10 +0530
+Message-ID: <20110428163201.4868.6984.stgit@tringupt.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.openrapids.net ([64.15.138.104]:54978 "EHLO
-	blackscsi.openrapids.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752387Ab1D1Ohm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Apr 2011 10:37:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1303806878-333-4-git-send-email-ying.huang@intel.com>
+Received: from e28smtp05.in.ibm.com ([122.248.162.5]:52405 "EHLO
+	e28smtp05.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760363Ab1D1QcR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Apr 2011 12:32:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, khilman@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-acpi@vger.kernel.org
 
-* Huang Ying (ying.huang@intel.com) wrote:
-> This version of the gen_pool memory allocator supports lockless
-> operation.
-> 
-> This makes it safe to use in NMI handlers and other special
-> unblockable contexts that could otherwise deadlock on locks.  This is
-> implemented by using atomic operations and retries on any conflicts.
-> The disadvantage is that there may be livelocks in extreme cases.  For
-> better scalability, one gen_pool allocator can be used for each CPU.
-> 
-> The lockless operation only works if there is enough memory available.
-> If new memory is added to the pool a lock has to be still taken.  So
-> any user relying on locklessness has to ensure that sufficient memory
-> is preallocated.
-> 
-> The basic atomic operation of this allocator is cmpxchg on long.  On
-> architectures that don't have NMI-safe cmpxchg implementation, the
-> allocator can NOT be used in NMI handler.  So code uses the allocator
-> in NMI handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
 
-Hi Huang,
+Previous version of the series (V3) is at 
+https://lkml.org/lkml/2011/4/20/23
 
-Minor comment below,
+This series applies on 2.6.39-rc5 with Len Brown's pm_idle() cleanup
+version 3 (https://lkml.org/lkml/2011/4/2/8) plus the patch 
+https://lkml.org/lkml/diff/2011/4/25/54/1
 
-> 
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> Reviewed-by: Andi Kleen <ak@linux.intel.com>
-> Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> ---
->  include/linux/bitmap.h   |    1 
->  include/linux/genalloc.h |   46 +++++++-
->  lib/bitmap.c             |    2 
->  lib/genalloc.c           |  259 ++++++++++++++++++++++++++++++++++++++---------
->  4 files changed, 253 insertions(+), 55 deletions(-)
-> 
-> --- a/include/linux/bitmap.h
-> +++ b/include/linux/bitmap.h
-> @@ -142,6 +142,7 @@ extern void bitmap_release_region(unsign
->  extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
->  extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
->  
-> +#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
->  #define BITMAP_LAST_WORD_MASK(nbits)					\
->  (									\
->  	((nbits) % BITS_PER_LONG) ?					\
-> --- a/include/linux/genalloc.h
-> +++ b/include/linux/genalloc.h
-> @@ -1,8 +1,28 @@
-> +#ifndef GENALLOC_H
-> +#define GENALLOC_H
->  /*
-> - * Basic general purpose allocator for managing special purpose memory
-> - * not managed by the regular kmalloc/kfree interface.
-> - * Uses for this includes on-device special memory, uncached memory
-> - * etc.
-> + * Basic general purpose allocator for managing special purpose
-> + * memory, for example, memory that is not managed by the regular
-> + * kmalloc/kfree interface.  Uses for this includes on-device special
-> + * memory, uncached memory etc.
-> + *
-> + * It is safe to use the allocator in NMI handlers and other special
-> + * unblockable contexts that could otherwise deadlock on locks.  This
-> + * is implemented by using atomic operations and retries on any
-> + * conflicts.  The disadvantage is that there may be livelocks in
-> + * extreme cases.  For better scalability, one allocator can be used
-> + * for each CPU.
-> + *
-> + * The lockless operation only works if there is enough memory
-> + * available.  If new memory is added to the pool a lock has to be
-> + * still taken.  So any user relying on locklessness has to ensure
-> + * that sufficient memory is preallocated.
-> + *
-> + * The basic atomic operation of this allocator is cmpxchg on long.
-> + * On architectures that don't have NMI-safe cmpxchg implementation,
-> + * the allocator can NOT be used in NMI handler.  So code uses the
-> + * allocator in NMI handler should depend on
-> + * CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
->   *
->   * This source code is licensed under the GNU General Public License,
->   * Version 2.  See the file COPYING for more details.
-> @@ -13,7 +33,7 @@
->   *  General purpose special memory pool descriptor.
->   */
->  struct gen_pool {
-> -	rwlock_t lock;
-> +	spinlock_t lock;
->  	struct list_head chunks;	/* list of chunks in this pool */
->  	int min_alloc_order;		/* minimum allocation order */
->  };
-> @@ -22,15 +42,29 @@ struct gen_pool {
->   *  General purpose special memory pool chunk descriptor.
->   */
->  struct gen_pool_chunk {
-> -	spinlock_t lock;
->  	struct list_head next_chunk;	/* next chunk in pool */
-> +	atomic_t avail;
->  	unsigned long start_addr;	/* starting address of memory chunk */
->  	unsigned long end_addr;		/* ending address of memory chunk */
->  	unsigned long bits[0];		/* bitmap for allocating memory chunk */
->  };
->  
-> +/**
-> + * gen_pool_for_each_chunk - iterate over chunks of generic memory pool
-> + * @chunk:	the struct gen_pool_chunk * to use as a loop cursor
-> + * @pool:	the generic memory pool
-> + *
-> + * Not lockless, proper mutual exclusion is needed to use this macro
-> + * with other gen_pool function simultaneously.
-> + */
-> +#define gen_pool_for_each_chunk(chunk, pool)			\
-> +	list_for_each_entry_rcu(chunk, &(pool)->chunks, next_chunk)
+Changes from previous version (V3):
 
-Is it just me or this macro is never used ? Maybe you should consider
-removing it.
+1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+  kirkwood_defconfig, stamp9g20_defconfig, omap2plus_defconfig. Boot tested on
+  Panda SoC (OMAP4430) but it doesn't really use cpuidle.
 
-> +
->  extern struct gen_pool *gen_pool_create(int, int);
->  extern int gen_pool_add(struct gen_pool *, unsigned long, size_t, int);
->  extern void gen_pool_destroy(struct gen_pool *);
->  extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
->  extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
-> +extern size_t gen_pool_avail(struct gen_pool *);
-> +extern size_t gen_pool_size(struct gen_pool *);
-> +#endif /* GENALLOC_H */
-> --- a/lib/bitmap.c
-> +++ b/lib/bitmap.c
-> @@ -271,8 +271,6 @@ int __bitmap_weight(const unsigned long
->  }
->  EXPORT_SYMBOL(__bitmap_weight);
->  
-> -#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
-> -
->  void bitmap_set(unsigned long *map, int start, int nr)
->  {
->  	unsigned long *p = map + BIT_WORD(start);
-> --- a/lib/genalloc.c
-> +++ b/lib/genalloc.c
-> @@ -1,8 +1,26 @@
->  /*
-> - * Basic general purpose allocator for managing special purpose memory
-> - * not managed by the regular kmalloc/kfree interface.
-> - * Uses for this includes on-device special memory, uncached memory
-> - * etc.
-> + * Basic general purpose allocator for managing special purpose
-> + * memory, for example, memory that is not managed by the regular
-> + * kmalloc/kfree interface.  Uses for this includes on-device special
-> + * memory, uncached memory etc.
-> + *
-> + * It is safe to use the allocator in NMI handlers and other special
-> + * unblockable contexts that could otherwise deadlock on locks.  This
-> + * is implemented by using atomic operations and retries on any
-> + * conflicts.  The disadvantage is that there may be livelocks in
-> + * extreme cases.  For better scalability, one allocator can be used
-> + * for each CPU.
-> + *
-> + * The lockless operation only works if there is enough memory
-> + * available.  If new memory is added to the pool a lock has to be
-> + * still taken.  So any user relying on locklessness has to ensure
-> + * that sufficient memory is preallocated.
-> + *
-> + * The basic atomic operation of this allocator is cmpxchg on long.
-> + * On architectures that don't have NMI-safe cmpxchg implementation,
-> + * the allocator can NOT be used in NMI handler.  So code uses the
-> + * allocator in NMI handler should depend on
-> + * CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
->   *
->   * Copyright 2005 (C) Jes Sorensen <jes@trained-monkey.org>
->   *
-> @@ -13,8 +31,109 @@
->  #include <linux/slab.h>
->  #include <linux/module.h>
->  #include <linux/bitmap.h>
-> +#include <linux/rculist.h>
-> +#include <linux/interrupt.h>
->  #include <linux/genalloc.h>
->  
-> +static int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
-> +{
-> +	unsigned long val, nval;
-> +
-> +	nval = *addr;
-> +	do {
-> +		val = nval;
-> +		if (val & mask_to_set)
-> +			return -EBUSY;
-> +		cpu_relax();
-> +	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
-> +
-> +	return 0;
-> +}
-> +
-> +static int clear_bits_ll(unsigned long *addr, unsigned long mask_to_clear)
-> +{
-> +	unsigned long val, nval;
-> +
-> +	nval = *addr;
-> +	do {
-> +		val = nval;
-> +		if ((val & mask_to_clear) != mask_to_clear)
-> +			return -EBUSY;
-> +		cpu_relax();
-> +	} while ((nval = cmpxchg(addr, val, val & ~mask_to_clear)) != val);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * bitmap_set_ll - set the specified number of bits at the specified position
-> + * @map: pointer to a bitmap
-> + * @start: a bit position in @map
-> + * @nr: number of bits to set
-> + *
-> + * Set @nr bits start from @start in @map lock-lessly. Several users
-> + * can set/clear the same bitmap simultaneously without lock. If two
-> + * users set the same bit, one user will return remain bits, otherwise
-> + * return 0.
-> + */
-> +static int bitmap_set_ll(unsigned long *map, int start, int nr)
-> +{
-> +	unsigned long *p = map + BIT_WORD(start);
-> +	const int size = start + nr;
-> +	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-> +	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-> +
-> +	while (nr - bits_to_set >= 0) {
-> +		if (set_bits_ll(p, mask_to_set))
-> +			return nr;
-> +		nr -= bits_to_set;
-> +		bits_to_set = BITS_PER_LONG;
-> +		mask_to_set = ~0UL;
-> +		p++;
-> +	}
-> +	if (nr) {
-> +		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-> +		if (set_bits_ll(p, mask_to_set))
-> +			return nr;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * bitmap_clear_ll - clear the specified number of bits at the specified position
-> + * @map: pointer to a bitmap
-> + * @start: a bit position in @map
-> + * @nr: number of bits to set
-> + *
-> + * Clear @nr bits start from @start in @map lock-lessly. Several users
-> + * can set/clear the same bitmap simultaneously without lock. If two
-> + * users clear the same bit, one user will return remain bits,
-> + * otherwise return 0.
-> + */
-> +static int bitmap_clear_ll(unsigned long *map, int start, int nr)
-> +{
-> +	unsigned long *p = map + BIT_WORD(start);
-> +	const int size = start + nr;
-> +	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-> +	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-> +
-> +	while (nr - bits_to_clear >= 0) {
-> +		if (clear_bits_ll(p, mask_to_clear))
-> +			return nr;
-> +		nr -= bits_to_clear;
-> +		bits_to_clear = BITS_PER_LONG;
-> +		mask_to_clear = ~0UL;
-> +		p++;
-> +	}
-> +	if (nr) {
-> +		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-> +		if (clear_bits_ll(p, mask_to_clear))
-> +			return nr;
-> +	}
-> +
-> +	return 0;
-> +}
->  
->  /**
->   * gen_pool_create - create a new special memory pool
-> @@ -30,7 +149,7 @@ struct gen_pool *gen_pool_create(int min
->  
->  	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
->  	if (pool != NULL) {
-> -		rwlock_init(&pool->lock);
-> +		spin_lock_init(&pool->lock);
->  		INIT_LIST_HEAD(&pool->chunks);
->  		pool->min_alloc_order = min_alloc_order;
->  	}
-> @@ -58,15 +177,15 @@ int gen_pool_add(struct gen_pool *pool,
->  
->  	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
->  	if (unlikely(chunk == NULL))
-> -		return -1;
-> +		return -ENOMEM;
->  
-> -	spin_lock_init(&chunk->lock);
->  	chunk->start_addr = addr;
->  	chunk->end_addr = addr + size;
-> +	atomic_set(&chunk->avail, size);
->  
-> -	write_lock(&pool->lock);
-> -	list_add(&chunk->next_chunk, &pool->chunks);
-> -	write_unlock(&pool->lock);
-> +	spin_lock(&pool->lock);
-> +	list_add_rcu(&chunk->next_chunk, &pool->chunks);
-> +	spin_unlock(&pool->lock);
->  
->  	return 0;
->  }
-> @@ -86,7 +205,6 @@ void gen_pool_destroy(struct gen_pool *p
->  	int order = pool->min_alloc_order;
->  	int bit, end_bit;
->  
-> -
->  	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
->  		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
->  		list_del(&chunk->next_chunk);
-> @@ -108,43 +226,50 @@ EXPORT_SYMBOL(gen_pool_destroy);
->   * @size: number of bytes to allocate from the pool
->   *
->   * Allocate the requested number of bytes from the specified pool.
-> - * Uses a first-fit algorithm.
-> + * Uses a first-fit algorithm. Can not be used in NMI handler on
-> + * architectures without NMI-safe cmpxchg implementation.
->   */
->  unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
->  {
-> -	struct list_head *_chunk;
->  	struct gen_pool_chunk *chunk;
-> -	unsigned long addr, flags;
-> +	unsigned long addr;
->  	int order = pool->min_alloc_order;
-> -	int nbits, start_bit, end_bit;
-> +	int nbits, start_bit = 0, end_bit, remain;
-> +
-> +#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-> +	BUG_ON(in_nmi());
-> +#endif
->  
->  	if (size == 0)
->  		return 0;
->  
->  	nbits = (size + (1UL << order) - 1) >> order;
-> -
-> -	read_lock(&pool->lock);
-> -	list_for_each(_chunk, &pool->chunks) {
-> -		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
-> +		if (size > atomic_read(&chunk->avail))
-> +			continue;
->  
->  		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
-> -
-> -		spin_lock_irqsave(&chunk->lock, flags);
-> -		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
-> -						nbits, 0);
-> -		if (start_bit >= end_bit) {
-> -			spin_unlock_irqrestore(&chunk->lock, flags);
-> +retry:
-> +		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit,
-> +						       start_bit, nbits, 0);
-> +		if (start_bit >= end_bit)
->  			continue;
-> +		remain = bitmap_set_ll(chunk->bits, start_bit, nbits);
-> +		if (remain) {
-> +			remain = bitmap_clear_ll(chunk->bits, start_bit,
-> +						 nbits - remain);
-> +			BUG_ON(remain);
-> +			goto retry;
->  		}
->  
->  		addr = chunk->start_addr + ((unsigned long)start_bit << order);
-> -
-> -		bitmap_set(chunk->bits, start_bit, nbits);
-> -		spin_unlock_irqrestore(&chunk->lock, flags);
-> -		read_unlock(&pool->lock);
-> +		size = nbits << order;
-> +		atomic_sub(size, &chunk->avail);
-> +		rcu_read_unlock();
+2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+  and acpi_idle drivers. 
 
-I don't really like seeing a rcu_read_unlock() within a rcu list
-iteration (even if it comes right before a "return"). Doing:
+3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states.
+  Additionally tested the case when C-state tables change on 
+  AC <-> Battery power switch.
 
-unsigned long addr = 0;
+4. De-duplicated code in [1/4] and moved common code related to
+  update of cpuidle statistics to drivers/cpuidle/cpuidle.c
 
-rcu_read_lock();
-list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
-  if (...)
-    continue;
-  ...
-  addr = ...;
-  break;
-}
-rcu_read_unlock();
-return addr;
+5. Handled the case when acpi_processor_cst_has_changed() is called on x86
+  on switching power from AC <-> Battery. The implementation is just 
+  a prototype. Please provide suggestions.
 
-Would be more symmetric, and would remove one return path, which makes
-the code easier to modify in the future.
 
->  		return addr;
->  	}
-> -	read_unlock(&pool->lock);
-> +	rcu_read_unlock();
->  	return 0;
->  }
->  EXPORT_SYMBOL(gen_pool_alloc);
-> @@ -155,33 +280,73 @@ EXPORT_SYMBOL(gen_pool_alloc);
->   * @addr: starting address of memory to free back to pool
->   * @size: size in bytes of memory to free
->   *
-> - * Free previously allocated special memory back to the specified pool.
-> + * Free previously allocated special memory back to the specified
-> + * pool.  Can not be used in NMI handler on architectures without
-> + * NMI-safe cmpxchg implementation.
->   */
->  void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
->  {
-> -	struct list_head *_chunk;
->  	struct gen_pool_chunk *chunk;
-> -	unsigned long flags;
->  	int order = pool->min_alloc_order;
-> -	int bit, nbits;
-> +	int start_bit, nbits, remain;
->  
-> -	nbits = (size + (1UL << order) - 1) >> order;
-> -
-> -	read_lock(&pool->lock);
-> -	list_for_each(_chunk, &pool->chunks) {
-> -		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-> +#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-> +	BUG_ON(in_nmi());
-> +#endif
->  
-> +	nbits = (size + (1UL << order) - 1) >> order;
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
->  		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
->  			BUG_ON(addr + size > chunk->end_addr);
-> -			spin_lock_irqsave(&chunk->lock, flags);
-> -			bit = (addr - chunk->start_addr) >> order;
-> -			while (nbits--)
-> -				__clear_bit(bit++, chunk->bits);
-> -			spin_unlock_irqrestore(&chunk->lock, flags);
-> -			break;
-> +			start_bit = (addr - chunk->start_addr) >> order;
-> +			remain = bitmap_clear_ll(chunk->bits, start_bit, nbits);
-> +			BUG_ON(remain);
-> +			size = nbits << order;
-> +			atomic_add(size, &chunk->avail);
-> +			rcu_read_unlock();
+Brief description of the patches:
 
-Same comment as above apply here.
+The core change in this series is to split the cpuidle_device structure 
+into parts that can be global and parts that has to remain per-cpu. 
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+  the respective low level drivers, so that the accounting can
+  be accurately maintained if the driver decides to demote the
+  chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+  widely used and the only use case was to allow software
+  demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+  functions can be absorbed within the cpuidle back-end
+  driver ad hence deprecating the prepare routine and the
+  CPUIDLE_FLAG_IGNORE flag.
+
+  - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+  cpuidle_state structure, so that the states can become read
+  only and hence made global.
+
+[4/4] - most APIs will now need to pass pointer to both global
+   cpuidle_driver and per-cpu cpuidle_device structure.
 
 Thanks,
-
-Mathieu
-
-> +			return;
->  		}
->  	}
-> -	BUG_ON(nbits > 0);
-> -	read_unlock(&pool->lock);
-> +	rcu_read_unlock();
-> +	BUG();
->  }
->  EXPORT_SYMBOL(gen_pool_free);
-> +
-> +/**
-> + * gen_pool_avail - get available free space of the pool
-> + * @pool: pool to get available free space
-> + *
-> + * Return available free space of the specified pool.
-> + */
-> +size_t gen_pool_avail(struct gen_pool *pool)
-> +{
-> +	struct gen_pool_chunk *chunk;
-> +	size_t avail = 0;
-> +
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
-> +		avail += atomic_read(&chunk->avail);
-> +	rcu_read_unlock();
-> +	return avail;
-> +}
-> +EXPORT_SYMBOL_GPL(gen_pool_avail);
-> +
-> +/**
-> + * gen_pool_size - get size in bytes of memory managed by the pool
-> + * @pool: pool to get size
-> + *
-> + * Return size in bytes of memory managed by the pool.
-> + */
-> +size_t gen_pool_size(struct gen_pool *pool)
-> +{
-> +	struct gen_pool_chunk *chunk;
-> +	size_t size = 0;
-> +
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
-> +		size += chunk->end_addr - chunk->start_addr;
-> +	rcu_read_unlock();
-> +	return size;
-> +}
-> +EXPORT_SYMBOL_GPL(gen_pool_size);
-
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
+-Trinabh
