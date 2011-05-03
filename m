@@ -1,135 +1,190 @@
-From: =?ISO-8859-1?Q?Sebastian_F=E4rber?= <faerber@gmail.com>
-Subject: Hard LOCKUP, maybe acpi related (present in 2.6.32 to 2.6.37, fixed
- in 2.6.38)
-Date: Tue, 3 May 2011 12:24:52 +0200
-Message-ID: <BANLkTimK9+d8USk_9_NzKcOmbnPAq6P+tQ@mail.gmail.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: 2.6.39-rc5-mmotm0429 - lockdep splat in fsck/acpi
+Date: Tue, 03 May 2011 10:15:41 -0400
+Message-ID: <11287.1304432141@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; boundary="==_Exmh_1304432140_4857P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f170.google.com ([209.85.212.170]:47146 "EHLO
-	mail-px0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627Ab1ECKYw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 06:24:52 -0400
-Received: by pxi19 with SMTP id 19so2837912pxi.1
-        for <linux-acpi@vger.kernel.org>; Tue, 03 May 2011 03:24:52 -0700 (PDT)
+Received: from lennier.cc.vt.edu ([198.82.162.213]:45767 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab1ECOSX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 10:18:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+--==_Exmh_1304432140_4857P
+Content-Type: text/plain; charset=us-ascii
 
-I'm trying to track down a problem i have with newer hardware which seems
-fixed in 2.6.38.4 but which i can reproduce from 2.6.32 to 2.6.37
-I'm running a DEBUG Kernel with nmi_watchdog=1 and attached a backtrace
-of the lockup that happened on 2.6.37.6. I can also provide backtraces for
-2.6.32 to 2.6.35 if necessary, they look very similar.
+No, I have no idea how a path invoked by fsck and a path invoked by acpi
+managed to cross paths. Lot of scheduler and acpi function names in the
+tracebacks, so, tossing it to everybody plausible in MAINTAINERS.
 
-To my untrained eye this looks like a problem with ACPI/CPU C States
-(CPU in Question
-is a Quadcore Core i5 750). It's strange that the watchdog only shows
-backtraces for 3 CPUs/Cores, one is still fine?
-The servers on which this happens are all completely idle and the lockup
-occurs every 1-2 days.
-Would be great if someone more experienced could have a look and see
-which change in 2.6.38 fixed this.
-Unfortunately i can't upgrade all servers to 2.6.38 right now so I'm hoping
-it's possible to backport this to the stable kernel series.
+Saw this during boot this morning:
+
+[   87.294863] =======================================================
+[   87.295177] [ INFO: possible circular locking dependency detected ]
+[   87.295402] 2.6.39-rc5-mmotm0429 #1
+[   87.295531] -------------------------------------------------------
+[   87.295727] fsck/3150 is trying to acquire lock:
+[   87.295727]  (rcu_node_level_0){..-...}, at: [<ffffffff810904a8>] rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727] 
+[   87.295727] but task is already holding lock:
+[   87.295727]  (&rq->lock){-.-.-.}, at: [<ffffffff81031dfb>] scheduler_ipi+0x34/0x5d
+[   87.295727] 
+[   87.295727] which lock already depends on the new lock.
+[   87.295727] 
+[   87.295727] 
+[   87.295727] the existing dependency chain (in reverse order) is:
+[   87.295727] 
+[   87.295727] -> #2 (&rq->lock){-.-.-.}:
+[   87.295727]        [<ffffffff810670e1>] check_prevs_add+0x8b/0x104
+[   87.295727]        [<ffffffff810674c9>] validate_chain+0x36f/0x3ab
+[   87.295727]        [<ffffffff81067b93>] __lock_acquire+0x369/0x3e2
+[   87.295727]        [<ffffffff81068137>] lock_acquire+0xfc/0x14c
+[   87.295727]        [<ffffffff81567951>] _raw_spin_lock+0x36/0x45
+[   87.295727]        [<ffffffff81027df9>] __task_rq_lock+0x8b/0xd3
+[   87.295727]        [<ffffffff81032fd1>] wake_up_new_task+0x41/0x108
+[   87.295727]        [<ffffffff81037714>] do_fork+0x265/0x33f
+[   87.295727]        [<ffffffff81007d02>] kernel_thread+0x6b/0x6d
+[   87.295727]        [<ffffffff81538bbd>] rest_init+0x21/0xd2
+[   87.295727]        [<ffffffff81b20b4f>] start_kernel+0x3bb/0x3c6
+[   87.295727]        [<ffffffff81b2029f>] x86_64_start_reservations+0xaf/0xb3
+[   87.295727]        [<ffffffff81b20393>] x86_64_start_kernel+0xf0/0xf7
+[   87.295727] 
+[   87.295727] -> #1 (&p->pi_lock){-.-.-.}:
+[   87.295727]        [<ffffffff810670e1>] check_prevs_add+0x8b/0x104
+[   87.295727]        [<ffffffff810674c9>] validate_chain+0x36f/0x3ab
+[   87.295727]        [<ffffffff81067b93>] __lock_acquire+0x369/0x3e2
+[   87.295727]        [<ffffffff81068137>] lock_acquire+0xfc/0x14c
+[   87.295727]        [<ffffffff81567a4a>] _raw_spin_lock_irqsave+0x44/0x57
+[   87.295727]        [<ffffffff81032de1>] try_to_wake_up+0x29/0x1aa
+[   87.295727]        [<ffffffff81032f8e>] wake_up_process+0x10/0x12
+[   87.295727]        [<ffffffff8108ff01>] rcu_cpu_kthread_timer+0x44/0x58
+[   87.295727]        [<ffffffff810452ce>] call_timer_fn+0xac/0x1e9
+[   87.295727]        [<ffffffff810455b5>] run_timer_softirq+0x1aa/0x1f2
+[   87.295727]        [<ffffffff8103e4cf>] __do_softirq+0x109/0x26a
+[   87.295727]        [<ffffffff8156f5cc>] call_softirq+0x1c/0x30
+[   87.295727]        [<ffffffff81003207>] do_softirq+0x44/0xf1
+[   87.295727]        [<ffffffff8103e901>] irq_exit+0x58/0xc8
+[   87.295727]        [<ffffffff81017f5a>] smp_apic_timer_interrupt+0x79/0x87
+[   87.295727]        [<ffffffff8156f153>] apic_timer_interrupt+0x13/0x20
+[   87.295727]        [<ffffffff81059935>] up+0x55/0x5d
+[   87.295727]        [<ffffffff81251dcd>] acpi_os_signal_semaphore+0x1c/0x27
+[   87.295727]        [<ffffffff8127459c>] acpi_ut_release_mutex+0x59/0x5d
+[   87.295727]        [<ffffffff8126bbb9>] acpi_ns_walk_namespace+0x94/0x17b
+[   87.295727]        [<ffffffff8125f202>] acpi_ev_install_space_handler+0x20f/0x225
+[   87.295727]        [<ffffffff8125f256>] acpi_ev_install_region_handlers+0x3e/0x77
+[   87.295727]        [<ffffffff81272d50>] acpi_enable_subsystem+0x64/0x8b
+[   87.295727]        [<ffffffff81b41721>] acpi_bus_init+0x18/0x12a
+[   87.295727]        [<ffffffff81b418a1>] acpi_init+0x6e/0xb4
+[   87.295727]        [<ffffffff8100020a>] do_one_initcall+0x7a/0x130
+[   87.295727]        [<ffffffff81b20c3b>] kernel_init+0xe1/0x15b
+[   87.295727]        [<ffffffff8156f4d4>] kernel_thread_helper+0x4/0x10
+[   87.295727] 
+[   87.295727] -> #0 (rcu_node_level_0){..-...}:
+[   87.295727]        [<ffffffff81066eb0>] check_prev_add+0x68/0x20e
+[   87.295727]        [<ffffffff810670e1>] check_prevs_add+0x8b/0x104
+[   87.295727]        [<ffffffff810674c9>] validate_chain+0x36f/0x3ab
+[   87.295727]        [<ffffffff81067b93>] __lock_acquire+0x369/0x3e2
+[   87.295727]        [<ffffffff81068137>] lock_acquire+0xfc/0x14c
+[   87.295727]        [<ffffffff81567951>] _raw_spin_lock+0x36/0x45
+[   87.295727]        [<ffffffff810904a8>] rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727]        [<ffffffff81090640>] __rcu_read_unlock+0x4f/0xd7
+[   87.295727]        [<ffffffff81027bb3>] rcu_read_unlock+0x21/0x23
+[   87.295727]        [<ffffffff8102cc14>] cpuacct_charge+0x6c/0x75
+[   87.295727]        [<ffffffff81030c3f>] update_curr+0x101/0x12e
+[   87.295727]        [<ffffffff81031149>] check_preempt_wakeup+0xf7/0x23b
+[   87.295727]        [<ffffffff8102ac93>] check_preempt_curr+0x2b/0x68
+[   87.295727]        [<ffffffff81031cb9>] ttwu_do_wakeup+0x76/0x128
+[   87.295727]        [<ffffffff81031dc2>] ttwu_do_activate.constprop.63+0x57/0x5c
+[   87.295727]        [<ffffffff81031e0f>] scheduler_ipi+0x48/0x5d
+[   87.295727]        [<ffffffff810177d5>] smp_reschedule_interrupt+0x16/0x18
+[   87.295727]        [<ffffffff8156f273>] reschedule_interrupt+0x13/0x20
+[   87.295727]        [<ffffffff810b6411>] rcu_read_unlock+0x21/0x23
+[   87.295727]        [<ffffffff810b70dc>] find_get_page+0xa9/0xb9
+[   87.295727]        [<ffffffff810b7840>] do_generic_file_read.constprop.13+0xae/0x46a
+[   87.295727]        [<ffffffff810b8640>] generic_file_aio_read+0x1cd/0x232
+[   87.295727]        [<ffffffff810f595d>] do_sync_read+0xba/0xfa
+[   87.295727]        [<ffffffff810f60d7>] vfs_read+0xde/0x129
+[   87.295727]        [<ffffffff810f6167>] sys_read+0x45/0x69
+[   87.295727]        [<ffffffff8156e73b>] system_call_fastpath+0x16/0x1b
+[   87.295727] 
+[   87.295727] other info that might help us debug this:
+[   87.295727] 
+[   87.295727] Chain exists of:
+[   87.295727]   rcu_node_level_0 --> &p->pi_lock --> &rq->lock
+[   87.295727] 
+[   87.295727]  Possible unsafe locking scenario:
+[   87.295727] 
+[   87.295727]        CPU0                    CPU1
+[   87.295727]        ----                    ----
+[   87.295727]   lock(&rq->lock);
+[   87.295727]                                lock(&p->pi_lock);
+[   87.295727]                                lock(&rq->lock);
+[   87.295727]   lock(rcu_node_level_0);
+[   87.295727] 
+[   87.295727]  *** DEADLOCK ***
+[   87.295727] 
+[   87.295727] 1 lock held by fsck/3150:
+[   87.295727]  #0:  (&rq->lock){-.-.-.}, at: [<ffffffff81031dfb>] scheduler_ipi+0x34/0x5d
+[   87.295727] 
+[   87.295727] stack backtrace:
+[   87.295727] Pid: 3150, comm: fsck Not tainted 2.6.39-rc5-mmotm0429 #1
+[   87.295727] Call Trace:
+[   87.295727]  <IRQ>  [<ffffffff815486ed>] print_circular_bug+0xc8/0xd9
+[   87.295727]  [<ffffffff81066eb0>] check_prev_add+0x68/0x20e
+[   87.295727]  [<ffffffff812d863a>] ? scsi_request_fn+0x30d/0x3de
+[   87.295727]  [<ffffffff810670e1>] check_prevs_add+0x8b/0x104
+[   87.295727]  [<ffffffff810674c9>] validate_chain+0x36f/0x3ab
+[   87.295727]  [<ffffffff81067b93>] __lock_acquire+0x369/0x3e2
+[   87.295727]  [<ffffffff810685f5>] ? trace_hardirqs_on_caller+0xfd/0x13b
+[   87.295727]  [<ffffffff81567fb0>] ? _raw_spin_unlock_irqrestore+0x7b/0x80
+[   87.295727]  [<ffffffff810904a8>] ? rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727]  [<ffffffff81068137>] lock_acquire+0xfc/0x14c
+[   87.295727]  [<ffffffff810904a8>] ? rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727]  [<ffffffff81567951>] _raw_spin_lock+0x36/0x45
+[   87.295727]  [<ffffffff810904a8>] ? rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727]  [<ffffffff810904a8>] rcu_read_unlock_special+0x8c/0x1d5
+[   87.295727]  [<ffffffff81067f37>] ? __lock_release+0x8c/0x9c
+[   87.295727]  [<ffffffff81090640>] __rcu_read_unlock+0x4f/0xd7
+[   87.295727]  [<ffffffff81027bb3>] rcu_read_unlock+0x21/0x23
+[   87.295727]  [<ffffffff8102cc14>] cpuacct_charge+0x6c/0x75
+[   87.295727]  [<ffffffff81030c3f>] update_curr+0x101/0x12e
+[   87.295727]  [<ffffffff81031149>] check_preempt_wakeup+0xf7/0x23b
+[   87.295727]  [<ffffffff8102ac93>] check_preempt_curr+0x2b/0x68
+[   87.295727]  [<ffffffff81031cb9>] ttwu_do_wakeup+0x76/0x128
+[   87.295727]  [<ffffffff81031dc2>] ttwu_do_activate.constprop.63+0x57/0x5c
+[   87.295727]  [<ffffffff81031e0f>] scheduler_ipi+0x48/0x5d
+[   87.295727]  [<ffffffff810177d5>] smp_reschedule_interrupt+0x16/0x18
+[   87.295727]  [<ffffffff8156f273>] reschedule_interrupt+0x13/0x20
+[   87.295727]  <EOI>  [<ffffffff8109041d>] ? rcu_read_unlock_special+0x1/0x1d5
+[   87.295727]  [<ffffffff81090640>] ? __rcu_read_unlock+0x4f/0xd7
+[   87.295727]  [<ffffffff810b6411>] rcu_read_unlock+0x21/0x23
+[   87.295727]  [<ffffffff810b70dc>] find_get_page+0xa9/0xb9
+[   87.295727]  [<ffffffff810b7840>] do_generic_file_read.constprop.13+0xae/0x46a
+[   87.295727]  [<ffffffff810b8640>] generic_file_aio_read+0x1cd/0x232
+[   87.295727]  [<ffffffff810f595d>] do_sync_read+0xba/0xfa
+[   87.295727]  [<ffffffff810f5cc8>] ? rw_verify_area+0x13e/0x161
+[   87.295727]  [<ffffffff810f60d7>] vfs_read+0xde/0x129
+[   87.295727]  [<ffffffff810f6167>] sys_read+0x45/0x69
+[   87.295727]  [<ffffffff8156e73b>] system_call_fastpath+0x16/0x1b
 
 
-My .config is here: http://pastebin.com/iC1udT93
-Backtrace: http://pastebin.com/yR1YseM7
+--==_Exmh_1304432140_4857P
+Content-Type: application/pgp-signature
 
-If someone needs more information just let me know.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-Regards,
+iD8DBQFNwA4McC3lWbTT17ARAvd1AJoDoOxKFqKlVHcMuxmhmYW0/qRxdgCfbPL5
+fSbEAq2M0+G7z3y7dzzDRSA=
+=6ZsM
+-----END PGP SIGNATURE-----
 
-Sebastian
+--==_Exmh_1304432140_4857P--
 
----
-BUG: NMI Watchdog detected LOCKUP on CPU1, ip c100a556, registers:
-Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
-nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
-iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
-
-Pid: 0, comm: kworker/0:0 Not tainted 2.6.37.6 #1 Gigabyte Technology
-Co., Ltd. Q57M-S2H/Q57M-S2H
-EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 1
-EIP is at mwait_idle_with_hints+0x66/0x80
-EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
-ESI: 00000020 EDI: f0498000 EBP: f0499f44 ESP: f0499f38
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process kworker/0:0 (pid: 0, ti=f0498000 task=f0475400 task.ti=f0498000)
-Stack:
- cfc15d32 1218f498 f052b6a0 f0499f4c c101bcf7 f0499f74 c122e781 00002635
- 00000001 f052b260 000026c7 00000000 f052b394 f052b27c 00000000 f0499f84
- c131c8f5 00000001 c152fc00 f0499f94 c1001d35 00000001 00000000 f0499fb0
-Call Trace:
- [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
- [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
- [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
- [<c1001d35>] ? cpu_idle+0x45/0x80
- [<c13cb304>] ? start_secondary+0x180/0x1ec
-Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
-0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
-1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00
-8d bc
----[ end trace 1ccb64a1e31d2874 ]---
-BUG: NMI Watchdog detected LOCKUP on CPU2, ip c100a556, registers:
-Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
-nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
-iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
-
-Pid: 0, comm: kworker/0:1 Tainted: G      D     2.6.37.6 #1 Gigabyte
-Technology Co., Ltd. Q57M-S2H/Q57M-S2H
-EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 2
-EIP is at mwait_idle_with_hints+0x66/0x80
-EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
-ESI: 00000020 EDI: f04a6000 EBP: f04a7f44 ESP: f04a7f38
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process kworker/0:1 (pid: 0, ti=f04a6000 task=f0479400 task.ti=f04a6000)
-Stack:
- cfc13a0e 1218f498 f04bac88 f04a7f4c c101bcf7 f04a7f74 c122e781 00002636
- 00000001 f04ba848 000026b5 00000000 f04ba97c f04ba864 00000000 f04a7f84
- c131c8f5 00000002 c152fc00 f04a7f94 c1001d35 00000002 00000000 f04a7fb0
-Call Trace:
- [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
- [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
- [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
- [<c1001d35>] ? cpu_idle+0x45/0x80
- [<c13cb304>] ? start_secondary+0x180/0x1ec
-Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
-0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
-1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00
-8d bc
----[ end trace 1ccb64a1e31d2875 ]---
-BUG: NMI Watchdog detected LOCKUP on CPU0, ip c100a556, registers:
-Kernel panic - not syncing: Attempted to kill the idle task!
-Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
-nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
-iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
-
-Pid: 0, comm: swapper Tainted: G      D     2.6.37.6 #1 Gigabyte
-Technology Co., Ltd. Q57M-S2H/Q57M-S2H
-EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 0
-EIP is at mwait_idle_with_hints+0x66/0x80
-EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
-ESI: 00000020 EDI: c14e8000 EBP: c14e9f74 ESP: c14e9f68
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process swapper (pid: 0, ti=c14e8000 task=c1506020 task.ti=c14e8000)
-Stack:
- d2bc5b3a 1218f498 efc336e0 c14e9f7c c101bcf7 c14e9fa4 c122e781 000113d3
- 00000001 efc332a0 00003f36 00000000 efc333d4 efc332bc c14eb000 c14e9fb4
- c131c8f5 00000000 c152fc00 c14e9fc4 c1001d35 c156a140 00099d00 c14e9fcc
-Call Trace:
- [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
- [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
- [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
- [<c1001d35>] ? cpu_idle+0x45/0x80
- [<c13b936d>] ? rest_init+0x5d/0x70
- [<c1532955>] ? start_kernel+0x2ec/0x32c
- [<c1532429>] ? unknown_bootoption+0x0/0x1ef
- [<c153208e>] ? i386_start_kernel+0x8e/0x90
-Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
-0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
-1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00 8d bc
----[ end trace 1ccb64a1e31d2876 ]---
