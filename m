@@ -1,111 +1,47 @@
-From: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
-Subject: Re: [PATCH] drivers/acpi/utils.c: Fixed coding style issues
-Date: Tue, 03 May 2011 10:09:57 -0500
-Message-ID: <1304435397.2497.4.camel@ks-ubuntu>
-References: <1303341624.11397.2.camel@ks-ubuntu>
-	 <20110421102815.5abf133e@absol.kitzblitz>
-	 <1303402099.11855.9.camel@ks-ubuntu>  <1304374605.1619.4.camel@ks-ubuntu>
-	 <1304382405.7792.53.camel@Joe-Laptop>
+From: ken leo <kenleocompany01@gmail.com>
+Subject: (unknown)
+Date: Tue, 3 May 2011 09:05:03 -0700
+Message-ID: <BANLkTi=O637dQzFeHVmd427TYmL_wy5bbA__15630.7662757628$1304439431$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-13
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:16238 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab1ECPKA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 11:10:00 -0400
-In-Reply-To: <1304382405.7792.53.camel@Joe-Laptop>
+Received: from mail-bw0-f66.google.com ([209.85.214.66]:60511 "EHLO
+	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853Ab1ECQRD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 12:17:03 -0400
+Received: by mail-bw0-f66.google.com with SMTP id 7so44801bwz.1
+        for <linux-acpi@vger.kernel.org>; Tue, 03 May 2011 09:17:02 -0700 (PDT)
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>, Nicolas Kaiser <nikai@nikai.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> > -		//kfree(list->handles);
-> > +		/* kfree(list->handles); */
+Gera diena
 
-> Just delete the line instead.
+Mes si=FBlome paskolas atskiroms bendrov=EBms ir pig=FBs
+3% norma, asmenini=F8 ir investicijas, mes si=FBlome paskola
+$ 5,000.00 iki $ 100,000,000.00 doleri=F8 mus gr=E1=FEti prie m=FBs=F8 =
+su tikslios sumos
+jums reikia.
+Pra=F0ome u=FEpildyti ir gr=E0=FEinti =F0i=E0 form=E0 nor=EBdami t=E6st=
+i.
 
-Len, Joe, Nicolas - re-submitting patch with above recommended change. 
+Vardas, pavard=EB: _
+Kredito paskirtis: _
+Am=FEius: _
+Lytis: _
+Adresas: _
+=D0alis: _
+=C1mon=EBs pavadinimas: _
+Pareigos: _
+Telefonas: _
+reikalinga suma, kaip paskola: _
+Trukm=EB: _
 
-Best Regards,
-Karthigan.
-
-=========
-
-Fixed brace, comment, and label coding style issues.
-
-Signed-off-by: Karthigan Srinivasan <karthigan.srinivasan@hp.com>
----
- drivers/acpi/utils.c |   19 +++++++------------
- 1 files changed, 7 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index b002a47..91289d4 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -99,9 +99,8 @@ acpi_extract_package(union acpi_object *package,
- 
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
-+		if (!element)
- 			return AE_BAD_DATA;
--		}
- 
- 		switch (element->type) {
- 
-@@ -185,9 +184,8 @@ acpi_extract_package(union acpi_object *package,
- 		u8 **pointer = NULL;
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
-+		if (!element)
- 			return AE_BAD_DATA;
--		}
- 
- 		switch (element->type) {
- 
-@@ -303,9 +301,8 @@ acpi_evaluate_reference(acpi_handle handle,
- 	u32 i = 0;
- 
- 
--	if (!list) {
-+	if (!list)
- 		return AE_BAD_PARAMETER;
--	}
- 
- 	/* Evaluate object. */
- 
-@@ -337,9 +334,9 @@ acpi_evaluate_reference(acpi_handle handle,
- 		goto end;
- 	}
- 
--	if (package->package.count > ACPI_MAX_HANDLES) {
-+	if (package->package.count > ACPI_MAX_HANDLES)
- 		return AE_NO_MEMORY;
--	}
-+
- 	list->count = package->package.count;
- 
- 	/* Extract package data. */
-@@ -370,11 +367,9 @@ acpi_evaluate_reference(acpi_handle handle,
- 				  list->handles[i]));
- 	}
- 
--      end:
--	if (ACPI_FAILURE(status)) {
-+end:
-+	if (ACPI_FAILURE(status))
- 		list->count = 0;
--		//kfree(list->handles);
--	}
- 
- 	kfree(buffer.pointer);
- 
--- 
-1.7.1
-
-
-
-
-
+Jei esate interested.contact su mumis =FEemiau
+E-mail: Brucefastfunds09@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
