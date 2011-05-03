@@ -1,277 +1,135 @@
-From: "lan,Tianyu" <tianyu.lan@intel.com>
-Subject: [PATCH] Replace acpi_gbl_FADT.sci_interrupt with two functions in
- some places.
-Date: Tue, 03 May 2011 14:10:41 +0800
-Message-ID: <1304403041.3179.29.camel@lantianyu-ws>
+From: =?ISO-8859-1?Q?Sebastian_F=E4rber?= <faerber@gmail.com>
+Subject: Hard LOCKUP, maybe acpi related (present in 2.6.32 to 2.6.37, fixed
+ in 2.6.38)
+Date: Tue, 3 May 2011 12:24:52 +0200
+Message-ID: <BANLkTimK9+d8USk_9_NzKcOmbnPAq6P+tQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50747 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666Ab1ECGK4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 May 2011 02:10:56 -0400
+Received: from mail-px0-f170.google.com ([209.85.212.170]:47146 "EHLO
+	mail-px0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627Ab1ECKYw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 06:24:52 -0400
+Received: by pxi19 with SMTP id 19so2837912pxi.1
+        for <linux-acpi@vger.kernel.org>; Tue, 03 May 2011 03:24:52 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, robert.moore@intel.com, ming.m.lin@intel.com, rui.zhang@intel.com
+To: linux-acpi@vger.kernel.org
 
-     Some places use the acpi_gbl_FADT.sci_interrupt directly to get the ACPI SCI.ACPI SCI will not only be stored in the FADT. 
-So this patch replaces acpi_gbl_FADT.sci_interrupt with two functions for getting and setting.
+Hi,
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- arch/x86/kernel/acpi/boot.c                  |    8 ++---
- drivers/acpi/acpica/evgpeinit.c              |    5 +--
- drivers/acpi/acpica/evgpeutil.c              |    4 +-
- drivers/acpi/acpica/evsci.c                  |    4 +-
- drivers/acpi/acpica/evxface.c                |   38 +++++++++++++++++++++++++++
- drivers/acpi/bus.c                           |    4 +-
- drivers/acpi/osl.c                           |    6 ++--
- drivers/acpi/pci_link.c                      |    2 -
- drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c |    2 -
- include/acpi/acpixf.h                        |    4 ++
- 10 files changed, 59 insertions(+), 18 deletions(-)
+I'm trying to track down a problem i have with newer hardware which seems
+fixed in 2.6.38.4 but which i can reproduce from 2.6.32 to 2.6.37
+I'm running a DEBUG Kernel with nmi_watchdog=1 and attached a backtrace
+of the lockup that happened on 2.6.37.6. I can also provide backtraces for
+2.6.32 to 2.6.35 if necessary, they look very similar.
 
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2011-05-03 10:19:00.163029998 +0800
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c	2011-05-03 10:20:50.833030004 +0800
-@@ -408,7 +408,7 @@
- 
- 	acpi_table_print_madt_entry(header);
- 
--	if (intsrc->source_irq == acpi_gbl_FADT.sci_interrupt) {
-+	if (intsrc->source_irq == acpi_get_sci_interrupt()) {
- 		acpi_sci_ioapic_setup(intsrc->source_irq,
- 				      intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
- 				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
-@@ -1100,7 +1100,7 @@
- 		return gsi;
- 
- 	/* Don't set up the ACPI SCI because it's already set up */
--	if (acpi_gbl_FADT.sci_interrupt == gsi)
-+	if (acpi_get_sci_interrupt() == gsi)
- 		return gsi;
- 
- 	ioapic = mp_find_ioapic(gsi);
-@@ -1184,8 +1184,8 @@
- 	 * pretend we got one so we can set the SCI flags.
- 	 */
- 	if (!acpi_sci_override_gsi)
--		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0,
--				      acpi_gbl_FADT.sci_interrupt);
-+		acpi_sci_ioapic_setup(acpi_get_sci_interrupt(), 0, 0,
-+				      acpi_get_sci_interrupt());
- 
- 	/* Fill in identity legacy mappings where no override */
- 	mp_config_acpi_legacy_irqs();
-Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:19:00.243029997 +0800
-+++ linux-2.6/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:20:50.833030004 +0800
-@@ -131,7 +131,7 @@
- 		status = acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
- 						  &acpi_gbl_FADT.xgpe0_block,
- 						  register_count0, 0,
--						  acpi_gbl_FADT.sci_interrupt,
-+						  acpi_get_sci_interrupt(),
- 						  &acpi_gbl_gpe_fadt_blocks[0]);
- 
- 		if (ACPI_FAILURE(status)) {
-@@ -170,8 +170,7 @@
- 						     &acpi_gbl_FADT.xgpe1_block,
- 						     register_count1,
- 						     acpi_gbl_FADT.gpe1_base,
--						     acpi_gbl_FADT.
--						     sci_interrupt,
-+	   					     acpi_get_sci_interrupt(),
- 						     &acpi_gbl_gpe_fadt_blocks
- 						     [1]);
- 
-Index: linux-2.6/drivers/acpi/acpica/evgpeutil.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:19:00.213030003 +0800
-+++ linux-2.6/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:20:50.833030004 +0800
-@@ -253,7 +253,7 @@
- 
- 	/* Install new interrupt handler if not SCI_INT */
- 
--	if (interrupt_number != acpi_gbl_FADT.sci_interrupt) {
-+	if (interrupt_number != acpi_get_sci_interrupt()) {
- 		status = acpi_os_install_interrupt_handler(interrupt_number,
- 							   acpi_ev_gpe_xrupt_handler,
- 							   gpe_xrupt);
-@@ -290,7 +290,7 @@
- 
- 	/* We never want to remove the SCI interrupt handler */
- 
--	if (gpe_xrupt->interrupt_number == acpi_gbl_FADT.sci_interrupt) {
-+	if (gpe_xrupt->interrupt_number == acpi_get_sci_interrupt()) {
- 		gpe_xrupt->gpe_block_list_head = NULL;
- 		return_ACPI_STATUS(AE_OK);
- 	}
-Index: linux-2.6/drivers/acpi/acpica/evsci.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evsci.c	2011-05-03 10:19:00.223030004 +0800
-+++ linux-2.6/drivers/acpi/acpica/evsci.c	2011-05-03 10:20:50.833030004 +0800
-@@ -142,7 +142,7 @@
- 	ACPI_FUNCTION_TRACE(ev_install_sci_handler);
- 
- 	status =
--	    acpi_os_install_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
-+	    acpi_os_install_interrupt_handler((u32) acpi_get_sci_interrupt(),
- 					      acpi_ev_sci_xrupt_handler,
- 					      acpi_gbl_gpe_xrupt_list_head);
- 	return_ACPI_STATUS(status);
-@@ -176,7 +176,7 @@
- 	/* Just let the OS remove the handler and disable the level */
- 
- 	status =
--	    acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
-+	    acpi_os_remove_interrupt_handler((u32) acpi_get_sci_interrupt(),
- 					     acpi_ev_sci_xrupt_handler);
- 
- 	return_ACPI_STATUS(status);
-Index: linux-2.6/drivers/acpi/acpica/evxface.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/evxface.c	2011-05-03 10:19:00.213030003 +0800
-+++ linux-2.6/drivers/acpi/acpica/evxface.c	2011-05-03 10:20:50.833030004 +0800
-@@ -983,3 +983,41 @@
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_release_global_lock)
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_get_sci_interrupt
-+ *
-+ * PARAMETERS:  none
-+ *
-+ * RETURN:      SCI Interrupt
-+ *
-+ * DESCRIPTION: Return the ACPI SCI interrupt
-+ *
-+ ******************************************************************************/
-+u16 acpi_get_sci_interrupt(void)
-+{
-+	return acpi_gbl_FADT.sci_interrupt;
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_get_sci_interrupt)
-+				
-+/*******************************************************************************
-+		*
-+		* FUNCTION:    acpi_set_sci_interrupt
-+		*
-+		* PARAMETERS:  override sci irq
-+		*
-+		* RETURN:      status
-+		*
-+		* DESCRIPTION: Set the ACPI SCI interrupt
-+		*
-+ ******************************************************************************/
-+acpi_status acpi_set_sci_interrupt(u16 irq)
-+{
-+	acpi_gbl_FADT.sci_interrupt = irq;
-+	return AE_OK;
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_set_sci_interrupt)		
-+
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c	2011-05-03 10:19:00.203030002 +0800
-+++ linux-2.6/drivers/acpi/bus.c	2011-05-03 10:20:50.833030004 +0800
-@@ -890,14 +890,14 @@
- 			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
- 		}
- 		/* Set PIC-mode SCI trigger type */
--		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-+		acpi_pic_sci_set_trigger(acpi_get_sci_interrupt(),
- 					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
- 	} else {
- 		/*
- 		 * now that acpi_gbl_FADT is initialized,
- 		 * update it with result from INT_SRC_OVR parsing
- 		 */
--		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
-+		acpi_set_sci_interrupt(acpi_sci_override_gsi);
- 	}
- #endif
- 
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c	2011-05-03 10:19:48.993030009 +0800
-+++ linux-2.6/drivers/acpi/osl.c	2011-05-03 10:20:50.833030004 +0800
-@@ -534,7 +534,7 @@
- 	 * ACPI interrupts different from the SCI in our copy of the FADT are
- 	 * not supported.
- 	 */
--	if (gsi != acpi_gbl_FADT.sci_interrupt)
-+	if (gsi != acpi_get_sci_interrupt())
- 		return AE_BAD_PARAMETER;
- 
- 	if (acpi_irq_handler)
-@@ -559,7 +559,7 @@
- 
- acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
- {
--	if (irq != acpi_gbl_FADT.sci_interrupt)
-+	if (irq != acpi_get_sci_interrupt())
- 		return AE_BAD_PARAMETER;
- 
- 	free_irq(irq, acpi_irq);
-@@ -1622,7 +1622,7 @@
- acpi_status acpi_os_terminate(void)
- {
- 	if (acpi_irq_handler) {
--		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
-+		acpi_os_remove_interrupt_handler(acpi_get_sci_interrupt(),
- 						 acpi_irq_handler);
- 	}
- 
-Index: linux-2.6/drivers/acpi/pci_link.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_link.c	2011-05-03 10:19:00.203030002 +0800
-+++ linux-2.6/drivers/acpi/pci_link.c	2011-05-03 10:20:50.833030004 +0800
-@@ -508,7 +508,7 @@
- 		}
- 	}
- 	/* Add a penalty for the SCI */
--	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
-+	acpi_irq_penalty[acpi_get_sci_interrupt()] += PIRQ_PENALTY_PCI_USING;
- 	return 0;
- }
- 
-Index: linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c
-===================================================================
---- linux-2.6.orig/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	2011-05-03 10:19:00.193030001 +0800
-+++ linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	2011-05-03 10:20:50.833030004 +0800
-@@ -104,7 +104,7 @@
- 	pci_dev_put(pdev);
- 
- 	/* we're sharing the IRQ with ACPI */
--	irq = acpi_gbl_FADT.sci_interrupt;
-+	irq = acpi_get_sci_interrupt();
- 	if (request_irq(irq, &dcon_interrupt, IRQF_SHARED, "DCON", dcon)) {
- 		printk(KERN_ERR PREFIX "DCON (IRQ%d) allocation failed\n", irq);
- 		return 1;
-Index: linux-2.6/include/acpi/acpixf.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpixf.h	2011-05-03 10:19:00.253029998 +0800
-+++ linux-2.6/include/acpi/acpixf.h	2011-05-03 10:20:50.833030004 +0800
-@@ -411,6 +411,10 @@
- acpi_info(const char *module_name,
- 	  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
- 
-+u16 acpi_get_sci_interrupt(void);
-+
-+acpi_status acpi_set_sci_interrupt(u16 irq);
-+
- /*
-  * Debug output
-  */
+To my untrained eye this looks like a problem with ACPI/CPU C States
+(CPU in Question
+is a Quadcore Core i5 750). It's strange that the watchdog only shows
+backtraces for 3 CPUs/Cores, one is still fine?
+The servers on which this happens are all completely idle and the lockup
+occurs every 1-2 days.
+Would be great if someone more experienced could have a look and see
+which change in 2.6.38 fixed this.
+Unfortunately i can't upgrade all servers to 2.6.38 right now so I'm hoping
+it's possible to backport this to the stable kernel series.
+
+
+My .config is here: http://pastebin.com/iC1udT93
+Backtrace: http://pastebin.com/yR1YseM7
+
+If someone needs more information just let me know.
+
+Regards,
+
+Sebastian
 
 ---
+BUG: NMI Watchdog detected LOCKUP on CPU1, ip c100a556, registers:
+Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
+nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
+iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
 
+Pid: 0, comm: kworker/0:0 Not tainted 2.6.37.6 #1 Gigabyte Technology
+Co., Ltd. Q57M-S2H/Q57M-S2H
+EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 1
+EIP is at mwait_idle_with_hints+0x66/0x80
+EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
+ESI: 00000020 EDI: f0498000 EBP: f0499f44 ESP: f0499f38
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process kworker/0:0 (pid: 0, ti=f0498000 task=f0475400 task.ti=f0498000)
+Stack:
+ cfc15d32 1218f498 f052b6a0 f0499f4c c101bcf7 f0499f74 c122e781 00002635
+ 00000001 f052b260 000026c7 00000000 f052b394 f052b27c 00000000 f0499f84
+ c131c8f5 00000001 c152fc00 f0499f94 c1001d35 00000001 00000000 f0499fb0
+Call Trace:
+ [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
+ [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
+ [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
+ [<c1001d35>] ? cpu_idle+0x45/0x80
+ [<c13cb304>] ? start_secondary+0x180/0x1ec
+Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
+0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
+1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00
+8d bc
+---[ end trace 1ccb64a1e31d2874 ]---
+BUG: NMI Watchdog detected LOCKUP on CPU2, ip c100a556, registers:
+Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
+nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
+iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
+
+Pid: 0, comm: kworker/0:1 Tainted: G      D     2.6.37.6 #1 Gigabyte
+Technology Co., Ltd. Q57M-S2H/Q57M-S2H
+EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 2
+EIP is at mwait_idle_with_hints+0x66/0x80
+EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
+ESI: 00000020 EDI: f04a6000 EBP: f04a7f44 ESP: f04a7f38
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process kworker/0:1 (pid: 0, ti=f04a6000 task=f0479400 task.ti=f04a6000)
+Stack:
+ cfc13a0e 1218f498 f04bac88 f04a7f4c c101bcf7 f04a7f74 c122e781 00002636
+ 00000001 f04ba848 000026b5 00000000 f04ba97c f04ba864 00000000 f04a7f84
+ c131c8f5 00000002 c152fc00 f04a7f94 c1001d35 00000002 00000000 f04a7fb0
+Call Trace:
+ [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
+ [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
+ [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
+ [<c1001d35>] ? cpu_idle+0x45/0x80
+ [<c13cb304>] ? start_secondary+0x180/0x1ec
+Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
+0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
+1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00
+8d bc
+---[ end trace 1ccb64a1e31d2875 ]---
+BUG: NMI Watchdog detected LOCKUP on CPU0, ip c100a556, registers:
+Kernel panic - not syncing: Attempted to kill the idle task!
+Modules linked in: i2c_dev ipt_LOG xt_limit nf_conntrack_ipv4
+nf_defrag_ipv4 xt_state xt_NOTRACK iptable_raw ipt_REJECT
+iptable_filter nf_conntrack_ftp nf_conntrack e1000e usbcore ipv6
+
+Pid: 0, comm: swapper Tainted: G      D     2.6.37.6 #1 Gigabyte
+Technology Co., Ltd. Q57M-S2H/Q57M-S2H
+EIP: 0060:[<c100a556>] EFLAGS: 00000046 CPU: 0
+EIP is at mwait_idle_with_hints+0x66/0x80
+EAX: 00000020 EBX: 00000001 ECX: 00000001 EDX: 00000000
+ESI: 00000020 EDI: c14e8000 EBP: c14e9f74 ESP: c14e9f68
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process swapper (pid: 0, ti=c14e8000 task=c1506020 task.ti=c14e8000)
+Stack:
+ d2bc5b3a 1218f498 efc336e0 c14e9f7c c101bcf7 c14e9fa4 c122e781 000113d3
+ 00000001 efc332a0 00003f36 00000000 efc333d4 efc332bc c14eb000 c14e9fb4
+ c131c8f5 00000000 c152fc00 c14e9fc4 c1001d35 c156a140 00099d00 c14e9fcc
+Call Trace:
+ [<c101bcf7>] ? acpi_processor_ffh_cstate_enter+0x27/0x30
+ [<c122e781>] ? acpi_idle_enter_bm+0x1b7/0x29e
+ [<c131c8f5>] ? cpuidle_idle_call+0x95/0xe0
+ [<c1001d35>] ? cpu_idle+0x45/0x80
+ [<c13b936d>] ? rest_init+0x5d/0x70
+ [<c1532955>] ? start_kernel+0x2ec/0x32c
+ [<c1532429>] ? unknown_bootoption+0x0/0x1ef
+ [<c153208e>] ? i386_start_kernel+0x8e/0x90
+Code: 74 04 0f ae 7a 08 89 e7 31 c9 81 e7 00 e0 ff ff 89 ca 8d 47 08
+0f 01 c8 0f ae f0 89 f6 8b 47 08 a8 08 75 07 89 f0 89 d9 0f 01 c9 <8b>
+1c 24 8b 74 24 04 8b 7c 24 08 89 ec 5d c3 8d 74 26 00 8d bc
+---[ end trace 1ccb64a1e31d2876 ]---
