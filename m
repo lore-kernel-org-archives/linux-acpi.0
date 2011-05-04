@@ -1,7 +1,7 @@
 From: Chen Gong <gong.chen@linux.intel.com>
-Subject: [PATCH 3/3] fix potential logic issue in pstore read interface
-Date: Wed,  4 May 2011 11:06:52 +0800
-Message-ID: <1304478412-11843-4-git-send-email-gong.chen@linux.intel.com>
+Subject: [PATCH 1/3] fix one type of return value in pstore
+Date: Wed,  4 May 2011 11:06:50 +0800
+Message-ID: <1304478412-11843-2-git-send-email-gong.chen@linux.intel.com>
 References: <1304478412-11843-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1304478412-11843-1-git-send-email-gong.chen@linux.intel.com>
@@ -10,35 +10,75 @@ To: tony.luck@intel.com, ying.huang@intel.com
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-1) in the calling of erst_read, the parameter of buffer size
-maybe overflows and cause crash
-
-2) the return value of erst_read should be checked more strictly
+the return type of function _read_ in pstore is size_t,
+but in the callback function of _read_, the logic doesn't
+consider it too much, which means if negative value (assuming
+error here) is returned, it will be converted to positive because
+of type casting. ssize_t is enough for this function.
 
 Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
 ---
- drivers/acpi/apei/erst.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+ drivers/acpi/apei/erst.c |    4 ++--
+ fs/pstore/platform.c     |    4 ++--
+ include/linux/pstore.h   |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index ddb68c4..e6cef8e 100644
+index d6cb0ff..d5a89d0 100644
 --- a/drivers/acpi/apei/erst.c
 +++ b/drivers/acpi/apei/erst.c
-@@ -1006,7 +1006,14 @@ skip:
+@@ -929,7 +929,7 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
+ 	return 0;
+ }
+ 
+-static size_t erst_reader(u64 *id, enum pstore_type_id *type,
++static ssize_t erst_reader(u64 *id, enum pstore_type_id *type,
+ 		       struct timespec *time);
+ static u64 erst_writer(enum pstore_type_id type, size_t size);
+ 
+@@ -957,7 +957,7 @@ struct cper_pstore_record {
+ 	char data[];
+ } __packed;
+ 
+-static size_t erst_reader(u64 *id, enum pstore_type_id *type,
++static ssize_t erst_reader(u64 *id, enum pstore_type_id *type,
+ 		       struct timespec *time)
+ {
+ 	int rc;
+diff --git a/fs/pstore/platform.c b/fs/pstore/platform.c
+index f835a25..912403c 100644
+--- a/fs/pstore/platform.c
++++ b/fs/pstore/platform.c
+@@ -152,7 +152,7 @@ EXPORT_SYMBOL_GPL(pstore_register);
+ void pstore_get_records(void)
+ {
+ 	struct pstore_info *psi = psinfo;
+-	size_t			size;
++	ssize_t			size;
+ 	u64			id;
+ 	enum pstore_type_id	type;
+ 	struct timespec		time;
+@@ -163,7 +163,7 @@ void pstore_get_records(void)
+ 
+ 	mutex_lock(&psinfo->buf_mutex);
+ 	while ((size = psi->read(&id, &type, &time)) > 0) {
+-		if (pstore_mkfile(type, psi->name, id, psi->buf, size,
++		if (pstore_mkfile(type, psi->name, id, psi->buf, (size_t)size,
+ 				  time, psi->erase))
+ 			failed++;
  	}
- 
- 	len = erst_read(record_id, &rcd->hdr, sizeof(*rcd) +
--			  erst_erange.size);
-+			erst_info.bufsize);
-+	/* The record may be cleared by others, try read next record */
-+	if (len == -ENOENT)
-+		goto skip;
-+	else if (len < 0) {
-+		rc = -1;
-+		goto out;
-+	}
- 	if (uuid_le_cmp(rcd->hdr.creator_id, CPER_CREATOR_PSTORE) != 0)
- 		goto skip;
- 
+diff --git a/include/linux/pstore.h b/include/linux/pstore.h
+index 4197773..14ce2f5 100644
+--- a/include/linux/pstore.h
++++ b/include/linux/pstore.h
+@@ -35,7 +35,7 @@ struct pstore_info {
+ 	struct mutex	buf_mutex;	/* serialize access to 'buf' */
+ 	char		*buf;
+ 	size_t		bufsize;
+-	size_t		(*read)(u64 *id, enum pstore_type_id *type,
++	ssize_t		(*read)(u64 *id, enum pstore_type_id *type,
+ 			struct timespec *time);
+ 	u64		(*write)(enum pstore_type_id type, size_t size);
+ 	int		(*erase)(u64 id);
 -- 
 1.7.5.185.g0b9dee
