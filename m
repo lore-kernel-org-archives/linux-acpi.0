@@ -1,272 +1,299 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v2 RESENDING] x86, acpi: Handle xapic/x2apic entries in MADT
- at same time
-Date: Tue, 03 May 2011 12:02:39 -0700
-Message-ID: <4DC0514F.9070901@kernel.org>
-References: <4DA41476.8040700@jp.fujitsu.com> <1304379923.19493.284.camel@sbsiddha-MOBL3.sc.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH] Replace acpi_gbl_FADT.sci_interrupt with two functions
+ in some places.
+Date: Wed, 04 May 2011 09:48:38 +0800
+Message-ID: <1304473718.3924.56.camel@minggr.sh.intel.com>
+References: <1304403041.3179.29.camel@lantianyu-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:47013 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754258Ab1ECTD1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2011 15:03:27 -0400
-In-Reply-To: <1304379923.19493.284.camel@sbsiddha-MOBL3.sc.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:21365 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754634Ab1EDBsN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 May 2011 21:48:13 -0400
+In-Reply-To: <1304403041.3179.29.camel@lantianyu-ws>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suresh Siddha <suresh.b.siddha@intel.com>, "Brown, Len" <len.brown@intel.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>An
-Cc: Seiichi Ikarashi <s.ikarashi@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Lan, Tianyu" <tianyu.lan@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+
+On Tue, 2011-05-03 at 14:10 +0800, Lan, Tianyu wrote:
+> Some places use the acpi_gbl_FADT.sci_interrupt directly to get the ACPI SCI.ACPI SCI will not only be stored in the FADT. 
+> So this patch replaces acpi_gbl_FADT.sci_interrupt with two functions for getting and setting.
+
+Some trivial patch style comments,
+
+We usually add "acpi:" prefix to the subject, like
+
+[PATCH] acpi: xxxxx
+
+And if acpica files are also touched, we add "acpi/acpica:" prefix, like
+
+[PATCH] acpi/acpica: xxxx
+
+Another thing, the change logs seems too long for each line, you'd
+better split them short for each line. So that makes logs easy to read.
+
+Thanks,
+Lin Ming
+
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  arch/x86/kernel/acpi/boot.c                  |    8 ++---
+>  drivers/acpi/acpica/evgpeinit.c              |    5 +--
+>  drivers/acpi/acpica/evgpeutil.c              |    4 +-
+>  drivers/acpi/acpica/evsci.c                  |    4 +-
+>  drivers/acpi/acpica/evxface.c                |   38 +++++++++++++++++++++++++++
+>  drivers/acpi/bus.c                           |    4 +-
+>  drivers/acpi/osl.c                           |    6 ++--
+>  drivers/acpi/pci_link.c                      |    2 -
+>  drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c |    2 -
+>  include/acpi/acpixf.h                        |    4 ++
+>  10 files changed, 59 insertions(+), 18 deletions(-)
+> 
+> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2011-05-03 10:19:00.163029998 +0800
+> +++ linux-2.6/arch/x86/kernel/acpi/boot.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -408,7 +408,7 @@
+>  
+>  	acpi_table_print_madt_entry(header);
+>  
+> -	if (intsrc->source_irq == acpi_gbl_FADT.sci_interrupt) {
+> +	if (intsrc->source_irq == acpi_get_sci_interrupt()) {
+>  		acpi_sci_ioapic_setup(intsrc->source_irq,
+>  				      intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
+>  				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
+> @@ -1100,7 +1100,7 @@
+>  		return gsi;
+>  
+>  	/* Don't set up the ACPI SCI because it's already set up */
+> -	if (acpi_gbl_FADT.sci_interrupt == gsi)
+> +	if (acpi_get_sci_interrupt() == gsi)
+>  		return gsi;
+>  
+>  	ioapic = mp_find_ioapic(gsi);
+> @@ -1184,8 +1184,8 @@
+>  	 * pretend we got one so we can set the SCI flags.
+>  	 */
+>  	if (!acpi_sci_override_gsi)
+> -		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0,
+> -				      acpi_gbl_FADT.sci_interrupt);
+> +		acpi_sci_ioapic_setup(acpi_get_sci_interrupt(), 0, 0,
+> +				      acpi_get_sci_interrupt());
+>  
+>  	/* Fill in identity legacy mappings where no override */
+>  	mp_config_acpi_legacy_irqs();
+> Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:19:00.243029997 +0800
+> +++ linux-2.6/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -131,7 +131,7 @@
+>  		status = acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
+>  						  &acpi_gbl_FADT.xgpe0_block,
+>  						  register_count0, 0,
+> -						  acpi_gbl_FADT.sci_interrupt,
+> +						  acpi_get_sci_interrupt(),
+>  						  &acpi_gbl_gpe_fadt_blocks[0]);
+>  
+>  		if (ACPI_FAILURE(status)) {
+> @@ -170,8 +170,7 @@
+>  						     &acpi_gbl_FADT.xgpe1_block,
+>  						     register_count1,
+>  						     acpi_gbl_FADT.gpe1_base,
+> -						     acpi_gbl_FADT.
+> -						     sci_interrupt,
+> +	   					     acpi_get_sci_interrupt(),
+>  						     &acpi_gbl_gpe_fadt_blocks
+>  						     [1]);
+>  
+> Index: linux-2.6/drivers/acpi/acpica/evgpeutil.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:19:00.213030003 +0800
+> +++ linux-2.6/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -253,7 +253,7 @@
+>  
+>  	/* Install new interrupt handler if not SCI_INT */
+>  
+> -	if (interrupt_number != acpi_gbl_FADT.sci_interrupt) {
+> +	if (interrupt_number != acpi_get_sci_interrupt()) {
+>  		status = acpi_os_install_interrupt_handler(interrupt_number,
+>  							   acpi_ev_gpe_xrupt_handler,
+>  							   gpe_xrupt);
+> @@ -290,7 +290,7 @@
+>  
+>  	/* We never want to remove the SCI interrupt handler */
+>  
+> -	if (gpe_xrupt->interrupt_number == acpi_gbl_FADT.sci_interrupt) {
+> +	if (gpe_xrupt->interrupt_number == acpi_get_sci_interrupt()) {
+>  		gpe_xrupt->gpe_block_list_head = NULL;
+>  		return_ACPI_STATUS(AE_OK);
+>  	}
+> Index: linux-2.6/drivers/acpi/acpica/evsci.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evsci.c	2011-05-03 10:19:00.223030004 +0800
+> +++ linux-2.6/drivers/acpi/acpica/evsci.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -142,7 +142,7 @@
+>  	ACPI_FUNCTION_TRACE(ev_install_sci_handler);
+>  
+>  	status =
+> -	    acpi_os_install_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
+> +	    acpi_os_install_interrupt_handler((u32) acpi_get_sci_interrupt(),
+>  					      acpi_ev_sci_xrupt_handler,
+>  					      acpi_gbl_gpe_xrupt_list_head);
+>  	return_ACPI_STATUS(status);
+> @@ -176,7 +176,7 @@
+>  	/* Just let the OS remove the handler and disable the level */
+>  
+>  	status =
+> -	    acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
+> +	    acpi_os_remove_interrupt_handler((u32) acpi_get_sci_interrupt(),
+>  					     acpi_ev_sci_xrupt_handler);
+>  
+>  	return_ACPI_STATUS(status);
+> Index: linux-2.6/drivers/acpi/acpica/evxface.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/acpica/evxface.c	2011-05-03 10:19:00.213030003 +0800
+> +++ linux-2.6/drivers/acpi/acpica/evxface.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -983,3 +983,41 @@
+>  }
+>  
+>  ACPI_EXPORT_SYMBOL(acpi_release_global_lock)
+> +
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_get_sci_interrupt
+> + *
+> + * PARAMETERS:  none
+> + *
+> + * RETURN:      SCI Interrupt
+> + *
+> + * DESCRIPTION: Return the ACPI SCI interrupt
+> + *
+> + ******************************************************************************/
+> +u16 acpi_get_sci_interrupt(void)
+> +{
+> +	return acpi_gbl_FADT.sci_interrupt;
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_get_sci_interrupt)
+> +				
+> +/*******************************************************************************
+> +		*
+> +		* FUNCTION:    acpi_set_sci_interrupt
+> +		*
+> +		* PARAMETERS:  override sci irq
+> +		*
+> +		* RETURN:      status
+> +		*
+> +		* DESCRIPTION: Set the ACPI SCI interrupt
+> +		*
+> + ******************************************************************************/
+> +acpi_status acpi_set_sci_interrupt(u16 irq)
+> +{
+> +	acpi_gbl_FADT.sci_interrupt = irq;
+> +	return AE_OK;
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_set_sci_interrupt)		
+> +
+> Index: linux-2.6/drivers/acpi/bus.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/bus.c	2011-05-03 10:19:00.203030002 +0800
+> +++ linux-2.6/drivers/acpi/bus.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -890,14 +890,14 @@
+>  			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
+>  		}
+>  		/* Set PIC-mode SCI trigger type */
+> -		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
+> +		acpi_pic_sci_set_trigger(acpi_get_sci_interrupt(),
+>  					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
+>  	} else {
+>  		/*
+>  		 * now that acpi_gbl_FADT is initialized,
+>  		 * update it with result from INT_SRC_OVR parsing
+>  		 */
+> -		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
+> +		acpi_set_sci_interrupt(acpi_sci_override_gsi);
+>  	}
+>  #endif
+>  
+> Index: linux-2.6/drivers/acpi/osl.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/osl.c	2011-05-03 10:19:48.993030009 +0800
+> +++ linux-2.6/drivers/acpi/osl.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -534,7 +534,7 @@
+>  	 * ACPI interrupts different from the SCI in our copy of the FADT are
+>  	 * not supported.
+>  	 */
+> -	if (gsi != acpi_gbl_FADT.sci_interrupt)
+> +	if (gsi != acpi_get_sci_interrupt())
+>  		return AE_BAD_PARAMETER;
+>  
+>  	if (acpi_irq_handler)
+> @@ -559,7 +559,7 @@
+>  
+>  acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+>  {
+> -	if (irq != acpi_gbl_FADT.sci_interrupt)
+> +	if (irq != acpi_get_sci_interrupt())
+>  		return AE_BAD_PARAMETER;
+>  
+>  	free_irq(irq, acpi_irq);
+> @@ -1622,7 +1622,7 @@
+>  acpi_status acpi_os_terminate(void)
+>  {
+>  	if (acpi_irq_handler) {
+> -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
+> +		acpi_os_remove_interrupt_handler(acpi_get_sci_interrupt(),
+>  						 acpi_irq_handler);
+>  	}
+>  
+> Index: linux-2.6/drivers/acpi/pci_link.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/pci_link.c	2011-05-03 10:19:00.203030002 +0800
+> +++ linux-2.6/drivers/acpi/pci_link.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -508,7 +508,7 @@
+>  		}
+>  	}
+>  	/* Add a penalty for the SCI */
+> -	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
+> +	acpi_irq_penalty[acpi_get_sci_interrupt()] += PIRQ_PENALTY_PCI_USING;
+>  	return 0;
+>  }
+>  
+> Index: linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	2011-05-03 10:19:00.193030001 +0800
+> +++ linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	2011-05-03 10:20:50.833030004 +0800
+> @@ -104,7 +104,7 @@
+>  	pci_dev_put(pdev);
+>  
+>  	/* we're sharing the IRQ with ACPI */
+> -	irq = acpi_gbl_FADT.sci_interrupt;
+> +	irq = acpi_get_sci_interrupt();
+>  	if (request_irq(irq, &dcon_interrupt, IRQF_SHARED, "DCON", dcon)) {
+>  		printk(KERN_ERR PREFIX "DCON (IRQ%d) allocation failed\n", irq);
+>  		return 1;
+> Index: linux-2.6/include/acpi/acpixf.h
+> ===================================================================
+> --- linux-2.6.orig/include/acpi/acpixf.h	2011-05-03 10:19:00.253029998 +0800
+> +++ linux-2.6/include/acpi/acpixf.h	2011-05-03 10:20:50.833030004 +0800
+> @@ -411,6 +411,10 @@
+>  acpi_info(const char *module_name,
+>  	  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
+>  
+> +u16 acpi_get_sci_interrupt(void);
+> +
+> +acpi_status acpi_set_sci_interrupt(u16 irq);
+> +
+>  /*
+>   * Debug output
+>   */
+> 
+> ---
+> 
 
 
-One system have mixing xapic and x2apic entries in MADT and SRAT.
-BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
-the cpus are with x2apic mode pre-enabled, still need to use xapic entries
-instead of x2apic entries.
-
-on 8 socket system with x2apic pre-enabled, will get out of order sequence:
-CPU0: socket0, core0, thread0.
-CPU1 - CPU 40: socket 4 - socket 7, thread 0
-CPU41 - CPU 80: socket 4 - socket 7, thread 1
-CPU81 - CPU 119: socket 0 - socket 3, thread 0
-CPU120 - CPU 159: socket 0 - socket 3, thread 1
-
-so max_cpus=80 will not get all thread0 now.
-
-Need to handle every entry in MADT at same time with xapic and x2apic.
-so we can honor sequence in MADT.
-
-We can use max_cpus= command line to use thread0 in every core,
-because recent MADT always have all thread0 at first.
-Also it could make the cpu to node mapping more sane.
-
-after patch will get
-CPU0 - CPU 79: socket 0 - socket 7, thread 0
-CPU80 - CPU 159: socket 0 - socket 7, thread 1
-
--v2: update some comments, and change to pass array pointer.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- arch/x86/kernel/acpi/boot.c |   30 ++++++++++++++++-------
- drivers/acpi/numa.c         |   16 +++++++++---
- drivers/acpi/tables.c       |   57 +++++++++++++++++++++++++++++++++-----------
- include/linux/acpi.h        |    9 ++++++
- 4 files changed, 86 insertions(+), 26 deletions(-)
-
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -883,6 +883,7 @@ static int __init acpi_parse_madt_lapic_
- {
- 	int count;
- 	int x2count = 0;
-+	struct acpi_subtable_proc madt_proc[2];
- 
- 	if (!cpu_has_apic)
- 		return -ENODEV;
-@@ -907,10 +908,16 @@ static int __init acpi_parse_madt_lapic_
- 				      acpi_parse_sapic, MAX_LOCAL_APIC);
- 
- 	if (!count) {
--		x2count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC,
--					acpi_parse_x2apic, MAX_LOCAL_APIC);
--		count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC,
--					acpi_parse_lapic, MAX_LOCAL_APIC);
-+		memset(madt_proc, 0, sizeof(madt_proc));
-+		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC;
-+		madt_proc[0].handler = acpi_parse_lapic;
-+		madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC;
-+		madt_proc[1].handler = acpi_parse_x2apic;
-+		acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+					    sizeof(struct acpi_table_madt),
-+			    madt_proc, ARRAY_SIZE(madt_proc), MAX_LOCAL_APIC);
-+		count = madt_proc[0].count;
-+		x2count = madt_proc[1].count;
- 	}
- 	if (!count && !x2count) {
- 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
-@@ -922,11 +929,16 @@ static int __init acpi_parse_madt_lapic_
- 		return count;
- 	}
- 
--	x2count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI,
--				  acpi_parse_x2apic_nmi, 0);
--	count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_NMI, acpi_parse_lapic_nmi, 0);
-+	memset(madt_proc, 0, sizeof(madt_proc));
-+	madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC_NMI;
-+	madt_proc[0].handler = acpi_parse_lapic_nmi;
-+	madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC_NMI;
-+	madt_proc[1].handler = acpi_parse_x2apic_nmi;
-+	acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+				    sizeof(struct acpi_table_madt),
-+				    madt_proc, ARRAY_SIZE(madt_proc), 0);
-+	count = madt_proc[0].count;
-+	x2count = madt_proc[1].count;
- 	if (count < 0 || x2count < 0) {
- 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
- 		/* TBD: Cleanup to allow fallback to MPS */
-Index: linux-2.6/drivers/acpi/numa.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/numa.c
-+++ linux-2.6/drivers/acpi/numa.c
-@@ -284,10 +284,18 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
--				     acpi_parse_x2apic_affinity, 0);
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
--				     acpi_parse_processor_affinity, 0);
-+		struct acpi_subtable_proc srat_proc[2];
-+
-+		memset(srat_proc, 0, sizeof(srat_proc));
-+		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-+		srat_proc[0].handler = acpi_parse_processor_affinity;
-+		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
-+		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+
-+		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-+					   sizeof(struct acpi_table_srat),
-+					   srat_proc, ARRAY_SIZE(srat_proc), 0);
-+
- 		ret = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
-Index: linux-2.6/drivers/acpi/tables.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/tables.c
-+++ linux-2.6/drivers/acpi/tables.c
-@@ -201,10 +201,9 @@ void acpi_table_print_madt_entry(struct
- 
- 
- int __init
--acpi_table_parse_entries(char *id,
-+acpi_table_parse_entries_array(char *id,
- 			     unsigned long table_size,
--			     int entry_id,
--			     acpi_table_entry_handler handler,
-+			     struct acpi_subtable_proc *proc, int proc_num,
- 			     unsigned int max_entries)
- {
- 	struct acpi_table_header *table_header = NULL;
-@@ -212,12 +211,12 @@ acpi_table_parse_entries(char *id,
- 	unsigned int count = 0;
- 	unsigned long table_end;
- 	acpi_size tbl_size;
-+	int i;
- 
--	if (acpi_disabled)
-+	if (acpi_disabled) {
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
--
--	if (!handler)
--		return -EINVAL;
-+	}
- 
- 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
- 		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-@@ -226,6 +225,7 @@ acpi_table_parse_entries(char *id,
- 
- 	if (!table_header) {
- 		printk(KERN_WARNING PREFIX "%4.4s not present\n", id);
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
- 	}
- 
-@@ -238,19 +238,30 @@ acpi_table_parse_entries(char *id,
- 
- 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
- 	       table_end) {
--		if (entry->type == entry_id
--		    && (!max_entries || count++ < max_entries))
--			if (handler(entry, table_end)) {
--				early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-+		for (i = 0; i < proc_num; i++) {
-+			if (entry->type != proc[i].id)
-+				continue;
-+			if (max_entries && count++ >= max_entries)
-+				continue;
-+			if (proc[i].handler(entry, table_end)) {
-+				early_acpi_os_unmap_memory((char *)table_header,
-+								 tbl_size);
-+				proc[i].count = -EINVAL;
- 				return -EINVAL;
- 			}
-+			proc[i].count++;
-+			break;
-+		}
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
- 	}
- 	if (max_entries && count > max_entries) {
--		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x] ignored %i entries of "
--		       "%i found\n", id, entry_id, count - max_entries, count);
-+		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x ", id, proc[0].id);
-+		for (i = 1; i < proc_num; i++)
-+			printk(KERN_CONT " 0x%02x", proc[i].id);
-+		printk(KERN_CONT "] ignored %i entries of %i found\n",
-+		       count-max_entries, count);
- 	}
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-@@ -258,6 +269,26 @@ acpi_table_parse_entries(char *id,
- }
- 
- int __init
-+acpi_table_parse_entries(char *id,
-+			     unsigned long table_size,
-+			     int entry_id,
-+			     acpi_table_entry_handler handler,
-+			     unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc[1];
-+
-+	if (!handler)
-+		return -EINVAL;
-+
-+	memset(proc, 0, sizeof(proc));
-+	proc[0].id = entry_id;
-+	proc[0].handler = handler;
-+
-+	return acpi_table_parse_entries_array(id, table_size, proc, 1,
-+						 max_entries);
-+}
-+
-+int __init
- acpi_table_parse_madt(enum acpi_madt_type id,
- 		      acpi_table_entry_handler handler, unsigned int max_entries)
- {
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -76,6 +76,12 @@ typedef int (*acpi_table_handler) (struc
- 
- typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
- 
-+struct acpi_subtable_proc {
-+	int id;
-+	acpi_table_entry_handler handler;
-+	int count;
-+};
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
-@@ -86,6 +92,9 @@ int acpi_numa_init (void);
- 
- int acpi_table_init (void);
- int acpi_table_parse (char *id, acpi_table_handler handler);
-+int acpi_table_parse_entries_array(char *id, unsigned long table_size,
-+	struct acpi_subtable_proc *proc, int proc_num,
-+	unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 	int entry_id, acpi_table_entry_handler handler, unsigned int max_entries);
- int acpi_table_parse_madt (enum acpi_madt_type id, acpi_table_entry_handler handler, unsigned int max_entries);
