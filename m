@@ -1,84 +1,37 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: [PATCH 1/3] fix one type of return value in pstore
-Date: Wed,  4 May 2011 11:06:50 +0800
-Message-ID: <1304478412-11843-2-git-send-email-gong.chen@linux.intel.com>
-References: <1304478412-11843-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1304478412-11843-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony.luck@intel.com, ying.huang@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v5 0/4] ACPI, APEI, GHES, printk support for recoverable error via NMI
+Date: Wed,  4 May 2011 16:48:48 +0800
+Message-ID: <1304498932-30127-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:34671 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751922Ab1EDItC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 May 2011 04:49:02 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-the return type of function _read_ in pstore is size_t,
-but in the callback function of _read_, the logic doesn't
-consider it too much, which means if negative value (assuming
-error here) is returned, it will be converted to positive because
-of type casting. ssize_t is enough for this function.
+v5:
 
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/apei/erst.c |    4 ++--
- fs/pstore/platform.c     |    4 ++--
- include/linux/pstore.h   |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+- Change gen_pool_for_each_chunk interface
+- Remove unlock in loop in gen_pool_alloc
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index d6cb0ff..d5a89d0 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -929,7 +929,7 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
- 	return 0;
- }
- 
--static size_t erst_reader(u64 *id, enum pstore_type_id *type,
-+static ssize_t erst_reader(u64 *id, enum pstore_type_id *type,
- 		       struct timespec *time);
- static u64 erst_writer(enum pstore_type_id type, size_t size);
- 
-@@ -957,7 +957,7 @@ struct cper_pstore_record {
- 	char data[];
- } __packed;
- 
--static size_t erst_reader(u64 *id, enum pstore_type_id *type,
-+static ssize_t erst_reader(u64 *id, enum pstore_type_id *type,
- 		       struct timespec *time)
- {
- 	int rc;
-diff --git a/fs/pstore/platform.c b/fs/pstore/platform.c
-index f835a25..912403c 100644
---- a/fs/pstore/platform.c
-+++ b/fs/pstore/platform.c
-@@ -152,7 +152,7 @@ EXPORT_SYMBOL_GPL(pstore_register);
- void pstore_get_records(void)
- {
- 	struct pstore_info *psi = psinfo;
--	size_t			size;
-+	ssize_t			size;
- 	u64			id;
- 	enum pstore_type_id	type;
- 	struct timespec		time;
-@@ -163,7 +163,7 @@ void pstore_get_records(void)
- 
- 	mutex_lock(&psinfo->buf_mutex);
- 	while ((size = psi->read(&id, &type, &time)) > 0) {
--		if (pstore_mkfile(type, psi->name, id, psi->buf, size,
-+		if (pstore_mkfile(type, psi->name, id, psi->buf, (size_t)size,
- 				  time, psi->erase))
- 			failed++;
- 	}
-diff --git a/include/linux/pstore.h b/include/linux/pstore.h
-index 4197773..14ce2f5 100644
---- a/include/linux/pstore.h
-+++ b/include/linux/pstore.h
-@@ -35,7 +35,7 @@ struct pstore_info {
- 	struct mutex	buf_mutex;	/* serialize access to 'buf' */
- 	char		*buf;
- 	size_t		bufsize;
--	size_t		(*read)(u64 *id, enum pstore_type_id *type,
-+	ssize_t		(*read)(u64 *id, enum pstore_type_id *type,
- 			struct timespec *time);
- 	u64		(*write)(enum pstore_type_id type, size_t size);
- 	int		(*erase)(u64 id);
--- 
-1.7.5.185.g0b9dee
+v4:
+
+- Add rcu_read_lock/unlock in lockless gen_pool implementation, at least we
+ need that for future pool shrinking support.
+
+v3:
+
+- Some changes to lock-less list based on Mathieu's comments
+
+v2:
+
+- Update some comments of llist per Mathieu's comments
+
+
+[PATCH -v5 1/4] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+[PATCH -v5 2/4] lib, Add lock-less NULL terminated single list
+[PATCH -v5 3/4] lib, Make gen_pool memory allocator lockless
+[PATCH -v5 4/4] ACPI, APEI, GHES, printk support for recoverable error via NMI
