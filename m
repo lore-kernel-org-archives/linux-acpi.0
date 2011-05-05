@@ -1,378 +1,51 @@
-From: "lan,Tianyu" <tianyu.lan@intel.com>
-Subject: Re: [PATCH] Replace acpi_gbl_FADT.sci_interrupt with two functions
- in some places.
-Date: Thu, 05 May 2011 08:24:23 +0800
-Message-ID: <1304555063.5286.2.camel@lantianyu-ws>
-References: <1304403041.3179.29.camel@lantianyu-ws>
-	 <1304473718.3924.56.camel@minggr.sh.intel.com>
+From: Jack Steiner <steiner@sgi.com>
+Subject: Re: [PATCH -v2 RESENDING] x86, acpi: Handle xapic/x2apic entries
+	in MADT at same time
+Date: Thu, 5 May 2011 11:21:36 -0500
+Message-ID: <20110505162136.GA21673@sgi.com>
+References: <4DA41476.8040700@jp.fujitsu.com> <1304379923.19493.284.camel@sbsiddha-MOBL3.sc.intel.com> <4DC0514F.9070901@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16293 "EHLO mga11.intel.com"
+Received: from relay1.sgi.com ([192.48.179.29]:58636 "EHLO relay.sgi.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752370Ab1EEAZD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 May 2011 20:25:03 -0400
-In-Reply-To: <1304473718.3924.56.camel@minggr.sh.intel.com>
+	id S1754883Ab1EEQVi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 May 2011 12:21:38 -0400
+Content-Disposition: inline
+In-Reply-To: <4DC0514F.9070901@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>, "Brown, Len" <len.brown@intel.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Seiichi Ikarashi <s.ikarashi@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-OK, Thanks for your advices. I will take them.
+FYI
 
-Best Regards
-Lan Tianyu
-=E5=9C=A8 2011-05-04=E4=B8=89=E7=9A=84 09:48 +0800=EF=BC=8CLin Ming=E5=86=
-=99=E9=81=93=EF=BC=9A
-> On Tue, 2011-05-03 at 14:10 +0800, Lan, Tianyu wrote:
-> > Some places use the acpi_gbl_FADT.sci_interrupt directly to get the=
- ACPI SCI.ACPI SCI will not only be stored in the FADT.=20
-> > So this patch replaces acpi_gbl_FADT.sci_interrupt with two functio=
-ns for getting and setting.
->=20
-> Some trivial patch style comments,
->=20
-> We usually add "acpi:" prefix to the subject, like
->=20
-> [PATCH] acpi: xxxxx
->=20
-> And if acpica files are also touched, we add "acpi/acpica:" prefix, l=
-ike
->=20
-> [PATCH] acpi/acpica: xxxx
->=20
-> Another thing, the change logs seems too long for each line, you'd
-> better split them short for each line. So that makes logs easy to rea=
-d.
->=20
-> Thanks,
-> Lin Ming
->=20
-> >=20
-> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> > ---
-> >  arch/x86/kernel/acpi/boot.c                  |    8 ++---
-> >  drivers/acpi/acpica/evgpeinit.c              |    5 +--
-> >  drivers/acpi/acpica/evgpeutil.c              |    4 +-
-> >  drivers/acpi/acpica/evsci.c                  |    4 +-
-> >  drivers/acpi/acpica/evxface.c                |   38 ++++++++++++++=
-+++++++++++++
-> >  drivers/acpi/bus.c                           |    4 +-
-> >  drivers/acpi/osl.c                           |    6 ++--
-> >  drivers/acpi/pci_link.c                      |    2 -
-> >  drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c |    2 -
-> >  include/acpi/acpixf.h                        |    4 ++
-> >  10 files changed, 59 insertions(+), 18 deletions(-)
-> >=20
-> > Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2011-05-03 10:19:00.=
-163029998 +0800
-> > +++ linux-2.6/arch/x86/kernel/acpi/boot.c	2011-05-03 10:20:50.83303=
-0004 +0800
-> > @@ -408,7 +408,7 @@
-> > =20
-> >  	acpi_table_print_madt_entry(header);
-> > =20
-> > -	if (intsrc->source_irq =3D=3D acpi_gbl_FADT.sci_interrupt) {
-> > +	if (intsrc->source_irq =3D=3D acpi_get_sci_interrupt()) {
-> >  		acpi_sci_ioapic_setup(intsrc->source_irq,
-> >  				      intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
-> >  				      (intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
-> > @@ -1100,7 +1100,7 @@
-> >  		return gsi;
-> > =20
-> >  	/* Don't set up the ACPI SCI because it's already set up */
-> > -	if (acpi_gbl_FADT.sci_interrupt =3D=3D gsi)
-> > +	if (acpi_get_sci_interrupt() =3D=3D gsi)
-> >  		return gsi;
-> > =20
-> >  	ioapic =3D mp_find_ioapic(gsi);
-> > @@ -1184,8 +1184,8 @@
-> >  	 * pretend we got one so we can set the SCI flags.
-> >  	 */
-> >  	if (!acpi_sci_override_gsi)
-> > -		acpi_sci_ioapic_setup(acpi_gbl_FADT.sci_interrupt, 0, 0,
-> > -				      acpi_gbl_FADT.sci_interrupt);
-> > +		acpi_sci_ioapic_setup(acpi_get_sci_interrupt(), 0, 0,
-> > +				      acpi_get_sci_interrupt());
-> > =20
-> >  	/* Fill in identity legacy mappings where no override */
-> >  	mp_config_acpi_legacy_irqs();
-> > Index: linux-2.6/drivers/acpi/acpica/evgpeinit.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:19=
-:00.243029997 +0800
-> > +++ linux-2.6/drivers/acpi/acpica/evgpeinit.c	2011-05-03 10:20:50.8=
-33030004 +0800
-> > @@ -131,7 +131,7 @@
-> >  		status =3D acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
-> >  						  &acpi_gbl_FADT.xgpe0_block,
-> >  						  register_count0, 0,
-> > -						  acpi_gbl_FADT.sci_interrupt,
-> > +						  acpi_get_sci_interrupt(),
-> >  						  &acpi_gbl_gpe_fadt_blocks[0]);
-> > =20
-> >  		if (ACPI_FAILURE(status)) {
-> > @@ -170,8 +170,7 @@
-> >  						     &acpi_gbl_FADT.xgpe1_block,
-> >  						     register_count1,
-> >  						     acpi_gbl_FADT.gpe1_base,
-> > -						     acpi_gbl_FADT.
-> > -						     sci_interrupt,
-> > +	   					     acpi_get_sci_interrupt(),
-> >  						     &acpi_gbl_gpe_fadt_blocks
-> >  						     [1]);
-> > =20
-> > Index: linux-2.6/drivers/acpi/acpica/evgpeutil.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:19=
-:00.213030003 +0800
-> > +++ linux-2.6/drivers/acpi/acpica/evgpeutil.c	2011-05-03 10:20:50.8=
-33030004 +0800
-> > @@ -253,7 +253,7 @@
-> > =20
-> >  	/* Install new interrupt handler if not SCI_INT */
-> > =20
-> > -	if (interrupt_number !=3D acpi_gbl_FADT.sci_interrupt) {
-> > +	if (interrupt_number !=3D acpi_get_sci_interrupt()) {
-> >  		status =3D acpi_os_install_interrupt_handler(interrupt_number,
-> >  							   acpi_ev_gpe_xrupt_handler,
-> >  							   gpe_xrupt);
-> > @@ -290,7 +290,7 @@
-> > =20
-> >  	/* We never want to remove the SCI interrupt handler */
-> > =20
-> > -	if (gpe_xrupt->interrupt_number =3D=3D acpi_gbl_FADT.sci_interrup=
-t) {
-> > +	if (gpe_xrupt->interrupt_number =3D=3D acpi_get_sci_interrupt()) =
-{
-> >  		gpe_xrupt->gpe_block_list_head =3D NULL;
-> >  		return_ACPI_STATUS(AE_OK);
-> >  	}
-> > Index: linux-2.6/drivers/acpi/acpica/evsci.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/acpica/evsci.c	2011-05-03 10:19:00.=
-223030004 +0800
-> > +++ linux-2.6/drivers/acpi/acpica/evsci.c	2011-05-03 10:20:50.83303=
-0004 +0800
-> > @@ -142,7 +142,7 @@
-> >  	ACPI_FUNCTION_TRACE(ev_install_sci_handler);
-> > =20
-> >  	status =3D
-> > -	    acpi_os_install_interrupt_handler((u32) acpi_gbl_FADT.sci_int=
-errupt,
-> > +	    acpi_os_install_interrupt_handler((u32) acpi_get_sci_interrup=
-t(),
-> >  					      acpi_ev_sci_xrupt_handler,
-> >  					      acpi_gbl_gpe_xrupt_list_head);
-> >  	return_ACPI_STATUS(status);
-> > @@ -176,7 +176,7 @@
-> >  	/* Just let the OS remove the handler and disable the level */
-> > =20
-> >  	status =3D
-> > -	    acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_inte=
-rrupt,
-> > +	    acpi_os_remove_interrupt_handler((u32) acpi_get_sci_interrupt=
-(),
-> >  					     acpi_ev_sci_xrupt_handler);
-> > =20
-> >  	return_ACPI_STATUS(status);
-> > Index: linux-2.6/drivers/acpi/acpica/evxface.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/acpica/evxface.c	2011-05-03 10:19:0=
-0.213030003 +0800
-> > +++ linux-2.6/drivers/acpi/acpica/evxface.c	2011-05-03 10:20:50.833=
-030004 +0800
-> > @@ -983,3 +983,41 @@
-> >  }
-> > =20
-> >  ACPI_EXPORT_SYMBOL(acpi_release_global_lock)
-> > +
-> > +/*****************************************************************=
-**************
-> > + *
-> > + * FUNCTION:    acpi_get_sci_interrupt
-> > + *
-> > + * PARAMETERS:  none
-> > + *
-> > + * RETURN:      SCI Interrupt
-> > + *
-> > + * DESCRIPTION: Return the ACPI SCI interrupt
-> > + *
-> > + *****************************************************************=
-*************/
-> > +u16 acpi_get_sci_interrupt(void)
-> > +{
-> > +	return acpi_gbl_FADT.sci_interrupt;
-> > +}
-> > +
-> > +ACPI_EXPORT_SYMBOL(acpi_get_sci_interrupt)
-> > +			=09
-> > +/*****************************************************************=
-**************
-> > +		*
-> > +		* FUNCTION:    acpi_set_sci_interrupt
-> > +		*
-> > +		* PARAMETERS:  override sci irq
-> > +		*
-> > +		* RETURN:      status
-> > +		*
-> > +		* DESCRIPTION: Set the ACPI SCI interrupt
-> > +		*
-> > + *****************************************************************=
-*************/
-> > +acpi_status acpi_set_sci_interrupt(u16 irq)
-> > +{
-> > +	acpi_gbl_FADT.sci_interrupt =3D irq;
-> > +	return AE_OK;
-> > +}
-> > +
-> > +ACPI_EXPORT_SYMBOL(acpi_set_sci_interrupt)	=09
-> > +
-> > Index: linux-2.6/drivers/acpi/bus.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/bus.c	2011-05-03 10:19:00.203030002=
- +0800
-> > +++ linux-2.6/drivers/acpi/bus.c	2011-05-03 10:20:50.833030004 +080=
-0
-> > @@ -890,14 +890,14 @@
-> >  			acpi_sci_flags |=3D ACPI_MADT_TRIGGER_LEVEL;
-> >  		}
-> >  		/* Set PIC-mode SCI trigger type */
-> > -		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-> > +		acpi_pic_sci_set_trigger(acpi_get_sci_interrupt(),
-> >  					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-> >  	} else {
-> >  		/*
-> >  		 * now that acpi_gbl_FADT is initialized,
-> >  		 * update it with result from INT_SRC_OVR parsing
-> >  		 */
-> > -		acpi_gbl_FADT.sci_interrupt =3D acpi_sci_override_gsi;
-> > +		acpi_set_sci_interrupt(acpi_sci_override_gsi);
-> >  	}
-> >  #endif
-> > =20
-> > Index: linux-2.6/drivers/acpi/osl.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/osl.c	2011-05-03 10:19:48.993030009=
- +0800
-> > +++ linux-2.6/drivers/acpi/osl.c	2011-05-03 10:20:50.833030004 +080=
-0
-> > @@ -534,7 +534,7 @@
-> >  	 * ACPI interrupts different from the SCI in our copy of the FADT=
- are
-> >  	 * not supported.
-> >  	 */
-> > -	if (gsi !=3D acpi_gbl_FADT.sci_interrupt)
-> > +	if (gsi !=3D acpi_get_sci_interrupt())
-> >  		return AE_BAD_PARAMETER;
-> > =20
-> >  	if (acpi_irq_handler)
-> > @@ -559,7 +559,7 @@
-> > =20
-> >  acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_han=
-dler handler)
-> >  {
-> > -	if (irq !=3D acpi_gbl_FADT.sci_interrupt)
-> > +	if (irq !=3D acpi_get_sci_interrupt())
-> >  		return AE_BAD_PARAMETER;
-> > =20
-> >  	free_irq(irq, acpi_irq);
-> > @@ -1622,7 +1622,7 @@
-> >  acpi_status acpi_os_terminate(void)
-> >  {
-> >  	if (acpi_irq_handler) {
-> > -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
-> > +		acpi_os_remove_interrupt_handler(acpi_get_sci_interrupt(),
-> >  						 acpi_irq_handler);
-> >  	}
-> > =20
-> > Index: linux-2.6/drivers/acpi/pci_link.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/pci_link.c	2011-05-03 10:19:00.2030=
-30002 +0800
-> > +++ linux-2.6/drivers/acpi/pci_link.c	2011-05-03 10:20:50.833030004=
- +0800
-> > @@ -508,7 +508,7 @@
-> >  		}
-> >  	}
-> >  	/* Add a penalty for the SCI */
-> > -	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] +=3D PIRQ_PENALTY_P=
-CI_USING;
-> > +	acpi_irq_penalty[acpi_get_sci_interrupt()] +=3D PIRQ_PENALTY_PCI_=
-USING;
-> >  	return 0;
-> >  }
-> > =20
-> > Index: linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	201=
-1-05-03 10:19:00.193030001 +0800
-> > +++ linux-2.6/drivers/staging/olpc_dcon/olpc_dcon_xo_1_5.c	2011-05-=
-03 10:20:50.833030004 +0800
-> > @@ -104,7 +104,7 @@
-> >  	pci_dev_put(pdev);
-> > =20
-> >  	/* we're sharing the IRQ with ACPI */
-> > -	irq =3D acpi_gbl_FADT.sci_interrupt;
-> > +	irq =3D acpi_get_sci_interrupt();
-> >  	if (request_irq(irq, &dcon_interrupt, IRQF_SHARED, "DCON", dcon))=
- {
-> >  		printk(KERN_ERR PREFIX "DCON (IRQ%d) allocation failed\n", irq);
-> >  		return 1;
-> > Index: linux-2.6/include/acpi/acpixf.h
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/include/acpi/acpixf.h	2011-05-03 10:19:00.253029=
-998 +0800
-> > +++ linux-2.6/include/acpi/acpixf.h	2011-05-03 10:20:50.833030004 +=
-0800
-> > @@ -411,6 +411,10 @@
-> >  acpi_info(const char *module_name,
-> >  	  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
-> > =20
-> > +u16 acpi_get_sci_interrupt(void);
-> > +
-> > +acpi_status acpi_set_sci_interrupt(u16 irq);
-> > +
-> >  /*
-> >   * Debug output
-> >   */
-> >=20
-> > ---
-> >=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We also hit the same problem. Our BIOS folks tried to make the BIOS
+ACPI compliant but we hit the same problem & broke cpu numbering.
+
+For now, we've reverted the BIOS change but are concerned that another OS
+may require the change.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>From the boot log:
+     891.184006 (    0.001022)| [    0.000000] Setting APIC routing to UV large system.
+     891.197920 (    0.013914)| [    0.000000] ACPI: X2APIC (apic_id[0x100] uid[0x20] enabled)
+     891.218507 (    0.020587)| [    0.000000] ACPI: X2APIC (apic_id[0x102] uid[0x21] enabled)
+    ...
+     904.009046 (    0.006237)| [    0.000000] ACPI: X2APIC (apic_id[0x3ff0] uid[0x7fe] enabled)
+     904.020501 (    0.011455)| [    0.000000] ACPI: X2APIC (apic_id[0x3ff2] uid[0x7ff] enabled)
+     904.024500 (    0.003999)| [    0.000000] ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+     904.024684 (    0.000184)| [    0.000000] ACPI: LAPIC (acpi_id[0x01] lapic_id[0x02] enabled)
+
+    ...
+
+    1089.050351 (    0.008981)| [   30.960025] Booting Node   4, Processors  #1  #2 #3 #4 #5 #6 #7 #8 Ok.
+    1089.847951 (    0.669131)| [   31.473073] Booting Node   5, Processors  #9 #10 #11 #12 #13 #14 #15 #16 Ok.
+    ....
+    1283.195893 (    0.772824)| [  224.864248] Booting Node 255, Processors  #2009 #2010 #2011 #2012 #2013 #2014 #2015 #2016 Ok.
+    1283.970697 (    0.774804)| [  225.637077] Booting Node   0, Processors  #2017 #2018 #2019 #2020 #2021 #2022 #2023 Ok.
+    1284.652065 (    0.681368)| [  226.316121] Booting Node   1, Processors  #2024 #2025 #2026 #2027 #2028 #2029 #2030 #2031 Ok.
+    1285.422635 (    0.770570)| [  227.088808] Booting Node   2, Processors  #2032 #2033 #2034 #2035 #2036 #2037 #2038 #2039 Ok.
+    1286.205456 (    0.782821)| [  227.864175] Booting Node   3, Processors  #2040 #2041 #2042 #2043 #2044 #2045 #2046 #2047 Ok.
+
+--- jack
