@@ -1,54 +1,49 @@
-From: "Help Desk Center." <mrvickery@mrvickery.com>
-Subject: Dear E-mail Account Owner,
-Date: Tue, 10 May 2011 09:32:33 +0100
-Message-ID: <20110510093233.uqbt6nvy80wkggsg@webmail.mrvickery.com>
-Reply-To: helpdesk01@siamza.com
+From: Andy Grover <agrover@redhat.com>
+Subject: Re: [ibm-acpi-devel] TP Edge E220s freezes when hotkeys pressed
+Date: Wed, 11 May 2011 09:42:08 -0700
+Message-ID: <4DCABC60.9000103@redhat.com>
+References: <4DC97328.9090200@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rs-3.ultra-dns.co.uk ([209.62.109.210]:35413 "EHLO
-	rs-3.ultra-dns.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499Ab1EJIjS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2011 04:39:18 -0400
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:26457 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753558Ab1EKR1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 May 2011 13:27:52 -0400
+In-Reply-To: <4DC97328.9090200@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ibm-acpi-devel@lists.sourceforge.net
+Cc: linux-acpi@vger.kernel.org
 
+On 05/10/2011 10:17 AM, Andy Grover wrote:
+> I just got an Edge e220s, and am having some issues. If I press Fn-F7
+> (lower screen brightness) two times or Fn-F8 (increase brightness) the
+> laptop freezes up solid. I get an unhandled HKEY 0x6050 message from
+> Fn-F7 the first time I press it, but I'm not thinking thinkpad_acpi is
+> the culprit, since  the behavior is the same (2nd F7, 1st F8 freezes
+> laptop) even without the module loaded.
+> 
+> Do you have any advice or insight into this issue, or how to diagnose
+> the cause of this issue?
 
+[ccing linux-acpi too]
 
-Dear E-mail Account Owner,
+Self-replying..
 
-   This message is from Web-mail Help Desk Service messaging center to all
-subscribers/E-mail users. We are currently upgrading our data base and e-mail
-center due to an unusual activities identified in our email system. We are
-deleting
-all unused E-mail Accounts. You are required to verify your E-mail account by
-confirming your E-mail identity. This will prevent your E-mail account  
-from been
-closed during this exercise. In order to confirm your E-Mail  
-identity,you are to
-provide the following data:
+Apparently the hang is ACPI-related, it only happens when using ACPI
+backlight controls. It works if acpi=off, but that's not really a good
+solution these days. I think this means I'm out of luck without a BIOS
+update -- the backlight ASL (avail on request) ends up calling a "SMI"
+method, so the trail ends there.
 
-Full Name:
-User-name:
-Email Address:
-Password:
-Confirm Password:
-Date of Birth:
+I also found out that blacklisting the video module doesn't work,
+perhaps because i915 depends on it?
 
-*Important*
-      Please provide all these information completely and correctly otherwise
-due to
-security reasons we may have to close your account temporarily.We have been
-sending this notice to all our email account owners and this is the last
-notice/verification exercise.
+Another weird thing is that acpi_backlight=vendor causes it to hang,
+right before gdm screen comes up, so that's not an option either, alas.
 
-      We thank you for your prompt attention to this matter. Kindly understand
-that
-this is a security measure intended to help protect you and your Web-mail
-Account. We apologies for any inconvenience.
+Cmon Lenovo bios people, I thought you had a clue!
 
-Regards,
-Help Desk Messaging Center.
+Regards -- Andy
