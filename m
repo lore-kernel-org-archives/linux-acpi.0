@@ -1,49 +1,70 @@
-From: Andy Grover <agrover@redhat.com>
-Subject: Re: [ibm-acpi-devel] TP Edge E220s freezes when hotkeys pressed
-Date: Wed, 11 May 2011 09:42:08 -0700
-Message-ID: <4DCABC60.9000103@redhat.com>
-References: <4DC97328.9090200@redhat.com>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: [RFC 1/1] ACPI: pci_irq, add PRT_ quirk for IBM Bartolo
+Date: Fri, 13 May 2011 09:18:47 +0200
+Message-ID: <4DCCDB57.70706@suse.cz>
+References: <4C87A62E.30108@gmail.com> <1302598086-3622-1-git-send-email-jslaby@suse.cz> <20110412085622.43488ed9@jbarnes-desktop> <20110412155921.GA531@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26457 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753558Ab1EKR1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 May 2011 13:27:52 -0400
-In-Reply-To: <4DC97328.9090200@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110412155921.GA531@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Jiri Slaby <jirislaby@gmail.com>, Robert Hancock <hancockrwd@gmail.com>, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ibm-acpi-devel@lists.sourceforge.net
-Cc: linux-acpi@vger.kernel.org
 
-On 05/10/2011 10:17 AM, Andy Grover wrote:
-> I just got an Edge e220s, and am having some issues. If I press Fn-F7
-> (lower screen brightness) two times or Fn-F8 (increase brightness) the
-> laptop freezes up solid. I get an unhandled HKEY 0x6050 message from
-> Fn-F7 the first time I press it, but I'm not thinking thinkpad_acpi is
-> the culprit, since  the behavior is the same (2nd F7, 1st F8 freezes
-> laptop) even without the module loaded.
+On 04/12/2011 05:59 PM, Matthew Garrett wrote:
+> On Tue, Apr 12, 2011 at 08:56:22AM -0700, Jesse Barnes wrote:
+>> I'll defer to the ACPI experts, Len or Matthew have you checked this
+>> one out?
 > 
-> Do you have any advice or insight into this issue, or how to diagnose
-> the cause of this issue?
+> Windows appears to work without this, so it seems likely that we're 
+> doing something wrong in some other sense, but I don't think we have a 
+> good idea as to what we're doing wrong...
 
-[ccing linux-acpi too]
+I changed the irq assignment like (to take the lowest
+available/non-conflicting IRQ):
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -557,7 +557,7 @@ static int acpi_pci_link_allocate(struct
+          * the use of IRQs 9, 10, 11, and >15.
+          */
+         for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+-            if (acpi_irq_penalty[irq] >
++            if (acpi_irq_penalty[irq] >=
+                 acpi_irq_penalty[link->irq.possible[i]])
+                 irq = link->irq.possible[i];
+         }
 
-Self-replying..
 
-Apparently the hang is ACPI-related, it only happens when using ACPI
-backlight controls. It works if acpi=off, but that's not really a good
-solution these days. I think this means I'm out of luck without a BIOS
-update -- the backlight ASL (avail on request) ends up calling a "SMI"
-method, so the trail ends there.
+And with this change it works _without_ acpi=noirq.
 
-I also found out that blacklisting the video module doesn't work,
-perhaps because i915 depends on it?
+Does it help somehow?
 
-Another weird thing is that acpi_backlight=vendor causes it to hang,
-right before gdm screen comes up, so that's not an option either, alas.
+dmesg then shows a difference like:
+ serial8250: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
+ 00:07: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+ 00:08: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
+-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
+-PCI: setting IRQ 11 as level-triggered
+-serial 0000:00:09.0: PCI INT A -> Link[LNKB] -> GSI 11 (level, low) ->
+IRQ 11
+-0000:00:09.0: ttyS4 at I/O 0x1898 (irq = 11) is a 16550A
+-0000:00:09.0: ttyS5 at I/O 0x1890 (irq = 11) is a 16550A
++ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
++PCI: setting IRQ 10 as level-triggered
++serial 0000:00:09.0: PCI INT A -> Link[LNKB] -> GSI 10 (level, low) ->
+IRQ 10
++0000:00:09.0: ttyS4 at I/O 0x1898 (irq = 10) is a 16550A
++0000:00:09.0: ttyS5 at I/O 0x1890 (irq = 10) is a 16550A
+ ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
++PCI: setting IRQ 11 as level-triggered
+ serial 0000:00:0b.0: PCI INT A -> Link[LNKA] -> GSI 11 (level, low) ->
+IRQ 11
+ 0000:00:0b.0: ttyS6 at I/O 0x18c0 (irq = 11) is a 16550A
+ 0000:00:0b.0: ttyS7 at I/O 0x18b8 (irq = 11) is a 16550A
 
-Cmon Lenovo bios people, I thought you had a clue!
-
-Regards -- Andy
+thanks,
+-- 
+js
+suse labs
