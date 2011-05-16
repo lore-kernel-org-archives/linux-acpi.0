@@ -1,138 +1,262 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH] ACPI: processor: fix processor_physically_present in UP
- kernel
-Date: Mon, 16 May 2011 09:11:00 +0800
-Message-ID: <1305508260.3924.1352.camel@minggr.sh.intel.com>
+From: Don Zickus <dzickus@redhat.com>
+Subject: Re: [RFC] ACPI, APEI, Generic Hardware Error Source (GHES) injecting
+ support
+Date: Mon, 16 May 2011 15:33:01 -0400
+Message-ID: <20110516193301.GF29881@redhat.com>
+References: <1304996921-24881-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:57693 "EHLO mga14.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:62742 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752225Ab1EPBIj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 May 2011 21:08:39 -0400
+	id S1751221Ab1EPTd1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 May 2011 15:33:27 -0400
+Content-Disposition: inline
+In-Reply-To: <1304996921-24881-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, achiang@canonical.com, Anton Kochkov <anton.kochkov@gmail.com>, Ambroz Bizjak <ambrop7@gmail.com>, trenn@suse.de, "Rafael J. Wysocki" <rjw@sisk.pl>, embeter@gmail.com, deng@randomsample.de, "Moore, Robert" <robert.moore@intel.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 
-Usually, there are multiple processors defined in ACPI table, for
-example
+On Tue, May 10, 2011 at 11:08:41AM +0800, Huang Ying wrote:
+> The testing of Generic Hardware Error Source (GHES) is quite
+> difficult, because special hardware is needed to trigger the hardware
+> error. So a software based hardware error injector for GHES is
+> implemented.
+> 
+> Error notification is not provided in this patch.  So you still need
+> some NMI/SCI/IRQ injecting support to make it work.
 
-    Scope (_PR)
-    {
-        Processor (CPU0, 0x00, 0x00000410, 0x06) {}
-        Processor (CPU1, 0x01, 0x00000410, 0x06) {}
-        Processor (CPU2, 0x02, 0x00000410, 0x06) {}
-        Processor (CPU3, 0x03, 0x00000410, 0x06) {}
-    }
+Should we add that to this patch, otherwise it seems like the injection
+isn't very useful or intuitive from the end-user perspective that they
+have to provide their own notification source (ie NMI/SCI/MCE/IRQ).
 
-processor_physically_present(...) will be called to check whether those
-processors are physically present.
+Cheers,
+Don
 
-Currently we have below codes in processor_physically_present,
-
-cpuid = acpi_get_cpuid(...);
-if ((cpuid == -1) && (num_possible_cpus() > 1))
-        return false;
-return true;
-
-In UP kernel, acpi_get_cpuid(...) always return -1 and
-num_possible_cpus() always return 1, so
-processor_physically_present(...) always returns true for all passed in
-processor handles.
-
-This is wrong for UP processor or SMP processor running UP kernel.
-
-This patch removes the !SMP version of acpi_get_cpuid(), so both UP and
-SMP kernel use the same acpi_get_cpuid function.
-
-And for UP kernel, only processor 0 is valid.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=16548
-https://bugzilla.kernel.org/show_bug.cgi?id=16357
-
-Tested-by: Anton Kochkov <anton.kochkov@gmail.com>
-Tested-by: Ambroz Bizjak <ambrop7@gmail.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
----
- drivers/acpi/processor_core.c |   12 +++++++++---
- include/acpi/processor.h      |    7 -------
- 2 files changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 25bf17d..02d2a4c 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -37,7 +37,6 @@ static struct dmi_system_id __initdata processor_idle_dmi_table[] = {
- 	{},
- };
- 
--#ifdef CONFIG_SMP
- static int map_lapic_id(struct acpi_subtable_header *entry,
- 		 u32 acpi_id, int *apic_id)
- {
-@@ -165,7 +164,9 @@ exit:
- 
- int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- {
-+#ifdef CONFIG_SMP
- 	int i;
-+#endif
- 	int apic_id = -1;
- 
- 	apic_id = map_mat_entry(handle, type, acpi_id);
-@@ -174,14 +175,19 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- 	if (apic_id == -1)
- 		return apic_id;
- 
-+#ifdef CONFIG_SMP
- 	for_each_possible_cpu(i) {
- 		if (cpu_physical_id(i) == apic_id)
- 			return i;
- 	}
-+#else
-+	/* In UP kernel, only processor 0 is valid */
-+	if (apic_id == 0)
-+		return apic_id;
-+#endif
- 	return -1;
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
--#endif
- 
- static bool __init processor_physically_present(acpi_handle handle)
- {
-@@ -217,7 +223,7 @@ static bool __init processor_physically_present(acpi_handle handle)
- 	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
- 	cpuid = acpi_get_cpuid(handle, type, acpi_id);
- 
--	if ((cpuid == -1) && (num_possible_cpus() > 1))
-+	if (cpuid == -1)
- 		return false;
- 
- 	return true;
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 55192ac..ba4928c 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -310,14 +310,7 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
- 
- /* in processor_core.c */
- void acpi_processor_set_pdc(acpi_handle handle);
--#ifdef CONFIG_SMP
- int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
--#else
--static inline int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
--{
--	return -1;
--}
--#endif
- 
- /* in processor_throttling.c */
- int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
--- 
-1.7.4.4
-
-
-
+> 
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> ---
+>  drivers/acpi/apei/Kconfig         |   10 ++
+>  drivers/acpi/apei/Makefile        |    1 
+>  drivers/acpi/apei/apei-internal.h |    8 ++
+>  drivers/acpi/apei/ghes-inj.c      |  132 ++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/apei/ghes.c          |   15 ++++
+>  5 files changed, 165 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/acpi/apei/ghes-inj.c
+> 
+> --- a/drivers/acpi/apei/Kconfig
+> +++ b/drivers/acpi/apei/Kconfig
+> @@ -54,3 +54,13 @@ config ACPI_APEI_ERST_DEBUG
+>  	  error information to and from a persistent store. Enable this
+>  	  if you want to debugging and testing the ERST kernel support
+>  	  and firmware implementation.
+> +
+> +config ACPI_APEI_GHES_INJ
+> +	tristate "APEI Generic Hardware Error Source (GHES) Injecting Support"
+> +	depends on ACPI_APEI_GHES
+> +	help
+> +	  GHES provides a way to report platform hardware errors (such
+> +	  as that from chipset).
+> +
+> +	  The injector can inject fake hardware error record. This is
+> +	  used for GHES debugging/testing.
+> --- a/drivers/acpi/apei/Makefile
+> +++ b/drivers/acpi/apei/Makefile
+> @@ -2,5 +2,6 @@ obj-$(CONFIG_ACPI_APEI)		+= apei.o
+>  obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
+>  obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
+>  obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
+> +obj-$(CONFIG_ACPI_APEI_GHES_INJ) += ghes-inj.o
+>  
+>  apei-y := apei-base.o hest.o cper.o erst.o
+> --- a/drivers/acpi/apei/apei-internal.h
+> +++ b/drivers/acpi/apei/apei-internal.h
+> @@ -33,6 +33,14 @@ struct apei_exec_context {
+>  	u32 entries;
+>  };
+>  
+> +struct ghes_inject_data {
+> +	unsigned long error_status_address;
+> +	u16 source_id;
+> +	unsigned short valid : 1;
+> +};
+> +
+> +extern struct ghes_inject_data ghes_inject_data;
+> +
+>  void apei_exec_ctx_init(struct apei_exec_context *ctx,
+>  			struct apei_exec_ins_type *ins_table,
+>  			u32 instructions,
+> --- /dev/null
+> +++ b/drivers/acpi/apei/ghes-inj.c
+> @@ -0,0 +1,132 @@
+> +/*
+> + * APEI Generic Hardware Error Source (GHES) injector support
+> + *
+> + * Fake hardware error record can be injected. This is used for for
+> + * GHES debugging/testing.
+> + *
+> + * Copyright 2010,2011 Intel Corp.
+> + *   Author: Huang Ying <ying.huang@intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/debugfs.h>
+> +#include <acpi/apei.h>
+> +
+> +#include "apei-internal.h"
+> +
+> +#define GHES_INJ_PFX		"GHES-INJ: "
+> +
+> +#define GHES_INJ_BUF_LEN_MAX	4096
+> +
+> +static void *ghes_inj_buf;
+> +static unsigned int ghes_inj_buf_len;
+> +
+> +/* Prevent erst_inj_buf from being accessed concurrently */
+> +static DEFINE_MUTEX(ghes_inj_mutex);
+> +
+> +static ssize_t ghes_inj_write(struct file *filp, const char __user *ubuf,
+> +			      size_t usize, loff_t *off)
+> +{
+> +	int rc;
+> +
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	if (*off != 0)
+> +		return -EINVAL;
+> +
+> +	if (usize > GHES_INJ_BUF_LEN_MAX)
+> +		return -EINVAL;
+> +
+> +	if (mutex_lock_interruptible(&ghes_inj_mutex))
+> +		return -EINTR;
+> +	ghes_inject_data.valid = 0;
+> +	/* Wait for all consumers finish using the injecting buffer */
+> +	synchronize_rcu();
+> +	if (usize > ghes_inj_buf_len) {
+> +		void *p;
+> +		rc = -ENOMEM;
+> +		p = kmalloc(usize, GFP_KERNEL);
+> +		if (!p)
+> +			goto out;
+> +		kfree(ghes_inj_buf);
+> +		ghes_inj_buf = p;
+> +		ghes_inj_buf_len = usize;
+> +	}
+> +	rc = copy_from_user(ghes_inj_buf, ubuf, usize);
+> +	if (rc) {
+> +		rc = -EFAULT;
+> +		goto out;
+> +	}
+> +	ghes_inject_data.error_status_address = __pa(ghes_inj_buf);
+> +	/*
+> +	 * ghes_injiect_data.valid must be set after other fields are
+> +	 * written
+> +	 */
+> +	smp_wmb();
+> +	ghes_inject_data.valid = 1;
+> +out:
+> +	mutex_unlock(&ghes_inj_mutex);
+> +	return rc ? rc : usize;
+> +}
+> +
+> +static const struct file_operations ghes_inj_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.write		= ghes_inj_write,
+> +};
+> +
+> +static struct dentry *ghes_debug_dir;
+> +
+> +static __init int ghes_inj_init(void)
+> +{
+> +	struct dentry *f;
+> +	int rc = -ENOMEM;
+> +
+> +	ghes_debug_dir = debugfs_create_dir("ghes", apei_get_debugfs_dir());
+> +	if (!ghes_debug_dir)
+> +		return rc;
+> +	f = debugfs_create_file("inject", S_IWUSR, ghes_debug_dir,
+> +				NULL, &ghes_inj_fops);
+> +	if (!f)
+> +		goto err_cleanup;
+> +	f = debugfs_create_u16("inject_source_id", S_IRUSR | S_IWUSR,
+> +			       ghes_debug_dir, &ghes_inject_data.source_id);
+> +	if (!f)
+> +		goto err_cleanup;
+> +
+> +	return 0;
+> +err_cleanup:
+> +	debugfs_remove_recursive(ghes_debug_dir);
+> +	return rc;
+> +}
+> +
+> +static __exit void ghes_inj_exit(void)
+> +{
+> +	debugfs_remove_recursive(ghes_debug_dir);
+> +	ghes_inject_data.valid = 0;
+> +	/* Wait for all consumers finish using the injecting buffer */
+> +	synchronize_rcu();
+> +	kfree(ghes_inj_buf);
+> +}
+> +
+> +module_init(ghes_inj_init);
+> +module_exit(ghes_inj_exit);
+> +
+> +MODULE_AUTHOR("Huang Ying");
+> +MODULE_DESCRIPTION("APEI Generic Hardware Error Source (GHES) injecting support");
+> +MODULE_LICENSE("GPL");
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -153,6 +153,9 @@ static unsigned long ghes_estatus_pool_s
+>  static struct llist_head ghes_estatus_llist;
+>  static struct irq_work ghes_proc_irq_work;
+>  
+> +struct ghes_inject_data ghes_inject_data;
+> +EXPORT_SYMBOL_GPL(ghes_inject_data);
+> +
+>  static int ghes_ioremap_init(void)
+>  {
+>  	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
+> @@ -371,7 +374,13 @@ static int ghes_read_estatus(struct ghes
+>  	u32 len;
+>  	int rc;
+>  
+> -	rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
+> +	if (!ghes_inject_data.valid ||
+> +	    ghes_inject_data.source_id != g->header.source_id)
+> +		rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
+> +	else {
+> +		buf_paddr = ghes_inject_data.error_status_address;
+> +		rc = 0;
+> +	}
+>  	if (rc) {
+>  		if (!silent && printk_ratelimit())
+>  			pr_warning(FW_WARN GHES_PFX
+> @@ -420,6 +429,10 @@ static void ghes_clear_estatus(struct gh
+>  	ghes_copy_tofrom_phys(ghes->estatus, ghes->buffer_paddr,
+>  			      sizeof(ghes->estatus->block_status), 0);
+>  	ghes->flags &= ~GHES_TO_CLEAR;
+> +
+> +	if (ghes_inject_data.valid &&
+> +	    ghes_inject_data.source_id == ghes->generic->header.source_id)
+> +		ghes_inject_data.valid = 0;
+>  }
+>  
+>  static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
