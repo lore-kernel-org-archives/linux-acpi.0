@@ -1,77 +1,78 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 6/9] ACPI, APEI, GHES: Add hardware memory error recovery support
-Date: Tue, 17 May 2011 16:08:36 +0800
-Message-ID: <1305619719-7480-7-git-send-email-ying.huang@intel.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
+Date: Tue, 17 May 2011 10:46:22 +0200
+Message-ID: <20110517084622.GE22093@elte.hu>
 References: <1305619719-7480-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1305619719-7480-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+ <1305619719-7480-6-git-send-email-ying.huang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:44464 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752142Ab1EQIqn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 May 2011 04:46:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1305619719-7480-6-git-send-email-ying.huang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Wu Fengguang <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
 
-memory_failure_queue() is called when recoverable memory errors are
-notified by firmware to do the recovery work.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/Kconfig |    7 +++++++
- drivers/acpi/apei/ghes.c  |   24 +++++++++++++++++-------
- 2 files changed, 24 insertions(+), 7 deletions(-)
+* Huang Ying <ying.huang@intel.com> wrote:
 
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -31,6 +31,13 @@ config ACPI_APEI_PCIEAER
- 	  PCIe AER errors may be reported via APEI firmware first mode.
- 	  Turn on this option to enable the corresponding support.
- 
-+config ACPI_APEI_MEMORY_FAILURE
-+	bool "APEI memory error recovering support"
-+	depends on ACPI_APEI && MEMORY_FAILURE
-+	help
-+	  Memory errors may be reported via APEI firmware first mode.
-+	  Turn on this option to enable the memory recovering support.
-+
- config ACPI_APEI_EINJ
- 	tristate "APEI Error INJection (EINJ)"
- 	depends on ACPI_APEI && DEBUG_FS
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -422,20 +422,30 @@ static void ghes_clear_estatus(struct gh
- 
- static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
- {
--	int sev, processed = 0;
-+	int sev, sec_sev;
- 	struct acpi_hest_generic_data *gdata;
- 
- 	sev = ghes_severity(estatus->error_severity);
- 	apei_estatus_for_each_section(estatus, gdata) {
--#ifdef CONFIG_X86_MCE
-+		sec_sev = ghes_severity(gdata->error_severity);
- 		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
--			apei_mce_report_mem_error(
--				sev == GHES_SEV_CORRECTED,
--				(struct cper_sec_mem_err *)(gdata+1));
--			processed = 1;
--		}
-+			struct cper_sec_mem_err *mem_err;
-+			mem_err = (struct cper_sec_mem_err *)(gdata+1);
-+#ifdef CONFIG_X86_MCE
-+			apei_mce_report_mem_error(sev == GHES_SEV_CORRECTED,
-+						  mem_err);
- #endif
-+#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
-+			if (sev == GHES_SEV_RECOVERABLE &&
-+			    sec_sev == GHES_SEV_RECOVERABLE &&
-+			    mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
-+				unsigned long pfn;
-+				pfn = mem_err->physical_addr >> PAGE_SHIFT;
-+				memory_failure_queue(pfn, 0, 0);
-+			}
-+#endif
-+		}
- 	}
- }
- 
+> memory_failure() is the entry point for HWPoison memory error
+> recovery.  It must be called in process context.  But commonly
+> hardware memory errors are notified via MCE or NMI, so some delayed
+> execution mechanism must be used.  In MCE handler, a work queue + ring
+> buffer mechanism is used.
+> 
+> In addition to MCE, now APEI (ACPI Platform Error Interface) GHES
+> (Generic Hardware Error Source) can be used to report memory errors
+> too.  To add support to APEI GHES memory recovery, a mechanism similar
+> to that of MCE is implemented.  memory_failure_queue() is the new
+> entry point that can be called in IRQ context.  The next step is to
+> make MCE handler uses this interface too.
+> 
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> Cc: Andi Kleen <ak@linux.intel.com>
+> Cc: Wu Fengguang <fengguang.wu@intel.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>  include/linux/mm.h  |    1 
+>  mm/memory-failure.c |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 93 insertions(+)
+
+I have to say i disagree with how this is designed and how this is exposed to 
+user-space - and i pointed this out before.
+
+It's up to Len whether you muck up drivers/acpi/ but here you are patching mm/ 
+again ...
+
+I just had a quick look into the current affairs of mm/memory-inject.c and it 
+has become an *even* nastier collection of hacks since the last time i 
+commented on its uglies.
+
+Special hack upon special hack, totally disorganized code, special-purpose, 
+partly ioctl driven opaque information extraction to user-space using the 
+erst-dbg device interface. We have all the maintenance overhead and little of 
+the gains from hw error event features...
+
+In this patch you add:
+
++struct memory_failure_entry {
++       unsigned long pfn;
++       int trapno;
++       int flags;
++};
+
+Instead of exposing this event to other users who might be interested in these 
+events - such as the RAS daemon under development by Boris.
+
+We have a proper framework (ring-buffer, NMI execution, etc.) for reporting 
+events, why are you not using (and extending) it instead of creating this nasty 
+looking, isolated, ACPI specific low level feature?
+
+Thanks,
+
+	Ingo
