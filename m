@@ -1,78 +1,115 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: huang ying <huang.ying.caritas@gmail.com>
 Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Sun, 22 May 2011 12:00:21 +0200
-Message-ID: <20110522100021.GA28177@elte.hu>
+Date: Sun, 22 May 2011 20:32:17 +0800
+Message-ID: <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com>
 References: <1305619719-7480-1-git-send-email-ying.huang@intel.com>
- <1305619719-7480-6-git-send-email-ying.huang@intel.com>
- <20110517084622.GE22093@elte.hu>
- <4DD23750.3030606@intel.com>
- <20110517092620.GI22093@elte.hu>
- <4DD31C78.6000209@intel.com>
- <20110520115614.GH14745@elte.hu>
- <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
+	<1305619719-7480-6-git-send-email-ying.huang@intel.com>
+	<20110517084622.GE22093@elte.hu>
+	<4DD23750.3030606@intel.com>
+	<20110517092620.GI22093@elte.hu>
+	<4DD31C78.6000209@intel.com>
+	<20110520115614.GH14745@elte.hu>
+	<BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
+	<20110522100021.GA28177@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:41272 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526Ab1EVMcS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 May 2011 08:32:18 -0400
+In-Reply-To: <20110522100021.GA28177@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
 
+On Sun, May 22, 2011 at 6:00 PM, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> * huang ying <huang.ying.caritas@gmail.com> wrote:
+>
+>> On Fri, May 20, 2011 at 7:56 PM, Ingo Molnar <mingo@elte.hu> wrote:
+>> >
+>> > * Huang Ying <ying.huang@intel.com> wrote:
+>> >
+>> >> > So why are we not working towards integrating this into our eve=
+nt
+>> >> > reporting/handling framework, as i suggested it from day one on=
+ when you
+>> >> > started posting these patches?
+>> >>
+>> >> The memory_failure_queue() introduced in this patch is general, t=
+hat is, it
+>> >> can be used not only by ACPI/APEI, but also any other hardware er=
+ror
+>> >> handlers, including your event reporting/handling framework.
+>> >
+>> > Well, the bit you are steadfastly ignoring is what i have made cle=
+ar well
+>> > before you started adding these facilities: THEY ALREADY EXISTS to=
+ a large
+>> > degree :-)
+>> >
+>> > So you were and are duplicating code instead of using and extendin=
+g existing
+>> > event processing facilities. It does not matter one little bit tha=
+t the code
+>> > you added is partly 'generic', it's still overlapping and duplicat=
+ed.
+>>
+>> How to do hardware error recovering in your perf framework? =C2=A0IM=
+HO, it can be
+>> something as follow:
+>>
+>> - NMI handler run for the hardware error, where hardware error
+>> information is collected and put into a ring buffer, an irq_work is
+>> triggered for further work
+>> - In irq_work handler, memory_failure_queue() is called to do the re=
+al
+>> recovering work for recoverable memory error in ring buffer.
+>>
+>> What's your idea about hardware error recovering in perf?
+>
+> The first step, the whole irq_work and ring buffer already looks larg=
+ely
+> duplicated: you can collect into a perf event ring-buffer from NMI co=
+ntext like
+> the regular perf events do.
 
-* huang ying <huang.ying.caritas@gmail.com> wrote:
+Why duplicated? perf uses the general irq_work too.
 
-> On Fri, May 20, 2011 at 7:56 PM, Ingo Molnar <mingo@elte.hu> wrote:
-> >
-> > * Huang Ying <ying.huang@intel.com> wrote:
-> >
-> >> > So why are we not working towards integrating this into our event
-> >> > reporting/handling framework, as i suggested it from day one on when you
-> >> > started posting these patches?
-> >>
-> >> The memory_failure_queue() introduced in this patch is general, that is, it
-> >> can be used not only by ACPI/APEI, but also any other hardware error
-> >> handlers, including your event reporting/handling framework.
-> >
-> > Well, the bit you are steadfastly ignoring is what i have made clear well
-> > before you started adding these facilities: THEY ALREADY EXISTS to a large
-> > degree :-)
-> >
-> > So you were and are duplicating code instead of using and extending existing
-> > event processing facilities. It does not matter one little bit that the code
-> > you added is partly 'generic', it's still overlapping and duplicated.
-> 
-> How to do hardware error recovering in your perf framework?  IMHO, it can be 
-> something as follow:
-> 
-> - NMI handler run for the hardware error, where hardware error
-> information is collected and put into a ring buffer, an irq_work is
-> triggered for further work
-> - In irq_work handler, memory_failure_queue() is called to do the real
-> recovering work for recoverable memory error in ring buffer.
-> 
-> What's your idea about hardware error recovering in perf?
+> The generalization that *would* make sense is not at the irq_work lev=
+el really,
+> instead we could generalize a 'struct event' for kernel internal prod=
+ucers and
+> consumers of events that have no explicit PMU connection.
+>
+> This new 'struct event' would be slimmer and would only contain the f=
+ields and
+> features that generic event consumers and producers need. Tracing eve=
+nts could
+> be updated to use these kinds of slimmer events.
+>
+> It would still plug nicely into existing event ABIs, would work with =
+event
+> filters, etc. so the tooling side would remain focused and unified.
+>
+> Something like that. It is rather clear by now that splitting out irq=
+_work was
+> a mistake. But mistakes can be fixed and some really nice code could =
+come out
+> of it! Would you be interested in looking into this?
 
-The first step, the whole irq_work and ring buffer already looks largely 
-duplicated: you can collect into a perf event ring-buffer from NMI context like 
-the regular perf events do.
+Yes.  This can transfer hardware error data from kernel to user space.
+ Then, how to do hardware error recovering in this big picture?  IMHO,
+we will need to call something like memory_failure_queue() in IRQ
+context for memory error.
 
-The generalization that *would* make sense is not at the irq_work level really, 
-instead we could generalize a 'struct event' for kernel internal producers and 
-consumers of events that have no explicit PMU connection.
-
-This new 'struct event' would be slimmer and would only contain the fields and 
-features that generic event consumers and producers need. Tracing events could 
-be updated to use these kinds of slimmer events.
-
-It would still plug nicely into existing event ABIs, would work with event 
-filters, etc. so the tooling side would remain focused and unified.
-
-Something like that. It is rather clear by now that splitting out irq_work was 
-a mistake. But mistakes can be fixed and some really nice code could come out 
-of it! Would you be interested in looking into this?
-
-Thanks,
-
-	Ingo
+Best Regards,
+Huang Ying
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
