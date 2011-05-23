@@ -1,63 +1,62 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Tue, 24 May 2011 06:24:14 +0200
-Message-ID: <20110524042414.GB8554@elte.hu>
-References: <20110520115614.GH14745@elte.hu>
- <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
- <20110522100021.GA28177@elte.hu>
- <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com>
- <20110522132515.GA13078@elte.hu>
- <4DD9C8B9.5070004@intel.com>
- <20110523110151.GD24674@elte.hu>
- <4DDB1396.7050205@intel.com>
- <20110524024848.GA25230@elte.hu>
- <4DDB210D.6060202@intel.com>
+From: Thomas Mitterfellner <thomas@mitterfellner.at>
+Subject: ACPI support for Toshiba Satellite Pro L770-116
+Date: Mon, 23 May 2011 14:02:36 +0200
+Message-ID: <4DDA4CDC.5010902@mitterfellner.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:41630 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750749Ab1EXEYg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 May 2011 00:24:36 -0400
-Content-Disposition: inline
-In-Reply-To: <4DDB210D.6060202@intel.com>
+Received: from mx04.easyname.eu ([77.244.243.8]:38439 "EHLO mail.easyname.eu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750972Ab1EXFfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 May 2011 01:35:02 -0400
+Received: from faochcn87.tu-graz.ac.at ([129.27.176.87])
+	by mail.easyname.eu with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <thomas@mitterfellner.at>)
+	id 1QOTrZ-00006u-Do
+	for linux-acpi@vger.kernel.org; Mon, 23 May 2011 12:03:57 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+To: linux-acpi@vger.kernel.org
 
+Hello!
 
-* Huang Ying <ying.huang@intel.com> wrote:
+I run a 2.6.37.6 kernel on a Toshiba Satellite Pro L770-116 Notebook 
+with an American Megatrends BIOS (Aptio Setup Utility).
 
-> On 05/24/2011 10:48 AM, Ingo Molnar wrote:
-> > 
-> > * Huang Ying <ying.huang@intel.com> wrote:
-> > 
-> >>>> - How to deal with ring-buffer overflow?  For example, there is full of 
-> >>>>   corrected memory error in ring-buffer, and now a recoverable memory error 
-> >>>>   occurs but it can not be put into perf ring buffer because of ring-buffer 
-> >>>>   overflow, how to deal with the recoverable memory error?
-> >>>
-> >>> The solution is to make it large enough. With *every* queueing solution there 
-> >>> will be some sort of queue size limit.
-> >>
-> >> Another solution could be:
-> >>
-> >> Create two ring-buffer. One is for logging and will be read by RAS
-> >> daemon; the other is for recovering, the event record will be removed
-> >> from the ring-buffer after all 'active filters' have been run on it.
-> >> Even RAS daemon being restarted or hang, recoverable error can be taken
-> >> cared of.
-> > 
-> > Well, filters will always be executed since they execute when the event is 
-> > inserted - not when it's extracted.
-> 
-> For filters executed in NMI context, they can be executed when the event
-> is inserted, no need for buffering.  But for filters executed in
-> deferred IRQ context, they need to be executed when event's extracted.
+I read that Toshibas with Phoenix BIOS are treated differently from the 
+ones with a Toshiba BIOS, with different kernel modules being necessary 
+(the toshiba_acpi module is not appropriate for my laptop ('no such 
+device'). However, I could not find any information on Toshiba Laptops 
+with an AMI BIOS. The only Toshiba-specific module that's being loaded 
+is toshiba_bluetooth.
 
-Correct.
+Some ACPI features do work like e.g. the fan control, and toggling the 
+state of the internal WLAN card with Fn-F8.
 
-Thanks,
+When I enter acpi -V, there's a line saying:
 
-	Ingo
+Cooling 0: LCD 6 of 7
+
+I noticed that I can alter the value of 'Cooling 0: LCD 6 of 7' with 
+Fn-F6/Fn-F7, but the brightness of the display does not change accordingly.
+
+Fn-F3 and closing the lid crashes the system completely, enabling the 
+VGA port output does not seem to work, Fn-ESC displays a symbol for 
+muting toggled but it has no actual effect on the sound output.
+
+I tried to manually load omnibook kernel module, as some pages suggested 
+it supports Toshibas with non-Toshiba BIOSes, but it does not seem to do 
+so and gives kernel error messages (omnibook: Unknown model).
+
+I would be glad to provide additional information that might be needed 
+by module developers to add support for the ACPI functions of the 
+Toshiba Satellite Pro L770-116. I read that Toshiba may provide 
+information for Linux developers too [1], which at least *sounds* good.
+
+Thank you for reading, kind regards,
+
+Thomas
+
+   [1] http://linux.toshiba-dme.co.jp/linux/eng/develop.htm
