@@ -1,106 +1,79 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Mon, 23 May 2011 13:01:51 +0200
-Message-ID: <20110523110151.GD24674@elte.hu>
-References: <20110517084622.GE22093@elte.hu>
- <4DD23750.3030606@intel.com>
- <20110517092620.GI22093@elte.hu>
- <4DD31C78.6000209@intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 5/9] HWPoison: add memory_failure_queue()
+Date: Mon, 23 May 2011 09:45:50 -0700
+Message-ID: <987664A83D2D224EAE907B061CE93D5301D5BF823C@orsmsx505.amr.corp.intel.com>
+References: <20110517084622.GE22093@elte.hu> <4DD23750.3030606@intel.com>
+ <20110517092620.GI22093@elte.hu> <4DD31C78.6000209@intel.com>
  <20110520115614.GH14745@elte.hu>
  <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
  <20110522100021.GA28177@elte.hu>
  <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com>
- <20110522132515.GA13078@elte.hu>
- <4DD9C8B9.5070004@intel.com>
+ <20110522132515.GA13078@elte.hu> <4DD9C8B9.5070004@intel.com>
+ <20110523110151.GD24674@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:46546 "EHLO mx2.mail.elte.hu"
+Received: from mga01.intel.com ([192.55.52.88]:20002 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752229Ab1EWLCL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 May 2011 07:02:11 -0400
-Content-Disposition: inline
-In-Reply-To: <4DD9C8B9.5070004@intel.com>
+	id S1755225Ab1EWQpw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 May 2011 12:45:52 -0400
+In-Reply-To: <20110523110151.GD24674@elte.hu>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+To: Ingo Molnar <mingo@elte.hu>, "Huang, Ying" <ying.huang@intel.com>
+Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
 
+>> - NMI handler run for the hardware error, where hardware error
+>>   information is collected and put into perf ring buffer as 'event'.
+>
+> Correct.
+>
+> Note that for MCE errors we want the 'persistent event' framework Boris has 
+> posted: we want these events to be buffered up to a point even if there is no 
+> tool listening in on them:
 
-* Huang Ying <ying.huang@intel.com> wrote:
+This is a very opportune time to have this discussion. I've been working
+on getting "in context" recoverable errors working. Sandybridge Server
+platforms will allow for recovery for both instruction and data fetches
+in the current execution context. These are flagged in the machine check
+bank with the "AR" (Action Required) set to 1 (along with several other
+bits making up a recognizable signature).
 
-> > That's where 'active filters' come into the picture - see my other mail 
-> > (that was in the context of unidentified NMI errors/events) where i 
-> > outlined how they would work in this case and elsewhere. Via active filters 
-> > we could share most of the code, gain access to the events and still have 
-> > kernel driven policy action.
-> 
-> Is that something as follow?
-> 
-> - NMI handler run for the hardware error, where hardware error
->   information is collected and put into perf ring buffer as 'event'.
+The critical feature here is that we must not return from the machine
+check handler to the context that tripped over the error. In the case
+of the data fault, we'll just re-execute the same access and take
+another machine check. In the case of the instruction fault there is
+no valid context to return to (MCGSTATUS.RIPV is zero).
 
-Correct.
+There are a couple of cases where recovery is possible:
 
-Note that for MCE errors we want the 'persistent event' framework Boris has 
-posted: we want these events to be buffered up to a point even if there is no 
-tool listening in on them:
+1) The memory error was found while executing user mode code.
 
- - this gives us boot-time MCE error coverage
+The code I have now for recovery makes use of TIF_MCE_NOTIFY to
+make sure that we don't return to the user, but instead end up
+in arch/x86/kernel/signal.c:do_notify_resume() where we arrange
+to have the process handle its own recovery (using mm/memory-failure.c
+to figure out the type of page, and probably resulting in the mapping
+out of the page and sending SIGBUS to the process).
 
- - this protects us against a logging daemon being restarted and events
-   getting lost
+In your proposed solution, we'd generate an event that would be handled
+by some process/daemon ... but how would we ensure that the affected
+process does not run in the mean time? Could we create some analogous
+method to the ptrace stopped state, and hand control of the affected
+process to the daemon that gets the event?
 
-> - Some 'active filters' are run for each 'event' in NMI context.
+2) The memory error was found in certain special sections of the
+   kernel for which recovery is possible (e.g. while copying to/from
+   user memory, perhaps also page copy and page clear).
 
-Yeah. Whether it's a human-ASCII space 'filter' or really just a callback you 
-register with that event is secondary - both would work.
+Here I don't have a solution. TIF_MCE_NOTIFY isn't checked when returning
+from do_machine_check() to kernel code.
 
-> - Some operations can not be done in NMI handler, so they are delayed to
->   an IRQ handler (can be done with something like irq_work).
+In a CONFIG_PREEMPT=y kernel, all of the recoverable cases ought to be
+in places where pre-emption is allowed ... so perhaps we can also use
+the stop-and-switch option here?
 
-Yes.
+-Tony
 
-> - Some other 'active filters' are run for each 'event' in IRQ context.
->   (For memory error, we can call memory_failure_queue() here).
-
-Correct.
-
-> Where some 'active filters' are kernel built-in, some 'active filters' can be 
-> customized via kernel command line or by user space.
-
-Yes.
-
-> If my understanding as above is correct, I think this is a general and 
-> complex solution.  It is a little hard for user to understand which 'active 
-> filters' are in effect.  He may need some runtime assistant to understand the 
-> code (maybe /sys/events/active_filters, which list all filters in effect 
-> now), because that is hard only by reading the source code.  Anyway, this is 
-> a design style choice.
-
-I don't think it's complex: the built-in rules are in plain sight (can be in 
-the source code or can even be explicitly registered callbacks), the 
-configuration/tooling installed rules will be as complex as the admin or tool 
-wants them to be.
-
-> There are still some issues, I don't know how to solve in above framework.
-> 
-> - If there are two processes request the same type of hardware error
->   events.  One hardware error event will be copied to two ring buffers (each 
->   for one process), but the 'active filters' should be run only once for each 
->   hardware error event.
-
-With persistent events 'active filters' should only be attached to the central 
-persistent event.
-
-> - How to deal with ring-buffer overflow?  For example, there is full of 
->   corrected memory error in ring-buffer, and now a recoverable memory error 
->   occurs but it can not be put into perf ring buffer because of ring-buffer 
->   overflow, how to deal with the recoverable memory error?
-
-The solution is to make it large enough. With *every* queueing solution there 
-will be some sort of queue size limit.
-
-Thanks,
-
-	Ingo
