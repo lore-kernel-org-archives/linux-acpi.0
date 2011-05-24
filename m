@@ -1,79 +1,58 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Mon, 23 May 2011 09:45:50 -0700
-Message-ID: <987664A83D2D224EAE907B061CE93D5301D5BF823C@orsmsx505.amr.corp.intel.com>
-References: <20110517084622.GE22093@elte.hu> <4DD23750.3030606@intel.com>
- <20110517092620.GI22093@elte.hu> <4DD31C78.6000209@intel.com>
- <20110520115614.GH14745@elte.hu>
- <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
- <20110522100021.GA28177@elte.hu>
- <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com>
- <20110522132515.GA13078@elte.hu> <4DD9C8B9.5070004@intel.com>
- <20110523110151.GD24674@elte.hu>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH]intel_idle: misuse API
+Date: Tue, 24 May 2011 09:10:25 +0800
+Message-ID: <1306199425.2375.127.camel@sli10-conroe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20002 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:56749 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755225Ab1EWQpw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 May 2011 12:45:52 -0400
-In-Reply-To: <20110523110151.GD24674@elte.hu>
-Content-Language: en-US
+	id S1757835Ab1EXBK1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 May 2011 21:10:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, "Huang, Ying" <ying.huang@intel.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
->> - NMI handler run for the hardware error, where hardware error
->>   information is collected and put into perf ring buffer as 'event'.
->
-> Correct.
->
-> Note that for MCE errors we want the 'persistent event' framework Boris has 
-> posted: we want these events to be buffered up to a point even if there is no 
-> tool listening in on them:
+smp_call_function() only lets all other CPUs execute specific
+function, while we expect all CPUs do.
 
-This is a very opportune time to have this discussion. I've been working
-on getting "in context" recoverable errors working. Sandybridge Server
-platforms will allow for recovery for both instruction and data fetches
-in the current execution context. These are flagged in the machine check
-bank with the "AR" (Action Required) set to 1 (along with several other
-bits making up a recognizable signature).
+BTW, auto_demotion_disable should hook to cpu hotplug to make
+sure hot added cpu disable auto demotion really.
 
-The critical feature here is that we must not return from the machine
-check handler to the context that tripped over the error. In the case
-of the data fault, we'll just re-execute the same access and take
-another machine check. In the case of the instruction fault there is
-no valid context to return to (MCGSTATUS.RIPV is zero).
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-There are a couple of cases where recovery is possible:
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index a46dddf..55fbb02 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -367,7 +367,7 @@ static int intel_idle_probe(void)
+ 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
+ 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
+ 	else {
+-		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
++		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+ 		register_cpu_notifier(&setup_broadcast_notifier);
+ 	}
+ 
+@@ -459,7 +459,7 @@ static int intel_idle_cpuidle_devices_init(void)
+ 		}
+ 	}
+ 	if (auto_demotion_disable_flags)
+-		smp_call_function(auto_demotion_disable, NULL, 1);
++		on_each_cpu(auto_demotion_disable, NULL, 1);
+ 
+ 	return 0;
+ }
+@@ -499,7 +499,7 @@ static void __exit intel_idle_exit(void)
+ 	cpuidle_unregister_driver(&intel_idle_driver);
+ 
+ 	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
+-		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
++		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
+ 		unregister_cpu_notifier(&setup_broadcast_notifier);
+ 	}
+ 
 
-1) The memory error was found while executing user mode code.
-
-The code I have now for recovery makes use of TIF_MCE_NOTIFY to
-make sure that we don't return to the user, but instead end up
-in arch/x86/kernel/signal.c:do_notify_resume() where we arrange
-to have the process handle its own recovery (using mm/memory-failure.c
-to figure out the type of page, and probably resulting in the mapping
-out of the page and sending SIGBUS to the process).
-
-In your proposed solution, we'd generate an event that would be handled
-by some process/daemon ... but how would we ensure that the affected
-process does not run in the mean time? Could we create some analogous
-method to the ptrace stopped state, and hand control of the affected
-process to the daemon that gets the event?
-
-2) The memory error was found in certain special sections of the
-   kernel for which recovery is possible (e.g. while copying to/from
-   user memory, perhaps also page copy and page clear).
-
-Here I don't have a solution. TIF_MCE_NOTIFY isn't checked when returning
-from do_machine_check() to kernel code.
-
-In a CONFIG_PREEMPT=y kernel, all of the recoverable cases ought to be
-in places where pre-emption is allowed ... so perhaps we can also use
-the stop-and-switch option here?
-
--Tony
 
