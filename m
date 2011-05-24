@@ -1,58 +1,65 @@
-From: Huang Ying <ying.huang@intel.com>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Tue, 24 May 2011 10:10:30 +0800
-Message-ID: <4DDB1396.7050205@intel.com>
-References: <20110517084622.GE22093@elte.hu> <4DD23750.3030606@intel.com> <20110517092620.GI22093@elte.hu> <4DD31C78.6000209@intel.com> <20110520115614.GH14745@elte.hu> <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com> <20110522100021.GA28177@elte.hu> <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com> <20110522132515.GA13078@elte.hu> <4DD9C8B9.5070004@intel.com> <20110523110151.GD24674@elte.hu>
+Date: Tue, 24 May 2011 04:48:48 +0200
+Message-ID: <20110524024848.GA25230@elte.hu>
+References: <20110517092620.GI22093@elte.hu>
+ <4DD31C78.6000209@intel.com>
+ <20110520115614.GH14745@elte.hu>
+ <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com>
+ <20110522100021.GA28177@elte.hu>
+ <BANLkTi=VDQMOfWe5tP7nXSv2AEsiUUEteg@mail.gmail.com>
+ <20110522132515.GA13078@elte.hu>
+ <4DD9C8B9.5070004@intel.com>
+ <20110523110151.GD24674@elte.hu>
+ <4DDB1396.7050205@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110523110151.GD24674@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:38270 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752516Ab1EXCwO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 May 2011 22:52:14 -0400
+Content-Disposition: inline
+In-Reply-To: <4DDB1396.7050205@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
 
-On 05/23/2011 07:01 PM, Ingo Molnar wrote:
->> If my understanding as above is correct, I think this is a general and 
->> complex solution.  It is a little hard for user to understand which 'active 
->> filters' are in effect.  He may need some runtime assistant to understand the 
->> code (maybe /sys/events/active_filters, which list all filters in effect 
->> now), because that is hard only by reading the source code.  Anyway, this is 
->> a design style choice.
+
+* Huang Ying <ying.huang@intel.com> wrote:
+
+> >> - How to deal with ring-buffer overflow?  For example, there is full of 
+> >>   corrected memory error in ring-buffer, and now a recoverable memory error 
+> >>   occurs but it can not be put into perf ring buffer because of ring-buffer 
+> >>   overflow, how to deal with the recoverable memory error?
+> > 
+> > The solution is to make it large enough. With *every* queueing solution there 
+> > will be some sort of queue size limit.
 > 
-> I don't think it's complex: the built-in rules are in plain sight (can be in 
-> the source code or can even be explicitly registered callbacks), the 
-> configuration/tooling installed rules will be as complex as the admin or tool 
-> wants them to be.
+> Another solution could be:
 > 
->> There are still some issues, I don't know how to solve in above framework.
->>
->> - If there are two processes request the same type of hardware error
->>   events.  One hardware error event will be copied to two ring buffers (each 
->>   for one process), but the 'active filters' should be run only once for each 
->>   hardware error event.
-> 
-> With persistent events 'active filters' should only be attached to the central 
-> persistent event.
+> Create two ring-buffer. One is for logging and will be read by RAS
+> daemon; the other is for recovering, the event record will be removed
+> from the ring-buffer after all 'active filters' have been run on it.
+> Even RAS daemon being restarted or hang, recoverable error can be taken
+> cared of.
 
-OK. I see.
+Well, filters will always be executed since they execute when the event is 
+inserted - not when it's extracted.
 
->> - How to deal with ring-buffer overflow?  For example, there is full of 
->>   corrected memory error in ring-buffer, and now a recoverable memory error 
->>   occurs but it can not be put into perf ring buffer because of ring-buffer 
->>   overflow, how to deal with the recoverable memory error?
-> 
-> The solution is to make it large enough. With *every* queueing solution there 
-> will be some sort of queue size limit.
+So if you worry about losing *filter* executions (and dependent policy action) 
+- there should be no loss there, ever.
 
-Another solution could be:
+But yes, the scheme you outline would work as well: a counting-only event with 
+a filter specified - this will do no buffering at all.
 
-Create two ring-buffer. One is for logging and will be read by RAS
-daemon; the other is for recovering, the event record will be removed
-from the ring-buffer after all 'active filters' have been run on it.
-Even RAS daemon being restarted or hang, recoverable error can be taken
-cared of.
+So ... to get the ball rolling in this area one of you guys active in RAS 
+should really try a first approximation for the active filter approach: add a 
+test-TRACE_EVENT() for the errors you are interested in and define a convenient 
+way to register policy action with post-filter events. This should work even 
+without having the 'active' portion defined at the ABI and filter-string level.
 
-Best Regards,
-Huang Ying
+Thanks,
+
+	Ingo
