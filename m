@@ -1,31 +1,64 @@
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Subject: Re: [PATCH 5/9] HWPoison: add memory_failure_queue()
-Date: Thu, 26 May 2011 10:33:39 +0900
-Message-ID: <4DDDADF3.30507@jp.fujitsu.com>
-References: <1305619719-7480-1-git-send-email-ying.huang@intel.com> <1305619719-7480-6-git-send-email-ying.huang@intel.com> <20110517084622.GE22093@elte.hu> <4DD23750.3030606@intel.com> <20110517092620.GI22093@elte.hu> <4DD31C78.6000209@intel.com> <20110520115614.GH14745@elte.hu> <BANLkTi=5Y0fqsmhsoPm8si=nQBc-tCwtrw@mail.gmail.com> <20110522100021.GA28177@elte.hu> <4DDCB294.9000405@jp.fujitsu.com> <20110525141115.GE19118@elte.hu>
+From: aaron lu <aaron.lu@amd.com>
+Subject: [PATCH] ACPI, execute _PSx control method if exists during device
+ power init phase
+Date: Thu, 26 May 2011 15:39:41 +0800
+Message-ID: <1306395581.10256.9.camel@torpedo-aaron.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110525141115.GE19118@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Borislav Petkov <bp@alien8.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from tx2ehsobe003.messaging.microsoft.com ([65.55.88.13]:40417 "EHLO
+	TX2EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754934Ab1EZHju convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 May 2011 03:39:50 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, arindam.nath@amd.com, henry.su@amd.com
 
-(2011/05/25 23:11), Ingo Molnar wrote:
-> No, i think your patch is already a pretty nice simplification of the 
-> MCE code - using irq_work is obviously better than the open-coded MCE 
-> vector approach!
-> 
-> These are exactly the kind of small steps towards generalizations 
-> that i wanted to see: each step without being intrusive and breaking 
-> stuff and working towards improving the status quo.
+Per the acpi spec, for OSPM to put the device in the Dx device state,
+the following must occur:
+1. All Power Resources referenced by elements 1 through N must be in the
+ON state.
+2. All Power Resources no longer referenced by any device in the system
+must be in the OFF state.
+3. If present, the _PSx control method is executed to set the device
+into the Dx device state.
 
-Thank you, Ingo!
+This patch adds support for the execution of _PSx control method during
+device power init phase.
 
-I have some minor patches for mce codes too so I'll post this and those
-in new thread soon.
+This could also solve the problem I encountered, please see:
+http://marc.info/?l=linux-acpi&m=130579961021505&w=2
 
-Thanks,
-H.Seto
+Signed-off-by: Aaron Lu <aaron.lu@amd.com>
+---
+ drivers/acpi/bus.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 9749980..71c9e35 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -339,6 +339,18 @@ int acpi_bus_init_power(struct acpi_device *device)
+ 
+ 	if (device->power.flags.power_resources)
+ 		result = acpi_power_on_resources(device, state);
++	if (result)
++		return result;
++
++	/* if _PSx exists, execute it */
++	if (device->power.states[state].flags.explicit_set) {
++		acpi_status status;
++		char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
++		status = acpi_evaluate_object(device->handle, object_name,
++				NULL, NULL);
++		if (ACPI_FAILURE(status))
++			result = -ENODEV;
++	}
+ 
+ 	if (!result)
+ 		device->power.state = state;
+-- 
+1.7.4.4
+
