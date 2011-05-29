@@ -1,255 +1,197 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/18] ACPICA: Fix code divergence of global lock handling
-Date: Sun, 29 May 2011 05:43:59 -0400
-Message-ID: <749c27639b95c5c4a8185e02a4efb189034944ed.1306662156.git.len.brown@intel.com>
+Subject: [PATCH 05/18] ACPI EC: remove dead code
+Date: Sun, 29 May 2011 05:44:00 -0400
+Message-ID: <1cb7b1e0de6a1f8f071f4a146e3d10f3a662f707.1306662156.git.len.brown@intel.com>
 References: <1306662253-11071-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:63542 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301Ab1E2JoU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 May 2011 05:44:20 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:35439 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752036Ab1E2JoV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 May 2011 05:44:21 -0400
 Received: from arrandale.kernel.org ([unknown] [65.175.202.181])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LLY00HY6B1V273O@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 29 May 2011 04:44:20 -0500 (CDT)
+ with ESMTPA id <0LLY00DX1B1W40B2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 29 May 2011 04:44:21 -0500 (CDT)
 In-reply-to: <1306662253-11071-1-git-send-email-lenb@kernel.org>
 In-reply-to: <b299eb5cde1a91706c450804006c6559b0826df8.1306662156.git.len.brown@intel.com>
 References: <b299eb5cde1a91706c450804006c6559b0826df8.1306662156.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-Commit 9cd0314(ACPI / ACPICA: Fix global lock acquisition) was backported
-into ACPICA code base, and some divergence was introduced.
+static void acpi_ec_gpe_query(void *ec_cxt);
+-> The function is right above this declaration -> not needed.
 
-This patch fixed it,
-- rename acpi_ev_global_lock_pending/acpi_ev_global_lock_pending_lock
-  to acpi_gbl_global_lock_pending/acpi_gbl_global_lock_pending_lock.
+poll_force is also not used, cleaned up in ec.c and its users:
+compal-laptop and msi-laptop.
 
-- move the initialization of acpi_gbl_global_lock_pending_lock from
-  acpi_ut_mutex_initialize to acpi_ev_init_global_lock_handler.
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    6 ++-
- drivers/acpi/acpica/evmisc.c   |   74 +++++++++++++++++++++------------------
- drivers/acpi/acpica/utmutex.c  |    5 ---
- 3 files changed, 44 insertions(+), 41 deletions(-)
+ drivers/acpi/ec.c                    |    6 +-----
+ drivers/platform/x86/compal-laptop.c |   12 ++++++------
+ drivers/platform/x86/msi-laptop.c    |   12 ++++++------
+ include/linux/acpi.h                 |    3 +--
+ 4 files changed, 14 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 6d512fc..73863d8 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -214,13 +214,16 @@ ACPI_EXTERN struct acpi_mutex_info acpi_gbl_mutex_info[ACPI_NUM_MUTEX];
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index fa848c4..b3f1d6f 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -69,7 +69,6 @@ enum ec_command {
  
- /*
-  * Global lock mutex is an actual AML mutex object
-- * Global lock semaphore works in conjunction with the HW global lock
-+ * Global lock semaphore works in conjunction with the actual global lock
-+ * Global lock spinlock is used for "pending" handshake
-  */
- ACPI_EXTERN union acpi_operand_object *acpi_gbl_global_lock_mutex;
- ACPI_EXTERN acpi_semaphore acpi_gbl_global_lock_semaphore;
-+ACPI_EXTERN acpi_spinlock acpi_gbl_global_lock_pending_lock;
- ACPI_EXTERN u16 acpi_gbl_global_lock_handle;
- ACPI_EXTERN u8 acpi_gbl_global_lock_acquired;
- ACPI_EXTERN u8 acpi_gbl_global_lock_present;
-+ACPI_EXTERN u8 acpi_gbl_global_lock_pending;
+ #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
+ #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
+-#define ACPI_EC_CDELAY		10	/* Wait 10us before polling EC */
+ #define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
  
- /*
-  * Spinlocks are used for interfaces that can be possibly called at
-@@ -228,7 +231,6 @@ ACPI_EXTERN u8 acpi_gbl_global_lock_present;
-  */
- ACPI_EXTERN acpi_spinlock acpi_gbl_gpe_lock;	/* For GPE data structs and registers */
- ACPI_EXTERN acpi_spinlock acpi_gbl_hardware_lock;	/* For ACPI H/W except GPE registers */
--ACPI_EXTERN acpi_spinlock acpi_ev_global_lock_pending_lock; /* For global lock */
+ #define ACPI_EC_STORM_THRESHOLD 8	/* number of false interrupts
+@@ -433,8 +432,7 @@ EXPORT_SYMBOL(ec_write);
  
- /*****************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
-index 7dc8094..69a3b4a 100644
---- a/drivers/acpi/acpica/evmisc.c
-+++ b/drivers/acpi/acpica/evmisc.c
-@@ -284,39 +284,41 @@ static void ACPI_SYSTEM_XFACE acpi_ev_notify_dispatch(void *context)
-  * RETURN:      ACPI_INTERRUPT_HANDLED
-  *
-  * DESCRIPTION: Invoked directly from the SCI handler when a global lock
-- *              release interrupt occurs.  If there's a thread waiting for
-- *              the global lock, signal it.
-- *
-- * NOTE: Assumes that the semaphore can be signaled from interrupt level. If
-- * this is not possible for some reason, a separate thread will have to be
-- * scheduled to do this.
-+ *              release interrupt occurs. If there is actually a pending
-+ *              request for the lock, signal the waiting thread.
-  *
-  ******************************************************************************/
--static u8 acpi_ev_global_lock_pending;
- 
- static u32 acpi_ev_global_lock_handler(void *context)
+ int ec_transaction(u8 command,
+ 		   const u8 * wdata, unsigned wdata_len,
+-		   u8 * rdata, unsigned rdata_len,
+-		   int force_poll)
++		   u8 * rdata, unsigned rdata_len)
  {
- 	acpi_status status;
- 	acpi_cpu_flags flags;
+ 	struct transaction t = {.command = command,
+ 				.wdata = wdata, .rdata = rdata,
+@@ -592,8 +590,6 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+ 	mutex_unlock(&ec->lock);
+ }
  
--	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
-+	flags = acpi_os_acquire_lock(acpi_gbl_global_lock_pending_lock);
- 
--	if (!acpi_ev_global_lock_pending) {
--		goto out;
-+	/*
-+	 * If a request for the global lock is not actually pending,
-+	 * we are done. This handles "spurious" global lock interrupts
-+	 * which are possible (and have been seen) with bad BIOSs.
-+	 */
-+	if (!acpi_gbl_global_lock_pending) {
-+		goto cleanup_and_exit;
- 	}
- 
--	/* Send a unit to the semaphore */
+-static void acpi_ec_gpe_query(void *ec_cxt);
 -
-+	/*
-+	 * Send a unit to the global lock semaphore. The actual acquisition
-+	 * of the global lock will be performed by the waiting thread.
-+	 */
- 	status = acpi_os_signal_semaphore(acpi_gbl_global_lock_semaphore, 1);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_ERROR((AE_INFO, "Could not signal Global Lock semaphore"));
- 	}
- 
--	acpi_ev_global_lock_pending = FALSE;
-+	acpi_gbl_global_lock_pending = FALSE;
- 
-- out:
--	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
-+cleanup_and_exit:
- 
-+	acpi_os_release_lock(acpi_gbl_global_lock_pending_lock, flags);
- 	return (ACPI_INTERRUPT_HANDLED);
- }
- 
-@@ -350,14 +352,20 @@ acpi_status acpi_ev_init_global_lock_handler(void)
- 	 * Map to AE_OK, but mark global lock as not present. Any attempt to
- 	 * actually use the global lock will be flagged with an error.
- 	 */
-+	acpi_gbl_global_lock_present = FALSE;
- 	if (status == AE_NO_HARDWARE_RESPONSE) {
- 		ACPI_ERROR((AE_INFO,
- 			    "No response from Global Lock hardware, disabling lock"));
- 
--		acpi_gbl_global_lock_present = FALSE;
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
-+	status = acpi_os_create_lock(&acpi_gbl_global_lock_pending_lock);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	acpi_gbl_global_lock_pending = FALSE;
- 	acpi_gbl_global_lock_present = TRUE;
- 	return_ACPI_STATUS(status);
- }
-@@ -414,7 +422,7 @@ static int acpi_ev_global_lock_acquired;
- acpi_status acpi_ev_acquire_global_lock(u16 timeout)
+ static int ec_check_sci(struct acpi_ec *ec, u8 state)
  {
- 	acpi_cpu_flags flags;
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 	u8 acquired = FALSE;
- 
- 	ACPI_FUNCTION_TRACE(ev_acquire_global_lock);
-@@ -458,15 +466,15 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- 	}
- 
- 	/*
--	 * Make sure that a global lock actually exists. If not, just treat the
--	 * lock as a standard mutex.
-+	 * Make sure that a global lock actually exists. If not, just
-+	 * treat the lock as a standard mutex.
- 	 */
- 	if (!acpi_gbl_global_lock_present) {
- 		acpi_gbl_global_lock_acquired = TRUE;
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
--	flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
-+	flags = acpi_os_acquire_lock(acpi_gbl_global_lock_pending_lock);
- 
- 	do {
- 
-@@ -475,20 +483,19 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- 		ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
- 		if (acquired) {
- 			acpi_gbl_global_lock_acquired = TRUE;
--
- 			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 					  "Acquired hardware Global Lock\n"));
- 			break;
- 		}
- 
--		acpi_ev_global_lock_pending = TRUE;
--
--		acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
--
- 		/*
--		 * Did not get the lock. The pending bit was set above, and we
--		 * must wait until we get the global lock released interrupt.
-+		 * Did not get the lock. The pending bit was set above, and
-+		 * we must now wait until we receive the global lock
-+		 * released interrupt.
- 		 */
-+		acpi_gbl_global_lock_pending = TRUE;
-+		acpi_os_release_lock(acpi_gbl_global_lock_pending_lock, flags);
-+
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 				  "Waiting for hardware Global Lock\n"));
- 
-@@ -496,17 +503,16 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- 		 * Wait for handshake with the global lock interrupt handler.
- 		 * This interface releases the interpreter if we must wait.
- 		 */
--		status = acpi_ex_system_wait_semaphore(
--						acpi_gbl_global_lock_semaphore,
--						ACPI_WAIT_FOREVER);
-+		status =
-+		    acpi_ex_system_wait_semaphore
-+		    (acpi_gbl_global_lock_semaphore, ACPI_WAIT_FOREVER);
- 
--		flags = acpi_os_acquire_lock(acpi_ev_global_lock_pending_lock);
-+		flags = acpi_os_acquire_lock(acpi_gbl_global_lock_pending_lock);
- 
- 	} while (ACPI_SUCCESS(status));
- 
--	acpi_ev_global_lock_pending = FALSE;
--
--	acpi_os_release_lock(acpi_ev_global_lock_pending_lock, flags);
-+	acpi_gbl_global_lock_pending = FALSE;
-+	acpi_os_release_lock(acpi_gbl_global_lock_pending_lock, flags);
- 
- 	return_ACPI_STATUS(status);
+ 	if (state & ACPI_EC_FLAG_SCI) {
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index 034572b..f4f43e6 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -200,7 +200,7 @@ static bool extra_features;
+  * watching the output of address 0x4F (do an ec_transaction writing 0x33
+  * into 0x4F and read a few bytes from the output, like so:
+  *	u8 writeData = 0x33;
+- *	ec_transaction(0x4F, &writeData, 1, buffer, 32, 0);
++ *	ec_transaction(0x4F, &writeData, 1, buffer, 32);
+  * That address is labled "fan1 table information" in the service manual.
+  * It should be clear which value in 'buffer' changes). This seems to be
+  * related to fan speed. It isn't a proper 'realtime' fan speed value
+@@ -286,7 +286,7 @@ static int get_backlight_level(void)
+ static void set_backlight_state(bool on)
+ {
+ 	u8 data = on ? BACKLIGHT_STATE_ON_DATA : BACKLIGHT_STATE_OFF_DATA;
+-	ec_transaction(BACKLIGHT_STATE_ADDR, &data, 1, NULL, 0, 0);
++	ec_transaction(BACKLIGHT_STATE_ADDR, &data, 1, NULL, 0);
  }
-diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
-index 519d4ee..7d797e2 100644
---- a/drivers/acpi/acpica/utmutex.c
-+++ b/drivers/acpi/acpica/utmutex.c
-@@ -93,11 +93,6 @@ acpi_status acpi_ut_mutex_initialize(void)
- 		return_ACPI_STATUS (status);
- 	}
  
--	status = acpi_os_create_lock (&acpi_ev_global_lock_pending_lock);
--	if (ACPI_FAILURE (status)) {
--		return_ACPI_STATUS (status);
--	}
--
- 	/* Mutex for _OSI support */
- 	status = acpi_os_create_mutex(&acpi_gbl_osi_mutex);
- 	if (ACPI_FAILURE(status)) {
+ 
+@@ -294,24 +294,24 @@ static void set_backlight_state(bool on)
+ static void pwm_enable_control(void)
+ {
+ 	unsigned char writeData = PWM_ENABLE_DATA;
+-	ec_transaction(PWM_ENABLE_ADDR, &writeData, 1, NULL, 0, 0);
++	ec_transaction(PWM_ENABLE_ADDR, &writeData, 1, NULL, 0);
+ }
+ 
+ static void pwm_disable_control(void)
+ {
+ 	unsigned char writeData = PWM_DISABLE_DATA;
+-	ec_transaction(PWM_DISABLE_ADDR, &writeData, 1, NULL, 0, 0);
++	ec_transaction(PWM_DISABLE_ADDR, &writeData, 1, NULL, 0);
+ }
+ 
+ static void set_pwm(int pwm)
+ {
+-	ec_transaction(PWM_ADDRESS, &pwm_lookup_table[pwm], 1, NULL, 0, 0);
++	ec_transaction(PWM_ADDRESS, &pwm_lookup_table[pwm], 1, NULL, 0);
+ }
+ 
+ static int get_fan_rpm(void)
+ {
+ 	u8 value, data = FAN_DATA;
+-	ec_transaction(FAN_ADDRESS, &data, 1, &value, 1, 0);
++	ec_transaction(FAN_ADDRESS, &data, 1, &value, 1);
+ 	return 100 * (int)value;
+ }
+ 
+diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
+index 7e9bb6d..918a65d 100644
+--- a/drivers/platform/x86/msi-laptop.c
++++ b/drivers/platform/x86/msi-laptop.c
+@@ -120,7 +120,7 @@ static int set_lcd_level(int level)
+ 	buf[1] = (u8) (level*31);
+ 
+ 	return ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, buf, sizeof(buf),
+-			      NULL, 0, 1);
++			      NULL, 0);
+ }
+ 
+ static int get_lcd_level(void)
+@@ -129,7 +129,7 @@ static int get_lcd_level(void)
+ 	int result;
+ 
+ 	result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1,
+-				&rdata, 1, 1);
++				&rdata, 1);
+ 	if (result < 0)
+ 		return result;
+ 
+@@ -142,7 +142,7 @@ static int get_auto_brightness(void)
+ 	int result;
+ 
+ 	result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1,
+-				&rdata, 1, 1);
++				&rdata, 1);
+ 	if (result < 0)
+ 		return result;
+ 
+@@ -157,7 +157,7 @@ static int set_auto_brightness(int enable)
+ 	wdata[0] = 4;
+ 
+ 	result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, wdata, 1,
+-				&rdata, 1, 1);
++				&rdata, 1);
+ 	if (result < 0)
+ 		return result;
+ 
+@@ -165,7 +165,7 @@ static int set_auto_brightness(int enable)
+ 	wdata[1] = (rdata & 0xF7) | (enable ? 8 : 0);
+ 
+ 	return ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, wdata, 2,
+-			      NULL, 0, 1);
++			      NULL, 0);
+ }
+ 
+ static ssize_t set_device_state(const char *buf, size_t count, u8 mask)
+@@ -202,7 +202,7 @@ static int get_wireless_state(int *wlan, int *bluetooth)
+ 	u8 wdata = 0, rdata;
+ 	int result;
+ 
+-	result = ec_transaction(MSI_EC_COMMAND_WIRELESS, &wdata, 1, &rdata, 1, 1);
++	result = ec_transaction(MSI_EC_COMMAND_WIRELESS, &wdata, 1, &rdata, 1);
+ 	if (result < 0)
+ 		return -1;
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index a2e910e..1deb2a7 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -150,8 +150,7 @@ extern int ec_read(u8 addr, u8 *val);
+ extern int ec_write(u8 addr, u8 val);
+ extern int ec_transaction(u8 command,
+                           const u8 *wdata, unsigned wdata_len,
+-                          u8 *rdata, unsigned rdata_len,
+-			  int force_poll);
++                          u8 *rdata, unsigned rdata_len);
+ 
+ #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+ 
 -- 
 1.7.5.3.367.ga9930.dirty
 
