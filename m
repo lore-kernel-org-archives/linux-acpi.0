@@ -1,8 +1,8 @@
 From: "Joey Lee" <jlee@novell.com>
 Subject: Re: bug in acer-wmi.c, wmid3_set_device_status(),
  initialization of params.
-Date: Mon, 30 May 2011 21:39:46 -0600
-Message-ID: <4DE4EFA2020000230002D46C@novprvlin0050.provo.novell.com>
+Date: Mon, 30 May 2011 22:46:03 -0600
+Message-ID: <4DE4FF2B020000230002D493@novprvlin0050.provo.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -11,47 +11,80 @@ Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@joern.heissler.de
-Cc: linux-acpi@vger.kernel.org
+Cc: Joey Lee <JLee@novell.com>, linux-acpi@vger.kernel.org
 
 Hi Joern,=20
 
-=E6=96=BC =E4=BA=8C=EF=BC=8C2011-05-31 =E6=96=BC 15:03 +1200=EF=BC=8CJo=
-ern Heissler =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hello,
+=E6=96=BC =E4=B8=80=EF=BC=8C2011-05-30 =E6=96=BC 21:39 -0600=EF=BC=8CJo=
+ey Lee =E6=8F=90=E5=88=B0=EF=BC=9A
+> Hi Joern,=20
 >=20
-> I think I have found a bug in acer-wmi.c,
-> commit 987dfbaa65b2c3568b85e29d2598da08a011ee09:
+> =E6=96=BC =E4=BA=8C=EF=BC=8C2011-05-31 =E6=96=BC 15:03 +1200=EF=BC=8C=
+Joern Heissler =E6=8F=90=E5=88=B0=EF=BC=9A
+> > Hello,
+> >=20
+> > I think I have found a bug in acer-wmi.c,
+> > commit 987dfbaa65b2c3568b85e29d2598da08a011ee09:
+> >=20
+> > The function wmid3_set_device_status contains:
+> >=20
+> >     struct wmid3_gds_input_param params =3D {
+> >         .function_num =3D 0x1,
+> >         .hotkey_number =3D 0x01,
+> >         .devices =3D ACER_WMID3_GDS_WIRELESS &
+> >                 ACER_WMID3_GDS_THREEG &
+> >                 ACER_WMID3_GDS_WIMAX &
+> >                 ACER_WMID3_GDS_BLUETOOTH,
+> >     };
+> >=20
+> > (1<<0) & (1<<6) & (1<<7) & (1<<11) is zero. Meant bitwise or?
+> >=20
 >=20
-> The function wmid3_set_device_status contains:
->=20
->     struct wmid3_gds_input_param params =3D {
->         .function_num =3D 0x1,
->         .hotkey_number =3D 0x01,
->         .devices =3D ACER_WMID3_GDS_WIRELESS &
->                 ACER_WMID3_GDS_THREEG &
->                 ACER_WMID3_GDS_WIMAX &
->                 ACER_WMID3_GDS_BLUETOOTH,
->     };
->=20
-> (1<<0) & (1<<6) & (1<<7) & (1<<11) is zero. Meant bitwise or?
+> OK, it's my mistake, must be OR but not AND.
+> I will generate a fix patch, I will test it again, please kindly help
+> test it later.
 >=20
 
-OK, it's my mistake, must be OR but not AND.
-I will generate a fix patch, I will test it again, please kindly help
-test it later.
-
-> And could someone please update the driver to support my laptop?
-> See https://bugzilla.kernel.org/show_bug.cgi?id=3D36322 for details :=
--)
->=20
-> Cheery
-> Joern Heissler
-
-I will take look at.
+Please kindly help to review this patch for bitwise bug:
 
 
-Thank's
-Joey Lee
+>From 57756e3f0c727b07314485833e4b9b557bf158ce Mon Sep 17 00:00:00 2001
+=46rom: Lee, Chun-Yi <jlee@novell.com>
+Date: Tue, 31 May 2011 12:36:09 +0800
+Subject: [PATCH] acer-wmi: fix bitwise bug when set device state
+
+=46ix a bitwise bug that was found by Joern Heissler, it must be OR
+but not AND when we query current device state.
+
+Cc: Joern Heissler <linux-acpi@joern.heissler.de>
+Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+---
+ drivers/platform/x86/acer-wmi.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/ace=
+r-wmi.c
+index 005417b..7d4675a 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -1156,9 +1156,9 @@ static acpi_status wmid3_set_device_status(u32 va=
+lue, u16 device)
+ 	struct wmid3_gds_input_param params =3D {
+ 		.function_num =3D 0x1,
+ 		.hotkey_number =3D 0x01,
+-		.devices =3D ACER_WMID3_GDS_WIRELESS &
+-				ACER_WMID3_GDS_THREEG &
+-				ACER_WMID3_GDS_WIMAX &
++		.devices =3D ACER_WMID3_GDS_WIRELESS |
++				ACER_WMID3_GDS_THREEG |
++				ACER_WMID3_GDS_WIMAX |
+ 				ACER_WMID3_GDS_BLUETOOTH,
+ 	};
+ 	struct acpi_buffer input =3D {
+--=20
+1.6.0.2
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
