@@ -1,107 +1,88 @@
-From: "Joey Lee" <jlee@novell.com>
-Subject: Re: bug in acer-wmi.c, wmid3_set_device_status(),
- initialization of params.
-Date: Tue, 31 May 2011 00:12:45 -0600
-Message-ID: <4DE5137D020000230002D4B2@novprvlin0050.provo.novell.com>
-References: <4DE4FF2B020000230002D493@novprvlin0050.provo.novell.com>
- <20110531051042.GA3083@joerntop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <20110531051042.GA3083@joerntop>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [RFC PATCH]: System Firmware and SMBIOS Support
+Date: Tue, 31 May 2011 11:50:40 -0400
+Message-ID: <20110531155040.3457.15296.sendpatchset@prarit.bos.redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, openipmi-developer@lists.sourceforge.net, platform-dr
+Cc: grant.likely@secretlab.ca, dz@debian.org, rpurdie@rpsys.net, eric.piel@tremplin-utc.net, abelay@mit.edu, johnpol@2ka.mipt.ru, Prarit Bhargava <prarit@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@joern.heissler.de
-Cc: Joey Lee <JLee@novell.com>, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=BA=8C=EF=BC=8C2011-05-31 =E6=96=BC 17:10 +1200=EF=BC=8CJo=
-ern Heissler =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Mon, May 30, 2011 at 10:46:03PM -0600, Joey Lee wrote:
-> > Hi Joern,=20
-> >=20
-> > =E6=96=BC =E4=B8=80=EF=BC=8C2011-05-30 =E6=96=BC 21:39 -0600=EF=BC=8C=
-Joey Lee =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > Hi Joern,=20
-> > >=20
-> > > =E6=96=BC =E4=BA=8C=EF=BC=8C2011-05-31 =E6=96=BC 15:03 +1200=EF=BC=
-=8CJoern Heissler =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > > Hello,
-> > > >=20
-> > > > I think I have found a bug in acer-wmi.c,
-> > > > commit 987dfbaa65b2c3568b85e29d2598da08a011ee09:
-> > > >=20
-> > > > The function wmid3_set_device_status contains:
-> > > >=20
-> > > >     struct wmid3_gds_input_param params =3D {
-> > > >         .function_num =3D 0x1,
-> > > >         .hotkey_number =3D 0x01,
-> > > >         .devices =3D ACER_WMID3_GDS_WIRELESS &
-> > > >                 ACER_WMID3_GDS_THREEG &
-> > > >                 ACER_WMID3_GDS_WIMAX &
-> > > >                 ACER_WMID3_GDS_BLUETOOTH,
-> > > >     };
-> > > >=20
-> > > > (1<<0) & (1<<6) & (1<<7) & (1<<11) is zero. Meant bitwise or?
-> > > >=20
-> > >=20
-> > > OK, it's my mistake, must be OR but not AND.
-> > > I will generate a fix patch, I will test it again, please kindly =
-help
-> > > test it later.
-> > >=20
-> >=20
-> > Please kindly help to review this patch for bitwise bug:
-> >=20
-> >=20
-> > >From 57756e3f0c727b07314485833e4b9b557bf158ce Mon Sep 17 00:00:00 =
-2001
-> > From: Lee, Chun-Yi <jlee@novell.com>
-> > Date: Tue, 31 May 2011 12:36:09 +0800
-> > Subject: [PATCH] acer-wmi: fix bitwise bug when set device state
-> >=20
-> > Fix a bitwise bug that was found by Joern Heissler, it must be OR
-> > but not AND when we query current device state.
-> >=20
-> > Cc: Joern Heissler <linux-acpi@joern.heissler.de>
-> > Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
-> > ---
-> >  drivers/platform/x86/acer-wmi.c |    6 +++---
-> >  1 files changed, 3 insertions(+), 3 deletions(-)
-> >=20
-> > diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86=
-/acer-wmi.c
-> > index 005417b..7d4675a 100644
-> > --- a/drivers/platform/x86/acer-wmi.c
-> > +++ b/drivers/platform/x86/acer-wmi.c
-> > @@ -1156,9 +1156,9 @@ static acpi_status wmid3_set_device_status(u3=
-2 value, u16 device)
-> >  	struct wmid3_gds_input_param params =3D {
-> >  		.function_num =3D 0x1,
-> >  		.hotkey_number =3D 0x01,
-> > -		.devices =3D ACER_WMID3_GDS_WIRELESS &
-> > -				ACER_WMID3_GDS_THREEG &
-> > -				ACER_WMID3_GDS_WIMAX &
-> > +		.devices =3D ACER_WMID3_GDS_WIRELESS |
-> > +				ACER_WMID3_GDS_THREEG |
-> > +				ACER_WMID3_GDS_WIMAX |
-> >  				ACER_WMID3_GDS_BLUETOOTH,
-> >  	};
-> >  	struct acpi_buffer input =3D {
-> > --=20
-> > 1.6.0.2
->=20
-> The patch looks good and works in my heavily stripped-down version of
-> acer-wmi.c.
->=20
+Sorry for the wide-distribution.  The list of modified files is quite large.
 
-Thank's for your review, will send out patch to 3.0-rc2
+P.
 
-Joey Lee
+----8<----
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DMI, or the Desktop Management Interface, provides access to OEM and hardware
+specific details about the x86 or ia64 system the kernel is currently runnig
+on.  DMI has been deprecated since 2003, which was the last update of the DMI
+Specification.
+
+The System Management BIOS, or SMBIOS, supercedes DMI -- the SMBIOS tables
+include the possibility of a _DMI_ entry and tables.  However, in the
+Linux kernel we do not access any of the DMI data and only access SMBIOS data.
+
+Currently, the kernel uses dmi_* functions (as defined in
+drivers/firmware/dmi_scan.c) to access the data.  The functions allow kernel
+subsystems and modules to set specific options based on the platform and BIOS
+version.
+
+The dmi_* functions in the kernel fail in several ways.  First, as
+mentioned the dmi_* functions are really accessing SMBIOS data.  The existing
+code queries for the _SMB_ entry and determines data access after that.  The
+existing dmi_* functions create an array of x86 and ia64 specific entries
+which are defined as part of x86 and ia64 specific udev entries, and allows
+drivers and subsystems to make platform specific decisions.  In addition to
+the arch specific code, the dmi_* code creates a list of "devices" to which
+makes updating very difficult and does not easily scale.
+
+Another key issue with the existing code is that several drivers do their
+own search through the SMBIOS, for example, see drivers/pci/hotplug/cpqphp*.c.
+
+A month (or so) ago I proposed a patch which was based on a simple request
+from a colleague --  create a sysfs file that would export the SMBIOS version.
+This simple request was not something that was easy to do given the layout of
+the existing DMI code.  The request resulted in having to create a new smbios
+class within the kernel, and essentially doing a separate search through
+memory.
+
+This new patchset reworks the existing DMI code into two separate layers.  It is
+based off of the feedback I received previously when discussing the SMBIOS
+version patch on LKML.
+
+The first layer is the System Firmware Interface, which is based upon Alan
+Cox's suggestion of a common platform driver (unfortunately, platform driver
+is already defined and used within the kernel).  This is meant to be an
+arch independent subsystem in the kernel for all arches.  It is a common
+interface which provides access to specific system values in the kernel such
+as the Chassis Manufacturer, the BIOS developer, or the BIOS date.  The
+System Firmware Interface, or sysfw allows for easy updating by simply adding
+fields to an array in include/linux/mod_devicetable.h.
+Standard simple searching functions, sysfw_lookup() and sysfw_callback()
+are provided to the kernel and modules.  sysfw_callback() is similar to
+dmi_check_system() but the new function allows for exact matching which some
+drivers required.
+
+The second layer introduced in this patchset is the SMBIOS sysfw driver.  This
+driver (obviously) registers with the interface and also provides it's own
+interface.  The reason for the separate interface is that specific drivers
+have their own need to search the SMBIOS for OEM or platform specific
+information (see, for example, drivers/watchdog/hpwdt.c, or
+drivers/pci/pci-label.c).  This new driver provides a function, smbios_walk()
+which allows individual drivers or subsystems to traverse the SMBIOS table
+looking for OEM or platform specific data.  The new SMBIOS driver can be
+easily updated by adding SMBIOS structure information to the smbios_struct
+union in include/linux/smbios.h.
+
+These changes are targeted for at least 3.0.1.
+
+A git tree with these changes has been set up here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/prarit/smbios.git
+
+with the latest changes in the smbios-3.0-rc1 branch, and well-tested changes
+on the smbios-2.6.39 branch.
+
+P.
