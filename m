@@ -1,29 +1,53 @@
-From: videoclocknet <videoclocknet@gmail.com>
-Subject: Acer Travelmate 7720G doesn't resume from second and subsequent times
-Date: Wed, 1 Jun 2011 08:49:00 +0200
-Message-ID: <BANLkTim5x_kWapCAOat+ou-fdauM2GXKKw@mail.gmail.com>
-References: <BANLkTi=3MQF_bi4uaMU1fETUq+iqFVJDag@mail.gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH v2] ACPI: Fixes device power states array overflow
+Date: Wed, 01 Jun 2011 23:54:02 +0800
+Message-ID: <1306943642.2873.10.camel@hp6530s>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43293 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302Ab1FAGtB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jun 2011 02:49:01 -0400
-Received: by iyb14 with SMTP id 14so4231491iyb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2011 23:49:01 -0700 (PDT)
-In-Reply-To: <BANLkTi=3MQF_bi4uaMU1fETUq+iqFVJDag@mail.gmail.com>
+Received: from mga14.intel.com ([143.182.124.37]:34432 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757412Ab1FAOyi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jun 2011 10:54:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Dan Carpenter <error27@gmail.com>, Old <oldium.pro@seznam.cz>
 
-The summary explains it all.
+Commit 28c2103 added new state ACPI_STATE_D3_COLD, so the device power
+states array must be expanded by one also.
 
-In my 7720G laptop, the first time I close and open the cover it
-resumes perfectly. But from the second and subsequent times when I
-press some key or the shutdown button in order to resume, the system
-remains in black screen and it doesn't resume.
+v2: Use ACPI_D_STATE_COUNT instead of number 5 for the array size.
 
-Have you seen similar situations?
+Reported-by: Dan Carpenter <error27@gmail.com>
+Suggested-by: Old=C5=99ich Jedli=C4=8Dka <oldium.pro@seznam.cz>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ include/acpi/acpi_bus.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 3a10ef5..6cd5b64 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -210,7 +210,7 @@ struct acpi_device_power_state {
+ struct acpi_device_power {
+ 	int state;		/* Current state */
+ 	struct acpi_device_power_flags flags;
+-	struct acpi_device_power_state states[4];	/* Power states (D0-D3) */
++	struct acpi_device_power_state states[ACPI_D_STATE_COUNT];	/* Power s=
+tates (D0-D3Cold) */
+ };
+=20
+ /* Performance Management */
+--=20
+1.7.2.3
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
