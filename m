@@ -1,33 +1,29 @@
-From: =?UTF-8?Q? "=C2=A92011.Coca-Cola_Great_Britain" ?=
-	<info@coca-cola.co.uk>
-Subject: (no subject)
-Date: Sat, 04 Jun 2011 12:10:06 +0200
-Message-ID: <6e68b4a8dc234616e3878add5ec1e150@localhost>
-Reply-To: jim-gardner.c@live.com
+From: info@ronguitar.com
+Subject: Dear Selected Winner...........
+Date: Sun, 05 Jun 2011 00:37:19 +1000
+Message-ID: <201106041437.p54EbJDc031756@mail05.syd.optusnet.com.au>
+Reply-To: mr-jamesbrown86@live.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: binary
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.condornet.sk ([92.245.1.11]:51527 "EHLO mail.condornet.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756364Ab1FDLbz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Jun 2011 07:31:55 -0400
+Received: from fallbackmx09.syd.optusnet.com.au ([211.29.132.242]:44228 "EHLO
+	fallbackmx09.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756690Ab1FDOoO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Jun 2011 10:44:14 -0400
+Received: from mail05.syd.optusnet.com.au (mail05.syd.optusnet.com.au [211.29.132.186])
+	by fallbackmx09.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id p54EcEkr004942
+	for <linux-acpi@vger.kernel.org>; Sun, 5 Jun 2011 00:44:13 +1000
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
 
 
--- 
-04-06-20011
-Your Mail-ID has been awarded 750,000.00 GBP From The Coca-Cola Online
-Bonanza 2011. For claims send
-Name:
-Address:
-Phone No:
-Age: Sex:
-Occupation:
-Country:
-Contact: Mr. Jim Gardner
-Claims department : jim-gardner.c@live.com
-TEL: +44 755 284 8328
+
+Notification!!!
+Your Email ID has won £800,000pounds for claim name
+address telephone number
+email:mr-jamesbrown86@live.co.uk
+
