@@ -1,79 +1,40 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH] acpi-cpufreq: remove unreliable get-frequency functions
-Date: Mon, 6 Jun 2011 09:12:09 +0200
-Message-ID: <20110606071209.GA20080@isilmar-3.linta.de>
-References: <alpine.LFD.2.02.1106060144310.6779@x980>
+From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Subject: [RFC PATCH V5 0/4] cpuidle: global registration of idle states with
+	per-cpu statistics
+Date: Mon, 06 Jun 2011 19:09:18 +0530
+Message-ID: <20110606133917.5670.54949.stgit@tringupt.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1106060144310.6779@x980>
-Sender: cpufreq-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e28smtp01.in.ibm.com ([122.248.162.1]:33042 "EHLO
+	e28smtp01.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754460Ab1FFNjZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jun 2011 09:39:25 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, santosh.shilimkar@ti.com, khilman@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hey Len,
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
 
-On Mon, Jun 06, 2011 at 01:47:52AM -0400, Len Brown wrote:
-> Reading the current frequency from PERF_STATUS
-> is fundamentally unreliable for multiple reasons
-> on multiple systems.
-> 
-> Indeed, one can make the case that the PERF_STATUS MSR
-> should be deleted from the x86 architecture due to its
-> ability to mis-lead.
-> 
-> The most common case of decpetion is P-state "hardware coordination"
-> that is used on all HT and multi-core processors that share
-> the same voltage regulator.  Here the hardware runs at the speed
-> of the fastest sibling, and thus the "current frequency"
-> on the sibling that asked for a slower frequency
-> is erroneous 100% of the time.
-> 
-> For over 10 years, TM1 and TM2 have changed the frequency
-> out from under the system due to thermal emergencies,
-> without necessarily updating PERF_STATUS.
-> 
-> Finally, even on hardware that dutifully updates PERF_STATUS
-> to reflect reality, there is a race condition between software
-> reading the register and the changes above -- making it
-> fundamentally un-relaible for determining frequency.
-> 
-> The reliable way to determine frequency is to simply ask the
-> hardware how many unhalted cycles it has executed during a
-> known period of time via the APERF MSR.  This is how
-> turbostat and other utilities do it...
-> 
-> Delete the concept of reading the current frequency from acpi-cpufreq,
-> and the unreliable code that is built upon it.
-> 
-> As the cpufreq interface has a concept of "cur" frequency,
-> simply return the last request.  The reality is that 99% of the time
-> it would have got that answer from reading the hardware anway,
-> and so simply returning this cached value is no less accurate.
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
+Previous version of the series (V4) is at https://lkml.org/lkml/2011/4/28/312
+This series applies on 3.0-rc1
 
-NACK. Why can't it be fixed in silicon for future chips? May there be
-workarounds possible in the CPU microcode? The APERF MSR is not a real
-alternative to a real "get current frequency" function (which I have
-wished to be added to the ACPI spec for how long? must be close to 10
-years...): APERF only allows you to get an average frequency, and not the
-current frequency at the time of the call.
+Changes from previous version (V4):
 
-For silicon which can't be fixed any more, using APERF instead may be a
-valid  -- but costly[*] -- solution. For other CPUs, I'd favour keeping
-the current code -- even if Intel CPUs aren't capable to reliably tell
-which frequency they're running at.
+1. Rebased the series to 3.0-rc1
+2. Made same changes for Samsung exynos4 cpuidle driver registration
 
-Finally:
+Tests done:
+1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+  exynos4_defconfig, kirkwood_defconfig, omap2plus_defconfig.
 
-> +	policy->cur = data->freq_table[data->acpi_data->state].frequency;
+2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+  and acpi_idle drivers.
 
-How do you know what state / frequency the CPU is running here?
-
-Best,
-	Dominik
-
-[*] This callback may be costly, as it is only accessible to root. 
+Thanks
+-Trinabh 
