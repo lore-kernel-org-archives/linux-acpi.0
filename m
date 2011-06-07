@@ -1,44 +1,54 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH V5 1/4] cpuidle: Move dev->last_residency update to
-	driver enter routine, remove dev->last_state
-Date: Mon, 6 Jun 2011 14:51:05 +0100
-Message-ID: <20110606135105.GA7023@n2100.arm.linux.org.uk>
-References: <20110606133917.5670.54949.stgit@tringupt.in.ibm.com> <20110606133926.5670.4650.stgit@tringupt.in.ibm.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] acpi-cpufreq: remove unreliable get-frequency functions
+Date: Tue, 07 Jun 2011 00:07:46 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1106062353030.4784@x980>
+References: <alpine.LFD.2.02.1106060144310.6779@x980>
+ <20110606071209.GA20080@isilmar-3.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110606133926.5670.4650.stgit@tringupt.in.ibm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, santosh.shilimkar@ti.com, khilman@ti.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-reply-to: <20110606071209.GA20080@isilmar-3.linta.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 06, 2011 at 07:09:26PM +0530, Trinabh Gupta wrote:
-> diff --git a/arch/arm/mach-at91/cpuidle.c b/arch/arm/mach-at91/cpuidle.c
-> index 1cfeac1..4696a0d 100644
-> --- a/arch/arm/mach-at91/cpuidle.c
-> +++ b/arch/arm/mach-at91/cpuidle.c
-> @@ -41,10 +41,10 @@ static int at91_enter_idle(struct cpuidle_device *dev,
->  
->  	local_irq_disable();
->  	do_gettimeofday(&before);
-> -	if (state == &dev->states[0])
-> +	if (index == 0)
->  		/* Wait for interrupt state */
->  		cpu_do_idle();
-> -	else if (state == &dev->states[1]) {
-> +	else if (index == 1) {
->  		asm("b 1f; .align 5; 1:");
->  		asm("mcr p15, 0, r0, c7, c10, 4");	/* drain write buffer */
+> Why can't it be fixed in silicon for future chips?
+> May there be workarounds possible in the CPU microcode?
 
-While looking through this patch, it is probably worth pointing out for
-the AT91 folk that this is broken.  Here's an extract from the GCC manual:
+Not going to happen.
 
-|  Similarly, you can't expect a sequence of volatile `asm' instructions
-| to remain perfectly consecutive.  If you want consecutive output, use a
-| single `asm'.  Also, GCC will perform some optimizations across a
-| volatile `asm' instruction; GCC does not "forget everything" when it
-| encounters a volatile `asm' instruction the way some other compilers do.
+> The APERF MSR is not a real
+> alternative to a real "get current frequency" function (which I have
+> wished to be added to the ACPI spec for how long? must be close to 10
+> years...): APERF only allows you to get an average frequency, and not the
+> current frequency at the time of the call.
 
-It might be a good idea to fix those two asm() statements into one.
+Instantaneous frequency can change many times per second.
+What benefit is there to reporting someting that changes that fast
+to readers of sysfs?
+
+> For silicon which can't be fixed any more, using APERF instead may be a
+> valid  -- but costly[*] -- solution. For other CPUs, I'd favour keeping
+> the current code -- even if Intel CPUs aren't capable to reliably tell
+> which frequency they're running at.
+
+APERF is expensive how?
+
+ondemand, which does care about average frequency,
+has been using APERF for years.
+
+> Finally:
+> 
+> > +	policy->cur = data->freq_table[data->acpi_data->state].frequency;
+> 
+> How do you know what state / frequency the CPU is running here?
+
+really the correct fix is for the upper level of cpufreq to
+simply no export this value at all, or to export the value
+that was last written.  A driver should be free to decline
+to supply any current value.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
