@@ -1,49 +1,44 @@
-From: "lan,Tianyu" <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI: Remove redundant code in the thermal_init()
-Date: Fri, 10 Jun 2011 15:57:20 +0800
-Message-ID: <1307692640.15256.79.camel@lantianyu-ws>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Stable request for longterm support kernel 2.6.32 - git comit id: b7b30de53aef6ce773d34837ba7d8422bd3baeec
+Date: Fri, 10 Jun 2011 15:49:36 +0200
+Message-ID: <201106101549.36559.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:55495 "EHLO mga02.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:50985 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754071Ab1FJIGQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jun 2011 04:06:16 -0400
+	id S932136Ab1FJNti (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2011 09:49:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, bjorn@helgaas.com
 
-Thermal_tz_idr, thermal_cdev_idr, thermal_idr_lock and thermal_list_lock 
-are only initialized in the thermal_zone_device_register(). The fucntion 
-has not been invoked before here. So these variables have not been initialized. 
-It doesn't need to destroy them after class_register failed.
+Hi,
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/thermal/thermal_sys.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+processor objects declared under _PR. scope and not declared
+with the traditional:
+Processor (XXXX, 0x0F, 0x00000410, 0x06) {}
+processor declaration, but with the new _HID("ACPI0007")
+declaration:
+Device (XXXX){
+     Name (_HID, "ACPI0007")
+     Name (_UID, 0x00000028)
+}
+are also not recognized which leads to not functioning idle
+and cpufreq routines on cores.
 
-Index: linux-2.6/drivers/thermal/thermal_sys.c
-===================================================================
---- linux-2.6.orig/drivers/thermal/thermal_sys.c
-+++ linux-2.6/drivers/thermal/thermal_sys.c
-@@ -1314,12 +1314,9 @@
-    int result = 0;
- 
-    result = class_register(&thermal_class);
--   if (result) {
--       idr_destroy(&thermal_tz_idr);
--       idr_destroy(&thermal_cdev_idr);
--       mutex_destroy(&thermal_idr_lock);
--       mutex_destroy(&thermal_list_lock);
--   }   
-+   if (result)
-+       return result;
-+
-    result = genetlink_init();
-    return result;
- }
+Bjorn's patch fixes these as well and is therefore a critical
+fix and justifies queueing for stable kernel.
 
+The patch needs slight adjusting for 2.6.32.
+I've backported it and will send (reply on this mail) a
+patch which should apply cleanly on 2.6.32 stable kernel.
 
+Please consider to add.
+
+Thanks,
+
+   Thomas
