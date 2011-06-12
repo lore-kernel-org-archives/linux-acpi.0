@@ -1,55 +1,102 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: Power down trouble
-Date: Sat, 11 Jun 2011 16:34:19 -0600
-Message-ID: <4DF3ED6B.1060509@gmail.com>
-References: <4df23ed2.46d0e30a.6b28.ffffa6a1@mx.google.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: execute _PSx control method in acpi_bus_init_power
+Date: Sun, 12 Jun 2011 13:05:09 +0200
+Message-ID: <201106121305.09760.rjw@sisk.pl>
+References: <1306920079.15903.6.camel@srdclcs1.amd.com> <201106011513.15093.rjw@sisk.pl> <20110609012536.GA16797@srdclcs1.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:32788 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab1FKWeV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Jun 2011 18:34:21 -0400
-Received: by iwn34 with SMTP id 34so2990986iwn.19
-        for <linux-acpi@vger.kernel.org>; Sat, 11 Jun 2011 15:34:21 -0700 (PDT)
-In-Reply-To: <4df23ed2.46d0e30a.6b28.ffffa6a1@mx.google.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:49266 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753004Ab1FLLEa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Jun 2011 07:04:30 -0400
+In-Reply-To: <20110609012536.GA16797@srdclcs1.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Iago_Fern=E1ndez?= <dante.yfm@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@amd.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 06/10/2011 09:56 AM, Iago Fern=E1ndez wrote:
-> Hi to all.
->
-> First of all I do not know if this is the right place to ask my quest=
-ions so,
-> if not, please refer me to the right place.
->
-> I have bought a new laptop (COMPAL pbl11) and I have some ACPI (I thi=
-nk)
-> problems.
->
-> First of all, my laptop does not shut down. It hangs with the on scre=
-en
-> message "Will now halt". There are more bugs, but I think this is the=
- most
-> basic one.
->
-> I have tried almost any solution I have saw and none has worked, so I=
- think
-> the problem is with ACPI.
->
-> I would like to help solve this bug. I am programmer but I never did =
-anything
-> regarding ACPI or kernel code, so I can give you as info as you need.
->
-> Thanks in advance
+On Thursday, June 09, 2011, Aaron Lu wrote:
+> On Wed, Jun 01, 2011 at 03:13:14PM +0200, Rafael J. Wysocki wrote:
+> > I will when I get back home from LinuxCon Japan, that should happen by the
+> > end of this week.
+> 
+> Hi Rafael,
 
-What kernel version are you using?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+> Just a reminder, in case you forget :-)
+
+No, I didn't forget, I was busy.
+
+> Here is the patch I've sent to linux-acpi mailinglist:
+> 
+> V2:
+> Added a check to the power state, make sure it's valid before executing
+> the _PSx control method.
+> 
+> V1:
+> Per the acpi spec, for OSPM to put the device in the Dx device state,
+> the following must occur:
+> 1. All Power Resources referenced by elements 1 through N must be in the
+> ON state.
+> 2. All Power Resources no longer referenced by any device in the system
+> must be in the OFF state.
+> 3. If present, the _PSx control method is executed to set the device
+> into the Dx device state.
+> 
+> This patch adds support for the execution of _PSx control method during
+> device power init phase.
+> 
+> This could also solves the problem I encountered, please see:
+> http://marc.info/?l=linux-acpi&m=130579961021505&w=2
+> ---
+>  drivers/acpi/bus.c |   16 +++++++++++++++-
+>  1 files changed, 15 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 9749980..ea4eb64 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -337,8 +337,22 @@ int acpi_bus_init_power(struct acpi_device *device)
+>  	if (result)
+>  		return result;
+>  
+> -	if (device->power.flags.power_resources)
+> +	if (device->power.flags.power_resources) {
+>  		result = acpi_power_on_resources(device, state);
+> +		if (result)
+> +			return result;
+> +	}
+
+You should use "else if" here, I think.
+
+> +
+> +	/* if state is valid and _PSx exists, execute it */
+
+That comment should explain why it is necessary to do that.  It's not quite
+obvious, because __acpi_bus_get_power(), called before the new code,
+executes _PSC and that should return the state the device is really in.
+So, in principle, the code below shouldn't be necessary.  However, if it
+is known to fix an initialization issue on at least one system, it won't
+hurt to add it.  So please add something like "this code is needed to
+fix an initialization problem on <hardware name>".
+
+> +	if (state >= ACPI_STATE_D0 && state <= ACPI_STATE_D3 &&
+> +		device->power.states[state].flags.explicit_set) {
+> +		acpi_status status;
+> +		char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
+> +		status = acpi_evaluate_object(device->handle, object_name,
+> +				NULL, NULL);
+> +		if (ACPI_FAILURE(status))
+> +			result = -ENODEV;
+> +	}
+>  
+>  	if (!result)
+>  		device->power.state = state;
+> 
+
+Thanks,
+Rafael
