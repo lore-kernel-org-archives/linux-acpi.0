@@ -1,58 +1,121 @@
-From: Chen Gong <gong.chen@linux.intel.com>
+From: Don Zickus <dzickus@redhat.com>
 Subject: Re: [PATCH] ACPI, APEI, Add APEI _OSC support
-Date: Tue, 14 Jun 2011 14:33:19 +0800
-Message-ID: <4DF700AF.3090702@linux.intel.com>
-References: <1306303538-30524-1-git-send-email-ying.huang@intel.com> <20110613145012.GA1924@redhat.com>
+Date: Tue, 14 Jun 2011 08:11:02 -0400
+Message-ID: <20110614121102.GT3765@redhat.com>
+References: <1306303538-30524-1-git-send-email-ying.huang@intel.com>
+ <20110613145012.GA1924@redhat.com>
+ <4DF700AF.3090702@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43283 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28989 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751210Ab1FNGdW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Jun 2011 02:33:22 -0400
-In-Reply-To: <20110613145012.GA1924@redhat.com>
+	id S1752420Ab1FNMLK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Jun 2011 08:11:10 -0400
+Content-Disposition: inline
+In-Reply-To: <4DF700AF.3090702@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Don Zickus <dzickus@redhat.com>
+To: Chen Gong <gong.chen@linux.intel.com>
 Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 
-=E4=BA=8E 6/13/2011 10:50 PM, Don Zickus =E5=86=99=E9=81=93:
-> On Wed, May 25, 2011 at 02:05:38PM +0800, Huang Ying wrote:
->> In APEI firmware first mode, hardware error is reported by hardware =
-to
->> firmware firstly, then firmware reports the error to Linux in a GHES
->> error record via POLL/SCI/IRQ/NMI etc.
->>
->> This may result in some issues if OS has no full APEI support.  So
->> some firmware implementation will work in a back-compatible mode by
->> default.  Where firmware will only notify OS in old-fashion, without
->> GHES record.  For example, for a fatal hardware error, only NMI is
->> signaled, no GHES record.
->>
->> To gain full APEI power on these machines, a special APEI _OSC needs
->> to be evaluated to tell firmware that Linux has full APEI support.
->> This patch add the APEI _OSC support.
->
-> Using an Intel box I have over at RedHat, I was able to use this patc=
-h to
-> get error injection (EINJ) to provide me a GHES record.  Prior to thi=
-s
-> patch I would just get unknown NMIs.
->
-> Talking with Matthew Garret, I guess it seems that uuids like this ar=
-e
-> typical for ACPI.
->
-> I can't speak for all the ACPI parts, but the patch looks simple and
-> corret from my perspective.
->
-Interesting, but I can't reproduce it on our machines by now. Would you
-please share your test information such as machine type, BIOS
-version, and test method (such as what type error you inject) ?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Jun 14, 2011 at 02:33:19PM +0800, Chen Gong wrote:
+> >Using an Intel box I have over at RedHat, I was able to use this patch to
+> >get error injection (EINJ) to provide me a GHES record.  Prior to this
+> >patch I would just get unknown NMIs.
+> >
+> >Talking with Matthew Garret, I guess it seems that uuids like this are
+> >typical for ACPI.
+> >
+> >I can't speak for all the ACPI parts, but the patch looks simple and
+> >corret from my perspective.
+> >
+> Interesting, but I can't reproduce it on our machines by now. Would you
+> please share your test information such as machine type, BIOS
+> version, and test method (such as what type error you inject) ?
+
+Sure,
+
+#cat /proc/cpuinfo
+
+processor       : 23
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 44
+model name      : Intel(R) Xeon(R) CPU           X5670  @ 2.93GHz
+stepping        : 2
+cpu MHz         : 1596.000
+
+#dmidecode
+
+Handle 0x0002, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Intel Corporation
+        Product Name: S5520UR
+        Version: ....................
+        Serial Number: ............
+        UUID: 57890342-6DA6-11DF-BD83-001517EE9AE8
+        Wake-up Type: AC Power Restored
+        SKU Number: Not Specified
+        Family: Not Specified
+
+Handle 0x0003, DMI type 2, 16 bytes
+Base Board Information
+        Manufacturer: Intel Corporation
+        Product Name: S5520UR
+        Version: E81084-751
+        Serial Number: BZUB02211743
+        Asset Tag: ....................
+        Features:
+                Board is a hosting board
+                Board is replaceable
+        Location In Chassis: Not Specified
+        Chassis Handle: 0x0004
+        Type: Motherboard
+        Contained Object Handles: 0
+
+Handle 0x0005, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Intel Corp.
+        Version: S5500.86B.01.00.0055.112620101923
+        Release Date: 11/26/2010
+        Address: 0xF0000
+        Runtime Size: 64 kB
+        ROM Size: 8192 kB
+        Characteristics:
+                PCI is supported
+                PNP is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                Boot from CD is supported
+                Selectable boot is supported
+                EDD is supported
+                3.5"/2.88 MB floppy services are supported (int 13h)
+                Print screen service is supported (int 5h)
+                8042 keyboard services are supported (int 9h)
+:
+                CGA/mono video services are supported (int 10h)
+                ACPI is supported
+                USB legacy is supported
+                LS-120 boot is supported
+                ATAPI Zip drive boot is supported
+                Function key-initiated network boot is supported
+                Targeted content distribution is supported
+        BIOS Revision: 17.18
+        Firmware Revision: 0.0
+
+#instructions
+mount -t debugfs debugfs /sys/kernel/debug
+cd /sys/kernel/debug/apei/einj
+echo 0x20 > error_type
+echo 1 > error_inject
+#should fail within one second
+
+Let me know if you need more info.
+By the way this is the only machine where this works.  Other Intel
+machines stopped producing NMIs when their BIOS was updated (before I got
+the chance to validate this patch on them).
+
+Cheers,
+Don
+
