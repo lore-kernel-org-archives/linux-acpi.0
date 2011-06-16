@@ -1,46 +1,43 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Wakeup and S states
-Date: Thu, 16 Jun 2011 15:15:18 +0100
-Message-ID: <20110616141517.GB15242@srcf.ucam.org>
-References: <4DF8CBC3.5070801@cfl.rr.com>
- <20110615154457.GA13863@srcf.ucam.org>
- <4DFA09CB.9040909@iradimed.com>
+From: Vitalie Lazu <vitalie@webng.md>
+Subject: Re: Kernel 2.6.38-1-amd64 can not reboot my iMac
+Date: Thu, 16 Jun 2011 17:22:24 +0300
+Message-ID: <201106161722.24962.vitalie@webng.md>
+References: <201104061255.00189.vitalie@webng.md> <201106161531.52949.vitalie@webng.md> <20110616141348.GA15242@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45258 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758137Ab1FPOPV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2011 10:15:21 -0400
-Content-Disposition: inline
-In-Reply-To: <4DFA09CB.9040909@iradimed.com>
+Received: from mail.kirsan.md ([93.116.255.97]:38631 "EHLO mail.kirsan.md"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758106Ab1FPOWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jun 2011 10:22:01 -0400
+In-Reply-To: <20110616141348.GA15242@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Phillip Susi <psusi@iradimed.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Thu, Jun 16, 2011 at 09:48:59AM -0400, Phillip Susi wrote:
-> On 06/15/2011 11:44 AM, Matthew Garrett wrote:
-> >Well, that's the usual use-case for WoL. If you don't want a device to
-> >wake up from a specific sleep state, disable that device before entering
-> >that sleep state.
+On Joi 16 Iunie 2011, Matthew Garrett wrote:
+> On Thu, Jun 16, 2011 at 03:31:52PM +0300, Vitalie Lazu wrote:
+> > On Joi 16 Iunie 2011, Matthew Garrett wrote:
+> > > Should be included. How does it fail?
+> > 
+> > It hangs on shutdown: with last message: The system will halt...
 > 
-> I am reading reports from some users that their laptop keeps the
-> ethernet interface powered on and runs down the battery after shutting
-> down.  It seems they are capable of waking the system from S5.  It
-> appears that if the interface is not ethdown'ed in /etc/init.d/halt,
-> then it remains on.  Are you saying that it is up to userspace to
-> disable WOL and down the interface before shutting down?
+> Oh, shutdown? You said reboot doesn't work.
+Ops, sorry, on reboot, but I will check today at home again.
 
-Yes. How would the kernel know that you don't want WoL in that case?
+Can you provide some info how I can debug this?
 
-> Also strangely, ethtool reports that WOL is enabled for magic packet
-> ( which I guess comes from the bios default, I checked my desktop
-> and it also appears to default to wol: g, but can only wakeup from
-> s4 ), but /proc/acpi/wakeup claims wakeup for the device is
-> disabled.  They should always agree shouldn't they?
+With debian kernel 2.6.39 it reboots sometimes when you issue shutdown from 
+console with:
 
-They should - failure to do so seems like a bug.
+shutdown -h now
+
+This thing confused me.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Best regards,
+Vitalie
+WWW: http://vitalie.webng.md
