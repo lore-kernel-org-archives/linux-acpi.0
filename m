@@ -1,27 +1,41 @@
-From: Phillip Susi <psusi@cfl.rr.com>
-Subject: Re: Wakeup and S states
-Date: Thu, 16 Jun 2011 11:11:28 -0400
-Message-ID: <4DFA1D20.5020800@cfl.rr.com>
-References: <4DF8CBC3.5070801@cfl.rr.com> <20110615154457.GA13863@srcf.ucam.org> <4DFA09CB.9040909@iradimed.com> <20110616141517.GB15242@srcf.ucam.org> <4DFA13FD.6020304@cfl.rr.com> <20110616143703.GA15841@srcf.ucam.org>
+From: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch] ACPI: use after free in acpi_battery_add()
+Date: Thu, 16 Jun 2011 22:18:58 +0300
+Message-ID: <BANLkTinOEVR=8kqpyee2VoKh12tWOhVgaQ@mail.gmail.com>
+References: <20110329031210.GA9856@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:51841 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755073Ab1FPPLa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2011 11:11:30 -0400
-In-Reply-To: <20110616143703.GA15841@srcf.ucam.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:33393 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756995Ab1FPTS7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2011 15:18:59 -0400
+In-Reply-To: <20110329031210.GA9856@bicker>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, kyle@redhat.com
 
-On 6/16/2011 10:37 AM, Matthew Garrett wrote:
-> But you're complaining about the case where wakeup is enabled in a case
-> where it *is* possible. Userspace needs to take care of that.
+It seems like this patch was missed.
 
-I am concerned about both cases.  It would /like/ to be able to set the 
-policy to wakeup only on state X and lower, and it seems like this would 
-be better done in the kernel than user space, but it seems a kernel bug 
-to enable wakeup in states that are higher than where it is supported.
+regards,
+dan carpenter
+
+On 3/29/11, Dan Carpenter <error27@gmail.com> wrote:
+> "battery" was dereferenced on the error path here.
+>
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index fcc13ac..cfc7a5b 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -988,6 +988,7 @@ static int acpi_battery_add(struct acpi_device *device)
+>  		acpi_battery_remove_fs(device);
+>  #endif
+>  		kfree(battery);
+> +		return result;
+>  	}
+>
+>  	battery->pm_nb.notifier_call = battery_notify;
+>
