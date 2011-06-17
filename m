@@ -1,36 +1,45 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI, Add APEI _OSC support
-Date: Fri, 17 Jun 2011 09:53:11 +0800
-Message-ID: <4DFAB387.2010500@intel.com>
-References: <20110614145246.GA17469@srcf.ucam.org> <4DF82CBC.5070400@intel.com> <20110615121703.GA8638@srcf.ucam.org> <4DF950EB.7050400@intel.com> <20110616013812.GA32494@srcf.ucam.org> <4DF962AE.60204@intel.com> <20110616015736.GA32533@srcf.ucam.org> <4DFAA665.8070305@intel.com> <20110617013442.GA30708@srcf.ucam.org> <4DFAB081.6050800@intel.com> <20110617014213.GA30826@srcf.ucam.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI video: show _DOD element in hexadecimal format
+Date: Fri, 17 Jun 2011 11:19:50 +0800
+Message-ID: <1308280790.17353.2.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7053 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:34433 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756271Ab1FQBxO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jun 2011 21:53:14 -0400
-In-Reply-To: <20110617014213.GA30826@srcf.ucam.org>
+	id S1755724Ab1FQDTJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jun 2011 23:19:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Brown, Len" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 06/17/2011 09:42 AM, Matthew Garrett wrote:
-> On Fri, Jun 17, 2011 at 09:40:17AM +0800, Huang Ying wrote:
->> On 06/17/2011 09:34 AM, Matthew Garrett wrote:
->>> If the kernel has been configured with support for the feature then I 
->>> think we ought to be able to assume that the kernel will support it at 
->>> runtime.
->>
->> There may be error during driver initialization.  That is what I am
->> concerned.
-> 
-> That's true of any _OSC functionality.
 
-I see.  This should be fixed in the long run.  So I will add "APEI bit"
-support if GHES is configured.
+video-1250 [4140343344] [-14] video_device_enumerate: dod element[0] = -2147417856
+video-1250 [4140343344] [-14] video_device_enumerate: dod element[1] = -2147417088
+...
 
-Best Regards,
-Huang Ying
+As each element of _DOD method stands for a 32-bit device attribute
+of a video output device, print it in hexadecimal format.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -1179,7 +1179,7 @@ static int acpi_video_device_enumerate(s
+ 
+ 		active_list[count].value.int_val = obj->integer.value;
+ 		active_list[count].bind_info = NULL;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "dod element[%d] = %d\n", i,
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "dod element[%d] = 0x%x\n", i,
+ 				  (int)obj->integer.value));
+ 		count++;
+ 	}
+
+
