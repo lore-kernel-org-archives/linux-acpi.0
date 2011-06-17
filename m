@@ -1,45 +1,127 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI video: show _DOD element in hexadecimal format
-Date: Fri, 17 Jun 2011 11:19:50 +0800
-Message-ID: <1308280790.17353.2.camel@rui>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Chris Forbes <chrisf@ijw.co.nz>
+Subject: [PATCH] Drivers: acpi: thermal: fix coding style issues
+Date: Fri, 17 Jun 2011 20:01:36 +1200
+Message-ID: <1308297696-29837-1-git-send-email-chrisf@ijw.co.nz>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:34433 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755724Ab1FQDTJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jun 2011 23:19:09 -0400
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34207 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994Ab1FQICB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2011 04:02:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Chris Forbes <chrisf@ijw.co.nz>
 
+Fixed some coding style issues flagged by checkpatch.pl
 
-video-1250 [4140343344] [-14] video_device_enumerate: dod element[0] = -2147417856
-video-1250 [4140343344] [-14] video_device_enumerate: dod element[1] = -2147417088
-...
-
-As each element of _DOD method stands for a 32-bit device attribute
-of a video output device, print it in hexadecimal format.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Chris Forbes <chrisf@ijw.co.nz>
 ---
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/thermal.c |   30 ++++++++++++++++++------------
+ 1 files changed, 18 insertions(+), 12 deletions(-)
 
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -1179,7 +1179,7 @@ static int acpi_video_device_enumerate(s
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 2607e17..c3d1080 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -41,7 +41,7 @@
+ #include <linux/kmod.h>
+ #include <linux/reboot.h>
+ #include <linux/device.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <linux/thermal.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -173,7 +173,7 @@ struct acpi_thermal_flags {
+ };
  
- 		active_list[count].value.int_val = obj->integer.value;
- 		active_list[count].bind_info = NULL;
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "dod element[%d] = %d\n", i,
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "dod element[%d] = 0x%x\n", i,
- 				  (int)obj->integer.value));
- 		count++;
+ struct acpi_thermal {
+-	struct acpi_device * device;
++	struct acpi_device *device;
+ 	acpi_bus_id name;
+ 	unsigned long temperature;
+ 	unsigned long last_temperature;
+@@ -405,8 +405,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 			printk(KERN_WARNING PREFIX
+ 				"Invalid passive threshold\n");
+ 			tz->trips.passive.flags.valid = 0;
+-		}
+-		else
++		} else
+ 			tz->trips.passive.flags.valid = 1;
+ 
+ 		if (memcmp(&tz->trips.passive.devices, &devices,
+@@ -460,7 +459,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 		}
+ 
+ 		name[2] = 'L';
+-		if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.active[i].flags.valid ) {
++		if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.active[i].flags.valid) {
+ 			memset(&devices, 0, sizeof(struct acpi_handle_list));
+ 			status = acpi_evaluate_reference(tz->device->handle,
+ 						name, NULL, &devices);
+@@ -468,8 +467,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 				printk(KERN_WARNING PREFIX
+ 					"Invalid active%d threshold\n", i);
+ 				tz->trips.active[i].flags.valid = 0;
+-			}
+-			else
++			} else
+ 				tz->trips.active[i].flags.valid = 1;
+ 
+ 			if (memcmp(&tz->trips.active[i].devices, &devices,
+@@ -841,7 +839,8 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 		trips++;
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+-			tz->trips.active[i].flags.valid; i++, trips++);
++			tz->trips.active[i].flags.valid; i++, trips++)
++		;
+ 
+ 	if (tz->trips.passive.flags.valid)
+ 		tz->thermal_zone =
+@@ -1075,7 +1074,8 @@ static int acpi_thermal_resume(struct acpi_device *device)
+ 	return AE_OK;
+ }
+ 
+-static int thermal_act(const struct dmi_system_id *d) {
++static int thermal_act(const struct dmi_system_id *d)
++{
+ 
+ 	if (act == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+@@ -1084,14 +1084,18 @@ static int thermal_act(const struct dmi_system_id *d) {
  	}
-
+ 	return 0;
+ }
+-static int thermal_nocrt(const struct dmi_system_id *d) {
++
++static int thermal_nocrt(const struct dmi_system_id *d)
++{
+ 
+ 	printk(KERN_NOTICE "ACPI: %s detected: "
+ 		"disabling all critical thermal trip point actions.\n", d->ident);
+ 	nocrt = 1;
+ 	return 0;
+ }
+-static int thermal_tzp(const struct dmi_system_id *d) {
++
++static int thermal_tzp(const struct dmi_system_id *d)
++{
+ 
+ 	if (tzp == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+@@ -1100,7 +1104,9 @@ static int thermal_tzp(const struct dmi_system_id *d) {
+ 	}
+ 	return 0;
+ }
+-static int thermal_psv(const struct dmi_system_id *d) {
++
++static int thermal_psv(const struct dmi_system_id *d)
++{
+ 
+ 	if (psv == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+-- 
+1.7.4.1
 
