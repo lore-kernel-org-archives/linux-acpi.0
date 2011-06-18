@@ -1,127 +1,47 @@
-From: Chris Forbes <chrisf@ijw.co.nz>
-Subject: [PATCH] Drivers: acpi: thermal: fix coding style issues
-Date: Fri, 17 Jun 2011 20:01:36 +1200
-Message-ID: <1308297696-29837-1-git-send-email-chrisf@ijw.co.nz>
+From: Thomas Mitterfellner <thomas@mitterfellner.at>
+Subject: Re: ACPI support for Toshiba Satellite Pro L770-116 Update
+Date: Sat, 18 Jun 2011 15:35:01 +0200
+Message-ID: <4DFCA985.40604@mitterfellner.at>
+References: <4DE68096.7040708@mitterfellner.at>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34207 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751994Ab1FQICB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2011 04:02:01 -0400
+Received: from mx05.easyname.eu ([77.244.243.9]:45906 "EHLO mail.easyname.eu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751663Ab1FRNfF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Jun 2011 09:35:05 -0400
+Received: from chello084115146121.1.graz.surfer.at ([84.115.146.121] helo=linux-jn3t.site)
+	by mail.easyname.eu with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <thomas@mitterfellner.at>)
+	id 1QXvfz-0001BS-FM
+	for linux-acpi@vger.kernel.org; Sat, 18 Jun 2011 13:35:03 +0000
+In-Reply-To: <4DE68096.7040708@mitterfellner.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Chris Forbes <chrisf@ijw.co.nz>
+To: linux-acpi@vger.kernel.org
 
-Fixed some coding style issues flagged by checkpatch.pl
+Hello!
 
-Signed-off-by: Chris Forbes <chrisf@ijw.co.nz>
----
- drivers/acpi/thermal.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
+Please forgive me for asking again for your help adding ACPI support for 
+the Toshiba Satellite Pro L770-116 laptop to the linux kernel.
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 2607e17..c3d1080 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -41,7 +41,7 @@
- #include <linux/kmod.h>
- #include <linux/reboot.h>
- #include <linux/device.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/thermal.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -173,7 +173,7 @@ struct acpi_thermal_flags {
- };
- 
- struct acpi_thermal {
--	struct acpi_device * device;
-+	struct acpi_device *device;
- 	acpi_bus_id name;
- 	unsigned long temperature;
- 	unsigned long last_temperature;
-@@ -405,8 +405,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 			printk(KERN_WARNING PREFIX
- 				"Invalid passive threshold\n");
- 			tz->trips.passive.flags.valid = 0;
--		}
--		else
-+		} else
- 			tz->trips.passive.flags.valid = 1;
- 
- 		if (memcmp(&tz->trips.passive.devices, &devices,
-@@ -460,7 +459,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 		}
- 
- 		name[2] = 'L';
--		if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.active[i].flags.valid ) {
-+		if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.active[i].flags.valid) {
- 			memset(&devices, 0, sizeof(struct acpi_handle_list));
- 			status = acpi_evaluate_reference(tz->device->handle,
- 						name, NULL, &devices);
-@@ -468,8 +467,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 				printk(KERN_WARNING PREFIX
- 					"Invalid active%d threshold\n", i);
- 				tz->trips.active[i].flags.valid = 0;
--			}
--			else
-+			} else
- 				tz->trips.active[i].flags.valid = 1;
- 
- 			if (memcmp(&tz->trips.active[i].devices, &devices,
-@@ -841,7 +839,8 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 		trips++;
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
--			tz->trips.active[i].flags.valid; i++, trips++);
-+			tz->trips.active[i].flags.valid; i++, trips++)
-+		;
- 
- 	if (tz->trips.passive.flags.valid)
- 		tz->thermal_zone =
-@@ -1075,7 +1074,8 @@ static int acpi_thermal_resume(struct acpi_device *device)
- 	return AE_OK;
- }
- 
--static int thermal_act(const struct dmi_system_id *d) {
-+static int thermal_act(const struct dmi_system_id *d)
-+{
- 
- 	if (act == 0) {
- 		printk(KERN_NOTICE "ACPI: %s detected: "
-@@ -1084,14 +1084,18 @@ static int thermal_act(const struct dmi_system_id *d) {
- 	}
- 	return 0;
- }
--static int thermal_nocrt(const struct dmi_system_id *d) {
-+
-+static int thermal_nocrt(const struct dmi_system_id *d)
-+{
- 
- 	printk(KERN_NOTICE "ACPI: %s detected: "
- 		"disabling all critical thermal trip point actions.\n", d->ident);
- 	nocrt = 1;
- 	return 0;
- }
--static int thermal_tzp(const struct dmi_system_id *d) {
-+
-+static int thermal_tzp(const struct dmi_system_id *d)
-+{
- 
- 	if (tzp == 0) {
- 		printk(KERN_NOTICE "ACPI: %s detected: "
-@@ -1100,7 +1104,9 @@ static int thermal_tzp(const struct dmi_system_id *d) {
- 	}
- 	return 0;
- }
--static int thermal_psv(const struct dmi_system_id *d) {
-+
-+static int thermal_psv(const struct dmi_system_id *d)
-+{
- 
- 	if (psv == 0) {
- 		printk(KERN_NOTICE "ACPI: %s detected: "
--- 
-1.7.4.1
+Unfortunately, I do not know how I can help developers on this other 
+than providing the ACPI tables of this laptop.
 
+I uploaded the ACPI tables here:
+
+http://www.mitterfellner.at/files/acpitables.tar.bz2
+
+(Content: APIC.dat DSDT.dat ECDT.dat FACP.dat FACS.dat HPET.dat MCFG.dat 
+RSDP.dat SLIC.dat SSDT1.dat SSDT2.dat XSDT.dat)
+
+I'd be very glad if someone could write a patch which enables the Fn-Fx 
+functionality for changing the display brightness and for cycling 
+through the LCD/VGA output modes. If you need any further information, I 
+will of course try to provide it.
+
+Thank you very much for your efforts,
+
+Thomas Mitterfellner
