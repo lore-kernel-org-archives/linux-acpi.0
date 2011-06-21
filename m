@@ -1,47 +1,18 @@
-From: Vitalie Lazu <vitalie@webng.md>
-Subject: Re: Kernel 2.6.38-1-amd64 can not reboot my iMac
-Date: Mon, 20 Jun 2011 17:46:28 +0300
-Message-ID: <201106201746.28322.vitalie@webng.md>
-References: <201104061255.00189.vitalie@webng.md> <201106161531.52949.vitalie@webng.md> <20110616141348.GA15242@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH 0/4] ACPI, APEI, Add APEI related _OSC support
+Date: Tue, 21 Jun 2011 15:16:23 +0800
+Message-ID: <1308640587-24502-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.webng.md ([212.56.195.206]:55226 "EHLO mail.webng.md"
+Received: from mga02.intel.com ([134.134.136.20]:15302 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248Ab1FTOxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jun 2011 10:53:04 -0400
-In-Reply-To: <20110616141348.GA15242@srcf.ucam.org>
+	id S1751317Ab1FUHQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jun 2011 03:16:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-On Joi 16 Iunie 2011, Matthew Garrett wrote:
-> On Thu, Jun 16, 2011 at 03:31:52PM +0300, Vitalie Lazu wrote:
-> > On Joi 16 Iunie 2011, Matthew Garrett wrote:
-> > > Should be included. How does it fail?
-> > 
-> > It hangs on shutdown: with last message: The system will halt...
-> 
-> Oh, shutdown? You said reboot doesn't work.
-
-I downloaded linux source 3.0.0 rc3 and it still does not work:
-
-Last output:
-
-Will reboot system...
-[tttt.ttttt] Restart system.
-
-Then it hangs and I have to force power it down.
-
-I have to reboot it because of this bug: 
-Can not connect to external networks.
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=619364
-
-
--- 
-Best regards,
-Vitalie
-WWW: http://vitalie.webng.md
+[PATCH 1/4] ACPI, APEI, GHES, Prevent GHES to be built as module
+[PATCH 2/4] ACPI, APEI, GHES, Support disable GHES at boot time
+[PATCH 3/4] ACPI, APEI, Add APEI bit support in generic _OSC call
+[PATCH 4/4] ACPI, APEI, Add APEI _OSC support
