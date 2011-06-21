@@ -1,7 +1,7 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 4/4] ACPI, APEI, Add APEI _OSC support
-Date: Tue, 21 Jun 2011 15:16:27 +0800
-Message-ID: <1308640587-24502-5-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 1/4] ACPI, APEI, GHES, Prevent GHES to be built as module
+Date: Tue, 21 Jun 2011 15:16:24 +0800
+Message-ID: <1308640587-24502-2-git-send-email-ying.huang@intel.com>
 References: <1308640587-24502-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1308640587-24502-1-git-send-email-ying.huang@intel.com>
@@ -10,70 +10,26 @@ To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 List-Id: linux-acpi@vger.kernel.org
 
-APEI firmware first mode must be turned on explicitly on some
-machines, otherwise they may be no GHES hardware error record for
-hardware error notification.  APEI bit in generic _OSC call can be
-used to do that, but on some machine, a special APEI _OSC call must
-be used.  This patch adds the support to that APEI _OSC call.
+GHES (Generic Hardware Error Source) is used to process hardware error
+notification in firmware first mode.  But because firmware first mode
+can be turned on but can not be turned off, it is unreasonable to
+unload the GHES module with firmware first mode turned on.  To avoid
+confusion, this patch makes GHES can be enable/disable in
+configuration time, but not built as module and unload at run time.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/apei-base.c     |   26 ++++++++++++++++++++++++++
- drivers/acpi/apei/apei-internal.h |    2 ++
- drivers/acpi/apei/ghes.c          |    4 ++++
- 3 files changed, 32 insertions(+)
+ drivers/acpi/apei/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -604,3 +604,29 @@ struct dentry *apei_get_debugfs_dir(void
- 	return dapei;
- }
- EXPORT_SYMBOL_GPL(apei_get_debugfs_dir);
-+
-+int apei_osc_setup(void)
-+{
-+	static u8 apei_uuid_str[] = "ed855e0c-6c90-47bf-a62a-26de0fc5ad5c";
-+	acpi_handle handle;
-+	u32 capbuf[3];
-+	struct acpi_osc_context context = {
-+		.uuid_str	= apei_uuid_str,
-+		.rev		= 1,
-+		.cap.length	= sizeof(capbuf),
-+		.cap.pointer	= capbuf,
-+	};
-+
-+	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_TYPE] = 0;
-+	capbuf[OSC_CONTROL_TYPE] = 0;
-+
-+	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle))
-+	    || ACPI_FAILURE(acpi_run_osc(handle, &context)))
-+		return -EIO;
-+	else {
-+		kfree(context.ret.pointer);
-+		return 0;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(apei_osc_setup);
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -124,4 +124,6 @@ void apei_estatus_print(const char *pfx,
- 			const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
- int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
-+
-+int apei_osc_setup(void);
- #endif
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -678,6 +678,10 @@ static int __init ghes_init(void)
- 	if (rc)
- 		goto err_ioremap_exit;
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -10,7 +10,7 @@ config ACPI_APEI
+ 	  error injection.
  
-+	rc = apei_osc_setup();
-+	if (rc)
-+		pr_info(GHES_PFX "Evaluate APEI _OSC failed!\n");
-+
- 	return 0;
- err_ioremap_exit:
- 	ghes_ioremap_exit();
+ config ACPI_APEI_GHES
+-	tristate "APEI Generic Hardware Error Source"
++	bool "APEI Generic Hardware Error Source"
+ 	depends on ACPI_APEI && X86
+ 	select ACPI_HED
+ 	help
