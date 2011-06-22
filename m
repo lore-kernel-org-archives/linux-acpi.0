@@ -1,12 +1,18 @@
 From: Angus Hammond <angusgh@gmail.com>
 Subject: [PATCH] Fixed coding style in drivers/acpi/ac.c
 Date: Wed, 22 Jun 2011 22:14:20 +0100
-Message-ID: <4e17637e.8798d80a.0bbf.fffff766@mx.google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <4e176380.8798d80a.0bbf.fffff767@mx.google.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36122 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754961Ab1GHUHb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jul 2011 16:07:31 -0400
+Received: by wyg8 with SMTP id 8so1538383wyg.19
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Jul 2011 13:07:30 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Linux Kernel <linux-kernel@vger.kernel.org>
 Cc: linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 Changed lines causing errors from  scrips/checkpatch.pl.
 Signed-off-by: Angus Hammond <angusgh@gmail.com>
@@ -92,3 +98,4 @@ index 58c3f74..e510828 100644
  		acpi_ac_remove_fs(device);
 -- 
 1.7.4.1
+
