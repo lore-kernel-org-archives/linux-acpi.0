@@ -1,124 +1,94 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Resend/Update][PATCH] ACPI: Fix lockdep false positives in acpi_power_off()
-Date: Wed, 6 Jul 2011 20:44:25 +0200
-Message-ID: <201107062044.25387.rjw@sisk.pl>
-References: <1309684450-24549-1-git-send-email-andrea@betterlinux.com> <201107050132.11996.rjw@sisk.pl> <20110705100358.6857b235@schatten.dmk.lab>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33329 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754850Ab1GFSn4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2011 14:43:56 -0400
-In-Reply-To: <20110705100358.6857b235@schatten.dmk.lab>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Angus Hammond <angusgh@gmail.com>
+Subject: [PATCH] Fixed coding style in drivers/acpi/ac.c
+Date: Wed, 22 Jun 2011 22:14:20 +0100
+Message-ID: <4e17637e.8798d80a.0bbf.fffff766@mx.google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Florian Mickler <florian@mickler.org>, Andrea Righi <andrea@betterlinux.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI: Fix lockdep false positives in acpi_power_off()
-
-All ACPICA locks are allocated by the same function,
-acpi_os_create_lock(), with the help of a local variable called
-"lock".  Thus, when lockdep is enabled, it uses "lock" as the
-name of all those locks and regards them as instances of the same
-lock, which causes it to report possible locking problems with them
-when there aren't any.
-
-To work around this problem, define acpi_os_create_lock() as a macro
-and make it pass its argument to spin_lock_init(), so that lockdep
-uses it as the name of the new lock.  Define this macron in a
-Linux-specific file, to minimize the resulting modifications of
-the OS-independent ACPICA parts.
-
-This change is based on an earlier patch from Andrea Righi and it
-addresses a regression from 2.6.39 tracked as
-https://bugzilla.kernel.org/show_bug.cgi?id=38152
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-tested-by: Borislav Petkov <bp@alien8.de>
-Tested-by: Andrea Righi <andrea@betterlinux.com>
-Reviewed-by: Florian Mickler <florian@mickler.org>
+Changed lines causing errors from  scrips/checkpatch.pl.
+Signed-off-by: Angus Hammond <angusgh@gmail.com>
 ---
- drivers/acpi/osl.c              |   17 -----------------
- include/acpi/acpiosxf.h         |    3 +++
- include/acpi/platform/aclinux.h |   18 ++++++++++++++++++
- 3 files changed, 21 insertions(+), 17 deletions(-)
+ drivers/acpi/ac.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -1333,23 +1333,6 @@ int acpi_resources_are_enforced(void)
- EXPORT_SYMBOL(acpi_resources_are_enforced);
- 
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 58c3f74..e510828 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -1,5 +1,5 @@
  /*
-- * Create and initialize a spinlock.
-- */
--acpi_status
--acpi_os_create_lock(acpi_spinlock *out_handle)
--{
--	spinlock_t *lock;
--
--	lock = ACPI_ALLOCATE(sizeof(spinlock_t));
--	if (!lock)
--		return AE_NO_MEMORY;
--	spin_lock_init(lock);
--	*out_handle = lock;
--
--	return AE_OK;
--}
--
--/*
-  * Deallocate the memory for a spinlock.
-  */
- void acpi_os_delete_lock(acpi_spinlock handle)
-Index: linux-2.6/include/acpi/acpiosxf.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpiosxf.h
-+++ linux-2.6/include/acpi/acpiosxf.h
-@@ -98,8 +98,11 @@ acpi_os_table_override(struct acpi_table
- /*
-  * Spinlock primitives
-  */
-+
-+#ifndef acpi_os_create_lock
- acpi_status
- acpi_os_create_lock(acpi_spinlock *out_handle);
-+#endif
+- *  acpi_ac.c - ACPI AC Adapter Driver ($Revision: 27 $)
++ *  acpi_ac.c - ACPI AC Adapter Driver
+  *
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+@@ -54,8 +54,8 @@ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
+ MODULE_LICENSE("GPL");
  
- void acpi_os_delete_lock(acpi_spinlock handle);
- 
-Index: linux-2.6/include/acpi/platform/aclinux.h
-===================================================================
---- linux-2.6.orig/include/acpi/platform/aclinux.h
-+++ linux-2.6/include/acpi/platform/aclinux.h
-@@ -159,6 +159,24 @@ static inline void *acpi_os_acquire_obje
- 	} while (0)
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+-extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+-extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
++struct proc_dir_entry *acpi_lock_ac_dir(void);
++void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
+ static int acpi_ac_open_fs(struct inode *inode, struct file *file);
  #endif
  
-+/*
-+ * When lockdep is enabled, the spin_lock_init() macro stringifies it's
-+ * argument and uses that as a name for the lock in debugging.
-+ * By executing spin_lock_init() in a macro the key changes from "lock" for
-+ * all locks to the name of the argument of acpi_os_create_lock(), which
-+ * prevents lockdep from reporting false positives for ACPICA locks.
-+ */
-+#define acpi_os_create_lock(__handle)				\
-+({								\
-+	spinlock_t *lock = ACPI_ALLOCATE(sizeof(*lock));	\
-+								\
-+	if (lock) {						\
-+		*(__handle) = lock;				\
-+		spin_lock_init(*(__handle));			\
-+	}							\
-+	lock ? AE_OK : AE_NO_MEMORY;				\
-+})
-+
- #endif /* __KERNEL__ */
+@@ -85,7 +85,7 @@ static struct acpi_driver acpi_ac_driver = {
  
- #endif /* __ACLINUX_H__ */
-
+ struct acpi_ac {
+ 	struct power_supply charger;
+-	struct acpi_device * device;
++	struct acpi_device *device;
+ 	unsigned long long state;
+ };
+ 
+@@ -102,7 +102,7 @@ static const struct file_operations acpi_ac_fops = {
+ #endif
+ 
+ /* --------------------------------------------------------------------------
+-                               AC Adapter Management
++				AC Adapter Management
+    -------------------------------------------------------------------------- */
+ 
+ static int acpi_ac_get_state(struct acpi_ac *ac)
+@@ -124,7 +124,7 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ }
+ 
+ /* --------------------------------------------------------------------------
+-                            sysfs I/F
++				sysfs I/F
+    -------------------------------------------------------------------------- */
+ static int get_ac_property(struct power_supply *psy,
+ 			   enum power_supply_property psp,
+@@ -154,7 +154,7 @@ static enum power_supply_property ac_props[] = {
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ /* --------------------------------------------------------------------------
+-                              FS Interface (/proc)
++				FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+ 
+ static struct proc_dir_entry *acpi_ac_dir;
+@@ -230,7 +230,7 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
+ #endif
+ 
+ /* --------------------------------------------------------------------------
+-                                   Driver Model
++				Driver Model
+    -------------------------------------------------------------------------- */
+ 
+ static void acpi_ac_notify(struct acpi_device *device, u32 event)
+@@ -298,7 +298,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       ac->state ? "on-line" : "off-line");
+ 
+-      end:
++end:
+ 	if (result) {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 		acpi_ac_remove_fs(device);
+-- 
+1.7.4.1
