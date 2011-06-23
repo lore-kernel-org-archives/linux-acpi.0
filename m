@@ -1,44 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 4/4] ACPI, APEI, Add APEI _OSC support
-Date: Wed, 22 Jun 2011 16:49:48 +0100
-Message-ID: <20110622154948.GA3219@srcf.ucam.org>
-References: <1308640587-24502-1-git-send-email-ying.huang@intel.com>
- <1308640587-24502-5-git-send-email-ying.huang@intel.com>
- <20110621132256.GB4902@srcf.ucam.org>
- <4E0151A0.90505@intel.com>
-Mime-Version: 1.0
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH 32/35] include/linux/acpi.h changes for SMBIOS and System
+Date: Thu, 23 Jun 2011 13:25:29 -0400
+Message-ID: <20110623172528.27778.11021.sendpatchset@prarit.bos.redhat.com>
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44133 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924Ab1FVPuB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2011 11:50:01 -0400
-Content-Disposition: inline
-In-Reply-To: <4E0151A0.90505@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Jun 22, 2011 at 10:21:20AM +0800, Huang Ying wrote:
+include/linux/acpi.h changes for SMBIOS and System Firmware
 
-> At least on some of my testing machine, generic _OSC call will not
-> return any error even it does not support APEI bit.  So I think
-> sometimes it may be helpful to printk something here.  To avoid
-> confusion, can we change the message as follow.
-> 
-> - generic _OSC succeeded, APEI _OSC failed: APEI firmware first mode is
-> enabled by APEI bit.
-> - generic _OSC failed, APEI _OSC succeeded: APEI firmware first mode is
-> enabled by APEI _OSC.
+As part of the new SMBIOS and System Firmware code:
 
-"WHEA _OSC", I think. The UUID here is part of the Microsoft spec, not 
-the APEI one.
+- Replace old dmi* structures and functions with new sysfw* and smbios*
+structures and functions in individual drivers
 
-> - both succeeded: APEI firmware first mode is enabled by APEI bit and
-> APEI _OSC.
-> - both failed: Failed to enable APEI firmware first mode!
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+---
+ include/linux/acpi.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Otherwise, looks good.
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 1deb2a7..29d7de8 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -217,7 +217,7 @@ static inline int acpi_video_display_switch_support(void)
+ #endif /* defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE) */
+ 
+ extern int acpi_blacklisted(void);
+-extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
++extern void acpi_smbios_osi_linux(int enable, const struct sysfw_id *d);
+ extern void acpi_osi_setup(char *str);
+ 
+ #ifdef CONFIG_ACPI_NUMA
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.7.5.4
