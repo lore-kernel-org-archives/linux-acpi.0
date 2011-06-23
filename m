@@ -1,2072 +1,1334 @@
 From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH 35/35] Remove old DMI & SMBIOS code and make SMBIOS default on
-Date: Thu, 23 Jun 2011 13:25:47 -0400
-Message-ID: <20110623172547.27794.68853.sendpatchset@prarit.bos.redhat.com>
+Subject: [PATCH 04/35] drivers/acpi changes for SMBIOS and System Firmware
+Date: Thu, 23 Jun 2011 13:22:34 -0400
+Message-ID: <20110623172234.27623.1456.sendpatchset@prarit.bos.redhat.com>
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, openipmi-developer@lists.sourceforge.net, platform-dr
-Cc: grant.likely@secretlab.ca, dz@debian.org, rpurdie@rpsys.net, eric.piel@tremplin-utc.net, abelay@mit.edu, johnpol@2ka.mipt.ru, Prarit Bhargava <prarit@redhat.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove old DMI & SMBIOS code and make SMBIOS default on
+drivers/acpi changes for SMBIOS and System Firmware interface
 
-This code has now been completely replaced by the new System Firmware
-Interface (SYSFW) and SMBIOS code.  It is no longer needed in the kernel.
+As part of the new SMBIOS and System Firmware code:
+
+- Replace old dmi* structures and functions with new sysfw* and smbios*
+structures and functions in individual drivers
+- cleanup sysfw_id lookup tables
+- cleanup of includes for dmi.h and mod_devicetable.h which were included in
+some files that did not need them
 
 Signed-off-by: Prarit Bhargava <prarit@redhat.com>
 ---
- arch/ia64/include/asm/dmi.h     |   12 -
- arch/x86/Kconfig                |    9 -
- arch/x86/include/asm/dmi.h      |   19 -
- drivers/firmware/Kconfig        |   20 -
- drivers/firmware/Makefile       |    3 -
- drivers/firmware/dmi-id.c       |  245 -------------
- drivers/firmware/dmi-sysfs.c    |  696 ------------------------------------
- drivers/firmware/dmi_scan.c     |  751 ---------------------------------------
- include/linux/dmi.h             |  139 -------
- include/linux/mod_devicetable.h |   55 ---
- 10 files changed, 0 insertions(+), 1949 deletions(-)
- delete mode 100644 arch/ia64/include/asm/dmi.h
- delete mode 100644 arch/x86/include/asm/dmi.h
- delete mode 100644 drivers/firmware/dmi-id.c
- delete mode 100644 drivers/firmware/dmi-sysfs.c
- delete mode 100644 drivers/firmware/dmi_scan.c
- delete mode 100644 include/linux/dmi.h
+ drivers/acpi/battery.c           |    5 +-
+ drivers/acpi/blacklist.c         |  125 ++++++++++++++++++-------------------
+ drivers/acpi/bus.c               |   16 +++---
+ drivers/acpi/ec.c                |  101 ++++++++++++++++++++++---------
+ drivers/acpi/osl.c               |   17 +++---
+ drivers/acpi/pci_irq.c           |   33 +++++-----
+ drivers/acpi/pci_slot.c          |   12 ++--
+ drivers/acpi/processor_core.c    |   25 +++++---
+ drivers/acpi/processor_driver.c  |    1 -
+ drivers/acpi/processor_idle.c    |   51 +++++++++++-----
+ drivers/acpi/scan.c              |    4 +-
+ drivers/acpi/sleep.c             |   46 +++++++-------
+ drivers/acpi/thermal.c           |   42 +++++++------
+ drivers/acpi/video.c             |   28 ++++----
+ drivers/acpi/video_detect.c      |    3 +-
+ drivers/hwmon/acpi_power_meter.c |   15 +++--
+ 16 files changed, 295 insertions(+), 229 deletions(-)
 
-diff --git a/arch/ia64/include/asm/dmi.h b/arch/ia64/include/asm/dmi.h
-deleted file mode 100644
-index 1ed4c8f..0000000
---- a/arch/ia64/include/asm/dmi.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#ifndef _ASM_DMI_H
--#define _ASM_DMI_H 1
--
--#include <linux/slab.h>
--#include <asm/io.h>
--
--/* Use normal IO mappings for DMI */
--#define dmi_ioremap ioremap
--#define dmi_iounmap(x,l) iounmap(x)
--#define dmi_alloc(l) kmalloc(l, GFP_ATOMIC)
--
--#endif
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index e7cdde8..92ee12b 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -626,15 +626,6 @@ config APB_TIMER
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fcc13ac..cf4faba 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -31,7 +31,7 @@
+ #include <linux/types.h>
+ #include <linux/jiffies.h>
+ #include <linux/async.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/slab.h>
+ #include <linux/suspend.h>
  
- # Mark as expert because too many people got it wrong.
- # The code disables itself when not needed.
--config DMI
--	default y
--	bool "Enable DMI scanning" if EXPERT
--	---help---
--	  Enabled scanning of DMI to identify machine quirks. Say Y
--	  here unless you have verified that your setup is not
--	  affected by entries in the DMI blacklist. Required by PNP
--	  BIOS code.
--
- config SMBIOS
- 	depends on SYSTEM_FIRMWARE
- 	bool "Enable SMBIOS scanning" if EXPERT
-diff --git a/arch/x86/include/asm/dmi.h b/arch/x86/include/asm/dmi.h
-deleted file mode 100644
-index fd8f9e2..0000000
---- a/arch/x86/include/asm/dmi.h
-+++ /dev/null
-@@ -1,19 +0,0 @@
--#ifndef _ASM_X86_DMI_H
--#define _ASM_X86_DMI_H
--
--#include <linux/compiler.h>
--#include <linux/init.h>
--
--#include <asm/io.h>
--#include <asm/setup.h>
--
--static __always_inline __init void *dmi_alloc(unsigned len)
--{
--	return extend_brk(len, sizeof(int));
--}
--
--/* Use early IO mappings for DMI because it's initialized early */
--#define dmi_ioremap early_ioremap
--#define dmi_iounmap early_iounmap
--
--#endif /* _ASM_X86_DMI_H */
-diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index 23066d8..a46c162 100644
---- a/drivers/firmware/Kconfig
-+++ b/drivers/firmware/Kconfig
-@@ -104,26 +104,6 @@ config DCDBAS
- 	  Say Y or M here to enable the driver for use by Dell systems
- 	  management software such as Dell OpenManage.
+@@ -575,9 +575,8 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
  
--config DMIID
--    bool "Export DMI identification via sysfs to userspace"
--    depends on DMI
--    default y
--	help
--	  Say Y here if you want to query SMBIOS/DMI system identification
--	  information from userspace through /sys/class/dmi/id/ or if you want
--	  DMI-based module auto-loading.
--
--config DMI_SYSFS
--	tristate "DMI table support in sysfs"
--	depends on SYSFS && DMI
--	default n
--	help
--	  Say Y or M here to enable the exporting of the raw DMI table
--	  data via sysfs.  This is useful for consuming the data without
--	  requiring any access to /dev/mem at all.  Tables are found
--	  under /sys/firmware/dmi when this option is enabled and
--	  loaded.
--
- config ISCSI_IBFT_FIND
- 	bool "iSCSI Boot Firmware Table Attributes"
- 	depends on X86
-diff --git a/drivers/firmware/Makefile b/drivers/firmware/Makefile
-index 5c9d81f..f372289 100644
---- a/drivers/firmware/Makefile
-+++ b/drivers/firmware/Makefile
-@@ -1,14 +1,11 @@
- #
- # Makefile for the linux kernel.
- #
--obj-$(CONFIG_DMI)		+= dmi_scan.o
--obj-$(CONFIG_DMI_SYSFS)		+= dmi-sysfs.o
- obj-$(CONFIG_EDD)		+= edd.o
- obj-$(CONFIG_EFI_VARS)		+= efivars.o
- obj-$(CONFIG_EFI_PCDP)		+= pcdp.o
- obj-$(CONFIG_DELL_RBU)          += dell_rbu.o
- obj-$(CONFIG_DCDBAS)		+= dcdbas.o
--obj-$(CONFIG_DMIID)		+= dmi-id.o
- obj-$(CONFIG_ISCSI_IBFT_FIND)	+= iscsi_ibft_find.o
- obj-$(CONFIG_ISCSI_IBFT)	+= iscsi_ibft.o
- obj-$(CONFIG_FIRMWARE_MEMMAP)	+= memmap.o
-diff --git a/drivers/firmware/dmi-id.c b/drivers/firmware/dmi-id.c
-deleted file mode 100644
-index 94a58a0..0000000
---- a/drivers/firmware/dmi-id.c
-+++ /dev/null
-@@ -1,245 +0,0 @@
--/*
-- * Export SMBIOS/DMI info via sysfs to userspace
-- *
-- * Copyright 2007, Lennart Poettering
-- *
-- * Licensed under GPLv2
-- */
--
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
+ static void acpi_battery_quirks(struct acpi_battery *battery)
+ {
+-	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++	if (sysfw_vendor_is("Acer") && battery->power_unit)
+ 		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+-	}
+ }
+ 
+ /*
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index af308d0..4e44fbe 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -3,7 +3,7 @@
+  *
+  *  Check to see if the given machine has a known bad ACPI BIOS
+  *  or if the BIOS is too old.
+- *  Check given machine against acpi_osi_dmi_table[].
++ *  Check given machine against acpi_osi_smbios_table[].
+  *
+  *  Copyright (C) 2004 Len Brown <len.brown@intel.com>
+  *  Copyright (C) 2002 Andy Grover <andrew.grover@intel.com>
+@@ -32,7 +32,7 @@
+ #include <linux/init.h>
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
 -#include <linux/dmi.h>
--#include <linux/device.h>
--#include <linux/slab.h>
--
--struct dmi_device_attribute{
--	struct device_attribute dev_attr;
--	int field;
--};
--#define to_dmi_dev_attr(_dev_attr) \
--	container_of(_dev_attr, struct dmi_device_attribute, dev_attr)
--
--static ssize_t sys_dmi_field_show(struct device *dev,
--				  struct device_attribute *attr,
--				  char *page)
--{
--	int field = to_dmi_dev_attr(attr)->field;
--	ssize_t len;
--	len = scnprintf(page, PAGE_SIZE, "%s\n", dmi_get_system_info(field));
--	page[len-1] = '\n';
--	return len;
--}
--
--#define DMI_ATTR(_name, _mode, _show, _field)			\
--	{ .dev_attr = __ATTR(_name, _mode, _show, NULL),	\
--	  .field = _field }
--
--#define DEFINE_DMI_ATTR_WITH_SHOW(_name, _mode, _field)		\
--static struct dmi_device_attribute sys_dmi_##_name##_attr =	\
--	DMI_ATTR(_name, _mode, sys_dmi_field_show, _field);
--
--DEFINE_DMI_ATTR_WITH_SHOW(bios_vendor,		0444, DMI_BIOS_VENDOR);
--DEFINE_DMI_ATTR_WITH_SHOW(bios_version,		0444, DMI_BIOS_VERSION);
--DEFINE_DMI_ATTR_WITH_SHOW(bios_date,		0444, DMI_BIOS_DATE);
--DEFINE_DMI_ATTR_WITH_SHOW(sys_vendor,		0444, DMI_SYS_VENDOR);
--DEFINE_DMI_ATTR_WITH_SHOW(product_name,		0444, DMI_PRODUCT_NAME);
--DEFINE_DMI_ATTR_WITH_SHOW(product_version,	0444, DMI_PRODUCT_VERSION);
--DEFINE_DMI_ATTR_WITH_SHOW(product_serial,	0400, DMI_PRODUCT_SERIAL);
--DEFINE_DMI_ATTR_WITH_SHOW(product_uuid,		0400, DMI_PRODUCT_UUID);
--DEFINE_DMI_ATTR_WITH_SHOW(board_vendor,		0444, DMI_BOARD_VENDOR);
--DEFINE_DMI_ATTR_WITH_SHOW(board_name,		0444, DMI_BOARD_NAME);
--DEFINE_DMI_ATTR_WITH_SHOW(board_version,	0444, DMI_BOARD_VERSION);
--DEFINE_DMI_ATTR_WITH_SHOW(board_serial,		0400, DMI_BOARD_SERIAL);
--DEFINE_DMI_ATTR_WITH_SHOW(board_asset_tag,	0444, DMI_BOARD_ASSET_TAG);
--DEFINE_DMI_ATTR_WITH_SHOW(chassis_vendor,	0444, DMI_CHASSIS_VENDOR);
--DEFINE_DMI_ATTR_WITH_SHOW(chassis_type,		0444, DMI_CHASSIS_TYPE);
--DEFINE_DMI_ATTR_WITH_SHOW(chassis_version,	0444, DMI_CHASSIS_VERSION);
--DEFINE_DMI_ATTR_WITH_SHOW(chassis_serial,	0400, DMI_CHASSIS_SERIAL);
--DEFINE_DMI_ATTR_WITH_SHOW(chassis_asset_tag,	0444, DMI_CHASSIS_ASSET_TAG);
--
--static void ascii_filter(char *d, const char *s)
--{
--	/* Filter out characters we don't want to see in the modalias string */
--	for (; *s; s++)
--		if (*s > ' ' && *s < 127 && *s != ':')
--			*(d++) = *s;
--
--	*d = 0;
--}
--
--static ssize_t get_modalias(char *buffer, size_t buffer_size)
--{
--	static const struct mafield {
--		const char *prefix;
--		int field;
--	} fields[] = {
--		{ "bvn", DMI_BIOS_VENDOR },
--		{ "bvr", DMI_BIOS_VERSION },
--		{ "bd",  DMI_BIOS_DATE },
--		{ "svn", DMI_SYS_VENDOR },
--		{ "pn",  DMI_PRODUCT_NAME },
--		{ "pvr", DMI_PRODUCT_VERSION },
--		{ "rvn", DMI_BOARD_VENDOR },
--		{ "rn",  DMI_BOARD_NAME },
--		{ "rvr", DMI_BOARD_VERSION },
--		{ "cvn", DMI_CHASSIS_VENDOR },
--		{ "ct",  DMI_CHASSIS_TYPE },
--		{ "cvr", DMI_CHASSIS_VERSION },
--		{ NULL,  DMI_NONE }
--	};
--
--	ssize_t l, left;
--	char *p;
--	const struct mafield *f;
--
--	strcpy(buffer, "dmi");
--	p = buffer + 3; left = buffer_size - 4;
--
--	for (f = fields; f->prefix && left > 0; f++) {
--		const char *c;
--		char *t;
--
--		c = dmi_get_system_info(f->field);
--		if (!c)
--			continue;
--
--		t = kmalloc(strlen(c) + 1, GFP_KERNEL);
--		if (!t)
--			break;
--		ascii_filter(t, c);
--		l = scnprintf(p, left, ":%s%s", f->prefix, t);
--		kfree(t);
--
--		p += l;
--		left -= l;
--	}
--
--	p[0] = ':';
--	p[1] = 0;
--
--	return p - buffer + 1;
--}
--
--static ssize_t sys_dmi_modalias_show(struct device *dev,
--				     struct device_attribute *attr, char *page)
--{
--	ssize_t r;
--	r = get_modalias(page, PAGE_SIZE-1);
--	page[r] = '\n';
--	page[r+1] = 0;
--	return r+1;
--}
--
--static struct device_attribute sys_dmi_modalias_attr =
--	__ATTR(modalias, 0444, sys_dmi_modalias_show, NULL);
--
--static struct attribute *sys_dmi_attributes[DMI_STRING_MAX+2];
--
--static struct attribute_group sys_dmi_attribute_group = {
--	.attrs = sys_dmi_attributes,
--};
--
--static const struct attribute_group* sys_dmi_attribute_groups[] = {
--	&sys_dmi_attribute_group,
--	NULL
--};
--
--static int dmi_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
--{
--	ssize_t len;
--
--	if (add_uevent_var(env, "MODALIAS="))
--		return -ENOMEM;
--	len = get_modalias(&env->buf[env->buflen - 1],
--			   sizeof(env->buf) - env->buflen);
--	if (len >= (sizeof(env->buf) - env->buflen))
--		return -ENOMEM;
--	env->buflen += len;
--	return 0;
--}
--
--static struct class dmi_class = {
--	.name = "dmi",
--	.dev_release = (void(*)(struct device *)) kfree,
--	.dev_uevent = dmi_dev_uevent,
--};
--
--static struct device *dmi_dev;
--
--/* Initialization */
--
--#define ADD_DMI_ATTR(_name, _field) \
--	if (dmi_get_system_info(_field)) \
--		sys_dmi_attributes[i++] = &sys_dmi_##_name##_attr.dev_attr.attr;
--
--/* In a separate function to keep gcc 3.2 happy - do NOT merge this in
--   dmi_id_init! */
--static void __init dmi_id_init_attr_table(void)
--{
--	int i;
--
--	/* Not necessarily all DMI fields are available on all
--	 * systems, hence let's built an attribute table of just
--	 * what's available */
--	i = 0;
--	ADD_DMI_ATTR(bios_vendor,       DMI_BIOS_VENDOR);
--	ADD_DMI_ATTR(bios_version,      DMI_BIOS_VERSION);
--	ADD_DMI_ATTR(bios_date,         DMI_BIOS_DATE);
--	ADD_DMI_ATTR(sys_vendor,        DMI_SYS_VENDOR);
--	ADD_DMI_ATTR(product_name,      DMI_PRODUCT_NAME);
--	ADD_DMI_ATTR(product_version,   DMI_PRODUCT_VERSION);
--	ADD_DMI_ATTR(product_serial,    DMI_PRODUCT_SERIAL);
--	ADD_DMI_ATTR(product_uuid,      DMI_PRODUCT_UUID);
--	ADD_DMI_ATTR(board_vendor,      DMI_BOARD_VENDOR);
--	ADD_DMI_ATTR(board_name,        DMI_BOARD_NAME);
--	ADD_DMI_ATTR(board_version,     DMI_BOARD_VERSION);
--	ADD_DMI_ATTR(board_serial,      DMI_BOARD_SERIAL);
--	ADD_DMI_ATTR(board_asset_tag,   DMI_BOARD_ASSET_TAG);
--	ADD_DMI_ATTR(chassis_vendor,    DMI_CHASSIS_VENDOR);
--	ADD_DMI_ATTR(chassis_type,      DMI_CHASSIS_TYPE);
--	ADD_DMI_ATTR(chassis_version,   DMI_CHASSIS_VERSION);
--	ADD_DMI_ATTR(chassis_serial,    DMI_CHASSIS_SERIAL);
--	ADD_DMI_ATTR(chassis_asset_tag, DMI_CHASSIS_ASSET_TAG);
--	sys_dmi_attributes[i++] = &sys_dmi_modalias_attr.attr;
--}
--
--static int __init dmi_id_init(void)
--{
--	int ret;
--
--	if (!dmi_available)
--		return -ENODEV;
--
--	dmi_id_init_attr_table();
--
--	ret = class_register(&dmi_class);
--	if (ret)
--		return ret;
--
--	dmi_dev = kzalloc(sizeof(*dmi_dev), GFP_KERNEL);
--	if (!dmi_dev) {
--		ret = -ENOMEM;
--		goto fail_class_unregister;
--	}
--
--	dmi_dev->class = &dmi_class;
--	dev_set_name(dmi_dev, "id");
--	dmi_dev->groups = sys_dmi_attribute_groups;
--
--	ret = device_register(dmi_dev);
--	if (ret)
--		goto fail_free_dmi_dev;
--
--	return 0;
--
--fail_free_dmi_dev:
--	kfree(dmi_dev);
--fail_class_unregister:
--
--	class_unregister(&dmi_class);
--
--	return ret;
--}
--
--arch_initcall(dmi_id_init);
-diff --git a/drivers/firmware/dmi-sysfs.c b/drivers/firmware/dmi-sysfs.c
-deleted file mode 100644
-index eb26d62..0000000
---- a/drivers/firmware/dmi-sysfs.c
-+++ /dev/null
-@@ -1,696 +0,0 @@
--/*
-- * dmi-sysfs.c
-- *
-- * This module exports the DMI tables read-only to userspace through the
-- * sysfs file system.
-- *
-- * Data is currently found below
-- *    /sys/firmware/dmi/...
-- *
-- * DMI attributes are presented in attribute files with names
-- * formatted using %d-%d, so that the first integer indicates the
-- * structure type (0-255), and the second field is the instance of that
-- * entry.
-- *
-- * Copyright 2011 Google, Inc.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/kobject.h>
--#include <linux/dmi.h>
--#include <linux/capability.h>
--#include <linux/slab.h>
--#include <linux/list.h>
--#include <linux/io.h>
--
--#define MAX_ENTRY_TYPE 255 /* Most of these aren't used, but we consider
--			      the top entry type is only 8 bits */
--
--struct dmi_sysfs_entry {
--	struct dmi_header dh;
--	struct kobject kobj;
--	int instance;
--	int position;
--	struct list_head list;
--	struct kobject *child;
--};
--
--/*
-- * Global list of dmi_sysfs_entry.  Even though this should only be
-- * manipulated at setup and teardown, the lazy nature of the kobject
-- * system means we get lazy removes.
-- */
--static LIST_HEAD(entry_list);
--static DEFINE_SPINLOCK(entry_list_lock);
--
--/* dmi_sysfs_attribute - Top level attribute. used by all entries. */
--struct dmi_sysfs_attribute {
--	struct attribute attr;
--	ssize_t (*show)(struct dmi_sysfs_entry *entry, char *buf);
--};
--
--#define DMI_SYSFS_ATTR(_entry, _name) \
--struct dmi_sysfs_attribute dmi_sysfs_attr_##_entry##_##_name = { \
--	.attr = {.name = __stringify(_name), .mode = 0400}, \
--	.show = dmi_sysfs_##_entry##_##_name, \
--}
--
--/*
-- * dmi_sysfs_mapped_attribute - Attribute where we require the entry be
-- * mapped in.  Use in conjunction with dmi_sysfs_specialize_attr_ops.
-- */
--struct dmi_sysfs_mapped_attribute {
--	struct attribute attr;
--	ssize_t (*show)(struct dmi_sysfs_entry *entry,
--			const struct dmi_header *dh,
--			char *buf);
--};
--
--#define DMI_SYSFS_MAPPED_ATTR(_entry, _name) \
--struct dmi_sysfs_mapped_attribute dmi_sysfs_attr_##_entry##_##_name = { \
--	.attr = {.name = __stringify(_name), .mode = 0400}, \
--	.show = dmi_sysfs_##_entry##_##_name, \
--}
--
--/*************************************************
-- * Generic DMI entry support.
-- *************************************************/
--static void dmi_entry_free(struct kobject *kobj)
--{
--	kfree(kobj);
--}
--
--static struct dmi_sysfs_entry *to_entry(struct kobject *kobj)
--{
--	return container_of(kobj, struct dmi_sysfs_entry, kobj);
--}
--
--static struct dmi_sysfs_attribute *to_attr(struct attribute *attr)
--{
--	return container_of(attr, struct dmi_sysfs_attribute, attr);
--}
--
--static ssize_t dmi_sysfs_attr_show(struct kobject *kobj,
--				   struct attribute *_attr, char *buf)
--{
--	struct dmi_sysfs_entry *entry = to_entry(kobj);
--	struct dmi_sysfs_attribute *attr = to_attr(_attr);
--
--	/* DMI stuff is only ever admin visible */
--	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
--
--	return attr->show(entry, buf);
--}
--
--static const struct sysfs_ops dmi_sysfs_attr_ops = {
--	.show = dmi_sysfs_attr_show,
--};
--
--typedef ssize_t (*dmi_callback)(struct dmi_sysfs_entry *,
--				const struct dmi_header *dh, void *);
--
--struct find_dmi_data {
--	struct dmi_sysfs_entry	*entry;
--	dmi_callback		callback;
--	void			*private;
--	int			instance_countdown;
--	ssize_t			ret;
--};
--
--static void find_dmi_entry_helper(const struct dmi_header *dh,
--				  void *_data)
--{
--	struct find_dmi_data *data = _data;
--	struct dmi_sysfs_entry *entry = data->entry;
--
--	/* Is this the entry we want? */
--	if (dh->type != entry->dh.type)
--		return;
--
--	if (data->instance_countdown != 0) {
--		/* try the next instance? */
--		data->instance_countdown--;
--		return;
--	}
--
--	/*
--	 * Don't ever revisit the instance.  Short circuit later
--	 * instances by letting the instance_countdown run negative
--	 */
--	data->instance_countdown--;
--
--	/* Found the entry */
--	data->ret = data->callback(entry, dh, data->private);
--}
--
--/* State for passing the read parameters through dmi_find_entry() */
--struct dmi_read_state {
--	char *buf;
--	loff_t pos;
--	size_t count;
--};
--
--static ssize_t find_dmi_entry(struct dmi_sysfs_entry *entry,
--			      dmi_callback callback, void *private)
--{
--	struct find_dmi_data data = {
--		.entry = entry,
--		.callback = callback,
--		.private = private,
--		.instance_countdown = entry->instance,
--		.ret = -EIO,  /* To signal the entry disappeared */
--	};
--	int ret;
--
--	ret = dmi_walk(find_dmi_entry_helper, &data);
--	/* This shouldn't happen, but just in case. */
--	if (ret)
--		return -EINVAL;
--	return data.ret;
--}
--
--/*
-- * Calculate and return the byte length of the dmi entry identified by
-- * dh.  This includes both the formatted portion as well as the
-- * unformatted string space, including the two trailing nul characters.
-- */
--static size_t dmi_entry_length(const struct dmi_header *dh)
--{
--	const char *p = (const char *)dh;
--
--	p += dh->length;
--
--	while (p[0] || p[1])
--		p++;
--
--	return 2 + p - (const char *)dh;
--}
--
--/*************************************************
-- * Support bits for specialized DMI entry support
-- *************************************************/
--struct dmi_entry_attr_show_data {
--	struct attribute *attr;
--	char *buf;
--};
--
--static ssize_t dmi_entry_attr_show_helper(struct dmi_sysfs_entry *entry,
--					  const struct dmi_header *dh,
--					  void *_data)
--{
--	struct dmi_entry_attr_show_data *data = _data;
--	struct dmi_sysfs_mapped_attribute *attr;
--
--	attr = container_of(data->attr,
--			    struct dmi_sysfs_mapped_attribute, attr);
--	return attr->show(entry, dh, data->buf);
--}
--
--static ssize_t dmi_entry_attr_show(struct kobject *kobj,
--				   struct attribute *attr,
--				   char *buf)
--{
--	struct dmi_entry_attr_show_data data = {
--		.attr = attr,
--		.buf  = buf,
--	};
--	/* Find the entry according to our parent and call the
--	 * normalized show method hanging off of the attribute */
--	return find_dmi_entry(to_entry(kobj->parent),
--			      dmi_entry_attr_show_helper, &data);
--}
--
--static const struct sysfs_ops dmi_sysfs_specialize_attr_ops = {
--	.show = dmi_entry_attr_show,
--};
--
--/*************************************************
-- * Specialized DMI entry support.
-- *************************************************/
--
--/*** Type 15 - System Event Table ***/
--
--#define DMI_SEL_ACCESS_METHOD_IO8	0x00
--#define DMI_SEL_ACCESS_METHOD_IO2x8	0x01
--#define DMI_SEL_ACCESS_METHOD_IO16	0x02
--#define DMI_SEL_ACCESS_METHOD_PHYS32	0x03
--#define DMI_SEL_ACCESS_METHOD_GPNV	0x04
--
--struct dmi_system_event_log {
--	struct dmi_header header;
--	u16	area_length;
--	u16	header_start_offset;
--	u16	data_start_offset;
--	u8	access_method;
--	u8	status;
--	u32	change_token;
--	union {
--		struct {
--			u16 index_addr;
--			u16 data_addr;
--		} io;
--		u32	phys_addr32;
--		u16	gpnv_handle;
--		u32	access_method_address;
--	};
--	u8	header_format;
--	u8	type_descriptors_supported_count;
--	u8	per_log_type_descriptor_length;
--	u8	supported_log_type_descriptos[0];
--} __packed;
--
--#define DMI_SYSFS_SEL_FIELD(_field) \
--static ssize_t dmi_sysfs_sel_##_field(struct dmi_sysfs_entry *entry, \
--				      const struct dmi_header *dh, \
--				      char *buf) \
--{ \
--	struct dmi_system_event_log sel; \
--	if (sizeof(sel) > dmi_entry_length(dh)) \
--		return -EIO; \
--	memcpy(&sel, dh, sizeof(sel)); \
--	return sprintf(buf, "%u\n", sel._field); \
--} \
--static DMI_SYSFS_MAPPED_ATTR(sel, _field)
--
--DMI_SYSFS_SEL_FIELD(area_length);
--DMI_SYSFS_SEL_FIELD(header_start_offset);
--DMI_SYSFS_SEL_FIELD(data_start_offset);
--DMI_SYSFS_SEL_FIELD(access_method);
--DMI_SYSFS_SEL_FIELD(status);
--DMI_SYSFS_SEL_FIELD(change_token);
--DMI_SYSFS_SEL_FIELD(access_method_address);
--DMI_SYSFS_SEL_FIELD(header_format);
--DMI_SYSFS_SEL_FIELD(type_descriptors_supported_count);
--DMI_SYSFS_SEL_FIELD(per_log_type_descriptor_length);
--
--static struct attribute *dmi_sysfs_sel_attrs[] = {
--	&dmi_sysfs_attr_sel_area_length.attr,
--	&dmi_sysfs_attr_sel_header_start_offset.attr,
--	&dmi_sysfs_attr_sel_data_start_offset.attr,
--	&dmi_sysfs_attr_sel_access_method.attr,
--	&dmi_sysfs_attr_sel_status.attr,
--	&dmi_sysfs_attr_sel_change_token.attr,
--	&dmi_sysfs_attr_sel_access_method_address.attr,
--	&dmi_sysfs_attr_sel_header_format.attr,
--	&dmi_sysfs_attr_sel_type_descriptors_supported_count.attr,
--	&dmi_sysfs_attr_sel_per_log_type_descriptor_length.attr,
--	NULL,
--};
--
--
--static struct kobj_type dmi_system_event_log_ktype = {
--	.release = dmi_entry_free,
--	.sysfs_ops = &dmi_sysfs_specialize_attr_ops,
--	.default_attrs = dmi_sysfs_sel_attrs,
--};
--
--typedef u8 (*sel_io_reader)(const struct dmi_system_event_log *sel,
--			    loff_t offset);
--
--static DEFINE_MUTEX(io_port_lock);
--
--static u8 read_sel_8bit_indexed_io(const struct dmi_system_event_log *sel,
--				   loff_t offset)
--{
--	u8 ret;
--
--	mutex_lock(&io_port_lock);
--	outb((u8)offset, sel->io.index_addr);
--	ret = inb(sel->io.data_addr);
--	mutex_unlock(&io_port_lock);
--	return ret;
--}
--
--static u8 read_sel_2x8bit_indexed_io(const struct dmi_system_event_log *sel,
--				     loff_t offset)
--{
--	u8 ret;
--
--	mutex_lock(&io_port_lock);
--	outb((u8)offset, sel->io.index_addr);
--	outb((u8)(offset >> 8), sel->io.index_addr + 1);
--	ret = inb(sel->io.data_addr);
--	mutex_unlock(&io_port_lock);
--	return ret;
--}
--
--static u8 read_sel_16bit_indexed_io(const struct dmi_system_event_log *sel,
--				    loff_t offset)
--{
--	u8 ret;
--
--	mutex_lock(&io_port_lock);
--	outw((u16)offset, sel->io.index_addr);
--	ret = inb(sel->io.data_addr);
--	mutex_unlock(&io_port_lock);
--	return ret;
--}
--
--static sel_io_reader sel_io_readers[] = {
--	[DMI_SEL_ACCESS_METHOD_IO8]	= read_sel_8bit_indexed_io,
--	[DMI_SEL_ACCESS_METHOD_IO2x8]	= read_sel_2x8bit_indexed_io,
--	[DMI_SEL_ACCESS_METHOD_IO16]	= read_sel_16bit_indexed_io,
--};
--
--static ssize_t dmi_sel_raw_read_io(struct dmi_sysfs_entry *entry,
--				   const struct dmi_system_event_log *sel,
--				   char *buf, loff_t pos, size_t count)
--{
--	ssize_t wrote = 0;
--
--	sel_io_reader io_reader = sel_io_readers[sel->access_method];
--
--	while (count && pos < sel->area_length) {
--		count--;
--		*(buf++) = io_reader(sel, pos++);
--		wrote++;
--	}
--
--	return wrote;
--}
--
--static ssize_t dmi_sel_raw_read_phys32(struct dmi_sysfs_entry *entry,
--				       const struct dmi_system_event_log *sel,
--				       char *buf, loff_t pos, size_t count)
--{
--	u8 __iomem *mapped;
--	ssize_t wrote = 0;
--
--	mapped = ioremap(sel->access_method_address, sel->area_length);
--	if (!mapped)
--		return -EIO;
--
--	while (count && pos < sel->area_length) {
--		count--;
--		*(buf++) = readb(mapped + pos++);
--		wrote++;
--	}
--
--	iounmap(mapped);
--	return wrote;
--}
--
--static ssize_t dmi_sel_raw_read_helper(struct dmi_sysfs_entry *entry,
--				       const struct dmi_header *dh,
--				       void *_state)
--{
--	struct dmi_read_state *state = _state;
--	struct dmi_system_event_log sel;
--
--	if (sizeof(sel) > dmi_entry_length(dh))
--		return -EIO;
--
--	memcpy(&sel, dh, sizeof(sel));
--
--	switch (sel.access_method) {
--	case DMI_SEL_ACCESS_METHOD_IO8:
--	case DMI_SEL_ACCESS_METHOD_IO2x8:
--	case DMI_SEL_ACCESS_METHOD_IO16:
--		return dmi_sel_raw_read_io(entry, &sel, state->buf,
--					   state->pos, state->count);
--	case DMI_SEL_ACCESS_METHOD_PHYS32:
--		return dmi_sel_raw_read_phys32(entry, &sel, state->buf,
--					       state->pos, state->count);
--	case DMI_SEL_ACCESS_METHOD_GPNV:
--		pr_info("dmi-sysfs: GPNV support missing.\n");
--		return -EIO;
--	default:
--		pr_info("dmi-sysfs: Unknown access method %02x\n",
--			sel.access_method);
--		return -EIO;
--	}
--}
--
--static ssize_t dmi_sel_raw_read(struct file *filp, struct kobject *kobj,
--				struct bin_attribute *bin_attr,
--				char *buf, loff_t pos, size_t count)
--{
--	struct dmi_sysfs_entry *entry = to_entry(kobj->parent);
--	struct dmi_read_state state = {
--		.buf = buf,
--		.pos = pos,
--		.count = count,
--	};
--
--	return find_dmi_entry(entry, dmi_sel_raw_read_helper, &state);
--}
--
--static struct bin_attribute dmi_sel_raw_attr = {
--	.attr = {.name = "raw_event_log", .mode = 0400},
--	.read = dmi_sel_raw_read,
--};
--
--static int dmi_system_event_log(struct dmi_sysfs_entry *entry)
--{
--	int ret;
--
--	entry->child = kzalloc(sizeof(*entry->child), GFP_KERNEL);
--	if (!entry->child)
--		return -ENOMEM;
--	ret = kobject_init_and_add(entry->child,
--				   &dmi_system_event_log_ktype,
--				   &entry->kobj,
--				   "system_event_log");
--	if (ret)
--		goto out_free;
--
--	ret = sysfs_create_bin_file(entry->child, &dmi_sel_raw_attr);
--	if (ret)
--		goto out_del;
--
--	return 0;
--
--out_del:
--	kobject_del(entry->child);
--out_free:
--	kfree(entry->child);
--	return ret;
--}
--
--/*************************************************
-- * Generic DMI entry support.
-- *************************************************/
--
--static ssize_t dmi_sysfs_entry_length(struct dmi_sysfs_entry *entry, char *buf)
--{
--	return sprintf(buf, "%d\n", entry->dh.length);
--}
--
--static ssize_t dmi_sysfs_entry_handle(struct dmi_sysfs_entry *entry, char *buf)
--{
--	return sprintf(buf, "%d\n", entry->dh.handle);
--}
--
--static ssize_t dmi_sysfs_entry_type(struct dmi_sysfs_entry *entry, char *buf)
--{
--	return sprintf(buf, "%d\n", entry->dh.type);
--}
--
--static ssize_t dmi_sysfs_entry_instance(struct dmi_sysfs_entry *entry,
--					char *buf)
--{
--	return sprintf(buf, "%d\n", entry->instance);
--}
--
--static ssize_t dmi_sysfs_entry_position(struct dmi_sysfs_entry *entry,
--					char *buf)
--{
--	return sprintf(buf, "%d\n", entry->position);
--}
--
--static DMI_SYSFS_ATTR(entry, length);
--static DMI_SYSFS_ATTR(entry, handle);
--static DMI_SYSFS_ATTR(entry, type);
--static DMI_SYSFS_ATTR(entry, instance);
--static DMI_SYSFS_ATTR(entry, position);
--
--static struct attribute *dmi_sysfs_entry_attrs[] = {
--	&dmi_sysfs_attr_entry_length.attr,
--	&dmi_sysfs_attr_entry_handle.attr,
--	&dmi_sysfs_attr_entry_type.attr,
--	&dmi_sysfs_attr_entry_instance.attr,
--	&dmi_sysfs_attr_entry_position.attr,
--	NULL,
--};
--
--static ssize_t dmi_entry_raw_read_helper(struct dmi_sysfs_entry *entry,
--					 const struct dmi_header *dh,
--					 void *_state)
--{
--	struct dmi_read_state *state = _state;
--	size_t entry_length;
--
--	entry_length = dmi_entry_length(dh);
--
--	return memory_read_from_buffer(state->buf, state->count,
--				       &state->pos, dh, entry_length);
--}
--
--static ssize_t dmi_entry_raw_read(struct file *filp,
--				  struct kobject *kobj,
--				  struct bin_attribute *bin_attr,
--				  char *buf, loff_t pos, size_t count)
--{
--	struct dmi_sysfs_entry *entry = to_entry(kobj);
--	struct dmi_read_state state = {
--		.buf = buf,
--		.pos = pos,
--		.count = count,
--	};
--
--	return find_dmi_entry(entry, dmi_entry_raw_read_helper, &state);
--}
--
--static const struct bin_attribute dmi_entry_raw_attr = {
--	.attr = {.name = "raw", .mode = 0400},
--	.read = dmi_entry_raw_read,
--};
--
--static void dmi_sysfs_entry_release(struct kobject *kobj)
--{
--	struct dmi_sysfs_entry *entry = to_entry(kobj);
--	sysfs_remove_bin_file(&entry->kobj, &dmi_entry_raw_attr);
--	spin_lock(&entry_list_lock);
--	list_del(&entry->list);
--	spin_unlock(&entry_list_lock);
--	kfree(entry);
--}
--
--static struct kobj_type dmi_sysfs_entry_ktype = {
--	.release = dmi_sysfs_entry_release,
--	.sysfs_ops = &dmi_sysfs_attr_ops,
--	.default_attrs = dmi_sysfs_entry_attrs,
--};
--
--static struct kobject *dmi_kobj;
--static struct kset *dmi_kset;
--
--/* Global count of all instances seen.  Only for setup */
--static int __initdata instance_counts[MAX_ENTRY_TYPE + 1];
--
--/* Global positional count of all entries seen.  Only for setup */
--static int __initdata position_count;
--
--static void __init dmi_sysfs_register_handle(const struct dmi_header *dh,
--					     void *_ret)
--{
--	struct dmi_sysfs_entry *entry;
--	int *ret = _ret;
--
--	/* If a previous entry saw an error, short circuit */
--	if (*ret)
--		return;
--
--	/* Allocate and register a new entry into the entries set */
--	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
--	if (!entry) {
--		*ret = -ENOMEM;
--		return;
--	}
--
--	/* Set the key */
--	memcpy(&entry->dh, dh, sizeof(*dh));
--	entry->instance = instance_counts[dh->type]++;
--	entry->position = position_count++;
--
--	entry->kobj.kset = dmi_kset;
--	*ret = kobject_init_and_add(&entry->kobj, &dmi_sysfs_entry_ktype, NULL,
--				    "%d-%d", dh->type, entry->instance);
--
--	if (*ret) {
--		kfree(entry);
--		return;
--	}
--
--	/* Thread on the global list for cleanup */
--	spin_lock(&entry_list_lock);
--	list_add_tail(&entry->list, &entry_list);
--	spin_unlock(&entry_list_lock);
--
--	/* Handle specializations by type */
--	switch (dh->type) {
--	case DMI_ENTRY_SYSTEM_EVENT_LOG:
--		*ret = dmi_system_event_log(entry);
--		break;
--	default:
--		/* No specialization */
--		break;
--	}
--	if (*ret)
--		goto out_err;
--
--	/* Create the raw binary file to access the entry */
--	*ret = sysfs_create_bin_file(&entry->kobj, &dmi_entry_raw_attr);
--	if (*ret)
--		goto out_err;
--
--	return;
--out_err:
--	kobject_put(entry->child);
--	kobject_put(&entry->kobj);
--	return;
--}
--
--static void cleanup_entry_list(void)
--{
--	struct dmi_sysfs_entry *entry, *next;
--
--	/* No locks, we are on our way out */
--	list_for_each_entry_safe(entry, next, &entry_list, list) {
--		kobject_put(entry->child);
--		kobject_put(&entry->kobj);
--	}
--}
--
--static int __init dmi_sysfs_init(void)
--{
--	int error = -ENOMEM;
--	int val;
--
--	/* Set up our directory */
--	dmi_kobj = kobject_create_and_add("dmi", firmware_kobj);
--	if (!dmi_kobj)
--		goto err;
--
--	dmi_kset = kset_create_and_add("entries", NULL, dmi_kobj);
--	if (!dmi_kset)
--		goto err;
--
--	val = 0;
--	error = dmi_walk(dmi_sysfs_register_handle, &val);
--	if (error)
--		goto err;
--	if (val) {
--		error = val;
--		goto err;
--	}
--
--	pr_debug("dmi-sysfs: loaded.\n");
--
--	return 0;
--err:
--	cleanup_entry_list();
--	kset_unregister(dmi_kset);
--	kobject_put(dmi_kobj);
--	return error;
--}
--
--/* clean up everything. */
--static void __exit dmi_sysfs_exit(void)
--{
--	pr_debug("dmi-sysfs: unloading.\n");
--	cleanup_entry_list();
--	kset_unregister(dmi_kset);
--	kobject_put(dmi_kobj);
--}
--
--module_init(dmi_sysfs_init);
--module_exit(dmi_sysfs_exit);
--
--MODULE_AUTHOR("Mike Waychison <mikew@google.com>");
--MODULE_DESCRIPTION("DMI sysfs support");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
-deleted file mode 100644
-index bcb1126..0000000
---- a/drivers/firmware/dmi_scan.c
-+++ /dev/null
-@@ -1,751 +0,0 @@
--#include <linux/types.h>
--#include <linux/string.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/ctype.h>
--#include <linux/dmi.h>
--#include <linux/efi.h>
--#include <linux/bootmem.h>
--#include <asm/dmi.h>
--
--/*
-- * DMI stands for "Desktop Management Interface".  It is part
-- * of and an antecedent to, SMBIOS, which stands for System
-- * Management BIOS.  See further: http://www.dmtf.org/standards
-- */
--static char dmi_empty_string[] = "        ";
--
--/*
-- * Catch too early calls to dmi_check_system():
-- */
--static int dmi_initialized;
--
--static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
--{
--	const u8 *bp = ((u8 *) dm) + dm->length;
--
--	if (s) {
--		s--;
--		while (s > 0 && *bp) {
--			bp += strlen(bp) + 1;
--			s--;
--		}
--
--		if (*bp != 0) {
--			size_t len = strlen(bp)+1;
--			size_t cmp_len = len > 8 ? 8 : len;
--
--			if (!memcmp(bp, dmi_empty_string, cmp_len))
--				return dmi_empty_string;
--			return bp;
--		}
--	}
--
--	return "";
--}
--
--static char * __init dmi_string(const struct dmi_header *dm, u8 s)
--{
--	const char *bp = dmi_string_nosave(dm, s);
--	char *str;
--	size_t len;
--
--	if (bp == dmi_empty_string)
--		return dmi_empty_string;
--
--	len = strlen(bp) + 1;
--	str = dmi_alloc(len);
--	if (str != NULL)
--		strcpy(str, bp);
--	else
--		printk(KERN_ERR "dmi_string: cannot allocate %Zu bytes.\n", len);
--
--	return str;
--}
--
--/*
-- *	We have to be cautious here. We have seen BIOSes with DMI pointers
-- *	pointing to completely the wrong place for example
-- */
--static void dmi_table(u8 *buf, int len, int num,
--		      void (*decode)(const struct dmi_header *, void *),
--		      void *private_data)
--{
--	u8 *data = buf;
--	int i = 0;
--
--	/*
--	 *	Stop when we see all the items the table claimed to have
--	 *	OR we run off the end of the table (also happens)
--	 */
--	while ((i < num) && (data - buf + sizeof(struct dmi_header)) <= len) {
--		const struct dmi_header *dm = (const struct dmi_header *)data;
--
--		/*
--		 *  We want to know the total length (formatted area and
--		 *  strings) before decoding to make sure we won't run off the
--		 *  table in dmi_decode or dmi_string
--		 */
--		data += dm->length;
--		while ((data - buf < len - 1) && (data[0] || data[1]))
--			data++;
--		if (data - buf < len - 1)
--			decode(dm, private_data);
--		data += 2;
--		i++;
--	}
--}
--
--static u32 dmi_base;
--static u16 dmi_len;
--static u16 dmi_num;
--
--static int __init dmi_walk_early(void (*decode)(const struct dmi_header *,
--		void *))
--{
--	u8 *buf;
--
--	buf = dmi_ioremap(dmi_base, dmi_len);
--	if (buf == NULL)
--		return -1;
--
--	dmi_table(buf, dmi_len, dmi_num, decode, NULL);
--
--	dmi_iounmap(buf, dmi_len);
--	return 0;
--}
--
--static int __init dmi_checksum(const u8 *buf)
--{
--	u8 sum = 0;
--	int a;
--
--	for (a = 0; a < 15; a++)
--		sum += buf[a];
--
--	return sum == 0;
--}
--
--static char *dmi_ident[DMI_STRING_MAX];
--static LIST_HEAD(dmi_devices);
--int dmi_available;
--
--/*
-- *	Save a DMI string
-- */
--static void __init dmi_save_ident(const struct dmi_header *dm, int slot, int string)
--{
--	const char *d = (const char*) dm;
--	char *p;
--
--	if (dmi_ident[slot])
--		return;
--
--	p = dmi_string(dm, d[string]);
--	if (p == NULL)
--		return;
--
--	dmi_ident[slot] = p;
--}
--
--static void __init dmi_save_uuid(const struct dmi_header *dm, int slot, int index)
--{
--	const u8 *d = (u8*) dm + index;
--	char *s;
--	int is_ff = 1, is_00 = 1, i;
--
--	if (dmi_ident[slot])
--		return;
--
--	for (i = 0; i < 16 && (is_ff || is_00); i++) {
--		if(d[i] != 0x00) is_ff = 0;
--		if(d[i] != 0xFF) is_00 = 0;
--	}
--
--	if (is_ff || is_00)
--		return;
--
--	s = dmi_alloc(16*2+4+1);
--	if (!s)
--		return;
--
--	sprintf(s, "%pUB", d);
--
--        dmi_ident[slot] = s;
--}
--
--static void __init dmi_save_type(const struct dmi_header *dm, int slot, int index)
--{
--	const u8 *d = (u8*) dm + index;
--	char *s;
--
--	if (dmi_ident[slot])
--		return;
--
--	s = dmi_alloc(4);
--	if (!s)
--		return;
--
--	sprintf(s, "%u", *d & 0x7F);
--	dmi_ident[slot] = s;
--}
--
--static void __init dmi_save_one_device(int type, const char *name)
--{
--	struct dmi_device *dev;
--
--	/* No duplicate device */
--	if (dmi_find_device(type, name, NULL))
--		return;
--
--	dev = dmi_alloc(sizeof(*dev) + strlen(name) + 1);
--	if (!dev) {
--		printk(KERN_ERR "dmi_save_one_device: out of memory.\n");
--		return;
--	}
--
--	dev->type = type;
--	strcpy((char *)(dev + 1), name);
--	dev->name = (char *)(dev + 1);
--	dev->device_data = NULL;
--	list_add(&dev->list, &dmi_devices);
--}
--
--static void __init dmi_save_devices(const struct dmi_header *dm)
--{
--	int i, count = (dm->length - sizeof(struct dmi_header)) / 2;
--
--	for (i = 0; i < count; i++) {
--		const char *d = (char *)(dm + 1) + (i * 2);
--
--		/* Skip disabled device */
--		if ((*d & 0x80) == 0)
--			continue;
--
--		dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d + 1)));
--	}
--}
--
--static void __init dmi_save_oem_strings_devices(const struct dmi_header *dm)
--{
--	int i, count = *(u8 *)(dm + 1);
--	struct dmi_device *dev;
--
--	for (i = 1; i <= count; i++) {
--		char *devname = dmi_string(dm, i);
--
--		if (devname == dmi_empty_string)
--			continue;
--
--		dev = dmi_alloc(sizeof(*dev));
--		if (!dev) {
--			printk(KERN_ERR
--			   "dmi_save_oem_strings_devices: out of memory.\n");
--			break;
--		}
--
--		dev->type = DMI_DEV_TYPE_OEM_STRING;
--		dev->name = devname;
--		dev->device_data = NULL;
--
--		list_add(&dev->list, &dmi_devices);
--	}
--}
--
--static void __init dmi_save_ipmi_device(const struct dmi_header *dm)
--{
--	struct dmi_device *dev;
--	void * data;
--
--	data = dmi_alloc(dm->length);
--	if (data == NULL) {
--		printk(KERN_ERR "dmi_save_ipmi_device: out of memory.\n");
--		return;
--	}
--
--	memcpy(data, dm, dm->length);
--
--	dev = dmi_alloc(sizeof(*dev));
--	if (!dev) {
--		printk(KERN_ERR "dmi_save_ipmi_device: out of memory.\n");
--		return;
--	}
--
--	dev->type = DMI_DEV_TYPE_IPMI;
--	dev->name = "IPMI controller";
--	dev->device_data = data;
--
--	list_add_tail(&dev->list, &dmi_devices);
--}
--
--static void __init dmi_save_dev_onboard(int instance, int segment, int bus,
--					int devfn, const char *name)
--{
--	struct dmi_dev_onboard *onboard_dev;
--
--	onboard_dev = dmi_alloc(sizeof(*onboard_dev) + strlen(name) + 1);
--	if (!onboard_dev) {
--		printk(KERN_ERR "dmi_save_dev_onboard: out of memory.\n");
--		return;
--	}
--	onboard_dev->instance = instance;
--	onboard_dev->segment = segment;
--	onboard_dev->bus = bus;
--	onboard_dev->devfn = devfn;
--
--	strcpy((char *)&onboard_dev[1], name);
--	onboard_dev->dev.type = DMI_DEV_TYPE_DEV_ONBOARD;
--	onboard_dev->dev.name = (char *)&onboard_dev[1];
--	onboard_dev->dev.device_data = onboard_dev;
--
--	list_add(&onboard_dev->dev.list, &dmi_devices);
--}
--
--static void __init dmi_save_extended_devices(const struct dmi_header *dm)
--{
--	const u8 *d = (u8*) dm + 5;
--
--	/* Skip disabled device */
--	if ((*d & 0x80) == 0)
--		return;
--
--	dmi_save_dev_onboard(*(d+1), *(u16 *)(d+2), *(d+4), *(d+5),
--			     dmi_string_nosave(dm, *(d-1)));
--	dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d - 1)));
--}
--
--/*
-- *	Process a DMI table entry. Right now all we care about are the BIOS
-- *	and machine entries. For 2.5 we should pull the smbus controller info
-- *	out of here.
-- */
--static void __init dmi_decode(const struct dmi_header *dm, void *dummy)
--{
--	switch(dm->type) {
--	case 0:		/* BIOS Information */
--		dmi_save_ident(dm, DMI_BIOS_VENDOR, 4);
--		dmi_save_ident(dm, DMI_BIOS_VERSION, 5);
--		dmi_save_ident(dm, DMI_BIOS_DATE, 8);
--		break;
--	case 1:		/* System Information */
--		dmi_save_ident(dm, DMI_SYS_VENDOR, 4);
--		dmi_save_ident(dm, DMI_PRODUCT_NAME, 5);
--		dmi_save_ident(dm, DMI_PRODUCT_VERSION, 6);
--		dmi_save_ident(dm, DMI_PRODUCT_SERIAL, 7);
--		dmi_save_uuid(dm, DMI_PRODUCT_UUID, 8);
--		break;
--	case 2:		/* Base Board Information */
--		dmi_save_ident(dm, DMI_BOARD_VENDOR, 4);
--		dmi_save_ident(dm, DMI_BOARD_NAME, 5);
--		dmi_save_ident(dm, DMI_BOARD_VERSION, 6);
--		dmi_save_ident(dm, DMI_BOARD_SERIAL, 7);
--		dmi_save_ident(dm, DMI_BOARD_ASSET_TAG, 8);
--		break;
--	case 3:		/* Chassis Information */
--		dmi_save_ident(dm, DMI_CHASSIS_VENDOR, 4);
--		dmi_save_type(dm, DMI_CHASSIS_TYPE, 5);
--		dmi_save_ident(dm, DMI_CHASSIS_VERSION, 6);
--		dmi_save_ident(dm, DMI_CHASSIS_SERIAL, 7);
--		dmi_save_ident(dm, DMI_CHASSIS_ASSET_TAG, 8);
--		break;
--	case 10:	/* Onboard Devices Information */
--		dmi_save_devices(dm);
--		break;
--	case 11:	/* OEM Strings */
--		dmi_save_oem_strings_devices(dm);
--		break;
--	case 38:	/* IPMI Device Information */
--		dmi_save_ipmi_device(dm);
--		break;
--	case 41:	/* Onboard Devices Extended Information */
--		dmi_save_extended_devices(dm);
--	}
--}
--
--static void __init print_filtered(const char *info)
--{
--	const char *p;
--
--	if (!info)
--		return;
--
--	for (p = info; *p; p++)
--		if (isprint(*p))
--			printk(KERN_CONT "%c", *p);
--		else
--			printk(KERN_CONT "\\x%02x", *p & 0xff);
--}
--
--static void __init dmi_dump_ids(void)
--{
--	const char *board;	/* Board Name is optional */
--
--	printk(KERN_DEBUG "DMI: ");
--	print_filtered(dmi_get_system_info(DMI_SYS_VENDOR));
--	printk(KERN_CONT " ");
--	print_filtered(dmi_get_system_info(DMI_PRODUCT_NAME));
--	board = dmi_get_system_info(DMI_BOARD_NAME);
--	if (board) {
--		printk(KERN_CONT "/");
--		print_filtered(board);
--	}
--	printk(KERN_CONT ", BIOS ");
--	print_filtered(dmi_get_system_info(DMI_BIOS_VERSION));
--	printk(KERN_CONT " ");
--	print_filtered(dmi_get_system_info(DMI_BIOS_DATE));
--	printk(KERN_CONT "\n");
--}
--
--static int __init dmi_present(const char __iomem *p)
--{
--	u8 buf[15];
--
--	memcpy_fromio(buf, p, 15);
--	if ((memcmp(buf, "_DMI_", 5) == 0) && dmi_checksum(buf)) {
--		dmi_num = (buf[13] << 8) | buf[12];
--		dmi_len = (buf[7] << 8) | buf[6];
--		dmi_base = (buf[11] << 24) | (buf[10] << 16) |
--			(buf[9] << 8) | buf[8];
--
--		/*
--		 * DMI version 0.0 means that the real version is taken from
--		 * the SMBIOS version, which we don't know at this point.
--		 */
--		if (buf[14] != 0)
--			printk(KERN_INFO "DMI %d.%d present.\n",
--			       buf[14] >> 4, buf[14] & 0xF);
--		else
--			printk(KERN_INFO "DMI present.\n");
--		if (dmi_walk_early(dmi_decode) == 0) {
--			dmi_dump_ids();
--			return 0;
--		}
--	}
--	return 1;
--}
--
--void __init dmi_scan_machine(void)
--{
--	char __iomem *p, *q;
--	int rc;
--
--	if (efi_enabled) {
--		if (efi.smbios == EFI_INVALID_TABLE_ADDR)
--			goto error;
--
--		/* This is called as a core_initcall() because it isn't
--		 * needed during early boot.  This also means we can
--		 * iounmap the space when we're done with it.
--		 */
--		p = dmi_ioremap(efi.smbios, 32);
--		if (p == NULL)
--			goto error;
--
--		rc = dmi_present(p + 0x10); /* offset of _DMI_ string */
--		dmi_iounmap(p, 32);
--		if (!rc) {
--			dmi_available = 1;
--			goto out;
--		}
--	}
--	else {
--		/*
--		 * no iounmap() for that ioremap(); it would be a no-op, but
--		 * it's so early in setup that sucker gets confused into doing
--		 * what it shouldn't if we actually call it.
--		 */
--		p = dmi_ioremap(0xF0000, 0x10000);
--		if (p == NULL)
--			goto error;
--
--		for (q = p; q < p + 0x10000; q += 16) {
--			rc = dmi_present(q);
--			if (!rc) {
--				dmi_available = 1;
--				dmi_iounmap(p, 0x10000);
--				goto out;
--			}
--		}
--		dmi_iounmap(p, 0x10000);
--	}
-- error:
--	printk(KERN_INFO "DMI not present or invalid.\n");
-- out:
--	dmi_initialized = 1;
--}
--
--/**
-- *	dmi_matches - check if dmi_system_id structure matches system DMI data
-- *	@dmi: pointer to the dmi_system_id structure to check
-- */
--static bool dmi_matches(const struct dmi_system_id *dmi)
--{
--	int i;
--
--	WARN(!dmi_initialized, KERN_ERR "dmi check: not initialized yet.\n");
--
--	for (i = 0; i < ARRAY_SIZE(dmi->matches); i++) {
--		int s = dmi->matches[i].slot;
--		if (s == DMI_NONE)
--			break;
--		if (dmi_ident[s]
--		    && strstr(dmi_ident[s], dmi->matches[i].substr))
--			continue;
--		/* No match */
--		return false;
--	}
--	return true;
--}
--
--/**
-- *	dmi_is_end_of_table - check for end-of-table marker
-- *	@dmi: pointer to the dmi_system_id structure to check
-- */
--static bool dmi_is_end_of_table(const struct dmi_system_id *dmi)
--{
--	return dmi->matches[0].slot == DMI_NONE;
--}
--
--/**
-- *	dmi_check_system - check system DMI data
-- *	@list: array of dmi_system_id structures to match against
-- *		All non-null elements of the list must match
-- *		their slot's (field index's) data (i.e., each
-- *		list string must be a substring of the specified
-- *		DMI slot's string data) to be considered a
-- *		successful match.
-- *
-- *	Walk the blacklist table running matching functions until someone
-- *	returns non zero or we hit the end. Callback function is called for
-- *	each successful match. Returns the number of matches.
-- */
--int dmi_check_system(const struct dmi_system_id *list)
--{
--	int count = 0;
--	const struct dmi_system_id *d;
--
--	for (d = list; !dmi_is_end_of_table(d); d++)
--		if (dmi_matches(d)) {
--			count++;
--			if (d->callback && d->callback(d))
--				break;
--		}
--
--	return count;
--}
--EXPORT_SYMBOL(dmi_check_system);
--
--/**
-- *	dmi_first_match - find dmi_system_id structure matching system DMI data
-- *	@list: array of dmi_system_id structures to match against
-- *		All non-null elements of the list must match
-- *		their slot's (field index's) data (i.e., each
-- *		list string must be a substring of the specified
-- *		DMI slot's string data) to be considered a
-- *		successful match.
-- *
-- *	Walk the blacklist table until the first match is found.  Return the
-- *	pointer to the matching entry or NULL if there's no match.
-- */
--const struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list)
--{
--	const struct dmi_system_id *d;
--
--	for (d = list; !dmi_is_end_of_table(d); d++)
--		if (dmi_matches(d))
--			return d;
--
--	return NULL;
--}
--EXPORT_SYMBOL(dmi_first_match);
--
--/**
-- *	dmi_get_system_info - return DMI data value
-- *	@field: data index (see enum dmi_field)
-- *
-- *	Returns one DMI data value, can be used to perform
-- *	complex DMI data checks.
-- */
--const char *dmi_get_system_info(int field)
--{
--	return dmi_ident[field];
--}
--EXPORT_SYMBOL(dmi_get_system_info);
--
--/**
-- * dmi_name_in_serial - Check if string is in the DMI product serial information
-- * @str: string to check for
-- */
--int dmi_name_in_serial(const char *str)
--{
--	int f = DMI_PRODUCT_SERIAL;
--	if (dmi_ident[f] && strstr(dmi_ident[f], str))
--		return 1;
--	return 0;
--}
--
--/**
-- *	dmi_name_in_vendors - Check if string is anywhere in the DMI vendor information.
-- *	@str: 	Case sensitive Name
-- */
--int dmi_name_in_vendors(const char *str)
--{
--	static int fields[] = { DMI_BIOS_VENDOR, DMI_BIOS_VERSION, DMI_SYS_VENDOR,
--				DMI_PRODUCT_NAME, DMI_PRODUCT_VERSION, DMI_BOARD_VENDOR,
--				DMI_BOARD_NAME, DMI_BOARD_VERSION, DMI_NONE };
--	int i;
--	for (i = 0; fields[i] != DMI_NONE; i++) {
--		int f = fields[i];
--		if (dmi_ident[f] && strstr(dmi_ident[f], str))
--			return 1;
--	}
--	return 0;
--}
--EXPORT_SYMBOL(dmi_name_in_vendors);
--
--/**
-- *	dmi_find_device - find onboard device by type/name
-- *	@type: device type or %DMI_DEV_TYPE_ANY to match all device types
-- *	@name: device name string or %NULL to match all
-- *	@from: previous device found in search, or %NULL for new search.
-- *
-- *	Iterates through the list of known onboard devices. If a device is
-- *	found with a matching @vendor and @device, a pointer to its device
-- *	structure is returned.  Otherwise, %NULL is returned.
-- *	A new search is initiated by passing %NULL as the @from argument.
-- *	If @from is not %NULL, searches continue from next device.
-- */
--const struct dmi_device * dmi_find_device(int type, const char *name,
--				    const struct dmi_device *from)
--{
--	const struct list_head *head = from ? &from->list : &dmi_devices;
--	struct list_head *d;
--
--	for(d = head->next; d != &dmi_devices; d = d->next) {
--		const struct dmi_device *dev =
--			list_entry(d, struct dmi_device, list);
--
--		if (((type == DMI_DEV_TYPE_ANY) || (dev->type == type)) &&
--		    ((name == NULL) || (strcmp(dev->name, name) == 0)))
--			return dev;
--	}
--
--	return NULL;
--}
--EXPORT_SYMBOL(dmi_find_device);
--
--/**
-- *	dmi_get_date - parse a DMI date
-- *	@field:	data index (see enum dmi_field)
-- *	@yearp: optional out parameter for the year
-- *	@monthp: optional out parameter for the month
-- *	@dayp: optional out parameter for the day
-- *
-- *	The date field is assumed to be in the form resembling
-- *	[mm[/dd]]/yy[yy] and the result is stored in the out
-- *	parameters any or all of which can be omitted.
-- *
-- *	If the field doesn't exist, all out parameters are set to zero
-- *	and false is returned.  Otherwise, true is returned with any
-- *	invalid part of date set to zero.
-- *
-- *	On return, year, month and day are guaranteed to be in the
-- *	range of [0,9999], [0,12] and [0,31] respectively.
-- */
--bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
--{
--	int year = 0, month = 0, day = 0;
--	bool exists;
--	const char *s, *y;
--	char *e;
--
--	s = dmi_get_system_info(field);
--	exists = s;
--	if (!exists)
--		goto out;
--
--	/*
--	 * Determine year first.  We assume the date string resembles
--	 * mm/dd/yy[yy] but the original code extracted only the year
--	 * from the end.  Keep the behavior in the spirit of no
--	 * surprises.
--	 */
--	y = strrchr(s, '/');
--	if (!y)
--		goto out;
--
--	y++;
--	year = simple_strtoul(y, &e, 10);
--	if (y != e && year < 100) {	/* 2-digit year */
--		year += 1900;
--		if (year < 1996)	/* no dates < spec 1.0 */
--			year += 100;
--	}
--	if (year > 9999)		/* year should fit in %04d */
--		year = 0;
--
--	/* parse the mm and dd */
--	month = simple_strtoul(s, &e, 10);
--	if (s == e || *e != '/' || !month || month > 12) {
--		month = 0;
--		goto out;
--	}
--
--	s = e + 1;
--	day = simple_strtoul(s, &e, 10);
--	if (s == y || s == e || *e != '/' || day > 31)
--		day = 0;
--out:
--	if (yearp)
--		*yearp = year;
--	if (monthp)
--		*monthp = month;
--	if (dayp)
--		*dayp = day;
--	return exists;
--}
--EXPORT_SYMBOL(dmi_get_date);
--
--/**
-- *	dmi_walk - Walk the DMI table and get called back for every record
-- *	@decode: Callback function
-- *	@private_data: Private data to be passed to the callback function
-- *
-- *	Returns -1 when the DMI table can't be reached, 0 on success.
-- */
--int dmi_walk(void (*decode)(const struct dmi_header *, void *),
--	     void *private_data)
--{
--	u8 *buf;
--
--	if (!dmi_available)
--		return -1;
--
--	buf = ioremap(dmi_base, dmi_len);
--	if (buf == NULL)
--		return -1;
--
--	dmi_table(buf, dmi_len, dmi_num, decode, private_data);
--
--	iounmap(buf);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(dmi_walk);
--
--/**
-- * dmi_match - compare a string to the dmi field (if exists)
-- * @f: DMI field identifier
-- * @str: string to compare the DMI field to
-- *
-- * Returns true if the requested field equals to the str (including NULL).
-- */
--bool dmi_match(enum dmi_field f, const char *str)
--{
--	const char *info = dmi_get_system_info(f);
--
--	if (info == NULL || str == NULL)
--		return info == str;
--
--	return !strcmp(info, str);
--}
--EXPORT_SYMBOL_GPL(dmi_match);
-diff --git a/include/linux/dmi.h b/include/linux/dmi.h
-deleted file mode 100644
-index f156cca..0000000
---- a/include/linux/dmi.h
-+++ /dev/null
-@@ -1,139 +0,0 @@
--#ifndef __DMI_H__
--#define __DMI_H__
--
--#include <linux/list.h>
--#include <linux/mod_devicetable.h>
--
--/* enum dmi_field is in mod_devicetable.h */
--
--enum dmi_device_type {
--	DMI_DEV_TYPE_ANY = 0,
--	DMI_DEV_TYPE_OTHER,
--	DMI_DEV_TYPE_UNKNOWN,
--	DMI_DEV_TYPE_VIDEO,
--	DMI_DEV_TYPE_SCSI,
--	DMI_DEV_TYPE_ETHERNET,
--	DMI_DEV_TYPE_TOKENRING,
--	DMI_DEV_TYPE_SOUND,
--	DMI_DEV_TYPE_PATA,
--	DMI_DEV_TYPE_SATA,
--	DMI_DEV_TYPE_SAS,
--	DMI_DEV_TYPE_IPMI = -1,
--	DMI_DEV_TYPE_OEM_STRING = -2,
--	DMI_DEV_TYPE_DEV_ONBOARD = -3,
--};
--
--enum dmi_entry_type {
--	DMI_ENTRY_BIOS = 0,
--	DMI_ENTRY_SYSTEM,
--	DMI_ENTRY_BASEBOARD,
--	DMI_ENTRY_CHASSIS,
--	DMI_ENTRY_PROCESSOR,
--	DMI_ENTRY_MEM_CONTROLLER,
--	DMI_ENTRY_MEM_MODULE,
--	DMI_ENTRY_CACHE,
--	DMI_ENTRY_PORT_CONNECTOR,
--	DMI_ENTRY_SYSTEM_SLOT,
--	DMI_ENTRY_ONBOARD_DEVICE,
--	DMI_ENTRY_OEMSTRINGS,
--	DMI_ENTRY_SYSCONF,
--	DMI_ENTRY_BIOS_LANG,
--	DMI_ENTRY_GROUP_ASSOC,
--	DMI_ENTRY_SYSTEM_EVENT_LOG,
--	DMI_ENTRY_PHYS_MEM_ARRAY,
--	DMI_ENTRY_MEM_DEVICE,
--	DMI_ENTRY_32_MEM_ERROR,
--	DMI_ENTRY_MEM_ARRAY_MAPPED_ADDR,
--	DMI_ENTRY_MEM_DEV_MAPPED_ADDR,
--	DMI_ENTRY_BUILTIN_POINTING_DEV,
--	DMI_ENTRY_PORTABLE_BATTERY,
--	DMI_ENTRY_SYSTEM_RESET,
--	DMI_ENTRY_HW_SECURITY,
--	DMI_ENTRY_SYSTEM_POWER_CONTROLS,
--	DMI_ENTRY_VOLTAGE_PROBE,
--	DMI_ENTRY_COOLING_DEV,
--	DMI_ENTRY_TEMP_PROBE,
--	DMI_ENTRY_ELECTRICAL_CURRENT_PROBE,
--	DMI_ENTRY_OOB_REMOTE_ACCESS,
--	DMI_ENTRY_BIS_ENTRY,
--	DMI_ENTRY_SYSTEM_BOOT,
--	DMI_ENTRY_MGMT_DEV,
--	DMI_ENTRY_MGMT_DEV_COMPONENT,
--	DMI_ENTRY_MGMT_DEV_THRES,
--	DMI_ENTRY_MEM_CHANNEL,
--	DMI_ENTRY_IPMI_DEV,
--	DMI_ENTRY_SYS_POWER_SUPPLY,
--	DMI_ENTRY_ADDITIONAL,
--	DMI_ENTRY_ONBOARD_DEV_EXT,
--	DMI_ENTRY_MGMT_CONTROLLER_HOST,
--	DMI_ENTRY_INACTIVE = 126,
--	DMI_ENTRY_END_OF_TABLE = 127,
--};
--
--struct dmi_header {
--	u8 type;
--	u8 length;
--	u16 handle;
--};
--
--struct dmi_device {
--	struct list_head list;
--	int type;
--	const char *name;
--	void *device_data;	/* Type specific data */
--};
--
--#ifdef CONFIG_DMI
--
--struct dmi_dev_onboard {
--	struct dmi_device dev;
--	int instance;
--	int segment;
--	int bus;
--	int devfn;
--};
--
--extern int dmi_check_system(const struct dmi_system_id *list);
--const struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list);
--extern const char * dmi_get_system_info(int field);
--extern const struct dmi_device * dmi_find_device(int type, const char *name,
--	const struct dmi_device *from);
--extern void dmi_scan_machine(void);
--extern bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp);
--extern int dmi_name_in_vendors(const char *str);
--extern int dmi_name_in_serial(const char *str);
--extern int dmi_available;
--extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
--	void *private_data);
--extern bool dmi_match(enum dmi_field f, const char *str);
--
--#else
--
--static inline int dmi_check_system(const struct dmi_system_id *list) { return 0; }
--static inline const char * dmi_get_system_info(int field) { return NULL; }
--static inline const struct dmi_device * dmi_find_device(int type, const char *name,
--	const struct dmi_device *from) { return NULL; }
--static inline void dmi_scan_machine(void) { return; }
--static inline bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
--{
--	if (yearp)
--		*yearp = 0;
--	if (monthp)
--		*monthp = 0;
--	if (dayp)
--		*dayp = 0;
--	return false;
--}
--static inline int dmi_name_in_vendors(const char *s) { return 0; }
--static inline int dmi_name_in_serial(const char *s) { return 0; }
--#define dmi_available 0
--static inline int dmi_walk(void (*decode)(const struct dmi_header *, void *),
--	void *private_data) { return -1; }
--static inline bool dmi_match(enum dmi_field f, const char *str)
--	{ return false; }
--static inline const struct dmi_system_id *
--	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
--
--#endif
--
--#endif	/* __DMI_H__ */
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index a206188..59a334b 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -427,61 +427,6 @@ struct spi_device_id {
- 			__attribute__((aligned(sizeof(kernel_ulong_t))));
++#include <linux/sysfw.h>
+ 
+ #include "internal.h"
+ 
+@@ -53,7 +53,7 @@ struct acpi_blacklist_item {
+ 	u32 is_critical_error;
  };
  
--/* dmi */
--enum dmi_field {
--	DMI_NONE,
--	DMI_BIOS_VENDOR,
--	DMI_BIOS_VERSION,
--	DMI_BIOS_DATE,
--	DMI_SYS_VENDOR,
--	DMI_PRODUCT_NAME,
--	DMI_PRODUCT_VERSION,
--	DMI_PRODUCT_SERIAL,
--	DMI_PRODUCT_UUID,
--	DMI_BOARD_VENDOR,
--	DMI_BOARD_NAME,
--	DMI_BOARD_VERSION,
--	DMI_BOARD_SERIAL,
--	DMI_BOARD_ASSET_TAG,
--	DMI_CHASSIS_VENDOR,
--	DMI_CHASSIS_TYPE,
--	DMI_CHASSIS_VERSION,
--	DMI_CHASSIS_SERIAL,
--	DMI_CHASSIS_ASSET_TAG,
--	DMI_STRING_MAX,
--};
--
--struct dmi_strmatch {
--	unsigned char slot;
--	char substr[79];
--};
--
--#ifndef __KERNEL__
--struct dmi_system_id {
--	kernel_ulong_t callback;
--	kernel_ulong_t ident;
--	struct dmi_strmatch matches[4];
--	kernel_ulong_t driver_data
--			__attribute__((aligned(sizeof(kernel_ulong_t))));
--};
--#else
--struct dmi_system_id {
--	int (*callback)(const struct dmi_system_id *);
--	const char *ident;
--	struct dmi_strmatch matches[4];
--	void *driver_data;
--};
--/*
-- * struct dmi_device_id appears during expansion of
-- * "MODULE_DEVICE_TABLE(dmi, x)". Compiler doesn't look inside it
-- * but this is enough for gcc 3.4.6 to error out:
-- *	error: storage size of '__mod_dmi_device_table' isn't known
-- */
--#define dmi_device_id dmi_system_id
--#endif
--
--#define DMI_MATCH(a, b)	{ a, b }
--
+-static struct dmi_system_id acpi_osi_dmi_table[] __initdata;
++static struct sysfw_id acpi_osi_table[] __initdata;
+ 
  /*
-  * sysfw field - right now these are based on x86/ia64's SMBIOS fields.  But
-  * other arches are certainly welcome to add additional fields.  The
+  * POLICY: If *anything* doesn't work, put it on the blacklist.
+@@ -83,18 +83,18 @@ static int __init blacklist_by_year(void)
+ 	int year;
+ 
+ 	/* Doesn't exist? Likely an old system */
+-	if (!dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL)) {
+-		printk(KERN_ERR PREFIX "no DMI BIOS year, "
++	if (!sysfw_lookup(SYSFW_BIOS_DATE)) {
++		printk(KERN_ERR PREFIX "no SMBIOS year, "
+ 			"acpi=force is required to enable ACPI\n" );
+ 		return 1;
+ 	}
+ 	/* 0? Likely a buggy new BIOS */
+-	if (year == 0) {
+-		printk(KERN_ERR PREFIX "DMI BIOS year==0, "
++	if (!sysfw_get_date()) {
++		printk(KERN_ERR PREFIX "SMBIOS date = 0, "
+ 			"assuming ACPI-capable machine\n" );
+ 		return 0;
+ 	}
+-	if (year < CONFIG_ACPI_BLACKLIST_YEAR) {
++	if (sysfw_get_date() < (CONFIG_ACPI_BLACKLIST_YEAR * 10000)) {
+ 		printk(KERN_ERR PREFIX "BIOS age (%d) fails cutoff (%d), "
+ 		       "acpi=force is required to enable ACPI\n",
+ 		       year, CONFIG_ACPI_BLACKLIST_YEAR);
+@@ -169,38 +169,37 @@ int __init acpi_blacklisted(void)
+ 
+ 	blacklisted += blacklist_by_year();
+ 
+-	dmi_check_system(acpi_osi_dmi_table);
++	sysfw_callback(acpi_osi_table);
+ 
+ 	return blacklisted;
+ }
+-#ifdef CONFIG_DMI
+-static int __init dmi_enable_osi_linux(const struct dmi_system_id *d)
++static int __init enable_osi_linux(const struct sysfw_id *d)
+ {
+-	acpi_dmi_osi_linux(1, d);	/* enable */
++	acpi_smbios_osi_linux(1, d);	/* enable */
+ 	return 0;
+ }
+-static int __init dmi_disable_osi_vista(const struct dmi_system_id *d)
++static int __init disable_osi_vista(const struct sysfw_id *d)
+ {
+-	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++	printk(KERN_NOTICE PREFIX "SMBIOS detected: %s\n", d->ident);
+ 	acpi_osi_setup("!Windows 2006");
+ 	acpi_osi_setup("!Windows 2006 SP1");
+ 	acpi_osi_setup("!Windows 2006 SP2");
+ 	return 0;
+ }
+-static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
++static int __init disable_osi_win7(const struct sysfw_id *d)
+ {
+-	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++	printk(KERN_NOTICE PREFIX "SMBIOS detected: %s\n", d->ident);
+ 	acpi_osi_setup("!Windows 2009");
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
++static struct sysfw_id acpi_osi_table[] __initdata = {
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "Fujitsu Siemens",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "ESPRIMO Mobile V5505"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "FUJITSU SIEMENS"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "ESPRIMO Mobile V5505"),
+ 		},
+ 	},
+ 	{
+@@ -209,63 +208,63 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	 * driver (e.g. nouveau) when user press brightness hotkey.
+ 	 * Currently, nouveau driver didn't do the job and it causes there
+ 	 * have a infinite while loop in DSDT when user press hotkey.
+-	 * We add MSI GX723's dmi information to this table for workaround
++	 * We add MSI GX723's smbios information to this table for workaround
+ 	 * this issue.
+ 	 * Will remove MSI GX723 from the table after nouveau grows support.
+ 	 */
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "MSI GX723",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "GX723"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "Micro-Star International"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "GX723"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "Sony VGN-NS10J_S",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NS10J_S"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VGN-NS10J_S"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "Sony VGN-SR290J",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR290J"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VGN-SR290J"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "VGN-NS50B_L",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NS50B_L"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VGN-NS50B_L"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "Toshiba Satellite L355",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "Satellite L355"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "TOSHIBA"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "Satellite L355"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_win7,
++	.callback = disable_osi_win7,
+ 	.ident = "ASUS K50IJ",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "K50IJ"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "K50IJ"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_disable_osi_vista,
++	.callback = disable_osi_vista,
+ 	.ident = "Toshiba P305D",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "TOSHIBA"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Satellite P305D"),
+ 		},
+ 	},
+ 
+@@ -279,56 +278,54 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	 * and thus we can not wildcard the vendor.
+ 	 *
+ 	 * _OSI(Linux) helps sound
+-	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R61"),
+-	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
++	 * SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad R61"),
++	 * SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad T61"),
+ 	 * T400, T500
+ 	 * _OSI(Linux) has Linux specific hooks
+-	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X61"),
++	 * SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad X61"),
+ 	 * _OSI(Linux) is a NOP:
+-	 * DMI_MATCH(DMI_PRODUCT_VERSION, "3000 N100"),
+-	 * DMI_MATCH(DMI_PRODUCT_VERSION, "LENOVO3000 V100"),
++	 * SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "3000 N100"),
++	 * SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "LENOVO3000 V100"),
+ 	 */
+ 	{
+-	.callback = dmi_enable_osi_linux,
++	.callback = enable_osi_linux,
+ 	.ident = "Lenovo ThinkPad R61",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R61"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "LENOVO"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad R61"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_enable_osi_linux,
++	.callback = enable_osi_linux,
+ 	.ident = "Lenovo ThinkPad T61",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "LENOVO"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad T61"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_enable_osi_linux,
++	.callback = enable_osi_linux,
+ 	.ident = "Lenovo ThinkPad X61",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X61"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "LENOVO"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad X61"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_enable_osi_linux,
++	.callback = enable_osi_linux,
+ 	.ident = "Lenovo ThinkPad T400",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T400"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "LENOVO"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad T400"),
+ 		},
+ 	},
+ 	{
+-	.callback = dmi_enable_osi_linux,
++	.callback = enable_osi_linux,
+ 	.ident = "Lenovo ThinkPad T500",
+ 	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T500"),
++		     SYSFW_MATCH(SYSFW_SYS_VENDOR, "LENOVO"),
++		     SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "ThinkPad T500"),
+ 		},
+ 	},
+ 	{}
+ };
+-
+-#endif /* CONFIG_DMI */
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index d1e06c1..09ad035 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -39,7 +39,7 @@
+ #include <linux/pci.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/suspend.h>
+ 
+ #include "internal.h"
+@@ -55,7 +55,7 @@ EXPORT_SYMBOL(acpi_root_dir);
+ 
+ 
+ #ifdef CONFIG_X86
+-static int set_copy_dsdt(const struct dmi_system_id *id)
++static int set_copy_dsdt(const struct sysfw_id *id)
+ {
+ 	printk(KERN_NOTICE "%s detected - "
+ 		"force copy of DSDT to local memory\n", id->ident);
+@@ -63,7 +63,7 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id dsdt_dmi_table[] __initdata = {
++static struct sysfw_id dsdt_id_table[] __initdata = {
+ 	/*
+ 	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
+ 	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
+@@ -72,14 +72,14 @@ static struct dmi_system_id dsdt_dmi_table[] __initdata = {
+ 	 .callback = set_copy_dsdt,
+ 	 .ident = "TOSHIBA Satellite",
+ 	 .matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "TOSHIBA"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Satellite"),
+ 		},
+ 	},
+ 	{}
+ };
+ #else
+-static struct dmi_system_id dsdt_dmi_table[] __initdata = {
++static struct sysfw_id dsdt_id_table[] __initdata = {
+ 	{}
+ };
+ #endif
+@@ -856,10 +856,10 @@ void __init acpi_early_init(void)
+ 	acpi_gbl_permanent_mmap = 1;
+ 
+ 	/*
+-	 * If the machine falls into the DMI check table,
++	 * If the machine falls into the SMBIOS check table,
+ 	 * DSDT will be copied to memory
+ 	 */
+-	dmi_check_system(dsdt_dmi_table);
++	sysfw_callback(dsdt_id_table);
+ 
+ 	status = acpi_reallocate_root_table();
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index b19a18d..f0febee 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -41,7 +41,7 @@
+ #include <asm/io.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ 
+ #include "internal.h"
+ 
+@@ -892,21 +892,21 @@ static const struct acpi_device_id ec_device_ids[] = {
+ };
+ 
+ /* Some BIOS do not survive early DSDT scan, skip it */
+-static int ec_skip_dsdt_scan(const struct dmi_system_id *id)
++static int ec_skip_dsdt_scan(const struct sysfw_id *id)
+ {
+ 	EC_FLAGS_SKIP_DSDT_SCAN = 1;
+ 	return 0;
+ }
+ 
+ /* ASUStek often supplies us with broken ECDT, validate it */
+-static int ec_validate_ecdt(const struct dmi_system_id *id)
++static int ec_validate_ecdt(const struct sysfw_id *id)
+ {
+ 	EC_FLAGS_VALIDATE_ECDT = 1;
+ 	return 0;
+ }
+ 
+ /* MSI EC needs special treatment, enable it */
+-static int ec_flag_msi(const struct dmi_system_id *id)
++static int ec_flag_msi(const struct sysfw_id *id)
+ {
+ 	printk(KERN_DEBUG PREFIX "Detected MSI hardware, enabling workarounds.\n");
+ 	EC_FLAGS_MSI = 1;
+@@ -914,41 +914,84 @@ static int ec_flag_msi(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata ec_dmi_table[] = {
++static struct sysfw_id __initdata ec_smbios_table[] = {
+ 	{
+-	ec_skip_dsdt_scan, "Compal JFL92", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
+-	DMI_MATCH(DMI_BOARD_NAME, "JFL92") }, NULL},
++		.callback = ec_skip_dsdt_scan,
++		.ident = "Compal JFL92",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR, "COMPAL"),
++			SYSFW_MATCH(SYSFW_BOARD_NAME, "JFL92")
++		},
++	},
++	{
++		.callback = ec_flag_msi,
++		.ident = "MSI hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR, "Micro-Star")
++		},
++	},
+ 	{
+-	ec_flag_msi, "MSI hardware", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star")}, NULL},
++		.callback = ec_flag_msi,
++		.ident = "MSI hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Micro-Star")
++		},
++	},
+ 	{
+-	ec_flag_msi, "MSI hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star")}, NULL},
++		.callback = ec_flag_msi,
++		.ident = "MSI hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_CHASSIS_VENDOR, "MICRO-Star")
++		},
++	},
+ 	{
+-	ec_flag_msi, "MSI hardware", {
+-	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star")}, NULL},
++		.callback = ec_flag_msi,
++		.ident = "MSI hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_CHASSIS_VENDOR, "MICRO-STAR")
++		},
++	},
+ 	{
+-	ec_flag_msi, "MSI hardware", {
+-	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-STAR")}, NULL},
++		.callback = ec_flag_msi,
++		.ident = "Quanta hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Quanta"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME, "TW8/SW8/DW8")
++		},
++	},
+ 	{
+-	ec_flag_msi, "Quanta hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Quanta"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "TW8/SW8/DW8"),}, NULL},
++		.callback = ec_flag_msi,
++		.ident = "Quanta hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Quanta"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME, "TW9/SW9")
++		},
++	},
+ 	{
+-	ec_flag_msi, "Quanta hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Quanta"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "TW9/SW9"),}, NULL},
++		.callback = ec_validate_ecdt,
++		.ident = "ASUS hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR, "ASUS")
++		},
++	},
+ 	{
+-	ec_validate_ecdt, "ASUS hardware", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
++		.callback = ec_validate_ecdt,
++		.ident = "ASUS hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BOARD_VENDOR,
++				    "ASUSTeK Computer Inc.")
++		},
++	},
+ 	{
+-	ec_validate_ecdt, "ASUS hardware", {
+-	DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc.") }, NULL},
++		.callback = ec_validate_ecdt,
++		.ident = "ASUS hardware",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR, "ASUS")
++		},
++	},
+ 	{},
+ };
+ 
+-
+ int __init acpi_ec_ecdt_probe(void)
+ {
+ 	acpi_status status;
+@@ -961,7 +1004,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 	/*
+ 	 * Generate a boot ec context
+ 	 */
+-	dmi_check_system(ec_dmi_table);
++	sysfw_callback(ec_smbios_table);
+ 	status = acpi_get_table(ACPI_SIG_ECDT, 1,
+ 				(struct acpi_table_header **)&ecdt_ptr);
+ 	if (ACPI_SUCCESS(status)) {
+@@ -1009,7 +1052,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 		* Keep boot_ec struct as it will be needed soon.
+ 		*/
+ 		acpi_handle dummy;
+-		if (!dmi_name_in_vendors("ASUS") ||
++		if (!sysfw_vendor_is("ASUS") ||
+ 		    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI",
+ 							&dummy)))
+ 			return -ENODEV;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 52ca964..bbf1c68 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -141,13 +141,13 @@ static void __init acpi_osi_setup_late(void);
+  * BIOS writers should NOT query _OSI(Linux) on future systems.
+  * Linux will complain on the console when it sees it, and return FALSE.
+  * To get Linux to return TRUE for your system  will require
+- * a kernel source update to add a DMI entry,
++ * a kernel source update to add a SMBIOS entry,
+  * or boot with "acpi_osi=Linux"
+  */
+ 
+ static struct osi_linux {
+ 	unsigned int	enable:1;
+-	unsigned int	dmi:1;
++	unsigned int	smbios:1;
+ 	unsigned int	cmdline:1;
+ } osi_linux = {0, 0, 0};
+ 
+@@ -159,7 +159,7 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 			"BIOS _OSI(Linux) query %s%s\n",
+ 			osi_linux.enable ? "honored" : "ignored",
+ 			osi_linux.cmdline ? " via cmdline" :
+-			osi_linux.dmi ? " via DMI" : "");
++			osi_linux.smbios ? " via SMBIOS" : "");
+ 	}
+ 
+ 	return supported;
+@@ -1133,21 +1133,22 @@ static void __init set_osi_linux(unsigned int enable)
+ 
+ static void __init acpi_cmdline_osi_linux(unsigned int enable)
+ {
+-	osi_linux.cmdline = 1;	/* cmdline set the default and override DMI */
+-	osi_linux.dmi = 0;
++	/* cmdline set the default and override SMBIOS */
++	osi_linux.cmdline = 1;
++	osi_linux.smbios = 0;
+ 	set_osi_linux(enable);
+ 
+ 	return;
+ }
+ 
+-void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d)
++void __init acpi_smbios_osi_linux(int enable, const struct sysfw_id *d)
+ {
+-	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++	printk(KERN_NOTICE PREFIX "SMBIOS detected: %s\n", d->ident);
+ 
+ 	if (enable == -1)
+ 		return;
+ 
+-	osi_linux.dmi = 1;	/* DMI knows that this box asks OSI(Linux) */
++	osi_linux.smbios = 1;	/* SMBIOS knows that this box asks OSI(Linux) */
+ 	set_osi_linux(enable);
+ 
+ 	return;
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index f907cfb..ffc7af3 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -27,7 +27,7 @@
+  */
+ 
+ 
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -88,44 +88,45 @@ static struct acpi_prt_entry *acpi_pci_irq_find_prt_entry(struct pci_dev *dev,
+ }
+ 
+ /* http://bugzilla.kernel.org/show_bug.cgi?id=4773 */
+-static const struct dmi_system_id medion_md9580[] = {
++static const struct sysfw_id medion_md9580[] = {
+ 	{
+ 		.ident = "Medion MD9580-F laptop",
+ 		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "MEDIONNB"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "A555"),
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "MEDIONNB"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME, "A555"),
+ 		},
+ 	},
+-	{ }
++	{}
+ };
+ 
+ /* http://bugzilla.kernel.org/show_bug.cgi?id=5044 */
+-static const struct dmi_system_id dell_optiplex[] = {
++static const struct sysfw_id dell_optiplex[] = {
+ 	{
+ 		.ident = "Dell Optiplex GX1",
+ 		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Dell Computer Corporation"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex GX1 600S+"),
++			SYSFW_MATCH(SYSFW_SYS_VENDOR,
++				    "Dell Computer Corporation"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME, "OptiPlex GX1 600S+"),
+ 		},
+ 	},
+-	{ }
++	{}
+ };
+ 
+ /* http://bugzilla.kernel.org/show_bug.cgi?id=10138 */
+-static const struct dmi_system_id hp_t5710[] = {
++static const struct sysfw_id hp_t5710[] = {
+ 	{
+ 		.ident = "HP t5710",
+ 		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "hp t5000 series"),
+-			DMI_MATCH(DMI_BOARD_NAME, "098Ch"),
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Hewlett-Packard"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME, "hp t5000 series"),
++			SYSFW_MATCH(SYSFW_BOARD_NAME, "098Ch"),
+ 		},
+ 	},
+-	{ }
++	{}
+ };
+ 
+ struct prt_quirk {
+-	const struct dmi_system_id *system;
++	const struct sysfw_id *system;
+ 	unsigned int		segment;
+ 	unsigned int		bus;
+ 	unsigned int		device;
+@@ -166,7 +167,7 @@ static void do_prt_fixups(struct acpi_prt_entry *entry,
+ 		if (!prt->source)
+ 			continue;
+ 
+-		if (dmi_check_system(quirk->system) &&
++		if (sysfw_callback(quirk->system) &&
+ 		    entry->id.segment == quirk->segment &&
+ 		    entry->id.bus == quirk->bus &&
+ 		    entry->id.device == quirk->device &&
+diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+index 07f7fea..1db7f02 100644
+--- a/drivers/acpi/pci_slot.c
++++ b/drivers/acpi/pci_slot.c
+@@ -32,7 +32,7 @@
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ 
+ static int debug;
+ static int check_sta_before_sun;
+@@ -329,14 +329,14 @@ acpi_pci_slot_remove(acpi_handle handle)
+ 	mutex_unlock(&slot_list_lock);
+ }
+ 
+-static int do_sta_before_sun(const struct dmi_system_id *d)
++static int do_sta_before_sun(const struct sysfw_id *d)
+ {
+ 	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
+ 	check_sta_before_sun = 1;
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
++static struct sysfw_id acpi_pci_slot_id_table[] __initdata = {
+ 	/*
+ 	 * Fujitsu Primequest machines will return 1023 to indicate an
+ 	 * error if the _SUN method is evaluated on SxFy objects that
+@@ -347,8 +347,8 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
+ 	 .callback = do_sta_before_sun,
+ 	 .ident = "Fujitsu PRIMEQUEST",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
+-		DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
++		SYSFW_MATCH(SYSFW_BIOS_VENDOR, "FUJITSU LIMITED"),
++		SYSFW_MATCH(SYSFW_BIOS_VERSION, "PRIMEQUEST"),
+ 		},
+ 	},
+ 	{}
+@@ -357,7 +357,7 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
+ static int __init
+ acpi_pci_slot_init(void)
+ {
+-	dmi_check_system(acpi_pci_slot_dmi_table);
++	sysfw_callback(acpi_pci_slot_id_table);
+ 	acpi_pci_register_driver(&acpi_pci_slot_driver);
+ 	return 0;
+ }
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 02d2a4c..ab3955a 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -7,7 +7,7 @@
+  *	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+  *	- Added _PDC for platforms with Intel CPUs
+  */
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/slab.h>
+ 
+ #include <acpi/acpi_drivers.h>
+@@ -19,7 +19,7 @@
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_core");
+ 
+-static int __init set_no_mwait(const struct dmi_system_id *id)
++static int __init set_no_mwait(const struct sysfw_id *id)
+ {
+ 	printk(KERN_NOTICE PREFIX "%s detected - "
+ 		"disabling mwait for CPU C-states\n", id->ident);
+@@ -27,13 +27,18 @@ static int __init set_no_mwait(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata processor_idle_dmi_table[] = {
++static struct sysfw_id __initdata processor_idle_id_table[] = {
+ 	{
+-	set_no_mwait, "Extensa 5220", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
+-	DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+-	DMI_MATCH(DMI_PRODUCT_VERSION, "0100"),
+-	DMI_MATCH(DMI_BOARD_NAME, "Columbia") }, NULL},
++		.callback = set_no_mwait,
++		.ident = "Extensa 5220",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR,
++				    "Phoenix Technologies LTD"),
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Acer"),
++			SYSFW_MATCH(SYSFW_PRODUCT_VERSION, "0100"),
++			SYSFW_MATCH(SYSFW_BOARD_NAME, "Columbia")
++		}
++	},
+ 	{},
+ };
+ 
+@@ -343,10 +348,10 @@ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ void __init acpi_early_processor_set_pdc(void)
+ {
+ 	/*
+-	 * Check whether the system is DMI table. If yes, OSPM
++	 * Check whether the system is SMBIOS table. If yes, OSPM
+ 	 * should not use mwait for CPU-states.
+ 	 */
+-	dmi_check_system(processor_idle_dmi_table);
++	sysfw_callback(processor_idle_id_table);
+ 
+ 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX,
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index a4e0f1b..a78045e 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -40,7 +40,6 @@
+ #include <linux/pm.h>
+ #include <linux/cpufreq.h>
+ #include <linux/cpu.h>
+-#include <linux/dmi.h>
+ #include <linux/moduleparam.h>
+ #include <linux/cpuidle.h>
+ #include <linux/slab.h>
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 431ab11..7fe9632 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -34,7 +34,7 @@
+ #include <linux/cpufreq.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/moduleparam.h>
+ #include <linux/sched.h>	/* need_resched() */
+ #include <linux/pm_qos_params.h>
+@@ -92,7 +92,7 @@ static int disabled_by_idle_boot_param(void)
+  *
+  * To skip this limit, boot/load with a large max_cstate limit.
+  */
+-static int set_max_cstate(const struct dmi_system_id *id)
++static int set_max_cstate(const struct sysfw_id *id)
+ {
+ 	if (max_cstate > ACPI_PROCESSOR_MAX_POWER)
+ 		return 0;
+@@ -108,19 +108,38 @@ static int set_max_cstate(const struct dmi_system_id *id)
+ 
+ /* Actually this shouldn't be __cpuinitdata, would be better to fix the
+    callers to only run once -AK */
+-static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+-	{ set_max_cstate, "Clevo 5600D", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+-	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
+-	 (void *)2},
+-	{ set_max_cstate, "Pavilion zv5000", {
+-	  DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"Pavilion zv5000 (DS502A#ABA)")},
+-	 (void *)1},
+-	{ set_max_cstate, "Asus L8400B", {
+-	  DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"L8400B series Notebook PC")},
+-	 (void *)1},
++static struct sysfw_id __cpuinitdata processor_power_id_table[] = {
++	{
++		.callback = set_max_cstate,
++		.ident = "Clevo 5600D",
++		.matches = {
++			SYSFW_MATCH(SYSFW_BIOS_VENDOR,
++				    "Phoenix Technologies LTD"),
++			SYSFW_MATCH(SYSFW_BIOS_VERSION,
++				    "SHE845M0.86C.0013.D.0302131307")
++		},
++		.driver_data = (void *)2
++	},
++	{
++		.callback = set_max_cstate,
++		.ident = "Pavilion zv5000",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "Hewlett-Packard"),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME,
++				    "Pavilion zv5000 (DS502A#ABA)")
++		},
++		.driver_data = (void *)1
++	},
++	{
++		.callback = set_max_cstate,
++		.ident = "Asus L8400B",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "ASUSTeK Computer Inc."),
++			SYSFW_MATCH(SYSFW_PRODUCT_NAME,
++				    "L8400B series Notebook PC")
++		},
++		.driver_data = (void *)1
++	},
+ 	{},
+ };
+ 
+@@ -1096,7 +1115,7 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ 		return 0;
+ 
+ 	if (!first_run) {
+-		dmi_check_system(processor_power_dmi_table);
++		sysfw_callback(processor_power_id_table);
+ 		max_cstate = acpi_processor_cstate_check(max_cstate);
+ 		if (max_cstate < ACPI_C_STATES_MAX)
+ 			printk(KERN_NOTICE
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 449c556..ff94b79 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -9,7 +9,7 @@
+ #include <linux/acpi.h>
+ #include <linux/signal.h>
+ #include <linux/kthread.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -1083,7 +1083,7 @@ static int acpi_ibm_smbus_match(struct acpi_device *device)
+ 	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	int result;
+ 
+-	if (!dmi_name_in_vendors("IBM"))
++	if (!sysfw_vendor_is("IBM"))
+ 		return -ENODEV;
+ 
+ 	/* Look for SMBS object */
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 6c94960..2fe5d12 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -12,7 +12,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/irq.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/device.h>
+ #include <linux/suspend.h>
+ #include <linux/reboot.h>
+@@ -342,90 +342,90 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.recover = acpi_pm_finish,
+ };
+ 
+-static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
++static int __init init_old_suspend_ordering(const struct sysfw_id *d)
+ {
+ 	old_suspend_ordering = true;
+ 	return 0;
+ }
+ 
+-static int __init init_nvs_nosave(const struct dmi_system_id *d)
++static int __init init_nvs_nosave(const struct sysfw_id *d)
+ {
+ 	acpi_nvs_nosave();
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
++static struct sysfw_id __initdata acpisleep_table[] = {
+ 	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Abit KN9 (nForce4 variant)",
+ 	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
+-		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "http://www.abit.com.tw/"),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "KN9 Series(NF-CK804)"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "HP xw4600 Workstation",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "Hewlett-Packard"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "HP xw4600 Workstation"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+ 	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "ASUSTek Computer INC."),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "M2N8L"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Panasonic CF51-2L",
+ 	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR,
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR,
+ 				"Matsushita Electric Industrial Co.,Ltd."),
+-		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "CF51-2L"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VGN-SR11M",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VGN-SR11M"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Everex StepNote Series",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "Everex Systems, Inc."),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Everex StepNote Series"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VPCEB1Z1E",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VPCEB1Z1E"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VGN-NW130D",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "Sony Corporation"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "VGN-NW130D"),
+ 		},
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Averatec AV1020-ED2",
+ 	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
++		SYSFW_MATCH(SYSFW_SYS_VENDOR, "AVERATEC"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "1000 Series"),
+ 		},
+ 	},
+ 	{},
+@@ -737,7 +737,7 @@ int __init acpi_sleep_init(void)
+ #ifdef CONFIG_SUSPEND
+ 	int i = 0;
+ 
+-	dmi_check_system(acpisleep_dmi_table);
++	sysfw_callback(acpisleep_table);
+ #endif
+ 
+ 	if (acpi_disabled)
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 2607e17..7005de57 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -33,7 +33,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -1075,8 +1075,8 @@ static int acpi_thermal_resume(struct acpi_device *device)
+ 	return AE_OK;
+ }
+ 
+-static int thermal_act(const struct dmi_system_id *d) {
+-
++static int thermal_act(const struct sysfw_id *d)
++{
+ 	if (act == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+ 			"disabling all active thermal trip points\n", d->ident);
+@@ -1084,15 +1084,16 @@ static int thermal_act(const struct dmi_system_id *d) {
+ 	}
+ 	return 0;
+ }
+-static int thermal_nocrt(const struct dmi_system_id *d) {
+-
++static int thermal_nocrt(const struct sysfw_id *d)
++{
+ 	printk(KERN_NOTICE "ACPI: %s detected: "
+-		"disabling all critical thermal trip point actions.\n", d->ident);
++	       "disabling all critical thermal trip point actions.\n",
++	       d->ident);
+ 	nocrt = 1;
+ 	return 0;
+ }
+-static int thermal_tzp(const struct dmi_system_id *d) {
+-
++static int thermal_tzp(const struct sysfw_id *d)
++{
+ 	if (tzp == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+ 			"enabling thermal zone polling\n", d->ident);
+@@ -1100,8 +1101,8 @@ static int thermal_tzp(const struct dmi_system_id *d) {
+ 	}
+ 	return 0;
+ }
+-static int thermal_psv(const struct dmi_system_id *d) {
+-
++static int thermal_psv(const struct sysfw_id *d)
++{
+ 	if (psv == 0) {
+ 		printk(KERN_NOTICE "ACPI: %s detected: "
+ 			"disabling all passive thermal trip points\n", d->ident);
+@@ -1110,7 +1111,7 @@ static int thermal_psv(const struct dmi_system_id *d) {
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id thermal_dmi_table[] __initdata = {
++static struct sysfw_id thermal_id_table[] __initdata = {
+ 	/*
+ 	 * Award BIOS on this AOpen makes thermal control almost worthless.
+ 	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
+@@ -1119,32 +1120,33 @@ static struct dmi_system_id thermal_dmi_table[] __initdata = {
+ 	 .callback = thermal_act,
+ 	 .ident = "AOpen i915GMm-HFS",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "AOpen"),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "i915GMm-HFS"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = thermal_psv,
+ 	 .ident = "AOpen i915GMm-HFS",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "AOpen"),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "i915GMm-HFS"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = thermal_tzp,
+ 	 .ident = "AOpen i915GMm-HFS",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "AOpen"),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "i915GMm-HFS"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = thermal_nocrt,
+ 	 .ident = "Gigabyte GA-7ZX",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
+-		DMI_MATCH(DMI_BOARD_NAME, "7ZX"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR,
++			    "Gigabyte Technology Co., Ltd."),
++		SYSFW_MATCH(SYSFW_BOARD_NAME, "7ZX"),
+ 		},
+ 	},
+ 	{}
+@@ -1154,7 +1156,7 @@ static int __init acpi_thermal_init(void)
+ {
+ 	int result = 0;
+ 
+-	dmi_check_system(thermal_dmi_table);
++	sysfw_callback(thermal_id_table);
+ 
+ 	if (off) {
+ 		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index db39e9e..b28912b 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -38,7 +38,7 @@
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+ #include <asm/uaccess.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <linux/suspend.h>
+@@ -384,13 +384,13 @@ acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
+  */
+ 
+ static int bqc_offset_aml_bug_workaround;
+-static int __init video_set_bqc_offset(const struct dmi_system_id *d)
++static int __init video_set_bqc_offset(const struct sysfw_id *d)
+ {
+ 	bqc_offset_aml_bug_workaround = 9;
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id video_dmi_table[] __initdata = {
++static struct sysfw_id video_id_table[] __initdata = {
+ 	/*
+ 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+ 	 */
+@@ -398,40 +398,40 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	 .callback = video_set_bqc_offset,
+ 	 .ident = "Acer Aspire 5720",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5720"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "Acer"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Aspire 5720"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = video_set_bqc_offset,
+ 	 .ident = "Acer Aspire 5710Z",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5710Z"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "Acer"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Aspire 5710Z"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = video_set_bqc_offset,
+ 	 .ident = "eMachines E510",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "EMACHINES"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "eMachines E510"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "EMACHINES"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "eMachines E510"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = video_set_bqc_offset,
+ 	 .ident = "Acer Aspire 5315",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5315"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "Acer"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Aspire 5315"),
+ 		},
+ 	},
+ 	{
+ 	 .callback = video_set_bqc_offset,
+ 	 .ident = "Acer Aspire 7720",
+ 	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
++		SYSFW_MATCH(SYSFW_BOARD_VENDOR, "Acer"),
++		SYSFW_MATCH(SYSFW_PRODUCT_NAME, "Aspire 7720"),
+ 		},
+ 	},
+ 	{}
+@@ -1801,7 +1801,7 @@ EXPORT_SYMBOL(acpi_video_unregister);
+ 
+ static int __init acpi_video_init(void)
+ {
+-	dmi_check_system(video_dmi_table);
++	sysfw_callback(video_id_table);
+ 
+ 	if (intel_opregion_present())
+ 		return 0;
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 5af3479..41f0d10 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -34,7 +34,6 @@
+  */
+ 
+ #include <linux/acpi.h>
+-#include <linux/dmi.h>
+ #include <linux/pci.h>
+ 
+ #define PREFIX "ACPI: "
+@@ -158,7 +157,7 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
+ 		/* Add blacklists here. Be careful to use the right *DMI* bits
+ 		 * to still be able to override logic via boot params, e.g.:
+ 		 *
+-		 *   if (dmi_name_in_vendors("XY")) {
++		 *   if (smbios_vendor_is("XY")) {
+ 		 *	acpi_video_support |=
+ 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+ 		 *}
+diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
+index 66f6729..47175c6 100644
+--- a/drivers/hwmon/acpi_power_meter.c
++++ b/drivers/hwmon/acpi_power_meter.c
+@@ -24,7 +24,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
+-#include <linux/dmi.h>
++#include <linux/sysfw.h>
+ #include <linux/slab.h>
+ #include <linux/kdev_t.h>
+ #include <linux/sched.h>
+@@ -975,17 +975,18 @@ static struct acpi_driver acpi_power_meter_driver = {
+ };
+ 
+ /* Module init/exit routines */
+-static int __init enable_cap_knobs(const struct dmi_system_id *d)
++static int __init enable_cap_knobs(const struct sysfw_id *d)
+ {
+ 	cap_in_hardware = 1;
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id __initdata pm_dmi_table[] = {
++static struct sysfw_id __initdata pm_id_table[] = {
+ 	{
+-		enable_cap_knobs, "IBM Active Energy Manager",
+-		{
+-			DMI_MATCH(DMI_SYS_VENDOR, "IBM")
++		.callback = enable_cap_knobs,
++		.ident = "IBM Active Energy Manager",
++		.matches = {
++			SYSFW_MATCH(SYSFW_SYS_VENDOR, "IBM")
+ 		},
+ 	},
+ 	{}
+@@ -998,7 +999,7 @@ static int __init acpi_power_meter_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	dmi_check_system(pm_dmi_table);
++	sysfw_callback(pm_id_table);
+ 
+ 	result = acpi_bus_register_driver(&acpi_power_meter_driver);
+ 	if (result < 0)
 -- 
 1.7.5.4
