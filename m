@@ -1,48 +1,37 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: Re: [patch] acpi: remove NID_INVAL
-Date: Fri, 24 Jun 2011 01:50:22 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1106240149150.17688@swampdragon.chaosbits.net>
-References: <alpine.DEB.2.00.1106211756110.4454@chino.kir.corp.google.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 00/35]: System Firmware and SMBIOS Support
+Date: Fri, 24 Jun 2011 15:40:57 +0200
+Message-ID: <201106241540.57952.arnd@arndb.de>
+References: <20110623172206.27602.34306.sendpatchset@prarit.bos.redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:25918 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759805Ab1FWX7R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2011 19:59:17 -0400
-In-Reply-To: <alpine.DEB.2.00.1106211756110.4454@chino.kir.corp.google.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:62233 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753919Ab1FXNld (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2011 09:41:33 -0400
+In-Reply-To: <20110623172206.27602.34306.sendpatchset@prarit.bos.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, openipmi-developer@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-crypto@vger.kernel.org, dri-devel@lists.freedesktop.org, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, rtc-linux@googlegroups.com, evel@driverdev.osuosl.org, linux-usb@vger.kernel.org, device-drivers-devel@blackfin.uclinux.org, linux-watchdog@vger.kernel.org, grant.likely@secretlab.ca, dz@debian.org, rpurdie@rpsys.net, eric.piel@tremplin-utc.net, abelay@mit.edu, johnpol@2ka.mipt.ru
 
-On Tue, 21 Jun 2011, David Rientjes wrote:
+On Thursday 23 June 2011 19:22:06 Prarit Bhargava wrote:
+> This new patchset reworks the existing DMI code into two separate layers.  It is
+> based off of the feedback I received previously when discussing the SMBIOS
+> version patch on LKML.
 
-> b552a8c56db8 ("ACPI: remove NID_INVAL") removed the left over uses of
-> NID_INVAL, but didn't actually remove the definition.  Remove it.
-> 
-> Signed-off-by: David Rientjes <rientjes@google.com>
-> ---
->  include/linux/acpi.h |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -238,7 +238,6 @@ extern int acpi_paddr_to_node(u64 start_addr, u64 size);
->  extern int pnpacpi_disabled;
->  
->  #define PXM_INVAL	(-1)
-> -#define NID_INVAL	(-1)
->  
->  int acpi_check_resource_conflict(const struct resource *res);
->  
-Yup. I agree. All that's left is that define and it should just die.
+Hi Prarit,
 
-Reviewed-by: Jesper Juhl <jj@chaosbits.net>
+No objections to the patches, but when you send out a series as long as
+this one, please ensure that all patches are sent as replies to the
+introductory mail. Also, do not repeat the one-line patch summary in the
+body of the email.
 
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+When using "git send-email --thread --no-chain-reply", this works
+automatically. It will also let you put the Cc list into the
+patch description and work out where to send each patch.
 
+	Arnd
