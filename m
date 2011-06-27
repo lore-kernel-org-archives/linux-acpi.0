@@ -1,38 +1,72 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH -v2 0/4] ACPI, APEI, Add APEI related _OSC support
-Date: Mon, 27 Jun 2011 13:38:47 -0700
-Message-ID: <m27h872enc.fsf@firstfloor.org>
-References: <1309163160-3201-1-git-send-email-ying.huang@intel.com>
+From: Bryce Nesbitt <bryce2@obviously.com>
+Subject: Intel DX58SO2 suspends fine: but only for the first few hours
+Date: Mon, 27 Jun 2011 13:54:04 -0700
+Message-ID: <4E08EDEC.7010504@obviously.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15537 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754266Ab1F0UkJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:40:09 -0400
-In-Reply-To: <1309163160-3201-1-git-send-email-ying.huang@intel.com> (Huang
-	Ying's message of "Mon, 27 Jun 2011 16:25:56 +0800")
+Received: from outy.internet-mail-service.net ([216.240.47.248]:47843 "EHLO
+	out-0.mx.aerioconnect.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754282Ab1F0VB3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2011 17:01:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
+To: linux-acpi@vger.kernel.org
 
-Huang Ying <ying.huang@intel.com> writes:
+I have an Intel DX58SO2 based desktop which works great with WOL, and 
+also passes the Suspend/Resume test at
+https://wiki.ubuntu.com/KernelTeam/SuspendResumeTesting
+But fails if left suspended for somewhere between 4 and 10 hours.
+When resumed after this delay the machine hard boots, usually leaving 
+the USB
+keyboard dead as well.
 
-> Changes:
->
-> - Change error message for WHEA _OSC call according to Matthew's comments
->
-> [PATCH -v2 1/4] ACPI, APEI, GHES, Prevent GHES to be built as module
-> [PATCH -v2 2/4] ACPI, APEI, GHES, Support disable GHES at boot time
-> [PATCH -v2 3/4] ACPI, APEI, Add APEI bit support in generic _OSC call
-> [PATCH -v2 4/4] ACPI, APEI, Add WHEA _OSC support
+# cat /proc/cmdline
+BOOT_IMAGE=/vmlinuz-2.6.38-8-generic 
+root=UUID=8a67d411-9750-46e4-8a53-b2059e5a4eeb ro quiet 
+splash,acpi_sleep=nonvs
 
-FWIW I reviewed the patch-kit and it all looks good to me.
+# cat /etc/initramfs-tools/conf.d/resume
+RESUME=UUID=86acb365-d5a4-4249-a28c-5ab4b694181b
 
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+# uname -a
+Linux ubuntu 2.6.38-8-generic #42-Ubuntu SMP Mon Apr 11 03:31:24 UTC 
+2011 x86_64 x86_64 x86_64 GNU/Linux
 
--Andi
+# dmidecode
+SMBIOS 2.5 present.
+Processor Information
+     Socket Designation: CPU 1
+     Manufacturer: Intel(R) Corporation
+     Version: Intel(R) Xeon(R) CPU           E5607  @ 2.27GHz
+     (ECC Memory is installed but apparently not actually working)
 
--- 
-ak@linux.intel.com -- Speaking for myself only
+BIOS Information
+     Vendor: Intel Corp.
+     Version: SOX5820J.86A.0779.2011.0406.1511
+     Release Date: 04/06/2011
+     Characteristics:
+         ACPI is supported
+     BIOS Revision: 0.0
+     Firmware Revision: 0.0
+
+Handle 0x0007, DMI type 2, 20 bytes
+Base Board Information
+     Manufacturer: Intel Corporation
+     Product Name: DX58SO2
+     Version: AAG10925-205
+     Features:
+         Board is a hosting board
+         Board is replaceable
+
+-------------------------------------------------------------------------------------------------------
+Where can I go next?  The builder of this machine claims that Linux 
+suspend/resume has been "been basically a crap-shoot for years", and 
+thus they refuse to even test it out properly.
+
+If I shop for a new motherboard, where other than
+https://wiki.ubuntu.com/KernelTeam/SuspendResumeTesting/Feedback
+Can I get feedback on which models are most likely to act fine under 
+Suspend/Resume/Wake on Lan?
