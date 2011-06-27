@@ -1,88 +1,89 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2 2/4] ACPI, APEI, GHES, Support disable GHES at boot time
-Date: Mon, 27 Jun 2011 16:25:58 +0800
-Message-ID: <1309163160-3201-3-git-send-email-ying.huang@intel.com>
+Subject: [PATCH -v2 4/4] ACPI, APEI, Add WHEA _OSC support
+Date: Mon, 27 Jun 2011 16:26:00 +0800
+Message-ID: <1309163160-3201-5-git-send-email-ying.huang@intel.com>
 References: <1309163160-3201-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga14.intel.com ([143.182.124.37]:21556 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757315Ab1F0I0H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2011 04:26:07 -0400
+	id S1757319Ab1F0I0K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2011 04:26:10 -0400
 In-Reply-To: <1309163160-3201-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-Some machine may have broken firmware so that GHES and firmware first
-mode should be disabled.  This patch adds support to that.
+APEI firmware first mode must be turned on explicitly on some
+machines, otherwise there may be no GHES hardware error record for
+hardware error notification.  APEI bit in generic _OSC call can be
+used to do that, but on some machine, a special WHEA _OSC call must be
+used.  This patch adds the support to that WHEA _OSC call.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/ghes.c |    8 ++++++++
- drivers/acpi/apei/hest.c |   17 +++++++++--------
- include/acpi/apei.h      |    1 +
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ drivers/acpi/apei/apei-base.c     |   26 ++++++++++++++++++++++++++
+ drivers/acpi/apei/apei-internal.h |    2 ++
+ drivers/acpi/apei/ghes.c          |   10 ++++++++++
+ 3 files changed, 38 insertions(+)
 
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -604,3 +604,29 @@ struct dentry *apei_get_debugfs_dir(void
+ 	return dapei;
+ }
+ EXPORT_SYMBOL_GPL(apei_get_debugfs_dir);
++
++int apei_osc_setup(void)
++{
++	static u8 whea_uuid_str[] = "ed855e0c-6c90-47bf-a62a-26de0fc5ad5c";
++	acpi_handle handle;
++	u32 capbuf[3];
++	struct acpi_osc_context context = {
++		.uuid_str	= whea_uuid_str,
++		.rev		= 1,
++		.cap.length	= sizeof(capbuf),
++		.cap.pointer	= capbuf,
++	};
++
++	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
++	capbuf[OSC_SUPPORT_TYPE] = 0;
++	capbuf[OSC_CONTROL_TYPE] = 0;
++
++	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle))
++	    || ACPI_FAILURE(acpi_run_osc(handle, &context)))
++		return -EIO;
++	else {
++		kfree(context.ret.pointer);
++		return 0;
++	}
++}
++EXPORT_SYMBOL_GPL(apei_osc_setup);
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -124,4 +124,6 @@ void apei_estatus_print(const char *pfx,
+ 			const struct acpi_hest_generic_status *estatus);
+ int apei_estatus_check_header(const struct acpi_hest_generic_status *estatus);
+ int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
++
++int apei_osc_setup(void);
+ #endif
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -77,6 +77,9 @@ struct ghes {
- 	};
- };
- 
-+int ghes_disable;
-+module_param_named(disable, ghes_disable, bool, 0);
-+
- static int ghes_panic_timeout	__read_mostly = 30;
- 
- /*
-@@ -665,6 +668,11 @@ static int __init ghes_init(void)
- 		return -EINVAL;
- 	}
- 
-+	if (ghes_disable) {
-+		pr_info(GHES_PFX "GHES is not enabled!\n");
-+		return -EINVAL;
-+	}
-+
- 	rc = ghes_ioremap_init();
+@@ -681,6 +681,16 @@ static int __init ghes_init(void)
  	if (rc)
- 		goto err;
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -230,16 +230,17 @@ void __init acpi_hest_init(void)
- 		goto err;
- 	}
+ 		goto err_ioremap_exit;
  
--	rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
--	if (rc)
--		goto err;
--
--	rc = hest_ghes_dev_register(ghes_count);
--	if (!rc) {
--		pr_info(HEST_PFX "Table parsing has been initialized.\n");
--		return;
-+	if (!ghes_disable) {
-+		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-+		if (rc)
-+			goto err;
-+		rc = hest_ghes_dev_register(ghes_count);
-+		if (rc)
-+			goto err;
- 	}
- 
-+	pr_info(HEST_PFX "Table parsing has been initialized.\n");
-+	return;
- err:
- 	hest_disable = 1;
- }
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -18,6 +18,7 @@
- 
- extern int hest_disable;
- extern int erst_disable;
-+extern int ghes_disable;
- 
- #ifdef CONFIG_ACPI_APEI
- void __init acpi_hest_init(void);
++	rc = apei_osc_setup();
++	if (rc == 0 && osc_sb_apei_support_acked)
++		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit and WHEA _OSC.\n");
++	else if (rc == 0 && !osc_sb_apei_support_acked)
++		pr_info(GHES_PFX "APEI firmware first mode is enabled by WHEA _OSC.\n");
++	else if (rc && osc_sb_apei_support_acked)
++		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit.\n");
++	else
++		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
++
+ 	return 0;
+ err_ioremap_exit:
+ 	ghes_ioremap_exit();
