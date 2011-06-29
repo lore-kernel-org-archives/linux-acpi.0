@@ -1,41 +1,45 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 4/6] ACPI / Battery: Add the hibernation process in the battery_notify()
-Date: Wed, 29 Jun 2011 16:24:12 +0800
-Message-ID: <1309335852-26552-1-git-send-email-tianyu.lan@intel.com>
+Subject: [PATCH 5/6] ACPI / Battery: Add the check before refresh sysfs in the battery_notify()
+Date: Wed, 29 Jun 2011 16:24:34 +0800
+Message-ID: <1309335874-26588-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:15570 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:49519 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753581Ab1F2IXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2011 04:23:54 -0400
+	id S1753750Ab1F2IYV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:24:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, tianyu.lan@intel.com, rui.zhang@intel.com, stable@kernel.org
 
-The Commit 25be58215 has added a PM notifier to refresh the sys in order
-to deal with the unit change of the Battery Present Rate. But it just
-consided the suspend situation. The problem also will happen during the
-hibernation according the bug 28192.
-    https://bugzilla.kernel.org/show_bug.cgi?id=28192
-This patch adds the hibernation process and fix the bug.
+In the commit 25be5821, add the refresh sysfs when system resumes
+from suspend. But it didn't check that the battery exists. This
+will cause battery sysfs added when the battery doesn't exist. This
+patch add the check before refreshing.
+	https://bugzilla.kernel.org/show_bug.cgi?id=35642
 
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/battery.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/acpi/battery.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 6057f35..cc35bdc 100644
+index cc35bdc..cb4a554 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -947,6 +947,7 @@ static int battery_notify(struct notifier_block *nb,
- 	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
- 						    pm_nb);
+@@ -949,8 +949,10 @@ static int battery_notify(struct notifier_block *nb,
  	switch (mode) {
-+	case PM_POST_HIBERNATION:
+ 	case PM_POST_HIBERNATION:
  	case PM_POST_SUSPEND:
- 		sysfs_remove_battery(battery);
- 		sysfs_add_battery(battery);
+-		sysfs_remove_battery(battery);
+-		sysfs_add_battery(battery);
++		if (battery->bat.dev) {
++			sysfs_remove_battery(battery);
++			sysfs_add_battery(battery);
++		}
+ 		break;
+ 	}
+ 
 -- 
 1.7.6.rc2.8.g28eb
 
