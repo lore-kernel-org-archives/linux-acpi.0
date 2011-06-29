@@ -1,48 +1,41 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 3/6] ACPI / Battery: Rename acpi_battery_quirks2 with acpi_battery_quirks
-Date: Wed, 29 Jun 2011 16:23:42 +0800
-Message-ID: <1309335822-26513-1-git-send-email-tianyu.lan@intel.com>
+Subject: [PATCH 4/6] ACPI / Battery: Add the hibernation process in the battery_notify()
+Date: Wed, 29 Jun 2011 16:24:12 +0800
+Message-ID: <1309335852-26552-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5622 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:15570 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753581Ab1F2IX1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2011 04:23:27 -0400
+	id S1753581Ab1F2IXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:23:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, tianyu.lan@intel.com, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, tianyu.lan@intel.com, rui.zhang@intel.com, stable@kernel.org
 
-This patch is cosmetic only, and makes no functional change.
-Since the acpi_battery_quirks has been deleted, rename
-acpi_battery_quirks2 with acpi_battery_quirks to clean the code.
+The Commit 25be58215 has added a PM notifier to refresh the sys in order
+to deal with the unit change of the Battery Present Rate. But it just
+consided the suspend situation. The problem also will happen during the
+hibernation according the bug 28192.
+    https://bugzilla.kernel.org/show_bug.cgi?id=28192
+This patch adds the hibernation process and fix the bug.
 
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/battery.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/battery.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 9db0c97..6057f35 100644
+index 6057f35..cc35bdc 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -592,7 +592,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
-  *
-  * Handle this correctly so that they won't break userspace.
-  */
--static void acpi_battery_quirks2(struct acpi_battery *battery)
-+static void acpi_battery_quirks(struct acpi_battery *battery)
- {
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
- 		return ;
-@@ -628,7 +628,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	if (!battery->bat.dev)
+@@ -947,6 +947,7 @@ static int battery_notify(struct notifier_block *nb,
+ 	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
+ 						    pm_nb);
+ 	switch (mode) {
++	case PM_POST_HIBERNATION:
+ 	case PM_POST_SUSPEND:
+ 		sysfs_remove_battery(battery);
  		sysfs_add_battery(battery);
- 	result = acpi_battery_get_state(battery);
--	acpi_battery_quirks2(battery);
-+	acpi_battery_quirks(battery);
- 	return result;
- }
- 
 -- 
 1.7.6.rc2.8.g28eb
 
