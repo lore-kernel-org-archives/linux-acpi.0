@@ -1,93 +1,67 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: PATCH: Don't enable GPE if GPE dispatch failed
-Date: Wed, 29 Jun 2011 14:19:42 +0800
-Message-ID: <1309328382.7886.2.camel@rui>
-References: <20110628220535.GA19846@intel.com>	<1309311174.5389.0.camel@rui>
-	 <1309311310.5389.2.camel@rui>
-	 <BANLkTinqc5FeP9x3B=QjQ0RaXJPytYzn4A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH 1/6] ACPI / Battery: Add the power unit macro
+Date: Wed, 29 Jun 2011 16:17:49 +0800
+Message-ID: <1309335469-26316-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:16316 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:5918 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892Ab1F2GRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2011 02:17:04 -0400
-In-Reply-To: <BANLkTinqc5FeP9x3B=QjQ0RaXJPytYzn4A@mail.gmail.com>
+	id S1751702Ab1F2IRc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:17:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H.J. Lu" <hjl.tools@gmail.com>
-Cc: "acpi@linux.intel.com" <acpi@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, tianyu.lan@intel.com, rui.zhang@intel.com
 
-Hi, H.J.
+This patch is cosmetic only, and makes no functional change.
 
-IMO, the real problem is that EC address space handler is not installed.
-please attach the full dmesg output of your patched kernel after boot.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/battery.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-thanks,
-rui
-
-On Wed, 2011-06-29 at 10:51 +0800, H.J. Lu wrote:
-> On Tue, Jun 28, 2011 at 6:35 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> > CC linux-acpi mail list.
-> >
-> > On Wed, 2011-06-29 at 09:32 +0800, Zhang, Rui wrote:
-> >> Hi,
-> >>
-> >> can you send me the acpidump output of this machine please?
-> >>
-> >> thanks,
-> >> rui
-> >>
-> >> On Wed, 2011-06-29 at 06:05 +0800, Lu, Hongjiu wrote:
-> >> > Hi,
-> >> >
-> >> > I have a broken BIOS, which generates thousands of kernel messages:
-> >> >
-> >> > Jun 28 14:13:26 gnu-18 kernel: [  628.704003] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] (20110112/evgpe-551)
-> >> > Jun 28 14:13:26 gnu-18 kernel: [  628.826752] ACPI Error: No handler for Region [ECF2] (ffff88013763b6c0) [EmbeddedControl] (20110112/evregion-369)
-> >> > Jun 28 14:13:26 gnu-18 kernel: [  628.826761] ACPI Error: Region EmbeddedControl(0x3) has no handler (20110112/exfldio-292)
-> >> > Jun 28 14:13:26 gnu-18 kernel: [  628.826768] ACPI Error: Method parse/execution failed [\_GPE._L01] (Node ffff88013765a488), AE_NOT_EXIST (20110112/psparse-536)
-> >> >
-> >> > This patch avoids enabling GPE if GPE dispatch failed.  Now I got only
-> >> > one kernel message:
-> >> >
-> >> > Jun 28 14:38:51 gnu-18 kernel: [    0.937479] ACPI Error: No handler for Region [ECF2] (ffff88013763b6c0) [EmbeddedControl] (20110112/evregion-369)
-> >> > Jun 28 14:38:51 gnu-18 kernel: [    0.937485] ACPI Error: Region EmbeddedControl(0x3) has no handler (20110112/exfldio-292)
-> >> > Jun 28 14:38:51 gnu-18 kernel: [    0.937490] ACPI Error: Method parse/execution failed [\_GPE._L01] (Node ffff88013765a488), AE_NOT_EXIST (20110112/psparse-536)
-> >> > Jun 28 14:38:51 gnu-18 kernel: [    0.937502] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] (20110112/evgpe-551)
-> >> >
-> >> >
-> >> >
-> >> > H.J.
-> >> > ---
-> >> > diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-> >> > index f472521..5b1f4b2 100644
-> >> > --- a/drivers/acpi/acpica/evgpe.c
-> >> > +++ b/drivers/acpi/acpica/evgpe.c
-> >> > @@ -559,11 +559,13 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
-> >> >
-> >> >     /* Defer enabling of GPE until all notify handlers are done */
-> >> >
-> >> > -   status = acpi_os_execute(OSL_NOTIFY_HANDLER,
-> >> > -                            acpi_ev_asynch_enable_gpe,
-> >> > -                            local_gpe_event_info);
-> >> > -   if (ACPI_FAILURE(status)) {
-> >> > -           ACPI_FREE(local_gpe_event_info);
-> >> > +   if (!ACPI_FAILURE(status)) {
-> >> > +           status = acpi_os_execute(OSL_NOTIFY_HANDLER,
-> >> > +                                    acpi_ev_asynch_enable_gpe,
-> >> > +                                    local_gpe_event_info);
-> >> > +           if (ACPI_FAILURE(status)) {
-> >> > +                   ACPI_FREE(local_gpe_event_info);
-> >> > +           }
-> >> >     }
-> >> >     return_VOID;
-> >> >  }
-> >> >
-> 
-> Here it is.
-> 
-> 
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fcc13ac..611434f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -55,6 +55,9 @@
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+ #define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+ 
++/* Battery power unit: 0 means mW, 1 means mA */
++#define ACPI_BATTERY_POWER_UNIT_MA	1
++
+ #define _COMPONENT		ACPI_BATTERY_COMPONENT
+ 
+ ACPI_MODULE_NAME("battery");
+@@ -301,7 +304,8 @@ static enum power_supply_property energy_battery_props[] = {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ inline char *acpi_battery_units(struct acpi_battery *battery)
+ {
+-	return (battery->power_unit)?"mA":"mW";
++	return (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) ?
++		"mA" : "mW";
+ }
+ #endif
+ 
+@@ -544,7 +548,7 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ {
+ 	int result;
+ 
+-	if (battery->power_unit) {
++	if (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) {
+ 		battery->bat.properties = charge_battery_props;
+ 		battery->bat.num_properties =
+ 			ARRAY_SIZE(charge_battery_props);
+@@ -575,7 +579,8 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 
+ static void acpi_battery_quirks(struct acpi_battery *battery)
+ {
+-	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++	if (dmi_name_in_vendors("Acer") &&
++		battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) {
+ 		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+ 	}
+ }
+-- 
+1.7.6.rc2.8.g28eb
 
