@@ -1,12 +1,12 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re:[PATCH 2/6] ACPI / Battery: Change 16-bit signed negative battery current into correct value
-Date: Wed, 29 Jun 2011 16:47:59 +0800
-Message-ID: <1309337279-26936-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re:[PATCH V2 2/6] ACPI / Battery: Change 16-bit signed negative battery current into correct value
+Date: Wed, 29 Jun 2011 16:52:41 +0800
+Message-ID: <1309337561-26996-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37202 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:51012 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428Ab1F2Ir5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2011 04:47:57 -0400
+	id S1753541Ab1F2Iw7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:52:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
