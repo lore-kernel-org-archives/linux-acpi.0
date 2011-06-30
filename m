@@ -1,36 +1,67 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH 1/2] ACPICA: Provide global table flags
-Date: Thu, 30 Jun 2011 11:11:07 +0800
-Message-ID: <1309403467.24590.0.camel@minggr.sh.intel.com>
-References: <201106252213.12486.trenn@suse.de>
-	 <201106271044.21434.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [v2 1/6] ACPI / Battery: Add the power unit macro
+Date: Thu, 30 Jun 2011 11:32:40 +0800
+Message-ID: <1309404760-15707-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32301 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:45381 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756687Ab1F3DFy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2011 23:05:54 -0400
-In-Reply-To: <201106271044.21434.trenn@suse.de>
+	id S1753921Ab1F3Dcl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2011 23:32:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, devel@acpica.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, tianyu.lan@intel.com, rui.zhang@intel.com
 
-On Mon, 2011-06-27 at 16:44 +0800, Thomas Renninger wrote:
-> On Saturday, June 25, 2011 10:13:11 PM Thomas Renninger wrote:
-> > CC: devel@lists.acpica.org
+This patch is cosmetic only, and makes no functional change.
 
-Use devel@acpica.org
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/battery.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-> Please remove this list when replying, looks like one has to
-> be subscribed on the list, I got:
-> 
-> Undelivered Mail Returned to Sender
-> ...
-> <devel@lists.acpica.org>: host mail.acpica.org[174.36.13.144] said: 550 5.1.1
->     <devel@lists.acpica.org>: Recipient address rejected: User unknown in relay
->     recipient table (in reply to RCPT TO command)
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fcc13ac..611434f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -55,6 +55,9 @@
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+ #define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+ 
++/* Battery power unit: 0 means mW, 1 means mA */
++#define ACPI_BATTERY_POWER_UNIT_MA	1
++
+ #define _COMPONENT		ACPI_BATTERY_COMPONENT
+ 
+ ACPI_MODULE_NAME("battery");
+@@ -301,7 +304,8 @@ static enum power_supply_property energy_battery_props[] = {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ inline char *acpi_battery_units(struct acpi_battery *battery)
+ {
+-	return (battery->power_unit)?"mA":"mW";
++	return (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) ?
++		"mA" : "mW";
+ }
+ #endif
+ 
+@@ -544,7 +548,7 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ {
+ 	int result;
+ 
+-	if (battery->power_unit) {
++	if (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) {
+ 		battery->bat.properties = charge_battery_props;
+ 		battery->bat.num_properties =
+ 			ARRAY_SIZE(charge_battery_props);
+@@ -575,7 +579,8 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 
+ static void acpi_battery_quirks(struct acpi_battery *battery)
+ {
+-	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++	if (dmi_name_in_vendors("Acer") &&
++		battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) {
+ 		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+ 	}
+ }
+-- 
+1.7.6.rc2.8.g28eb
 
