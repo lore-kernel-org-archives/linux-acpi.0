@@ -1,62 +1,32 @@
-From: =?UTF-8?Q?Am=C3=A9rico_Wang?= <xiyou.wangcong@gmail.com>
-Subject: Re: CONFIG_ACPI_PROC_EVENT disabled -> userspace not working (Was:
- Re: CONFIG_ACPI_PROCFS_POWER to be removed in 2.6.39)
-Date: Fri, 1 Jul 2011 16:54:54 +0800
-Message-ID: <BANLkTimAyhUxcLCyXLKoWuv7wPhUiMh--A@mail.gmail.com>
-References: <20110630213728.GA30291@marc.osknowledge.org>
-	<BANLkTimk_yCCy+4hL6949nxPs5Qo4y1Qow@mail.gmail.com>
-	<20110701061943.GA17184@marc.osknowledge.org>
+From: Marco Chiappero <marco@absence.it>
+Subject: Re: sony-laptop on VAIO TT help request
+Date: Fri, 01 Jul 2011 11:46:13 +0200
+Message-ID: <4E0D9765.7060700@absence.it>
+References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:53547 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755556Ab1GAIyz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2011 04:54:55 -0400
-In-Reply-To: <20110701061943.GA17184@marc.osknowledge.org>
+Received: from aa012-1msr.fastwebnet.it ([62.101.93.132]:52501 "EHLO
+	aa012-1msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755161Ab1GAJq0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2011 05:46:26 -0400
+In-Reply-To: <4E0C9BC6.4020603@fnarfbargle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Koschewski <marc@osknowledge.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Brad Campbell <lists2009@fnarfbargle.com>
+Cc: Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
 
-(Cc linux-acpi@vger.kernel.org...)
+Il 30/06/2011 17:52, Brad Campbell ha scritto:
+> On 30/06/11 21:55, Mattia Dongili wrote:
+>
+>> there are patches already floating around, you can take a look here
+>> http://www.absence.it/vaio-acpi/source/patches/
+>> the code is making its way into the kernel.
+>
+> Hrm.. next time I guess I'll ask before breaking out the debugger!
 
-On Fri, Jul 1, 2011 at 2:19 PM, Marc Koschewski <marc@osknowledge.org> =
-wrote:
-> * Am=C3=A9rico Wang <xiyou.wangcong@gmail.com> [2011-07-01 08:55:23 +=
-0800]:
->
-> I just disabled the 3 'deprecated' within ACPI and ACPI userspace is =
-not working
-> any longer. I'm using Gentoo so I doubt my userspace is too old. acpi=
-d doesn't
-> somehow listen to events when CONFIG_ACPI_PROC_EVENT is not set:
->
-> "Say Y here to retain the old behaviour. =C2=A0Say N if your
-> user-space is newer than kernel 2.6.23 (September 2007)."
->
->> On Fri, Jul 1, 2011 at 5:37 AM, Marc Koschewski <marc@osknowledge.or=
-g> wrote:
->> > Hey guys,
->> >
->> > CONFIG_ACPI_PROCFS_POWER is still there. Missed it or did you want=
- it
->> > to reside?
->>
->> There was a patch to remove it,
->>
->> https://patchwork.kernel.org/patch/654021/
->>
->> Don't know why it is not merged.
->>
->>
->
-> --
-> Marc Koschewski
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello,
+could you please provide us your DSDT and the exact model string of your TT?
+
+Thanks
