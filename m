@@ -1,53 +1,87 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: fix acpi_power_off lockdep splat
-Date: Sun, 3 Jul 2011 10:36:27 +0200
-Message-ID: <201107031036.28186.rjw@sisk.pl>
-References: <1309620681-25173-1-git-send-email-andrea@betterlinux.com> <201107030858.41459.rjw@sisk.pl> <20110703102137.302ac415@schatten.dmk.lab>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Andrea Righi <andrea@betterlinux.com>
+Subject: [PATCH v2] ACPI: fix acpi_power_off lockdep splat
+Date: Sun,  3 Jul 2011 11:14:09 +0200
+Message-ID: <1309684450-24549-1-git-send-email-andrea@betterlinux.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50938 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754216Ab1GCIfm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Jul 2011 04:35:42 -0400
-In-Reply-To: <20110703102137.302ac415@schatten.dmk.lab>
+Received: from mail.betterlinux.com ([199.58.199.50]:58514 "EHLO
+	mail.betterlinux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755258Ab1GCJOq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jul 2011 05:14:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Andrea Righi <andrea@betterlinux.com>, Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Borislav Petkov <bp@alien8.de>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sunday, July 03, 2011, Florian Mickler wrote:
-> On Sun, 3 Jul 2011 08:58:41 +0200
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Saturday, July 02, 2011, Andrea Righi wrote:
-> > > Implement acpi_os_create_lock() as a C-preprocessor macro to assign
-> > > unique lock_class_key to dynamically allocated locks and suppress wrong
-> > > lockdep warnings.
-> > > 
-> > > This fixes:
-> > > https://bugzilla.kernel.org/show_bug.cgi?id=38152
-> > > 
-> > > Reported-by: Borislav Petkov <bp@alien8.de>
-> > > Signed-off-by: Andrea Righi <andrea@betterlinux.com>
-> > 
-> > So, how exactly does it work?
-> 
-> The spin_lock_init macro stringifies it's argument and uses that as a
-> name for the lock in the debugging.
-> 
-> By re-executing spin_lock_init (have not checked if that harms
-> anything, but it should be ok) in the _macro_ the key changes from
-> "lock" for all three locks to the actual argument
-> "&acpi_gbl_global_lock_pending_lock", "&acpi_gbl_gpe_lock" or
-> "&acpi_gbl_hardware_lock". 
+Implement acpi_os_create_lock() as a C-preprocessor macro to suppress
+lockdep false positive.
 
-OK, thanks for the explanation.
+When lockdep is enabled the spin_lock_init macro stringifies it's
+argument and uses that as a name for the lock in the debugging.
 
-The proposed solution doesn't seem to be extremely straightforward,
-but perhaps it's the simplest one.  I need to think about it a bit more.
+By executing spin_lock_init in a macro the key changes from "lock" for
+all locks to the actual argument of acpi_os_create_lock()
+("&acpi_gbl_global_lock_pending_lock", "&acpi_gbl_gpe_lock" or
+"&acpi_gbl_hardware_lock" for now).
 
-Thanks,
-Rafael
+This fixes:
+https://bugzilla.kernel.org/show_bug.cgi?id=38152
+
+ChangeLog (v1 -> v2):
+ - avoid to call spin_lock_init multiple times on the same lock
+ - rewrite patch description (thanks to Florian for providing a better
+   description of the patch)
+
+Reported-by: Borislav Petkov <bp@alien8.de>
+CC: Florian Mickler <florian@mickler.org>
+Signed-off-by: Andrea Righi <andrea@betterlinux.com>
+---
+ drivers/acpi/osl.c      |    3 +--
+ include/acpi/acpiosxf.h |   12 +++++++++++-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 52ca964..4c985d3 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1336,14 +1336,13 @@ EXPORT_SYMBOL(acpi_resources_are_enforced);
+  * Create and initialize a spinlock.
+  */
+ acpi_status
+-acpi_os_create_lock(acpi_spinlock *out_handle)
++__acpi_os_create_lock(acpi_spinlock *out_handle)
+ {
+ 	spinlock_t *lock;
+ 
+ 	lock = ACPI_ALLOCATE(sizeof(spinlock_t));
+ 	if (!lock)
+ 		return AE_NO_MEMORY;
+-	spin_lock_init(lock);
+ 	*out_handle = lock;
+ 
+ 	return AE_OK;
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index a756bc8..4a0385d 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -99,7 +99,17 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
+  * Spinlock primitives
+  */
+ acpi_status
+-acpi_os_create_lock(acpi_spinlock *out_handle);
++__acpi_os_create_lock(acpi_spinlock *out_handle);
++
++#define acpi_os_create_lock(__handle)			\
++({							\
++	acpi_status ret;				\
++							\
++	ret = __acpi_os_create_lock(__handle);		\
++	if (ret == AE_OK)				\
++		spin_lock_init(*(__handle));		\
++	ret;						\
++})
+ 
+ void acpi_os_delete_lock(acpi_spinlock handle);
+ 
+-- 
+1.7.4.1
+
