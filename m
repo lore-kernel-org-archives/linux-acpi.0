@@ -1,31 +1,35 @@
-From: Nokia <nokia.e6@nokiasoftwarepage.org>
-Subject: Nyerj te is!
-Date: Mon,  4 Jul 2011 16:33:36 +0400 (MSD)
-Message-ID: <20110704123336.5D8F2D911967@230744.asdasd.com>
-Reply-To: nokia.e6@nokiasoftwarepage.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [patch]acpi: add missing _OSI strings -- resend
+Date: Mon, 4 Jul 2011 14:24:03 +0100
+Message-ID: <20110704132402.GA31498@srcf.ucam.org>
+References: <1309757000.15392.221.camel@sli10-conroe>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 184-82-9-2.static.hostnoc.net ([184.82.9.2]:34527 "EHLO
-	230744.asdasd.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750884Ab1GDMjk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jul 2011 08:39:40 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:59943 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757402Ab1GDNYN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jul 2011 09:24:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1309757000.15392.221.camel@sli10-conroe>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
 
-=0D
-&#220;dv&#246;zl=FCnk!=0D
-=0D
-Most megnyerheted a Nokia E6 k=E9sz=FCl=E9ket!=0D
-R=E9szletek=E9rt l&#225;togass el weboldalunkra: http://mobileart.azuka=
-=2Ebiz/=0D
+On Mon, Jul 04, 2011 at 01:23:20PM +0800, Shaohua Li wrote:
 
+> Linux supports some optional features, but it should notify BIOS about them
+> in _OSI method. Currently Linux doesn't notify any, which might make such
+> features not work because BIOS doesn't know about them.
+> 
+> Reported-by: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
+I can't find any systems in my DSDT collection that actually use these, 
+but in terms of correctness:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Matthew Garrett <mjg@redhat.com>
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
