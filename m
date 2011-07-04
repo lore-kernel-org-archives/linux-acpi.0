@@ -1,70 +1,29 @@
-From: Brad Campbell <brad@fnarfbargle.com>
-Subject: Re: sony-laptop on VAIO TT help request
-Date: Mon, 04 Jul 2011 17:19:14 +0800
-Message-ID: <4E118592.5060301@fnarfbargle.com>
-References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com> <4E0D9765.7060700@absence.it>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH -v2 3/4] ACPI, APEI, Add APEI bit support in generic _OSC call
+Date: Mon, 4 Jul 2011 12:28:51 +0200
+Message-ID: <201107041228.51671.trenn@suse.de>
+References: <1309163160-3201-1-git-send-email-ying.huang@intel.com> <1309163160-3201-4-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4E0D9765.7060700@absence.it>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Marco Chiappero <marco@absence.it>
-Cc: Brad Campbell <lists2009@fnarfbargle.com>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:42315 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754289Ab1GDK24 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jul 2011 06:28:56 -0400
+In-Reply-To: <1309163160-3201-4-git-send-email-ying.huang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-On 01/07/11 17:46, Marco Chiappero wrote:
-> Il 30/06/2011 17:52, Brad Campbell ha scritto:
->> On 30/06/11 21:55, Mattia Dongili wrote:
->>
->>> there are patches already floating around, you can take a look here
->>> http://www.absence.it/vaio-acpi/source/patches/
->>> the code is making its way into the kernel.
->>
->> Hrm.. next time I guess I'll ask before breaking out the debugger!
->
-> Hello,
-> could you please provide us your DSDT and the exact model string of your TT?
->
-http://www.fnarfbargle.com/private/110704_dsdt/tt.dsdt
+On Monday, June 27, 2011 10:25:59 AM Huang Ying wrote:
 
-The Model is a VGN-TT15GN
+>  extern bool osc_sb_apei_support_acked;
+>  
+> +extern bool osc_sb_apei_support_acked;
+> +
+double osc_sb_apei_support_acked declaration?
 
-My dsdt has been patched to recognise a new wireless card but is otherwise unmodified. Everything 
-appears to work but I'll be adding a WWAN card and swapping the Wifi card in the next week or two, 
-so we'll see how that goes.
-
-The patch I was pointed at earlier seems to pretty much activate everything.
-
-brad@bklaptop:~$ sudo grep . /sys/devices/platform/sony-laptop/*
-/sys/devices/platform/sony-laptop/als_backlight:213
-/sys/devices/platform/sony-laptop/als_backlight_levels:0x07 0x0c 0x0f 0x15 0x22 0x3c 0x58 0x8d 0xd5
-/sys/devices/platform/sony-laptop/als_defaults:0x05 0xaa 0x00 0x55 0x6e 0x01 0x23 0x02 0x08 0x04 
-0x32 0x00 0x00
-/sys/devices/platform/sony-laptop/als_kelvin:0
-/sys/devices/platform/sony-laptop/als_lux:0.00
-/sys/devices/platform/sony-laptop/als_managed:0
-/sys/devices/platform/sony-laptop/als_power:0
-/sys/devices/platform/sony-laptop/battery_care_limiter:1
-/sys/devices/platform/sony-laptop/battery_highspeed_charging:0
-/sys/devices/platform/sony-laptop/bluetoothpower:0
-/sys/devices/platform/sony-laptop/fanspeed:17
-/sys/devices/platform/sony-laptop/lid_resume_control:0
-/sys/devices/platform/sony-laptop/modalias:platform:sony-laptop
-/sys/devices/platform/sony-laptop/odd_power:1
-/sys/devices/platform/sony-laptop/thermal_control:1
-/sys/devices/platform/sony-laptop/thermal_profiles:3
-/sys/devices/platform/sony-laptop/touchpad:1
-/sys/devices/platform/sony-laptop/uevent:DRIVER=sony-laptop
-/sys/devices/platform/sony-laptop/uevent:MODALIAS=platform:sony-laptop
-/sys/devices/platform/sony-laptop/wwanpower:0
-
-No manual fanspeed control. bluetoothpower does not seem to do anything. I don't have wwan installed 
-yet, so I can't test wwanpower but I would have expected that to be controlled via rfkill.
-
-I don't seem to be able to get the power consumption down below about 7W though. With Windows I can 
-get it below 6W. I'll keep fiddling.
-
-Interesting point. Windows sets up the graphics card in 16 bit mode to reduce power consumption. 
-With X in 16 bit mode I seem to get about .5-.7W higher power consumption than in the default 24bit 
-mode.
+   Thomas
