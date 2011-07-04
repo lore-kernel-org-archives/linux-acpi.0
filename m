@@ -1,51 +1,78 @@
-From: Marco Chiappero <marco@absence.it>
-Subject: Re: sony-laptop on VAIO TT help request
-Date: Mon, 04 Jul 2011 13:11:01 +0200
-Message-ID: <4E119FC5.6060604@absence.it>
-References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com> <4E0D9765.7060700@absence.it> <4E118592.5060301@fnarfbargle.com>
+From: Michel Alexandre Salim <salimma@fedoraproject.org>
+Subject: Re: Need help debugging Sony Vaio VPCY2 backlight control problem
+Date: Mon, 04 Jul 2011 13:31:54 +0200
+Message-ID: <4E11A4AA.2090106@fedoraproject.org>
+References: <4E0E2155.4070508@fedoraproject.org> <4E0E4637.7000902@absence.it> <4E117DF7.2000602@fedoraproject.org> <4E117E61.2050808@sylvestre.me> <1309769864.1896.113.camel@rui>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4E118592.5060301@fnarfbargle.com>
+In-Reply-To: <1309769864.1896.113.camel@rui>
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: Brad Campbell <brad@fnarfbargle.com>
-Cc: Brad Campbell <lists2009@fnarfbargle.com>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Marco Chiappero <marco@absence.it>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
 List-Id: linux-acpi@vger.kernel.org
 
-Il 04/07/2011 11:19, Brad Campbell ha scritto:
+Hi Rui,
 
-> brad@bklaptop:~$ sudo grep . /sys/devices/platform/sony-laptop/*
-> /sys/devices/platform/sony-laptop/als_backlight:213
-> /sys/devices/platform/sony-laptop/als_backlight_levels:0x07 0x0c 0x0f
-> 0x15 0x22 0x3c 0x58 0x8d 0xd5
-> /sys/devices/platform/sony-laptop/als_defaults:0x05 0xaa 0x00 0x55 0x6e
-> 0x01 0x23 0x02 0x08 0x04 0x32 0x00 0x00
-> /sys/devices/platform/sony-laptop/als_kelvin:0
-> /sys/devices/platform/sony-laptop/als_lux:0.00
-> /sys/devices/platform/sony-laptop/als_managed:0
-> /sys/devices/platform/sony-laptop/als_power:0
+They apply cleanly on top of 3.0-rc5, but I'm getting a
+warning-treated-as-failure. Which kernel tree am I supposed to be
+applying this to -- linus' 3.0-rc5, a post-rc5 commit, drm-intel-fixes
+or drm-intel-next?
 
-If you want to enjoy the ALS driven backlight control (I see here 
-disabled) you should also compile and run the daemon at 
-http://git.zx2c4.com/sony-acpid/
+Thanks -- Michel
 
-> No manual fanspeed control. bluetoothpower does not seem to do anything.
+  CC [M]  drivers/gpu/drm/i915/i915_drv.o
+  CC [M]  drivers/gpu/drm/i915/i915_dma.o
+  CC [M]  drivers/gpu/drm/i915/i915_irq.o
+drivers/gpu/drm/i915/i915_irq.c: In function =E2=80=98ivybridge_irq_han=
+dler=E2=80=99:
+drivers/gpu/drm/i915/i915_irq.c:505:3: error: implicit declaration of
+function =E2=80=98intel_opregion_gse_intr=E2=80=99 [-Werror=3Dimplicit-=
+function-declaration]
+cc1: some warnings being treated as errors
 
-That because the SPIC device is still present but probably unused (can 
-we avoid to initialize it?) since everything goes through the SNC 
-device. I don't know if models using both the SNC and SPIC devices 
-exist. Mattia?
+make[4]: *** [drivers/gpu/drm/i915/i915_irq.o] Error 1
+make[3]: *** [drivers/gpu/drm/i915] Error 2
+make[2]: *** [drivers/gpu/drm] Error 2
+make[1]: *** [drivers/gpu] Error 2
+make: *** [drivers] Error 2
 
-> I don't have wwan installed yet, so I can't test wwanpower but I would
-> have expected that to be controlled via rfkill.
+On 07/04/2011 10:57 AM, Zhang Rui wrote:
+> Hi, Michael,
+>=20
+> please check if the two patches attached help.
+>=20
+> thanks,
+> rui
+>=20
+> On Mon, 2011-07-04 at 16:48 +0800, Michel Alexandre Salim wrote:
+>> On 07/04/2011 10:46 AM, Michel Alexandre Salim wrote:
+>>> Here are the ectool dumps, before setting any brightness (backlight=
+=3D0),
+>>> after setting it to 5, and after setting it to 3, plus the typescri=
+pt
+>>> log of the commands issued and the sysfs readings.
+>>>
+>>> I then set brightness back to 0 (ec-after3.txt) -- didn't log the
+>>> keyboard interactions because it's the same (value for brightness
+>>> concurs with what is set, but actual_brightness is still -1)
+>>>
+>>> Let me know if you need anything else. Once we can at least pinpoin=
+t the
+>>> problem to the right subsystem, I'll add these attachments to the
+>>> correct bug report.
+>>>
+>>> Thanks,
+>>>
+>> And here's the last dump file, forgot to attach it earlier.
+>>
+>> Thanks,
+>>
 
-Right.
 
-> I don't seem to be able to get the power consumption down below about 7W
-> though. With Windows I can get it below 6W. I'll keep fiddling.
+--=20
+Michel Alexandre Salim
 
-Try using the autodimming feature and try turning off the optical device 
-and maybe the touchpad (control files in 
-/sys/devices/platform/sony-laptop/ should be more or less 
-self-explanatory but ask if you need). I can't say much about this, sorry.
+()  ascii ribbon campaign - against html e-mail
+/\  www.asciiribbon.org   - against proprietary attachments
