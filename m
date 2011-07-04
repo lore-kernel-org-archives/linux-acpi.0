@@ -1,154 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] ACPI: fix acpi_power_off lockdep splat
-Date: Mon, 4 Jul 2011 00:28:23 +0200
-Message-ID: <201107040028.23569.rjw@sisk.pl>
-References: <1309684450-24549-1-git-send-email-andrea@betterlinux.com> <201107032259.05722.rjw@sisk.pl> <201107040011.32254.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [patch]acpi: add missing _OSI strings -- resend
+Date: Mon, 04 Jul 2011 13:23:20 +0800
+Message-ID: <1309757000.15392.221.camel@sli10-conroe>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201107040011.32254.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrea Righi <andrea@betterlinux.com>
-Cc: Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:32474 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750992Ab1GDFXW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jul 2011 01:23:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
 
-On Monday, July 04, 2011, Rafael J. Wysocki wrote:
-> On Sunday, July 03, 2011, Rafael J. Wysocki wrote:
-> > On Sunday, July 03, 2011, Andrea Righi wrote:
-> > > Implement acpi_os_create_lock() as a C-preprocessor macro to suppress
-> > > lockdep false positive.
-> > > 
-> > > When lockdep is enabled the spin_lock_init macro stringifies it's
-> > > argument and uses that as a name for the lock in the debugging.
-> > > 
-> > > By executing spin_lock_init in a macro the key changes from "lock" for
-> > > all locks to the actual argument of acpi_os_create_lock()
-> > > ("&acpi_gbl_global_lock_pending_lock", "&acpi_gbl_gpe_lock" or
-> > > "&acpi_gbl_hardware_lock" for now).
-> > > 
-> > > This fixes:
-> > > https://bugzilla.kernel.org/show_bug.cgi?id=38152
-> > > 
-> > > ChangeLog (v1 -> v2):
-> > >  - avoid to call spin_lock_init multiple times on the same lock
-> > >  - rewrite patch description (thanks to Florian for providing a better
-> > >    description of the patch)
-> > > 
-> > > Reported-by: Borislav Petkov <bp@alien8.de>
-> > > CC: Florian Mickler <florian@mickler.org>
-> > > Signed-off-by: Andrea Righi <andrea@betterlinux.com>
-> > > ---
-> > >  drivers/acpi/osl.c      |    3 +--
-> > >  include/acpi/acpiosxf.h |   12 +++++++++++-
-> > >  2 files changed, 12 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > > index 52ca964..4c985d3 100644
-> > > --- a/drivers/acpi/osl.c
-> > > +++ b/drivers/acpi/osl.c
-> > > @@ -1336,14 +1336,13 @@ EXPORT_SYMBOL(acpi_resources_are_enforced);
-> > >   * Create and initialize a spinlock.
-> > >   */
-> > >  acpi_status
-> > > -acpi_os_create_lock(acpi_spinlock *out_handle)
-> > > +__acpi_os_create_lock(acpi_spinlock *out_handle)
-> > >  {
-> > 
-> > I would rename this to acpi_os_allocate_lock() or acpi_os_alloc_lock(),
-> > so that it doesn't suggest the lock is initialized by this function.
-> > 
-> > Hmm.  There's one more thing we need to take into account here.  Namely,
-> > include/acpi/acpiosxf.h is used by other OSes, so we shouldn't put
-> > Linux-specific stuff into it.
-> > 
-> > I'm not sure how to work around that at the moment.
-> 
-> OK, the patch below builds for me and seems to work even, although I haven't
-> tested it with lockdep on.
+Last post (Jun 14 ) is lost, resend.
 
-Below is a cleaned-up version, still untested with lockdep on.
 
-Thanks,
-Rafael
+Linux supports some optional features, but it should notify BIOS about them
+in _OSI method. Currently Linux doesn't notify any, which might make such
+features not work because BIOS doesn't know about them.
 
----
- drivers/acpi/osl.c              |   17 -----------------
- include/acpi/acpiosxf.h         |    3 +++
- include/acpi/platform/aclinux.h |   18 ++++++++++++++++++
- 3 files changed, 21 insertions(+), 17 deletions(-)
+Reported-by: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -1333,23 +1333,6 @@ int acpi_resources_are_enforced(void)
- EXPORT_SYMBOL(acpi_resources_are_enforced);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 52ca964..a305115 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1083,7 +1083,13 @@ struct osi_setup_entry {
+ 	bool enable;
+ };
  
- /*
-- * Create and initialize a spinlock.
-- */
--acpi_status
--acpi_os_create_lock(acpi_spinlock *out_handle)
--{
--	spinlock_t *lock;
--
--	lock = ACPI_ALLOCATE(sizeof(spinlock_t));
--	if (!lock)
--		return AE_NO_MEMORY;
--	spin_lock_init(lock);
--	*out_handle = lock;
--
--	return AE_OK;
--}
--
--/*
-  * Deallocate the memory for a spinlock.
-  */
- void acpi_os_delete_lock(acpi_spinlock handle)
-Index: linux-2.6/include/acpi/acpiosxf.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpiosxf.h
-+++ linux-2.6/include/acpi/acpiosxf.h
-@@ -98,8 +98,11 @@ acpi_os_table_override(struct acpi_table
- /*
-  * Spinlock primitives
-  */
-+
-+#ifndef acpi_os_create_lock
- acpi_status
- acpi_os_create_lock(acpi_spinlock *out_handle);
-+#endif
+-static struct osi_setup_entry __initdata osi_setup_entries[OSI_STRING_ENTRIES_MAX];
++static struct osi_setup_entry __initdata
++		osi_setup_entries[OSI_STRING_ENTRIES_MAX] = {
++	{"Module Device", true},
++	{"Processor Device", true},
++	{"3.0 _SCP Extensions", true},
++	{"Processor Aggregator Device", true},
++};
  
- void acpi_os_delete_lock(acpi_spinlock handle);
- 
-Index: linux-2.6/include/acpi/platform/aclinux.h
-===================================================================
---- linux-2.6.orig/include/acpi/platform/aclinux.h
-+++ linux-2.6/include/acpi/platform/aclinux.h
-@@ -159,6 +159,24 @@ static inline void *acpi_os_acquire_obje
- 	} while (0)
- #endif
- 
-+/*
-+ * When lockdep is enabled, the spin_lock_init() macro stringifies it's
-+ * argument and uses that as a name for the lock in debugging.
-+ * By executing spin_lock_init() in a macro the key changes from "lock" for
-+ * all locks to the name of the argument of acpi_os_create_lock(), which
-+ * prevents lockdep from reporting false positives for ACPICA locks.
-+ */
-+#define acpi_os_create_lock(__handle)				\
-+({								\
-+	spinlock_t *lock = ACPI_ALLOCATE(sizeof(*lock));	\
-+								\
-+	if (lock) {						\
-+		*(__handle) = lock;				\
-+		spin_lock_init(*(__handle));			\
-+	}							\
-+	lock ? AE_OK : AE_NO_MEMORY;				\
-+})
-+
- #endif /* __KERNEL__ */
- 
- #endif /* __ACLINUX_H__ */
+ void __init acpi_osi_setup(char *str)
+ {
+
+
