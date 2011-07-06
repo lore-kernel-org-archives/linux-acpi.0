@@ -1,45 +1,47 @@
-From: Luca Bruno <lucab@debian.org>
-Subject: [PATCH] ACPI / PM: Do not save/restore NVS on Sony Vaio VPCEB1J1E
-Date: Wed,  6 Jul 2011 08:58:00 +0200
-Message-ID: <1309935480-3865-1-git-send-email-lucab@debian.org>
+From: Sam Butts <sam@wessexcomputers.com>
+Subject: acpidump 2.6.35-25-generic #44~lucid1-Ubuntu
+Date: Wed, 06 Jul 2011 12:11:03 +0100
+Message-ID: <4E1442C7.6090704@wessexcomputers.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host-93-93-202-11.planetacomnetwork.com ([93.93.202.11]:46145
-	"EHLO mail.unstable.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875Ab1GFHER (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2011 03:04:17 -0400
+Received: from c2bthomr09.btconnect.com ([213.123.20.127]:61493 "EHLO
+	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752661Ab1GFLTf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2011 07:19:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>
 
-Sony Vaio VPCEB1J1E requires acpi_sleep=nonvs for correct
-suspend/resume. This model is similar to the VPCEB1Z1E, already
-blacklisted. Blacklisting this one too.
+Not sure if this is in a helpful format, but as requested in the 
+messages log, here is the result of acpidump in ascii format, if you 
+would like it any other way i would be happy to supply any info that i can.
 
-Signed-off-by: Luca Bruno <lucab@debian.org>
----
- drivers/acpi/sleep.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 6c94960..96f55c5 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -406,6 +406,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 	},
- 	{
- 	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCEB1J1E",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1J1E"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
- 	.ident = "Sony Vaio VPCEB1Z1E",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
 -- 
-1.7.5.4
+Sam
+
+Simplicity Techincal Support
+
+www.simplicITycomputers.co.uk
+
+Sales Line:      0800 028 0417
+Support Line:    01935 429999
+Phone:           (01935) 434243
+
+Company registered office: 454-458 Chiswick High Road, London, W4 5TT
+
+A copy of our terms and conditions and price list are available on request.
+
+This email (and any attachment) is intended for the use of the addressee
+only and may contain confidential or privileged information. If you receive
+this message in error please notify us immediately and delete the email. If
+you are not the intended recipient you are notified that any dissemination,
+distribution or copying of this communication and its attachments is
+strictly prohibited.
+
+This email and attachments to this email may contain software viruses that
+could damage your computer systems. Wessex Computers Ltd has taken every
+reasonable precaution to minimise this risk but we advise that this email
+and any attachments should be virus checked before they are opened.
 
