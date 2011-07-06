@@ -1,53 +1,124 @@
-From: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
-Subject: RE: [patch]acpi: add missing _OSI strings -- resend
-Date: Wed, 6 Jul 2011 13:50:09 +0100
-Message-ID: <CFBC532374C38D45810FA00BC2D2C204016E9A4D04@irsmsx502.ger.corp.intel.com>
-References: <1309757000.15392.221.camel@sli10-conroe>
-	 <20110705150853.53e00c17.akpm@linux-foundation.org>
- <1309912152.15392.242.camel@sli10-conroe>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [Resend/Update][PATCH] ACPI: Fix lockdep false positives in acpi_power_off()
+Date: Wed, 6 Jul 2011 20:44:25 +0200
+Message-ID: <201107062044.25387.rjw@sisk.pl>
+References: <1309684450-24549-1-git-send-email-andrea@betterlinux.com> <201107050132.11996.rjw@sisk.pl> <20110705100358.6857b235@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24558 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:33329 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751170Ab1GFMvT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2011 08:51:19 -0400
-In-Reply-To: <1309912152.15392.242.camel@sli10-conroe>
-Content-Language: en-US
+	id S1754850Ab1GFSn4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2011 14:43:56 -0400
+In-Reply-To: <20110705100358.6857b235@schatten.dmk.lab>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Florian Mickler <florian@mickler.org>, Andrea Righi <andrea@betterlinux.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-U2hhb2h1YSwgQW5kcmV3LA0KDQpZZXMsIEkgaGF2ZSB0aGUgcGxhdGZvcm0gdG8gdGVzdCBoaXMg
-cGF0Y2ggYW5kIEknbGwgZG8gaXQgYXMgc29vbiBhcyBwb3NzaWJsZS4NCg0KUmVnYXJkcywNClNl
-YmFzdGlhbg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTGksIFNoYW9odWEg
-DQpTZW50OiBXZWRuZXNkYXksIEp1bHkgMDYsIDIwMTEgMjoyOSBBTQ0KVG86IEFuZHJldyBNb3J0
-b24NCkNjOiBsaW51eCBhY3BpOyBCcm93biwgTGVuOyBKYXJvc3osIFNlYmFzdGlhbg0KU3ViamVj
-dDogUmU6IFtwYXRjaF1hY3BpOiBhZGQgbWlzc2luZyBfT1NJIHN0cmluZ3MgLS0gcmVzZW5kDQoN
-Ck9uIFdlZCwgMjAxMS0wNy0wNiBhdCAwNjowOCArMDgwMCwgQW5kcmV3IE1vcnRvbiB3cm90ZToN
-Cj4gT24gTW9uLCAwNCBKdWwgMjAxMSAxMzoyMzoyMCArMDgwMA0KPiBTaGFvaHVhIExpIDxzaGFv
-aHVhLmxpQGludGVsLmNvbT4gd3JvdGU6DQo+IA0KPiA+IExhc3QgcG9zdCAoSnVuIDE0ICkgaXMg
-bG9zdCwgcmVzZW5kLg0KPiA+IA0KPiA+IA0KPiA+IExpbnV4IHN1cHBvcnRzIHNvbWUgb3B0aW9u
-YWwgZmVhdHVyZXMsIGJ1dCBpdCBzaG91bGQgbm90aWZ5IEJJT1MgYWJvdXQgdGhlbQ0KPiA+IGlu
-IF9PU0kgbWV0aG9kLiBDdXJyZW50bHkgTGludXggZG9lc24ndCBub3RpZnkgYW55LCB3aGljaCBt
-aWdodCBtYWtlIHN1Y2gNCj4gPiBmZWF0dXJlcyBub3Qgd29yayBiZWNhdXNlIEJJT1MgZG9lc24n
-dCBrbm93IGFib3V0IHRoZW0uDQo+ID4gDQo+IA0KPiBUaGlzIGlzIGEgYml0IHZhZ3VlLiAgQXJl
-IGFueSBtYWNoaW5lcyBhY3R1YWxseSBmaXhlZCBvciBpbXByb3ZlZCBieQ0KPiB0aGlzIGNoYW5n
-ZT8gIElzIHNvLCBjYW4gd2UgcGxlYXNlIHNlZSBhIGZ1bGwgZGVzY3JpcHRpb24gb2YgdGhlDQo+
-IGJlaGF2aW91ciBjaGFuZ2U/DQpJIGhhdmVuJ3QgYSBzeXN0ZW0gd2hpY2ggbmVlZHMgdGhlIGZp
-eC4gSmFyb3N6IFNlYmFzdGlhbiBoYXMgYSBzeXN0ZW0NCndoaWNoIG5lZWRzIHRoaXMgdG8gbWFr
-ZSBBQ1BJIHByb2Nlc3NvciBhZ2dyZWdhdG9yIGRldmljZSB3b3JrLg0KDQpUaGFua3MsDQpTaGFv
-aHVhDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBUZWNobm9sb2d5IFBvbGFuZCBzcC4geiBvLm8uCnog
-c2llZHppYmEgdyBHZGFuc2t1CnVsLiBTbG93YWNraWVnbyAxNzMKODAtMjk4IEdkYW5zawoKU2Fk
-IFJlam9ub3d5IEdkYW5zayBQb2xub2MgdyBHZGFuc2t1LCAKVklJIFd5ZHppYWwgR29zcG9kYXJj
-enkgS3Jham93ZWdvIFJlamVzdHJ1IFNhZG93ZWdvLCAKbnVtZXIgS1JTIDEwMTg4MgoKTklQIDk1
-Ny0wNy01Mi0zMTYKS2FwaXRhbCB6YWtsYWRvd3kgMjAwLjAwMCB6bAoKVGhpcyBlLW1haWwgYW5k
-IGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwgbWF0ZXJpYWwgZm9yCnRo
-ZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBBbnkgcmV2aWV3IG9yIGRp
-c3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGFyZSBu
-b3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3QgdGhlIHNlbmRlciBhbmQg
-ZGVsZXRlIGFsbCBjb3BpZXMuCg==
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI: Fix lockdep false positives in acpi_power_off()
+
+All ACPICA locks are allocated by the same function,
+acpi_os_create_lock(), with the help of a local variable called
+"lock".  Thus, when lockdep is enabled, it uses "lock" as the
+name of all those locks and regards them as instances of the same
+lock, which causes it to report possible locking problems with them
+when there aren't any.
+
+To work around this problem, define acpi_os_create_lock() as a macro
+and make it pass its argument to spin_lock_init(), so that lockdep
+uses it as the name of the new lock.  Define this macron in a
+Linux-specific file, to minimize the resulting modifications of
+the OS-independent ACPICA parts.
+
+This change is based on an earlier patch from Andrea Righi and it
+addresses a regression from 2.6.39 tracked as
+https://bugzilla.kernel.org/show_bug.cgi?id=38152
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-tested-by: Borislav Petkov <bp@alien8.de>
+Tested-by: Andrea Righi <andrea@betterlinux.com>
+Reviewed-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/acpi/osl.c              |   17 -----------------
+ include/acpi/acpiosxf.h         |    3 +++
+ include/acpi/platform/aclinux.h |   18 ++++++++++++++++++
+ 3 files changed, 21 insertions(+), 17 deletions(-)
+
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -1333,23 +1333,6 @@ int acpi_resources_are_enforced(void)
+ EXPORT_SYMBOL(acpi_resources_are_enforced);
+ 
+ /*
+- * Create and initialize a spinlock.
+- */
+-acpi_status
+-acpi_os_create_lock(acpi_spinlock *out_handle)
+-{
+-	spinlock_t *lock;
+-
+-	lock = ACPI_ALLOCATE(sizeof(spinlock_t));
+-	if (!lock)
+-		return AE_NO_MEMORY;
+-	spin_lock_init(lock);
+-	*out_handle = lock;
+-
+-	return AE_OK;
+-}
+-
+-/*
+  * Deallocate the memory for a spinlock.
+  */
+ void acpi_os_delete_lock(acpi_spinlock handle)
+Index: linux-2.6/include/acpi/acpiosxf.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpiosxf.h
++++ linux-2.6/include/acpi/acpiosxf.h
+@@ -98,8 +98,11 @@ acpi_os_table_override(struct acpi_table
+ /*
+  * Spinlock primitives
+  */
++
++#ifndef acpi_os_create_lock
+ acpi_status
+ acpi_os_create_lock(acpi_spinlock *out_handle);
++#endif
+ 
+ void acpi_os_delete_lock(acpi_spinlock handle);
+ 
+Index: linux-2.6/include/acpi/platform/aclinux.h
+===================================================================
+--- linux-2.6.orig/include/acpi/platform/aclinux.h
++++ linux-2.6/include/acpi/platform/aclinux.h
+@@ -159,6 +159,24 @@ static inline void *acpi_os_acquire_obje
+ 	} while (0)
+ #endif
+ 
++/*
++ * When lockdep is enabled, the spin_lock_init() macro stringifies it's
++ * argument and uses that as a name for the lock in debugging.
++ * By executing spin_lock_init() in a macro the key changes from "lock" for
++ * all locks to the name of the argument of acpi_os_create_lock(), which
++ * prevents lockdep from reporting false positives for ACPICA locks.
++ */
++#define acpi_os_create_lock(__handle)				\
++({								\
++	spinlock_t *lock = ACPI_ALLOCATE(sizeof(*lock));	\
++								\
++	if (lock) {						\
++		*(__handle) = lock;				\
++		spin_lock_init(*(__handle));			\
++	}							\
++	lock ? AE_OK : AE_NO_MEMORY;				\
++})
++
+ #endif /* __KERNEL__ */
+ 
+ #endif /* __ACLINUX_H__ */
 
