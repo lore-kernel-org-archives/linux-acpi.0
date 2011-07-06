@@ -1,41 +1,45 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [patch]acpi: add missing _OSI strings -- resend
-Date: Wed, 06 Jul 2011 08:29:12 +0800
-Message-ID: <1309912152.15392.242.camel@sli10-conroe>
-References: <1309757000.15392.221.camel@sli10-conroe>
-	 <20110705150853.53e00c17.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Luca Bruno <lucab@debian.org>
+Subject: [PATCH] ACPI / PM: Do not save/restore NVS on Sony Vaio VPCEB1J1E
+Date: Wed,  6 Jul 2011 08:58:00 +0200
+Message-ID: <1309935480-3865-1-git-send-email-lucab@debian.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45835 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751378Ab1GFA3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Jul 2011 20:29:14 -0400
-In-Reply-To: <20110705150853.53e00c17.akpm@linux-foundation.org>
+Received: from host-93-93-202-11.planetacomnetwork.com ([93.93.202.11]:46145
+	"EHLO mail.unstable.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab1GFHER (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2011 03:04:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>
 
-On Wed, 2011-07-06 at 06:08 +0800, Andrew Morton wrote:
-> On Mon, 04 Jul 2011 13:23:20 +0800
-> Shaohua Li <shaohua.li@intel.com> wrote:
-> 
-> > Last post (Jun 14 ) is lost, resend.
-> > 
-> > 
-> > Linux supports some optional features, but it should notify BIOS about them
-> > in _OSI method. Currently Linux doesn't notify any, which might make such
-> > features not work because BIOS doesn't know about them.
-> > 
-> 
-> This is a bit vague.  Are any machines actually fixed or improved by
-> this change?  Is so, can we please see a full description of the
-> behaviour change?
-I haven't a system which needs the fix. Jarosz Sebastian has a system
-which needs this to make ACPI processor aggregator device work.
+Sony Vaio VPCEB1J1E requires acpi_sleep=nonvs for correct
+suspend/resume. This model is similar to the VPCEB1Z1E, already
+blacklisted. Blacklisting this one too.
 
-Thanks,
-Shaohua
+Signed-off-by: Luca Bruno <lucab@debian.org>
+---
+ drivers/acpi/sleep.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 6c94960..96f55c5 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -406,6 +406,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCEB1J1E",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1J1E"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VPCEB1Z1E",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-- 
+1.7.5.4
 
