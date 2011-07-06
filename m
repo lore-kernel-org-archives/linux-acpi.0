@@ -1,47 +1,53 @@
-From: Sam Butts <sam@wessexcomputers.com>
-Subject: acpidump 2.6.35-25-generic #44~lucid1-Ubuntu
-Date: Wed, 06 Jul 2011 12:11:03 +0100
-Message-ID: <4E1442C7.6090704@wessexcomputers.com>
+From: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
+Subject: RE: [patch]acpi: add missing _OSI strings -- resend
+Date: Wed, 6 Jul 2011 13:50:09 +0100
+Message-ID: <CFBC532374C38D45810FA00BC2D2C204016E9A4D04@irsmsx502.ger.corp.intel.com>
+References: <1309757000.15392.221.camel@sli10-conroe>
+	 <20110705150853.53e00c17.akpm@linux-foundation.org>
+ <1309912152.15392.242.camel@sli10-conroe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from c2bthomr09.btconnect.com ([213.123.20.127]:61493 "EHLO
-	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752661Ab1GFLTf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2011 07:19:35 -0400
+Received: from mga11.intel.com ([192.55.52.93]:24558 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751170Ab1GFMvT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2011 08:51:19 -0400
+In-Reply-To: <1309912152.15392.242.camel@sli10-conroe>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Li, Shaohua" <shaohua.li@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-Not sure if this is in a helpful format, but as requested in the 
-messages log, here is the result of acpidump in ascii format, if you 
-would like it any other way i would be happy to supply any info that i can.
-
--- 
-Sam
-
-Simplicity Techincal Support
-
-www.simplicITycomputers.co.uk
-
-Sales Line:      0800 028 0417
-Support Line:    01935 429999
-Phone:           (01935) 434243
-
-Company registered office: 454-458 Chiswick High Road, London, W4 5TT
-
-A copy of our terms and conditions and price list are available on request.
-
-This email (and any attachment) is intended for the use of the addressee
-only and may contain confidential or privileged information. If you receive
-this message in error please notify us immediately and delete the email. If
-you are not the intended recipient you are notified that any dissemination,
-distribution or copying of this communication and its attachments is
-strictly prohibited.
-
-This email and attachments to this email may contain software viruses that
-could damage your computer systems. Wessex Computers Ltd has taken every
-reasonable precaution to minimise this risk but we advise that this email
-and any attachments should be virus checked before they are opened.
+U2hhb2h1YSwgQW5kcmV3LA0KDQpZZXMsIEkgaGF2ZSB0aGUgcGxhdGZvcm0gdG8gdGVzdCBoaXMg
+cGF0Y2ggYW5kIEknbGwgZG8gaXQgYXMgc29vbiBhcyBwb3NzaWJsZS4NCg0KUmVnYXJkcywNClNl
+YmFzdGlhbg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogTGksIFNoYW9odWEg
+DQpTZW50OiBXZWRuZXNkYXksIEp1bHkgMDYsIDIwMTEgMjoyOSBBTQ0KVG86IEFuZHJldyBNb3J0
+b24NCkNjOiBsaW51eCBhY3BpOyBCcm93biwgTGVuOyBKYXJvc3osIFNlYmFzdGlhbg0KU3ViamVj
+dDogUmU6IFtwYXRjaF1hY3BpOiBhZGQgbWlzc2luZyBfT1NJIHN0cmluZ3MgLS0gcmVzZW5kDQoN
+Ck9uIFdlZCwgMjAxMS0wNy0wNiBhdCAwNjowOCArMDgwMCwgQW5kcmV3IE1vcnRvbiB3cm90ZToN
+Cj4gT24gTW9uLCAwNCBKdWwgMjAxMSAxMzoyMzoyMCArMDgwMA0KPiBTaGFvaHVhIExpIDxzaGFv
+aHVhLmxpQGludGVsLmNvbT4gd3JvdGU6DQo+IA0KPiA+IExhc3QgcG9zdCAoSnVuIDE0ICkgaXMg
+bG9zdCwgcmVzZW5kLg0KPiA+IA0KPiA+IA0KPiA+IExpbnV4IHN1cHBvcnRzIHNvbWUgb3B0aW9u
+YWwgZmVhdHVyZXMsIGJ1dCBpdCBzaG91bGQgbm90aWZ5IEJJT1MgYWJvdXQgdGhlbQ0KPiA+IGlu
+IF9PU0kgbWV0aG9kLiBDdXJyZW50bHkgTGludXggZG9lc24ndCBub3RpZnkgYW55LCB3aGljaCBt
+aWdodCBtYWtlIHN1Y2gNCj4gPiBmZWF0dXJlcyBub3Qgd29yayBiZWNhdXNlIEJJT1MgZG9lc24n
+dCBrbm93IGFib3V0IHRoZW0uDQo+ID4gDQo+IA0KPiBUaGlzIGlzIGEgYml0IHZhZ3VlLiAgQXJl
+IGFueSBtYWNoaW5lcyBhY3R1YWxseSBmaXhlZCBvciBpbXByb3ZlZCBieQ0KPiB0aGlzIGNoYW5n
+ZT8gIElzIHNvLCBjYW4gd2UgcGxlYXNlIHNlZSBhIGZ1bGwgZGVzY3JpcHRpb24gb2YgdGhlDQo+
+IGJlaGF2aW91ciBjaGFuZ2U/DQpJIGhhdmVuJ3QgYSBzeXN0ZW0gd2hpY2ggbmVlZHMgdGhlIGZp
+eC4gSmFyb3N6IFNlYmFzdGlhbiBoYXMgYSBzeXN0ZW0NCndoaWNoIG5lZWRzIHRoaXMgdG8gbWFr
+ZSBBQ1BJIHByb2Nlc3NvciBhZ2dyZWdhdG9yIGRldmljZSB3b3JrLg0KDQpUaGFua3MsDQpTaGFv
+aHVhDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBUZWNobm9sb2d5IFBvbGFuZCBzcC4geiBvLm8uCnog
+c2llZHppYmEgdyBHZGFuc2t1CnVsLiBTbG93YWNraWVnbyAxNzMKODAtMjk4IEdkYW5zawoKU2Fk
+IFJlam9ub3d5IEdkYW5zayBQb2xub2MgdyBHZGFuc2t1LCAKVklJIFd5ZHppYWwgR29zcG9kYXJj
+enkgS3Jham93ZWdvIFJlamVzdHJ1IFNhZG93ZWdvLCAKbnVtZXIgS1JTIDEwMTg4MgoKTklQIDk1
+Ny0wNy01Mi0zMTYKS2FwaXRhbCB6YWtsYWRvd3kgMjAwLjAwMCB6bAoKVGhpcyBlLW1haWwgYW5k
+IGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwgbWF0ZXJpYWwgZm9yCnRo
+ZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBBbnkgcmV2aWV3IG9yIGRp
+c3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGFyZSBu
+b3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3QgdGhlIHNlbmRlciBhbmQg
+ZGVsZXRlIGFsbCBjb3BpZXMuCg==
 
