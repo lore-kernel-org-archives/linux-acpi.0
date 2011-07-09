@@ -1,101 +1,42 @@
-From: Angus Hammond <angusgh@gmail.com>
-Subject: [PATCH] Fixed coding style in drivers/acpi/ac.c
-Date: Wed, 22 Jun 2011 22:14:20 +0100
-Message-ID: <4e176380.8798d80a.0bbf.fffff767@mx.google.com>
+From: Daniel Drake <dsd@laptop.org>
+Subject: [PATCH] x86, olpc-xo15-sci: enable EC wakeup capability
+Date: Sat,  9 Jul 2011 22:16:03 +0100 (BST)
+Message-ID: <20110709211603.996869D401C@zog.reactivated.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36122 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754961Ab1GHUHb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jul 2011 16:07:31 -0400
-Received: by wyg8 with SMTP id 8so1538383wyg.19
-        for <linux-acpi@vger.kernel.org>; Fri, 08 Jul 2011 13:07:30 -0700 (PDT)
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:42829 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754874Ab1GIVkw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Jul 2011 17:40:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, dilinger@queued.net, linux-acpi@vger.kernel.org
 
-Changed lines causing errors from  scrips/checkpatch.pl.
-Signed-off-by: Angus Hammond <angusgh@gmail.com>
+Some recent changes to the way that ACPI handles wakeup flags means
+that the XO15EC ACPI device is not wakeup-capable by default so
+device_set_wakeup_enable() does nothing.
+
+Use device_init_wakeup() to mark the device as wakeup capable, and to
+enable wakeups.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
 ---
- drivers/acpi/ac.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ arch/x86/platform/olpc/olpc-xo15-sci.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 58c3f74..e510828 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -1,5 +1,5 @@
- /*
-- *  acpi_ac.c - ACPI AC Adapter Driver ($Revision: 27 $)
-+ *  acpi_ac.c - ACPI AC Adapter Driver
-  *
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-@@ -54,8 +54,8 @@ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
+diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
+index a5990eb..2b235b7 100644
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c
++++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
+@@ -120,7 +120,7 @@ static int xo15_sci_add(struct acpi_device *device)
  
- #ifdef CONFIG_ACPI_PROCFS_POWER
--extern struct proc_dir_entry *acpi_lock_ac_dir(void);
--extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
-+struct proc_dir_entry *acpi_lock_ac_dir(void);
-+void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
- static int acpi_ac_open_fs(struct inode *inode, struct file *file);
- #endif
+ 	/* Enable wake-on-EC */
+ 	if (device->wakeup.flags.valid)
+-		device_set_wakeup_enable(&device->dev, true);
++		device_init_wakeup(&device->dev, true);
  
-@@ -85,7 +85,7 @@ static struct acpi_driver acpi_ac_driver = {
- 
- struct acpi_ac {
- 	struct power_supply charger;
--	struct acpi_device * device;
-+	struct acpi_device *device;
- 	unsigned long long state;
- };
- 
-@@ -102,7 +102,7 @@ static const struct file_operations acpi_ac_fops = {
- #endif
- 
- /* --------------------------------------------------------------------------
--                               AC Adapter Management
-+				AC Adapter Management
-    -------------------------------------------------------------------------- */
- 
- static int acpi_ac_get_state(struct acpi_ac *ac)
-@@ -124,7 +124,7 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ 	return 0;
  }
- 
- /* --------------------------------------------------------------------------
--                            sysfs I/F
-+				sysfs I/F
-    -------------------------------------------------------------------------- */
- static int get_ac_property(struct power_supply *psy,
- 			   enum power_supply_property psp,
-@@ -154,7 +154,7 @@ static enum power_supply_property ac_props[] = {
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- /* --------------------------------------------------------------------------
--                              FS Interface (/proc)
-+				FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- 
- static struct proc_dir_entry *acpi_ac_dir;
-@@ -230,7 +230,7 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
- #endif
- 
- /* --------------------------------------------------------------------------
--                                   Driver Model
-+				Driver Model
-    -------------------------------------------------------------------------- */
- 
- static void acpi_ac_notify(struct acpi_device *device, u32 event)
-@@ -298,7 +298,7 @@ static int acpi_ac_add(struct acpi_device *device)
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       ac->state ? "on-line" : "off-line");
- 
--      end:
-+end:
- 	if (result) {
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 		acpi_ac_remove_fs(device);
 -- 
-1.7.4.1
+1.7.5.4
 
