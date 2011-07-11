@@ -1,43 +1,28 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: [PATCH v2] acpi: introduce "acpi_rsdp=" parameter for kdump
-Date: Mon, 11 Jul 2011 13:23:18 -0400
-Message-ID: <20110711172318.GA18279@dumpdata.com>
+Date: Mon, 11 Jul 2011 18:27:35 +0100
+Message-ID: <20110711172735.GB15887@srcf.ucam.org>
 References: <E8CC3FDD41FF9Findou.takao@jp.fujitsu.com>
+ <20110711172318.GA18279@dumpdata.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:24445 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928Ab1GKRZQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2011 13:25:16 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:50161 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758256Ab1GKR1t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2011 13:27:49 -0400
 Content-Disposition: inline
-In-Reply-To: <E8CC3FDD41FF9Findou.takao@jp.fujitsu.com>
+In-Reply-To: <20110711172318.GA18279@dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takao Indoh <indou.takao@jp.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, amwang@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, rdunlap@xenotime.net, lenb@kernel.org, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Takao Indoh <indou.takao@jp.fujitsu.com>, linux-kernel@vger.kernel.org, amwang@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, rdunlap@xenotime.net, lenb@kernel.org, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jul 11, 2011 at 11:14:41AM -0400, Takao Indoh wrote:
-> Revised version of the patch which was posted by Cong WANG
-> 
-> v1:
-> https://lkml.org/lkml/2011/3/10/206
-> 
-> There is a problem with putting the first kernel in EFI virtual mode,
-> it is that when the second kernel comes up it tries to initialize the
-> EFI again and once we have put EFI in virtual mode we can not really
-> do that.
-> 
-> Actually, EFI is not necessary for kdump, we can boot the second kernel
-> with "noefi" parameter, but the boot will mostly fail because 2nd kernel
-> cannot find RSDP.
-> 
-> In this situation, we introduced "acpi_rsdp=" kernel parameter, so that
-> kexec-tools can pass the "noefi acpi_rsdp=X" to the second kernel to make
-> kdump works.
-> 
-> Changes in v2:
-> * Change parameter name from "acpi_addr" to "acpi_rsdp"
-> * Add CONFIG_KEXEC
+On Mon, Jul 11, 2011 at 01:23:18PM -0400, Konrad Rzeszutek Wilk wrote:
 
-How will the tools get the physical address of the RSDP?
+> How will the tools get the physical address of the RSDP?
+
+It's exposed in sysfs.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
