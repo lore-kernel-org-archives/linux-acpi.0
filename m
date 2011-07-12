@@ -1,43 +1,114 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] i915: Fix opregion notifications
-Date: Tue, 12 Jul 2011 23:30:01 +0100
-Message-ID: <20110712223000.GA16307@srcf.ucam.org>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH V2] i915: Fix opregion notifications
+Date: Tue, 12 Jul 2011 18:30:52 -0400
+Message-ID: <1310509852-21002-1-git-send-email-mjg@redhat.com>
 References: <1310507496-20116-1-git-send-email-mjg@redhat.com>
- <yunhb6rjg48.fsf@aiko.keithp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41514 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756025Ab1GLWaI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 18:30:08 -0400
-Content-Disposition: inline
-In-Reply-To: <yunhb6rjg48.fsf@aiko.keithp.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46427 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756082Ab1GLWb5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jul 2011 18:31:57 -0400
+In-Reply-To: <1310507496-20116-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Keith Packard <keithp@keithp.com>
-Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: keithp@keithp.com
+Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On Tue, Jul 12, 2011 at 03:20:23PM -0700, Keith Packard wrote:
+opregion-based platforms will send ACPI video event 0x80 for a range of
+notification types for legacy compatibility. This is interpreted as a
+display switch event, which may not be appropriate in the circumstances.
+When we receive such an event we should make sure that the platform is
+genuinely requesting a display switch before passing that event through
+to userspace.
 
-> Seriously? It's some kind of magic non-switch switch event? And you can
-> tell by checking magic bits within the event?
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Tested-by: Adam Jackson <ajax@redhat.com>
+---
+ drivers/acpi/video.c                  |    7 ++++---
+ drivers/gpu/drm/i915/intel_opregion.c |   15 +++++++++++----
+ include/acpi/video.h                  |    2 ++
+ 3 files changed, 17 insertions(+), 7 deletions(-)
 
-The Intel drivers on Windows appear to have used 0x80 as a generic 
-"Something's chanegd" notification, overloading it for docking, lid 
-state change and display switch press. As a result of that right now 
-we're sending a display switch event whenever one of these occurs. Less 
-than ideal. Opregion gives us a magic field in shared OS/firmware memory 
-that can be used to distinguish between these events.
-
-> How can I test this and know if it works?
-
-Tested on a Thinkpad X200. Make sure suspend is disabled, then close the 
-lid. Open it again. The ACPI video input device will send a display 
-switch event. Add this patch and repeat and the event will vanish. The 
-display switch itself will still generate an event.
-
-I'll send v2 now.
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index db39e9e..ada4b4d 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -46,7 +46,6 @@
+ 
+ #define PREFIX "ACPI: "
+ 
+-#define ACPI_VIDEO_CLASS		"video"
+ #define ACPI_VIDEO_BUS_NAME		"Video Bus"
+ #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
+ #define ACPI_VIDEO_NOTIFY_SWITCH	0x80
+@@ -1445,7 +1444,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+ 	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
+ 					 * most likely via hotkey. */
+ 		acpi_bus_generate_proc_event(device, event, 0);
+-		keycode = KEY_SWITCHVIDEOMODE;
++		if (!acpi_notifier_call_chain(device, event, 0))
++			keycode = KEY_SWITCHVIDEOMODE;
+ 		break;
+ 
+ 	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
+@@ -1475,7 +1475,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+ 		break;
+ 	}
+ 
+-	acpi_notifier_call_chain(device, event, 0);
++	if (event != ACPI_VIDEO_NOTIFY_SWITCH)
++		acpi_notifier_call_chain(device, event, 0);
+ 
+ 	if (keycode) {
+ 		input_report_key(input, keycode, 1);
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index d2c7104..b7c5ddb 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -297,19 +297,26 @@ static int intel_opregion_video_event(struct notifier_block *nb,
+ 	/* The only video events relevant to opregion are 0x80. These indicate
+ 	   either a docking event, lid switch or display switch request. In
+ 	   Linux, these are handled by the dock, button and video drivers.
+-	   We might want to fix the video driver to be opregion-aware in
+-	   future, but right now we just indicate to the firmware that the
+-	   request has been handled */
++	*/
+ 
+ 	struct opregion_acpi *acpi;
++	struct acpi_bus_event *event = data;
++	int ret = NOTIFY_OK;
++
++	if (strcmp(event->device_class, ACPI_VIDEO_CLASS) != 0)
++		return NOTIFY_DONE;
+ 
+ 	if (!system_opregion)
+ 		return NOTIFY_DONE;
+ 
+ 	acpi = system_opregion->acpi;
++
++	if (event->type == 0x80 && !(acpi->cevt & 0x1))
++		ret = NOTIFY_BAD;
++
+ 	acpi->csts = 0;
+ 
+-	return NOTIFY_OK;
++	return ret;
+ }
+ 
+ static struct notifier_block intel_opregion_notifier = {
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 0e98e67..61109f2 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -5,6 +5,8 @@
+ 
+ struct acpi_device;
+ 
++#define ACPI_VIDEO_CLASS	"video"
++
+ #define ACPI_VIDEO_DISPLAY_CRT  1
+ #define ACPI_VIDEO_DISPLAY_TV   2
+ #define ACPI_VIDEO_DISPLAY_DVI  3
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.7.6
+
