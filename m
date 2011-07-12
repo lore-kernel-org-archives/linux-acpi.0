@@ -1,50 +1,106 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH v2] acpi: introduce "acpi_rsdp=" parameter for kdump
-Date: Tue, 12 Jul 2011 09:31:19 -0400
-Message-ID: <20110712133119.GA7377@dumpdata.com>
-References: <E8CC3FDD41FF9Findou.takao@jp.fujitsu.com>
- <4E1C223A.9000705@redhat.com>
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH 1/3] power_supply: scrub device pointer if registration
+ fails
+Date: Tue, 12 Jul 2011 19:09:42 +0400
+Message-ID: <20110712150942.GA1291@oksana.dev.rtsoft.ru>
+References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
+ <1310457809-2731-2-git-send-email-stefanha@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:40386 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab1GLNbk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 09:31:40 -0400
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61010 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072Ab1GLPJr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 11:09:47 -0400
 Content-Disposition: inline
-In-Reply-To: <4E1C223A.9000705@redhat.com>
+In-Reply-To: <1310457809-2731-2-git-send-email-stefanha@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cong Wang <amwang@redhat.com>
-Cc: Takao Indoh <indou.takao@jp.fujitsu.com>, linux-kernel@vger.kernel.org, ebiederm@xmission.com, vgoyal@redhat.com, rdunlap@xenotime.net, lenb@kernel.org, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, mjg@redhat.com
+To: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
+Cc: Len Brown <lenb@kernel.org>, David Woodhouse <dwmw2@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jul 12, 2011 at 06:30:18PM +0800, Cong Wang wrote:
-> =E4=BA=8E 2011=E5=B9=B407=E6=9C=8811=E6=97=A5 23:14, Takao Indoh =E5=86=
-=99=E9=81=93:
-> >Revised version of the patch which was posted by Cong WANG
-> >
-> >Changes in v2:
-> >* Change parameter name from "acpi_addr" to "acpi_rsdp"
-> >* Add CONFIG_KEXEC
->=20
-> Thanks for updating it! Definitely looks good to me,
+On Tue, Jul 12, 2011 at 09:03:27AM +0100, Stefan Hajnoczi wrote:
+> This patch makes power_supply_register() safer for callers that are not
+> being careful.  When the function fails it leaves the caller's psy.dev
+> pointer set to the stale power supply device.  A correct caller would
+> handle the error return and never use psy.dev but the example of
+> drivers/acpi/battery.c shows otherwise.
+> 
+> Clear the psy.dev pointer when power_supply_register() fails so the
+> caller either sees a valid pointer on success or NULL on failure.
+> 
+> Signed-off-by: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
+> ---
+>  drivers/power/power_supply_core.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
+> index 329b46b..33d4068 100644
+> --- a/drivers/power/power_supply_core.c
+> +++ b/drivers/power/power_supply_core.c
+> @@ -194,6 +194,7 @@ create_triggers_failed:
+>  kobject_set_name_failed:
+>  device_add_failed:
+>  	put_device(dev);
+> +	psy->dev = NULL; /* make it crystal-clear that we failed */
+>  success:
+>  	return rc;
+>  }
 
-The only comment I've is that it would be good to include in the
-patch description which sysfs attribute is used by the kexec tools
-to read in the physical address to be passed in.
+I think this may easily cause races. I.e.
 
-Otherwise it looks good to me too.
->=20
-> Reviewed-by: WANG Cong <amwang@redhat.com>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- ACPI calls power_supply_register, it allocates dev, sets
+  psy->dev;
+- Someone calls acpi_battery_notify() or acpi_battery_update(),
+  which tests for psy->dev;
+- power_supply_register fails, it frees dev, and then clears psy->dev;
+  but it's too late, as acpi_battery_notify/acpi_battery_update thinks
+  that we're fine.
+
+I believe the whole ACPI battery logic is overcomplicated, and
+needs a bit of rework. In the meantime, we could move 'psy->dev =
+dev;' assignment into the end of the function, where _register
+could not fail, i.e. something like this:
+
+diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
+index 329b46b..9f85b70 100644
+--- a/drivers/power/power_supply_core.c
++++ b/drivers/power/power_supply_core.c
+@@ -169,7 +169,6 @@ int power_supply_register(struct device *parent, struct power_supply *psy)
+ 	dev->parent = parent;
+ 	dev->release = power_supply_dev_release;
+ 	dev_set_drvdata(dev, psy);
+-	psy->dev = dev;
+ 
+ 	INIT_WORK(&psy->changed_work, power_supply_changed_work);
+ 
+@@ -185,6 +184,8 @@ int power_supply_register(struct device *parent, struct power_supply *psy)
+ 	if (rc)
+ 		goto create_triggers_failed;
+ 
++	psy->dev = dev;
++
+ 	power_supply_changed(psy);
+ 
+ 	goto success;
+
+
+But still, I don't see how this will save us from the same issue
+when ACPI calls power_supply_unregister, which doesn't clear psy->dev:
+
+static void acpi_battery_refresh(struct acpi_battery *battery)
+{
+        if (!battery->bat.dev)
+                return;
+
+        acpi_battery_get_info(battery);
+        /* The battery may have changed its reporting units. */
+        sysfs_remove_battery(battery);
+        sysfs_add_battery(battery);
+}
+
+Really, ACPI battery needs some proper fixing and locking. :-/
+
+-- 
+Anton Vorontsov
+Email: cbouatmailru@gmail.com
