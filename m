@@ -1,56 +1,40 @@
 From: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Subject: [PATCH 3/3] ACPI / Battery: propagate sysfs error in acpi_battery_add()
-Date: Tue, 12 Jul 2011 09:03:29 +0100
-Message-ID: <1310457809-2731-4-git-send-email-stefanha@linux.vnet.ibm.com>
+Subject: [PATCH 1/3] power_supply: scrub device pointer if registration fails
+Date: Tue, 12 Jul 2011 09:03:27 +0100
+Message-ID: <1310457809-2731-2-git-send-email-stefanha@linux.vnet.ibm.com>
 References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtagate6.uk.ibm.com ([194.196.100.166]:48011 "EHLO
-	mtagate6.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462Ab1GLIDy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 04:03:54 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Make sure the error return from sysfs_add_battery() is checked and
-propagated out from acpi_battery_add().
+This patch makes power_supply_register() safer for callers that are not
+being careful.  When the function fails it leaves the caller's psy.dev
+pointer set to the stale power supply device.  A correct caller would
+handle the error return and never use psy.dev but the example of
+drivers/acpi/battery.c shows otherwise.
+
+Clear the psy.dev pointer when power_supply_register() fails so the
+caller either sees a valid pointer on success or NULL on failure.
 
 Signed-off-by: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
 ---
- drivers/acpi/battery.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/power/power_supply_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 6b3aeba..2ae2fca 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -626,8 +626,11 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
--	if (!battery->bat.dev)
--		sysfs_add_battery(battery);
-+	if (!battery->bat.dev) {
-+		result = sysfs_add_battery(battery);
-+		if (result)
-+			return result;
-+	}
- 	result = acpi_battery_get_state(battery);
- 	acpi_battery_quirks2(battery);
- 	return result;
-@@ -975,7 +978,9 @@ static int acpi_battery_add(struct acpi_device *device)
- 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
- 			"_BIX", &handle)))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
--	acpi_battery_update(battery);
-+	result = acpi_battery_update(battery);
-+	if (result)
-+		goto fail;
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
- #endif
+diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
+index 329b46b..33d4068 100644
+--- a/drivers/power/power_supply_core.c
++++ b/drivers/power/power_supply_core.c
+@@ -194,6 +194,7 @@ create_triggers_failed:
+ kobject_set_name_failed:
+ device_add_failed:
+ 	put_device(dev);
++	psy->dev = NULL; /* make it crystal-clear that we failed */
+ success:
+ 	return rc;
+ }
 -- 
 1.7.5.4
-
