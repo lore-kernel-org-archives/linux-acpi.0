@@ -1,95 +1,56 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: sony-laptop on VAIO TT help request
-Date: Tue, 12 Jul 2011 15:21:57 +0900
-Message-ID: <20110712062157.GA15096@gamma.logic.tuwien.ac.at>
-References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com> <4E0D9765.7060700@absence.it> <20110701095049.GE11959@gamma.logic.tuwien.ac.at> <4E0DD1D0.7020605@absence.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
+Subject: [PATCH 3/3] ACPI / Battery: propagate sysfs error in acpi_battery_add()
+Date: Tue, 12 Jul 2011 09:03:29 +0100
+Message-ID: <1310457809-2731-4-git-send-email-stefanha@linux.vnet.ibm.com>
+References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:45619 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502Ab1GLGWF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 02:22:05 -0400
-Content-Disposition: inline
-In-Reply-To: <4E0DD1D0.7020605@absence.it>
+Received: from mtagate6.uk.ibm.com ([194.196.100.166]:48011 "EHLO
+	mtagate6.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab1GLIDy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 04:03:54 -0400
+In-Reply-To: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marco Chiappero <marco@absence.it>
-Cc: Brad Campbell <lists2009@fnarfbargle.com>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>, Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
 
-Hi Marc,
+Make sure the error return from sysfs_add_battery() is checked and
+propagated out from acpi_battery_add().
 
-sorry for the silence, I was overly busy with a state exam on Japanese
-and some presentations.
+Signed-off-by: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
+---
+ drivers/acpi/battery.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-On Fr, 01 Jul 2011, Marco Chiappero wrote:
->> I looked a bit through the patch and I see that it is restricted
->> to MM and (forgotten the model number).
->
-> MM? What does it stand for?
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 6b3aeba..2ae2fca 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -626,8 +626,11 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+-	if (!battery->bat.dev)
+-		sysfs_add_battery(battery);
++	if (!battery->bat.dev) {
++		result = sysfs_add_battery(battery);
++		if (result)
++			return result;
++	}
+ 	result = acpi_battery_get_state(battery);
+ 	acpi_battery_quirks2(battery);
+ 	return result;
+@@ -975,7 +978,9 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
+ 			"_BIX", &handle)))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+-	acpi_battery_update(battery);
++	result = acpi_battery_update(battery);
++	if (result)
++		goto fail;
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+ #endif
+-- 
+1.7.5.4
 
-TT I meant. But patching the kernel and running your module I see at least
-that there is support for battery_care_limiter and some others.
-On my VGN-Z11 I get:
-battery_care_limiter  lid_resume_control  subsystem@	    uevent
-bluetoothpower	      modalias		  thermal_control   wwanpower
-driver@		      odd_power		  thermal_profiles
-fanspeed	      power/		  touchpad
-in /sys/devices/platform/sony-laptop.
-
-What I am missing is the shock protector, there is a sensor built in.
-
-> This last one is interesting because, from the other DSTDs I have seen,  
-> I suspect your notebook to have handle 0x0113, an handle that allows to  
-> enable/disable an unknown feature, is it the HDD protection?
-
-How can I check that?
-
-> This is interesting too. Ok, let's not speak about the multiplexer  
-> methods, let us speak about handle 0x0128, related to the Hybrid GFX  
-> feature. I have never done a deep analysis, maybe you can help here.
-> First of all, newer VPCZ1 models come with a few more methods, dealing  
-> with the screen brightness level, HSC5, HSC6, HSC7. Then:
-> - HSC0 returns the event reason (1 switch position change? what about  
-> 2,3,4?)
-
-Currently we are not evaluating HSC0 at all, I am not sure about its
-function. only HSC1 is used to query the speed/stamina switch.
-Furthermore, the path of HSC1 is different on different modules
-	_SB.PCI0.LPC.SNC.HSC1	(VGN)
-and
-	_SB.PCI0.LPCB.SNC.HSC1	(VPC)
-
-
-Not much more is used actually, but turning on/off the nvidia (secondary
-gpu) and the speed/stamina led by hooking into
-	_SB.PCI0.OVGA._DSM (VGN)
-and
-	_SB.PCI0.P0P2.DGPU._DSM (VPC)
-with various function indices (2 -> led, 3 -> gpu off).
-
-> What does handle 0x0128 aim to provide?
-
-No idea..
-
-If anything what I said makes sense to you and you need more information,
-please let me know. I can hack the module code and dump acpi etc
-whatever might be useful for you.
-
-Best wishes
-
-Norbert
-------------------------------------------------------------------------
-Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-JAIST, Japan                                 TeX Live & Debian Developer
-DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-------------------------------------------------------------------------
-it's at times like this, when
-I'm trapped in a Vogon airlock with a man from Betelgeuse,
-and about to die from asphyxiation in deep space that I
-really wish I'd listened to what my mother told me when I
-was young.'
-`Why, what did she tell you?'
-`I don't know, I didn't listen.'
-                 --- Arthur coping with certain death as best as he could.
-                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
