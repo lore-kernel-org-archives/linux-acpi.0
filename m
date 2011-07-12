@@ -1,55 +1,95 @@
-From: "Michael N. Moran" <mike@mnmoran.org>
-Subject: Help: Thermal Event Anomaly
-Date: Mon, 11 Jul 2011 18:36:12 -0400
-Message-ID: <4E1B7ADC.2000507@mnmoran.org>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: sony-laptop on VAIO TT help request
+Date: Tue, 12 Jul 2011 15:21:57 +0900
+Message-ID: <20110712062157.GA15096@gamma.logic.tuwien.ac.at>
+References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com> <4E0D9765.7060700@absence.it> <20110701095049.GE11959@gamma.logic.tuwien.ac.at> <4E0DD1D0.7020605@absence.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hoster906.com ([64.14.72.78]:48377 "EHLO hoster906.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758177Ab1GKWmz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jul 2011 18:42:55 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:45619 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502Ab1GLGWF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 02:22:05 -0400
+Content-Disposition: inline
+In-Reply-To: <4E0DD1D0.7020605@absence.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux-ACPI <linux-acpi@vger.kernel.org>
+To: Marco Chiappero <marco@absence.it>
+Cc: Brad Campbell <lists2009@fnarfbargle.com>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
 
-Pardon me if I'm in the wrong place, but I'm having
-an "interesting" problem with my laptop that seems
-to be related to a thermal event.
+Hi Marc,
 
-I frequently perform rather lengthy (30 min) parallel
-compiles on my laptop, and have found that at a certain
-point, my fan will stay on and two of my processor's
-cores will continue at about 40% after the compile is
-stopped and "top" shows that the the system is effectively
-idle.
+sorry for the silence, I was overly busy with a state exam on Japanese
+and some presentations.
 
-I suspect a kernel thread or interrupt interaction for
-causing the load on these two cores, since there doesn't
-appear to be any processes consuming the CPU resources.
+On Fr, 01 Jul 2011, Marco Chiappero wrote:
+>> I looked a bit through the patch and I see that it is restricted
+>> to MM and (forgotten the model number).
+>
+> MM? What does it stand for?
 
-I'm hoping that the expertise on this list can at least
-point me to a place in the kernel that may be the cause.
+TT I meant. But patching the kernel and running your module I see at least
+that there is support for battery_care_limiter and some others.
+On my VGN-Z11 I get:
+battery_care_limiter  lid_resume_control  subsystem@	    uevent
+bluetoothpower	      modalias		  thermal_control   wwanpower
+driver@		      odd_power		  thermal_profiles
+fanspeed	      power/		  touchpad
+in /sys/devices/platform/sony-laptop.
 
-The thermal event seems to happen when the CPU reaches
-about 205' Fahrenheit according to KSensor.
+What I am missing is the shock protector, there is a sensor built in.
 
-The CPU is an i7 740 on a Dell Precision M6500 running
-an up-to-date Fedora 14 Linux 2.6.35.13-92.fc14.x86_64 x86_64.
+> This last one is interesting because, from the other DSTDs I have seen,  
+> I suspect your notebook to have handle 0x0113, an handle that allows to  
+> enable/disable an unknown feature, is it the HDD protection?
 
-Thank you for any pointers/suggestions. I'll be happy
-to help and/or file a bug if I've come to the right
-place. Otherwise, if you can point me in the right
-direction I'll move on :)
+How can I check that?
 
--- 
-Michael N. Moran           (h) 770 516 7918
-5009 Old Field Ct.         (c) 678 521 5460
-Kennesaw, GA, USA 30144    http://mnmoran.org
+> This is interesting too. Ok, let's not speak about the multiplexer  
+> methods, let us speak about handle 0x0128, related to the Hybrid GFX  
+> feature. I have never done a deep analysis, maybe you can help here.
+> First of all, newer VPCZ1 models come with a few more methods, dealing  
+> with the screen brightness level, HSC5, HSC6, HSC7. Then:
+> - HSC0 returns the event reason (1 switch position change? what about  
+> 2,3,4?)
 
-"So often times it happens, that we live our lives in chains
-  and we never even know we have the key."
-"Already Gone" by Jack Tempchin (recorded by The Eagles)
+Currently we are not evaluating HSC0 at all, I am not sure about its
+function. only HSC1 is used to query the speed/stamina switch.
+Furthermore, the path of HSC1 is different on different modules
+	_SB.PCI0.LPC.SNC.HSC1	(VGN)
+and
+	_SB.PCI0.LPCB.SNC.HSC1	(VPC)
 
-The Beatles were wrong: 1 & 1 & 1 is 1
+
+Not much more is used actually, but turning on/off the nvidia (secondary
+gpu) and the speed/stamina led by hooking into
+	_SB.PCI0.OVGA._DSM (VGN)
+and
+	_SB.PCI0.P0P2.DGPU._DSM (VPC)
+with various function indices (2 -> led, 3 -> gpu off).
+
+> What does handle 0x0128 aim to provide?
+
+No idea..
+
+If anything what I said makes sense to you and you need more information,
+please let me know. I can hack the module code and dump acpi etc
+whatever might be useful for you.
+
+Best wishes
+
+Norbert
+------------------------------------------------------------------------
+Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
+JAIST, Japan                                 TeX Live & Debian Developer
+DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+------------------------------------------------------------------------
+it's at times like this, when
+I'm trapped in a Vogon airlock with a man from Betelgeuse,
+and about to die from asphyxiation in deep space that I
+really wish I'd listened to what my mother told me when I
+was young.'
+`Why, what did she tell you?'
+`I don't know, I didn't listen.'
+                 --- Arthur coping with certain death as best as he could.
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
