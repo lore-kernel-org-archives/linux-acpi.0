@@ -1,7 +1,7 @@
 From: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Subject: [PATCH 1/3] power_supply: scrub device pointer if registration fails
-Date: Tue, 12 Jul 2011 09:03:27 +0100
-Message-ID: <1310457809-2731-2-git-send-email-stefanha@linux.vnet.ibm.com>
+Subject: [PATCH 2/3] ACPI / Battery: avoid acpi_battery_add() use-after-free
+Date: Tue, 12 Jul 2011 09:03:28 +0100
+Message-ID: <1310457809-2731-3-git-send-email-stefanha@linux.vnet.ibm.com>
 References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
@@ -10,31 +10,52 @@ To: Len Brown <lenb@kernel.org>, Anton Vorontsov <cbou@mail.ru>, David Woodhouse
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch makes power_supply_register() safer for callers that are not
-being careful.  When the function fails it leaves the caller's psy.dev
-pointer set to the stale power supply device.  A correct caller would
-handle the error return and never use psy.dev but the example of
-drivers/acpi/battery.c shows otherwise.
-
-Clear the psy.dev pointer when power_supply_register() fails so the
-caller either sees a valid pointer on success or NULL on failure.
+When acpi_battery_add_fs() fails the error handling code does not clean
+up completely.  Moreover, it does not return resulting in a
+use-after-free.
 
 Signed-off-by: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
 ---
- drivers/power/power_supply_core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/acpi/battery.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 329b46b..33d4068 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -194,6 +194,7 @@ create_triggers_failed:
- kobject_set_name_failed:
- device_add_failed:
- 	put_device(dev);
-+	psy->dev = NULL; /* make it crystal-clear that we failed */
- success:
- 	return rc;
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fcc13ac..6b3aeba 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -979,21 +979,27 @@ static int acpi_battery_add(struct acpi_device *device)
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+ #endif
+-	if (!result) {
+-		printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
+-			ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
+-			device->status.battery_present ? "present" : "absent");
+-	} else {
++	if (result) {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 		acpi_battery_remove_fs(device);
+ #endif
+-		kfree(battery);
++		goto fail;
+ 	}
+ 
++	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
++		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
++		device->status.battery_present ? "present" : "absent");
++
+ 	battery->pm_nb.notifier_call = battery_notify;
+ 	register_pm_notifier(&battery->pm_nb);
+ 
+ 	return result;
++
++fail:
++	sysfs_remove_battery(battery);
++	mutex_destroy(&battery->lock);
++	kfree(battery);
++	return result;
  }
+ 
+ static int acpi_battery_remove(struct acpi_device *device, int type)
 -- 
 1.7.5.4
