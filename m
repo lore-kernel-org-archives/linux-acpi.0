@@ -1,163 +1,112 @@
-From: Anton Vorontsov <cbouatmailru@gmail.com>
-Subject: Re: [PATCH 1/3] power_supply: scrub device pointer if registration
- fails
-Date: Tue, 12 Jul 2011 21:23:31 +0400
-Message-ID: <20110712172331.GA9557@oksana.dev.rtsoft.ru>
-References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
- <1310457809-2731-2-git-send-email-stefanha@linux.vnet.ibm.com>
- <20110712150942.GA1291@oksana.dev.rtsoft.ru>
- <20110712153017.GA4503@stefanha-thinkpad.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] i915: Fix opregion notifications
+Date: Tue, 12 Jul 2011 17:51:36 -0400
+Message-ID: <1310507496-20116-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35485 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754493Ab1GLRXh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jul 2011 13:23:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20110712153017.GA4503@stefanha-thinkpad.localdomain>
+Received: from mx1.redhat.com ([209.132.183.28]:16849 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753653Ab1GLVwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jul 2011 17:52:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Cc: Len Brown <lenb@kernel.org>, David Woodhouse <dwmw2@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: keithp@keithp.com
+Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On Tue, Jul 12, 2011 at 04:30:17PM +0100, Stefan Hajnoczi wrote:
-[...]
-> > I believe the whole ACPI battery logic is overcomplicated, and
-> > needs a bit of rework. In the meantime, we could move 'psy->dev =
-> > dev;' assignment into the end of the function, where _register
-> > could not fail, i.e. something like this:
-> 
-> Aha!  I didn't do this is because I don't know the code and was afraid
-> some other function somewhere would use psy->dev.  If you think it is
-> safer this way I'll resend the patch.
+opregion-based platforms will send ACPI video event 0x80 for a range of
+notification types for legacy compatibility. This is interpreted as a
+display switch event, which may not be appropriate in the circumstances.
+When we receive such an event we should make sure that the platform is
+genuinely requesting a display switch before passing that event through
+to userspace.
 
-Neither is a proper fix, unfortunately. :-( Without some external lock
-you can't use psy->dev as a flag to check if the registration was
-successful. There is really no point trying to force core functions
-to keep psy->dev in a sane state after registration has failed.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Tested-by: Adam Jackson <ajax@redhat.com>
+---
+ drivers/acpi/video.c                  |    7 ++++---
+ drivers/gpu/drm/i915/intel_opregion.c |   15 +++++++++++----
+ include/acpi/video.h                  |    2 ++
+ 3 files changed, 17 insertions(+), 7 deletions(-)
 
-So, instead of patching power_supply core, I'd suggest the
-following patch (on top of 2/3 and 3/3, so far only compile-
-tested). How does it look?
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 2ae2fca..475e17c 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -101,6 +101,7 @@ enum {
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index db39e9e..ada4b4d 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -46,7 +46,6 @@
  
- struct acpi_battery {
- 	struct mutex lock;
-+	struct mutex bat_lock;
- 	struct power_supply bat;
- 	struct acpi_device *device;
- 	struct notifier_block pm_nb;
-@@ -559,8 +560,10 @@ static int sysfs_add_battery(struct acpi_battery *battery)
- 	battery->bat.get_property = acpi_battery_get_property;
+ #define PREFIX "ACPI: "
  
- 	result = power_supply_register(&battery->device->dev, &battery->bat);
--	if (result)
-+	if (result) {
-+		battery->bat.dev = NULL;
- 		return result;
-+	}
- 	return device_create_file(battery->bat.dev, &alarm_attr);
- }
+-#define ACPI_VIDEO_CLASS		"video"
+ #define ACPI_VIDEO_BUS_NAME		"Video Bus"
+ #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
+ #define ACPI_VIDEO_NOTIFY_SWITCH	0x80
+@@ -1445,7 +1444,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+ 	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
+ 					 * most likely via hotkey. */
+ 		acpi_bus_generate_proc_event(device, event, 0);
+-		keycode = KEY_SWITCHVIDEOMODE;
++		if (!acpi_notifier_call_chain(device, event, 0))
++			keycode = KEY_SWITCHVIDEOMODE;
+ 		break;
  
-@@ -613,31 +616,40 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	result = acpi_battery_get_status(battery);
- 	if (result)
- 		return result;
-+
-+	mutex_lock(&battery->bat_lock);
-+
- 	if (!acpi_battery_present(battery)) {
- 		sysfs_remove_battery(battery);
- 		battery->update_time = 0;
--		return 0;
-+		result = 0;
-+		goto out_unlock;
- 	}
- 	if (!battery->update_time ||
- 	    old_present != acpi_battery_present(battery)) {
- 		result = acpi_battery_get_info(battery);
- 		if (result)
--			return result;
-+			goto out_unlock;
- 		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
- 	if (!battery->bat.dev) {
- 		result = sysfs_add_battery(battery);
- 		if (result)
--			return result;
-+			goto out_unlock;
- 	}
- 	result = acpi_battery_get_state(battery);
- 	acpi_battery_quirks2(battery);
-+
-+out_unlock:
-+	mutex_unlock(&battery->bat_lock);
- 	return result;
- }
- 
--static void acpi_battery_refresh(struct acpi_battery *battery)
-+static void sysfs_readd_battery(struct acpi_battery *battery)
- {
-+	mutex_lock(&battery->bat_lock);
-+
- 	if (!battery->bat.dev)
- 		return;
- 
-@@ -645,6 +657,13 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
- 	/* The battery may have changed its reporting units. */
- 	sysfs_remove_battery(battery);
- 	sysfs_add_battery(battery);
-+
-+	mutex_unlock(&battery->bat_lock);
-+}
-+
-+static void acpi_battery_refresh(struct acpi_battery *battery)
-+{
-+	sysfs_readd_battery(battery);
- }
- 
- /* --------------------------------------------------------------------------
-@@ -941,8 +960,10 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
- 	/* acpi_battery_update could remove power_supply object */
-+	mutex_lock(&battery->bat_lock);
- 	if (old && battery->bat.dev)
- 		power_supply_changed(&battery->bat);
-+	mutex_unlock(&battery->bat_lock);
- }
- 
- static int battery_notify(struct notifier_block *nb,
-@@ -952,8 +973,7 @@ static int battery_notify(struct notifier_block *nb,
- 						    pm_nb);
- 	switch (mode) {
- 	case PM_POST_SUSPEND:
--		sysfs_remove_battery(battery);
--		sysfs_add_battery(battery);
-+		sysfs_readd_battery(battery);
+ 	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
+@@ -1475,7 +1475,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
  		break;
  	}
  
-@@ -975,6 +995,7 @@ static int acpi_battery_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
- 	device->driver_data = battery;
- 	mutex_init(&battery->lock);
-+	mutex_init(&battery->bat_lock);
- 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
- 			"_BIX", &handle)))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-@@ -1019,6 +1040,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
- 	acpi_battery_remove_fs(device);
- #endif
- 	sysfs_remove_battery(battery);
-+	mutex_destroy(&battery->bat_lock);
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
- 	return 0;
+-	acpi_notifier_call_chain(device, event, 0);
++	if (event != ACPI_VIDEO_NOTIFY_SWITCH)
++		acpi_notifier_call_chain(device, event, 0);
+ 
+ 	if (keycode) {
+ 		input_report_key(input, keycode, 1);
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index d2c7104..3443fc1c 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -297,19 +297,26 @@ static int intel_opregion_video_event(struct notifier_block *nb,
+ 	/* The only video events relevant to opregion are 0x80. These indicate
+ 	   either a docking event, lid switch or display switch request. In
+ 	   Linux, these are handled by the dock, button and video drivers.
+-	   We might want to fix the video driver to be opregion-aware in
+-	   future, but right now we just indicate to the firmware that the
+-	   request has been handled */
++	*/
+ 
+ 	struct opregion_acpi *acpi;
++	struct acpi_bus_event *event = data;
++	int ret = NOTIFY_OK;
++
++	if (strcmp(event->device_class, ACPI_VIDEO_CLASS))
++		return NOTIFY_DONE;
+ 
+ 	if (!system_opregion)
+ 		return NOTIFY_DONE;
+ 
+ 	acpi = system_opregion->acpi;
++
++	if (event->type == 0x80 && !(acpi->cevt & 0x1))
++		ret = NOTIFY_BAD;
++
+ 	acpi->csts = 0;
+ 
+-	return NOTIFY_OK;
++	return ret;
+ }
+ 
+ static struct notifier_block intel_opregion_notifier = {
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 0e98e67..61109f2 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -5,6 +5,8 @@
+ 
+ struct acpi_device;
+ 
++#define ACPI_VIDEO_CLASS	"video"
++
+ #define ACPI_VIDEO_DISPLAY_CRT  1
+ #define ACPI_VIDEO_DISPLAY_TV   2
+ #define ACPI_VIDEO_DISPLAY_DVI  3
+-- 
+1.7.6
+
