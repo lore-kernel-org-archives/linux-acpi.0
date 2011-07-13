@@ -1,114 +1,34 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH V2] i915: Fix opregion notifications
-Date: Tue, 12 Jul 2011 18:30:52 -0400
-Message-ID: <1310509852-21002-1-git-send-email-mjg@redhat.com>
-References: <1310507496-20116-1-git-send-email-mjg@redhat.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH 00/17] ACPI, APEI, Patches for 3.1
+Date: Wed, 13 Jul 2011 13:14:11 +0800
+Message-ID: <1310534068-30547-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46427 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:9791 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756082Ab1GLWb5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jul 2011 18:31:57 -0400
-In-Reply-To: <1310507496-20116-1-git-send-email-mjg@redhat.com>
+	id S1750705Ab1GMFOc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jul 2011 01:14:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: keithp@keithp.com
-Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-opregion-based platforms will send ACPI video event 0x80 for a range of
-notification types for legacy compatibility. This is interpreted as a
-display switch event, which may not be appropriate in the circumstances.
-When we receive such an event we should make sure that the platform is
-genuinely requesting a display switch before passing that event through
-to userspace.
+Including some bug fixes,  APEI _OSC support, recoverable error
+printk support and memory error recovery support.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Tested-by: Adam Jackson <ajax@redhat.com>
----
- drivers/acpi/video.c                  |    7 ++++---
- drivers/gpu/drm/i915/intel_opregion.c |   15 +++++++++++----
- include/acpi/video.h                  |    2 ++
- 3 files changed, 17 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index db39e9e..ada4b4d 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -46,7 +46,6 @@
- 
- #define PREFIX "ACPI: "
- 
--#define ACPI_VIDEO_CLASS		"video"
- #define ACPI_VIDEO_BUS_NAME		"Video Bus"
- #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
- #define ACPI_VIDEO_NOTIFY_SWITCH	0x80
-@@ -1445,7 +1444,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
- 	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
- 					 * most likely via hotkey. */
- 		acpi_bus_generate_proc_event(device, event, 0);
--		keycode = KEY_SWITCHVIDEOMODE;
-+		if (!acpi_notifier_call_chain(device, event, 0))
-+			keycode = KEY_SWITCHVIDEOMODE;
- 		break;
- 
- 	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
-@@ -1475,7 +1475,8 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
- 		break;
- 	}
- 
--	acpi_notifier_call_chain(device, event, 0);
-+	if (event != ACPI_VIDEO_NOTIFY_SWITCH)
-+		acpi_notifier_call_chain(device, event, 0);
- 
- 	if (keycode) {
- 		input_report_key(input, keycode, 1);
-diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-index d2c7104..b7c5ddb 100644
---- a/drivers/gpu/drm/i915/intel_opregion.c
-+++ b/drivers/gpu/drm/i915/intel_opregion.c
-@@ -297,19 +297,26 @@ static int intel_opregion_video_event(struct notifier_block *nb,
- 	/* The only video events relevant to opregion are 0x80. These indicate
- 	   either a docking event, lid switch or display switch request. In
- 	   Linux, these are handled by the dock, button and video drivers.
--	   We might want to fix the video driver to be opregion-aware in
--	   future, but right now we just indicate to the firmware that the
--	   request has been handled */
-+	*/
- 
- 	struct opregion_acpi *acpi;
-+	struct acpi_bus_event *event = data;
-+	int ret = NOTIFY_OK;
-+
-+	if (strcmp(event->device_class, ACPI_VIDEO_CLASS) != 0)
-+		return NOTIFY_DONE;
- 
- 	if (!system_opregion)
- 		return NOTIFY_DONE;
- 
- 	acpi = system_opregion->acpi;
-+
-+	if (event->type == 0x80 && !(acpi->cevt & 0x1))
-+		ret = NOTIFY_BAD;
-+
- 	acpi->csts = 0;
- 
--	return NOTIFY_OK;
-+	return ret;
- }
- 
- static struct notifier_block intel_opregion_notifier = {
-diff --git a/include/acpi/video.h b/include/acpi/video.h
-index 0e98e67..61109f2 100644
---- a/include/acpi/video.h
-+++ b/include/acpi/video.h
-@@ -5,6 +5,8 @@
- 
- struct acpi_device;
- 
-+#define ACPI_VIDEO_CLASS	"video"
-+
- #define ACPI_VIDEO_DISPLAY_CRT  1
- #define ACPI_VIDEO_DISPLAY_TV   2
- #define ACPI_VIDEO_DISPLAY_DVI  3
--- 
-1.7.6
-
+[PATCH 01/17] ACPI, APEI, HEST, Detect duplicated hardware error
+[PATCH 02/17] ACPI, APEI, ERST, Prevent erst_dbg from loading if
+[PATCH 03/17] ACPI, APEI, ERST, Fix erst-dbg long record reading
+[PATCH 04/17] ACPI, APEI, GHES, Do not ratelimit fatal error printk
+[PATCH 05/17] ACPI, APEI, Add apei_exec_run_optional
+[PATCH 06/17] ACPI, APEI, Use apei_exec_run_optional in APEI EINJ
+[PATCH 07/17] ACPI, APEI, GHES, Prevent GHES to be built as module
+[PATCH 08/17] ACPI, APEI, GHES, Support disable GHES at boot time
+[PATCH 09/17] ACPI, APEI, Add APEI bit support in generic _OSC call
+[PATCH 10/17] ACPI, APEI, Add WHEA _OSC support
+[PATCH 11/17] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+[PATCH 12/17] lib, Add lock-less NULL terminated single list
+[PATCH 13/17] lib, Make gen_pool memory allocator lockless
+[PATCH 14/17] ACPI, APEI, GHES, printk support for recoverable error
+[PATCH 15/17] ACPI, APEI, GHES, Error records content based throttle
+[PATCH 16/17] HWPoison: add memory_failure_queue()
+[PATCH 17/17] ACPI, APEI, GHES: Add hardware memory error recovery
