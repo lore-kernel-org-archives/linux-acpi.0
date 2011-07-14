@@ -1,121 +1,123 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: sony-laptop on VAIO TT help request
-Date: Thu, 14 Jul 2011 07:50:31 +0900
-Message-ID: <20110713225031.GD3436@gamma.logic.tuwien.ac.at>
-References: <4E0C4AE2.2050706@fnarfbargle.com> <20110630135507.GA24186@kamineko.org> <4E0C9BC6.4020603@fnarfbargle.com> <4E0D9765.7060700@absence.it> <20110701095049.GE11959@gamma.logic.tuwien.ac.at> <4E0DD1D0.7020605@absence.it> <20110712062157.GA15096@gamma.logic.tuwien.ac.at> <4E1E181D.1030301@absence.it>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] acpi-cpufreq: remove unreliable get-frequency functions
+Date: Wed, 13 Jul 2011 21:53:41 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1107131718270.9546@x980>
+References: <alpine.LFD.2.02.1106060144310.6779@x980>
+ <20110606071209.GA20080@isilmar-3.linta.de>
+ <alpine.LFD.2.02.1106062353030.4784@x980>
+ <20110607054226.GA22398@isilmar-3.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4E1E181D.1030301@absence.it>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Marco Chiappero <marco@absence.it>
-Cc: Brad Campbell <lists2009@fnarfbargle.com>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, platform-driver-x86 <platform-driver-x86@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:40238 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab1GNCyE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2011 22:54:04 -0400
+In-reply-to: <20110607054226.GA22398@isilmar-3.linta.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
 
-Hi Marco,
+On Tue, 7 Jun 2011, Dominik Brodowski wrote:
 
-On Do, 14 Jul 2011, Marco Chiappero wrote:
->> What I am missing is the shock protector, there is a sensor built in.
+> > Instantaneous frequency can change many times per second.
+> > What benefit is there to reporting someting that changes that fast
+> > to readers of sysfs?
+> 
+> Same as there are reasons for wanting to know the average frequency, there
+> are reasons for wanting to know the exact current frequency.
+
+While "exact current frequency" meant something in the old days,
+its value is diminished on a processor that autonomously
+and continuously changes frequency w/o intervention from the OS.
+
+All turbo-enabled processors from Intel do this -- and
+the trend is that future processors will do more of it.
+
+Recording the last request in policy->cur is useful.
+Reporting the average in driver->getavg() is useful.
+Reporting the instantaneous in driver->get()?  Not so much.
+
+> E.g. to
+> determine what's going on behind your back again (e.g. so-called "hardware
+> coordination", "thermal throttling" etc.).
+
+This is exactly why ondemand uses driver->getavg()
+and does not use driver->get()!
+
+> > > For silicon which can't be fixed any more
+
+As the silicon isn't broken, it isn't going to be "fixed".
+
+Yes, it is more complicated than the old days when the
+OS not only had to decide on policy, but implmenet it
+by telling the HW exactly what frequency to run at.
+
+> > > using APERF instead may be a
+> > > valid  -- but costly[*] -- solution. For other CPUs, I'd favour keeping
+> > > the current code -- even if Intel CPUs aren't capable to reliably tell
+> > > which frequency they're running at.
+> > 
+> > APERF is expensive how?
+> 
+> As you need to average, you need to spend some time between the first and
+> the second call to read out aperf.
+
+If  __cpufreq_driver_getavg() were not fast, we would not
+have been using it in ondemand over the last 3 years.
+
+> > > Finally:
+> > > 
+> > > > +	policy->cur = data->freq_table[data->acpi_data->state].frequency;
+> > > 
+> > > How do you know what state / frequency the CPU is running here?
+> > 
+> > really the correct fix is for the upper level of cpufreq to
+> > simply no export this value at all, or to export the value
+> > that was last written.  A driver should be free to decline
+> > to supply any current value.
 >
-> Yes I know, and it seems that a device driver is used under Windows...  
-> can you confirm this? Can you see this sensor under the device listing  
+> You didn't answer the question of how it is assured that policy->cur is
+> correctly initialized here.
 
-It was used in the original installation, I often got "turned off
-HDD due to ....", but I had to reinstall and used a new W7, and I am
-very lazy in hunting down drivers for W7 since I hardly use it.
-I will check what I see in the device manager of W7.
+Acutally, it doesn't matter.
+If that line were replaced with "policy->cur = 1"
+everything would work just fine.  It must be
+initizlized to non-zero for ondemand to probe out;
+and as you point out later, it gets overwritten anyway.
 
->>> This last one is interesting because, from the other DSTDs I have seen,
->>> I suspect your notebook to have handle 0x0113, an handle that allows to
->>> enable/disable an unknown feature, is it the HDD protection?
->>
->> How can I check that?
->
-> I can provide you a patch for testing this feature.
+> To the other point you raise: This interface _is_ optional:
+> 
+>         /* should be defined, if possible */
+>         unsigned int    (*get)  (unsigned int cpu);
 
-Yeah, please do so.
+Right, cpufreq_driver.get is optional.
+The point of my patch is for acpi-cpufreq to "opt-out".
 
->> Currently we are not evaluating HSC0 at all, I am not sure about its
->> function.
->
-> HSC0 returns HGER (Hybrid GFX Event Reason), a number that can be read  
-> when an Hybrid GFX event is notified (for example when the physical  
-> switch change its position), telling userspace what triggered that event.
+My point above wasn't about cpufreq_driver.get,
+it was about policy->cur.
 
-So HSC0 returns similar data to HSC1.
+The driver should not have to initialize,
+or even know about, policy->cur.
 
-> It also provides other informations, do you know their meaning?
+> We knew back when the interface was written that ACPI is problematic here,
+> as it tries to hide valuable information.
 
-No idea!
+This discussion is about how the HW works, not about ACPI.
 
->
-> Method (HSC1, 0, Serialized)
-> {
->     Store (Zero, Local0)
->     If (AVIL)			<-- ??
->     { ... }
->
->     If (^^H8EC.SWPS)		<-- switch position
->     { ... }
->
->     If (LEqual (HGAP, One))	<-- Hyb GFX A? Presence?
->     { ... }
->
->     If (LEqual (HGAP, 0x02))	<-- Hyb GFX A? Presence?
->     { ... }
->
->     If (HDME)		<-- HDMI Exit? HDMI routing capability?
->     { ... }
+> The value which was last written
+> is exported, BTW, in scaling_cur_freq . But it is of much less value --
+> _especially_ if some "black box" decides to use a different frequency
+> than what the kernel told it.
 
-That would be nice!!!! I am indeed searching for a way to activate HDMI
-output on my laptop, but didn't manage till now.
+The black box is the hardware.  I can't change how the HW works.
 
->     If (DVIE)
->     { ... }
->
->     If (^^H8EC.ATSW)		<-- switch set to auto
->     { ... }
+I have no problem with exporting policy->cur in scaling_cur_freq.
 
-Can you provide me with a patch so that I can test these things? I mean
-I can simply switch the position and read values from /sys files.
+I do have a problem with 200 lines of code in a 750-line driver
+with has the sole function of exporting the optinoal
+cpuinfo_cur_freq in sysfs, only to get it wrong!
 
->
->> Furthermore, the path of HSC1 is different on different modules
->> 	_SB.PCI0.LPC.SNC.HSC1	(VGN)
->> and
->> 	_SB.PCI0.LPCB.SNC.HSC1	(VPC)
->
-> This is not relevant, we just call the SN07 method from the SNC device,  
-> so don't care about it.
-
-Hmm, in the patch relative to your to turn on/off the nvidia device
-we use this paths. If you are interested I can send you the patch
-I am currently working with, relative to 3.0.0-rc7+your patch
-.
-
-> If I'm not wrong the video driver should take care of calling _DSM and  
-> other multiplexing methods (MXDS, MXMX and so on), is it right?
-
-No. It seems that the video driver (intel) does *not* turn off the 
-nvidia card. I I load it without special action I get an active
-nvidia card that eats battery time.
-
-> We need to find out more about methods HSC1, HSC2, HSC3, HSC4, but I  
-> don't own the hardware.
-
-I am fine with testing many things ... but my actual knowledge of ACPI
-internals is minimal, sorry.
-
-Best wishes
-
-Norbert
-------------------------------------------------------------------------
-Norbert Preining            preining@{jaist.ac.jp, logic.at, debian.org}
-JAIST, Japan                                 TeX Live & Debian Developer
-DSA: 0x09C5B094   fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
-------------------------------------------------------------------------
-ABILENE (adj.)
-Descriptive of the pleasing coolness on the reverse side of the
-pillow.
-			--- Douglas Adams, The Meaning of Liff
+thanks,
+Len Brown, Intel Open Source Technology Center
