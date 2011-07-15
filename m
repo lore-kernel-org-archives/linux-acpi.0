@@ -1,38 +1,26 @@
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: Re: [PATCH] acpi: constify ops structs
-Date: Fri, 15 Jul 2011 10:35:26 +0400
-Message-ID: <20110715063526.GB3166@albatros>
-References: <20110625170752.GA10458@albatros>
+From: "Nath, Arindam" <Arindam.Nath@amd.com>
+Subject: Linux ACPI BERT implementation
+Date: Fri, 15 Jul 2011 01:47:53 -0500
+Message-ID: <6C03668EAF45B747AF947A1603D1B300018F85B9D9@SAUSEXMBP01.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110625170752.GA10458@albatros>
-Sender: linux-ide-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: kernel-hardening@lists.openwall.com, Shaohua Li <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:57681 "EHLO
+	TX2EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750868Ab1GOGsV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Jul 2011 02:48:21 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "ying.huang@intel.com" <ying.huang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Su, Henry" <Henry.Su@amd.com>
 
-Hi Len,
+Hi Huang,
 
-On Sat, Jun 25, 2011 at 21:07 +0400, Vasiliy Kulikov wrote:
-> Structs battery_file, acpi_dock_ops, file_operations,
-> thermal_cooling_device_ops, thermal_zone_device_ops, kernel_param_ops
-> are not changed in runtime.  It is safe to make them const.
-> register_hotplug_dock_device() was altered to take const "ops" argument
-> to respect acpi_dock_ops' const notion.
-> 
-> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-> ---
+Since you have already added some support for APEI into the ACPI subsystem, are you planning to add support for BERT too?
 
-Any problems with the patch?
+Regards,
+Arindam
 
->  Len, I think it can be applied as a single patch to acpi tree as the
->  only non-acpi thing is acpi_dock_ops in ata/ and pci/, which is really
->  trivial.
-
-Thanks,
-
--- 
-Vasiliy Kulikov
-http://www.openwall.com - bringing security into open computing environments
