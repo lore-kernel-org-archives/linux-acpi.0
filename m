@@ -1,34 +1,32 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH] acpi: constify ops structs
-Date: Fri, 15 Jul 2011 02:58:35 -0400
-Message-ID: <4E1FE51B.70009@pobox.com>
-References: <20110625170752.GA10458@albatros> <20110715063526.GB3166@albatros>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: Linux ACPI BERT implementation
+Date: Fri, 15 Jul 2011 15:07:53 +0800
+Message-ID: <4E1FE749.2080707@intel.com>
+References: <6C03668EAF45B747AF947A1603D1B300018F85B9D6@SAUSEXMBP01.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:44212 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964770Ab1GOG6i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2011 02:58:38 -0400
-In-Reply-To: <20110715063526.GB3166@albatros>
+Received: from mga14.intel.com ([143.182.124.37]:1722 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964786Ab1GOHHy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Jul 2011 03:07:54 -0400
+In-Reply-To: <6C03668EAF45B747AF947A1603D1B300018F85B9D6@SAUSEXMBP01.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Len Brown <lenb@kernel.org>, kernel-hardening@lists.openwall.com, Shaohua Li <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-pci@vger.kernel.org
+To: "Nath, Arindam" <Arindam.Nath@amd.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Su, Henry" <Henry.Su@amd.com>
 
-On 07/15/2011 02:35 AM, Vasiliy Kulikov wrote:
-> Hi Len,
->
-> On Sat, Jun 25, 2011 at 21:07 +0400, Vasiliy Kulikov wrote:
->> Structs battery_file, acpi_dock_ops, file_operations,
->> thermal_cooling_device_ops, thermal_zone_device_ops, kernel_param_ops
->> are not changed in runtime.  It is safe to make them const.
->> register_hotplug_dock_device() was altered to take const "ops" argument
->> to respect acpi_dock_ops' const notion.
->>
->> Signed-off-by: Vasiliy Kulikov<segoon@openwall.com>
+On 07/15/2011 02:45 PM, Nath, Arindam wrote:
+> Hi Huang,
+> 
+>  
+> 
+> Since you have already added some support for APEI into the ACPI
+> subsystem, are you planning to add support for BERT too?
 
-Acked-by: Jeff Garzik <jgarzik@redhat.com>
+Yes. I have the code.  But have not found a way to test it on my testing
+machine.  Do you have any machine to test it?
 
-
+Best Regards,
+Huang Ying
