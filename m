@@ -1,74 +1,76 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 3/3] ACPI / Battery: propagate sysfs error in
- acpi_battery_add()
-Date: Sat, 16 Jul 2011 18:58:55 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1107161857420.11045@x980>
-References: <1310457809-2731-1-git-send-email-stefanha@linux.vnet.ibm.com>
- <1310457809-2731-4-git-send-email-stefanha@linux.vnet.ibm.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH] ACPI: APEI build fix
+Date: Sat, 16 Jul 2011 16:45:03 -0700
+Message-ID: <20110716164503.0ee2dc3d.rdunlap@xenotime.net>
+References: <20110717000815.c83755be9598d34ac8431908@canb.auug.org.au>
+	<20110716120304.83d79985.rdunlap@xenotime.net>
+	<alpine.LFD.2.02.1107161815220.4339@x980>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:47091 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520Ab1GPW67 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jul 2011 18:58:59 -0400
-In-reply-to: <1310457809-2731-4-git-send-email-stefanha@linux.vnet.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1107161815220.4339@x980>
+Sender: linux-next-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Cc: Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-applied, after merging with acpi-test.
+On Sat, 16 Jul 2011 18:16:20 -0400 (EDT) Len Brown wrote:
 
-merged version appended below.
+> From: Len Brown <len.brown@intel.com>
+> 
+> as GHES is optional...
+> 
+> When # CONFIG_ACPI_APEI_GHES is not set:
+> 
+> (.init.text+0x4c22): undefined reference to `ghes_disable'
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 
->From eb03cb02b74df6dd0b653d5f6d976f16a434dfaf Mon Sep 17 00:00:00 2001
-From: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Date: Tue, 12 Jul 2011 09:03:29 +0100
-Subject: [PATCH] ACPI / Battery: propagate sysfs error in acpi_battery_add()
-X-Patchwork-Hint: ignore
+Thanks.
 
-Make sure the error return from sysfs_add_battery() is checked and
-propagated out from acpi_battery_add().
+> ---
+>  drivers/acpi/bus.c  |    2 --
+>  include/acpi/apei.h |    4 ++++
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 43ce3b0..437ddbf 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -544,10 +544,8 @@ static void acpi_bus_osc_support(void)
+>  	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
+>  #endif
+>  
+> -#ifdef CONFIG_ACPI_APEI_GHES
+>  	if (!ghes_disable)
+>  		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
+> -#endif
+>  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+>  		return;
+>  	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
+> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+> index d40bc55..51a527d 100644
+> --- a/include/acpi/apei.h
+> +++ b/include/acpi/apei.h
+> @@ -18,7 +18,11 @@
+>  
+>  extern int hest_disable;
+>  extern int erst_disable;
+> +#ifdef CONFIG_ACPI_APEI_GHES
+>  extern int ghes_disable;
+> +#else
+> +#define ghes_disable 1
+> +#endif
+>  
+>  #ifdef CONFIG_ACPI_APEI
+>  void __init acpi_hest_init(void);
+> -- 
 
-Signed-off-by: Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+
 ---
- drivers/acpi/battery.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index c771768..ffce2f0 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -630,8 +630,11 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 			return result;
- 		acpi_battery_init_alarm(battery);
- 	}
--	if (!battery->bat.dev)
--		sysfs_add_battery(battery);
-+	if (!battery->bat.dev) {
-+		result = sysfs_add_battery(battery);
-+		if (result)
-+			return result;
-+	}
- 	result = acpi_battery_get_state(battery);
- 	acpi_battery_quirks(battery);
- 	return result;
-@@ -982,7 +985,9 @@ static int acpi_battery_add(struct acpi_device *device)
- 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
- 			"_BIX", &handle)))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
--	acpi_battery_update(battery);
-+	result = acpi_battery_update(battery);
-+	if (result)
-+		goto fail;
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
- #endif
--- 
-1.7.6.178.g55272
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
