@@ -1,68 +1,75 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: APEI build fix
-Date: Sat, 16 Jul 2011 18:16:20 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1107161815220.4339@x980>
-References: <20110717000815.c83755be9598d34ac8431908@canb.auug.org.au>
- <20110716120304.83d79985.rdunlap@xenotime.net>
+Subject: Re: Information request about acpi
+Date: Sat, 16 Jul 2011 18:22:53 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1107161818110.4339@x980>
+References: <20110716235937.56583bwlckigm4sp@webmail.ens-lyon.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:55319 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751668Ab1GPWQb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jul 2011 18:16:31 -0400
-In-reply-to: <20110716120304.83d79985.rdunlap@xenotime.net>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:49785 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668Ab1GPWXN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jul 2011 18:23:13 -0400
+Received: from localhost.localdomain ([unknown] [65.175.195.226])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LOG00A7666607E1@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 Jul 2011 17:23:11 -0500 (CDT)
+In-reply-to: <20110716235937.56583bwlckigm4sp@webmail.ens-lyon.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Ghislain Landry Tsafack Chetsa <ghislain.landry.tsafack.chetsa@ens-lyon.fr>
+Cc: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
 
-as GHES is optional...
+> Sorry for disturbing, I am Tsafack Ghislain Landry, Ph.D. student at Ecole
+> Normale Superieure of Lyon, France. I have been trying to scale the frequency
+> on my Intel E5506 Xeon processor via the cpufreq_acpi driver unfortunately (I
+> have tested that feature using the following linux kernel versions : 2.6.32,
+> 2.6.38, 2.6.39, 2.6.39.3, and 3.0.rc7).  This a sample output
+> 
+> # cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq
+> 2128000
+> #echo 1862000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+> 1862000
+> # cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq
+> 2128000
+> 
+> I have tried using the cpufreq-set util as well, but the result is the same.
+> 
+> bellow is the content of the /proc/acpi/processor/CPU0/info file. I was
+> wandering whether the "no" value of the parameters  throttling control, limit
+> interface can fully explain that behavior.
 
-When # CONFIG_ACPI_APEI_GHES is not set:
+they are unrelated to this issue.
 
-(.init.text+0x4c22): undefined reference to `ghes_disable'
+> cat /proc/acpi/processor/CPU0/info
+> processor id:            0
+> acpi id:                 1
+> bus mastering control:   no
+> power management:        yes
+> throttling control:      no
+> limit interface:         no
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/bus.c  |    2 --
- include/acpi/apei.h |    4 ++++
- 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 43ce3b0..437ddbf 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -544,10 +544,8 @@ static void acpi_bus_osc_support(void)
- 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
- #endif
- 
--#ifdef CONFIG_ACPI_APEI_GHES
- 	if (!ghes_disable)
- 		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
--#endif
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
- 		return;
- 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index d40bc55..51a527d 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -18,7 +18,11 @@
- 
- extern int hest_disable;
- extern int erst_disable;
-+#ifdef CONFIG_ACPI_APEI_GHES
- extern int ghes_disable;
-+#else
-+#define ghes_disable 1
-+#endif
- 
- #ifdef CONFIG_ACPI_APEI
- void __init acpi_hest_init(void);
--- 
-1.7.6.178.g55272
+It is likely that you are obsering the effects of "hardware coordination."
+Although Linux treats all the cores as independent, and even treats
+HT threads as independent, they actually have dependencies.
+
+In particular, all threads inside a package share the same voltage 
+regulator.
+
+So in a package if one core asks to go fast and another asks to go slow,
+the voltage will coordinated by hardware to support the most demanding
+request.  Since it is always a good idea to go at he maximum speed
+suported by the available voltage, the cpu that requests slow will
+also go fast, the same speed as his peer.
+
+boot with "maxcpus=1" and try again -- or control the speeds
+of the other threads on the system accordingly.
+
+cheers,
+-Len Brown, Intel Open Source Technology Center
 
 
