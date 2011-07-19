@@ -1,111 +1,50 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] Fixed coding style in drivers/acpi/ac.c
-Date: Mon, 18 Jul 2011 10:52:41 -0700
-Message-ID: <1311011561.2286.106.camel@Joe-Laptop>
-References: <4e246fa2.c7cde30a.3423.5570@mx.google.com>
+From: nick <nickfamilyiq@gmail.com>
+Subject: $5,000 per month working less than 5 hours per week?
+Date: Tue, 19 Jul 2011 19:35:03 -0400
+Message-ID: <E1QjJod-0000xQ-Fe@cyber1.clickithost.com>
+Reply-To: nickfamilyiq@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:4138 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751024Ab1GRRwn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jul 2011 13:52:43 -0400
-In-Reply-To: <4e246fa2.c7cde30a.3423.5570@mx.google.com>
+Received: from 64-37-60-38.static.dimenoc.com ([64.37.60.38]:51287 "EHLO
+	cyber1.clickithost.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab1GSXf6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2011 19:35:58 -0400
+Received: from wwwnickl by cyber1.clickithost.com with local (Exim 4.69)
+	(envelope-from <wwwnickl@cyber1.clickithost.com>)
+	id 1QjJod-0000xQ-Fe
+	for linux-acpi@vger.kernel.org; Tue, 19 Jul 2011 19:35:03 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Angus Hammond <angusgh@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Mon, 2011-07-18 at 18:14 +0100, Angus Hammond wrote:
-> Changed lines causing errors from  scrips/checkpatch.pl.
-
-Please don't send emails with only bcc's.
-It makes following up / reply-all difficult.
-
-Use ./scripts/get_maintainer.pl <patch> as a guide
-to determine the best recipients for a patch.
-
-> ---
->  drivers/acpi/ac.c |   18 +++++++++---------
->  1 files changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index 58c3f74..e510828 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -1,5 +1,5 @@
->  /*
-> - *  acpi_ac.c - ACPI AC Adapter Driver ($Revision: 27 $)
-> + *  acpi_ac.c - ACPI AC Adapter Driver
->   *
->   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
->   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-> @@ -54,8 +54,8 @@ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
->  MODULE_LICENSE("GPL");
->  
->  #ifdef CONFIG_ACPI_PROCFS_POWER
-> -extern struct proc_dir_entry *acpi_lock_ac_dir(void);
-> -extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
-> +struct proc_dir_entry *acpi_lock_ac_dir(void);
-> +void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
->  static int acpi_ac_open_fs(struct inode *inode, struct file *file);
->  #endif
->  
-> @@ -85,7 +85,7 @@ static struct acpi_driver acpi_ac_driver = {
->  
->  struct acpi_ac {
->  	struct power_supply charger;
-> -	struct acpi_device * device;
-> +	struct acpi_device *device;
->  	unsigned long long state;
->  };
->  
-> @@ -102,7 +102,7 @@ static const struct file_operations acpi_ac_fops = {
->  #endif
->  
->  /* --------------------------------------------------------------------------
-> -                               AC Adapter Management
-> +				AC Adapter Management
->     -------------------------------------------------------------------------- */
->  
->  static int acpi_ac_get_state(struct acpi_ac *ac)
-> @@ -124,7 +124,7 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
->  }
->  
->  /* --------------------------------------------------------------------------
-> -                            sysfs I/F
-> +				sysfs I/F
->     -------------------------------------------------------------------------- */
->  static int get_ac_property(struct power_supply *psy,
->  			   enum power_supply_property psp,
-> @@ -154,7 +154,7 @@ static enum power_supply_property ac_props[] = {
->  
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  /* --------------------------------------------------------------------------
-> -                              FS Interface (/proc)
-> +				FS Interface (/proc)
->     -------------------------------------------------------------------------- */
->  
->  static struct proc_dir_entry *acpi_ac_dir;
-> @@ -230,7 +230,7 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
->  #endif
->  
->  /* --------------------------------------------------------------------------
-> -                                   Driver Model
-> +				Driver Model
->     -------------------------------------------------------------------------- */
->  
->  static void acpi_ac_notify(struct acpi_device *device, u32 event)
-> @@ -298,7 +298,7 @@ static int acpi_ac_add(struct acpi_device *device)
->  	       acpi_device_name(device), acpi_device_bid(device),
->  	       ac->state ? "on-line" : "off-line");
->  
-> -      end:
-> +end:
->  	if (result) {
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  		acpi_ac_remove_fs(device);
+How would your life change with an extra
+$5,000 per month that you can pocket while
+"working" less than 5 hours per week? Would
+you buy a new car =85 a new house ... take that
+long awaited vacation? Go here now:
 
 
+=3D=3D> https://daegansmith.infusionsoft.com/go/rlc/a12144
 
+
+Get this limited time FREE CD presentation
+NOW that reveals all the secrets of how one
+ex-sales rep from Silver Springs, Maryland
+pocketed 6-figures this year and is teaching
+other people just like you to do the same.=20
+
+
+=3D=3D> https://daegansmith.infusionsoft.com/go/rlc/a12144
+
+
+Talk soon,
+Nick
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
