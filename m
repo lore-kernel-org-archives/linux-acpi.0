@@ -1,36 +1,34 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: linux-next: Tree for July 20 (acpi/apei/ghes)
-Date: Wed, 20 Jul 2011 09:38:29 -0700
-Message-ID: <20110720093829.aae2ec63.rdunlap@xenotime.net>
-References: <20110720180041.5774ca335e6697c17374dca5@canb.auug.org.au>
-	<20110720093633.ca9cf794.rdunlap@xenotime.net>
+From: amnesia@ownage4u.nl
+Subject: Lenovo Thinkpad L512 bugs
+Date: Wed, 20 Jul 2011 23:32:20 +0200
+Message-ID: <bead060929c8bc109f644ab28f84ab0a@ownage4u.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20110720093633.ca9cf794.rdunlap@xenotime.net>
-Sender: linux-next-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from koppel-159.sshunet.nl ([145.107.2.159]:46735 "EHLO
+	mail.ownage4u.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854Ab1GTVuM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jul 2011 17:50:12 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 20 Jul 2011 09:36:33 -0700 Randy Dunlap wrote:
+I'm having the following problems with my lenovo thinkpad L512.
 
-> On Wed, 20 Jul 2011 18:00:41 +1000 Stephen Rothwell wrote:
-> 
-> > Hi all,
-> 
-> On i386 (X86_32):
-> 
-> drivers/acpi/apei/ghes.c:542: warning: integer overflow in expression
-> drivers/acpi/apei/ghes.c:619: warning: integer overflow in expression
-> 
-> ghes.c:(.text+0x46289): undefined reference to `__udivdi3'
->   in function ghes_estatus_cache_add().
+=< 2.6.35.13
 
-That's on:
-		period = duration / (count + 1);
+https://bugzilla.kernel.org/show_bug.cgi?id=25542
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+An extreme amount of wake ups which causes a high load and battery 
+drainage.
+
+=> 2.6.36.4 causes:
+
+https://bugzilla.kernel.org/show_bug.cgi?id=27792
+
+Fan speed freezes, and hotkeys stop working.
+
+
