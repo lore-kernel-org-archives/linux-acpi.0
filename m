@@ -1,130 +1,67 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [BUGFIX] ACPI, APEI, EINJ Param support is disabled by default
-Date: Wed, 20 Jul 2011 16:09:29 +0800
-Message-ID: <1311149369-20624-1-git-send-email-ying.huang@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [BUGFIX] ACPI, APEI, EINJ Param support is disabled by default
+Date: Wed, 20 Jul 2011 09:22:31 -0600
+Message-ID: <CAErSpo5-PrZ-do7HqM=2zV8cGibj0bkpFaHtmeRUJmMRZGfTWw@mail.gmail.com>
+References: <1311149369-20624-1-git-send-email-ying.huang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38903 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180Ab1GTIKU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jul 2011 04:10:20 -0400
+Received: from smtp-out.google.com ([74.125.121.67]:30631 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652Ab1GTPWy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jul 2011 11:22:54 -0400
+Received: from kpbe16.cbf.corp.google.com (kpbe16.cbf.corp.google.com [172.25.105.80])
+	by smtp-out.google.com with ESMTP id p6KFMqvU014099
+	for <linux-acpi@vger.kernel.org>; Wed, 20 Jul 2011 08:22:53 -0700
+Received: from yia13 (yia13.prod.google.com [10.243.65.13])
+	by kpbe16.cbf.corp.google.com with ESMTP id p6KFMp5b012054
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 20 Jul 2011 08:22:51 -0700
+Received: by yia13 with SMTP id 13so153582yia.28
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Jul 2011 08:22:51 -0700 (PDT)
+In-Reply-To: <1311149369-20624-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-EINJ parameter support is only usable for some specific BIOS.
-Originally, it is expected to have no harm for BIOS does not support
-it.  But now, we found it will cause issue (memory overwriting) for
-some BIOS.  So param support is disabled by default and only enabled
-when newly added module parameter named "param_extension" is
-explicitly specified.
+On Wed, Jul 20, 2011 at 2:09 AM, Huang Ying <ying.huang@intel.com> wrot=
+e:
+> EINJ parameter support is only usable for some specific BIOS.
+> Originally, it is expected to have no harm for BIOS does not support
+> it. =A0But now, we found it will cause issue (memory overwriting) for
+> some BIOS. =A0So param support is disabled by default and only enable=
+d
+> when newly added module parameter named "param_extension" is
+> explicitly specified.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
----
- Documentation/acpi/apei/einj.txt |   11 +++++++++--
- drivers/acpi/apei/einj.c         |   39 ++++++++++++++++++++++++---------------
- 2 files changed, 33 insertions(+), 17 deletions(-)
+Adding parameters always makes things harder for users.  Is there any
+way this could be done with a whitelist or other automatic mechanism?
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -46,7 +46,8 @@
-  * Some BIOSes allow parameters to the SET_ERROR_TYPE entries in the
-  * EINJ table through an unpublished extension. Use with caution as
-  * most will ignore the parameter and make their own choice of address
-- * for error injection.
-+ * for error injection.  This extension is used only if
-+ * param_extension module parameter is specified.
-  */
- struct einj_parameter {
- 	u64 type;
-@@ -65,6 +66,9 @@ struct einj_parameter {
- 	((struct acpi_whea_header *)((char *)(tab) +			\
- 				    sizeof(struct acpi_table_einj)))
- 
-+static bool param_extension;
-+module_param(param_extension, bool, 0);
-+
- static struct acpi_table_einj *einj_tab;
- 
- static struct apei_resources einj_resources;
-@@ -489,14 +493,6 @@ static int __init einj_init(void)
- 				     einj_debug_dir, NULL, &error_type_fops);
- 	if (!fentry)
- 		goto err_cleanup;
--	fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
--				    einj_debug_dir, &error_param1);
--	if (!fentry)
--		goto err_cleanup;
--	fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
--				    einj_debug_dir, &error_param2);
--	if (!fentry)
--		goto err_cleanup;
- 	fentry = debugfs_create_file("error_inject", S_IWUSR,
- 				     einj_debug_dir, NULL, &error_inject_fops);
- 	if (!fentry)
-@@ -513,12 +509,23 @@ static int __init einj_init(void)
- 	rc = apei_exec_pre_map_gars(&ctx);
- 	if (rc)
- 		goto err_release;
--	param_paddr = einj_get_parameter_address();
--	if (param_paddr) {
--		einj_param = ioremap(param_paddr, sizeof(*einj_param));
--		rc = -ENOMEM;
--		if (!einj_param)
--			goto err_unmap;
-+	if (param_extension) {
-+		param_paddr = einj_get_parameter_address();
-+		if (param_paddr) {
-+			einj_param = ioremap(param_paddr, sizeof(*einj_param));
-+			rc = -ENOMEM;
-+			if (!einj_param)
-+				goto err_unmap;
-+			fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
-+						    einj_debug_dir, &error_param1);
-+			if (!fentry)
-+				goto err_unmap;
-+			fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
-+						    einj_debug_dir, &error_param2);
-+			if (!fentry)
-+				goto err_unmap;
-+		} else
-+			pr_warn(EINJ_PFX "Parameter extension is not supported.\n");
- 	}
- 
- 	pr_info(EINJ_PFX "Error INJection is initialized.\n");
-@@ -526,6 +533,8 @@ static int __init einj_init(void)
- 	return 0;
- 
- err_unmap:
-+	if (einj_param)
-+		iounmap(einj_param);
- 	apei_exec_post_unmap_gars(&ctx);
- err_release:
- 	apei_resources_release(&einj_resources);
---- a/Documentation/acpi/apei/einj.txt
-+++ b/Documentation/acpi/apei/einj.txt
-@@ -48,12 +48,19 @@ directory apei/einj. The following files
- - param1
-   This file is used to set the first error parameter value. Effect of
-   parameter depends on error_type specified. For memory error, this is
--  physical memory address.
-+  physical memory address.  Only available if param_extension module
-+  parameter is specified.
- 
- - param2
-   This file is used to set the second error parameter value. Effect of
-   parameter depends on error_type specified. For memory error, this is
--  physical memory address mask.
-+  physical memory address mask.  Only available if param_extension
-+  module parameter is specified.
-+
-+Injecting parameter support is a BIOS version specific extension, that
-+is, it only works on some BIOS version.  If you want to use it, please
-+make sure your BIOS version has the proper support and specify
-+"param_extension=y" in module parameter.
- 
- For more information about EINJ, please refer to ACPI specification
- version 4.0, section 17.5.
+Per 6e320ec1d98 (which added EINJ parameter support), parameters are
+an unpublished extension and are not part of the ACPI spec.  So if we
+pick up an MMIO address from a SET_ERROR_TYPE WRITE_REGISTER
+instruction and blindly fill in a structure (undefined by the spec)
+presumed to be at that address, it doesn't seem surprising that things
+will blow up on BIOSes that don't expect that behavior.  After all,
+the spec says to write to a generic address structure (not an
+einj_parameter structure) when we interpret the WRITE_REGISTER
+instruction (not at the magic time between SET_ERROR_TYPE and
+EXECUTE_OPERATION).
+
+If EINJ parameter support is ever added to the ACPI spec, I would
+expect a new EINJ flag bit or similar indication to be added at the
+same time, so the OS would know when to use it.
+
+Can you add a whitelist of BIOSes that do support this extension?
+Maybe you could define a GUID that future platforms could supply so
+you wouldn't have to update the whitelist for every new platform that
+supports it?
+
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
