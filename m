@@ -1,63 +1,38 @@
-From: Huang Ying <ying.huang@intel.com>
+From: Andi Kleen <andi@firstfloor.org>
 Subject: Re: [BUGFIX] ACPI, APEI, EINJ Param support is disabled by default
-Date: Thu, 21 Jul 2011 09:02:43 +0800
-Message-ID: <4E277AB3.5000100@intel.com>
-References: <1311149369-20624-1-git-send-email-ying.huang@intel.com> <CAErSpo5-PrZ-do7HqM=2zV8cGibj0bkpFaHtmeRUJmMRZGfTWw@mail.gmail.com>
+Date: Thu, 21 Jul 2011 06:16:10 +0200
+Message-ID: <20110721041610.GL8006@one.firstfloor.org>
+References: <1311149369-20624-1-git-send-email-ying.huang@intel.com> <20110721024204.GJ8006@one.firstfloor.org> <4E2794D5.1030104@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31260 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751924Ab1GUBCp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jul 2011 21:02:45 -0400
-In-Reply-To: <CAErSpo5-PrZ-do7HqM=2zV8cGibj0bkpFaHtmeRUJmMRZGfTWw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4E2794D5.1030104@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 
-On 07/20/2011 11:22 PM, Bjorn Helgaas wrote:
-> On Wed, Jul 20, 2011 at 2:09 AM, Huang Ying <ying.huang@intel.com> wrote:
->> EINJ parameter support is only usable for some specific BIOS.
->> Originally, it is expected to have no harm for BIOS does not support
->> it.  But now, we found it will cause issue (memory overwriting) for
->> some BIOS.  So param support is disabled by default and only enabled
->> when newly added module parameter named "param_extension" is
->> explicitly specified.
+On Thu, Jul 21, 2011 at 10:54:13AM +0800, Huang Ying wrote:
+> On 07/21/2011 10:42 AM, Andi Kleen wrote:
+> >>  
+> >> +static bool param_extension;
+> >> +module_param(param_extension, bool, 0);
+> > 
+> > Make it 0644, then it can be changed at runtime. No need to require a reboot.
 > 
-> Adding parameters always makes things harder for users.  Is there any
-> way this could be done with a whitelist or other automatic mechanism?
+> Normally, EINJ is compiled as module, so we can change it at load time
+> without a reboot.
 
-The only user of EINJ is RAS developer/tester.  So we adopt a simpler
-solution.
+Ok. 
 
-> Per 6e320ec1d98 (which added EINJ parameter support), parameters are
-> an unpublished extension and are not part of the ACPI spec.  So if we
-> pick up an MMIO address from a SET_ERROR_TYPE WRITE_REGISTER
-> instruction and blindly fill in a structure (undefined by the spec)
-> presumed to be at that address, it doesn't seem surprising that things
-> will blow up on BIOSes that don't expect that behavior.  After all,
-> the spec says to write to a generic address structure (not an
-> einj_parameter structure) when we interpret the WRITE_REGISTER
-> instruction (not at the magic time between SET_ERROR_TYPE and
-> EXECUTE_OPERATION).
 > 
-> If EINJ parameter support is ever added to the ACPI spec, I would
-> expect a new EINJ flag bit or similar indication to be added at the
-> same time, so the OS would know when to use it.
+> Do we need the real runtime switching capability?
 
-EINJ parameter support has not been added to ACPI spec, it may be added
-in the future, and should has some way to indicate whether parameter is
-supported.
+I usually do that with modparams when it's possible. After all it's very
+simple and doesn't cost anything.
 
-> Can you add a whitelist of BIOSes that do support this extension?
-> Maybe you could define a GUID that future platforms could supply so
-> you wouldn't have to update the whitelist for every new platform that
-> supports it?
+-Andi
 
-IMHO, the EINJ will not be used by the ordinary users.  If so, can we
-use a simpler solution such as that in this patch?
-
-Best Regards,
-Huang Ying
+-- 
+ak@linux.intel.com -- Speaking for myself only.
