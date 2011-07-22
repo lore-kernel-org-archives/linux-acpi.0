@@ -1,62 +1,32 @@
-From: nick <nickfamilyiq@gmail.com>
-Subject: Confirm Your $0.00 Copy Of "Winning In The Online Home Business Arena" ($39.97 Value)
-Date: Fri, 22 Jul 2011 05:24:22 -0400
-Message-ID: <E1QkBy2-0004it-5Z@cyber1.clickithost.com>
-Reply-To: nickfamilyiq@gmail.com
+From: BUSINESS <info-0016@cox.net>
+Subject: REPLY ASAP
+Date: Fri, 22 Jul 2011 13:35:56 -0400
+Message-ID: <20110722133556.TJVPR.440403.imail__17329.5768363916$1311357486$gmane$org@eastrmwml45>
+Reply-To: emlchmbr2@aol.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 64-37-60-38.static.dimenoc.com ([64.37.60.38]:37094 "EHLO
-	cyber1.clickithost.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752791Ab1GVJZT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2011 05:25:19 -0400
-Received: from wwwnickl by cyber1.clickithost.com with local (Exim 4.69)
-	(envelope-from <wwwnickl@cyber1.clickithost.com>)
-	id 1QkBy2-0004it-5Z
-	for linux-acpi@vger.kernel.org; Fri, 22 Jul 2011 05:24:22 -0400
+Received: from eastrmfepi106.cox.net ([68.230.241.202]:44780 "EHLO
+	eastrmfepi106.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769Ab1GVR53 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2011 13:57:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Inside Of Your Free 8 Part DVD "Winning
-In The Online Home Business Arena"
-($39.97 Value)
+REPLY ASAP
 
+I  request that you keep the contents of this mail 
+confidential and respect the integrityof the 
+information you  come by as a result of this mail. I
+contacted  you independently of our investigation 
+and no one is informed of this communication. I would 
+like to intimate you with certain facts that I believe 
+would be of interest to you. In 2004, the subject matter; 
+ref: bb/rbs/bank/0012 came to our bank to engage in 
+business discussions with our Private Banking Services 
+Department. Write me back so that i can give you the full  
+details ofthe transaction which I know will be beneficial to us. 
 
-Go here now:
-
-
-==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
-
-
-You'll Discover . . .
-
-
-What's Working Now! "How To Get Up To 37
-Checks Per Month, Earn Upwards Of
-$4,954.55 While You Sleep At Night, And
-Recruit WITHOUT Ever Having To Pick Up
-The Phone"
-
-
-Here's where to go:
-
-
-==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
-
-
-To the top,
-
-
-Nick N.
-
-
-Pick up now while it still costs zilch,
-before I start charing for it again.
-Make haste - Go here Now:
-
-
-==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
-
-
+Regards,  
+John.
