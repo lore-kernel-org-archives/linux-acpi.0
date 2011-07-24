@@ -1,17 +1,12 @@
 From: Daniel Drake <dsd@laptop.org>
 Subject: [PATCH resend] x86, olpc-xo15-sci: enable EC wakeup capability
 Date: Sun, 24 Jul 2011 18:34:30 +0100 (BST)
-Message-ID: <20110724173430.BE03C9D401C@zog.reactivated.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:35191 "EHLO
-	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752428Ab1GXSAH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Jul 2011 14:00:07 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Message-ID: <20110724173430.BE03C9D401C__5098.60817478529$1311530438$gmane$org@zog.reactivated.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org
 Cc: linux-kernel@vger.kernel.org, dilinger@queued.net, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 Some recent changes to the way that ACPI handles wakeup flags means
 that the XO15EC ACPI device is not wakeup-capable by default so
@@ -40,4 +35,3 @@ index a5990eb..2b235b7 100644
  }
 -- 
 1.7.6
-
