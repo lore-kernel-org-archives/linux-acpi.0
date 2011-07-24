@@ -1,32 +1,43 @@
-From: BUSINESS <info-0016@cox.net>
-Subject: REPLY ASAP
-Date: Fri, 22 Jul 2011 13:35:56 -0400
-Message-ID: <20110722133556.TJVPR.440403.imail__17329.5768363916$1311357486$gmane$org@eastrmwml45>
-Reply-To: emlchmbr2@aol.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Daniel Drake <dsd@laptop.org>
+Subject: [PATCH resend] x86, olpc-xo15-sci: enable EC wakeup capability
+Date: Sun, 24 Jul 2011 18:34:30 +0100 (BST)
+Message-ID: <20110724173430.BE03C9D401C@zog.reactivated.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eastrmfepi106.cox.net ([68.230.241.202]:44780 "EHLO
-	eastrmfepi106.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769Ab1GVR53 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2011 13:57:29 -0400
+Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:35191 "EHLO
+	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752428Ab1GXSAH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Jul 2011 14:00:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, dilinger@queued.net, linux-acpi@vger.kernel.org
 
-REPLY ASAP
+Some recent changes to the way that ACPI handles wakeup flags means
+that the XO15EC ACPI device is not wakeup-capable by default so
+device_set_wakeup_enable() does nothing.
 
-I  request that you keep the contents of this mail 
-confidential and respect the integrityof the 
-information you  come by as a result of this mail. I
-contacted  you independently of our investigation 
-and no one is informed of this communication. I would 
-like to intimate you with certain facts that I believe 
-would be of interest to you. In 2004, the subject matter; 
-ref: bb/rbs/bank/0012 came to our bank to engage in 
-business discussions with our Private Banking Services 
-Department. Write me back so that i can give you the full  
-details ofthe transaction which I know will be beneficial to us. 
+Use device_init_wakeup() to mark the device as wakeup capable, and to
+enable wakeups.
 
-Regards,  
-John.
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ arch/x86/platform/olpc/olpc-xo15-sci.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
+index a5990eb..2b235b7 100644
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c
++++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
+@@ -120,7 +120,7 @@ static int xo15_sci_add(struct acpi_device *device)
+ 
+ 	/* Enable wake-on-EC */
+ 	if (device->wakeup.flags.valid)
+-		device_set_wakeup_enable(&device->dev, true);
++		device_init_wakeup(&device->dev, true);
+ 
+ 	return 0;
+ }
+-- 
+1.7.6
+
