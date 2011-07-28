@@ -1,30 +1,41 @@
-From: Pepsi Bottling Company Plc <info.pepsi@pepsi.co.uk>
-Subject: Congratulations!!! you Are a Certified Winner in Our 2011 Promo
-Date: Wed, 27 Jul 2011 08:47:38 -0700
-Message-ID: <20110727084738.13456n4mal8wboxs@mail.coppervalley.bc.ca>
-Reply-To: frd_promanager@live.co.uk
+From: nick <nickfamilyiq@gmail.com>
+Subject: It Works!" (I think you can get 37 checks in 29 days with this too)
+Date: Thu, 28 Jul 2011 01:56:18 -0400
+Message-ID: <E1QmJZy-00049E-Ot@cyber1.clickithost.com>
+Reply-To: nickfamilyiq@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.coppervalley.bc.ca ([209.52.62.8]:33538 "EHLO
-	mail.coppervalley.bc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753459Ab1G0Po1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2011 11:44:27 -0400
-Content-Disposition: inline
+Received: from 64-37-60-38.static.dimenoc.com ([64.37.60.38]:59160 "EHLO
+	cyber1.clickithost.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971Ab1G1F5T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jul 2011 01:57:19 -0400
+Received: from wwwnickl by cyber1.clickithost.com with local (Exim 4.69)
+	(envelope-from <wwwnickl@cyber1.clickithost.com>)
+	id 1QmJZy-00049E-Ot
+	for linux-acpi@vger.kernel.org; Thu, 28 Jul 2011 01:56:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Your email has won =A3120,000.00 POUNDS from Pepsi online =20
-promotions2011,send your Full names, Age, Sex,Occupation,Phone number =20
-and Address to: frd_promanager@live.co.uk Tel: +447011150911
+FREE! "How To Get Up To 37 Checks Per
+Month, Earn Upwards Of $4,954.55 While
+You Sleep At Night, And Recruit WITHOUT
+Ever Having To Pick Up The Phone ..."
 
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
+
+
+Claim Your Free $47.00 Gift Now:
+
+
+==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
+
+
+To your success,
+
+Nick N.
+
+
