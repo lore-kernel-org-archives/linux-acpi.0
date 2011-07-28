@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/5] thermal: hide CONFIG_THERMAL_HWMON
-Date: Thu, 28 Jul 2011 13:48:40 -0700
-Message-ID: <201107282048.p6SKmeBP007576@imap1.linux-foundation.org>
+Subject: [patch 2/5] thermal: split hwmon lookup to a separate function
+Date: Thu, 28 Jul 2011 13:48:41 -0700
+Message-ID: <201107282048.p6SKmfVA007582@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ASCII
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755292Ab1G1Us4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754942Ab1G1Us4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 28 Jul 2011 16:48:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
@@ -18,12 +18,7 @@ Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, khali@linux-fr.org, g
 
 From: Jean Delvare <khali@linux-fr.org>
 
-It's about time to revert 16d752397301b9 ("thermal: Create
-CONFIG_THERMAL_HWMON=n").  Anybody running a kernel >= 2.6.40 would also
-be running a recent enough version of lm-sensors.
-
-Actually having CONFIG_THERMAL_HWMON is pretty convenient so instead of
-dropping it, we keep it but hide it.
+We'll soon need to reuse it.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Cc: Rene Herman <rene.herman@gmail.com>
@@ -32,44 +27,52 @@ Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    9 ---------
- drivers/thermal/Kconfig                    |    8 ++------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ drivers/thermal/thermal_sys.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~thermal-hide-config_thermal_hwmon Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~thermal-hide-config_thermal_hwmon
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -296,15 +296,6 @@ Who:	Ravikiran Thirumalai <kiran@scalex8
+diff -puN drivers/thermal/thermal_sys.c~thermal-split-hwmon-lookup-to-a-separate-function drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-split-hwmon-lookup-to-a-separate-function
++++ a/drivers/thermal/thermal_sys.c
+@@ -469,22 +469,35 @@ temp_crit_show(struct device *dev, struc
+ }
  
- ---------------------------
  
--What:	CONFIG_THERMAL_HWMON
--When:	January 2009
--Why:	This option was introduced just to allow older lm-sensors userspace
--	to keep working over the upgrade to 2.6.26. At the scheduled time of
--	removal fixed lm-sensors (2.x or 3.x) should be readily available.
--Who:	Rene Herman <rene.herman@gmail.com>
--
-----------------------------
--
- What:	Code that is now under CONFIG_WIRELESS_EXT_SYSFS
- 	(in net/core/net-sysfs.c)
- When:	After the only user (hal) has seen a release with the patches
-diff -puN drivers/thermal/Kconfig~thermal-hide-config_thermal_hwmon drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~thermal-hide-config_thermal_hwmon
-+++ a/drivers/thermal/Kconfig
-@@ -14,11 +14,7 @@ menuconfig THERMAL
- 	  If you want this support, you should say Y or M here.
+-static int
+-thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++static struct thermal_hwmon_device *
++thermal_hwmon_lookup_by_type(const struct thermal_zone_device *tz)
+ {
+ 	struct thermal_hwmon_device *hwmon;
+-	int new_hwmon_device = 1;
+-	int result;
  
- config THERMAL_HWMON
--	bool "Hardware monitoring support"
-+	bool
- 	depends on THERMAL
- 	depends on HWMON=y || HWMON=THERMAL
--	help
--	  The generic thermal sysfs driver's hardware monitoring support
--	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
--
--	  Say Y if your user-space is new enough.
-+	default y
+ 	mutex_lock(&thermal_list_lock);
+ 	list_for_each_entry(hwmon, &thermal_hwmon_list, node)
+ 		if (!strcmp(hwmon->type, tz->type)) {
+-			new_hwmon_device = 0;
+ 			mutex_unlock(&thermal_list_lock);
+-			goto register_sys_interface;
++			return hwmon;
+ 		}
+ 	mutex_unlock(&thermal_list_lock);
+ 
++	return NULL;
++}
++
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct thermal_hwmon_device *hwmon;
++	int new_hwmon_device = 1;
++	int result;
++
++	hwmon = thermal_hwmon_lookup_by_type(tz);
++	if (hwmon) {
++		new_hwmon_device = 0;
++		goto register_sys_interface;
++	}
++
+ 	hwmon = kzalloc(sizeof(struct thermal_hwmon_device), GFP_KERNEL);
+ 	if (!hwmon)
+ 		return -ENOMEM;
 _
