@@ -1,43 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/5] acpi: remove NID_INVAL
-Date: Thu, 28 Jul 2011 13:48:43 -0700
-Message-ID: <201107282048.p6SKmhxp007588@imap1.linux-foundation.org>
+Subject: [patch 1/5] thermal: hide CONFIG_THERMAL_HWMON
+Date: Thu, 28 Jul 2011 13:48:40 -0700
+Message-ID: <201107282048.p6SKmeBP007576@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ASCII
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754757Ab1G1Usq (ORCPT
+	by vger.kernel.org with ESMTP id S1755292Ab1G1Us4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jul 2011 16:48:46 -0400
+	Thu, 28 Jul 2011 16:48:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, khali@linux-fr.org, guenter.roeck@ericsson.com, len.brown@intel.com, rene.herman@gmail.com
 
-From: David Rientjes <rientjes@google.com>
+From: Jean Delvare <khali@linux-fr.org>
 
-b552a8c56db8 ("ACPI: remove NID_INVAL") removed the left over uses of
-NID_INVAL, but didn't actually remove the definition.  Remove it.
+It's about time to revert 16d752397301b9 ("thermal: Create
+CONFIG_THERMAL_HWMON=n").  Anybody running a kernel >= 2.6.40 would also
+be running a recent enough version of lm-sensors.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Len Brown <lenb@kernel.org>
+Actually having CONFIG_THERMAL_HWMON is pretty convenient so instead of
+dropping it, we keep it but hide it.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rene Herman <rene.herman@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acpi.h |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/feature-removal-schedule.txt |    9 ---------
+ drivers/thermal/Kconfig                    |    8 ++------
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/acpi.h~acpi-remove-nid_inval include/linux/acpi.h
---- a/include/linux/acpi.h~acpi-remove-nid_inval
-+++ a/include/linux/acpi.h
-@@ -238,7 +238,6 @@ extern int acpi_paddr_to_node(u64 start_
- extern int pnpacpi_disabled;
+diff -puN Documentation/feature-removal-schedule.txt~thermal-hide-config_thermal_hwmon Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~thermal-hide-config_thermal_hwmon
++++ a/Documentation/feature-removal-schedule.txt
+@@ -296,15 +296,6 @@ Who:	Ravikiran Thirumalai <kiran@scalex8
  
- #define PXM_INVAL	(-1)
--#define NID_INVAL	(-1)
+ ---------------------------
  
- int acpi_check_resource_conflict(const struct resource *res);
+-What:	CONFIG_THERMAL_HWMON
+-When:	January 2009
+-Why:	This option was introduced just to allow older lm-sensors userspace
+-	to keep working over the upgrade to 2.6.26. At the scheduled time of
+-	removal fixed lm-sensors (2.x or 3.x) should be readily available.
+-Who:	Rene Herman <rene.herman@gmail.com>
+-
+----------------------------
+-
+ What:	Code that is now under CONFIG_WIRELESS_EXT_SYSFS
+ 	(in net/core/net-sysfs.c)
+ When:	After the only user (hal) has seen a release with the patches
+diff -puN drivers/thermal/Kconfig~thermal-hide-config_thermal_hwmon drivers/thermal/Kconfig
+--- a/drivers/thermal/Kconfig~thermal-hide-config_thermal_hwmon
++++ a/drivers/thermal/Kconfig
+@@ -14,11 +14,7 @@ menuconfig THERMAL
+ 	  If you want this support, you should say Y or M here.
  
+ config THERMAL_HWMON
+-	bool "Hardware monitoring support"
++	bool
+ 	depends on THERMAL
+ 	depends on HWMON=y || HWMON=THERMAL
+-	help
+-	  The generic thermal sysfs driver's hardware monitoring support
+-	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
+-
+-	  Say Y if your user-space is new enough.
++	default y
 _
