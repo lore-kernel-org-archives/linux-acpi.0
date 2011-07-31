@@ -1,205 +1,225 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: [git pull] cpupowerutils
-Date: Sun, 31 Jul 2011 10:51:24 +0200
-Message-ID: <20110731085124.GA5874@comet.dominikbrodowski.net>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: [PATCH v3] PNPACPI: Register disabled/empty resources
+Date: Sun, 31 Jul 2011 14:47:48 +0200
+Message-ID: <4E354EF4.1030206@gmx.net>
+References: <4E04FB69.3000206@gmx.net> <20110625025419.GB25126@khazad-dum.debian.net> <4E104966.3030002@gmx.net> <4E10533A.4080707@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: cpufreq-owner@vger.kernel.org
-To: torvalds@osdl.org, akpm@osdl.org
-Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:47844 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753131Ab1GaMru (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Jul 2011 08:47:50 -0400
+In-Reply-To: <4E10533A.4080707@gmx.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Linus,
+When parsing PnP ACPI resource structures, it may happen that some of the 
+resources are "empty" (in which case "the size" of the resource equals zero).  
+The current solution is to skip these resources completely - with the 
+unfortunate side effect that they are not registered despite the fact that 
+they exist, after all.  (The downside of this approach is that these resources
+cannot be used as templates for setting the actual device's resources 
+because they are missing from the template.) The kernel's PNPBIOS implementation 
+does not suffer from this problem and registers all resources regardless of 
+their "size".
 
-the git tree
+This patch fixes a problem with (at least) the vintage IBM ThinkPad 600E (and 
+most likely also with the 600, 600X, and 770X which have a very similar layout) 
+where some of its PnP devices support options where either an IRQ, a DMA, or an 
+IO port is disabled.  Without this patch, the devices can not be configured 
+using the "/sys/bus/pnp/devices/*/resources" interface. 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/brodo/cpupowerutils.git master
+The manipulation of these resources is important because the 600E has very 
+demanding requirements.  For instance, the number of IRQs is not sufficient to 
+support all devices of the 600E.  Fortunately, some of the devices, like the 
+sound card's MPU-401 UART, can be configured to not use any IRQ, hence freeing 
+an IRQ for a device that requires one.  (Still, the device's "ResourceTemplate" 
+requires an IRQ resource descriptor which cannot be created if the resource has 
+not been registered in the first place.)  
 
-contains a new utility called "cpupowerutils" which is laregely based on
-the well known "cpufrequtils", but extended to provide much more information
-about other power-related features of modern CPUs, such as idle states.
+As an example, the dependent sets of the 600E's CSC0103 device (the MPU-401 
+UART) are listed, with the patch applied, as: 
 
-Users and Developers want to have *one* tool to get an overview what
-their system supports and to monitor and debug CPU power management
-in detail. The tool should compile and work on as many architectures
-as possible.
+  Dependent: 00 - Priority preferred
+    port 0x300-0x330, align 0xf, size 0x4, 16-bit address decoding
+    irq <none> High-Edge
+  Dependent: 01 - Priority acceptable
+    port 0x300-0x330, align 0xf, size 0x4, 16-bit address decoding
+    irq 5,7,2/9,10,11,15 High-Edge
 
-To reach these goals, Thomas Renninger suggested -- and implemented most
-of the parts -- to convert the external tool cpufrequtils to a userspace
-tool residing in tools/power/cpupower/ .
+(The same result is obtained when PNPBIOS is used instead of PNPACPI.) Without 
+the patch, the IRQ resource in the preferred option is not listed at all: 
 
-Once this stabilizes, it is intended to replace cpufrequtils and the
-Intel-specific tools in tools/power/x86 .
+  Dependent: 00 - Priority preferred
+    port 0x300-0x330, align 0xf, size 0x4, 16-bit address decoding
+  Dependent: 01 - Priority acceptable
+    port 0x300-0x330, align 0xf, size 0x4, 16-bit address decoding
+    irq 5,7,2/9,10,11,15 High-Edge
+	
+And in fact, the 600E's DSDT lists the empty IRQ as an option, as can  be seen 
+from the following excerpt from the DSDT:
 
-A list of patches and the diffstat are appended to this messages.
+    Name (_PRS, ResourceTemplate ()
+    {
+        StartDependentFn (0x00, 0x00)
+        {
+            IO (Decode16, 0x0300, 0x0330, 0x10, 0x04)
+            IRQNoFlags () {}
+        }
+        StartDependentFn (0x01, 0x00)
+        {
+            IO (Decode16, 0x0300, 0x0330, 0x10, 0x04)
+            IRQNoFlags () {5,7,9,10,11,15}
+        }
+        EndDependentFn ()
+    })
 
-Best,
-	Dominik
+With this patch applied, a user space program - or maybe even the kernel - can 
+allocate all devices' resources optimally.  For the 600E, this means to find 
+optimal resources for (at least) the serial port, the parallel port, the 
+infrared port, the MWAVE modem, the sound card, and the MPU-401 UART. 
+
+The patch applies the idea to register disabled resources to all types of 
+resources, not just to IRQs, DMAs, and IO ports. 
+
+No regressions were observed on hardware that does not require this patch. 
+
+The patch is applied against 3.0 (or against the current development tree
+with 29df8d8f8702f0f53c1375015f09f04bc8d023c1 reverted).
 
 
-Dominik Brodowski (10):
-      cpupowerutils - cpufrequtils extended with quite some features
-      cpupowerutils: use COPYING, CREDITS from top-level directory
-      cpupowerutils: remove ccdv, use kernel quiet/verbose mechanism
-      cpupowerutils: do not update po files on each and every compile
-      cpupowerutils: bench - ConfigStyle bugfixes
-      cpupowerutils: lib - ConfigStyle bugfixes
-      cpupowerutils: idle_monitor - ConfigStyle bugfixes
-      cpupowerutils: helpers - ConfigStyle bugfixes
-      cpupowerutils: utils - ConfigStyle bugfixes
-      cpupowerutils: use kernel version-derived version string
+NB: The kernel's current PnP interface does not allow for disabling individual
+resources using the "/sys/bus/pnp/devices/$device/resources" file.  Assuming 
+this could be done, a device could be configured to use a disabled resource 
+using a simple series of calls: 
 
-Roman Vasiyarov (1):
-      cpupowerutils: increase MAX_LINE_LEN
+  echo disable > /sys/bus/pnp/devices/$device/resources
+  echo clear > /sys/bus/pnp/devices/$device/resources
+  echo set irq disabled > /sys/bus/pnp/devices/$device/resources
+  echo fill > /sys/bus/pnp/devices/$device/resources
+  echo activate > /sys/bus/pnp/devices/$device/resources
 
-Thomas Renninger (4):
-      cpupowerutils: Rename: libcpufreq->libcpupower
-      cpupower: Rename package from cpupowerutils to cpupower
-      cpupower: Show Intel turbo ratio support via ./cpupower frequency-info
-      cpupower: Do detect IDA (opportunistic processor performance) via cpuid
+This patch addresses only the parsing of PNPACPI devices.  
 
- CREDITS                                            |   17 +-
- MAINTAINERS                                        |    6 +
- tools/power/cpupower/.gitignore                    |   22 +
- tools/power/cpupower/Makefile                      |  279 ++++++
- tools/power/cpupower/README                        |   49 +
- tools/power/cpupower/ToDo                          |   11 +
- tools/power/cpupower/bench/Makefile                |   29 +
- tools/power/cpupower/bench/README-BENCH            |  124 +++
- tools/power/cpupower/bench/benchmark.c             |  194 ++++
- tools/power/cpupower/bench/benchmark.h             |   29 +
- tools/power/cpupower/bench/config.h                |   36 +
- tools/power/cpupower/bench/cpufreq-bench_plot.sh   |  104 +++
- tools/power/cpupower/bench/cpufreq-bench_script.sh |  101 ++
- tools/power/cpupower/bench/example.cfg             |   11 +
- tools/power/cpupower/bench/main.c                  |  202 ++++
- tools/power/cpupower/bench/parse.c                 |  225 +++++
- tools/power/cpupower/bench/parse.h                 |   53 ++
- tools/power/cpupower/bench/system.c                |  191 ++++
- tools/power/cpupower/bench/system.h                |   29 +
- tools/power/cpupower/debug/i386/Makefile           |   20 +
- tools/power/cpupower/debug/i386/centrino-decode.c  |  113 +++
- tools/power/cpupower/debug/i386/dump_psb.c         |  196 ++++
- tools/power/cpupower/debug/i386/intel_gsic.c       |   78 ++
- .../power/cpupower/debug/i386/powernow-k8-decode.c |   96 ++
- tools/power/cpupower/debug/kernel/Makefile         |   23 +
- .../power/cpupower/debug/kernel/cpufreq-test_tsc.c |  113 +++
- tools/power/cpupower/debug/x86_64/Makefile         |   14 +
- .../power/cpupower/debug/x86_64/centrino-decode.c  |    1 +
- .../cpupower/debug/x86_64/powernow-k8-decode.c     |    1 +
- tools/power/cpupower/lib/cpufreq.c                 |  208 +++++
- tools/power/cpupower/lib/cpufreq.h                 |  223 +++++
- tools/power/cpupower/lib/sysfs.c                   |  672 ++++++++++++++
- tools/power/cpupower/lib/sysfs.h                   |   31 +
- tools/power/cpupower/man/cpupower-frequency-info.1 |   76 ++
- tools/power/cpupower/man/cpupower-frequency-set.1  |   54 ++
- tools/power/cpupower/man/cpupower-info.1           |   19 +
- tools/power/cpupower/man/cpupower-monitor.1        |  179 ++++
- tools/power/cpupower/man/cpupower-set.1            |  103 +++
- tools/power/cpupower/man/cpupower.1                |   72 ++
- tools/power/cpupower/po/cs.po                      |  944 +++++++++++++++++++
- tools/power/cpupower/po/de.po                      |  961 ++++++++++++++++++++
- tools/power/cpupower/po/fr.po                      |  947 +++++++++++++++++++
- tools/power/cpupower/po/it.po                      |  961 ++++++++++++++++++++
- tools/power/cpupower/po/pt.po                      |  957 +++++++++++++++++++
- tools/power/cpupower/utils/builtin.h               |   18 +
- tools/power/cpupower/utils/cpufreq-info.c          |  708 ++++++++++++++
- tools/power/cpupower/utils/cpufreq-set.c           |  358 ++++++++
- tools/power/cpupower/utils/cpuidle-info.c          |  244 +++++
- tools/power/cpupower/utils/cpupower-info.c         |  153 ++++
- tools/power/cpupower/utils/cpupower-set.c          |  153 ++++
- tools/power/cpupower/utils/cpupower.c              |  203 ++++
- tools/power/cpupower/utils/helpers/amd.c           |  137 +++
- tools/power/cpupower/utils/helpers/bitmask.c       |  292 ++++++
- tools/power/cpupower/utils/helpers/bitmask.h       |   33 +
- tools/power/cpupower/utils/helpers/cpuid.c         |  176 ++++
- tools/power/cpupower/utils/helpers/helpers.h       |  178 ++++
- tools/power/cpupower/utils/helpers/misc.c          |   27 +
- tools/power/cpupower/utils/helpers/msr.c           |  115 +++
- tools/power/cpupower/utils/helpers/pci.c           |   44 +
- tools/power/cpupower/utils/helpers/sysfs.c         |  358 ++++++++
- tools/power/cpupower/utils/helpers/sysfs.h         |   28 +
- tools/power/cpupower/utils/helpers/topology.c      |  108 +++
- .../cpupower/utils/idle_monitor/amd_fam14h_idle.c  |  338 +++++++
- .../cpupower/utils/idle_monitor/cpuidle_sysfs.c    |  196 ++++
- .../cpupower/utils/idle_monitor/cpupower-monitor.c |  448 +++++++++
- .../cpupower/utils/idle_monitor/cpupower-monitor.h |   68 ++
- .../cpupower/utils/idle_monitor/idle_monitors.def  |    7 +
- .../cpupower/utils/idle_monitor/idle_monitors.h    |   18 +
- .../cpupower/utils/idle_monitor/mperf_monitor.c    |  255 ++++++
- tools/power/cpupower/utils/idle_monitor/nhm_idle.c |  216 +++++
- tools/power/cpupower/utils/idle_monitor/snb_idle.c |  190 ++++
- tools/power/cpupower/utils/version-gen.sh          |   35 +
- 72 files changed, 13877 insertions(+), 1 deletions(-)
- create mode 100644 tools/power/cpupower/.gitignore
- create mode 100644 tools/power/cpupower/Makefile
- create mode 100644 tools/power/cpupower/README
- create mode 100644 tools/power/cpupower/ToDo
- create mode 100644 tools/power/cpupower/bench/Makefile
- create mode 100644 tools/power/cpupower/bench/README-BENCH
- create mode 100644 tools/power/cpupower/bench/benchmark.c
- create mode 100644 tools/power/cpupower/bench/benchmark.h
- create mode 100644 tools/power/cpupower/bench/config.h
- create mode 100644 tools/power/cpupower/bench/cpufreq-bench_plot.sh
- create mode 100644 tools/power/cpupower/bench/cpufreq-bench_script.sh
- create mode 100644 tools/power/cpupower/bench/example.cfg
- create mode 100644 tools/power/cpupower/bench/main.c
- create mode 100644 tools/power/cpupower/bench/parse.c
- create mode 100644 tools/power/cpupower/bench/parse.h
- create mode 100644 tools/power/cpupower/bench/system.c
- create mode 100644 tools/power/cpupower/bench/system.h
- create mode 100644 tools/power/cpupower/debug/i386/Makefile
- create mode 100644 tools/power/cpupower/debug/i386/centrino-decode.c
- create mode 100644 tools/power/cpupower/debug/i386/dump_psb.c
- create mode 100644 tools/power/cpupower/debug/i386/intel_gsic.c
- create mode 100644 tools/power/cpupower/debug/i386/powernow-k8-decode.c
- create mode 100644 tools/power/cpupower/debug/kernel/Makefile
- create mode 100644 tools/power/cpupower/debug/kernel/cpufreq-test_tsc.c
- create mode 100644 tools/power/cpupower/debug/x86_64/Makefile
- create mode 120000 tools/power/cpupower/debug/x86_64/centrino-decode.c
- create mode 120000 tools/power/cpupower/debug/x86_64/powernow-k8-decode.c
- create mode 100644 tools/power/cpupower/lib/cpufreq.c
- create mode 100644 tools/power/cpupower/lib/cpufreq.h
- create mode 100644 tools/power/cpupower/lib/sysfs.c
- create mode 100644 tools/power/cpupower/lib/sysfs.h
- create mode 100644 tools/power/cpupower/man/cpupower-frequency-info.1
- create mode 100644 tools/power/cpupower/man/cpupower-frequency-set.1
- create mode 100644 tools/power/cpupower/man/cpupower-info.1
- create mode 100644 tools/power/cpupower/man/cpupower-monitor.1
- create mode 100644 tools/power/cpupower/man/cpupower-set.1
- create mode 100644 tools/power/cpupower/man/cpupower.1
- create mode 100644 tools/power/cpupower/po/cs.po
- create mode 100644 tools/power/cpupower/po/de.po
- create mode 100644 tools/power/cpupower/po/fr.po
- create mode 100644 tools/power/cpupower/po/it.po
- create mode 100644 tools/power/cpupower/po/pt.po
- create mode 100644 tools/power/cpupower/utils/builtin.h
- create mode 100644 tools/power/cpupower/utils/cpufreq-info.c
- create mode 100644 tools/power/cpupower/utils/cpufreq-set.c
- create mode 100644 tools/power/cpupower/utils/cpuidle-info.c
- create mode 100644 tools/power/cpupower/utils/cpupower-info.c
- create mode 100644 tools/power/cpupower/utils/cpupower-set.c
- create mode 100644 tools/power/cpupower/utils/cpupower.c
- create mode 100644 tools/power/cpupower/utils/helpers/amd.c
- create mode 100644 tools/power/cpupower/utils/helpers/bitmask.c
- create mode 100644 tools/power/cpupower/utils/helpers/bitmask.h
- create mode 100644 tools/power/cpupower/utils/helpers/cpuid.c
- create mode 100644 tools/power/cpupower/utils/helpers/helpers.h
- create mode 100644 tools/power/cpupower/utils/helpers/misc.c
- create mode 100644 tools/power/cpupower/utils/helpers/msr.c
- create mode 100644 tools/power/cpupower/utils/helpers/pci.c
- create mode 100644 tools/power/cpupower/utils/helpers/sysfs.c
- create mode 100644 tools/power/cpupower/utils/helpers/sysfs.h
- create mode 100644 tools/power/cpupower/utils/helpers/topology.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/amd_fam14h_idle.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/cpuidle_sysfs.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/cpupower-monitor.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/cpupower-monitor.h
- create mode 100644 tools/power/cpupower/utils/idle_monitor/idle_monitors.def
- create mode 100644 tools/power/cpupower/utils/idle_monitor/idle_monitors.h
- create mode 100644 tools/power/cpupower/utils/idle_monitor/mperf_monitor.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/nhm_idle.c
- create mode 100644 tools/power/cpupower/utils/idle_monitor/snb_idle.c
- create mode 100755 tools/power/cpupower/utils/version-gen.sh
+
+ChangeLog (v2 -> v3):
+ - change patch description
+ - remove marking resources as disabled
+
+ChangeLog (v1 -> v2):
+ - extend patch description
+ - fix typo in patch itself
+
+
+Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+
+
+Index: linux/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- linux.orig/drivers/pnp/pnpacpi/rsparser.c
++++ linux/drivers/pnp/pnpacpi/rsparser.c
+@@ -511,9 +511,6 @@ static __init void pnpacpi_parse_dma_opt
+ 	int i;
+ 	unsigned char map = 0, flags;
+ 
+-	if (p->channel_count == 0)
+-		return;
+-
+ 	for (i = 0; i < p->channel_count; i++)
+ 		map |= 1 << p->channels[i];
+ 
+@@ -529,9 +526,6 @@ static __init void pnpacpi_parse_irq_opt
+ 	pnp_irq_mask_t map;
+ 	unsigned char flags;
+ 
+-	if (p->interrupt_count == 0)
+-		return;
+-
+ 	bitmap_zero(map.bits, PNP_IRQ_NR);
+ 	for (i = 0; i < p->interrupt_count; i++)
+ 		if (p->interrupts[i])
+@@ -549,9 +543,6 @@ static __init void pnpacpi_parse_ext_irq
+ 	pnp_irq_mask_t map;
+ 	unsigned char flags;
+ 
+-	if (p->interrupt_count == 0)
+-		return;
+-
+ 	bitmap_zero(map.bits, PNP_IRQ_NR);
+ 	for (i = 0; i < p->interrupt_count; i++) {
+ 		if (p->interrupts[i]) {
+@@ -574,9 +565,6 @@ static __init void pnpacpi_parse_port_op
+ {
+ 	unsigned char flags = 0;
+ 
+-	if (io->address_length == 0)
+-		return;
+-
+ 	if (io->io_decode == ACPI_DECODE_16)
+ 		flags = IORESOURCE_IO_16BIT_ADDR;
+ 	pnp_register_port_resource(dev, option_flags, io->minimum, io->maximum,
+@@ -587,9 +575,6 @@ static __init void pnpacpi_parse_fixed_p
+ 					unsigned int option_flags,
+ 					struct acpi_resource_fixed_io *io)
+ {
+-	if (io->address_length == 0)
+-		return;
+-
+ 	pnp_register_port_resource(dev, option_flags, io->address, io->address,
+ 				   0, io->address_length, IORESOURCE_IO_FIXED);
+ }
+@@ -600,9 +585,6 @@ static __init void pnpacpi_parse_mem24_o
+ {
+ 	unsigned char flags = 0;
+ 
+-	if (p->address_length == 0)
+-		return;
+-
+ 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
+ 		flags = IORESOURCE_MEM_WRITEABLE;
+ 	pnp_register_mem_resource(dev, option_flags, p->minimum, p->maximum,
+@@ -615,9 +597,6 @@ static __init void pnpacpi_parse_mem32_o
+ {
+ 	unsigned char flags = 0;
+ 
+-	if (p->address_length == 0)
+-		return;
+-
+ 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
+ 		flags = IORESOURCE_MEM_WRITEABLE;
+ 	pnp_register_mem_resource(dev, option_flags, p->minimum, p->maximum,
+@@ -630,9 +609,6 @@ static __init void pnpacpi_parse_fixed_m
+ {
+ 	unsigned char flags = 0;
+ 
+-	if (p->address_length == 0)
+-		return;
+-
+ 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
+ 		flags = IORESOURCE_MEM_WRITEABLE;
+ 	pnp_register_mem_resource(dev, option_flags, p->address, p->address,
+@@ -654,9 +630,6 @@ static __init void pnpacpi_parse_address
+ 		return;
+ 	}
+ 
+-	if (p->address_length == 0)
+-		return;
+-
+ 	if (p->resource_type == ACPI_MEMORY_RANGE) {
+ 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
+ 			flags = IORESOURCE_MEM_WRITEABLE;
+@@ -676,9 +649,6 @@ static __init void pnpacpi_parse_ext_add
+ 	struct acpi_resource_extended_address64 *p = &r->data.ext_address64;
+ 	unsigned char flags = 0;
+ 
+-	if (p->address_length == 0)
+-		return;
+-
+ 	if (p->resource_type == ACPI_MEMORY_RANGE) {
+ 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
+ 			flags = IORESOURCE_MEM_WRITEABLE;
+
