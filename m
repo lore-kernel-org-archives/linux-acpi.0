@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/27] ACPICA: Update to version 20110623
-Date: Tue, 02 Aug 2011 16:53:08 -0400
-Message-ID: <3eb208f0a36cf7a86953afa7a4eb6776294e6768.1312318300.git.len.brown@intel.com>
+Subject: [PATCH 04/27] ACPICA: Add option to disable method return value
+ validation and repair
+Date: Tue, 02 Aug 2011 16:53:06 -0400
+Message-ID: <d57b23ad0ca7a46931e4d98eb6b4b73b112f0969.1312318300.git.len.brown@intel.com>
 References: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:38790 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313Ab1HBUx4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 16:53:56 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:49219 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755320Ab1HBUx6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 16:53:58 -0400
 Received: from localhost.localdomain ([unknown] [65.175.195.226])
- by vms173011.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LPB00DICJDTESE3@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 15:53:54 -0500 (CDT)
+ with ESMTPA id <0LPB005UMJDHO7H3@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 15:53:47 -0500 (CDT)
 In-reply-to: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
 References: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
@@ -23,28 +24,78 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Version 20110623.
+Runtime option can be used to disable return value repair if this
+is causing a problem on a particular machine.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    6 ++++++
+ drivers/acpi/acpica/nspredef.c |   18 ++++++++++++------
+ include/acpi/acpixf.h          |    1 +
+ 3 files changed, 19 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 73863d8..76dc02f 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -126,6 +126,12 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_copy_dsdt_locally, FALSE);
+  */
+ u8 ACPI_INIT_GLOBAL(acpi_gbl_truncate_io_addresses, FALSE);
+ 
++/*
++ * Disable runtime checking and repair of values returned by control methods.
++ * Use only if the repair is causing a problem on a particular machine.
++ */
++u8 ACPI_INIT_GLOBAL(acpi_gbl_disable_auto_repair, FALSE);
++
+ /* acpi_gbl_FADT is a local copy of the FADT, converted to a common format. */
+ 
+ struct acpi_table_fadt acpi_gbl_FADT;
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index 9fb03fa..607a9a0 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -193,14 +193,20 @@ acpi_ns_check_predefined_names(struct acpi_namespace_node *node,
+ 	}
+ 
+ 	/*
+-	 * 1) We have a return value, but if one wasn't expected, just exit, this is
+-	 * not a problem. For example, if the "Implicit Return" feature is
+-	 * enabled, methods will always return a value.
++	 * Return value validation and possible repair.
+ 	 *
+-	 * 2) If the return value can be of any type, then we cannot perform any
+-	 * validation, exit.
++	 * 1) Don't perform return value validation/repair if this feature
++	 * has been disabled via a global option.
++	 *
++	 * 2) We have a return value, but if one wasn't expected, just exit,
++	 * this is not a problem. For example, if the "Implicit Return"
++	 * feature is enabled, methods will always return a value.
++	 *
++	 * 3) If the return value can be of any type, then we cannot perform
++	 * any validation, just exit.
+ 	 */
+-	if ((!predefined->info.expected_btypes) ||
++	if (acpi_gbl_disable_auto_repair ||
++	    (!predefined->info.expected_btypes) ||
+ 	    (predefined->info.expected_btypes == ACPI_RTYPE_ALL)) {
+ 		goto cleanup;
+ 	}
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index d42d7ce..f554a93 100644
+index 06853f7..d42d7ce 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -47,7 +47,7 @@
+@@ -69,6 +69,7 @@ extern u32 acpi_gbl_trace_flags;
+ extern u32 acpi_gbl_enable_aml_debug_object;
+ extern u8 acpi_gbl_copy_dsdt_locally;
+ extern u8 acpi_gbl_truncate_io_addresses;
++extern u8 acpi_gbl_disable_auto_repair;
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20110527
-+#define ACPI_CA_VERSION                 0x20110623
- 
- #include "actypes.h"
- #include "actbl.h"
+ extern u32 acpi_current_gpe_count;
+ extern struct acpi_table_fadt acpi_gbl_FADT;
 -- 
 1.7.6.396.ge0613
 
