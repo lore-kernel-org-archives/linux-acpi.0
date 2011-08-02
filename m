@@ -1,225 +1,537 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/19] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
-Date: Tue, 02 Aug 2011 18:14:43 -0400
-Message-ID: <0f579173fd1c9f5dba6703ed8e44a767edf948b5.1312323131.git.len.brown@intel.com>
+Subject: [PATCH 12/19] lib, Make gen_pool memory allocator lockless
+Date: Tue, 02 Aug 2011 18:14:45 -0400
+Message-ID: <c1b9297cb623c9f2ea33ff6027e8100d76cd9944.1312323131.git.len.brown@intel.com>
 References: <1312323292-2986-1-git-send-email-lenb@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:41662 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752969Ab1HBWwF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 18:52:05 -0400
 In-reply-to: <1312323292-2986-1-git-send-email-lenb@kernel.org>
 In-reply-to: <ca7cc5110a313a609da40ae948978a585352564b.1312323131.git.len.brown@intel.com>
 References: <ca7cc5110a313a609da40ae948978a585352564b.1312323131.git.len.brown@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Huang Ying <ying.huang@intel.com>, Richard Henderson <rth@twiddle.net>, Mikael Starvik <starvik@axis.com>, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Kyle McMartin <kyle@mcmartin.ca>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Chen Liqin <liqin.chen@sunplusct.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@redhat.com>, Chris Zankel <chris@zankel.net>, Len Brown <len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Huang Ying <ying.huang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
 From: Huang Ying <ying.huang@intel.com>
 
-cmpxchg() is widely used by lockless code, including NMI-safe lockless
-code.  But on some architectures, the cmpxchg() implementation is not
-NMI-safe, on these architectures the lockless code may need a
-spin_trylock_irqsave() based implementation.
+This version of the gen_pool memory allocator supports lockless
+operation.
 
-This patch adds a Kconfig option: ARCH_HAVE_NMI_SAFE_CMPXCHG, so that
-NMI-safe lockless code can depend on it or provide different
-implementation according to it.
+This makes it safe to use in NMI handlers and other special
+unblockable contexts that could otherwise deadlock on locks.  This is
+implemented by using atomic operations and retries on any conflicts.
+The disadvantage is that there may be livelocks in extreme cases.  For
+better scalability, one gen_pool allocator can be used for each CPU.
 
-On many architectures, cmpxchg is only NMI-safe for several specific
-operand sizes. So, ARCH_HAVE_NMI_SAFE_CMPXCHG define in this patch
-only guarantees cmpxchg is NMI-safe for sizeof(unsigned long).
+The lockless operation only works if there is enough memory available.
+If new memory is added to the pool a lock has to be still taken.  So
+any user relying on locklessness has to ensure that sufficient memory
+is preallocated.
+
+The basic atomic operation of this allocator is cmpxchg on long.  On
+architectures that don't have NMI-safe cmpxchg implementation, the
+allocator can NOT be used in NMI handler.  So code uses the allocator
+in NMI handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
-CC: Richard Henderson <rth@twiddle.net>
-CC: Mikael Starvik <starvik@axis.com>
-CC: David Howells <dhowells@redhat.com>
-CC: Yoshinori Sato <ysato@users.sourceforge.jp>
-CC: Tony Luck <tony.luck@intel.com>
-CC: Hirokazu Takata <takata@linux-m32r.org>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Michal Simek <monstr@monstr.eu>
-CC: Ralf Baechle <ralf@linux-mips.org>
-CC: Kyle McMartin <kyle@mcmartin.ca>
-CC: Martin Schwidefsky <schwidefsky@de.ibm.com>
-CC: Chen Liqin <liqin.chen@sunplusct.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Chris Zankel <chris@zankel.net>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/Kconfig         |    3 +++
- arch/alpha/Kconfig   |    1 +
- arch/avr32/Kconfig   |    1 +
- arch/frv/Kconfig     |    1 +
- arch/ia64/Kconfig    |    1 +
- arch/m68k/Kconfig    |    1 +
- arch/parisc/Kconfig  |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/s390/Kconfig    |    1 +
- arch/sh/Kconfig      |    1 +
- arch/sparc/Kconfig   |    1 +
- arch/tile/Kconfig    |    1 +
- arch/x86/Kconfig     |    1 +
- 13 files changed, 15 insertions(+), 0 deletions(-)
+ include/linux/bitmap.h   |    1 +
+ include/linux/genalloc.h |   34 +++++-
+ lib/bitmap.c             |    2 -
+ lib/genalloc.c           |  300 +++++++++++++++++++++++++++++++++++++---------
+ 4 files changed, 272 insertions(+), 65 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 26b0e23..4b0669c 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -178,4 +178,7 @@ config HAVE_ARCH_MUTEX_CPU_RELAX
- config HAVE_RCU_TABLE_FREE
- 	bool
+diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
+index dcafe0b..907dd58 100644
+--- a/include/linux/bitmap.h
++++ b/include/linux/bitmap.h
+@@ -145,6 +145,7 @@ extern void bitmap_release_region(unsigned long *bitmap, int pos, int order);
+ extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
+ extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
  
-+config ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	bool
++#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
+ #define BITMAP_LAST_WORD_MASK(nbits)					\
+ (									\
+ 	((nbits) % BITS_PER_LONG) ?					\
+diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
+index 5bbebda..5e98eeb 100644
+--- a/include/linux/genalloc.h
++++ b/include/linux/genalloc.h
+@@ -1,8 +1,26 @@
+ /*
+- * Basic general purpose allocator for managing special purpose memory
+- * not managed by the regular kmalloc/kfree interface.
+- * Uses for this includes on-device special memory, uncached memory
+- * etc.
++ * Basic general purpose allocator for managing special purpose
++ * memory, for example, memory that is not managed by the regular
++ * kmalloc/kfree interface.  Uses for this includes on-device special
++ * memory, uncached memory etc.
++ *
++ * It is safe to use the allocator in NMI handlers and other special
++ * unblockable contexts that could otherwise deadlock on locks.  This
++ * is implemented by using atomic operations and retries on any
++ * conflicts.  The disadvantage is that there may be livelocks in
++ * extreme cases.  For better scalability, one allocator can be used
++ * for each CPU.
++ *
++ * The lockless operation only works if there is enough memory
++ * available.  If new memory is added to the pool a lock has to be
++ * still taken.  So any user relying on locklessness has to ensure
++ * that sufficient memory is preallocated.
++ *
++ * The basic atomic operation of this allocator is cmpxchg on long.
++ * On architectures that don't have NMI-safe cmpxchg implementation,
++ * the allocator can NOT be used in NMI handler.  So code uses the
++ * allocator in NMI handler should depend on
++ * CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
+  *
+  * This source code is licensed under the GNU General Public License,
+  * Version 2.  See the file COPYING for more details.
+@@ -15,7 +33,7 @@
+  *  General purpose special memory pool descriptor.
+  */
+ struct gen_pool {
+-	rwlock_t lock;
++	spinlock_t lock;
+ 	struct list_head chunks;	/* list of chunks in this pool */
+ 	int min_alloc_order;		/* minimum allocation order */
+ };
+@@ -24,8 +42,8 @@ struct gen_pool {
+  *  General purpose special memory pool chunk descriptor.
+  */
+ struct gen_pool_chunk {
+-	spinlock_t lock;
+ 	struct list_head next_chunk;	/* next chunk in pool */
++	atomic_t avail;
+ 	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
+ 	unsigned long start_addr;	/* starting address of memory chunk */
+ 	unsigned long end_addr;		/* ending address of memory chunk */
+@@ -56,4 +74,8 @@ static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
+ extern void gen_pool_destroy(struct gen_pool *);
+ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
+ extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
++extern void gen_pool_for_each_chunk(struct gen_pool *,
++	void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
++extern size_t gen_pool_avail(struct gen_pool *);
++extern size_t gen_pool_size(struct gen_pool *);
+ #endif /* __GENALLOC_H__ */
+diff --git a/lib/bitmap.c b/lib/bitmap.c
+index 3f3b681..e3c9e99 100644
+--- a/lib/bitmap.c
++++ b/lib/bitmap.c
+@@ -271,8 +271,6 @@ int __bitmap_weight(const unsigned long *bitmap, int bits)
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
+ 
+-#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
+-
+ void bitmap_set(unsigned long *map, int start, int nr)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+diff --git a/lib/genalloc.c b/lib/genalloc.c
+index 577ddf8..f352cc4 100644
+--- a/lib/genalloc.c
++++ b/lib/genalloc.c
+@@ -1,8 +1,26 @@
+ /*
+- * Basic general purpose allocator for managing special purpose memory
+- * not managed by the regular kmalloc/kfree interface.
+- * Uses for this includes on-device special memory, uncached memory
+- * etc.
++ * Basic general purpose allocator for managing special purpose
++ * memory, for example, memory that is not managed by the regular
++ * kmalloc/kfree interface.  Uses for this includes on-device special
++ * memory, uncached memory etc.
++ *
++ * It is safe to use the allocator in NMI handlers and other special
++ * unblockable contexts that could otherwise deadlock on locks.  This
++ * is implemented by using atomic operations and retries on any
++ * conflicts.  The disadvantage is that there may be livelocks in
++ * extreme cases.  For better scalability, one allocator can be used
++ * for each CPU.
++ *
++ * The lockless operation only works if there is enough memory
++ * available.  If new memory is added to the pool a lock has to be
++ * still taken.  So any user relying on locklessness has to ensure
++ * that sufficient memory is preallocated.
++ *
++ * The basic atomic operation of this allocator is cmpxchg on long.
++ * On architectures that don't have NMI-safe cmpxchg implementation,
++ * the allocator can NOT be used in NMI handler.  So code uses the
++ * allocator in NMI handler should depend on
++ * CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
+  *
+  * Copyright 2005 (C) Jes Sorensen <jes@trained-monkey.org>
+  *
+@@ -13,8 +31,109 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/bitmap.h>
++#include <linux/rculist.h>
++#include <linux/interrupt.h>
+ #include <linux/genalloc.h>
+ 
++static int set_bits_ll(unsigned long *addr, unsigned long mask_to_set)
++{
++	unsigned long val, nval;
 +
- source "kernel/gcov/Kconfig"
-diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-index 60219bf..23f8d8c 100644
---- a/arch/alpha/Kconfig
-+++ b/arch/alpha/Kconfig
-@@ -13,6 +13,7 @@ config ALPHA
- 	select AUTO_IRQ_AFFINITY if SMP
- 	select GENERIC_IRQ_SHOW
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
- 	  marketed by the Digital Equipment Corporation of blessed memory,
-diff --git a/arch/avr32/Kconfig b/arch/avr32/Kconfig
-index e9d689b..197e96f 100644
---- a/arch/avr32/Kconfig
-+++ b/arch/avr32/Kconfig
-@@ -10,6 +10,7 @@ config AVR32
- 	select GENERIC_IRQ_PROBE
- 	select HARDIRQS_SW_RESEND
- 	select GENERIC_IRQ_SHOW
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	help
- 	  AVR32 is a high-performance 32-bit RISC microprocessor core,
- 	  designed for cost-sensitive embedded applications, with particular
-diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
-index cb884e4..bad27a6 100644
---- a/arch/frv/Kconfig
-+++ b/arch/frv/Kconfig
-@@ -7,6 +7,7 @@ config FRV
- 	select HAVE_PERF_EVENTS
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_SHOW
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	nval = *addr;
++	do {
++		val = nval;
++		if (val & mask_to_set)
++			return -EBUSY;
++		cpu_relax();
++	} while ((nval = cmpxchg(addr, val, val | mask_to_set)) != val);
++
++	return 0;
++}
++
++static int clear_bits_ll(unsigned long *addr, unsigned long mask_to_clear)
++{
++	unsigned long val, nval;
++
++	nval = *addr;
++	do {
++		val = nval;
++		if ((val & mask_to_clear) != mask_to_clear)
++			return -EBUSY;
++		cpu_relax();
++	} while ((nval = cmpxchg(addr, val, val & ~mask_to_clear)) != val);
++
++	return 0;
++}
++
++/*
++ * bitmap_set_ll - set the specified number of bits at the specified position
++ * @map: pointer to a bitmap
++ * @start: a bit position in @map
++ * @nr: number of bits to set
++ *
++ * Set @nr bits start from @start in @map lock-lessly. Several users
++ * can set/clear the same bitmap simultaneously without lock. If two
++ * users set the same bit, one user will return remain bits, otherwise
++ * return 0.
++ */
++static int bitmap_set_ll(unsigned long *map, int start, int nr)
++{
++	unsigned long *p = map + BIT_WORD(start);
++	const int size = start + nr;
++	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
++
++	while (nr - bits_to_set >= 0) {
++		if (set_bits_ll(p, mask_to_set))
++			return nr;
++		nr -= bits_to_set;
++		bits_to_set = BITS_PER_LONG;
++		mask_to_set = ~0UL;
++		p++;
++	}
++	if (nr) {
++		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
++		if (set_bits_ll(p, mask_to_set))
++			return nr;
++	}
++
++	return 0;
++}
++
++/*
++ * bitmap_clear_ll - clear the specified number of bits at the specified position
++ * @map: pointer to a bitmap
++ * @start: a bit position in @map
++ * @nr: number of bits to set
++ *
++ * Clear @nr bits start from @start in @map lock-lessly. Several users
++ * can set/clear the same bitmap simultaneously without lock. If two
++ * users clear the same bit, one user will return remain bits,
++ * otherwise return 0.
++ */
++static int bitmap_clear_ll(unsigned long *map, int start, int nr)
++{
++	unsigned long *p = map + BIT_WORD(start);
++	const int size = start + nr;
++	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
++
++	while (nr - bits_to_clear >= 0) {
++		if (clear_bits_ll(p, mask_to_clear))
++			return nr;
++		nr -= bits_to_clear;
++		bits_to_clear = BITS_PER_LONG;
++		mask_to_clear = ~0UL;
++		p++;
++	}
++	if (nr) {
++		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
++		if (clear_bits_ll(p, mask_to_clear))
++			return nr;
++	}
++
++	return 0;
++}
  
- config ZONE_DMA
- 	bool
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 38280ef..b1227dd 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -27,6 +27,7 @@ config IA64
- 	select GENERIC_PENDING_IRQ if SMP
- 	select IRQ_PER_CPU
- 	select GENERIC_IRQ_SHOW
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
-index d66e34c..effe8f0 100644
---- a/arch/m68k/Kconfig
-+++ b/arch/m68k/Kconfig
-@@ -6,6 +6,7 @@ config M68K
- 	select GENERIC_ATOMIC64 if MMU
- 	select HAVE_GENERIC_HARDIRQS if !MMU
- 	select GENERIC_IRQ_SHOW if !MMU
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if RMW_INSNS
+ /**
+  * gen_pool_create - create a new special memory pool
+@@ -30,7 +149,7 @@ struct gen_pool *gen_pool_create(int min_alloc_order, int nid)
  
- config RWSEM_GENERIC_SPINLOCK
- 	bool
-diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
-index 65adc86..e077b0b 100644
---- a/arch/parisc/Kconfig
-+++ b/arch/parisc/Kconfig
-@@ -15,6 +15,7 @@ config PARISC
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_PROBE
- 	select IRQ_PER_CPU
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
+ 	if (pool != NULL) {
+-		rwlock_init(&pool->lock);
++		spin_lock_init(&pool->lock);
+ 		INIT_LIST_HEAD(&pool->chunks);
+ 		pool->min_alloc_order = min_alloc_order;
+ 	}
+@@ -63,14 +182,14 @@ int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phy
+ 	if (unlikely(chunk == NULL))
+ 		return -ENOMEM;
  
- 	help
- 	  The PA-RISC microprocessor is designed by Hewlett-Packard and used
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 2729c66..e55f754 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -134,6 +134,7 @@ config PPC
- 	select GENERIC_IRQ_SHOW_LEVEL
- 	select HAVE_RCU_TABLE_FREE if SMP
- 	select HAVE_SYSCALL_TRACEPOINTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	spin_lock_init(&chunk->lock);
+ 	chunk->phys_addr = phys;
+ 	chunk->start_addr = virt;
+ 	chunk->end_addr = virt + size;
++	atomic_set(&chunk->avail, size);
  
- config EARLY_PRINTK
- 	bool
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index c03fef7..0f98bbd 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -81,6 +81,7 @@ config S390
- 	select INIT_ALL_POSSIBLE
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_KERNEL_GZIP
- 	select HAVE_KERNEL_BZIP2
- 	select HAVE_KERNEL_LZMA
-diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-index bbdeb48..66405eb 100644
---- a/arch/sh/Kconfig
-+++ b/arch/sh/Kconfig
-@@ -11,6 +11,7 @@ config SUPERH
- 	select HAVE_DMA_ATTRS
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
- 	select PERF_USE_VMALLOC
- 	select HAVE_KERNEL_GZIP
- 	select HAVE_KERNEL_BZIP2
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 253986b..a63cddf 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -53,6 +53,7 @@ config SPARC64
- 	select HAVE_PERF_EVENTS
- 	select PERF_USE_VMALLOC
- 	select IRQ_PREFLOW_FASTEOI
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	write_lock(&pool->lock);
+-	list_add(&chunk->next_chunk, &pool->chunks);
+-	write_unlock(&pool->lock);
++	spin_lock(&pool->lock);
++	list_add_rcu(&chunk->next_chunk, &pool->chunks);
++	spin_unlock(&pool->lock);
  
- config ARCH_DEFCONFIG
- 	string
-diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
-index 0249b8b..b30f71a 100644
---- a/arch/tile/Kconfig
-+++ b/arch/tile/Kconfig
-@@ -12,6 +12,7 @@ config TILE
- 	select GENERIC_PENDING_IRQ if SMP
- 	select GENERIC_IRQ_SHOW
- 	select SYS_HYPERVISOR
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if !M386
+ 	return 0;
+ }
+@@ -85,19 +204,19 @@ EXPORT_SYMBOL(gen_pool_add_virt);
+  */
+ phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
+ {
+-	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
++	phys_addr_t paddr = -1;
  
- # FIXME: investigate whether we need/want these options.
- #	select HAVE_IOREMAP_PROT
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index da34972..a680a60 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -70,6 +70,7 @@ config X86
- 	select IRQ_FORCED_THREADING
- 	select USE_GENERIC_SMP_HELPERS if SMP
- 	select HAVE_BPF_JIT if (X86_64 && NET)
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+-
+-		if (addr >= chunk->start_addr && addr < chunk->end_addr)
+-			return chunk->phys_addr + addr - chunk->start_addr;
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
++		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
++			paddr = chunk->phys_addr + (addr - chunk->start_addr);
++			break;
++		}
+ 	}
+-	read_unlock(&pool->lock);
++	rcu_read_unlock();
  
- config INSTRUCTION_DECODER
- 	def_bool (KPROBES || PERF_EVENTS)
+-	return -1;
++	return paddr;
+ }
+ EXPORT_SYMBOL(gen_pool_virt_to_phys);
+ 
+@@ -115,7 +234,6 @@ void gen_pool_destroy(struct gen_pool *pool)
+ 	int order = pool->min_alloc_order;
+ 	int bit, end_bit;
+ 
+-
+ 	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+ 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+ 		list_del(&chunk->next_chunk);
+@@ -137,44 +255,50 @@ EXPORT_SYMBOL(gen_pool_destroy);
+  * @size: number of bytes to allocate from the pool
+  *
+  * Allocate the requested number of bytes from the specified pool.
+- * Uses a first-fit algorithm.
++ * Uses a first-fit algorithm. Can not be used in NMI handler on
++ * architectures without NMI-safe cmpxchg implementation.
+  */
+ unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
+ {
+-	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
+-	unsigned long addr, flags;
++	unsigned long addr = 0;
+ 	int order = pool->min_alloc_order;
+-	int nbits, start_bit, end_bit;
++	int nbits, start_bit = 0, end_bit, remain;
++
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
+ 
+ 	if (size == 0)
+ 		return 0;
+ 
+ 	nbits = (size + (1UL << order) - 1) >> order;
+-
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
++		if (size > atomic_read(&chunk->avail))
++			continue;
+ 
+ 		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
+-
+-		spin_lock_irqsave(&chunk->lock, flags);
+-		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
+-						nbits, 0);
+-		if (start_bit >= end_bit) {
+-			spin_unlock_irqrestore(&chunk->lock, flags);
++retry:
++		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit,
++						       start_bit, nbits, 0);
++		if (start_bit >= end_bit)
+ 			continue;
++		remain = bitmap_set_ll(chunk->bits, start_bit, nbits);
++		if (remain) {
++			remain = bitmap_clear_ll(chunk->bits, start_bit,
++						 nbits - remain);
++			BUG_ON(remain);
++			goto retry;
+ 		}
+ 
+ 		addr = chunk->start_addr + ((unsigned long)start_bit << order);
+-
+-		bitmap_set(chunk->bits, start_bit, nbits);
+-		spin_unlock_irqrestore(&chunk->lock, flags);
+-		read_unlock(&pool->lock);
+-		return addr;
++		size = nbits << order;
++		atomic_sub(size, &chunk->avail);
++		break;
+ 	}
+-	read_unlock(&pool->lock);
+-	return 0;
++	rcu_read_unlock();
++	return addr;
+ }
+ EXPORT_SYMBOL(gen_pool_alloc);
+ 
+@@ -184,33 +308,95 @@ EXPORT_SYMBOL(gen_pool_alloc);
+  * @addr: starting address of memory to free back to pool
+  * @size: size in bytes of memory to free
+  *
+- * Free previously allocated special memory back to the specified pool.
++ * Free previously allocated special memory back to the specified
++ * pool.  Can not be used in NMI handler on architectures without
++ * NMI-safe cmpxchg implementation.
+  */
+ void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
+ {
+-	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
+-	unsigned long flags;
+ 	int order = pool->min_alloc_order;
+-	int bit, nbits;
++	int start_bit, nbits, remain;
+ 
+-	nbits = (size + (1UL << order) - 1) >> order;
+-
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
+ 
++	nbits = (size + (1UL << order) - 1) >> order;
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
+ 		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
+ 			BUG_ON(addr + size > chunk->end_addr);
+-			spin_lock_irqsave(&chunk->lock, flags);
+-			bit = (addr - chunk->start_addr) >> order;
+-			while (nbits--)
+-				__clear_bit(bit++, chunk->bits);
+-			spin_unlock_irqrestore(&chunk->lock, flags);
+-			break;
++			start_bit = (addr - chunk->start_addr) >> order;
++			remain = bitmap_clear_ll(chunk->bits, start_bit, nbits);
++			BUG_ON(remain);
++			size = nbits << order;
++			atomic_add(size, &chunk->avail);
++			rcu_read_unlock();
++			return;
+ 		}
+ 	}
+-	BUG_ON(nbits > 0);
+-	read_unlock(&pool->lock);
++	rcu_read_unlock();
++	BUG();
+ }
+ EXPORT_SYMBOL(gen_pool_free);
++
++/**
++ * gen_pool_for_each_chunk - call func for every chunk of generic memory pool
++ * @pool:	the generic memory pool
++ * @func:	func to call
++ * @data:	additional data used by @func
++ *
++ * Call @func for every chunk of generic memory pool.  The @func is
++ * called with rcu_read_lock held.
++ */
++void gen_pool_for_each_chunk(struct gen_pool *pool,
++	void (*func)(struct gen_pool *pool, struct gen_pool_chunk *chunk, void *data),
++	void *data)
++{
++	struct gen_pool_chunk *chunk;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &(pool)->chunks, next_chunk)
++		func(pool, chunk, data);
++	rcu_read_unlock();
++}
++EXPORT_SYMBOL(gen_pool_for_each_chunk);
++
++/**
++ * gen_pool_avail - get available free space of the pool
++ * @pool: pool to get available free space
++ *
++ * Return available free space of the specified pool.
++ */
++size_t gen_pool_avail(struct gen_pool *pool)
++{
++	struct gen_pool_chunk *chunk;
++	size_t avail = 0;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
++		avail += atomic_read(&chunk->avail);
++	rcu_read_unlock();
++	return avail;
++}
++EXPORT_SYMBOL_GPL(gen_pool_avail);
++
++/**
++ * gen_pool_size - get size in bytes of memory managed by the pool
++ * @pool: pool to get size
++ *
++ * Return size in bytes of memory managed by the pool.
++ */
++size_t gen_pool_size(struct gen_pool *pool)
++{
++	struct gen_pool_chunk *chunk;
++	size_t size = 0;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
++		size += chunk->end_addr - chunk->start_addr;
++	rcu_read_unlock();
++	return size;
++}
++EXPORT_SYMBOL_GPL(gen_pool_size);
 -- 
 1.7.6.396.ge0613
+
