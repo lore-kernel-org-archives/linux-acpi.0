@@ -1,95 +1,109 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 18/27] ACPI: introduce "acpi_rsdp=" parameter for kdump
-Date: Tue, 02 Aug 2011 16:53:20 -0400
-Message-ID: <4996c02306a25def1d352ec8e8f48895bbc7dea9.1312318300.git.len.brown@intel.com>
+Subject: [PATCH 10/27] ACPI / Battery: Change 16-bit signed negative battery
+ current into correct value
+Date: Tue, 02 Aug 2011 16:53:12 -0400
+Message-ID: <55003b2105a4578736f3e868fbaa889bb1ff3ce0.1312318300.git.len.brown@intel.com>
 References: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173003pub.verizon.net ([206.46.173.3]:41222 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755525Ab1HBVwF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 17:52:05 -0400
+	with ESMTP id S1755532Ab1HBVwG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 17:52:06 -0400
 Received: from localhost.localdomain ([unknown] [65.175.195.226])
  by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LPB00IROM2GJRGL@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 16:52:03 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 16:52:04 -0500 (CDT)
 In-reply-to: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
 References: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Takao Indoh <indou.takao@jp.fujitsu.com>, Len Brown <len.brown@intel.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Takao Indoh <indou.takao@jp.fujitsu.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
 
-There is a problem with putting the first kernel in EFI virtual mode,
-it is that when the second kernel comes up it tries to initialize the
-EFI again and once we have put EFI in virtual mode we can not really
-do that.
+This patch is for some machines which report the battery current
+as a 16-bit signed negative when it is charging. This is caused
+by DSDT bug. The commit bc76f90b8a5cf4aceedf210d08d5e8292f820cec
+has resolved the problem for Acer laptops. But some other machines
+also have such problem.
 
-Actually, EFI is not necessary for kdump, we can boot the second kernel
-with "noefi" parameter, but the boot will mostly fail because 2nd kernel
-cannot find RSDP.
+    https://bugzilla.kernel.org/show_bug.cgi?id=33722
 
-In this situation, we introduced "acpi_rsdp=" kernel parameter, so that
-kexec-tools can pass the "noefi acpi_rsdp=X" to the second kernel to
-make kdump works. The physical address of the RSDP can be got from
-sysfs(/sys/firmware/efi/systab).
+Since it is improper that the current is above 32A on laptops
+whether on AC or on battery, this patch is to check the current and
+ take its absolute value as current and producing a message when it
+is negative in s16.
 
-Signed-off-by: Takao Indoh <indou.takao@jp.fujitsu.com>
-Reviewed-by: WANG Cong <amwang@redhat.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Remove Acer quirk, as this workaround handles Acer too.
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    5 +++++
- drivers/acpi/osl.c                  |   15 +++++++++++++++
- 2 files changed, 20 insertions(+), 0 deletions(-)
+ drivers/acpi/battery.c |   26 ++++++++++----------------
+ 1 files changed, 10 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index aa47be7..37713bc 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -163,6 +163,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 611434f..ff1ff70 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -94,11 +94,6 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+ enum {
+ 	ACPI_BATTERY_ALARM_PRESENT,
+ 	ACPI_BATTERY_XINFO_PRESENT,
+-	/* For buggy DSDTs that report negative 16-bit values for either
+-	 * charging or discharging current and/or report 0 as 65536
+-	 * due to bad math.
+-	 */
+-	ACPI_BATTERY_QUIRK_SIGNED16_CURRENT,
+ 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
+ };
  
- 			See also Documentation/power/pm.txt, pci=noacpi
+@@ -465,9 +460,17 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 	battery->update_time = jiffies;
+ 	kfree(buffer.pointer);
  
-+	acpi_rsdp=	[ACPI,EFI,KEXEC]
-+			Pass the RSDP address to the kernel, mostly used
-+			on machines running EFI runtime service to boot the
-+			second kernel for kdump.
-+
- 	acpi_apic_instance=	[ACPI, IOAPIC]
- 			Format: <int>
- 			2: use 2nd APIC table, if available
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 52ca964..27cd140 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -237,8 +237,23 @@ void acpi_os_vprintf(const char *fmt, va_list args)
- #endif
+-	if (test_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags) &&
+-	    battery->rate_now != -1)
++	/* For buggy DSDTs that report negative 16-bit values for either
++	 * charging or discharging current and/or report 0 as 65536
++	 * due to bad math.
++	 */
++	if (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA &&
++		battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
++		(s16)(battery->rate_now) < 0) {
+ 		battery->rate_now = abs((s16)battery->rate_now);
++		printk_once(KERN_WARNING FW_BUG "battery: (dis)charge rate"
++			" invalid.\n");
++	}
+ 
+ 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
+ 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
+@@ -577,14 +580,6 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 	battery->bat.dev = NULL;
  }
  
-+#ifdef CONFIG_KEXEC
-+static unsigned long acpi_rsdp;
-+static int __init setup_acpi_rsdp(char *arg)
-+{
-+	acpi_rsdp = simple_strtoul(arg, NULL, 16);
-+	return 0;
-+}
-+early_param("acpi_rsdp", setup_acpi_rsdp);
-+#endif
-+
- acpi_physical_address __init acpi_os_get_root_pointer(void)
- {
-+#ifdef CONFIG_KEXEC
-+	if (acpi_rsdp)
-+		return acpi_rsdp;
-+#endif
-+
- 	if (efi_enabled) {
- 		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
- 			return efi.acpi20;
+-static void acpi_battery_quirks(struct acpi_battery *battery)
+-{
+-	if (dmi_name_in_vendors("Acer") &&
+-		battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA) {
+-		set_bit(ACPI_BATTERY_QUIRK_SIGNED16_CURRENT, &battery->flags);
+-	}
+-}
+-
+ /*
+  * According to the ACPI spec, some kinds of primary batteries can
+  * report percentage battery remaining capacity directly to OS.
+@@ -628,7 +623,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
+-		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+ 	if (!battery->bat.dev)
 -- 
 1.7.6.396.ge0613
 
