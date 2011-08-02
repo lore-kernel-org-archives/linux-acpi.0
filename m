@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/27] ACPICA: Add missing _TDL to list of predefined names
-Date: Tue, 02 Aug 2011 16:53:04 -0400
-Message-ID: <f631f9cafbc47bbfe5eb2aa831cd323175298448.1312318300.git.len.brown@intel.com>
+Subject: [PATCH 03/27] ACPICA: Update to version 20110527
+Date: Tue, 02 Aug 2011 16:53:05 -0400
+Message-ID: <80f40ce0f10e87d9a27f1e29325c6f39245fbcb1.1312318300.git.len.brown@intel.com>
 References: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:47448 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266Ab1HBUxy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 16:53:54 -0400
+Received: from vms173011pub.verizon.net ([206.46.173.11]:38790 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266Ab1HBUx4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Aug 2011 16:53:56 -0400
 Received: from localhost.localdomain ([unknown] [65.175.195.226])
- by vms173009.mailsrvcs.net
+ by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LPB00B5BJDEUSC0@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 15:53:44 -0500 (CDT)
+ with ESMTPA id <0LPB00DF2JDGESE3@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 02 Aug 2011 15:53:45 -0500 (CDT)
 In-reply-to: <1312318409-29363-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
 References: <c8cefe307d79c57b32ca1d4c9ebff528f8dd914c.1312318300.git.len.brown@intel.com>
@@ -23,27 +23,28 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Affects both iASL and core ACPICA.
+Version 20110527.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index 94e73c9..c445cca 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -468,6 +468,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_SWS", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_TC1", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_TC2", 0, ACPI_RTYPE_INTEGER}},
-+	{{"_TDL", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_TIP", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_TIV", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_TMP", 0, ACPI_RTYPE_INTEGER}},
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 2ed0a84..06853f7 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -47,7 +47,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20110413
++#define ACPI_CA_VERSION                 0x20110527
+ 
+ #include "actypes.h"
+ #include "actbl.h"
 -- 
 1.7.6.396.ge0613
 
