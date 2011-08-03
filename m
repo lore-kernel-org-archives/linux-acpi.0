@@ -1,41 +1,57 @@
-From: nick <nickfamilyiq@gmail.com>
-Subject: It Works!" (I think you can get 37 checks in 29 days with this too)
-Date: Wed, 03 Aug 2011 01:21:57 -0400
-Message-ID: <E1QoTu1-0007vR-8R@cyber1.clickithost.com>
-Reply-To: nickfamilyiq@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 10/19] Add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+Date: Wed, 03 Aug 2011 09:44:30 +0100
+Message-ID: <5527.1312361070@redhat.com>
+References: <0f579173fd1c9f5dba6703ed8e44a767edf948b5.1312323131.git.len.brown@intel.com> <1312323292-2986-1-git-send-email-lenb@kernel.org> <ca7cc5110a313a609da40ae948978a585352564b.1312323131.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 64-37-60-38.static.dimenoc.com ([64.37.60.38]:36613 "EHLO
-	cyber1.clickithost.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452Ab1HCFXD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 01:23:03 -0400
-Received: from wwwnickl by cyber1.clickithost.com with local (Exim 4.69)
-	(envelope-from <wwwnickl@cyber1.clickithost.com>)
-	id 1QoTu1-0007vR-8R
-	for linux-acpi@vger.kernel.org; Wed, 03 Aug 2011 01:21:57 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:61509 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752082Ab1HCIrA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Aug 2011 04:47:00 -0400
+In-Reply-To: <0f579173fd1c9f5dba6703ed8e44a767edf948b5.1312323131.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Richard Henderson <rth@twiddle.net>, Mikael Starvik <starvik@axis.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Kyle McMartin <kyle@mcmartin.ca>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Chen Liqin <liqin.chen@sunplusct.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@redhat.com>, Chris Zankel <chris@zankel.net>, Len Brown <len.brown@intel.com>
 
-FREE! "How To Get Up To 37 Checks Per
-Month, Earn Upwards Of $4,954.55 While
-You Sleep At Night, And Recruit WITHOUT
-Ever Having To Pick Up The Phone ..."
+Len Brown <lenb@kernel.org> wrote:
 
+> From: Huang Ying <ying.huang@intel.com>
+> 
+> cmpxchg() is widely used by lockless code, including NMI-safe lockless
+> code.  But on some architectures, the cmpxchg() implementation is not
+> NMI-safe, on these architectures the lockless code may need a
+> spin_trylock_irqsave() based implementation.
+> 
+> This patch adds a Kconfig option: ARCH_HAVE_NMI_SAFE_CMPXCHG, so that
+> NMI-safe lockless code can depend on it or provide different
+> implementation according to it.
+> 
+> On many architectures, cmpxchg is only NMI-safe for several specific
+> operand sizes. So, ARCH_HAVE_NMI_SAFE_CMPXCHG define in this patch
+> only guarantees cmpxchg is NMI-safe for sizeof(unsigned long).
+> 
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> Acked-by: Mike Frysinger <vapier@gentoo.org>
+> Acked-by: Paul Mundt <lethal@linux-sh.org>
+> Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+> Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+> CC: Richard Henderson <rth@twiddle.net>
+> CC: Mikael Starvik <starvik@axis.com>
+> CC: David Howells <dhowells@redhat.com>
+> CC: Yoshinori Sato <ysato@users.sourceforge.jp>
+> CC: Tony Luck <tony.luck@intel.com>
+> CC: Hirokazu Takata <takata@linux-m32r.org>
+> CC: Geert Uytterhoeven <geert@linux-m68k.org>
+> CC: Michal Simek <monstr@monstr.eu>
+> CC: Ralf Baechle <ralf@linux-mips.org>
+> CC: Kyle McMartin <kyle@mcmartin.ca>
+> CC: Martin Schwidefsky <schwidefsky@de.ibm.com>
+> CC: Chen Liqin <liqin.chen@sunplusct.com>
+> CC: "David S. Miller" <davem@davemloft.net>
+> CC: Ingo Molnar <mingo@redhat.com>
+> CC: Chris Zankel <chris@zankel.net>
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
-
-
-Claim Your Free $47.00 Gift Now:
-
-
-==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
-
-
-To your success,
-
-Nick Nguyen
-
-
+Acked-by: David Howells <dhowells@redhat.com> [FRV]
