@@ -1,28 +1,41 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [BUGFIX] ACPI, APEI, EINJ Param support is disabled by default
-Date: Wed, 03 Aug 2011 08:37:06 +0800
-Message-ID: <4E389832.6060300@intel.com>
-References: <1311149369-20624-1-git-send-email-ying.huang@intel.com> <alpine.LFD.2.02.1108021802330.25237@x980>
+From: nick <nickfamilyiq@gmail.com>
+Subject: It Works!" (I think you can get 37 checks in 29 days with this too)
+Date: Wed, 03 Aug 2011 01:21:57 -0400
+Message-ID: <E1QoTu1-0007vR-8R@cyber1.clickithost.com>
+Reply-To: nickfamilyiq@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:48528 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753728Ab1HCAhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Aug 2011 20:37:11 -0400
-In-Reply-To: <alpine.LFD.2.02.1108021802330.25237@x980>
+Received: from 64-37-60-38.static.dimenoc.com ([64.37.60.38]:36613 "EHLO
+	cyber1.clickithost.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452Ab1HCFXD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 01:23:03 -0400
+Received: from wwwnickl by cyber1.clickithost.com with local (Exim 4.69)
+	(envelope-from <wwwnickl@cyber1.clickithost.com>)
+	id 1QoTu1-0007vR-8R
+	for linux-acpi@vger.kernel.org; Wed, 03 Aug 2011 01:21:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+To: linux-acpi@vger.kernel.org
 
-On 08/03/2011 06:03 AM, Len Brown wrote:
-> applied as-is to the apei branch.
-> 
-> please minde the checkpatch 80-column thing.
+FREE! "How To Get Up To 37 Checks Per
+Month, Earn Upwards Of $4,954.55 While
+You Sleep At Night, And Recruit WITHOUT
+Ever Having To Pick Up The Phone ..."
 
-Sorry,  will pay more attention next time.
 
-Best Regards,
-Huang Ying
+==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
+
+
+Claim Your Free $47.00 Gift Now:
+
+
+==> https://daegansmith.infusionsoft.com/go/freedvdbootcamp/a12144
+
+
+To your success,
+
+Nick Nguyen
+
+
