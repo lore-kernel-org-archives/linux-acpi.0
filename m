@@ -1,38 +1,54 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: Re: [GIT PATCH] APEI patches for Linux 3.1
-Date: Wed, 3 Aug 2011 12:10:14 -0700
-Message-ID: <CA+8MBbKavpgkf-ByB5-x9k5NCnW_W9Nkp2pQMXTGvTZEdTYg1w@mail.gmail.com>
-References: <alpine.LFD.2.02.1108031137590.22067@x980>
-	<CA+55aFxST2J+LDMB=1ctnw2WGxV+a-cm3FE-1AjwnXMNDkt32g@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/2] x86: Enable monitor/mwait on Intel if BIOS hasn't
+ already
+Date: Wed, 03 Aug 2011 15:17:59 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1108031514550.22067@x980>
+References: <cover.1312386029.git.luto@mit.edu>
+ <5bec80947da3fb72f2f18fbe6d924a69f83fbed9.1312386029.git.luto@mit.edu>
+ <alpine.LFD.2.02.1108031214470.22067@x980>
+ <CAObL_7GuAmzyjo5AmYxbTeiAqFtVk1N+opzWEzwJu8Mgrvts7g@mail.gmail.com>
+ <CAObL_7FNa20Hsd0v-hs1vz=ejnkdaT+Yr=wwM681GbZJiuLkMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-18042863-1312399079=:22067"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57624 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754568Ab1HCTKP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 15:10:15 -0400
-In-Reply-To: <CA+55aFxST2J+LDMB=1ctnw2WGxV+a-cm3FE-1AjwnXMNDkt32g@mail.gmail.com>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:63076 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754948Ab1HCTSN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 15:18:13 -0400
+In-reply-to: <CAObL_7FNa20Hsd0v-hs1vz=ejnkdaT+Yr=wwM681GbZJiuLkMQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Lutomirski <luto@mit.edu>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, Aug 3, 2011 at 9:26 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> =A0fatal: Couldn't find remote ref apei-release
->
-> Forgot yo push?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Looks like he pushed to the wrong tree. There is a 3 hour old
-apei-release branch here:
+--8323328-18042863-1312399079=:22067
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
- git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-idle-2.6.git
-apei-release
+> >> What machine has this BIOS bug, and are you running
+> >> the latest version of the BIOS?
+> >
+> > Intel DQ67SW, version SWQ6710H.86A.0051.2011.0413.1154.  This is not
+> > quite up-to-date -- I'll test a newer BIOS.
+> 
+> SWQ6710H.86A.0053.2011.0615.1535 has the same problem.  It fixed ASPM, though :)
+> 
+> Should I redo the patch with a printk to warn about the firmware bug?
 
--Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would hope that a patch that _only_ prints [Firmware bug]
+should be enough.  This isn't the kind of workaround
+that we should really have to carry in the kernel.
+
+This is still a very new platform, and my guess is that
+they are actively updating the BIOS as we speak.
+I'll see if I can figure out who to talk to
+in order to make sure of that:-)
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+
+--8323328-18042863-1312399079=:22067--
