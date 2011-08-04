@@ -1,57 +1,62 @@
-From: Andrew Lutomirski <luto@mit.edu>
-Subject: Re: [PATCH 2/2] x86: Enable monitor/mwait on Intel if BIOS hasn't already
-Date: Wed, 3 Aug 2011 23:18:32 -0400
-Message-ID: <CAObL_7HZ_8tSfKCpoKN68O1OJczCW+dOEhRiVu-zVwWOFHj1ew@mail.gmail.com>
-References: <cover.1312386029.git.luto@mit.edu> <5bec80947da3fb72f2f18fbe6d924a69f83fbed9.1312386029.git.luto@mit.edu>
- <alpine.LFD.2.02.1108031214470.22067@x980> <CAObL_7GuAmzyjo5AmYxbTeiAqFtVk1N+opzWEzwJu8Mgrvts7g@mail.gmail.com>
- <CAObL_7FNa20Hsd0v-hs1vz=ejnkdaT+Yr=wwM681GbZJiuLkMQ@mail.gmail.com> <alpine.LFD.2.02.1108031514550.22067@x980>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PATCH] APEI patches for Linux 3.1
+Date: Thu, 04 Aug 2011 00:25:55 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1108032351430.29492@x980>
+References: <alpine.LFD.2.02.1108031137590.22067@x980>
+ <CA+55aFxST2J+LDMB=1ctnw2WGxV+a-cm3FE-1AjwnXMNDkt32g@mail.gmail.com>
+ <alpine.LFD.2.02.1108031523080.22067@x980>
+ <CA+55aFxE6b=idv+fF5h1U3EnDqHSCK2b6+36sResmhJKvAZQ3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:42966 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755018Ab1HDDSw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 23:18:52 -0400
-In-Reply-To: <alpine.LFD.2.02.1108031514550.22067@x980>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:55350 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722Ab1HDE0D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Aug 2011 00:26:03 -0400
+In-reply-to: <CA+55aFxE6b=idv+fF5h1U3EnDqHSCK2b6+36sResmhJKvAZQ3A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Aug 3, 2011 at 3:17 PM, Len Brown <lenb@kernel.org> wrote:
->> >> What machine has this BIOS bug, and are you running
->> >> the latest version of the BIOS?
->> >
->> > Intel DQ67SW, version SWQ6710H.86A.0051.2011.0413.1154. =A0This is=
- not
->> > quite up-to-date -- I'll test a newer BIOS.
->>
->> SWQ6710H.86A.0053.2011.0615.1535 has the same problem. =A0It fixed A=
-SPM, though :)
->>
->> Should I redo the patch with a printk to warn about the firmware bug=
-?
->
-> I would hope that a patch that _only_ prints [Firmware bug]
-> should be enough. =A0This isn't the kind of workaround
-> that we should really have to carry in the kernel.
->
-> This is still a very new platform, and my guess is that
-> they are actively updating the BIOS as we speak.
-> I'll see if I can figure out who to talk to
-> in order to make sure of that:-)
+On Wed, 3 Aug 2011, Linus Torvalds wrote:
 
-I can add a strange data point:  with TXT enabled in BIOS, fast
-strings are disabled (on all CPUs, I think) and monitor/mwait is
-disabled on the boot CPU.  With TXT disabled, both features are
-enabled.
+> ...I'm not seeing any
+> reason to pull this thing. The merge window is not for development,
+> and you're simply not making me get the warm and fuzzies about this
+> late pull request.
 
-I'll see if my laptop does the same thing.
+I appologize for the the multiple late pull requests.
+I was off the grid for a vacation and returned too late to be early.
 
---Andy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I split APEI onto its own branch and I doubly botched it --
+both in the .git/remotes file and in the script pointing to the repo...
+I guess the good news is the next time I run the script it will be 
+correct:-)
+
+Please judge apei-release on its own merits rather than
+the sloppily-addressed envelope I sent it in on Wednesday.
+I know it isn't a capability that you use, but for the enterprise
+folks that need it, this batch is an improvement over Linux 3.0.
+
+The code hasn't changed much in months -- most of it
+was ready for the 3.0 merge window.  There were a couple of
+build fixes recently based-on linux-next feedback,
+and I also re-based to add more "Acked-by" notations.
+Finally, I merged it up to your tree so you'd not be irritated
+with trivial but annoying text merge conflicts on your
+vacation.  (typical case of multiple people appending
+to shared lists in Kconfig files, if you're interested)
+
+FWIW, I've built 200 x86_64 kernels and 393 i386 kernels
+and booted on both architectures on multiple machines.
+Though I don't have the capability to verify correctness
+of the the APEI features, and must rely on Ying for that.
+
+please pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git apei-release
+
+thanks,
+-Len
+
