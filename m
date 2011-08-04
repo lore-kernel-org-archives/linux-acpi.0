@@ -1,93 +1,57 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [GIT PATCH] APEI patches for Linux 3.1
-Date: Thu, 4 Aug 2011 11:34:11 +1000
-Message-ID: <20110804113411.87cb449bec31b15789175554@canb.auug.org.au>
-References: <alpine.LFD.2.02.1108031137590.22067@x980>
-	<CA+55aFxST2J+LDMB=1ctnw2WGxV+a-cm3FE-1AjwnXMNDkt32g@mail.gmail.com>
-	<alpine.LFD.2.02.1108031523080.22067@x980>
-	<CA+55aFxE6b=idv+fF5h1U3EnDqHSCK2b6+36sResmhJKvAZQ3A@mail.gmail.com>
-	<CAC=cRTMm8w-CQrj=GodPNxk=TbumuisLWzZh0i6x=x7_=C9ugg@mail.gmail.com>
+From: Andrew Lutomirski <luto@mit.edu>
+Subject: Re: [PATCH 2/2] x86: Enable monitor/mwait on Intel if BIOS hasn't already
+Date: Wed, 3 Aug 2011 23:18:32 -0400
+Message-ID: <CAObL_7HZ_8tSfKCpoKN68O1OJczCW+dOEhRiVu-zVwWOFHj1ew@mail.gmail.com>
+References: <cover.1312386029.git.luto@mit.edu> <5bec80947da3fb72f2f18fbe6d924a69f83fbed9.1312386029.git.luto@mit.edu>
+ <alpine.LFD.2.02.1108031214470.22067@x980> <CAObL_7GuAmzyjo5AmYxbTeiAqFtVk1N+opzWEzwJu8Mgrvts7g@mail.gmail.com>
+ <CAObL_7FNa20Hsd0v-hs1vz=ejnkdaT+Yr=wwM681GbZJiuLkMQ@mail.gmail.com> <alpine.LFD.2.02.1108031514550.22067@x980>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__4_Aug_2011_11_34_11_+1000_YanQdPefrGMzDrlH"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:47109 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753215Ab1HDBeU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Aug 2011 21:34:20 -0400
-In-Reply-To: <CAC=cRTMm8w-CQrj=GodPNxk=TbumuisLWzZh0i6x=x7_=C9ugg@mail.gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:42966 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755018Ab1HDDSw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2011 23:18:52 -0400
+In-Reply-To: <alpine.LFD.2.02.1108031514550.22067@x980>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org
 
---Signature=_Thu__4_Aug_2011_11_34_11_+1000_YanQdPefrGMzDrlH
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 4 Aug 2011 09:10:09 +0800 huang ying <huang.ying.caritas@gmail.com>=
- wrote:
+On Wed, Aug 3, 2011 at 3:17 PM, Len Brown <lenb@kernel.org> wrote:
+>> >> What machine has this BIOS bug, and are you running
+>> >> the latest version of the BIOS?
+>> >
+>> > Intel DQ67SW, version SWQ6710H.86A.0051.2011.0413.1154. =A0This is=
+ not
+>> > quite up-to-date -- I'll test a newer BIOS.
+>>
+>> SWQ6710H.86A.0053.2011.0615.1535 has the same problem. =A0It fixed A=
+SPM, though :)
+>>
+>> Should I redo the patch with a printk to warn about the firmware bug=
+?
 >
-> On Thu, Aug 4, 2011 at 8:52 AM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> > On Wed, Aug 3, 2011 at 9:26 AM, Len Brown <lenb@kernel.org> wrote:
-> >>
-> >> Push went here:
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git =
-apei-release
-> >
-> > No it didn't.
-> >
-> > Apparently it went into linux-idle.
-> >
-> > Christ, Len. You send me *two* bogus pull requests, and all your pull
-> > requests =C2=A0come in at the very end of the merge cycle, when I very
-> > clearly asked people to try hard to avoid that since I'm supposed to
-> > be on vacation.
-> >
-> > And several of those commits are from today, and cannot have had any te=
-sting.
-> >
-> > In short: even though Tony told me where to look, I'm not seeing any
-> > reason to pull this thing. The merge window is not for development,
-> > and you're simply not making me get the warm and fuzzies about this
-> > late pull request.
->=20
-> Most APEI patches have been in
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
->=20
-> since July 13th, and have been in linux-next since then.  I think Len
-> just re-apply these patches in linux-idle tree.
+> I would hope that a patch that _only_ prints [Firmware bug]
+> should be enough. =A0This isn't the kind of workaround
+> that we should really have to carry in the kernel.
+>
+> This is still a very new platform, and my guess is that
+> they are actively updating the BIOS as we speak.
+> I'll see if I can figure out who to talk to
+> in order to make sure of that:-)
 
-The same sequence of commits appear in my acpi tree (the last 3 and the
-origin merge since yesterday, the rest since July 16).
+I can add a strange data point:  with TXT enabled in BIOS, fast
+strings are disabled (on all CPUs, I think) and monitor/mwait is
+disabled on the boot CPU.  With TXT disabled, both features are
+enabled.
 
-Linus, if you compare commit d7bdc8399c3c ("Merge branch 'apei' into
-apei-release") from Len's acpi tree to the apei-release branch from the
-idle tree, then you will see what I mean.
+I'll see if my laptop does the same thing.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Thu__4_Aug_2011_11_34_11_+1000_YanQdPefrGMzDrlH
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOOfcTAAoJEDMEi1NhKgbswAYH/0Djq1Vkc6HLb8mBqR96eqhU
-/bffw0Lr6c2p0E5MmAd6/T8Ln3Fp46T+/MBiMYNHhUjh3YOQH+B2nQjxhYfuQpFh
-3LIwVtiftHWId4Z40noI261SX7A67QK5+8jjC6invXKGrV+P+2MwRaWOf/nrdAqU
-4sKdNfuZucLr6RvT2PdU7Xsz1k+7FMPcYFr/e3sOcrPH2VxuLfqGTGquSWHGFLOi
-WQ6TvGf4bdiNZXhn4lo1ljUHjIQ51BmeKPSlxS4RkJ6qeINdNPkHOnLBs7e2WHXN
-E/ghn61zGl+M2UOQ6X+0xPAQQF9o7soJwKiZ/+le64bbtc9prubDpN5VsH56HiI=
-=wCjm
------END PGP SIGNATURE-----
-
---Signature=_Thu__4_Aug_2011_11_34_11_+1000_YanQdPefrGMzDrlH--
+--Andy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
