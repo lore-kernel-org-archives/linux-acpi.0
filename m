@@ -1,32 +1,104 @@
-From: Ralf Hemmecke <hemmecke@gmail.com>
-Subject: cpufreq directory missing on ThinkPad W520
-Date: Fri, 05 Aug 2011 14:53:58 +0200
-Message-ID: <4E3BE7E6.8090904@gmail.com>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Re: [PATCH] Battery: sysfs_remove_battery(): possible circular
+ locking
+Date: Fri, 5 Aug 2011 19:39:44 +0300
+Message-ID: <20110805163944.GA3132@swordfish.minsk.epam.com>
+References: <20110805003322.GA8311@swordfish>
+ <1312521008.2096.173.camel@lantianyu-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33495 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755862Ab1HEMyB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Aug 2011 08:54:01 -0400
-Received: by fxh19 with SMTP id 19so2796722fxh.19
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Aug 2011 05:54:00 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:48513 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908Ab1HEQkt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Aug 2011 12:40:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1312521008.2096.173.camel@lantianyu-ws>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "lan,Tianyu" <tianyu.lan@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-After installing Ununtu 11.04 in 64 or 32 bit version on a new Lenovo
-ThinkPad W520 (4282W16), I don't see the
-/sys/devices/system/cpu/cpu0/cpufreq directory.
+On (08/05/11 13:10), lan,Tianyu wrote:
+> I think changing  'the marker' to 'battery->bat.name' will introduce
+> problem.
+> In the sysfs_add_battery(), when the 'battery->bat.name' is assigned,
+> the power_supply_register() and device_create_file() have not been
+> invoked. In this time, maybe sysfs_remove_battery() will be invoked and
+> cause device_remove_file() and power_supply_unregister() invoked without
+> device file created and power supply registered.
+> 
+> sysfs_remove_battery()  will be invoked in the battery_notify(),
+> acpi_battery_refresh() and sysfs_remove_battery() which causes the
+> situation. This is also the cause  of bug 35642.
+> 
 
-More details here: https://bugs.launchpad.net/ubuntu/+bug/820489
+Well, how about using separate (independent lock) for sysfs_remove_battery()
+case? Since we can't safely drop battery->lock in sysfs_remove_battery() before 
+power_supply_unregister() call.
 
-It might be a BIOS issue (I'm not 100% sure), but I think one cannot
-require an ordinary W520 Linux user to upgrade the BIOS. Thus I am
-looking for another route.
+Not sure if it should be within struct acpi_battery, perhaps we could
+have it as a 'global' battery lock. Anyway, here it is:
 
-Any help that connects me to the right person who can deal with my issue 
-is appreciated.
+---
 
-Ralf
+ drivers/acpi/battery.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 87c0a8d..7711d94 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -99,6 +99,7 @@ enum {
+ 
+ struct acpi_battery {
+ 	struct mutex lock;
++	struct mutex sysfs_lock;
+ 	struct power_supply bat;
+ 	struct acpi_device *device;
+ 	struct notifier_block pm_nb;
+@@ -573,16 +574,16 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ 
+ static void sysfs_remove_battery(struct acpi_battery *battery)
+ {
+-	mutex_lock(&battery->lock);
++	mutex_lock(&battery->sysfs_lock);
+ 	if (!battery->bat.dev) {
+-		mutex_unlock(&battery->lock);
++		mutex_unlock(&battery->sysfs_lock);
+ 		return;
+ 	}
+ 
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
+ 	battery->bat.dev = NULL;
+-	mutex_unlock(&battery->lock);
++	mutex_unlock(&battery->sysfs_lock);
+ }
+ 
+ /*
+@@ -982,6 +983,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+ 	device->driver_data = battery;
+ 	mutex_init(&battery->lock);
++	mutex_init(&battery->sysfs_lock);
+ 	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
+ 			"_BIX", &handle)))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+@@ -1010,6 +1012,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ fail:
+ 	sysfs_remove_battery(battery);
+ 	mutex_destroy(&battery->lock);
++	mutex_destroy(&battery->sysfs_lock);
+ 	kfree(battery);
+ 	return result;
+ }
+@@ -1027,6 +1030,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ #endif
+ 	sysfs_remove_battery(battery);
+ 	mutex_destroy(&battery->lock);
++	mutex_destroy(&battery->sysfs_lock);
+ 	kfree(battery);
+ 	return 0;
+ }
+
