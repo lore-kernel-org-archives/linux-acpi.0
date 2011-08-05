@@ -1,23 +1,35 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Re: [PATCH] Battery: sysfs_remove_battery(): possible circular
+From: "Lan, Tianyu" <tianyu.lan@intel.com>
+Subject: RE: [PATCH] Battery: sysfs_remove_battery(): possible circular
  locking
-Date: Fri, 5 Aug 2011 19:39:44 +0300
-Message-ID: <20110805163944.GA3132@swordfish.minsk.epam.com>
+Date: Sat, 6 Aug 2011 01:07:52 +0800
+Message-ID: <625BA99ED14B2D499DC4E29D8138F15062C4514167@shsmsx502.ccr.corp.intel.com>
 References: <20110805003322.GA8311@swordfish>
  <1312521008.2096.173.camel@lantianyu-ws>
+ <20110805163944.GA3132@swordfish.minsk.epam.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48513 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908Ab1HEQkt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Aug 2011 12:40:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1312521008.2096.173.camel@lantianyu-ws>
+Received: from mga14.intel.com ([143.182.124.37]:3653 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976Ab1HERH6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Aug 2011 13:07:58 -0400
+In-Reply-To: <20110805163944.GA3132@swordfish.minsk.epam.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lan,Tianyu" <tianyu.lan@intel.com>
+To: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+
+Yeah. I also have tried this way on my laptop. It's ok.
+
+
+-----Original Message-----
+From: Sergey Senozhatsky [mailto:sergey.senozhatsky@gmail.com] 
+Sent: Saturday, August 06, 2011 12:40 AM
+To: Lan, Tianyu
+Cc: Len Brown; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Battery: sysfs_remove_battery(): possible circular locking
 
 On (08/05/11 13:10), lan,Tianyu wrote:
 > I think changing  'the marker' to 'battery->bat.name' will introduce
