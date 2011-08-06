@@ -1,103 +1,115 @@
-From: Bruno Friedmann <bruno@ioda-net.ch>
-Subject: Re: [PATCH] x86: Add reboot quirk for Dell Precision M4600
-Date: Sat, 06 Aug 2011 20:18:52 +0200
-Message-ID: <4E3D858C.5050804@ioda-net.ch>
-References: <20110727125651.GH3010@suse.de> <20110806065635.GE13220@elte.hu> <24c471f7-80f5-4102-a12b-d6245c8d0921@email.android.com> <alpine.LFD.2.02.1108061120150.3197@x980>
+From: "Yu, Fenghua" <fenghua.yu@intel.com>
+Subject: RE: [PATCH v2 1/2] x86: Enable fast strings on Intel if BIOS hasn't
+ already
+Date: Sat, 6 Aug 2011 12:33:27 -0700
+Message-ID: <493994B35A117E4F832F97C4719C4C040132C5FB69@orsmsx505.amr.corp.intel.com>
+References: <cover.1312630712.git.luto@mit.edu>
+ <9a8f28ccbe44cd323a01e9a23b531cb869185a21.1312630712.git.luto@mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.ioda.net ([87.98.140.96]:48509 "EHLO smtp.ioda.net"
+Received: from mga09.intel.com ([134.134.136.24]:50768 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753414Ab1HFS2u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Aug 2011 14:28:50 -0400
-In-Reply-To: <alpine.LFD.2.02.1108061120150.3197@x980>
+	id S1756537Ab1HFTeS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Aug 2011 15:34:18 -0400
+In-Reply-To: <9a8f28ccbe44cd323a01e9a23b531cb869185a21.1312630712.git.luto@mit.edu>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, Mel Gorman <mgorman@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andy Lutomirski <luto@MIT.EDU>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
 
-On 08/06/2011 05:31 PM, Len Brown wrote:
-> On Sat, 6 Aug 2011, H. Peter Anvin wrote:
->=20
->> Ingo Molnar <mingo@elte.hu> wrote:
->>
->>> * Mel Gorman <mgorman@suse.de> wrote:
->>>
->>>> ACPI reboot does not work for Dell Precision M4600. Detect this
->>>> machine via DMI and force the use of the PCI reboot method.
->>>>    =20
->>>> Reported-and-tested-by: Bruno Friedmann <bruno@ioda-net.ch>
->>>> Signed-off-by: Mel Gorman <mgorman@suse.de>
->>>> ---
->>>>  arch/x86/kernel/reboot.c |    9 +++++++++
->>>>  1 files changed, 9 insertions(+), 0 deletions(-)
->>>
->>> Weird - ACPI is the default Windows method of reboot - how come it=20
->>> does not work on that box? Does Windows work around this specific=20
->>> machine (unlikely), or is our ACPI boot sequence not 100% compatibl=
-e=20
->>> with the Windows method (more likely IMO)?
->>
->> It seems almost all the affected machines are Dell, too... very odd,=
- no?
->=20
-> Dell website says that the M4600 is current,
-> and ships with Windows 7.  It is a "mobile workstation",
-> so it is more likely to have a windows "feature" driver,
-> say, than Dell's servers.
+> -----Original Message-----
+> From: Andy Lutomirski [mailto:luto@MIT.EDU]
+> Sent: Saturday, August 06, 2011 4:43 AM
+> To: x86@kernel.org; linux-kernel@vger.kernel.org
+> Cc: Yu, Fenghua; Matthew Garrett; Len Brown; linux-
+> acpi@vger.kernel.org; Ingo Molnar; Andy Lutomirski
+> Subject: [PATCH v2 1/2] x86: Enable fast strings on Intel if BIOS
+> hasn't already
+> 
+> Intel SDM volume 3A, 8.4.2 says:
+> 
+>   Software can disable fast-string operation by clearing the
+>   fast-string-enable bit (bit 0) of IA32_MISC_ENABLE MSR.
+>   However, Intel recomments that system software always enable
+>   fast-string operation.
+> 
+> The Intel DQ67SW board (with latest BIOS) disables fast string
+> operations if TXT is enabled.  A Lenovo X220 disables it regardless
+> of TXT setting.  I doubt I'm the only person with a dumb BIOS like
+> this.
+> 
+> Signed-off-by: Andy Lutomirski <luto@mit.edu>
+> ---
+>  arch/x86/kernel/cpu/intel.c |   25 ++++++++++++++++++++++---
+>  1 files changed, 22 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/cpu/intel.c b/arch/x86/kernel/cpu/intel.c
+> index ed6086e..c80ab41 100644
+> --- a/arch/x86/kernel/cpu/intel.c
+> +++ b/arch/x86/kernel/cpu/intel.c
+> @@ -30,6 +30,7 @@
+>  static void __cpuinit early_init_intel(struct cpuinfo_x86 *c)
+>  {
+>  	u64 misc_enable;
+> +	bool allow_fast_string = true;
+> 
+>  	/* Unmask CPUID levels if masked: */
+>  	if (c->x86 > 6 || (c->x86 == 6 && c->x86_model >= 0xd)) {
+> @@ -118,8 +119,9 @@ static void __cpuinit early_init_intel(struct
+> cpuinfo_x86 *c)
+>  	 * (model 2) with the same problem.
+>  	 */
+>  	if (c->x86 == 15) {
+> -		rdmsrl(MSR_IA32_MISC_ENABLE, misc_enable);
+> +		allow_fast_string = false;
+> 
+> +		rdmsrl(MSR_IA32_MISC_ENABLE, misc_enable);
+>  		if (misc_enable & MSR_IA32_MISC_ENABLE_FAST_STRING) {
+>  			printk(KERN_INFO "kmemcheck: Disabling fast string
+> operations\n");
+> 
+> @@ -130,11 +132,28 @@ static void __cpuinit early_init_intel(struct
+> cpuinfo_x86 *c)
+>  #endif
+> 
+>  	/*
+> -	 * If fast string is not enabled in IA32_MISC_ENABLE for any
+> reason,
+> -	 * clear the fast string and enhanced fast string CPU
+> capabilities.
+> +	 * If BIOS didn't enable fast string operation, try to enable
+> +	 * it ourselves.  If that fails, then clear the fast string
+> +	 * and enhanced fast string CPU capabilities.
+>  	 */
+>  	if (c->x86 > 6 || (c->x86 == 6 && c->x86_model >= 0xd)) {
+>  		rdmsrl(MSR_IA32_MISC_ENABLE, misc_enable);
+> +
+> +		if (allow_fast_string &&
+> +		    !(misc_enable & MSR_IA32_MISC_ENABLE_FAST_STRING)) {
+> +			misc_enable |= MSR_IA32_MISC_ENABLE_FAST_STRING;
+> +			wrmsr_safe(MSR_IA32_MISC_ENABLE, (u32)misc_enable,
+> +				   (u32)(misc_enable >> 32));
+> +
+> +			/* Re-read to make sure it stuck. */
+> +			rdmsrl(MSR_IA32_MISC_ENABLE, misc_enable);
+> +
+> +			if (misc_enable & MSR_IA32_MISC_ENABLE_FAST_STRING)
+> +				printk(KERN_WARNING FW_WARN "CPU #%d: "
+> +				       "IA32_MISC_ENABLE.FAST_STRING_ENABLE "
+> +				       "was not set", c->cpu_index);
+This printk is redundant because the same info is dumped in the below printk. Plus it's not firmware's issue if we can not set fast string bit 0 in MISC_ENABLE register. So I don't think FW_WARN is right.
 
-And this computer can be buyed with RedHat 6.0 by phone call.
-If you check the support website download and drivers you will some dri=
-vers for Redhat
-(mainly the new version of alsa)
-http://dell.to/r1IKhp
+I would suggest to remove this printk (and the if () statement) and change KERN_INFO to KERN_WARNING in the following printk.
 
->=20
-> Matthew,
-> Did you do your reboot comopatibility test using Win7,
-> or something older?
->=20
-> BTW, it would be nice if ACPI incompatibilities and workarounds
-> somehow got stuck in the ACPI code rather than the arch code.
-> Unfortunately this kind sets a working reboot method instead
-> of disabling a non-working one -- so what it overrides has
-> changed when the default changed.
->=20
-> thanks,
-> -Len Brown, Intel Open Source Technolgy Center
->=20
+> +		}
+> +
+>  		if (!(misc_enable & MSR_IA32_MISC_ENABLE_FAST_STRING)) {
+>  			printk(KERN_INFO "Disabled fast string
+> operations\n");
+>  			setup_clear_cpu_cap(X86_FEATURE_REP_GOOD);
+> --
+> 1.7.6
 
-In any case, if you want anymore testing, and dumps of something, just =
-drop me an email
-and the howto get it formatted as you want it.
-
-Actually I'm in the desktop summit with the computer until 9th August n=
-ight.
-
-I don't know if we can find an owner of the M6600 (the 17") version to =
-get feedback about that hardware which share
-a lot with the M4600.
-
-Also Dell can upgrade their Bios.
-
-The only error or significant warning I saw in boot.msg is
-<3>[   36.851649] sdhci-pci 0000:0b:00.1: Invalid iomem size. You may e=
-xperience problems.
-
-
-
-
---=20
-
-Bruno Friedmann
-Ioda-Net S=C3=A0rl www.ioda-net.ch
-
-openSUSE Member & Ambassador
-GPG KEY : D5C9B751C4653227
-irc: tigerfoot
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
