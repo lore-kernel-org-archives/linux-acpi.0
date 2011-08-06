@@ -1,43 +1,65 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: [PATCH] ACPI: use kstrdup()
-Date: Sat, 06 Aug 2011 11:32:56 +0200
-Message-ID: <1312623179.5589.69.camel@localhost.localdomain>
+From: Andrew Lutomirski <luto@mit.edu>
+Subject: Re: [PATCH 2/2] x86: Enable monitor/mwait on Intel if BIOS hasn't already
+Date: Sat, 6 Aug 2011 07:42:22 -0400
+Message-ID: <CAObL_7FAcv2vo=+8jooh394BTp_5WYCvRQ+FyVr3mfVPRxZgkA@mail.gmail.com>
+References: <cover.1312386029.git.luto@mit.edu> <5bec80947da3fb72f2f18fbe6d924a69f83fbed9.1312386029.git.luto@mit.edu>
+ <alpine.LFD.2.02.1108031214470.22067@x980> <CAObL_7GuAmzyjo5AmYxbTeiAqFtVk1N+opzWEzwJu8Mgrvts7g@mail.gmail.com>
+ <CAObL_7FNa20Hsd0v-hs1vz=ejnkdaT+Yr=wwM681GbZJiuLkMQ@mail.gmail.com>
+ <alpine.LFD.2.02.1108031514550.22067@x980> <20110804194117.GA5265@srcf.ucam.org>
+ <alpine.LFD.2.02.1108041751360.24626@x980> <20110804215619.GA7101@srcf.ucam.org>
+ <20110805094319.GA2420@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:65244 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580Ab1HFLmm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Aug 2011 07:42:42 -0400
+In-Reply-To: <20110805094319.GA2420@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, linux-acpi@vger.kernel.org
 
-From: Thomas Meyer <thomas@m3y3r.de>
+On Fri, Aug 5, 2011 at 5:43 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> * Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+>
+>> On Thu, Aug 04, 2011 at 05:54:04PM -0400, Len Brown wrote:
+>> > > We can't trust BIOS authors to get things right. Where we can re=
+liably
+>> > > fix up things that are broken, we should do so.
+>> >
+>> > How about if we can get a BIOS fix for this brand new system,
+>> > then we shall not clutter the kernel with a workaround, otherwise
+>> > we shall.
+>>
+>> It's a pretty good rule of thumb that if a BIOS bug is present in
+>> one BIOS it's present in others, but the users will just never
+>> notice.
+>
+> Yes. There's no harm really from working around a BIOS bug and
+> warning about it - when the BIOS gets fixed the warning message will
+> go away.
+>
+> Btw., few people risk upgrading their BIOSen on already purchased
+> hardware. I almost never do it, i only do it if it's impossible to
+> continue with a current BIOS.
 
- Use kstrdup rather than duplicating its implementation
+I do it, but I understand the sentiment.  I've destroyed laptops with
+BIOS upgrades, and the new Intel BIOS seems to insist on spewing
+garbage into my keyboard input when Linux (but not grub) starts.
 
- The semantic patch that makes this output is available
- in scripts/coccinelle/api/kstrdup.cocci.
+Updates patches coming.
 
- More information about semantic patching is available at
- http://coccinelle.lip6.fr/
-
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
-
-diff -u -p a/drivers/acpi/scan.c b/drivers/acpi/scan.c
---- a/drivers/acpi/scan.c 2011-05-04 19:24:51.386504770 +0200
-+++ b/drivers/acpi/scan.c 2011-08-01 21:02:46.489387939 +0200
-@@ -1062,13 +1062,12 @@ static void acpi_add_id(struct acpi_devi
- 	if (!id)
- 		return;
- 
--	id->id = kmalloc(strlen(dev_id) + 1, GFP_KERNEL);
-+	id->id = kstrdup(dev_id, GFP_KERNEL);
- 	if (!id->id) {
- 		kfree(id);
- 		return;
- 	}
- 
--	strcpy(id->id, dev_id);
- 	list_add_tail(&id->list, &device->pnp.ids);
- }
- 
+>
+> Thanks,
+>
+> =A0 =A0 =A0 =A0Ingo
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
