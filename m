@@ -1,71 +1,178 @@
-From: Andrew Lutomirski <luto@mit.edu>
-Subject: Re: [PATCH v3 0/2] Forcibly enable some MISC_ENABLE features on Intel
-Date: Tue, 9 Aug 2011 09:09:34 -0400
-Message-ID: <CAObL_7G5j-8dmQDc2Q+matB8nHk7421CWnBHqQs9-T2fjVecng@mail.gmail.com>
-References: <cover.1312893572.git.luto@mit.edu> <20110809135050.79eed316@lxorguk.ukuu.org.uk>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH v2 1/2] x86: Enable fast strings on Intel if BIOS hasn't
+ already
+Date: Tue, 9 Aug 2011 17:00:35 +0200
+Message-ID: <20110809150035.GE28228@elte.hu>
+References: <cover.1312630712.git.luto@mit.edu>
+ <9a8f28ccbe44cd323a01e9a23b531cb869185a21.1312630712.git.luto@mit.edu>
+ <493994B35A117E4F832F97C4719C4C040132C5FB69@orsmsx505.amr.corp.intel.com>
+ <CAObL_7F2+eXTPo7a631Lh7GD_UpDQXgW_GSDp9Km7pwhwmM6Cw@mail.gmail.com>
+ <493994B35A117E4F832F97C4719C4C040132C5FBE0@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:53469 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab1HINJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2011 09:09:54 -0400
-In-Reply-To: <20110809135050.79eed316@lxorguk.ukuu.org.uk>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:33168 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750850Ab1HIPBe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Aug 2011 11:01:34 -0400
+Content-Disposition: inline
+In-Reply-To: <493994B35A117E4F832F97C4719C4C040132C5FBE0@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: "Yu, Fenghua" <fenghua.yu@intel.com>
+Cc: Andrew Lutomirski <luto@mit.edu>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 9, 2011 at 8:50 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wro=
-te:
-> On Tue, =A09 Aug 2011 08:41:04 -0400
-> Andy Lutomirski <luto@MIT.EDU> wrote:
->
->> Intel allows BIOS or the OS to enable or disable some CPU fueatures =
-via
->> IA32_MISC_ENABLE. =A0I have machines that don't enable fast strings =
-or
->> monitor/mwait in BIOS, so do it on bootup instead.
->
-> The question is - why.
->
->> The Intel SDM volume 3, appendix B.1 says that the OS should not tou=
-ch
->> the monitor enable bit if SSE3 is not present, which presumably mean=
-s
->> that the OS may touch that bit if SSE3 is present. =A0In any case, t=
-hese
->> patches seem to work.
->
-> That's a big "presumes"
->
-> For example back in Pentium days the BIOS sometimes turned off a stri=
-ng
-> fast path because it was subtly not reliable on certain parts and cou=
-ld
-> corrupt.
->
-> It's possible your BIOS vendor has a good reason for doing this. It's
-> also possible its a bug, or a left over perhaps from some pre-release
-> processor or something.
 
-Intel also says:
+* Yu, Fenghua <fenghua.yu@intel.com> wrote:
 
-  However, Intel recomments that system software always enable
-  fast-string operation.
+> > -----Original Message-----
+> > From: amluto@gmail.com [mailto:amluto@gmail.com] On Behalf Of Andre=
+w
+> > Lutomirski
+> > Sent: Saturday, August 06, 2011 4:32 PM
+> > To: Yu, Fenghua
+> > Cc: x86@kernel.org; linux-kernel@vger.kernel.org; Matthew Garrett; =
+Len
+> > Brown; linux-acpi@vger.kernel.org; Ingo Molnar
+> > Subject: Re: [PATCH v2 1/2] x86: Enable fast strings on Intel if BI=
+OS
+> > hasn't already
+> >=20
+> > On Sat, Aug 6, 2011 at 3:33 PM, Yu, Fenghua <fenghua.yu@intel.com>
+> > wrote:
+> > >> -----Original Message-----
+> > >> From: Andy Lutomirski [mailto:luto@MIT.EDU]
+> > >> Sent: Saturday, August 06, 2011 4:43 AM
+> > >> To: x86@kernel.org; linux-kernel@vger.kernel.org
+> > >> Cc: Yu, Fenghua; Matthew Garrett; Len Brown; linux-
+> > >> acpi@vger.kernel.org; Ingo Molnar; Andy Lutomirski
+> > >> Subject: [PATCH v2 1/2] x86: Enable fast strings on Intel if BIO=
+S
+> > >> hasn't already
+> > >>
+> > >> Intel SDM volume 3A, 8.4.2 says:
+> > >>
+> > >> =A0 Software can disable fast-string operation by clearing the
+> > >> =A0 fast-string-enable bit (bit 0) of IA32_MISC_ENABLE MSR.
+> > >> =A0 However, Intel recomments that system software always enable
+> > >> =A0 fast-string operation.
+> > >>
+> > >> The Intel DQ67SW board (with latest BIOS) disables fast string
+> > >> operations if TXT is enabled. =A0A Lenovo X220 disables it regar=
+dless
+> > >> of TXT setting. =A0I doubt I'm the only person with a dumb BIOS =
+like
+> > >> this.
+> > >>
+> > >> Signed-off-by: Andy Lutomirski <luto@mit.edu>
+> > >> ---
+> > >> =A0arch/x86/kernel/cpu/intel.c | =A0 25 ++++++++++++++++++++++--=
+-
+> > >> =A01 files changed, 22 insertions(+), 3 deletions(-)
+> > >>
+> > >> diff --git a/arch/x86/kernel/cpu/intel.c
+> > b/arch/x86/kernel/cpu/intel.c
+> > >> index ed6086e..c80ab41 100644
+> > >> --- a/arch/x86/kernel/cpu/intel.c
+> > >> +++ b/arch/x86/kernel/cpu/intel.c
+> > >> @@ -30,6 +30,7 @@
+> > >> =A0static void __cpuinit early_init_intel(struct cpuinfo_x86 *c)
+> > >> =A0{
+> > >> =A0 =A0 =A0 u64 misc_enable;
+> > >> + =A0 =A0 bool allow_fast_string =3D true;
+> > >>
+> > >> =A0 =A0 =A0 /* Unmask CPUID levels if masked: */
+> > >> =A0 =A0 =A0 if (c->x86 > 6 || (c->x86 =3D=3D 6 && c->x86_model >=
+=3D 0xd)) {
+> > >> @@ -118,8 +119,9 @@ static void __cpuinit early_init_intel(struc=
+t
+> > >> cpuinfo_x86 *c)
+> > >> =A0 =A0 =A0 =A0* (model 2) with the same problem.
+> > >> =A0 =A0 =A0 =A0*/
+> > >> =A0 =A0 =A0 if (c->x86 =3D=3D 15) {
+> > >> - =A0 =A0 =A0 =A0 =A0 =A0 rdmsrl(MSR_IA32_MISC_ENABLE, misc_enab=
+le);
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 allow_fast_string =3D false;
+> > >>
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 rdmsrl(MSR_IA32_MISC_ENABLE, misc_enab=
+le);
+> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (misc_enable & MSR_IA32_MISC_ENAB=
+LE_FAST_STRING) {
+> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_INFO "km=
+emcheck: Disabling fast
+> > string
+> > >> operations\n");
+> > >>
+> > >> @@ -130,11 +132,28 @@ static void __cpuinit early_init_intel(str=
+uct
+> > >> cpuinfo_x86 *c)
+> > >> =A0#endif
+> > >>
+> > >> =A0 =A0 =A0 /*
+> > >> - =A0 =A0 =A0* If fast string is not enabled in IA32_MISC_ENABLE=
+ for any
+> > >> reason,
+> > >> - =A0 =A0 =A0* clear the fast string and enhanced fast string CP=
+U
+> > >> capabilities.
+> > >> + =A0 =A0 =A0* If BIOS didn't enable fast string operation, try =
+to enable
+> > >> + =A0 =A0 =A0* it ourselves. =A0If that fails, then clear the fa=
+st string
+> > >> + =A0 =A0 =A0* and enhanced fast string CPU capabilities.
+> > >> =A0 =A0 =A0 =A0*/
+> > >> =A0 =A0 =A0 if (c->x86 > 6 || (c->x86 =3D=3D 6 && c->x86_model >=
+=3D 0xd)) {
+> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 rdmsrl(MSR_IA32_MISC_ENABLE, misc_en=
+able);
+> > >> +
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 if (allow_fast_string &&
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 !(misc_enable & MSR_IA32_MISC_=
+ENABLE_FAST_STRING))
+> > {
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 misc_enable |=3D
+> > MSR_IA32_MISC_ENABLE_FAST_STRING;
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wrmsr_safe(MSR_IA32_MI=
+SC_ENABLE,
+> > (u32)misc_enable,
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+(u32)(misc_enable >> 32));
+> > >> +
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Re-read to make sur=
+e it stuck. */
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rdmsrl(MSR_IA32_MISC_E=
+NABLE, misc_enable);
+> > >> +
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (misc_enable &
+> > MSR_IA32_MISC_ENABLE_FAST_STRING)
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk=
+(KERN_WARNING FW_WARN "CPU #%d:
+> > "
+> > >> +
+> > =A0"IA32_MISC_ENABLE.FAST_STRING_ENABLE "
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0"was not set", c->cpu_index);
+> > > This printk is redundant because the same info is dumped in the b=
+elow
+> > printk. Plus it's not firmware's issue if we can not set fast strin=
+g
+> > bit 0 in MISC_ENABLE register. So I don't think FW_WARN is right.
+> >=20
+> > Huh?  This is the success path -- the patch prints the warning if
+> > flipping the bit worked...
+>=20
+> Ok. I see.
+>=20
+> Still I would suggest to remove this printk. This info will be=20
+> printed on every single CPU if BIOS doesn't enable fast string.=20
 
-On my machine it's definitely a bug.  It's a Sandy Bridge box (from
-Intel) and with TXT disabled the BIOS enables fast strings on its own.
+just do printk_once(). We want to inform the user that something's=20
+going on.
 
-=46enghua, do you know if there are any machines that will pass the
-version checks and will actually allow fast strings to be enabled but
-that will have problems as a result?
+Thanks,
 
-If we want to be conservative, we could limit it to the most recent
-family 6 devices and exclude family 0xf entirely.
-
---Andy
+	Ingo
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
