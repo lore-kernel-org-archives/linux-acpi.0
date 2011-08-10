@@ -1,52 +1,62 @@
-From: "Nath, Arindam" <Arindam.Nath@amd.com>
-Subject: RE: Linux ACPI BERT implementation
-Date: Wed, 10 Aug 2011 01:36:12 -0500
-Message-ID: <6C03668EAF45B747AF947A1603D1B3000197F3F448@SAUSEXMBP01.amd.com>
-References: <6C03668EAF45B747AF947A1603D1B300018F85B9D6@SAUSEXMBP01.amd.com>
- <4E1FE749.2080707@intel.com>
+From: Andrew Lutomirski <luto@mit.edu>
+Subject: Re: [PATCH v3 1/2] x86: Enable fast strings on Intel if BIOS hasn't already
+Date: Wed, 10 Aug 2011 10:49:38 -0400
+Message-ID: <CAObL_7EozFSbcqJiwV=PNH-3sN0M1QfaTu3i4A_OKsZ0Ue5g7A@mail.gmail.com>
+References: <cover.1312893572.git.luto@mit.edu> <d9f3056c77b6cd44a2f4c90278ce483a011dda12.1312893572.git.luto@mit.edu>
+ <493994B35A117E4F832F97C4719C4C040132CE80CE@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:7712 "EHLO
-	TX2EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab1HJGgW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2011 02:36:22 -0400
-In-Reply-To: <4E1FE749.2080707@intel.com>
-Content-Language: en-US
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:54181 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab1HJOt6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Aug 2011 10:49:58 -0400
+In-Reply-To: <493994B35A117E4F832F97C4719C4C040132CE80CE@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Su, Henry" <Henry.Su@amd.com>
+To: "Yu, Fenghua" <fenghua.yu@intel.com>
+Cc: "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, "Anvin, H Peter" <h.peter.anvin@intel.com>
 
-Hi Huang,
+On Tue, Aug 9, 2011 at 11:40 AM, Yu, Fenghua <fenghua.yu@intel.com> wro=
+te:
+>> -----Original Message-----
+>> From: Andy Lutomirski [mailto:luto@MIT.EDU]
+>> Sent: Tuesday, August 09, 2011 5:41 AM
+>> To: x86@kernel.org; linux-kernel@vger.kernel.org
+>> Cc: Yu, Fenghua; Matthew Garrett; Len Brown; linux-
+>> acpi@vger.kernel.org; Ingo Molnar; Andy Lutomirski
+>> Subject: [PATCH v3 1/2] x86: Enable fast strings on Intel if BIOS
+>> hasn't already
+>>
+>> Intel SDM volume 3A, 8.4.2 says:
+>>
+>> =A0 Software can disable fast-string operation by clearing the
+>> =A0 fast-string-enable bit (bit 0) of IA32_MISC_ENABLE MSR.
+>> =A0 However, Intel recomments that system software always enable
+>> =A0 fast-string operation.
+>>
+>> The Intel DQ67SW board (with latest BIOS) disables fast string
+>> operations if TXT is enabled. =A0A Lenovo X220 disables it regardles=
+s
+>> of TXT setting. =A0I doubt I'm the only person with a dumb BIOS like
+>> this.
+>>
+>> Signed-off-by: Andy Lutomirski <luto@mit.edu>
+>> ---
+>> =A0arch/x86/kernel/cpu/intel.c | =A0 28 +++++++++++++++++++++++-----
+>> =A01 files changed, 23 insertions(+), 5 deletions(-)
+>
+> Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+>
+>
 
-> -----Original Message-----
-> From: Huang Ying [mailto:ying.huang@intel.com]
-> Sent: Friday, July 15, 2011 12:38 PM
-> To: Nath, Arindam
-> Cc: linux-acpi@vger.kernel.org; Su, Henry
-> Subject: Re: Linux ACPI BERT implementation
-> 
-> On 07/15/2011 02:45 PM, Nath, Arindam wrote:
-> > Hi Huang,
-> >
-> >
-> >
-> > Since you have already added some support for APEI into the ACPI
-> > subsystem, are you planning to add support for BERT too?
-> 
-> Yes. I have the code.  But have not found a way to test it on my
-> testing
-> machine.  Do you have any machine to test it?
+Please don't apply.  This patch breaks !CONFIG_SMP.  I'll send a fixed
+patch later on.
 
-Sorry for the late response. We do have platform with ACPI BERT support, but it has not been tested. So if you provide me the patch, it would help if you could also provide me the steps to test the patch.
-
-Thanks,
-Arindam
-
-> 
-> Best Regards,
-> Huang Ying
-
-
+--Andy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
