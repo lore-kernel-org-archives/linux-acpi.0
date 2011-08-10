@@ -1,50 +1,38 @@
-From: "Yu, Fenghua" <fenghua.yu@intel.com>
-Subject: RE: [PATCH v3 1/2] x86: Enable fast strings on Intel if BIOS hasn't
- already
-Date: Tue, 9 Aug 2011 08:40:06 -0700
-Message-ID: <493994B35A117E4F832F97C4719C4C040132CE80CE@orsmsx505.amr.corp.intel.com>
-References: <cover.1312893572.git.luto@mit.edu>
- <d9f3056c77b6cd44a2f4c90278ce483a011dda12.1312893572.git.luto@mit.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH] Add Kconfig option IRQ_WORK for GHES
+Date: Wed, 10 Aug 2011 10:46:22 +0800
+Message-ID: <1312944382-24491-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:18930 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:49362 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178Ab1HIPk6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2011 11:40:58 -0400
-In-Reply-To: <d9f3056c77b6cd44a2f4c90278ce483a011dda12.1312893572.git.luto@mit.edu>
-Content-Language: en-US
+	id S1752096Ab1HJCpS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Aug 2011 22:45:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@MIT.EDU>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, "Anvin, H Peter" <h.peter.anvin@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: ying.huang@intel.com, Chen Gong <gong.chen@linux.intel.com>
 
-> -----Original Message-----
-> From: Andy Lutomirski [mailto:luto@MIT.EDU]
-> Sent: Tuesday, August 09, 2011 5:41 AM
-> To: x86@kernel.org; linux-kernel@vger.kernel.org
-> Cc: Yu, Fenghua; Matthew Garrett; Len Brown; linux-
-> acpi@vger.kernel.org; Ingo Molnar; Andy Lutomirski
-> Subject: [PATCH v3 1/2] x86: Enable fast strings on Intel if BIOS
-> hasn't already
-> 
-> Intel SDM volume 3A, 8.4.2 says:
-> 
->   Software can disable fast-string operation by clearing the
->   fast-string-enable bit (bit 0) of IA32_MISC_ENABLE MSR.
->   However, Intel recomments that system software always enable
->   fast-string operation.
-> 
-> The Intel DQ67SW board (with latest BIOS) disables fast string
-> operations if TXT is enabled.  A Lenovo X220 disables it regardless
-> of TXT setting.  I doubt I'm the only person with a dumb BIOS like
-> this.
-> 
-> Signed-off-by: Andy Lutomirski <luto@mit.edu>
-> ---
->  arch/x86/kernel/cpu/intel.c |   28 +++++++++++++++++++++++-----
->  1 files changed, 23 insertions(+), 5 deletions(-)
+IRQ_WORK is used by GHES, but it is selected by PERF_EVENT.
+For now PERF_EVENT is selected by x86 by default, but
+in concept, IRQ_WORK should be selected by GHES, not by others.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index c34aa51..e3f4787 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -13,6 +13,7 @@ config ACPI_APEI_GHES
+ 	bool "APEI Generic Hardware Error Source"
+ 	depends on ACPI_APEI && X86
+ 	select ACPI_HED
++	select IRQ_WORK
+ 	select LLIST
+ 	select GENERIC_ALLOCATOR
+ 	help
+-- 
+1.7.6.401.g6a319
 
