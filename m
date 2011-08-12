@@ -1,36 +1,31 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] pnp: replace deprecated __check_region to request_region
-Date: Fri, 12 Aug 2011 10:24:50 -0600
-Message-ID: <CAErSpo6NgwTt0o0u651ojN_xH=5qqVN1o0POTEeK+eV6Y68p7A@mail.gmail.com>
-References: <1312817901-5313-1-git-send-email-wangshaoyan.pt@taobao.com>
- <CAErSpo6Fh+zTMiSG+mjkNuA03cCEK7bej9y2oX+HfsScSYGFsw@mail.gmail.com>
- <CANxBZFrzmTDaUrmkGhKAVsZpXScEDxdJeBzcMbBjEW=6ozppGw@mail.gmail.com>
- <20110811232735.u5qoybpr4gg8kckw@webmail.mit.edu> <CANxBZFpjtGyk3CO0ViFJF8em_hBFLq7tErjMJrcq5vC7n9cy4g@mail.gmail.com>
+From: "Rose" <william_rose55@yahoo.com>
+Subject: =?UTF-8?Q?HELLO=20my=20=20=E4=BD=A0=E5=A5=BD=EF=BC=8C=E6=88=91?=
+Date: Fri, 12 Aug 2011 20:28:04 +0200
+Message-ID: <20110812202804.2E6C26AA__8228.34588257155$1313173698$gmane$org@centrum.sk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANxBZFpjtGyk3CO0ViFJF8em_hBFLq7tErjMJrcq5vC7n9cy4g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wang Shaoyan <stufever@gmail.com>
-Cc: Adam M Belay <abelay@mit.edu>, linux-kernel@vger.kernel.org, Wang Shaoyan <wangshaoyan.pt@taobao.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gmmr3.centrum.cz ([90.183.38.155]:44622 "EHLO gmmr3.centrum.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753680Ab1HLS2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Aug 2011 14:28:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 11, 2011 at 10:03 PM, Wang Shaoyan <stufever@gmail.com> wrote:
-> I can understand your worry, but back to beginning, just as the
-> subject of the patch: "replace deprecated __check_region to
-> request_region", I think this patch is still need, although it can't
-> solve the problems both you guys mentioned. Do you agree it?
 
-Your patch is presented as "no functional change," but in fact, the
-current code does not leave the region reserved, while with your patch
-it does.  This is quite a large change and I think it will break
-things.
-
-I would like to see the PNP core reserve resources, but it should be
-done for all resources of all device.  Your patch only affects ioports
-(I think we should do memory as well), and it only affects the
-assignment path (I don't think we do this for every device we
-enumerate).  And it effectively adds a region reservation without
-adding a corresponding release.
-
-Bjorn
+HELLO
+My name is Rose,i and became intrested in you, i will also like to know=
+ you more,and i want you to send an email to my email address so i can =
+give you my picture for you to know whom i am. Here is my email address=
+(william_rose55@yahoo.com)I believe we can move from here!
+I am waiting for your mail to my email address above..
+(Remeber the distance or colour does not matter but love matters alot i=
+n life)
+Thanks Rose=C2=A0 please contact me now through my email address
+(william_rose55@yahoo.com)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
