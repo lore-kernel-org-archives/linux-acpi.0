@@ -1,311 +1,110 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: Linux ACPI BERT implementation
-Date: Fri, 12 Aug 2011 10:54:31 +0800
-Message-ID: <4E4495E7.3050305@intel.com>
-References: <6C03668EAF45B747AF947A1603D1B300018F85B9D6@SAUSEXMBP01.amd.com> <4E1FE749.2080707@intel.com> <6C03668EAF45B747AF947A1603D1B3000197F3F448@SAUSEXMBP01.amd.com>
+From: Adam M Belay <abelay@MIT.EDU>
+Subject: Re: [PATCH] pnp: replace deprecated __check_region to
+	request_region
+Date: Thu, 11 Aug 2011 23:27:35 -0400
+Message-ID: <20110811232735.u5qoybpr4gg8kckw@webmail.mit.edu>
+References: <1312817901-5313-1-git-send-email-wangshaoyan.pt@taobao.com>
+	<CAErSpo6Fh+zTMiSG+mjkNuA03cCEK7bej9y2oX+HfsScSYGFsw@mail.gmail.com>
+	<CANxBZFrzmTDaUrmkGhKAVsZpXScEDxdJeBzcMbBjEW=6ozppGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040209070602010706030707"
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37737 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752626Ab1HLCyd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Aug 2011 22:54:33 -0400
-In-Reply-To: <6C03668EAF45B747AF947A1603D1B3000197F3F448@SAUSEXMBP01.amd.com>
+Received: from DMZ-MAILSEC-SCANNER-7.MIT.EDU ([18.7.68.36]:58048 "EHLO
+	dmz-mailsec-scanner-7.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752541Ab1HLD1q convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Aug 2011 23:27:46 -0400
+In-Reply-To: <CANxBZFrzmTDaUrmkGhKAVsZpXScEDxdJeBzcMbBjEW=6ozppGw@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Nath, Arindam" <Arindam.Nath@amd.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Su, Henry" <Henry.Su@amd.com>
+To: Wang Shaoyan <stufever@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, Wang Shaoyan <wangshaoyan.pt@taobao.com>, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040209070602010706030707
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi Wang,
 
-Hi, Arindam,
+Yes, I think your description of the race condition is right. However,=20
+as Bjorn
+mentioned, there are many x86 init paths that will try to reserve the s=
+ame
+resources as those reported by pnp/acpi. There needs to be a better way=
+ to
+coordinate legacy device enumeration. Otherwise, the request_region() c=
+alls
+could fail when there isn't an actual resource conflict.
 
-The bert patch is attached with the mail.
+IF we could find a good way to clean up the legacy users of request_reg=
+ion()
+then we could probably make pnp behave more like pci with regard to res=
+ource
+reservations.
 
-The testing steps
+Cheers,
+Adam
 
-1. Build kernel with APEI enabled.
-2. Trigger some hardware error so that BERT will be filled
-3. Reboot system, and check whether there are some kernel message
-(dmesg) begin with
+Quoting Wang Shaoyan <stufever@gmail.com>:
 
-[Hardware Error] Error record from previous boot:
-
-We don't know how to do (2).  That is key for this testing.
-
-Best Regards,
-Huang Ying
-
-On 08/10/2011 02:36 PM, Nath, Arindam wrote:
-> Hi Huang,
-> 
->> -----Original Message-----
->> From: Huang Ying [mailto:ying.huang@intel.com]
->> Sent: Friday, July 15, 2011 12:38 PM
->> To: Nath, Arindam
->> Cc: linux-acpi@vger.kernel.org; Su, Henry
->> Subject: Re: Linux ACPI BERT implementation
+> Hi
+>
+> 2011/8/12 Bjorn Helgaas <bhelgaas@google.com>:
+>> We usually funnel PNP stuff through the linux-acpi@vger.kernel.org
+>> mailing list, so I added a cc: to it.
 >>
->> On 07/15/2011 02:45 PM, Nath, Arindam wrote:
->>> Hi Huang,
->>>
->>>
->>>
->>> Since you have already added some support for APEI into the ACPI
->>> subsystem, are you planning to add support for BERT too?
+>
+> Thanks for your reminding!
+>
+>> request_region() is not a drop-in replacement for __check_region()
+>> because __check_region() releases the resource before it returns
+>> success. =A0I agree that it would be good to get rid of
+>> __check_region(), but I think it's a little more work than just this=
+=2E
 >>
->> Yes. I have the code.  But have not found a way to test it on my
->> testing
->> machine.  Do you have any machine to test it?
-> 
-> Sorry for the late response. We do have platform with ACPI BERT support, but it has not been tested. So if you provide me the patch, it would help if you could also provide me the steps to test the patch.
-> 
-> Thanks,
-> Arindam
-> 
+>> I suppose you could just do the release_resource() in
+>> pnp_check_port(), after request_region() was successful. =A0But the
+>> problem with __check_region() is that it's racy, and moving the
+>> release_resource() into pnp_check_port() doesn't remove the race. =A0=
+It
+>> just moves the problem from __check_region() (which is easy to grep
+>> for) into PNP (where it's not so obvious).
 >>
->> Best Regards,
->> Huang Ying
-> 
-> 
+>
+> I don't think the racy is still exist. In old days, the racy is exist
+> in this situation:
+> check_region()
+> ...do something    <-- here another process may do check and request=20
+> same region
+> request_region()   <-- if some process request the same resource, it
+> will fail here
+>
+> But nowadays, request_region has replaced the check_region, it will
+> check and request in the same function, so no racy still exist. Am I
+> right?
+>
+>> Part of the problem is that the PNP core doesn't actually request an=
+y
+>> of the resources used by PNP devices. =A0The PCI core *does* reserve
+>> resources, independent of any drivers, and it would certainly be
+>> reasonable to expect the PNP core to do the same, but it doesn't.
+>> This is mostly because there are a bunch of hardcoded legacy resourc=
+es
+>> that conflict with PNP devices, and we haven't figured out a good wa=
+y
+>> to resolve the conflicts.
+>>
+>> Bjorn
+>>
+>
+>
+>
+> --
+> Wang Shaoyan
+>
 
 
---------------040209070602010706030707
-Content-Type: text/x-patch;
- name="0005-ACPI-APEI-Boot-Error-Record-Table-BERT-support.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0005-ACPI-APEI-Boot-Error-Record-Table-BERT-support.patch"
-
-Subject: [PATCH] ACPI, APEI, Boot Error Record Table (BERT) support
-
-Under normal circumstances, when a hardware error occurs, kernel will
-be notified via NMI, MCE or some other method, then kernel will
-process the error condition, report it, and recover it if possible.
-But sometime, the situation is so bad, so that firmware may choose to
-reset directly without notifying Linux kernel.
-
-Linux kernel can use the Boot Error Record Table (BERT) to get the
-un-notified hardware errors that occurred in a previous boot.  In this
-patch, the error information is reported via printk.
-
-For more information about ERST, please refer to ACPI Specification
-version 4.0, section 17.3.1
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- Documentation/kernel-parameters.txt |    3 
- drivers/acpi/apei/Makefile          |    2 
- drivers/acpi/apei/bert.c            |  169 ++++++++++++++++++++++++++++++++++++
- include/acpi/apei.h                 |    1 
- 4 files changed, 174 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/apei/bert.c
-
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -402,6 +402,9 @@ bytes respectively. Such letter suffixes
- 
- 	bootmem_debug	[KNL] Enable bootmem allocator debug messages.
- 
-+	bert_disable	[ACPI]
-+			Disable Boot Error Record Table (BEST) support.
-+
- 	bttv.card=	[HW,V4L] bttv (bt848 + bt878 based grabber cards)
- 	bttv.radio=	Most important insmod options are available as
- 			kernel args too.
---- a/drivers/acpi/apei/Makefile
-+++ b/drivers/acpi/apei/Makefile
-@@ -3,4 +3,4 @@ obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
- obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
- obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
- 
--apei-y := apei-base.o hest.o cper.o erst.o
-+apei-y := apei-base.o hest.o cper.o erst.o bert.o
---- /dev/null
-+++ b/drivers/acpi/apei/bert.c
-@@ -0,0 +1,169 @@
-+/*
-+ * APEI Boot Error Record Table (BERT) support
-+ *
-+ * Copyright 2011 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * Under normal circumstances, when a hardware error occurs, kernel
-+ * will be notified via NMI, MCE or some other method, then kernel
-+ * will process the error condition, report it, and recover it if
-+ * possible. But sometime, the situation is so bad, so that firmware
-+ * may choose to reset directly without notifying Linux kernel.
-+ *
-+ * Linux kernel can use the Boot Error Record Table (BERT) to get the
-+ * un-notified hardware errors that occurred in a previous boot.
-+ *
-+ * For more information about ERST, please refer to ACPI Specification
-+ * version 4.0, section 17.3.1
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/io.h>
-+
-+#include "apei-internal.h"
-+
-+#define BERT_PFX "BERT: "
-+
-+int bert_disable;
-+EXPORT_SYMBOL_GPL(bert_disable);
-+
-+static void __init bert_print_all(struct acpi_hest_generic_status *region,
-+				  unsigned int region_len)
-+{
-+	int remain, first = 1;
-+	u32 estatus_len;
-+	struct acpi_hest_generic_status *estatus;
-+
-+	remain = region_len;
-+	estatus = region;
-+	while (remain > sizeof(struct acpi_hest_generic_status)) {
-+		/* No more error record */
-+		if (!estatus->block_status)
-+			break;
-+
-+		estatus_len = apei_estatus_len(estatus);
-+		if (estatus_len < sizeof(struct acpi_hest_generic_status) ||
-+		    remain < estatus_len) {
-+			pr_err(FW_BUG BERT_PFX "Invalid error status block with length %u\n",
-+			       estatus_len);
-+			return;
-+		}
-+
-+		if (apei_estatus_check(estatus)) {
-+			pr_err(FW_BUG BERT_PFX "Invalid Error status block\n");
-+			goto next;
-+		}
-+
-+		if (first) {
-+			pr_info(HW_ERR "Error record from previous boot:\n");
-+			first = 0;
-+		}
-+		apei_estatus_print(KERN_INFO HW_ERR, estatus);
-+next:
-+		estatus = (void *)estatus + estatus_len;
-+		remain -= estatus_len;
-+	}
-+}
-+
-+static int __init setup_bert_disable(char *str)
-+{
-+	bert_disable = 1;
-+	return 0;
-+}
-+__setup("bert_disable", setup_bert_disable);
-+
-+static int __init bert_check_table(struct acpi_table_bert *bert_tab)
-+{
-+	if (bert_tab->header.length < sizeof(struct acpi_table_bert))
-+		return -EINVAL;
-+	if (bert_tab->region_length != 0 &&
-+	    bert_tab->region_length < sizeof(struct acpi_bert_region))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int __init bert_init(void)
-+{
-+	acpi_status status;
-+	struct acpi_table_bert *bert_tab;
-+	struct resource *r;
-+	struct acpi_hest_generic_status *bert_region;
-+	unsigned int region_len;
-+	int rc = -EINVAL;
-+
-+	if (acpi_disabled)
-+		goto out;
-+
-+	if (bert_disable) {
-+		pr_info(BERT_PFX "Boot Error Record Table (BERT) support is disabled.\n");
-+		goto out;
-+	}
-+
-+	status = acpi_get_table(ACPI_SIG_BERT, 0,
-+				(struct acpi_table_header **)&bert_tab);
-+	if (status == AE_NOT_FOUND) {
-+		pr_err(BERT_PFX "Table is not found!\n");
-+		goto out;
-+	} else if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+		pr_err(BERT_PFX "Failed to get table, %s\n", msg);
-+		goto out;
-+	}
-+
-+	rc = bert_check_table(bert_tab);
-+	if (rc) {
-+		pr_err(FW_BUG BERT_PFX "BERT table is invalid\n");
-+		goto out;
-+	}
-+
-+	region_len = bert_tab->region_length;
-+	if (!region_len) {
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	r = request_mem_region(bert_tab->address, region_len, "APEI BERT");
-+	if (!r) {
-+		pr_err(BERT_PFX "Can not request iomem region <%016llx-%016llx> for BERT.\n",
-+		       (unsigned long long)bert_tab->address,
-+		       (unsigned long long)bert_tab->address + region_len);
-+		rc = -EIO;
-+		goto out;
-+	}
-+
-+	bert_region = ioremap_cache(bert_tab->address, region_len);
-+	if (!bert_region) {
-+		rc = -ENOMEM;
-+		goto out_release;
-+	}
-+
-+	bert_print_all(bert_region, region_len);
-+
-+	iounmap(bert_region);
-+
-+out_release:
-+	release_mem_region(bert_tab->address, region_len);
-+out:
-+	if (rc)
-+		bert_disable = 1;
-+
-+	return rc;
-+}
-+late_initcall(bert_init);
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -23,6 +23,7 @@ extern int ghes_disable;
- #else
- #define ghes_disable 1
- #endif
-+extern int bert_disable;
- 
- #ifdef CONFIG_ACPI_APEI
- void __init acpi_hest_init(void);
-
---------------040209070602010706030707--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
