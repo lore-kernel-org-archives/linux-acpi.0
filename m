@@ -1,97 +1,36 @@
-From: "Nath, Arindam" <Arindam.Nath@amd.com>
-Subject: RE: Linux ACPI BERT implementation
-Date: Fri, 12 Aug 2011 04:43:54 -0500
-Message-ID: <6C03668EAF45B747AF947A1603D1B3000197FBCC0D@SAUSEXMBP01.amd.com>
-References: <6C03668EAF45B747AF947A1603D1B300018F85B9D6@SAUSEXMBP01.amd.com>
- <4E1FE749.2080707@intel.com>
- <6C03668EAF45B747AF947A1603D1B3000197F3F448@SAUSEXMBP01.amd.com>
- <4E4495E7.3050305@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] pnp: replace deprecated __check_region to request_region
+Date: Fri, 12 Aug 2011 10:24:50 -0600
+Message-ID: <CAErSpo6NgwTt0o0u651ojN_xH=5qqVN1o0POTEeK+eV6Y68p7A@mail.gmail.com>
+References: <1312817901-5313-1-git-send-email-wangshaoyan.pt@taobao.com>
+ <CAErSpo6Fh+zTMiSG+mjkNuA03cCEK7bej9y2oX+HfsScSYGFsw@mail.gmail.com>
+ <CANxBZFrzmTDaUrmkGhKAVsZpXScEDxdJeBzcMbBjEW=6ozppGw@mail.gmail.com>
+ <20110811232735.u5qoybpr4gg8kckw@webmail.mit.edu> <CANxBZFpjtGyk3CO0ViFJF8em_hBFLq7tErjMJrcq5vC7n9cy4g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:23119 "EHLO
-	TX2EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751476Ab1HLJn6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Aug 2011 05:43:58 -0400
-In-Reply-To: <4E4495E7.3050305@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANxBZFpjtGyk3CO0ViFJF8em_hBFLq7tErjMJrcq5vC7n9cy4g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wang Shaoyan <stufever@gmail.com>
+Cc: Adam M Belay <abelay@mit.edu>, linux-kernel@vger.kernel.org, Wang Shaoyan <wangshaoyan.pt@taobao.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Su, Henry" <Henry.Su@amd.com>
 
-Hi Huang,
+On Thu, Aug 11, 2011 at 10:03 PM, Wang Shaoyan <stufever@gmail.com> wrote:
+> I can understand your worry, but back to beginning, just as the
+> subject of the patch: "replace deprecated __check_region to
+> request_region", I think this patch is still need, although it can't
+> solve the problems both you guys mentioned. Do you agree it?
 
+Your patch is presented as "no functional change," but in fact, the
+current code does not leave the region reserved, while with your patch
+it does.  This is quite a large change and I think it will break
+things.
 
-> -----Original Message-----
-> From: Huang Ying [mailto:ying.huang@intel.com]
-> Sent: Friday, August 12, 2011 8:25 AM
-> To: Nath, Arindam
-> Cc: linux-acpi@vger.kernel.org; Su, Henry
-> Subject: Re: Linux ACPI BERT implementation
-> 
-> Hi, Arindam,
-> 
-> The bert patch is attached with the mail.
+I would like to see the PNP core reserve resources, but it should be
+done for all resources of all device.  Your patch only affects ioports
+(I think we should do memory as well), and it only affects the
+assignment path (I don't think we do this for every device we
+enumerate).  And it effectively adds a region reservation without
+adding a corresponding release.
 
-Thanks for the patch.
-
-> 
-> The testing steps
-> 
-> 1. Build kernel with APEI enabled.
-> 2. Trigger some hardware error so that BERT will be filled
-> 3. Reboot system, and check whether there are some kernel message
-> (dmesg) begin with
-> 
-> [Hardware Error] Error record from previous boot:
-> 
-> We don't know how to do (2).  That is key for this testing.
-
-I will try to contact our design engineers to help me with this.
-
-Thanks,
-Arindam
-
-> 
-> Best Regards,
-> Huang Ying
-> 
-> On 08/10/2011 02:36 PM, Nath, Arindam wrote:
-> > Hi Huang,
-> >
-> >> -----Original Message-----
-> >> From: Huang Ying [mailto:ying.huang@intel.com]
-> >> Sent: Friday, July 15, 2011 12:38 PM
-> >> To: Nath, Arindam
-> >> Cc: linux-acpi@vger.kernel.org; Su, Henry
-> >> Subject: Re: Linux ACPI BERT implementation
-> >>
-> >> On 07/15/2011 02:45 PM, Nath, Arindam wrote:
-> >>> Hi Huang,
-> >>>
-> >>>
-> >>>
-> >>> Since you have already added some support for APEI into the ACPI
-> >>> subsystem, are you planning to add support for BERT too?
-> >>
-> >> Yes. I have the code.  But have not found a way to test it on my
-> >> testing
-> >> machine.  Do you have any machine to test it?
-> >
-> > Sorry for the late response. We do have platform with ACPI BERT
-> support, but it has not been tested. So if you provide me the patch, it
-> would help if you could also provide me the steps to test the patch.
-> >
-> > Thanks,
-> > Arindam
-> >
-> >>
-> >> Best Regards,
-> >> Huang Ying
-> >
-> >
-
-
+Bjorn
