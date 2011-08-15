@@ -1,47 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] thermal: Prevent polling from happening during system suspend
-Date: Sun, 14 Aug 2011 23:30:42 +0200
-Message-ID: <201108142330.42720.rjw@sisk.pl>
+Subject: [Resend][PATCH] ACPI: Drop ACPI_NO_HARDWARE_INIT
+Date: Mon, 15 Aug 2011 11:55:43 +0200
+Message-ID: <201108151155.43201.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41054 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:41925 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753989Ab1HNV3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Aug 2011 17:29:04 -0400
+	id S1751770Ab1HOJyA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Aug 2011 05:54:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The thermal driver should use a freezable workqueue to schedule
-polling to prevent thermal_zone_device_update() from being run
-during system suspend, when the devices it relies on may be inactive.
-Make it use the system freezable workqueue for this purpose.
+ACPI_NO_HARDWARE_INIT is only used by acpi_early_init() and
+acpi_bus_init() when calling acpi_enable_subsystem(), but
+acpi_enable_subsystem() doesn't check that flag, so it can be
+dropped.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/thermal/thermal_sys.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/bus.c     |    8 ++------
+ include/acpi/actypes.h |    1 -
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-Index: linux/drivers/thermal/thermal_sys.c
+Index: linux-2.6/drivers/acpi/bus.c
 ===================================================================
---- linux.orig/drivers/thermal/thermal_sys.c
-+++ linux/drivers/thermal/thermal_sys.c
-@@ -678,10 +678,10 @@ static void thermal_zone_device_set_poll
- 		return;
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -911,10 +911,7 @@ void __init acpi_early_init(void)
+ 	}
+ #endif
  
- 	if (delay > 1000)
--		schedule_delayed_work(&(tz->poll_queue),
-+		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
- 				      round_jiffies(msecs_to_jiffies(delay)));
- 	else
--		schedule_delayed_work(&(tz->poll_queue),
-+		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
- 				      msecs_to_jiffies(delay));
- }
+-	status =
+-	    acpi_enable_subsystem(~
+-				  (ACPI_NO_HARDWARE_INIT |
+-				   ACPI_NO_ACPI_ENABLE));
++	status = acpi_enable_subsystem(~ACPI_NO_ACPI_ENABLE);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX "Unable to enable ACPI\n");
+ 		goto error0;
+@@ -935,8 +932,7 @@ static int __init acpi_bus_init(void)
  
+ 	acpi_os_initialize1();
+ 
+-	status =
+-	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
++	status = acpi_enable_subsystem(ACPI_NO_ACPI_ENABLE);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX
+ 		       "Unable to start the ACPI Interpreter\n");
+Index: linux-2.6/include/acpi/actypes.h
+===================================================================
+--- linux-2.6.orig/include/acpi/actypes.h
++++ linux-2.6/include/acpi/actypes.h
+@@ -470,7 +470,6 @@ typedef u64 acpi_integer;
+  */
+ #define ACPI_FULL_INITIALIZATION        0x00
+ #define ACPI_NO_ADDRESS_SPACE_INIT      0x01
+-#define ACPI_NO_HARDWARE_INIT           0x02
+ #define ACPI_NO_EVENT_INIT              0x04
+ #define ACPI_NO_HANDLER_INIT            0x08
+ #define ACPI_NO_ACPI_ENABLE             0x10
