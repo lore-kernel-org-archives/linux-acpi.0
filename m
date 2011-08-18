@@ -1,88 +1,111 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] thermal: Rename generate_netlink_event
-Date: Thu, 18 Aug 2011 10:51:51 +0200
-Message-ID: <201108181051.51492.rjw@sisk.pl>
-References: <20110818094944.3ce83401@endymion.delvare>
+From: Anisse Astier <anisse@astier.eu>
+Subject: Re: ACPI LID wakeup device prevents shutdown on Toshiba laptop and
+ other computers
+Date: Thu, 18 Aug 2011 18:11:26 +0200
+Message-ID: <20110818181126.3a70efdb@destiny.ordissimo>
+References: <20110728174759.292311cc@destiny.ordissimo>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49460 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755119Ab1HRIuI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Aug 2011 04:50:08 -0400
-In-Reply-To: <20110818094944.3ce83401@endymion.delvare>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:48774 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752510Ab1HRQLx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2011 12:11:53 -0400
+Received: by wwe5 with SMTP id 5so4251967wwe.1
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2011 09:11:52 -0700 (PDT)
+In-Reply-To: <20110728174759.292311cc@destiny.ordissimo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "R.Durgadoss" <durgadoss.r@intel.com>, Len Brown <len.brown@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>
+To: Anisse Astier <anisse@astier.eu>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>
 
-On Thursday, August 18, 2011, Jean Delvare wrote:
-> It doesn't seem right for the thermal subsystem to export a symbol
-> named generate_netlink_event. This function is thermal-specific and
-> its name should reflect that fact. Rename it to
-> thermal_generate_netlink_event.
+
+On Thu, 28 Jul 2011 17:47:59 +0200, Anisse Astier <anisse@astier.eu> wrote :
+
+> Hi,
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: R.Durgadoss <durgadoss.r@intel.com>
-> Cc: Len Brown <len.brown@intel.com>
+> (See reference: https://bugzilla.kernel.org/show_bug.cgi?id=35262 )
+> 
+> On Toshiba C670D-10C, and as reported on a desktop asus mainboard
+> computer, we cannot shutdown without the computer rebooting.
+> 
+> The fix for this is simple, just run:
+> echo " LID" > /proc/acpi/wakeup
+> before shutdown. Please see below for quick and dirty in-kernel
+> implementation.
+> 
+> Now I don't know why is that. Perhaps Windows disables (some) wakeup
+> devices at shutdown, therefore the OEM/BIOS vendor expected any OS to
+> behave this way in order to halt properly.
+> Or maybe there's another reason.
+> 
+> I'd like comments on the idea implemented on the patch below, and maybe
+> suggestions to do this in a better way. 
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+No one has any objection ? Should I resend the patch as-is ? Make it a
+quirk?
 
+> 
+> Thanks,
+> 
+> Anisse
+> 
+> --
+> 
+> From: Anisse Astier <anisse@astier.eu>
+> Subject: [PATCH] ACPI / PM : Disable ACPI LID wakeup device at shutdown
+> 
+> This device might cause shutdown to be a reboot on some computers:
+> Toshiba C670D-10C laptop, Asus desktop mainboard.
+> Device will shutdown, then wakeup immediately afterwards, regardless of
+> the status of the LID.
+> 
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=35262
 > ---
->  Documentation/thermal/sysfs-api.txt |    2 +-
->  drivers/thermal/thermal_sys.c       |    4 ++--
->  include/linux/thermal.h             |    4 ++--
->  3 files changed, 5 insertions(+), 5 deletions(-)
+>  drivers/acpi/sleep.c |   25 +++++++++++++++++++++++++
+>  1 files changed, 25 insertions(+), 0 deletions(-)
 > 
-> --- linux-3.1-rc2.orig/Documentation/thermal/sysfs-api.txt	2011-07-22 04:17:23.000000000 +0200
-> +++ linux-3.1-rc2/Documentation/thermal/sysfs-api.txt	2011-08-17 22:36:57.000000000 +0200
-> @@ -284,7 +284,7 @@ method, the sys I/F structure will be bu
->  The framework includes a simple notification mechanism, in the form of a
->  netlink event. Netlink socket initialization is done during the _init_
->  of the framework. Drivers which intend to use the notification mechanism
-> -just need to call generate_netlink_event() with two arguments viz
-> +just need to call thermal_generate_netlink_event() with two arguments viz
->  (originator, event). Typically the originator will be an integer assigned
->  to a thermal_zone_device when it registers itself with the framework. The
->  event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
-> --- linux-3.1-rc2.orig/drivers/thermal/thermal_sys.c	2011-08-16 11:49:57.000000000 +0200
-> +++ linux-3.1-rc2/drivers/thermal/thermal_sys.c	2011-08-17 22:37:22.000000000 +0200
-> @@ -1304,7 +1304,7 @@ static struct genl_multicast_group therm
->  	.name = THERMAL_GENL_MCAST_GROUP_NAME,
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 6c94960..3859628 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -58,6 +58,30 @@ static struct notifier_block tts_notifier = {
+>  	.priority	= 0,
 >  };
 >  
-> -int generate_netlink_event(u32 orig, enum events event)
-> +int thermal_generate_netlink_event(u32 orig, enum events event)
+> +static void acpi_disable_obnoxious_wakeup_device(u32 sleep_state)
+> +{
+> +	struct list_head *node, *next;
+> +
+> +	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> +		struct acpi_device *dev =
+> +			container_of(node, struct acpi_device, wakeup_list);
+> +
+> +		if (!dev->wakeup.flags.valid
+> +		    || sleep_state > (u32) dev->wakeup.sleep_state
+> +		    || !(device_may_wakeup(&dev->dev)
+> +		        || dev->wakeup.prepare_count))
+> +			continue;
+> +		if (!strcmp(dev->pnp.bus_id, "LID")) {
+> +			acpi_set_gpe_wake_mask(dev->wakeup.gpe_device,
+> +					       dev->wakeup.gpe_number,
+> +					       ACPI_GPE_DISABLE);
+> +
+> +			if (device_may_wakeup(&dev->dev))
+> +				acpi_disable_wakeup_device_power(dev);
+> +			}
+> +	}
+> +}
+> +
+>  static int acpi_sleep_prepare(u32 acpi_state)
 >  {
->  	struct sk_buff *skb;
->  	struct nlattr *attr;
-> @@ -1363,7 +1363,7 @@ int generate_netlink_event(u32 orig, enu
->  
->  	return result;
->  }
-> -EXPORT_SYMBOL(generate_netlink_event);
-> +EXPORT_SYMBOL(thermal_generate_netlink_event);
->  
->  static int genetlink_init(void)
->  {
-> --- linux-3.1-rc2.orig/include/linux/thermal.h	2011-08-16 11:50:04.000000000 +0200
-> +++ linux-3.1-rc2/include/linux/thermal.h	2011-08-17 22:36:47.000000000 +0200
-> @@ -152,9 +152,9 @@ struct thermal_cooling_device *thermal_c
->  void thermal_cooling_device_unregister(struct thermal_cooling_device *);
->  
->  #ifdef CONFIG_NET
-> -extern int generate_netlink_event(u32 orig, enum events event);
-> +extern int thermal_generate_netlink_event(u32 orig, enum events event);
->  #else
-> -static inline int generate_netlink_event(u32 orig, enum events event)
-> +static inline int thermal_generate_netlink_event(u32 orig, enum events event)
->  {
+>  #ifdef CONFIG_ACPI_SLEEP
+> @@ -75,6 +99,7 @@ static int acpi_sleep_prepare(u32 acpi_state)
+>  	printk(KERN_INFO PREFIX "Preparing to enter system sleep state S%d\n",
+>  		acpi_state);
+>  	acpi_enable_wakeup_devices(acpi_state);
+> +	acpi_disable_obnoxious_wakeup_device(acpi_state);
+>  	acpi_enter_sleep_state_prep(acpi_state);
 >  	return 0;
 >  }
-> 
-> 
-> 
-
