@@ -1,86 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: kernel oops and panic in acpi_atomic_read under 2.6.39.3.   call trace included
-Date: Mon, 22 Aug 2011 23:13:26 +0200
-Message-ID: <201108222313.26769.rjw@sisk.pl>
-References: <201108171751.51648.rick@microway.com> <201108222047.11086.rjw@sisk.pl> <201108221651.35654.rick@microway.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: APEI: Can not request iomem region for GARs
+Date: Tue, 23 Aug 2011 08:32:16 +0800
+Message-ID: <4E52F510.20700@intel.com>
+References: <CAG1a4rs4Cr1z50gGuK9SLE6aOvibE1sdV_GSLPv+gqYC8g+ORQ@mail.gmail.com>	<CAErSpo4FfBoGDUquoLNsJ9=z-M-x6NQgP8xJL_VqEXpsL2H5PA@mail.gmail.com>	<4E520149.3010802@intel.com>	<CAErSpo71XHyuji1HxZwShtg-YQCavgkgcdH23ic38q3COB3MgQ@mail.gmail.com> <CAE9FiQVNGpA9rE0Q7Lx2AB_+8dPEg=f98vqPx1PARkABLVYXqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58128 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:59856 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589Ab1HVVLo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Aug 2011 17:11:44 -0400
-In-Reply-To: <201108221651.35654.rick@microway.com>
+	id S1752629Ab1HWAcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Aug 2011 20:32:18 -0400
+In-Reply-To: <CAE9FiQVNGpA9rE0Q7Lx2AB_+8dPEg=f98vqPx1PARkABLVYXqw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rick Warner <rick@microway.com>
-Cc: linux-kernel@vger.kernel.org, Richard Houghton <rhoughton@microway.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Pavel Ivanov <paivanof@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-Hi,
-
-On Monday, August 22, 2011, Rick Warner wrote:
-...
-> Hi Rafael,
+On 08/23/2011 05:04 AM, Yinghai Lu wrote:
+> On Mon, Aug 22, 2011 at 9:45 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> On Mon, Aug 22, 2011 at 1:12 AM, Huang Ying <ying.huang@intel.com> wrote:
+>>> Do you have time to try the patch attached with the mail?
+>>> acpi_nvs.patch should go first.
+>>
+>> In this case, we have an ACPI NVS region, and the APEI code is
+>> essentially a driver for some registers that reside there.  APEI is
+>> the entity that manages those registers, and it needs to enforce
+>> mutual exclusion so nobody else touches them behind its back, so I
+>> think it makes sense for it to request the register regions and mark
+>> them busy.
+>>
+>> My proposal is to change e820 so it either leaves ACPI NVS out of the
+>> iomem_resource tree or puts it in but leaves it non-busy.
 > 
-> Thanks for the off-list help in getting you this info.
-> 
-> I had already rebuilt the kernel using the change I mentioned earlier (test on 
-> !&g->error_status_address) since the call trace I got.
-> 
-> I luckily still had a copy of the kernel and modules I built previously using 
-> just your patch, so I undid my change to the ghes.c source, leaving just your 
-> patch but not mine so it would match the ghes.ko module I ran on.  This is the 
-> output of gdb on that ghes.ko now:
-> 
-> (gdb) l *ghes_read_estatus+0x38
-> 0x258 is in ghes_read_estatus (drivers/acpi/apei/ghes.c:296).
-> warning: Source file is more recent than executable.
-> 291             int rc;
-> 292             if (!g)
-> 293                     return -EINVAL;
-> 294
-> 295             rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
-> 296             if (rc) {
-> 297                     if (!silent && printk_ratelimit())
-> 298                             pr_warning(FW_WARN GHES_PFX
-> 299     "Failed to read error status block address for hardware error source: 
-> %d.\n",
-> 300                                        g->header.source_id);
-> 
-> The warning about the source being newer is because of the reverted change in 
-> the ghes.c source mentioned above.
+> assume Huang Ying only tested with UEFI native boot?
 
-OK, since &buf_addr cannot be NULL, perhaps ghes is.  Please check if the
-appended patch makes a difference.
+No.  I tested it with legacy BIOS.  But ACPI NVS is not used by APEI on
+my testing machine.
 
-Thanks,
-Rafael
+> i have one local patch for legacy mode booting, and it's similar to
+> what Bjorn suggested.
+> 
+> Please check the attached patch.
 
----
- drivers/acpi/apei/ghes.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+I think we need help from ACPI guys on why ACPI NVS is marked as busy.
 
-Index: linux/drivers/acpi/apei/ghes.c
-===================================================================
---- linux.orig/drivers/acpi/apei/ghes.c
-+++ linux/drivers/acpi/apei/ghes.c
-@@ -393,11 +393,16 @@ static void ghes_copy_tofrom_phys(void *
- 
- static int ghes_read_estatus(struct ghes *ghes, int silent)
- {
--	struct acpi_hest_generic *g = ghes->generic;
-+	struct acpi_hest_generic *g;
- 	u64 buf_paddr;
- 	u32 len;
- 	int rc;
- 
-+	if (!ghes || !ghes->generic)
-+		return -EINVAL;
-+
-+	g = ghes->generic;
-+
- 	rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
- 	if (rc) {
- 		if (!silent && printk_ratelimit())
+If my understanding were correct, ACPI NVS should not be used by OS at
+all, so it is marked as busy.  But for APEI, Linux interprets some code
+(instructions in ERST/EINJ table) from firmware.  I think this is
+similar with AML code accessing ACPI NVS.
+
+Hi, Len,
+
+Do you think my understanding is correct?
+
+Best Regards,
+Huang Ying
