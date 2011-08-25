@@ -1,54 +1,47 @@
-From: Santiago Garcia Mantinan <manty@manty.net>
-Subject: two power button events on each press
-Date: Thu, 25 Aug 2011 20:18:15 +0200
-Message-ID: <CAJk_L2G6JLWZxMS_PHK_div5M0JSs8QAWm2zp_nh-fOHmgivRA@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH] ACPICA: Add newlines to debug output
+Date: Thu, 25 Aug 2011 14:06:28 -0600
+Message-ID: <20110825200628.15112.503.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:65212 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754456Ab1HYSSR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2011 14:18:17 -0400
-Received: by bke11 with SMTP id 11so1944420bke.19
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Aug 2011 11:18:16 -0700 (PDT)
+Received: from smtp-out.google.com ([74.125.121.67]:7327 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753581Ab1HYUGf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2011 16:06:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
+Add newlines to avoid run-on debug output.
 
-My system seems to be duplicating the acpi power button events and
-it's getting two power button events each time I press the power
-button, usually this is not a problem as the system will shutdown
-normally and this is why I hadn't realised till now, but lately I
-changed the power button script to hibernate instead of shutdown and
-saw it hibernate twice on each button press.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/acpica/hwvalid.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-This only happens when pressing the motherboard's power button, I have
-tried attaching an USB keyboard with power button and this one works
-OK, I only get the power button event once on each press.
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index 5f16058..e132ca2 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -141,7 +141,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 	byte_width = ACPI_DIV_8(bit_width);
+ 	last_address = address + byte_width - 1;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X",
++	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X\n",
+ 			  ACPI_CAST_PTR(void, address), ACPI_CAST_PTR(void,
+ 								      last_address),
+ 			  byte_width));
+@@ -180,7 +180,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 
+ 			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
+ 				ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)",
++						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)\n",
+ 						  ACPI_CAST_PTR(void, address),
+ 						  byte_width, port_info->name,
+ 						  port_info->start,
 
-I have tried this using latest Debian kernel, based on 3.0.2 right
-now, and also Debian's stable 2.6.32 and it is happening on both.
-
-I don't know what other info could be of interest here, so I'll try to
-describe my system the best I can:
-
-It's running Debian unstable amd64 and the motherboard is an Asrock
-939SLI-eSATA2 which has the latest bios provided by the manufacturer
-(1.50 dated 2006) about the bios the web page of the motherboard says:
-
-- 2Mb AMI BIOS
-- AMI Legal BIOS
-- Supports "Plug and Play"
-- ACPI 1.1 Compliance Wake Up Events
-- Supports Jumperfree
-- SMBIOS 2.3.1 Support
-
-I believe that this can be a problem with the motherboard or the bios
-it has, but I don't know if it could be somehow solved/workarounded on
-the kernel. What can I do to help debug/solve this problem?
-
-Regards...
--- 
-Manty/BestiaTester -> http://manty.net
