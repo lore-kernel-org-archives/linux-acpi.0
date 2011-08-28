@@ -1,43 +1,99 @@
-From: "M. Vefa Bicakci" <m.v.b@runbox.com>
-Subject: No AC adapter ACPI events on Sony Vaio VPCS12X9E
-Date: Sun, 28 Aug 2011 10:44:40 +0300
-Message-ID: <4E59F1E8.4040806@runbox.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: 3.1-rc3-git6: Reported regressions from 3.0
+Date: Sun, 28 Aug 2011 20:22:05 +0200 (CEST)
+Message-ID: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aibo.runbox.com ([91.220.196.211]:51904 "EHLO aibo.runbox.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751284Ab1H1IFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Aug 2011 04:05:41 -0400
-Received: from [10.9.9.160] (helo=penny.runbox.com)
-	by bars.runbox.com with esmtp (Exim 4.71)
-	(envelope-from <m.v.b@runbox.com>)
-	id 1Qxa2s-0006oH-Cn
-	for linux-acpi@vger.kernel.org; Sun, 28 Aug 2011 09:44:42 +0200
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Mickler <florian-sVu6HhrpSfRAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello,
+This message contains a list of some regressions from 3.0,
+for which there are no fixes in the mainline known to the tracking team=
+=2E
+If any of them have been fixed already, please let us know.
 
-As the subject line summarizes, I do not get any ACPI events when I unplug/plug
-the AC adapter on a Sony Vaio VPCS12X9E.
+If you know of any other unresolved regressions from 3.0, please let us
+know either and we'll add them to the list.  Also, please let us know
+if any of the entries below are invalid.
 
-The laptop is currently running an up-to-date installation of Kubuntu 11.04,
-but with a manually compiled vanilla 3.0.3 kernel. For the record, the same
-problem also exists with the stock version 2.6.38 kernel that comes with
-Kubuntu 11.04.
+Each entry from the list will be sent additionally in an automatic repl=
+y
+to this message with CCs to the people involved in reporting and handli=
+ng
+the issue.
 
-I have also reported this bug at
-	https://bugzilla.kernel.org/show_bug.cgi?id=41762
 
-Since I am going to travel soon and lose physical access to this hardware,
-I wanted to ask if there is anything I could do to debug this problem.
-I have included the acpidump and ACPI debug outputs in the bug report.
+Listed regressions statistics:
 
-Any help would be appreciated.
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2011-08-28        8        4           4
 
-Regards,
 
-Mehmet Vefa Bicakci
+Unresolved regressions
+----------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D41742
+Subject		: duplicate filename  for intel_backlight with the i915 driver
+Submitter	: Fran=C3=A7ois Valenduc <francois.valenduc-bmtTS95sd5BUM80lpFwj4w@public.gmane.org>
+Date		: 2011-08-25 18:51 (4 days old)
+=46irst-Bad-Commit: http://git.kernel.org/linus/aaa6fd2a004147bf32fce05=
+720938236de3361d9
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D41512
+Subject		: 3.1-rc2 failed s2ram: Freezing of tasks failed after 20.00 s=
+econds
+Submitter	: Carlos R. Mafra <crmafra2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2011-08-16 9:42 (13 days old)
+Message-ID	: <20110816094245.GA2042-VVqtEBlnRoHN0uC3ymp8PA@public.gmane.org>
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D131348782017435&w=3D=
+2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D41502
+Subject		: cfq-iosched: a regression
+Submitter	: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date		: 2011-08-16 2:47 (13 days old)
+Message-ID	: <1313462826.27321.22.camel@sli10-conroe>
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D131346279329911&w=3D=
+2
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D41442
+Subject		: rcu_sched_state detected stall on CPU 0, when booting on Xen
+Submitter	: Witold Baryluk <baryluk-W6Hso+/wx31C2Nf1M/Lcnw@public.gmane.org>
+Date		: 2011-08-21 04:06 (8 days old)
+
+
+Regressions with patches
+------------------------
+
+=46or details, please visit the bug entries and follow the links given =
+in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regres=
+sions.
+There also is a Bugzilla entry used for tracking the regressions from 3=
+=2E0,
+unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3D40982
+
+Please let the tracking team know if there are any Bugzilla entries tha=
+t
+should be added to the list in there.
+
+Thanks!
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
