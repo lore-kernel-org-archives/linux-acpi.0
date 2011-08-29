@@ -1,64 +1,43 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI, APEI, Print resource errors in conventional format
-Date: Mon, 29 Aug 2011 08:08:32 -0600
-Message-ID: <CAErSpo5tKqKtUKmcq1S81YABXunFY5VW81iWDYsv9v5HeLAVGg@mail.gmail.com>
-References: <20110826171052.7959.94505.stgit@bhelgaas.mtv.corp.google.com> <4E5AE210.2000105@intel.com>
+From: Pavel Ivanov <paivanof@gmail.com>
+Subject: Re: APEI: Can not request iomem region for GARs
+Date: Mon, 29 Aug 2011 10:43:18 -0400
+Message-ID: <CAG1a4rv2EhRE6O_0MT5NMN1T=087AZs3kBgv3iBTMsMbOpU+vQ@mail.gmail.com>
+References: <CAG1a4rs4Cr1z50gGuK9SLE6aOvibE1sdV_GSLPv+gqYC8g+ORQ@mail.gmail.com>
+ <CAErSpo4FfBoGDUquoLNsJ9=z-M-x6NQgP8xJL_VqEXpsL2H5PA@mail.gmail.com>
+ <4E520149.3010802@intel.com> <CAG1a4rtMnDXSGLkmwE+6N9smoghWp0W4b5-X_gogzJ9fDLTeBg@mail.gmail.com>
+ <4E571D66.1070302@intel.com> <CAG1a4rtckCtpNjg9ApiLt4zQWArAu7N2ivoiMjueqYDRrr-G+g@mail.gmail.com>
+ <4E5AE82E.6000807@intel.com> <CAG1a4rsyQ5Ox_5i7K9tZT5q3YAnwRiG4uPkAkyY8JUZUjDkHpQ@mail.gmail.com>
+ <4E5B221B.4080309@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:2260 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752807Ab1H2OIz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2011 10:08:55 -0400
-Received: from hpaq12.eem.corp.google.com (hpaq12.eem.corp.google.com [172.25.149.12])
-	by smtp-out.google.com with ESMTP id p7TE8s3n011354
-	for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:08:54 -0700
-Received: from ywf7 (ywf7.prod.google.com [10.192.6.7])
-	by hpaq12.eem.corp.google.com with ESMTP id p7TE8qWC023575
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:08:53 -0700
-Received: by ywf7 with SMTP id 7so4746365ywf.19
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:08:52 -0700 (PDT)
-In-Reply-To: <4E5AE210.2000105@intel.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42109 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753594Ab1H2Onu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2011 10:43:50 -0400
+In-Reply-To: <4E5B221B.4080309@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sun, Aug 28, 2011 at 6:49 PM, Huang Ying <ying.huang@intel.com> wrot=
+On Mon, Aug 29, 2011 at 1:22 AM, Huang Ying <ying.huang@intel.com> wrot=
 e:
-> On 08/27/2011 01:10 AM, Bjorn Helgaas wrote:
->> Use the normal %pR-like format for MMIO and I/O port ranges.
->>
->> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->> ---
->> =A0drivers/acpi/apei/apei-base.c | =A0 =A08 ++++----
->> =A01 files changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-=
-base.c
->> index 8041248..8bd5f1a 100644
->> --- a/drivers/acpi/apei/apei-base.c
->> +++ b/drivers/acpi/apei/apei-base.c
->> @@ -460,9 +460,9 @@ int apei_resources_request(struct apei_resources=
- *resources,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0desc);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!r) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err(APEI_PFX
->> - =A0 =A0 =A0 =A0 =A0 =A0 "Can not request iomem region <%016llx-%01=
-6llx> for GARs.\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 "Can not request [mem %#010llx-%#010llx] f=
-or %s registers\n",
->
-> Why %#010llx instead of %#016llx?
+> -ENOENT is returned for apei_exec_run(, ACPI_ERST_GET_ERROR_RANGE).
+> That is there is no instructions for mandatory action
+> ACPI_ERST_GET_ERROR_RANGE. =A0It should be a firmware bug, try raise =
+it to
+> firmware vendor?
 
-Because %#010llx is effectively what we use for %pR.  Two characters
-for "0x", then eight for the value.  IMHO, sixteen uninterrupted hex
-characters is too hard to read.
+Could you please advise me on how should I do that? Do I need to
+report this issue to my motherboard vendor (which is Asus)? If yes
+then should it be via the standard technical support channel (like
+http://vip.asus.com/eservice/techserv.aspx) or something more special?
 
-Bjorn
+
+Thank you,
+Pavel
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
