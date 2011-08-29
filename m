@@ -1,45 +1,42 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 3.1-rc3-git6: Reported regressions from 3.0
-Date: Sun, 28 Aug 2011 12:49:26 -0700
-Message-ID: <CA+55aFxuTmfE3iFL7ko=9ZWDuxenssw69hyEG3bgQxy_QDqgZA__40135.9780611985$1314561028$gmane$org@mail.gmail.com>
-References: <lx6sezwGldO.A.IhF.UBpWOB@chimera> <20110828193519.GA14132@redhat.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] ACPI, APEI, Print resource errors in conventional format
+Date: Mon, 29 Aug 2011 08:49:20 +0800
+Message-ID: <4E5AE210.2000105@intel.com>
+References: <20110826171052.7959.94505.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39230 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752144Ab1H1TuR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Aug 2011 15:50:17 -0400
-In-Reply-To: <20110828193519.GA14132@redhat.com>
+Received: from mga14.intel.com ([143.182.124.37]:6656 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752535Ab1H2AtW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Aug 2011 20:49:22 -0400
+In-Reply-To: <20110826171052.7959.94505.stgit@bhelgaas.mtv.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Sun, Aug 28, 2011 at 12:35 PM, Dave Jones <davej@redhat.com> wrote:
-> On Sun, Aug 28, 2011 at 08:22:05PM +0200, Rafael J. Wysocki wrote:
->
-> =A0> Bug-Entry =A0 =A0: http://bugzilla.kernel.org/show_bug.cgi?id=3D=
-41742
-> =A0> Subject =A0 =A0 =A0 =A0 =A0 =A0 =A0: duplicate filename =A0for i=
-ntel_backlight with the i915 driver
-> =A0> Submitter =A0 =A0: Fran=E7ois Valenduc <francois.valenduc@tvcabl=
-enet.be>
-> =A0> Date =A0 =A0 =A0 =A0 : 2011-08-25 18:51 (4 days old)
-> =A0> First-Bad-Commit: http://git.kernel.org/linus/aaa6fd2a004147bf32=
-fce05720938236de3361d9
->
-> this should be fixed by b727d20269e8ef1de002bfea8099f5e9db9e9f23
+On 08/27/2011 01:10 AM, Bjorn Helgaas wrote:
+> Use the normal %pR-like format for MMIO and I/O port ranges.
+> 
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/acpi/apei/apei-base.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> index 8041248..8bd5f1a 100644
+> --- a/drivers/acpi/apei/apei-base.c
+> +++ b/drivers/acpi/apei/apei-base.c
+> @@ -460,9 +460,9 @@ int apei_resources_request(struct apei_resources *resources,
+>  				       desc);
+>  		if (!r) {
+>  			pr_err(APEI_PFX
+> -		"Can not request iomem region <%016llx-%016llx> for GARs.\n",
+> +		"Can not request [mem %#010llx-%#010llx] for %s registers\n",
 
-Actually, by a2cc797d2d1a ("i915: do not setup intel_backlight ").
+Why %#010llx instead of %#016llx?
 
-That b727d20269e is just my merge commit that brings in the fix (and
-the bogus initialization of 'locked') into mainline.
-
-                   Linus
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Huang Ying
