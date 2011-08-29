@@ -1,82 +1,142 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: APEI: Can not request iomem region for GARs
-Date: Mon, 29 Aug 2011 08:48:28 -0600
-Message-ID: <CAErSpo7=SZ1XKBY0dDUg-c+_d-GoZF7uNypQc3Ecm+iofkXTMA@mail.gmail.com>
-References: <CAG1a4rs4Cr1z50gGuK9SLE6aOvibE1sdV_GSLPv+gqYC8g+ORQ@mail.gmail.com>
- <CAErSpo4FfBoGDUquoLNsJ9=z-M-x6NQgP8xJL_VqEXpsL2H5PA@mail.gmail.com>
- <4E520149.3010802@intel.com> <CAG1a4rtMnDXSGLkmwE+6N9smoghWp0W4b5-X_gogzJ9fDLTeBg@mail.gmail.com>
- <4E571D66.1070302@intel.com> <CAErSpo5L1X49hfeJ69o_hwfuzMT6R+7TKhGbYCkyqtqVpf4tEw@mail.gmail.com>
- <4E5AEAF4.3000800@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] ACPI: Ensure thermal limits match CPU frequencies
+Date: Mon, 29 Aug 2011 14:28:27 -0400
+Message-ID: <1314642507-32491-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:19440 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883Ab1H2Osw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2011 10:48:52 -0400
-Received: from wpaz29.hot.corp.google.com (wpaz29.hot.corp.google.com [172.24.198.93])
-	by smtp-out.google.com with ESMTP id p7TEmovf001478
-	for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:48:50 -0700
-Received: from gwb1 (gwb1.prod.google.com [10.200.2.1])
-	by wpaz29.hot.corp.google.com with ESMTP id p7TElYgd024059
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:48:49 -0700
-Received: by gwb1 with SMTP id 1so2231569gwb.8
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Aug 2011 07:48:49 -0700 (PDT)
-In-Reply-To: <4E5AEAF4.3000800@intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64902 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754386Ab1H2S3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Aug 2011 14:29:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Pavel Ivanov <paivanof@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, rui.zhang@intel.com, jboyer@redhat.com, Matthew Garrett <mjg@redhat.com>
 
-On Sun, Aug 28, 2011 at 7:27 PM, Huang Ying <ying.huang@intel.com> wrot=
-e:
-> On 08/26/2011 09:43 PM, Bjorn Helgaas wrote:
->> On Thu, Aug 25, 2011 at 10:13 PM, Huang Ying <ying.huang@intel.com> =
-wrote:
->>> Hi, Pavel,
->>>
->>> Sorry, =A0there is a minor issue in the patch. =A0Do you have time =
-to try
->>> the updated version attached.
->>
->> I think Yinghai's patch is a better approach (though it needs a chan=
-gelog).
->>
->> The ACPI NVS space should not be marked as "busy" by the e820 code i=
-n
->> the iomem_resource tree.
->>
->> It's way too complicated to mess around with registering NVS space a=
-nd
->> trying to deal with it specially in APEI.
->
-> ACPI NVS is different, it can be used only by firmware, and its
-> interpreter, such as ACPI AML interpreter and APEI interpreter. =A0It=
- can
-> not be used by ordinary driver. =A0If my understanding is correct, th=
-is is
-> why ACPI NVS is marked as busy.
+The ACPI thermal management code supports slowing down a CPU when it's
+overheating. Right now that's done by choosing to run it at 100%, 75%, 50%
+or 25% of full speed. However, most CPUs do not allow an arbitrary
+frequency to be set and so will run at the first frequency below that value.
+This doesn't match the intent of the specification, which is to drop the
+frequency state by state until the temperature stabalises. Fix this up
+so it uses actual frequencies rather than percentages.
 
-I don't understand why ACPI NVS is different.  If we reserve it in
-iomem_resource (without marking it busy), it's already unavailable to
-anything else unless you know something connected to the NVS region.
+Reported by: Gene Snider <snider6982@comcast.net>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/processor_thermal.c |   45 +++++++++++++++++++++----------------
+ 1 files changed, 25 insertions(+), 20 deletions(-)
 
-The only way to allocate space inside NVS is to first discover the
-ACPI NVS resource, so you could pass it to request_resource() or
-allocate_resource() as the "root" to allocate from.  There's no
-mechanism for locating that resource, so it's already protected in
-that sense.
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 870550d..1c4eb60 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -52,10 +52,8 @@ ACPI_MODULE_NAME("processor_thermal");
+  * _any_ cpufreq driver and not only the acpi-cpufreq driver.
+  */
+ 
+-#define CPUFREQ_THERMAL_MIN_STEP 0
+-#define CPUFREQ_THERMAL_MAX_STEP 3
+ 
+-static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_reduction_pctg);
++static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_limit_state);
+ static unsigned int acpi_thermal_cpufreq_is_init = 0;
+ 
+ static int cpu_has_cpufreq(unsigned int cpu)
+@@ -70,19 +68,19 @@ static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
+ 					 unsigned long event, void *data)
+ {
+ 	struct cpufreq_policy *policy = data;
+-	unsigned long max_freq = 0;
++	int state = per_cpu(cpufreq_thermal_limit_state, policy->cpu);
++	struct cpufreq_frequency_table *table;
+ 
+ 	if (event != CPUFREQ_ADJUST)
+-		goto out;
++		return 0;
++
++	table = cpufreq_frequency_get_table(policy->cpu);
+ 
+-	max_freq = (
+-	    policy->cpuinfo.max_freq *
+-	    (100 - per_cpu(cpufreq_thermal_reduction_pctg, policy->cpu) * 20)
+-	) / 100;
++	if (!table)
++		return 0;
+ 
+-	cpufreq_verify_within_limits(policy, 0, max_freq);
++	cpufreq_verify_within_limits(policy, 0, table[state].frequency);
+ 
+-      out:
+ 	return 0;
+ }
+ 
+@@ -92,10 +90,21 @@ static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
+ 
+ static int cpufreq_get_max_state(unsigned int cpu)
+ {
++	int count = 0;
++	struct cpufreq_frequency_table *table;
++
+ 	if (!cpu_has_cpufreq(cpu))
+ 		return 0;
+ 
+-	return CPUFREQ_THERMAL_MAX_STEP;
++	table = cpufreq_frequency_get_table(cpu);
++
++	if (!table)
++		return 0;
++
++	while (table[count].frequency != CPUFREQ_TABLE_END)
++		count++;
++
++	return count;
+ }
+ 
+ static int cpufreq_get_cur_state(unsigned int cpu)
+@@ -103,7 +112,7 @@ static int cpufreq_get_cur_state(unsigned int cpu)
+ 	if (!cpu_has_cpufreq(cpu))
+ 		return 0;
+ 
+-	return per_cpu(cpufreq_thermal_reduction_pctg, cpu);
++	return per_cpu(cpufreq_thermal_limit_state, cpu);
+ }
+ 
+ static int cpufreq_set_cur_state(unsigned int cpu, int state)
+@@ -111,7 +120,7 @@ static int cpufreq_set_cur_state(unsigned int cpu, int state)
+ 	if (!cpu_has_cpufreq(cpu))
+ 		return 0;
+ 
+-	per_cpu(cpufreq_thermal_reduction_pctg, cpu) = state;
++	per_cpu(cpufreq_thermal_limit_state, cpu) = state;
+ 	cpufreq_update_policy(cpu);
+ 	return 0;
+ }
+@@ -122,7 +131,7 @@ void acpi_thermal_cpufreq_init(void)
+ 
+ 	for (i = 0; i < nr_cpu_ids; i++)
+ 		if (cpu_present(i))
+-			per_cpu(cpufreq_thermal_reduction_pctg, i) = 0;
++			per_cpu(cpufreq_thermal_limit_state, i) = 0;
+ 
+ 	i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block,
+ 				      CPUFREQ_POLICY_NOTIFIER);
+@@ -170,15 +179,11 @@ int acpi_processor_get_limit_info(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
+-/* thermal coolign device callbacks */
++/* thermal cooling device callbacks */
+ static int acpi_processor_max_state(struct acpi_processor *pr)
+ {
+ 	int max_state = 0;
+ 
+-	/*
+-	 * There exists four states according to
+-	 * cpufreq_thermal_reduction_ptg. 0, 1, 2, 3
+-	 */
+ 	max_state += cpufreq_get_max_state(pr->id);
+ 	if (pr->flags.throttling)
+ 		max_state += (pr->throttling.state_count -1);
+-- 
+1.7.6.1
 
-To use request_mem_region() (which marks the region busy), you all you
-need is an address.  The only way for a driver to learn an address
-inside NVS is from the ACPI tables.  So I think it's effectively
-limited to APEI there, too.
-
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
