@@ -1,50 +1,54 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: APEI: Can not request iomem region for GARs
-Date: Tue, 30 Aug 2011 08:57:14 +0800
-Message-ID: <4E5C356A.7000701@intel.com>
-References: <CAG1a4rs4Cr1z50gGuK9SLE6aOvibE1sdV_GSLPv+gqYC8g+ORQ@mail.gmail.com> <CAErSpo4FfBoGDUquoLNsJ9=z-M-x6NQgP8xJL_VqEXpsL2H5PA@mail.gmail.com> <4E520149.3010802@intel.com> <CAG1a4rtMnDXSGLkmwE+6N9smoghWp0W4b5-X_gogzJ9fDLTeBg@mail.gmail.com> <4E571D66.1070302@intel.com> <CAErSpo5L1X49hfeJ69o_hwfuzMT6R+7TKhGbYCkyqtqVpf4tEw@mail.gmail.com> <4E5AEAF4.3000800@intel.com> <CAErSpo7=SZ1XKBY0dDUg-c+_d-GoZF7uNypQc3Ecm+iofkXTMA@mail.gmail.com>
+From: =?utf-8?B?5q+P5aSp6YO95pyJ5paw5Lmw5a62?= <admin@brentonasia.com>
+Subject: =?utf-8?B?5pyA5paw5bm/5Lqk5Lya5Lmw5a625bqTKzUwMOS4h+a1t+WkluS5sOWutui1hOa6kCs=?=
+	=?utf-8?B?6YKu5Lu25Y+R6YCB5pa55qGIPeavj+WkqemDveacieaWsOS5sOWutuWbnuWkje+8gQ==?=
+Date: Tue, 30 Aug 2011 04:22:42 +0000 (UTC)
+Message-ID: <20111002115715848374@brentonasia.com>
+Reply-To: <1339625218@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:22904 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751583Ab1H3A5Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Aug 2011 20:57:16 -0400
-In-Reply-To: <CAErSpo7=SZ1XKBY0dDUg-c+_d-GoZF7uNypQc3Ecm+iofkXTMA@mail.gmail.com>
+Received: from [183.63.203.40] ([183.63.203.40]:49558 "HELO brentonasia.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751180Ab1H3EWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Aug 2011 00:22:40 -0400
+Date: Sun, 2 Oct 2011 11:57:05 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Pavel Ivanov <paivanof@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-On 08/29/2011 10:48 PM, Bjorn Helgaas wrote:
-> On Sun, Aug 28, 2011 at 7:27 PM, Huang Ying <ying.huang@intel.com> wrote:
->> On 08/26/2011 09:43 PM, Bjorn Helgaas wrote:
->>> On Thu, Aug 25, 2011 at 10:13 PM, Huang Ying <ying.huang@intel.com> wrote:
->>>> Hi, Pavel,
->>>>
->>>> Sorry,  there is a minor issue in the patch.  Do you have time to try
->>>> the updated version attached.
->>>
->>> I think Yinghai's patch is a better approach (though it needs a changelog).
->>>
->>> The ACPI NVS space should not be marked as "busy" by the e820 code in
->>> the iomem_resource tree.
->>>
->>> It's way too complicated to mess around with registering NVS space and
->>> trying to deal with it specially in APEI.
->>
->> ACPI NVS is different, it can be used only by firmware, and its
->> interpreter, such as ACPI AML interpreter and APEI interpreter.  It can
->> not be used by ordinary driver.  If my understanding is correct, this is
->> why ACPI NVS is marked as busy.
-> 
-> I don't understand why ACPI NVS is different.  If we reserve it in
-> iomem_resource (without marking it busy), it's already unavailable to
-> anything else unless you know something connected to the NVS region.
+NTAw5LiH5rW35aSW5Lmw5a626LWE5rqQK+mCruS7tuWPkemAgeaWueahiCvmtbflpJbkubDlrrZF
+bWFpbOaQnOe0ouacuj3mr4/lpKnpg73mnInlrqLmiLflm57lpI3vvIENCjUwMOS4h+a1t+WkluS5
+sOWutui1hOa6kCvpgq7ku7blj5HpgIHmlrnmoYgr5rW35aSW5Lmw5a62RW1haWzmkJzntKLmnLo9
+5q+P5aSp6YO95pyJ5a6i5oi35Zue5aSN77yBDQoNCjHjgIE1MDDkuIfkubDlrrbotYTmupDvvJog
+6LWg6YCB55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5pu05pawICjlj6/ku6XmjInnhafmgqjn
+moTkuqflk4Hmj5Dlj5blh7rmnaXvvIzmm7Tnsr7lh4blvIDlj5Ep44CCIA0KMuOAgei2hee6p+a1
+t+WkluS5sOWutkVtYWls5pCc57Si5py677yaIOWGhee9ruS6hjYwMOS4h+ihjOS4muWFs+mUruiv
+je+8jOagueaNrumVv+WwvuivjeaQnOe0ou+8jOe7k+aenOabtOeyvuehruWMuemFje+8m+avj+Wk
+qeiDveaQnOe0ojEtMuS4h+S7peS4iuS5sOWutuecn+WunkVNQUlM77yM5oiQ5Y2V546H6auY44CC
+IA0KM+OAgee+pOWPkei9r+S7tu+8miDmk43kvZznroDljZXvvIzlip/og73lvLrlpKfvvIzmqKHk
+u7/kurrlt6Xmk43kvZzmqKHlvI/vvIzliLDovr7njofpq5jvvIzml6Xlj5HpgIE15LiH5bCB5Lul
+5LiK44CCIA0KIA0K5pSv5oyB5pSv5LuY5a6d5ouF5L+d5Lqk5piTICjlhYjlj5HotKflubblrono
+o4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7ku5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDp
+ob7omZHjgIINCg0K6K+36IGU57O777yaDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUy
+MThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUTox
+MzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1h
+aWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThA
+cXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQoNCuWFjei0
+uei1oOmAgToNCjHjgIHotoXnuqfmtbflpJbkubDlrrbmkJzntKLmnLos5Y+v5Lul6L275p2+5omr
+5o+P5Ye6IDUwMC0xMDAw5LiH5Lmw5a62RW1haWzvvIzlu7rnq4voh6rlt7HnmoTokKXplIDmlbDm
+ja7lupPjgIINCjLjgIEyMDA55bm05rW35YWz5o+Q5Y2V5pWw5o2ucGllcnPniYjmlbDmja4gMeWN
+g+S4h+OAgg0KM+OAgTIwMTHmmKXlraMxMDnlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jm
+lbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7v
+vIzlrrnmmJPmiJDljZXvvIEgDQo044CBMjAwOOW5tOiHszIwMTDlubQg5pil5a2jK+eni+Wto+W5
+v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiu+8
+jOWFsTEyMC425LiH5pWw5o2u44CCIA0KNeOAgeacgOaWsOWFqOeQg+S5sOWutuW6kyzlhbE0NTE2
+NjDmnaHmlbDmja7vvIzmr4/kuKrlnYfmnIlFbWFpbOOAgg0KNuOAgTIwMTDlubTlm73pmYXkv4Pp
+lIDljY/kvJrvvIhQUEFJ77yJ5oiQ5ZGY5ZCN5Y2VIFBQQUkgTWVtYmVycyBEaXJlY3RvcnnvvIzp
+nZ7luLjph43opoHnmoTlpKfkubDlrrbjgIINCjfjgIEyMDEw5bm05Yiw6aaZ5riv6YeH6LSt55qE
+5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzlhbE3LjLkuIfmlbDm
+ja7vvIzotoXnuqfph43opoHnmoTkubDlrrbjgIINCjjjgIExMDDkuIfmnaHlm73lpJbotLjmmJPo
+r6Lnm5jvvIzmr4/kuKrlnYfmnIlFbWFpbOOAgg0KOeOAgeS5sOWutui1hOa6kOabtOaWsOS4reOA
+guOAguOAgg0K5YWo6YOo6YO95pyJ44CCDQogDQo=
 
-I think ACPI NVS can be seen as reserved by ACPI or firmware
-interpreter.  So that, all other drivers should not access it.
 
-Best Regards,
-Huang Ying
