@@ -1,117 +1,157 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [RFC 1/2] ACPI, APEI, EINJ, Fix resource conflict on some machine
-Date: Tue, 30 Aug 2011 14:28:28 +0800
-Message-ID: <1314685709-7280-2-git-send-email-ying.huang@intel.com>
-References: <1314685709-7280-1-git-send-email-ying.huang@intel.com>
+From: "Joey Lee" <jlee@suse.com>
+Subject: Re: [PATCH 2/2] ACPI: Implement overriding of arbitrary ACPI
+ tables via initrd
+Date: Tue, 30 Aug 2011 01:32:05 -0600
+Message-ID: <4E5D1E950200002300030FF2@novprvlin0050.provo.novell.com>
+References: <1314179290-31526-1-git-send-email-trenn@suse.de>
+ <1314179290-31526-3-git-send-email-trenn@suse.de>
+ <4E5BDB090200002300030F12@novprvlin0050.provo.novell.com>
+ <4E5BDCFD0200002300030F1C@novprvlin0050.provo.novell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54850 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751218Ab1H3G2e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Aug 2011 02:28:34 -0400
-In-Reply-To: <1314685709-7280-1-git-send-email-ying.huang@intel.com>
+Received: from novprvlin0050.provo.novell.com ([137.65.248.33]:56075 "EHLO
+	novprvlin0050.provo.novell.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752460Ab1H3HcJ (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:6:1>);
+	Tue, 30 Aug 2011 03:32:09 -0400
+In-Reply-To: <4E5BDCFD0200002300030F1C@novprvlin0050.provo.novell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: devel@acpica.org, jnelson-suse@jamponi.net, lenb@kernel.org, x86@kernel.org, eric.piel@tremplin-utc.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hpa@zytor.com
 
-Some APEI firmware implementaiton will access injected address
-specified in param1 to trigger the error when injecting memory error.
-This will cause resource conflict with RAM.  So remove it from trigger
-table resources to avoid conflict.
+=E6=96=BC =E4=B8=80=EF=BC=8C2011-08-29 =E6=96=BC 02:39 -0600=EF=BC=8CJo=
+ey Lee =E6=8F=90=E5=88=B0=EF=BC=9A
+> =E6=96=BC =E4=B8=80=EF=BC=8C2011-08-29 =E6=96=BC 02:31 -0600=EF=BC=8C=
+Joey Lee =E6=8F=90=E5=88=B0=EF=BC=9A
+> > =E6=96=BC =E4=B8=89=EF=BC=8C2011-08-24 =E6=96=BC 11:48 +0200=EF=BC=8C=
+Thomas Renninger =E6=8F=90=E5=88=B0=EF=BC=9A
+> > > Details can be found in:
+> > > Documentation/acpi/initrd_table_override.txt
+> > >=20
+> > > Additional dmesg output of a booted system with
+> > > FACP (FADT), DSDT and SSDT (the 9th dynamically loaded one)
+> > > tables overridden (with ### marked comments):
+> > >=20
+> > > ### ACPI tables found glued to initrd
+> > > DSDT ACPI table found in initrd - size: 16234
+> > > FACP ACPI table found in initrd - size: 116
+> > > SSDT ACPI table found in initrd - size: 334
+> > > ### Re-printed e820 map via e820_update() with additionally creat=
+ed
+> > > ### ACPI data section at 0xcff55000 where the ACPI tables passed =
+via
+> > > ### initrd where copied to
+> > > modified physical RAM map:
+> > > ...
+> > >   ### New ACPI data section:
+> > >   modified: 00000000cff55000 - 00000000cff5912c (ACPI data)
+> > >   ### BIOS e820 provided ACPI data section:
+> > >   modified: 00000000cff60000 - 00000000cff69000 (ACPI data)
+> > > ...
+> > > ### Total size of all ACPI tables glued to initrd
+> > > ### The address is initrd_start which gets updated to
+> > > ### initrd_start =3D initrd_start + "size of all ACPI tables glue=
+d to initrd"
+> > > Found acpi tables of size: 16684 at 0xffff8800374c4000
+> > >=20
+> > > Disabling lock debugging due to kernel taint
+> > > ### initrd provided FACP and DSDT tables are used instead of BIOS=
+ provided ones
+> > > ACPI: FACP @ 0x00000000cff68dd8 Phys table override, replaced wit=
+h:
+> > > ACPI: FACP 00000000cff58f6a 00074 (v01 INTEL  TUMWATER 06040000 P=
+TL  00000003)
+> > > ACPI: DSDT @ 0x00000000cff649d4 Phys table override, replaced wit=
+h:
+> > > ACPI: DSDT 00000000cff55000 04404 (v01  Intel BLAKFORD 06040000 M=
+SFT 0100000E)
+> > > ...
+> > > ### Much later, the 9th (/sys/firmware/acpi/table/dynamic/SSDT9) =
+dynamically
+> > > ### loaded ACPI table matches and gets overridden:
+> > > ACPI: SSDT @ 0x00000000cff64824 Phys table override, replaced wit=
+h:
+> > > ACPI: SSDT 00000000cff58fde 0014E (v01  PmRef  Cpu7Ist 00003000 I=
+NTL 20110316)
+> > > ACPI: Dynamic OEM Table Load:
+> > > ACPI: SSDT           (null) 0014E (v01  PmRef  Cpu7Ist 00003000 I=
+NTL 20110316)
+> > > ...
+> > >=20
+> > > If the initrd does not start with a valid ACPI table signature or=
+ the ACPI
+> > > table's checksum is wrong, there is no functional change.
+> > >=20
+> > > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > > CC: linux-acpi@vger.kernel.org
+> > > CC: lenb@kernel.org
+> > > CC: linux-kernel@vger.kernel.org
+> > > CC: x86@kernel.org
+> > > ---
+> >=20
+> > This patch works fine to me on Acer TravelMate 8572.
+> > I added a debug message to _BCM method in DSDT then override it in
+> > initrd by follow initrd_table_override.txt.
+> >=20
+> > The attached is my dmesg log.
+> >=20
+> > > +3) How does it work
+> > > +-------------------
+> > > +
+> > > +# Extract the machine's ACPI tables:
+> > > +acpidump >acpidump
+> > > +acpixtract -a acpidump
+> > > +# Disassemble, modify and recompile them:
+> > > +iasl -d *.dat
+> > > +# For example add this statement into a _PRT (PCI Routing Table)=
+ function
+> > > +# of the DSDT:
+> > > +Store("Hello World", debug)
+> > > +iasl -sa *.dsl
+> > > +# glue them together with the initrd. ACPI tables go first, orig=
+inal initrd
+> > > +# goes on top:
+> > > +cat TBL1.dat >>instrumented_initrd
+> > > +cat TBL2.dat >>instrumented_initrd
+> > > +cat TBL3.dat >>instrumented_initrd
+> >=20
+> > I suggest use TBL1.aml to replace TBL1.dat in initrd_table_override=
+=2Etxt,
+> > because iasl -sa default generate out *.aml file but not *.dat file=
+, my
+> > iasl version is Intel 20110112-64 [Feb 27 2011].
+> > That will be more clear for the first time user to understand need =
+cat
+> > *.aml file.
+> >=20
+> > Tested-by: Lee, Chun-Yi <jlee@suse.com>
+> >=20
+> >=20
+> > Thank's
+> > Joey Lee
+> >=20
+>=20
+> I applied the 2 patches on linux v3.0 kernel but not on the latest
+> linux-acpi-2.6 branch.
+>=20
+> I will also test it on linux-acpi-2.6.
+>=20
+I applied the 2 initrd acpi table override patches on the newest
+linux-acpi-2.6 branch, those patches works fine on my Acer TravelMate
+8572.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
----
- drivers/acpi/apei/apei-base.c     |   11 +++++++++++
- drivers/acpi/apei/apei-internal.h |    3 +++
- drivers/acpi/apei/einj.c          |   24 ++++++++++++++++++++++--
- 3 files changed, 36 insertions(+), 2 deletions(-)
+Tested-by: Lee, Chun-Yi <jlee@suse.com>
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index ac11aff..35a7a3a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -421,6 +421,17 @@ static int apei_resources_merge(struct apei_resources *resources1,
- 	return 0;
- }
- 
-+int apei_resources_add(struct apei_resources *resources,
-+		       unsigned long start, unsigned long size,
-+		       bool iomem)
-+{
-+	if (iomem)
-+		return apei_res_add(&resources->iomem, start, size);
-+	else
-+		return apei_res_add(&resources->ioport, start, size);
-+}
-+EXPORT_SYMBOL_GPL(apei_resources_add);
-+
- /*
-  * EINJ has two groups of GARs (EINJ table entry and trigger table
-  * entry), so common resources are subtracted from the trigger table
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index f57050e..d778edd 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -95,6 +95,9 @@ static inline void apei_resources_init(struct apei_resources *resources)
- }
- 
- void apei_resources_fini(struct apei_resources *resources);
-+int apei_resources_add(struct apei_resources *resources,
-+		       unsigned long start, unsigned long size,
-+		       bool iomem);
- int apei_resources_sub(struct apei_resources *resources1,
- 		       struct apei_resources *resources2);
- int apei_resources_request(struct apei_resources *resources,
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 3178521..a126c67 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -195,7 +195,8 @@ static int einj_check_trigger_header(struct acpi_einj_trigger *trigger_tab)
- }
- 
- /* Execute instructions in trigger error action table */
--static int __einj_error_trigger(u64 trigger_paddr)
-+static int __einj_error_trigger(u64 trigger_paddr, u32 type,
-+				u64 param1, u64 param2)
- {
- 	struct acpi_einj_trigger *trigger_tab = NULL;
- 	struct apei_exec_context trigger_ctx;
-@@ -255,6 +256,25 @@ static int __einj_error_trigger(u64 trigger_paddr)
- 	rc = apei_resources_sub(&trigger_resources, &einj_resources);
- 	if (rc)
- 		goto out_fini;
-+	/*
-+	 * Some firmware will access target address specified in
-+	 * param1 to trigger the error when injecting memory error.
-+	 * This will cause resource conflict with regular memory.  So
-+	 * remove it from trigger table resources.
-+	 */
-+	if (param_extension && (type & 0x0038) && param2) {
-+		struct apei_resources addr_resources;
-+		apei_resources_init(&addr_resources);
-+		rc = apei_resources_add(&addr_resources,
-+					param1 & param2,
-+					~param2 + 1, true);
-+		if (rc)
-+			goto out_fini;
-+		rc = apei_resources_sub(&trigger_resources, &addr_resources);
-+		apei_resources_fini(&addr_resources);
-+		if (rc)
-+			goto out_fini;
-+	}
- 	rc = apei_resources_request(&trigger_resources, "APEI EINJ Trigger");
- 	if (rc)
- 		goto out_fini;
-@@ -324,7 +344,7 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 	if (rc)
- 		return rc;
- 	trigger_paddr = apei_exec_ctx_get_output(&ctx);
--	rc = __einj_error_trigger(trigger_paddr);
-+	rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
- 	if (rc)
- 		return rc;
- 	rc = apei_exec_run_optional(&ctx, ACPI_EINJ_END_OPERATION);
--- 
-1.7.5.4
 
+Thank's a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
