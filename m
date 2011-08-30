@@ -1,142 +1,52 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] ACPI: Ensure thermal limits match CPU frequencies
-Date: Mon, 29 Aug 2011 14:28:27 -0400
-Message-ID: <1314642507-32491-1-git-send-email-mjg@redhat.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] ACPI, APEI, Print resource errors in conventional format
+Date: Tue, 30 Aug 2011 08:41:38 +0800
+Message-ID: <4E5C31C2.90607@intel.com>
+References: <20110826171052.7959.94505.stgit@bhelgaas.mtv.corp.google.com> <4E5AE210.2000105@intel.com> <CAErSpo5tKqKtUKmcq1S81YABXunFY5VW81iWDYsv9v5HeLAVGg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64902 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:11778 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754386Ab1H2S3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Aug 2011 14:29:00 -0400
+	id S1750799Ab1H3Alj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Aug 2011 20:41:39 -0400
+In-Reply-To: <CAErSpo5tKqKtUKmcq1S81YABXunFY5VW81iWDYsv9v5HeLAVGg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, rui.zhang@intel.com, jboyer@redhat.com, Matthew Garrett <mjg@redhat.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-The ACPI thermal management code supports slowing down a CPU when it's
-overheating. Right now that's done by choosing to run it at 100%, 75%, 50%
-or 25% of full speed. However, most CPUs do not allow an arbitrary
-frequency to be set and so will run at the first frequency below that value.
-This doesn't match the intent of the specification, which is to drop the
-frequency state by state until the temperature stabalises. Fix this up
-so it uses actual frequencies rather than percentages.
+On 08/29/2011 10:08 PM, Bjorn Helgaas wrote:
+> On Sun, Aug 28, 2011 at 6:49 PM, Huang Ying <ying.huang@intel.com> wrote:
+>> On 08/27/2011 01:10 AM, Bjorn Helgaas wrote:
+>>> Use the normal %pR-like format for MMIO and I/O port ranges.
+>>>
+>>> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+>>> ---
+>>>  drivers/acpi/apei/apei-base.c |    8 ++++----
+>>>  1 files changed, 4 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+>>> index 8041248..8bd5f1a 100644
+>>> --- a/drivers/acpi/apei/apei-base.c
+>>> +++ b/drivers/acpi/apei/apei-base.c
+>>> @@ -460,9 +460,9 @@ int apei_resources_request(struct apei_resources *resources,
+>>>                                      desc);
+>>>               if (!r) {
+>>>                       pr_err(APEI_PFX
+>>> -             "Can not request iomem region <%016llx-%016llx> for GARs.\n",
+>>> +             "Can not request [mem %#010llx-%#010llx] for %s registers\n",
+>>
+>> Why %#010llx instead of %#016llx?
+> 
+> Because %#010llx is effectively what we use for %pR.  Two characters
+> for "0x", then eight for the value.  IMHO, sixteen uninterrupted hex
+> characters is too hard to read.
 
-Reported by: Gene Snider <snider6982@comcast.net>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/processor_thermal.c |   45 +++++++++++++++++++++----------------
- 1 files changed, 25 insertions(+), 20 deletions(-)
+That is reasonable. Thanks.
 
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 870550d..1c4eb60 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -52,10 +52,8 @@ ACPI_MODULE_NAME("processor_thermal");
-  * _any_ cpufreq driver and not only the acpi-cpufreq driver.
-  */
- 
--#define CPUFREQ_THERMAL_MIN_STEP 0
--#define CPUFREQ_THERMAL_MAX_STEP 3
- 
--static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_reduction_pctg);
-+static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_limit_state);
- static unsigned int acpi_thermal_cpufreq_is_init = 0;
- 
- static int cpu_has_cpufreq(unsigned int cpu)
-@@ -70,19 +68,19 @@ static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
- 					 unsigned long event, void *data)
- {
- 	struct cpufreq_policy *policy = data;
--	unsigned long max_freq = 0;
-+	int state = per_cpu(cpufreq_thermal_limit_state, policy->cpu);
-+	struct cpufreq_frequency_table *table;
- 
- 	if (event != CPUFREQ_ADJUST)
--		goto out;
-+		return 0;
-+
-+	table = cpufreq_frequency_get_table(policy->cpu);
- 
--	max_freq = (
--	    policy->cpuinfo.max_freq *
--	    (100 - per_cpu(cpufreq_thermal_reduction_pctg, policy->cpu) * 20)
--	) / 100;
-+	if (!table)
-+		return 0;
- 
--	cpufreq_verify_within_limits(policy, 0, max_freq);
-+	cpufreq_verify_within_limits(policy, 0, table[state].frequency);
- 
--      out:
- 	return 0;
- }
- 
-@@ -92,10 +90,21 @@ static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
- 
- static int cpufreq_get_max_state(unsigned int cpu)
- {
-+	int count = 0;
-+	struct cpufreq_frequency_table *table;
-+
- 	if (!cpu_has_cpufreq(cpu))
- 		return 0;
- 
--	return CPUFREQ_THERMAL_MAX_STEP;
-+	table = cpufreq_frequency_get_table(cpu);
-+
-+	if (!table)
-+		return 0;
-+
-+	while (table[count].frequency != CPUFREQ_TABLE_END)
-+		count++;
-+
-+	return count;
- }
- 
- static int cpufreq_get_cur_state(unsigned int cpu)
-@@ -103,7 +112,7 @@ static int cpufreq_get_cur_state(unsigned int cpu)
- 	if (!cpu_has_cpufreq(cpu))
- 		return 0;
- 
--	return per_cpu(cpufreq_thermal_reduction_pctg, cpu);
-+	return per_cpu(cpufreq_thermal_limit_state, cpu);
- }
- 
- static int cpufreq_set_cur_state(unsigned int cpu, int state)
-@@ -111,7 +120,7 @@ static int cpufreq_set_cur_state(unsigned int cpu, int state)
- 	if (!cpu_has_cpufreq(cpu))
- 		return 0;
- 
--	per_cpu(cpufreq_thermal_reduction_pctg, cpu) = state;
-+	per_cpu(cpufreq_thermal_limit_state, cpu) = state;
- 	cpufreq_update_policy(cpu);
- 	return 0;
- }
-@@ -122,7 +131,7 @@ void acpi_thermal_cpufreq_init(void)
- 
- 	for (i = 0; i < nr_cpu_ids; i++)
- 		if (cpu_present(i))
--			per_cpu(cpufreq_thermal_reduction_pctg, i) = 0;
-+			per_cpu(cpufreq_thermal_limit_state, i) = 0;
- 
- 	i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block,
- 				      CPUFREQ_POLICY_NOTIFIER);
-@@ -170,15 +179,11 @@ int acpi_processor_get_limit_info(struct acpi_processor *pr)
- 	return 0;
- }
- 
--/* thermal coolign device callbacks */
-+/* thermal cooling device callbacks */
- static int acpi_processor_max_state(struct acpi_processor *pr)
- {
- 	int max_state = 0;
- 
--	/*
--	 * There exists four states according to
--	 * cpufreq_thermal_reduction_ptg. 0, 1, 2, 3
--	 */
- 	max_state += cpufreq_get_max_state(pr->id);
- 	if (pr->flags.throttling)
- 		max_state += (pr->throttling.state_count -1);
--- 
-1.7.6.1
+Acked-by: Huang Ying <ying.huang@intel.com>
 
+Best Regards,
+Huang Ying
