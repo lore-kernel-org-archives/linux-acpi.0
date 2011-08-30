@@ -1,60 +1,69 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 0/2] Implement overriding of arbitrary ACPI tables via initrd
-Date: Tue, 30 Aug 2011 13:41:33 +0200
-Message-ID: <201108301341.33452.trenn@suse.de>
-References: <1314179290-31526-1-git-send-email-trenn@suse.de>
+From: Josh Boyer <jwboyer@redhat.com>
+Subject: Re: [PATCH] ACPI: Ensure thermal limits match CPU frequencies
+Date: Tue, 30 Aug 2011 10:03:27 -0400
+Message-ID: <20110830140327.GQ2270@zod.bos.redhat.com>
+References: <1314642507-32491-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42559 "EHLO mx2.suse.de"
+Received: from mx1.redhat.com ([209.132.183.28]:65113 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753254Ab1H3Llf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Aug 2011 07:41:35 -0400
-In-Reply-To: <1314179290-31526-1-git-send-email-trenn@suse.de>
+	id S1754046Ab1H3OEJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Aug 2011 10:04:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1314642507-32491-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, hpa@zytor.com, Lin Ming <ming.m.lin@intel.com>, Robert Moore <robert.moore@intel.com>
-Cc: eric.piel@tremplin-utc.net, jnelson-suse@jamponi.net, devel@acpica.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com
 
-Hi Len, Hi Robert, hi Lin,
-
-what's your opinion about these patches?
-I just sent a tiny bug fix which slipped in when I did
-last minute cleanups.
-
-Is the additional acpi_os_phys_table_override() function which
-would be needed in ACPICA sources acceptable?
-
-I'd appreciate if the acpica adoption can be made by
-acpica people, but if you give green light, I can also
-re-write the first patch against acpica sources.
-
-As this needs syncing with acpica it would be great if the first
-steps can be made, so that this can show up in 3.2 release.
-
-Thanks,
-
-   Thomas
-
-On Wednesday, August 24, 2011 11:48:08 AM Thomas Renninger wrote:
-> This patch series got some basic testing already (see patch 2 changelog) and
-> is based on latest 3.1-rc2 Linus kernel.
+On Mon, Aug 29, 2011 at 02:28:27PM -0400, Matthew Garrett wrote:
+> The ACPI thermal management code supports slowing down a CPU when it's
+> overheating. Right now that's done by choosing to run it at 100%, 75%, 50%
+> or 25% of full speed. However, most CPUs do not allow an arbitrary
+> frequency to be set and so will run at the first frequency below that value.
+> This doesn't match the intent of the specification, which is to drop the
+> frequency state by state until the temperature stabalises. Fix this up
+> so it uses actual frequencies rather than percentages.
 > 
-> The patches are separated into ACPICA parts (patch 1) and kernel parts (patch 2).
+> Reported by: Gene Snider <snider6982@comcast.net>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> ---
+>  drivers/acpi/processor_thermal.c |   45 +++++++++++++++++++++----------------
+>  1 files changed, 25 insertions(+), 20 deletions(-)
 > 
-> They are ready for integeration (if now objections should show up in a review
-> discussion) and it would be great if they can be added in Len's latest acpi-test
-> tree for broader testing.
-> 
-> Thanks,
-> 
->    Thomas
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+> index 870550d..1c4eb60 100644
+> --- a/drivers/acpi/processor_thermal.c
+> +++ b/drivers/acpi/processor_thermal.c
+> @@ -52,10 +52,8 @@ ACPI_MODULE_NAME("processor_thermal");
+>   * _any_ cpufreq driver and not only the acpi-cpufreq driver.
+>   */
+>  
+> -#define CPUFREQ_THERMAL_MIN_STEP 0
+> -#define CPUFREQ_THERMAL_MAX_STEP 3
+>  
+> -static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_reduction_pctg);
+> +static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_limit_state);
+>  static unsigned int acpi_thermal_cpufreq_is_init = 0;
+>  
+>  static int cpu_has_cpufreq(unsigned int cpu)
+> @@ -70,19 +68,19 @@ static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
+>  					 unsigned long event, void *data)
+>  {
+>  	struct cpufreq_policy *policy = data;
+> -	unsigned long max_freq = 0;
+> +	int state = per_cpu(cpufreq_thermal_limit_state, policy->cpu);
+> +	struct cpufreq_frequency_table *table;
+>  
+>  	if (event != CPUFREQ_ADJUST)
+> -		goto out;
+> +		return 0;
+> +
+> +	table = cpufreq_frequency_get_table(policy->cpu);
 
+If CONFIG_CPU_FREQ_TABLE=m and CONFIG_ACPI_PROCESSOR=y, you'll get a
+link error for an undefined symbol on this.  This requires
+ACPI_PROCESSOR to select CPU_FREQ_TABLE.
+
+josh
