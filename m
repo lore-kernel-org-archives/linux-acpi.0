@@ -1,28 +1,19 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [RFC 2/2] ACPI, Add RAM mapping support to ACPI atomic IO
- support
-Date: Tue, 30 Aug 2011 09:41:12 -0700
-Message-ID: <987664A83D2D224EAE907B061CE93D5301EA77924F@orsmsx505.amr.corp.intel.com>
-References: <1314685709-7280-1-git-send-email-ying.huang@intel.com>
- <1314685709-7280-3-git-send-email-ying.huang@intel.com>
+From: Samsung Galaxy S2 <galaxy.s@freemail.hu>
+Subject: Nyerj Samsung Galaxy S II. k
+Date: Wed, 31 Aug 2011 02:18:27 +0200 (CEST)
+Message-ID: <freemail.20110831021827.73960.105@xmldata02.freemail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/plain; CHARSET=ISO-8859-2
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:47464 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755793Ab1H3QlZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2011 12:41:25 -0400
-In-Reply-To: <1314685709-7280-3-git-send-email-ying.huang@intel.com>
-Content-Language: en-US
+Received: from fmx05.freemail.hu ([195.228.245.55]:52745 "HELO
+	fmx05.freemail.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754060Ab1HaAZI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2011 20:25:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Huang, Ying" <ying.huang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-> Normally, ACPI atomic IO support is used to access IO memory.  But in
-> EINJ, it may be used to access RAM to trigger the injected error.
-> This patch add RAM mapping support to satisfy EINJ requirement.
+Udvozlunk!
 
-Tested-by: Tony Luck <tony.luck@intel.com>
-
+Most megnyerheted a Samsung Galaxy S II. keszuleket!
+Reszletekert latogass el weboldalunkra: http://galaxy.x3m-host.com/
