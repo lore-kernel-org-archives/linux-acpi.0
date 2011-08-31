@@ -1,77 +1,63 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [RFC]cpuidle: disable menu governor if nohz is disabled
-Date: Wed, 31 Aug 2011 09:56:07 +0800
-Message-ID: <1314755767.29510.57.camel@sli10-conroe>
+From: "Li, Aubrey" <aubrey.li@intel.com>
+Subject: RE: [RFC]cpuidle: disable menu governor if nohz is disabled
+Date: Wed, 31 Aug 2011 10:22:25 +0800
+Message-ID: <789F9655DD1B8F43B48D77C5D306597312D11E113F@shsmsx501.ccr.corp.intel.com>
+References: <1314755767.29510.57.camel@sli10-conroe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7878 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:32209 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754551Ab1HaBxz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Aug 2011 21:53:55 -0400
+	id S1754853Ab1HaCXJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Aug 2011 22:23:09 -0400
+In-Reply-To: <1314755767.29510.57.camel@sli10-conroe>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, "Li, Aubrey" <aubrey.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: "Li, Shaohua" <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-Lenb,
-Aubrey is asking me to fix the issue. So either we delete disable nohz
-code or fix cpuidle. if you want to fix cpuidle, here it is.
-
-Thanks,
-SHaohua
-
-Subject: cpuidle: disable menu governor if nohz is disabled
-
-Aubrey is asking why nohz disables C-state. nohz has no dependency with idle,
-but menu governor does. If nohz is disabled, using menu governor is pointless,
-because we never get correct sleep length, so let's use ladder governor just
-like nohz isn't compiled in.
-
-Frankly, disabling nohz is strange, but in case somebody cares, here is the
-fix.
-
-Reported-by: Aubrey Li <aubrey.li@intel.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-
-diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-index c47f3d0..cbf9afa 100644
---- a/drivers/cpuidle/governors/menu.c
-+++ b/drivers/cpuidle/governors/menu.c
-@@ -408,6 +408,8 @@ static struct cpuidle_governor menu_governor = {
-  */
- static int __init init_menu(void)
- {
-+	if (!tick_nohz_enabled)
-+		return 0;
- 	return cpuidle_register_governor(&menu_governor);
- }
- 
-diff --git a/include/linux/tick.h b/include/linux/tick.h
-index b232ccc..88895c7 100644
---- a/include/linux/tick.h
-+++ b/include/linux/tick.h
-@@ -126,6 +126,7 @@ extern void tick_nohz_restart_sched_tick(void);
- extern ktime_t tick_nohz_get_sleep_length(void);
- extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
- extern u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time);
-+extern int tick_nohz_enabled;
- # else
- static inline void tick_nohz_stop_sched_tick(int inidle) { }
- static inline void tick_nohz_restart_sched_tick(void) { }
-diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
-index d5097c4..6a270fe 100644
---- a/kernel/time/tick-sched.c
-+++ b/kernel/time/tick-sched.c
-@@ -105,7 +105,7 @@ static ktime_t tick_init_jiffy_update(void)
- /*
-  * NO HZ enabled ?
-  */
--static int tick_nohz_enabled __read_mostly  = 1;
-+int tick_nohz_enabled __read_mostly  = 1;
- 
- /*
-  * Enable / Disable tickless mode
-
-
+dGhpcyBvbmUgd29ya3MsIHRoYW5rcyBzaGFvaHVhIQ0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
+ZS0tLS0tDQo+IEZyb206IExpLCBTaGFvaHVhDQo+IFNlbnQ6IFdlZG5lc2RheSwgQXVndXN0IDMx
+LCAyMDExIDk6NTYgQU0NCj4gVG86IExlbiBCcm93bg0KPiBDYzogQXJqYW4gdmFuIGRlIFZlbjsg
+TGksIEF1YnJleTsgbGludXggYWNwaQ0KPiBTdWJqZWN0OiBbUkZDXWNwdWlkbGU6IGRpc2FibGUg
+bWVudSBnb3Zlcm5vciBpZiBub2h6IGlzIGRpc2FibGVkDQo+IA0KPiBMZW5iLA0KPiBBdWJyZXkg
+aXMgYXNraW5nIG1lIHRvIGZpeCB0aGUgaXNzdWUuIFNvIGVpdGhlciB3ZSBkZWxldGUgZGlzYWJs
+ZSBub2h6IGNvZGUgb3IgZml4DQo+IGNwdWlkbGUuIGlmIHlvdSB3YW50IHRvIGZpeCBjcHVpZGxl
+LCBoZXJlIGl0IGlzLg0KPiANCj4gVGhhbmtzLA0KPiBTSGFvaHVhDQo+IA0KPiBTdWJqZWN0OiBj
+cHVpZGxlOiBkaXNhYmxlIG1lbnUgZ292ZXJub3IgaWYgbm9oeiBpcyBkaXNhYmxlZA0KPiANCj4g
+QXVicmV5IGlzIGFza2luZyB3aHkgbm9oeiBkaXNhYmxlcyBDLXN0YXRlLiBub2h6IGhhcyBubyBk
+ZXBlbmRlbmN5IHdpdGggaWRsZSwNCj4gYnV0IG1lbnUgZ292ZXJub3IgZG9lcy4gSWYgbm9oeiBp
+cyBkaXNhYmxlZCwgdXNpbmcgbWVudSBnb3Zlcm5vciBpcyBwb2ludGxlc3MsDQo+IGJlY2F1c2Ug
+d2UgbmV2ZXIgZ2V0IGNvcnJlY3Qgc2xlZXAgbGVuZ3RoLCBzbyBsZXQncyB1c2UgbGFkZGVyIGdv
+dmVybm9yIGp1c3QgbGlrZQ0KPiBub2h6IGlzbid0IGNvbXBpbGVkIGluLg0KPiANCj4gRnJhbmts
+eSwgZGlzYWJsaW5nIG5vaHogaXMgc3RyYW5nZSwgYnV0IGluIGNhc2Ugc29tZWJvZHkgY2FyZXMs
+IGhlcmUgaXMgdGhlIGZpeC4NCj4gDQo+IFJlcG9ydGVkLWJ5OiBBdWJyZXkgTGkgPGF1YnJleS5s
+aUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IFNoYW9odWEgTGkgPHNoYW9odWEubGlAaW50
+ZWwuY29tPg0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY3B1aWRsZS9nb3Zlcm5vcnMvbWVu
+dS5jDQo+IGIvZHJpdmVycy9jcHVpZGxlL2dvdmVybm9ycy9tZW51LmMNCj4gaW5kZXggYzQ3ZjNk
+MC4uY2JmOWFmYSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9jcHVpZGxlL2dvdmVybm9ycy9tZW51
+LmMNCj4gKysrIGIvZHJpdmVycy9jcHVpZGxlL2dvdmVybm9ycy9tZW51LmMNCj4gQEAgLTQwOCw2
+ICs0MDgsOCBAQCBzdGF0aWMgc3RydWN0IGNwdWlkbGVfZ292ZXJub3IgbWVudV9nb3Zlcm5vciA9
+IHsNCj4gICAqLw0KPiAgc3RhdGljIGludCBfX2luaXQgaW5pdF9tZW51KHZvaWQpDQo+ICB7DQo+
+ICsJaWYgKCF0aWNrX25vaHpfZW5hYmxlZCkNCj4gKwkJcmV0dXJuIDA7DQo+ICAJcmV0dXJuIGNw
+dWlkbGVfcmVnaXN0ZXJfZ292ZXJub3IoJm1lbnVfZ292ZXJub3IpOw0KPiAgfQ0KPiANCj4gZGlm
+ZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvdGljay5oIGIvaW5jbHVkZS9saW51eC90aWNrLmggaW5k
+ZXggYjIzMmNjYy4uODg4OTVjNw0KPiAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9saW51eC90aWNr
+LmgNCj4gKysrIGIvaW5jbHVkZS9saW51eC90aWNrLmgNCj4gQEAgLTEyNiw2ICsxMjYsNyBAQCBl
+eHRlcm4gdm9pZCB0aWNrX25vaHpfcmVzdGFydF9zY2hlZF90aWNrKHZvaWQpOw0KPiAgZXh0ZXJu
+IGt0aW1lX3QgdGlja19ub2h6X2dldF9zbGVlcF9sZW5ndGgodm9pZCk7ICBleHRlcm4gdTY0DQo+
+IGdldF9jcHVfaWRsZV90aW1lX3VzKGludCBjcHUsIHU2NCAqbGFzdF91cGRhdGVfdGltZSk7ICBl
+eHRlcm4gdTY0DQo+IGdldF9jcHVfaW93YWl0X3RpbWVfdXMoaW50IGNwdSwgdTY0ICpsYXN0X3Vw
+ZGF0ZV90aW1lKTsNCj4gK2V4dGVybiBpbnQgdGlja19ub2h6X2VuYWJsZWQ7DQo+ICAjIGVsc2UN
+Cj4gIHN0YXRpYyBpbmxpbmUgdm9pZCB0aWNrX25vaHpfc3RvcF9zY2hlZF90aWNrKGludCBpbmlk
+bGUpIHsgfSAgc3RhdGljIGlubGluZSB2b2lkDQo+IHRpY2tfbm9oel9yZXN0YXJ0X3NjaGVkX3Rp
+Y2sodm9pZCkgeyB9IGRpZmYgLS1naXQgYS9rZXJuZWwvdGltZS90aWNrLXNjaGVkLmMNCj4gYi9r
+ZXJuZWwvdGltZS90aWNrLXNjaGVkLmMgaW5kZXggZDUwOTdjNC4uNmEyNzBmZSAxMDA2NDQNCj4g
+LS0tIGEva2VybmVsL3RpbWUvdGljay1zY2hlZC5jDQo+ICsrKyBiL2tlcm5lbC90aW1lL3RpY2st
+c2NoZWQuYw0KPiBAQCAtMTA1LDcgKzEwNSw3IEBAIHN0YXRpYyBrdGltZV90IHRpY2tfaW5pdF9q
+aWZmeV91cGRhdGUodm9pZCkNCj4gIC8qDQo+ICAgKiBOTyBIWiBlbmFibGVkID8NCj4gICAqLw0K
+PiAtc3RhdGljIGludCB0aWNrX25vaHpfZW5hYmxlZCBfX3JlYWRfbW9zdGx5ICA9IDE7DQo+ICtp
+bnQgdGlja19ub2h6X2VuYWJsZWQgX19yZWFkX21vc3RseSAgPSAxOw0KPiANCj4gIC8qDQo+ICAg
+KiBFbmFibGUgLyBEaXNhYmxlIHRpY2tsZXNzIG1vZGUNCj4gDQoNCg==
