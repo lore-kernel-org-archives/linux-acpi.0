@@ -1,61 +1,46 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH] ACPI, APEI, GHES: Add PCIe AER recovery support
-Date: Wed, 31 Aug 2011 14:36:09 +0800
-Message-ID: <1314772569-21269-1-git-send-email-ying.huang@intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [Devel] [PATCH 1/2] ACPICA: Introduce acpi_os_phys_table_override function
+Date: Wed, 31 Aug 2011 11:28:49 +0200
+Message-ID: <201108311128.50256.trenn@suse.de>
+References: <1314179290-31526-1-git-send-email-trenn@suse.de> <1314179290-31526-2-git-send-email-trenn@suse.de> <1314758622.6486.74.camel@minggr.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21747 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:57131 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751235Ab1HaGgh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Aug 2011 02:36:37 -0400
+	id S1754812Ab1HaJ2x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Aug 2011 05:28:53 -0400
+In-Reply-To: <1314758622.6486.74.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "jnelson-suse@jamponi.net" <jnelson-suse@jamponi.net>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hpa@zytor.com" <hpa@zytor.com>, "devel@acpica.org" <devel@acpica.org>
 
-aer_recover_queue() is called when recoverable PCIe AER errors are
-notified by firmware to do the recovery work.
+On Wednesday, August 31, 2011 04:43:42 AM Lin Ming wrote:
+> On Wed, 2011-08-24 at 17:48 +0800, Thomas Renninger wrote:
+...
+> You add a new interface.
+Yes, is this a bigger problem?
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/ghes.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+> Can we just extend the existing interface: acpi_os_table_override?
+Not sure how to do that without OS/ACPICA API changes.
+The virtual address handling is nasty. You have to differ
+early mappings (early_ioremap) and later mappings (io/memremap).
+Re-mapping later is not possible because the physical address is
+lost with the current overriding interface.
+The physical address usage is transparent and from what I can
+see the only way to provide proper table overriding.
 
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -45,6 +45,8 @@
- #include <linux/irq_work.h>
- #include <linux/llist.h>
- #include <linux/genalloc.h>
-+#include <linux/pci.h>
-+#include <linux/aer.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -475,6 +477,27 @@ static void ghes_do_proc(const struct ac
- 			}
- #endif
- 		}
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-+				      CPER_SEC_PCIE)) {
-+			struct cper_sec_pcie *pcie_err;
-+			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-+			if (sev == GHES_SEV_RECOVERABLE &&
-+			    sec_sev == GHES_SEV_RECOVERABLE &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-+				unsigned int devfn;
-+				int aer_severity;
-+				devfn = PCI_DEVFN(pcie_err->device_id.device,
-+						  pcie_err->device_id.function);
-+				aer_severity = cper_severity_to_aer(sev);
-+				aer_recover_queue(pcie_err->device_id.segment,
-+						  pcie_err->device_id.bus,
-+						  devfn, aer_severity);
-+			}
-+
-+		}
-+#endif
- 	}
- }
- 
+If it's ok to add more paramters to acpi_os_table_override and
+either pass the virtual (as before) or the physical address,
+this would work:
+acpi_os_table_override(struct acpi_table_header *existing_table,
+                      struct acpi_table_header **new_table,
+                      acpi_physical_address *address, u32 *table_length);
+
+This would be an interface change which looked even worse to me, than 
+adding a new function.
+
+   Thomas
