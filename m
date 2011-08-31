@@ -1,19 +1,28 @@
-From: Samsung Galaxy S2 <galaxy.s@freemail.hu>
-Subject: Nyerj Samsung Galaxy S II. k
-Date: Wed, 31 Aug 2011 02:18:27 +0200 (CEST)
-Message-ID: <freemail.20110831021827.73960.105@xmldata02.freemail.hu>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 2] ACPI, APEI, Print resource errors in conventional format
+Date: Wed, 31 Aug 2011 08:42:34 +0800
+Message-ID: <4E5D837A.2090009@intel.com>
+References: <20110830163834.13116.18371.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; CHARSET=ISO-8859-2
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmx05.freemail.hu ([195.228.245.55]:52745 "HELO
-	fmx05.freemail.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754060Ab1HaAZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2011 20:25:08 -0400
+Received: from mga02.intel.com ([134.134.136.20]:25143 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754202Ab1HaAmg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Aug 2011 20:42:36 -0400
+In-Reply-To: <20110830163834.13116.18371.stgit@bhelgaas.mtv.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Udvozlunk!
+On 08/31/2011 12:38 AM, Bjorn Helgaas wrote:
+> Use the normal %pR-like format for MMIO and I/O port ranges.
+> 
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Most megnyerheted a Samsung Galaxy S II. keszuleket!
-Reszletekert latogass el weboldalunkra: http://galaxy.x3m-host.com/
+Acked-by: Huang Ying <ying.huang@intel.com>
+
+Best Regards,
+Huang Ying
