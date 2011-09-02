@@ -1,60 +1,64 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [Xen-devel] [RFC PATCH v1] ACPI S3 to work under Xen.
-Date: Fri, 2 Sep 2011 12:52:58 +0100
-Message-ID: <alpine.DEB.2.00.1109021249540.12963@kaball-desktop>
-References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
+From: rick@microway.com
+Subject: Re: kernel oops and panic in acpi_atomic_read under 2.6.39.3.   call
+ trace included
+Date: Fri, 2 Sep 2011 19:32:38 -0400
+Message-ID: <50815a5ec08cdb713de8eaa92ad6e8b3.squirrel@www.microway.com>
+References: <201108171751.51648.rick@microway.com>
+    <8338f9871d1f52f9376a1eca319a7866.squirrel@www.microway.com>
+    <201108222047.11086.rjw@sisk.pl> <201108221651.35654.rick@microway.com>
+    <20110823171432.GA10794@redhat.com>
+    <faf1d1211a8d409b39119e44727b3c83.squirrel@www.microway.com>
+    <4E547B0F.6000001@intel.com>
+    <cf5a31c38191654364bd281df6cb81e0.squirrel@www.microway.com>
+    <7f348bab30fb6be7706ef35af999e5b1.squirrel@www.microway.com>
+    <4E56EA02.7020307@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.ctxuk.citrix.com ([62.200.22.115]:32477 "EHLO
-	SMTP.EU.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083Ab1IBLpI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Sep 2011 07:45:08 -0400
-In-Reply-To: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
+Received: from mail.microway.com ([206.173.81.22]:33195 "EHLO microway.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750735Ab1IBXcm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Sep 2011 19:32:42 -0400
+In-Reply-To: <4E56EA02.7020307@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "shane.wang@intel.com" <shane.wang@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "len.brown@intel.com" <len.brown@intel.com>, "joseph.cihula@intel.com" <joseph.cihula@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "ke.yu@intel.com" <ke.yu@intel.com>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "kevin.tian@intel.com" <kevin.tian@intel.com>, "keir@xen.org" <keir@xen.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Richard Houghton <rhoughton@microway.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, 31 Aug 2011, Konrad Rzeszutek Wilk wrote:
-> Attached is an RFC set of patches to enable S3 to work with the Xen hypervisor.
-> 
-> The relationship that Xen has with Linux kernel is symbiotic. The Linux
-> kernel does the ACPI "stuff" and tells the hypervisor to do the low-level
-> stuff (such as program the IOAPIC, setup vectors, etc). The realm of
-> ACPI S3 is more complex as we need to save the CPU state (and Intel TXT
-> values - which the hypervisor has to do) and then restore them.
-> 
-> The major difficulties we hit was with 'acpi_suspend_lowlevel' - which tweaks
-> a lot of lowlevel values and some of them are not properly handled by Xen.
-> Liang Tang has figured which ones of them we trip over (read below) - and he
-> suggested that perhaps we can provide a registration mechanism to abstract
-> this away.
-> 
-> So the attached patches do exactly that - there are two entry points
-> in the ACPI.
-> 
->  1). For S3: acpi_suspend_lowlevel -> .. lots of code -> acpi_enter_sleep_state
->  2). For S1/S4/S5: acpi_enter_sleep_state
-> 
-> The first naive idea was of abstracting away in the 'acpi_enter_sleep_state'
-> function the tboot_sleep code so that we can use it too. And low-behold - it
-> worked splendidly for powering off (S5 I believe)
-> 
-> For S3 that did not work - during suspend the hypervisor tripped over when
-> saving cr8. During resume it tripped over at restoring the cr3, cr8, idt,
-> and gdt values.
-> 
-> What do you guys think? One thought is to use the paravirt interface to
-> deal with cr3, cr8, idt, gdt for suspend/resume case.. But that is a lot
-> of extra 'if' in the paravirt code  - which the callback registration would
-> effectively do the same thing as the paravirt - except at a higher level.
-> 
-> Thoughts?
- 
+Hi Huang,
 
-I think there are no doubts about the fact that this approach produces
-cleaner code than using the pvop interface for dealing with cr3, cr8,
-etc.
-Also, having seen the original xen acpi implementation in 2.6.18, I want
-to add that you did a _very_ good job with this series.
+Sorry for the delay in my response.  Hurricane Irene delayed our testing a
+bit.
+
+I had to switch the 5620 CPUS I had for 5670s.  After 4 days of running
+(it was usually about 2 before) I finally got this output in dmesg:
+
+[337296.365930] GHES: gar accessed: 0, 0xbf7b9370
+[337296.365936] ACPI atomic read mem: addr 0xbf7b9370 mapped to
+ffffc90013ee8370
+
+It is not mapped to 0 as expected, but it didn't crash now!
+
+Thanks,
+Rick
+
+> On 08/25/2011 11:47 PM, rick@microway.com wrote:
+>> Hi Huang,
+>>
+>> My new setup reproduced the panic. However I do not have any gar
+>> accessed
+>> messages on it.  The gar mapped messages are in my previous email.  Here
+>> is the latest call trace.  There is no GHES output prior to it:
+>>
+>
+> That is wired.  Can you try the patch attached?  If my guessing is
+> correct, there will be no panic, but something as follow will be in dmesg:
+>
+> ACPI atomic read mem: addr 0xxxxx mapped to 0
+>
+> Best Regards,
+> Huang Ying
+>
+
+
