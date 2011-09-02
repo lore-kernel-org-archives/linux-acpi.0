@@ -1,26 +1,22 @@
-From: "Tian, Kevin" <kevin.tian@intel.com>
-Subject: RE: [RFC PATCH v1] ACPI S3 to work under Xen.
-Date: Thu, 1 Sep 2011 14:58:38 +0800
-Message-ID: <625BA99ED14B2D499DC4E29D8138F15063048B8696@shsmsx502.ccr.corp.intel.com>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: Re: [Xen-devel] [RFC PATCH v1] ACPI S3 to work under Xen.
+Date: Fri, 2 Sep 2011 12:52:58 +0100
+Message-ID: <alpine.DEB.2.00.1109021249540.12963@kaball-desktop>
 References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19930 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752429Ab1IAG7C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Sep 2011 02:59:02 -0400
+Received: from smtp.ctxuk.citrix.com ([62.200.22.115]:32477 "EHLO
+	SMTP.EU.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083Ab1IBLpI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Sep 2011 07:45:08 -0400
 In-Reply-To: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
-Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.>
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "shane.wang@intel.com" <shane.wang@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "len.brown@intel.com" <len.brown@intel.com>, "joseph.cihula@intel.com" <joseph.cihula@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "ke.yu@intel.com" <ke.yu@intel.com>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "kevin.tian@intel.com" <kevin.tian@intel.com>, "keir@xen.org" <keir@xen.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
 
-> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> Sent: Thursday, September 01, 2011 2:31 AM
-> 
+On Wed, 31 Aug 2011, Konrad Rzeszutek Wilk wrote:
 > Attached is an RFC set of patches to enable S3 to work with the Xen hypervisor.
 > 
 > The relationship that Xen has with Linux kernel is symbiotic. The Linux
@@ -34,18 +30,6 @@ Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
 > Liang Tang has figured which ones of them we trip over (read below) - and he
 > suggested that perhaps we can provide a registration mechanism to abstract
 > this away.
-
-that's not a problem for Xen. On bare metal the processor state handled off
-from BIOS after resume (e.g. real mode in many cases) doesn't match the
-execution environment expected by Linux. So Linux has to save original context
-and then restore it after resume.
-
-However for Xen, Linux doesn't talk to BIOS directly. Instead it simply walks
-through necessary ACPI methods, and then issues a hypercall to Xen which
-then further completes the remaining suspend steps. So here ACPI S3 is
-exactly same as any other hypercall path, where processor context will be
-saved/restored by Xen automatically.
-
 > 
 > So the attached patches do exactly that - there are two entry points
 > in the ACPI.
@@ -66,8 +50,11 @@ saved/restored by Xen automatically.
 > of extra 'if' in the paravirt code  - which the callback registration would
 > effectively do the same thing as the paravirt - except at a higher level.
 > 
+> Thoughts?
+ 
 
-So tweaking at a higher level is a right thing to do.
-
-Thanks
-Kevin
+I think there are no doubts about the fact that this approach produces
+cleaner code than using the pvop interface for dealing with cr3, cr8,
+etc.
+Also, having seen the original xen acpi implementation in 2.6.18, I want
+to add that you did a _very_ good job with this series.
