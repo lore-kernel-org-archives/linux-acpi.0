@@ -1,64 +1,49 @@
-From: rick@microway.com
-Subject: Re: kernel oops and panic in acpi_atomic_read under 2.6.39.3.   call
- trace included
-Date: Fri, 2 Sep 2011 19:32:38 -0400
-Message-ID: <50815a5ec08cdb713de8eaa92ad6e8b3.squirrel@www.microway.com>
-References: <201108171751.51648.rick@microway.com>
-    <8338f9871d1f52f9376a1eca319a7866.squirrel@www.microway.com>
-    <201108222047.11086.rjw@sisk.pl> <201108221651.35654.rick@microway.com>
-    <20110823171432.GA10794@redhat.com>
-    <faf1d1211a8d409b39119e44727b3c83.squirrel@www.microway.com>
-    <4E547B0F.6000001@intel.com>
-    <cf5a31c38191654364bd281df6cb81e0.squirrel@www.microway.com>
-    <7f348bab30fb6be7706ef35af999e5b1.squirrel@www.microway.com>
-    <4E56EA02.7020307@intel.com>
+From: Pavel Ivanov <paivanof@gmail.com>
+Subject: Re: APEI: Can not request iomem region for GARs
+Date: Fri, 2 Sep 2011 22:44:33 -0400
+Message-ID: <CAG1a4rtXhK-TtgayUDBK34kB2rEHUSN_6ZEX2B6Zg2-GprwCEA@mail.gmail.com>
+References: <CAG1a4rs4Cr1z50gGuK9SLE6aOvibE1sdV_GSLPv+gqYC8g+ORQ@mail.gmail.com>
+ <CAErSpo4FfBoGDUquoLNsJ9=z-M-x6NQgP8xJL_VqEXpsL2H5PA@mail.gmail.com>
+ <4E520149.3010802@intel.com> <CAG1a4rtMnDXSGLkmwE+6N9smoghWp0W4b5-X_gogzJ9fDLTeBg@mail.gmail.com>
+ <4E571D66.1070302@intel.com> <CAG1a4rtckCtpNjg9ApiLt4zQWArAu7N2ivoiMjueqYDRrr-G+g@mail.gmail.com>
+ <4E5B258D.9090904@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.microway.com ([206.173.81.22]:33195 "EHLO microway.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750735Ab1IBXcm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Sep 2011 19:32:42 -0400
-In-Reply-To: <4E56EA02.7020307@intel.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:63690 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753262Ab1ICCpG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Sep 2011 22:45:06 -0400
+In-Reply-To: <4E5B258D.9090904@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Huang Ying <ying.huang@intel.com>
-Cc: Don Zickus <dzickus@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Richard Houghton <rhoughton@microway.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Huang,
-
-Sorry for the delay in my response.  Hurricane Irene delayed our testing a
-bit.
-
-I had to switch the 5620 CPUS I had for 5670s.  After 4 days of running
-(it was usually about 2 before) I finally got this output in dmesg:
-
-[337296.365930] GHES: gar accessed: 0, 0xbf7b9370
-[337296.365936] ACPI atomic read mem: addr 0xbf7b9370 mapped to
-ffffc90013ee8370
-
-It is not mapped to 0 as expected, but it didn't crash now!
-
-Thanks,
-Rick
-
-> On 08/25/2011 11:47 PM, rick@microway.com wrote:
->> Hi Huang,
+On Mon, Aug 29, 2011 at 1:37 AM, Huang Ying <ying.huang@intel.com> wrote:
+> On 08/27/2011 11:28 AM, Pavel Ivanov wrote:
+>> Also I noticed there's another suspicious message in dmesg and it was
+>> there earlier too (although it's not shown on console):
 >>
->> My new setup reproduced the panic. However I do not have any gar
->> accessed
->> messages on it.  The gar mapped messages are in my previous email.  Here
->> is the latest call trace.  There is no GHES output prior to it:
+>> GHES: Failed to enable APEI firmware first mode
 >>
+>> Is it bad? What does it mean?
 >
-> That is wired.  Can you try the patch attached?  If my guessing is
-> correct, there will be no panic, but something as follow will be in dmesg:
+> Maybe this has been fixed, please this patch,
 >
-> ACPI atomic read mem: addr 0xxxxx mapped to 0
->
-> Best Regards,
-> Huang Ying
->
+> https://lkml.org/lkml/2011/8/11/297
+
+Yes, this patch indeed fixed this failure message. It's now replaced by
+
+GHES: APEI firmware first mode is enabled by WHEA _OSC.
+
+Can I ask you another question: what does the following message mean?
+
+[Firmware Warn]: GHES: Poll interval is 0 for generic hardware error
+source: 1, disabled.
 
 
+Pavel
+
+
+P.S. No word from Asus yet on the ERST issue.
