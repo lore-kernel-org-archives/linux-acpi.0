@@ -1,59 +1,33 @@
-From: Shen Canquan <shencanquan@huawei.com>
-Subject: Re : [PATCH] acpi: Fix hot cpu remove problem on acpi subsystem
-Date: Mon, 05 Sep 2011 06:22:57 +0000
-Message-ID: <F1F5DF04259F1B4A82BD6BDE1C479F74098285B0@szxeml527-mbx.china.huawei.com>
+From: Markus Pargmann <scos@allfex.org>
+Subject: acpi schedule() calls rely on taskswitch?
+Date: Mon, 5 Sep 2011 17:46:21 +0200
+Message-ID: <20110905174621.1a4d2a31@aplus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:62575 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab1IEGXu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2011 02:23:50 -0400
-Content-language: zh-CN
+Received: from static.85-10-204-57.clients.your-server.de ([85.10.204.57]:39573
+	"EHLO s1.allfex.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753601Ab1IEP5F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2011 11:57:05 -0400
+Received: from aplus (port-92-205-85-3.dynamic.qsc.de [92.205.85.3])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by s1.allfex.org (Postfix) with ESMTPSA id 13FA0A57BC
+	for <linux-acpi@vger.kernel.org>; Mon,  5 Sep 2011 17:49:32 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lenb@kernel.org" <lenb@kernel.org>, "rui.zhao@intel.com" <rui.zhao@intel.com>, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>
-Cc: "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-SGkgTGVuLA0KICAgIEkgaGF2ZSB0ZXN0ZWQgbW9yZSB0aGFuIDEwMDAwIHRpbWVzIG9mIGNwdSBy
-ZW1vdmUgYW5kICBhZGQgZnVuY3Rpb24gaW4gdGhlIGxhdGVzdCBrZXJuZWwuIFRoZSByZXN1bHQg
-b2YgdGVzdCBpcyBvay4gVGhlIGZsb3cgb2YgIG15IHRlc3QgcHJvZ3JhbSBpcyBiZWxsb3c6DQog
-ICAgKDEpICBnZXQgcmFuZG9tIG51bWJlciBvZiBjcHUgLg0KICAgICgyKSAgY2FsbCB4bSB2Y3B1
-LXNldCA8bj4gLiBkZXBlbmQgb24gY3VycmVudCBjcHUgbnVtYmVyLiBpdCBzaW11bGF0ZSB0aGUg
-ZnVuY3Rpb24gb2YgYWRkIG9yIHJlbW92ZSBjcHUgYXQgcmFuZG9tLg0KICAgICgzKSBnZXQgdGhl
-IHJhbmRvbSBudW1iZXIgYmV0d2VlbiAxIGFuZCAxMC4gIA0KICAgICg0KSBzbGVlcCByYW5kb20g
-c2Vjb25kcyB3aGljaCBnZXQgZnJvbSBzdGVwIDMuDQogICAgKDUpIHJlcGVhdCBmcm9tIHN0ZXAg
-MSB0byBzdGVwIDQuDQoNCiAgIHdoYXQncyB5b3VyIG9waW5pb24gb2YgdGhpcyBwYXRjaD8NCg0K
-LS0NCnNoZW5jYW5xdWFuDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-DQq3orz+yMs6IGxpbnV4LWtlcm5lbC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW2xpbnV4LWtlcm5l
-bC1vd25lckB2Z2VyLmtlcm5lbC5vcmddILT6se0gU2hlbiBDYW5xdWFuIFtzaGVuY2FucXVhbkBo
-dWF3ZWkuY29tXQ0Kt6LLzcqxvOQ6IDIwMTHE6jjUwjMwyNUgMTQ6MzUNCrW9OiBsZW5iQGtlcm5l
-bC5vcmc7IHJ1aS56aGFvQGludGVsLmNvbTsgc2hlbW1pbmdlckB2eWF0dGEuY29tOyB5YWt1aS56
-aGFvQGludGVsLmNvbQ0KQ2M6IHhpYW93ZWkueWFuZ0BodWF3ZWkuY29tOyBoYW53ZWlkb25nOyBs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBpQHZnZXIua2VybmVsLm9yZw0K1vfM4jogW1BB
-VENIXSBhY3BpOiBGaXggaG90IGNwdSByZW1vdmUgcHJvYmxlbSBvbiBhY3BpIHN1YnN5c3RlbQ0K
-DQpJbiBYZW4gdmlydHVhbGl6YXRpb24gZW52aXJvbm1lbnQsIFdoZW4gSSB1c2VkIHhlbiB0b29s
-cyAoeG0gdmNwdS1zZXQgdmNwdV9udW1iZXIgKSB0byB0ZXN0IHRoZSB2Y3B1IGFkZCBhbmQgcmVt
-b3ZlLCBJIGZvdW5kIGl0IGlzIGZhaWx1cmUgb24gdmNwdSByZW1vdmUsIEkgZm91bmQgdGhlIHJl
-YXNvbiBpcyB0aGF0IG5vdGhpbmcgdG8gZG8gd2hlbiBjcHUgcmVtb3ZlIGluIGFjcGlfcHJvY2Vz
-c29yX2hvdHBsdWdfbm90aWZ5IGZ1bmN0aW9uLCBzbyBJIGFkZCB0aGUgY29kZSBvZiBzZW5kIHRo
-ZSBPRkZMSU5FIG1lc3NhZ2UgdG8gdWRldiBhbmQgYWRkIHRoZSBydWxlIG9mIHVkZXYuIGl0IGlz
-IG9rIG9uIHZjcHUgcmVtb3ZlLg0KU2lnbmVkLW9mZi1ieTogU2hlbiBjYW5xdWFuIDxzaGVuY2Fu
-cXVhbkBodWF3ZWkuY29tPg0KLS0tDQogZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9kcml2ZXIuYyB8
-ICAgIDIgKysNCiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMo
-LSkNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2RyaXZlci5jIGIvZHJpdmVy
-cy9hY3BpL3Byb2Nlc3Nvcl9kcml2ZXIuYw0KaW5kZXggYTRlMGYxYi4uYTFjNTY0ZiAxMDA2NDQN
-Ci0tLSBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMNCisrKyBiL2RyaXZlcnMvYWNw
-aS9wcm9jZXNzb3JfZHJpdmVyLmMNCkBAIC02NzcsNiArNjc3LDggQEAgc3RhdGljIHZvaWQgYWNw
-aV9wcm9jZXNzb3JfaG90cGx1Z19ub3RpZnkoYWNwaV9oYW5kbGUgaGFuZGxlLA0KICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICJEcml2ZXIgZGF0YSBpcyBOVUxMLCBkcm9wcGlu
-ZyBFSkVDVFxuIik7DQogICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuOw0KICAgICAgICAg
-ICAgICAgICB9DQorDQorICAgICAgICAgICAgICAga29iamVjdF91ZXZlbnQoJmRldmljZS0+ZGV2
-LmtvYmosIEtPQkpfT0ZGTElORSk7DQogICAgICAgICAgICAgICAgIGJyZWFrOw0KICAgICAgICAg
-ZGVmYXVsdDoNCiAgICAgICAgICAgICAgICAgQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZP
-LA0KLS0NCjEuNy42Lm1zeXNnaXQuMA0KLS0NClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
-OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1rZXJuZWwiIGluDQp0aGUgYm9keSBv
-ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8g
-aW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQpQbGVh
-c2UgcmVhZCB0aGUgRkFRIGF0ICBodHRwOi8vd3d3LnR1eC5vcmcvbGttbC8=
+Hi,
+
+I am currently testing an alternative CPU-scheduler and have problems when ACPI is activated.
+If the scheduler does not change the currently running task after a call of schedule(), the kernel hangs with ACPI activated. The kernel has no problems with acpi=off.
+
+Is there any ACPI code that relies on a taskswitch when calling schedule?
+
+I saw this behaviour with linux-2.6.38.6 and an AMD Athlon II M320.
+
+Thanks,
+
+Markus
