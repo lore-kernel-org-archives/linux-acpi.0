@@ -1,198 +1,47 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: [PATCH] PNPACPI: Simplify disabled resource registration
-Date: Thu, 09 Jun 2011 21:03:36 +0200
-Message-ID: <4DF11908.2030509@gmx.net>
-References: <20110822005902.GA30602@gallifrey> <4DF117B8.8080408@gmx.net>
+From: Yuri DElia <wavexx@users.sf.net>
+Subject: Keyboard/case power button events
+Date: Tue, 6 Sep 2011 21:18:32 +0000 (UTC)
+Message-ID: <loom.20110906T230440-127@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4DF117B8.8080408@gmx.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Dr. David Alan Gilbert" <linux@treblig.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:55699 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754405Ab1IFVZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Sep 2011 17:25:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1R138l-0004cL-L9
+	for linux-acpi@vger.kernel.org; Tue, 06 Sep 2011 23:25:07 +0200
+Received: from 93-89-57-184.ip.bkom.it ([93-89-57-184.ip.bkom.it])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2011 23:25:07 +0200
+Received: from wavexx by 93-89-57-184.ip.bkom.it with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2011 23:25:07 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-The attached patch simplifies 29df8d8f8702f0f53c1375015f09f04bc8d023c1.  As 
-the "pnp_xxx" structs are not designed to cope with IORESOURCE_DISABLED, and 
-hence no code can test for this value, setting this value is actually a "no op" 
-and can be skipped altogether.  It is sufficient to remove the checks for 
-"empty" resources and continue processing. 
+Hi everyone,
+
+I have a small but stupid issue on how the "power" (poweroff) event is
+generated. Both the real power button (as in acpi/button.c) and the power
+button in the keyboard (those with "media" keys) generate the same
+indistinguishable event.
+
+This is the event I get with both:
+
+button/power PBTN 00000080 00000000
+
+As a result, I cannot remap the keyboard event without also disabling the
+handler for the real power button. I obviously want both.
+
+Can I assign a different code, or string, or whatever (as long as I can match
+it in userland) to either the real or keyboard button to distinguish the two?
+
+Any help would be greatly appreciated.
 
 
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-
-
-diff -u linux/drivers/pnp/pnpacpi/rsparser.c linux/drivers/pnp/pnpacpi/rsparser.c
---- linux/drivers/pnp/pnpacpi/rsparser.c
-+++ linux/drivers/pnp/pnpacpi/rsparser.c
-@@ -509,15 +509,12 @@
- 					    struct acpi_resource_dma *p)
- {
- 	int i;
--	unsigned char map = 0, flags = 0;
--
--	if (p->channel_count == 0)
--		flags |= IORESOURCE_DISABLED;
-+	unsigned char map = 0, flags;
- 
- 	for (i = 0; i < p->channel_count; i++)
- 		map |= 1 << p->channels[i];
- 
--	flags |= dma_flags(dev, p->type, p->bus_master, p->transfer);
-+	flags = dma_flags(dev, p->type, p->bus_master, p->transfer);
- 	pnp_register_dma_resource(dev, option_flags, map, flags);
- }
- 
-@@ -527,17 +524,14 @@
- {
- 	int i;
- 	pnp_irq_mask_t map;
--	unsigned char flags = 0;
--
--	if (p->interrupt_count == 0)
--		flags |= IORESOURCE_DISABLED;
-+	unsigned char flags;
- 
- 	bitmap_zero(map.bits, PNP_IRQ_NR);
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], map.bits);
- 
--	flags |= irq_flags(p->triggering, p->polarity, p->sharable);
-+	flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 	pnp_register_irq_resource(dev, option_flags, &map, flags);
- }
- 
-@@ -547,10 +541,7 @@
- {
- 	int i;
- 	pnp_irq_mask_t map;
--	unsigned char flags = 0;
--
--	if (p->interrupt_count == 0)
--		flags |= IORESOURCE_DISABLED;
-+	unsigned char flags;
- 
- 	bitmap_zero(map.bits, PNP_IRQ_NR);
- 	for (i = 0; i < p->interrupt_count; i++) {
-@@ -564,7 +555,7 @@
- 		}
- 	}
- 
--	flags |= irq_flags(p->triggering, p->polarity, p->sharable);
-+	flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 	pnp_register_irq_resource(dev, option_flags, &map, flags);
- }
- 
-@@ -574,11 +565,8 @@
- {
- 	unsigned char flags = 0;
- 
--	if (io->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (io->io_decode == ACPI_DECODE_16)
--		flags |= IORESOURCE_IO_16BIT_ADDR;
-+		flags = IORESOURCE_IO_16BIT_ADDR;
- 	pnp_register_port_resource(dev, option_flags, io->minimum, io->maximum,
- 				   io->alignment, io->address_length, flags);
- }
-@@ -587,13 +575,8 @@
- 					unsigned int option_flags,
- 					struct acpi_resource_fixed_io *io)
- {
--	unsigned char flags = 0;
--
--	if (io->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	pnp_register_port_resource(dev, option_flags, io->address, io->address,
--				   0, io->address_length, flags | IORESOURCE_IO_FIXED);
-+				   0, io->address_length, IORESOURCE_IO_FIXED);
- }
- 
- static __init void pnpacpi_parse_mem24_option(struct pnp_dev *dev,
-@@ -602,11 +585,8 @@
- {
- 	unsigned char flags = 0;
- 
--	if (p->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		flags = IORESOURCE_MEM_WRITEABLE;
- 	pnp_register_mem_resource(dev, option_flags, p->minimum, p->maximum,
- 				  p->alignment, p->address_length, flags);
- }
-@@ -617,11 +597,8 @@
- {
- 	unsigned char flags = 0;
- 
--	if (p->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		flags = IORESOURCE_MEM_WRITEABLE;
- 	pnp_register_mem_resource(dev, option_flags, p->minimum, p->maximum,
- 				  p->alignment, p->address_length, flags);
- }
-@@ -632,11 +609,8 @@
- {
- 	unsigned char flags = 0;
- 
--	if (p->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		flags = IORESOURCE_MEM_WRITEABLE;
- 	pnp_register_mem_resource(dev, option_flags, p->address, p->address,
- 				  0, p->address_length, flags);
- }
-@@ -656,19 +630,16 @@
- 		return;
- 	}
- 
--	if (p->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (p->resource_type == ACPI_MEMORY_RANGE) {
- 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
--			flags |= IORESOURCE_MEM_WRITEABLE;
-+			flags = IORESOURCE_MEM_WRITEABLE;
- 		pnp_register_mem_resource(dev, option_flags, p->minimum,
- 					  p->minimum, 0, p->address_length,
- 					  flags);
- 	} else if (p->resource_type == ACPI_IO_RANGE)
- 		pnp_register_port_resource(dev, option_flags, p->minimum,
- 					   p->minimum, 0, p->address_length,
--					   flags | IORESOURCE_IO_FIXED);
-+					   IORESOURCE_IO_FIXED);
- }
- 
- static __init void pnpacpi_parse_ext_address_option(struct pnp_dev *dev,
-@@ -678,19 +649,16 @@
- 	struct acpi_resource_extended_address64 *p = &r->data.ext_address64;
- 	unsigned char flags = 0;
- 
--	if (p->address_length == 0)
--		flags |= IORESOURCE_DISABLED;
--
- 	if (p->resource_type == ACPI_MEMORY_RANGE) {
- 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
--			flags |= IORESOURCE_MEM_WRITEABLE;
-+			flags = IORESOURCE_MEM_WRITEABLE;
- 		pnp_register_mem_resource(dev, option_flags, p->minimum,
- 					  p->minimum, 0, p->address_length,
- 					  flags);
- 	} else if (p->resource_type == ACPI_IO_RANGE)
- 		pnp_register_port_resource(dev, option_flags, p->minimum,
- 					   p->minimum, 0, p->address_length,
--					   flags | IORESOURCE_IO_FIXED);
-+					   IORESOURCE_IO_FIXED);
- }
- 
- struct acpipnp_parse_option_s {
