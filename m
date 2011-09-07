@@ -1,47 +1,195 @@
-From: Yuri DElia <wavexx@users.sf.net>
-Subject: Keyboard/case power button events
-Date: Tue, 6 Sep 2011 21:18:32 +0000 (UTC)
-Message-ID: <loom.20110906T230440-127@post.gmane.org>
+From: "canquan.shen" <shencanquan@huawei.com>
+Subject: Re: Re : [PATCH] acpi: Fix hot cpu remove problem on acpi subsystem
+Date: Wed, 07 Sep 2011 10:40:08 +0800
+Message-ID: <4E66D988.9070505@huawei.com>
+References: <F1F5DF04259F1B4A82BD6BDE1C479F74098285B0@szxeml527-mbx.china.huawei.com>
+ <CAErSpo4JsyHag24SH=zSRHt4c8kYwdcXEnCConGEi2u6dN-pnw@mail.gmail.com>
+ <4E65C254.8090107@huawei.com>
+ <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:55699 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754405Ab1IFVZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Sep 2011 17:25:08 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1R138l-0004cL-L9
-	for linux-acpi@vger.kernel.org; Tue, 06 Sep 2011 23:25:07 +0200
-Received: from 93-89-57-184.ip.bkom.it ([93-89-57-184.ip.bkom.it])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2011 23:25:07 +0200
-Received: from wavexx by 93-89-57-184.ip.bkom.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2011 23:25:07 +0200
+Received: from szxga04-in.huawei.com ([119.145.14.67]:46187 "EHLO
+	szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146Ab1IGCpO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2011 22:45:14 -0400
+In-reply-to: <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linqiangmin@huawei.com, james.chenjiabo@huawei.com
 
-Hi everyone,
+On 2011/9/7 2:38, Bjorn Helgaas wrote:
+> On Mon, Sep 5, 2011 at 11:48 PM, canquan.shen<shencanquan@huawei.com>=
+  wrote:
+>> On 2011/9/6 12:19, Bjorn Helgaas wrote:
+>>>>
+>>>> =E4=B8=BB=E9=A2=98: [PATCH] acpi: Fix hot cpu remove problem on ac=
+pi subsystem
+>>>>
+>>>> In Xen virtualization environment, When I used xen tools (xm vcpu-=
+set
+>>>> vcpu_number ) to test the vcpu add and remove, I found it is failu=
+re on vcpu
+>>>> remove, I found the reason is that nothing to do when cpu remove i=
+n
+>>>> acpi_processor_hotplug_notify function, so I add the code of send =
+the
+>>>> OFFLINE message to udev and add the rule of udev. it is ok on vcpu=
+ remove.
+>>>> Signed-off-by: Shen canquan<shencanquan@huawei.com>
+>>>> ---
+>>>>   drivers/acpi/processor_driver.c |    2 ++
+>>>>   1 files changed, 2 insertions(+), 0 deletions(-)
+>>>> diff --git a/drivers/acpi/processor_driver.c
+>>>> b/drivers/acpi/processor_driver.c
+>>>> index a4e0f1b..a1c564f 100644
+>>>> --- a/drivers/acpi/processor_driver.c
+>>>> +++ b/drivers/acpi/processor_driver.c
+>>>> @@ -677,6 +677,8 @@ static void acpi_processor_hotplug_notify(acpi=
+_handle
+>>>> handle,
+>>>>                                      "Driver data is NULL, droppin=
+g
+>>>> EJECT\n");
+>>>>                          return;
+>>>>                  }
+>>>> +
+>>>> +               kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+>>>>                  break;
+>>>>          default:
+>>>>                  ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>>>
+>>> The processor driver used to generate ONLINE and OFFLINE messages. =
+ I
+>>> removed them with c1815e0740.  According to the changelog, the driv=
+er
+>>> core still generates KOBJ_ADD and KOBJ_REMOVE events.
+>>
+>> Thanks for your answer.
+>> When I used xen tools (xm vcpu-set vcpu_numer) to reduce the cpu num=
+ber. I
+>> don't found any event . I use the following tool to capture the even=
+t:
+>> udevadm monitor --env --kernel --udev.
+>>
+>> If I used xen tools to add the cpu number , udev module will receive=
+ the
+>> KOBJ_ADD event.
+>>
+>> In my patch ,It is more fine to replace KOBJ_OFFLINE to KOBJ_REMOVE =
+event .
+>
+> I don't think we should emit KOBJ_REMOVE from the ACPI processor
+> driver.  KOBJ_ADD is emitted by the driver model core
+> (device_register() ->  device_add() path), and I think KOBJ_REMOVE
+> should also be emitted from the driver model core.
+>
+> Is acpi_processor_remove() called when you remove a processor?  I see
+> a path where it will be called via acpi_eject_store():
+>
+>      acpi_eject_store
+>        acpi_os_hotplug_execute(acpi_bus_hot_remove_device)
+>        acpi_bus_hot_remove_device
+>          acpi_bus_trim
+>            acpi_bus_remove
+>              device_release_driver
+>                dev->driver->remove (acpi_processor_remove())
+>              acpi_device_unregister
+>                device_unregister
+>                  device_del
+>                    kobject_uevent(KOBJ_REMOVE)
+>
+> but as far as I can tell, this path is only used when we write
+> something to the "eject" sysfs file.  I would think we'd want to use
+> most of this same path when we hot remove a CPU via the ACPI SCI
+> mechanism.
+>
 
-I have a small but stupid issue on how the "power" (poweroff) event is
-generated. Both the real power button (as in acpi/button.c) and the power
-button in the keyboard (those with "media" keys) generate the same
-indistinguishable event.
+Because in my patch will send the KOBJ_REMOVE event to udev module. and=
+=20
+I write a udev rule like the following:
+ACTION=3D=3D"remove",DRIVER=3D=3D"processor",SUBSYSTEM=3D=3D"acpi",RUN+=
+=3D"/bin/bash=20
+-c 'echo 1 > /sys%p/eject'"
+This rule will write "1" to the "eject" sysfs file. and then call=20
+acpi_eject_store function.
 
-This is the event I get with both:
+> If you change acpi_processor_hotplug_notify() to use acpi_bus_trim()
+> for the removal case, you should get KOBJ_REMOVE events.  Would that
+> be enough to make the xen vcpu remove work, or at least get you
+> closer?
+>
 
-button/power PBTN 00000080 00000000
+Xen vcpu remove will work if add the acpi_bus_trim() in the=20
+acpi_processor_hotplug_notify() function.
 
-As a result, I cannot remap the keyboard event without also disabling the
-handler for the real power button. I obviously want both.
+But I have two question:
+1) If acpi processor driver send the KOBJ_REMOVE(or KOBJ_OFFLINE_CPU) t=
+o=20
+udev module. user has a chance to decide to remove or not remove the cp=
+u=20
+?  The default is remove cpu if user does not write any udev rule .
+2) In the acpi_bus_trim function,  the call patch is following:
+      acpi_bus_trim
+       acpi_bus_remove
+         device_release_driver
+            dev->driver->remove (acpi_processor_remove())
+                acpi_processor_handle_eject
+                       cpu_down
+          acpi_device_unregister
+             device_unregister
+                device_del
+                  kobject_uevent(KOBJ_REMOVE)
 
-Can I assign a different code, or string, or whatever (as long as I can match
-it in userland) to either the real or keyboard button to distinguish the two?
+   I think this call patch is not clear, and I think when acpi processo=
+r=20
+driver receive the eject event. at first it send KOBJ_OFFLINE event to=20
+udev module and udev rule decide to offline or not offline the cpu. and=
+=20
+if offline cpu  and then acpi processor driver remove the processor=20
+device(by listen CPU_DEAD event can know the cpu had offlined)
+and so I think it is fine if has the following call path:
+     acpi_processor_hotplug_notify
+         register_hotcpu_notifier
+         kobject_uevent(KOBJ_OFFLINE)
 
-Any help would be greatly appreciated.
+
+and udev rule will offline the cpu
+       store_online
+          cpu_down
+            _cpu_down
+	       cpu_notify_nofail (CPU_DEAD event)
+
+and  in acpi processor driver receive CPU_DEAD
+      acpi_cpu_soft_notify
+           acpi_bus_trim
+               acpi_bus_remove
+                device_release_driver
+                   dev->driver->remove (acpi_processor_remove())
+                acpi_device_unregister
+                  device_unregister
+                      device_del
+                         kobject_uevent(KOBJ_REMOVE)
 
 
+--
+canquan.shen
+
+>> btw: how to find changelog of the c1815e0740.
+>
+> git show c1815e0740
+>
+> Bjorn
+>
+> .
+>
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
