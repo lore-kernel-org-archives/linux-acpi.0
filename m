@@ -1,195 +1,178 @@
-From: "canquan.shen" <shencanquan@huawei.com>
-Subject: Re: Re : [PATCH] acpi: Fix hot cpu remove problem on acpi subsystem
-Date: Wed, 07 Sep 2011 10:40:08 +0800
-Message-ID: <4E66D988.9070505@huawei.com>
-References: <F1F5DF04259F1B4A82BD6BDE1C479F74098285B0@szxeml527-mbx.china.huawei.com>
- <CAErSpo4JsyHag24SH=zSRHt4c8kYwdcXEnCConGEi2u6dN-pnw@mail.gmail.com>
- <4E65C254.8090107@huawei.com>
- <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
+From: "Cihula, Joseph" <joseph.cihula@intel.com>
+Subject: RE: [PATCH 2/7] x86, acpi, tboot: Have a ACPI sleep override
+ instead of calling tboot_sleep.
+Date: Wed, 7 Sep 2011 04:20:17 +0000
+Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F3F524@ORSMSX101.amr.corp.intel.com>
+References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
+ <1314815484-4668-3-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([119.145.14.67]:46187 "EHLO
-	szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab1IGCpO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2011 22:45:14 -0400
-In-reply-to: <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:41155 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751184Ab1IGEUU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 00:20:20 -0400
+In-Reply-To: <1314815484-4668-3-git-send-email-konrad.wilk@oracle.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linqiangmin@huawei.com, james.chenjiabo@huawei.com
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.>
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
 
-On 2011/9/7 2:38, Bjorn Helgaas wrote:
-> On Mon, Sep 5, 2011 at 11:48 PM, canquan.shen<shencanquan@huawei.com>=
-  wrote:
->> On 2011/9/6 12:19, Bjorn Helgaas wrote:
->>>>
->>>> =E4=B8=BB=E9=A2=98: [PATCH] acpi: Fix hot cpu remove problem on ac=
-pi subsystem
->>>>
->>>> In Xen virtualization environment, When I used xen tools (xm vcpu-=
-set
->>>> vcpu_number ) to test the vcpu add and remove, I found it is failu=
-re on vcpu
->>>> remove, I found the reason is that nothing to do when cpu remove i=
-n
->>>> acpi_processor_hotplug_notify function, so I add the code of send =
-the
->>>> OFFLINE message to udev and add the rule of udev. it is ok on vcpu=
- remove.
->>>> Signed-off-by: Shen canquan<shencanquan@huawei.com>
->>>> ---
->>>>   drivers/acpi/processor_driver.c |    2 ++
->>>>   1 files changed, 2 insertions(+), 0 deletions(-)
->>>> diff --git a/drivers/acpi/processor_driver.c
->>>> b/drivers/acpi/processor_driver.c
->>>> index a4e0f1b..a1c564f 100644
->>>> --- a/drivers/acpi/processor_driver.c
->>>> +++ b/drivers/acpi/processor_driver.c
->>>> @@ -677,6 +677,8 @@ static void acpi_processor_hotplug_notify(acpi=
-_handle
->>>> handle,
->>>>                                      "Driver data is NULL, droppin=
-g
->>>> EJECT\n");
->>>>                          return;
->>>>                  }
->>>> +
->>>> +               kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
->>>>                  break;
->>>>          default:
->>>>                  ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->>>
->>> The processor driver used to generate ONLINE and OFFLINE messages. =
- I
->>> removed them with c1815e0740.  According to the changelog, the driv=
-er
->>> core still generates KOBJ_ADD and KOBJ_REMOVE events.
->>
->> Thanks for your answer.
->> When I used xen tools (xm vcpu-set vcpu_numer) to reduce the cpu num=
-ber. I
->> don't found any event . I use the following tool to capture the even=
-t:
->> udevadm monitor --env --kernel --udev.
->>
->> If I used xen tools to add the cpu number , udev module will receive=
- the
->> KOBJ_ADD event.
->>
->> In my patch ,It is more fine to replace KOBJ_OFFLINE to KOBJ_REMOVE =
-event .
->
-> I don't think we should emit KOBJ_REMOVE from the ACPI processor
-> driver.  KOBJ_ADD is emitted by the driver model core
-> (device_register() ->  device_add() path), and I think KOBJ_REMOVE
-> should also be emitted from the driver model core.
->
-> Is acpi_processor_remove() called when you remove a processor?  I see
-> a path where it will be called via acpi_eject_store():
->
->      acpi_eject_store
->        acpi_os_hotplug_execute(acpi_bus_hot_remove_device)
->        acpi_bus_hot_remove_device
->          acpi_bus_trim
->            acpi_bus_remove
->              device_release_driver
->                dev->driver->remove (acpi_processor_remove())
->              acpi_device_unregister
->                device_unregister
->                  device_del
->                    kobject_uevent(KOBJ_REMOVE)
->
-> but as far as I can tell, this path is only used when we write
-> something to the "eject" sysfs file.  I would think we'd want to use
-> most of this same path when we hot remove a CPU via the ACPI SCI
-> mechanism.
->
+> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> Sent: Wednesday, August 31, 2011 11:31 AM
+> 
+> The ACPI suspend path makes a call to tboot_sleep right before it writes the PM1A, PM1B values. We
+> replace the direct call to tboot via an registration callback similar to __acpi_register_gsi.
+> 
+> CC: Thomas Gleixner <tglx@linutronix.de>
+> CC: "H. Peter Anvin" <hpa@zytor.com>
+> CC: x86@kernel.org
+> CC: Len Brown <len.brown@intel.com>
+> CC: Joseph Cihula <joseph.cihula@intel.com>
+> CC: Shane Wang <shane.wang@intel.com>
+> CC: xen-devel@lists.xensource.com
+> CC: linux-pm@lists.linux-foundation.org
+> CC: tboot-devel@lists.sourceforge.net
+> CC: linux-acpi@vger.kernel.org
+> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> ---
+>  arch/x86/include/asm/acpi.h   |    3 +++
+>  arch/x86/kernel/acpi/boot.c   |    3 +++
+>  arch/x86/kernel/tboot.c       |   13 +++++++++----
+>  drivers/acpi/acpica/hwsleep.c |   12 ++++++++++--
+>  include/linux/tboot.h         |    3 ++-
+>  5 files changed, 27 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h index 610001d..49864a1
+> 100644
+> --- a/arch/x86/include/asm/acpi.h
+> +++ b/arch/x86/include/asm/acpi.h
+> @@ -98,6 +98,9 @@ void acpi_pic_sci_set_trigger(unsigned int, u16);  extern int
+> (*__acpi_register_gsi)(struct device *dev, u32 gsi,
+>  				  int trigger, int polarity);
+> 
+> +extern int (*__acpi_override_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+> +				    u32 pm1b_ctrl, bool *skip_rest);
+> +
+>  static inline void disable_acpi(void)
+>  {
+>  	acpi_disabled = 1;
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c index 4558f0d..d191b4c
+> 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -552,6 +552,9 @@ static int acpi_register_gsi_ioapic(struct device *dev, u32 gsi,  int
+> (*__acpi_register_gsi)(struct device *dev, u32 gsi,
+>  			   int trigger, int polarity) = acpi_register_gsi_pic;
+> 
+> +int (*__acpi_override_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+> +			     u32 pm1b_ctrl, bool *skip_rest) = NULL;
+> +
+>  /*
+>   * success: return IRQ number (>=0)
+>   * failure: return < 0
+> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index 30ac65d..a18070c 100644
+> --- a/arch/x86/kernel/tboot.c
+> +++ b/arch/x86/kernel/tboot.c
+> @@ -41,7 +41,7 @@
+>  #include <asm/setup.h>
+>  #include <asm/e820.h>
+>  #include <asm/io.h>
+> -
+> +#include <linux/acpi.h>
+>  #include "acpi/realmode/wakeup.h"
+> 
+>  /* Global pointer to shared data; NULL means no measured launch. */ @@ -270,7 +270,8 @@ static
+> void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+>  		offsetof(struct acpi_table_facs, firmware_waking_vector);  }
+> 
+> -void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+> +int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
+> +		 bool *skip_rest)
 
-Because in my patch will send the KOBJ_REMOVE event to udev module. and=
-=20
-I write a udev rule like the following:
-ACTION=3D=3D"remove",DRIVER=3D=3D"processor",SUBSYSTEM=3D=3D"acpi",RUN+=
-=3D"/bin/bash=20
--c 'echo 1 > /sys%p/eject'"
-This rule will write "1" to the "eject" sysfs file. and then call=20
-acpi_eject_store function.
+Don't you need to use the 'unused' attrib on skip_rest in order to prevent compiler warnings?
 
-> If you change acpi_processor_hotplug_notify() to use acpi_bus_trim()
-> for the removal case, you should get KOBJ_REMOVE events.  Would that
-> be enough to make the xen vcpu remove work, or at least get you
-> closer?
->
+>  {
+>  	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+>  		/* S0,1,2: */ -1, -1, -1,
+> @@ -279,7 +280,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+>  		/* S5: */ TB_SHUTDOWN_S5 };
+> 
+>  	if (!tboot_enabled())
+> -		return;
+> +		return AE_OK;
+> 
+>  	tboot_copy_fadt(&acpi_gbl_FADT);
+>  	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control; @@ -290,10 +291,12 @@ void tboot_sleep(u8
+> sleep_state, u32 pm1a_control, u32 pm1b_control)
+>  	if (sleep_state >= ACPI_S_STATE_COUNT ||
+>  	    acpi_shutdown_map[sleep_state] == -1) {
+>  		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
+> -		return;
+> +		return AE_ERROR;
+>  	}
+> 
+>  	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+> +
+> +	return AE_OK;
+>  }
+> 
+>  static atomic_t ap_wfs_count;
+> @@ -343,6 +346,8 @@ static __init int tboot_late_init(void)
+> 
+>  	atomic_set(&ap_wfs_count, 0);
+>  	register_hotcpu_notifier(&tboot_cpu_notifier);
+> +
+> +	__acpi_override_sleep = tboot_sleep;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c index 2ac28bb..31d1198
+> 100644
+> --- a/drivers/acpi/acpica/hwsleep.c
+> +++ b/drivers/acpi/acpica/hwsleep.c
+> @@ -45,7 +45,6 @@
+>  #include <acpi/acpi.h>
+>  #include "accommon.h"
+>  #include "actables.h"
+> -#include <linux/tboot.h>
+> 
+>  #define _COMPONENT          ACPI_HARDWARE
+>  ACPI_MODULE_NAME("hwsleep")
+> @@ -343,8 +342,17 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+> 
+>  	ACPI_FLUSH_CPU_CACHE();
+> 
+> -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+> +	if (__acpi_override_sleep) {
+> +		bool skip_rest = false;
+> 
+> +		status = __acpi_override_sleep(sleep_state, pm1a_control,
+> +					       pm1b_control, &skip_rest);
+> +
+> +		if (ACPI_FAILURE(status))
+> +			return_ACPI_STATUS(status);
+> +		if (skip_rest)
+> +			return_ACPI_STATUS(AE_OK);
+> +	}
+>  	/* Write #2: Write both SLP_TYP + SLP_EN */
+> 
+>  	status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control); diff --git
+> a/include/linux/tboot.h b/include/linux/tboot.h index 1dba6ee..19badbd 100644
+> --- a/include/linux/tboot.h
+> +++ b/include/linux/tboot.h
+> @@ -143,7 +143,8 @@ static inline int tboot_enabled(void)
+> 
+>  extern void tboot_probe(void);
+>  extern void tboot_shutdown(u32 shutdown_type); -extern void tboot_sleep(u8 sleep_state, u32
+> pm1a_control, u32 pm1b_control);
+> +extern int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
+> +		       bool *skip);
+>  extern struct acpi_table_header *tboot_get_dmar_table(
+>  				      struct acpi_table_header *dmar_tbl);  extern int
+> tboot_force_iommu(void);
+> --
+> 1.7.4.1
 
-Xen vcpu remove will work if add the acpi_bus_trim() in the=20
-acpi_processor_hotplug_notify() function.
-
-But I have two question:
-1) If acpi processor driver send the KOBJ_REMOVE(or KOBJ_OFFLINE_CPU) t=
-o=20
-udev module. user has a chance to decide to remove or not remove the cp=
-u=20
-?  The default is remove cpu if user does not write any udev rule .
-2) In the acpi_bus_trim function,  the call patch is following:
-      acpi_bus_trim
-       acpi_bus_remove
-         device_release_driver
-            dev->driver->remove (acpi_processor_remove())
-                acpi_processor_handle_eject
-                       cpu_down
-          acpi_device_unregister
-             device_unregister
-                device_del
-                  kobject_uevent(KOBJ_REMOVE)
-
-   I think this call patch is not clear, and I think when acpi processo=
-r=20
-driver receive the eject event. at first it send KOBJ_OFFLINE event to=20
-udev module and udev rule decide to offline or not offline the cpu. and=
-=20
-if offline cpu  and then acpi processor driver remove the processor=20
-device(by listen CPU_DEAD event can know the cpu had offlined)
-and so I think it is fine if has the following call path:
-     acpi_processor_hotplug_notify
-         register_hotcpu_notifier
-         kobject_uevent(KOBJ_OFFLINE)
-
-
-and udev rule will offline the cpu
-       store_online
-          cpu_down
-            _cpu_down
-	       cpu_notify_nofail (CPU_DEAD event)
-
-and  in acpi processor driver receive CPU_DEAD
-      acpi_cpu_soft_notify
-           acpi_bus_trim
-               acpi_bus_remove
-                device_release_driver
-                   dev->driver->remove (acpi_processor_remove())
-                acpi_device_unregister
-                  device_unregister
-                      device_del
-                         kobject_uevent(KOBJ_REMOVE)
-
-
---
-canquan.shen
-
->> btw: how to find changelog of the c1815e0740.
->
-> git show c1815e0740
->
-> Bjorn
->
-> .
->
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
