@@ -1,111 +1,85 @@
-From: "Cihula, Joseph" <joseph.cihula@intel.com>
-Subject: RE: [Xen-devel] RE: [PATCH 2/7] x86, acpi, tboot: Have a ACPI sleep
- override instead of calling tboot_sleep.
-Date: Wed, 7 Sep 2011 17:55:14 +0000
-Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F40FBD@ORSMSX101.amr.corp.intel.com>
-References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
- <1314815484-4668-3-git-send-email-konrad.wilk@oracle.com>
- <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F3F524@ORSMSX101.amr.corp.intel.com>
- <4E67A972.6030909@goop.org>
+From: Oliver Schinagl <oliver@schinagl.nl>
+Subject: Fwd: Re: PROBLEM: USB 1.1 (and up) not working on AMD R900 Series
+ chipset
+Date: Wed, 07 Sep 2011 19:48:51 +0200
+Message-ID: <4E67AE83.1010007@schinagl.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19093 "EHLO mga14.intel.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:36970 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752301Ab1IGRz1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 13:55:27 -0400
-In-Reply-To: <4E67A972.6030909@goop.org>
-Content-Language: en-US
+	id S1753309Ab1IGR7v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Sep 2011 13:59:51 -0400
+Received: from localhost (7of9.schinagl.nl [127.0.0.1])
+	by 7of9.are-b.org (Postfix) with ESMTP id 0AA51E0E6
+	for <linux-acpi@vger.kernel.org>; Wed,  7 Sep 2011 19:48:53 +0200 (CEST)
+Received: from 7of9.schinagl.nl ([127.0.0.1])
+	by localhost (7of9.schinagl.nl [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id CEqiPNOmtCQF for <linux-acpi@vger.kernel.org>;
+	Wed,  7 Sep 2011 19:48:51 +0200 (CEST)
+Received: from [10.2.0.97] (unknown [10.2.0.97])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by 7of9.schinagl.nl (Postfix) with ESMTPSA id A5586DD0D
+	for <linux-acpi@vger.kernel.org>; Wed,  7 Sep 2011 19:48:51 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "Wang, Shane" <shane.wang@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "Yu, Ke" <ke.yu@intel.com>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Tian, Kevin" <kevin.tian@intel.com>, "keir@xen.org" <keir@xen.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>
+To: linux-acpi@vger.kernel.org
 
-> From: Jeremy Fitzhardinge [mailto:jeremy@goop.org]
-> Sent: Wednesday, September 07, 2011 10:27 AM
-> 
-> On 09/06/2011 09:20 PM, Cihula, Joseph wrote:
-> >> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> >> Sent: Wednesday, August 31, 2011 11:31 AM
-> >>
-> >> The ACPI suspend path makes a call to tboot_sleep right before it
-> >> writes the PM1A, PM1B values. We replace the direct call to tboot via an registration callback
-> similar to __acpi_register_gsi.
-> >>
-> >> CC: Thomas Gleixner <tglx@linutronix.de>
-> >> CC: "H. Peter Anvin" <hpa@zytor.com>
-> >> CC: x86@kernel.org
-> >> CC: Len Brown <len.brown@intel.com>
-> >> CC: Joseph Cihula <joseph.cihula@intel.com>
-> >> CC: Shane Wang <shane.wang@intel.com>
-> >> CC: xen-devel@lists.xensource.com
-> >> CC: linux-pm@lists.linux-foundation.org
-> >> CC: tboot-devel@lists.sourceforge.net
-> >> CC: linux-acpi@vger.kernel.org
-> >> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> >> ---
-> >>  arch/x86/include/asm/acpi.h   |    3 +++
-> >>  arch/x86/kernel/acpi/boot.c   |    3 +++
-> >>  arch/x86/kernel/tboot.c       |   13 +++++++++----
-> >>  drivers/acpi/acpica/hwsleep.c |   12 ++++++++++--
-> >>  include/linux/tboot.h         |    3 ++-
-> >>  5 files changed, 27 insertions(+), 7 deletions(-)
-> >>
-> >> diff --git a/arch/x86/include/asm/acpi.h
-> >> b/arch/x86/include/asm/acpi.h index 610001d..49864a1
-> >> 100644
-> >> --- a/arch/x86/include/asm/acpi.h
-> >> +++ b/arch/x86/include/asm/acpi.h
-> >> @@ -98,6 +98,9 @@ void acpi_pic_sci_set_trigger(unsigned int, u16);
-> >> extern int (*__acpi_register_gsi)(struct device *dev, u32 gsi,
-> >>  				  int trigger, int polarity);
-> >>
-> >> +extern int (*__acpi_override_sleep)(u8 sleep_state, u32 pm1a_ctrl,
-> >> +				    u32 pm1b_ctrl, bool *skip_rest);
-> >> +
-> >>  static inline void disable_acpi(void)  {
-> >>  	acpi_disabled = 1;
-> >> diff --git a/arch/x86/kernel/acpi/boot.c
-> >> b/arch/x86/kernel/acpi/boot.c index 4558f0d..d191b4c
-> >> 100644
-> >> --- a/arch/x86/kernel/acpi/boot.c
-> >> +++ b/arch/x86/kernel/acpi/boot.c
-> >> @@ -552,6 +552,9 @@ static int acpi_register_gsi_ioapic(struct device
-> >> *dev, u32 gsi,  int (*__acpi_register_gsi)(struct device *dev, u32 gsi,
-> >>  			   int trigger, int polarity) = acpi_register_gsi_pic;
-> >>
-> >> +int (*__acpi_override_sleep)(u8 sleep_state, u32 pm1a_ctrl,
-> >> +			     u32 pm1b_ctrl, bool *skip_rest) = NULL;
-> >> +
-> >>  /*
-> >>   * success: return IRQ number (>=0)
-> >>   * failure: return < 0
-> >> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index
-> >> 30ac65d..a18070c 100644
-> >> --- a/arch/x86/kernel/tboot.c
-> >> +++ b/arch/x86/kernel/tboot.c
-> >> @@ -41,7 +41,7 @@
-> >>  #include <asm/setup.h>
-> >>  #include <asm/e820.h>
-> >>  #include <asm/io.h>
-> >> -
-> >> +#include <linux/acpi.h>
-> >>  #include "acpi/realmode/wakeup.h"
-> >>
-> >>  /* Global pointer to shared data; NULL means no measured launch. */
-> >> @@ -270,7 +270,8 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
-> >>  		offsetof(struct acpi_table_facs, firmware_waking_vector);  }
-> >>
-> >> -void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
-> >> +int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
-> >> +		 bool *skip_rest)
-> > Don't you need to use the 'unused' attrib on skip_rest in order to prevent compiler warnings?
-> 
-> No, gcc doesn't warn about unused parameters.
+Hi list,
 
--Wunused-parameter
+On the linux-usb mailinglist Greg said that I may have an ACPI interrupt 
+routing issue and should try linux-acpi.
 
-While the kernel may not be compiled with this flag, it wouldn't hurt to specify it anyway; but it's not a big issue.
+I've created a bugzilla entry[1] with all required files I think are needed?
 
-Joe
+I'll try to extract the dsdt later and see if it has any compiler bugs 
+and attach that later to the mentioned bug report. Also I will try 
+acpi=noirq and see if that enables basic IRQ/USB support. In the 
+meantime, anybody have any other thoughts as to what I can try?
+
+Thanks,
+
+Oliver
+
+
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=42502
+
+On Tue, Sep 06, 2011 at 09:41:50PM +0200, Oliver Schinagl wrote:
+>  This summer I've purchased a new motherboard, the Asus M5A97 running an
+>  AMD Phenom(tm) II X6 1090T Processor.
+>
+>  The moment I've received this board, I took my trusted Ubuntu 32bit
+>  bootable USB stick (11.04) and loaded up to test if everything was
+>  working. There appeared to be no problems so I continued for a few weeks.
+>
+>  As time went on, I decided it was an idea to install a 64bit OS and
+>  booted the system using a 64bit version of Ubuntu on a USB stick (also
+>  11.04). The system booted extremly slow with any USB devices connected.
+>
+>  Reading up on several lists I've tried all tricks to disable USB 2 and 3
+>  support as that may cause issues, to no avail. So I went back to the
+>  32bit install and stayed there for a while.
+>
+>  Back home from my vacation I installed my favorite distro, Gentoo and
+>  used a 64bit variant. After spending some time setting up the system I
+>  found I had the exact same USB issues. I disabled USB 2 and 3 in the
+>  kernel and built with USB1.1 only to still see the same errors when
+>  connecting anything over USB. Booting works fine, if nothing is
+>  connected. I've searched far and low but have not found anything that
+>  solved or related much to my errors, since everything appears to be
+>  working just fine when switching back to 32bit mode.
+>
+>  Thanks for your time reading this and any thoughts Idea's and pointers.
+
+This really looks like an interrupt routing issue for your hardware and
+a 64bit kernel.  Nothing the USB developers can do about this, sorry.
+
+Try contacting the acpi developers by filing a bug at
+bugzilla.kernel.org and they can work on this.
+
+thanks,
+
+greg k-h
+
