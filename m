@@ -1,428 +1,97 @@
-From: "Cihula, Joseph" <joseph.cihula@intel.com>
-Subject: RE: [PATCH 5/7] xen/acpi: Domain0 acpi parser related platform
- hypercall
-Date: Wed, 7 Sep 2011 05:50:49 +0000
-Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F3F665@ORSMSX101.amr.corp.intel.com>
-References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
- <1314815484-4668-6-git-send-email-konrad.wilk@oracle.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Re : [PATCH] acpi: Fix hot cpu remove problem on acpi subsystem
+Date: Tue, 6 Sep 2011 23:57:57 -0700
+Message-ID: <CAErSpo7Rf+X3MVgmdYvbEXw-UAU7sEEMq5upBkhEn9Eu0zD-zw@mail.gmail.com>
+References: <F1F5DF04259F1B4A82BD6BDE1C479F74098285B0@szxeml527-mbx.china.huawei.com>
+ <CAErSpo4JsyHag24SH=zSRHt4c8kYwdcXEnCConGEi2u6dN-pnw@mail.gmail.com>
+ <4E65C254.8090107@huawei.com> <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
+ <4E66D988.9070505@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56310 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754244Ab1IGFuw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 01:50:52 -0400
-In-Reply-To: <1314815484-4668-6-git-send-email-konrad.wilk@oracle.com>
-Content-Language: en-US
+Received: from smtp-out.google.com ([74.125.121.67]:50008 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754965Ab1IGRPR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 13:15:17 -0400
+Received: from wpaz24.hot.corp.google.com (wpaz24.hot.corp.google.com [172.24.198.88])
+	by smtp-out.google.com with ESMTP id p87HF95q021470
+	for <linux-acpi@vger.kernel.org>; Wed, 7 Sep 2011 10:15:09 -0700
+Received: from gyc15 (gyc15.prod.google.com [10.243.49.143])
+	by wpaz24.hot.corp.google.com with ESMTP id p876vxTf022777
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 7 Sep 2011 00:00:12 -0700
+Received: by gyc15 with SMTP id 15so7049304gyc.25
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2011 23:58:17 -0700 (PDT)
+In-Reply-To: <4E66D988.9070505@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.>
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+To: "canquan.shen" <shencanquan@huawei.com>
+Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linqiangmin@huawei.com, james.chenjiabo@huawei.com
 
-> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> Sent: Wednesday, August 31, 2011 11:31 AM
-> 
-> From: Yu Ke <ke.yu@intel.com>
-> 
-> This patches implements the xen_platform_op hypercall, to pass the parsed ACPI info to hypervisor.
-> 
-> Signed-off-by: Yu Ke <ke.yu@intel.com>
-> Signed-off-by: Tian Kevin <kevin.tian@intel.com>
-> Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-> [v1: Added DEFINE_GUEST.. in appropiate headers]
-> [v2: Ripped out typedefs]
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  arch/ia64/include/asm/xen/interface.h |    1 +
->  arch/x86/include/asm/xen/interface.h  |    1 +
->  include/xen/interface/platform.h      |  320 +++++++++++++++++++++++++++++++++
->  include/xen/interface/xen.h           |    1 +
->  4 files changed, 323 insertions(+), 0 deletions(-)  create mode 100644
-> include/xen/interface/platform.h
-> 
-> diff --git a/arch/ia64/include/asm/xen/interface.h b/arch/ia64/include/asm/xen/interface.h
-> index e951e74..1d2427d 100644
-> --- a/arch/ia64/include/asm/xen/interface.h
-> +++ b/arch/ia64/include/asm/xen/interface.h
-> @@ -76,6 +76,7 @@ DEFINE_GUEST_HANDLE(char);  DEFINE_GUEST_HANDLE(int);
-> DEFINE_GUEST_HANDLE(long);  DEFINE_GUEST_HANDLE(void);
-> +DEFINE_GUEST_HANDLE(uint64_t);
-> 
->  typedef unsigned long xen_pfn_t;
->  DEFINE_GUEST_HANDLE(xen_pfn_t);
-> diff --git a/arch/x86/include/asm/xen/interface.h b/arch/x86/include/asm/xen/interface.h
-> index 5d4922a..a1f2db5 100644
-> --- a/arch/x86/include/asm/xen/interface.h
-> +++ b/arch/x86/include/asm/xen/interface.h
-> @@ -55,6 +55,7 @@ DEFINE_GUEST_HANDLE(char);  DEFINE_GUEST_HANDLE(int);
-> DEFINE_GUEST_HANDLE(long);  DEFINE_GUEST_HANDLE(void);
-> +DEFINE_GUEST_HANDLE(uint64_t);
->  #endif
-> 
->  #ifndef HYPERVISOR_VIRT_START
-> diff --git a/include/xen/interface/platform.h b/include/xen/interface/platform.h
-> new file mode 100644
-> index 0000000..c168468
-> --- /dev/null
-> +++ b/include/xen/interface/platform.h
+On Tue, Sep 6, 2011 at 7:40 PM, canquan.shen <shencanquan@huawei.com> w=
+rote:
+> On 2011/9/7 2:38, Bjorn Helgaas wrote:
 
-Why are you adding so many new hypercalls that aren't being used in this patchset?
+>> Is acpi_processor_remove() called when you remove a processor? =A0I =
+see
+>> a path where it will be called via acpi_eject_store():
+>>
+>> =A0 =A0 acpi_eject_store
+>> =A0 =A0 =A0 acpi_os_hotplug_execute(acpi_bus_hot_remove_device)
+>> =A0 =A0 =A0 acpi_bus_hot_remove_device
+>> =A0 =A0 =A0 =A0 acpi_bus_trim
+>> =A0 =A0 =A0 =A0 =A0 acpi_bus_remove
+>> =A0 =A0 =A0 =A0 =A0 =A0 device_release_driver
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->driver->remove (acpi_processor_remo=
+ve())
+>> =A0 =A0 =A0 =A0 =A0 =A0 acpi_device_unregister
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 device_unregister
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 device_del
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kobject_uevent(KOBJ_REMOVE)
+>>
+>> but as far as I can tell, this path is only used when we write
+>> something to the "eject" sysfs file. =A0I would think we'd want to u=
+se
+>> most of this same path when we hot remove a CPU via the ACPI SCI
+>> mechanism.
+>>
+>
+> Because in my patch will send the KOBJ_REMOVE event to udev module. a=
+nd I
+> write a udev rule like the following:
+> ACTION=3D=3D"remove",DRIVER=3D=3D"processor",SUBSYSTEM=3D=3D"acpi",RU=
+N+=3D"/bin/bash -c
+> 'echo 1 > /sys%p/eject'"
+> This rule will write "1" to the "eject" sysfs file. and then call
+> acpi_eject_store function.
 
-> @@ -0,0 +1,320 @@
-> +/**********************************************************************
-> +********
-> + * platform.h
-> + *
-> + * Hardware platform operations. Intended for use by domain-0 kernel.
-> + *
-> + * Permission is hereby granted, free of charge, to any person
-> +obtaining a copy
-> + * of this software and associated documentation files (the
-> +"Software"), to
-> + * deal in the Software without restriction, including without
-> +limitation the
-> + * rights to use, copy, modify, merge, publish, distribute, sublicense,
-> +and/or
-> + * sell copies of the Software, and to permit persons to whom the
-> +Software is
-> + * furnished to do so, subject to the following conditions:
-> + *
-> + * The above copyright notice and this permission notice shall be
-> +included in
-> + * all copies or substantial portions of the Software.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> +EXPRESS OR
-> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> +MERCHANTABILITY,
-> + * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-> +SHALL THE
-> + * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-> +OTHER
-> + * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-> +ARISING
-> + * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-> + * DEALINGS IN THE SOFTWARE.
-> + *
-> + * Copyright (c) 2002-2006, K Fraser
-> + */
-> +
-> +#ifndef __XEN_PUBLIC_PLATFORM_H__
-> +#define __XEN_PUBLIC_PLATFORM_H__
-> +
-> +#include "xen.h"
-> +
-> +#define XENPF_INTERFACE_VERSION 0x03000001
-> +
-> +/*
-> + * Set clock such that it would read <secs,nsecs> after 00:00:00 UTC,
-> + * 1 January, 1970 if the current system time was <system_time>.
-> + */
-> +#define XENPF_settime             17
-> +struct xenpf_settime {
-> +	/* IN variables. */
-> +	uint32_t secs;
-> +	uint32_t nsecs;
-> +	uint64_t system_time;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_settime_t);
-> +
-> +/*
-> + * Request memory range (@mfn, @mfn+@nr_mfns-1) to have type @type.
-> + * On x86, @type is an architecture-defined MTRR memory type.
-> + * On success, returns the MTRR that was used (@reg) and a handle that
-> +can
-> + * be passed to XENPF_DEL_MEMTYPE to accurately tear down the new setting.
-> + * (x86-specific).
-> + */
-> +#define XENPF_add_memtype         31
-> +struct xenpf_add_memtype {
-> +	/* IN variables. */
-> +	unsigned long mfn;
-> +	uint64_t nr_mfns;
-> +	uint32_t type;
-> +	/* OUT variables. */
-> +	uint32_t handle;
-> +	uint32_t reg;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_add_memtype_t);
-> +
-> +/*
-> + * Tear down an existing memory-range type. If @handle is remembered
-> +then it
-> + * should be passed in to accurately tear down the correct setting (in
-> +case
-> + * of overlapping memory regions with differing types). If it is not
-> +known
-> + * then @handle should be set to zero. In all cases @reg must be set.
-> + * (x86-specific).
-> + */
-> +#define XENPF_del_memtype         32
-> +struct xenpf_del_memtype {
-> +	/* IN variables. */
-> +	uint32_t handle;
-> +	uint32_t reg;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_del_memtype_t);
-> +
-> +/* Read current type of an MTRR (x86-specific). */
-> +#define XENPF_read_memtype        33
-> +struct xenpf_read_memtype {
-> +	/* IN variables. */
-> +	uint32_t reg;
-> +	/* OUT variables. */
-> +	unsigned long mfn;
-> +	uint64_t nr_mfns;
-> +	uint32_t type;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_read_memtype_t);
-> +
-> +#define XENPF_microcode_update    35
-> +struct xenpf_microcode_update {
-> +	/* IN variables. */
-> +	GUEST_HANDLE(void) data;          /* Pointer to microcode data */
-> +	uint32_t length;                  /* Length of microcode data. */
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_microcode_update_t);
-> +
-> +#define XENPF_platform_quirk      39
-> +#define QUIRK_NOIRQBALANCING      1 /* Do not restrict IO-APIC RTE targets */
-> +#define QUIRK_IOAPIC_BAD_REGSEL   2 /* IO-APIC REGSEL forgets its value    */
-> +#define QUIRK_IOAPIC_GOOD_REGSEL  3 /* IO-APIC REGSEL behaves properly     */
-> +struct xenpf_platform_quirk {
-> +	/* IN variables. */
-> +	uint32_t quirk_id;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_platform_quirk_t);
-> +
-> +#define XENPF_firmware_info       50
-> +#define XEN_FW_DISK_INFO          1 /* from int 13 AH=08/41/48 */
-> +#define XEN_FW_DISK_MBR_SIGNATURE 2 /* from MBR offset 0x1b8 */
-> +#define XEN_FW_VBEDDC_INFO        3 /* from int 10 AX=4f15 */
-> +struct xenpf_firmware_info {
-> +	/* IN variables. */
-> +	uint32_t type;
-> +	uint32_t index;
-> +	/* OUT variables. */
-> +	union {
-> +		struct {
-> +			/* Int13, Fn48: Check Extensions Present. */
-> +			uint8_t device;                   /* %dl: bios device number */
-> +			uint8_t version;                  /* %ah: major version      */
-> +			uint16_t interface_support;       /* %cx: support bitmap     */
-> +			/* Int13, Fn08: Legacy Get Device Parameters. */
-> +			uint16_t legacy_max_cylinder;     /* %cl[7:6]:%ch: max cyl # */
-> +			uint8_t legacy_max_head;          /* %dh: max head #         */
-> +			uint8_t legacy_sectors_per_track; /* %cl[5:0]: max sector #  */
-> +			/* Int13, Fn41: Get Device Parameters (as filled into %ds:%esi). */
-> +			/* NB. First uint16_t of buffer must be set to buffer size.      */
-> +			GUEST_HANDLE(void) edd_params;
-> +		} disk_info; /* XEN_FW_DISK_INFO */
-> +		struct {
-> +			uint8_t device;                   /* bios device number  */
-> +			uint32_t mbr_signature;           /* offset 0x1b8 in mbr */
-> +		} disk_mbr_signature; /* XEN_FW_DISK_MBR_SIGNATURE */
-> +		struct {
-> +			/* Int10, AX=4F15: Get EDID info. */
-> +			uint8_t capabilities;
-> +			uint8_t edid_transfer_time;
-> +			/* must refer to 128-byte buffer */
-> +			GUEST_HANDLE(uchar) edid;
-> +		} vbeddc_info; /* XEN_FW_VBEDDC_INFO */
-> +	} u;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_firmware_info_t);
-> +
-> +#define XENPF_enter_acpi_sleep    51
-> +struct xenpf_enter_acpi_sleep {
-> +	/* IN variables */
-> +	uint16_t pm1a_cnt_val;      /* PM1a control value. */
-> +	uint16_t pm1b_cnt_val;      /* PM1b control value. */
+Hmmm.  I think I understand your proposal, but it seems like a
+convoluted path to me.
 
-These are uint32_t in native Linux--why truncate in the API and not at use?
+I guess the real question is whether we must give userspace a chance
+to decide whether to actually do the remove or not.  Is there a
+requirement to do that?  Neither the dynamic device removal flow (ACPI
+spec 4.0a, sec 6.3) nor the ejection flow example (fig 6-5) mentions
+doing that.
 
-> +	uint32_t sleep_state;       /* Which state to enter (Sn). */
-> +	uint32_t flags;             /* Must be zero. */
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_enter_acpi_sleep_t);
-> +
-> +#define XENPF_change_freq         52
-> +struct xenpf_change_freq {
-> +	/* IN variables */
-> +	uint32_t flags; /* Must be zero. */
-> +	uint32_t cpu;   /* Physical cpu. */
-> +	uint64_t freq;  /* New frequency (Hz). */ };
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_change_freq_t);
-> +
-> +/*
-> + * Get idle times (nanoseconds since boot) for physical CPUs specified
-> +in the
-> + * @cpumap_bitmap with range [0..@cpumap_nr_cpus-1]. The @idletime
-> +array is
-> + * indexed by CPU number; only entries with the corresponding
-> +@cpumap_bitmap
-> + * bit set are written to. On return, @cpumap_bitmap is modified so
-> +that any
-> + * non-existent CPUs are cleared. Such CPUs have their @idletime array
-> +entry
-> + * cleared.
-> + */
-> +#define XENPF_getidletime         53
-> +struct xenpf_getidletime {
-> +	/* IN/OUT variables */
-> +	/* IN: CPUs to interrogate; OUT: subset of IN which are present */
-> +	GUEST_HANDLE(uchar) cpumap_bitmap;
-> +	/* IN variables */
-> +	/* Size of cpumap bitmap. */
-> +	uint32_t cpumap_nr_cpus;
-> +	/* Must be indexable for every cpu in cpumap_bitmap. */
-> +	GUEST_HANDLE(uint64_t) idletime;
-> +	/* OUT variables */
-> +	/* System time when the idletime snapshots were taken. */
-> +	uint64_t now;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_getidletime_t);
-> +
-> +#define XENPF_set_processor_pminfo      54
-> +
-> +/* ability bits */
-> +#define XEN_PROCESSOR_PM_CX	1
-> +#define XEN_PROCESSOR_PM_PX	2
-> +#define XEN_PROCESSOR_PM_TX	4
-> +
-> +/* cmd type */
-> +#define XEN_PM_CX   0
-> +#define XEN_PM_PX   1
-> +#define XEN_PM_TX   2
-> +
-> +/* Px sub info type */
-> +#define XEN_PX_PCT   1
-> +#define XEN_PX_PSS   2
-> +#define XEN_PX_PPC   4
-> +#define XEN_PX_PSD   8
-> +
-> +struct xen_power_register {
-> +	uint32_t     space_id;
-> +	uint32_t     bit_width;
-> +	uint32_t     bit_offset;
-> +	uint32_t     access_size;
-> +	uint64_t     address;
-> +};
-> +
-> +struct xen_processor_csd {
-> +	uint32_t    domain;      /* domain number of one dependent group */
-> +	uint32_t    coord_type;  /* coordination type */
-> +	uint32_t    num;         /* number of processors in same domain */
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xen_processor_csd);
-> +
-> +struct xen_processor_cx {
-> +	struct xen_power_register  reg; /* GAS for Cx trigger register */
-> +	uint8_t     type;     /* cstate value, c0: 0, c1: 1, ... */
-> +	uint32_t    latency;  /* worst latency (ms) to enter/exit this cstate */
-> +	uint32_t    power;    /* average power consumption(mW) */
-> +	uint32_t    dpcnt;    /* number of dependency entries */
-> +	GUEST_HANDLE(xen_processor_csd) dp; /* NULL if no dependency */ };
-> +DEFINE_GUEST_HANDLE_STRUCT(xen_processor_cx);
-> +
-> +struct xen_processor_flags {
-> +	uint32_t bm_control:1;
-> +	uint32_t bm_check:1;
-> +	uint32_t has_cst:1;
-> +	uint32_t power_setup_done:1;
-> +	uint32_t bm_rld_set:1;
-> +};
-> +
-> +struct xen_processor_power {
-> +	uint32_t count;  /* number of C state entries in array below */
-> +	struct xen_processor_flags flags;  /* global flags of this processor */
-> +	GUEST_HANDLE(xen_processor_cx) states; /* supported c states */ };
-> +
-> +struct xen_pct_register {
-> +	uint8_t  descriptor;
-> +	uint16_t length;
-> +	uint8_t  space_id;
-> +	uint8_t  bit_width;
-> +	uint8_t  bit_offset;
-> +	uint8_t  reserved;
-> +	uint64_t address;
-> +};
-> +
-> +struct xen_processor_px {
-> +	uint64_t core_frequency; /* megahertz */
-> +	uint64_t power;      /* milliWatts */
-> +	uint64_t transition_latency; /* microseconds */
-> +	uint64_t bus_master_latency; /* microseconds */
-> +	uint64_t control;        /* control value */
-> +	uint64_t status;     /* success indicator */
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xen_processor_px);
-> +
-> +struct xen_psd_package {
-> +	uint64_t num_entries;
-> +	uint64_t revision;
-> +	uint64_t domain;
-> +	uint64_t coord_type;
-> +	uint64_t num_processors;
-> +};
-> +
-> +struct xen_processor_performance {
-> +	uint32_t flags;     /* flag for Px sub info type */
-> +	uint32_t platform_limit;  /* Platform limitation on freq usage */
-> +	struct xen_pct_register control_register;
-> +	struct xen_pct_register status_register;
-> +	uint32_t state_count;     /* total available performance states */
-> +	GUEST_HANDLE(xen_processor_px) states;
-> +	struct xen_psd_package domain_info;
-> +	uint32_t shared_type;     /* coordination type of this processor */
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xen_processor_performance);
-> +
-> +struct xenpf_set_processor_pminfo {
-> +	/* IN variables */
-> +	uint32_t id;    /* ACPI CPU ID */
-> +	uint32_t type;  /* {XEN_PM_CX, XEN_PM_PX} */
-> +	union {
-> +		struct xen_processor_power          power;/* Cx: _CST/_CSD */
-> +		struct xen_processor_performance    perf; /* Px: _PPC/_PCT/_PSS/_PSD */
-> +	};
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_set_processor_pminfo);
-> +
-> +struct xen_platform_op {
-> +	uint32_t cmd;
-> +	uint32_t interface_version; /* XENPF_INTERFACE_VERSION */
-> +	union {
-> +		struct xenpf_settime           settime;
-> +		struct xenpf_add_memtype       add_memtype;
-> +		struct xenpf_del_memtype       del_memtype;
-> +		struct xenpf_read_memtype      read_memtype;
-> +		struct xenpf_microcode_update  microcode;
-> +		struct xenpf_platform_quirk    platform_quirk;
-> +		struct xenpf_firmware_info     firmware_info;
-> +		struct xenpf_enter_acpi_sleep  enter_acpi_sleep;
-> +		struct xenpf_change_freq       change_freq;
-> +		struct xenpf_getidletime       getidletime;
-> +		struct xenpf_set_processor_pminfo set_pminfo;
-> +		uint8_t                        pad[128];
-> +	} u;
-> +};
-> +DEFINE_GUEST_HANDLE_STRUCT(xen_platform_op_t);
-> +
-> +#endif /* __XEN_PUBLIC_PLATFORM_H__ */
-> diff --git a/include/xen/interface/xen.h b/include/xen/interface/xen.h index 70213b4..d83cc08
-> 100644
-> --- a/include/xen/interface/xen.h
-> +++ b/include/xen/interface/xen.h
-> @@ -453,6 +453,7 @@ struct start_info {
->  /* These flags are passed in the 'flags' field of start_info_t. */
->  #define SIF_PRIVILEGED    (1<<0)  /* Is the domain privileged? */
->  #define SIF_INITDOMAIN    (1<<1)  /* Is this the initial control domain? */
-> +#define SIF_PM_MASK       (0xFF<<8) /* reserve 1 byte for xen-pm options */
-> 
->  typedef uint64_t cpumap_t;
-> 
-> --
-> 1.7.4.1
+I mentioned before that I think the ACPI hotplug code should be ripped
+out of the drivers and consolidated in the ACPI core.  I think it's
+pretty clear from the spec that the 0-0x7f notifications (Bus Check,
+Device Check, Eject Request, etc.) are designed to be handled by the
+core, not by individual drivers.  We handle hotplug in the drivers
+today, but I think that's mainly because we never implemented support
+in the Linux ACPI core.  There are comments in acpi_bus_check_device()
+and acpi_bus_check_scope() about what we *should* be doing there.
 
+I am opposed to adding more hotplug support to individual drivers
+because I still hope that someday we'll support it in the ACPI core.
+Many ACPI drivers don't support hotplug at all, and the ones that do
+support hotplug do it in a variety of ways.  It's all quite a mess.
+
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
