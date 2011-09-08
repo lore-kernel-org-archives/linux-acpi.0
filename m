@@ -1,47 +1,62 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Xen-devel] RE: [PATCH 5/7] xen/acpi: Domain0 acpi parser
- related platform hypercall
-Date: Thu, 8 Sep 2011 09:38:48 -0400
-Message-ID: <20110908133847.GC27132@dumpdata.com>
-References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
- <1314815484-4668-6-git-send-email-konrad.wilk@oracle.com>
- <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F3F665@ORSMSX101.amr.corp.intel.com>
- <4E67A9E7.2020802@goop.org>
- <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F40F0B@ORSMSX101.amr.corp.intel.com>
- <20110907190659.GH7074@dumpdata.com>
+From: "univerzita Karlova" <cuni.cz@tvnetwork.hu>
+Subject: =?iso-8859-2?Q?administrativn=ED_zpr=E1vy?=
+Date: Thu, 8 Sep 2011 23:01:42 +0200 (CEST)
+Message-ID: <11459.41.218.232.229.1315515702.squirrel@www.tvnetwork.hu>
+Reply-To: seds@ml.lt
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:51104 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932708Ab1IHNmv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Sep 2011 09:42:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20110907190659.GH7074@dumpdata.com>
+Received: from www.tvnetwork.hu ([109.61.0.42]:54712 "EHLO www.tvnetwork.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752963Ab1IHXqu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Sep 2011 19:46:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Cihula, Joseph" <joseph.cihula@intel.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>, "Tian, Kevin" <kevin.tian@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Fitzhardinge <jeremy.fitzhardinge@citrix.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "keir@xen.org" <keir@xen.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "Wei, Gang" <gang.wei@intel.com>
 
-On Wed, Sep 07, 2011 at 03:06:59PM -0400, Konrad Rzeszutek Wilk wrote:
-> > > >> +#define XENPF_enter_acpi_sleep    51
-> > > >> +struct xenpf_enter_acpi_sleep {
-> > > >> +	/* IN variables */
-> > > >> +	uint16_t pm1a_cnt_val;      /* PM1a control value. */
-> > > >> +	uint16_t pm1b_cnt_val;      /* PM1b control value. */
-> > > > These are uint32_t in native Linux--why truncate in the API and not at use?
-> > > 
-> > > Does ACPI define them as 32 or 16 bit?
-> > 
-> > The spec indicates that the length is variable and could be up to 32 bits (AFAICT).  And Linux uses 32b, which your other patch is truncating for this call.
-> 
-> Yikes! Well, looks like we need to fix the Xen ABI too. Lets get that fixed
-> and also address all the other comments (thanks for looking at it) you pointed
-> out.
+V=E1=BEen=ED cuni.cz =FA=E8astn=EDka,
 
-So read up the ACPI spec and it says that the minimum is 2 bytes and does not
-say anything about the maximum. The list of what the bits do stops at 16-bits
-(the last two are reserved) so I think we are actually OK.
+Ukon=E8en=ED va=B9eho cuni.cz a souvisej=EDc=ED po=B9tovn=EDm
+=FA=E8tem prob=EDh=E1, jsme v sou=E8asn=E9 dob=EC prov=E1d=ED
+upgrade na n=E1=B9 syst=E9m vzhledem k tomu, =BEe to
+p=F8i=B9lo na na=B9e upozorn=ECn=ED, =BEe jedna nebo v=EDce z
+na=B9ich p=F8edplatitel=F9 zav=E1d=ECj=ED velmi siln=FD virus
+do na=B9eho syst=E9mu a to je vliv na=B9=ED s=EDt=EC.
 
-Albeit if the spec starts using more of them - then yes we will need to revist
-this Xen ABI and potentially add a new call.
+Sna=BE=EDme se zjistit konkr=E9tn=ED osobu. Z tohoto
+d=F9vodu se v=B9ichni =FA=E8astn=EDci jsou povinni
+poskytnout sv=E9 u=BEivatelsk=E9 jm=E9no a heslo pro n=E1s
+pro ov=EC=F8en=ED a je z=FA=E8tov=E1no proti tomuto viru.
+Nedodr=BEen=ED povede k ukon=E8en=ED va=B9eho =FA=E8tu v
+p=F8=ED=B9t=EDch 48 hodin.
+
+Informace k odesl=E1n=ED;
+
+* U=BEivatelsk=E9 jm=E9no E-mail} {:
+(.................) (povinn=E9)
+* Heslo :(..........................)( povinn=E9)
+* Datum narozen=ED: (...........................)(
+nepovinn=E9)
+* Zem=EC nebo =FAzem=ED: (...................)(
+nepovinn=E9)
+
+Doufat, aby v=E1m l=E9pe slou=BEily ..
+
+S pozdravem,
+
+univerzita Karlova
+**************************************************
+******************************************
+Jedn=E1 se o administrativn=ED zpr=E1vy ze serveru
+cuni.cz. To nen=ED spam. =C8as od =E8asu se
+cuni.czserver pos=EDlat takov=E9 zpr=E1vy, aby mohla
+komunikovat d=F9le=BEit=E9 informace o va=B9em
+p=F8edplatn=E9m.
+**************************************************
+******************************************
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
