@@ -1,87 +1,109 @@
-From: Oliver Schinagl <oliver@schinagl.nl>
-Subject: Re: [Bug 42502] PROBLEM: USB 1.1 (and up) not working on AMD R900
- Series chipset
-Date: Thu, 08 Sep 2011 02:00:39 +0200
-Message-ID: <4E6805A7.7080806@schinagl.nl>
-References: <bug-42502-20552@https.bugzilla.kernel.org/> <201109072200.p87M0G5V011358@demeter1.kernel.org>
+From: "canquan.shen" <shencanquan@huawei.com>
+Subject: Re: Re : [PATCH] acpi: Fix hot cpu remove problem on acpi subsystem
+Date: Thu, 08 Sep 2011 08:21:09 +0800
+Message-ID: <4E680A75.3000600@huawei.com>
+References: <F1F5DF04259F1B4A82BD6BDE1C479F74098285B0@szxeml527-mbx.china.huawei.com>
+ <CAErSpo4JsyHag24SH=zSRHt4c8kYwdcXEnCConGEi2u6dN-pnw@mail.gmail.com>
+ <4E65C254.8090107@huawei.com>
+ <CAErSpo5owGuYLP2-JR6uJsM+Pqwna+FUB--p4OhjLVAETqYpcw@mail.gmail.com>
+ <4E66D988.9070505@huawei.com>
+ <CAErSpo7Rf+X3MVgmdYvbEXw-UAU7sEEMq5upBkhEn9Eu0zD-zw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:44277 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932103Ab1IHAAl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Sep 2011 20:00:41 -0400
-Received: from [10.2.0.191] (unknown [10.2.0.191])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by 7of9.schinagl.nl (Postfix) with ESMTPSA id D09DFE108
-	for <linux-acpi@vger.kernel.org>; Thu,  8 Sep 2011 02:00:39 +0200 (CEST)
-In-Reply-To: <201109072200.p87M0G5V011358@demeter1.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:61728 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755233Ab1IHAVV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 20:21:21 -0400
+In-reply-to: <CAErSpo7Rf+X3MVgmdYvbEXw-UAU7sEEMq5upBkhEn9Eu0zD-zw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linqiangmin@huawei.com, james.chenjiabo@huawei.com
 
-I've uploaded an error log to the bugzilla [1] and have some questions
-that probably are more suited for a mailinglist?
+On 2011/9/7 14:57, Bjorn Helgaas wrote:
+> On Tue, Sep 6, 2011 at 7:40 PM, canquan.shen<shencanquan@huawei.com>  wrote:
+>> On 2011/9/7 2:38, Bjorn Helgaas wrote:
+>
+>>> Is acpi_processor_remove() called when you remove a processor?  I see
+>>> a path where it will be called via acpi_eject_store():
+>>>
+>>>      acpi_eject_store
+>>>        acpi_os_hotplug_execute(acpi_bus_hot_remove_device)
+>>>        acpi_bus_hot_remove_device
+>>>          acpi_bus_trim
+>>>            acpi_bus_remove
+>>>              device_release_driver
+>>>                dev->driver->remove (acpi_processor_remove())
+>>>              acpi_device_unregister
+>>>                device_unregister
+>>>                  device_del
+>>>                    kobject_uevent(KOBJ_REMOVE)
+>>>
+>>> but as far as I can tell, this path is only used when we write
+>>> something to the "eject" sysfs file.  I would think we'd want to use
+>>> most of this same path when we hot remove a CPU via the ACPI SCI
+>>> mechanism.
+>>>
+>>
+>> Because in my patch will send the KOBJ_REMOVE event to udev module. and I
+>> write a udev rule like the following:
+>> ACTION=="remove",DRIVER=="processor",SUBSYSTEM=="acpi",RUN+="/bin/bash -c
+>> 'echo 1>  /sys%p/eject'"
+>> This rule will write "1" to the "eject" sysfs file. and then call
+>> acpi_eject_store function.
+>
+> Hmmm.  I think I understand your proposal, but it seems like a
+> convoluted path to me.
+>
+> I guess the real question is whether we must give userspace a chance
+> to decide whether to actually do the remove or not.  Is there a
+> requirement to do that?  Neither the dynamic device removal flow (ACPI
+> spec 4.0a, sec 6.3) nor the ejection flow example (fig 6-5) mentions
+> doing that.
+>
+    I think we should give userspace a chance to decide whether do  the 
+remove or not. About the cpu remove, it has two part, one in the linux 
+kernel which mainly online/offline cpu, another is acpi core driver, 
+which mainly add and remove the device of processor.
+    giving userspace a chance is not acpi spec requirement. but it is 
+flexible for linux kernel. many driver use the udev mechanism to has a 
+chance for user to decide how to handle the event of kernel.
+
+> I mentioned before that I think the ACPI hotplug code should be ripped
+> out of the drivers and consolidated in the ACPI core.  I think it's
+> pretty clear from the spec that the 0-0x7f notifications (Bus Check,
+> Device Check, Eject Request, etc.) are designed to be handled by the
+> core, not by individual drivers.  We handle hotplug in the drivers
+> today, but I think that's mainly because we never implemented support
+> in the Linux ACPI core.  There are comments in acpi_bus_check_device()
+> and acpi_bus_check_scope() about what we *should* be doing there.
+>
+> I am opposed to adding more hotplug support to individual drivers
+> because I still hope that someday we'll support it in the ACPI core.
+> Many ACPI drivers don't support hotplug at all, and the ones that do
+> support hotplug do it in a variety of ways.  It's all quite a mess.
+>
+> Bjorn
+>
+> .
+>
+
+I admit it is convoluted path for hot cpu remove. and the acpi processor 
+driver will be consolidated in the acip core. but how to do in the acpi 
+core ? I think it maybe directly call acpi_bus_hot_remove_device or send 
+KOBJ_OFFLINE event to linux kernel.
+
+I will modify the processor driver by add the acpi_bus_trim function in 
+acpi_processor_hotplug_notify. and create the patch for fix this problem.
+Could you help me to merge to latest linux kernel? Thanks for your 
+answer again.
+
+---
+canquan.shen
 
 
-At first glance, the errors are identical to the 2010 acpi compiler.
 
-A few things I do not understand however. This board is only a few
-months old. The bios could be older, but more then a year hardly? Even
-the 'base' bits. I'd reccon one of the new compilers would be long
-available? (I know, OEM's don't like to upgrade their toolkits etc. *sigh*
 
-Also, the 20051117 iasl only supports ACPI Specification Rev 3.0, I'd
-guess it would support acpi 4.0a by now? (I think i found somewhere it
-only does 2.0 actually and I guess acpi is more of a laptop thing with
-the fancy stuff).
 
-Lastly, if I get 130 errors and but still a binary as a result how can
-that possibly even work? Would they even use this code 'as is' in
-production stuff? I suppose a DSDT isn't that important for a Desktop
-but from the way I see how buggy the uefi-bios is (for example it is
-extremely slow just post-ing with USB connected, maybe related to this?)
-How did this get past QA with so many errors, not even warnings.
-
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=42502
-
-Lastly, as Robert pointed out; according to
-
-On 09/08/11 00:00, bugzilla-daemon@bugzilla.kernel.org wrote:
-> https://bugzilla.kernel.org/show_bug.cgi?id=42502
-> 
-> 
-> Robert Moore <Robert.Moore@intel.com> changed:
-> 
->            What    |Removed                     |Added
-> ----------------------------------------------------------------------------
->                  CC|                            |Robert.Moore@intel.com
-> 
-> 
-> 
-> 
-> --- Comment #9 from Robert Moore <Robert.Moore@intel.com>  2011-09-07 22:00:05 ---
->  *     OEM Table ID     "A M I"
->  *     OEM Revision     0x00000000 (0)
->  *     Compiler ID      "INTL"
->  *     Compiler Version 0x20051117 (537202967)
-> 
-> This is a version of iASL from 2005. At some point, some of the code in this
-> DSDT was made illegal, and the compiler now reflects that.
-> 
-> Namely, this code:
-> 
-> Device (SATA)
-> {
->     Name (_ADR, 0x00110000)
->     If (LEqual (STCL, 0x0101))
->     {
-> 
-> The "If" is an "executable" opcode that appears outside of a control method.
-> This is now illegal ASL code.
-> 
-> Typically, the fix is to move this code under _SB_._INI, this method gets
-> executed at table load time. But it's not always real simple to do this.
-> 
