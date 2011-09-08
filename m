@@ -1,51 +1,47 @@
-From: "canquan.shen" <shencanquan@huawei.com>
-Subject: [PATCH v2] acpi: Fix CPU hot removal problem
-Date: Thu, 08 Sep 2011 10:39:04 +0800
-Message-ID: <4E682AC8.7040302@huawei.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [Xen-devel] RE: [PATCH 5/7] xen/acpi: Domain0 acpi parser
+ related platform hypercall
+Date: Thu, 8 Sep 2011 09:38:48 -0400
+Message-ID: <20110908133847.GC27132@dumpdata.com>
+References: <1314815484-4668-1-git-send-email-konrad.wilk@oracle.com>
+ <1314815484-4668-6-git-send-email-konrad.wilk@oracle.com>
+ <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F3F665@ORSMSX101.amr.corp.intel.com>
+ <4E67A9E7.2020802@goop.org>
+ <9F57BF860713DF4BA3EFA4F8C6DFEDAC16F40F0B@ORSMSX101.amr.corp.intel.com>
+ <20110907190659.GH7074@dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:57684 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757485Ab1IHCjV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2011 22:39:21 -0400
+Received: from rcsinet15.oracle.com ([148.87.113.117]:51104 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932708Ab1IHNmv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Sep 2011 09:42:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20110907190659.GH7074@dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lenb@kernel.org" <lenb@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Cihula, Joseph" <joseph.cihula@intel.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>, "Tian, Kevin" <kevin.tian@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Fitzhardinge <jeremy.fitzhardinge@citrix.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "keir@xen.org" <keir@xen.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "Wei, Gang" <gang.wei@intel.com>
 
-We run Linux as a guest in Xen environment. When used xen tools
-(xm vcpu-set <n>) to hot add and remove vcpu to and from the guest,
-  we encountered the failure on vcpu removal. We found the reason is
-that it didn't go to really remove cpu in the cpu removal code path.
+On Wed, Sep 07, 2011 at 03:06:59PM -0400, Konrad Rzeszutek Wilk wrote:
+> > > >> +#define XENPF_enter_acpi_sleep    51
+> > > >> +struct xenpf_enter_acpi_sleep {
+> > > >> +	/* IN variables */
+> > > >> +	uint16_t pm1a_cnt_val;      /* PM1a control value. */
+> > > >> +	uint16_t pm1b_cnt_val;      /* PM1b control value. */
+> > > > These are uint32_t in native Linux--why truncate in the API and not at use?
+> > > 
+> > > Does ACPI define them as 32 or 16 bit?
+> > 
+> > The spec indicates that the length is variable and could be up to 32 bits (AFAICT).  And Linux uses 32b, which your other patch is truncating for this call.
+> 
+> Yikes! Well, looks like we need to fix the Xen ABI too. Lets get that fixed
+> and also address all the other comments (thanks for looking at it) you pointed
+> out.
 
-This patch adds acpi_bus_trim in acpi_process_hotplug_notify to fix
-this issue. With this patch, it works fine for us.
+So read up the ACPI spec and it says that the minimum is 2 bytes and does not
+say anything about the maximum. The list of what the bits do stops at 16-bits
+(the last two are reserved) so I think we are actually OK.
 
-Signed-off-by: Canquan Shen <shencanquan@huawei.com>
----
-  drivers/acpi/processor_driver.c |    5 +++++
-  1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/processor_driver.c 
-b/drivers/acpi/processor_driver.c
-index a1c564f..114592f 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -678,7 +678,11 @@ static void 
-acpi_processor_hotplug_notify(acpi_handle handle,
-              return;
-          }
-
-+        if (acpi_bus_trim(device, 1)) {
-+            printk(KERN_ERR PREFIX
-+                    "Removing device failed\n");
-+            return;
-+        }
-          break;
-      default:
-          ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--- 
-1.7.6
-
+Albeit if the spec starts using more of them - then yes we will need to revist
+this Xen ABI and potentially add a new call.
