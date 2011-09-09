@@ -1,62 +1,59 @@
-From: "univerzita Karlova" <cuni.cz@tvnetwork.hu>
-Subject: =?iso-8859-2?Q?administrativn=ED_zpr=E1vy?=
-Date: Thu, 8 Sep 2011 23:01:42 +0200 (CEST)
-Message-ID: <11459.41.218.232.229.1315515702.squirrel@www.tvnetwork.hu>
-Reply-To: seds@ml.lt
+From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <admin@you8848.cn>
+Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
+	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
+Date: Fri, 9 Sep 2011 17:52:58 +0000 (UTC)
+Message-ID: <20111210014657548268@you8848.cn>
+Reply-To: <1339625218@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tvnetwork.hu ([109.61.0.42]:54712 "EHLO www.tvnetwork.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752963Ab1IHXqu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Sep 2011 19:46:50 -0400
+Received: from [183.90.184.252] ([183.90.184.252]:3374 "HELO you8848.cn"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
+	id S1759380Ab1IIRwz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Sep 2011 13:52:55 -0400
+Date: Sat, 10 Dec 2011 01:46:47 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-V=E1=BEen=ED cuni.cz =FA=E8astn=EDka,
+576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
+ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
+DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
+sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
+6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
+5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB
+55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5pu05pawICjlj6/ku6XmjInnhafmgqjnmoTkuqfl
+k4Hmj5Dlj5blh7rmnaXvvIzmm7Tnsr7lh4blvIDlj5Ep44CCIA0KM+OAgei2hee6p+a1t+WkluS5
+sOWutkVtYWls5pCc57Si5py677yaIOWGhee9ruS6hjYwMOS4h+ihjOS4muWFs+mUruivje+8jOag
+ueaNrumVv+WwvuivjeaQnOe0ou+8jOe7k+aenOabtOeyvuehruWMuemFje+8m+avj+WkqeiDveaQ
+nOe0ojEtMuS4h+S7peS4iuS5sOWutuecn+WunkVNQUlM77yM5oiQ5Y2V546H6auY44CCIA0KIA0K
+DQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+WbnuWkjemC
+rueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5NjI1MjE4
+ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0K6KaB55qE5oqT
+57Sn6IGU57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2
+MjUyMThAcXEuY29tDQogDQrlhY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WF
+qOihjOS4mueahO+8jOaMieeFp+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WF
+s+mUruivjeafpeivoueahCnvvJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWu
+tueOsOWcuuivouebmOaVsOaNruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8
+jOaWsOmynOaVsOaNru+8jOWuueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3o
+tLnmm7TmlrAyMDEx56eL5a2j5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDm
+ja7jgILlpKrotoXlgLzkuobjgIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw
+5p2h5pWw5o2u44CCICjmnIDmlrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA4
+5bm0LDIwMDnlubQsMjAxMOW5tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yM
+MTAzIDEwNCAxMDUgMTA2IDEwNyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo1
+77yMMjAxMOW5tOWbvemZheS/g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBN
+ZW1iZXJzIERpcmVjdG9yee+8jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDl
+ubTliLDpppnmuK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q
+5L6bKe+8jOWFsTcuMuS4h+aVsOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4
+LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4
+h+adoe+8jOWMheaLrDLpg6jliIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTl
+sZXkvJrkubDlrrbjgILlhY3otLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPm
+j5DljZXmlbDmja5waWVyc+eJiOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM
+5pSv5oyB5pSv5LuY5a6d5ouF5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTl
+j5Hova/ku7bvvIznhLblkI7ku5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0K
+IA0KDQoNCiANCg0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaI
+kOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2u
+LeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
 
-Ukon=E8en=ED va=B9eho cuni.cz a souvisej=EDc=ED po=B9tovn=EDm
-=FA=E8tem prob=EDh=E1, jsme v sou=E8asn=E9 dob=EC prov=E1d=ED
-upgrade na n=E1=B9 syst=E9m vzhledem k tomu, =BEe to
-p=F8i=B9lo na na=B9e upozorn=ECn=ED, =BEe jedna nebo v=EDce z
-na=B9ich p=F8edplatitel=F9 zav=E1d=ECj=ED velmi siln=FD virus
-do na=B9eho syst=E9mu a to je vliv na=B9=ED s=EDt=EC.
 
-Sna=BE=EDme se zjistit konkr=E9tn=ED osobu. Z tohoto
-d=F9vodu se v=B9ichni =FA=E8astn=EDci jsou povinni
-poskytnout sv=E9 u=BEivatelsk=E9 jm=E9no a heslo pro n=E1s
-pro ov=EC=F8en=ED a je z=FA=E8tov=E1no proti tomuto viru.
-Nedodr=BEen=ED povede k ukon=E8en=ED va=B9eho =FA=E8tu v
-p=F8=ED=B9t=EDch 48 hodin.
-
-Informace k odesl=E1n=ED;
-
-* U=BEivatelsk=E9 jm=E9no E-mail} {:
-(.................) (povinn=E9)
-* Heslo :(..........................)( povinn=E9)
-* Datum narozen=ED: (...........................)(
-nepovinn=E9)
-* Zem=EC nebo =FAzem=ED: (...................)(
-nepovinn=E9)
-
-Doufat, aby v=E1m l=E9pe slou=BEily ..
-
-S pozdravem,
-
-univerzita Karlova
-**************************************************
-******************************************
-Jedn=E1 se o administrativn=ED zpr=E1vy ze serveru
-cuni.cz. To nen=ED spam. =C8as od =E8asu se
-cuni.czserver pos=EDlat takov=E9 zpr=E1vy, aby mohla
-komunikovat d=F9le=BEit=E9 informace o va=B9em
-p=F8edplatn=E9m.
-**************************************************
-******************************************
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
