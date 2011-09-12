@@ -1,34 +1,44 @@
-From: "Mr. Daniel Tsai" <danieltsai0@aol.com>
-Subject: Business transaction.
-Date: Sun, 11 Sep 2011 17:07:12 +0200
-Message-ID: <20110911150714.A7A44427698_E6CCEA2F@radon.cen.brad.ac.uk>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: PME via interrupt or SCI mechanism?
+Date: Mon, 12 Sep 2011 10:10:03 -0700
+Message-ID: <20110912171003.GA7939@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydrogen.cen.brad.ac.uk ([143.53.238.3]:41105 "EHLO
-	hydrogen.cen.brad.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754454Ab1ILDL7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Sep 2011 23:11:59 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: danieltsai0@aol.com
 
-Hello my friend. My name is Daniel Tsai and
+Hi Rafael,
 
-I live in Hong Kong. I want you to be my
+As I mentioned at LPC, I have a USB host controller that is failing to
+wakeup from D3 when a new USB device is connected to an external hub.
+The system is in S0 at this point.
 
-partner in a business transaction of 44.5Million USD.
+You mentioned that there were two ways for hardware to generate PMEs:
+either through the standard PCI interrupt process, or via an ACPI SCI
+call.
 
-If you are interested for more details,
+I think the hardware engineers want Linux to set up the PCI device to
+generate PMEs via an SCI call, but I'm not sure if Linux is.  I've tried
+turning on ACPI debugging (with level and layers both set to 0xffffffff
+so I can see all debugging), and I don't see any output at all from ACPI
+functions like acpi_ev_sci_xrupt_handler when the host controller comes
+out of D3.  (It does come out of D3 if I plug in the device within 10
+seconds of PCI suspend, for whatever reason.)
 
-you MUST reply me to my private email address:
+Is there a way to tell if SCI is being used by a PCI device to generate
+PMEs?
 
-danieltsai11@yahoo.com.hk or danieltsai95@aol.com
+You also mentioned that Linux has to choose whether to use standard
+interrupts or an SCI to generate PMEs.  You said Linux asks the BIOS if
+the hardware can use interrupts to generate PMEs, and it always uses
+interrupt-based PME generation if the BIOS says yes.
 
-when I get your message, I will tell you what
+Do you know where that code is?  I'd like to see how the BIOS responds
+to that call, and perhaps get the BIOS guys to fix their response if the
+hardware is supposed to only use SCIs to generate PMEs.
 
-to do next. Thank you.
-
-Mr. Daniel Tsai
+Sarah Sharp
