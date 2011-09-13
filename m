@@ -1,57 +1,55 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: [GIT] ACPI patches for 3.1-rc6
-Date: Mon, 12 Sep 2011 20:08:05 -0700
-Message-ID: <E87738D94A6AD54789B5B8D1BAEB06CC829B3E488B@azsmsx503.amr.corp.intel.com>
+From: "canquan.shen" <shencanquan@huawei.com>
+Subject: Re: [PATCH v2] acpi: Fix CPU hot removal problem
+Date: Tue, 13 Sep 2011 13:58:03 +0800
+Message-ID: <4E6EF0EB.2040701@huawei.com>
+References: <4E682AC8.7040302@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:26305 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753478Ab1IMDII convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2011 23:08:08 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <4E682AC8.7040302@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: len.brown@intel.com
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hello Linus,
+On 2011/9/8 10:39, canquan.shen wrote:
+> We run Linux as a guest in Xen environment. When used xen tools
+> (xm vcpu-set <n>) to hot add and remove vcpu to and from the guest,
+> we encountered the failure on vcpu removal. We found the reason is
+> that it didn't go to really remove cpu in the cpu removal code path.
+>
+> This patch adds acpi_bus_trim in acpi_process_hotplug_notify to fix
+> this issue. With this patch, it works fine for us.
+>
+> Signed-off-by: Canquan Shen <shencanquan@huawei.com>
+> ---
+> drivers/acpi/processor_driver.c | 5 +++++
+> 1 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/acpi/processor_driver.c
+> b/drivers/acpi/processor_driver.c
+> index a1c564f..114592f 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -678,7 +678,11 @@ static void
+> acpi_processor_hotplug_notify(acpi_handle handle,
+> return;
+> }
+>
+> + if (acpi_bus_trim(device, 1)) {
+> + printk(KERN_ERR PREFIX
+> + "Removing device failed\n");
+> + return;
+> + }
+> break;
+> default:
+> ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 
-The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
+Hi Len,
+     I just see your email in linux-kernel maillist and known that your 
+kernel.org email is kaput, so I resend this email to your intel email 
+address.
 
-  Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
-
-are available in the git repository at:
-  https://github.com/lenb/linux.git acpi
-
-Nothing Earth-shattering here, but also no reason to wait for 3.2.
-
-With kernel.org down, this is my 1st attempt to use github.com --
-let me know if you have any troubles with it.
-Also, my email on kernel.org is kaput, so I'm looking for a new e-mail
-flow for handling patches.  I'm open to recommendations.
-
-thanks,
--Len
-
-
-Bjorn Helgaas (1):
-      PNP: update pnp.debug usage (needs value on command line)
-
-Chen Gong (1):
-      ACPI APEI: Add Kconfig option IRQ_WORK for GHES
-
-Len Brown (2):
-      acpica: ACPI_MAX_SLEEP should be 2 sec, not 20
-      Merge branches 'apei', 'bz-13195' and 'doc' into acpi
-
-Matthew Garrett (1):
-      APEI: Fix WHEA _OSC call
-
- Documentation/kernel-parameters.txt |    9 ++++++---
- drivers/acpi/acpica/acconfig.h      |    2 +-
- drivers/acpi/apei/Kconfig           |    1 +
- drivers/acpi/apei/apei-base.c       |    2 +-
- 4 files changed, 9 insertions(+), 5 deletions(-)
-
+Thanks,
+- Canquan Shen
