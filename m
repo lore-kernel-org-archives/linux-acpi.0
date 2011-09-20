@@ -1,138 +1,25 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/8] ACPI, APEI, EINJ, Fix resource conflict on some machine
-Date: Tue, 20 Sep 2011 10:58:46 +0800
-Message-ID: <4E780166.6070208@linux.intel.com>
-References: <1316482741-21799-1-git-send-email-ying.huang@intel.com> <1316482741-21799-6-git-send-email-ying.huang@intel.com>
+From: Lee Shing <admin@orile.org>
+Subject: Greetings
+Date: Tue, 20 Sep 2011 04:54:39 +0100
+Message-ID: <fdcb98cd-eeb2-423f-9f7f-425e7637a138@AUSP01MHUB05.collaborationhost.net>
+Reply-To: <leeshing@yahoo.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14210 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752959Ab1ITC6t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Sep 2011 22:58:49 -0400
-In-Reply-To: <1316482741-21799-6-git-send-email-ying.huang@intel.com>
+Received: from mail132.messagelabs.com ([216.82.242.115]:40866 "EHLO
+	mail132.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754124Ab1ITDzA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2011 23:55:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 
-=E4=BA=8E 2011/9/20 9:38, Huang Ying =E5=86=99=E9=81=93:
-> Some APEI firmware implementation will access injected address
-> specified in param1 to trigger the error when injecting memory error.
-> This will cause resource conflict with RAM.
->
-> On one of our testing machine, if injecting at memory address
-> 0x10000000, the following error will be reported in dmesg:
->
->    APEI: Can not request iomem region<0000000010000000-00000000100000=
-08>  for GARs.
->
-> This patch removes the injecting memory address range from trigger
-> table resources to avoid conflict.
->
-> Signed-off-by: Huang Ying<ying.huang@intel.com>
-> Tested-by: Tony Luck<tony.luck@intel.com>
-> ---
->   drivers/acpi/apei/apei-base.c     |   11 +++++++++++
->   drivers/acpi/apei/apei-internal.h |    3 +++
->   drivers/acpi/apei/einj.c          |   24 ++++++++++++++++++++++--
->   3 files changed, 36 insertions(+), 2 deletions(-)
->
-> --- a/drivers/acpi/apei/apei-base.c
-> +++ b/drivers/acpi/apei/apei-base.c
-> @@ -421,6 +421,17 @@ static int apei_resources_merge(struct a
->   	return 0;
->   }
->
-> +int apei_resources_add(struct apei_resources *resources,
-> +		       unsigned long start, unsigned long size,
-> +		       bool iomem)
-> +{
-> +	if (iomem)
-> +		return apei_res_add(&resources->iomem, start, size);
-> +	else
-> +		return apei_res_add(&resources->ioport, start, size);
-> +}
-> +EXPORT_SYMBOL_GPL(apei_resources_add);
-> +
->   /*
->    * EINJ has two groups of GARs (EINJ table entry and trigger table
->    * entry), so common resources are subtracted from the trigger tabl=
-e
-> --- a/drivers/acpi/apei/apei-internal.h
-> +++ b/drivers/acpi/apei/apei-internal.h
-> @@ -95,6 +95,9 @@ static inline void apei_resources_init(s
->   }
->
->   void apei_resources_fini(struct apei_resources *resources);
-> +int apei_resources_add(struct apei_resources *resources,
-> +		       unsigned long start, unsigned long size,
-> +		       bool iomem);
->   int apei_resources_sub(struct apei_resources *resources1,
->   		       struct apei_resources *resources2);
->   int apei_resources_request(struct apei_resources *resources,
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -195,7 +195,8 @@ static int einj_check_trigger_header(str
->   }
->
->   /* Execute instructions in trigger error action table */
-> -static int __einj_error_trigger(u64 trigger_paddr)
-> +static int __einj_error_trigger(u64 trigger_paddr, u32 type,
-> +				u64 param1, u64 param2)
->   {
->   	struct acpi_einj_trigger *trigger_tab =3D NULL;
->   	struct apei_exec_context trigger_ctx;
-> @@ -256,6 +257,25 @@ static int __einj_error_trigger(u64 trig
->   	rc =3D apei_resources_sub(&trigger_resources,&einj_resources);
->   	if (rc)
->   		goto out_fini;
-> +	/*
-> +	 * Some firmware will access target address specified in
-> +	 * param1 to trigger the error when injecting memory error.
-> +	 * This will cause resource conflict with regular memory.  So
-> +	 * remove it from trigger table resources.
-> +	 */
-> +	if (param_extension&&  (type&  0x0038)&&  param2) {
-> +		struct apei_resources addr_resources;
-> +		apei_resources_init(&addr_resources);
-> +		rc =3D apei_resources_add(&addr_resources,
-> +					param1&  param2,
-> +					~param2 + 1, true);
-> +		if (rc)
-> +			goto out_fini;
-> +		rc =3D apei_resources_sub(&trigger_resources,&addr_resources);
-> +		apei_resources_fini(&addr_resources);
-> +		if (rc)
-> +			goto out_fini;
-> +	}
->   	rc =3D apei_resources_request(&trigger_resources, "APEI EINJ Trigg=
-er");
->   	if (rc)
->   		goto out_fini;
-> @@ -325,7 +345,7 @@ static int __einj_error_inject(u32 type,
->   	if (rc)
->   		return rc;
->   	trigger_paddr =3D apei_exec_ctx_get_output(&ctx);
-> -	rc =3D __einj_error_trigger(trigger_paddr);
-> +	rc =3D __einj_error_trigger(trigger_paddr, type, param1, param2);
->   	if (rc)
->   		return rc;
->   	rc =3D apei_exec_run_optional(&ctx, ACPI_EINJ_END_OPERATION);
-> --
-Hi, Ying
+Greetings,
 
-Would you please add Hui's patch
-(http://marc.info/?l=3Dlinux-acpi&m=3D131616383227196&w=3D2) between pa=
-tch 5=20
-and patch 6?
+I am Mr. Lee Shing, Principal Assurance manager for the Nanyang Commercial Bank of China. An investment was placed under my management eight years ago by a customer who is now deceased. I need your
+assistance in investing these funds. If you're interested contact me via my private email   lshing1515@yahoo.com.hk
 
-Thx a lot!
+If you're not interested in my offer do not respond to this email.Awaiting your urgent reply.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks and my regards,
+Lee Shing
