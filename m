@@ -1,74 +1,66 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 2/8] ACPI, APEI, Remove table not found message
-Date: Tue, 20 Sep 2011 09:38:55 +0800
-Message-ID: <1316482741-21799-3-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 8/8] ACPI, APEI, GHES, Distinguish interleaved error report in kernel log
+Date: Tue, 20 Sep 2011 09:39:01 +0800
+Message-ID: <1316482741-21799-9-git-send-email-ying.huang@intel.com>
 References: <1316482741-21799-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52041 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752826Ab1ITBjH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Sep 2011 21:39:07 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1316482741-21799-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Because APEI tables are optional, these message may confuse users, for
-example,
+In most cases, printk only guarantees messages from different printk
+calling will not be interleaved between each other.  But, one APEI
+GHES hardware error report will involve multiple printk calling,
+normally each for one line.  So it is possible that the hardware error
+report comes from different generic hardware error source will be
+interleaved.
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/599715
+In this patch, a sequence number is prefixed to each line of error
+report.  So that, even if they are interleaved, they still can be
+distinguished by the prefixed sequence number.
 
-Reported-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/einj.c |    5 ++---
- drivers/acpi/apei/erst.c |    5 ++---
- drivers/acpi/apei/hest.c |    5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/acpi/apei/ghes.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -466,10 +466,9 @@ static int __init einj_init(void)
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -505,16 +505,22 @@ static void __ghes_print_estatus(const c
+ 				 const struct acpi_hest_generic *generic,
+ 				 const struct acpi_hest_generic_status *estatus)
+ {
++	static atomic_t seqno;
++	int curr_seqno;
++	char pfx_seq[64];
++
+ 	if (pfx == NULL) {
+ 		if (ghes_severity(estatus->error_severity) <=
+ 		    GHES_SEV_CORRECTED)
+-			pfx = KERN_WARNING HW_ERR;
++			pfx = KERN_WARNING;
+ 		else
+-			pfx = KERN_ERR HW_ERR;
++			pfx = KERN_ERR;
+ 	}
++	curr_seqno = atomic_inc_return(&seqno);
++	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%d}" HW_ERR, pfx, curr_seqno);
+ 	printk("%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
+-	       pfx, generic->header.source_id);
+-	apei_estatus_print(pfx, estatus);
++	       pfx_seq, generic->header.source_id);
++	apei_estatus_print(pfx_seq, estatus);
+ }
  
- 	status = acpi_get_table(ACPI_SIG_EINJ, 0,
- 				(struct acpi_table_header **)&einj_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(EINJ_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		return -ENODEV;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(EINJ_PFX "Failed to get table, %s\n", msg);
- 		return -EINVAL;
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -1110,10 +1110,9 @@ static int __init erst_init(void)
+ static int ghes_print_estatus(const char *pfx,
+@@ -801,7 +807,7 @@ static int ghes_notify_nmi(struct notifi
  
- 	status = acpi_get_table(ACPI_SIG_ERST, 0,
- 				(struct acpi_table_header **)&erst_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(ERST_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(ERST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -221,10 +221,9 @@ void __init acpi_hest_init(void)
- 
- 	status = acpi_get_table(ACPI_SIG_HEST, 0,
- 				(struct acpi_table_header **)&hest_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(HEST_PFX "Table not found.\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
+ 	if (sev_global >= GHES_SEV_PANIC) {
+ 		oops_begin();
+-		__ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global->generic,
++		__ghes_print_estatus(KERN_EMERG, ghes_global->generic,
+ 				     ghes_global->estatus);
+ 		/* reboot to log the error! */
+ 		if (panic_timeout == 0)
