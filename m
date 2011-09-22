@@ -1,80 +1,43 @@
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject: Re: [PATCH] acpi: Fix possible recursive locking in hwregs.c
-Date: Thu, 22 Sep 2011 11:14:49 +0600
-Message-ID: <CADZ9YHjheS-j9kLDjCe3LrxLOOJ24ZSGDCgMukPShorJRQzwNQ@mail.gmail.com>
-References: <1316628589.7341.11.camel@localhost.localdomain>
-	<CAF1ivSbZf5zgJphyaLeUZfSgz-oPvAY0bG6V2OMeWPS60nsxxQ@mail.gmail.com>
-	<CADZ9YHhk0idJ6DQOfGmHJtY2RrHyk=D_m-wcOgN1rPp7_ommBg@mail.gmail.com>
-	<1316665687.9107.10.camel@minggr>
+From: Bogdan Radulescu <bogdan@nimblex.net>
+Subject: ACPI / PM: Blacklist Vaio VGN-FW520F machine known to require acpi_sleep=nonvs
+Date: Thu, 22 Sep 2011 08:55:45 +0300
+Message-ID: <CAKu+J91Apx2YWfYC=u=kZ_dD9jSvtHvPg1UgxUPiJeBchh-YRQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:38504 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721Ab1IVFOu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2011 01:14:50 -0400
-In-Reply-To: <1316665687.9107.10.camel@minggr>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:36004 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964Ab1IVFzu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2011 01:55:50 -0400
+Received: by qyk7 with SMTP id 7so2457266qyk.19
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Sep 2011 22:55:45 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-On Thu, Sep 22, 2011 at 10:28 AM, Lin Ming <ming.m.lin@intel.com> wrote=
-:
-> On Thu, 2011-09-22 at 11:35 +0800, Rakib Mullick wrote:
->> On Thu, Sep 22, 2011 at 6:59 AM, Lin Ming <ming.m.lin@intel.com> wro=
-te:
->> > On Thu, Sep 22, 2011 at 2:09 AM, Rakib Mullick <rakib.mullick@gmai=
-l.com> wrote:
->> >> Calling pm-suspend might trigger a recursive lock in it's code pa=
-th. In function acpi_hw_clear_acpi_status,
->> >> acpi_os_release_lock holds the lock acpi_gbl_hardware_lock before=
- calling acpi_hw_register_write(), then
->> >> without releasing acpi_gbl_hardware_lock, this function calls acp=
-i_ev_walk_gpe_list, which also tries to
->> >> hold acpi_gbl_hardware_lock and thus causes possible recursive lo=
-ck.
->> >
->> > No, acpi_ev_walk_gpe_list holds acpi_gbl_gpe_lock.
->> >
->> Yes, right. Actually, acpi_os_release_lock() tries to hold
->> acpi_gbl_gpe_lock without releasing acpi_gbl_hardware_lock. Right?
->
-> Do you mean "acpi_ev_walk_gpe_list() tries to hold
-> acpi_gbl_gpe_lock..."?
->
-I wanted to mean, acpi_os_acquire_lock() tries to hold
-acpi_gbl_gpe_lock without releasing acpi_gbl_hardware_lock.  Actually,
-this recursive locking scenario showed up on my modified kernel and
-fails to suspend. But, never happened on mainline kernel. Looking at
-the warning it seems to me that, it's safe to release the
-acpi_gbl_hardware_lock before calling acpi_ev_walk_gpe_list() and also
-solves the problem. Calling acpi_ev_walk_gpe_list() doesn't require
-acpi_gbl_hardware_lock to be held. This is the reason behind the
-patch.
+Sony Vaio VGN-FW520F does not resume correctly without
+acpi_sleep=nonvs, so add it to the ACPI sleep blacklist.
+References: https://bugzilla.kernel.org/show_bug.cgi?id=16396#c86
 
-> We have below locks sequence. I don't see the problem.
->
-> acpi_hw_clear_acpi_status:
->
-> =A0 =A0 <acquire acpi_gbl_hardware_lock>
->
-> =A0 =A0 =A0 =A0 acpi_ev_walk_gpe_list:
-> =A0 =A0 =A0 =A0 =A0 =A0 <acquire acpi_gbl_gpe_lock>
-> =A0 =A0 =A0 =A0 =A0 =A0 ...
-> =A0 =A0 =A0 =A0 =A0 =A0 <release acpi_gbl_gpe_lock>
-> =A0 =A0 =A0 =A0 ...
-> =A0 =A0 <release acpi_gbl_hardware_lock>
->
->>
->> Thanks,
->> Rakib
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Bogdan Radulescu <bogdan@nimblex.net>
+
+---
+--- sleep.c.orig        2011-09-21 08:36:08.000000000 +0300
++++ sleep.c     2011-09-21 08:40:23.000000000 +0300
+@@ -428,6 +428,14 @@ static struct dmi_system_id __initdata a
+               DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
+               },
+       },
++       {
++       .callback = init_nvs_nosave,
++       .ident = "Sony Vaio VGN-FW520F",
++       .matches = {
++               DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++               DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
++               },
++       },
+       {},
+ };
+ #endif /* CONFIG_SUSPEND */
+---
