@@ -1,55 +1,80 @@
-From: Lin Ming <ming.m.lin@intel.com>
+From: Rakib Mullick <rakib.mullick@gmail.com>
 Subject: Re: [PATCH] acpi: Fix possible recursive locking in hwregs.c
-Date: Thu, 22 Sep 2011 12:28:07 +0800
-Message-ID: <1316665687.9107.10.camel@minggr>
+Date: Thu, 22 Sep 2011 11:14:49 +0600
+Message-ID: <CADZ9YHjheS-j9kLDjCe3LrxLOOJ24ZSGDCgMukPShorJRQzwNQ@mail.gmail.com>
 References: <1316628589.7341.11.camel@localhost.localdomain>
-	 <CAF1ivSbZf5zgJphyaLeUZfSgz-oPvAY0bG6V2OMeWPS60nsxxQ@mail.gmail.com>
-	 <CADZ9YHhk0idJ6DQOfGmHJtY2RrHyk=D_m-wcOgN1rPp7_ommBg@mail.gmail.com>
+	<CAF1ivSbZf5zgJphyaLeUZfSgz-oPvAY0bG6V2OMeWPS60nsxxQ@mail.gmail.com>
+	<CADZ9YHhk0idJ6DQOfGmHJtY2RrHyk=D_m-wcOgN1rPp7_ommBg@mail.gmail.com>
+	<1316665687.9107.10.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:2902 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751265Ab1IVE2J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Sep 2011 00:28:09 -0400
-In-Reply-To: <CADZ9YHhk0idJ6DQOfGmHJtY2RrHyk=D_m-wcOgN1rPp7_ommBg@mail.gmail.com>
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:38504 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721Ab1IVFOu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Sep 2011 01:14:50 -0400
+In-Reply-To: <1316665687.9107.10.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rakib Mullick <rakib.mullick@gmail.com>
+To: Lin Ming <ming.m.lin@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thu, 2011-09-22 at 11:35 +0800, Rakib Mullick wrote:
-> On Thu, Sep 22, 2011 at 6:59 AM, Lin Ming <ming.m.lin@intel.com> wrote:
-> > On Thu, Sep 22, 2011 at 2:09 AM, Rakib Mullick <rakib.mullick@gmail.com> wrote:
-> >> Calling pm-suspend might trigger a recursive lock in it's code path. In function acpi_hw_clear_acpi_status,
-> >> acpi_os_release_lock holds the lock acpi_gbl_hardware_lock before calling acpi_hw_register_write(), then
-> >> without releasing acpi_gbl_hardware_lock, this function calls acpi_ev_walk_gpe_list, which also tries to
-> >> hold acpi_gbl_hardware_lock and thus causes possible recursive lock.
-> >
-> > No, acpi_ev_walk_gpe_list holds acpi_gbl_gpe_lock.
-> >
-> Yes, right. Actually, acpi_os_release_lock() tries to hold
-> acpi_gbl_gpe_lock without releasing acpi_gbl_hardware_lock. Right?
+On Thu, Sep 22, 2011 at 10:28 AM, Lin Ming <ming.m.lin@intel.com> wrote=
+:
+> On Thu, 2011-09-22 at 11:35 +0800, Rakib Mullick wrote:
+>> On Thu, Sep 22, 2011 at 6:59 AM, Lin Ming <ming.m.lin@intel.com> wro=
+te:
+>> > On Thu, Sep 22, 2011 at 2:09 AM, Rakib Mullick <rakib.mullick@gmai=
+l.com> wrote:
+>> >> Calling pm-suspend might trigger a recursive lock in it's code pa=
+th. In function acpi_hw_clear_acpi_status,
+>> >> acpi_os_release_lock holds the lock acpi_gbl_hardware_lock before=
+ calling acpi_hw_register_write(), then
+>> >> without releasing acpi_gbl_hardware_lock, this function calls acp=
+i_ev_walk_gpe_list, which also tries to
+>> >> hold acpi_gbl_hardware_lock and thus causes possible recursive lo=
+ck.
+>> >
+>> > No, acpi_ev_walk_gpe_list holds acpi_gbl_gpe_lock.
+>> >
+>> Yes, right. Actually, acpi_os_release_lock() tries to hold
+>> acpi_gbl_gpe_lock without releasing acpi_gbl_hardware_lock. Right?
+>
+> Do you mean "acpi_ev_walk_gpe_list() tries to hold
+> acpi_gbl_gpe_lock..."?
+>
+I wanted to mean, acpi_os_acquire_lock() tries to hold
+acpi_gbl_gpe_lock without releasing acpi_gbl_hardware_lock.  Actually,
+this recursive locking scenario showed up on my modified kernel and
+fails to suspend. But, never happened on mainline kernel. Looking at
+the warning it seems to me that, it's safe to release the
+acpi_gbl_hardware_lock before calling acpi_ev_walk_gpe_list() and also
+solves the problem. Calling acpi_ev_walk_gpe_list() doesn't require
+acpi_gbl_hardware_lock to be held. This is the reason behind the
+patch.
 
-Do you mean "acpi_ev_walk_gpe_list() tries to hold
-acpi_gbl_gpe_lock..."?
-
-We have below locks sequence. I don't see the problem.
-
-acpi_hw_clear_acpi_status:
-
-     <acquire acpi_gbl_hardware_lock>
-
-         acpi_ev_walk_gpe_list:
-             <acquire acpi_gbl_gpe_lock>
-             ...
-             <release acpi_gbl_gpe_lock>
-         ...
-     <release acpi_gbl_hardware_lock>
-
-> 
-> Thanks,
-> Rakib
-
-
+> We have below locks sequence. I don't see the problem.
+>
+> acpi_hw_clear_acpi_status:
+>
+> =A0 =A0 <acquire acpi_gbl_hardware_lock>
+>
+> =A0 =A0 =A0 =A0 acpi_ev_walk_gpe_list:
+> =A0 =A0 =A0 =A0 =A0 =A0 <acquire acpi_gbl_gpe_lock>
+> =A0 =A0 =A0 =A0 =A0 =A0 ...
+> =A0 =A0 =A0 =A0 =A0 =A0 <release acpi_gbl_gpe_lock>
+> =A0 =A0 =A0 =A0 ...
+> =A0 =A0 <release acpi_gbl_hardware_lock>
+>
+>>
+>> Thanks,
+>> Rakib
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
