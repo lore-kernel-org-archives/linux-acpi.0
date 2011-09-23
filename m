@@ -1,129 +1,50 @@
-From: Bernd Schubert <bernd.schubert@itwm.fraunhofer.de>
-Subject: Re: [3.1-rc6] kmalloc(64) leak from IDE
-Date: Fri, 23 Sep 2011 19:49:04 +0200
-Message-ID: <4E7CC690.20700@itwm.fraunhofer.de>
-References: <20110922072643.GA27232@hostway.ca> <20110922084811.GC17640@liondog.tnic> <20110922202337.GB32661@hostway.ca> <20110923072118.GA13293@liondog.tnic> <j5iab7$j8m$1@dough.gmane.org> <CAErSpo4H9_Fwyic9crHTGwWaDk5bevK7r6pTb+tpMFxHZ2MajQ@mail.gmail.com> <4E7CB522.6080208@itwm.fraunhofer.de> <CAErSpo5xK8iExuaNdHejRBjVYEXAjbyJ8V0FGZA0QUA8LB-wFA@mail.gmail.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH] ACPI: Fix CONFIG_ACPI_DOCK=n compiler warning
+Date: Fri, 23 Sep 2011 19:58:55 +0200
+Message-ID: <201109231958.55067.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5xK8iExuaNdHejRBjVYEXAjbyJ8V0FGZA0QUA8LB-wFA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, Vasiliy Kulikov <segoon@openwall.com>, Jeff Garzik <jgarzik@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/23/2011 06:40 PM, Bjorn Helgaas wrote:
-> On Fri, Sep 23, 2011 at 10:34 AM, Bernd Schubert
-> <bernd.schubert@itwm.fraunhofer.de>  wrote:
->> On 09/23/2011 06:08 PM, Bjorn Helgaas wrote:
->>>
->>> On Fri, Sep 23, 2011 at 9:58 AM, Bernd Schubert
->>> <bernd.schubert@itwm.fraunhofer.de>    wrote:
->>>>
->>>> On 09/23/2011 09:21 AM, Borislav Petkov wrote:
->>>>>
->>>>> On Thu, Sep 22, 2011 at 01:23:37PM -0700, Simon Kirby wrote:
->>>>>>
->>>>>> Yes, that seems to have made it stop complaining about the IDE path.
->>>>>
->>>>> Good, thanks for testing. It would be great if you left it running for
->>>>> a couple of days like this to see whether there aren't any other issues
->>>>> with the patch. I'll send it with a proper description to Dave soonish
->>>>> since this is a real bug.
->>>>>
->>>>>> All I see from kmemleak now is:
->>>>>
->>>>> Yep, not IDE-related. Adding linux-acpi.
->>>>
->>>>
->>>>>
->>>>>> unreferenced object 0xe7481a00 (size 256):
->>>>>>    comm "swapper", pid 1, jiffies 4294892509 (age 515.560s)
->>>>>>    hex dump (first 32 bytes):
->>>>>>      00 00 00 28 ff ff ef ff 60 78 4e e7 00 02 00 00  ...(....`xN.....
->>>>>>      47 01 f8 0c f8 0c 01 08 00 00 00 00 0c 03 00 00  G...............
->>>>>>    backtrace:
->>>>>>      [<c1495c47>] kmemleak_alloc+0x27/0x50
->>>>>>      [<c10b3563>] __kmalloc+0xf3/0x1c0
->>>>>>      [<c149e0b0>] pci_acpi_scan_root+0x11e/0x272
->>>>>>      [<c149916b>] acpi_pci_root_add+0x163/0x256
->>>>>>      [<c12adddc>] acpi_device_probe+0x3a/0xf4
->>>>>>      [<c1302e38>] driver_probe_device+0x68/0x160
->>>>>>      [<c1302fb9>] __driver_attach+0x89/0x90
->>>>>>      [<c1302718>] bus_for_each_dev+0x48/0x70
->>>>>>      [<c1302cc9>] driver_attach+0x19/0x20
->>>>>>      [<c130213f>] bus_add_driver+0x17f/0x240
->>>>>>      [<c1303345>] driver_register+0x65/0x120
->>>>>>      [<c12af273>] acpi_bus_register_driver+0x3a/0x3f
->>>>>>      [<c16d421f>] acpi_pci_root_init+0x1b/0x2a
->>>>>>      [<c1001030>] do_one_initcall+0x30/0x160
->>>>>>      [<c16b920b>] kernel_init+0x78/0x10c
->>>>>>      [<c14a1b76>] kernel_thread_helper+0x6/0xd
->>>>>> unreferenced object 0xe74e7860 (size 16):
->>>>>>    comm "swapper", pid 1, jiffies 4294892509 (age 515.560s)
->>>>>>    hex dump (first 16 bytes):
->>>>>>      50 43 49 20 42 75 73 20 30 30 30 30 3a 30 30 00  PCI Bus 0000:00.
->>>>>>    backtrace:
->>>>>>      [<c1495c47>] kmemleak_alloc+0x27/0x50
->>>>>>      [<c10b3563>] __kmalloc+0xf3/0x1c0
->>>>>>      [<c1290cce>] kvasprintf+0x2e/0x50
->>>>>>      [<c1290d01>] kasprintf+0x11/0x20
->>>>>>      [<c149e0da>] pci_acpi_scan_root+0x148/0x272
->>>>>>      [<c149916b>] acpi_pci_root_add+0x163/0x256
->>>>>>      [<c12adddc>] acpi_device_probe+0x3a/0xf4
->>>>>>      [<c1302e38>] driver_probe_device+0x68/0x160
->>>>>>      [<c1302fb9>] __driver_attach+0x89/0x90
->>>>>>      [<c1302718>] bus_for_each_dev+0x48/0x70
->>>>>>      [<c1302cc9>] driver_attach+0x19/0x20
->>>>>>      [<c130213f>] bus_add_driver+0x17f/0x240
->>>>>>      [<c1303345>] driver_register+0x65/0x120
->>>>>>      [<c12af273>] acpi_bus_register_driver+0x3a/0x3f
->>>>>>      [<c16d421f>] acpi_pci_root_init+0x1b/0x2a
->>>>>>      [<c1001030>] do_one_initcall+0x30/0x160
->>>>>>
->>>>>> ...which is probably a separate, non-recurring leak.
->>>>>>
->>>>>>> Also, I'm sure you know IDE is deprecated, so what are the chances of
->>>>>>> moving this box to libata? Also, can you send me your .config pls?
->>>>>>
->>>>>> Yeah, I was going to get around to that eventually. :) Config (and
->>>>>> earlier kmemleak output) here: http://0x.ca/sim/ref/3.1-rc6-blue/
->>>>>
->>>>> Ok, thanks.
->>>>>
->>>>
->>>> I think I reported those already some time ago:
->>>>
->>>> https://lkml.org/lkml/2011/6/21/95
->>>
->>> Rats.  And you even posted a patch
->>> (https://lkml.org/lkml/2011/6/21/132).  I was cc'd, but unfortunately
->>> to an old email address that no longer works.  I'll follow up on it
->>> and make sure it's fixed (probably in 3.2 since it's minor and we're
->>> so late in 3.1).
->>
->> Ah great, I thought you are simply too busy to look into it. We are all just
->> changing our mail addresses too often :)
->>
->> Do you mind if I ping you directly once kernel.org is up again? We have a
->> few test systems here, that fail to boot with recent kernels (just a system
->> hard reset). The issue was introduced in between 2.6.27 and 2.6.32 and it is
->> pci mmconfig related, probably due to a troublesome acpi bios. I filled a
->> bugzilla some time ago and never got a responds on it. But I also need to
->> update it with my latest finding...
->
-> Please do, and you don't need to wait for kernel.org to come back
-> (though it'd be good to include any bugzilla URLs if you know them).
-> Just email me and copy linux-pci (since it seems PCI
-> MMCONFIG-related), and we can try to make some progress.  It's very
-> important to fix regressions as quickly as possible.
+Recently the ACPI ops structs were constified but the inline version
+of register_hotplug_dock_device() was overlooked (see also commit
+9c8b04be443b33939f374a811c82abeebe0a61d1, June 25 2011). Update
+the inline function register_hotplug_dock_device() that is
+enabled with CONFIG_ACPI_DOCK=n too. This patch fixes at
+least the following compiler warnings:
 
-Hmm, I tried to analyze it already and I don't have the text and 
-attachments I sent to the bugzilla ready on my disk to send it again. So 
-it would be really good if we could wait just a little bit longer (I 
-posted it several months ago already). I also found some kind of 
-workaround for us and need the systems right now for our own development...
+drivers/ata/libata-acpi.c: In function .ata_acpi_associate.:
+drivers/ata/libata-acpi.c:266:11: warning: passing argument 2 of .register_hotplug_dock_device. discards qualifiers from pointer target type
+include/acpi/acpi_drivers.h:146:19: note: expected .struct acpi_dock_ops *. but argument is of type .const struct acpi_dock_ops *.
+drivers/ata/libata-acpi.c:275:11: warning: passing argument 2 of .register_hotplug_dock_device. discards qualifiers from pointer target type
+include/acpi/acpi_drivers.h:146:19: note: expected .struct acpi_dock_ops *. but argument is of type .const struct acpi_dock_ops *.
 
+Cc: Len Brown <len.brown@intel.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: <stable@kernel.org>
+---
+ include/acpi/acpi_drivers.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks,
-Bernd
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index e49c36d..bb145e4 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -144,7 +144,7 @@ static inline void unregister_dock_notifier(struct notifier_block *nb)
+ {
+ }
+ static inline int register_hotplug_dock_device(acpi_handle handle,
+-					       struct acpi_dock_ops *ops,
++					       const struct acpi_dock_ops *ops,
+ 					       void *context)
+ {
+ 	return -ENODEV;
+-- 
+1.7.3.4
