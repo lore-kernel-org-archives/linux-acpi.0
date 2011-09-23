@@ -1,96 +1,43 @@
-From: "canquan.shen" <shencanquan@huawei.com>
-Subject: [PATCH v5] acpi: Fix CPU hot removal problem
-Date: Sat, 24 Sep 2011 14:10:48 +0800
-Message-ID: <4E7D7468.4040506@huawei.com>
+From: Webmaster <noreply@mypowergard.com>
+Subject: Request for confirmation
+Date: Thu, 22 Sep 2011 21:34:07 -0500
+Message-ID: <281104f3785c53c01ba1d2b11dc8e3dc@www.mypowergard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([119.145.14.67]:49181 "EHLO
-	szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047Ab1IXGLC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Sep 2011 02:11:02 -0400
+Received: from server1.krapf.net ([66.225.198.40]:50292 "EHLO
+	charlie.backupcentral.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350Ab1IXMrv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Sep 2011 08:47:51 -0400
+Received: from mypowerg by server1.krapf.net with local (Exim 4.69)
+	(envelope-from <mypowerg@server1.krapf.net>)
+	id 1R6vaZ-0006TX-JZ
+	for linux-acpi@vger.kernel.org; Thu, 22 Sep 2011 21:34:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
+To: linux-acpi@vger.kernel.org
 
-We run linux as a guest in Xen environment. When we used the xen tools
-(xm vcpu-set <n>) to hot add and remove vcpu to and from the guest, we
-encountered the failure on vcpu removal. We found the reason is that it
-did't go to really remove cpu in the cpu removal code path.
+  In effort to consolidate and keep our mailing list current and accurate
+we are asking that you confirm that you want to be included in this
+newsletter.
 
-This patch adds acpi_bus_hot_remove_device in acpi_process_hotplug_notify to
-fix this issue. With this patch, it works fine for us.
+Please confirm you would like to be on following newsletters:
+  
+    * MyPowergard.com
 
-Signed-off-by: Canquan Shen <shencanquan@huawei.com>
----
-  drivers/acpi/processor_driver.c |   13 +------------
-  drivers/acpi/scan.c             |    4 ++--
-  include/acpi/acpi_bus.h         |    1 +
-  3 files changed, 4 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c 
-b/drivers/acpi/processor_driver.c
-index a4e0f1b..8429688 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -665,18 +665,7 @@ static void 
-acpi_processor_hotplug_notify(acpi_handle handle,
-  	case ACPI_NOTIFY_EJECT_REQUEST:
-  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-  				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
--
--		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX
--				    "Device don't exist, dropping EJECT\n");
--			break;
--		}
--		pr = acpi_driver_data(device);
--		if (!pr) {
--			printk(KERN_ERR PREFIX
--				    "Driver data is NULL, dropping EJECT\n");
--			return;
--		}
-+		acpi_bus_hot_remove_device(handle);
-  		break;
-  	default:
-  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 449c556..6dfb4a7 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, struct 
-device_attribute *attr, cha
-  }
-  static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+  If this is correct, please click the following link to confirm your
+subscription.
+  Without this confirmation, you will not receive any newsletters.
+  
+ 
+http://www.mypowergard.com/lists/?p=confirm&uid=852110b91d543cefbf1f84b25725517b
+  
+  If this is not correct, you do not need to do anything, simply delete
+this message.
 
--static void acpi_bus_hot_remove_device(void *context)
-+void acpi_bus_hot_remove_device(void *context)
-  {
-  	struct acpi_device *device;
-  	acpi_handle handle = context;
-@@ -129,7 +129,7 @@ static void acpi_bus_hot_remove_device(void *context)
-  	 * TBD: _EJD support.
-  	 */
-  	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
--	if (ACPI_FAILURE(status))
-+	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND))
-  		printk(KERN_WARNING PREFIX
-  				"Eject device failed\n");
-
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 6cd5b64..756e8d1 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -342,6 +342,7 @@ int acpi_match_device_ids(struct acpi_device *device,
-  			  const struct acpi_device_id *ids);
-  int acpi_create_dir(struct acpi_device *);
-  void acpi_remove_dir(struct acpi_device *);
-+void acpi_bus_hot_remove_device(void *context);
-
-  /*
-   * Bind physical devices with ACPI devices
--- 
-1.7.6.msysgit.0
+  Thank you
+  
+    
 
