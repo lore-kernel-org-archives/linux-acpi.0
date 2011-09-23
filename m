@@ -1,90 +1,126 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [3.1-rc6] kmalloc(64) leak from IDE
-Date: Fri, 23 Sep 2011 09:21:18 +0200
-Message-ID: <20110923072118.GA13293@liondog.tnic>
-References: <20110922072643.GA27232@hostway.ca>
- <20110922084811.GC17640@liondog.tnic>
- <20110922202337.GB32661@hostway.ca>
+From: "canquan.shen" <shencanquan@huawei.com>
+Subject: Re: [PATCH v4] acpi: Fix CPU hot removal problem
+Date: Fri, 23 Sep 2011 15:49:15 +0800
+Message-ID: <4E7C39FB.3050707@huawei.com>
+References: <4E714FAA.8060708@huawei.com>
+ <CAErSpo5gV7AspUQp7_JOFuY0c0YnFWxj2TKUX-r6-0dVkj5FPA@mail.gmail.com>
+ <CAErSpo71cC5=K7DXYs+aEnU2J91TX7ys8bpnUSmdob1dgdaBSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:57247 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751066Ab1IWHVY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Sep 2011 03:21:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20110922202337.GB32661@hostway.ca>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:48188 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab1IWHuH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Sep 2011 03:50:07 -0400
+In-reply-to: <CAErSpo71cC5=K7DXYs+aEnU2J91TX7ys8bpnUSmdob1dgdaBSg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Simon Kirby <sim@hostway.ca>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
 
-On Thu, Sep 22, 2011 at 01:23:37PM -0700, Simon Kirby wrote:
-> Yes, that seems to have made it stop complaining about the IDE path.
+On 2011/9/23 0:53, Bjorn Helgaas wrote:
+> On Wed, Sep 14, 2011 at 8:56 PM, Bjorn Helgaas<bhelgaas@google.com>  wrote:
+>> On Wed, Sep 14, 2011 at 7:06 PM, canquan.shen<shencanquan@huawei.com>  wrote:
+>>> We run linux as a guest in Xen environment. When we used the xen tools
+>>> (xm vcpu-set<n>) to hot add and remove vcpu to and from the guest, we
+>>> encountered the failure on vcpu removal. We found the reason is that it
+>>> didn't go to really remove cpu in the cpu removal code path.
+>>>
+>>> This patch adds acpi_bus_trim in acpi_process_hotplug_notify to fix this
+>>> issue. With this patch, it works fine for us.
+>>>
+>>> Signed-off-by:Canquan Shen<shencanquan@huawei.com>
+>>
+>> Reviewed-by: Bjorn Helgaas<bhelgaas@google.com>
+>
+> On second thought, let's think about this a bit more.
+>
+> As I mentioned before, I have a long-term goal to move the hotplug
+> flow out of drivers and into the ACPI core.  That will be easier if
+> the code in the drivers is as generic as possible.
+>
+> The dock and acpiphp hot-remove code calls acpi_bus_trim(), then
+> evaluates _EJ0.  The core acpi_bus_hot_remove_device() function
+> already does both acpi_bus_trim() and _EJ0.  This function is
+> currently only used when we write to sysfs "eject" files, but I wonder
+> if we should use it in acpi_processor_hotplug_notify() as well.
+>
+> That would get us one step closer to removing this gunk from the
+> drivers and having acpi_bus_notify() look something like this:
+>
+>      case ACPI_NOTIFY_EJECT_REQUEST:
+>          driver->ops.remove(device);
+>          acpi_bus_hot_remove_device(device);
+>          break;
+>
+> There is a description of a CPU hot-remove that does include _EJ0
+> methods in the "DIG64 Hot-Plug&  Partitioning Flows Specification"
+> [1], sec 2.2.4.  I know this document is Itanium-oriented, but this
+> part seems fairly generic and it's the only description of the process
+> I've seen so far.
+>
+> So would using acpi_bus_hot_remove_device() instead of acpi_bus_trim()
+> also solve your problem, Canquan?
+>
+Yes. It can solve my problem.
+I fully aggree to replace acpi_bus_hot_remove_device() to 
+acpi_bus_trim(). Initially I insert the acpi_bus_hot_remove_device() in 
+acpi_bus_notify function . lately I think I should give a chance for 
+user,and so send  KOBJ_OFFLINE message to the udvev module.
 
-Good, thanks for testing. It would be great if you left it running for
-a couple of days like this to see whether there aren't any other issues
-with the patch. I'll send it with a proper description to Dave soonish
-since this is a real bug.
+But why add the  driver->ops.remove(device) before 
+acpi_bus_hot_remove_device(device).  it can be called in 
+acpi_bus_hot_remove_device code path as bellowing:
+     acpi_bus_trim
+         acpi_bus_remove
+             device_release_driver
+		__device_release_driver
+			acpi_device_remove
+				acpi_drv->ops.remove
 
-> All I see from kmemleak now is:
+> Bjorn
+>
+> [1] http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
+>
+>>> ---
+>>>   drivers/acpi/processor_driver.c |    6 ++++++
+>>>   1 files changed, 6 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/processor_driver.c
+>>> b/drivers/acpi/processor_driver.c
+>>> index a4e0f1b..03d92d6 100644
+>>> --- a/drivers/acpi/processor_driver.c
+>>> +++ b/drivers/acpi/processor_driver.c
+>>> @@ -641,6 +641,7 @@ static void acpi_processor_hotplug_notify(acpi_handle
+>>> handle,
+>>>         struct acpi_processor *pr;
+>>>         struct acpi_device *device = NULL;
+>>>         int result;
+>>> +       u32 id;
+>>>
+>>>
+>>>         switch (event) {
+>>> @@ -677,6 +678,11 @@ static void acpi_processor_hotplug_notify(acpi_handle
+>>> handle,
+>>>                                     "Driver data is NULL, dropping EJECT\n");
+>>>                         return;
+>>>                 }
+>>> +               id = pr->id;
+>>> +               if (acpi_bus_trim(device, 1)) {
+>>> +                       printk(KERN_ERR  PREFIX
+>>> +                                   "Fail to Remove CPU %d\n", id);
+>>> +               }
+>>>                 break;
+>>>         default:
+>>>                 ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>>> --
+>>> 1.7.6.0
+>>>
+>>>
+>>
+>
+> .
+>
 
-Yep, not IDE-related. Adding linux-acpi.
 
-> unreferenced object 0xe7481a00 (size 256):
->   comm "swapper", pid 1, jiffies 4294892509 (age 515.560s)
->   hex dump (first 32 bytes):
->     00 00 00 28 ff ff ef ff 60 78 4e e7 00 02 00 00  ...(....`xN.....
->     47 01 f8 0c f8 0c 01 08 00 00 00 00 0c 03 00 00  G...............
->   backtrace:
->     [<c1495c47>] kmemleak_alloc+0x27/0x50
->     [<c10b3563>] __kmalloc+0xf3/0x1c0
->     [<c149e0b0>] pci_acpi_scan_root+0x11e/0x272
->     [<c149916b>] acpi_pci_root_add+0x163/0x256
->     [<c12adddc>] acpi_device_probe+0x3a/0xf4
->     [<c1302e38>] driver_probe_device+0x68/0x160
->     [<c1302fb9>] __driver_attach+0x89/0x90
->     [<c1302718>] bus_for_each_dev+0x48/0x70
->     [<c1302cc9>] driver_attach+0x19/0x20
->     [<c130213f>] bus_add_driver+0x17f/0x240
->     [<c1303345>] driver_register+0x65/0x120
->     [<c12af273>] acpi_bus_register_driver+0x3a/0x3f
->     [<c16d421f>] acpi_pci_root_init+0x1b/0x2a
->     [<c1001030>] do_one_initcall+0x30/0x160
->     [<c16b920b>] kernel_init+0x78/0x10c
->     [<c14a1b76>] kernel_thread_helper+0x6/0xd
-> unreferenced object 0xe74e7860 (size 16):
->   comm "swapper", pid 1, jiffies 4294892509 (age 515.560s)
->   hex dump (first 16 bytes):
->     50 43 49 20 42 75 73 20 30 30 30 30 3a 30 30 00  PCI Bus 0000:00.
->   backtrace:
->     [<c1495c47>] kmemleak_alloc+0x27/0x50
->     [<c10b3563>] __kmalloc+0xf3/0x1c0
->     [<c1290cce>] kvasprintf+0x2e/0x50
->     [<c1290d01>] kasprintf+0x11/0x20
->     [<c149e0da>] pci_acpi_scan_root+0x148/0x272
->     [<c149916b>] acpi_pci_root_add+0x163/0x256
->     [<c12adddc>] acpi_device_probe+0x3a/0xf4
->     [<c1302e38>] driver_probe_device+0x68/0x160
->     [<c1302fb9>] __driver_attach+0x89/0x90
->     [<c1302718>] bus_for_each_dev+0x48/0x70
->     [<c1302cc9>] driver_attach+0x19/0x20
->     [<c130213f>] bus_add_driver+0x17f/0x240
->     [<c1303345>] driver_register+0x65/0x120
->     [<c12af273>] acpi_bus_register_driver+0x3a/0x3f
->     [<c16d421f>] acpi_pci_root_init+0x1b/0x2a
->     [<c1001030>] do_one_initcall+0x30/0x160
-> 
-> ...which is probably a separate, non-recurring leak.
-> 
-> > Also, I'm sure you know IDE is deprecated, so what are the chances of
-> > moving this box to libata? Also, can you send me your .config pls?
-> 
-> Yeah, I was going to get around to that eventually. :) Config (and
-> earlier kmemleak output) here: http://0x.ca/sim/ref/3.1-rc6-blue/
-
-Ok, thanks.
-
--- 
-Regards/Gruss,
-    Boris.
