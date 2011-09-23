@@ -1,126 +1,100 @@
-From: "canquan.shen" <shencanquan@huawei.com>
-Subject: Re: [PATCH v4] acpi: Fix CPU hot removal problem
-Date: Fri, 23 Sep 2011 15:49:15 +0800
-Message-ID: <4E7C39FB.3050707@huawei.com>
-References: <4E714FAA.8060708@huawei.com>
- <CAErSpo5gV7AspUQp7_JOFuY0c0YnFWxj2TKUX-r6-0dVkj5FPA@mail.gmail.com>
- <CAErSpo71cC5=K7DXYs+aEnU2J91TX7ys8bpnUSmdob1dgdaBSg@mail.gmail.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpica events: Call acpi_os_hotplug_execute on Ejection
+ Requests
+Date: Fri, 23 Sep 2011 06:48:38 -0400
+Message-ID: <4E7C6406.1050300@redhat.com>
+References: <1316733417-22528-1-git-send-email-prarit@redhat.com> <CAErSpo70F012EEh3TEdgK=rSst-27P-j8JxMDkcUaJGd29BnDg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:48188 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab1IWHuH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Sep 2011 03:50:07 -0400
-In-reply-to: <CAErSpo71cC5=K7DXYs+aEnU2J91TX7ys8bpnUSmdob1dgdaBSg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:6695 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753141Ab1IWKsl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Sep 2011 06:48:41 -0400
+In-Reply-To: <CAErSpo70F012EEh3TEdgK=rSst-27P-j8JxMDkcUaJGd29BnDg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
+To: linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, mjg@redhat.com
 
-On 2011/9/23 0:53, Bjorn Helgaas wrote:
-> On Wed, Sep 14, 2011 at 8:56 PM, Bjorn Helgaas<bhelgaas@google.com>  wrote:
->> On Wed, Sep 14, 2011 at 7:06 PM, canquan.shen<shencanquan@huawei.com>  wrote:
->>> We run linux as a guest in Xen environment. When we used the xen tools
->>> (xm vcpu-set<n>) to hot add and remove vcpu to and from the guest, we
->>> encountered the failure on vcpu removal. We found the reason is that it
->>> didn't go to really remove cpu in the cpu removal code path.
->>>
->>> This patch adds acpi_bus_trim in acpi_process_hotplug_notify to fix this
->>> issue. With this patch, it works fine for us.
->>>
->>> Signed-off-by:Canquan Shen<shencanquan@huawei.com>
+
+
+On 09/22/2011 09:08 PM, Bjorn Helgaas wrote:
+
+>> The problem is that the event is placed on the wrong queue.  The code already
+>> contains a kacpi_hotplug_wq queue for hotplug events to be added to in order
+>> to prevent hangs like this.
+> 
+> Ugh.  I see the issue, and I see how this patch works around it.
+> 
+> But I don't really like it because we're adding complexity and (I
+> think) extending knowledge of the special hotplug queue into the CA,
+> when I don't think we should have added the hotplug queue in the first
+> place.
+> 
+> I think the main reason we need the hotplug queue (added in
+> c02256be79a) is that we have driver .remove() methods calling
+> acpi_os_wait_events_complete() via acpi_remove_notify_handler().
+
+Yup -- the documentation implies that's why it was added.
+
+> 
+> I would argue that drivers should not be using
+> acpi_remove_notify_handler() in the first place.  Adding/removing
+> notify handlers should be done by the ACPI core itself.  The acpiphp
+> notify handlers (handle_hotplug_event_bridge() and
+> handle_hotplug_event_func()) are for bus-level, device-independent
+> events that should be handled not by the driver, but by the ACPI core.
+> 
+> Obviously, the ACPI core doesn't have hotplug support today (it has
+> nice "TBDs" in the EJECT_REQUEST/DEVICE_CHECK cases), so I guess all I
+> can do is complain without proposing a good alternative.  I hate that,
+> sorry :)
+
+:)  It's okay ... I understand what you're saying.  It would be a
+significant rewrite and modification of the code to get this working
+"right".
+
+> 
+> I think this is a very important issue and merits a Bugzilla reference
+> so we can revisit it in the future.
+
+I'll open up a BZ.
+
+> 
+>> Cc: mjg@redhat.com
+>> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+>> ---
+>>  drivers/acpi/acpica/evmisc.c |   13 ++++++++++---
+>>  1 files changed, 10 insertions(+), 3 deletions(-)
 >>
->> Reviewed-by: Bjorn Helgaas<bhelgaas@google.com>
->
-> On second thought, let's think about this a bit more.
->
-> As I mentioned before, I have a long-term goal to move the hotplug
-> flow out of drivers and into the ACPI core.  That will be easier if
-> the code in the drivers is as generic as possible.
->
-> The dock and acpiphp hot-remove code calls acpi_bus_trim(), then
-> evaluates _EJ0.  The core acpi_bus_hot_remove_device() function
-> already does both acpi_bus_trim() and _EJ0.  This function is
-> currently only used when we write to sysfs "eject" files, but I wonder
-> if we should use it in acpi_processor_hotplug_notify() as well.
->
-> That would get us one step closer to removing this gunk from the
-> drivers and having acpi_bus_notify() look something like this:
->
->      case ACPI_NOTIFY_EJECT_REQUEST:
->          driver->ops.remove(device);
->          acpi_bus_hot_remove_device(device);
->          break;
->
-> There is a description of a CPU hot-remove that does include _EJ0
-> methods in the "DIG64 Hot-Plug&  Partitioning Flows Specification"
-> [1], sec 2.2.4.  I know this document is Itanium-oriented, but this
-> part seems fairly generic and it's the only description of the process
-> I've seen so far.
->
-> So would using acpi_bus_hot_remove_device() instead of acpi_bus_trim()
-> also solve your problem, Canquan?
->
-Yes. It can solve my problem.
-I fully aggree to replace acpi_bus_hot_remove_device() to 
-acpi_bus_trim(). Initially I insert the acpi_bus_hot_remove_device() in 
-acpi_bus_notify function . lately I think I should give a chance for 
-user,and so send  KOBJ_OFFLINE message to the udvev module.
-
-But why add the  driver->ops.remove(device) before 
-acpi_bus_hot_remove_device(device).  it can be called in 
-acpi_bus_hot_remove_device code path as bellowing:
-     acpi_bus_trim
-         acpi_bus_remove
-             device_release_driver
-		__device_release_driver
-			acpi_device_remove
-				acpi_drv->ops.remove
-
-> Bjorn
->
-> [1] http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
->
->>> ---
->>>   drivers/acpi/processor_driver.c |    6 ++++++
->>>   1 files changed, 6 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/acpi/processor_driver.c
->>> b/drivers/acpi/processor_driver.c
->>> index a4e0f1b..03d92d6 100644
->>> --- a/drivers/acpi/processor_driver.c
->>> +++ b/drivers/acpi/processor_driver.c
->>> @@ -641,6 +641,7 @@ static void acpi_processor_hotplug_notify(acpi_handle
->>> handle,
->>>         struct acpi_processor *pr;
->>>         struct acpi_device *device = NULL;
->>>         int result;
->>> +       u32 id;
->>>
->>>
->>>         switch (event) {
->>> @@ -677,6 +678,11 @@ static void acpi_processor_hotplug_notify(acpi_handle
->>> handle,
->>>                                     "Driver data is NULL, dropping EJECT\n");
->>>                         return;
->>>                 }
->>> +               id = pr->id;
->>> +               if (acpi_bus_trim(device, 1)) {
->>> +                       printk(KERN_ERR  PREFIX
->>> +                                   "Fail to Remove CPU %d\n", id);
->>> +               }
->>>                 break;
->>>         default:
->>>                 ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->>> --
->>> 1.7.6.0
->>>
->>>
+>> diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
+>> index d0b3318..a78aecc 100644
+>> --- a/drivers/acpi/acpica/evmisc.c
+>> +++ b/drivers/acpi/acpica/evmisc.c
+>> @@ -181,9 +181,16 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
+>>                notify_info->notify.value = (u16) notify_value;
+>>                notify_info->notify.handler_obj = handler_obj;
 >>
->
-> .
->
+>> -               status =
+>> -                   acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_notify_dispatch,
+>> -                                   notify_info);
+>> +               /* Is this an Ejection Request? */
+>> +               if (notify_value == 0x03)
+> 
+> Don't you want ACPI_NOTIFY_EJECT_REQUEST here instead of "0x03"?
 
+Ah :)  I knew that value had to be #define'd somewhere :)  I just couldn't
+find it ;).  I'll fix that up.
 
+> 
+> I'm not confident that EJECT_REQUEST is the only value that might be a
+> problem.  For example, ACPI_NOTIFY_DEVICE_CHECK in
+> handle_hotplug_event_{bridge,func} () leads to acpiphp_check_bridge(),
+> which can also wind up calling acpi_remove_notify_handler().
+
+I'm only testing an EJECT_REQUEST at this point but I see your
+point.  I'll also add in a DEVICE_CHECK in [v2].
+
+P.
