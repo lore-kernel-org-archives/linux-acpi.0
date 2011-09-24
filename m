@@ -1,59 +1,107 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI / PM: Blacklist Vaio VGN-FW520F machine known to require acpi_sleep=nonvs
-Date: Sat, 24 Sep 2011 00:05:44 +0200
-Message-ID: <201109240005.44987.rjw@sisk.pl>
-References: <CAKu+J91Apx2YWfYC=u=kZ_dD9jSvtHvPg1UgxUPiJeBchh-YRQ@mail.gmail.com>
+From: "canquan.shen" <shencanquan@huawei.com>
+Subject: Re: [PATCH v4] acpi: Fix CPU hot removal problem
+Date: Sat, 24 Sep 2011 08:20:12 +0800
+Message-ID: <4E7D223C.1040809@huawei.com>
+References: <4E714FAA.8060708@huawei.com>
+ <CAErSpo5gV7AspUQp7_JOFuY0c0YnFWxj2TKUX-r6-0dVkj5FPA@mail.gmail.com>
+ <CAErSpo71cC5=K7DXYs+aEnU2J91TX7ys8bpnUSmdob1dgdaBSg@mail.gmail.com>
+ <4E7C39FB.3050707@huawei.com>
+ <CAErSpo4KwLfcD0HHh6XQD36rmYbZuHVHrH31wdouWqwFakMdRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52548 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752420Ab1IWWDe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Sep 2011 18:03:34 -0400
-In-Reply-To: <CAKu+J91Apx2YWfYC=u=kZ_dD9jSvtHvPg1UgxUPiJeBchh-YRQ@mail.gmail.com>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:46804 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603Ab1IXAU3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Sep 2011 20:20:29 -0400
+In-reply-to: <CAErSpo4KwLfcD0HHh6XQD36rmYbZuHVHrH31wdouWqwFakMdRw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Len Brown (Intel)" <len.brown@intel.com>
-Cc: Bogdan Radulescu <bogdan@nimblex.net>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
 
-Hi Len,
-
-I sent one blacklist entry like this too some time ago with no response from
-you.
-
-Would you mind if I took those things into the linux-pm tree?
-
-Rafael
-
-
-On Thursday, September 22, 2011, Bogdan Radulescu wrote:
-> Sony Vaio VGN-FW520F does not resume correctly without
-> acpi_sleep=nonvs, so add it to the ACPI sleep blacklist.
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=16396#c86
-> 
-> Signed-off-by: Bogdan Radulescu <bogdan@nimblex.net>
-> 
-> ---
-> --- sleep.c.orig        2011-09-21 08:36:08.000000000 +0300
-> +++ sleep.c     2011-09-21 08:40:23.000000000 +0300
-> @@ -428,6 +428,14 @@ static struct dmi_system_id __initdata a
->                DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
->                },
->        },
-> +       {
-> +       .callback = init_nvs_nosave,
-> +       .ident = "Sony Vaio VGN-FW520F",
-> +       .matches = {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-> +               DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
-> +               },
-> +       },
->        {},
->  };
->  #endif /* CONFIG_SUSPEND */
-> ---
-> 
-> 
+On 2011/9/23 22:16, Bjorn Helgaas wrote:
+> On Fri, Sep 23, 2011 at 1:49 AM, canquan.shen<shencanquan@huawei.com>  wrote:
+>> On 2011/9/23 0:53, Bjorn Helgaas wrote:
+>>>
+>>> On Wed, Sep 14, 2011 at 8:56 PM, Bjorn Helgaas<bhelgaas@google.com>
+>>>   wrote:
+>>>>
+>>>> On Wed, Sep 14, 2011 at 7:06 PM, canquan.shen<shencanquan@huawei.com>
+>>>>   wrote:
+>>>>>
+>>>>> We run linux as a guest in Xen environment. When we used the xen tools
+>>>>> (xm vcpu-set<n>) to hot add and remove vcpu to and from the guest, we
+>>>>> encountered the failure on vcpu removal. We found the reason is that it
+>>>>> didn't go to really remove cpu in the cpu removal code path.
+>>>>>
+>>>>> This patch adds acpi_bus_trim in acpi_process_hotplug_notify to fix this
+>>>>> issue. With this patch, it works fine for us.
+>>>>>
+>>>>> Signed-off-by:Canquan Shen<shencanquan@huawei.com>
+>>>>
+>>>> Reviewed-by: Bjorn Helgaas<bhelgaas@google.com>
+>>>
+>>> On second thought, let's think about this a bit more.
+>>>
+>>> As I mentioned before, I have a long-term goal to move the hotplug
+>>> flow out of drivers and into the ACPI core.  That will be easier if
+>>> the code in the drivers is as generic as possible.
+>>>
+>>> The dock and acpiphp hot-remove code calls acpi_bus_trim(), then
+>>> evaluates _EJ0.  The core acpi_bus_hot_remove_device() function
+>>> already does both acpi_bus_trim() and _EJ0.  This function is
+>>> currently only used when we write to sysfs "eject" files, but I wonder
+>>> if we should use it in acpi_processor_hotplug_notify() as well.
+>>>
+>>> That would get us one step closer to removing this gunk from the
+>>> drivers and having acpi_bus_notify() look something like this:
+>>>
+>>>      case ACPI_NOTIFY_EJECT_REQUEST:
+>>>          driver->ops.remove(device);
+>>>          acpi_bus_hot_remove_device(device);
+>>>          break;
+>>>
+>>> There is a description of a CPU hot-remove that does include _EJ0
+>>> methods in the "DIG64 Hot-Plug&    Partitioning Flows Specification"
+>>> [1], sec 2.2.4.  I know this document is Itanium-oriented, but this
+>>> part seems fairly generic and it's the only description of the process
+>>> I've seen so far.
+>>>
+>>> So would using acpi_bus_hot_remove_device() instead of acpi_bus_trim()
+>>> also solve your problem, Canquan?
+>>>
+>> Yes. It can solve my problem.
+>> I fully aggree to replace acpi_bus_hot_remove_device() to acpi_bus_trim().
+>> Initially I insert the acpi_bus_hot_remove_device() in acpi_bus_notify
+>> function . lately I think I should give a chance for user,and so send
+>>   KOBJ_OFFLINE message to the udvev module.
+>>
+>> But why add the  driver->ops.remove(device) before
+>> acpi_bus_hot_remove_device(device).  it can be called in
+>> acpi_bus_hot_remove_device code path as bellowing:
+>>     acpi_bus_trim
+>>         acpi_bus_remove
+>>             device_release_driver
+>>                 __device_release_driver
+>>                         acpi_device_remove
+>>                                 acpi_drv->ops.remove
+>
+> OK.  Maybe the future acpi_bus_notify() code would be even simpler.
+> The point is that the ACPI core should handle the notification, call
+> the driver's .remove() method, and do whatever namespace cleanup is
+> required (i.e., acpi_bus_trim()).  None of this should be in the
+> driver itself.
+>
+> Can you re-post your patch, using acpi_bus_hot_remove_device() instead
+> of acpi_bus_trim()?  Please include Khalid's tweak, too, so we don't
+> print warnings for CPUs that don't supply _EJ0 methods.
+>
+> Bjorn
+>
+> .
+>
+OK. I will modify it and re-post the patch which will include Khalid's 
+tweak.  and Thank Khalid for attention this patch.
 
