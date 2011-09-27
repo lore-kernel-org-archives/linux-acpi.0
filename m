@@ -1,122 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME via interrupt or SCI mechanism?
-Date: Tue, 27 Sep 2011 22:54:47 +0200
-Message-ID: <201109272254.47232.rjw@sisk.pl>
-References: <20110912171003.GA7939@xanatos> <201109270020.26439.rjw@sisk.pl> <20110926234835.GA9551@xanatos>
+Subject: [PATCH] PCI / PM: Remove unnecessary error variable from acpi_dev_run_wake()
+Date: Wed, 28 Sep 2011 00:01:28 +0200
+Message-ID: <201109280001.28857.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59945 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752278Ab1I0Uwf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Sep 2011 16:52:35 -0400
-In-Reply-To: <20110926234835.GA9551@xanatos>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, September 27, 2011, Sarah Sharp wrote:
-> On Tue, Sep 27, 2011 at 12:20:26AM +0200, Rafael J. Wysocki wrote:
-> > On Sunday, September 25, 2011, Rafael J. Wysocki wrote:
-> > > On Thursday, September 22, 2011, Sarah Sharp wrote:
-> > > > On Mon, Sep 19, 2011 at 11:43:33PM +0200, Rafael J. Wysocki wrote:
-> > > Without looking at the tables at the moment (I'll do that later),
-> > > I think that they are missing the information that GPE 0D is a wakeup
-> > > GPE for the xHCI device.
-> > 
-> > The DSDT appears to contain that information, so I'm not sure what's
-> > going on.  Perhaps you can put a debug printk into acpi_dev_run_wake()
-> > to see if that function is called for the xHCI controllers?
-> 
-> I put a printk in acpi_dev_run_wake(), and that shows up in the original
-> dmesg I sent:
-> 
-> Sep 22 10:47:09 talon kernel: [ 2026.211933] xhci_hcd 0000:00:14.0: acpi_pci_run_wake - enable dev wake
-> Sep 22 10:47:09 talon kernel: [ 2026.211936] acpi device:34: acpi_dev_run_wake - enable dev wake
-> Sep 22 10:47:09 talon kernel: [ 2026.211955] acpi device:34: acpi_dev_run_wake - return -19
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-OK, can you printk() dev->wakeup.gpe_number here?
+The error variable in acpi_dev_run_wake() is not really used, so
+remove it.
 
-[/me realizes that "error" is not really used in this function.  Bah.]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-> The patch I've been using for adding debugging to the PCI and ACPI code
-> is attached.  I've been adding printks willy-nilly to try to understand
-> what's going on.
-
-That's fine.
-
-> > > > In digging through the ACPI code, I noticed that acpi_bus_get_flags()
-> > > > looks for the ACPI methods _PR0 or _PS0 and sets
-> > > > device->flags.power_manageable to 1 if either of those methods are
-> > > > successfully invoked.  When I deassembled the ACPI tables, I didn't see
-> > > > either method for any of the USB host controllers in the system.
-> > 
-> > However, the power_manageable flag only indicates that the device can
-> > be put into low-power states through ACPI methods, it shouldn't have
-> > any effect on the wakeup settings.
-> 
-> Ok, good to know.
-> 
-> > > > device->flags.power_manageable is checked later when the runtime PM
-> > > > system attempts to put the PCI device into a lower state, but it seems
-> > > > to be ignored?  Is it supposed to be ignored?
-> > > 
-> > > Hmm, not really.  I'll have a look at that later.
-> > 
-> > It is used to decide whether or not to call __acpi_bus_set_power(), AFAICS.
-> > If it is not set, this function is not called, which is OK.  Still,
-> > devices for which it is not set may be put into low-power states and may
-> > generate wakeup signals.
-> > 
-> > For many PCI devices there are two possible power management interfaces,
-> > the native one and the ACPI-based one.  All of the modern devices support
-> > the native power management interface, so they can be put into low-power
-> > states even if the ACPI-based interface is missing for them (which is the
-> > case for your USB controllers).  For those devices, if the ACPI-based
-> > interface is not present, we simply use the native one only.
-> 
-> So if I understand you correctly, the kernel can use the native PCI power
-> management interface to put the PCI device into a lower power state...
-> 
-> > As far as wakeup is concerned, we should enable them to generate PME
-> > using the native interface and in addition to it we should use ACPI to
-> > enable the wakeup GPEs that are supposed to be triggered in response to
-> > the PME signals.
-> 
-> ...but the kernel ACPI core will still be watching for the SCI that the
-> firmware generates on a PME wakeup?  Correct?
-
-Yes, it should work like this.
-
-> Is the native PCI power management interface you're referring to
-> implemented through the PCIe PME driver?
-
-No, this is what pci_raw_set_power_state() does.
-
-> Because this particular host controller is a PCIe device, not a PCI device.
-
-Well, PCIe is PCI to some extent. :-)
-
-> I added some debug statements to drivers/pci/pcie/pme.c, but the dmesg shows
-> that none of them got called.
-
-This one only handles the native PME signaling, which is a PCIe feature
-(instead of using ACPI GPEs for that, it signals PME via interrupts from
-Root Ports).  Of course, it only works if you have those "PCIe PME" entries
-in /proc/interrupts.
-
-> > This apparently doesn't work correctly on your system and we need to figure
-> > out why.
-> 
-> Ok.  Do you have suggestions for any tests I can run or debugging
-> statements to add?  I'm really not an ACPI expert and I've been
-> basically fumbling in the dark.
-
-Yes, please see above.  I need to know the number of the GPE it tries to
-enable for the USB controller.
-
-Thanks,
-Rafael
+Index: linux/drivers/pci/pci-acpi.c
+===================================================================
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -282,7 +282,6 @@ static int acpi_dev_run_wake(struct devi
+ {
+ 	struct acpi_device *dev;
+ 	acpi_handle handle;
+-	int error = -ENODEV;
+ 
+ 	if (!device_run_wake(phys_dev))
+ 		return -EINVAL;
+@@ -302,7 +301,7 @@ static int acpi_dev_run_wake(struct devi
+ 		acpi_disable_wakeup_device_power(dev);
+ 	}
+ 
+-	return error;
++	return 0;
+ }
+ 
+ static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
