@@ -1,32 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V7 0/4] cpuidle: Global registration of idle states with per-cpu statistics
-Date: Tue, 27 Sep 2011 10:12:58 -0700
-Message-ID: <8739fh29k5.fsf@ti.com>
-References: <20110927100202.16043.58669.stgit@localhost6.localdomain6>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: PME via interrupt or SCI mechanism?
+Date: Tue, 27 Sep 2011 22:32:06 +0200
+Message-ID: <201109272232.06389.rjw@sisk.pl>
+References: <20110912171003.GA7939@xanatos> <20110926234835.GA9551@xanatos> <CAJRGBZxTakHn-BQTrLXsccriGAOERDox0pORMP+vrazzqAA-kQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34654 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708Ab1I0RNF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Sep 2011 13:13:05 -0400
-In-Reply-To: <20110927100202.16043.58669.stgit@localhost6.localdomain6>
-	(Deepthi Dharwar's message of "Tue, 27 Sep 2011 15:32:38 +0530")
+Received: from ogre.sisk.pl ([217.79.144.158]:59851 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752308Ab1I0U3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Sep 2011 16:29:53 -0400
+In-Reply-To: <CAJRGBZxTakHn-BQTrLXsccriGAOERDox0pORMP+vrazzqAA-kQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Cc: venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, robert.moore@intel.com, Shaohua Li <shaohua.li@intel.com>
 
-Deepthi Dharwar <deepthi@linux.vnet.ibm.com> writes:
+On Tuesday, September 27, 2011, Luming Yu wrote:
+> On Tue, Sep 27, 2011 at 7:48 AM, Sarah Sharp
+> <sarah.a.sharp@linux.intel.com> wrote:
+> >
+> > Ok.  Do you have suggestions for any tests I can run or debugging
+> > statements to add?  I'm really not an ACPI expert and I've been
+> > basically fumbling in the dark.
+> 
+> The following patch from Shaohua might be useful to help debugging the problem.
+> http://kerneltrap.org/mailarchive/linux-usb/2009/7/30/6251245
 
-> Version 6 of this patch series dated 22nd Sept 2011 was 
-> Acked-by: Arjan van de Ven <arjan@linux.intel.com>
-> Acked-by: Kevin Hilman <khilman@ti.com> for OMAP specific parts.
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+You probably don't realize that the patch is neither applicable nor
+relevant any more, but it would be nice to check that before
+recommending it to anyone, don't you think?
 
-minor: I think this should be a Tested-by from Jean.  Since he was not on
-the delivery path, it should not be a sign-off.
-
-Kevin
+Rafael
