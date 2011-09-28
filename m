@@ -1,106 +1,264 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME via interrupt or SCI mechanism?
-Date: Thu, 29 Sep 2011 00:21:28 +0200
-Message-ID: <201109290021.28407.rjw@sisk.pl>
-References: <20110912171003.GA7939@xanatos> <201109272254.47232.rjw@sisk.pl> <20110927235216.GA5765@xanatos>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34740 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751485Ab1I1WTP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Sep 2011 18:19:15 -0400
-In-Reply-To: <20110927235216.GA5765@xanatos>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpiphp: Prevent deadlock on PCI-to-PCI bridge remove
+Date: Wed, 28 Sep 2011 19:40:53 -0400
+Message-ID: <1317253253-28259-1-git-send-email-prarit@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, mjg@redhat.com, bhelgaas@google.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday, September 28, 2011, Sarah Sharp wrote:
-> On Tue, Sep 27, 2011 at 10:54:47PM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, September 27, 2011, Sarah Sharp wrote:
-> > > On Tue, Sep 27, 2011 at 12:20:26AM +0200, Rafael J. Wysocki wrote:
-> > > > On Sunday, September 25, 2011, Rafael J. Wysocki wrote:
-> > > > > On Thursday, September 22, 2011, Sarah Sharp wrote:
-> > > > > > On Mon, Sep 19, 2011 at 11:43:33PM +0200, Rafael J. Wysocki wrote:
-> > > > > Without looking at the tables at the moment (I'll do that later),
-> > > > > I think that they are missing the information that GPE 0D is a wakeup
-> > > > > GPE for the xHCI device.
-> > > > 
-> > > > The DSDT appears to contain that information, so I'm not sure what's
-> > > > going on.  Perhaps you can put a debug printk into acpi_dev_run_wake()
-> > > > to see if that function is called for the xHCI controllers?
-> > > 
-> > > I put a printk in acpi_dev_run_wake(), and that shows up in the original
-> > > dmesg I sent:
-> > > 
-> > > Sep 22 10:47:09 talon kernel: [ 2026.211933] xhci_hcd 0000:00:14.0: acpi_pci_run_wake - enable dev wake
-> > > Sep 22 10:47:09 talon kernel: [ 2026.211936] acpi device:34: acpi_dev_run_wake - enable dev wake
-> > > Sep 22 10:47:09 talon kernel: [ 2026.211955] acpi device:34: acpi_dev_run_wake - return -19
-> > 
-> > OK, can you printk() dev->wakeup.gpe_number here?
-> > 
-> > [/me realizes that "error" is not really used in this function.  Bah.]
-> 
-> Ok, here's what dmesg says (I used %u not 0x%x for the GPE number):
-> 
-> Sep 27 16:30:34 talon kernel: [  882.301023] xhci_hcd 0000:00:14.0: xhci_pci_suspend
-> Sep 27 16:30:34 talon kernel: [  882.301029] xhci_hcd 0000:00:14.0: xhci_suspend
-> Sep 27 16:30:34 talon kernel: [  882.301039] xhci_hcd 0000:00:14.0: // Setting command ring address to 0x30c3f001
-> Sep 27 16:30:34 talon kernel: [  882.301090] xhci_hcd 0000:00:14.0: hcd_pci_runtime_suspend: 0
-> Sep 27 16:30:34 talon kernel: [  882.301140] acpi_bus_power_manageable - result 0, device->flags.power_manageable 0
-> Sep 27 16:30:34 talon kernel: [  882.301143] xhci_hcd 0000:00:14.0: acpi_pci_power_manageable - dev is not power manageable
-> Sep 27 16:30:34 talon kernel: [  882.301146] acpi_bus_power_manageable - result 0, device->flags.power_manageable 0
-> Sep 27 16:30:34 talon kernel: [  882.301149] xhci_hcd 0000:00:14.0: __pci_enable_wake - enable runtimewake
-> Sep 27 16:30:34 talon kernel: [  882.301156] xhci_hcd 0000:00:14.0: PME# enabled
-> Sep 27 16:30:34 talon kernel: [  882.301159] xhci_hcd 0000:00:14.0: acpi_pci_run_wake - enable dev wake
-> Sep 27 16:30:34 talon kernel: [  882.301162] acpi device:34: acpi_dev_run_wake - enable dev wake
-> Sep 27 16:30:34 talon kernel: [  882.301175] acpi device:34: acpi_dev_run_wake - enable gpe 13
-> Sep 27 16:30:34 talon kernel: [  882.301185] acpi device:34: acpi_dev_run_wake - return -19
-> Sep 27 16:30:34 talon kernel: [  882.301188] xhci_hcd 0000:00:14.0: pci_raw_set_power_state from 0 to 3
-> Sep 27 16:30:34 talon kernel: [  882.312288] acpi_bus_power_manageable - result 0, device->flags.power_manageable 0
-> Sep 27 16:30:34 talon kernel: [  882.312293] xhci_hcd 0000:00:14.0: acpi_pci_power_manageable - dev is not power manageable
-> Sep 27 16:30:34 talon kernel: [  882.312296] acpi_bus_power_manageable - result 0, device->flags.power_manageable 0
-> Sep 27 16:30:34 talon kernel: [  882.312299] xhci_hcd 0000:00:14.0: pci_platform_power_transition - is NOT power managable
-> 
-> If I wake up the host controller by plugging in a webcam into an external hub:
-> 
-> Sep 27 16:31:46 talon kernel: [  953.645014] ehci_hcd 0000:00:1d.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645023] ehci_hcd 0000:00:1a.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645029] snd_hda_intel 0000:00:1b.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645034] e1000e 0000:00:19.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645089] ehci_hcd 0000:00:1d.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645094] ehci_hcd 0000:00:1a.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645098] snd_hda_intel 0000:00:1b.0: pci_acpi_wake_dev
-> Sep 27 16:31:46 talon kernel: [  953.645103] e1000e 0000:00:19.0: pci_acpi_wake_dev
-> 
-> Those lines repeat constantly until I echo on to the power/control file
-> for the xHCI device.
-> 
-> If I cat the /sys/firmware/acpi/interrupts/gpe0D file *before* I disable
-> D3, I see:
-> 
-> root@talon:/sys/firmware/acpi/interrupts# cat gpe0D
->   211327   enabled
-> root@talon:/sys/firmware/acpi/interrupts# 
-> 
-> I think I was catting the file after I ran `echo on > power/control`
-> previously.  Sorry for the confusion.
-> 
-> So it looks like gpe 0xD is enabled when the host goes into D3, and
-> acpi_dev_run_wake is calling acpi_enable_gpe() with GPE 13 (i.e. 0xD),
-> correct?
+I originally submitted a patch to workaround this by pushing all Ejection
+Requests and Device Checks onto the kacpi_hotplug queue.
 
-Yes, that's correct.
+http://marc.info/?l=linux-acpi&m=131678270930105&w=2
 
-Moreover, evidently, the event is signaled and it causes pci_acpi_wake_dev()
-to be called for multiple devices, _except_ for the xhci_hcd.  Perhaps
-the notifier is not installed for that device for some reason.
+The patch is still insufficient in that Bus Checks also need to be added.
 
-Please add an additional debug printk()s to pci_acpi_add_pm_notifier()
-for both pci_dev and dev and for the result returned by add_pm_notifier().
+Rather than add all events, including non-PCI-hotplug events, to the
+hotplug queue, mjg suggested that a better approach would be to modify
+the acpiphp driver so only acpiphp events would be added to the
+kacpi_hotplug queue.
 
-Thanks,
-Rafael
+It's a longer patch, but at least we maintain the benefit of having separate
+queues in ACPI.  This, of course, is still only a workaround the problem.
+As Bjorn and mjg pointed out, we have to refactor a lot of this code to do
+the right thing but at this point it is a better to have this code working.
+
+Jesse -- Unless there are any objections from the ACPI guys, I think this
+patch should be pushed through linux-pci now since 95% of the changes are
+contained within drivers/pci/hotplug.
+
+P.
+---8<---
+
+The acpi core places all events on the kacpi_notify queue.  When the acpiphp
+driver is loaded and a PCI card with a PCI-to-PCI bridge is removed the
+following call sequence occurs:
+
+cleanup_p2p_bridge()
+	    -> cleanup_bridge()
+		    -> acpi_remove_notify_handler()
+			    -> acpi_os_wait_events_complete()
+				    -> flush_workqueue(kacpi_notify_wq)
+
+which is the queue we are currently executing on and the process will hang.
+
+Move all hotplug acpiphp events onto the kacpi_hotplug workqueue.  In
+handle_hotplug_event_bridge() and handle_hotplug_event_func() we can simply
+push the rest of the work onto the kacpi_hotplug queue and then avoid the
+deadlock.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: mjg@redhat.com
+Cc: bhelgaas@google.com
+Cc: jbarnes@virtuousgeek.org
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/osl.c                 |    3 +-
+ drivers/pci/hotplug/acpiphp_glue.c |  109 +++++++++++++++++++++++++++++++-----
+ include/acpi/acpiosxf.h            |    2 +
+ 3 files changed, 98 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index fa32f58..f31c5c5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -80,7 +80,8 @@ static acpi_osd_handler acpi_irq_handler;
+ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+-static struct workqueue_struct *kacpi_hotplug_wq;
++struct workqueue_struct *kacpi_hotplug_wq;
++EXPORT_SYMBOL(kacpi_hotplug_wq);
+ 
+ struct acpi_res_list {
+ 	resource_size_t start;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 2202857..596172b 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -48,6 +48,7 @@
+ #include <linux/pci-acpi.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ 
+ #include "../pci.h"
+ #include "acpiphp.h"
+@@ -1149,15 +1150,35 @@ check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK ;
+ }
+ 
+-/**
+- * handle_hotplug_event_bridge - handle ACPI event on bridges
+- * @handle: Notify()'ed acpi_handle
+- * @type: Notify code
+- * @context: pointer to acpiphp_bridge structure
+- *
+- * Handles ACPI event notification on {host,p2p} bridges.
+- */
+-static void handle_hotplug_event_bridge(acpi_handle handle, u32 type, void *context)
++struct acpiphp_hp_work {
++	struct work_struct work;
++	acpi_handle handle;
++	u32 type;
++	void *context;
++};
++
++static void alloc_acpiphp_hp_work(acpi_handle handle, u32 type,
++				  void *context,
++				  void (*func)(struct work_struct *work))
++{
++	struct acpiphp_hp_work *hp_work;
++	int ret;
++
++	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
++	if (!hp_work)
++		return;
++
++	hp_work->handle = handle;
++	hp_work->type = type;
++	hp_work->context = context;
++
++	INIT_WORK(&hp_work->work, func);
++	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
++	if (!ret)
++		kfree(hp_work);
++}
++
++static void _handle_hotplug_event_bridge(struct work_struct *work)
+ {
+ 	struct acpiphp_bridge *bridge;
+ 	char objname[64];
+@@ -1165,11 +1186,18 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type, void *cont
+ 				      .pointer = objname };
+ 	struct acpi_device *device;
+ 	int num_sub_bridges = 0;
++	struct acpiphp_hp_work *hp_work;
++	acpi_handle handle;
++	u32 type;
++
++	hp_work = container_of(work, struct acpiphp_hp_work, work);
++	handle = hp_work->handle;
++	type = hp_work->type;
+ 
+ 	if (acpi_bus_get_device(handle, &device)) {
+ 		/* This bridge must have just been physically inserted */
+ 		handle_bridge_insertion(handle, type);
+-		return;
++		goto out;
+ 	}
+ 
+ 	bridge = acpiphp_handle_to_bridge(handle);
+@@ -1180,7 +1208,7 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type, void *cont
+ 
+ 	if (!bridge && !num_sub_bridges) {
+ 		err("cannot get bridge info\n");
+-		return;
++		goto out;
+ 	}
+ 
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+@@ -1241,22 +1269,49 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type, void *cont
+ 		warn("notify_handler: unknown event type 0x%x for %s\n", type, objname);
+ 		break;
+ 	}
++
++out:
++	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
+ }
+ 
+ /**
+- * handle_hotplug_event_func - handle ACPI event on functions (i.e. slots)
++ * handle_hotplug_event_bridge - handle ACPI event on bridges
+  * @handle: Notify()'ed acpi_handle
+  * @type: Notify code
+- * @context: pointer to acpiphp_func structure
++ * @context: pointer to acpiphp_bridge structure
+  *
+- * Handles ACPI event notification on slots.
++ * Handles ACPI event notification on {host,p2p} bridges.
+  */
+-static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *context)
++static void handle_hotplug_event_bridge(acpi_handle handle, u32 type,
++					void *context)
++{
++	/*
++	 * Currently the code adds all hotplug events to the kacpid_wq
++	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
++	 * The proper way to fix this is to reorganize the code so that
++	 * drivers (dock, etc.) do not call acpi_os_execute(), etc.
++	 * For now just re-add this work to the kacpi_hotplug_wq so we
++	 * don't deadlock on hotplug actions.
++	 */
++	alloc_acpiphp_hp_work(handle, type, context,
++			      _handle_hotplug_event_bridge);
++}
++
++static void _handle_hotplug_event_func(struct work_struct *work)
+ {
+ 	struct acpiphp_func *func;
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+ 				      .pointer = objname };
++	struct acpiphp_hp_work *hp_work;
++	acpi_handle handle;
++	u32 type;
++	void *context;
++
++	hp_work = container_of(work, struct acpiphp_hp_work, work);
++	handle = hp_work->handle;
++	type = hp_work->type;
++	context = hp_work->context;
+ 
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+@@ -1291,8 +1346,32 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *contex
+ 		warn("notify_handler: unknown event type 0x%x for %s\n", type, objname);
+ 		break;
+ 	}
++
++	kfree(hp_work); /* allocated in handle_hotplug_event_func */
+ }
+ 
++/**
++ * handle_hotplug_event_func - handle ACPI event on functions (i.e. slots)
++ * @handle: Notify()'ed acpi_handle
++ * @type: Notify code
++ * @context: pointer to acpiphp_func structure
++ *
++ * Handles ACPI event notification on slots.
++ */
++static void handle_hotplug_event_func(acpi_handle handle, u32 type,
++				      void *context)
++{
++	/*
++	 * Currently the code adds all hotplug events to the kacpid_wq
++	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
++	 * The proper way to fix this is to reorganize the code so that
++	 * drivers (dock, etc.) do not call acpi_os_execute(), etc.
++	 * For now just re-add this work to the kacpi_hotplug_wq so we
++	 * don't deadlock on hotplug actions.
++	 */
++	alloc_acpiphp_hp_work(handle, type, context,
++			      _handle_hotplug_event_func);
++}
+ 
+ static acpi_status
+ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 4543b6f..83062ed 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -189,6 +189,8 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
+ /*
+  * Threads and Scheduling
+  */
++extern struct workqueue_struct *kacpi_hotplug_wq;
++
+ acpi_thread_id acpi_os_get_thread_id(void);
+ 
+ acpi_status
+-- 
+1.7.1
