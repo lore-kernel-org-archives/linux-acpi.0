@@ -1,112 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / PM: Remove unnecessary error variable from acpi_dev_run_wake()
-Date: Wed, 28 Sep 2011 21:44:36 +0200
-Message-ID: <201109282144.36766.rjw@sisk.pl>
-References: <201109280001.28857.rjw@sisk.pl> <CAErSpo4CpEWaKkh280Kb_nNSVWfYKGZ06HQOrpLar=T40TyDZQ@mail.gmail.com>
+From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <admin@renwuchaoshi.com>
+Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuivmnIDmlrDlub/kuqTkvJrkubDlrrbjgIHmtbc=?=
+	=?utf-8?B?5YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
+Date: Wed, 28 Sep 2011 20:49:23 +0000 (UTC)
+Message-ID: <20120929043648423630@renwuchaoshi.com>
+Reply-To: <1339625218@qq.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34524 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840Ab1I1TmY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Sep 2011 15:42:24 -0400
-In-Reply-To: <CAErSpo4CpEWaKkh280Kb_nNSVWfYKGZ06HQOrpLar=T40TyDZQ@mail.gmail.com>
+Received: from [211.154.130.238] ([211.154.130.238]:3481 "HELO
+	mail.renwuchaoshi.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with SMTP id S1753940Ab1I1UtT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Sep 2011 16:49:19 -0400
+Date: Sat, 29 Sep 2012 04:36:43 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+To: lintronic@groups.msn.com, linux-acpi@vger.kernel.org, linux-net@vger.kernel.org, linweixiang2009@yahoo.com.cn, linxiaosheng@163.com, liny_20062000@hotmail.com, linyiwu200
 
-On Wednesday, September 28, 2011, Bjorn Helgaas wrote:
-> On Tue, Sep 27, 2011 at 4:01 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >
-> > The error variable in acpi_dev_run_wake() is not really used, so
-> > remove it.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/pci/pci-acpi.c |    3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
-> >
-> > Index: linux/drivers/pci/pci-acpi.c
-> > ===================================================================
-> > --- linux.orig/drivers/pci/pci-acpi.c
-> > +++ linux/drivers/pci/pci-acpi.c
-> > @@ -282,7 +282,6 @@ static int acpi_dev_run_wake(struct devi
-> >  {
-> >        struct acpi_device *dev;
-> >        acpi_handle handle;
-> > -       int error = -ENODEV;
-> >
-> >        if (!device_run_wake(phys_dev))
-> >                return -EINVAL;
-> > @@ -302,7 +301,7 @@ static int acpi_dev_run_wake(struct devi
-> >                acpi_disable_wakeup_device_power(dev);
-> >        }
-> >
-> > -       return error;
-> > +       return 0;
-> >  }
-> >
-> >  static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
-> 
-> This looks like the right thing to do, but the current changelog
-> suggests that we're just removing unused code.
-> 
-> But in fact, we'll now return 0 (success) when we used to return
-> -ENODEV, so the behavior of the callers will change (probably fixing
-> some bugs).  Do you want to mention that in the changelog as well?
+576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrbjgIHlsZXk
+vJrkubDlrrbjgIHmtbflhbPmlbDmja4sQjJC6K+i55uY5Lmw5a62NTAw5LiH44CCDQoNCuS4gOWF
+sTjkuKrljIUo5pWw5o2u5piv5YWo6KGM5Lia55qE77yM5oyJ54Wn6KGM5Lia5YiG5aW957G777yM
+5bm25LiU5Y+v5Lul5oyJ54Wn5YWz6ZSu6K+N5p+l6K+i55qEKe+8miANCjHvvIwyMDEx5pil5a2j
+MTA55bGK5bm/5Lqk5Lya5Lmw5a625pWw5o2u5bqT5paw6bKc5Ye654KJ77yM6LaF57qn5paw6bKc
+5Lmw5a6277yM5paw6bKc5pWw5o2u77yM5a655piT5oiQ5Y2V77yBIA0KMu+8jOacgOaWsOWFqOeQ
+g+S5sOWutuW6kyzlhbE0NTE2NjDmnaHmlbDmja7jgIIgDQoz77yMMjAwOOW5tCwyMDA55bm0LDIw
+MTDlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQgMTA1IDEw
+NiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0KNO+8jDIwMTDlubTlm73p
+mYXkv4PplIDljY/kvJrvvIhQUEFJ77yJ5oiQ5ZGY5ZCN5Y2VIFBQQUkgTWVtYmVycyBEaXJlY3Rv
+cnnvvIzpnZ7luLjph43opoHnmoTlpKfkubDlrrbjgIINCjXvvIwyMDEw5bm05Yiw6aaZ5riv6YeH
+6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzlhbE3LjLk
+uIfmlbDmja7vvIzotoXnuqfph43opoHnmoTkubDlrrbjgIINCjbvvIw2MC445LiH5p2h5pyA5paw
+5Zu95aSWQjJC5Lmw5a626K+i55uY44CCDQo377yMMjAwOeW5tOa1t+WFs+aPkOWNleaVsOaNrnBp
+ZXJz54mI5pWw5o2uIDHljYPkuIfjgIINCjjvvIznvqTlj5Hova/ku7bvvIznvqTlj5Hova/ku7bn
+moTpg6jnvbLkuI7lronoo4XjgIINCg0K5YWxIDUwMOS4h+S4quS5sOWutu+8jOavj+S4quWdh+ac
+iUVtYWlsLiANCg0K5L+d6K+B5q+P5aSp6YO95pyJ5Lmw5a625Zue5aSN44CCDQrkv53or4Hmr4/l
+pKnpg73mnInkubDlrrblm57lpI3jgIINCg0K6KaB55qE5oqT57Sn6IGU57O7UVE6IDEzMzk2MjUy
+MTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThAcXEuY29tDQropoHnmoTm
+ipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+WbnuWkjemCrueusTogMTMz
+OTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5NjI1MjE4ICAg5oiW6ICF
+56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KIA0KDQror5rkv6HkuLrmnKzv
+vIzlpoLmnpzkuI3kv6Hku7vmnKzkuros5Y+v5Lul6LWw5reY5a6d5Lqk5piTLOaUtui0p+mqjOiv
+geWQjuWGjeS7mOasvizov5nmmK/lr7nmgqjmnIDlpb3nmoTkv53pmpzkuobjgIIgDQoNCuS/neiv
+geavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg0K5L+d6K+B5q+P5aSp6YO95pyJ5Lmw5a625Zue
+5aSN44CCDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCg0KDQoNCg0K5bm/5Lqk
+5Lya5Lmw5a625oyJ5Lqn5ZOB57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G777yaDQox
+IOWKnuWFrOiuvuWkhw0KMiDnvJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KDDQo0IOmk
+kOWOqOeUqOWFtw0KNSDovabovoYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeUteWtkOeU
+teawlA0KOCDnlLXlrZDmtojotLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4quS6uuaK
+pOeQhg0KMTIg5bel56iL5py65qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h566X5py6
+5Y+K6YCa6K6vDQoxNiDlrrblsYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a625YW3DQox
+OSDlrrbnlKjnlLXlmagNCjIwIOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel55So5ZOB
+DQoyMiDnpLzlk4Hlj4rotaDlk4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2DQoyNSDp
+o5/lk4ENCjI2IOmZtueTtw0KMjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0KMzAg5LqU
+6YeRDQozMSDlsI/lnovmnLrmorANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDljLvnlpcN
+CjM1IOa1tOWupOS6p+WTgQ0KMzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmSn+ihqOec
+vOmVnA0KMzkg6Ieq6KGM6L2mDQo0MCDljIUNCg0KDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrbl
+m57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg0K5L+d6K+B5q+P5aSp
+6YO95pyJ5Lmw5a625Zue5aSN44CCDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIIN
+CuS/neivgeavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg==
 
-Yes, good idea.
 
-> I'm assuming this is for the 3.2 merge window, since it doesn't look
-> like a regression fix.
-
-Yes, it's 3.2 material.
-
-Below is an updated patch.
-
-Thanks,
-Rafael
-
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: PCI / PM: Return correct result from acpi_dev_run_wake()
-
-The result returned by acpi_dev_run_wake() is always either -EINVAL
-or -ENODEV, while obviously it should return 0 on success.  The
-problem is that the leftover error variable, that's not really used
-in the function, is initialized with -ENODEV and then returned
-without modification.
-
-To fix this issue remove the error variable from acpi_dev_run_wake()
-and make the function return 0 on success as appropriate.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/pci/pci-acpi.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-Index: linux/drivers/pci/pci-acpi.c
-===================================================================
---- linux.orig/drivers/pci/pci-acpi.c
-+++ linux/drivers/pci/pci-acpi.c
-@@ -282,7 +282,6 @@ static int acpi_dev_run_wake(struct devi
- {
- 	struct acpi_device *dev;
- 	acpi_handle handle;
--	int error = -ENODEV;
- 
- 	if (!device_run_wake(phys_dev))
- 		return -EINVAL;
-@@ -302,7 +301,7 @@ static int acpi_dev_run_wake(struct devi
- 		acpi_disable_wakeup_device_power(dev);
- 	}
- 
--	return error;
-+	return 0;
- }
- 
- static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
