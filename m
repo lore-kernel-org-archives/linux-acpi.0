@@ -1,115 +1,144 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME via interrupt or SCI mechanism?
-Date: Thu, 29 Sep 2011 21:39:56 +0200
-Message-ID: <201109292139.56626.rjw@sisk.pl>
-References: <20110912171003.GA7939@xanatos> <201109290021.28407.rjw@sisk.pl> <20110929182327.GA4979@xanatos>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20110929182327.GA4979@xanatos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH 1/8] x86: Expand the x86_msi_ops to have a restore MSIs.
+Date: Thu, 29 Sep 2011 16:16:47 -0400
+Message-ID: <1317327414-24072-2-git-send-email-konrad.wilk@oracle.com>
+References: <1317327414-24072-1-git-send-email-konrad.wilk@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:45022 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757290Ab1I2US2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2011 16:18:28 -0400
+In-Reply-To: <1317327414-24072-1-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, rjw@sisk.pl, tglx@linutronix.de, hpa@zytor.com, x86@kernel.org, len.brown@intel.com, joseph.cihula@intel.com, shane.wang@intel.com, xen-devel@lists.xenso
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-On Thursday, September 29, 2011, Sarah Sharp wrote:
-> On Thu, Sep 29, 2011 at 12:21:28AM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, September 28, 2011, Sarah Sharp wrote:
-> > > On Tue, Sep 27, 2011 at 10:54:47PM +0200, Rafael J. Wysocki wrote:
-> > > > On Tuesday, September 27, 2011, Sarah Sharp wrote:
-> > > So it looks like gpe 0xD is enabled when the host goes into D3, and
-> > > acpi_dev_run_wake is calling acpi_enable_gpe() with GPE 13 (i.e. 0xD),
-> > > correct?
-> > 
-> > Yes, that's correct.
-> > 
-> > Moreover, evidently, the event is signaled and it causes pci_acpi_wake_dev()
-> > to be called for multiple devices, _except_ for the xhci_hcd.  Perhaps
-> > the notifier is not installed for that device for some reason.
-> > 
-> > Please add an additional debug printk()s to pci_acpi_add_pm_notifier()
-> > for both pci_dev and dev and for the result returned by add_pm_notifier().
-> 
-> dmesg reports success from pci_acpi_add_pm_notifier for all PCI devices,
-> including the xHCI host (PCI device 0000:00:14.0):
-> 
-> [    0.936882] pci_bus 0000:00: bus scan returning with max=04
-> [    0.936884] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> [    0.936961] pci 0000:00:1f.0: pci_acpi_add_pm_notifier
-> [    0.936964] acpi device:02: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936977] pci 0000:00:19.0: pci_acpi_add_pm_notifier
-> [    0.936978] acpi device:1f: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936981] pci 0000:00:1d.0: pci_acpi_add_pm_notifier
-> [    0.936983] acpi device:20: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936986] pci 0000:00:1a.0: pci_acpi_add_pm_notifier
-> [    0.936987] acpi device:2b: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936990] pci 0000:00:14.0: pci_acpi_add_pm_notifier
-> [    0.936992] acpi device:34: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936995] pci 0000:00:1b.0: pci_acpi_add_pm_notifier
-> [    0.936996] acpi device:3e: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.936999] pci 0000:00:1c.0: pci_acpi_add_pm_notifier
-> [    0.937001] acpi device:3f: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937002] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.RP01._PRT]
-> [    0.937033] pci 0000:00:1c.7: pci_acpi_add_pm_notifier
-> [    0.937035] acpi device:4d: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937036] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.RP08._PRT]
-> [    0.937056] pci 0000:03:00.0: pci_acpi_add_pm_notifier
-> [    0.937057] acpi device:4e: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937060] pci 0000:00:1f.2: pci_acpi_add_pm_notifier
-> [    0.937062] acpi device:4f: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937066] pci 0000:00:1f.3: pci_acpi_add_pm_notifier
-> [    0.937068] acpi device:52: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937071] pci 0000:00:01.0: pci_acpi_add_pm_notifier
-> [    0.937072] acpi device:53: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937074] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PEG0._PRT]
-> [    0.937094] pci 0000:01:00.0: pci_acpi_add_pm_notifier
-> [    0.937095] acpi device:54: pci_acpi_add_pm_notifier add_pm_notifier returned 0 (success)
-> [    0.937104] acpi_pci_osc_support
-> 
-> This morning, I debugged an issue with the NEC xHCI host controller
-> issue in Keith Packard's Lenovo x220 machine.  The NEC host was not
-> giving port status changes when the host controller was suspended, and
-> it turns out Keith has a boot script that runs `echo auto > power/control`
-> for all his PCI devices.  When he disabled that script and rebooted, his
-> NEC host started working again.
-> 
-> So it's possible that other xHCI host controllers are also affected by
-> this D3 wakeup issue, which makes it less likely to be a hardware bug,
-> and more likely to be a PCI/ACPI/xHCI driver bug.
+The MSI restore function will become a function pointer in an
+x86_msi_ops struct. It defaults to the implementation in the
+io_apic.c and msi.c. We piggyback on the indirection mechanism
+introduced by "x86: Introduce x86_msi_ops".
 
-I'd recommend not to draw conclusions too early in this case.  It very
-well may be a BIOS bug copy-pasted to may implementations or something
-like this.
-
-Please try the appended patch and check if you see the "Notification error
-for GPE" message (please keep your previous debug patches applied).
-
-Thanks,
-Rafael
-
+c: x86@kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- drivers/acpi/acpica/evgpe.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/pci.h      |    9 +++++++++
+ arch/x86/include/asm/x86_init.h |    1 +
+ arch/x86/kernel/x86_init.c      |    1 +
+ drivers/pci/msi.c               |   29 +++++++++++++++++++++++++++--
+ 4 files changed, 38 insertions(+), 2 deletions(-)
 
-Index: linux/drivers/acpi/acpica/evgpe.c
-===================================================================
---- linux.orig/drivers/acpi/acpica/evgpe.c
-+++ linux/drivers/acpi/acpica/evgpe.c
-@@ -523,10 +523,14 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
- 				ACPI_NOTIFY_DEVICE_WAKE);
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index d498943..df75d07 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -112,19 +112,28 @@ static inline void x86_teardown_msi_irq(unsigned int irq)
+ {
+ 	x86_msi.teardown_msi_irq(irq);
+ }
++static inline void x86_restore_msi_irqs(struct pci_dev *dev, int irq)
++{
++	x86_msi.restore_msi_irqs(dev, irq);
++}
+ #define arch_setup_msi_irqs x86_setup_msi_irqs
+ #define arch_teardown_msi_irqs x86_teardown_msi_irqs
+ #define arch_teardown_msi_irq x86_teardown_msi_irq
++#define arch_restore_msi_irqs x86_restore_msi_irqs
+ /* implemented in arch/x86/kernel/apic/io_apic. */
+ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
+ void native_teardown_msi_irq(unsigned int irq);
++void native_restore_msi_irqs(struct pci_dev *dev, int irq);
+ /* default to the implementation in drivers/lib/msi.c */
+ #define HAVE_DEFAULT_MSI_TEARDOWN_IRQS
++#define HAVE_DEFAULT_MSI_RESTORE_IRQS
+ void default_teardown_msi_irqs(struct pci_dev *dev);
++void default_restore_msi_irqs(struct pci_dev *dev, int irq);
+ #else
+ #define native_setup_msi_irqs		NULL
+ #define native_teardown_msi_irq		NULL
+ #define default_teardown_msi_irqs	NULL
++#define default_restore_msi_irqs	NULL
+ #endif
  
- 		notify_object = local_gpe_event_info->dispatch.device.next;
--		while (ACPI_SUCCESS(status) && notify_object) {
-+		while (notify_object) {
- 			status = acpi_ev_queue_notify_request(
- 					notify_object->node,
- 					ACPI_NOTIFY_DEVICE_WAKE);
-+			if (ACPI_FAILURE(status))
-+				ACPI_ERROR((AE_INFO,
-+					"Notification error for GPE 0x%X",
-+					local_gpe_event_info->gpe_number));
- 			notify_object = notify_object->next;
- 		}
+ #define PCI_DMA_BUS_IS_PHYS (dma_ops->is_phys)
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index d3d8590..7af18be 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -174,6 +174,7 @@ struct x86_msi_ops {
+ 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
+ 	void (*teardown_msi_irq)(unsigned int irq);
+ 	void (*teardown_msi_irqs)(struct pci_dev *dev);
++	void (*restore_msi_irqs)(struct pci_dev *dev, int irq);
+ };
  
+ extern struct x86_init_ops x86_init;
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 6f164bd..bd1fe10 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -110,4 +110,5 @@ struct x86_msi_ops x86_msi = {
+ 	.setup_msi_irqs = native_setup_msi_irqs,
+ 	.teardown_msi_irq = native_teardown_msi_irq,
+ 	.teardown_msi_irqs = default_teardown_msi_irqs,
++	.restore_msi_irqs = default_restore_msi_irqs,
+ };
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 2f10328..f1fd801 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -85,6 +85,31 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
+ }
+ #endif
+ 
++#ifndef arch_restore_msi_irqs
++# define arch_restore_msi_irqs default_restore_msi_irqs
++# define HAVE_DEFAULT_MSI_RESTORE_IRQS
++#endif
++
++#ifdef HAVE_DEFAULT_MSI_RESTORE_IRQS
++void default_restore_msi_irqs(struct pci_dev *dev, int irq)
++{
++	struct msi_desc *entry;
++
++	entry = NULL;
++	if (dev->msix_enabled) {
++		list_for_each_entry(entry, &dev->msi_list, list) {
++			if (irq == entry->irq)
++				break;
++		}
++	} else if (dev->msi_enabled)  {
++		entry = irq_get_msi_desc(irq);
++	}
++
++	if (entry)
++		write_msi_msg(irq, &entry->msg);
++}
++#endif
++
+ static void msi_set_enable(struct pci_dev *dev, int pos, int enable)
+ {
+ 	u16 control;
+@@ -359,7 +384,7 @@ static void __pci_restore_msi_state(struct pci_dev *dev)
+ 
+ 	pci_intx_for_msi(dev, 0);
+ 	msi_set_enable(dev, pos, 0);
+-	write_msi_msg(dev->irq, &entry->msg);
++	arch_restore_msi_irqs(dev, dev->irq);
+ 
+ 	pci_read_config_word(dev, pos + PCI_MSI_FLAGS, &control);
+ 	msi_mask_irq(entry, msi_capable_mask(control), entry->masked);
+@@ -387,7 +412,7 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
+ 	pci_write_config_word(dev, pos + PCI_MSIX_FLAGS, control);
+ 
+ 	list_for_each_entry(entry, &dev->msi_list, list) {
+-		write_msi_msg(entry->irq, &entry->msg);
++		arch_restore_msi_irqs(dev, entry->irq);
+ 		msix_mask_irq(entry, entry->masked);
+ 	}
+ 
+-- 
+1.7.4.1
+
