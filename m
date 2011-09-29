@@ -1,97 +1,54 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH v2] ACPI S3 to work under Xen.
-Date: Thu, 29 Sep 2011 16:16:46 -0400
-Message-ID: <1317327414-24072-1-git-send-email-konrad.wilk__1035.56627077541$1317327659$gmane$org@oracle.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:45041 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757416Ab1I2US3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2011 16:18:29 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: PME via interrupt or SCI mechanism?
+Date: Thu, 29 Sep 2011 13:44:40 -0700
+Message-ID: <20110929204440.GA6043@xanatos>
+References: <20110912171003.GA7939@xanatos>
+ <201109290021.28407.rjw@sisk.pl>
+ <20110929182327.GA4979@xanatos>
+ <201109292139.56626.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201109292139.56626.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, rjw@sisk.pl, tglx@linutronix.de, hpa@zytor.com, x86@kernel.org, len.brown@intel.com, joseph.cihula@intel.com, shane.wang@intel.com, xen-devel@lists.xenso
 
-Attached is an [v2] set of patches to enable S3 to work with the Xen hypervisor.
+On Thu, Sep 29, 2011 at 09:39:56PM +0200, Rafael J. Wysocki wrote:
+> On Thursday, September 29, 2011, Sarah Sharp wrote:
+> > On Thu, Sep 29, 2011 at 12:21:28AM +0200, Rafael J. Wysocki wrote:
+> Please try the appended patch and check if you see the "Notification error
+> for GPE" message (please keep your previous debug patches applied).
 
-Changes since the RFC posting [http://comments.gmane.org/gmane.linux.acpi.devel/50701] by
-Liang Tang:
- - Per review comments added: __unused__ attribute, support for PM1A/B if more than 16-bit,
-   copyright/license.
- - Added support for PHYSDEVOP_restore_msi_ext call.
+Do I need to have the ACPI debug_level or debug_layer set to anything in
+particular to see this message?  I don't see this message in dmesg with
+debug_level and debug_layer set to 0x0.
 
-The relationship that Xen has with Linux kernel is symbiotic. The Linux
-kernel does the ACPI "stuff" and tells the hypervisor to do the low-level
-stuff (such as program the IOAPIC, setup vectors, etc). The realm of
-ACPI S3 is more complex as we need to save the CPU state (and Intel TXT
-values - which the hypervisor has to do).
+Sarah Sharp
 
-The major difficulties we hit was with 'acpi_suspend_lowlevel' - which tweaks
-a lot of lowlevel values and some of them are not properly handled by Xen.
-Liang Tang has figured which ones of them we trip over (read below) - and he
-suggested that perhaps we can provide a registration mechanism to abstract
-this away. The reason for all of this is that Linux does not talk to the
-BIOS directly - instead it simply walks through the necessary ACPI methods
-and then issues hypercall to Xen which then further completes the remaining
-suspend steps.
-
-So the attached patches do exactly that - there are two entry points
-in the ACPI.
-
- 1). For S3: acpi_suspend_lowlevel -> .. lots of code -> acpi_enter_sleep_state
- 2). For S1/S4/S5: acpi_enter_sleep_state
-
-The first naive idea was of abstracting away in the 'acpi_enter_sleep_state'
-function the tboot_sleep code so that we can use it too. And low-behold - it
-worked splendidly for powering off (S5 I believe)
-
-For S3 that did not work - during suspend the hypervisor tripped over when
-saving cr8. During resume it tripped over at restoring the cr3, cr8, idt,
-and gdt values.
-
-When I posted the RFC, the feedback I got was to use a higher upper interface
-to make the call to the hypervisor. Instead of doing it at the lower pv-ops
-case for cr3, cr8, idt, gdt, etc. The code I've to say - is much nicer than
-doing it via pv-ops.
-
-Anyhow, please take a look!
-
-Konrad Rzeszutek Wilk (5):
-      x86: Expand the x86_msi_ops to have a restore MSIs.
-      x86, acpi, tboot: Have a ACPI sleep override instead of calling tboot_sleep.
-      xen: Utilize the restore_msi_irqs hook.
-      xen/acpi/sleep: Enable ACPI sleep via the __acpi_override_sleep
-      xen/acpi/sleep: Register to the acpi_suspend_lowlevel a callback.
-
-Liang Tang (2):
-      x86/acpi/sleep: Provide registration for acpi_suspend_lowlevel.
-      xen/pci:use hypercall PHYSDEVOP_restore_msi_ext to restore MSI/MSI-X vectors
-
-Yu Ke (1):
-      xen/acpi: Domain0 acpi parser related platform hypercall
-
-
- arch/ia64/include/asm/xen/interface.h |    1 +
- arch/x86/include/asm/acpi.h           |    6 +-
- arch/x86/include/asm/pci.h            |    9 +
- arch/x86/include/asm/x86_init.h       |    1 +
- arch/x86/include/asm/xen/hypercall.h  |    8 +
- arch/x86/include/asm/xen/interface.h  |    1 +
- arch/x86/kernel/acpi/boot.c           |    6 +
- arch/x86/kernel/acpi/sleep.c          |    4 +-
- arch/x86/kernel/acpi/sleep.h          |    2 +
- arch/x86/kernel/tboot.c               |   14 +-
- arch/x86/kernel/x86_init.c            |    1 +
- arch/x86/pci/xen.c                    |   29 +++
- arch/x86/xen/enlighten.c              |    3 +
- drivers/acpi/acpica/hwsleep.c         |   12 +-
- drivers/acpi/sleep.c                  |    2 +
- drivers/pci/msi.c                     |   29 +++-
- drivers/xen/Makefile                  |    2 +-
- drivers/xen/acpi.c                    |   65 +++++++
- include/linux/tboot.h                 |    3 +-
- include/xen/acpi.h                    |   70 +++++++
- include/xen/interface/physdev.h       |   15 ++
- include/xen/interface/platform.h      |  320 +++++++++++++++++++++++++++++++++
- include/xen/interface/xen.h           |    1 +
- 23 files changed, 591 insertions(+), 13 deletions(-)
-
+> ---
+>  drivers/acpi/acpica/evgpe.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> Index: linux/drivers/acpi/acpica/evgpe.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/acpica/evgpe.c
+> +++ linux/drivers/acpi/acpica/evgpe.c
+> @@ -523,10 +523,14 @@ static void ACPI_SYSTEM_XFACE acpi_ev_as
+>  				ACPI_NOTIFY_DEVICE_WAKE);
+>  
+>  		notify_object = local_gpe_event_info->dispatch.device.next;
+> -		while (ACPI_SUCCESS(status) && notify_object) {
+> +		while (notify_object) {
+>  			status = acpi_ev_queue_notify_request(
+>  					notify_object->node,
+>  					ACPI_NOTIFY_DEVICE_WAKE);
+> +			if (ACPI_FAILURE(status))
+> +				ACPI_ERROR((AE_INFO,
+> +					"Notification error for GPE 0x%X",
+> +					local_gpe_event_info->gpe_number));
+>  			notify_object = notify_object->next;
+>  		}
+>  
