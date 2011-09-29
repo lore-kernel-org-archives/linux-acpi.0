@@ -1,154 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME via interrupt or SCI mechanism?
-Date: Thu, 29 Sep 2011 23:51:49 +0200
-Message-ID: <201109292351.50176.rjw@sisk.pl>
-References: <20110912171003.GA7939@xanatos> <201109292328.45375.rjw@sisk.pl> <201109292338.48690.rjw@sisk.pl>
+From: Myron Stowe <myron.stowe@redhat.com>
+Subject: [PATCH 1/2] ACPI: Export interfaces for ioremapping/iounmapping ACPI
+	registers
+Date: Thu, 29 Sep 2011 15:59:14 -0600
+Message-ID: <20110929215913.21126.71203.stgit@amt.stowe>
+References: <20110929215907.21126.24480.stgit@amt.stowe>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38008 "EHLO ogre.sisk.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:64743 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959Ab1I2Vti (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Sep 2011 17:49:38 -0400
-In-Reply-To: <201109292338.48690.rjw@sisk.pl>
+	id S1751721Ab1I2V7j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Sep 2011 17:59:39 -0400
+In-Reply-To: <20110929215907.21126.24480.stgit@amt.stowe>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, ying.huang@intel.com, bhelgaas@google.com
 
-On Thursday, September 29, 2011, Rafael J. Wysocki wrote:
-> On Thursday, September 29, 2011, Rafael J. Wysocki wrote:
-> > On Thursday, September 29, 2011, Sarah Sharp wrote:
-> > > On Thu, Sep 29, 2011 at 09:39:56PM +0200, Rafael J. Wysocki wrote:
-> > > > On Thursday, September 29, 2011, Sarah Sharp wrote:
-> > > > > On Thu, Sep 29, 2011 at 12:21:28AM +0200, Rafael J. Wysocki wrote:
-> > > > Please try the appended patch and check if you see the "Notification error
-> > > > for GPE" message (please keep your previous debug patches applied).
-> > > 
-> > > Do I need to have the ACPI debug_level or debug_layer set to anything in
-> > > particular to see this message?
-> > 
-> > No, I don't think so, but just in case please try the patch below instead
-> > of the previous one.
-> 
-> Actually, please don't, it's a BIOS-related issue after all.  Apparently,
-> wakeup from xHCD is not supported by the BIOS, because the DSDT defines
-> the _L0D method for GPE 0D (13), which is the following:
-> 
->         Method (_L0D, 0, NotSerialized)
->         {
->             Notify (\_SB.PCI0.EHC1, 0x02)
->             Notify (\_SB.PCI0.EHC2, 0x02)
->             Notify (\_SB.PCI0.HDEF, 0x02)
->             Notify (\_SB.PCI0.GLAN, 0x02)
->         }
-> 
-> so it notifies some devices, but not the xHCD.
-> 
-> We might work around this by doing what Matthew has suggested (ie. polling
-> all PCI and PCIe devices to check if they have PME pending) or perhaps
-> we can do something about this in ACPICA.
-> 
-> Still, the right fix is to put Notify () for the ACPI objects
-> corresponding to xHCD into the above method.
+From: Myron Stowe <mstowe@redhat.com>
 
-Or to remove this method altogether (in which case our ACPICA code
-should take care of the notifications).
+Export remapping and unmapping interfaces - acpi_os_map_generic_address()
+and acpi_os_unmap_generic_address() - for ACPI generic registers
+that are backed by memory mapped I/O (MMIO).
 
-Below is a patch (untested!) that should help, but it's kind of
-suboptimal.  Nevertheless, please try if it works for you.
+ACPI Generic Address Structure (GAS) reference (ACPI's fixed/generic
+hardware registers use the GAS format):
+  ACPI Specification, Revision 4.0, Section 5.2.3.1, "Generic Address
+  Structure"
 
-Thanks,
-Rafael
-
-
+Signed_off_by: Myron Stowe <myron.stowe@redhat.com>
 ---
- drivers/pci/pci.c |   57 +++++++++++++++++++-----------------------------------
- 1 file changed, 21 insertions(+), 36 deletions(-)
 
-Index: linux/drivers/pci/pci.c
-===================================================================
---- linux.orig/drivers/pci/pci.c
-+++ linux/drivers/pci/pci.c
-@@ -1458,19 +1458,6 @@ static void pci_pme_list_scan(struct wor
+ drivers/acpi/osl.c      |    6 ++++--
+ include/linux/acpi_io.h |    3 +++
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index fa32f58..46c5c18 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -426,7 +426,7 @@ void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ 		__acpi_unmap_table(virt, size);
  }
  
- /**
-- * pci_external_pme - is a device an external PCI PME source?
-- * @dev: PCI device to check
-- *
-- */
--
--static bool pci_external_pme(struct pci_dev *dev)
--{
--	if (pci_is_pcie(dev) || dev->bus->number == 0)
--		return false;
--	return true;
--}
--
--/**
-  * pci_pme_active - enable or disable PCI device's PME# function
-  * @dev: PCI device to handle.
-  * @enable: 'true' to enable PME# generation; 'false' to disable it.
-@@ -1480,6 +1467,7 @@ static bool pci_external_pme(struct pci_
-  */
- void pci_pme_active(struct pci_dev *dev, bool enable)
+-static int acpi_os_map_generic_address(struct acpi_generic_address *addr)
++int acpi_os_map_generic_address(struct acpi_generic_address *addr)
  {
-+	struct pci_pme_device *pme_dev;
- 	u16 pmcsr;
+ 	void __iomem *virt;
  
- 	if (!dev->pm_cap)
-@@ -1503,31 +1491,28 @@ void pci_pme_active(struct pci_dev *dev,
- 	   hit, and the power savings from the devices will still be a
- 	   win. */
+@@ -442,8 +442,9 @@ static int acpi_os_map_generic_address(struct acpi_generic_address *addr)
  
--	if (pci_external_pme(dev)) {
--		struct pci_pme_device *pme_dev;
--		if (enable) {
--			pme_dev = kmalloc(sizeof(struct pci_pme_device),
--					  GFP_KERNEL);
--			if (!pme_dev)
--				goto out;
--			pme_dev->dev = dev;
--			mutex_lock(&pci_pme_list_mutex);
--			list_add(&pme_dev->list, &pci_pme_list);
--			if (list_is_singular(&pci_pme_list))
--				schedule_delayed_work(&pci_pme_work,
--						      msecs_to_jiffies(PME_TIMEOUT));
--			mutex_unlock(&pci_pme_list_mutex);
--		} else {
--			mutex_lock(&pci_pme_list_mutex);
--			list_for_each_entry(pme_dev, &pci_pme_list, list) {
--				if (pme_dev->dev == dev) {
--					list_del(&pme_dev->list);
--					kfree(pme_dev);
--					break;
--				}
-+	if (enable) {
-+		pme_dev = kmalloc(sizeof(struct pci_pme_device), GFP_KERNEL);
-+		if (!pme_dev)
-+			goto out;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(acpi_os_map_generic_address);
+ 
+-static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
++void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+ {
+ 	struct acpi_ioremap *map;
+ 
+@@ -464,6 +465,7 @@ static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+ 
+ 	acpi_os_map_cleanup(map);
+ }
++EXPORT_SYMBOL_GPL(acpi_os_unmap_generic_address);
+ 
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status
+diff --git a/include/linux/acpi_io.h b/include/linux/acpi_io.h
+index 4afd710..b0ffa21 100644
+--- a/include/linux/acpi_io.h
++++ b/include/linux/acpi_io.h
+@@ -12,4 +12,7 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+ 
+ void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
+ 
++int acpi_os_map_generic_address(struct acpi_generic_address *addr);
++void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
 +
-+		pme_dev->dev = dev;
-+		mutex_lock(&pci_pme_list_mutex);
-+		list_add(&pme_dev->list, &pci_pme_list);
-+		if (list_is_singular(&pci_pme_list))
-+			schedule_delayed_work(&pci_pme_work,
-+					      msecs_to_jiffies(PME_TIMEOUT));
-+		mutex_unlock(&pci_pme_list_mutex);
-+	} else {
-+		mutex_lock(&pci_pme_list_mutex);
-+		list_for_each_entry(pme_dev, &pci_pme_list, list) {
-+			if (pme_dev->dev == dev) {
-+				list_del(&pme_dev->list);
-+				kfree(pme_dev);
-+				break;
- 			}
--			mutex_unlock(&pci_pme_list_mutex);
- 		}
-+		mutex_unlock(&pci_pme_list_mutex);
- 	}
- 
- out:
+ #endif
+
