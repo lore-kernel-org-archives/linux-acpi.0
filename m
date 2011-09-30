@@ -1,121 +1,93 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v5] acpi: Fix CPU hot removal problem
-Date: Thu, 29 Sep 2011 23:20:42 -0600
-Message-ID: <CAErSpo63mEbhmDCYpYQZ7hmoEz3A03pbS513myt+GrwPG+pK5w@mail.gmail.com>
-References: <4E7D7468.4040506@huawei.com> <4E83E27E.5090608@linux.intel.com> <4E83E8EF.30806@huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: PME via interrupt or SCI mechanism?
+Date: Fri, 30 Sep 2011 18:40:20 +0200
+Message-ID: <201109301840.20402.rjw@sisk.pl>
+References: <20110912171003.GA7939@xanatos> <201109292351.50176.rjw@sisk.pl> <20110929225700.GA6207@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:58559 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab1I3FVE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Sep 2011 01:21:04 -0400
-Received: from wpaz24.hot.corp.google.com (wpaz24.hot.corp.google.com [172.24.198.88])
-	by smtp-out.google.com with ESMTP id p8U5L3Ml023868
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Sep 2011 22:21:03 -0700
-Received: from pzk33 (pzk33.prod.google.com [10.243.19.161])
-	by wpaz24.hot.corp.google.com with ESMTP id p8U5Kntl025770
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Sep 2011 22:21:02 -0700
-Received: by pzk33 with SMTP id 33so4682727pzk.4
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Sep 2011 22:21:02 -0700 (PDT)
-In-Reply-To: <4E83E8EF.30806@huawei.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:39929 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754278Ab1I3QiH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Sep 2011 12:38:07 -0400
+In-Reply-To: <20110929225700.GA6207@xanatos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "canquan.shen" <shencanquan@huawei.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, Sep 28, 2011 at 9:41 PM, canquan.shen <shencanquan@huawei.com> =
-wrote:
->
-> On 2011/9/29 11:14, Chen Gong wrote:
->>
->> =E4=BA=8E 2011/9/24 14:10, canquan.shen =E5=86=99=E9=81=93:
->>>
->>> We run linux as a guest in Xen environment. When we used the xen to=
-ols
->>> (xm vcpu-set <n>) to hot add and remove vcpu to and from the guest,=
- we
->>> encountered the failure on vcpu removal. We found the reason is tha=
-t it
->>> did't go to really remove cpu in the cpu removal code path.
->>>
->>> This patch adds acpi_bus_hot_remove_device in
->>> acpi_process_hotplug_notify to
->>> fix this issue. With this patch, it works fine for us.
->>>
->>> Signed-off-by: Canquan Shen <shencanquan@huawei.com>
->>> ---
->>> drivers/acpi/processor_driver.c | 13 +------------
->>> drivers/acpi/scan.c | 4 ++--
->>> include/acpi/acpi_bus.h | 1 +
->>> 3 files changed, 4 insertions(+), 14 deletions(-)
->>>
->>> diff --git a/drivers/acpi/processor_driver.c
->>> b/drivers/acpi/processor_driver.c
->>> index a4e0f1b..8429688 100644
->>> --- a/drivers/acpi/processor_driver.c
->>> +++ b/drivers/acpi/processor_driver.c
->>> @@ -665,18 +665,7 @@ static void
->>> acpi_processor_hotplug_notify(acpi_handle handle,
->>> case ACPI_NOTIFY_EJECT_REQUEST:
->>> ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->>> "received ACPI_NOTIFY_EJECT_REQUEST\n"));
->>> -
->>> - if (acpi_bus_get_device(handle, &device)) {
->>> - printk(KERN_ERR PREFIX
->>> - "Device don't exist, dropping EJECT\n");
->>> - break;
->>> - }
->>> - pr =3D acpi_driver_data(device);
->>> - if (!pr) {
->>> - printk(KERN_ERR PREFIX
->>> - "Driver data is NULL, dropping EJECT\n");
->>> - return;
->>> - }
->>> + acpi_bus_hot_remove_device(handle);
->>
->> As the description in __acpi_os_execute(in acpi_os_hotplug_execute),
->> /*
->> * We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
->> * because the hotplug code may call driver .remove() functions,
->> * which invoke flush_scheduled_work/acpi_os_wait_events_complete
->> * to flush these workqueues.
->> */
->> If so, why not using following call:
->>
->> acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->han=
-dle);
->>
->>
->
-> It is ok if using the acpi_os_hotplug_execute. but it is complex and =
-more time for removal cpu because it is add to queue and some time the =
-work will be called.
-> I think that it is clear to call directly acpi_bus_hot_remove_device =
-function in acpi_processor_hotplug_notify.
+On Friday, September 30, 2011, Sarah Sharp wrote:
+> On Thu, Sep 29, 2011 at 11:51:49PM +0200, Rafael J. Wysocki wrote:
+> > On Thursday, September 29, 2011, Rafael J. Wysocki wrote:
+> > > On Thursday, September 29, 2011, Rafael J. Wysocki wrote:
+> > > > On Thursday, September 29, 2011, Sarah Sharp wrote:
+> > > > > On Thu, Sep 29, 2011 at 09:39:56PM +0200, Rafael J. Wysocki wrote:
+> > > > > > On Thursday, September 29, 2011, Sarah Sharp wrote:
+> > > > > > > On Thu, Sep 29, 2011 at 12:21:28AM +0200, Rafael J. Wysocki wrote:
+> > > > > > Please try the appended patch and check if you see the "Notification error
+> > > > > > for GPE" message (please keep your previous debug patches applied).
+> > > > > 
+> > > > > Do I need to have the ACPI debug_level or debug_layer set to anything in
+> > > > > particular to see this message?
+> > > > 
+> > > > No, I don't think so, but just in case please try the patch below instead
+> > > > of the previous one.
+> > > 
+> > > Actually, please don't, it's a BIOS-related issue after all.  Apparently,
+> > > wakeup from xHCD is not supported by the BIOS, because the DSDT defines
+> > > the _L0D method for GPE 0D (13), which is the following:
+> > > 
+> > >         Method (_L0D, 0, NotSerialized)
+> > >         {
+> > >             Notify (\_SB.PCI0.EHC1, 0x02)
+> > >             Notify (\_SB.PCI0.EHC2, 0x02)
+> > >             Notify (\_SB.PCI0.HDEF, 0x02)
+> > >             Notify (\_SB.PCI0.GLAN, 0x02)
+> > >         }
+> > > 
+> > > so it notifies some devices, but not the xHCD.
+> 
+> Ok, I'll let our BIOS guys know they need to add the XHC Notify line.
 
-Chen, you're right that the CPU hot-remove notifier is running in a
-workqueue, we are proposing  that the notifier call
-acpi_bus_hot_remove_device(), which calls the .remove() method, and
-that can cause a deadlock if .remove() waits for the workqueue to be
-flushed.
+As stated below, it actually may be better to remove the _L0D method
+entirely, because our ACPICA GPE handling code should take care of
+notifying all of the devices associated with GPE 0D in that case.
 
-The usual way this deadlock happens is when the .remove() method uses
-acpi_remove_notify_handler().  But the processor_driver .remove()
-method doesn't do anything with notify handler registration; the
-handler is registered/unregistered by the module init/exit functions.
-So I don't think we need to use acpi_os_hotplug_execute() in this case
-because I don't think there's a risk of deadlock.
+> I should see if the x220 ACPI tables have a similar issue or it's a
+> different issue with D3.
 
-However, if new CPU devices appear in the namespace after module-init,
-I don't think processor_driver will handle them correctly.  This looks
-like just another artifact of our screwed-up ACPI hotplug handling.
+Yes, that would be good to know.
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > We might work around this by doing what Matthew has suggested (ie. polling
+> > > all PCI and PCIe devices to check if they have PME pending) or perhaps
+> > > we can do something about this in ACPICA.
+> > > 
+> > > Still, the right fix is to put Notify () for the ACPI objects
+> > > corresponding to xHCD into the above method.
+> > 
+> > Or to remove this method altogether (in which case our ACPICA code
+> > should take care of the notifications).
+> > 
+> > Below is a patch (untested!) that should help, but it's kind of
+> > suboptimal.  Nevertheless, please try if it works for you.
+> 
+> The patch seems to finally get the host controller out of D3 when a
+> remote wakeup is triggered.
+
+OK
+
+I'll try to prepare a better patch for you to test.
+
+> I still see a lot of log spam from pci_acpi_wake_dev being called for ehci,
+> e1000e, and snd_hcda_intel, but eventually the xHCI host gets put in D0.
+> dmesg attached.
+
+That's to be expected.  All of the devices mentioned in the _L0D method
+above will be notified every time any of devices associated with GPE 0D
+sends a PME message to the Root Complex, which happens quite often
+while the polling used to check the PME bits is done only every second.
+
+Thanks,
+Rafael
