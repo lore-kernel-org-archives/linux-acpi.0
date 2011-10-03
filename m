@@ -1,16 +1,16 @@
 From: =?iso-8859-1?Q?=22WEBMAIL_HELPDESK=AE=22?= <info@helpdesk.com>
 Subject: RE:: NOTICE =?iso-8859-1?Q?CLOSURE=AE?=
-Date: Tue, 4 Oct 2011 03:05:33 +0700
-Message-ID: <6386f746d69615feb3d7f4b5d427eef6.squirrel@webmail.andalanfinance.com>
+Date: Tue, 4 Oct 2011 03:04:50 +0700
+Message-ID: <8ca98d4d068d8ea5fbd58a07567aa25a.squirrel@webmail.andalanfinance.com>
 Reply-To: un5166999@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [202.129.189.200] ([202.129.189.200]:36056 "EHLO
+Received: from [202.129.189.200] ([202.129.189.200]:36495 "EHLO
 	sidik.mandirifinance.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751874Ab1JCVvL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Oct 2011 17:51:11 -0400
+	by vger.kernel.org with ESMTP id S1751736Ab1JCWHI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Oct 2011 18:07:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
