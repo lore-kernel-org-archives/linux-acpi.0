@@ -1,48 +1,132 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME via interrupt or SCI mechanism?
-Date: Sat, 1 Oct 2011 22:29:55 +0200
-Message-ID: <201110012229.55473.rjw@sisk.pl>
-References: <20110912171003.GA7939@xanatos> <201109302221.06714.rjw@sisk.pl> <20111001003010.GA26349@xanatos>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: [PATCH V8 0/4] cpuidle: Global registration of idle states with
+ per-cpu statistics
+Date: Mon, 03 Oct 2011 13:12:15 +0530
+Message-ID: <20111003074147.21968.86106.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20111001003010.GA26349@xanatos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e23smtp07.au.ibm.com ([202.81.31.140]:56164 "EHLO
+	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827Ab1JCHnM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Oct 2011 03:43:12 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org
+Cc: linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Saturday, October 01, 2011, Sarah Sharp wrote:
-> On Fri, Sep 30, 2011 at 10:21:06PM +0200, Rafael J. Wysocki wrote:
-> > OK, please test the appended patch.  The difference is that it should only
-> > continuously poll devices that don't get notifications.  You'll still see
-> > the debug messages from your previous patches, but this one should be a bit
-> > less wasteful than the previous one in general.
-> 
-> This patch seems to work.  The GPE fires and the xHCI host controller
-> comes out of D3 after a stream of:
-> 
-> Sep 30 17:07:32 talon kernel: [  197.745312] ehci_hcd 0000:00:1d.0: pci_acpi_wake_dev
-> Sep 30 17:07:32 talon kernel: [  197.745321] ehci_hcd 0000:00:1a.0: pci_acpi_wake_dev
-> Sep 30 17:07:32 talon kernel: [  197.745326] snd_hda_intel 0000:00:1b.0: pci_acpi_wake_dev
-> Sep 30 17:07:32 talon kernel: [  197.745331] e1000e 0000:00:19.0: pci_acpi_wake_dev
-> 
-> It does seem to take less time to come out of D3 than the previous patch
-> though.
-> 
-> I occasionally do not see the host controller come out of D3 when I plug
-> in a new device, but the interrupt count for GPE 0D doesn't increment
-> when that happens, so it's probably just a BIOS or hardware bug.
+Version 6 of this patch series dated 22nd Sept 2011 was 
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Kevin Hilman <khilman@ti.com> for OMAP specific parts.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Jean Pihet <j-pihet@ti.com>
 
-I think the controller doesn't signal PME in those cases.
+Hi Len, 
+Can you please queue this series for the next mainline merge window by merging
+it into your development tree and also linux-next for further testing.
 
-> Did mention this was bleeding edge hardware?
+I also tested it by applying these patches on your ACPI tree hosted @github.
 
-No, you didn't, but that doesn't matter a lot.  Bugs of this kind are found in
-systems being sold in the market too and we need to work around them anyway. :-(
+Thanks
+-Deepthi
 
-Thanks for testing the patch, I'll resent it with a changelog shortly.
+--
 
-Rafael
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
+
+This patch series had been in discussion earlier and
+following are the links to the previous discussions.
+
+v7 --> https://lkml.org/lkml/2011/9/27/74 
+v6 --> https://lkml.org/lkml/2011/9/22/58
+v5 --> https://lkml.org/lkml/2011/6/6/259
+v4 --> https://lkml.org/lkml/2011/4/28/312
+v3 --> https://lkml.org/lkml/2011/2/8/73
+v2 --> https://lkml.org/lkml/2011/1/13/98
+v1 --> https://lkml.org/lkml/2011/3/22/161
+
+Changes from previous version (V7):
+
+   1. Rebased and tested it on 3.1-rc8
+
+   2. As suggested by Kevin in V7, Signature of Jean
+      was moved from signed-off tag to tested-by.
+    
+Tests done:
+
+    1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+    exynos4_defconfig, kirkwood_defconfig, omap2plus_defconfig, 
+    at91rm9200_defconfig
+      
+    2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+    and acpi_idle drivers.
+
+    3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states. 
+    Also tested the case when there is dynamic changes in C-states 
+    AC <-> Battery Power switch.
+
+Brief description of the patches:
+
+Core change in this series is to split the cpuidle_device structure 
+into two parts, i.e  global and per-cpu basis. 
+
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+the respective low level drivers, so that the accounting can
+be accurately maintained if the driver decides to demote the
+chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+widely used and the only use case was to allow software
+demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+functions can be absorbed within the cpuidle back-end
+driver ad hence deprecating the prepare routine and the
+CPUIDLE_FLAG_IGNORE flag.
+
+    - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+cpuidle_state structure, so that the states can become read
+only and hence made global.
+
+[4/4] - Most APIs will now need to pass pointer to both global
+cpuidle_driver and per-cpu cpuidle_device structure.
+
+ arch/arm/mach-at91/cpuidle.c          |   41 +++--
+ arch/arm/mach-davinci/cpuidle.c       |   51 ++++---
+ arch/arm/mach-exynos4/cpuidle.c       |   30 ++--
+ arch/arm/mach-kirkwood/cpuidle.c      |   42 +++---
+ arch/arm/mach-omap2/cpuidle34xx.c     |  133 +++++++++++------
+ arch/sh/kernel/cpu/shmobile/cpuidle.c |   28 ++--
+ drivers/acpi/processor_driver.c       |   20 ---
+ drivers/acpi/processor_idle.c         |  251 +++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c             |   86 ++++-------
+ drivers/cpuidle/driver.c              |   25 +++
+ drivers/cpuidle/governors/ladder.c    |   41 ++++-
+ drivers/cpuidle/governors/menu.c      |   29 ++--
+ drivers/cpuidle/sysfs.c               |   22 ++-
+ drivers/idle/intel_idle.c             |  130 +++++++++++++----
+ include/acpi/processor.h              |    1 
+ include/linux/cpuidle.h               |   52 ++++---
+ 16 files changed, 650 insertions(+), 332 deletions(-)
+
+
+-- 
+
+-Deepthi
