@@ -1,8 +1,7 @@
 From: pingfank@linux.vnet.com
-Subject: [PATCH] ACPI: Call ACPI remove handler when handling
-	ACPI eject event
-Date: Tue,  4 Oct 2011 19:13:36 +0800
-Message-ID: <1317726818-8514-2-git-send-email-pingfank@linux.vnet.com>
+Subject: [PATCH 1/2] ACPI: Update cpu hotplug event for guest
+Date: Tue,  4 Oct 2011 19:13:37 +0800
+Message-ID: <1317726818-8514-3-git-send-email-pingfank@linux.vnet.com>
 References: <1317726818-8514-1-git-send-email-pingfank@linux.vnet.com>
 Return-path: <qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org>
 In-Reply-To: <1317726818-8514-1-git-send-email-pingfank@linux.vnet.com>
@@ -21,53 +20,26 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 
-Call the remove handler for ACPI_NOTIFY_EJECT_REQUEST
+Need to update cpu hotplug event for guest when updating SCI event
 
 Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 ---
- drivers/acpi/bus.c      |    2 +-
- drivers/acpi/scan.c     |    2 +-
- include/acpi/acpi_bus.h |    2 ++
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ hw/acpi_piix4.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 437ddbf..d06ec6d 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -764,7 +764,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 		break;
+diff --git a/hw/acpi_piix4.c b/hw/acpi_piix4.c
+index 44eb8ae..f585226 100644
+--- a/hw/acpi_piix4.c
++++ b/hw/acpi_piix4.c
+@@ -94,7 +94,8 @@ static void pm_update_sci(PIIX4PMState *s)
+                    ACPI_BITMASK_POWER_BUTTON_ENABLE |
+                    ACPI_BITMASK_GLOBAL_LOCK_ENABLE |
+                    ACPI_BITMASK_TIMER_ENABLE)) != 0) ||
+-        (((s->gpe.sts[0] & s->gpe.en[0]) & PIIX4_PCI_HOTPLUG_STATUS) != 0);
++                (((s->gpe.sts[0] & s->gpe.en[0]) &
++                  (PIIX4_PCI_HOTPLUG_STATUS | PIIX4_CPU_HOTPLUG_STATUS)) != 0);
  
- 	case ACPI_NOTIFY_EJECT_REQUEST:
--		/* TBD */
-+		acpi_os_hotplug_execute(acpi_bus_hot_remove_device, handle);
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 449c556..3b97b61 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
--static void acpi_bus_hot_remove_device(void *context)
-+void acpi_bus_hot_remove_device(void *context)
- {
- 	struct acpi_device *device;
- 	acpi_handle handle = context;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 6cd5b64..b19c09d 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -310,6 +310,8 @@ extern int unregister_acpi_notifier(struct notifier_block *);
- 
- extern int register_acpi_bus_notifier(struct notifier_block *nb);
- extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-+extern void acpi_bus_hot_remove_device(void *context);
-+
- /*
-  * External Functions
-  */
+     qemu_set_irq(s->irq, sci_level);
+     /* schedule a timer interruption if needed */
 -- 
 1.7.4.4
