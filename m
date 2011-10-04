@@ -1,38 +1,73 @@
-From: Sitsofe Wheeler <sitsofe@yahoo.com>
-Subject: Re: kmemleaks related to ACPI psparse
-Date: Tue, 4 Oct 2011 07:37:21 +0100
-Message-ID: <20111004063720.GA13579@sucs.org>
-References: <20110916072210.GA25500@sucs.org>
- <1316158194.5362.5.camel@minggr>
- <20110916090236.GA27803@sucs.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from silver.sucs.swan.ac.uk ([137.44.10.1]:39046 "EHLO
-	silver.sucs.swan.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754241Ab1JDGh0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Oct 2011 02:37:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20110916090236.GA27803@sucs.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: pingfank@linux.vnet.com
+Subject: [PATCH] ACPI: Call ACPI remove handler when handling
+	ACPI eject event
+Date: Tue,  4 Oct 2011 19:13:36 +0800
+Message-ID: <1317726818-8514-2-git-send-email-pingfank@linux.vnet.com>
+References: <1317726818-8514-1-git-send-email-pingfank@linux.vnet.com>
+Return-path: <qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org>
+In-Reply-To: <1317726818-8514-1-git-send-email-pingfank@linux.vnet.com>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: </archive/html/qemu-devel>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org
+Sender: qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org
+To: linux-acpi@vger.kernel.org, qemu-devel@nongnu.org
+Cc: aliguori@us.ibm.com, Liu Ping Fan <pingfank@linux.vnet.ibm.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, ryanh@us.ibm.com, shaohua.li@intel.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
+From: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 
-On Fri, Sep 16, 2011 at 10:02:36AM +0100, Sitsofe Wheeler wrote:
-> 
-> On Fri, Sep 16, 2011 at 03:29:54PM +0800, Lin Ming wrote:
-> > On Fri, 2011-09-16 at 15:22 +0800, Sitsofe Wheeler wrote:
-> > > 
-> > > In 3.1.0-rc5-dirty the following warning appeared in dmesg:
-> > 
-> > Please attach the acpidump output.
-> 
-> My EeePC 900's acpidump output should be attached as a gz. 
+Call the remove handler for ACPI_NOTIFY_EJECT_REQUEST
 
-This issue hasn't happened since - is it worth ignoring this for now?
+Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
+---
+ drivers/acpi/bus.c      |    2 +-
+ drivers/acpi/scan.c     |    2 +-
+ include/acpi/acpi_bus.h |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 437ddbf..d06ec6d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -764,7 +764,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 		break;
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+-		/* TBD */
++		acpi_os_hotplug_execute(acpi_bus_hot_remove_device, handle);
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 449c556..3b97b61 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
+ }
+ static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+ 
+-static void acpi_bus_hot_remove_device(void *context)
++void acpi_bus_hot_remove_device(void *context)
+ {
+ 	struct acpi_device *device;
+ 	acpi_handle handle = context;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 6cd5b64..b19c09d 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -310,6 +310,8 @@ extern int unregister_acpi_notifier(struct notifier_block *);
+ 
+ extern int register_acpi_bus_notifier(struct notifier_block *nb);
+ extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
++extern void acpi_bus_hot_remove_device(void *context);
++
+ /*
+  * External Functions
+  */
 -- 
-Sitsofe | http://sucs.org/~sits/
+1.7.4.4
