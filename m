@@ -1,41 +1,40 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: kmemleaks related to ACPI psparse
-Date: Wed, 05 Oct 2011 19:54:39 +0800
-Message-ID: <1317815679.3658.10.camel@hp6530s>
-References: <20110916072210.GA25500@sucs.org>
-	 <1316158194.5362.5.camel@minggr> <20110916090236.GA27803@sucs.org>
-	 <20111004063720.GA13579@sucs.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH 1/2] ACPI: Fix _PLD definition in predefined names
+Date: Wed,  5 Oct 2011 14:06:30 -0400
+Message-ID: <1317837991-6917-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14223 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53575 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934221Ab1JELy4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Oct 2011 07:54:56 -0400
-In-Reply-To: <20111004063720.GA13579@sucs.org>
+	id S1753139Ab1JESGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Oct 2011 14:06:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, Matthew Garrett <mjg@redhat.com>
 
-On Tue, 2011-10-04 at 14:37 +0800, Sitsofe Wheeler wrote:
-> Hi,
-> 
-> On Fri, Sep 16, 2011 at 10:02:36AM +0100, Sitsofe Wheeler wrote:
-> > 
-> > On Fri, Sep 16, 2011 at 03:29:54PM +0800, Lin Ming wrote:
-> > > On Fri, 2011-09-16 at 15:22 +0800, Sitsofe Wheeler wrote:
-> > > > 
-> > > > In 3.1.0-rc5-dirty the following warning appeared in dmesg:
-> > > 
-> > > Please attach the acpidump output.
-> > 
-> > My EeePC 900's acpidump output should be attached as a gz. 
-> 
-> This issue hasn't happened since - is it worth ignoring this for now?
+The acpica code flags _PLD as returning a package of buffers. The spec
+defines it as returning a single buffer, and implementations match that.
+Fix it up.
 
-Yes.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/acpica/acpredef.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Thanks for test.
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index c445cca..7328932 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -336,8 +336,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_PIF", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (3 Int),(3 Str) */
+ 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, ACPI_RTYPE_STRING}, 3, 0}},
+ 
+-	{{"_PLD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Bufs) */
+-			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_BUFFER, 0,0}, 0,0}},
++	{{"_PLD", 0, ACPI_RTYPE_BUFFER}},
+ 
+ 	{{"_PMC", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (11 Int),(3 Str) */
+ 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 11, ACPI_RTYPE_STRING}, 3,
+-- 
+1.7.6.4
 
