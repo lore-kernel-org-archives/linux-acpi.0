@@ -1,16 +1,16 @@
 From: "WEBMAIL HELPDESK" <lwaty@andalanfinance.com>
 Subject: Urgent: Please Activate Your Account Immediately!
-Date: Fri, 7 Oct 2011 01:53:45 +0700
-Message-ID: <99eb1611effda3c05cd6cb405417afe5.squirrel@webmail.andalanfinance.com>
+Date: Fri, 7 Oct 2011 01:39:53 +0700
+Message-ID: <321f760957e02c2fb6c05db51efb276d.squirrel@webmail.andalanfinance.com>
 Reply-To: un5166999@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [202.129.189.200] ([202.129.189.200]:57785 "EHLO
+Received: from [202.129.189.200] ([202.129.189.200]:47207 "EHLO
 	sidik.mandirifinance.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755607Ab1JFTJF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2011 15:09:05 -0400
+	by vger.kernel.org with ESMTP id S1759134Ab1JFUCk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2011 16:02:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
