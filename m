@@ -1,62 +1,43 @@
-From: Jean Parpaillon <jparpaillon@mandriva.com>
-Subject: ACPI on Thinkpad T420
-Date: Wed, 12 Oct 2011 13:44:42 +0200
-Message-ID: <1318419882.12504.4.camel@talinn.home>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFH] Power Management mini-summit during the Kernel Summit 2011
+Date: Wed, 12 Oct 2011 22:11:21 +0200
+Message-ID: <201110122211.21638.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-U7WH/s65LvQYulfM6ONQ"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.mandriva.com ([212.85.150.166]:49986 "EHLO mx1.mandriva.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752863Ab1JLMND (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Oct 2011 08:13:03 -0400
-Received: from [192.168.1.132] (unknown [188.73.62.65])
-	(using SSLv3 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mx1.mandriva.com (Postfix) with ESMTP id BD978274004
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Oct 2011 13:44:21 +0200 (CEST)
+Received: from ogre.sisk.pl ([217.79.144.158]:36614 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167Ab1JLUJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Oct 2011 16:09:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>, mark gross <markgross@thegnar.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, Daniel Drake <dsd@laptop.org>, ming.lei@canonical.com, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>
 
+Hi All,
 
---=-U7WH/s65LvQYulfM6ONQ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+There was a plan to organize a PM mini-summit during the KS 2011 in Prague,
+but then I didn't follow up (which obviously is my fault) and lost track of
+things when kernel.org and the KS servers went offline.  So, apparently,
+the KS organizers concluded that the PM mini-summit wasn't going to happen
+after all and didn't add it to the schedule.
 
-Hi,
-I am trying to wake up Thinkpad T420 laptop through its broadband modem.
-I'm setting up the 'wakeup' property to 'enabled' in syfs for the device
-and ensure that NetworkManager does not disconnect modem when sleeping,
-but this is not enough :)
+Still, it appears to be possible to arrange a room for a PM meeting on
+Sunday, Oct 23, if there are people wanting to attend.  So, if you'd like
+to take part in such a meeting, please let me know ASAP.
 
-How can ensure wakeup property does its job on this platform ? Do you
-already have some feedback ?
+The topics I, personally, would like to discuss include:
+- Per-device PM QoS
+- Propagation of wakeup events to user space vs system suspend
+- Possibility of representing dependencies between devices through
+  "device links" (i.e. objects representing master-slave links between
+  devices)
+- Idea of common "platform" bus type that may cover ACPI devices (like
+  battery, fans etc.), PNP devices and current platform devices in a
+  consistent way
+- Freezer improvements
 
-Regards,
---=20
-Jean Parpaillon
-Pulse2 project leader
-
-Mandriva SA - http://mandriva.com
-Rennes - FR
-Phone: +33 6 30 10 92 86
-email: jparpaillon@mandriva.com
-jabber: jean.parpaillon@gmail.com
-skype: jean.parpaillon
-
---=-U7WH/s65LvQYulfM6ONQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAk6VfaoACgkQ8P+pSEjr0u5h8ACdFqFKC/L80RzZKVtv7/qGRPMV
-VVQAnA+gIiZo27RCneR5N2u+HfkuFMYF
-=tWPa
------END PGP SIGNATURE-----
-
---=-U7WH/s65LvQYulfM6ONQ--
-
+Thanks,
+Rafael
