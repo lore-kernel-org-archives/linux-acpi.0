@@ -1,43 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFH] Power Management mini-summit during the Kernel Summit 2011
-Date: Wed, 12 Oct 2011 22:11:21 +0200
-Message-ID: <201110122211.21638.rjw@sisk.pl>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFH] Power Management mini-summit during the Kernel Summit 2011
+Date: Wed, 12 Oct 2011 14:30:01 -0600
+Message-ID: <CACxGe6u=32ssy1nyQxM9ykZqcK-ent3e6SGzfjgb2HwfW6K9nA@mail.gmail.com>
+References: <201110122211.21638.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36614 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752167Ab1JLUJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Oct 2011 16:09:01 -0400
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:58044 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703Ab1JLUaW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Oct 2011 16:30:22 -0400
+In-Reply-To: <201110122211.21638.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>, mark gross <markgross@thegnar.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, Daniel Drake <dsd@laptop.org>, ming.lei@canonical.com, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, mark gross <markgross@thegnar.org>, Greg Kroah-Hartman <gregkh@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, Daniel Drake <dsd@laptop.org>, ming.lei@canonical.com, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>
 
-Hi All,
+On Wed, Oct 12, 2011 at 2:11 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Hi All,
+>
+> There was a plan to organize a PM mini-summit during the KS 2011 in P=
+rague,
+> but then I didn't follow up (which obviously is my fault) and lost tr=
+ack of
+> things when kernel.org and the KS servers went offline. =A0So, appare=
+ntly,
+> the KS organizers concluded that the PM mini-summit wasn't going to h=
+appen
+> after all and didn't add it to the schedule.
+>
+> Still, it appears to be possible to arrange a room for a PM meeting o=
+n
+> Sunday, Oct 23, if there are people wanting to attend. =A0So, if you'=
+d like
+> to take part in such a meeting, please let me know ASAP.
+>
+> The topics I, personally, would like to discuss include:
+> - Per-device PM QoS
+> - Propagation of wakeup events to user space vs system suspend
+> - Possibility of representing dependencies between devices through
+> =A0"device links" (i.e. objects representing master-slave links betwe=
+en
+> =A0devices)
+> - Idea of common "platform" bus type that may cover ACPI devices (lik=
+e
+> =A0battery, fans etc.), PNP devices and current platform devices in a
+> =A0consistent way
+> - Freezer improvements
 
-There was a plan to organize a PM mini-summit during the KS 2011 in Prague,
-but then I didn't follow up (which obviously is my fault) and lost track of
-things when kernel.org and the KS servers went offline.  So, apparently,
-the KS organizers concluded that the PM mini-summit wasn't going to happen
-after all and didn't add it to the schedule.
+I would like to attend, but I'm also in the arm maintainership
+workshop.  I may be able to coordinate the schedule so that I can slip
+out for the conversations that I'm interested in.  In particular, I'd
+like to be part of the ACPI discussion and the device dependencies
+stuff.
 
-Still, it appears to be possible to arrange a room for a PM meeting on
-Sunday, Oct 23, if there are people wanting to attend.  So, if you'd like
-to take part in such a meeting, please let me know ASAP.
-
-The topics I, personally, would like to discuss include:
-- Per-device PM QoS
-- Propagation of wakeup events to user space vs system suspend
-- Possibility of representing dependencies between devices through
-  "device links" (i.e. objects representing master-slave links between
-  devices)
-- Idea of common "platform" bus type that may cover ACPI devices (like
-  battery, fans etc.), PNP devices and current platform devices in a
-  consistent way
-- Freezer improvements
-
-Thanks,
-Rafael
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
