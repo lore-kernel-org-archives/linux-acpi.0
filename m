@@ -1,7 +1,7 @@
-From: Grant Likely <grant.likely@secretlab.ca>
+From: Greg KH <gregkh@suse.de>
 Subject: Re: [RFH] Power Management mini-summit during the Kernel Summit 2011
-Date: Thu, 13 Oct 2011 13:55:39 -0600
-Message-ID: <20111013195539.GG18574@ponder.secretlab.ca>
+Date: Thu, 13 Oct 2011 13:52:58 -0600
+Message-ID: <20111013195258.GA29513@suse.de>
 References: <201110122211.21638.rjw@sisk.pl>
  <201110132105.17437.rjw@sisk.pl>
  <20111013190510.GR18574@ponder.secretlab.ca>
@@ -9,16 +9,16 @@ References: <201110122211.21638.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:62595 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156Ab1JMTzp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Oct 2011 15:55:45 -0400
+Received: from cantor2.suse.de ([195.135.220.15]:47866 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754411Ab1JMT5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Oct 2011 15:57:05 -0400
 Content-Disposition: inline
 In-Reply-To: <201110132117.36573.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Daniel Drake <dsd@laptop.org>, mark gross <markgross@thegnar.org>, Greg Kroah-Hartman <gregkh@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, ming.lei@canonical.com, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>, Chris Ball <cjb@laptop.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Daniel Drake <dsd@laptop.org>, mark gross <markgross@thegnar.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, ming.lei@canonical.com, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>, Chris Ball <cjb@laptop.org>
 
 On Thu, Oct 13, 2011 at 09:17:36PM +0200, Rafael J. Wysocki wrote:
 > On Thursday, October 13, 2011, Grant Likely wrote:
@@ -61,7 +61,6 @@ On Thu, Oct 13, 2011 at 09:17:36PM +0200, Rafael J. Wysocki wrote:
 > So can everyone please tell me whether or not you can attend if the meeting
 > is scheduled on Tuesday (Oct 25) afternoon?
 
-Is there a schedule available yet for the presentations on Tuesday for kernel summit?
+If it doesn't conflict with kernel summit stuff, yes.
 
-g.
-
+greg k-h
