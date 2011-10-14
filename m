@@ -1,40 +1,73 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFH] Power Management mini-summit during the Kernel Summit 2011
-Date: Thu, 13 Oct 2011 16:38:22 -0600
-Message-ID: <20111013223822.GC28726@ponder.secretlab.ca>
-References: <201110122211.21638.rjw@sisk.pl>
- <201110132105.17437.rjw@sisk.pl>
- <20111013190510.GR18574@ponder.secretlab.ca>
- <201110132117.36573.rjw@sisk.pl>
- <87fwiwinwq.fsf@ti.com>
- <CANqRtoQeRObbBK7g2926ku+64-2QiEnuy4QYjT+ACkmPP5coPg@mail.gmail.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] acpiphp: Prevent deadlock on PCI-to-PCI bridge remove
+Date: Fri, 14 Oct 2011 09:07:35 -0700
+Message-ID: <20111014090735.44b38707@jbarnes-desktop>
+References: <1317253253-28259-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:57909 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473Ab1JMWi0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Oct 2011 18:38:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CANqRtoQeRObbBK7g2926ku+64-2QiEnuy4QYjT+ACkmPP5coPg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/Do41//+4he7S73NVDB.9hNX"; protocol="application/pgp-signature"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1317253253-28259-1-git-send-email-prarit@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-pci@vger.kernel.org, mjg@redhat.com, bhelgaas@google.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM list <linux-pm@vger.kernel.org>, Daniel Drake <dsd@laptop.org>, mark gross <markgross@thegnar.org>, Greg Kroah-Hartman <gregkh@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Tejun Heo <tj@kernel.org>, jean.pihet@newoldbits.com, ming.lei@canonical.com, Mark Brown <broonie@sirena.org.uk>, John Stultz <john.stultz@linaro.org>, Chris Ball <cjb@laptop.org>
 
-On Fri, Oct 14, 2011 at 06:50:54AM +0900, Magnus Damm wrote:
-> On Fri, Oct 14, 2011 at 6:26 AM, Kevin Hilman <khilman@ti.com> wrote:
-> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> >
-> >> So can everyone please tell me whether or not you can attend if the
-> >> meeting is scheduled on Tuesday (Oct 25) afternoon?
-> >
-> > Works for me, since I'm not invited to the rest of KS.
-> 
-> Same here, but I do believe that KS on Tuesday is open for everyone -
-> or at least people attending the Sunday events.
+--Sig_/Do41//+4he7S73NVDB.9hNX
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Yes, the tuesday is open to all WS attendees.  I'll be sending out a
-schedule and logistics for the ARM WS in the next couple of days.
+On Wed, 28 Sep 2011 19:40:53 -0400
+Prarit Bhargava <prarit@redhat.com> wrote:
 
+> I originally submitted a patch to workaround this by pushing all Ejection
+> Requests and Device Checks onto the kacpi_hotplug queue.
+>=20
+> http://marc.info/?l=3Dlinux-acpi&m=3D131678270930105&w=3D2
+>=20
+> The patch is still insufficient in that Bus Checks also need to be added.
+>=20
+> Rather than add all events, including non-PCI-hotplug events, to the
+> hotplug queue, mjg suggested that a better approach would be to modify
+> the acpiphp driver so only acpiphp events would be added to the
+> kacpi_hotplug queue.
+>=20
+> It's a longer patch, but at least we maintain the benefit of having separ=
+ate
+> queues in ACPI.  This, of course, is still only a workaround the problem.
+> As Bjorn and mjg pointed out, we have to refactor a lot of this code to do
+> the right thing but at this point it is a better to have this code workin=
 g.
+>=20
+> Jesse -- Unless there are any objections from the ACPI guys, I think this
+> patch should be pushed through linux-pci now since 95% of the changes are
+> contained within drivers/pci/hotplug.
+
+Applied to linux-next, thanks.
+
+--=20
+Jesse Barnes, Intel Open Source Technology Center
+
+--Sig_/Do41//+4he7S73NVDB.9hNX
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOmF5HAAoJEIEoDkX4Qk9hUP0QAJQF7K6c7oXvl3ib7u6icYKe
+DXOuCxKGu3RtCNBHUvQBtinwo3A5l/dIbgXymnN5EOaSBx7J3LSw/ABj2BMfagpa
+qTtM6o50TJTOMihxvfBhGYT4VDs4LB7k2DzOWySXyH6S5VwuCSmcANqRX88x7Kcm
+AqAENuCQX7btEkGivsiHcnBQ5Ntt+tR5dpuKK72s+8HR7Y/06Jo+0LfeGBa5h+qu
+gwpp62fPtkCC4llZI8VPb1GDi52XifqA0TXdXc6yFVahtYHRQB9pSVaJfattLOC/
+fuOsrQ9OfNW6+qhpvWtRTiGuGfuoY5p/QEheyj3J2RcEuRrg8ryr7SelBdcrK3rs
+rqAEDu1IOFQLvJoYF65gj2dwxC7NKqbWqTlteFZImN3yAM21Zt2adPdwJdcxIPm0
+k52vSqUeIwnSUlYboKG0ShxilF/qGa0WL90eoEYbNcLSnwvgcoUJLf7Yrk0AH6PM
+chX7xvwis76bgntKDv9PxImzEusLc/Ngxc4V5x4E5kTJxuiXB9EKUto1OfzebtIC
+clIgGf/sMyt2zQThUOElHBCGcjvqta/11hNoyxY2uZeAAv9LBNiRUXE5D7EsRmY6
+OU0RSdcETmGMj1+OSyDgeUGs0hT2btcP8D6MuByfTz07Fil0BIiB93GNRRUicxNf
+4ZnMvRsxvLC68ukyzWz5
+=uGJh
+-----END PGP SIGNATURE-----
+
+--Sig_/Do41//+4he7S73NVDB.9hNX--
