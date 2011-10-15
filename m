@@ -1,87 +1,130 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCI / PM: Extend PME polling to all PCI devices
-Date: Fri, 14 Oct 2011 09:08:10 -0700
-Message-ID: <20111014090810.7d34906a@jbarnes-desktop>
-References: <201110032316.33786.rjw@sisk.pl>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: [PROBLEM] ASUS Sandybridge motherboards + PCI not working (IRQ n:
+ nobody cared)
+Date: Sat, 15 Oct 2011 10:23:59 -0600
+Message-ID: <CADLC3L3wZuS-1oNoOkkU5uEDhmUio3edL05Cy4EDapfG-Y202w@mail.gmail.com>
+References: <4E98175A.8040905@pobox.com>
+	<4E98D402.2030600@gmail.com>
+	<4E9947B1.4050100@pobox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/K_gsFGF1fqbFWQmNvdaEaHM"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201110032316.33786.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:38221 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab1JOQYA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Oct 2011 12:24:00 -0400
+In-Reply-To: <4E9947B1.4050100@pobox.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chris Palmer <chris.palmer@pobox.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
---Sig_/K_gsFGF1fqbFWQmNvdaEaHM
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Sat, Oct 15, 2011 at 2:43 AM, Chris Palmer <chris.palmer@pobox.com> =
+wrote:
+> On 15/10/2011 01:29, Robert Hancock wrote:
+>> On 10/14/2011 05:04 AM, Chris Palmer wrote:
+>>> Interrupt handling for *PCI boards with ASUS Sandybridge motherboar=
+ds*
+>>> seems to be broken.
+>>>
+>>> It has been seen with network and non-network PCI boards. PCIx netw=
+ork
+>>> boards work OK. And all reports are for ASUS motherboards.
+>>>
+>>> It always results in the infamous "IRQ n: nobody cared" message usu=
+ally
+>>> within an hour. It is possible to restart things by rmmod/modprobe =
+on
+>>> the appropriate PCI driver.
+>>>
+>>> Andrew Morton kindly took a quick look and thinks it is most likely=
+ an
+>>> ACPI bug.
+>>>
+>>> Configuration summary:
+>>> =A0 - ASUS P8H67-V/R3 Motherboard (others have problems with simila=
+r M/Bs)
+>>> =A0 - M/B BIOS 0804 (just updated to that - no change)
+>>> =A0 - Core i5/2500K
+>>> =A0 - Onboard ethernet (at11c driver - works)
+>>> =A0 - Additional PCIx Intel ethernet board (e1000e driver - works)
+>>> =A0 - Additional PCI Broadcom BCM5702X ethernet board (tg3 driver -=
+ fails)
+>>> =A0 =A0 [ Also fails with other PCI boards such as RTL8139 ]
+>>> =A0 - Kernel 3.0.6
+>>>
+>>>
+>>> Any help much appreciated...
+>>>
+>>> Previous references:
+>>>
+>>> https://lkml.org/lkml/2011/6/30/197
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D38632
+>>> https://bugzilla.redhat.com/show_bug.cgi?id=3D713351
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D35332
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D34242
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D32242
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D39122
+>>
+>> The bugzilla reports aren't currently accessible so I don't know if =
+it
+>> was posted there, but can you post the output of "lspci -vv" as root=
+?
+>> Could be that some other device is configured on that IRQ and
+>> sometimes spuriously generates interrupts.
+>>
+>
+> Robert
+>
+> Various outputs below.
+>
+> Many thanks
+> Chris
+>
 
-On Mon, 3 Oct 2011 23:16:33 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+The only device lspci lists as using IRQ 16 is the network card:
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-> The land of PCI power management is a land of sorrow and ugliness,
-> especially in the area of signaling events by devices.  There are
-> devices that set their PME Status bits, but don't really bother
-> to send a PME message or assert PME#.  There are hardware vendors
-> who don't connect PME# lines to the system core logic (they know
-> who they are).  There are PCI Express Root Ports that don't bother
-> to trigger interrupts when they receive PME messages from the devices
-> below.  There are ACPI BIOSes that forget to provide _PRW methods for
-> devices capable of signaling wakeup.  Finally, there are BIOSes that
-> do provide _PRW methods for such devices, but then don't bother to
-> call Notify() for those devices from the corresponding _Lxx/_Exx
-> GPE-handling methods.  In all of these cases the kernel doesn't have
-> a chance to receive a proper notification that it should wake up a
-> device, so devices stay in low-power states forever.  Worse yet, in
-> some cases they continuously send PME Messages that are silently
-> ignored, because the kernel simply doesn't know that it should clear
-> the device's PME Status bit.
->=20
-> This problem was first observed for "parallel" (non-Express) PCI
-> devices on add-on cards and Matthew Garrett addressed it by adding
-> code that polls PME Status bits of such devices, if they are enabled
-> to signal PME, to the kernel.  Recently, however, it has turned out
-> that PCI Express devices are also affected by this issue and that it
-> is not limited to add-on devices, so it seems necessary to extend
-> the PME polling to all PCI devices, including PCI Express and planar
-> ones.  Still, it would be wasteful to poll the PME Status bits of
-> devices that are known to receive proper PME notifications, so make
-> the kernel (1) poll the PME Status bits of all PCI and PCIe devices
-> enabled to signal PME and (2) disable the PME Status polling for
-> devices for which correct PME notifications are received.
->=20
-> Tested-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
+09:01.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5702X
+Gigabit Ethernet (rev 02)
+        Subsystem: 3Com Corporation Device 1100
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
+>TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (16000ns min), Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
 
-Applied to linux-next, thanks.
+But dmesg has some references to other devices routed to IRQ 16:
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
+Oct 13 19:27:05 woody1 kernel: [    0.604919] pci 0000:00:01.0: PCI
+INT A -> GSI 16 (level, low) -> IRQ 16
 
---Sig_/K_gsFGF1fqbFWQmNvdaEaHM
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+This is the PCI-E root port. lspci doesn't list any INTx interrupt for
+this device but does list MSI as being enabled with vector 4159.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+Oct 13 19:27:05 woody1 kernel: [    0.605616] pci 0000:00:1c.5: PCI
+INT B -> GSI 16 (level, low) -> IRQ 16
 
-iQIcBAEBAgAGBQJOmF5qAAoJEIEoDkX4Qk9hVowQALJN9VFseqKrP5tvWJx/ie5N
-PG3AO3W6uo7axFF6xJ5s/4hfPIryfZFsX/04fq3/8DOybJX+A8rXX9o6ws002nyF
-35SkCbwTwhKVqB2gNh/hmo4brcYD4uED/W3Ft0qQF7N00bpCpVRv8b4o2RJiVCqN
-QeGuzkT9aQHtvFBbJseR+9ie5ulVg1uBUZl2757VRaZjVQOoVQdzLjD//WTc3F4c
-NzavnchUv+YiizHAhNFA7wpi/QwzTTfb1O7ppPCC1AjiFtalyPRrwjoylDQ+dt2H
-R2gX7JU1TX5csOba37K+FP8HF2YRqJ9S0+xz7IVUqiAeCZLBM1INsRplvacbIE4I
-JtnXkvm5NXfjOdmRY0m5W8S7UJ9X7U/FQTnyMdvRgUyeJENZBuQkqZ7NAuSr9e5v
-HGHTckJXdUQumjBRVBfE96Sd4C3FkeBYy+V6Pef4HeUcwenv6Bo70TfRIkTIHOjB
-LM6Rh75qt8TaE/tJR5boh3QFAgl0Rt0Wu8NDO1ZRUnVbOiuLDvDLU8y59IbiViwH
-lXpDurlhcEkK7UWi/d9pHtyR8bEJHTIYusRS31YUNlSIX9+OopC6D9jboEDiE9Vo
-J697ZI+eS1xUt6xC1GOOhxLuViJTM4hvkPt16fuWFiJvVBHMYhY3E+x6fenm3Qds
-HOgfiKOjndlLMDNCe+O5
-=ESmF
------END PGP SIGNATURE-----
+This is the PCI-E root port 6, which the USB3 XHCI controller is
+attached to. Likewise no INTx interrupt is listed but MSI is enabled
+with vector 4181.
 
---Sig_/K_gsFGF1fqbFWQmNvdaEaHM--
+Oct 13 19:27:05 woody1 kernel: [   23.180060] radeon 0000:01:00.0: PCI
+INT A -> GSI 16 (level, low) -> IRQ 16
+
+This is the video card. lspci lists it as being on INTx IRQ 56, and
+MSI is enabled with vector 4122.
+
+I'm not quite sure what to make of this. It looks like somehow the
+kernel's IRQ routing is inconsistent with what lspci is reporting. My
+guess is that eventually one of these other devices that's actually
+routed to IRQ 16 actually generates an interrupt and nothing is set up
+to handle it.
+
+CCing linux-acpi.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
