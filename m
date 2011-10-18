@@ -1,135 +1,123 @@
-From: "canquan.shen" <shencanquan@huawei.com>
-Subject: Re: [PATCH v5] acpi: Fix CPU hot removal problem
-Date: Tue, 18 Oct 2011 20:34:16 +0800
-Message-ID: <4E9D7248.7060100@huawei.com>
-References: <4E7D7468.4040506@huawei.com> <4E83E27E.5090608@linux.intel.com>
- <4E83E8EF.30806@huawei.com>
- <CAErSpo63mEbhmDCYpYQZ7hmoEz3A03pbS513myt+GrwPG+pK5w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:34578 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754790Ab1JRMfl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2011 08:35:41 -0400
-In-reply-to: <CAErSpo63mEbhmDCYpYQZ7hmoEz3A03pbS513myt+GrwPG+pK5w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Daniel Drake <dsd@laptop.org>
+Subject: [PATCH] x86, olpc-xo15-sci: Enable lid close wakeup control through sysfs
+Date: Tue, 18 Oct 2011 15:32:48 +0100 (BST)
+Message-ID: <20111018143249.092A49D401E@zog.reactivated.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, pgf@laptop.org, dilinger@queued.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, len.brown@intel.com, "shemminger@vyatta.com" <shemminger@vyatta.com>, "yakui.zhao@intel.com" <yakui.zhao@intel.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, linqiangmin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khalid.aziz@hp.com
 
-Hi Len and Chen Gong,
-    What's you opinion on this patch?
+Like most systems, OLPC's ACPI LID switch wakes up the system when the
+lid is opened, but not when it is closed.
 
-    Thanks.
+Under OLPC's opportunistic suspend model, the lid may be closed while
+the system was oportunistically suspended with the screen running.
+In this event, we want to wake up to turn the screen off.
 
+Enable control of normal ACPI wakeups through lid close events through
+a new sysfs attribute "lid_wake_on_closed". When set, and when
+LID wakeups are enabled through ACPI, the system will wake up on both
+open and close lid events.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
 ---
-canquan.shen
-2011-10-18
+ arch/x86/platform/olpc/olpc-xo15-sci.c |   55 ++++++++++++++++++++++++++++++++
+ 1 files changed, 55 insertions(+), 0 deletions(-)
 
-On 2011/9/30 13:20, Bjorn Helgaas wrote:
-> On Wed, Sep 28, 2011 at 9:41 PM, canquan.shen<shencanquan@huawei.com>=
-  wrote:
->>
->> On 2011/9/29 11:14, Chen Gong wrote:
->>>
->>> =E4=BA=8E 2011/9/24 14:10, canquan.shen =E5=86=99=E9=81=93:
->>>>
->>>> We run linux as a guest in Xen environment. When we used the xen t=
-ools
->>>> (xm vcpu-set<n>) to hot add and remove vcpu to and from the guest,=
- we
->>>> encountered the failure on vcpu removal. We found the reason is th=
-at it
->>>> did't go to really remove cpu in the cpu removal code path.
->>>>
->>>> This patch adds acpi_bus_hot_remove_device in
->>>> acpi_process_hotplug_notify to
->>>> fix this issue. With this patch, it works fine for us.
->>>>
->>>> Signed-off-by: Canquan Shen<shencanquan@huawei.com>
->>>> ---
->>>> drivers/acpi/processor_driver.c | 13 +------------
->>>> drivers/acpi/scan.c | 4 ++--
->>>> include/acpi/acpi_bus.h | 1 +
->>>> 3 files changed, 4 insertions(+), 14 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/processor_driver.c
->>>> b/drivers/acpi/processor_driver.c
->>>> index a4e0f1b..8429688 100644
->>>> --- a/drivers/acpi/processor_driver.c
->>>> +++ b/drivers/acpi/processor_driver.c
->>>> @@ -665,18 +665,7 @@ static void
->>>> acpi_processor_hotplug_notify(acpi_handle handle,
->>>> case ACPI_NOTIFY_EJECT_REQUEST:
->>>> ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->>>> "received ACPI_NOTIFY_EJECT_REQUEST\n"));
->>>> -
->>>> - if (acpi_bus_get_device(handle,&device)) {
->>>> - printk(KERN_ERR PREFIX
->>>> - "Device don't exist, dropping EJECT\n");
->>>> - break;
->>>> - }
->>>> - pr =3D acpi_driver_data(device);
->>>> - if (!pr) {
->>>> - printk(KERN_ERR PREFIX
->>>> - "Driver data is NULL, dropping EJECT\n");
->>>> - return;
->>>> - }
->>>> + acpi_bus_hot_remove_device(handle);
->>>
->>> As the description in __acpi_os_execute(in acpi_os_hotplug_execute)=
-,
->>> /*
->>> * We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_w=
-q
->>> * because the hotplug code may call driver .remove() functions,
->>> * which invoke flush_scheduled_work/acpi_os_wait_events_complete
->>> * to flush these workqueues.
->>> */
->>> If so, why not using following call:
->>>
->>> acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->ha=
-ndle);
->>>
->>>
->>
->> It is ok if using the acpi_os_hotplug_execute. but it is complex and=
- more time for removal cpu because it is add to queue and some time the=
- work will be called.
->> I think that it is clear to call directly acpi_bus_hot_remove_device=
- function in acpi_processor_hotplug_notify.
->
-> Chen, you're right that the CPU hot-remove notifier is running in a
-> workqueue, we are proposing  that the notifier call
-> acpi_bus_hot_remove_device(), which calls the .remove() method, and
-> that can cause a deadlock if .remove() waits for the workqueue to be
-> flushed.
->
-> The usual way this deadlock happens is when the .remove() method uses
-> acpi_remove_notify_handler().  But the processor_driver .remove()
-> method doesn't do anything with notify handler registration; the
-> handler is registered/unregistered by the module init/exit functions.
-> So I don't think we need to use acpi_os_hotplug_execute() in this cas=
-e
-> because I don't think there's a risk of deadlock.
->
-> However, if new CPU devices appear in the namespace after module-init=
-,
-> I don't think processor_driver will handle them correctly.  This look=
-s
-> like just another artifact of our screwed-up ACPI hotplug handling.
->
-> Bjorn
->
-> .
->
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
+index 2b235b7..649230c 100644
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c
++++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
+@@ -24,6 +24,50 @@
+ #define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
+ 
+ static unsigned long xo15_sci_gpe;
++static bool lid_wake_on_close;
++
++static int set_lid_wake_behavior(bool wake_on_close)
++{
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = wake_on_close;
++	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
++				      NULL);
++	if (ACPI_FAILURE(status)) {
++		pr_warning(PFX "failed to set lid behaviour\n");
++		return 1;
++	}
++
++	lid_wake_on_close = wake_on_close;
++	return 0;
++}
++
++static ssize_t lid_wake_on_close_show(struct kobject *s,
++				      struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%u\n", lid_wake_on_close);
++}
++
++static ssize_t lid_wake_on_close_store(struct kobject *s,
++				       struct kobj_attribute *attr,
++				       const char *buf, size_t n)
++{
++	unsigned int val;
++	if (!sscanf(buf, "%u", &val) == 1)
++		return -EINVAL;
++
++	set_lid_wake_behavior(!!val);
++	return n;
++}
++
++static struct kobj_attribute lid_wake_on_close_attr =
++	__ATTR(lid_wake_on_close, 0644,
++	       lid_wake_on_close_show, lid_wake_on_close_store);
+ 
+ static void battery_status_changed(void)
+ {
+@@ -91,6 +135,7 @@ static int xo15_sci_add(struct acpi_device *device)
+ {
+ 	unsigned long long tmp;
+ 	acpi_status status;
++	int r;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+@@ -112,6 +157,10 @@ static int xo15_sci_add(struct acpi_device *device)
+ 
+ 	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
+ 
++	r = sysfs_create_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
++	if (r)
++		goto err_sysfs;
++
+ 	/* Flush queue, and enable all SCI events */
+ 	process_sci_queue();
+ 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
+@@ -123,6 +172,11 @@ static int xo15_sci_add(struct acpi_device *device)
+ 		device_init_wakeup(&device->dev, true);
+ 
+ 	return 0;
++
++err_sysfs:
++	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
++	cancel_work_sync(&sci_work);
++	return r;
+ }
+ 
+ static int xo15_sci_remove(struct acpi_device *device, int type)
+@@ -130,6 +184,7 @@ static int xo15_sci_remove(struct acpi_device *device, int type)
+ 	acpi_disable_gpe(NULL, xo15_sci_gpe);
+ 	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
+ 	cancel_work_sync(&sci_work);
++	sysfs_remove_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
+ 	return 0;
+ }
+ 
+-- 
+1.7.6.4
