@@ -1,129 +1,64 @@
-From: Daniel Drake <dsd@laptop.org>
-Subject: [PATCH] x86, olpc-xo15-sci: Enable lid close wakeup control through sysfs
-Date: Tue, 18 Oct 2011 15:32:48 +0100 (BST)
-Message-ID: <20111018143249.092A49D401E__18460.1283203394$1318952455$gmane$org@zog.reactivated.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:32826 "EHLO
-	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932761Ab1JRPec (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Oct 2011 11:34:32 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: pingfank@linux.vnet.ibm.com
+Subject: [PATCH 1/1] ACPI: Call ACPI remove handler when handling ACPI eject event
+Date: Wed, 19 Oct 2011 10:47:50 +0800
+Message-ID: <1318992470-10195-2-git-send-email-pingfank@linux.vnet.ibm.com>
+References: <1318992470-10195-1-git-send-email-pingfank@linux.vnet.ibm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1318992470-10195-1-git-send-email-pingfank@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, seabios@seabios.org, lenb@kernel.org, shaohua.li@intel.com
+Cc: linux-kernel@vger.kernel.org, qemu-devel@nongnu.org, aliguori@us.ibm.com, dave@linux.vnet.ibm.com, Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org
-Cc: linux-kernel@vger.kernel.org, pgf@laptop.org, dilinger@queued.net, linux-acpi@vger.kernel.org
 
-Like most systems, OLPC's ACPI LID switch wakes up the system when the
-lid is opened, but not when it is closed.
+From: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 
-Under OLPC's opportunistic suspend model, the lid may be closed while
-the system was oportunistically suspended with the screen running.
-In this event, we want to wake up to turn the screen off.
+Call the remove handler for ACPI_NOTIFY_EJECT_REQUEST
 
-Enable control of normal ACPI wakeups through lid close events through
-a new sysfs attribute "lid_wake_on_closed". When set, and when
-LID wakeups are enabled through ACPI, the system will wake up on both
-open and close lid events.
-
-Signed-off-by: Daniel Drake <dsd@laptop.org>
+Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
 ---
- arch/x86/platform/olpc/olpc-xo15-sci.c |   55 ++++++++++++++++++++++++++++++++
- 1 files changed, 55 insertions(+), 0 deletions(-)
+ drivers/acpi/bus.c      |    2 +-
+ drivers/acpi/scan.c     |    2 +-
+ include/acpi/acpi_bus.h |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
-index 2b235b7..649230c 100644
---- a/arch/x86/platform/olpc/olpc-xo15-sci.c
-+++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -24,6 +24,50 @@
- #define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 437ddbf..d06ec6d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -764,7 +764,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 		break;
  
- static unsigned long xo15_sci_gpe;
-+static bool lid_wake_on_close;
-+
-+static int set_lid_wake_behavior(bool wake_on_close)
-+{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = wake_on_close;
-+	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
-+				      NULL);
-+	if (ACPI_FAILURE(status)) {
-+		pr_warning(PFX "failed to set lid behaviour\n");
-+		return 1;
-+	}
-+
-+	lid_wake_on_close = wake_on_close;
-+	return 0;
-+}
-+
-+static ssize_t lid_wake_on_close_show(struct kobject *s,
-+				      struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%u\n", lid_wake_on_close);
-+}
-+
-+static ssize_t lid_wake_on_close_store(struct kobject *s,
-+				       struct kobj_attribute *attr,
-+				       const char *buf, size_t n)
-+{
-+	unsigned int val;
-+	if (!sscanf(buf, "%u", &val) == 1)
-+		return -EINVAL;
-+
-+	set_lid_wake_behavior(!!val);
-+	return n;
-+}
-+
-+static struct kobj_attribute lid_wake_on_close_attr =
-+	__ATTR(lid_wake_on_close, 0644,
-+	       lid_wake_on_close_show, lid_wake_on_close_store);
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+-		/* TBD */
++		acpi_os_hotplug_execute(acpi_bus_hot_remove_device, handle);
+ 		break;
  
- static void battery_status_changed(void)
- {
-@@ -91,6 +135,7 @@ static int xo15_sci_add(struct acpi_device *device)
- {
- 	unsigned long long tmp;
- 	acpi_status status;
-+	int r;
- 
- 	if (!device)
- 		return -EINVAL;
-@@ -112,6 +157,10 @@ static int xo15_sci_add(struct acpi_device *device)
- 
- 	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
- 
-+	r = sysfs_create_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
-+	if (r)
-+		goto err_sysfs;
-+
- 	/* Flush queue, and enable all SCI events */
- 	process_sci_queue();
- 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-@@ -123,6 +172,11 @@ static int xo15_sci_add(struct acpi_device *device)
- 		device_init_wakeup(&device->dev, true);
- 
- 	return 0;
-+
-+err_sysfs:
-+	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
-+	cancel_work_sync(&sci_work);
-+	return r;
+ 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 449c556..3b97b61 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
  }
+ static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
  
- static int xo15_sci_remove(struct acpi_device *device, int type)
-@@ -130,6 +184,7 @@ static int xo15_sci_remove(struct acpi_device *device, int type)
- 	acpi_disable_gpe(NULL, xo15_sci_gpe);
- 	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
- 	cancel_work_sync(&sci_work);
-+	sysfs_remove_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
- 	return 0;
- }
+-static void acpi_bus_hot_remove_device(void *context)
++void acpi_bus_hot_remove_device(void *context)
+ {
+ 	struct acpi_device *device;
+ 	acpi_handle handle = context;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 6cd5b64..b19c09d 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -310,6 +310,8 @@ extern int unregister_acpi_notifier(struct notifier_block *);
  
+ extern int register_acpi_bus_notifier(struct notifier_block *nb);
+ extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
++extern void acpi_bus_hot_remove_device(void *context);
++
+ /*
+  * External Functions
+  */
 -- 
-1.7.6.4
-
+1.7.4.4
