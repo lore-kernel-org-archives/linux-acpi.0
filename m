@@ -1,109 +1,39 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [Qemu-devel] [PATCH 1/1] ACPI: Call ACPI remove handler when
- handling ACPI eject event
-Date: Fri, 21 Oct 2011 09:37:41 +0800
-Message-ID: <4EA0CCE5.3060207@linux.intel.com>
-References: <1318992470-10195-1-git-send-email-pingfank@linux.vnet.ibm.com> <1318992470-10195-2-git-send-email-pingfank@linux.vnet.ibm.com> <CAMJ_OhjLvsZ3Vir3hVX2Ha+jA-ORX=3PBapY=B+aZP-ynqbB6A@mail.gmail.com> <20111020093730.GA18393@oc8440477808.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] Convert width in bits to bytes in __acpi_ioremap_fast()
+Date: Fri, 21 Oct 2011 14:42:55 -0700
+Message-ID: <4ea1e75f5296b6c6b@agluck-desktop.sc.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14860 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:31984 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752049Ab1JUBhq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Oct 2011 21:37:46 -0400
-In-Reply-To: <20111020093730.GA18393@oc8440477808.ibm.com>
+	id S1752853Ab1JUVm4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Oct 2011 17:42:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: qemulist@gmail.com
-Cc: Gong Chen <clumsycg@gmail.com>, pingfank@linux.vnet.ibm.com, aliguori@us.ibm.com, seabios@seabios.org, qemu-devel@nongnu.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, shaohua.li@intel.com, dave@linux.vnet.ibm.com, lenb@kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>
 
-=E4=BA=8E 2011/10/20 17:37, qemulist@gmail.com =E5=86=99=E9=81=93:
-> On Wed, Oct 19, 2011 at 09:35:46PM +0800, Gong Chen wrote:
->> On Wed, Oct 19, 2011 at 10:47 AM,<pingfank@linux.vnet.ibm.com>  wrot=
-e:
->>> From: Liu Ping Fan<pingfank@linux.vnet.ibm.com>
->>>
->>> Call the remove handler for ACPI_NOTIFY_EJECT_REQUEST
->>>
->>> Signed-off-by: Liu Ping Fan<pingfank@linux.vnet.ibm.com>
->>> ---
->>>   drivers/acpi/bus.c      |    2 +-
->>>   drivers/acpi/scan.c     |    2 +-
->>>   include/acpi/acpi_bus.h |    2 ++
->>>   3 files changed, 4 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
->>> index 437ddbf..d06ec6d 100644
->>> --- a/drivers/acpi/bus.c
->>> +++ b/drivers/acpi/bus.c
->>> @@ -764,7 +764,7 @@ static void acpi_bus_notify(acpi_handle handle,=
- u32 type, void *data)
->>>                 break;
->>>
->>>         case ACPI_NOTIFY_EJECT_REQUEST:
->>> -               /* TBD */
->>> +               acpi_os_hotplug_execute(acpi_bus_hot_remove_device,=
- handle);
->>>                 break;
->>>
->>>         case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
->>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->>> index 449c556..3b97b61 100644
->>> --- a/drivers/acpi/scan.c
->>> +++ b/drivers/acpi/scan.c
->>> @@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, str=
-uct device_attribute *attr, cha
->>>   }
->>>   static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NUL=
-L);
->>>
->>> -static void acpi_bus_hot_remove_device(void *context)
->>> +void acpi_bus_hot_remove_device(void *context)
->>>   {
->>>         struct acpi_device *device;
->>>         acpi_handle handle =3D context;
->>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
->>> index 6cd5b64..b19c09d 100644
->>> --- a/include/acpi/acpi_bus.h
->>> +++ b/include/acpi/acpi_bus.h
->>> @@ -310,6 +310,8 @@ extern int unregister_acpi_notifier(struct noti=
-fier_block *);
->>>
->>>   extern int register_acpi_bus_notifier(struct notifier_block *nb);
->>>   extern void unregister_acpi_bus_notifier(struct notifier_block *n=
-b);
->>> +extern void acpi_bus_hot_remove_device(void *context);
->>> +
->>>   /*
->>>   * External Functions
->>>   */
->>> --
->>> 1.7.4.4
->>>
->>
->> I preferred the patch from Shen before. Here is the link:
->> https://lkml.org/lkml/2011/9/24/15
->> As Bjorn said, "long-term goal to move the hotplug flow out of drive=
-rs and into
->> the ACPI core". An arbitrary change in the global level just mess up=
- the codes.
-> Got it, thanks. And so will this feature emerge in upstream soon?
->
-> Thanks and regards,
-> pingfan
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Callers to __acpi_ioremap_fast() pass the bit_width that they found in the
+acpi_generic_address structure. Convert from bits to bytes when passing to
+__acpi_find_iomap() - as it wants to see bytes, not bits.
 
-It's up to the maintainer, should be Len Brown :-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/atomicio.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+index 252888f..70ffb71 100644
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -78,7 +78,7 @@ static void __iomem *__acpi_ioremap_fast(phys_addr_t paddr,
+ {
+ 	struct acpi_iomap *map;
+ 
+-	map = __acpi_find_iomap(paddr, size);
++	map = __acpi_find_iomap(paddr, size/8);
+ 	if (map)
+ 		return map->vaddr + (paddr - map->paddr);
+ 	else
+-- 
+1.7.3.1
+
