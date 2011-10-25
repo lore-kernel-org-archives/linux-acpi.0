@@ -1,108 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using PCIe native hotplug
-Date: Tue, 25 Oct 2011 15:25:27 +0200
-Message-ID: <201110251525.27446.rjw@sisk.pl>
-References: <201110220043.38635.rjw@sisk.pl> <4EA6B538.7020401@jp.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] Convert width in bits to bytes in __acpi_ioremap_fast()
+Date: Tue, 25 Oct 2011 07:57:54 -0600
+Message-ID: <CAErSpo5cW14d5BM7_XJiL1o2ryamWUO3_uz5LBiyooApdbizQg@mail.gmail.com>
+References: <4ea1e75f5296b6c6b@agluck-desktop.sc.intel.com> <4EA62396.2070002@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4EA6B538.7020401@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:29770 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933477Ab1JYN6Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2011 09:58:16 -0400
+Received: from wpaz13.hot.corp.google.com (wpaz13.hot.corp.google.com [172.24.198.77])
+	by smtp-out.google.com with ESMTP id p9PDwFAv003062
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Oct 2011 06:58:15 -0700
+Received: from vws15 (vws15.prod.google.com [10.241.21.143])
+	by wpaz13.hot.corp.google.com with ESMTP id p9PDnBrM015101
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Oct 2011 06:58:14 -0700
+Received: by vws15 with SMTP id 15so684306vws.10
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Oct 2011 06:58:14 -0700 (PDT)
+In-Reply-To: <4EA62396.2070002@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, October 25, 2011, Kenji Kaneshige wrote:
-> Looks good.
-> This is also needed for SHPC native hotplug.
+On Mon, Oct 24, 2011 at 8:48 PM, Huang Ying <ying.huang@intel.com> wrot=
+e:
+> Sorry for late.
+>
+> On 10/22/2011 05:42 AM, Luck, Tony wrote:
+>> Callers to __acpi_ioremap_fast() pass the bit_width that they found =
+in the
+>> acpi_generic_address structure. Convert from bits to bytes when pass=
+ing to
+>> __acpi_find_iomap() - as it wants to see bytes, not bits.
+>>
+>> Signed-off-by: Tony Luck <tony.luck@intel.com>
+>> ---
+>> =A0drivers/acpi/atomicio.c | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+>> index 252888f..70ffb71 100644
+>> --- a/drivers/acpi/atomicio.c
+>> +++ b/drivers/acpi/atomicio.c
+>> @@ -78,7 +78,7 @@ static void __iomem *__acpi_ioremap_fast(phys_addr=
+_t paddr,
+>> =A0{
+>> =A0 =A0 =A0 struct acpi_iomap *map;
+>>
+>> - =A0 =A0 map =3D __acpi_find_iomap(paddr, size);
+>> + =A0 =A0 map =3D __acpi_find_iomap(paddr, size/8);
+>> =A0 =A0 =A0 if (map)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return map->vaddr + (paddr - map->paddr)=
+;
+>> =A0 =A0 =A0 else
+>
+> Good catch! Thanks.
+>
+> Or change the caller acpi_atomic_read_mem/write_mem?
 
-I don't think so, we still leave the SHPC _OSC for the driver to take care
-of (which may not be the right thing, but I don't feel confident enough to
-decide :-)).
+Myron posted a nice patch recently to remove atomicio.c altogether:
+http://marc.info/?l=3Dlinux-acpi&m=3D131733358818849&w=3D2
 
-Thanks,
-Rafael
+I haven't seen any response to it, but I think it's a nice approach
+and it gets rid of all this special-case pre-map, post-unmap, atomic
+read/write stuff.
 
-
-> (2011/10/22 7:43), Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki<rjw@sisk.pl>
-> >
-> > If the kernel has requested control of the PCIe native hotplug
-> > feature for a given root complex, the acpiphp driver should not try
-> > to handle that root complex and it should leave it to pciehp.
-> > Failing to do so causes problems to happen if acpiphp is loaded
-> > before pciehp on such systems.
-> >
-> > To address this issue make find_root_bridges() ignore PCIe root
-> > complexes with PCIe native hotplug enabled and make add_bridge()
-> > return error code if PCIe native hotplug is enabled for the given
-> > root port.  This causes acpiphp to refuse to load if PCIe native
-> > hotplug is enabled for all complexes and to refuse binding to
-> > the root complexes with PCIe native hotplug is enabled.
-> >
-> > Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
-> > ---
-> >   drivers/pci/hotplug/acpiphp_glue.c |   29 ++++++++++++++++++++++++-----
-> >   1 file changed, 24 insertions(+), 5 deletions(-)
-> >
-> > Index: linux/drivers/pci/hotplug/acpiphp_glue.c
-> > ===================================================================
-> > --- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
-> > +++ linux/drivers/pci/hotplug/acpiphp_glue.c
-> > @@ -458,8 +458,17 @@ static int add_bridge(acpi_handle handle
-> >   {
-> >   	acpi_status status;
-> >   	unsigned long long tmp;
-> > +	struct acpi_pci_root *root;
-> >   	acpi_handle dummy_handle;
-> >
-> > +	/*
-> > +	 * We shouldn't use this bridge if PCIe native hotplug control has been
-> > +	 * granted by the BIOS for it.
-> > +	 */
-> > +	root = acpi_pci_find_root(handle);
-> > +	if (root&&  (root->osc_control_set&  OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
-> > +		return -ENODEV;
-> > +
-> >   	/* if the bridge doesn't have _STA, we assume it is always there */
-> >   	status = acpi_get_handle(handle, "_STA",&dummy_handle);
-> >   	if (ACPI_SUCCESS(status)) {
-> > @@ -1297,13 +1306,23 @@ static void handle_hotplug_event_func(ac
-> >   static acpi_status
-> >   find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> >   {
-> > +	struct acpi_pci_root *root;
-> >   	int *count = (int *)context;
-> >
-> > -	if (acpi_is_root_bridge(handle)) {
-> > -		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> > -				handle_hotplug_event_bridge, NULL);
-> > -			(*count)++;
-> > -	}
-> > +	if (!acpi_is_root_bridge(handle))
-> > +		return AE_OK;
-> > +
-> > +	root = acpi_pci_find_root(handle);
-> > +	if (!root)
-> > +		return AE_OK;
-> > +
-> > +	if (root->osc_control_set&  OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
-> > +		return AE_OK;
-> > +
-> > +	(*count)++;
-> > +	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> > +				    handle_hotplug_event_bridge, NULL);
-> > +
-> >   	return AE_OK ;
-> >   }
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
