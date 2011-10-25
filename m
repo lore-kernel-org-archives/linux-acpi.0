@@ -1,34 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using PCIe native hotplug
-Date: Sun, 23 Oct 2011 00:10:37 +0200
-Message-ID: <201110230010.37802.rjw@sisk.pl>
-References: <201110220043.38635.rjw@sisk.pl> <CAE9FiQUxuajrqka97M_tvbXoMSzPTBGyjiBib_EG4MjRTuNmFQ@mail.gmail.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] Convert width in bits to bytes in __acpi_ioremap_fast()
+Date: Tue, 25 Oct 2011 10:48:54 +0800
+Message-ID: <4EA62396.2070002@intel.com>
+References: <4ea1e75f5296b6c6b@agluck-desktop.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUxuajrqka97M_tvbXoMSzPTBGyjiBib_EG4MjRTuNmFQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:51485 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753859Ab1JYCs4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Oct 2011 22:48:56 -0400
+In-Reply-To: <4ea1e75f5296b6c6b@agluck-desktop.sc.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Saturday, October 22, 2011, Yinghai Lu wrote:
-> On Fri, Oct 21, 2011 at 3:43 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >
-> > If the kernel has requested control of the PCIe native hotplug
-> > feature for a given root complex, the acpiphp driver should not try
-> > to handle that root complex and it should leave it to pciehp.
-> > Failing to do so causes problems to happen if acpiphp is loaded
-> > before pciehp on such systems.
+Sorry for late.
+
+On 10/22/2011 05:42 AM, Luck, Tony wrote:
+> Callers to __acpi_ioremap_fast() pass the bit_width that they found in the
+> acpi_generic_address structure. Convert from bits to bytes when passing to
+> __acpi_find_iomap() - as it wants to see bytes, not bits.
 > 
-> Should pciehp be built-in kernel instead of as a module?
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> ---
+>  drivers/acpi/atomicio.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
+> index 252888f..70ffb71 100644
+> --- a/drivers/acpi/atomicio.c
+> +++ b/drivers/acpi/atomicio.c
+> @@ -78,7 +78,7 @@ static void __iomem *__acpi_ioremap_fast(phys_addr_t paddr,
+>  {
+>  	struct acpi_iomap *map;
+>  
+> -	map = __acpi_find_iomap(paddr, size);
+> +	map = __acpi_find_iomap(paddr, size/8);
+>  	if (map)
+>  		return map->vaddr + (paddr - map->paddr);
+>  	else
 
-Well, perhaps.  Still, though, if someone doesn't build pciehp and
-the control of the native PCIe hotplug is granted for a given root
-complex, acpiphp won't work anyway.
+Good catch! Thanks.
 
-Thanks,
-Rafael
+Or change the caller acpi_atomic_read_mem/write_mem?
+
+Best Regards,
+Huang Ying
