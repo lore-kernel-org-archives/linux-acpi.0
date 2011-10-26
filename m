@@ -1,121 +1,49 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using PCIe
- native hotplug
-Date: Wed, 26 Oct 2011 09:28:46 +0900
-Message-ID: <4EA7543E.7050009@jp.fujitsu.com>
-References: <201110220043.38635.rjw@sisk.pl> <4EA6B538.7020401@jp.fujitsu.com> <201110251525.27446.rjw@sisk.pl>
+From: Len Brown <lenb417@gmail.com>
+Subject: Re: kernel panic
+Date: Wed, 26 Oct 2011 06:00:15 -0400
+Message-ID: <CAJvTdKmeEGVz8fXhaoFUOCtMM4bufTraTvztrf93880a1sVqKw@mail.gmail.com>
+References: <4EA549C3.4080206@ntlworld.com>
+	<CAErSpo4EtfhnhWGpahk-NfMUVEizZSk3igZ+Vy7x=+hY5b0bcw@mail.gmail.com>
+Reply-To: lenb@kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201110251525.27446.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f66.google.com ([209.85.214.66]:56217 "EHLO
+	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932616Ab1JZKAR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2011 06:00:17 -0400
+In-Reply-To: <CAErSpo4EtfhnhWGpahk-NfMUVEizZSk3igZ+Vy7x=+hY5b0bcw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: nick bray <nick.bray1@ntlworld.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-(2011/10/25 22:25), Rafael J. Wysocki wrote:
-> On Tuesday, October 25, 2011, Kenji Kaneshige wrote:
->> Looks good.
->> This is also needed for SHPC native hotplug.
-> 
-> I don't think so, we still leave the SHPC _OSC for the driver to take care
-> of (which may not be the right thing, but I don't feel confident enough to
-> decide :-)).
+>> =A0after upgrading to linux kernel 3.xx I get kernel panic on boot u=
+nless I
+>> use ACPI=3Doff in the boot parameters this happens with both Ubuntu =
+11.10 and
+>> Fedora 16. The mainboard is an Intel S875WP1-E running a Pentuim 4 3=
+ghz with
+>> 3gig RAM in single-channel mode. I have performed a Bios upgrade jus=
+t in
+>> case tha ACPI tables were corrupt but it makes no difference. Curren=
+tly
+>> running 2.6.38-11-generic #50-Ubuntu SMP (Linux Mint) with no issues=
+=2E
 
-I think of the case that acpiphp driver is loaded after shpchp driver is unloaded.
-Once native hotplug control is granted to OS, there is no way to return the control
-to firmware. So once shpchp gets the native hotplug control on a given root bridge,
-acpiphp should not try to handle the hotplug slots under it.
+Is this problem new in 3.1, or is it also present in 2.6.39 or 3.0?
 
-Regards,
-Kenji Kaneshige
+Also, do any other cmdline parmaters besides acpi=3Doff work-around it?
+pci=3Dnoacpi
+maxcpus=3D1
 
+etc.
 
-> 
-> Thanks,
-> Rafael
-> 
-> 
->> (2011/10/22 7:43), Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki<rjw@sisk.pl>
->>>
->>> If the kernel has requested control of the PCIe native hotplug
->>> feature for a given root complex, the acpiphp driver should not try
->>> to handle that root complex and it should leave it to pciehp.
->>> Failing to do so causes problems to happen if acpiphp is loaded
->>> before pciehp on such systems.
->>>
->>> To address this issue make find_root_bridges() ignore PCIe root
->>> complexes with PCIe native hotplug enabled and make add_bridge()
->>> return error code if PCIe native hotplug is enabled for the given
->>> root port.  This causes acpiphp to refuse to load if PCIe native
->>> hotplug is enabled for all complexes and to refuse binding to
->>> the root complexes with PCIe native hotplug is enabled.
->>>
->>> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
->>> ---
->>>    drivers/pci/hotplug/acpiphp_glue.c |   29 ++++++++++++++++++++++++-----
->>>    1 file changed, 24 insertions(+), 5 deletions(-)
->>>
->>> Index: linux/drivers/pci/hotplug/acpiphp_glue.c
->>> ===================================================================
->>> --- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
->>> +++ linux/drivers/pci/hotplug/acpiphp_glue.c
->>> @@ -458,8 +458,17 @@ static int add_bridge(acpi_handle handle
->>>    {
->>>    	acpi_status status;
->>>    	unsigned long long tmp;
->>> +	struct acpi_pci_root *root;
->>>    	acpi_handle dummy_handle;
->>>
->>> +	/*
->>> +	 * We shouldn't use this bridge if PCIe native hotplug control has been
->>> +	 * granted by the BIOS for it.
->>> +	 */
->>> +	root = acpi_pci_find_root(handle);
->>> +	if (root&&   (root->osc_control_set&   OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
->>> +		return -ENODEV;
->>> +
->>>    	/* if the bridge doesn't have _STA, we assume it is always there */
->>>    	status = acpi_get_handle(handle, "_STA",&dummy_handle);
->>>    	if (ACPI_SUCCESS(status)) {
->>> @@ -1297,13 +1306,23 @@ static void handle_hotplug_event_func(ac
->>>    static acpi_status
->>>    find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
->>>    {
->>> +	struct acpi_pci_root *root;
->>>    	int *count = (int *)context;
->>>
->>> -	if (acpi_is_root_bridge(handle)) {
->>> -		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->>> -				handle_hotplug_event_bridge, NULL);
->>> -			(*count)++;
->>> -	}
->>> +	if (!acpi_is_root_bridge(handle))
->>> +		return AE_OK;
->>> +
->>> +	root = acpi_pci_find_root(handle);
->>> +	if (!root)
->>> +		return AE_OK;
->>> +
->>> +	if (root->osc_control_set&   OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
->>> +		return AE_OK;
->>> +
->>> +	(*count)++;
->>> +	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->>> +				    handle_hotplug_event_bridge, NULL);
->>> +
->>>    	return AE_OK ;
->>>    }
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->>
-> 
-> 
+thanks,
+Len Brown, Intel Open Source Technology Center
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
