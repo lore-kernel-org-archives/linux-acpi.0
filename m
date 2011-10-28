@@ -1,134 +1,125 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using PCIe
- native hotplug
-Date: Fri, 28 Oct 2011 11:45:54 +0900
-Message-ID: <4EAA1762.1060207@jp.fujitsu.com>
-References: <201110220043.38635.rjw@sisk.pl> <201110251525.27446.rjw@sisk.pl> <4EA7543E.7050009@jp.fujitsu.com> <201110261342.51843.rjw@sisk.pl>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: [PATCH v9 0/4] cpuidle: Global registration of idle states with
+ per-cpu statistics
+Date: Fri, 28 Oct 2011 16:19:55 +0530
+Message-ID: <20111028104945.7520.83828.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201110261342.51843.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
+To: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, rjw@sisk.pl, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-(2011/10/26 20:42), Rafael J. Wysocki wrote:
-> On Wednesday, October 26, 2011, Kenji Kaneshige wrote:
->> (2011/10/25 22:25), Rafael J. Wysocki wrote:
->>> On Tuesday, October 25, 2011, Kenji Kaneshige wrote:
->>>> Looks good.
->>>> This is also needed for SHPC native hotplug.
->>>
->>> I don't think so, we still leave the SHPC _OSC for the driver to take care
->>> of (which may not be the right thing, but I don't feel confident enough to
->>> decide :-)).
->>
->> I think of the case that acpiphp driver is loaded after shpchp driver is unloaded.
->> Once native hotplug control is granted to OS, there is no way to return the control
->> to firmware. So once shpchp gets the native hotplug control on a given root bridge,
->> acpiphp should not try to handle the hotplug slots under it.
-> 
-> Good point, but that would be a separate patch I think?
+Version 6 of this patch series dated 22nd Sept 2011 was 
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Kevin Hilman <khilman@ti.com> for OMAP specific parts.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Jean Pihet <j-pihet@ti.com>
 
-I think separate patch is ok.
+Hi Len, 
+Can you please queue this series for the next mainline merge window by merging
+it into your development tree and also linux-next for further testing.
 
-Kenji Kaneshige
+I have also tested it by applying these patches on your ACPI tree hosted @github.
+
+Thanks
+-Deepthi
+
+--
+
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
+
+This patch series had been in discussion earlier and
+following are the links to the previous discussions.
+
+v8 --> https://lkml.org/lkml/2011/10/3/52
+v7 --> https://lkml.org/lkml/2011/9/27/74 
+v6 --> https://lkml.org/lkml/2011/9/22/58
+v5 --> https://lkml.org/lkml/2011/6/6/259
+v4 --> https://lkml.org/lkml/2011/4/28/312
+v3 --> https://lkml.org/lkml/2011/2/8/73
+v2 --> https://lkml.org/lkml/2011/1/13/98
+v1 --> https://lkml.org/lkml/2011/3/22/161
+
+Changes from previous version (v8):
+
+   1. Rebased and tested on 3.1
+
+Tests done:
+
+    1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+    kirkwood_defconfig, omap2plus_defconfig, at91rm9200_defconfig
+      
+    2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+    and acpi_idle drivers.
+
+    3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states. 
+    Also tested the case when there is dynamic changes in C-states 
+    AC <-> Battery Power switch.
+
+Brief description of the patches:
+
+Core change in this series is to split the cpuidle_device structure 
+into two parts, i.e  global and per-cpu basis. 
+
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+the respective low level drivers, so that the accounting can
+be accurately maintained if the driver decides to demote the
+chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+widely used and the only use case was to allow software
+demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+functions can be absorbed within the cpuidle back-end
+driver ad hence deprecating the prepare routine and the
+CPUIDLE_FLAG_IGNORE flag.
+
+    - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+cpuidle_state structure, so that the states can become read
+only and hence made global.
+
+[4/4] - Most APIs will now need to pass pointer to both global
+cpuidle_driver and per-cpu cpuidle_device structure.
+
+ arch/arm/mach-at91/cpuidle.c          |   41 +++--
+ arch/arm/mach-davinci/cpuidle.c       |   51 ++++---
+ arch/arm/mach-exynos4/cpuidle.c       |   30 ++--
+ arch/arm/mach-kirkwood/cpuidle.c      |   42 +++---
+ arch/arm/mach-omap2/cpuidle34xx.c     |  133 +++++++++++------
+ arch/sh/kernel/cpu/shmobile/cpuidle.c |   28 ++--
+ drivers/acpi/processor_driver.c       |   20 ---
+ drivers/acpi/processor_idle.c         |  251 +++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c             |   86 ++++-------
+ drivers/cpuidle/driver.c              |   25 +++
+ drivers/cpuidle/governors/ladder.c    |   41 ++++-
+ drivers/cpuidle/governors/menu.c      |   29 ++--
+ drivers/cpuidle/sysfs.c               |   22 ++-
+ drivers/idle/intel_idle.c             |  130 +++++++++++++----
+ include/acpi/processor.h              |    1 
+ include/linux/cpuidle.h               |   52 ++++---
+ 16 files changed, 650 insertions(+), 332 deletions(-)
 
 
-> 
-> Rafael
-> 
-> 
->>>> (2011/10/22 7:43), Rafael J. Wysocki wrote:
->>>>> From: Rafael J. Wysocki<rjw@sisk.pl>
->>>>>
->>>>> If the kernel has requested control of the PCIe native hotplug
->>>>> feature for a given root complex, the acpiphp driver should not try
->>>>> to handle that root complex and it should leave it to pciehp.
->>>>> Failing to do so causes problems to happen if acpiphp is loaded
->>>>> before pciehp on such systems.
->>>>>
->>>>> To address this issue make find_root_bridges() ignore PCIe root
->>>>> complexes with PCIe native hotplug enabled and make add_bridge()
->>>>> return error code if PCIe native hotplug is enabled for the given
->>>>> root port.  This causes acpiphp to refuse to load if PCIe native
->>>>> hotplug is enabled for all complexes and to refuse binding to
->>>>> the root complexes with PCIe native hotplug is enabled.
->>>>>
->>>>> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
->>>>> ---
->>>>>     drivers/pci/hotplug/acpiphp_glue.c |   29 ++++++++++++++++++++++++-----
->>>>>     1 file changed, 24 insertions(+), 5 deletions(-)
->>>>>
->>>>> Index: linux/drivers/pci/hotplug/acpiphp_glue.c
->>>>> ===================================================================
->>>>> --- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
->>>>> +++ linux/drivers/pci/hotplug/acpiphp_glue.c
->>>>> @@ -458,8 +458,17 @@ static int add_bridge(acpi_handle handle
->>>>>     {
->>>>>     	acpi_status status;
->>>>>     	unsigned long long tmp;
->>>>> +	struct acpi_pci_root *root;
->>>>>     	acpi_handle dummy_handle;
->>>>>
->>>>> +	/*
->>>>> +	 * We shouldn't use this bridge if PCIe native hotplug control has been
->>>>> +	 * granted by the BIOS for it.
->>>>> +	 */
->>>>> +	root = acpi_pci_find_root(handle);
->>>>> +	if (root&&    (root->osc_control_set&    OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
->>>>> +		return -ENODEV;
->>>>> +
->>>>>     	/* if the bridge doesn't have _STA, we assume it is always there */
->>>>>     	status = acpi_get_handle(handle, "_STA",&dummy_handle);
->>>>>     	if (ACPI_SUCCESS(status)) {
->>>>> @@ -1297,13 +1306,23 @@ static void handle_hotplug_event_func(ac
->>>>>     static acpi_status
->>>>>     find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
->>>>>     {
->>>>> +	struct acpi_pci_root *root;
->>>>>     	int *count = (int *)context;
->>>>>
->>>>> -	if (acpi_is_root_bridge(handle)) {
->>>>> -		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->>>>> -				handle_hotplug_event_bridge, NULL);
->>>>> -			(*count)++;
->>>>> -	}
->>>>> +	if (!acpi_is_root_bridge(handle))
->>>>> +		return AE_OK;
->>>>> +
->>>>> +	root = acpi_pci_find_root(handle);
->>>>> +	if (!root)
->>>>> +		return AE_OK;
->>>>> +
->>>>> +	if (root->osc_control_set&    OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
->>>>> +		return AE_OK;
->>>>> +
->>>>> +	(*count)++;
->>>>> +	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->>>>> +				    handle_hotplug_event_bridge, NULL);
->>>>> +
->>>>>     	return AE_OK ;
->>>>>     }
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>
->>>>
->>>>
->>>
->>>
->>
->>
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+
+-Deepthi
