@@ -1,89 +1,134 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: kernel panic
-Date: Fri, 28 Oct 2011 04:13:50 +0200
-Message-ID: <201110280413.51751.trenn@suse.de>
-References: <4EA549C3.4080206@ntlworld.com> <4EA83F5D.20001@ntlworld.com> <CAErSpo4_epbHEAH3Ah=07NZFjqQedUcMXh+cxTSJ4Mp9KhvfPw@mail.gmail.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using PCIe
+ native hotplug
+Date: Fri, 28 Oct 2011 11:45:54 +0900
+Message-ID: <4EAA1762.1060207@jp.fujitsu.com>
+References: <201110220043.38635.rjw@sisk.pl> <201110251525.27446.rjw@sisk.pl> <4EA7543E.7050009@jp.fujitsu.com> <201110261342.51843.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4_epbHEAH3Ah=07NZFjqQedUcMXh+cxTSJ4Mp9KhvfPw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: nick bray <nick.bray1@ntlworld.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201110261342.51843.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 26 October 2011 20:10:07 Bjorn Helgaas wrote:
-> On Wed, Oct 26, 2011 at 11:11 AM, nick bray <nick.bray1@ntlworld.com> wrote:
-...
-> ...
-> Brought up 2 CPUs
-> ...
-> ACPI: Power Button [PWRF]
-> BUG: unable to handle kernel paging request at 00010282
-> IP: [<00010282>] 0x10281
-> *pde = 00000000
-> Oops: 0000 [#1] SMP
-> ...
-> Pid: 1, comm: swapper Not tainted 3.0.0-12-generic #20-Ubuntu
-> EIP: 0060:[<00010282>] EFLAGS: 00010282 CPU: 1
-> ...
->   ? resched_task+0x22/0x70
->   ? __kmalloc+0x189/0x1e0
->   acpi_ns_evaluate+0x3a/0x18d
->   acpi_evaluate_object+0xd6/0x1c5
->   ? try_to_wake_up+0x140/0x190
->   acpi_processor_get_power_info_cst+0x53/0x297
->   ? wait_for_completion+0x17/0x20
->   ? default_spin_lock_flags+0x8/0x10
->   ? _raw_spin_lock+0xd/0x10
->   ? task_rq_lock+0x49/0x80
->   ? set_cpus_allowed_ptr+0x53/0x110
->   ? acpi_processor_get_throttling_fadt+0x72/0x7a
->   acpi_processor_get_power_info+0x24/0x10c
->   acpi_processor_power_init+0xdc/0x10c
->   acpi_processor_add+0x131/0x1d2
->   acpi_device_probe+0x41/0xf5
+(2011/10/26 20:42), Rafael J. Wysocki wrote:
+> On Wednesday, October 26, 2011, Kenji Kaneshige wrote:
+>> (2011/10/25 22:25), Rafael J. Wysocki wrote:
+>>> On Tuesday, October 25, 2011, Kenji Kaneshige wrote:
+>>>> Looks good.
+>>>> This is also needed for SHPC native hotplug.
+>>>
+>>> I don't think so, we still leave the SHPC _OSC for the driver to take care
+>>> of (which may not be the right thing, but I don't feel confident enough to
+>>> decide :-)).
+>>
+>> I think of the case that acpiphp driver is loaded after shpchp driver is unloaded.
+>> Once native hotplug control is granted to OS, there is no way to return the control
+>> to firmware. So once shpchp gets the native hotplug control on a given root bridge,
+>> acpiphp should not try to handle the hotplug slots under it.
 > 
-> I found a report with a serial console log showing a very similar
-> backtrace here:
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/807164
+> Good point, but that would be a separate patch I think?
+
+I think separate patch is ok.
+
+Kenji Kaneshige
+
+
 > 
-> Seems pretty clearly related to acpi_processor_get_power_info();
-> hopefully an expert in that area will jump in and help out.
-This is really strange..., it happens when trying to evaluate
-_CST on a processor object.
-But processor objects are declared:
-    Scope (\_PR)
-    {
-        Processor (CPU1, 0x01, 0x00000410, 0x06) {}
-        Processor (CPU2, 0x02, 0x00000410, 0x06) {}
-    }
-and do not have a _CST func. I got the DSDT from the Ubuntu
-bug, you may want to double check:
-acpidump >acpidump
-acpixtract -a acpidump
-iasl *.dat
-grep _CST *.dsl
-
-If you have a processor object with _CST function you could
-try to reproduce this in userspace by using acpiexec from the
-acpica utilities.
-acpiexec DSDT.dat
--> methods shows you the available ones
--> execute \_PR.CPU1._CST (or similar possibly triggers some mem corruption?)
-
-Ah, maybe an older acpidump got used and the _CST method of the
-object is in a not exported, dynamically loaded SSDT.
-This is very likely.
-
-Please use a very recent acpidump:
-Hm, Len's ftp directory on kernel.org where latest acpidump was
-located is gone?
-Latest openSUSE acpica package has everything mentioned above included :)
-Could get a problem to feed acpiexec with the DSDT and SSDT.., you may
-have to glue them (better ask again then). Best is you run it with valgrind.
-bugzilla.kernel.org is still down?
-
-   Thomas
+> Rafael
+> 
+> 
+>>>> (2011/10/22 7:43), Rafael J. Wysocki wrote:
+>>>>> From: Rafael J. Wysocki<rjw@sisk.pl>
+>>>>>
+>>>>> If the kernel has requested control of the PCIe native hotplug
+>>>>> feature for a given root complex, the acpiphp driver should not try
+>>>>> to handle that root complex and it should leave it to pciehp.
+>>>>> Failing to do so causes problems to happen if acpiphp is loaded
+>>>>> before pciehp on such systems.
+>>>>>
+>>>>> To address this issue make find_root_bridges() ignore PCIe root
+>>>>> complexes with PCIe native hotplug enabled and make add_bridge()
+>>>>> return error code if PCIe native hotplug is enabled for the given
+>>>>> root port.  This causes acpiphp to refuse to load if PCIe native
+>>>>> hotplug is enabled for all complexes and to refuse binding to
+>>>>> the root complexes with PCIe native hotplug is enabled.
+>>>>>
+>>>>> Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
+>>>>> ---
+>>>>>     drivers/pci/hotplug/acpiphp_glue.c |   29 ++++++++++++++++++++++++-----
+>>>>>     1 file changed, 24 insertions(+), 5 deletions(-)
+>>>>>
+>>>>> Index: linux/drivers/pci/hotplug/acpiphp_glue.c
+>>>>> ===================================================================
+>>>>> --- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
+>>>>> +++ linux/drivers/pci/hotplug/acpiphp_glue.c
+>>>>> @@ -458,8 +458,17 @@ static int add_bridge(acpi_handle handle
+>>>>>     {
+>>>>>     	acpi_status status;
+>>>>>     	unsigned long long tmp;
+>>>>> +	struct acpi_pci_root *root;
+>>>>>     	acpi_handle dummy_handle;
+>>>>>
+>>>>> +	/*
+>>>>> +	 * We shouldn't use this bridge if PCIe native hotplug control has been
+>>>>> +	 * granted by the BIOS for it.
+>>>>> +	 */
+>>>>> +	root = acpi_pci_find_root(handle);
+>>>>> +	if (root&&    (root->osc_control_set&    OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
+>>>>> +		return -ENODEV;
+>>>>> +
+>>>>>     	/* if the bridge doesn't have _STA, we assume it is always there */
+>>>>>     	status = acpi_get_handle(handle, "_STA",&dummy_handle);
+>>>>>     	if (ACPI_SUCCESS(status)) {
+>>>>> @@ -1297,13 +1306,23 @@ static void handle_hotplug_event_func(ac
+>>>>>     static acpi_status
+>>>>>     find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+>>>>>     {
+>>>>> +	struct acpi_pci_root *root;
+>>>>>     	int *count = (int *)context;
+>>>>>
+>>>>> -	if (acpi_is_root_bridge(handle)) {
+>>>>> -		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+>>>>> -				handle_hotplug_event_bridge, NULL);
+>>>>> -			(*count)++;
+>>>>> -	}
+>>>>> +	if (!acpi_is_root_bridge(handle))
+>>>>> +		return AE_OK;
+>>>>> +
+>>>>> +	root = acpi_pci_find_root(handle);
+>>>>> +	if (!root)
+>>>>> +		return AE_OK;
+>>>>> +
+>>>>> +	if (root->osc_control_set&    OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
+>>>>> +		return AE_OK;
+>>>>> +
+>>>>> +	(*count)++;
+>>>>> +	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+>>>>> +				    handle_hotplug_event_bridge, NULL);
+>>>>> +
+>>>>>     	return AE_OK ;
+>>>>>     }
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>>>
+>>>>
+>>>>
+>>>
+>>>
+>>
+>>
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
