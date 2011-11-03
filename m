@@ -1,38 +1,93 @@
-From: Rakib Mullick <rakib.mullick@gmail.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Subject: Re: [PATCH -v1] acpi: Fix possible recursive locking in hwregs.c
-Date: Thu, 3 Nov 2011 23:01:31 +0600
-Message-ID: <CADZ9YHhvSP2UEc8+burfsiykVbJDfi5n2p9Lb0nSpV2-WD5HzA@mail.gmail.com>
-References: <1320317323.5711.5.camel@localhost.localdomain>
-	<1320321770.2813.10.camel@hp6530s>
+Date: Thu, 03 Nov 2011 23:10:53 +0530
+Message-ID: <4EB2D225.60808@linux.vnet.ibm.com>
+References: <1320317323.5711.5.camel@localhost.localdomain> <1320321770.2813.10.camel@hp6530s>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:60396 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934085Ab1KCRBb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2011 13:01:31 -0400
+Received: from e23smtp01.au.ibm.com ([202.81.31.143]:39395 "EHLO
+	e23smtp01.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756168Ab1KCRlA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2011 13:41:00 -0400
 In-Reply-To: <1320321770.2813.10.camel@hp6530s>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lin Ming <ming.m.lin@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: Rakib Mullick <rakib.mullick@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
-On 11/3/11, Lin Ming <ming.m.lin@intel.com> wrote:
+Hi,
+
+On 11/03/2011 05:32 PM, Lin Ming wrote:
 > On Thu, 2011-11-03 at 18:48 +0800, Rakib Mullick wrote:
->> Calling pm-suspend might trigger a recursive lock in it's code path. In
->> function acpi_hw_clear_acpi_status,
->
+>> Calling pm-suspend might trigger a recursive lock in it's code path. In function acpi_hw_clear_acpi_status, 
+> 
 > As I replied at https://lkml.org/lkml/2011/9/22/6, I still don't think
 > there is a recursive lock.
->
-> Or do you have a real test case to trigger the recursive lock you
-> mentioned?
->
-As I said before, recursive lock trigger's on a modified kernel (when
-calling pm-suspend), not with the mainline kernel. If you think that,
-since it's not happening with original kernel, so we shouldn't go for
-fix - that's a different thing, I don't have any argue. But, the issue
-is on.
+> 
 
-Thanks,
-Rakib
+At first look, it definitely doesn't look like a recursive lock, as Lin said.
+But, quoting Documentation/lockdep-design.txt:
+
+"Multi-lock dependency rules:
+----------------------------
+
+The same lock-class must not be acquired twice, because this could lead
+to lock recursion deadlocks."
+
+So, Rakib, do the 2 locks belong to the same lock-class? If yes, then I think
+that is the reason for the lockdep splat. Could you show the lockdep warning?
+
+By the way, another way to look at this patch is as an optimization..
+i.e., if acpi_gbl_hardware_lock doesn't need to be held to call
+acpi_ev_walk_gpe_list(), then we can move from the coarse-grained locking
+to finer-grained locking by releasing it earlier, as you did in your patch.
+[Note that you will have to update the goto label also, i.e., rename it as
+'exit' or something like that]
+
+>> acpi_os_acquire_lock holds the lock acpi_gbl_hardware_lock before calling acpi_hw_register_write(), then 
+>> without releasing acpi_gbl_hardware_lock, this function calls acpi_ev_walk_gpe_list, which tries to hold 
+>> acpi_gbl_gpe_lock and thus might causes possible recursive lock.
+>>
+>> Following patch fixes this scenario by just releasing acpi_gbl_hardware_lock before calling acpi_ev_walk_gpe_list.
+>>
+>>  Changes since v0(https://lkml.org/lkml/2011/9/21/355):
+>> 	- Fix changelog, thanks to Lin Ming.
+>>
+>> Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+>> Cc: Lin Ming <ming.m.lin@intel.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Len Brown <len.brown@intel.com>
+>> ---
+>>
+>> diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+>> index 55accb7..e3110ac 100644
+>> --- a/drivers/acpi/acpica/hwregs.c
+>> +++ b/drivers/acpi/acpica/hwregs.c
+>> @@ -269,6 +269,9 @@ acpi_status acpi_hw_clear_acpi_status(void)
+>>  
+>>  	status = acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
+>>  					ACPI_BITMASK_ALL_FIXED_STATUS);
+>> +
+>> +	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
+>> +
+>>  	if (ACPI_FAILURE(status)) {
+>>  		goto unlock_and_exit;
+>>  	}
+>> @@ -278,7 +281,6 @@ acpi_status acpi_hw_clear_acpi_status(void)
+>>  	status = acpi_ev_walk_gpe_list(acpi_hw_clear_gpe_block, NULL);
+>>  
+>>        unlock_and_exit:
+>> -	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
+>>  	return_ACPI_STATUS(status);
+>>  }
+>>  
+>>
+
+
+-- 
+Regards,
+Srivatsa S. Bhat  <srivatsa.bhat@linux.vnet.ibm.com>
+Linux Technology Center,
+IBM India Systems and Technology Lab
