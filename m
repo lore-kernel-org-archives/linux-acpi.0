@@ -1,100 +1,138 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] ACPI: Export FADT pm_profile integer value to
-	userspace
-Date: Fri,  4 Nov 2011 03:33:46 +0100
-Message-ID: <1320374026-4913-1-git-send-email-trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-pm@lists.linux-foundation.org
+Subject: [PATCH 1/2] ACPICA: Introduce acpi_os_phys_table_override function V2
+Date: Fri,  4 Nov 2011 03:54:50 +0100
+Message-ID: <1320375291-5622-2-git-send-email-trenn@suse.de>
+References: <1320375291-5622-1-git-send-email-trenn@suse.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1320375291-5622-1-git-send-email-trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, devel@acpica.org, VoJcEK <vojcek@tlen.pl>, Markus <dsdt@gaugusch.at>, eric@gaugusch.at, Michael Chang <mchang@suse.com>, ming.m.lin@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-There are a lot userspace approaches to detect the usage of the
-platform (laptop, workstation, server, ...) and adjust kernel tunables
-accordingly (io/process scheduler, power management, ...).
+Currently it's only possible to feed acpica with virtual
+address for table overriding.
+This patch introduces a function which allows the OS to
+pass physical addresses for table overriding.
 
-These approaches need constant maintaining and are ugly to implement
-(detect PCMCIA controller -> laptop,
-does not work on recent systems anymore, ...)
-On ACPI systems there is an easy and reliable way (if implemented
-in BIOS and most recent platforms have this value set).
--> export it to userspace.
+This is necessary to allow early table overridings of
+arbitrary ACPI tables.
+
+An extra flag like ACPI_TABLE_ORIGIN_OVERRIDE is not used,
+because physical address overriding is rather transparent
+(the same way acpica expects to get tables from reserved
+memory BIOS regions which is the normal way).
+
+V2: Includes a fix from Michael Chang:
+Fix wrongly mapped acpi table header when overriding via initrd
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: devel@acpica.org
 CC: lenb@kernel.org
+CC: VoJcEK <vojcek@tlen.pl>
+CC: Markus <dsdt@gaugusch.at>
+CC: eric@gaugusch.at
+CC: Michael Chang <mchang@suse.com>
+CC: ming.m.lin@intel.com
 ---
- Documentation/ABI/stable/sysfs-acpi-pmprofile |   22 ++++++++++++++++++++++
- drivers/acpi/sysfs.c                          |   14 +++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/ABI/stable/sysfs-acpi-pmprofile
+ drivers/acpi/acpica/tbinstal.c |   15 +++++++++++++++
+ drivers/acpi/acpica/tbutils.c  |   18 +++++++++++++++++-
+ drivers/acpi/osl.c             |   11 +++++++++++
+ include/acpi/acpiosxf.h        |    4 ++++
+ 4 files changed, 47 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-acpi-pmprofile b/Documentation/ABI/stable/sysfs-acpi-pmprofile
-new file mode 100644
-index 0000000..964c7a8
---- /dev/null
-+++ b/Documentation/ABI/stable/sysfs-acpi-pmprofile
-@@ -0,0 +1,22 @@
-+What: 		/sys/firmware/acpi/pm_profile
-+Date:		03-Nov-2011
-+KernelVersion:	v3.2
-+Contact:	linux-acpi@vger.kernel.org
-+Description: 	The ACPI pm_profile sysfs interface exports the platform
-+		power management (and performance) requirement expectations
-+		as provided by BIOS. The integer value is directly passed as
-+		retrieved from the FADT ACPI table.
-+Values:         For possible values see ACPI specification:
-+		5.2.9 Fixed ACPI Description Table (FADT)
-+		Field: Preferred_PM_Profile
+diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
+index 62365f6..b9b9d2a 100644
+--- a/drivers/acpi/acpica/tbinstal.c
++++ b/drivers/acpi/acpica/tbinstal.c
+@@ -242,6 +242,21 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
+ 		table_desc->pointer = override_table;
+ 		table_desc->length = override_table->length;
+ 		table_desc->flags = ACPI_TABLE_ORIGIN_OVERRIDE;
++	} else {
++		acpi_physical_address address = 0;
++		u32 table_len = 0;
++		status = acpi_os_phys_table_override(table_desc->pointer,
++						     &address, &table_len);
++		if (ACPI_SUCCESS(status) && table_len && address) {
++			ACPI_INFO((AE_INFO, "%4.4s @ 0x%p "
++				   "Phys table override, replaced with:",
++				   table_desc->pointer->signature,
++				   ACPI_CAST_PTR(void, table_desc->address)));
++			table_desc->address = address;
++			table_desc->pointer = acpi_os_map_memory(address,
++								 table_len);
++			table_desc->length = table_len;
++		}
+ 	}
+ 
+ 	/* Add the table to the global root table list */
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 0f2d395..2e797d9 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -499,8 +499,24 @@ acpi_tb_install_table(acpi_physical_address address,
+ 		table_to_install = override_table;
+ 		flags = ACPI_TABLE_ORIGIN_OVERRIDE;
+ 	} else {
+-		table_to_install = mapped_table;
++		u32 table_len = 0;
++		acpi_physical_address tmp_addr = 0;
 +
-+		Currently these values are defined by spec:
-+		0 Unspecified
-+		1 Desktop
-+		2 Mobile
-+		3 Workstation
-+		4 Enterprise Server
-+		5 SOHO Server
-+		6 Appliance PC
-+		7 Performance Server
-+		>7 Reserved
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index c538d0e..9f66181 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -706,11 +706,23 @@ static void __exit interrupt_stats_exit(void)
- 	return;
++		status = acpi_os_phys_table_override(mapped_table,
++						     &tmp_addr, &table_len);
++		if (ACPI_SUCCESS(status) && table_len && tmp_addr) {
++			ACPI_INFO((AE_INFO, "%4.4s @ 0x%p "
++				   "Phys table override, replaced with:",
++				   mapped_table->signature,
++				   ACPI_CAST_PTR(void, address)));
++			acpi_os_unmap_memory(mapped_table,
++					     sizeof(struct acpi_table_header));
++			address = tmp_addr;
++			mapped_table = acpi_os_map_memory(address,
++					  sizeof(struct acpi_table_header));
++		}
+ 		flags = ACPI_TABLE_ORIGIN_MAPPED;
++		table_to_install = mapped_table;
+ 	}
+ 
+ 	/* Initialize the table entry */
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f31c5c5..099a3a6 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -523,6 +523,17 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
+ 	return AE_OK;
  }
  
-+static ssize_t
-+acpi_show_profile(struct device *dev, struct device_attribute *attr,
-+		  char *buf)
++acpi_status
++acpi_os_phys_table_override(struct acpi_table_header *existing_table,
++			    acpi_physical_address *address, u32 *table_length)
 +{
-+	return sprintf(buf, "%d\n", acpi_gbl_FADT.preferred_profile);
++	if (!existing_table)
++		return AE_BAD_PARAMETER;
++
++	table_length = 0;
++	return AE_OK;
 +}
 +
-+static const struct device_attribute pm_profile_attr =
-+	__ATTR(pm_profile, S_IRUGO, acpi_show_profile, NULL);
-+
- int __init acpi_sysfs_init(void)
+ static irqreturn_t acpi_irq(int irq, void *dev_id)
  {
- 	int result;
+ 	u32 handled;
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 83062ed..a56a811 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -95,6 +95,10 @@ acpi_status
+ acpi_os_table_override(struct acpi_table_header *existing_table,
+ 		       struct acpi_table_header **new_table);
  
- 	result = acpi_tables_sysfs_init();
--
-+	if (result)
-+		return result;
-+	result = sysfs_create_file(acpi_kobj, &pm_profile_attr.attr);
- 	return result;
- }
++acpi_status
++acpi_os_phys_table_override(struct acpi_table_header *existing_table,
++			    acpi_physical_address *address, u32 *table_length);
++
+ /*
+  * Spinlock primitives
+  */
 -- 
 1.7.6.1
