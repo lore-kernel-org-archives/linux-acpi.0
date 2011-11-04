@@ -1,75 +1,100 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] PNP ACPI: Use real gsi
-Date: Fri,  4 Nov 2011 03:20:33 +0100
-Message-ID: <1320373233-3725-1-git-send-email-trenn@suse.de>
-References: <1320372728-3235-1-git-send-email-trenn@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38780 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754349Ab1KDCUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Nov 2011 22:20:39 -0400
-In-Reply-To: <1320372728-3235-1-git-send-email-trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [PATCH] ACPI: Export FADT pm_profile integer value to
+	userspace
+Date: Fri,  4 Nov 2011 03:33:46 +0100
+Message-ID: <1320374026-4913-1-git-send-email-trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, bhelgaas@google.com, lenb@kernel.org, stable@kernel.org, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-From: Yinghai Lu <yinghai@kernel.org>
+There are a lot userspace approaches to detect the usage of the
+platform (laptop, workstation, server, ...) and adjust kernel tunables
+accordingly (io/process scheduler, power management, ...).
 
-In 2.6.35 a lot cleanups in this area (not pnp, but x86 ioapic setup) have
-been introduced.
-On an IBM Xseries (x3850) this caused the machine to freeze around when
-the init userspace process is tried to get started.
-The reason is that the timer interrupt is not set up correctly on this machine.
+These approaches need constant maintaining and are ugly to implement
+(detect PCMCIA controller -> laptop,
+does not work on recent systems anymore, ...)
+On ACPI systems there is an easy and reliable way (if implemented
+in BIOS and most recent platforms have this value set).
+-> export it to userspace.
 
-I could bisect the issue to one of ioapic cleanups introduced in 2.6.35:
-commit a4384df3e24579d6292a1b3b41d500349948f30b
-
-While on this machine the problem was an interrupt timer issue,
-there may be other platforms with different interrupt issues relatd to this
-problem. Kernel logs with similar IOAPIC errors inside pnpacpi setup might
-need this patch:
-  pnp 00:04: [io  0x02f8-0x02ff]
-  IOAPIC[1]: Invalid reference to IRQ 0
-  pnp 00:04: [irq 2]
-  pnp 00:04: Plug and Play ACPI device, IDs PNP0501 (active)
-
-Yinghai came up with this patch which fixes the problem for me.
-Looks like the bisected commit is correct, but the pnp layer has been
-overseen.
-
-Tested-by: Thomas Renninger <trenn@suse.de>
-CC: Eric W. Biederman <ebiederm@xmission.com>
-CC: bhelgaas@google.com
-CC: lenb@kernel.org
-CC: stable@kernel.org
-CC: Ingo Molnar <mingo@elte.hu>
-CC: H Peter Anvin <hpa@zytor.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: lenb@kernel.org
 ---
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ Documentation/ABI/stable/sysfs-acpi-pmprofile |   22 ++++++++++++++++++++++
+ drivers/acpi/sysfs.c                          |   14 +++++++++++++-
+ 2 files changed, 35 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/ABI/stable/sysfs-acpi-pmprofile
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index bbf3edd..dad5da9 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -106,6 +106,14 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
- 		return;
- 	}
- 
-+#ifdef CONFIG_X86_IO_APIC
-+	/*
-+	 * Convert it back to real gsi
-+	 */
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC)
-+		acpi_isa_irq_to_gsi(gsi, &gsi);
-+#endif
+diff --git a/Documentation/ABI/stable/sysfs-acpi-pmprofile b/Documentation/ABI/stable/sysfs-acpi-pmprofile
+new file mode 100644
+index 0000000..964c7a8
+--- /dev/null
++++ b/Documentation/ABI/stable/sysfs-acpi-pmprofile
+@@ -0,0 +1,22 @@
++What: 		/sys/firmware/acpi/pm_profile
++Date:		03-Nov-2011
++KernelVersion:	v3.2
++Contact:	linux-acpi@vger.kernel.org
++Description: 	The ACPI pm_profile sysfs interface exports the platform
++		power management (and performance) requirement expectations
++		as provided by BIOS. The integer value is directly passed as
++		retrieved from the FADT ACPI table.
++Values:         For possible values see ACPI specification:
++		5.2.9 Fixed ACPI Description Table (FADT)
++		Field: Preferred_PM_Profile
 +
- 	/*
- 	 * in IO-APIC mode, use overrided attribute. Two reasons:
- 	 * 1. BIOS bug in DSDT
++		Currently these values are defined by spec:
++		0 Unspecified
++		1 Desktop
++		2 Mobile
++		3 Workstation
++		4 Enterprise Server
++		5 SOHO Server
++		6 Appliance PC
++		7 Performance Server
++		>7 Reserved
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index c538d0e..9f66181 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -706,11 +706,23 @@ static void __exit interrupt_stats_exit(void)
+ 	return;
+ }
+ 
++static ssize_t
++acpi_show_profile(struct device *dev, struct device_attribute *attr,
++		  char *buf)
++{
++	return sprintf(buf, "%d\n", acpi_gbl_FADT.preferred_profile);
++}
++
++static const struct device_attribute pm_profile_attr =
++	__ATTR(pm_profile, S_IRUGO, acpi_show_profile, NULL);
++
+ int __init acpi_sysfs_init(void)
+ {
+ 	int result;
+ 
+ 	result = acpi_tables_sysfs_init();
+-
++	if (result)
++		return result;
++	result = sysfs_create_file(acpi_kobj, &pm_profile_attr.attr);
+ 	return result;
+ }
 -- 
 1.7.6.1
-
