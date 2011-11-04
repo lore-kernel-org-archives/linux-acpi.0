@@ -1,129 +1,108 @@
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject: Re: [PATCH -v1] acpi: Fix possible recursive locking in hwregs.c
-Date: Fri, 4 Nov 2011 11:53:39 +0600
-Message-ID: <CADZ9YHiht68YLz5eWc0xc8R3bxLrgdf4sxgLBwODiKoLQLU7FQ@mail.gmail.com>
-References: <1320317323.5711.5.camel@localhost.localdomain>
-	<1320321770.2813.10.camel@hp6530s>
-	<4EB2D225.60808@linux.vnet.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] ACPI: Export FADT pm_profile integer value to userspace
+Date: Fri, 4 Nov 2011 23:25:48 +0100
+Message-ID: <201111042325.48583.rjw@sisk.pl>
+References: <1320374026-4913-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf3040ee1caf682104b0e253db
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EB2D225.60808@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51483 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754814Ab1KDWXO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Nov 2011 18:23:14 -0400
+In-Reply-To: <1320374026-4913-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>
 
---20cf3040ee1caf682104b0e253db
-Content-Type: text/plain; charset=ISO-8859-1
+On Friday, November 04, 2011, Thomas Renninger wrote:
+> There are a lot userspace approaches to detect the usage of the
+> platform (laptop, workstation, server, ...) and adjust kernel tunables
+> accordingly (io/process scheduler, power management, ...).
+> 
+> These approaches need constant maintaining and are ugly to implement
+> (detect PCMCIA controller -> laptop,
+> does not work on recent systems anymore, ...)
+> On ACPI systems there is an easy and reliable way (if implemented
+> in BIOS and most recent platforms have this value set).
+> -> export it to userspace.
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: lenb@kernel.org
 
-On Thu, Nov 3, 2011 at 11:40 PM, Srivatsa S. Bhat
-<srivatsa.bhat@linux.vnet.ibm.com> wrote:
-> Hi,
->
-> On 11/03/2011 05:32 PM, Lin Ming wrote:
->> On Thu, 2011-11-03 at 18:48 +0800, Rakib Mullick wrote:
->>> Calling pm-suspend might trigger a recursive lock in it's code path. In function acpi_hw_clear_acpi_status,
->>
->> As I replied at https://lkml.org/lkml/2011/9/22/6, I still don't think
->> there is a recursive lock.
->>
->
-> At first look, it definitely doesn't look like a recursive lock, as Lin said.
-> But, quoting Documentation/lockdep-design.txt:
->
-> "Multi-lock dependency rules:
-> ----------------------------
->
-> The same lock-class must not be acquired twice, because this could lead
-> to lock recursion deadlocks."
->
-> So, Rakib, do the 2 locks belong to the same lock-class? If yes, then I think
-> that is the reason for the lockdep splat. Could you show the lockdep warning?
->
-Yes, same lock-class. And as per "Multi-lock dependency rules:", it
-leads to lock recursion deadlocks.
-Lockdep warning attached.
+This is for Len, I guess?
 
-> By the way, another way to look at this patch is as an optimization..
-> i.e., if acpi_gbl_hardware_lock doesn't need to be held to call
-> acpi_ev_walk_gpe_list(), then we can move from the coarse-grained locking
-> to finer-grained locking by releasing it earlier, as you did in your patch.
-> [Note that you will have to update the goto label also, i.e., rename it as
-> 'exit' or something like that]
->
-I can do it, thanks for suggestions. But, what does Lin thinks? Lin
-are you okay?
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
 Thanks,
-Rakib
+Rafael
 
---20cf3040ee1caf682104b0e253db
-Content-Type: application/octet-stream; name=lockdepwarning
-Content-Disposition: attachment; filename=lockdepwarning
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gukrp6s50
 
-WyA1Mzg3LjczNDA3OV0gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09ClsgNTM4Ny43MzQwODJdIFsgSU5GTzogcG9zc2libGUgcmVjdXJzaXZlIGxvY2tpbmcgZGV0
-ZWN0ZWQgXQpbIDUzODcuNzM0MDg1XSAzLjAuMC1yYzMtdGlwLW1yLmJhcmJlcisgIzQKWyA1Mzg3
-LjczNDA4N10gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClsg
-NTM4Ny43MzQwODldIHBtLXN1c3BlbmQvOTYwMCBpcyB0cnlpbmcgdG8gYWNxdWlyZSBsb2NrOgpb
-IDUzODcuNzM0MDkyXSAgKCYobG9jayktPnJsb2NrKXstLi0uLi59LCBhdDogWzxmZmZmZmZmZjgx
-MjhlODdkPl0gYWNwaV9vc19hY3F1aXJlX2xvY2srMHhlLzB4MTAKWyA1Mzg3LjczNDEwM10gClsg
-NTM4Ny43MzQxMDNdIGJ1dCB0YXNrIGlzIGFscmVhZHkgaG9sZGluZyBsb2NrOgpbIDUzODcuNzM0
-MTA1XSAgKCYobG9jayktPnJsb2NrKXstLi0uLi59LCBhdDogWzxmZmZmZmZmZjgxMjhlODdkPl0g
-YWNwaV9vc19hY3F1aXJlX2xvY2srMHhlLzB4MTAKWyA1Mzg3LjczNDExMF0gClsgNTM4Ny43MzQx
-MTFdIG90aGVyIGluZm8gdGhhdCBtaWdodCBoZWxwIHVzIGRlYnVnIHRoaXM6ClsgNTM4Ny43MzQx
-MTNdICBQb3NzaWJsZSB1bnNhZmUgbG9ja2luZyBzY2VuYXJpbzoKWyA1Mzg3LjczNDExNF0gClsg
-NTM4Ny43MzQxMTVdICAgICAgICBDUFUwClsgNTM4Ny43MzQxMTddICAgICAgICAtLS0tClsgNTM4
-Ny43MzQxMTldICAgbG9jaygmKGxvY2spLT5ybG9jayk7ClsgNTM4Ny43MzQxMjFdICAgbG9jaygm
-KGxvY2spLT5ybG9jayk7ClsgNTM4Ny43MzQxMjRdIApbIDUzODcuNzM0MTI1XSAgKioqIERFQURM
-T0NLICoqKgpbIDUzODcuNzM0MTI2XSAKWyA1Mzg3LjczNDEyN10gIE1heSBiZSBkdWUgdG8gbWlz
-c2luZyBsb2NrIG5lc3Rpbmcgbm90YXRpb24KWyA1Mzg3LjczNDEyOF0gClsgNTM4Ny43MzQxMzBd
-IDQgbG9ja3MgaGVsZCBieSBwbS1zdXNwZW5kLzk2MDA6ClsgNTM4Ny43MzQxMzFdICAjMDogICgm
-YnVmZmVyLT5tdXRleCl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZmZmY4MTE4NmQwZD5dIHN5c2ZzX3dy
-aXRlX2ZpbGUrMHgzYy8weDE1ZApbIDUzODcuNzM0MTQxXSAgIzE6ICAoc19hY3RpdmUjODkpey4r
-LisuK30sIGF0OiBbPGZmZmZmZmZmODExODZkZDE+XSBzeXNmc193cml0ZV9maWxlKzB4MTAwLzB4
-MTVkClsgNTM4Ny43MzQxNDhdICAjMjogIChwbV9tdXRleCl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZm
-ZmY4MTA4ZWQ0ZT5dIGVudGVyX3N0YXRlKzB4MzkvMHgxM2MKWyA1Mzg3LjczNDE1Nl0gICMzOiAg
-KCYobG9jayktPnJsb2NrKXstLi0uLi59LCBhdDogWzxmZmZmZmZmZjgxMjhlODdkPl0gYWNwaV9v
-c19hY3F1aXJlX2xvY2srMHhlLzB4MTAKWyA1Mzg3LjczNDE2Ml0gClsgNTM4Ny43MzQxNjJdIHN0
-YWNrIGJhY2t0cmFjZToKWyA1Mzg3LjczNDE2Nl0gUGlkOiA5NjAwLCBjb21tOiBwbS1zdXNwZW5k
-IE5vdCB0YWludGVkIDMuMC4wLXJjMy10aXAtbXIuYmFyYmVyKyAjNApbIDUzODcuNzM0MTY4XSBD
-YWxsIFRyYWNlOgpbIDUzODcuNzM0MTc1XSAgWzxmZmZmZmZmZjgxMDgxMGE0Pl0gX19sb2NrX2Fj
-cXVpcmUrMHg5YTIvMHhkYzEKWyA1Mzg3LjczNDE4MF0gIFs8ZmZmZmZmZmY4MTA4MDIyYT5dID8g
-Y2hlY2tfaXJxX3VzYWdlKzB4NzgvMHg4OQpbIDUzODcuNzM0MTgzXSAgWzxmZmZmZmZmZjgxMjhl
-ODdkPl0gPyBhY3BpX29zX2FjcXVpcmVfbG9jaysweGUvMHgxMApbIDUzODcuNzM0MTg3XSAgWzxm
-ZmZmZmZmZjgxMDgxOTZlPl0gbG9ja19hY3F1aXJlKzB4Y2UvMHhmOQpbIDUzODcuNzM0MTkwXSAg
-WzxmZmZmZmZmZjgxMjhlODdkPl0gPyBhY3BpX29zX2FjcXVpcmVfbG9jaysweGUvMHgxMApbIDUz
-ODcuNzM0MTk1XSAgWzxmZmZmZmZmZjgxMmE2NTNjPl0gPyBhY3BpX2h3X2VuYWJsZV9ydW50aW1l
-X2dwZV9ibG9jaysweDQ4LzB4NDgKWyA1Mzg3LjczNDE5OV0gIFs8ZmZmZmZmZmY4MTJhNjUzYz5d
-ID8gYWNwaV9od19lbmFibGVfcnVudGltZV9ncGVfYmxvY2srMHg0OC8weDQ4ClsgNTM4Ny43MzQy
-MDddICBbPGZmZmZmZmZmODE1ZGUyNzU+XSBfcmF3X3NwaW5fbG9ja19pcnFzYXZlKzB4M2YvMHg1
-MgpbIDUzODcuNzM0MjEwXSAgWzxmZmZmZmZmZjgxMjhlODdkPl0gPyBhY3BpX29zX2FjcXVpcmVf
-bG9jaysweGUvMHgxMApbIDUzODcuNzM0MjE0XSAgWzxmZmZmZmZmZjgxMjhlODdkPl0gYWNwaV9v
-c19hY3F1aXJlX2xvY2srMHhlLzB4MTAKWyA1Mzg3LjczNDIyMF0gIFs8ZmZmZmZmZmY4MTI5ZmFj
-Yz5dIGFjcGlfZXZfd2Fsa19ncGVfbGlzdCsweDI4LzB4OTIKWyA1Mzg3LjczNDIyNF0gIFs8ZmZm
-ZmZmZmY4MTJhNmMzMT5dIGFjcGlfaHdfY2xlYXJfYWNwaV9zdGF0dXMrMHgzZS8weDVkClsgNTM4
-Ny43MzQyMjddICBbPGZmZmZmZmZmODEyYTcwMGM+XSBhY3BpX2VudGVyX3NsZWVwX3N0YXRlKzB4
-OTAvMHgxY2QKWyA1Mzg3LjczNDIzNF0gIFs8ZmZmZmZmZmY4MTAxMTlkMj5dID8gc2NoZWRfY2xv
-Y2srMHg5LzB4ZApbIDUzODcuNzM0MjM4XSAgWzxmZmZmZmZmZjgxMDExZWFlPl0gPyBzYXZlX3Nj
-aGVkX2Nsb2NrX3N0YXRlKzB4MTIvMHgxYgpbIDUzODcuNzM0MjQ0XSAgWzxmZmZmZmZmZjgxNDZm
-MzBlPl0gPyBzYXZlX3Byb2Nlc3Nvcl9zdGF0ZSsweDE5ZS8weDFhZQpbIDUzODcuNzM0MjQ4XSAg
-WzxmZmZmZmZmZjgxNWRlODRkPl0gPyBfcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUrMHgzZS8w
-eDUyClsgNTM4Ny43MzQyNTNdICBbPGZmZmZmZmZmODEwMjJhYWE+XSBkb19zdXNwZW5kX2xvd2xl
-dmVsKzB4OWEvMHg5YwpbIDUzODcuNzM0MjU3XSAgWzxmZmZmZmZmZjgxMDIyOTk3Pl0gPyBhY3Bp
-X3N1c3BlbmRfbG93bGV2ZWwrMHgxYjcvMHgxZDAKWyA1Mzg3LjczNDI2Ml0gIFs8ZmZmZmZmZmY4
-MTI4ZmIxMD5dIGFjcGlfc3VzcGVuZF9lbnRlcisweDM3LzB4OTYKWyA1Mzg3LjczNDI2Nl0gIFs8
-ZmZmZmZmZmY4MTA4ZWM2MD5dIHN1c3BlbmRfZGV2aWNlc19hbmRfZW50ZXIrMHgxNWUvMHgyMTMK
-WyA1Mzg3LjczNDI3MF0gIFs8ZmZmZmZmZmY4MTA4ZWRmYj5dIGVudGVyX3N0YXRlKzB4ZTYvMHgx
-M2MKWyA1Mzg3LjczNDI3M10gIFs8ZmZmZmZmZmY4MTA4ZTNjYj5dIHN0YXRlX3N0b3JlKzB4YWUv
-MHhjYgpbIDUzODcuNzM0Mjc3XSAgWzxmZmZmZmZmZjgxMTg2ZGQxPl0gPyBzeXNmc193cml0ZV9m
-aWxlKzB4MTAwLzB4MTVkClsgNTM4Ny43MzQyODNdICBbPGZmZmZmZmZmODEyNDlkZGI+XSBrb2Jq
-X2F0dHJfc3RvcmUrMHgxNy8weDE5ClsgNTM4Ny43MzQyODddICBbPGZmZmZmZmZmODExODZkZjI+
-XSBzeXNmc193cml0ZV9maWxlKzB4MTIxLzB4MTVkClsgNTM4Ny43MzQyOTNdICBbPGZmZmZmZmZm
-ODExMjVkZTQ+XSB2ZnNfd3JpdGUrMHhlNi8weDEzZApbIDUzODcuNzM0Mjk2XSAgWzxmZmZmZmZm
-ZjgxMTI2MDJkPl0gc3lzX3dyaXRlKzB4NGEvMHg2ZQpbIDUzODcuNzM0MzAyXSAgWzxmZmZmZmZm
-ZjgxNWU1YTAyPl0gc3lzdGVtX2NhbGxfZmFzdHBhdGgrMHgxNi8weDFiCgo=
---20cf3040ee1caf682104b0e253db--
+> ---
+>  Documentation/ABI/stable/sysfs-acpi-pmprofile |   22 ++++++++++++++++++++++
+>  drivers/acpi/sysfs.c                          |   14 +++++++++++++-
+>  2 files changed, 35 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/ABI/stable/sysfs-acpi-pmprofile
+> 
+> diff --git a/Documentation/ABI/stable/sysfs-acpi-pmprofile b/Documentation/ABI/stable/sysfs-acpi-pmprofile
+> new file mode 100644
+> index 0000000..964c7a8
+> --- /dev/null
+> +++ b/Documentation/ABI/stable/sysfs-acpi-pmprofile
+> @@ -0,0 +1,22 @@
+> +What: 		/sys/firmware/acpi/pm_profile
+> +Date:		03-Nov-2011
+> +KernelVersion:	v3.2
+> +Contact:	linux-acpi@vger.kernel.org
+> +Description: 	The ACPI pm_profile sysfs interface exports the platform
+> +		power management (and performance) requirement expectations
+> +		as provided by BIOS. The integer value is directly passed as
+> +		retrieved from the FADT ACPI table.
+> +Values:         For possible values see ACPI specification:
+> +		5.2.9 Fixed ACPI Description Table (FADT)
+> +		Field: Preferred_PM_Profile
+> +
+> +		Currently these values are defined by spec:
+> +		0 Unspecified
+> +		1 Desktop
+> +		2 Mobile
+> +		3 Workstation
+> +		4 Enterprise Server
+> +		5 SOHO Server
+> +		6 Appliance PC
+> +		7 Performance Server
+> +		>7 Reserved
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index c538d0e..9f66181 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -706,11 +706,23 @@ static void __exit interrupt_stats_exit(void)
+>  	return;
+>  }
+>  
+> +static ssize_t
+> +acpi_show_profile(struct device *dev, struct device_attribute *attr,
+> +		  char *buf)
+> +{
+> +	return sprintf(buf, "%d\n", acpi_gbl_FADT.preferred_profile);
+> +}
+> +
+> +static const struct device_attribute pm_profile_attr =
+> +	__ATTR(pm_profile, S_IRUGO, acpi_show_profile, NULL);
+> +
+>  int __init acpi_sysfs_init(void)
+>  {
+>  	int result;
+>  
+>  	result = acpi_tables_sysfs_init();
+> -
+> +	if (result)
+> +		return result;
+> +	result = sysfs_create_file(acpi_kobj, &pm_profile_attr.attr);
+>  	return result;
+>  }
+> 
+
