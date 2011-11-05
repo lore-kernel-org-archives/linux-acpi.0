@@ -1,268 +1,119 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 0/2] ACPI: Re-factor and remove ./drivers/acpi/atomicio.[ch]
-Date: Sat, 5 Nov 2011 03:42:57 +0100
-Message-ID: <201111050342.58975.trenn@suse.de>
-References: <20110929215907.21126.24480.stgit@amt.stowe> <201110311147.40546.trenn@suse.de> <CAL-B5D0Dp8AoMUUJxy58EMdL0k0LRwJ_xa3XRdGT32qrhR0D+g@mail.gmail.com>
+From: Christoph Groth <cwg@falma.de>
+Subject: /sys/class/power_supply/BAT0/ confusion
+Date: Sat, 05 Nov 2011 09:46:46 +0100
+Message-ID: <87wrbfot1l.fsf@falma.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37119 "EHLO mx2.suse.de"
+Received: from lo.gmane.org ([80.91.229.12]:59607 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751413Ab1KEBm7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Nov 2011 21:42:59 -0400
-In-Reply-To: <CAL-B5D0Dp8AoMUUJxy58EMdL0k0LRwJ_xa3XRdGT32qrhR0D+g@mail.gmail.com>
+	id S1751059Ab1KEIuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Nov 2011 04:50:11 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1RMbx3-0007WY-HC
+	for linux-acpi@vger.kernel.org; Sat, 05 Nov 2011 09:50:09 +0100
+Received: from dra38-5-82-246-248-175.fbx.proxad.net ([82.246.248.175])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 05 Nov 2011 09:50:09 +0100
+Received: from cwg by dra38-5-82-246-248-175.fbx.proxad.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 05 Nov 2011 09:50:09 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <myron.stowe@redhat.com>, Len Brown <len.brown@intel.com>, bondd@us.ibm.com, lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, ying.huang@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Saturday 05 November 2011 00:54:39 Myron Stowe wrote:
-...
-> > Still, if Windows has duplicated code for APEI GAR handling (with
-> > additional mask value, for example ignoring bit width) and does it
-> > slightly different than they do it in other parts,
-> > we also might not come around APEI specific GAR checking/workarounds.
-> >
-> 
-> I've hit a snag - hopefully I'm just not seeing something obvious so I thought
-> I would relay what I'm encountering and see if you or Bjorn have any ideas.
-I see that this is yet another nasty problem of trying to let APEI use generic
-acpi_read/write funcs.
+Hello,
 
-...
- 
-> Thomas - this issue exists with either conversion approach (my approach of
-> getting acpi_read()/acpi_write() augmented to handle 'bit_offset' values and
-> using those or your idea of copying acpi_atomicio_read()/acpi_atomicio_write(),
-> changing their names to apei_read()/apei_write(), augmenting those to
-> handle 'bit_offset' values and using them).
-I can't see how it affects the two steps approach (if generic read/write could
-ever get used... The main and really nice win of your patches is getting
-rid of the duplicated and complicated/complex pre_map stuff).
+I'm running kernel 3.0.0 from Debian testing.  On my new Thinkpad X220,
+I noticed that the "acpi" command gives way too optimistic "remaining
+time on battery" estimates.
 
-What about below patch which even already compiles, it should work with your
-atomicio.c removal one(s) (but not without!)?
-Why would bit_offset handling need to be inside read/write funcs?
-It could be done as before.
+To calculate the remaining time, the "acpi" tools divides the
+"charge_now" value by "current_now" which seems to make sense physicall=
+y
+if the units of these values would be what the names imply.  However,
+this gives a remaining time of 5.35 hours which is way too high for the
+small 4 cell battery I have.
 
-    Thomas
----
- drivers/acpi/apei/apei-base.c     |   91 +++++++++++++++++++++++++++++++++++-
- drivers/acpi/apei/apei-internal.h |    3 +
- drivers/acpi/apei/ghes.c          |    2 +-
- drivers/acpi/atomicio.c           |   42 -----------------
- include/acpi/atomicio.h           |    3 -
- 5 files changed, 92 insertions(+), 49 deletions(-)
+Let's look at a snapshot of the BAT0 directory:
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 6154036..9be1a58 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -70,7 +70,7 @@ int __apei_exec_read_register(struct acpi_whea_header *entry, u64 *val)
- {
- 	int rc;
- 
--	rc = acpi_atomic_read(val, &entry->register_region);
-+	rc = apei_gar_read(val, &entry->register_region);
- 	if (rc)
- 		return rc;
- 	*val >>= entry->register_region.bit_offset;
-@@ -116,13 +116,13 @@ int __apei_exec_write_register(struct acpi_whea_header *entry, u64 val)
- 	val <<= entry->register_region.bit_offset;
- 	if (entry->flags & APEI_EXEC_PRESERVE_REGISTER) {
- 		u64 valr = 0;
--		rc = acpi_atomic_read(&valr, &entry->register_region);
-+		rc = apei_gar_read(&valr, &entry->register_region);
- 		if (rc)
- 			return rc;
- 		valr &= ~(entry->mask << entry->register_region.bit_offset);
- 		val |= valr;
- 	}
--	rc = acpi_atomic_write(val, &entry->register_region);
-+	rc = apei_gar_write(val, &entry->register_region);
- 
- 	return rc;
- }
-@@ -553,6 +553,91 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr)
- 	return 0;
- }
- 
-+int apei_gar_read(u64 *val, struct acpi_generic_address *reg)
-+{
-+	u64 paddr;
-+	int rc;
-+	u32 tmp_val;
-+	acpi_status status;
-+	u32 width = reg->bit_width;
-+
-+	if (width == 64)
-+		width = 32;	/* Break into two 32-bit transfers */
-+
-+	rc = apei_check_gar(reg, &paddr);
-+	if (rc)
-+		return rc;
-+
-+	*val = 0;
-+	switch (reg->space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+		/* This part is copy and pasted from acpi_read */
-+		status = acpi_os_read_memory((acpi_physical_address)
-+					     paddr, &tmp_val, width);
-+		if (ACPI_FAILURE(status))
-+			return -EIO;
-+		*val = tmp_val;
-+
-+		if (reg->bit_width == 64) {
-+
-+			/* Read the top 32 bits */
-+
-+			status = acpi_os_read_memory((acpi_physical_address)
-+				     (paddr + 4), &tmp_val, 32);
-+			if (ACPI_FAILURE(status))
-+				return -EIO;
-+			*val |= ((u64)tmp_val << 32);
-+		}
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		status = acpi_os_read_port(paddr, (u32 *)val, reg->bit_width);
-+		if (ACPI_FAILURE(status))
-+		    return -EIO;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(apei_gar_read);
-+
-+int apei_gar_write(u64 val, struct acpi_generic_address *reg)
-+{
-+	u64 paddr;
-+	int rc;
-+	acpi_status status;
-+	u32 width = reg->bit_width;
-+
-+	if (width == 64)
-+		width = 32;	/* Break into two 32-bit transfers */
-+
-+	rc = apei_check_gar(reg, &paddr);
-+	if (rc)
-+		return rc;
-+
-+	switch (reg->space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+		/* This part is copy and pasted from acpi_write */
-+		status = acpi_os_write_memory((acpi_physical_address)
-+					      paddr, ACPI_LODWORD(val), width);
-+
-+		if (ACPI_FAILURE(status))
-+			return -EIO;
-+
-+		if (reg->bit_width == 64) {
-+			status = acpi_os_write_memory((acpi_physical_address)
-+				      (paddr + 4), ACPI_HIDWORD(val), 32);
-+
-+			if (ACPI_FAILURE(status))
-+				return -EIO;
-+		}
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		status = acpi_os_write_port(paddr, val, reg->bit_width);
-+		if (ACPI_FAILURE(status))
-+		    return -EIO;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(apei_gar_write);
-+
- static int collect_res_callback(struct apei_exec_context *ctx,
- 				struct acpi_whea_header *entry,
- 				void *data)
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index f57050e..0380cf7 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -68,6 +68,9 @@ static inline int apei_exec_run_optional(struct apei_exec_context *ctx, u8 actio
- /* IP has been set in instruction function */
- #define APEI_EXEC_SET_IP	1
- 
-+int apei_gar_read(u64 *val, struct acpi_generic_address *reg);
-+int apei_gar_write(u64 val, struct acpi_generic_address *reg);
-+
- int __apei_exec_read_register(struct acpi_whea_header *entry, u64 *val);
- int __apei_exec_write_register(struct acpi_whea_header *entry, u64 val);
- int apei_exec_read_register(struct apei_exec_context *ctx,
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b8e08cb..4273b2f 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -399,7 +399,7 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
- 	u32 len;
- 	int rc;
- 
--	rc = acpi_atomic_read(&buf_paddr, &g->error_status_address);
-+	rc = apei_gar_read(&buf_paddr, &g->error_status_address);
- 	if (rc) {
- 		if (!silent && printk_ratelimit())
- 			pr_warning(FW_WARN GHES_PFX
-diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
-index 7489b89..2fb3fc0 100644
---- a/drivers/acpi/atomicio.c
-+++ b/drivers/acpi/atomicio.c
-@@ -321,45 +321,3 @@ static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
- 
- 	return 0;
- }
--
--/* GAR accessing in atomic (including NMI) or process context */
--int acpi_atomic_read(u64 *val, struct acpi_generic_address *reg)
--{
--	u64 paddr;
--	int rc;
--
--	rc = acpi_check_gar(reg, &paddr, 1);
--	if (rc)
--		return rc;
--
--	*val = 0;
--	switch (reg->space_id) {
--	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
--		return acpi_atomic_read_mem(paddr, val, reg->bit_width);
--	case ACPI_ADR_SPACE_SYSTEM_IO:
--		return acpi_os_read_port(paddr, (u32 *)val, reg->bit_width);
--	default:
--		return -EINVAL;
--	}
--}
--EXPORT_SYMBOL_GPL(acpi_atomic_read);
--
--int acpi_atomic_write(u64 val, struct acpi_generic_address *reg)
--{
--	u64 paddr;
--	int rc;
--
--	rc = acpi_check_gar(reg, &paddr, 1);
--	if (rc)
--		return rc;
--
--	switch (reg->space_id) {
--	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
--		return acpi_atomic_write_mem(paddr, val, reg->bit_width);
--	case ACPI_ADR_SPACE_SYSTEM_IO:
--		return acpi_os_write_port(paddr, val, reg->bit_width);
--	default:
--		return -EINVAL;
--	}
--}
--EXPORT_SYMBOL_GPL(acpi_atomic_write);
-diff --git a/include/acpi/atomicio.h b/include/acpi/atomicio.h
-index 8b9fb4b..e38090c 100644
---- a/include/acpi/atomicio.h
-+++ b/include/acpi/atomicio.h
-@@ -4,7 +4,4 @@
- int acpi_pre_map_gar(struct acpi_generic_address *reg);
- int acpi_post_unmap_gar(struct acpi_generic_address *reg);
- 
--int acpi_atomic_read(u64 *val, struct acpi_generic_address *reg);
--int acpi_atomic_write(u64 val, struct acpi_generic_address *reg);
--
- #endif
+/sys/class/power_supply/BAT0% grep . *
+alarm:156000
+charge_full:3135000
+charge_full_design:2886000
+charge_now:2761000
+current_now:516000
+cycle_count:0
+manufacturer:SANYO
+model_name:42T4899
+present:1
+serial_number:19797
+status:Discharging
+technology:Li-ion
+type:Battery
+uevent:POWER_SUPPLY_NAME=3DBAT0
+uevent:POWER_SUPPLY_STATUS=3DDischarging
+uevent:POWER_SUPPLY_PRESENT=3D1
+uevent:POWER_SUPPLY_TECHNOLOGY=3DLi-ion
+uevent:POWER_SUPPLY_CYCLE_COUNT=3D0
+uevent:POWER_SUPPLY_VOLTAGE_MIN_DESIGN=3D14800000
+uevent:POWER_SUPPLY_VOLTAGE_NOW=3D15993000
+uevent:POWER_SUPPLY_CURRENT_NOW=3D516000
+uevent:POWER_SUPPLY_CHARGE_FULL_DESIGN=3D2886000
+uevent:POWER_SUPPLY_CHARGE_FULL=3D3135000
+uevent:POWER_SUPPLY_CHARGE_NOW=3D2761000
+uevent:POWER_SUPPLY_MODEL_NAME=3D42T4899
+uevent:POWER_SUPPLY_MANUFACTURER=3DSANYO
+uevent:POWER_SUPPLY_SERIAL_NUMBER=3D19797
+voltage_min_design:14800000
+voltage_now:15993000
+
+The nominal energy capacity of my battery is 29 Wh, so charge_now seems
+to be in units of 10 =C2=B5Wh! (Yes, charge_now =3D=3D 2761000 seems to=
+ mean that
+the _energy_ is 27.61 Wh.)  This is bogus!
+
+current_now and voltage_now seem to be in the reasonable units =C2=B5A =
+and
+=C2=B5V, as
+
+current_now * voltage_now * 1e-12 =3D 8.25
+
+which seems to be the correct power in Watts.  (This is also the power
+which "powertop" is reporting.)
+
+The remaining runtime in hours in my case seems to be given by
+
+charge_now * 1e-5 / (current_now * voltage_now * 1e-12) =3D 3.35
+
+which looks like a good estimate of the real situation.
+
+
+This does not seem to be the way things are supposed to be.  The kernel
+source file include/linux/power_supply.h states
+
+/*
+ * All voltages, currents, charges, energies, time and temperatures in =
+uV,
+ * =C2=B5A, =C2=B5Ah, =C2=B5Wh, seconds and tenths of degree Celsius un=
+less otherwise
+ * stated. It's driver's job to convert its raw values to units in whic=
+h
+ * this class operates.
+ */
+
+So this seems to be a bug of either the battery driver or the internal
+battery software.
+
+I hope this report will be useful for linux ACPI developers.
+
+Christoph
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
