@@ -1,88 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using SHPC native hotplug
-Date: Sun, 6 Nov 2011 23:11:28 +0100
-Message-ID: <201111062311.28913.rjw@sisk.pl>
-References: <201110220043.38635.rjw@sisk.pl> <201110261342.51843.rjw@sisk.pl> <4EAA1762.1060207@jp.fujitsu.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI ALS Status ?
+Date: Sun, 6 Nov 2011 17:16:03 -0500
+Message-ID: <CAJvTdKnW9VESyiF7Rden698EvRgT=805hyKXtXhFpKkTxLv64w@mail.gmail.com>
+References: <CAHR064iRm37Wf4QrYEOvsxT0=wZZbY1XQiZfmrJdqyTj1h8sPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53552 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752252Ab1KFWIx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Nov 2011 17:08:53 -0500
-In-Reply-To: <4EAA1762.1060207@jp.fujitsu.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50481 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753705Ab1KFWQF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2011 17:16:05 -0500
+Received: by bke11 with SMTP id 11so3183404bke.19
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Nov 2011 14:16:03 -0800 (PST)
+In-Reply-To: <CAHR064iRm37Wf4QrYEOvsxT0=wZZbY1XQiZfmrJdqyTj1h8sPA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Pavel Machek <pavel@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+> I was looking at the DSDT of a new samsung laptop (I can send you the
+> output of acpidump if interested), and it export a standard ACPI ALS
+> device. So, it's actually great to see vendor using that, but it seems
+> that the series adding support for that and sent back in 2009 is not
+> available in the kernel. I'd really like to use my the ALS, what's the
+> current status of the driver ? Still blocked because we don't have a
+> generic sysfs class ? If yes, can't we just use a non-standard
+> interface ? It would still be better than no driver at all.
 
-If the kernel has requested control of the SHPC native hotplug
-feature for a given root bridge, the acpiphp driver should not try
-to handle that root bridge and it should leave it to shpchp.
-Failing to do so causes problems to happen if shpchp is loaded
-and unloaded before loading acpiphp (ACPI-based hotplug won't work
-in that case anyway).
+Yes, I think ACPI ALS support has been waiting for hardware to justify
+its existence.
 
-To address this issue make find_root_bridges() ignore PCI root
-bridges with SHPC native hotplug enabled and make add_bridge()
-return error code if SHPC native hotplug is enabled for the given
-root bridge.  This causes acpiphp to refuse to load if SHPC native
-hotplug is enabled for all root bridges and to refuse binding to
-the root bridges with SHPC native hotplug enabled.
+When it first entered the spec, we were excited to see it was present
+in some high-end laptops, but IIR on closer examination the AML turned
+out to be dummy code.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+If you can verify that your Samsung really does implement ACPI ALS,
+then that is all we need to stumble forward.
 
-Jesse,
-
-This should apply to your linux-next branch.
-
-Thanks,
-Rafael
-
----
- drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
- include/linux/acpi.h               |    4 ++++
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-Index: linux/include/linux/acpi.h
-===================================================================
---- linux.orig/include/linux/acpi.h
-+++ linux/include/linux/acpi.h
-@@ -302,6 +302,10 @@ extern bool osc_sb_apei_support_acked;
- 				OSC_PCI_EXPRESS_PME_CONTROL |		\
- 				OSC_PCI_EXPRESS_AER_CONTROL |		\
- 				OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL)
-+
-+#define OSC_PCI_NATIVE_HOTPLUG	(OSC_PCI_EXPRESS_NATIVE_HP_CONTROL |	\
-+				OSC_SHPC_NATIVE_HP_CONTROL)
-+
- extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
- 					     u32 *mask, u32 req);
- extern void acpi_early_init(void);
-Index: linux/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux/drivers/pci/hotplug/acpiphp_glue.c
-@@ -467,7 +467,7 @@ static int add_bridge(acpi_handle handle
- 	 * granted by the BIOS for it.
- 	 */
- 	root = acpi_pci_find_root(handle);
--	if (root && (root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
-+	if (root && (root->osc_control_set & OSC_PCI_NATIVE_HOTPLUG))
- 		return -ENODEV;
- 
- 	/* if the bridge doesn't have _STA, we assume it is always there */
-@@ -1395,7 +1395,7 @@ find_root_bridges(acpi_handle handle, u3
- 	if (!root)
- 		return AE_OK;
- 
--	if (root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
-+	if (root->osc_control_set & OSC_PCI_NATIVE_HOTPLUG)
- 		return AE_OK;
- 
- 	(*count)++;
+thanks,
+-Len Brown, Intel Open Source Technology Center
