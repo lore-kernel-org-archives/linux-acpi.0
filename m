@@ -1,73 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH -v2] acpi: Fix possible recursive locking in hwregs.c
-Date: Sun, 6 Nov 2011 22:13:02 +0100
-Message-ID: <201111062213.02844.rjw@sisk.pl>
-References: <1320592697.7439.3.camel@localhost.localdomain>
+Subject: [PATCH] PCI / ACPI / PM: Avoid resuming devices that don't signal PME
+Date: Sun, 6 Nov 2011 22:21:46 +0100
+Message-ID: <201111062221.46819.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1320592697.7439.3.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, akpm@linux-foundation.org, ming Lin <ming.m.lin@intel.com>, len.brown@intel.com, srivatsa.bhat@linux.vnet.ibm.com, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:53508 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab1KFVTJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Nov 2011 16:19:09 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Sunday, November 06, 2011, Rakib Mullick wrote:
-> Calling pm-suspend might trigger a recursive lock in it's code path. In function acpi_hw_clear_acpi_status, acpi_os_acquire_lock holds the lock acpi_gbl_hardware_lock before calling acpi_hw_register_write(), then without releasing acpi_gbl_hardware_lock, this function calls acpi_ev_walk_gpe_list, which tries to hold acpi_gbl_gpe_lock. Both acpi_gbl_hardware_lock and acpi_gbl_gpe_lock are at same lock-class and which might cause lock recursion deadlock. 
-> 
-> Following patch fixes this scenario by just releasing acpi_gbl_hardware_lock before calling acpi_ev_walk_gpe_list.
-> 
->  Changes since v0(https://lkml.org/lkml/2011/9/21/355):
-> 	- Fix changelog, thanks to Lin Ming.
-> 
->  Changes since v1 (https://lkml.org/lkml/2011/11/3/89):
-> 	- Update changelog and rename goto label, courtesy Srivatsa S. Bhat.
-> 
-> Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-> Cc: Lin Ming <ming.m.lin@intel.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Modify pci_acpi_wake_dev() to avoid resuming PME-capable devices
+whose PME Status bits are not set, which may happen currently if
+several devices are associated with the same wakeup GPE and all
+of them are notified whenever at least one of them signals PME.
 
-> ---
-> 
-> diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-> index 55accb7..cc70f3f 100644
-> --- a/drivers/acpi/acpica/hwregs.c
-> +++ b/drivers/acpi/acpica/hwregs.c
-> @@ -269,16 +269,17 @@ acpi_status acpi_hw_clear_acpi_status(void)
->  
->  	status = acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
->  					ACPI_BITMASK_ALL_FIXED_STATUS);
-> -	if (ACPI_FAILURE(status)) {
-> -		goto unlock_and_exit;
-> -	}
-> +
-> +	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
-> +
-> +	if (ACPI_FAILURE(status))
-> +		goto exit;
->  
->  	/* Clear the GPE Bits in all GPE registers in all GPE blocks */
->  
->  	status = acpi_ev_walk_gpe_list(acpi_hw_clear_gpe_block, NULL);
->  
-> -      unlock_and_exit:
-> -	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
-> +exit:
->  	return_ACPI_STATUS(status);
->  }
->  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+Index: linux/drivers/pci/pci-acpi.c
+===================================================================
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -45,16 +45,20 @@ static void pci_acpi_wake_dev(acpi_handl
+ {
+ 	struct pci_dev *pci_dev = context;
+ 
+-	if (event == ACPI_NOTIFY_DEVICE_WAKE && pci_dev) {
++	if (event != ACPI_NOTIFY_DEVICE_WAKE || !pci_dev)
++		return;
++
++	if (!pci_dev->pm_cap || !pci_dev->pme_support
++	     || pci_check_pme_status(pci_dev)) {
+ 		if (pci_dev->pme_poll)
+ 			pci_dev->pme_poll = false;
+ 
+ 		pci_wakeup_event(pci_dev);
+-		pci_check_pme_status(pci_dev);
+ 		pm_runtime_resume(&pci_dev->dev);
+-		if (pci_dev->subordinate)
+-			pci_pme_wakeup_bus(pci_dev->subordinate);
+ 	}
++
++	if (pci_dev->subordinate)
++		pci_pme_wakeup_bus(pci_dev->subordinate);
+ }
+ 
+ /**
