@@ -1,57 +1,33 @@
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject: [PATCH -v2] acpi: Fix possible recursive locking in hwregs.c
-Date: Sun, 06 Nov 2011 21:18:17 +0600
-Message-ID: <1320592697.7439.3.camel@localhost.localdomain>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: ACPI ALS Status ?
+Date: Sun, 6 Nov 2011 20:34:13 +0100
+Message-ID: <CAHR064iRm37Wf4QrYEOvsxT0=wZZbY1XQiZfmrJdqyTj1h8sPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: akpm@linux-foundation.org, ming Lin <ming.m.lin@intel.com>, len.brown@intel.com, srivatsa.bhat@linux.vnet.ibm.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39060 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478Ab1KFTeP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2011 14:34:15 -0500
+Received: by wyh15 with SMTP id 15so3840454wyh.19
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Nov 2011 11:34:14 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Pavel Machek <pavel@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-Calling pm-suspend might trigger a recursive lock in it's code path. In function acpi_hw_clear_acpi_status, acpi_os_acquire_lock holds the lock acpi_gbl_hardware_lock before calling acpi_hw_register_write(), then without releasing acpi_gbl_hardware_lock, this function calls acpi_ev_walk_gpe_list, which tries to hold acpi_gbl_gpe_lock. Both acpi_gbl_hardware_lock and acpi_gbl_gpe_lock are at same lock-class and which might cause lock recursion deadlock. 
+Hi,
+I was looking at the DSDT of a new samsung laptop (I can send you the
+output of acpidump if interested), and it export a standard ACPI ALS
+device. So, it's actually great to see vendor using that, but it seems
+that the series adding support for that and sent back in 2009 is not
+available in the kernel. I'd really like to use my the ALS, what's the
+current status of the driver ? Still blocked because we don't have a
+generic sysfs class ? If yes, can't we just use a non-standard
+interface ? It would still be better than no driver at all.
 
-Following patch fixes this scenario by just releasing acpi_gbl_hardware_lock before calling acpi_ev_walk_gpe_list.
+Thanks,
 
- Changes since v0(https://lkml.org/lkml/2011/9/21/355):
-	- Fix changelog, thanks to Lin Ming.
-
- Changes since v1 (https://lkml.org/lkml/2011/11/3/89):
-	- Update changelog and rename goto label, courtesy Srivatsa S. Bhat.
-
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
----
-
-diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 55accb7..cc70f3f 100644
---- a/drivers/acpi/acpica/hwregs.c
-+++ b/drivers/acpi/acpica/hwregs.c
-@@ -269,16 +269,17 @@ acpi_status acpi_hw_clear_acpi_status(void)
- 
- 	status = acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
- 					ACPI_BITMASK_ALL_FIXED_STATUS);
--	if (ACPI_FAILURE(status)) {
--		goto unlock_and_exit;
--	}
-+
-+	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
-+
-+	if (ACPI_FAILURE(status))
-+		goto exit;
- 
- 	/* Clear the GPE Bits in all GPE registers in all GPE blocks */
- 
- 	status = acpi_ev_walk_gpe_list(acpi_hw_clear_gpe_block, NULL);
- 
--      unlock_and_exit:
--	acpi_os_release_lock(acpi_gbl_hardware_lock, lock_flags);
-+exit:
- 	return_ACPI_STATUS(status);
- }
- 
+-- 
+Corentin Chary
+http://xf.iksaif.net
