@@ -1,59 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PCI / ACPI / PM: Avoid resuming devices that don't signal PME
-Date: Sun, 6 Nov 2011 22:21:46 +0100
-Message-ID: <201111062221.46819.rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using SHPC native hotplug
+Date: Sun, 6 Nov 2011 23:11:28 +0100
+Message-ID: <201111062311.28913.rjw@sisk.pl>
+References: <201110220043.38635.rjw@sisk.pl> <201110261342.51843.rjw@sisk.pl> <4EAA1762.1060207@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53508 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:53552 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750795Ab1KFVTJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Nov 2011 16:19:09 -0500
+	id S1752252Ab1KFWIx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Nov 2011 17:08:53 -0500
+In-Reply-To: <4EAA1762.1060207@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Modify pci_acpi_wake_dev() to avoid resuming PME-capable devices
-whose PME Status bits are not set, which may happen currently if
-several devices are associated with the same wakeup GPE and all
-of them are notified whenever at least one of them signals PME.
+If the kernel has requested control of the SHPC native hotplug
+feature for a given root bridge, the acpiphp driver should not try
+to handle that root bridge and it should leave it to shpchp.
+Failing to do so causes problems to happen if shpchp is loaded
+and unloaded before loading acpiphp (ACPI-based hotplug won't work
+in that case anyway).
+
+To address this issue make find_root_bridges() ignore PCI root
+bridges with SHPC native hotplug enabled and make add_bridge()
+return error code if SHPC native hotplug is enabled for the given
+root bridge.  This causes acpiphp to refuse to load if SHPC native
+hotplug is enabled for all root bridges and to refuse binding to
+the root bridges with SHPC native hotplug enabled.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/pci/pci-acpi.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
 
-Index: linux/drivers/pci/pci-acpi.c
+Jesse,
+
+This should apply to your linux-next branch.
+
+Thanks,
+Rafael
+
+---
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ include/linux/acpi.h               |    4 ++++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+Index: linux/include/linux/acpi.h
 ===================================================================
---- linux.orig/drivers/pci/pci-acpi.c
-+++ linux/drivers/pci/pci-acpi.c
-@@ -45,16 +45,20 @@ static void pci_acpi_wake_dev(acpi_handl
- {
- 	struct pci_dev *pci_dev = context;
- 
--	if (event == ACPI_NOTIFY_DEVICE_WAKE && pci_dev) {
-+	if (event != ACPI_NOTIFY_DEVICE_WAKE || !pci_dev)
-+		return;
+--- linux.orig/include/linux/acpi.h
++++ linux/include/linux/acpi.h
+@@ -302,6 +302,10 @@ extern bool osc_sb_apei_support_acked;
+ 				OSC_PCI_EXPRESS_PME_CONTROL |		\
+ 				OSC_PCI_EXPRESS_AER_CONTROL |		\
+ 				OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL)
 +
-+	if (!pci_dev->pm_cap || !pci_dev->pme_support
-+	     || pci_check_pme_status(pci_dev)) {
- 		if (pci_dev->pme_poll)
- 			pci_dev->pme_poll = false;
- 
- 		pci_wakeup_event(pci_dev);
--		pci_check_pme_status(pci_dev);
- 		pm_runtime_resume(&pci_dev->dev);
--		if (pci_dev->subordinate)
--			pci_pme_wakeup_bus(pci_dev->subordinate);
- 	}
++#define OSC_PCI_NATIVE_HOTPLUG	(OSC_PCI_EXPRESS_NATIVE_HP_CONTROL |	\
++				OSC_SHPC_NATIVE_HP_CONTROL)
 +
-+	if (pci_dev->subordinate)
-+		pci_pme_wakeup_bus(pci_dev->subordinate);
- }
+ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+ 					     u32 *mask, u32 req);
+ extern void acpi_early_init(void);
+Index: linux/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux/drivers/pci/hotplug/acpiphp_glue.c
+@@ -467,7 +467,7 @@ static int add_bridge(acpi_handle handle
+ 	 * granted by the BIOS for it.
+ 	 */
+ 	root = acpi_pci_find_root(handle);
+-	if (root && (root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
++	if (root && (root->osc_control_set & OSC_PCI_NATIVE_HOTPLUG))
+ 		return -ENODEV;
  
- /**
+ 	/* if the bridge doesn't have _STA, we assume it is always there */
+@@ -1395,7 +1395,7 @@ find_root_bridges(acpi_handle handle, u3
+ 	if (!root)
+ 		return AE_OK;
+ 
+-	if (root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
++	if (root->osc_control_set & OSC_PCI_NATIVE_HOTPLUG)
+ 		return AE_OK;
+ 
+ 	(*count)++;
