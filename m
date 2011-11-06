@@ -1,97 +1,92 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] More power management updates for 3.2
-Date: Sun, 6 Nov 2011 00:37:02 +0100
-Message-ID: <201111060037.02477.rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] ACPI: Export interfaces for ioremapping/iounmapping ACPI registers
+Date: Sun, 6 Nov 2011 13:49:31 +0100
+Message-ID: <201111061349.31311.rjw@sisk.pl>
+References: <20110929215907.21126.24480.stgit@amt.stowe> <20110929215913.21126.71203.stgit@amt.stowe>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52445 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52931 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751803Ab1KEXe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Nov 2011 19:34:26 -0400
+	id S1752155Ab1KFMqy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Nov 2011 07:46:54 -0500
+In-Reply-To: <20110929215913.21126.71203.stgit@amt.stowe>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Myron Stowe <myron.stowe@redhat.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com, bhelgaas@google.com
 
-Hi Linus,
+On Thursday, September 29, 2011, Myron Stowe wrote:
+> From: Myron Stowe <mstowe@redhat.com>
+> 
+> Export remapping and unmapping interfaces - acpi_os_map_generic_address()
+> and acpi_os_unmap_generic_address() - for ACPI generic registers
+> that are backed by memory mapped I/O (MMIO).
+> 
+> ACPI Generic Address Structure (GAS) reference (ACPI's fixed/generic
+> hardware registers use the GAS format):
+>   ACPI Specification, Revision 4.0, Section 5.2.3.1, "Generic Address
+>   Structure"
+> 
+> Signed_off_by: Myron Stowe <myron.stowe@redhat.com>
 
-Please pull more power management updates (on top of commit
-1583171492eb514e267c7b51e96846b38de0f544) for 3.2 from:
+Nothing wrong with that in principle.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-for-linus
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-with top-most commit d6cc76856d353a3a9c43bead33210b9216dce332
-(PM / Freezer: Revert 27920651fe "PM / Freezer: Make fake_signal_wake_up() wake
-TASK_KILLABLE tasks too").
-
-All of them are either bug fixes or simple cleanups that didn't make it to my
-previous pull request.
-
-They include:
-
-* New entry for the ACPI suspend blacklist from Dave Jones.
-
-* Fixes and cleanups related to the interactions between suspend/hibernation
-  and CPU hotplug from Srivatsa Bhat.
-
-* Runtime PM core fix for accounting_timestamp computations (some results
-  were wrong due to using int instead of unsigned long) from Venu Byravarasu.
-
-* OPP build fix from Tony Lindgren.
-
-* PM QoS cleanup from Guennadi Liakhovetski.
-
-* Autosuspend fixes from Alan Stern.
-
-* Freezer fixes from Tejun and Oleg Nesterov.
-
-[No patches from me this time, how weird.]
-
-Thanks!
-
-
- Documentation/power/freezing-of-tasks.txt |    8 ++--
- Documentation/power/runtime_pm.txt        |   10 ++++
- drivers/acpi/sleep.c                      |    8 +++
- drivers/base/power/runtime.c              |   23 +++++++--
- drivers/usb/core/driver.c                 |    5 ++
- include/linux/cpu.h                       |    4 --
- include/linux/freezer.h                   |   11 +---
- include/linux/opp.h                       |    4 +-
- kernel/cpu.c                              |   74 +++++++++++++++++++++++++++++
- kernel/freezer.c                          |    2 +-
- kernel/power/qos.c                        |    3 +-
- 11 files changed, 125 insertions(+), 27 deletions(-)
-
----------------
-
-Alan Stern (2):
-      PM / Runtime: Automatically retry failed autosuspends
-      USB: Update last_busy time after autosuspend fails
-
-Dave Jones (1):
-      ACPI / PM: Add Sony VPCEB17FX to nonvs blacklist
-
-Guennadi Liakhovetski (1):
-      PM / QoS: Remove redundant check
-
-Oleg Nesterov (1):
-      PM / Freezer: Reimplement wait_event_freezekillable using freezer_do_not_count/freezer_count
-
-Srivatsa S. Bhat (3):
-      PM / Sleep: Fix race between CPU hotplug and freezer
-      PM / Sleep: Remove unused symbol 'suspend_cpu_hotplug'
-      PM / Sleep: Update freezer documentation
-
-Tejun Heo (1):
-      PM / Freezer: Revert 27920651fe "PM / Freezer: Make fake_signal_wake_up() wake TASK_KILLABLE tasks too"
-
-Tony Lindgren (1):
-      PM / OPP: Fix build when CONFIG_PM_OPP is not set
-
-venu byravarasu (1):
-      PM / Runtime: Fix runtime accounting calculation error
+> ---
+> 
+>  drivers/acpi/osl.c      |    6 ++++--
+>  include/linux/acpi_io.h |    3 +++
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index fa32f58..46c5c18 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -426,7 +426,7 @@ void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+>  		__acpi_unmap_table(virt, size);
+>  }
+>  
+> -static int acpi_os_map_generic_address(struct acpi_generic_address *addr)
+> +int acpi_os_map_generic_address(struct acpi_generic_address *addr)
+>  {
+>  	void __iomem *virt;
+>  
+> @@ -442,8 +442,9 @@ static int acpi_os_map_generic_address(struct acpi_generic_address *addr)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_os_map_generic_address);
+>  
+> -static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+> +void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+>  {
+>  	struct acpi_ioremap *map;
+>  
+> @@ -464,6 +465,7 @@ static void acpi_os_unmap_generic_address(struct acpi_generic_address *addr)
+>  
+>  	acpi_os_map_cleanup(map);
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_os_unmap_generic_address);
+>  
+>  #ifdef ACPI_FUTURE_USAGE
+>  acpi_status
+> diff --git a/include/linux/acpi_io.h b/include/linux/acpi_io.h
+> index 4afd710..b0ffa21 100644
+> --- a/include/linux/acpi_io.h
+> +++ b/include/linux/acpi_io.h
+> @@ -12,4 +12,7 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+>  
+>  void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
+>  
+> +int acpi_os_map_generic_address(struct acpi_generic_address *addr);
+> +void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
+> +
+>  #endif
+> 
+> 
+> 
 
