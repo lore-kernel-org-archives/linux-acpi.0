@@ -1,38 +1,43 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] X86: Solve Dell Latitudes do not reboot on x86_64 more
- generally
-Date: Mon, 7 Nov 2011 15:12:13 +0000
-Message-ID: <20111107151213.GA20270@srcf.ucam.org>
-References: <4EB39139.3090709@suse.de>
- <201111071525.14255.trenn@suse.de>
- <20111107142740.GA17686@srcf.ucam.org>
- <201111071609.54731.trenn@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v5] acpi: Fix CPU hot removal problem
+Date: Mon, 7 Nov 2011 12:37:23 -0500
+Message-ID: <CAJvTdKm2y0WaPub9wvpB2NObk26Q57Vxh5sdN+HtYqN66Y4VSQ@mail.gmail.com>
+References: <4EB79E66.9090508@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38887 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab1KGPMQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2011 10:12:16 -0500
-Content-Disposition: inline
-In-Reply-To: <201111071609.54731.trenn@suse.de>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50210 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754963Ab1KGRhY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2011 12:37:24 -0500
+In-Reply-To: <4EB79E66.9090508@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, stable@kernel.org
+To: "canquan.shen" <shencanquan@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "xiaowei.yang@huawei.com" <xiaowei.yang@huawei.com>, hanweidong <hanweidong@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, james.chenjiabo@huawei.com, wuchangyi@huawei.com
 
-On Mon, Nov 07, 2011 at 04:09:54PM +0100, Thomas Renninger wrote:
-> On Monday, November 07, 2011 03:27:40 PM Matthew Garrett wrote:
-> > Tear down VT-D state before reboot.
-> But doing this for all X86 machines because of a handful of
-> Dells with broken SMM code sounds wrong as well.
+It doesn't apply for me, and it looks white-space damaged.
+Does it pass checkpatch.pl for you and apply for you?
+Possibly an issue with my new gmail setup,
+but it looks more like this was damaged at the source.
 
-We've already torn everything down at this point. What's the downside?
 
-> Doesn't Dell ship with Ubuntu pre-loaded?
-> Can't someone point them to this to get this fixed in BIOS?
+ERROR: code indent should use tabs where possible
+#103: FILE: drivers/acpi/processor_driver.c:668:
++        acpi_bus_hot_remove_device(handle);$
 
-I've been trying.
+WARNING: please, no spaces at the start of a line
+#103: FILE: drivers/acpi/processor_driver.c:668:
++        acpi_bus_hot_remove_device(handle);$
+
+WARNING: please, no spaces at the start of a line
+#125: FILE: drivers/acpi/scan.c:132:
++    if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND))$
+
+WARNING: suspect code indent for conditional statements (4, 9)
+#125: FILE: drivers/acpi/scan.c:132:
++    if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND))
+          printk(KERN_WARNING PREFIX
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Len Brown, Intel Open Source Technology Center
