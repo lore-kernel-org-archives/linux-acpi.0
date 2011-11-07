@@ -1,36 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] X86: Solve Dell Latitudes do not reboot on x86_64 more
- generally
-Date: Mon, 7 Nov 2011 13:59:24 +0000
-Message-ID: <20111107135923.GA17060@srcf.ucam.org>
-References: <4EB39139.3090709@suse.de>
- <1320453843-938-1-git-send-email-trenn@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] X86: Solve Dell Latitudes do not reboot on x86_64 more generally
+Date: Mon, 7 Nov 2011 15:25:13 +0100
+Message-ID: <201111071525.14255.trenn@suse.de>
+References: <4EB39139.3090709@suse.de> <1320453843-938-1-git-send-email-trenn@suse.de> <20111107135923.GA17060@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41577 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754691Ab1KGN71 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2011 08:59:27 -0500
-Content-Disposition: inline
-In-Reply-To: <1320453843-938-1-git-send-email-trenn@suse.de>
+Received: from cantor2.suse.de ([195.135.220.15]:46315 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750819Ab1KGOZR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Nov 2011 09:25:17 -0500
+In-Reply-To: <20111107135923.GA17060@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, stable@kernel.org
 
-On Sat, Nov 05, 2011 at 01:44:03AM +0100, Thomas Renninger wrote:
-> There are quite some reports that those do not reboot:
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/833705
-> ->E6520, E6220
-> http://www.linux-club.de/viewtopic.php?f=29&t=114459&start=20
-> ->E5520
-> and some more already are blacklisted
+On Monday, November 07, 2011 02:59:24 PM Matthew Garrett wrote:
+> On Sat, Nov 05, 2011 at 01:44:03AM +0100, Thomas Renninger wrote:
+> > There are quite some reports that those do not reboot:
+> > https://bugs.launchpad.net/ubuntu/+source/linux/+bug/833705
+> > ->E6520, E6220
+> > http://www.linux-club.de/viewtopic.php?f=29&t=114459&start=20
+> > ->E5520
+> > and some more already are blacklisted
+> 
+> It's a bug in the SMM code on these machines, and it goes away if you 
+> disable VT-D. Let's try to actually fix it
+How do you intend to fix that?
+>From description above it sounds as if this problem is not
+fixable from OS side.
 
-It's a bug in the SMM code on these machines, and it goes away if you 
-disable VT-D. Let's try to actually fix it rather than adding to the 
-blacklist, otherwise we'll just end up with another batch of broken 
-Dells later on.
+   Thomas
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> rather than adding to the 
+> blacklist, otherwise we'll just end up with another batch of broken 
+> Dells later on.
