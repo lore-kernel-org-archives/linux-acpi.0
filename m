@@ -1,34 +1,92 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Export FADT pm_profile integer value
- to userspace
-Date: Sun, 06 Nov 2011 20:50:14 -0500
-Message-ID: <4EB73956.50709@kernel.org>
-References: <1320374026-4913-1-git-send-email-trenn@suse.de>
-	<201111042325.48583.rjw@sisk.pl>
+Subject: Re: [PATCH] X86: Solve Dell Latitudes do not reboot on x86_64 more
+ generally
+Date: Sun, 06 Nov 2011 20:54:50 -0500
+Message-ID: <4EB73A6A.5010900@kernel.org>
+References: <4EB39139.3090709@suse.de> <1320453843-938-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201111042325.48583.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Len Brown (Intel)" <len.brown@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1320453843-938-1-git-send-email-trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-I guess in theory one could parse the FADT from user-space,
-as it is already exported in /sys/firmware/acpi/tables/
-but this is certainly more user-friendly -- say
-to a shell script etc.
+On 11/04/2011 08:44 PM, Thomas Renninger wrote:
 
-applied.
+> There are quite some reports that those do not reboot:
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/833705
+> ->E6520, E6220
+> http://www.linux-club.de/viewtopic.php?f=29&t=114459&start=20
+> ->E5520
+> and some more already are blacklisted
+> 
+> This patch improves the blacklist for all E6xxx and E5xxx Latitudes.
+> 
+> Strange is that on above Ubuntu bug it was mentioned that 32 bit
+> reboots just fine, which should use the same mechanism than 64 bit
+> by default (ACPI).
+> 
+> While this should solve the problem on short term for quite some users,
+> hopefully a more generic way is found sooner or later...
+> 
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: stable@kernel.org
+
+
+Acked-by: Len Brown <len.brown@intel.com>
+
+Although this may be an issue with ACPI,
+looks like this patch should go though TIP
+because of the file changed.
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
+
+
+> ---
+>  arch/x86/kernel/reboot.c |   20 ++++++--------------
+>  1 files changed, 6 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+> index 42f8cd7..7fcb20a 100644
+> --- a/arch/x86/kernel/reboot.c
+> +++ b/arch/x86/kernel/reboot.c
+> @@ -419,28 +419,20 @@ static struct dmi_system_id __initdata pci_reboot_dmi_table[] = {
+>  			DMI_MATCH(DMI_PRODUCT_NAME, "iMac9,1"),
+>  		},
+>  	},
+> -	{	/* Handle problems with rebooting on the Latitude E6320. */
+> -		.callback = set_pci_reboot,
+> -		.ident = "Dell Latitude E6320",
+> -		.matches = {
+> -			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6320"),
+> -		},
+> -	},
+> -	{	/* Handle problems with rebooting on the Latitude E5420. */
+> +	{
+>  		.callback = set_pci_reboot,
+> -		.ident = "Dell Latitude E5420",
+> +		.ident = "Dell Latitude E5xxx",
+>  		.matches = {
+>  			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E5420"),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E5"),
+>  		},
+>  	},
+> -	{	/* Handle problems with rebooting on the Latitude E6420. */
+> +	{
+>  		.callback = set_pci_reboot,
+> -		.ident = "Dell Latitude E6420",
+> +		.ident = "Dell Latitude E6xxx",
+>  		.matches = {
+>  			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6420"),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6"),
+>  		},
+>  	},
+>  	{
