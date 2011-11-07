@@ -1,92 +1,23 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] X86: Solve Dell Latitudes do not reboot on x86_64 more
- generally
-Date: Sun, 06 Nov 2011 20:54:50 -0500
-Message-ID: <4EB73A6A.5010900@kernel.org>
-References: <4EB39139.3090709@suse.de> <1320453843-938-1-git-send-email-trenn@suse.de>
+Subject: Re: [PATCH, RESEND] ACPI: Fix CONFIG_ACPI_DOCK=n compiler warning
+Date: Sun, 06 Nov 2011 20:58:44 -0500
+Message-ID: <4EB73B54.5090606@kernel.org>
+References: <201109231958.55067.bvanassche@acm.org> <201111022016.05979.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1320453843-938-1-git-send-email-trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, x86@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52162 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab1KGB6r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2011 20:58:47 -0500
+In-Reply-To: <201111022016.05979.bvanassche@acm.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Vasiliy Kulikov <segoon@openwall.com>, Jeff Garzik <jgarzik@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On 11/04/2011 08:44 PM, Thomas Renninger wrote:
-
-> There are quite some reports that those do not reboot:
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/833705
-> ->E6520, E6220
-> http://www.linux-club.de/viewtopic.php?f=29&t=114459&start=20
-> ->E5520
-> and some more already are blacklisted
-> 
-> This patch improves the blacklist for all E6xxx and E5xxx Latitudes.
-> 
-> Strange is that on above Ubuntu bug it was mentioned that 32 bit
-> reboots just fine, which should use the same mechanism than 64 bit
-> by default (ACPI).
-> 
-> While this should solve the problem on short term for quite some users,
-> hopefully a more generic way is found sooner or later...
-> 
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> CC: stable@kernel.org
-
-
-Acked-by: Len Brown <len.brown@intel.com>
-
-Although this may be an issue with ACPI,
-looks like this patch should go though TIP
-because of the file changed.
+Applied.
 
 thanks,
--Len
-
-
-> ---
->  arch/x86/kernel/reboot.c |   20 ++++++--------------
->  1 files changed, 6 insertions(+), 14 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
-> index 42f8cd7..7fcb20a 100644
-> --- a/arch/x86/kernel/reboot.c
-> +++ b/arch/x86/kernel/reboot.c
-> @@ -419,28 +419,20 @@ static struct dmi_system_id __initdata pci_reboot_dmi_table[] = {
->  			DMI_MATCH(DMI_PRODUCT_NAME, "iMac9,1"),
->  		},
->  	},
-> -	{	/* Handle problems with rebooting on the Latitude E6320. */
-> -		.callback = set_pci_reboot,
-> -		.ident = "Dell Latitude E6320",
-> -		.matches = {
-> -			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6320"),
-> -		},
-> -	},
-> -	{	/* Handle problems with rebooting on the Latitude E5420. */
-> +	{
->  		.callback = set_pci_reboot,
-> -		.ident = "Dell Latitude E5420",
-> +		.ident = "Dell Latitude E5xxx",
->  		.matches = {
->  			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E5420"),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E5"),
->  		},
->  	},
-> -	{	/* Handle problems with rebooting on the Latitude E6420. */
-> +	{
->  		.callback = set_pci_reboot,
-> -		.ident = "Dell Latitude E6420",
-> +		.ident = "Dell Latitude E6xxx",
->  		.matches = {
->  			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> -			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6420"),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6"),
->  		},
->  	},
->  	{
+Len Brown, Intel Open Source Technology Center
