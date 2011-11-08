@@ -1,30 +1,25 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH -v2 0/4] ACPI: Re-factor and remove ./drivers/acpi/atomicio.[ch]
-Date: Tue, 8 Nov 2011 02:00:36 +0100
-Message-ID: <201111080200.37577.trenn@suse.de>
-References: <20111107232321.13472.52069.stgit@amt.stowe>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH 0/8] ACPI, APEI patches for 3.2 (Resend)
+Date: Tue,  8 Nov 2011 10:39:25 +0800
+Message-ID: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54069 "EHLO mx2.suse.de"
+Received: from mga14.intel.com ([143.182.124.37]:44114 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751217Ab1KHBAk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Nov 2011 20:00:40 -0500
-In-Reply-To: <20111107232321.13472.52069.stgit@amt.stowe>
+	id S1751041Ab1KHCjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Nov 2011 21:39:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: Myron Stowe <myron.stowe@redhat.com>, linux-acpi@vger.kernel.org, rjw@sisk.pl, ying.huang@intel.com, bhelgaas@google.com, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-Len: If these could still make it into 3.2, that would allow
-consideration of access width for APEI GAR structures
-which are needed for some BIOSes in an easy way.
+Resend it because of kernel.org failure before.
 
-These would be the one or other small patch which shouldn't
-be a big issue to add later, but without these it gets ugly...
-
-Thanks,
-
-   Thomas
+[PATCH 1/9] ACPI, APEI, Print resource errors in conventional
+[PATCH 2/9] ACPI, APEI, Remove table not found message
+[PATCH 3/9] ACPI, Record ACPI NVS regions
+[PATCH 4/9] ACPI, APEI, Resolve false conflict between ACPI NVS
+[PATCH 5/9] ACPI, APEI, EINJ, Fix resource conflict on some
+[PATCH 6/9] ACPI, Add RAM mapping support to ACPI atomic IO
+[PATCH 7/9] ACPI, APEI, EINJ, Refine the fix of resource conflict
+[PATCH 8/9] ACPI, APEI, GHES: Add PCIe AER recovery support
+[PATCH 9/9] ACPI, APEI, GHES, Distinguish interleaved error report
