@@ -1,70 +1,70 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 2/9] ACPI, APEI, Remove table not found message
-Date: Tue,  8 Nov 2011 10:39:27 +0800
-Message-ID: <1320719974-3598-3-git-send-email-ying.huang@intel.com>
-References: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+From: Stephen Dunn <nzlbob2332@gmail.com>
+Subject: Re: Boot fails on Thinkpad L420 without ACPI=off or nosmp
+Date: Tue, 08 Nov 2011 23:12:19 +1300
+Message-ID: <1496066.Ip6pz3h4UQ@linux-9am5.site>
+References: <7377461.xUP08Ft1Zz@linux-9am5.site> <4EB822DB.2030808@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39898 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878Ab1KHKM0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2011 05:12:26 -0500
+Received: by gyc15 with SMTP id 15so366662gyc.19
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Nov 2011 02:12:25 -0800 (PST)
+In-Reply-To: <4EB822DB.2030808@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Because APEI tables are optional, these message may confuse users, for
-example,
+Hi Len, thanks so much for your reply.
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/599715
+In response I can report:
+1. System boots fine using noapic option.
+2. System fails to boot normally using Fedora with kernel 2.6.38
 
-Reported-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/apei/einj.c |    5 ++---
- drivers/acpi/apei/erst.c |    5 ++---
- drivers/acpi/apei/hest.c |    5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
+Thanks
+Regards
+Steve
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -466,10 +466,9 @@ static int __init einj_init(void)
- 
- 	status = acpi_get_table(ACPI_SIG_EINJ, 0,
- 				(struct acpi_table_header **)&einj_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(EINJ_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		return -ENODEV;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(EINJ_PFX "Failed to get table, %s\n", msg);
- 		return -EINVAL;
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -1112,10 +1112,9 @@ static int __init erst_init(void)
- 
- 	status = acpi_get_table(ACPI_SIG_ERST, 0,
- 				(struct acpi_table_header **)&erst_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(ERST_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(ERST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -221,10 +221,9 @@ void __init acpi_hest_init(void)
- 
- 	status = acpi_get_table(ACPI_SIG_HEST, 0,
- 				(struct acpi_table_header **)&hest_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(HEST_PFX "Table not found.\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
+On Mon, 07 Nov 2011 13:26:35 Len Brown wrote:
+> Hi Steve,
+> 
+> Thanks for the report.
+> 
+> > OS Information
+> > OS:  Linux 3.1.0-rc9-1-desktop x86_64
+> > System:  openSUSE 12.1 RC 1 (x86_64)
+> > KDE:  4.7.2 (4.7.2)
+> > 
+> > Hardware Information
+> > Lenovo Thinkpad L420 Model number 78544KM
+> > i5-2520M(2.50GHz)
+> > Intel HD Graphics
+> > 
+> > Problem
+> > Fails to boot without boot option of either acpi=off, nosmp, or
+> > maxcpus=0
+> 
+> How about simply "noapic"
+> 
+> or if that fails, then:
+> 
+> maxcpus=1, noapic
+> 
+> That should get you up in ACPI mode, but w/ the IOAPIC disabled.
+> 
+> > Almost immediately freezes. CapsLock does not work and only way to
+> > continue is to power off with the power button.
+> > 
+> > With debug on last line of output reads:
+> > ACPI: CE: Look up EC in DSDT
+> > 
+> > Fails with kernel 3.04 and 3.1 and all distro's I have tried with.
+> 
+> have you tried any distros that are running a kernel older than 3.04?
+> 
+> thanks,
+> -Len
