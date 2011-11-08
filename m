@@ -1,25 +1,119 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 0/8] ACPI, APEI patches for 3.2 (Resend)
-Date: Tue,  8 Nov 2011 10:39:25 +0800
-Message-ID: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:44114 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751041Ab1KHCjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Nov 2011 21:39:39 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 6/9] ACPI, Add RAM mapping support to ACPI atomic IO support
+Date: Tue,  8 Nov 2011 10:39:31 +0800
+Message-ID: <1320719974-3598-7-git-send-email-ying.huang@intel.com>
+References: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Resend it because of kernel.org failure before.
+On one of our testing machine, the following EINJ command lines:
 
-[PATCH 1/9] ACPI, APEI, Print resource errors in conventional
-[PATCH 2/9] ACPI, APEI, Remove table not found message
-[PATCH 3/9] ACPI, Record ACPI NVS regions
-[PATCH 4/9] ACPI, APEI, Resolve false conflict between ACPI NVS
-[PATCH 5/9] ACPI, APEI, EINJ, Fix resource conflict on some
-[PATCH 6/9] ACPI, Add RAM mapping support to ACPI atomic IO
-[PATCH 7/9] ACPI, APEI, EINJ, Refine the fix of resource conflict
-[PATCH 8/9] ACPI, APEI, GHES: Add PCIe AER recovery support
-[PATCH 9/9] ACPI, APEI, GHES, Distinguish interleaved error report
+  # echo 0x10000000 > param1
+  # echo 0xfffffffffffff000 > param2
+  # echo 0x8 > error_type
+  # echo 1 > error_inject
+
+Will get:
+
+  echo: write error: Input/output error
+
+The EIO comes from:
+
+    rc = apei_exec_pre_map_gars(&trigger_ctx);
+
+The root cause is as follow.  Normally, ACPI atomic IO support is used
+to access IO memory.  But in EINJ of that machine, it is used to
+access RAM to trigger the injected error.  And the ioremap() called by
+apei_exec_pre_map_gars() can not map the RAM.
+
+This patch add RAM mapping support to ACPI atomic IO support to
+satisfy EINJ requirement.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Tested-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/atomicio.c |   34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
+
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -32,6 +32,8 @@
+ #include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
++#include <linux/highmem.h>
+ #include <acpi/atomicio.h>
+ 
+ #define ACPI_PFX "ACPI: "
+@@ -97,6 +99,30 @@ static void __iomem *__acpi_try_ioremap(
+ 		return NULL;
+ }
+ 
++static void __iomem *acpi_map(phys_addr_t pg_off, unsigned long pg_sz)
++{
++	unsigned long pfn;
++
++	pfn = pg_off >> PAGE_SHIFT;
++	if (page_is_ram(pfn)) {
++		if (pg_sz > PAGE_SIZE)
++			return NULL;
++		return (void __iomem __force *)kmap(pfn_to_page(pfn));
++	} else
++		return ioremap(pg_off, pg_sz);
++}
++
++static void acpi_unmap(phys_addr_t pg_off, void __iomem *vaddr)
++{
++	unsigned long pfn;
++
++	pfn = pg_off >> PAGE_SHIFT;
++	if (page_is_ram(pfn))
++		kunmap(pfn_to_page(pfn));
++	else
++		iounmap(vaddr);
++}
++
+ /*
+  * Used to pre-map the specified IO memory area. First try to find
+  * whether the area is already pre-mapped, if it is, increase the
+@@ -119,7 +145,7 @@ static void __iomem *acpi_pre_map(phys_a
+ 
+ 	pg_off = paddr & PAGE_MASK;
+ 	pg_sz = ((paddr + size + PAGE_SIZE - 1) & PAGE_MASK) - pg_off;
+-	vaddr = ioremap(pg_off, pg_sz);
++	vaddr = acpi_map(pg_off, pg_sz);
+ 	if (!vaddr)
+ 		return NULL;
+ 	map = kmalloc(sizeof(*map), GFP_KERNEL);
+@@ -135,7 +161,7 @@ static void __iomem *acpi_pre_map(phys_a
+ 	vaddr = __acpi_try_ioremap(paddr, size);
+ 	if (vaddr) {
+ 		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
+-		iounmap(map->vaddr);
++		acpi_unmap(pg_off, map->vaddr);
+ 		kfree(map);
+ 		return vaddr;
+ 	}
+@@ -144,7 +170,7 @@ static void __iomem *acpi_pre_map(phys_a
+ 
+ 	return map->vaddr + (paddr - map->paddr);
+ err_unmap:
+-	iounmap(vaddr);
++	acpi_unmap(pg_off, vaddr);
+ 	return NULL;
+ }
+ 
+@@ -177,7 +203,7 @@ static void acpi_post_unmap(phys_addr_t
+ 		return;
+ 
+ 	synchronize_rcu();
+-	iounmap(map->vaddr);
++	acpi_unmap(map->paddr, map->vaddr);
+ 	kfree(map);
+ }
+ 
