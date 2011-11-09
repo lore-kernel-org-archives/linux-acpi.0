@@ -1,77 +1,56 @@
-From: "Lan, Tianyu" <tianyu.lan@intel.com>
-Subject: RE: /sys/class/power_supply/BAT0/ confusion
-Date: Wed, 9 Nov 2011 14:22:25 +0800
-Message-ID: <625BA99ED14B2D499DC4E29D8138F1506526C6FC7E@shsmsx502.ccr.corp.intel.com>
+From: Christoph Groth <cwg@falma.de>
+Subject: Re: /sys/class/power_supply/BAT0/ confusion
+Date: Wed, 09 Nov 2011 07:54:31 +0100
+Message-ID: <87vcqtpyzc.fsf@falma.de>
 References: <87wrbfot1l.fsf@falma.de>
+	<625BA99ED14B2D499DC4E29D8138F1506526C6FC7E@shsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9487 "EHLO mga01.intel.com"
+Received: from lo.gmane.org ([80.91.229.12]:59327 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751330Ab1KIGXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Nov 2011 01:23:50 -0500
-In-Reply-To: <87wrbfot1l.fsf@falma.de>
-Content-Language: en-US
+	id S1751234Ab1KIGyo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Nov 2011 01:54:44 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1RO23W-0006SW-K8
+	for linux-acpi@vger.kernel.org; Wed, 09 Nov 2011 07:54:42 +0100
+Received: from dra38-5-82-246-248-175.fbx.proxad.net ([82.246.248.175])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Nov 2011 07:54:42 +0100
+Received: from cwg by dra38-5-82-246-248-175.fbx.proxad.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Nov 2011 07:54:42 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Groth <cwg@falma.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: tianyu.lan@intel.com
 
-SGkgQ2hyaXN0b3BoOg0KCT4gY2hhcmdlX25vdzoyNzYxMDAwDQoJVGhlIHVuaXQgb2YgY2hhcmdl
-X25vdyBpcyDCtUEuDQoJV2hhdCBpcyBkYXRhIHNob3duIG9uIHRoZSBiYXR0ZXJ5Pw0KCTI5IFdo
-Pw0KCUNhbiB5b3UgdGVzdCBvbiAzLjEgb3IgaGlnaGVyIHZlcnNpb24/IA0KCQ0KLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3Jn
-IFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBD
-aHJpc3RvcGggR3JvdGgNClNlbnQ6IFNhdHVyZGF5LCBOb3ZlbWJlciAwNSwgMjAxMSA0OjQ3IFBN
-DQpUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IC9zeXMvY2xhc3MvcG93
-ZXJfc3VwcGx5L0JBVDAvIGNvbmZ1c2lvbg0KDQpIZWxsbywNCg0KSSdtIHJ1bm5pbmcga2VybmVs
-IDMuMC4wIGZyb20gRGViaWFuIHRlc3RpbmcuICBPbiBteSBuZXcgVGhpbmtwYWQgWDIyMCwNCkkg
-bm90aWNlZCB0aGF0IHRoZSAiYWNwaSIgY29tbWFuZCBnaXZlcyB3YXkgdG9vIG9wdGltaXN0aWMg
-InJlbWFpbmluZw0KdGltZSBvbiBiYXR0ZXJ5IiBlc3RpbWF0ZXMuDQoNClRvIGNhbGN1bGF0ZSB0
-aGUgcmVtYWluaW5nIHRpbWUsIHRoZSAiYWNwaSIgdG9vbHMgZGl2aWRlcyB0aGUNCiJjaGFyZ2Vf
-bm93IiB2YWx1ZSBieSAiY3VycmVudF9ub3ciIHdoaWNoIHNlZW1zIHRvIG1ha2Ugc2Vuc2UgcGh5
-c2ljYWxseQ0KaWYgdGhlIHVuaXRzIG9mIHRoZXNlIHZhbHVlcyB3b3VsZCBiZSB3aGF0IHRoZSBu
-YW1lcyBpbXBseS4gIEhvd2V2ZXIsDQp0aGlzIGdpdmVzIGEgcmVtYWluaW5nIHRpbWUgb2YgNS4z
-NSBob3VycyB3aGljaCBpcyB3YXkgdG9vIGhpZ2ggZm9yIHRoZQ0Kc21hbGwgNCBjZWxsIGJhdHRl
-cnkgSSBoYXZlLg0KDQpMZXQncyBsb29rIGF0IGEgc25hcHNob3Qgb2YgdGhlIEJBVDAgZGlyZWN0
-b3J5Og0KDQovc3lzL2NsYXNzL3Bvd2VyX3N1cHBseS9CQVQwJSBncmVwIC4gKg0KYWxhcm06MTU2
-MDAwDQpjaGFyZ2VfZnVsbDozMTM1MDAwDQpjaGFyZ2VfZnVsbF9kZXNpZ246Mjg4NjAwMA0KY2hh
-cmdlX25vdzoyNzYxMDAwDQpjdXJyZW50X25vdzo1MTYwMDANCmN5Y2xlX2NvdW50OjANCm1hbnVm
-YWN0dXJlcjpTQU5ZTw0KbW9kZWxfbmFtZTo0MlQ0ODk5DQpwcmVzZW50OjENCnNlcmlhbF9udW1i
-ZXI6MTk3OTcNCnN0YXR1czpEaXNjaGFyZ2luZw0KdGVjaG5vbG9neTpMaS1pb24NCnR5cGU6QmF0
-dGVyeQ0KdWV2ZW50OlBPV0VSX1NVUFBMWV9OQU1FPUJBVDANCnVldmVudDpQT1dFUl9TVVBQTFlf
-U1RBVFVTPURpc2NoYXJnaW5nDQp1ZXZlbnQ6UE9XRVJfU1VQUExZX1BSRVNFTlQ9MQ0KdWV2ZW50
-OlBPV0VSX1NVUFBMWV9URUNITk9MT0dZPUxpLWlvbg0KdWV2ZW50OlBPV0VSX1NVUFBMWV9DWUNM
-RV9DT1VOVD0wDQp1ZXZlbnQ6UE9XRVJfU1VQUExZX1ZPTFRBR0VfTUlOX0RFU0lHTj0xNDgwMDAw
-MA0KdWV2ZW50OlBPV0VSX1NVUFBMWV9WT0xUQUdFX05PVz0xNTk5MzAwMA0KdWV2ZW50OlBPV0VS
-X1NVUFBMWV9DVVJSRU5UX05PVz01MTYwMDANCnVldmVudDpQT1dFUl9TVVBQTFlfQ0hBUkdFX0ZV
-TExfREVTSUdOPTI4ODYwMDANCnVldmVudDpQT1dFUl9TVVBQTFlfQ0hBUkdFX0ZVTEw9MzEzNTAw
-MA0KdWV2ZW50OlBPV0VSX1NVUFBMWV9DSEFSR0VfTk9XPTI3NjEwMDANCnVldmVudDpQT1dFUl9T
-VVBQTFlfTU9ERUxfTkFNRT00MlQ0ODk5DQp1ZXZlbnQ6UE9XRVJfU1VQUExZX01BTlVGQUNUVVJF
-Uj1TQU5ZTw0KdWV2ZW50OlBPV0VSX1NVUFBMWV9TRVJJQUxfTlVNQkVSPTE5Nzk3DQp2b2x0YWdl
-X21pbl9kZXNpZ246MTQ4MDAwMDANCnZvbHRhZ2Vfbm93OjE1OTkzMDAwDQoNClRoZSBub21pbmFs
-IGVuZXJneSBjYXBhY2l0eSBvZiBteSBiYXR0ZXJ5IGlzIDI5IFdoLCBzbyBjaGFyZ2Vfbm93IHNl
-ZW1zDQp0byBiZSBpbiB1bml0cyBvZiAxMCDCtVdoISAoWWVzLCBjaGFyZ2Vfbm93ID09IDI3NjEw
-MDAgc2VlbXMgdG8gbWVhbiB0aGF0DQp0aGUgX2VuZXJneV8gaXMgMjcuNjEgV2guKSAgVGhpcyBp
-cyBib2d1cyENCg0KY3VycmVudF9ub3cgYW5kIHZvbHRhZ2Vfbm93IHNlZW0gdG8gYmUgaW4gdGhl
-IHJlYXNvbmFibGUgdW5pdHMgwrVBIGFuZA0KwrVWLCBhcw0KDQpjdXJyZW50X25vdyAqIHZvbHRh
-Z2Vfbm93ICogMWUtMTIgPSA4LjI1DQoNCndoaWNoIHNlZW1zIHRvIGJlIHRoZSBjb3JyZWN0IHBv
-d2VyIGluIFdhdHRzLiAgKFRoaXMgaXMgYWxzbyB0aGUgcG93ZXINCndoaWNoICJwb3dlcnRvcCIg
-aXMgcmVwb3J0aW5nLikNCg0KVGhlIHJlbWFpbmluZyBydW50aW1lIGluIGhvdXJzIGluIG15IGNh
-c2Ugc2VlbXMgdG8gYmUgZ2l2ZW4gYnkNCg0KY2hhcmdlX25vdyAqIDFlLTUgLyAoY3VycmVudF9u
-b3cgKiB2b2x0YWdlX25vdyAqIDFlLTEyKSA9IDMuMzUNCg0Kd2hpY2ggbG9va3MgbGlrZSBhIGdv
-b2QgZXN0aW1hdGUgb2YgdGhlIHJlYWwgc2l0dWF0aW9uLg0KDQoNClRoaXMgZG9lcyBub3Qgc2Vl
-bSB0byBiZSB0aGUgd2F5IHRoaW5ncyBhcmUgc3VwcG9zZWQgdG8gYmUuICBUaGUga2VybmVsDQpz
-b3VyY2UgZmlsZSBpbmNsdWRlL2xpbnV4L3Bvd2VyX3N1cHBseS5oIHN0YXRlcw0KDQovKg0KICog
-QWxsIHZvbHRhZ2VzLCBjdXJyZW50cywgY2hhcmdlcywgZW5lcmdpZXMsIHRpbWUgYW5kIHRlbXBl
-cmF0dXJlcyBpbiB1ViwNCiAqIMK1QSwgwrVBaCwgwrVXaCwgc2Vjb25kcyBhbmQgdGVudGhzIG9m
-IGRlZ3JlZSBDZWxzaXVzIHVubGVzcyBvdGhlcndpc2UNCiAqIHN0YXRlZC4gSXQncyBkcml2ZXIn
-cyBqb2IgdG8gY29udmVydCBpdHMgcmF3IHZhbHVlcyB0byB1bml0cyBpbiB3aGljaA0KICogdGhp
-cyBjbGFzcyBvcGVyYXRlcy4NCiAqLw0KDQpTbyB0aGlzIHNlZW1zIHRvIGJlIGEgYnVnIG9mIGVp
-dGhlciB0aGUgYmF0dGVyeSBkcml2ZXIgb3IgdGhlIGludGVybmFsDQpiYXR0ZXJ5IHNvZnR3YXJl
-Lg0KDQpJIGhvcGUgdGhpcyByZXBvcnQgd2lsbCBiZSB1c2VmdWwgZm9yIGxpbnV4IEFDUEkgZGV2
-ZWxvcGVycy4NCg0KQ2hyaXN0b3BoDQoNCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
-dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4NCnRoZSBib2R5IG9m
-IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQpNb3JlIG1ham9yZG9tbyBp
-bmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
+Tianyu, thanks for your reaction.
+
+"Lan, Tianyu" <tianyu.lan@intel.com> writes:
+> 	> charge_now:2761000
+> 	The unit of charge_now is =C2=B5A.
+> 	What is data shown on the battery?
+> 	29 Wh?
+
+Yes: 29 Wh, 14.4 V, 2 Ah.  Computer and battery are factory-new.
+
+> 	Can you test on 3.1 or higher version?=20
+
+I will, when I have some time on the weekend.
+
+Meanwhile, I observed that one time I booted (always with the same
+default debian kernel) /sys/class/power_supply/BAT0/ was different.  It
+had files like power_now and energy_now.  Don't know how to reproduce
+this, though.
+
+Christoph
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
