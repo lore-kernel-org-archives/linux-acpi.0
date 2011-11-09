@@ -1,185 +1,77 @@
-From: Myron Stowe <myron.stowe@gmail.com>
-Subject: Re: [PATCH 6/9] ACPI, Add RAM mapping support to ACPI atomic IO support
-Date: Tue, 8 Nov 2011 14:38:32 -0700
-Message-ID: <CAL-B5D1z35ReG9dKVBLNkktrJ-c8OVspsCYTUAO16wCK1B_4dA@mail.gmail.com>
-References: <1320719974-3598-1-git-send-email-ying.huang@intel.com>
-	<1320719974-3598-7-git-send-email-ying.huang@intel.com>
+From: "Lan, Tianyu" <tianyu.lan@intel.com>
+Subject: RE: /sys/class/power_supply/BAT0/ confusion
+Date: Wed, 9 Nov 2011 14:22:25 +0800
+Message-ID: <625BA99ED14B2D499DC4E29D8138F1506526C6FC7E@shsmsx502.ccr.corp.intel.com>
+References: <87wrbfot1l.fsf@falma.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51377 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab1KHVid convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Nov 2011 16:38:33 -0500
-In-Reply-To: <1320719974-3598-7-git-send-email-ying.huang@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:9487 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751330Ab1KIGXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Nov 2011 01:23:50 -0500
+In-Reply-To: <87wrbfot1l.fsf@falma.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
+To: Christoph Groth <cwg@falma.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Nov 7, 2011 at 7:39 PM, Huang Ying <ying.huang@intel.com> wrote=
-:
-> On one of our testing machine, the following EINJ command lines:
->
-> =A0# echo 0x10000000 > param1
-> =A0# echo 0xfffffffffffff000 > param2
-> =A0# echo 0x8 > error_type
-> =A0# echo 1 > error_inject
->
-> Will get:
->
-> =A0echo: write error: Input/output error
->
-> The EIO comes from:
->
-> =A0 =A0rc =3D apei_exec_pre_map_gars(&trigger_ctx);
->
-> The root cause is as follow. =A0Normally, ACPI atomic IO support is u=
-sed
-> to access IO memory. =A0But in EINJ of that machine, it is used to
-> access RAM to trigger the injected error. =A0And the ioremap() called=
- by
-> apei_exec_pre_map_gars() can not map the RAM.
->
-> This patch add RAM mapping support to ACPI atomic IO support to
-> satisfy EINJ requirement.
->
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> Tested-by: Tony Luck <tony.luck@intel.com>
-> ---
-> =A0drivers/acpi/atomicio.c | =A0 34 ++++++++++++++++++++++++++++++---=
--
-> =A01 file changed, 30 insertions(+), 4 deletions(-)
->
-
-Hi Huang:
-
-This patch collides with my series to remove atomicio.[ch]:
-  https://mail.google.com/mail/?shva=3D1#label/linux-acpi+list/13380581=
-2264a542
-and I don't want such functionality to get lost if/when the removal ser=
-ies
-is accepted.  I'm interested in working with you, not against you, so w=
-ould
-you like me to do anything with respect to this patch within the osl.c =
-based
-mapping routines so this capability would not become lost?
-
-The obvious choices would be for me to post a new patch, copying this
-functionality into osl.c's mapping routines, that would apply on top of=
- the
-removal series.  Another tact could be for me to do basically the same
-thing but within the removal series (by adding this into it, and repost=
-ing).
-The latter tactic seems like it could be a constant problem if more cha=
-nges
-to atomicio occur during this interim period.  Of course you may have o=
-ther
-ideas here as how to progress.
-
-This type of occurrence, among many others, is a good example of why we
-need to get down to just one set of mapping routines as soon as possibl=
-e.
-During this interim period I'll try and monitor the linux-acpi-list
-for future such
-occurrences but if you could, please try and cc me on any future atomic=
-io
-modifications.
-
-Thanks,
- Myron
-
-> --- a/drivers/acpi/atomicio.c
-> +++ b/drivers/acpi/atomicio.c
-> @@ -32,6 +32,8 @@
-> =A0#include <linux/rculist.h>
-> =A0#include <linux/interrupt.h>
-> =A0#include <linux/slab.h>
-> +#include <linux/mm.h>
-> +#include <linux/highmem.h>
-> =A0#include <acpi/atomicio.h>
->
-> =A0#define ACPI_PFX "ACPI: "
-> @@ -97,6 +99,30 @@ static void __iomem *__acpi_try_ioremap(
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return NULL;
-> =A0}
->
-> +static void __iomem *acpi_map(phys_addr_t pg_off, unsigned long pg_s=
-z)
-> +{
-> + =A0 =A0 =A0 unsigned long pfn;
-> +
-> + =A0 =A0 =A0 pfn =3D pg_off >> PAGE_SHIFT;
-> + =A0 =A0 =A0 if (page_is_ram(pfn)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pg_sz > PAGE_SIZE)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return (void __iomem __force *)kmap(pfn=
-_to_page(pfn));
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ioremap(pg_off, pg_sz);
-> +}
-> +
-> +static void acpi_unmap(phys_addr_t pg_off, void __iomem *vaddr)
-> +{
-> + =A0 =A0 =A0 unsigned long pfn;
-> +
-> + =A0 =A0 =A0 pfn =3D pg_off >> PAGE_SHIFT;
-> + =A0 =A0 =A0 if (page_is_ram(pfn))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kunmap(pfn_to_page(pfn));
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(vaddr);
-> +}
-> +
-> =A0/*
-> =A0* Used to pre-map the specified IO memory area. First try to find
-> =A0* whether the area is already pre-mapped, if it is, increase the
-> @@ -119,7 +145,7 @@ static void __iomem *acpi_pre_map(phys_a
->
-> =A0 =A0 =A0 =A0pg_off =3D paddr & PAGE_MASK;
-> =A0 =A0 =A0 =A0pg_sz =3D ((paddr + size + PAGE_SIZE - 1) & PAGE_MASK)=
- - pg_off;
-> - =A0 =A0 =A0 vaddr =3D ioremap(pg_off, pg_sz);
-> + =A0 =A0 =A0 vaddr =3D acpi_map(pg_off, pg_sz);
-> =A0 =A0 =A0 =A0if (!vaddr)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return NULL;
-> =A0 =A0 =A0 =A0map =3D kmalloc(sizeof(*map), GFP_KERNEL);
-> @@ -135,7 +161,7 @@ static void __iomem *acpi_pre_map(phys_a
-> =A0 =A0 =A0 =A0vaddr =3D __acpi_try_ioremap(paddr, size);
-> =A0 =A0 =A0 =A0if (vaddr) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock_irqrestore(&acpi_iomaps_lo=
-ck, flags);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(map->vaddr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 acpi_unmap(pg_off, map->vaddr);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(map);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return vaddr;
-> =A0 =A0 =A0 =A0}
-> @@ -144,7 +170,7 @@ static void __iomem *acpi_pre_map(phys_a
->
-> =A0 =A0 =A0 =A0return map->vaddr + (paddr - map->paddr);
-> =A0err_unmap:
-> - =A0 =A0 =A0 iounmap(vaddr);
-> + =A0 =A0 =A0 acpi_unmap(pg_off, vaddr);
-> =A0 =A0 =A0 =A0return NULL;
-> =A0}
->
-> @@ -177,7 +203,7 @@ static void acpi_post_unmap(phys_addr_t
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
-> =A0 =A0 =A0 =A0synchronize_rcu();
-> - =A0 =A0 =A0 iounmap(map->vaddr);
-> + =A0 =A0 =A0 acpi_unmap(map->paddr, map->vaddr);
-> =A0 =A0 =A0 =A0kfree(map);
-> =A0}
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgQ2hyaXN0b3BoOg0KCT4gY2hhcmdlX25vdzoyNzYxMDAwDQoJVGhlIHVuaXQgb2YgY2hhcmdl
+X25vdyBpcyDCtUEuDQoJV2hhdCBpcyBkYXRhIHNob3duIG9uIHRoZSBiYXR0ZXJ5Pw0KCTI5IFdo
+Pw0KCUNhbiB5b3UgdGVzdCBvbiAzLjEgb3IgaGlnaGVyIHZlcnNpb24/IA0KCQ0KLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3Jn
+IFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBD
+aHJpc3RvcGggR3JvdGgNClNlbnQ6IFNhdHVyZGF5LCBOb3ZlbWJlciAwNSwgMjAxMSA0OjQ3IFBN
+DQpUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IC9zeXMvY2xhc3MvcG93
+ZXJfc3VwcGx5L0JBVDAvIGNvbmZ1c2lvbg0KDQpIZWxsbywNCg0KSSdtIHJ1bm5pbmcga2VybmVs
+IDMuMC4wIGZyb20gRGViaWFuIHRlc3RpbmcuICBPbiBteSBuZXcgVGhpbmtwYWQgWDIyMCwNCkkg
+bm90aWNlZCB0aGF0IHRoZSAiYWNwaSIgY29tbWFuZCBnaXZlcyB3YXkgdG9vIG9wdGltaXN0aWMg
+InJlbWFpbmluZw0KdGltZSBvbiBiYXR0ZXJ5IiBlc3RpbWF0ZXMuDQoNClRvIGNhbGN1bGF0ZSB0
+aGUgcmVtYWluaW5nIHRpbWUsIHRoZSAiYWNwaSIgdG9vbHMgZGl2aWRlcyB0aGUNCiJjaGFyZ2Vf
+bm93IiB2YWx1ZSBieSAiY3VycmVudF9ub3ciIHdoaWNoIHNlZW1zIHRvIG1ha2Ugc2Vuc2UgcGh5
+c2ljYWxseQ0KaWYgdGhlIHVuaXRzIG9mIHRoZXNlIHZhbHVlcyB3b3VsZCBiZSB3aGF0IHRoZSBu
+YW1lcyBpbXBseS4gIEhvd2V2ZXIsDQp0aGlzIGdpdmVzIGEgcmVtYWluaW5nIHRpbWUgb2YgNS4z
+NSBob3VycyB3aGljaCBpcyB3YXkgdG9vIGhpZ2ggZm9yIHRoZQ0Kc21hbGwgNCBjZWxsIGJhdHRl
+cnkgSSBoYXZlLg0KDQpMZXQncyBsb29rIGF0IGEgc25hcHNob3Qgb2YgdGhlIEJBVDAgZGlyZWN0
+b3J5Og0KDQovc3lzL2NsYXNzL3Bvd2VyX3N1cHBseS9CQVQwJSBncmVwIC4gKg0KYWxhcm06MTU2
+MDAwDQpjaGFyZ2VfZnVsbDozMTM1MDAwDQpjaGFyZ2VfZnVsbF9kZXNpZ246Mjg4NjAwMA0KY2hh
+cmdlX25vdzoyNzYxMDAwDQpjdXJyZW50X25vdzo1MTYwMDANCmN5Y2xlX2NvdW50OjANCm1hbnVm
+YWN0dXJlcjpTQU5ZTw0KbW9kZWxfbmFtZTo0MlQ0ODk5DQpwcmVzZW50OjENCnNlcmlhbF9udW1i
+ZXI6MTk3OTcNCnN0YXR1czpEaXNjaGFyZ2luZw0KdGVjaG5vbG9neTpMaS1pb24NCnR5cGU6QmF0
+dGVyeQ0KdWV2ZW50OlBPV0VSX1NVUFBMWV9OQU1FPUJBVDANCnVldmVudDpQT1dFUl9TVVBQTFlf
+U1RBVFVTPURpc2NoYXJnaW5nDQp1ZXZlbnQ6UE9XRVJfU1VQUExZX1BSRVNFTlQ9MQ0KdWV2ZW50
+OlBPV0VSX1NVUFBMWV9URUNITk9MT0dZPUxpLWlvbg0KdWV2ZW50OlBPV0VSX1NVUFBMWV9DWUNM
+RV9DT1VOVD0wDQp1ZXZlbnQ6UE9XRVJfU1VQUExZX1ZPTFRBR0VfTUlOX0RFU0lHTj0xNDgwMDAw
+MA0KdWV2ZW50OlBPV0VSX1NVUFBMWV9WT0xUQUdFX05PVz0xNTk5MzAwMA0KdWV2ZW50OlBPV0VS
+X1NVUFBMWV9DVVJSRU5UX05PVz01MTYwMDANCnVldmVudDpQT1dFUl9TVVBQTFlfQ0hBUkdFX0ZV
+TExfREVTSUdOPTI4ODYwMDANCnVldmVudDpQT1dFUl9TVVBQTFlfQ0hBUkdFX0ZVTEw9MzEzNTAw
+MA0KdWV2ZW50OlBPV0VSX1NVUFBMWV9DSEFSR0VfTk9XPTI3NjEwMDANCnVldmVudDpQT1dFUl9T
+VVBQTFlfTU9ERUxfTkFNRT00MlQ0ODk5DQp1ZXZlbnQ6UE9XRVJfU1VQUExZX01BTlVGQUNUVVJF
+Uj1TQU5ZTw0KdWV2ZW50OlBPV0VSX1NVUFBMWV9TRVJJQUxfTlVNQkVSPTE5Nzk3DQp2b2x0YWdl
+X21pbl9kZXNpZ246MTQ4MDAwMDANCnZvbHRhZ2Vfbm93OjE1OTkzMDAwDQoNClRoZSBub21pbmFs
+IGVuZXJneSBjYXBhY2l0eSBvZiBteSBiYXR0ZXJ5IGlzIDI5IFdoLCBzbyBjaGFyZ2Vfbm93IHNl
+ZW1zDQp0byBiZSBpbiB1bml0cyBvZiAxMCDCtVdoISAoWWVzLCBjaGFyZ2Vfbm93ID09IDI3NjEw
+MDAgc2VlbXMgdG8gbWVhbiB0aGF0DQp0aGUgX2VuZXJneV8gaXMgMjcuNjEgV2guKSAgVGhpcyBp
+cyBib2d1cyENCg0KY3VycmVudF9ub3cgYW5kIHZvbHRhZ2Vfbm93IHNlZW0gdG8gYmUgaW4gdGhl
+IHJlYXNvbmFibGUgdW5pdHMgwrVBIGFuZA0KwrVWLCBhcw0KDQpjdXJyZW50X25vdyAqIHZvbHRh
+Z2Vfbm93ICogMWUtMTIgPSA4LjI1DQoNCndoaWNoIHNlZW1zIHRvIGJlIHRoZSBjb3JyZWN0IHBv
+d2VyIGluIFdhdHRzLiAgKFRoaXMgaXMgYWxzbyB0aGUgcG93ZXINCndoaWNoICJwb3dlcnRvcCIg
+aXMgcmVwb3J0aW5nLikNCg0KVGhlIHJlbWFpbmluZyBydW50aW1lIGluIGhvdXJzIGluIG15IGNh
+c2Ugc2VlbXMgdG8gYmUgZ2l2ZW4gYnkNCg0KY2hhcmdlX25vdyAqIDFlLTUgLyAoY3VycmVudF9u
+b3cgKiB2b2x0YWdlX25vdyAqIDFlLTEyKSA9IDMuMzUNCg0Kd2hpY2ggbG9va3MgbGlrZSBhIGdv
+b2QgZXN0aW1hdGUgb2YgdGhlIHJlYWwgc2l0dWF0aW9uLg0KDQoNClRoaXMgZG9lcyBub3Qgc2Vl
+bSB0byBiZSB0aGUgd2F5IHRoaW5ncyBhcmUgc3VwcG9zZWQgdG8gYmUuICBUaGUga2VybmVsDQpz
+b3VyY2UgZmlsZSBpbmNsdWRlL2xpbnV4L3Bvd2VyX3N1cHBseS5oIHN0YXRlcw0KDQovKg0KICog
+QWxsIHZvbHRhZ2VzLCBjdXJyZW50cywgY2hhcmdlcywgZW5lcmdpZXMsIHRpbWUgYW5kIHRlbXBl
+cmF0dXJlcyBpbiB1ViwNCiAqIMK1QSwgwrVBaCwgwrVXaCwgc2Vjb25kcyBhbmQgdGVudGhzIG9m
+IGRlZ3JlZSBDZWxzaXVzIHVubGVzcyBvdGhlcndpc2UNCiAqIHN0YXRlZC4gSXQncyBkcml2ZXIn
+cyBqb2IgdG8gY29udmVydCBpdHMgcmF3IHZhbHVlcyB0byB1bml0cyBpbiB3aGljaA0KICogdGhp
+cyBjbGFzcyBvcGVyYXRlcy4NCiAqLw0KDQpTbyB0aGlzIHNlZW1zIHRvIGJlIGEgYnVnIG9mIGVp
+dGhlciB0aGUgYmF0dGVyeSBkcml2ZXIgb3IgdGhlIGludGVybmFsDQpiYXR0ZXJ5IHNvZnR3YXJl
+Lg0KDQpJIGhvcGUgdGhpcyByZXBvcnQgd2lsbCBiZSB1c2VmdWwgZm9yIGxpbnV4IEFDUEkgZGV2
+ZWxvcGVycy4NCg0KQ2hyaXN0b3BoDQoNCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4NCnRoZSBib2R5IG9m
+IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQpNb3JlIG1ham9yZG9tbyBp
+bmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
