@@ -1,55 +1,61 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] PNP ACPI: Use real gsi
-Date: Thu, 10 Nov 2011 11:07:33 +0800
-Message-ID: <1320894453.15460.15.camel@rui>
-References: <1320372728-3235-1-git-send-email-trenn@suse.de>
-	 <1320373233-3725-1-git-send-email-trenn@suse.de>
-	 <201111090935.52141.trenn@suse.de>
+From: Stefan Bader <stefan.bader@canonical.com>
+Subject: Re: [Xen-devel] Re: Regression in 3.1 causes Xen to use wrong idle
+ routine
+Date: Thu, 10 Nov 2011 09:33:06 +0100
+Message-ID: <4EBB8C42.8080604@canonical.com>
+References: <4EA7DFD1.9060608@canonical.com> <20111026133003.GA6654@phenom.dumpdata.com> <4EA80CF2.5040309@canonical.com> <20111026134843.GA31609@phenom.dumpdata.com> <4EA811BB.6010005@canonical.com> <20111109175853.GA16318@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:34429 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546Ab1KJDJP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Nov 2011 22:09:15 -0500
-In-Reply-To: <201111090935.52141.trenn@suse.de>
+Received: from youngberry.canonical.com ([91.189.89.112]:58369 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351Ab1KJIdL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2011 03:33:11 -0500
+In-Reply-To: <20111109175853.GA16318@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lenb@kernel.org" <lenb@kernel.org>, "stable@kernel.org" <stable@kernel.org>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: len.brown@intel.com, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Thomas,
+On 09.11.2011 18:58, Konrad Rzeszutek Wilk wrote:
+> On Wed, Oct 26, 2011 at 03:57:15PM +0200, Stefan Bader wrote:
+>> On 26.10.2011 15:48, Konrad Rzeszutek Wilk wrote:
+>>>>> What about using the cpuidle_disabled() functionality and adhere to that?
+>>>>> As so:
+>>>>>
+>>> .. snip..
+>>>>
+>>>> >From reading over it, this should work. Though I would be interested to hear
+>>>> from the linux-acpi folks. Also to double check that calling pm_idle when
+>>>> cpuidle.off was specified really is what is intended.
+>>>
+>>> Oh yeah, definitly need the input from linux-acpi folks. And also to be actually
+>>> tested :-)
+>>
+>> I can volunteer to do the testing. But I am lazy enough to hold back a bit as
+>> someone may tell us this is completely the wrong way to fix it. :)
+> 
+> So the other option is to use 'idle=halt' on the Linux command line. That should
+> provide the workaround for the folks reporting this (is there a BZ for it?).
+> 
+Believe upstream bz is still down. Got the issue reported here, though:
 
-can you attach the full dmesg output after applying the patch,
-and the full acpidump of this machine please?
+http://bugs.launchpad.net/bugs/881076
 
-thanks,
-rui
+Hm, as a workaround probably. I guess it could be added when the test images are
+done. Unfortunately, when running your image in the cloud it is kind of hard to
+recover. Even more as you could have tested on an AMD based host.
 
-On Wed, 2011-11-09 at 16:35 +0800, Thomas Renninger wrote:
-> Hi,
+Wonder whether it would be an option to automatically mask the mwait capability
+off when running in paravirt mode...
+
+-Stefan
+
+> At least until a good solution is hammered out.
 > 
-> On Friday, November 04, 2011 03:20:33 AM Thomas Renninger wrote:
-> > From: Yinghai Lu <yinghai@kernel.org>
-> > 
-> ...
-> > On an IBM Xseries (x3850) this caused the machine to freeze around when
-> > the init userspace process is tried to get started.
-> > The reason is that the timer interrupt is not set up correctly on this
-> > machine.
-> ...
-> 
-> What is the state/opinion about this one?
-> It fixes a sever bug/regression for me and it would be great to
-> see this one in 3.2.
-> 
-> Thanks,
-> 
->     Thomas
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
 
