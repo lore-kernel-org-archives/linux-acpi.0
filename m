@@ -1,95 +1,60 @@
-From: shencanquan@huawei.com
-Subject: [PATCH] acpi: Fix CPU hot removal problem
-Date: Fri, 11 Nov 2011 06:47:17 +0800
-Message-ID: <1320965237-8628-1-git-send-email-shencanquan@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 4/6] acpi : remove 'time' field in acpi_processor_cx
+Date: Fri, 11 Nov 2011 00:57:29 +0100
+Message-ID: <1320969451-27218-5-git-send-email-daniel.lezcano@linaro.org>
+References: <1320969451-27218-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:55640 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360Ab1KJXvL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2011 18:51:11 -0500
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:40117 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785Ab1KKAFR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2011 19:05:17 -0500
+In-Reply-To: <1320969451-27218-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: bhelgaas@google.com, xiaowei.yang@huawei.com, hanweidong@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Shen canquan <shencanquan@huawei.com>
+Cc: linux-acpi@vger.kernel.org, rob.lee@linaro.org
 
-From: Shen canquan <shencanquan@huawei.com>
+The 'time' field is used to sum the idle time but it is never
+used.
 
-We run linux as a guest in Xen environment. When we used the xen tools (xm
-vcpu-set <n>) to hot add and remove vcpu to and from the guest, we
-encountered the failure on vcpu removal. We found the reason is that it
-did't go to really remove cpu in the cpu removal code path.
-
-This patch adds acpi_bus_hot_remove_device in acpi_process_hotplug_notify to
-fix this issue. With this patch, it works fine for us.
-
-Signed-off-by: Canquan Shen <shencanquan@huawei.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 ---
- drivers/acpi/processor_driver.c |   13 +------------
- drivers/acpi/scan.c             |    4 ++--
- include/acpi/acpi_bus.h         |    1 +
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/acpi/processor_idle.c |    2 --
+ include/acpi/processor.h      |    1 -
+ 2 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index a4e0f1b..8429688 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -665,18 +665,7 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
--
--		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX
--				    "Device don't exist, dropping EJECT\n");
--			break;
--		}
--		pr = acpi_driver_data(device);
--		if (!pr) {
--			printk(KERN_ERR PREFIX
--				    "Driver data is NULL, dropping EJECT\n");
--			return;
--		}
-+		acpi_bus_hot_remove_device(handle);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 449c556..6dfb4a7 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -83,7 +83,7 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index dd87355..142af72 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -861,7 +861,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	cx->usage++;
+ 
+ 	lapic_timer_state_broadcast(pr, cx, 0);
+-	cx->time += idle_time;
+ 	return index;
  }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
  
--static void acpi_bus_hot_remove_device(void *context)
-+void acpi_bus_hot_remove_device(void *context)
- {
- 	struct acpi_device *device;
- 	acpi_handle handle = context;
-@@ -129,7 +129,7 @@ static void acpi_bus_hot_remove_device(void *context)
- 	 * TBD: _EJD support.
- 	 */
- 	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
--	if (ACPI_FAILURE(status))
-+	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND))
- 		printk(KERN_WARNING PREFIX
- 				"Eject device failed\n");
+@@ -987,7 +986,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	cx->usage++;
  
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 6cd5b64..756e8d1 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -342,6 +342,7 @@ int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
-+void acpi_bus_hot_remove_device(void *context);
+ 	lapic_timer_state_broadcast(pr, cx, 0);
+-	cx->time += idle_time;
+ 	return index;
+ }
  
- /*
-  * Bind physical devices with ACPI devices
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 1b6e65c..46bcf79 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -61,7 +61,6 @@ struct acpi_processor_cx {
+ 	u32 latency;
+ 	u32 power;
+ 	u32 usage;
+-	u64 time;
+ 	u8 bm_sts_skip;
+ 	char desc[ACPI_CX_DESC_LEN];
+ };
 -- 
-1.7.6.msysgit.0
+1.7.4.1
 
