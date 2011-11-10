@@ -1,81 +1,241 @@
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: Re: [Xen-devel] Re: Regression in 3.1 causes Xen to use wrong idle
- routine
-Date: Thu, 10 Nov 2011 16:35:15 +0100
-Message-ID: <4EBBEF33.5060608@canonical.com>
-References: <4EA7DFD1.9060608@canonical.com> <20111026133003.GA6654@phenom.dumpdata.com> <4EA80CF2.5040309@canonical.com> <20111026134843.GA31609@phenom.dumpdata.com> <4EA811BB.6010005@canonical.com> <20111109175853.GA16318@phenom.dumpdata.com> <4EBB8C42.8080604@canonical.com> <20111110145558.GB7540@phenom.dumpdata.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] pci: Rework ASPM disable code
+Date: Thu, 10 Nov 2011 16:38:33 -0500
+Message-ID: <1320961113-5050-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:46548 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465Ab1KJPfU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2011 10:35:20 -0500
-In-Reply-To: <20111110145558.GB7540@phenom.dumpdata.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32030 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750805Ab1KJVit (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Nov 2011 16:38:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: len.brown@intel.com, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: jbarnes@virtuousgeek.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On 10.11.2011 15:55, Konrad Rzeszutek Wilk wrote:
-> On Thu, Nov 10, 2011 at 09:33:06AM +0100, Stefan Bader wrote:
->> On 09.11.2011 18:58, Konrad Rzeszutek Wilk wrote:
->>> On Wed, Oct 26, 2011 at 03:57:15PM +0200, Stefan Bader wrote:
->>>> On 26.10.2011 15:48, Konrad Rzeszutek Wilk wrote:
->>>>>>> What about using the cpuidle_disabled() functionality and adhere to that?
->>>>>>> As so:
->>>>>>>
->>>>> .. snip..
->>>>>>
->>>>>> >From reading over it, this should work. Though I would be interested to hear
->>>>>> from the linux-acpi folks. Also to double check that calling pm_idle when
->>>>>> cpuidle.off was specified really is what is intended.
->>>>>
->>>>> Oh yeah, definitly need the input from linux-acpi folks. And also to be actually
->>>>> tested :-)
->>>>
->>>> I can volunteer to do the testing. But I am lazy enough to hold back a bit as
->>>> someone may tell us this is completely the wrong way to fix it. :)
->>>
->>> So the other option is to use 'idle=halt' on the Linux command line. That should
->>> provide the workaround for the folks reporting this (is there a BZ for it?).
->>>
->> Believe upstream bz is still down. Got the issue reported here, though:
->>
->> http://bugs.launchpad.net/bugs/881076
-> 
-> Ok, added that to the patch description.
->>
->> Hm, as a workaround probably. I guess it could be added when the test images are
->> done. Unfortunately, when running your image in the cloud it is kind of hard to
->> recover. Even more as you could have tested on an AMD based host.
-> 
+Right now we forcibly clear ASPM state on all devices if the BIOS indicates
+that the feature isn't supported. Based on the Microsoft presentation
+"PCI Express In Depth for Windows Vista and Beyond", I'm starting to think
+that this may be an error. The implication is that unless the platform
+grants full control via _OSC, Windows will not touch any PCIe features -
+including ASPM. In that case clearing ASPM state would be an error unless
+the platform has granted us that control.
 
-> Sadly my AMD boxes did not explode when I tested Len's patches :-(.
+This patch reworks the ASPM disabling code such that the actual clearing
+of state is triggered by a successful handoff of PCIe control to the OS.
+The general ASPM code undergoes some changes in order to ensure that the
+ability to clear the bits isn't overridden by ASPM having already been
+disabled. Further, this theoretically now allows for situations where
+only a subset of PCIe roots hand over control, leaving the others in the
+BIOS state.
 
-No, to my knowledge AMD CPUs do not have mwait. So the only alternate idle to
-happen would be the e400 aware one (which is basically default_idle with
-conditionally programming a broadcast timer interrupt to get out of c1e). I saw
-this happen on my box, too. And there was no visible badness caused by it.
+It's difficult to know for sure that this is the right thing to do -
+there's zero public documentation on the interaction between all of these
+components. But enough vendors enable ASPM on platforms and then set this
+bit that it seems likely that they're expecting the OS to leave them alone.
 
->>
->> Wonder whether it would be an option to automatically mask the mwait capability
->> off when running in paravirt mode...
-> 
+Measured to save around 5W on an idle Thinkpad X220.
 
-> We could, but why not strive to do it correctly first.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/pci_root.c  |    7 +++++
+ drivers/pci/pci-acpi.c   |    1 -
+ drivers/pci/pcie/aspm.c  |   58 +++++++++++++++++++++++++++++----------------
+ include/linux/pci-aspm.h |    4 +-
+ 4 files changed, 46 insertions(+), 24 deletions(-)
 
-Just seemed (from looking at those replies about wanting mwait idle even when
-cpuidle is disabled) that there is a slight controversy about what correctly is.
-I personally would also think that a state of cpuidle disabled means no special
-idle function. But that does not have to be the correct interpretation.
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 2672c79..7aff631 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -596,6 +596,13 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 		if (ACPI_SUCCESS(status)) {
+ 			dev_info(root->bus->bridge,
+ 				"ACPI _OSC control (0x%02x) granted\n", flags);
++			if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
++				/*
++				 * We have ASPM control, but the FADT indicates
++				 * that it's unsupported. Clear it.
++				 */
++				pcie_clear_aspm(root->bus);
++			}
+ 		} else {
+ 			dev_info(root->bus->bridge,
+ 				"ACPI _OSC request failed (%s), "
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 4ecb640..c8e7585 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -395,7 +395,6 @@ static int __init acpi_pci_init(void)
+ 
+ 	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
+ 		printk(KERN_INFO"ACPI FADT declares the system doesn't support PCIe ASPM, so disable it\n");
+-		pcie_clear_aspm();
+ 		pcie_no_aspm();
+ 	}
+ 
+diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+index cbfbab1..1cfbf22 100644
+--- a/drivers/pci/pcie/aspm.c
++++ b/drivers/pci/pcie/aspm.c
+@@ -68,7 +68,7 @@ struct pcie_link_state {
+ 	struct aspm_latency acceptable[8];
+ };
+ 
+-static int aspm_disabled, aspm_force, aspm_clear_state;
++static int aspm_disabled, aspm_force;
+ static bool aspm_support_enabled = true;
+ static DEFINE_MUTEX(aspm_lock);
+ static LIST_HEAD(link_list);
+@@ -500,9 +500,6 @@ static int pcie_aspm_sanity_check(struct pci_dev *pdev)
+ 	int pos;
+ 	u32 reg32;
+ 
+-	if (aspm_clear_state)
+-		return -EINVAL;
+-
+ 	/*
+ 	 * Some functions in a slot might not all be PCIe functions,
+ 	 * very strange. Disable ASPM for the whole slot
+@@ -574,9 +571,6 @@ void pcie_aspm_init_link_state(struct pci_dev *pdev)
+ 	    pdev->pcie_type != PCI_EXP_TYPE_DOWNSTREAM)
+ 		return;
+ 
+-	if (aspm_disabled && !aspm_clear_state)
+-		return;
+-
+ 	/* VIA has a strange chipset, root port is under a bridge */
+ 	if (pdev->pcie_type == PCI_EXP_TYPE_ROOT_PORT &&
+ 	    pdev->bus->self)
+@@ -608,7 +602,7 @@ void pcie_aspm_init_link_state(struct pci_dev *pdev)
+ 	 * the BIOS's expectation, we'll do so once pci_enable_device() is
+ 	 * called.
+ 	 */
+-	if (aspm_policy != POLICY_POWERSAVE || aspm_clear_state) {
++	if (aspm_policy != POLICY_POWERSAVE) {
+ 		pcie_config_aspm_path(link);
+ 		pcie_set_clkpm(link, policy_to_clkpm_state(link));
+ 	}
+@@ -649,8 +643,7 @@ void pcie_aspm_exit_link_state(struct pci_dev *pdev)
+ 	struct pci_dev *parent = pdev->bus->self;
+ 	struct pcie_link_state *link, *root, *parent_link;
+ 
+-	if ((aspm_disabled && !aspm_clear_state) || !pci_is_pcie(pdev) ||
+-	    !parent || !parent->link_state)
++	if (!pci_is_pcie(pdev) || !parent || !parent->link_state)
+ 		return;
+ 	if ((parent->pcie_type != PCI_EXP_TYPE_ROOT_PORT) &&
+ 	    (parent->pcie_type != PCI_EXP_TYPE_DOWNSTREAM))
+@@ -734,13 +727,18 @@ void pcie_aspm_powersave_config_link(struct pci_dev *pdev)
+  * pci_disable_link_state - disable pci device's link state, so the link will
+  * never enter specific states
+  */
+-static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem)
++static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem,
++				     bool force)
+ {
+ 	struct pci_dev *parent = pdev->bus->self;
+ 	struct pcie_link_state *link;
+ 
+-	if (aspm_disabled || !pci_is_pcie(pdev))
++	if (aspm_disabled && !force)
++		return;
++
++	if (!pci_is_pcie(pdev))
+ 		return;
++
+ 	if (pdev->pcie_type == PCI_EXP_TYPE_ROOT_PORT ||
+ 	    pdev->pcie_type == PCI_EXP_TYPE_DOWNSTREAM)
+ 		parent = pdev;
+@@ -768,16 +766,31 @@ static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem)
+ 
+ void pci_disable_link_state_locked(struct pci_dev *pdev, int state)
+ {
+-	__pci_disable_link_state(pdev, state, false);
++	__pci_disable_link_state(pdev, state, false, false);
+ }
+ EXPORT_SYMBOL(pci_disable_link_state_locked);
+ 
+ void pci_disable_link_state(struct pci_dev *pdev, int state)
+ {
+-	__pci_disable_link_state(pdev, state, true);
++	__pci_disable_link_state(pdev, state, true, false);
+ }
+ EXPORT_SYMBOL(pci_disable_link_state);
+ 
++void pcie_clear_aspm(struct pci_bus *bus)
++{
++	struct pci_dev *child;
++
++	/*
++	 * Clear any ASPM setup that the firmware has carried out on this bus
++	 */
++	list_for_each_entry(child, &bus->devices, bus_list) {
++		__pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
++					 PCIE_LINK_STATE_L1 |
++					 PCIE_LINK_STATE_CLKPM,
++					 false, true);
++	}
++}
++
+ static int pcie_aspm_set_policy(const char *val, struct kernel_param *kp)
+ {
+ 	int i;
+@@ -935,6 +948,7 @@ void pcie_aspm_remove_sysfs_dev_files(struct pci_dev *pdev)
+ static int __init pcie_aspm_disable(char *str)
+ {
+ 	if (!strcmp(str, "off")) {
++		aspm_policy = POLICY_DEFAULT;
+ 		aspm_disabled = 1;
+ 		aspm_support_enabled = false;
+ 		printk(KERN_INFO "PCIe ASPM is disabled\n");
+@@ -947,16 +961,18 @@ static int __init pcie_aspm_disable(char *str)
+ 
+ __setup("pcie_aspm=", pcie_aspm_disable);
+ 
+-void pcie_clear_aspm(void)
+-{
+-	if (!aspm_force)
+-		aspm_clear_state = 1;
+-}
+-
+ void pcie_no_aspm(void)
+ {
+-	if (!aspm_force)
++	/*
++	 * Disabling ASPM is intended to prevent the kernel from modifying
++	 * existing hardware state, not to clear existing state. To that end:
++	 * (a) set policy to POLICY_DEFAULT in order to avoid changing state
++	 * (b) prevent userspace from changing policy
++	 */
++	if (!aspm_force) {
++		aspm_policy = POLICY_DEFAULT;
+ 		aspm_disabled = 1;
++	}
+ }
+ 
+ /**
+diff --git a/include/linux/pci-aspm.h b/include/linux/pci-aspm.h
+index 7cea7b6..c832014 100644
+--- a/include/linux/pci-aspm.h
++++ b/include/linux/pci-aspm.h
+@@ -29,7 +29,7 @@ extern void pcie_aspm_pm_state_change(struct pci_dev *pdev);
+ extern void pcie_aspm_powersave_config_link(struct pci_dev *pdev);
+ extern void pci_disable_link_state(struct pci_dev *pdev, int state);
+ extern void pci_disable_link_state_locked(struct pci_dev *pdev, int state);
+-extern void pcie_clear_aspm(void);
++extern void pcie_clear_aspm(struct pci_bus *bus);
+ extern void pcie_no_aspm(void);
+ #else
+ static inline void pcie_aspm_init_link_state(struct pci_dev *pdev)
+@@ -47,7 +47,7 @@ static inline void pcie_aspm_powersave_config_link(struct pci_dev *pdev)
+ static inline void pci_disable_link_state(struct pci_dev *pdev, int state)
+ {
+ }
+-static inline void pcie_clear_aspm(void)
++static inline void pcie_clear_aspm(struct pci_bus *bus)
+ {
+ }
+ static inline void pcie_no_aspm(void)
+-- 
+1.7.7.1
 
-So I was reasoning that if the mwait function gets selected because the caps say
-its available, but it does not work in paravirt, then maybe claiming its
-availability is wrong as well.
-
-Of course there is also the initial question about calling a generic function
-and if that fails call the idle function hook directly. Which, because having
-cpuidle disabled is returned as an error, ended up calling the hook directly
-again. I really have trouble understanding the reasoning there...
