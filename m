@@ -1,66 +1,163 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCI / ACPI / PM: Avoid resuming devices that don't
- signal PME
-Date: Fri, 11 Nov 2011 09:49:13 -0800
-Message-ID: <20111111094913.386ea9d1@jbarnes-desktop>
-References: <201111062221.46819.rjw@sisk.pl>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 2/2] ACPICA: support Generic Address Structure bit_offset in
+	acpi_read/write
+Date: Fri, 11 Nov 2011 16:05:13 -0700
+Message-ID: <20111111230513.20897.36014.stgit@bhelgaas.mtv.corp.google.com>
+References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/CLXG5rsRyy7ugH8vu728vqj"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:51852 "HELO
-	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753258Ab1KKRsw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2011 12:48:52 -0500
-In-Reply-To: <201111062221.46819.rjw@sisk.pl>
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:43865 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476Ab1KKXKv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2011 18:10:51 -0500
+Received: by ywb5 with SMTP id 5so394871ywb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Nov 2011 15:10:50 -0800 (PST)
+In-Reply-To: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, bondd@us.ibm.com, Huang Ying <ying.huang@intel.com>, Myron Stowe <myron.stowe@redhat.com>, Thomas Renninger <trenn@suse.de>
 
---Sig_/CLXG5rsRyy7ugH8vu728vqj
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+acpi_read(), acpi_write(), acpi_hw_read(), and acpi_hw_write() currently
+ignore the GAS bit_offset field (but they do warn if it is non-zero).
 
-On Sun, 6 Nov 2011 22:21:46 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+APEI tables are starting to use non-zero bit_offsets.  APEI uses
+special-purpose apei_exec_read_register() and apei_exec_write_register()
+interfaces that apply the bit_offset.
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-> Modify pci_acpi_wake_dev() to avoid resuming PME-capable devices
-> whose PME Status bits are not set, which may happen currently if
-> several devices are associated with the same wakeup GPE and all
-> of them are notified whenever at least one of them signals PME.
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/pci/pci-acpi.c |   12 ++++++++----
+This patch adds bit_offset support to the generic interfaces, which is
+one small step toward using them instead of the special-purpose APEI ones.
 
-Applied to -next, thanks.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/acpica/hwregs.c  |   32 ++++++++++++++++++++------------
+ drivers/acpi/acpica/hwxface.c |    8 +++++---
+ 2 files changed, 25 insertions(+), 15 deletions(-)
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index cc70f3f..2b50800 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -82,6 +82,7 @@ acpi_status
+ acpi_hw_validate_register(struct acpi_generic_address *reg,
+ 			  u8 max_bit_width, u64 *address)
+ {
++	static u8 width[] = {64, 8, 16, 32, 64};
+ 
+ 	/* Must have a valid pointer to a GAS structure */
+ 
+@@ -119,12 +120,14 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
+ 		return (AE_SUPPORT);
+ 	}
+ 
+-	/* Validate the bit_offset. Just a warning for now. */
++	/* Validate the bit_offset */
+ 
+-	if (reg->bit_offset != 0) {
+-		ACPI_WARNING((AE_INFO,
+-			      "Unsupported register bit offset: 0x%X",
+-			      reg->bit_offset));
++	if (reg->bit_offset > width[reg->access_width] - 1) {
++		ACPI_ERROR((AE_INFO,
++			   "Unsupported register bit offset: 0x%X access size: 0x%X (%d bits)",
++			   reg->bit_offset, reg->access_width,
++			   width[reg->access_width]));
++		return (AE_BAD_ADDRESS);
+ 	}
+ 
+ 	return (AE_OK);
+@@ -146,14 +149,15 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
+  * LIMITATIONS: <These limitations also apply to acpi_hw_write>
+  *      bit_width must be exactly 8, 16, or 32.
+  *      space_iD must be system_memory or system_iO.
+- *      bit_offset and access_width are currently ignored, as there has
+- *          not been a need to implement these.
++ *      access_width is currently ignored, as there has
++ *          not been a need to implement it.
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
++acpi_status acpi_hw_read(u32 *return_value, struct acpi_generic_address *reg)
+ {
+ 	u64 address;
++	u32 value;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(hw_read);
+@@ -167,7 +171,7 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 
+ 	/* Initialize entire 32-bit return value to zero */
+ 
+-	*value = 0;
++	*return_value = 0;
+ 
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+@@ -175,16 +179,18 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 	 */
+ 	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+ 		status = acpi_os_read_memory((acpi_physical_address)
+-					     address, value, reg->bit_width);
++					     address, &value, reg->bit_width);
+ 	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+ 
+ 		status = acpi_hw_read_port((acpi_io_address)
+-					   address, value, reg->bit_width);
++					   address, &value, reg->bit_width);
+ 	}
+ 
++	*return_value = value >> reg->bit_offset;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Read:  %8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  *value, reg->bit_width, ACPI_FORMAT_UINT64(address),
++			  *return_value, reg->bit_width,
++			  ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+ 	return (status);
+@@ -219,6 +225,8 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 		return (status);
+ 	}
+ 
++	value = value << reg->bit_offset;
++
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+ 	 * not supported here because the GAS structure is insufficient
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 12b5c57..a0526fe 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -114,8 +114,8 @@ ACPI_EXPORT_SYMBOL(acpi_reset)
+  * LIMITATIONS: <These limitations also apply to acpi_write>
+  *      bit_width must be exactly 8, 16, 32, or 64.
+  *      space_iD must be system_memory or system_iO.
+- *      bit_offset and access_width are currently ignored, as there has
+- *          not been a need to implement these.
++ *      access_width is currently ignored, as there has
++ *          not been a need to implement it.
+  *
+  ******************************************************************************/
+ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+@@ -195,7 +195,7 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ 		}
+ 	}
+ 
+-	*return_value = complete_value;
++	*return_value = complete_value >> reg->bit_offset;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
+ 			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
+@@ -239,6 +239,8 @@ acpi_status acpi_write(u64 value, struct acpi_generic_address *reg)
+ 		width = 32;	/* Break into two 32-bit transfers */
+ 	}
+ 
++	value = value << reg->bit_offset;
++
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+ 	 * not supported here because the GAS structure is insufficient
 
---Sig_/CLXG5rsRyy7ugH8vu728vqj
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOvWAZAAoJEIEoDkX4Qk9hiUMP/2PZfrJY+V9buFHV2pn8+/5q
-yp1q0HrM3gre5N0RmxnoY4Aju9PivnhteICpMMsjQKCI/MlDrAiLtIcmjkirxgoM
-6BY4kFQBf0ro1eTChgBCNyi5FrMgMgyWzdvdo5LuMHeaYwdvlMRpEJS4QWABSIUd
-qdQ6kBLyuJrF1fgFGd7zPlvJXqe9a3bz0C3ZcSdS9kGDlkXsJl1rhhhJa+z32Zpc
-RUID79oIU6kDmLNKvJobpweP52etFk/x79TUKWaEiS9H7BZdFn+5FU4F4k1JYYw2
-hn5YT5IKOD3PC7XYdOq5ETzR2wNGznRJRxnmU9u/Zn/BQ9ENM5vEQky8MyHCtNRA
-O/+KnVyebkhJMu38PErpyD9YwnyPd4TsPB2LiACHKNNOsUlIkBIVr15vDKUD4spZ
-xPrM9R3TiCyELqzS/ioWq9Rsor6JWYF/SQ5sg2Dpo2pvLqRWFcQ4GruN2NJJhmh/
-gHdq6gZYMRW2F6dPUEKB7zNBDVHqnU7a255wRGWFVebrns3l7p+BOd3+1Wp4r2fy
-dJFjofbzwxiJUdMXpsvUj1Mc8uM5W6pDcjr8nVRYE+IVxaTVstgvrPzcy8VSluXc
-pPJh7sqmJKtKXYemKSr/LzNcEaSko6Xc+H4OaVBlwC91xy+wmTeTAKT3vl0IFbyv
-cas4aIhxE6f4C9XAxjfM
-=KQVP
------END PGP SIGNATURE-----
-
---Sig_/CLXG5rsRyy7ugH8vu728vqj--
