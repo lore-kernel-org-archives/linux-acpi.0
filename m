@@ -1,79 +1,64 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] pci: Rework ASPM disable code
-Date: Fri, 11 Nov 2011 09:32:50 -0800
-Message-ID: <20111111173250.GA8679@kroah.com>
-References: <1320961113-5050-1-git-send-email-mjg@redhat.com>
- <CACna6rwxWUtfa2uz1hXVUthSpJF6SKP3V-ERt0=3oVQ2KKEo=g@mail.gmail.com>
- <20111111092811.54a03027@jbarnes-desktop>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] PCI / ACPI: Make acpiphp ignore root bridges using SHPC
+ native hotplug
+Date: Fri, 11 Nov 2011 09:49:05 -0800
+Message-ID: <20111111094905.1bc3be9d@jbarnes-desktop>
+References: <201110220043.38635.rjw@sisk.pl>
+	<201110261342.51843.rjw@sisk.pl>
+	<4EAA1762.1060207@jp.fujitsu.com>
+	<201111062311.28913.rjw@sisk.pl>
+	<4EB737A8.3000208@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111111092811.54a03027@jbarnes-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>, Matthew Garrett <mjg@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/m0B4Vl1TV/R9l11O/qhQcJT"; protocol="application/pgp-signature"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from oproxy6-pub.bluehost.com ([67.222.54.6]:36607 "HELO
+	oproxy6-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751603Ab1KKRsq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2011 12:48:46 -0500
+In-Reply-To: <4EB737A8.3000208@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Fri, Nov 11, 2011 at 09:28:11AM -0800, Jesse Barnes wrote:
-> On Fri, 11 Nov 2011 10:49:02 +0100
-> Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com> wrote:
+--Sig_/m0B4Vl1TV/R9l11O/qhQcJT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 07 Nov 2011 10:43:04 +0900
+Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
+
+> Thank you for doing this.
+> Looks good to me.
 >=20
-> > 2011/11/10 Matthew Garrett <mjg@redhat.com>:
-> > > Right now we forcibly clear ASPM state on all devices if the BIOS=
- indicates
-> > > that the feature isn't supported. Based on the Microsoft presenta=
-tion
-> > > "PCI Express In Depth for Windows Vista and Beyond", I'm starting=
- to think
-> > > that this may be an error. The implication is that unless the pla=
-tform
-> > > grants full control via _OSC, Windows will not touch any PCIe fea=
-tures -
-> > > including ASPM. In that case clearing ASPM state would be an erro=
-r unless
-> > > the platform has granted us that control.
-> > >
-> > > This patch reworks the ASPM disabling code such that the actual c=
-learing
-> > > of state is triggered by a successful handoff of PCIe control to =
-the OS.
-> > > The general ASPM code undergoes some changes in order to ensure t=
-hat the
-> > > ability to clear the bits isn't overridden by ASPM having already=
- been
-> > > disabled. Further, this theoretically now allows for situations w=
-here
-> > > only a subset of PCIe roots hand over control, leaving the others=
- in the
-> > > BIOS state.
-> > >
-> > > It's difficult to know for sure that this is the right thing to d=
-o -
-> > > there's zero public documentation on the interaction between all =
-of these
-> > > components. But enough vendors enable ASPM on platforms and then =
-set this
-> > > bit that it seems likely that they're expecting the OS to leave t=
-hem alone.
-> > >
-> > > Measured to save around 5W on an idle Thinkpad X220.
-> > >
-> > > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> >=20
-> > Does it make sense to CC stable? To get it into 2.6.38+?
->=20
-> It's a pretty serious change that affects a lot of platforms, so I'd =
-be
-> nervous about sticking it in stable right away.  Maybe after some soa=
-k
-> time upstream and/or broad testing in distros.
+> Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-I agree.
+Applied to my -next branch, thanks.
 
-I'll watch what happens with this patch before being willing to stick i=
-t
-into the stable releases.
+--=20
+Jesse Barnes, Intel Open Source Technology Center
 
-greg k-h
+--Sig_/m0B4Vl1TV/R9l11O/qhQcJT
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOvWARAAoJEIEoDkX4Qk9hxFMP/AnMEDRdiELZvkdcO/RG8jJy
+fu+DaCY6257ElogtriS9yL/V9xDVs5DEkq3ta+fDWomtzxGGHqczuGYx21LI71KH
+cp1oC+6fs79KWj9OYJdb6ko2JuyuZvt+n1zvcvhCOJZzA7P0Ylj+0ortyJLww7kn
+xL0XD97SPheqHPqZfiR6Bzmn/sZpb2Zbc1sDanCsq2SsjNvdQhDKy2MdhC94NWSe
+A4OFQ/e25GXZ9tJPQHcptpotDOiE8VUKSMJ2VbZd6nVVjMGlDi62M71s0GKp1UaA
+hHg9+zvo62GeCFSikIpJfwiSbNdmU7o6DMlrhBCR4wxuSAEPMr5w7JBPWKEMk4ux
+i4lU/d48gty+MZrY6b8NvZ8mKRUX4/xYEWBtK2IIA/szFMAXDrMpZRsYD8DjdZve
+RHEX5+LTIXuUChKZdymv3RAQkAckbOzOOHl8c/H/CUZmWZdX9+9rjbMm+vQTa+ty
+b9QSjk/h5yuUTPAhlH0QR2dIHtw3IHlk8M9+quHzysDCYKTjTfDkmDEDWwmG52bl
+03eSuaTXiWmfZjMY44gGijz+QjC0AL7khdnRZVgCe9iOnylCp+GqhGKQn8g5KClO
+i9+FYubu8yQK/T5pESJQ8YIiEMOeFoFe+K23RIXKwN7ptdQZgvVEmwCck3989X6i
+Mn+pnhoI1wCLr2Hcm/n/
+=CWqU
+-----END PGP SIGNATURE-----
+
+--Sig_/m0B4Vl1TV/R9l11O/qhQcJT--
