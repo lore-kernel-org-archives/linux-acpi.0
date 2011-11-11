@@ -1,91 +1,76 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
 Subject: Re: [PATCH] pci: Rework ASPM disable code
-Date: Fri, 11 Nov 2011 09:28:11 -0800
-Message-ID: <20111111092811.54a03027@jbarnes-desktop>
+Date: Fri, 11 Nov 2011 09:33:07 -0800
+Message-ID: <20111111093307.3072ce80@jbarnes-desktop>
 References: <1320961113-5050-1-git-send-email-mjg@redhat.com>
-	<CACna6rwxWUtfa2uz1hXVUthSpJF6SKP3V-ERt0=3oVQ2KKEo=g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/.MBNHS/g+64/X46UHts1VUw"; protocol="application/pgp-signature"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:36068 "HELO
-	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753570Ab1KKR2G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2011 12:28:06 -0500
-In-Reply-To: <CACna6rwxWUtfa2uz1hXVUthSpJF6SKP3V-ERt0=3oVQ2KKEo=g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+ boundary="Sig_/r0St16k.wJdPI9cNAnTP/eh"; protocol="application/pgp-signature"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1320961113-5050-1-git-send-email-mjg@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/.MBNHS/g+64/X46UHts1VUw
-Content-Type: text/plain; charset=UTF-8
+--Sig_/r0St16k.wJdPI9cNAnTP/eh
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 11 Nov 2011 10:49:02 +0100
-Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com> wrote:
+On Thu, 10 Nov 2011 16:38:33 -0500
+Matthew Garrett <mjg@redhat.com> wrote:
 
-> 2011/11/10 Matthew Garrett <mjg@redhat.com>:
-> > Right now we forcibly clear ASPM state on all devices if the BIOS indic=
-ates
-> > that the feature isn't supported. Based on the Microsoft presentation
-> > "PCI Express In Depth for Windows Vista and Beyond", I'm starting to th=
-ink
-> > that this may be an error. The implication is that unless the platform
-> > grants full control via _OSC, Windows will not touch any PCIe features -
-> > including ASPM. In that case clearing ASPM state would be an error unle=
-ss
-> > the platform has granted us that control.
-> >
-> > This patch reworks the ASPM disabling code such that the actual clearing
-> > of state is triggered by a successful handoff of PCIe control to the OS.
-> > The general ASPM code undergoes some changes in order to ensure that the
-> > ability to clear the bits isn't overridden by ASPM having already been
-> > disabled. Further, this theoretically now allows for situations where
-> > only a subset of PCIe roots hand over control, leaving the others in the
-> > BIOS state.
-> >
-> > It's difficult to know for sure that this is the right thing to do -
-> > there's zero public documentation on the interaction between all of the=
-se
-> > components. But enough vendors enable ASPM on platforms and then set th=
-is
-> > bit that it seems likely that they're expecting the OS to leave them al=
-one.
-> >
-> > Measured to save around 5W on an idle Thinkpad X220.
-> >
-> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> Right now we forcibly clear ASPM state on all devices if the BIOS indicat=
+es
+> that the feature isn't supported. Based on the Microsoft presentation
+> "PCI Express In Depth for Windows Vista and Beyond", I'm starting to think
+> that this may be an error. The implication is that unless the platform
+> grants full control via _OSC, Windows will not touch any PCIe features -
+> including ASPM. In that case clearing ASPM state would be an error unless
+> the platform has granted us that control.
 >=20
-> Does it make sense to CC stable? To get it into 2.6.38+?
+> This patch reworks the ASPM disabling code such that the actual clearing
+> of state is triggered by a successful handoff of PCIe control to the OS.
+> The general ASPM code undergoes some changes in order to ensure that the
+> ability to clear the bits isn't overridden by ASPM having already been
+> disabled. Further, this theoretically now allows for situations where
+> only a subset of PCIe roots hand over control, leaving the others in the
+> BIOS state.
+>=20
+> It's difficult to know for sure that this is the right thing to do -
+> there's zero public documentation on the interaction between all of these
+> components. But enough vendors enable ASPM on platforms and then set this
+> bit that it seems likely that they're expecting the OS to leave them alon=
+e.
+>=20
+> Measured to save around 5W on an idle Thinkpad X220.
+>=20
 
-It's a pretty serious change that affects a lot of platforms, so I'd be
-nervous about sticking it in stable right away.  Maybe after some soak
-time upstream and/or broad testing in distros.
+Applied to linux-next, thanks.
 
 --=20
 Jesse Barnes, Intel Open Source Technology Center
 
---Sig_/.MBNHS/g+64/X46UHts1VUw
+--Sig_/r0St16k.wJdPI9cNAnTP/eh
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iQIcBAEBAgAGBQJOvVsrAAoJEIEoDkX4Qk9hABcP/1eENSG0J1UOQx6hdVL6BHOt
-aKFD88odJqb12rQ3G0pvvf5pygBFHTgFMYMbrixyxLOCiiFDZ64oyV+przAlkpn9
-zW9vcb6q0VonwhdhpapiPcwQfZfTSQVQqQ8sdoqYg6+JiTizgtaBqFhEKyelcIIl
-OrybBKUr+5d480OJQ2Z9wLm3ggDuMlfDqGQfiHpvkTHdbYqPCtU2vwfL+wJ/z63L
-wcGIGm27x0Ttv7V7MqvP0iF/saa7mmDGldxlaxkPqrU7HtRWQ26t8d8hsWrv2cww
-qtuQXloeeioxXYKdfNATB2Gr+6YumMKl3WG7z4xwLlH3p7EdCNiBchHEOuZ1uM7C
-uKeCDN3ttd0P2LpMKkd3laDzJlv9NZ4is4iZ/sirbuPrkOQy1o3hC1uhnSUeXjLf
-sdWrvw1TG/vV7srm6FyvusdXD8w97CG6o0Nt7Ja1wOMJUYMwo+KGh8vzAK96gUTl
-4QyHoCTE5JImbTaE5GwbBMOK9j9eGxFZ107bQshTp5H41oOV2XD2hnIlds2omzRA
-b/9ZCOz0xCpxODgbNuNikyWYDYGQsiA0m3rix9g5ikX1mF3gPT4F4skkE2ArBPgp
-eSXO6ewyFLmd2MVKDuPOg2X+Z/NXoAjjkQ5l5Grx289vfD2XABe9DjOKg3OwyjKU
-6Xh7XjQjzjAprnIEcx4M
-=VUiW
+iQIcBAEBAgAGBQJOvVxTAAoJEIEoDkX4Qk9hiKIQALTMeSwgIeQ2G9z7J+0/f7Rw
+dpnIiyR5BMEQpaaoLnXgv8GCuSfF5hhc0m/WGZlgN79eLhrYIHieqNLAkKDuwdGM
+K6i3/i7igm11bu+92t5045aTyHQk2VAZc4eSUEj7lZdBgIcLYBlXKgECfgS+2rGO
+CuhobcM0iSzvwjz9y4Z5+2dcGg6NPVn0fKRyVW8iLzrCbyZoCviGjwTGYlXSsyad
+Eo67JFjylQkGRKRn1uWPqqlFr+DjRLjrvXI2Fq4A4ak4ZRtHimLwYLUOkUetMYEC
+aq2SxEkORA3MJLtHgeUMVNoe1VwN3tOAflQ/CbYheXCcFTPi7yEzS4fnhNq/87rx
+G2+r12DGAsjxP9PbU5Uk/UPB6Bcd4Avgu4WrEUsKbT/ZrMerXs7/224lyXtKROqs
+KcxOedUgocNwljWVHDr1z+MMz6iqK3Dp+YAGmYl4Xjx4jjhWuUrTswIj2AWEU7M5
+rpwWiWfyg5v6YCe194sokFpqSmL0MWhSyp8cJVMUqrY1VgX3QPC2G5ZIL/u0R46c
+csk2zhvIxCioVNki2QPig24T3ZxDEuivZsXbis1cWKRqPu5cKbIBYWM1gcy+t1Hp
+yxU7OYUR1LA0FytHOTY8G8Nx7GVdQffHqGnvMduVb3X4sr5a0QWw+zarqVZBJZB3
+foi94HROk/Q0UYada//y
+=2nAz
 -----END PGP SIGNATURE-----
 
---Sig_/.MBNHS/g+64/X46UHts1VUw--
+--Sig_/r0St16k.wJdPI9cNAnTP/eh--
