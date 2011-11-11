@@ -1,52 +1,58 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 6/6] acpi : remove 'power' field from acpi_processor_cx
-Date: Fri, 11 Nov 2011 00:57:31 +0100
-Message-ID: <1320969451-27218-7-git-send-email-daniel.lezcano@linaro.org>
-References: <1320969451-27218-1-git-send-email-daniel.lezcano@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:32504 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878Ab1KKAFk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2011 19:05:40 -0500
-In-Reply-To: <1320969451-27218-1-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Re: [PATCH] pci: Rework ASPM disable code
+Date: Fri, 11 Nov 2011 10:49:02 +0100
+Message-ID: <CACna6rwxWUtfa2uz1hXVUthSpJF6SKP3V-ERt0=3oVQ2KKEo=g@mail.gmail.com>
+References: <1320961113-5050-1-git-send-email-mjg@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1320961113-5050-1-git-send-email-mjg@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, rob.lee@linaro.org
 
-The power field is filled but never used in the code.
+2011/11/10 Matthew Garrett <mjg@redhat.com>:
+> Right now we forcibly clear ASPM state on all devices if the BIOS ind=
+icates
+> that the feature isn't supported. Based on the Microsoft presentation
+> "PCI Express In Depth for Windows Vista and Beyond", I'm starting to =
+think
+> that this may be an error. The implication is that unless the platfor=
+m
+> grants full control via _OSC, Windows will not touch any PCIe feature=
+s -
+> including ASPM. In that case clearing ASPM state would be an error un=
+less
+> the platform has granted us that control.
+>
+> This patch reworks the ASPM disabling code such that the actual clear=
+ing
+> of state is triggered by a successful handoff of PCIe control to the =
+OS.
+> The general ASPM code undergoes some changes in order to ensure that =
+the
+> ability to clear the bits isn't overridden by ASPM having already bee=
+n
+> disabled. Further, this theoretically now allows for situations where
+> only a subset of PCIe roots hand over control, leaving the others in =
+the
+> BIOS state.
+>
+> It's difficult to know for sure that this is the right thing to do -
+> there's zero public documentation on the interaction between all of t=
+hese
+> components. But enough vendors enable ASPM on platforms and then set =
+this
+> bit that it seems likely that they're expecting the OS to leave them =
+alone.
+>
+> Measured to save around 5W on an idle Thinkpad X220.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
----
- drivers/acpi/processor_idle.c |    2 --
- include/acpi/processor.h      |    1 -
- 2 files changed, 0 insertions(+), 3 deletions(-)
+Does it make sense to CC stable? To get it into 2.6.38+?
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 4b9ebd5..e2b67e2 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -495,8 +495,6 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 		if (obj->type != ACPI_TYPE_INTEGER)
- 			continue;
- 
--		cx.power = obj->integer.value;
--
- 		current_count++;
- 		memcpy(&(pr->power.states[current_count]), &cx, sizeof(cx));
- 
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index bc3449a..bed1093 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -59,7 +59,6 @@ struct acpi_processor_cx {
- 	u8 entry_method;
- 	u8 index;
- 	u32 latency;
--	u32 power;
- 	u8 bm_sts_skip;
- 	char desc[ACPI_CX_DESC_LEN];
- };
--- 
-1.7.4.1
-
+--=20
+Rafa=C5=82
