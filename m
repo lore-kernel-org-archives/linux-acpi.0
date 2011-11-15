@@ -1,100 +1,68 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Regression in thinkpad-acpi events
-Date: Tue, 15 Nov 2011 21:03:06 -0200
-Message-ID: <20111115230305.GA23325@khazad-dum.debian.net>
-References: <4EBAC3B5.5060405@gmail.com>
- <201111142031.06663.maciej.rutecki@gmail.com>
- <4EC16F8E.7060601@gmail.com>
- <201111142118.47256.maciej.rutecki@gmail.com>
- <CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: [patch 1/2] intel_idle: fix API misuse
+Date: Tue, 15 Nov 2011 15:12:36 -0800
+Message-ID: <201111152312.pAFNCbBi024085@wpaz5.hot.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:60758 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755545Ab1KOXDO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Nov 2011 18:03:14 -0500
-Received: from compute6.internal (compute6.nyi.mail.srv.osa [10.202.2.46])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E935B20BC2
-	for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2011 18:03:13 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com>
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:43982 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957Ab1KOXR6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 18:17:58 -0500
+Received: by qyd20 with SMTP id 20so512547qyd.1
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2011 15:17:57 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tom Gundersen <teg@jklm.no>
-Cc: maciej.rutecki@gmail.com, Natanji <natanji@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, shaohua.li@intel.com, lenb@kernel.org
 
-> >> >> This can be observed by using the acpi_listen command. For inst=
-ance, no
-> >> >> ACPI events happen when swiveling the display, and the sleep bu=
-tton
-> >> >> returns
-> >> >>
-> >> >> =A0 =A0button/sleep SBTN 00000080 00000000
-> >> >>
-> >> >> instead of the previous
-> >> >>
-> >> >> =A0 =A0ibm/hotkey HKEY 00000080 00001004
-> >> >>
->=20
-> I'm observing the same, also with Arch Linux, and a ThinkPad x60:
-> # uname -a
-> Linux x60 3.1.1-1-ARCH #1 SMP PREEMPT Fri Nov 11 22:28:29 CET 2011
-> x86_64 Intel(R) Core(TM)2 CPU T7200 @ 2.00GHz GenuineIntel GNU/Linux
->=20
-> The kernel config can be found here:
-> <http://projects.archlinux.org/svntogit/packages.git/tree/trunk?h=3Dp=
-ackages/linux>.
->=20
-> As requested:
-> # grep . /sys/bus/platform/devices/thinkpad*/*
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_enable:1
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_mask:0x008dffff
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_poll_freq:10
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_radio_sw:1
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_recommended_mask:0x008=
-dffff
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_report_mode:1
-> /sys/bus/platform/devices/thinkpad_acpi/hotkey_source_mask:0x00000000
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: intel_idle: fix API misuse
 
-Well, the driver has connected to the firmware, and should be working. =
- And
-there were no changes to the code from v3.0 to v3.1.1.  So, it is eithe=
-r a
-bug in something else, a problematic interaction of the driver with
-something else, or a latent thinkpad-acpi bug that some change elsewher=
-e has
-exposed.
+smp_call_function() only lets all other CPUs execute a specific function,
+while we expect all CPUs do in intel_idle.  Without the fix, we could have
+one cpu which has auto_demotion enabled or has no boradcast timer setup. 
+Usually we don't see impact because auto demotion just harms power and the
+intel_idle init is called in CPU 0, where boradcast timer delivers
+interrupt, but this still could be a problem.
 
-Are the events reported by acpi_listen from arch-linux exactly the same=
- in
-v3.0.9 and v3.1.1 ?  I know some events are missing in your v3.1.1, but=
- I am
-interested in the ones that do get reported.
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Although you really should be using the input device for the hotkeys, a=
-nd
-not any of the 0x10xx events.  Those are driver-specific and deprecated=
-, it
-is all explained in Documentation/laptops/thinkpad-acpi.txt.  So, it re=
-ally
-might mean that you have something in userspace reading that input devi=
-ce
-and synthesizing the ACPI HKEY events thinkpad-acpi deprecated for a lo=
-ng
-time now.  I know some distros did that instead of switching to an
-input-device-based hotkey daemon.  Please check for that possibility,
-that daemon could be the one having problems with 3.1.1...
+ drivers/idle/intel_idle.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---=20
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN drivers/idle/intel_idle.c~intel_idle-fix-api-misuse drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~intel_idle-fix-api-misuse
++++ a/drivers/idle/intel_idle.c
+@@ -394,7 +394,7 @@ static int intel_idle_probe(void)
+ 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
+ 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
+ 	else {
+-		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
++		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+ 		register_cpu_notifier(&setup_broadcast_notifier);
+ 	}
+ 
+@@ -471,7 +471,7 @@ static int intel_idle_cpuidle_driver_ini
+ 	}
+ 
+ 	if (auto_demotion_disable_flags)
+-		smp_call_function(auto_demotion_disable, NULL, 1);
++		on_each_cpu(auto_demotion_disable, NULL, 1);
+ 
+ 	return 0;
+ }
+@@ -568,7 +568,7 @@ static void __exit intel_idle_exit(void)
+ 	cpuidle_unregister_driver(&intel_idle_driver);
+ 
+ 	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
+-		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
++		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
+ 		unregister_cpu_notifier(&setup_broadcast_notifier);
+ 	}
+ 
+_
