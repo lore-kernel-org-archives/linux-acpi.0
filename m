@@ -1,75 +1,108 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 2/7] tboot: Add return values for tboot_sleep
-Date: Tue, 15 Nov 2011 16:31:06 -0500
-Message-ID: <1321392671-9128-3-git-send-email-konrad.wilk__23233.1652696759$1321392843$gmane$org@oracle.com>
+Subject: [PATCH 6/7] x86/acpi/sleep: Provide registration for acpi_suspend_lowlevel
+Date: Tue, 15 Nov 2011 16:31:10 -0500
+Message-ID: <1321392671-9128-7-git-send-email-konrad.wilk__18225.0366815881$1321392870$gmane$org@oracle.com>
 References: <1321392671-9128-1-git-send-email-konrad.wilk@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:39123 "EHLO
+Received: from rcsinet15.oracle.com ([148.87.113.117]:39109 "EHLO
 	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932408Ab1KOVc3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 16:32:29 -0500
+	with ESMTP id S932471Ab1KOVc2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 16:32:28 -0500
 In-Reply-To: <1321392671-9128-1-git-send-email-konrad.wilk@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, rjw@sisk.pl, tglx@linutronix.de, x86@kernel.org, hpa@zytor.com, len.brown@intel.com, joseph.cihula@intel.com, linux-pm@lists.linux-foundation.org, tboot-
 Cc: xen-devel@lists.xensource.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-. as appropiately. As tboot_sleep now returns values, we are free
-to remove the tboot_sleep_wrapper function altogether.
+Which by default will be x86_acpi_suspend_lowlevel.
+This registration allows us to register another callback
+if there is a need to use another platform specific callback.
 
-Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-CC: Joseph Cihula <joseph.cihula@intel.com>
+Signed-off-by: Liang Tang <liang.tang@oracle.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- arch/x86/kernel/tboot.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/acpi.h  |    2 +-
+ arch/x86/kernel/acpi/boot.c  |    2 ++
+ arch/x86/kernel/acpi/sleep.c |    4 ++--
+ arch/x86/kernel/acpi/sleep.h |    2 ++
+ drivers/acpi/sleep.c         |    2 ++
+ 5 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-index 751d673..5ab5362 100644
---- a/arch/x86/kernel/tboot.c
-+++ b/arch/x86/kernel/tboot.c
-@@ -273,7 +273,8 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
- 		offsetof(struct acpi_table_facs, firmware_waking_vector);
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index 610001d..68cf060 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -115,7 +115,7 @@ static inline void acpi_disable_pci(void)
  }
  
--void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
-+static acpi_status tboot_sleep(u8 sleep_state, u32 pm1a_control,
-+			       u32 pm1b_control)
+ /* Low-level suspend routine. */
+-extern int acpi_suspend_lowlevel(void);
++extern int (*acpi_suspend_lowlevel)(void);
+ 
+ extern const unsigned char acpi_wakeup_code[];
+ #define acpi_wakeup_address (__pa(TRAMPOLINE_SYM(acpi_wakeup_code)))
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 4558f0d..eb85e88 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -44,6 +44,7 @@
+ #include <asm/mpspec.h>
+ #include <asm/smp.h>
+ 
++#include "sleep.h" /* To include x86_acpi_suspend_lowlevel */
+ static int __initdata acpi_force = 0;
+ u32 acpi_rsdt_forced;
+ int acpi_disabled;
+@@ -552,6 +553,7 @@ static int acpi_register_gsi_ioapic(struct device *dev, u32 gsi,
+ int (*__acpi_register_gsi)(struct device *dev, u32 gsi,
+ 			   int trigger, int polarity) = acpi_register_gsi_pic;
+ 
++int (*acpi_suspend_lowlevel)(void) = x86_acpi_suspend_lowlevel;
+ /*
+  * success: return IRQ number (>=0)
+  * failure: return < 0
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 103b6ab..4d2d0b1 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -25,12 +25,12 @@ static char temp_stack[4096];
+ #endif
+ 
+ /**
+- * acpi_suspend_lowlevel - save kernel state
++ * x86_acpi_suspend_lowlevel - save kernel state
+  *
+  * Create an identity mapped page table and copy the wakeup routine to
+  * low memory.
+  */
+-int acpi_suspend_lowlevel(void)
++int x86_acpi_suspend_lowlevel(void)
  {
- 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
- 		/* S0,1,2: */ -1, -1, -1,
-@@ -282,7 +283,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 		/* S5: */ TB_SHUTDOWN_S5 };
+ 	struct wakeup_header *header;
+ 	/* address in low memory of the wakeup routine. */
+diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
+index 416d4be..4d3feb5 100644
+--- a/arch/x86/kernel/acpi/sleep.h
++++ b/arch/x86/kernel/acpi/sleep.h
+@@ -13,3 +13,5 @@ extern unsigned long acpi_copy_wakeup_routine(unsigned long);
+ extern void wakeup_long64(void);
  
- 	if (!tboot_enabled())
--		return;
-+		return AE_OK;
- 
- 	tboot_copy_fadt(&acpi_gbl_FADT);
- 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
-@@ -293,10 +294,12 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 	if (sleep_state >= ACPI_S_STATE_COUNT ||
- 	    acpi_shutdown_map[sleep_state] == -1) {
- 		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
--		return;
-+		return AE_ERROR;
- 	}
- 
- 	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+ extern void do_suspend_lowlevel(void);
 +
-+	return AE_OK;
- }
- static acpi_status tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
- 		u32 pm1b_control)
-@@ -353,7 +356,7 @@ static __init int tboot_late_init(void)
- 	atomic_set(&ap_wfs_count, 0);
- 	register_hotcpu_notifier(&tboot_cpu_notifier);
++extern int x86_acpi_suspend_lowlevel(void);
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 6d9a3ab..b8b26e8 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -254,6 +254,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 		break;
  
--	acpi_os_prepare_sleep_register(&tboot_sleep_wrapper);
-+	acpi_os_prepare_sleep_register(&tboot_sleep);
- 	return 0;
- }
- 
+ 	case ACPI_STATE_S3:
++		if (!acpi_suspend_lowlevel)
++			return -ENODEV;
+ 		error = acpi_suspend_lowlevel();
+ 		if (error)
+ 			return error;
 -- 
 1.7.7.1
 
