@@ -1,210 +1,141 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 3/7] xen/acpi/sleep: Enable ACPI sleep via the acpi_os_prepare_sleep_register
-Date: Tue, 15 Nov 2011 16:31:07 -0500
-Message-ID: <1321392671-9128-4-git-send-email-konrad.wilk__47835.0058001981$1321392756$gmane$org@oracle.com>
+Subject: [PATCH 4/7] x86: Expand the x86_msi_ops to have a restore MSIs.
+Date: Tue, 15 Nov 2011 16:31:08 -0500
+Message-ID: <1321392671-9128-5-git-send-email-konrad.wilk__23249.5087934241$1321392777$gmane$org@oracle.com>
 References: <1321392671-9128-1-git-send-email-konrad.wilk@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:37719 "EHLO
+Received: from acsinet15.oracle.com ([141.146.126.227]:37777 "EHLO
 	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932432Ab1KOVcZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 16:32:25 -0500
+	with ESMTP id S932515Ab1KOVcb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 16:32:31 -0500
 In-Reply-To: <1321392671-9128-1-git-send-email-konrad.wilk@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, rjw@sisk.pl, tglx@linutronix.de, x86@kernel.org, hpa@zytor.com, len.brown@intel.com, joseph.cihula@intel.com, linux-pm@lists.linux-foundation.org, tboot-
 Cc: xen-devel@lists.xensource.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-Provide the registration callback to call in the Xen's
-ACPI sleep functionality. This means that during S3/S5
-we make a hypercall XENPF_enter_acpi_sleep with the
-proper PM1A/PM1B registers.
+The MSI restore function will become a function pointer in an
+x86_msi_ops struct. It defaults to the implementation in the
+io_apic.c and msi.c. We piggyback on the indirection mechanism
+introduced by "x86: Introduce x86_msi_ops".
 
-Based of Ke Yu's <ke.yu@intel.com> initial idea.
-[ From http://xenbits.xensource.com/linux-2.6.18-xen.hg
-change c68699484a65 ]
-
-[v1: Added Copyright and license]
-[v2: Added check if PM1A/B the 16-bits MSB contain something. The spec
-     only uses 16-bits but might have more in future]
-Signed-off-by: Liang Tang <liang.tang@oracle.com>
-[v1: Improved the git commit description]
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- arch/x86/xen/enlighten.c |    3 ++
- drivers/xen/Makefile     |    2 +-
- drivers/xen/acpi.c       |   62 ++++++++++++++++++++++++++++++++++++++++++++++
- include/xen/acpi.h       |   59 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 125 insertions(+), 1 deletions(-)
- create mode 100644 drivers/xen/acpi.c
- create mode 100644 include/xen/acpi.h
+ arch/x86/include/asm/pci.h      |    9 +++++++++
+ arch/x86/include/asm/x86_init.h |    1 +
+ arch/x86/kernel/x86_init.c      |    1 +
+ drivers/pci/msi.c               |   29 +++++++++++++++++++++++++++--
+ 4 files changed, 38 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-index da8afd5..bb0c864 100644
---- a/arch/x86/xen/enlighten.c
-+++ b/arch/x86/xen/enlighten.c
-@@ -42,6 +42,7 @@
- #include <xen/page.h>
- #include <xen/hvm.h>
- #include <xen/hvc-console.h>
-+#include <xen/acpi.h>
- 
- #include <asm/paravirt.h>
- #include <asm/apic.h>
-@@ -1277,6 +1278,8 @@ asmlinkage void __init xen_start_kernel(void)
- 
- 		/* Make sure ACS will be enabled */
- 		pci_request_acs();
-+
-+		xen_acpi_sleep_register();
- 	}
- 		
- 
-diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index 974fffd..0435996 100644
---- a/drivers/xen/Makefile
-+++ b/drivers/xen/Makefile
-@@ -17,7 +17,7 @@ obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
- obj-$(CONFIG_XEN_PVHVM)			+= platform-pci.o
- obj-$(CONFIG_XEN_TMEM)			+= tmem.o
- obj-$(CONFIG_SWIOTLB_XEN)		+= swiotlb-xen.o
--obj-$(CONFIG_XEN_DOM0)			+= pci.o
-+obj-$(CONFIG_XEN_DOM0)			+= pci.o acpi.o
- obj-$(CONFIG_XEN_PCIDEV_BACKEND)	+= xen-pciback/
- 
- xen-evtchn-y				:= evtchn.o
-diff --git a/drivers/xen/acpi.c b/drivers/xen/acpi.c
-new file mode 100644
-index 0000000..9f81a0f
---- /dev/null
-+++ b/drivers/xen/acpi.c
-@@ -0,0 +1,62 @@
-+/******************************************************************************
-+ * acpi.c
-+ * acpi file for domain 0 kernel
-+ *
-+ * Copyright (c) 2011 Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-+ * Copyright (c) 2011 Yu Ke ke.yu@intel.com
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation; or, when distributed
-+ * separately from the Linux kernel or incorporated into other
-+ * software packages, subject to the following license:
-+ *
-+ * Permission is hereby granted, free of charge, to any person obtaining a copy
-+ * of this source file (the "Software"), to deal in the Software without
-+ * restriction, including without limitation the rights to use, copy, modify,
-+ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
-+ * and to permit persons to whom the Software is furnished to do so, subject to
-+ * the following conditions:
-+ *
-+ * The above copyright notice and this permission notice shall be included in
-+ * all copies or substantial portions of the Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-+ * IN THE SOFTWARE.
-+ */
-+
-+#include <xen/acpi.h>
-+#include <xen/interface/platform.h>
-+#include <asm/xen/hypercall.h>
-+#include <asm/xen/hypervisor.h>
-+
-+acpi_status xen_acpi_notify_hypervisor_state(u8 sleep_state,
-+				     u32 pm1a_cnt, u32 pm1b_cnt)
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index d498943..df75d07 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -112,19 +112,28 @@ static inline void x86_teardown_msi_irq(unsigned int irq)
+ {
+ 	x86_msi.teardown_msi_irq(irq);
+ }
++static inline void x86_restore_msi_irqs(struct pci_dev *dev, int irq)
 +{
-+	struct xen_platform_op op = {
-+		.cmd = XENPF_enter_acpi_sleep,
-+		.interface_version = XENPF_INTERFACE_VERSION,
-+		.u = {
-+			.enter_acpi_sleep = {
-+				.pm1a_cnt_val = (u16)pm1a_cnt,
-+				.pm1b_cnt_val = (u16)pm1b_cnt,
-+				.sleep_state = sleep_state,
-+			},
-+		},
-+	};
++	x86_msi.restore_msi_irqs(dev, irq);
++}
+ #define arch_setup_msi_irqs x86_setup_msi_irqs
+ #define arch_teardown_msi_irqs x86_teardown_msi_irqs
+ #define arch_teardown_msi_irq x86_teardown_msi_irq
++#define arch_restore_msi_irqs x86_restore_msi_irqs
+ /* implemented in arch/x86/kernel/apic/io_apic. */
+ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
+ void native_teardown_msi_irq(unsigned int irq);
++void native_restore_msi_irqs(struct pci_dev *dev, int irq);
+ /* default to the implementation in drivers/lib/msi.c */
+ #define HAVE_DEFAULT_MSI_TEARDOWN_IRQS
++#define HAVE_DEFAULT_MSI_RESTORE_IRQS
+ void default_teardown_msi_irqs(struct pci_dev *dev);
++void default_restore_msi_irqs(struct pci_dev *dev, int irq);
+ #else
+ #define native_setup_msi_irqs		NULL
+ #define native_teardown_msi_irq		NULL
+ #define default_teardown_msi_irqs	NULL
++#define default_restore_msi_irqs	NULL
+ #endif
+ 
+ #define PCI_DMA_BUS_IS_PHYS (dma_ops->is_phys)
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index d3d8590..7af18be 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -174,6 +174,7 @@ struct x86_msi_ops {
+ 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
+ 	void (*teardown_msi_irq)(unsigned int irq);
+ 	void (*teardown_msi_irqs)(struct pci_dev *dev);
++	void (*restore_msi_irqs)(struct pci_dev *dev, int irq);
+ };
+ 
+ extern struct x86_init_ops x86_init;
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 6f164bd..bd1fe10 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -110,4 +110,5 @@ struct x86_msi_ops x86_msi = {
+ 	.setup_msi_irqs = native_setup_msi_irqs,
+ 	.teardown_msi_irq = native_teardown_msi_irq,
+ 	.teardown_msi_irqs = default_teardown_msi_irqs,
++	.restore_msi_irqs = default_restore_msi_irqs,
+ };
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 0e6d04d..ba2ea4e 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -86,6 +86,31 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
+ }
+ #endif
+ 
++#ifndef arch_restore_msi_irqs
++# define arch_restore_msi_irqs default_restore_msi_irqs
++# define HAVE_DEFAULT_MSI_RESTORE_IRQS
++#endif
 +
-+	if ((pm1a_cnt & 0xffff0000) || (pm1b_cnt & 0xffff0000)) {
-+		WARN(1, "Using more than 16bits of PM1A/B 0x%x/0x%x!"
-+		     "Email xen-devel@lists.xensource.com  Thank you.\n", \
-+		     pm1a_cnt, pm1b_cnt);
-+		return AE_ERROR;
++#ifdef HAVE_DEFAULT_MSI_RESTORE_IRQS
++void default_restore_msi_irqs(struct pci_dev *dev, int irq)
++{
++	struct msi_desc *entry;
++
++	entry = NULL;
++	if (dev->msix_enabled) {
++		list_for_each_entry(entry, &dev->msi_list, list) {
++			if (irq == entry->irq)
++				break;
++		}
++	} else if (dev->msi_enabled)  {
++		entry = irq_get_msi_desc(irq);
 +	}
 +
-+	HYPERVISOR_dom0_op(&op);
-+	return AE_ERROR;
-+}
-diff --git a/include/xen/acpi.h b/include/xen/acpi.h
-new file mode 100644
-index 0000000..69a6890
---- /dev/null
-+++ b/include/xen/acpi.h
-@@ -0,0 +1,59 @@
-+/******************************************************************************
-+ * acpi.h
-+ * acpi file for domain 0 kernel
-+ *
-+ * Copyright (c) 2011 Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-+ * Copyright (c) 2011 Yu Ke <ke.yu@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation; or, when distributed
-+ * separately from the Linux kernel or incorporated into other
-+ * software packages, subject to the following license:
-+ *
-+ * Permission is hereby granted, free of charge, to any person obtaining a copy
-+ * of this source file (the "Software"), to deal in the Software without
-+ * restriction, including without limitation the rights to use, copy, modify,
-+ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
-+ * and to permit persons to whom the Software is furnished to do so, subject to
-+ * the following conditions:
-+ *
-+ * The above copyright notice and this permission notice shall be included in
-+ * all copies or substantial portions of the Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-+ * IN THE SOFTWARE.
-+ */
-+
-+#ifndef _XEN_ACPI_H
-+#define _XEN_ACPI_H
-+
-+#include <linux/types.h>
-+
-+#ifdef CONFIG_XEN_DOM0
-+#include <asm/xen/hypervisor.h>
-+#include <xen/xen.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpiosxf.h>
-+
-+acpi_status xen_acpi_notify_hypervisor_state(u8 sleep_state,
-+				     u32 pm1a_cnt, u32 pm1b_cnd);
-+
-+static inline void xen_acpi_sleep_register(void)
-+{
-+	if (xen_initial_domain())
-+		acpi_os_prepare_sleep_register(
-+			&xen_acpi_notify_hypervisor_state);
-+}
-+#else
-+static inline void xen_acpi_sleep_register(void)
-+{
++	if (entry)
++		write_msi_msg(irq, &entry->msg);
 +}
 +#endif
 +
-+#endif	/* _XEN_ACPI_H */
+ static void msi_set_enable(struct pci_dev *dev, int pos, int enable)
+ {
+ 	u16 control;
+@@ -360,7 +385,7 @@ static void __pci_restore_msi_state(struct pci_dev *dev)
+ 
+ 	pci_intx_for_msi(dev, 0);
+ 	msi_set_enable(dev, pos, 0);
+-	write_msi_msg(dev->irq, &entry->msg);
++	arch_restore_msi_irqs(dev, dev->irq);
+ 
+ 	pci_read_config_word(dev, pos + PCI_MSI_FLAGS, &control);
+ 	msi_mask_irq(entry, msi_capable_mask(control), entry->masked);
+@@ -388,7 +413,7 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
+ 	pci_write_config_word(dev, pos + PCI_MSIX_FLAGS, control);
+ 
+ 	list_for_each_entry(entry, &dev->msi_list, list) {
+-		write_msi_msg(entry->irq, &entry->msg);
++		arch_restore_msi_irqs(dev, entry->irq);
+ 		msix_mask_irq(entry, entry->masked);
+ 	}
+ 
 -- 
 1.7.7.1
 
