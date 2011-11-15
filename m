@@ -1,68 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/2] intel_idle: fix API misuse
-Date: Tue, 15 Nov 2011 15:12:36 -0800
-Message-ID: <201111152312.pAFNCbBi024085@wpaz5.hot.corp.google.com>
+Subject: [patch 2/2] intel_idle: disable auto_demotion for hotplugged CPUs
+Date: Tue, 15 Nov 2011 15:12:38 -0800
+Message-ID: <201111152312.pAFNCdQ8022132@wpaz1.hot.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ASCII
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:43982 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab1KOXR6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 18:17:58 -0500
-Received: by qyd20 with SMTP id 20so512547qyd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2011 15:17:57 -0800 (PST)
+Received: from mail-wy0-f202.google.com ([74.125.82.202]:62356 "EHLO
+	mail-wy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756664Ab1KOXTd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 18:19:33 -0500
+Received: by wye20 with SMTP id 20so132143wye.1
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2011 15:19:32 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
 Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, shaohua.li@intel.com, lenb@kernel.org
 
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: intel_idle: fix API misuse
+Subject: intel_idle: disable auto_demotion for hotplugged CPUs
 
-smp_call_function() only lets all other CPUs execute a specific function,
-while we expect all CPUs do in intel_idle.  Without the fix, we could have
-one cpu which has auto_demotion enabled or has no boradcast timer setup. 
-Usually we don't see impact because auto demotion just harms power and the
-intel_idle init is called in CPU 0, where boradcast timer delivers
-interrupt, but this still could be a problem.
+auto_demotion_disable is called only for online CPUs.  For hotplugged
+CPUs, we should disable it too.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/idle/intel_idle.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/idle/intel_idle.c |   53 ++++++++++++++++++++++--------------
+ 1 file changed, 33 insertions(+), 20 deletions(-)
 
-diff -puN drivers/idle/intel_idle.c~intel_idle-fix-api-misuse drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~intel_idle-fix-api-misuse
+diff -puN drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus
 +++ a/drivers/idle/intel_idle.c
-@@ -394,7 +394,7 @@ static int intel_idle_probe(void)
+@@ -297,33 +297,42 @@ static void __setup_broadcast_timer(void
+ 	clockevents_notify(reason, &cpu);
+ }
+ 
+-static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
++static void auto_demotion_disable(void *dummy)
++{
++	unsigned long long msr_bits;
++
++	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
++	msr_bits &= ~auto_demotion_disable_flags;
++	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
++}
++
++static void __intel_idle_notify_handler(void *arg)
++{
++	if (auto_demotion_disable_flags)
++		auto_demotion_disable(NULL);
++
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
++		__setup_broadcast_timer((void *)true);
++}
++
++static int setup_intelidle_cpuhp_notify(struct notifier_block *n,
+ 		unsigned long action, void *hcpu)
+ {
+ 	int hotcpu = (unsigned long)hcpu;
+ 
+ 	switch (action & 0xf) {
+ 	case CPU_ONLINE:
+-		smp_call_function_single(hotcpu, __setup_broadcast_timer,
+-			(void *)true, 1);
++		smp_call_function_single(hotcpu, __intel_idle_notify_handler,
++			NULL, 1);
+ 		break;
+ 	}
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block setup_broadcast_notifier = {
+-	.notifier_call = setup_broadcast_cpuhp_notify,
++static struct notifier_block setup_intelidle_notifier = {
++	.notifier_call = setup_intelidle_cpuhp_notify,
+ };
+ 
+-static void auto_demotion_disable(void *dummy)
+-{
+-	unsigned long long msr_bits;
+-
+-	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
+-	msr_bits &= ~auto_demotion_disable_flags;
+-	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
+-}
+-
+ /*
+  * intel_idle_probe()
+  */
+@@ -393,10 +402,8 @@ static int intel_idle_probe(void)
+ 
  	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
  		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
- 	else {
--		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
-+		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
- 		register_cpu_notifier(&setup_broadcast_notifier);
+-	else {
++	else
+ 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+-		register_cpu_notifier(&setup_broadcast_notifier);
+-	}
+ 
+ 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
+ 		" model 0x%X\n", boot_cpu_data.x86_model);
+@@ -559,6 +566,10 @@ static int __init intel_idle_init(void)
+ 		return retval;
  	}
  
-@@ -471,7 +471,7 @@ static int intel_idle_cpuidle_driver_ini
- 	}
- 
- 	if (auto_demotion_disable_flags)
--		smp_call_function(auto_demotion_disable, NULL, 1);
-+		on_each_cpu(auto_demotion_disable, NULL, 1);
- 
++	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
++	    LAPIC_TIMER_ALWAYS_RELIABLE)
++		register_cpu_notifier(&setup_intelidle_notifier);
++
  	return 0;
  }
-@@ -568,7 +568,7 @@ static void __exit intel_idle_exit(void)
+ 
+@@ -567,10 +578,12 @@ static void __exit intel_idle_exit(void)
+ 	intel_idle_cpuidle_devices_uninit();
  	cpuidle_unregister_driver(&intel_idle_driver);
  
- 	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
--		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
-+		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
- 		unregister_cpu_notifier(&setup_broadcast_notifier);
- 	}
+-	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
+ 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
+-		unregister_cpu_notifier(&setup_broadcast_notifier);
+-	}
++
++	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
++	    LAPIC_TIMER_ALWAYS_RELIABLE)
++		unregister_cpu_notifier(&setup_intelidle_notifier);
  
+ 	return;
+ }
 _
