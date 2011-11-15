@@ -1,62 +1,35 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: Resuming from hibernation on T61 with nvidia
-Date: Wed, 16 Nov 2011 01:04:42 +0530
-Message-ID: <4EC2BED2.3000707@linux.vnet.ibm.com>
+Date: Tue, 15 Nov 2011 19:58:32 +0000
+Message-ID: <20111115195832.GA9384@srcf.ucam.org>
 References: <op.v4z4ihs2wcw97g@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp07.au.ibm.com ([202.81.31.140]:40095 "EHLO
-	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756356Ab1KOTep (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 14:34:45 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:52127 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932077Ab1KOT6f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 14:58:35 -0500
+Content-Disposition: inline
 In-Reply-To: <op.v4z4ihs2wcw97g@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: dienet <dienet@poczta.fm>
-Cc: linux-acpi@vger.kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On 11/16/2011 12:32 AM, dienet wrote:
-> Hello
-> 
-> As far I can remember (since I have my ThinkPad T61), there is problem 
-> with resuming from hibernation (suspend-to-disk) on this system. And I 
-> know that there are lots of people with the same problem.
-> I was checking lots of kernel versions but with no luck.
-> 
-> Was is the problem? In my T61 I have 01:00.0 VGA compatible controller: 
-> nVidia Corporation G84M [Quadro NVS 140M] (rev a1) and I am using
-> nvidia  drivers (also checked quite a few versions without any luck).
-> Suspending  to disk is working without any problem. The problem is when
-> I want to  resume. The resume process is stopping at some point (I think
-> after the  pages are red) for about 60 seconds. After that time, the
-> resume process  is continuing, and after few sec, I am back in X11.
-> 
-> I have motivation to fix it, but:
-> 
-> 1. How to trace it?
-> 2. Is it possible to fix this? Maybe the fix should take place in
-> nvidia  driver (nvidia.o), and that can not be done. But maybe the fix
-> can be done  in kernel?
-> 
-> I want to notice that, if the fix will only work for me, then that is
-> fine  with me.
-> 
-> I know that answer to 2. might be hard, so maybe some guide how to
-> trace  the problem?
-> 
+On Tue, Nov 15, 2011 at 08:02:31PM +0100, dienet wrote:
 
-Hi,
+> Was is the problem? In my T61 I have 01:00.0 VGA compatible
+> controller:  nVidia Corporation G84M [Quadro NVS 140M] (rev a1) and
+> I am using nvidia  drivers (also checked quite a few versions
+> without any luck). Suspending  to disk is working without any
+> problem. The problem is when I want to  resume. The resume process
+> is stopping at some point (I think after the  pages are red) for
+> about 60 seconds. After that time, the resume process  is
+> continuing, and after few sec, I am back in X11.
 
-[Adding linux-pm and linux-kernel mailing lists to CC.]
+Does the same thing happen if you use nouveau rather than the nvidia 
+drivers?
 
-You can try using the pm_test framework for debugging this, to a certain
-extent. See Documentation/power/basic-pm-debugging.txt for details on how
-to use it.
-
-Also, if you could post any logs that indicate the problem, that would
-be great!
-
-Thanks,
-Srivatsa S. Bhat
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
