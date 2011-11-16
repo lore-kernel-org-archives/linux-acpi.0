@@ -1,65 +1,131 @@
-From: Joshua Scoggins <theoretically.x64@gmail.com>
-Subject: Re: Resuming from hibernation on T61 with nvidia
-Date: Wed, 16 Nov 2011 08:50:12 -0800
-Message-ID: <CAK3HsqtQp=hSAX6nOU4wJTHNxyWNdgEF7uBiS=C=XrTCMiXX1w@mail.gmail.com>
-References: <op.v4z4ihs2wcw97g@localhost>
-	<20111115195832.GA9384@srcf.ucam.org>
-	<op.v4z8zxnwwcw97g@localhost>
-	<20111115204201.GA10466@srcf.ucam.org>
-	<op.v40bngvvwcw97g@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Daniel Drake <dsd@laptop.org>
+Subject: [PATCH resend] x86, olpc-xo15-sci: Enable lid close wakeup control through sysfs
+Date: Wed, 16 Nov 2011 16:13:11 +0000 (GMT)
+Message-ID: <20111116161311.C32AA9D401E@zog.reactivated.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35969 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217Ab1KPQuO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2011 11:50:14 -0500
-In-Reply-To: <op.v40bngvvwcw97g@localhost>
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:52978 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751250Ab1KPSMR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Nov 2011 13:12:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: dienet <dienet@poczta.fm>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
+To: x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, dilinger@queued.net, pgf@laptop.org, linux-acpi@vger.kernel.org
 
-Don't forget that you can use nvidia-reportbug.sh...can't remember
-exactly what its called but
-I know that nvidia does actually look at those generated bug reports.
+Like most systems, OLPC's ACPI LID switch wakes up the system when the
+lid is opened, but not when it is closed.
 
--Josh
+Under OLPC's opportunistic suspend model, the lid may be closed while
+the system was oportunistically suspended with the screen running.
+In this event, we want to wake up to turn the screen off.
 
-On Tue, Nov 15, 2011 at 1:36 PM, dienet <dienet@poczta.fm> wrote:
-> On Tue, 15 Nov 2011 21:42:01 +0100, Matthew Garrett <mjg59@srcf.ucam.=
-org>
-> =A0wrote:
->
->> In that case it's almost certainly something you need to bring up wi=
-th
->> nvidia.
->
-> Yes, but that might be hard, or even impossible. Maybe there is somet=
-hing
-> =A0that I can change in kernel to fix it, without breaking too much o=
-r not
-> =A0breaking anything ;)
->
-> --
-> pozdr0
-> dienet
->
-> "Old C programmers never die. They're just cast into void."
->
-> ----------------------------------------------------------------
-> Mamy mieszkanie wlasnie dla Ciebie! Sprawdz >>
-> http://linkint.pl/f2a80
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Enable control of normal ACPI wakeups through lid close events through
+a new sysfs attribute "lid_wake_on_closed". When set, and when
+LID wakeups are enabled through ACPI, the system will wake up on both
+open and close lid events.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ arch/x86/platform/olpc/olpc-xo15-sci.c |   55 ++++++++++++++++++++++++++++++++
+ 1 files changed, 55 insertions(+), 0 deletions(-)
+
+Resending after 4 weeks with no feedback.
+
+diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
+index 2b235b7..649230c 100644
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c
++++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
+@@ -24,6 +24,50 @@
+ #define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
+ 
+ static unsigned long xo15_sci_gpe;
++static bool lid_wake_on_close;
++
++static int set_lid_wake_behavior(bool wake_on_close)
++{
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = wake_on_close;
++	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
++				      NULL);
++	if (ACPI_FAILURE(status)) {
++		pr_warning(PFX "failed to set lid behaviour\n");
++		return 1;
++	}
++
++	lid_wake_on_close = wake_on_close;
++	return 0;
++}
++
++static ssize_t lid_wake_on_close_show(struct kobject *s,
++				      struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%u\n", lid_wake_on_close);
++}
++
++static ssize_t lid_wake_on_close_store(struct kobject *s,
++				       struct kobj_attribute *attr,
++				       const char *buf, size_t n)
++{
++	unsigned int val;
++	if (!sscanf(buf, "%u", &val) == 1)
++		return -EINVAL;
++
++	set_lid_wake_behavior(!!val);
++	return n;
++}
++
++static struct kobj_attribute lid_wake_on_close_attr =
++	__ATTR(lid_wake_on_close, 0644,
++	       lid_wake_on_close_show, lid_wake_on_close_store);
+ 
+ static void battery_status_changed(void)
+ {
+@@ -91,6 +135,7 @@ static int xo15_sci_add(struct acpi_device *device)
+ {
+ 	unsigned long long tmp;
+ 	acpi_status status;
++	int r;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+@@ -112,6 +157,10 @@ static int xo15_sci_add(struct acpi_device *device)
+ 
+ 	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
+ 
++	r = sysfs_create_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
++	if (r)
++		goto err_sysfs;
++
+ 	/* Flush queue, and enable all SCI events */
+ 	process_sci_queue();
+ 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
+@@ -123,6 +172,11 @@ static int xo15_sci_add(struct acpi_device *device)
+ 		device_init_wakeup(&device->dev, true);
+ 
+ 	return 0;
++
++err_sysfs:
++	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
++	cancel_work_sync(&sci_work);
++	return r;
+ }
+ 
+ static int xo15_sci_remove(struct acpi_device *device, int type)
+@@ -130,6 +184,7 @@ static int xo15_sci_remove(struct acpi_device *device, int type)
+ 	acpi_disable_gpe(NULL, xo15_sci_gpe);
+ 	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
+ 	cancel_work_sync(&sci_work);
++	sysfs_remove_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
+ 	return 0;
+ }
+ 
+-- 
+1.7.7.1
+
