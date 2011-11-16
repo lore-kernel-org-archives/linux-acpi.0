@@ -1,133 +1,96 @@
-From: akpm@linux-foundation.org
-Subject: [patch 2/2] intel_idle: disable auto_demotion for hotplugged CPUs
-Date: Tue, 15 Nov 2011 15:12:38 -0800
-Message-ID: <201111152312.pAFNCdQ8022132@wpaz1.hot.corp.google.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/2] ACPICA: support Generic Address Structure bit_offset
+ in acpi_read/write
+Date: Wed, 16 Nov 2011 08:45:11 -0700
+Message-ID: <CAErSpo6E6ZLRMhLjE1zHjth=gO-LrhnTz=msRjY7mfG4ckCLfw@mail.gmail.com>
+References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
+ <20111111230513.20897.36014.stgit@bhelgaas.mtv.corp.google.com>
+ <CAErSpo7SJNM73ei5aN=9UCsvgU6OZoupWUoUP3Hts3GGfwE37A@mail.gmail.com> <201111151749.53917.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wy0-f202.google.com ([74.125.82.202]:62356 "EHLO
-	mail-wy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756664Ab1KOXTd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2011 18:19:33 -0500
-Received: by wye20 with SMTP id 20so132143wye.1
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2011 15:19:32 -0800 (PST)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:59727 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892Ab1KPPpb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2011 10:45:31 -0500
+Received: by ggnb2 with SMTP id b2so8931234ggn.19
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Nov 2011 07:45:31 -0800 (PST)
+In-Reply-To: <201111151749.53917.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, shaohua.li@intel.com, lenb@kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, bondd@us.ibm.com, Myron Stowe <myron.stowe@redhat.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: intel_idle: disable auto_demotion for hotplugged CPUs
+On Tue, Nov 15, 2011 at 9:49 AM, Thomas Renninger <trenn@suse.de> wrote=
+:
+> On Tuesday, November 15, 2011 04:13:15 PM Bjorn Helgaas wrote:
+>> On Fri, Nov 11, 2011 at 4:05 PM, Bjorn Helgaas <bhelgaas@google.com>=
+ wrote:
+>> > acpi_read(), acpi_write(), acpi_hw_read(), and acpi_hw_write() cur=
+rently
+>> > ignore the GAS bit_offset field (but they do warn if it is non-zer=
+o).
+>> >
+>> > APEI tables are starting to use non-zero bit_offsets. =A0APEI uses
+>> > special-purpose apei_exec_read_register() and apei_exec_write_regi=
+ster()
+>> > interfaces that apply the bit_offset.
+>> >
+>> > This patch adds bit_offset support to the generic interfaces, whic=
+h is
+>> > one small step toward using them instead of the special-purpose AP=
+EI ones.
+>>
+>> Eww, brown paper bag time. =A0Just pretend you never saw this lame
+>> implementation attempt.
+>>
+>> I do think we need to make acpi_read() smart enough to extract a bit
+>> field, but this try doesn't work.
+>
+> As a first step it would be great if Ying's and Myron's patches which
+> afaik conflict get serialized and pushed into an "acpi branch".
+> What the status there?
 
-auto_demotion_disable is called only for online CPUs.  For hotplugged
-CPUs, we should disable it too.
+Ying's patch ("Add RAM mapping support") fixes a real issue with using
+EINJ, so we need to do something with it.  Myron's patches are a nice
+refactoring, but as far as I know, they don't fix any current issues,
+and there's still a lot of work to hash out how to handle bit_offset,
+bit_width, and access_width.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+I think we should regard Ying's patches as being first in line, and
+Myron's as work in progress.  So I don't think we're ready to try to
+combine them and resolve conflicts yet -- Myron just has to update his
+work to follow whatever Ying does.
 
- drivers/idle/intel_idle.c |   53 ++++++++++++++++++++++--------------
- 1 file changed, 33 insertions(+), 20 deletions(-)
+> I'd like to add access width support to the APEI parts on top then.
 
-diff -puN drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus
-+++ a/drivers/idle/intel_idle.c
-@@ -297,33 +297,42 @@ static void __setup_broadcast_timer(void
- 	clockevents_notify(reason, &cpu);
- }
- 
--static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
-+static void auto_demotion_disable(void *dummy)
-+{
-+	unsigned long long msr_bits;
-+
-+	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+	msr_bits &= ~auto_demotion_disable_flags;
-+	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+}
-+
-+static void __intel_idle_notify_handler(void *arg)
-+{
-+	if (auto_demotion_disable_flags)
-+		auto_demotion_disable(NULL);
-+
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
-+		__setup_broadcast_timer((void *)true);
-+}
-+
-+static int setup_intelidle_cpuhp_notify(struct notifier_block *n,
- 		unsigned long action, void *hcpu)
- {
- 	int hotcpu = (unsigned long)hcpu;
- 
- 	switch (action & 0xf) {
- 	case CPU_ONLINE:
--		smp_call_function_single(hotcpu, __setup_broadcast_timer,
--			(void *)true, 1);
-+		smp_call_function_single(hotcpu, __intel_idle_notify_handler,
-+			NULL, 1);
- 		break;
- 	}
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block setup_broadcast_notifier = {
--	.notifier_call = setup_broadcast_cpuhp_notify,
-+static struct notifier_block setup_intelidle_notifier = {
-+	.notifier_call = setup_intelidle_cpuhp_notify,
- };
- 
--static void auto_demotion_disable(void *dummy)
--{
--	unsigned long long msr_bits;
--
--	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--	msr_bits &= ~auto_demotion_disable_flags;
--	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--}
--
- /*
-  * intel_idle_probe()
-  */
-@@ -393,10 +402,8 @@ static int intel_idle_probe(void)
- 
- 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
- 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
--	else {
-+	else
- 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
--		register_cpu_notifier(&setup_broadcast_notifier);
--	}
- 
- 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
- 		" model 0x%X\n", boot_cpu_data.x86_model);
-@@ -559,6 +566,10 @@ static int __init intel_idle_init(void)
- 		return retval;
- 	}
- 
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		register_cpu_notifier(&setup_intelidle_notifier);
-+
- 	return 0;
- }
- 
-@@ -567,10 +578,12 @@ static void __exit intel_idle_exit(void)
- 	intel_idle_cpuidle_devices_uninit();
- 	cpuidle_unregister_driver(&intel_idle_driver);
- 
--	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
- 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
--		unregister_cpu_notifier(&setup_broadcast_notifier);
--	}
-+
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		unregister_cpu_notifier(&setup_intelidle_notifier);
- 
- 	return;
- }
-_
+We should try very hard to treat APEI generic address structures the
+same way as all others.  If that means some machines need firmware
+upgrades or some sort of quirks to work around BIOS bugs, we might
+have to accept that.  I think a single set of GAS accessors plus a few
+quirks that fix the GAS structures is far better than having
+APEI-specific GAS accessors that are basically tailored to a few
+broken machines.
+
+To make acpi_read/acpi_write truly generic, we really need to nail
+down the semantics of GAS bit_offset, bit_width, and access_width.
+
+It would be useful to know how Windows deals with those.  I don't
+think we have convincing information about it (all I remember is
+"here's a GAS that looks wrong, but Windows still works," but I don't
+think we know exactly *what* Windows is doing, or even whether it
+looks at the broken GAS).  If we could figure out a way to feed a
+variety of structures to Windows and observe what happens with
+something like qemu, I think we'd learn a lot.
+
+Or maybe we could learn enough from a conversation with BIOS writers
+about how they interpret the spec and what they expect to happen with
+non-zero bit_offset and bit_width.
+
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
