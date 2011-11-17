@@ -1,93 +1,77 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 5/5] ACPI processor: Remove unneeded variable passed by acpi_processor_hotadd_init
-Date: Thu, 17 Nov 2011 23:37:01 +0100
-Message-ID: <1321569421-46220-6-git-send-email-trenn@suse.de>
+Subject: [PATCH 1/5] ACPI processor: Do not export acpi_idle_driver in processor.h
+Date: Thu, 17 Nov 2011 23:36:57 +0100
+Message-ID: <1321569421-46220-2-git-send-email-trenn@suse.de>
 References: <1321569421-46220-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34583 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:34579 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753006Ab1KQWhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752980Ab1KQWhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 17 Nov 2011 17:37:13 -0500
 In-Reply-To: <1321569421-46220-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, "Jiang, Yunhong" <yunhong.jiang@intel.com>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org
 
-This is a very small part taken from patches which afaik
-are coming from Yunhong Jiang for Xen.
-Xen CPU hotplug things not existing in Linus kernel yet were
-removed.
+Instead move its declaration from processor_idle.c to processor_driver.c
+and declare it static as it's the only file using this struct.
 
-Cleanup only: no functional change.
+Cleanup only, no functional change.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: Len Brown <lenb@kernel.org>
 CC: linux-acpi@vger.kernel.org
-CC: Bjorn Helgaas <bhelgaas@google.com>
-CC: Jiang, Yunhong <yunhong.jiang@intel.com>
 ---
- drivers/acpi/processor_driver.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/acpi/processor_driver.c |    5 +++++
+ drivers/acpi/processor_idle.c   |    5 -----
+ include/acpi/processor.h        |    1 -
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 3e5763f..66887a5 100644
+index a4e0f1b..3a4fc0c 100644
 --- a/drivers/acpi/processor_driver.c
 +++ b/drivers/acpi/processor_driver.c
-@@ -82,7 +82,7 @@ MODULE_LICENSE("GPL");
- static int acpi_processor_add(struct acpi_device *device);
- static int acpi_processor_remove(struct acpi_device *device, int type);
- static void acpi_processor_notify(struct acpi_device *device, u32 event);
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
+@@ -106,6 +106,11 @@ static struct acpi_driver acpi_processor_driver = {
+ 		},
+ };
  
++static struct cpuidle_driver acpi_idle_driver = {
++	.name =		"acpi_idle",
++	.owner =	THIS_MODULE,
++};
++
+ #define INSTALL_NOTIFY_HANDLER		1
+ #define UNINSTALL_NOTIFY_HANDLER	2
  
-@@ -330,10 +330,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	 *  they are physically not present.
- 	 */
- 	if (pr->id == -1) {
--		if (ACPI_FAILURE
--		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
-+		if (ACPI_FAILURE (acpi_processor_hotadd_init(pr->handle)))
- 			return -ENODEV;
--		}
- 	}
- 	/*
- 	 * On some boxes several processors use the same processor bus id.
-@@ -727,18 +725,19 @@ processor_walk_namespace_cb(acpi_handle handle,
- 	return (AE_OK);
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 9b88f98..7fed4f3 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -968,11 +968,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	return idle_time;
  }
  
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
-+	acpi_handle handle = pr->handle;
+-struct cpuidle_driver acpi_idle_driver = {
+-	.name =		"acpi_idle",
+-	.owner =	THIS_MODULE,
+-};
+-
+ /**
+  * acpi_processor_setup_cpuidle - prepares and configures CPUIDLE
+  * @pr: the ACPI processor
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 67055f1..5b27bc3 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -333,7 +333,6 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device);
+ int acpi_processor_suspend(struct acpi_device * device, pm_message_t state);
+ int acpi_processor_resume(struct acpi_device * device);
+-extern struct cpuidle_driver acpi_idle_driver;
  
- 	if (!is_processor_present(handle)) {
- 		return AE_ERROR;
- 	}
- 
--	if (acpi_map_lsapic(handle, p_cpu))
-+	if (acpi_map_lsapic(handle, &pr-id))
- 		return AE_ERROR;
- 
--	if (arch_register_cpu(*p_cpu)) {
--		acpi_unmap_lsapic(*p_cpu);
-+	if (arch_register_cpu(pr->id)) {
-+		acpi_unmap_lsapic(pr->id);
- 		return AE_ERROR;
- 	}
- 
-@@ -755,7 +754,7 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
- 	return (0);
- }
- #else
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	return AE_ERROR;
- }
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
 -- 
 1.7.6.1
 
