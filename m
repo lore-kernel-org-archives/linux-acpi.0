@@ -1,193 +1,84 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 3/5] intel_idle: Split up and provide per CPU initialization func
-Date: Thu, 17 Nov 2011 23:36:59 +0100
-Message-ID: <1321569421-46220-4-git-send-email-trenn@suse.de>
+Subject: [PATCH 2/5] ACPI processor: Avoid WARN message on processor driver removal
+Date: Thu, 17 Nov 2011 23:36:58 +0100
+Message-ID: <1321569421-46220-3-git-send-email-trenn@suse.de>
 References: <1321569421-46220-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34581 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:34578 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752893Ab1KQWhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752173Ab1KQWhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 17 Nov 2011 17:37:13 -0500
 In-Reply-To: <1321569421-46220-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 
-Function split up, should have no functional change
+Only unregister acpi_idle driver if acpi_idle driver got
+registered.
+
+Also add a static acpi_idle_active variable for easy and nicer
+checking whether acpi_idle_driver is active (as suggested by
+Bjorn).
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: Len Brown <lenb@kernel.org>
 CC: linux-acpi@vger.kernel.org
+CC: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/idle/intel_idle.c |  108 +++++++++++++++++++++-----------------------
- include/linux/cpuidle.h   |    7 +++
- 2 files changed, 59 insertions(+), 56 deletions(-)
+ drivers/acpi/processor_driver.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index a46dddf..c108d2a 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -397,77 +397,67 @@ static void intel_idle_cpuidle_devices_uninit(void)
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 3a4fc0c..790623f 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -110,6 +110,7 @@ static struct cpuidle_driver acpi_idle_driver = {
+ 	.name =		"acpi_idle",
+ 	.owner =	THIS_MODULE,
+ };
++static int acpi_idle_active;
+ 
+ #define INSTALL_NOTIFY_HANDLER		1
+ #define UNINSTALL_NOTIFY_HANDLER	2
+@@ -508,8 +509,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 	acpi_processor_get_throttling_info(pr);
+ 	acpi_processor_get_limit_info(pr);
+ 
+-
+-	if (cpuidle_get_driver() == &acpi_idle_driver)
++	if (acpi_idle_active)
+ 		acpi_processor_power_init(pr, device);
+ 
+ 	pr->cdev = thermal_cooling_device_register("Processor", device,
+@@ -808,6 +808,7 @@ static int __init acpi_processor_init(void)
+ 	if (!cpuidle_register_driver(&acpi_idle_driver)) {
+ 		printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
+ 			acpi_idle_driver.name);
++		acpi_idle_active = 1;
+ 	} else {
+ 		printk(KERN_DEBUG "ACPI: acpi_idle yielding to %s\n",
+ 			cpuidle_get_driver()->name);
+@@ -828,7 +829,8 @@ static int __init acpi_processor_init(void)
+ 	return 0;
+ 
+ out_cpuidle:
+-	cpuidle_unregister_driver(&acpi_idle_driver);
++	if (acpi_idle_active)
++		cpuidle_unregister_driver(&acpi_idle_driver);
+ 
+ 	return result;
+ }
+@@ -846,7 +848,8 @@ static void __exit acpi_processor_exit(void)
+ 
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+-	cpuidle_unregister_driver(&acpi_idle_driver);
++	if (acpi_idle_active)
++		cpuidle_unregister_driver(&acpi_idle_driver);
+ 
  	return;
  }
- /*
-- * intel_idle_cpuidle_devices_init()
-+ * intel_idle_cpu_init()
-  * allocate, initialize, register cpuidle_devices
-+ * @cpu: cpu/core to initialize
-  */
--static int intel_idle_cpuidle_devices_init(void)
-+int intel_idle_cpu_init(int cpu)
- {
--	int i, cstate;
-+	int cstate;
- 	struct cpuidle_device *dev;
- 
--	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
--	if (intel_idle_cpuidle_devices == NULL)
--		return -ENOMEM;
-+	dev = per_cpu_ptr(intel_idle_cpuidle_devices, cpu);
- 
--	for_each_online_cpu(i) {
--		dev = per_cpu_ptr(intel_idle_cpuidle_devices, i);
-+	dev->state_count = 1;
- 
--		dev->state_count = 1;
--
--		for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
--			int num_substates;
--
--			if (cstate > max_cstate) {
--				printk(PREFIX "max_cstate %d reached\n",
--					max_cstate);
--				break;
--			}
--
--			/* does the state exist in CPUID.MWAIT? */
--			num_substates = (mwait_substates >> ((cstate) * 4))
--						& MWAIT_SUBSTATE_MASK;
--			if (num_substates == 0)
--				continue;
--			/* is the state not enabled? */
--			if (cpuidle_state_table[cstate].enter == NULL) {
--				/* does the driver not know about the state? */
--				if (*cpuidle_state_table[cstate].name == '\0')
--					pr_debug(PREFIX "unaware of model 0x%x"
--						" MWAIT %d please"
--						" contact lenb@kernel.org",
--					boot_cpu_data.x86_model, cstate);
--				continue;
--			}
--
--			if ((cstate > 2) &&
--				!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
--				mark_tsc_unstable("TSC halts in idle"
--					" states deeper than C2");
--
--			dev->states[dev->state_count] =	/* structure copy */
--				cpuidle_state_table[cstate];
--
--			dev->state_count += 1;
-+	for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
-+		int num_substates;
-+
-+		if (cstate > max_cstate) {
-+			printk(PREFIX "max_cstate %d reached\n", max_cstate);
-+			break;
- 		}
- 
--		dev->cpu = i;
--		if (cpuidle_register_device(dev)) {
--			pr_debug(PREFIX "cpuidle_register_device %d failed!\n",
--				 i);
--			intel_idle_cpuidle_devices_uninit();
--			return -EIO;
-+		/* does the state exist in CPUID.MWAIT? */
-+		num_substates = (mwait_substates >> ((cstate) * 4))
-+			& MWAIT_SUBSTATE_MASK;
-+		if (num_substates == 0)
-+			continue;
-+		/* is the state not enabled? */
-+		if (cpuidle_state_table[cstate].enter == NULL) {
-+			/* does the driver not know about the state? */
-+			if (*cpuidle_state_table[cstate].name == '\0')
-+				pr_debug(PREFIX "unaware of model 0x%x  MWAIT "
-+					 "%d please contact lenb@kernel.org",
-+					 boot_cpu_data.x86_model, cstate);
-+			continue;
- 		}
-+
-+		if ((cstate > 2) && !boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
-+			mark_tsc_unstable("TSC halts in idle"
-+					  " states deeper than C2");
-+
-+		dev->states[dev->state_count] =	/* structure copy */
-+			cpuidle_state_table[cstate];
-+		dev->state_count += 1;
-+	}
-+	dev->cpu = cpu;
-+	if (cpuidle_register_device(dev)) {
-+		pr_debug(PREFIX "cpuidle_register_device %d failed!\n", cpu);
-+		intel_idle_cpuidle_devices_uninit();
-+		return -EIO;
- 	}
- 	if (auto_demotion_disable_flags)
--		smp_call_function(auto_demotion_disable, NULL, 1);
-+		smp_call_function_single(cpu, auto_demotion_disable, NULL, 1);
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(intel_idle_cpu_init);
- 
- 
- static int __init intel_idle_init(void)
- {
--	int retval;
-+	int retval, i;
- 
- 	/* Do not load intel_idle at all for now if idle= is passed */
- 	if (boot_option_idle_override != IDLE_NO_OVERRIDE)
-@@ -484,10 +474,16 @@ static int __init intel_idle_init(void)
- 		return retval;
- 	}
- 
--	retval = intel_idle_cpuidle_devices_init();
--	if (retval) {
--		cpuidle_unregister_driver(&intel_idle_driver);
--		return retval;
-+	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
-+	if (intel_idle_cpuidle_devices == NULL)
-+		return -ENOMEM;
-+
-+	for_each_online_cpu(i) {
-+		retval = intel_idle_cpu_init(i);
-+		if (retval) {
-+			cpuidle_unregister_driver(&intel_idle_driver);
-+			return retval;
-+		}
- 	}
- 
- 	return 0;
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index b51629e..15bd1bd 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -179,7 +179,14 @@ struct cpuidle_governor {
- extern int cpuidle_register_governor(struct cpuidle_governor *gov);
- extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
- 
-+#ifdef CONFIG_INTEL_IDLE
-+extern int intel_idle_cpu_init(int cpu);
- #else
-+static inline int intel_idle_cpu_init(int cpu) { return -1; }
-+#endif
-+
-+#else
-+static inline int intel_idle_cpu_init(int cpu) { return -1; }
- 
- static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
- {return 0;}
 -- 
 1.7.6.1
 
