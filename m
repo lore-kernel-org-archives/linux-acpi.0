@@ -1,217 +1,38 @@
-From: Seiji Aguchi <seiji.aguchi@hds.com>
-Subject: [RFC][PATCH]ACPI,APEI,ERST, back end driver for NVRAM
-Date: Thu, 17 Nov 2011 15:47:37 -0500
-Message-ID: <5C4C569E8A4B9B42A84A977CF070A35B2C57AC8046@USINDEVS01.corp.hds.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Luck, Tony" <tony.luck@>
-Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 4/5] ACPI processor: Fix error path, also remove sysdev link
+Date: Thu, 17 Nov 2011 23:37:00 +0100
+Message-ID: <1321569421-46220-5-git-send-email-trenn@suse.de>
+References: <1321569421-46220-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:34580 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752726Ab1KQWhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Nov 2011 17:37:13 -0500
+In-Reply-To: <1321569421-46220-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org
 
-Hi,
-
-I developed write/read/clear functions of ERST driver for NVRAM. 
-According to ACPI 4.0 specification, we can use the same procedure as storage.
-
-This patch is tested on DELL PowerEdge T310.
-
-Any comments are welcome.
-
- Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
-
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/apei/erst.c |  145 +++++++++++++++++++++++++++++++++++++---------
- 1 files changed, 117 insertions(+), 28 deletions(-)
+ drivers/acpi/processor_driver.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 1274080..4806283 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -755,30 +755,125 @@ static int __erst_clear_from_storage(u64 record_id)
- 	return erst_errno(val);
- }
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 790623f..3e5763f 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -545,6 +545,7 @@ err_thermal_unregister:
+ 	thermal_cooling_device_unregister(pr->cdev);
+ err_power_exit:
+ 	acpi_processor_power_exit(pr, device);
++	sysfs_remove_link(&device->dev.kobj, "sysdev");
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
  
--/* NVRAM ERST Error Log Address Range is not supported yet */
--static void pr_unimpl_nvram(void)
-+static int __erst_write_to_nvram(u64 offset)
- {
--	if (printk_ratelimit())
--		pr_warning(ERST_PFX
--		"NVRAM ERST Log Address Range is not implemented yet\n");
--}
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
- 
--static int __erst_write_to_nvram(const struct cper_record_header *record)
--{
--	/* do not print message, because printk is not safe for NMI */
--	return -ENOSYS;
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_WRITE);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, offset);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	}
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
- }
- 
--static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
-+static int __erst_read_to_erange_from_nvram(u64 record_id, u64 offset)
- {
--	pr_unimpl_nvram();
--	return -ENOSYS;
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_READ);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, offset);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, record_id);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	}
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
- }
- 
- static int __erst_clear_from_nvram(u64 record_id)
- {
--	pr_unimpl_nvram();
--	return -ENOSYS;
-+	struct apei_exec_context ctx;
-+	u64 timeout = FIRMWARE_TIMEOUT;
-+	u64 val;
-+	int rc;
-+
-+	erst_exec_ctx_init(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_CLEAR);
-+	if (rc)
-+		return rc;
-+	apei_exec_ctx_set_input(&ctx, record_id);
-+	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
-+	if (rc)
-+		return rc;
-+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-+	if (rc)
-+		return rc;
-+	for (;;) {
-+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-+		if (rc)
-+			return rc;
-+		val = apei_exec_ctx_get_output(&ctx);
-+		if (!val)
-+			break;
-+		if (erst_timedout(&timeout, SPIN_UNIT))
-+			return -EIO;
-+	}
-+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
-+	if (rc)
-+		return rc;
-+	val = apei_exec_ctx_get_output(&ctx);
-+	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
-+	if (rc)
-+		return rc;
-+
-+	return erst_errno(val);
- }
- 
- int erst_write(const struct cper_record_header *record)
-@@ -793,14 +888,6 @@ int erst_write(const struct cper_record_header *record)
- 	if (memcmp(record->signature, CPER_SIG_RECORD, CPER_SIG_SIZE))
- 		return -EINVAL;
- 
--	if (erst_erange.attr & ERST_RANGE_NVRAM) {
--		if (!raw_spin_trylock_irqsave(&erst_lock, flags))
--			return -EBUSY;
--		rc = __erst_write_to_nvram(record);
--		raw_spin_unlock_irqrestore(&erst_lock, flags);
--		return rc;
--	}
--
- 	if (record->record_length > erst_erange.size)
- 		return -EINVAL;
- 
-@@ -811,7 +898,10 @@ int erst_write(const struct cper_record_header *record)
- 	/* signature for serialization system */
- 	memcpy(&rcd_erange->persistence_information, "ER", 2);
- 
--	rc = __erst_write_to_storage(0);
-+	if (erst_erange.attr & ERST_RANGE_NVRAM)
-+		rc = __erst_write_to_nvram(0);
-+	else
-+		rc = __erst_write_to_storage(0);
- 	raw_spin_unlock_irqrestore(&erst_lock, flags);
- 
- 	return rc;
-@@ -823,10 +913,9 @@ static int __erst_read_to_erange(u64 record_id, u64 *offset)
- 	int rc;
- 
- 	if (erst_erange.attr & ERST_RANGE_NVRAM)
--		return __erst_read_to_erange_from_nvram(
--			record_id, offset);
--
--	rc = __erst_read_from_storage(record_id, 0);
-+		rc = __erst_read_to_erange_from_nvram(record_id, 0);
-+	else
-+		rc = __erst_read_from_storage(record_id, 0);
- 	if (rc)
- 		return rc;
- 	*offset = 0;
 -- 
-1.7.1
+1.7.6.1
+
