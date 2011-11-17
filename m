@@ -1,51 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Thomas Renninger <trenn@suse.de>
 Subject: Re: [PATCH 2/2] ACPICA: support Generic Address Structure bit_offset in acpi_read/write
-Date: Fri, 18 Nov 2011 00:10:10 +0100
-Message-ID: <201111180010.11173.rjw@sisk.pl>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com> <201111170027.14509.rjw@sisk.pl> <CAErSpo4TC-M31rp1fHw6ZsTHehAsXi-6eGmLEpNytiL-ez+iLQ@mail.gmail.com>
+Date: Fri, 18 Nov 2011 00:38:37 +0100
+Message-ID: <201111180038.38133.trenn@suse.de>
+References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com> <1321491083.13860.93.camel@yhuang-dev> <201111172127.40664.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44770 "EHLO ogre.sisk.pl"
+Received: from cantor2.suse.de ([195.135.220.15]:37917 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753202Ab1KQXH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Nov 2011 18:07:29 -0500
-In-Reply-To: <CAErSpo4TC-M31rp1fHw6ZsTHehAsXi-6eGmLEpNytiL-ez+iLQ@mail.gmail.com>
+	id S1754067Ab1KQXim (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Nov 2011 18:38:42 -0500
+In-Reply-To: <201111172127.40664.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, bondd@us.ibm.com, Myron Stowe <myron.stowe@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Huang Ying <ying.huang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Thursday, November 17, 2011, Bjorn Helgaas wrote:
-> On Wed, Nov 16, 2011 at 4:27 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Wednesday, November 16, 2011, Bjorn Helgaas wrote:
+On Thursday 17 November 2011 21:27:40 Rafael J. Wysocki wrote:
+> On Thursday, November 17, 2011, Huang Ying wrote:
+... 
+> > page_is_ram() is used by x86 ioremap implementation to exclude RAM
+> > range.  So I think it can be used here.
 > 
-> >> We should try very hard to treat APEI generic address structures the
-> >> same way as all others.  If that means some machines need firmware
-> >> upgrades or some sort of quirks to work around BIOS bugs, we might
-> >> have to accept that.  I think a single set of GAS accessors plus a few
-> >> quirks that fix the GAS structures is far better than having
-> >> APEI-specific GAS accessors that are basically tailored to a few
-> >> broken machines.
-> >
-> > We can use APEI-specific wrappers around generic GAS accessors, though.
-> 
-> Yes, but IMHO, we should only need wrappers to support APEI-specific
-> functionality, e.g., the mask.
-> 
-> Here's an attempt to lay out how I think acpi_read() and acpi_write()
-> *should* work:
-> 
-> https://docs.google.com/spreadsheet/ccc?key=0AjvKas55tQpqdElKVXM2TEFVcnI3SjVuZ1pqUENMN1E
-> 
-> I think the proposed behavior is compatible with the APEI assumptions
-> in the current code.  Please comment :)
+> Except that ACPI is not going to be x86-specific any more in the (near?)
+> future.  Have you taken that into consideration?
+This is about the NVS ram resource registering/requesting problem?
+I had an idea to make the resource management more fine grained.
+There already is a possibility to pass "flags" to request_mem_region macro:
+include/linux/ioport.h:
+#define __request_mem_region(start,n,name, excl) __request_region(&iomem_resource, (start), (n), (name), excl)
+#define request_muxed_region(start,n,name)    __request_region(&ioport_resource, (start), (n), (name), IORESOURCE_MUXED)
+...
 
-Well, I'd express access_width in multiples of 8.  Or perhaps use a mask?
 
-I'm afraid it may be difficult to get right by the callers, however.
+The idea is to e.g. flag memory with:
+  MEM_NVS
+  MEM_RESERVED
+  (MEM_PCI?)
+  other archs may have other memory flags
+  ...
+once it got detected/initialized at early boot.
 
-Thanks,
-Rafael
+and then have something like:
+request_specific_mem_region(start, n, name, (MEM_NVS | MEM_RESERVED))
+for apei (or others allowed to access NVS mem) which is only successful
+if the requested memory region has been marked as NVS/RESERVED memory.
+
+This is nothing I have time for right now, therefore don't get
+the mail wrong: I don't object to adding any other working solution
+discussed here.
+Just an idea how this could be solved in a cleaner way,
+also re-usable for others.
+
+What do you think?
+
+       Thomas
