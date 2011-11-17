@@ -1,82 +1,38 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] PNP ACPI: Use real gsi
-Date: Tue, 22 Nov 2011 16:23:49 +0800
-Message-ID: <1321950229.30258.0.camel@rui>
-References: <1320372728-3235-1-git-send-email-trenn@suse.de>
-	 <1320373233-3725-1-git-send-email-trenn@suse.de>
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: [PATCH] ACPI: Use kmemdup rather than duplicating its
+ implementation
+Date: Thu, 17 Nov 2011 23:43:40 +0100
+Message-ID: <1321569820.1624.278.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:28240 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754349Ab1KVIZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Nov 2011 03:25:48 -0500
-In-Reply-To: <1320373233-3725-1-git-send-email-trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lenb@kernel.org" <lenb@kernel.org>, "stable@kernel.org" <stable@kernel.org>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Fri, 2011-11-04 at 10:20 +0800, Thomas Renninger wrote:
-> From: Yinghai Lu <yinghai@kernel.org>
-> 
-> In 2.6.35 a lot cleanups in this area (not pnp, but x86 ioapic setup) have
-> been introduced.
-> On an IBM Xseries (x3850) this caused the machine to freeze around when
-> the init userspace process is tried to get started.
-> The reason is that the timer interrupt is not set up correctly on this machine.
-> 
-> I could bisect the issue to one of ioapic cleanups introduced in 2.6.35:
-> commit a4384df3e24579d6292a1b3b41d500349948f30b
-> 
-> While on this machine the problem was an interrupt timer issue,
-> there may be other platforms with different interrupt issues relatd to this
-> problem. Kernel logs with similar IOAPIC errors inside pnpacpi setup might
-> need this patch:
->   pnp 00:04: [io  0x02f8-0x02ff]
->   IOAPIC[1]: Invalid reference to IRQ 0
->   pnp 00:04: [irq 2]
->   pnp 00:04: Plug and Play ACPI device, IDs PNP0501 (active)
-> 
-> Yinghai came up with this patch which fixes the problem for me.
-> Looks like the bisected commit is correct, but the pnp layer has been
-> overseen.
-> 
-> Tested-by: Thomas Renninger <trenn@suse.de>
-> CC: Eric W. Biederman <ebiederm@xmission.com>
-> CC: bhelgaas@google.com
-> CC: lenb@kernel.org
-> CC: stable@kernel.org
-> CC: Ingo Molnar <mingo@elte.hu>
-> CC: H Peter Anvin <hpa@zytor.com>
-> CC: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
+The semantic patch that makes this change is available
+in scripts/coccinelle/api/memdup.cocci.
 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+---
 
-> ---
->  drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-> index bbf3edd..dad5da9 100644
-> --- a/drivers/pnp/pnpacpi/rsparser.c
-> +++ b/drivers/pnp/pnpacpi/rsparser.c
-> @@ -106,6 +106,14 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
->  		return;
->  	}
->  
-> +#ifdef CONFIG_X86_IO_APIC
-> +	/*
-> +	 * Convert it back to real gsi
-> +	 */
-> +	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC)
-> +		acpi_isa_irq_to_gsi(gsi, &gsi);
-> +#endif
-> +
->  	/*
->  	 * in IO-APIC mode, use overrided attribute. Two reasons:
->  	 * 1. BIOS bug in DSDT
-
-
+diff -u -p a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c 2011-11-08 08:49:58.136858513 +0100
++++ b/drivers/acpi/bus.c 2011-11-08 10:40:30.311111025 +0100
+@@ -503,13 +503,12 @@ acpi_status acpi_run_osc(acpi_handle han
+ 	}
+ out_success:
+ 	context->ret.length = out_obj->buffer.length;
+-	context->ret.pointer = kmalloc(context->ret.length, GFP_KERNEL);
++	context->ret.pointer = kmemdup(out_obj->buffer.pointer,
++				       context->ret.length, GFP_KERNEL);
+ 	if (!context->ret.pointer) {
+ 		status =  AE_NO_MEMORY;
+ 		goto out_kfree;
+ 	}
+-	memcpy(context->ret.pointer, out_obj->buffer.pointer,
+-		context->ret.length);
+ 	status =  AE_OK;
+ 
+ out_kfree:
