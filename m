@@ -1,60 +1,35 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 2/2] ACPICA: support Generic Address Structure
- bit_offset in acpi_read/write
-Date: Thu, 17 Nov 2011 08:51:23 +0800
-Message-ID: <1321491083.13860.93.camel@yhuang-dev>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
-	 <201111151749.53917.trenn@suse.de>
-	 <CAErSpo6E6ZLRMhLjE1zHjth=gO-LrhnTz=msRjY7mfG4ckCLfw@mail.gmail.com>
-	 <201111170027.14509.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 0/6][resend] removing unused fields in the structure
+Date: Thu, 17 Nov 2011 11:26:34 +0100
+Message-ID: <1321525600-2466-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36518 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754160Ab1KQAv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Nov 2011 19:51:26 -0500
-In-Reply-To: <201111170027.14509.rjw@sisk.pl>
+Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:21360 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756502Ab1KQK04 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Nov 2011 05:26:56 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, rob.lee@linaro.org, deepthi@linux.vnet.ibm.com
 
-On Thu, 2011-11-17 at 07:27 +0800, Rafael J. Wysocki wrote:
-> On Wednesday, November 16, 2011, Bjorn Helgaas wrote:
-> > On Tue, Nov 15, 2011 at 9:49 AM, Thomas Renninger <trenn@suse.de> wrote:
-> > > On Tuesday, November 15, 2011 04:13:15 PM Bjorn Helgaas wrote:
-> > >> On Fri, Nov 11, 2011 at 4:05 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> > >> > acpi_read(), acpi_write(), acpi_hw_read(), and acpi_hw_write() currently
-> > >> > ignore the GAS bit_offset field (but they do warn if it is non-zero).
-> > >> >
-> > >> > APEI tables are starting to use non-zero bit_offsets.  APEI uses
-> > >> > special-purpose apei_exec_read_register() and apei_exec_write_register()
-> > >> > interfaces that apply the bit_offset.
-> > >> >
-> > >> > This patch adds bit_offset support to the generic interfaces, which is
-> > >> > one small step toward using them instead of the special-purpose APEI ones.
-> > >>
-> > >> Eww, brown paper bag time.  Just pretend you never saw this lame
-> > >> implementation attempt.
-> > >>
-> > >> I do think we need to make acpi_read() smart enough to extract a bit
-> > >> field, but this try doesn't work.
-> > >
-> > > As a first step it would be great if Ying's and Myron's patches which
-> > > afaik conflict get serialized and pushed into an "acpi branch".
-> > > What the status there?
-> > 
-> > Ying's patch ("Add RAM mapping support") fixes a real issue with using
-> > EINJ, so we need to do something with it.
-> 
-> I kind of agree, but I wonder if page_is_ram() is the right check?
+ This patchset applies on the 'next' branch of the linux-lenb git tree.
 
-page_is_ram() is used by x86 ioremap implementation to exclude RAM
-range.  So I think it can be used here.
+resend : Cc'ed linux-pm mailing list also
 
-Best Regards,
-Huang Ying
+Daniel Lezcano (6):
+  cpuidle : move code to prevent forward declaration
+  cpuidle : remove unused 'governor_data' field
+  acpi : remove 'latency_ticks' in acpi_processor_cx
+  acpi : remove 'time' field in acpi_processor_cx
+  acpi : remove 'usage' field in acpi_processor_cx
+  acpi : remove 'power' field from acpi_processor_cx
 
+ drivers/acpi/processor_idle.c |   11 ----
+ drivers/cpuidle/cpuidle.c     |  116 ++++++++++++++++++++---------------------
+ include/acpi/processor.h      |    4 --
+ include/linux/cpuidle.h       |    1 -
+ 4 files changed, 57 insertions(+), 75 deletions(-)
+
+-- 
+1.7.4.1
 
