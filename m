@@ -1,58 +1,217 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] ACPICA: support Generic Address Structure bit_offset in acpi_read/write
-Date: Thu, 17 Nov 2011 21:27:40 +0100
-Message-ID: <201111172127.40664.rjw@sisk.pl>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com> <201111170027.14509.rjw@sisk.pl> <1321491083.13860.93.camel@yhuang-dev>
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Subject: [RFC][PATCH]ACPI,APEI,ERST, back end driver for NVRAM
+Date: Thu, 17 Nov 2011 15:47:37 -0500
+Message-ID: <5C4C569E8A4B9B42A84A977CF070A35B2C57AC8046@USINDEVS01.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44586 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754871Ab1KQUY5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Nov 2011 15:24:57 -0500
-In-Reply-To: <1321491083.13860.93.camel@yhuang-dev>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Luck, Tony" <tony.luck@>
+Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Thursday, November 17, 2011, Huang Ying wrote:
-> On Thu, 2011-11-17 at 07:27 +0800, Rafael J. Wysocki wrote:
-> > On Wednesday, November 16, 2011, Bjorn Helgaas wrote:
-> > > On Tue, Nov 15, 2011 at 9:49 AM, Thomas Renninger <trenn@suse.de> wrote:
-> > > > On Tuesday, November 15, 2011 04:13:15 PM Bjorn Helgaas wrote:
-> > > >> On Fri, Nov 11, 2011 at 4:05 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> > > >> > acpi_read(), acpi_write(), acpi_hw_read(), and acpi_hw_write() currently
-> > > >> > ignore the GAS bit_offset field (but they do warn if it is non-zero).
-> > > >> >
-> > > >> > APEI tables are starting to use non-zero bit_offsets.  APEI uses
-> > > >> > special-purpose apei_exec_read_register() and apei_exec_write_register()
-> > > >> > interfaces that apply the bit_offset.
-> > > >> >
-> > > >> > This patch adds bit_offset support to the generic interfaces, which is
-> > > >> > one small step toward using them instead of the special-purpose APEI ones.
-> > > >>
-> > > >> Eww, brown paper bag time.  Just pretend you never saw this lame
-> > > >> implementation attempt.
-> > > >>
-> > > >> I do think we need to make acpi_read() smart enough to extract a bit
-> > > >> field, but this try doesn't work.
-> > > >
-> > > > As a first step it would be great if Ying's and Myron's patches which
-> > > > afaik conflict get serialized and pushed into an "acpi branch".
-> > > > What the status there?
-> > > 
-> > > Ying's patch ("Add RAM mapping support") fixes a real issue with using
-> > > EINJ, so we need to do something with it.
-> > 
-> > I kind of agree, but I wonder if page_is_ram() is the right check?
-> 
-> page_is_ram() is used by x86 ioremap implementation to exclude RAM
-> range.  So I think it can be used here.
+Hi,
 
-Except that ACPI is not going to be x86-specific any more in the (near?)
-future.  Have you taken that into consideration?
+I developed write/read/clear functions of ERST driver for NVRAM. 
+According to ACPI 4.0 specification, we can use the same procedure as storage.
 
-Rafael
+This patch is tested on DELL PowerEdge T310.
+
+Any comments are welcome.
+
+ Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
+
+---
+ drivers/acpi/apei/erst.c |  145 +++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 117 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 1274080..4806283 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -755,30 +755,125 @@ static int __erst_clear_from_storage(u64 record_id)
+ 	return erst_errno(val);
+ }
+ 
+-/* NVRAM ERST Error Log Address Range is not supported yet */
+-static void pr_unimpl_nvram(void)
++static int __erst_write_to_nvram(u64 offset)
+ {
+-	if (printk_ratelimit())
+-		pr_warning(ERST_PFX
+-		"NVRAM ERST Log Address Range is not implemented yet\n");
+-}
++	struct apei_exec_context ctx;
++	u64 timeout = FIRMWARE_TIMEOUT;
++	u64 val;
++	int rc;
+ 
+-static int __erst_write_to_nvram(const struct cper_record_header *record)
+-{
+-	/* do not print message, because printk is not safe for NMI */
+-	return -ENOSYS;
++	erst_exec_ctx_init(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_WRITE);
++	if (rc)
++		return rc;
++	apei_exec_ctx_set_input(&ctx, offset);
++	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
++	if (rc)
++		return rc;
++	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
++	if (rc)
++		return rc;
++	for (;;) {
++		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
++		if (rc)
++			return rc;
++		val = apei_exec_ctx_get_output(&ctx);
++		if (!val)
++			break;
++		if (erst_timedout(&timeout, SPIN_UNIT))
++			return -EIO;
++	}
++	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
++	if (rc)
++		return rc;
++	val = apei_exec_ctx_get_output(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
++	if (rc)
++		return rc;
++
++	return erst_errno(val);
+ }
+ 
+-static int __erst_read_to_erange_from_nvram(u64 record_id, u64 *offset)
++static int __erst_read_to_erange_from_nvram(u64 record_id, u64 offset)
+ {
+-	pr_unimpl_nvram();
+-	return -ENOSYS;
++	struct apei_exec_context ctx;
++	u64 timeout = FIRMWARE_TIMEOUT;
++	u64 val;
++	int rc;
++
++	erst_exec_ctx_init(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_READ);
++	if (rc)
++		return rc;
++	apei_exec_ctx_set_input(&ctx, offset);
++	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
++	if (rc)
++		return rc;
++	apei_exec_ctx_set_input(&ctx, record_id);
++	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
++	if (rc)
++		return rc;
++	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
++	if (rc)
++		return rc;
++	for (;;) {
++		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
++		if (rc)
++			return rc;
++		val = apei_exec_ctx_get_output(&ctx);
++		if (!val)
++			break;
++		if (erst_timedout(&timeout, SPIN_UNIT))
++			return -EIO;
++	}
++	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
++	if (rc)
++		return rc;
++	val = apei_exec_ctx_get_output(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
++	if (rc)
++		return rc;
++
++	return erst_errno(val);
+ }
+ 
+ static int __erst_clear_from_nvram(u64 record_id)
+ {
+-	pr_unimpl_nvram();
+-	return -ENOSYS;
++	struct apei_exec_context ctx;
++	u64 timeout = FIRMWARE_TIMEOUT;
++	u64 val;
++	int rc;
++
++	erst_exec_ctx_init(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_CLEAR);
++	if (rc)
++		return rc;
++	apei_exec_ctx_set_input(&ctx, record_id);
++	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
++	if (rc)
++		return rc;
++	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
++	if (rc)
++		return rc;
++	for (;;) {
++		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
++		if (rc)
++			return rc;
++		val = apei_exec_ctx_get_output(&ctx);
++		if (!val)
++			break;
++		if (erst_timedout(&timeout, SPIN_UNIT))
++			return -EIO;
++	}
++	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
++	if (rc)
++		return rc;
++	val = apei_exec_ctx_get_output(&ctx);
++	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
++	if (rc)
++		return rc;
++
++	return erst_errno(val);
+ }
+ 
+ int erst_write(const struct cper_record_header *record)
+@@ -793,14 +888,6 @@ int erst_write(const struct cper_record_header *record)
+ 	if (memcmp(record->signature, CPER_SIG_RECORD, CPER_SIG_SIZE))
+ 		return -EINVAL;
+ 
+-	if (erst_erange.attr & ERST_RANGE_NVRAM) {
+-		if (!raw_spin_trylock_irqsave(&erst_lock, flags))
+-			return -EBUSY;
+-		rc = __erst_write_to_nvram(record);
+-		raw_spin_unlock_irqrestore(&erst_lock, flags);
+-		return rc;
+-	}
+-
+ 	if (record->record_length > erst_erange.size)
+ 		return -EINVAL;
+ 
+@@ -811,7 +898,10 @@ int erst_write(const struct cper_record_header *record)
+ 	/* signature for serialization system */
+ 	memcpy(&rcd_erange->persistence_information, "ER", 2);
+ 
+-	rc = __erst_write_to_storage(0);
++	if (erst_erange.attr & ERST_RANGE_NVRAM)
++		rc = __erst_write_to_nvram(0);
++	else
++		rc = __erst_write_to_storage(0);
+ 	raw_spin_unlock_irqrestore(&erst_lock, flags);
+ 
+ 	return rc;
+@@ -823,10 +913,9 @@ static int __erst_read_to_erange(u64 record_id, u64 *offset)
+ 	int rc;
+ 
+ 	if (erst_erange.attr & ERST_RANGE_NVRAM)
+-		return __erst_read_to_erange_from_nvram(
+-			record_id, offset);
+-
+-	rc = __erst_read_from_storage(record_id, 0);
++		rc = __erst_read_to_erange_from_nvram(record_id, 0);
++	else
++		rc = __erst_read_from_storage(record_id, 0);
+ 	if (rc)
+ 		return rc;
+ 	*offset = 0;
+-- 
+1.7.1
