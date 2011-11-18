@@ -1,70 +1,144 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 2/2] ACPICA: support Generic Address Structure
- bit_offset in acpi_read/write
-Date: Fri, 18 Nov 2011 09:04:39 +0800
-Message-ID: <1321578279.13860.108.camel@yhuang-dev>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
-	 <201111170027.14509.rjw@sisk.pl> <1321491083.13860.93.camel@yhuang-dev>
-	 <201111172127.40664.rjw@sisk.pl>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 4/9] ACPI, APEI, Resolve false conflict between ACPI NVS and APEI
+Date: Fri, 18 Nov 2011 02:41:08 +0100
+Message-ID: <201111180241.09150.trenn@suse.de>
+References: <1320719974-3598-1-git-send-email-ying.huang@intel.com> <1320719974-3598-5-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19148 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:43703 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755768Ab1KRBEo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Nov 2011 20:04:44 -0500
-In-Reply-To: <201111172127.40664.rjw@sisk.pl>
+	id S1754187Ab1KRBlM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Nov 2011 20:41:12 -0500
+In-Reply-To: <1320719974-3598-5-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Fri, 2011-11-18 at 04:27 +0800, Rafael J. Wysocki wrote:
-> On Thursday, November 17, 2011, Huang Ying wrote:
-> > On Thu, 2011-11-17 at 07:27 +0800, Rafael J. Wysocki wrote:
-> > > On Wednesday, November 16, 2011, Bjorn Helgaas wrote:
-> > > > On Tue, Nov 15, 2011 at 9:49 AM, Thomas Renninger <trenn@suse.de> wrote:
-> > > > > On Tuesday, November 15, 2011 04:13:15 PM Bjorn Helgaas wrote:
-> > > > >> On Fri, Nov 11, 2011 at 4:05 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> > > > >> > acpi_read(), acpi_write(), acpi_hw_read(), and acpi_hw_write() currently
-> > > > >> > ignore the GAS bit_offset field (but they do warn if it is non-zero).
-> > > > >> >
-> > > > >> > APEI tables are starting to use non-zero bit_offsets.  APEI uses
-> > > > >> > special-purpose apei_exec_read_register() and apei_exec_write_register()
-> > > > >> > interfaces that apply the bit_offset.
-> > > > >> >
-> > > > >> > This patch adds bit_offset support to the generic interfaces, which is
-> > > > >> > one small step toward using them instead of the special-purpose APEI ones.
-> > > > >>
-> > > > >> Eww, brown paper bag time.  Just pretend you never saw this lame
-> > > > >> implementation attempt.
-> > > > >>
-> > > > >> I do think we need to make acpi_read() smart enough to extract a bit
-> > > > >> field, but this try doesn't work.
-> > > > >
-> > > > > As a first step it would be great if Ying's and Myron's patches which
-> > > > > afaik conflict get serialized and pushed into an "acpi branch".
-> > > > > What the status there?
-> > > > 
-> > > > Ying's patch ("Add RAM mapping support") fixes a real issue with using
-> > > > EINJ, so we need to do something with it.
-> > > 
-> > > I kind of agree, but I wonder if page_is_ram() is the right check?
-> > 
-> > page_is_ram() is used by x86 ioremap implementation to exclude RAM
-> > range.  So I think it can be used here.
+Hi,
+
+On Tuesday 08 November 2011 03:39:29 Huang Ying wrote:
+> Some firmware will access memory in ACPI NVS region via APEI.  That
+> is, instructions in APEI ERST/EINJ table will read/write ACPI NVS
+> region.  The original resource conflict checking in APEI code will
+> check memory/ioport accessed by APEI via general resource management
+> mech.  But ACPI NVS region is marked as busy already, so that the
+> false resource conflict will prevent APEI ERST/EINJ to work.
 > 
-> Except that ACPI is not going to be x86-specific any more in the (near?)
-> future.  Have you taken that into consideration?
+> To fix this, this patch excludes ACPI NVS regions when APEI components
+> request resources.  So that they will not conflict with ACPI NVS
+> regions.
 
-Take a look at ARM ioremap implementation.  It appears that RAM can be
-ioremaped on ARM.  But this changes should be harmless for ARM too.
-Because ioremap implementation is different between different
-architecture, maybe we should use #ifdef CONFIG_X86, #endif to enclose
-the code?
+find below an approach which still allows requesting the resources,
+similar to Yinghai's patch.
+But instead of allowing everybody to access NVS memory, it needs to
+be explicitly requested.
 
-Best Regards,
-Huang Ying
+Compile tested only.
 
+Also this is a bit hacky, as it reserves the last free bits in the
+the generic resource flags for X86 only.
 
+I fear doing it properly needs quite some more efforts.
+
+   Thomas
+
+---
+ arch/x86/kernel/e820.c        |   30 ++++++++++++++++++++++--------
+ drivers/acpi/apei/apei-base.c |    4 ++--
+ include/linux/ioport.h        |    5 +++++
+ kernel/resource.c             |    5 ++++-
+ 4 files changed, 33 insertions(+), 11 deletions(-)
+
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 303a0e4..4b1b15f 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -958,15 +958,29 @@ void __init e820_reserve_resources(void)
+ 
+ 		res->flags = IORESOURCE_MEM;
+ 
+-		/*
+-		 * don't register the region that could be conflicted with
+-		 * pci device BAR resource and insert them later in
+-		 * pcibios_resource_survey()
+-		 */
+-		if (e820.map[i].type != E820_RESERVED || res->start < (1ULL<<20)) {
++		switch (e820.map[i].type) {
++		case E820_RESERVED:
++			/*
++			 * don't register the region that could be conflicted
++			 * with pci device BAR resource and insert them later in
++			 * pcibios_resource_survey()
++			 */
++			if (res->start < (1ULL<<20))
++				res->flags |= IORESOURCE_BUSY;
++			res->flags |= IORESOURCE_RESERVED_RAM;
++			break;
++		case E820_ACPI:
++			res->flags |= IORESOURCE_ACPI_RAM;
+ 			res->flags |= IORESOURCE_BUSY;
+-			insert_resource(&iomem_resource, res);
+-		}
++			break;
++		case E820_NVS:
++			res->flags |= IORESOURCE_NVS_RAM;
++			res->flags |= IORESOURCE_BUSY;
++			break;
++		default:
++			res->flags |= IORESOURCE_BUSY;
++		}			
++		insert_resource(&iomem_resource, res);
+ 		res++;
+ 	}
+ 
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 6154036..a86aa24 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -456,8 +456,8 @@ int apei_resources_request(struct apei_resources *resources,
+ 
+ 	rc = -EINVAL;
+ 	list_for_each_entry(res, &resources->iomem, list) {
+-		r = request_mem_region(res->start, res->end - res->start,
+-				       desc);
++		r = __request_mem_region(res->start, res->end - res->start,
++					 desc, IORESOURCE_NVS_RAM);
+ 		if (!r) {
+ 			pr_err(APEI_PFX
+ 		"Can not request iomem region <%016llx-%016llx> for GARs.\n",
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 9d57a71..2c1b3db 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -54,6 +54,11 @@ struct resource_list {
+ #define IORESOURCE_WINDOW	0x00200000	/* forwarded by bridge */
+ #define IORESOURCE_MUXED	0x00400000	/* Resource is software muxed */
+ 
++/* X86 specific e820 marked memory resources */
++#define IORESOURCE_NVS_RAM      0x01000000
++#define IORESOURCE_ACPI_RAM     0x02000000
++#define IORESOURCE_RESERVED_RAM 0x04000000
++
+ #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
+ #define IORESOURCE_DISABLED	0x10000000
+ #define IORESOURCE_UNSET	0x20000000
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 7640b3a..4397543 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -861,7 +861,10 @@ struct resource * __request_region(struct resource *parent,
+ 			break;
+ 		if (conflict != parent) {
+ 			parent = conflict;
+-			if (!(conflict->flags & IORESOURCE_BUSY))
++			if (!(conflict->flags & IORESOURCE_BUSY) ||
++			    /* Even the region is busy, it was explicitly
++			       requested -> allow access */
++			    flags & conflict->flags)
+ 				continue;
+ 		}
+ 		if (conflict->flags & flags & IORESOURCE_MUXED) {
