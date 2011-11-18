@@ -1,144 +1,50 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 4/9] ACPI, APEI, Resolve false conflict between ACPI NVS and APEI
-Date: Fri, 18 Nov 2011 02:41:08 +0100
-Message-ID: <201111180241.09150.trenn@suse.de>
-References: <1320719974-3598-1-git-send-email-ying.huang@intel.com> <1320719974-3598-5-git-send-email-ying.huang@intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [RFC][PATCH]ACPI,APEI,ERST, back end driver for NVRAM
+Date: Fri, 18 Nov 2011 09:59:23 +0800
+Message-ID: <1321581563.13860.111.camel@yhuang-dev>
+References: <5C4C569E8A4B9B42A84A977CF070A35B2C57AC8046@USINDEVS01.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43703 "EHLO mx2.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:24662 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754187Ab1KRBlM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Nov 2011 20:41:12 -0500
-In-Reply-To: <1320719974-3598-5-git-send-email-ying.huang@intel.com>
+	id S1755489Ab1KRB7Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Nov 2011 20:59:25 -0500
+In-Reply-To: <5C4C569E8A4B9B42A84A977CF070A35B2C57AC8046@USINDEVS01.corp.hds.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+To: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Chen, Gong" <gong.chen@intel.com>, Matthew Garrett <mjg@redhat.com>, "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-Hi,
-
-On Tuesday 08 November 2011 03:39:29 Huang Ying wrote:
-> Some firmware will access memory in ACPI NVS region via APEI.  That
-> is, instructions in APEI ERST/EINJ table will read/write ACPI NVS
-> region.  The original resource conflict checking in APEI code will
-> check memory/ioport accessed by APEI via general resource management
-> mech.  But ACPI NVS region is marked as busy already, so that the
-> false resource conflict will prevent APEI ERST/EINJ to work.
+On Fri, 2011-11-18 at 04:47 +0800, Seiji Aguchi wrote:
+> Hi,
 > 
-> To fix this, this patch excludes ACPI NVS regions when APEI components
-> request resources.  So that they will not conflict with ACPI NVS
-> regions.
+> I developed write/read/clear functions of ERST driver for NVRAM. 
+> According to ACPI 4.0 specification, we can use the same procedure as storage.
+> 
+> This patch is tested on DELL PowerEdge T310.
 
-find below an approach which still allows requesting the resources,
-similar to Yinghai's patch.
-But instead of allowing everybody to access NVS memory, it needs to
-be explicitly requested.
+This machine has error log address range in NVRAM?
 
-Compile tested only.
+According to ACPI 4.0a spec:
 
-Also this is a bit hacky, as it reserves the last free bits in the
-the generic resource flags for X86 only.
+"""
+17.5.2.4.1 Error Log Address Range Resides in NVRAM
 
-I fear doing it properly needs quite some more efforts.
+If the Error Log Address Range resides in NVRAM, then when OSPM writes a
+record into the logging
+range, the record is automatically persistent and the busy bit can be
+cleared immediately. On a subsequent
+boot, OSPM can read any persisted error records directly from the
+persistent store range. The size of the
+persistent store, in this case, is expected to be enough for several
+error records.
+"""
 
-   Thomas
+So it should not work with the same procedure.
 
----
- arch/x86/kernel/e820.c        |   30 ++++++++++++++++++++++--------
- drivers/acpi/apei/apei-base.c |    4 ++--
- include/linux/ioport.h        |    5 +++++
- kernel/resource.c             |    5 ++++-
- 4 files changed, 33 insertions(+), 11 deletions(-)
+Best Regards,
+Huang Ying
 
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 303a0e4..4b1b15f 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -958,15 +958,29 @@ void __init e820_reserve_resources(void)
- 
- 		res->flags = IORESOURCE_MEM;
- 
--		/*
--		 * don't register the region that could be conflicted with
--		 * pci device BAR resource and insert them later in
--		 * pcibios_resource_survey()
--		 */
--		if (e820.map[i].type != E820_RESERVED || res->start < (1ULL<<20)) {
-+		switch (e820.map[i].type) {
-+		case E820_RESERVED:
-+			/*
-+			 * don't register the region that could be conflicted
-+			 * with pci device BAR resource and insert them later in
-+			 * pcibios_resource_survey()
-+			 */
-+			if (res->start < (1ULL<<20))
-+				res->flags |= IORESOURCE_BUSY;
-+			res->flags |= IORESOURCE_RESERVED_RAM;
-+			break;
-+		case E820_ACPI:
-+			res->flags |= IORESOURCE_ACPI_RAM;
- 			res->flags |= IORESOURCE_BUSY;
--			insert_resource(&iomem_resource, res);
--		}
-+			break;
-+		case E820_NVS:
-+			res->flags |= IORESOURCE_NVS_RAM;
-+			res->flags |= IORESOURCE_BUSY;
-+			break;
-+		default:
-+			res->flags |= IORESOURCE_BUSY;
-+		}			
-+		insert_resource(&iomem_resource, res);
- 		res++;
- 	}
- 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 6154036..a86aa24 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -456,8 +456,8 @@ int apei_resources_request(struct apei_resources *resources,
- 
- 	rc = -EINVAL;
- 	list_for_each_entry(res, &resources->iomem, list) {
--		r = request_mem_region(res->start, res->end - res->start,
--				       desc);
-+		r = __request_mem_region(res->start, res->end - res->start,
-+					 desc, IORESOURCE_NVS_RAM);
- 		if (!r) {
- 			pr_err(APEI_PFX
- 		"Can not request iomem region <%016llx-%016llx> for GARs.\n",
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 9d57a71..2c1b3db 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -54,6 +54,11 @@ struct resource_list {
- #define IORESOURCE_WINDOW	0x00200000	/* forwarded by bridge */
- #define IORESOURCE_MUXED	0x00400000	/* Resource is software muxed */
- 
-+/* X86 specific e820 marked memory resources */
-+#define IORESOURCE_NVS_RAM      0x01000000
-+#define IORESOURCE_ACPI_RAM     0x02000000
-+#define IORESOURCE_RESERVED_RAM 0x04000000
-+
- #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
- #define IORESOURCE_DISABLED	0x10000000
- #define IORESOURCE_UNSET	0x20000000
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 7640b3a..4397543 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -861,7 +861,10 @@ struct resource * __request_region(struct resource *parent,
- 			break;
- 		if (conflict != parent) {
- 			parent = conflict;
--			if (!(conflict->flags & IORESOURCE_BUSY))
-+			if (!(conflict->flags & IORESOURCE_BUSY) ||
-+			    /* Even the region is busy, it was explicitly
-+			       requested -> allow access */
-+			    flags & conflict->flags)
- 				continue;
- 		}
- 		if (conflict->flags & flags & IORESOURCE_MUXED) {
+
