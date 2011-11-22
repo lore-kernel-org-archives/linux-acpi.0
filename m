@@ -1,41 +1,82 @@
-From: Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>
-Subject: Re: 3.2-rc2+: Reported regressions from 3.0 and 3.1
-Date: Mon, 21 Nov 2011 23:16:25 -0800
-Message-ID: <CALCETrXP63VYU6mvxuUJKq7uJ-a3LG6c4t6asQFGUsJnrP6_ow@mail.gmail.com>
-References: <lx6sezwGldO.A.IhF.UBpWOB@chimera> <201111212249.31196.rjw@sisk.pl>
- <CA+55aFwAELQieN=qR7Gz_MT5rHPp90H10uTMS+DOJjefk7q3ng@mail.gmail.com> <CALCETrUpXrsjBLZsZU3u+y7KCDO0LW55QoBQkBqN_BPFZHsrkw@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] PNP ACPI: Use real gsi
+Date: Tue, 22 Nov 2011 16:23:49 +0800
+Message-ID: <1321950229.30258.0.camel@rui>
+References: <1320372728-3235-1-git-send-email-trenn@suse.de>
+	 <1320373233-3725-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALCETrUpXrsjBLZsZU3u+y7KCDO0LW55QoBQkBqN_BPFZHsrkw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Mickler <florian-sVu6HhrpSfRAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:28240 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754349Ab1KVIZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Nov 2011 03:25:48 -0500
+In-Reply-To: <1320373233-3725-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lenb@kernel.org" <lenb@kernel.org>, "stable@kernel.org" <stable@kernel.org>, Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, Nov 21, 2011 at 2:34 PM, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org> =
-wrote:
-> On Mon, Nov 21, 2011 at 2:11 PM, Linus Torvalds
-> <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
->> On Mon, Nov 21, 2011 at 1:49 PM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wro=
-te:
->>>
->>> Subject =A0 =A0: [3.1 REGRESSION] Commit 5cec93c216db77c45f7ce970d4=
-6283bcb1933884 breaks the Chromium seccomp sandbox
->>> Submitter =A0: Nix <nix-dKoSMcxRz+Te9xe1eoZjHA@public.gmane.org>
->>> Date =A0 =A0 =A0 : 2011-11-14 0:40
->>> Message-ID : 8762inleno.fsf-AdTWujXS48Mg67Zj9sPl2A@public.gmane.org
->>> References : http://marc.info/?l=3Dlinux-kernel&m=3D132123396226377=
-&w=3D2
->>
+On Fri, 2011-11-04 at 10:20 +0800, Thomas Renninger wrote:
+> From: Yinghai Lu <yinghai@kernel.org>
+> 
+> In 2.6.35 a lot cleanups in this area (not pnp, but x86 ioapic setup) have
+> been introduced.
+> On an IBM Xseries (x3850) this caused the machine to freeze around when
+> the init userspace process is tried to get started.
+> The reason is that the timer interrupt is not set up correctly on this machine.
+> 
+> I could bisect the issue to one of ioapic cleanups introduced in 2.6.35:
+> commit a4384df3e24579d6292a1b3b41d500349948f30b
+> 
+> While on this machine the problem was an interrupt timer issue,
+> there may be other platforms with different interrupt issues relatd to this
+> problem. Kernel logs with similar IOAPIC errors inside pnpacpi setup might
+> need this patch:
+>   pnp 00:04: [io  0x02f8-0x02ff]
+>   IOAPIC[1]: Invalid reference to IRQ 0
+>   pnp 00:04: [irq 2]
+>   pnp 00:04: Plug and Play ACPI device, IDs PNP0501 (active)
+> 
+> Yinghai came up with this patch which fixes the problem for me.
+> Looks like the bisected commit is correct, but the pnp layer has been
+> overseen.
+> 
+> Tested-by: Thomas Renninger <trenn@suse.de>
+> CC: Eric W. Biederman <ebiederm@xmission.com>
+> CC: bhelgaas@google.com
+> CC: lenb@kernel.org
+> CC: stable@kernel.org
+> CC: Ingo Molnar <mingo@elte.hu>
+> CC: H Peter Anvin <hpa@zytor.com>
+> CC: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-This is apparently fixed in seccompsandbox.  See:
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-https://code.google.com/p/seccompsandbox/issues/detail?id=3D17
-https://code.google.com/p/seccompsandbox/source/detail?r=3D178
+> ---
+>  drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+> index bbf3edd..dad5da9 100644
+> --- a/drivers/pnp/pnpacpi/rsparser.c
+> +++ b/drivers/pnp/pnpacpi/rsparser.c
+> @@ -106,6 +106,14 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
+>  		return;
+>  	}
+>  
+> +#ifdef CONFIG_X86_IO_APIC
+> +	/*
+> +	 * Convert it back to real gsi
+> +	 */
+> +	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC)
+> +		acpi_isa_irq_to_gsi(gsi, &gsi);
+> +#endif
+> +
+>  	/*
+>  	 * in IO-APIC mode, use overrided attribute. Two reasons:
+>  	 * 1. BIOS bug in DSDT
 
-Unless someone objects, I'll consider this to not be a kernel
-regression worth fixing.
 
---Andy
