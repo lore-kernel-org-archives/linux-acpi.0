@@ -1,38 +1,31 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: [PATCH] ACPI: Use kmemdup rather than duplicating its
- implementation
-Date: Thu, 17 Nov 2011 23:43:40 +0100
-Message-ID: <1321569820.1624.278.camel@localhost.localdomain>
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: Re: 3.2-rc2+: Reported regressions from 3.0 and 3.1
+Date: Tue, 22 Nov 2011 13:22:06 +0100
+Message-ID: <20111122122206.GD8397@redhat.com>
+References: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
+ <201111212249.31196.rjw@sisk.pl>
+ <4ECB37E4.6020204@linux.vnet.ibm.com>
+ <20111121215918.febd9fd4.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111121215918.febd9fd4.akpm@linux-foundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, Florian Mickler <florian@mickler.org>, Linus Torvalds <torvalds@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The semantic patch that makes this change is available
-in scripts/coccinelle/api/memdup.cocci.
+On Mon, Nov 21, 2011 at 09:59:18PM -0800, Andrew Morton wrote:
+> grr, nothing in that patch's changelog indicates that it fixed a
+> regression nor that it fixed an infinite blockage of suspend.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+Well it's not a recent thing so I didn't flag it as a regression. It
+doesn't infinite block it, suspend works fine almost all the time (or
+it would have been noticed before), and if you've bad luck and it
+doesn't suspend the first time around like someone experienced, if you
+try again a bit later it'll work.
 
-diff -u -p a/drivers/acpi/bus.c b/drivers/acpi/bus.c
---- a/drivers/acpi/bus.c 2011-11-08 08:49:58.136858513 +0100
-+++ b/drivers/acpi/bus.c 2011-11-08 10:40:30.311111025 +0100
-@@ -503,13 +503,12 @@ acpi_status acpi_run_osc(acpi_handle han
- 	}
- out_success:
- 	context->ret.length = out_obj->buffer.length;
--	context->ret.pointer = kmalloc(context->ret.length, GFP_KERNEL);
-+	context->ret.pointer = kmemdup(out_obj->buffer.pointer,
-+				       context->ret.length, GFP_KERNEL);
- 	if (!context->ret.pointer) {
- 		status =  AE_NO_MEMORY;
- 		goto out_kfree;
- 	}
--	memcpy(context->ret.pointer, out_obj->buffer.pointer,
--		context->ret.length);
- 	status =  AE_OK;
- 
- out_kfree:
+> I moved it to my 3.2 queue, thanks.
+
+Thanks!
