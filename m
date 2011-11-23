@@ -1,46 +1,42 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 3.2-rc2+: Reported regressions from 3.0 and 3.1
-Date: Wed, 23 Nov 2011 08:37:45 +0100
-Message-ID: <CACna6rzQhp4DXonK_Mr+Od9yMQJtr24Z5TE27VxhcMrcY4u+EA@mail.gmail.com>
-References: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
-	<201111212249.31196.rjw@sisk.pl>
-	<CA+55aFyy19VYSdZW0+jNxAb8ix0xpX2j9YFw9oQi3jm3+mDEvw@mail.gmail.com>
+From: Artur Flinta <aflinta@gmail.com>
+Subject: [Bugreport] Screen backllight issues on FirePro M5950 (HP EliteBook 8560w)
+Date: Wed, 23 Nov 2011 21:34:05 +0100
+Message-ID: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFyy19VYSdZW0+jNxAb8ix0xpX2j9YFw9oQi3jm3+mDEvw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, stephen hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Mickler <florian-sVu6HhrpSfRAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:42866 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120Ab1KWUeG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2011 15:34:06 -0500
+Received: by yenq3 with SMTP id q3so1827222yen.19
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2011 12:34:05 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-W dniu 21 listopada 2011 23:22 u=C5=BCytkownik Linus Torvalds
-<torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> napisa=C5=82:
-> On Mon, Nov 21, 2011 at 1:49 PM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrot=
-e:
->>
->> Subject =C2=A0 =C2=A0: [3.1-rc8 REGRESSION] sky2 hangs machine on tu=
-rning off or suspending
->> Submitter =C2=A0: Rafa=C5=82 Mi=C5=82ecki <zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Date =C2=A0 =C2=A0 =C2=A0 : 2011-11-09 11:46
->> Message-ID : CACna6ryTdLcWVYgHu=3D_mRFga1sFivpE_DyZOY-HMmKggkWAJAw@m=
-ail.gmail.com
->> References : http://marc.info/?l=3Dlinux-netdev&m=3D132083922228088&=
-w=3D4
->
-> This should be fixed by commit 1401a8008a09 ("sky2: fix hang on
-> shutdown (and other irq issues)") in current -git.
-
-This patch doesn't fix my hang.
-
-However git contains also:
-sky2: fix hang in napi_disable
-This is the one fixing my case.
-
-So the bug is resolved, however I'm a little disappointed noone
-ping-ed me about that patches. I've spent some time on bisecting this
-issue, expected to get some response :/
-
+Hi!
+I have HP Elitebook 8560w with FirePro M5950, Fedora 16, kernel
+3.1.1,xorg ati driver 6.14.3 and issues with screen backlight - can't
+dimit.I can write to /sys/class/backlight/acpi_video0/brightness
+valuesfrom 0 to 20 (as stated in max_brightness), but it have no
+effect onthe screen, values in brightness as well as in
+actual_brightnessreflects written number.Before system boot, I can
+change brightness of the screen, and itpersist in operating system.
+Value of the/sys/class/backlight/acpi_video0/brightness indicates
+maximumbrightness (20) even if minimal was set before boot. Kernel
+radeon driver maintainers said, that backlight is driven by APCI
+drivers, so I'm here to ask for help :)
+How can I help to debug this issue? I'm able to recompile kernel and
+apply patches, as well as do some tests. Unfortunately I'm unable to
+write or correct driver code.
+RegardsArtur
 --=20
-Rafa=C5=82
+Ka=C5=BCdy problem ma swoje rozwi=C4=85zanie, zatem
+je=C5=BCeli nie ma rozwi=C4=85zania to nie ma problemu.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
