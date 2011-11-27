@@ -1,59 +1,26 @@
-From: "Witold Szczeponik" <Witold.Szczeponik@gmx.net>
-Subject: [PATCH, trivial] PNP: Use constant PNP_ID_LEN instead of literal
- number
-Date: Sun, 27 Nov 2011 22:26:20 +0100
-Message-ID: <20111127212620.268500@gmx.net>
+From: =?iso-8859-1?Q?=22=A9Simon_Cole=22?= <simonnok@bitscn.net>
+Subject: Congratulations Email: simonnok@bitscn.net
+Date: Sun, 27 Nov 2011 11:35:17 +0300
+Message-ID: <ca51deff6a59d7efac8af1a04e3a9254.squirrel@webmail.my-itech.com>
+Reply-To: simoncnok@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:44006 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753397Ab1K0V0Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Nov 2011 16:26:25 -0500
+Received: from gate9.dnshostmaster.net ([202.75.53.16]:59978 "EHLO
+	server.my-itech.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754836Ab1K0XU1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Nov 2011 18:20:27 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
 
-The attached patch uses the constant PNP_ID_LEN instead of using a=20
-literal number for the length of a PNP ID in the scope of PNP quirks.
-
-As a consequence, all IDs used in PNP quirks (c.f. "drivers/pnp/quirks.=
-c")=20
-are now zero-terminated and standard functions that depend on the IDs=20
-to be zero-terminated now work reliably (c.f. "strlen" in "drivers/pnp/=
-driver.c",=20
-function "compare_pnp_id").=20
+Your telephone number and email address has just been awarded
+=A31,000,000.00 Pounds in the Nokia Promotion: Send your Name ...Addres=
+s
+=2E..Phone ...Gender ...Mr Simon ColeEmail us for claims :
+simoncnok@live.com
 
 
-The patch is applied against 3.1.=20
-
-
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-
-
-
-Index: linux/include/linux/pnp.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/include/linux/pnp.h
-+++ linux/include/linux/pnp.h
-@@ -295,7 +295,7 @@ static inline void pnp_set_drvdata(struc
- }
-=20
- struct pnp_fixup {
--	char id[7];
-+	char id[PNP_ID_LEN];
- 	void (*quirk_function) (struct pnp_dev * dev);	/* fixup function */
- };
-=20
-
---=20
-NEU: FreePhone - 0ct/min Handyspartarif mit Geld-zur=C3=BCck-Garantie!	=
-=09
-Jetzt informieren: http://www.gmx.net/de/go/freephone
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
