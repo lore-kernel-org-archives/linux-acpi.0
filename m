@@ -1,75 +1,59 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Mon, 28 Nov 2011 21:53:55 +0100
-Message-ID: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
+Date: Mon, 28 Nov 2011 22:56:34 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
+References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:46897 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868Ab1K1Ux4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2011 15:53:56 -0500
-Received: by yenl6 with SMTP id l6so3288442yen.19
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Nov 2011 12:53:55 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:56251 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754300Ab1K1W4g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Nov 2011 17:56:36 -0500
+In-Reply-To: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>, Jean Delvare <khali@linux-fr.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-To give some context to the newcomers: while helping a user with a new
-hwmon chip we discovered that the native driver is loaded fine even
-though the IO ports are claimed by ACPI (OperationRegion) and
-acpi_enforce_resources is "strict".
-
-On Mon, Nov 28, 2011 at 4:48 PM, Luca Tettamanti <kronos.it@gmail.com> =
-wrote:
-> On Mon, Nov 28, 2011 at 4:08 PM, Jean Delvare <khali@linux-fr.org> wr=
-ote:
->> On Mon, 28 Nov 2011 14:02:51 +0100, Luca Tettamanti wrote:
->>> The DSDT has this:
->>>
->>> Name (IOEB, 0x0290)
->>> OperationRegion (SIOE, SystemIO, IOEB, 0x20)
->>> Field (SIOE, ByteAcc, NoLock, Preserve)
->>> {
->>> =C2=A0 =C2=A0 Offset (0x05),
->>> =C2=A0 =C2=A0 GIDX, =C2=A0 8,
->>> =C2=A0 =C2=A0 GDAT, =C2=A0 8
->>> }
->>>
->>> so the requested area is well within what ACPI claims.
-[cut]
->> A colleague of mine (hi Thomas!) suggests that Nikolay could boot wi=
-th:
->>
->> ddebug=3D"file osl.c +p
->
-> This should be:
->
-> ddebug_query=3D"file osl.c +p"
->
-> It should spam the log with all the resources found by ACPI parser,
-> assuming that CONFIG_DYNAMIC_DEBUG is enabled.
-
-Hum, the call to acpi_os_validate_address was removed between 2.6.38
-and 2.6.39, with this commit by Bob More:
-
-commit 9ad19ac456a5f097f7cbbfef820b95297d6a934f
-Author: Bob Moore <robert.moore@intel.com>
-Date:   Mon Feb 14 16:09:40 2011 +0800
-
-    ACPICA: Split large dsopcode and dsload.c files.
-
-which seems to be just moving code around (the culprit here is
-acpi_ds_get_region_arguments). I guess that the removal wasn't
-intentional since the corresponding call to acpi_os_invalidate_address
-was left in place.
-Bob should I put the call back in place? Am I missing something?
-
-Luca
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SSdtIGdvaW5nIHRvIGxldCBMaW4gTWluZyByZXNwb25kIHRvIHRoaXMsIHNpbmNlIHRoZSBmdW5j
+dGlvbnMgaW4gcXVlc3Rpb24gYXBwZWFyIHRvIGJlIExpbnV4IGV4dGVuc2lvbnMgdG8gQUNQSUNB
+Lg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEx1Y2EgVGV0dGFtYW50
+aSBbbWFpbHRvOmtyb25vcy5pdEBnbWFpbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgTm92ZW1iZXIg
+MjgsIDIwMTEgMTI6NTQgUE0NCj4gVG86IEplYW4gRGVsdmFyZQ0KPiBDYzogTmlrb2xheSBNaWtv
+djsgVGhvbWFzOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiBT
+dWJqZWN0OiBbQlVHXSBBQ1BJIHJlc291cmNlIHZhbGlkYXRpb24gbm90IHdvcmtpbmcgW1dhczog
+UmU6IElURQ0KPiA4NzI4Rl0NCj4gDQo+IFRvIGdpdmUgc29tZSBjb250ZXh0IHRvIHRoZSBuZXdj
+b21lcnM6IHdoaWxlIGhlbHBpbmcgYSB1c2VyIHdpdGggYSBuZXcNCj4gaHdtb24gY2hpcCB3ZSBk
+aXNjb3ZlcmVkIHRoYXQgdGhlIG5hdGl2ZSBkcml2ZXIgaXMgbG9hZGVkIGZpbmUgZXZlbg0KPiB0
+aG91Z2ggdGhlIElPIHBvcnRzIGFyZSBjbGFpbWVkIGJ5IEFDUEkgKE9wZXJhdGlvblJlZ2lvbikg
+YW5kDQo+IGFjcGlfZW5mb3JjZV9yZXNvdXJjZXMgaXMgInN0cmljdCIuDQo+IA0KPiBPbiBNb24s
+IE5vdiAyOCwgMjAxMSBhdCA0OjQ4IFBNLCBMdWNhIFRldHRhbWFudGkgPGtyb25vcy5pdEBnbWFp
+bC5jb20+DQo+IHdyb3RlOg0KPiA+IE9uIE1vbiwgTm92IDI4LCAyMDExIGF0IDQ6MDggUE0sIEpl
+YW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPg0KPiB3cm90ZToNCj4gPj4gT24gTW9uLCAy
+OCBOb3YgMjAxMSAxNDowMjo1MSArMDEwMCwgTHVjYSBUZXR0YW1hbnRpIHdyb3RlOg0KPiA+Pj4g
+VGhlIERTRFQgaGFzIHRoaXM6DQo+ID4+Pg0KPiA+Pj4gTmFtZSAoSU9FQiwgMHgwMjkwKQ0KPiA+
+Pj4gT3BlcmF0aW9uUmVnaW9uIChTSU9FLCBTeXN0ZW1JTywgSU9FQiwgMHgyMCkNCj4gPj4+IEZp
+ZWxkIChTSU9FLCBCeXRlQWNjLCBOb0xvY2ssIFByZXNlcnZlKQ0KPiA+Pj4gew0KPiA+Pj4gwqAg
+wqAgT2Zmc2V0ICgweDA1KSwNCj4gPj4+IMKgIMKgIEdJRFgsIMKgIDgsDQo+ID4+PiDCoCDCoCBH
+REFULCDCoCA4DQo+ID4+PiB9DQo+ID4+Pg0KPiA+Pj4gc28gdGhlIHJlcXVlc3RlZCBhcmVhIGlz
+IHdlbGwgd2l0aGluIHdoYXQgQUNQSSBjbGFpbXMuDQo+IFtjdXRdDQo+ID4+IEEgY29sbGVhZ3Vl
+IG9mIG1pbmUgKGhpIFRob21hcyEpIHN1Z2dlc3RzIHRoYXQgTmlrb2xheSBjb3VsZCBib290DQo+
+IHdpdGg6DQo+ID4+DQo+ID4+IGRkZWJ1Zz0iZmlsZSBvc2wuYyArcA0KPiA+DQo+ID4gVGhpcyBz
+aG91bGQgYmU6DQo+ID4NCj4gPiBkZGVidWdfcXVlcnk9ImZpbGUgb3NsLmMgK3AiDQo+ID4NCj4g
+PiBJdCBzaG91bGQgc3BhbSB0aGUgbG9nIHdpdGggYWxsIHRoZSByZXNvdXJjZXMgZm91bmQgYnkg
+QUNQSSBwYXJzZXIsDQo+ID4gYXNzdW1pbmcgdGhhdCBDT05GSUdfRFlOQU1JQ19ERUJVRyBpcyBl
+bmFibGVkLg0KPiANCj4gSHVtLCB0aGUgY2FsbCB0byBhY3BpX29zX3ZhbGlkYXRlX2FkZHJlc3Mg
+d2FzIHJlbW92ZWQgYmV0d2VlbiAyLjYuMzgNCj4gYW5kIDIuNi4zOSwgd2l0aCB0aGlzIGNvbW1p
+dCBieSBCb2IgTW9yZToNCj4gDQo+IGNvbW1pdCA5YWQxOWFjNDU2YTVmMDk3ZjdjYmJmZWY4MjBi
+OTUyOTdkNmE5MzRmDQo+IEF1dGhvcjogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50ZWwuY29t
+Pg0KPiBEYXRlOiAgIE1vbiBGZWIgMTQgMTY6MDk6NDAgMjAxMSArMDgwMA0KPiANCj4gICAgIEFD
+UElDQTogU3BsaXQgbGFyZ2UgZHNvcGNvZGUgYW5kIGRzbG9hZC5jIGZpbGVzLg0KPiANCj4gd2hp
+Y2ggc2VlbXMgdG8gYmUganVzdCBtb3ZpbmcgY29kZSBhcm91bmQgKHRoZSBjdWxwcml0IGhlcmUg
+aXMNCj4gYWNwaV9kc19nZXRfcmVnaW9uX2FyZ3VtZW50cykuIEkgZ3Vlc3MgdGhhdCB0aGUgcmVt
+b3ZhbCB3YXNuJ3QNCj4gaW50ZW50aW9uYWwgc2luY2UgdGhlIGNvcnJlc3BvbmRpbmcgY2FsbCB0
+byBhY3BpX29zX2ludmFsaWRhdGVfYWRkcmVzcw0KPiB3YXMgbGVmdCBpbiBwbGFjZS4NCj4gQm9i
+IHNob3VsZCBJIHB1dCB0aGUgY2FsbCBiYWNrIGluIHBsYWNlPyBBbSBJIG1pc3Npbmcgc29tZXRo
+aW5nPw0KPiANCj4gTHVjYQ0K
