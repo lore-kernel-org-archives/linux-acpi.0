@@ -1,59 +1,29 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Mon, 28 Nov 2011 22:56:34 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
-References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 2/2] ACPICA: support Generic Address Structure
+ bit_offset in acpi_read/write
+Date: Mon, 28 Nov 2011 15:03:38 -0800
+Message-ID: <987664A83D2D224EAE907B061CE93D53027D89B5A9@orsmsx505.amr.corp.intel.com>
+References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
+	 <201111172127.40664.rjw@sisk.pl> <1321578279.13860.108.camel@yhuang-dev>
+	 <201111181025.58650.rjw@sisk.pl> <1321861880.13860.128.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56251 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:32446 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754300Ab1K1W4g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Nov 2011 17:56:36 -0500
-In-Reply-To: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+	id S1753370Ab1K1XDl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Nov 2011 18:03:41 -0500
+In-Reply-To: <1321861880.13860.128.camel@yhuang-dev>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>, Jean Delvare <khali@linux-fr.org>, "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Huang, Ying" <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Russell King <linux@arm.linux.org.uk>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
 
-SSdtIGdvaW5nIHRvIGxldCBMaW4gTWluZyByZXNwb25kIHRvIHRoaXMsIHNpbmNlIHRoZSBmdW5j
-dGlvbnMgaW4gcXVlc3Rpb24gYXBwZWFyIHRvIGJlIExpbnV4IGV4dGVuc2lvbnMgdG8gQUNQSUNB
-Lg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEx1Y2EgVGV0dGFtYW50
-aSBbbWFpbHRvOmtyb25vcy5pdEBnbWFpbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgTm92ZW1iZXIg
-MjgsIDIwMTEgMTI6NTQgUE0NCj4gVG86IEplYW4gRGVsdmFyZQ0KPiBDYzogTmlrb2xheSBNaWtv
-djsgVGhvbWFzOyBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiBT
-dWJqZWN0OiBbQlVHXSBBQ1BJIHJlc291cmNlIHZhbGlkYXRpb24gbm90IHdvcmtpbmcgW1dhczog
-UmU6IElURQ0KPiA4NzI4Rl0NCj4gDQo+IFRvIGdpdmUgc29tZSBjb250ZXh0IHRvIHRoZSBuZXdj
-b21lcnM6IHdoaWxlIGhlbHBpbmcgYSB1c2VyIHdpdGggYSBuZXcNCj4gaHdtb24gY2hpcCB3ZSBk
-aXNjb3ZlcmVkIHRoYXQgdGhlIG5hdGl2ZSBkcml2ZXIgaXMgbG9hZGVkIGZpbmUgZXZlbg0KPiB0
-aG91Z2ggdGhlIElPIHBvcnRzIGFyZSBjbGFpbWVkIGJ5IEFDUEkgKE9wZXJhdGlvblJlZ2lvbikg
-YW5kDQo+IGFjcGlfZW5mb3JjZV9yZXNvdXJjZXMgaXMgInN0cmljdCIuDQo+IA0KPiBPbiBNb24s
-IE5vdiAyOCwgMjAxMSBhdCA0OjQ4IFBNLCBMdWNhIFRldHRhbWFudGkgPGtyb25vcy5pdEBnbWFp
-bC5jb20+DQo+IHdyb3RlOg0KPiA+IE9uIE1vbiwgTm92IDI4LCAyMDExIGF0IDQ6MDggUE0sIEpl
-YW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPg0KPiB3cm90ZToNCj4gPj4gT24gTW9uLCAy
-OCBOb3YgMjAxMSAxNDowMjo1MSArMDEwMCwgTHVjYSBUZXR0YW1hbnRpIHdyb3RlOg0KPiA+Pj4g
-VGhlIERTRFQgaGFzIHRoaXM6DQo+ID4+Pg0KPiA+Pj4gTmFtZSAoSU9FQiwgMHgwMjkwKQ0KPiA+
-Pj4gT3BlcmF0aW9uUmVnaW9uIChTSU9FLCBTeXN0ZW1JTywgSU9FQiwgMHgyMCkNCj4gPj4+IEZp
-ZWxkIChTSU9FLCBCeXRlQWNjLCBOb0xvY2ssIFByZXNlcnZlKQ0KPiA+Pj4gew0KPiA+Pj4gwqAg
-wqAgT2Zmc2V0ICgweDA1KSwNCj4gPj4+IMKgIMKgIEdJRFgsIMKgIDgsDQo+ID4+PiDCoCDCoCBH
-REFULCDCoCA4DQo+ID4+PiB9DQo+ID4+Pg0KPiA+Pj4gc28gdGhlIHJlcXVlc3RlZCBhcmVhIGlz
-IHdlbGwgd2l0aGluIHdoYXQgQUNQSSBjbGFpbXMuDQo+IFtjdXRdDQo+ID4+IEEgY29sbGVhZ3Vl
-IG9mIG1pbmUgKGhpIFRob21hcyEpIHN1Z2dlc3RzIHRoYXQgTmlrb2xheSBjb3VsZCBib290DQo+
-IHdpdGg6DQo+ID4+DQo+ID4+IGRkZWJ1Zz0iZmlsZSBvc2wuYyArcA0KPiA+DQo+ID4gVGhpcyBz
-aG91bGQgYmU6DQo+ID4NCj4gPiBkZGVidWdfcXVlcnk9ImZpbGUgb3NsLmMgK3AiDQo+ID4NCj4g
-PiBJdCBzaG91bGQgc3BhbSB0aGUgbG9nIHdpdGggYWxsIHRoZSByZXNvdXJjZXMgZm91bmQgYnkg
-QUNQSSBwYXJzZXIsDQo+ID4gYXNzdW1pbmcgdGhhdCBDT05GSUdfRFlOQU1JQ19ERUJVRyBpcyBl
-bmFibGVkLg0KPiANCj4gSHVtLCB0aGUgY2FsbCB0byBhY3BpX29zX3ZhbGlkYXRlX2FkZHJlc3Mg
-d2FzIHJlbW92ZWQgYmV0d2VlbiAyLjYuMzgNCj4gYW5kIDIuNi4zOSwgd2l0aCB0aGlzIGNvbW1p
-dCBieSBCb2IgTW9yZToNCj4gDQo+IGNvbW1pdCA5YWQxOWFjNDU2YTVmMDk3ZjdjYmJmZWY4MjBi
-OTUyOTdkNmE5MzRmDQo+IEF1dGhvcjogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50ZWwuY29t
-Pg0KPiBEYXRlOiAgIE1vbiBGZWIgMTQgMTY6MDk6NDAgMjAxMSArMDgwMA0KPiANCj4gICAgIEFD
-UElDQTogU3BsaXQgbGFyZ2UgZHNvcGNvZGUgYW5kIGRzbG9hZC5jIGZpbGVzLg0KPiANCj4gd2hp
-Y2ggc2VlbXMgdG8gYmUganVzdCBtb3ZpbmcgY29kZSBhcm91bmQgKHRoZSBjdWxwcml0IGhlcmUg
-aXMNCj4gYWNwaV9kc19nZXRfcmVnaW9uX2FyZ3VtZW50cykuIEkgZ3Vlc3MgdGhhdCB0aGUgcmVt
-b3ZhbCB3YXNuJ3QNCj4gaW50ZW50aW9uYWwgc2luY2UgdGhlIGNvcnJlc3BvbmRpbmcgY2FsbCB0
-byBhY3BpX29zX2ludmFsaWRhdGVfYWRkcmVzcw0KPiB3YXMgbGVmdCBpbiBwbGFjZS4NCj4gQm9i
-IHNob3VsZCBJIHB1dCB0aGUgY2FsbCBiYWNrIGluIHBsYWNlPyBBbSBJIG1pc3Npbmcgc29tZXRo
-aW5nPw0KPiANCj4gTHVjYQ0K
+PiBEbyB5b3UgaGF2ZSB0aW1lIHRvIHRha2UgYSBsb29rIGF0IHRoZSBmb2xsb3dpbmcgcGF0Y2g6
+DQo+DQo+IGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDExLzExLzcvNTY3DQo+DQo+IHRvIGNoZWNr
+IHdoZXRoZXIgYWNwaV9tYXAvdW5tYXAgaW1wbGVtZW50ZWQgaW4gcGF0Y2ggd29ya3Mgb24gaWE2
+NCBhbmQNCj4gQVJNPw0KDQpJYTY0IHdvbid0IGNhcmUgLSBpdCBkb2Vzbid0IHVzZSAoYW5kIHdv
+bid0IGV2ZXIgdXNlKSBhbnkgb2YgdGhlc2UgQUNQSSBtZXRob2RzLg0KSXQgaGFzIHNvbWUgUEFM
+IGZ1bmN0aW9ucyBmb3IgZXJyb3IgaW5qZWN0aW9uLg0KDQotVG9ueQ0K
