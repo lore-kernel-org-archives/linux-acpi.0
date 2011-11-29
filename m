@@ -1,62 +1,33 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
 Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Tue, 29 Nov 2011 14:18:29 +0100
-Message-ID: <CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
+Date: Tue, 29 Nov 2011 21:44:08 +0800
+Message-ID: <CAF1ivSZyvzOY9DGWEgSwrcbyPQ9ftOGbO9VAwcDk-V4=Utxk0g@mail.gmail.com>
 References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
 	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
 	<1322531323.1467.10.camel@minggr>
+	<CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:48030 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127Ab1K2NSa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 08:18:30 -0500
-Received: by iage36 with SMTP id e36so10607294iag.19
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2011 05:18:30 -0800 (PST)
-In-Reply-To: <1322531323.1467.10.camel@minggr>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:52743 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755270Ab1K2NoJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 08:44:09 -0500
+Received: by vcbfk14 with SMTP id fk14so4596026vcb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2011 05:44:08 -0800 (PST)
+In-Reply-To: <CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
+To: Luca Tettamanti <kronos.it@gmail.com>
 Cc: "Moore, Robert" <robert.moore@intel.com>, Jean Delvare <khali@linux-fr.org>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gVHVlLCBOb3YgMjksIDIwMTEgYXQgMjo0OCBBTSwgTGluIE1pbmcgPG1pbmcubS5saW5AaW50
-ZWwuY29tPiB3cm90ZToKPiBPbiBUdWUsIDIwMTEtMTEtMjkgYXQgMDY6NTYgKzA4MDAsIE1vb3Jl
-LCBSb2JlcnQgd3JvdGU6Cj4+IEknbSBnb2luZyB0byBsZXQgTGluIE1pbmcgcmVzcG9uZCB0byB0
-aGlzLCBzaW5jZSB0aGUgZnVuY3Rpb25zIGluIHF1ZXN0aW9uIGFwcGVhciB0byBiZSBMaW51eCBl
-eHRlbnNpb25zIHRvIEFDUElDQS4KWy4uLl0KPiBZZXMsIHdlIHNob3VsZCBwdXQgdGhlIGNhbGwg
-YmFjay4KCkdyZWF0LCBhcmUgeW91IGdvaW5nIHRvIHB1c2ggdGhpcyBwYXRjaCB5b3Vyc2VsZj8K
-Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNhcmdzLmMgYi9kcml2ZXJzL2Fj
-cGkvYWNwaWNhL2RzYXJncy5jCj4gaW5kZXggOGM3Yjk5Ny4uNDIxNjNkOCAxMDA2NDQKPiAtLS0g
-YS9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzYXJncy5jCj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGlj
-YS9kc2FyZ3MuYwo+IEBAIC0zODcsNSArMzg3LDI5IEBAIGFjcGlfc3RhdHVzIGFjcGlfZHNfZ2V0
-X3JlZ2lvbl9hcmd1bWVudHModW5pb24gYWNwaV9vcGVyYW5kX29iamVjdCAqb2JqX2Rlc2MpCj4g
-wqAgwqAgwqAgwqBzdGF0dXMgPSBhY3BpX2RzX2V4ZWN1dGVfYXJndW1lbnRzKG5vZGUsIG5vZGUt
-PnBhcmVudCwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCBleHRyYV9kZXNjLT5leHRyYS5hbWxfbGVuZ3RoLAo+IMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGV4
-dHJhX2Rlc2MtPmV4dHJhLmFtbF9zdGFydCk7Cj4gKyDCoCDCoCDCoCBpZiAoQUNQSV9GQUlMVVJF
-KHN0YXR1cykpIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJldHVybl9BQ1BJX1NUQVRVUyhz
-dGF0dXMpOwo+ICsgwqAgwqAgwqAgfQo+ICsKPiArIMKgIMKgIMKgIC8qIFZhbGlkYXRlIHRoZSBy
-ZWdpb24gYWRkcmVzcy9sZW5ndGggdmlhIHRoZSBob3N0IE9TICovCj4gKwo+ICsgwqAgwqAgwqAg
-c3RhdHVzID0gYWNwaV9vc192YWxpZGF0ZV9hZGRyZXNzKG9ial9kZXNjLT5yZWdpb24uc3BhY2Vf
-aWQsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCBvYmpfZGVzYy0+cmVnaW9uLmFkZHJlc3MsCj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAoYWNwaV9zaXplKSBv
-YmpfZGVzYy0+cmVnaW9uLmxlbmd0aCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGFjcGlfdXRfZ2V0X25vZGVfbmFtZShub2Rl
-KSk7Cj4gKwo+ICsgwqAgwqAgwqAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7Cj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCAvKgo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAqIEludmFsaWQg
-YWRkcmVzcy9sZW5ndGguIFdlIHdpbGwgZW1pdCBhbiBlcnJvciBtZXNzYWdlIGFuZCBtYXJrCj4g
-KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCogdGhlIHJlZ2lvbiBhcyBpbnZhbGlkLCBzbyB0aGF0
-IGl0IHdpbGwgY2F1c2UgYW4gYWRkaXRpb25hbCBlcnJvciBpZgo+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAqIGl0IGlzIGV2ZXIgdXNlZC4gVGhlbiByZXR1cm4gQUVfT0suCj4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCovCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBBQ1BJX0VYQ0VQVElP
-TigoQUVfSU5GTywgc3RhdHVzLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgIkR1cmluZyBhZGRyZXNzIHZhbGlkYXRpb24gb2YgT3BSZWdpb24gWyU0LjRz
-XSIsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBub2Rl
-LT5uYW1lLmFzY2lpKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBvYmpfZGVzYy0+Y29tbW9u
-LmZsYWdzIHw9IEFPUE9CSl9JTlZBTElEOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RhdHVz
-ID0gQUVfT0s7Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+IMKgIMKgIMKgIMKgcmV0dXJuX0FDUElfU1RB
-VFVTKHN0YXR1cyk7Cj4gwqB9Cgp0aGFua3MsCkx1Y2EK
+On Tue, Nov 29, 2011 at 9:18 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
+> On Tue, Nov 29, 2011 at 2:48 AM, Lin Ming <ming.m.lin@intel.com> wrote:
+>> On Tue, 2011-11-29 at 06:56 +0800, Moore, Robert wrote:
+>>> I'm going to let Lin Ming respond to this, since the functions in question appear to be Linux extensions to ACPICA.
+> [...]
+>> Yes, we should put the call back.
+>
+> Great, are you going to push this patch yourself?
+
+Yes. I'll send it to Len.
