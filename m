@@ -1,78 +1,123 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Shutdown issues with Gigabyte A75M board: always reboots
-Date: Mon, 28 Nov 2011 17:43:45 -0800
-Message-ID: <CAErSpo4ut00Ew7ZhOazmhBGXYMnNrs0JU4HwT5mjOSrq8-JPDg@mail.gmail.com>
-References: <1322497836.4462.5.camel@alucardo.nm.mcbf.net> <1322498547.4462.7.camel@alucardo.nm.mcbf.net>
- <1322529738.2648.6.camel@alucardo.nm.mcbf.net>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: RE: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
+Date: Tue, 29 Nov 2011 09:48:43 +0800
+Message-ID: <1322531323.1467.10.camel@minggr>
+References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56530 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963Ab1K2BoK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2011 20:44:10 -0500
-Received: by eaak14 with SMTP id k14so2469908eaa.19
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Nov 2011 17:44:09 -0800 (PST)
-In-Reply-To: <1322529738.2648.6.camel@alucardo.nm.mcbf.net>
+Received: from mga14.intel.com ([143.182.124.37]:21540 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750900Ab1K2Bsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Nov 2011 20:48:47 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Mohr <damailings@mcbf.net>
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, Jean Delvare <khali@linux-fr.org>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Nov 28, 2011 at 5:22 PM, David Mohr <damailings@mcbf.net> wrote=
-:
-> On Mon, 2011-11-28 at 09:42 -0700, David Mohr wrote:
->> Hi folks,
->>
->> I have an AMD CPU on a Gigabyte A75M board[0]. When I shut the compu=
-ter
->> off, either through gdm, or with 'shutdown -h now' on the cli, the
->> computer turns off and then immediately on again. I would say there =
-is a
->> tiny delay in between which distinguishes it from a reboot.
->>
->> The same thing happens when I go to standby - the computer immediate=
-ly
->> wakes up.
->>
->> This is on 3.2-rc2. I have some infos attached to this email. Any he=
-lp
->> would be appreciated since this annoying problem has been with me fo=
-r a
->> while :-).
->>
->> Thanks,
->> ~David
->>
->> P.S. If there is a better place to post this issue, please let me kn=
-ow.
->>
->> [0]: http://www.gigabyte.us/products/product-page.aspx?pid=3D3928&#s=
-p
->
-> And I just realized my original email did not go through because the
-> attachment was too large.
->
-> Another attempt is attached. It contains acpidump =A0dmidecode =A0ker=
-n.log =A0lspci
-> uname . I hope that's useful enough to get a response ;-). I have the=
- sys
-> directory tarred up as well, please download it at [1].
->
-> Thanks,
-> ~David
->
-> [1]: http://dsp.mcbf.net/acpi-sys.tar.bz2
->
+On Tue, 2011-11-29 at 06:56 +0800, Moore, Robert wrote:
+> I'm going to let Lin Ming respond to this, since the functions in question appear to be Linux extensions to ACPICA.
+> 
+> > -----Original Message-----
+> > From: Luca Tettamanti [mailto:kronos.it@gmail.com]
+> > Sent: Monday, November 28, 2011 12:54 PM
+> > To: Jean Delvare
+> > Cc: Nikolay Mikov; Thomas; Moore, Robert; linux-acpi@vger.kernel.org
+> > Subject: [BUG] ACPI resource validation not working [Was: Re: ITE
+> > 8728F]
+> > 
+> > To give some context to the newcomers: while helping a user with a new
+> > hwmon chip we discovered that the native driver is loaded fine even
+> > though the IO ports are claimed by ACPI (OperationRegion) and
+> > acpi_enforce_resources is "strict".
+> > 
+> > On Mon, Nov 28, 2011 at 4:48 PM, Luca Tettamanti <kronos.it@gmail.com>
+> > wrote:
+> > > On Mon, Nov 28, 2011 at 4:08 PM, Jean Delvare <khali@linux-fr.org>
+> > wrote:
+> > >> On Mon, 28 Nov 2011 14:02:51 +0100, Luca Tettamanti wrote:
+> > >>> The DSDT has this:
+> > >>>
+> > >>> Name (IOEB, 0x0290)
+> > >>> OperationRegion (SIOE, SystemIO, IOEB, 0x20)
+> > >>> Field (SIOE, ByteAcc, NoLock, Preserve)
+> > >>> {
+> > >>>     Offset (0x05),
+> > >>>     GIDX,   8,
+> > >>>     GDAT,   8
+> > >>> }
+> > >>>
+> > >>> so the requested area is well within what ACPI claims.
+> > [cut]
+> > >> A colleague of mine (hi Thomas!) suggests that Nikolay could boot
+> > with:
+> > >>
+> > >> ddebug="file osl.c +p
+> > >
+> > > This should be:
+> > >
+> > > ddebug_query="file osl.c +p"
+> > >
+> > > It should spam the log with all the resources found by ACPI parser,
+> > > assuming that CONFIG_DYNAMIC_DEBUG is enabled.
+> > 
+> > Hum, the call to acpi_os_validate_address was removed between 2.6.38
+> > and 2.6.39, with this commit by Bob More:
+> > 
+> > commit 9ad19ac456a5f097f7cbbfef820b95297d6a934f
+> > Author: Bob Moore <robert.moore@intel.com>
+> > Date:   Mon Feb 14 16:09:40 2011 +0800
+> > 
+> >     ACPICA: Split large dsopcode and dsload.c files.
+> > 
+> > which seems to be just moving code around (the culprit here is
+> > acpi_ds_get_region_arguments). I guess that the removal wasn't
+> > intentional since the corresponding call to acpi_os_invalidate_address
+> > was left in place.
+> > Bob should I put the call back in place? Am I missing something?
 
-Is this a regression?  If so, what's the most recent kernel that did
-not have this bug?  If you're ambitious, you could bisect it and
-identify the change that caused the problem.
+Yes, we should put the call back.
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index 8c7b997..42163d8 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -387,5 +387,29 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
+ 	status = acpi_ds_execute_arguments(node, node->parent,
+ 					   extra_desc->extra.aml_length,
+ 					   extra_desc->extra.aml_start);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Validate the region address/length via the host OS */
++
++	status = acpi_os_validate_address(obj_desc->region.space_id,
++					  obj_desc->region.address,
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
++
++	if (ACPI_FAILURE(status)) {
++		/*
++		 * Invalid address/length. We will emit an error message and mark
++		 * the region as invalid, so that it will cause an additional error if
++		 * it is ever used. Then return AE_OK.
++		 */
++		ACPI_EXCEPTION((AE_INFO, status,
++				"During address validation of OpRegion [%4.4s]",
++				node->name.ascii));
++		obj_desc->common.flags |= AOPOBJ_INVALID;
++		status = AE_OK;
++	}
++
+ 	return_ACPI_STATUS(status);
+ }
+
+
+> > 
+> > Luca
+
+
