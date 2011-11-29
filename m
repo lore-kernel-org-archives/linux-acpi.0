@@ -1,151 +1,62 @@
-From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Subject: Re: Too many poll_idle cpu calls in kernel 3.2 rc-series
-Date: Tue, 29 Nov 2011 16:07:21 +0530
-Message-ID: <4ED4B5E1.1070900@linux.vnet.ibm.com>
-References: <1587582695.5658131.1322424808507.JavaMail.fmail@mwmweb005> <4ED3E8AD.6050304@linux.vnet.ibm.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
+Date: Tue, 29 Nov 2011 14:18:29 +0100
+Message-ID: <CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
+References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
+	<1322531323.1467.10.camel@minggr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp09.in.ibm.com ([122.248.162.9]:49414 "EHLO
-	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989Ab1K2Khe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 05:37:34 -0500
-Received: from /spool/local
-	by e28smtp09.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
-	Tue, 29 Nov 2011 16:07:29 +0530
-In-Reply-To: <4ED3E8AD.6050304@linux.vnet.ibm.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:48030 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754127Ab1K2NSa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 08:18:30 -0500
+Received: by iage36 with SMTP id e36so10607294iag.19
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2011 05:18:30 -0800 (PST)
+In-Reply-To: <1322531323.1467.10.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Nicolas Kalkhof <nkalkhof@web.de>, linux-kernel@vger.kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Jean Delvare <khali@linux-fr.org>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On 11/29/2011 01:31 AM, Srivatsa S. Bhat wrote:
-
-> 
-> Adding linux-pm mailing list to CC.
-> 
-> Thanks,
-> Srivatsa S. Bhat
-> 
-> On 11/28/2011 01:43 AM, Nicolas Kalkhof wrote:
-> 
->> the kernel v3.2 series shows excessive poll_idle calls during system idle phases causing the cpu
->> (mobile i7 2620M) to heat up and draw additional 10% more power.  All kernel versions between
->> 3.2-rc1 and 3.2-rc3 are affected. Perf Top and Powertop both show the same issue.
->> I've posted a similar bug report before: http://marc.info/?l=linux-kernel&m=132164909313594&w=2
->> and used perf top -U to verify the poll_idle calls as requested.
->>
->> dmesg and kernel .config attached.
->>
->> Could someone please confirm this issue?
->>
->> Thanks and Regards
->> Nic
->>
->> perf top -U shows:
->> Events: 30K cycles
->>  97.88%  [kernel]   [k] poll_idle
->>   0.17%  [kernel]   [k] sdhci_irq
->>   0.08%  [kernel]   [k] unix_poll
->>   0.06%  [kernel]   [k] _raw_spin_lock_irqsave
->>   0.06%  [kernel]   [k] page_fault
->>   0.05%  [kernel]   [k] fget_light
->>   0.05%  [kernel]   [k] format_decode
->>   0.04%  [kernel]   [k] kmem_cache_alloc
->>   0.04%  [kernel]   [k] clear_page
->>   0.04%  [kernel]   [k] _raw_spin_unlock_irqrestore
->>   0.03%  [kernel]   [k] do_select
->>   0.03%  [kernel]   [k] seq_printf
->>   0.03%  [kernel]   [k] vfs_read
->>   0.03%  [kernel]   [k] _raw_spin_lock
->>   0.03%  [kernel]   [k] vsnprintf
->>   0.03%  [kernel]   [k] number.clone.1
->>   0.03%  [kernel]   [k] fput
->>
->> Powertop shows:
->> n                Avg residency       P-states (frequencies)
->> C0 (cpu running)        ( 5.4%)       Turbo Mode     1.5%
->> polling           1.8ms (94.6%)         2.71 Ghz     0.1%
->> C1 mwait          0.0ms ( 0.0%)         2.21 Ghz     0.1%
->> C2 mwait          0.0ms ( 0.0%)         1400 Mhz     0.1%
->> C3 mwait          0.0ms ( 0.0%)          800 Mhz    98.2%
->> C4 mwait          0.0ms ( 0.0%)
->> Wakeups-from-idle per second : 529.4    interval: 5.0s
->>
-> 
-
-
-I compiled and tested the latest kernel 3.2-rc3 on my thinkpad i5-2540M
-(sandy bridge config) with Intel_Idle enabled after few mins of
-booting and I see that the cores are going to lower C-states.
-
-Following is my powertop o/p:
-===========================
-Core    	|             CPU 0               CPU 1
-POLL        0.0%    | POLL        0.0%    0.0 ms      0.0%    0.0 ms
-C1-SNB      1.4%    | C1-SNB      2.2%    0.7 ms      0.5%    0.9 ms
-C3-SNB      0.9%    | C3-SNB      1.6%    1.2 ms      0.1%    1.2 ms
-C6-SNB      0.2%    | C6-SNB      0.3%    1.6 ms      0.0%    0.9 ms
-C7-SNB     95.8%    | C7-SNB     93.7%    3.7 ms     97.8%   15.1 ms
-
-Core    |             CPU 2               CPU 3
-POLL        0.0%    | POLL        0.0%    0.0 ms      0.0%    0.0 ms
-C1-SNB      0.0%    | C1-SNB      0.1%    0.4 ms      0.0%    0.1 ms
-C3-SNB      2.3%    | C3-SNB      0.0%    0.3 ms      4.6%  149.8 ms
-C6-SNB      0.0%    | C6-SNB      0.0%    1.2 ms      0.0%    0.0 ms
-C7-SNB     95.8%    | C7-SNB     99.4%   12.0 ms     92.1%   71.4 ms
-
-	
-
--ThinkPad-T420:~$ uname -a
-Linux-ThinkPad-T420 3.2.0-rc3 #1 SMP Tue Nov 29 14:37:22 IST 2011 x86_64
-x86_64 x86_64 GNU/Linux
-
-ThinkPad-T420:~$ cat /proc/cpuinfo
-processor	: 0
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 42
-model name	: Intel(R) Core(TM) i5-2540M CPU @ 2.60GHz
-stepping	: 7
-microcode	: 0x1a
-cpu MHz		: 800.000
-cache size	: 3072 KB
-physical id	: 0
-siblings	: 4
-core id		: 0
-cpu cores	: 2
-apicid		: 0
-initial apicid	: 0
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 13
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov
-pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx
-rdtscp lm constant_tsc arch_perfmon pebs bts nopl xtopology nonstop_tsc
-aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3
-cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes
-xsave avx lahf_lm ida arat epb xsaveopt pln pts dts tpr_shadow vnmi
-flexpriority ept vpid
-bogomips	: 5182.63
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 36 bits physical, 48 bits virtual
-power management:
-
-.config
-CONFIG_ARCH_HAS_CPU_IDLE_WAIT=y
-CONFIG_ARCH_HAS_DEFAULT_IDLE=y
-CONFIG_CPU_IDLE=y
-CONFIG_CPU_IDLE_GOV_LADDER=y
-CONFIG_CPU_IDLE_GOV_MENU=y
-CONFIG_INTEL_IDLE=y
-
-Regards,
-Deepthi
-
+T24gVHVlLCBOb3YgMjksIDIwMTEgYXQgMjo0OCBBTSwgTGluIE1pbmcgPG1pbmcubS5saW5AaW50
+ZWwuY29tPiB3cm90ZToKPiBPbiBUdWUsIDIwMTEtMTEtMjkgYXQgMDY6NTYgKzA4MDAsIE1vb3Jl
+LCBSb2JlcnQgd3JvdGU6Cj4+IEknbSBnb2luZyB0byBsZXQgTGluIE1pbmcgcmVzcG9uZCB0byB0
+aGlzLCBzaW5jZSB0aGUgZnVuY3Rpb25zIGluIHF1ZXN0aW9uIGFwcGVhciB0byBiZSBMaW51eCBl
+eHRlbnNpb25zIHRvIEFDUElDQS4KWy4uLl0KPiBZZXMsIHdlIHNob3VsZCBwdXQgdGhlIGNhbGwg
+YmFjay4KCkdyZWF0LCBhcmUgeW91IGdvaW5nIHRvIHB1c2ggdGhpcyBwYXRjaCB5b3Vyc2VsZj8K
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNhcmdzLmMgYi9kcml2ZXJzL2Fj
+cGkvYWNwaWNhL2RzYXJncy5jCj4gaW5kZXggOGM3Yjk5Ny4uNDIxNjNkOCAxMDA2NDQKPiAtLS0g
+YS9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzYXJncy5jCj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGlj
+YS9kc2FyZ3MuYwo+IEBAIC0zODcsNSArMzg3LDI5IEBAIGFjcGlfc3RhdHVzIGFjcGlfZHNfZ2V0
+X3JlZ2lvbl9hcmd1bWVudHModW5pb24gYWNwaV9vcGVyYW5kX29iamVjdCAqb2JqX2Rlc2MpCj4g
+wqAgwqAgwqAgwqBzdGF0dXMgPSBhY3BpX2RzX2V4ZWN1dGVfYXJndW1lbnRzKG5vZGUsIG5vZGUt
+PnBhcmVudCwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBleHRyYV9kZXNjLT5leHRyYS5hbWxfbGVuZ3RoLAo+IMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGV4
+dHJhX2Rlc2MtPmV4dHJhLmFtbF9zdGFydCk7Cj4gKyDCoCDCoCDCoCBpZiAoQUNQSV9GQUlMVVJF
+KHN0YXR1cykpIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJldHVybl9BQ1BJX1NUQVRVUyhz
+dGF0dXMpOwo+ICsgwqAgwqAgwqAgfQo+ICsKPiArIMKgIMKgIMKgIC8qIFZhbGlkYXRlIHRoZSBy
+ZWdpb24gYWRkcmVzcy9sZW5ndGggdmlhIHRoZSBob3N0IE9TICovCj4gKwo+ICsgwqAgwqAgwqAg
+c3RhdHVzID0gYWNwaV9vc192YWxpZGF0ZV9hZGRyZXNzKG9ial9kZXNjLT5yZWdpb24uc3BhY2Vf
+aWQsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCBvYmpfZGVzYy0+cmVnaW9uLmFkZHJlc3MsCj4gKyDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAoYWNwaV9zaXplKSBv
+YmpfZGVzYy0+cmVnaW9uLmxlbmd0aCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGFjcGlfdXRfZ2V0X25vZGVfbmFtZShub2Rl
+KSk7Cj4gKwo+ICsgwqAgwqAgwqAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7Cj4gKyDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCAvKgo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAqIEludmFsaWQg
+YWRkcmVzcy9sZW5ndGguIFdlIHdpbGwgZW1pdCBhbiBlcnJvciBtZXNzYWdlIGFuZCBtYXJrCj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCogdGhlIHJlZ2lvbiBhcyBpbnZhbGlkLCBzbyB0aGF0
+IGl0IHdpbGwgY2F1c2UgYW4gYWRkaXRpb25hbCBlcnJvciBpZgo+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAqIGl0IGlzIGV2ZXIgdXNlZC4gVGhlbiByZXR1cm4gQUVfT0suCj4gKyDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCovCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBBQ1BJX0VYQ0VQVElP
+TigoQUVfSU5GTywgc3RhdHVzLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgIkR1cmluZyBhZGRyZXNzIHZhbGlkYXRpb24gb2YgT3BSZWdpb24gWyU0LjRz
+XSIsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBub2Rl
+LT5uYW1lLmFzY2lpKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBvYmpfZGVzYy0+Y29tbW9u
+LmZsYWdzIHw9IEFPUE9CSl9JTlZBTElEOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RhdHVz
+ID0gQUVfT0s7Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+IMKgIMKgIMKgIMKgcmV0dXJuX0FDUElfU1RB
+VFVTKHN0YXR1cyk7Cj4gwqB9Cgp0aGFua3MsCkx1Y2EK
