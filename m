@@ -1,107 +1,323 @@
-From: Borislav Petkov <bp@amd64.org>
-Subject: Re: 3.2-rc2+: Reported regressions from 3.0 and 3.1
-Date: Tue, 29 Nov 2011 19:34:28 +0100
-Message-ID: <20111129183428.GE8200@aftab>
-References: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
- <201111212249.31196.rjw@sisk.pl>
- <20111122135412.GA29905@phenom.dumpdata.com>
- <20111129180414.GA11459@phenom.dumpdata.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from s15228384.onlinehome-server.info ([87.106.30.177]:53081 "EHLO
-	mail.x86-64.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab1K2Sei (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 13:34:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20111129180414.GA11459@phenom.dumpdata.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] acpi-apei-einj: add extensions to EINJ from rev 5.0 of acpi spec
+Date: Tue, 29 Nov 2011 11:40:29 -0800
+Message-ID: <4ed5352d208477d14@agluck-desktop.sc.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ying.huang@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Florian Mickler <florian@mickler.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, deepthi@linux.vnet.ibm.com
 
-On Tue, Nov 29, 2011 at 01:04:14PM -0500, Konrad Rzeszutek Wilk wrote:
-> This patch:
-> 
-> commit d91ee5863b71e8c90eaf6035bff3078a85e2e7b5
-> Author: Len Brown <len.brown@intel.com>
-> Date:   Fri Apr 1 18:28:35 2011 -0400
-> 
->     cpuidle: replace xen access to x86 pm_idle and default_idle
-> 
->     ..scribble on pm_idle and access default_idle,
->    have it simply disable_cpuidle() so acpi_idle will not load and
->    architecture default HLT will be used.
-> 
-> idea was to have one call - disable_cpuidle() which would make
-> pm_idle not be molested by other code. It disallows cpuidle_idle_call
-> and acpi_idle_call to not set pm_idle (which is excellent). But the
+ACPI 5.0 provides extensions to the EINJ mechanism to specify the
+target for the error injection - by APICID for cpu related errors,
+by address for memory related errors, and by segment/bus/device/function
+for PCIe related errors. Also extensions for vendor specific error
+injections.
 
-what is acpi_idle_call, I can't find it anywhere.
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/apei/einj.c |  217 ++++++++++++++++++++++++++++++++++++++--------
+ include/acpi/actbl1.h    |    3 +-
+ 2 files changed, 183 insertions(+), 37 deletions(-)
 
-> amd_e400_idle and mwait_idle can still setup pm_idle which we really
-> do not want.
-
-This is not the case: rather select_idle_routine()/idle_setup() sets
-pm_idle.
-
-[..]
-
-> +bool set_pm_idle_to_default()
-> +{
-> +	if (!pm_idle) {
-> +		pm_idle = default_idle;
-> +		return true;
-> +	}
-> +	return false;
-> +}
-
-I don't understand what you're trying to achieve here? Do you want
-default_idle to be always the pm_idle for xen or what is the deal here?
-
-If yes, then simply do:
-
-bool set_pm_idle_to_default(void)	// remember to add "void" for no function args
-{
-	bool ret = !!pm_idle;
-
-	pm_idle = default_idle;
-
-	return ret;
-
-}
-
-...
-
->  void stop_this_cpu(void *dummy)
->  {
->  	local_irq_disable();
-> diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-> index 46d6d21..7506181 100644
-> --- a/arch/x86/xen/setup.c
-> +++ b/arch/x86/xen/setup.c
-> @@ -448,6 +448,6 @@ void __init xen_arch_setup(void)
->  #endif
->  	disable_cpuidle();
->  	boot_option_idle_override = IDLE_HALT;
-> -
-> +	WARN_ON(!set_pm_idle_to_default());
-
-and then do
-
-	WARN_ON(set_pm_idle_to_default());
-
-instead of having arbitrary confusing logic. This way you can warn
-whether something else set pm_idle already. Or?
-
-Thanks.
-
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 589b96c..b65d80d 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -43,6 +43,42 @@
+ #define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
+ 
+ /*
++ * ACPI version 5 provides a SET_ERROR_TYPE_WITH_ADDRESS action.
++ */
++static int acpi5;
++
++struct set_error_type_with_address {
++	u32	type;
++	u32	vendor_extension;
++	u32	flags;
++	u32	apicid;
++	u64	memory_address;
++	u64	memory_address_range;
++	u32	pcie_sbdf;
++};
++enum {
++	SETWA_FLAGS_APICID = 1,
++	SETWA_FLAGS_MEM = 2,
++	SETWA_FLAGS_PCIE_SBDF = 4,
++};
++
++/*
++ * Vendor extensions for platform specific operations
++ */
++struct vendor_error_type_extension {
++	u32	length;
++	u32	pcie_sbdf;
++	u16	vendor_id;
++	u16	device_id;
++	u8	rev_id;
++	u8	reserved[3];
++};
++
++static u32 vendor_flags;
++static struct debugfs_blob_wrapper vendor_blob;
++static char vendor_dev[64];
++
++/*
+  * Some BIOSes allow parameters to the SET_ERROR_TYPE entries in the
+  * EINJ table through an unpublished extension. Use with caution as
+  * most will ignore the parameter and make their own choice of address
+@@ -103,7 +139,7 @@ static struct apei_exec_ins_type einj_ins_type[] = {
+  */
+ static DEFINE_MUTEX(einj_mutex);
+ 
+-static struct einj_parameter *einj_param;
++static void *einj_param;
+ 
+ #ifndef writeq
+ static inline void writeq(__u64 val, volatile void __iomem *addr)
+@@ -158,10 +194,31 @@ static int einj_timedout(u64 *t)
+ 	return 0;
+ }
+ 
+-static u64 einj_get_parameter_address(void)
++static void check_vendor_extension(u64 paddr,
++				   struct set_error_type_with_address *v5param)
++{
++	int	offset = readl(&v5param->vendor_extension);
++	struct	vendor_error_type_extension *v;
++	u32	sbdf;
++
++	if (!offset)
++		return;
++	v = ioremap(paddr + offset, sizeof(*v));
++	if (!v)
++		return;
++	sbdf = readl(&v->pcie_sbdf);
++	sprintf(vendor_dev, "%x:%x:%x.%x vendor_id=%x device_id=%x rev_id=%x\n",
++		sbdf >> 24, (sbdf >> 16) & 0xff, (sbdf >> 11) & 0x1f, (sbdf >> 8) & 0x7,
++		 readw(&v->vendor_id), readw(&v->device_id),
++		readb(&v->rev_id));
++	iounmap(v);
++}
++
++static void *einj_get_parameter_address(void)
+ {
+ 	int i;
+-	u64 paddr = 0;
++	u64 paddrv4 = 0, paddrv5 = 0;
++	void *param;
+ 	struct acpi_whea_header *entry;
+ 
+ 	entry = EINJ_TAB_ENTRY(einj_tab);
+@@ -170,12 +227,40 @@ static u64 einj_get_parameter_address(void)
+ 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+ 		    entry->register_region.space_id ==
+ 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-			memcpy(&paddr, &entry->register_region.address,
+-			       sizeof(paddr));
++			memcpy(&paddrv4, &entry->register_region.address,
++			       sizeof(paddrv4));
++		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS &&
++		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
++		    entry->register_region.space_id ==
++		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
++			memcpy(&paddrv5, &entry->register_region.address,
++			       sizeof(paddrv5));
+ 		entry++;
+ 	}
++	if (paddrv5) {
++		struct set_error_type_with_address *v5param;
++
++		v5param = ioremap(paddrv5, sizeof(*v5param));
++		if (v5param) {
++			acpi5 = 1;
++			check_vendor_extension(paddrv5, v5param);
++			return v5param;
++		}
++	}
++	if (paddrv4) {
++		struct einj_parameter *v4param;
++
++		v4param = ioremap(paddrv4, sizeof(*v4param));
++		if (!v4param)
++			return 0;
++		if (readq(&v4param->reserved1) || readq(&v4param->reserved2)) {
++			iounmap(param);
++			return 0;
++		}
++		return v4param;
++	}
+ 
+-	return paddr;
++	return 0;
+ }
+ 
+ /* do sanity check to trigger table */
+@@ -293,12 +378,56 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ 	if (rc)
+ 		return rc;
+ 	apei_exec_ctx_set_input(&ctx, type);
+-	rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
+-	if (rc)
+-		return rc;
+-	if (einj_param) {
+-		writeq(param1, &einj_param->param1);
+-		writeq(param2, &einj_param->param2);
++	if (acpi5) {
++		struct set_error_type_with_address *v5param = einj_param;
++
++		writel(type, &v5param->type);
++		if (type & 0x80000000) {
++			switch (vendor_flags) {
++			case SETWA_FLAGS_APICID:
++				writel(param1, &v5param->apicid);
++				break;
++			case SETWA_FLAGS_MEM:
++				writeq(param1, &v5param->memory_address);
++				writeq(param2, &v5param->memory_address_range);
++				break;
++			case SETWA_FLAGS_PCIE_SBDF:
++				writel(param1, &v5param->pcie_sbdf);
++				break;
++			}
++			writel(vendor_flags, &v5param->flags);
++		} else {
++			switch (type) {
++			case ACPI_EINJ_PROCESSOR_CORRECTABLE:
++			case ACPI_EINJ_PROCESSOR_UNCORRECTABLE:
++			case ACPI_EINJ_PROCESSOR_FATAL:
++				writel(param1, &v5param->apicid);
++				writel(SETWA_FLAGS_APICID, &v5param->flags);
++				break;
++			case ACPI_EINJ_MEMORY_CORRECTABLE:
++			case ACPI_EINJ_MEMORY_UNCORRECTABLE:
++			case ACPI_EINJ_MEMORY_FATAL:
++				writeq(param1, &v5param->memory_address);
++				writeq(param2, &v5param->memory_address_range);
++				writel(SETWA_FLAGS_MEM, &v5param->flags);
++				break;
++			case ACPI_EINJ_PCIX_CORRECTABLE:
++			case ACPI_EINJ_PCIX_UNCORRECTABLE:
++			case ACPI_EINJ_PCIX_FATAL:
++				writel(param1, &v5param->pcie_sbdf);
++				writel(SETWA_FLAGS_PCIE_SBDF, &v5param->flags);
++				break;
++			}
++		}
++	} else {
++		rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
++		if (rc)
++			return rc;
++		if (einj_param) {
++			struct einj_parameter *v4param = einj_param;
++			writeq(param1, &v4param->param1);
++			writeq(param2, &v4param->param2);
++		}
+ 	}
+ 	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
+ 	if (rc)
+@@ -408,15 +537,25 @@ static int error_type_set(void *data, u64 val)
+ {
+ 	int rc;
+ 	u32 available_error_type = 0;
++	u32 tval, vendor;
++
++	/*
++	 * Vendor defined types have 0x80000000 bit set, and
++	 * are not enumerated by ACPI_EINJ_GET_ERROR_TYPE
++	 */
++	vendor = val & 0x80000000;
++	tval = val & 0x7fffffff;
+ 
+ 	/* Only one error type can be specified */
+-	if (val & (val - 1))
+-		return -EINVAL;
+-	rc = einj_get_available_error_type(&available_error_type);
+-	if (rc)
+-		return rc;
+-	if (!(val & available_error_type))
++	if (tval & (tval - 1))
+ 		return -EINVAL;
++	if (!vendor) {
++		rc = einj_get_available_error_type(&available_error_type);
++		if (rc)
++			return rc;
++		if (!(val & available_error_type))
++			return -EINVAL;
++	}
+ 	error_type = val;
+ 
+ 	return 0;
+@@ -455,7 +594,6 @@ static int einj_check_table(struct acpi_table_einj *einj_tab)
+ static int __init einj_init(void)
+ {
+ 	int rc;
+-	u64 param_paddr;
+ 	acpi_status status;
+ 	struct dentry *fentry;
+ 	struct apei_exec_context ctx;
+@@ -509,23 +647,30 @@ static int __init einj_init(void)
+ 	rc = apei_exec_pre_map_gars(&ctx);
+ 	if (rc)
+ 		goto err_release;
+-	if (param_extension) {
+-		param_paddr = einj_get_parameter_address();
+-		if (param_paddr) {
+-			einj_param = ioremap(param_paddr, sizeof(*einj_param));
+-			rc = -ENOMEM;
+-			if (!einj_param)
+-				goto err_unmap;
+-			fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
+-						    einj_debug_dir, &error_param1);
+-			if (!fentry)
+-				goto err_unmap;
+-			fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
+-						    einj_debug_dir, &error_param2);
+-			if (!fentry)
+-				goto err_unmap;
+-		} else
+-			pr_warn(EINJ_PFX "Parameter extension is not supported.\n");
++
++	einj_param = einj_get_parameter_address();
++	if ((param_extension || acpi5) && einj_param) {
++		fentry = debugfs_create_x64("param1", S_IRUSR | S_IWUSR,
++					    einj_debug_dir, &error_param1);
++		if (!fentry)
++			goto err_unmap;
++		fentry = debugfs_create_x64("param2", S_IRUSR | S_IWUSR,
++					    einj_debug_dir, &error_param2);
++		if (!fentry)
++			goto err_unmap;
++	}
++
++	if (vendor_dev[0]) {
++		vendor_blob.data = vendor_dev;
++		vendor_blob.size = strlen(vendor_dev);
++		fentry = debugfs_create_blob("vendor", S_IRUSR,
++					     einj_debug_dir, &vendor_blob);
++		if (!fentry)
++			goto err_unmap;
++		fentry = debugfs_create_x32("vendor_flags", S_IRUSR | S_IWUSR,
++					    einj_debug_dir, &vendor_flags);
++		if (!fentry)
++			goto err_unmap;
+ 	}
+ 
+ 	pr_info(EINJ_PFX "Error INJection is initialized.\n");
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 7504bc9..f25d7ef 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -228,7 +228,8 @@ enum acpi_einj_actions {
+ 	ACPI_EINJ_EXECUTE_OPERATION = 5,
+ 	ACPI_EINJ_CHECK_BUSY_STATUS = 6,
+ 	ACPI_EINJ_GET_COMMAND_STATUS = 7,
+-	ACPI_EINJ_ACTION_RESERVED = 8,	/* 8 and greater are reserved */
++	ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS = 8,
++	ACPI_EINJ_ACTION_RESERVED = 9,	/* 9 and greater are reserved */
+ 	ACPI_EINJ_TRIGGER_ERROR = 0xFF	/* Except for this value */
+ };
+ 
 -- 
-Regards/Gruss,
-Boris.
-
-Advanced Micro Devices GmbH
-Einsteinring 24, 85609 Dornach
-GM: Alberto Bozzo
-Reg: Dornach, Landkreis Muenchen
-HRB Nr. 43632 WEEE Registernr: 129 19551
+1.7.3.1
