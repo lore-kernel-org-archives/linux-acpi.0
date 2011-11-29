@@ -1,70 +1,151 @@
-From: David Mohr <damailings@mcbf.net>
-Subject: Re: Shutdown issues with Gigabyte A75M board: always reboots
-Date: Mon, 28 Nov 2011 21:10:14 -0700
-Message-ID: <1322539814.2648.9.camel@alucardo.nm.mcbf.net>
-References: <1322497836.4462.5.camel@alucardo.nm.mcbf.net>
-	 <1322498547.4462.7.camel@alucardo.nm.mcbf.net>
-	 <1322529738.2648.6.camel@alucardo.nm.mcbf.net>
-	 <CAErSpo4ut00Ew7ZhOazmhBGXYMnNrs0JU4HwT5mjOSrq8-JPDg@mail.gmail.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: Too many poll_idle cpu calls in kernel 3.2 rc-series
+Date: Tue, 29 Nov 2011 16:07:21 +0530
+Message-ID: <4ED4B5E1.1070900@linux.vnet.ibm.com>
+References: <1587582695.5658131.1322424808507.JavaMail.fmail@mwmweb005> <4ED3E8AD.6050304@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from seeker.mcbf.net ([109.239.49.157]:44210 "EHLO seeker.mcbf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847Ab1K2EKY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2011 23:10:24 -0500
-In-Reply-To: <CAErSpo4ut00Ew7ZhOazmhBGXYMnNrs0JU4HwT5mjOSrq8-JPDg@mail.gmail.com>
+Received: from e28smtp09.in.ibm.com ([122.248.162.9]:49414 "EHLO
+	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989Ab1K2Khe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2011 05:37:34 -0500
+Received: from /spool/local
+	by e28smtp09.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
+	Tue, 29 Nov 2011 16:07:29 +0530
+In-Reply-To: <4ED3E8AD.6050304@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Nicolas Kalkhof <nkalkhof@web.de>, linux-kernel@vger.kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Mon, 2011-11-28 at 17:43 -0800, Bjorn Helgaas wrote:
-> On Mon, Nov 28, 2011 at 5:22 PM, David Mohr <damailings@mcbf.net> wrote:
-> > On Mon, 2011-11-28 at 09:42 -0700, David Mohr wrote:
-> >> Hi folks,
-> >>
-> >> I have an AMD CPU on a Gigabyte A75M board[0]. When I shut the computer
-> >> off, either through gdm, or with 'shutdown -h now' on the cli, the
-> >> computer turns off and then immediately on again. I would say there is a
-> >> tiny delay in between which distinguishes it from a reboot.
-> >>
-> >> The same thing happens when I go to standby - the computer immediately
-> >> wakes up.
-> >>
-> >> This is on 3.2-rc2. I have some infos attached to this email. Any help
-> >> would be appreciated since this annoying problem has been with me for a
-> >> while :-).
-> >>
-> >> Thanks,
-> >> ~David
-> >>
-> >> P.S. If there is a better place to post this issue, please let me know.
-> >>
-> >> [0]: http://www.gigabyte.us/products/product-page.aspx?pid=3928&#sp
-> >
-> > And I just realized my original email did not go through because the
-> > attachment was too large.
-> >
-> > Another attempt is attached. It contains acpidump  dmidecode  kern.log  lspci
-> > uname . I hope that's useful enough to get a response ;-). I have the sys
-> > directory tarred up as well, please download it at [1].
-> >
-> > Thanks,
-> > ~David
-> >
-> > [1]: http://dsp.mcbf.net/acpi-sys.tar.bz2
-> >
+Hi,
+
+On 11/29/2011 01:31 AM, Srivatsa S. Bhat wrote:
+
 > 
-> Is this a regression?  If so, what's the most recent kernel that did
-> not have this bug?  If you're ambitious, you could bisect it and
-> identify the change that caused the problem.
+> Adding linux-pm mailing list to CC.
+> 
+> Thanks,
+> Srivatsa S. Bhat
+> 
+> On 11/28/2011 01:43 AM, Nicolas Kalkhof wrote:
+> 
+>> the kernel v3.2 series shows excessive poll_idle calls during system idle phases causing the cpu
+>> (mobile i7 2620M) to heat up and draw additional 10% more power.  All kernel versions between
+>> 3.2-rc1 and 3.2-rc3 are affected. Perf Top and Powertop both show the same issue.
+>> I've posted a similar bug report before: http://marc.info/?l=linux-kernel&m=132164909313594&w=2
+>> and used perf top -U to verify the poll_idle calls as requested.
+>>
+>> dmesg and kernel .config attached.
+>>
+>> Could someone please confirm this issue?
+>>
+>> Thanks and Regards
+>> Nic
+>>
+>> perf top -U shows:
+>> Events: 30K cycles
+>>  97.88%  [kernel]   [k] poll_idle
+>>   0.17%  [kernel]   [k] sdhci_irq
+>>   0.08%  [kernel]   [k] unix_poll
+>>   0.06%  [kernel]   [k] _raw_spin_lock_irqsave
+>>   0.06%  [kernel]   [k] page_fault
+>>   0.05%  [kernel]   [k] fget_light
+>>   0.05%  [kernel]   [k] format_decode
+>>   0.04%  [kernel]   [k] kmem_cache_alloc
+>>   0.04%  [kernel]   [k] clear_page
+>>   0.04%  [kernel]   [k] _raw_spin_unlock_irqrestore
+>>   0.03%  [kernel]   [k] do_select
+>>   0.03%  [kernel]   [k] seq_printf
+>>   0.03%  [kernel]   [k] vfs_read
+>>   0.03%  [kernel]   [k] _raw_spin_lock
+>>   0.03%  [kernel]   [k] vsnprintf
+>>   0.03%  [kernel]   [k] number.clone.1
+>>   0.03%  [kernel]   [k] fput
+>>
+>> Powertop shows:
+>> n                Avg residency       P-states (frequencies)
+>> C0 (cpu running)        ( 5.4%)       Turbo Mode     1.5%
+>> polling           1.8ms (94.6%)         2.71 Ghz     0.1%
+>> C1 mwait          0.0ms ( 0.0%)         2.21 Ghz     0.1%
+>> C2 mwait          0.0ms ( 0.0%)         1400 Mhz     0.1%
+>> C3 mwait          0.0ms ( 0.0%)          800 Mhz    98.2%
+>> C4 mwait          0.0ms ( 0.0%)
+>> Wakeups-from-idle per second : 529.4    interval: 5.0s
+>>
+> 
 
-Hi Bjorn,
-I actually don't know if this is a regression. It's a new computer and
-any kernel I have tried showed this issue. But I will step back and try
-some older ones to see if a bisect would be worth while.
 
-~David
+I compiled and tested the latest kernel 3.2-rc3 on my thinkpad i5-2540M
+(sandy bridge config) with Intel_Idle enabled after few mins of
+booting and I see that the cores are going to lower C-states.
+
+Following is my powertop o/p:
+===========================
+Core    	|             CPU 0               CPU 1
+POLL        0.0%    | POLL        0.0%    0.0 ms      0.0%    0.0 ms
+C1-SNB      1.4%    | C1-SNB      2.2%    0.7 ms      0.5%    0.9 ms
+C3-SNB      0.9%    | C3-SNB      1.6%    1.2 ms      0.1%    1.2 ms
+C6-SNB      0.2%    | C6-SNB      0.3%    1.6 ms      0.0%    0.9 ms
+C7-SNB     95.8%    | C7-SNB     93.7%    3.7 ms     97.8%   15.1 ms
+
+Core    |             CPU 2               CPU 3
+POLL        0.0%    | POLL        0.0%    0.0 ms      0.0%    0.0 ms
+C1-SNB      0.0%    | C1-SNB      0.1%    0.4 ms      0.0%    0.1 ms
+C3-SNB      2.3%    | C3-SNB      0.0%    0.3 ms      4.6%  149.8 ms
+C6-SNB      0.0%    | C6-SNB      0.0%    1.2 ms      0.0%    0.0 ms
+C7-SNB     95.8%    | C7-SNB     99.4%   12.0 ms     92.1%   71.4 ms
+
+	
+
+-ThinkPad-T420:~$ uname -a
+Linux-ThinkPad-T420 3.2.0-rc3 #1 SMP Tue Nov 29 14:37:22 IST 2011 x86_64
+x86_64 x86_64 GNU/Linux
+
+ThinkPad-T420:~$ cat /proc/cpuinfo
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 42
+model name	: Intel(R) Core(TM) i5-2540M CPU @ 2.60GHz
+stepping	: 7
+microcode	: 0x1a
+cpu MHz		: 800.000
+cache size	: 3072 KB
+physical id	: 0
+siblings	: 4
+core id		: 0
+cpu cores	: 2
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 13
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov
+pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx
+rdtscp lm constant_tsc arch_perfmon pebs bts nopl xtopology nonstop_tsc
+aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3
+cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes
+xsave avx lahf_lm ida arat epb xsaveopt pln pts dts tpr_shadow vnmi
+flexpriority ept vpid
+bogomips	: 5182.63
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 36 bits physical, 48 bits virtual
+power management:
+
+.config
+CONFIG_ARCH_HAS_CPU_IDLE_WAIT=y
+CONFIG_ARCH_HAS_DEFAULT_IDLE=y
+CONFIG_CPU_IDLE=y
+CONFIG_CPU_IDLE_GOV_LADDER=y
+CONFIG_CPU_IDLE_GOV_MENU=y
+CONFIG_INTEL_IDLE=y
+
+Regards,
+Deepthi
 
