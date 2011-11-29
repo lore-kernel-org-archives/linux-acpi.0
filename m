@@ -1,42 +1,70 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: RE: [PATCH 2/2] ACPICA: support Generic Address Structure
- bit_offset in acpi_read/write
-Date: Tue, 29 Nov 2011 10:15:03 +0800
-Message-ID: <1322532903.4849.24.camel@yhuang-dev>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
-	 <201111172127.40664.rjw@sisk.pl> <1321578279.13860.108.camel@yhuang-dev>
-	 <201111181025.58650.rjw@sisk.pl> <1321861880.13860.128.camel@yhuang-dev>
-	 <987664A83D2D224EAE907B061CE93D53027D89B5A9@orsmsx505.amr.corp.intel.com>
+From: David Mohr <damailings@mcbf.net>
+Subject: Re: Shutdown issues with Gigabyte A75M board: always reboots
+Date: Mon, 28 Nov 2011 21:10:14 -0700
+Message-ID: <1322539814.2648.9.camel@alucardo.nm.mcbf.net>
+References: <1322497836.4462.5.camel@alucardo.nm.mcbf.net>
+	 <1322498547.4462.7.camel@alucardo.nm.mcbf.net>
+	 <1322529738.2648.6.camel@alucardo.nm.mcbf.net>
+	 <CAErSpo4ut00Ew7ZhOazmhBGXYMnNrs0JU4HwT5mjOSrq8-JPDg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:41725 "EHLO mga03.intel.com"
+Received: from seeker.mcbf.net ([109.239.49.157]:44210 "EHLO seeker.mcbf.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143Ab1K2CPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Nov 2011 21:15:06 -0500
-In-Reply-To: <987664A83D2D224EAE907B061CE93D53027D89B5A9@orsmsx505.amr.corp.intel.com>
+	id S1751847Ab1K2EKY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2011 23:10:24 -0500
+In-Reply-To: <CAErSpo4ut00Ew7ZhOazmhBGXYMnNrs0JU4HwT5mjOSrq8-JPDg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Russell King <linux@arm.linux.org.uk>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2011-11-29 at 07:03 +0800, Luck, Tony wrote:
-> > Do you have time to take a look at the following patch:
+On Mon, 2011-11-28 at 17:43 -0800, Bjorn Helgaas wrote:
+> On Mon, Nov 28, 2011 at 5:22 PM, David Mohr <damailings@mcbf.net> wrote:
+> > On Mon, 2011-11-28 at 09:42 -0700, David Mohr wrote:
+> >> Hi folks,
+> >>
+> >> I have an AMD CPU on a Gigabyte A75M board[0]. When I shut the computer
+> >> off, either through gdm, or with 'shutdown -h now' on the cli, the
+> >> computer turns off and then immediately on again. I would say there is a
+> >> tiny delay in between which distinguishes it from a reboot.
+> >>
+> >> The same thing happens when I go to standby - the computer immediately
+> >> wakes up.
+> >>
+> >> This is on 3.2-rc2. I have some infos attached to this email. Any help
+> >> would be appreciated since this annoying problem has been with me for a
+> >> while :-).
+> >>
+> >> Thanks,
+> >> ~David
+> >>
+> >> P.S. If there is a better place to post this issue, please let me know.
+> >>
+> >> [0]: http://www.gigabyte.us/products/product-page.aspx?pid=3928&#sp
 > >
-> > https://lkml.org/lkml/2011/11/7/567
+> > And I just realized my original email did not go through because the
+> > attachment was too large.
 > >
-> > to check whether acpi_map/unmap implemented in patch works on ia64 and
-> > ARM?
+> > Another attempt is attached. It contains acpidump  dmidecode  kern.log  lspci
+> > uname . I hope that's useful enough to get a response ;-). I have the sys
+> > directory tarred up as well, please download it at [1].
+> >
+> > Thanks,
+> > ~David
+> >
+> > [1]: http://dsp.mcbf.net/acpi-sys.tar.bz2
+> >
 > 
-> Ia64 won't care - it doesn't use (and won't ever use) any of these ACPI methods.
-> It has some PAL functions for error injection.
+> Is this a regression?  If so, what's the most recent kernel that did
+> not have this bug?  If you're ambitious, you could bisect it and
+> identify the change that caused the problem.
 
-Thanks.
+Hi Bjorn,
+I actually don't know if this is a regression. It's a new computer and
+any kernel I have tried showed this issue. But I will step back and try
+some older ones to see if a bisect would be worth while.
 
-But as this code may be used in general acpi_read/write path too in the
-future, can you verify whether it is harmless on ia64?
-
-Best Regards,
-Huang Ying
+~David
 
