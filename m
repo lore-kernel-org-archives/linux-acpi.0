@@ -1,37 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Wed, 30 Nov 2011 10:07:37 +0100
-Message-ID: <20111130100737.0c2be76b@endymion.delvare>
-References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
-	<1322531323.1467.10.camel@minggr>
-	<CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
-	<CAF1ivSZyvzOY9DGWEgSwrcbyPQ9ftOGbO9VAwcDk-V4=Utxk0g@mail.gmail.com>
+From: Natanji <natanji@gmail.com>
+Subject: Re: [ibm-acpi-devel] Regression in thinkpad-acpi events
+Date: Wed, 30 Nov 2011 10:22:31 +0100
+Message-ID: <4ED5F5D7.8020208@gmail.com>
+References: <4EBAC3B5.5060405@gmail.com> <201111142031.06663.maciej.rutecki@gmail.com> <4EC16F8E.7060601@gmail.com> <201111142118.47256.maciej.rutecki@gmail.com> <CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com> <20111115230305.GA23325@khazad-dum.debian.net> <20111127022346.32f11849@schlepp.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27685 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757161Ab1K3JH4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 04:07:56 -0500
-In-Reply-To: <CAF1ivSZyvzOY9DGWEgSwrcbyPQ9ftOGbO9VAwcDk-V4=Utxk0g@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:64295 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756459Ab1K3JWi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 04:22:38 -0500
+In-Reply-To: <20111127022346.32f11849@schlepp.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: Henning Schild <henning@wh9.tu-dresden.de>
+Cc: Tom Gundersen <teg@jklm.no>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, maciej.rutecki@gmail.com, lenb@kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tue, 29 Nov 2011 21:44:08 +0800, Lin Ming wrote:
-> On Tue, Nov 29, 2011 at 9:18 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> > On Tue, Nov 29, 2011 at 2:48 AM, Lin Ming <ming.m.lin@intel.com> wrote:
-> >> Yes, we should put the call back.
-> >
-> > Great, are you going to push this patch yourself?
-> 
-> Yes. I'll send it to Len.
+The standard Arch kernel does not use tuxonice, you need to build your
+kernel manually if you want it. I also don't receive these events before
+the first hibernation, so you might be having a different problem.
 
-Thanks. Please make sure it goes to stable@kernel.org too, as this
-regression will cause trouble for many lm-sensors users.
+Concerning PROCFS_ACPI, a user posted over at the bug report in the Arch
+bugtracker [1] that re-enabling this did not solve this problem. So the
+problem probably lies somewhere else still...
 
--- 
-Jean Delvare
+[1] https://bugs.archlinux.org/task/26658#comment85971
+
+On Sun 27 Nov 2011 02:23:46 AM CET, Henning Schild wrote:
+> I came across this problem after updating the kernel on my laptop. The
+> hotkeys actually work until after the first wakeup from hibernation. I
+> tried 3.0.9 3.1.1 3.1.2 and for hibernation i used tuxonice. It is not
+> only the acpi events that stop working, also the events that should be
+> delivered as input events. Reloading the module does not help. Having
+> the module not loaded for the hibernation also does not help. After
+> waking up the events will be gone.
+>
+> Do the Arch kernels use tuxonice? Do you receive events before the
+> first hibernation?
+>
+> Henning
