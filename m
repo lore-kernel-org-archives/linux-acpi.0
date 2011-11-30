@@ -1,113 +1,52 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH resend 2] x86, olpc-xo15-sci: Enable lid close wakeup
- control through sysfs
-Date: Wed, 30 Nov 2011 15:15:51 -0800
-Message-ID: <20111130151551.97371bdb.akpm@linux-foundation.org>
-References: <20111129222447.E56959D401E@zog.reactivated.net>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: 3.2.0-rc3-next-20111128 lockdep splat during boot..
+Date: Wed, 30 Nov 2011 18:59:32 -0500
+Message-ID: <28342.1322697572@turing-police.cc.vt.edu>
+References: <23526.1322620187@turing-police.cc.vt.edu>
+            <201112010017.19156.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; boundary="==_Exmh_1322697572_2875P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55899 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107Ab1K3XPw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 18:15:52 -0500
-In-Reply-To: <20111129222447.E56959D401E@zog.reactivated.net>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:54608 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab1K3X7l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 18:59:41 -0500
+In-Reply-To: Your message of "Thu, 01 Dec 2011 00:17:18 +0100."
+             <201112010017.19156.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Drake <dsd@laptop.org>
-Cc: x86@kernel.org, mingo@redhat.com, hpa@zytor.com, tglx@linutronix.de, dilinger@queued.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "James E.J. Bottomley" <JBottomley@parallels.com>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Tue, 29 Nov 2011 22:24:47 +0000 (GMT)
-Daniel Drake <dsd@laptop.org> wrote:
+--==_Exmh_1322697572_2875P
+Content-Type: text/plain; charset=us-ascii
 
-> Like most systems, OLPC's ACPI LID switch wakes up the system when the
-> lid is opened, but not when it is closed.
+On Thu, 01 Dec 2011 00:17:18 +0100, "Rafael J. Wysocki" said:
+> On Wednesday, November 30, 2011, Valdis.Kletnieks@vt.edu wrote:
+> > Seen this twice out of two boots while initrd was waiting for me to
+> > enter the passphrase for encrypted LVM.  No idea *who* to toss this
+> > one at - got ACPI, PM, SCSI and vtconsole all listed in tracebacks, so
+> > I'm tossing this at everybody and hope it sticks. ;)
 > 
-> Under OLPC's opportunistic suspend model, the lid may be closed while
-> the system was oportunistically suspended with the screen running.
-> In this event, we want to wake up to turn the screen off.
+> This was caused by one of my patches in linux-next and was linux-next-only.
 > 
-> Enable control of normal ACPI wakeups through lid close events through
-> a new sysfs attribute "lid_wake_on_closed". When set, and when
-> LID wakeups are enabled through ACPI, the system will wake up on both
-> open and close lid events.
-> 
-> Signed-off-by: Daniel Drake <dsd@laptop.org>
-> ---
->  arch/x86/platform/olpc/olpc-xo15-sci.c |   55 ++++++++++++++++++++++++++++++++
->  1 files changed, 55 insertions(+), 0 deletions(-)
-> 
-> Resending after 6 weeks with no feedback.
-> 
-> diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
-> index 2b235b7..649230c 100644
-> --- a/arch/x86/platform/olpc/olpc-xo15-sci.c
-> +++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
-> @@ -24,6 +24,50 @@
->  #define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
->  
->  static unsigned long xo15_sci_gpe;
-> +static bool lid_wake_on_close;
+> I've already replaced the offending patch with a new version.
 
-I'd have thought that a few code comments which describe what all this
-is doing wouldn't hurt.  Oh well.
+OK, thanks.
 
-> +static int set_lid_wake_behavior(bool wake_on_close)
-> +{
-> +	struct acpi_object_list arg_list;
-> +	union acpi_object arg;
-> +	acpi_status status;
-> +
-> +	arg_list.count = 1;
-> +	arg_list.pointer = &arg;
-> +	arg.type = ACPI_TYPE_INTEGER;
-> +	arg.integer.value = wake_on_close;
-> +	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
-> +				      NULL);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_warning(PFX "failed to set lid behaviour\n");
-> +		return 1;
-> +	}
-> +
-> +	lid_wake_on_close = wake_on_close;
-> +	return 0;
-> +}
-> +
-> +static ssize_t lid_wake_on_close_show(struct kobject *s,
-> +				      struct kobj_attribute *attr, char *buf)
-> +{
-> +	return sprintf(buf, "%u\n", lid_wake_on_close);
-> +}
-> +
-> +static ssize_t lid_wake_on_close_store(struct kobject *s,
-> +				       struct kobj_attribute *attr,
-> +				       const char *buf, size_t n)
-> +{
-> +	unsigned int val;
-> +	if (!sscanf(buf, "%u", &val) == 1)
-> +		return -EINVAL;
-> +
-> +	set_lid_wake_behavior(!!val);
-> +	return n;
-> +}
+--==_Exmh_1322697572_2875P
+Content-Type: application/pgp-signature
 
-Let me fix that for you.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
---- a/arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
-+++ a/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -58,7 +58,8 @@ static ssize_t lid_wake_on_close_store(s
- 				       const char *buf, size_t n)
- {
- 	unsigned int val;
--	if (!sscanf(buf, "%u", &val) == 1)
-+
-+	if (sscanf(buf, "%u", &val) != 1)
- 		return -EINVAL;
- 
- 	set_lid_wake_behavior(!!val);
+iD8DBQFO1sNkcC3lWbTT17ARApziAJ4xipIL+k6xkkdghUHcg5YTqMcCtQCeOWJ3
+nb56IOqtP6pioI7BGhCg+c8=
+=hnPv
+-----END PGP SIGNATURE-----
 
-It's kinda irritating that this will cheerfully accept bogus input of
-the form "42foo".  This happens about eleven billion times in sysfs
-write() handlers but afaik we've never implemented a nice
-sysfs_int_from_buffer() thingy which handles all the possible errors.
+--==_Exmh_1322697572_2875P--
+
