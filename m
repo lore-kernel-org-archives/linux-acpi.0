@@ -1,37 +1,82 @@
-From: Natanji <natanji@gmail.com>
-Subject: Re: [ibm-acpi-devel] Regression in thinkpad-acpi events
-Date: Wed, 30 Nov 2011 14:34:37 +0100
-Message-ID: <4ED630ED.3070301@gmail.com>
-References: <4EBAC3B5.5060405@gmail.com> <201111142031.06663.maciej.rutecki@gmail.com> <4EC16F8E.7060601@gmail.com> <201111142118.47256.maciej.rutecki@gmail.com> <CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com> <20111115230305.GA23325@khazad-dum.debian.net> <20111127022346.32f11849@schlepp.lan> <4ED5F5D7.8020208@gmail.com> <20111130111507.GA32079@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [RFC PATCH] Exporting ACPI Pxx/Cxx states to other kernel subsystems (v1).
+Date: Wed, 30 Nov 2011 12:20:56 -0500
+Message-ID: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64115 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109Ab1K3Neo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 08:34:44 -0500
-In-Reply-To: <20111130111507.GA32079@khazad-dum.debian.net>
+Received: from acsinet15.oracle.com ([141.146.126.227]:43171 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755565Ab1K3RVt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 12:21:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Henning Schild <henning@wh9.tu-dresden.de>, Tom Gundersen <teg@jklm.no>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, maciej.rutecki@gmail.com, lenb@kernel.org
+To: ke.yu@intel.com, kevin.tian@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Cc: xen-devel@lists.xensource.com, jeremy@goop.org, konrad@kernel.org, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, liang.tang@oracle.com
 
-Yes, there are dozens of acpi interrupts every second.
+Hello,
 
-$ cat /proc/interrupts | grep acpi ; sleep 1; cat /proc/interrupts | 
-grep acpi
-  9:    1776309          0   IO-APIC-fasteoi   acpi
-  9:    1776332          0   IO-APIC-fasteoi   acpi
+The following patches are a solution to a problem we have encountered
+when using the Xen hypervisor:
+ - Need Pxx/Cxx states to save on power consumption when using Xen (we
+   do want those datacenters to consume less power!),
+ - Also need to figure out the Turbo mode so that the scheduler can properly
+   boost a core for CPU bound guests.
 
-On Wed 30 Nov 2011 12:15:07 PM CET, Henrique de Moraes Holschuh wrote:
-> On Wed, 30 Nov 2011, Natanji wrote:
->> The standard Arch kernel does not use tuxonice, you need to build your
->> kernel manually if you want it. I also don't receive these events before
->> the first hibernation, so you might be having a different problem.
->
-> Just a hunch: check /proc/interrupts.  One of them must be assigned to acpi,
-> and it *must* increase when you press hotkeys, etc.
->
-> Does it?
->
+In essence the Xen hypervisor requires that information to work efficiently.
+
+There are some other ways of solving this problem as well that have
+been tossed around. I am enumerating them here, but I don't have the
+full records of the disadvantages/advantges so hopefully some other people
+can chime in.
+ - Parse the information in userspace. I am not really sure how that would
+   work, but one thought was export in SysFS the Pxx/Cxx states and other ones
+   (hand-waving here) and the libvirt/xend/xl toolstack would parse those as
+   needed and push them up (say when the guest is started). But it does have
+   a disadvantage that it would not work well with CPU hotplug, nor with the
+   physical CPU != virtual CPU discountinty (that is Linux sees only one CPU,
+   and the ACPI Pxx says there are eight of them - with different values than
+   the CPU0).
+ - Make the ACPI subsystem export some of this functionality so that there
+   can be multiple ACPI processor drivers and they can share common code.
+   This is what this patch series follows. This does mean exporting some
+   ACPI "stuff" outside drivers/acpi. 
+ - Implement the ACPI DSDT parsing in the hypervisor. The couple of reasons
+   that pop in my head for not going that route is foremost it seems an
+   overkill just so that this specific information (Pxx/Cxx) can pushed in
+   the hypervisor.  We already use the Linux ACPI to figure out the IRQ routing,
+   or for ACPI states changes like button pushing, docking events, etc.
+   Making it all be done in the hypervisor seems well, an overkill.
+
+The original authors of the code are Intel folks. Liang has been working
+on this to see if the abstraction can be improved, but I am by no means
+an ACPI expert - so feedback, guidance or input would be much appreciated.
+
+
+Liang:
+ ACPI: processor: Don't setup cpu idle driver and handler
+
+I think it can be actually dropped - now that disable_cpuidle() functionality
+exists and we use it? 
+
+Kevin Tian (6):
+      ACPI: processor: export necessary interfaces
+      ACPI: processor: cache acpi_power_register in cx structure
+      ACPI: processor: Don't setup cpu idle driver and handler when we do not want them.
+      ACPI: add processor driver for Xen virtual CPUs.
+      ACPI: xen processor: add PM notification interfaces.
+      ACPI: xen processor: set ignore_ppc to handle PPC event for Xen vcpu.
+
+Tang Liang (2):
+      ACPI: processor: add __acpi_processor_[un]register_driver helpers.
+      ACPI: processor: override the interface of register acpi processor handler for Xen vcpu
+
+ drivers/acpi/Makefile            |    1 +
+ drivers/acpi/processor_driver.c  |   48 +++++--
+ drivers/acpi/processor_idle.c    |   10 +-
+ drivers/acpi/processor_perflib.c |    6 +-
+ drivers/acpi/processor_xen.c     |  246 ++++++++++++++++++++++++++++++++++
+ drivers/xen/Kconfig              |    5 +
+ drivers/xen/Makefile             |    3 +
+ drivers/xen/acpi_processor.c     |  269 ++++++++++++++++++++++++++++++++++++++
+ include/acpi/processor.h         |   20 +++-
+ include/xen/acpi.h               |  104 +++++++++++++++
+ 10 files changed, 690 insertions(+), 22 deletions(-)
