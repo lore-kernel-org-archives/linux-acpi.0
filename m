@@ -1,67 +1,54 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 4/8] ACPI: processor: Don't setup cpu idle driver and handler when we do not want them.
-Date: Wed, 30 Nov 2011 12:21:00 -0500
-Message-ID: <1322673664-14642-5-git-send-email-konrad.wilk@oracle.com>
+Subject: [PATCH 6/8] ACPI: processor: override the interface of register acpi processor handler for Xen vcpu
+Date: Wed, 30 Nov 2011 12:21:02 -0500
+Message-ID: <1322673664-14642-7-git-send-email-konrad.wilk@oracle.com>
 References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:43195 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757983Ab1K3RVv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 12:21:51 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ke.yu@intel.com, kevin.tian@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
 Cc: xen-devel@lists.xensource.com, jeremy@goop.org, konrad@kernel.org, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, liang.tang@oracle.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Kevin Tian <kevin.tian@intel.com>
+From: Tang Liang <liang.tang@oracle.com>
 
-This patch inhibits processing of the CPU idle handler if it is not
-set to the appropiate one. This is needed by the Xen processor driver
-which, while still needing processor details, wants to use the default_idle
-call (which makes a yield hypercall).
+This patch calls the check which detectes whether to override
+the interface to register ACPI processor.
 
-Signed-off-by: Yu Ke <ke.yu@intel.com>
-Signed-off-by: Tian Kevin <kevin.tian@intel.com>
 Signed-off-by: Tang Liang <liang.tang@oracle.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- drivers/acpi/processor_idle.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_driver.c |    2 ++
+ include/acpi/processor.h        |    4 ++++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index d88974a..0ad347f 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1127,7 +1127,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
- 	cpuidle_pause_and_lock();
- 	cpuidle_disable_device(&pr->power.dev);
- 	acpi_processor_get_power_info(pr);
--	if (pr->flags.power) {
-+	if (pr->flags.power  && (cpuidle_get_driver() == &acpi_idle_driver)) {
- 		acpi_processor_setup_cpuidle_cx(pr);
- 		ret = cpuidle_enable_device(&pr->power.dev);
- 	}
-@@ -1183,7 +1183,8 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 			if (!_pr || !_pr->flags.power_setup_done)
- 				continue;
- 			acpi_processor_get_power_info(_pr);
--			if (_pr->flags.power) {
-+			if (_pr->flags.power && (cpuidle_get_driver()
-+						== &acpi_idle_driver)) {
- 				acpi_processor_setup_cpuidle_cx(_pr);
- 				cpuidle_enable_device(&_pr->power.dev);
- 			}
-@@ -1237,7 +1238,8 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 	 * Note that we use previously set idle handler will be used on
- 	 * platforms that only support C1.
- 	 */
--	if (pr->flags.power) {
-+	if (pr->flags.power && (__acpi_processor_register_driver ==
-+				acpi_processor_register_driver)) {
- 		/* Register acpi_idle_driver if not already registered */
- 		if (!acpi_processor_registered) {
- 			acpi_processor_setup_cpuidle_states(pr);
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 55f0b89..2fec82e 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -815,6 +815,8 @@ static int __init acpi_processor_init(void)
+ 
+ 	memset(&errata, 0, sizeof(errata));
+ 
++	xen_processor_driver_register();
++
+ 	if (__acpi_processor_register_driver) {
+ 		result = __acpi_processor_register_driver();
+ 		if (result < 0)
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 969cbc9..cf53ed8 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -283,6 +283,10 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
+ }
+ #endif
+ 
++/* in processor_xen.c */
++extern void xen_processor_driver_register(void);
++
++
+ /* in processor_perflib.c */
+ 
+ #ifdef CONFIG_CPU_FREQ
 -- 
 1.7.7.3
-
