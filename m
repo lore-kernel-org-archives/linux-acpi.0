@@ -1,42 +1,51 @@
-From: Natanji <natanji@gmail.com>
-Subject: Re: [ibm-acpi-devel] Regression in thinkpad-acpi events
-Date: Wed, 30 Nov 2011 10:22:31 +0100
-Message-ID: <4ED5F5D7.8020208@gmail.com>
-References: <4EBAC3B5.5060405@gmail.com> <201111142031.06663.maciej.rutecki@gmail.com> <4EC16F8E.7060601@gmail.com> <201111142118.47256.maciej.rutecki@gmail.com> <CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com> <20111115230305.GA23325@khazad-dum.debian.net> <20111127022346.32f11849@schlepp.lan>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: Regression in thinkpad-acpi events
+Date: Wed, 30 Nov 2011 09:15:07 -0200
+Message-ID: <20111130111507.GA32079@khazad-dum.debian.net>
+References: <4EBAC3B5.5060405@gmail.com>
+	<201111142031.06663.maciej.rutecki@gmail.com>
+	<4EC16F8E.7060601@gmail.com>
+	<201111142118.47256.maciej.rutecki@gmail.com>
+	<CAG-2HqVnsmSyHVCvEVf+sZw5NxhR8qSDDB0AtR+igwCCFiwfgQ@mail.gmail.com>
+	<20111115230305.GA23325@khazad-dum.debian.net>
+	<20111127022346.32f11849@schlepp.lan> <4ED5F5D7.8020208@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64295 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756459Ab1K3JWi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2011 04:22:38 -0500
-In-Reply-To: <20111127022346.32f11849@schlepp.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4ED5F5D7.8020208-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Natanji <natanji-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Gundersen <teg-B22kvLQNl6c@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henning Schild <henning-wy63DpzWjhr4ajHJ1XSv27NAH6kLmebB@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henning Schild <henning@wh9.tu-dresden.de>
-Cc: Tom Gundersen <teg@jklm.no>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, maciej.rutecki@gmail.com, lenb@kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-The standard Arch kernel does not use tuxonice, you need to build your
-kernel manually if you want it. I also don't receive these events before
-the first hibernation, so you might be having a different problem.
+On Wed, 30 Nov 2011, Natanji wrote:
+> The standard Arch kernel does not use tuxonice, you need to build your
+> kernel manually if you want it. I also don't receive these events before
+> the first hibernation, so you might be having a different problem.
 
-Concerning PROCFS_ACPI, a user posted over at the bug report in the Arch
-bugtracker [1] that re-enabling this did not solve this problem. So the
-problem probably lies somewhere else still...
+Just a hunch: check /proc/interrupts.  One of them must be assigned to acpi,
+and it *must* increase when you press hotkeys, etc.
 
-[1] https://bugs.archlinux.org/task/26658#comment85971
+Does it?
 
-On Sun 27 Nov 2011 02:23:46 AM CET, Henning Schild wrote:
-> I came across this problem after updating the kernel on my laptop. The
-> hotkeys actually work until after the first wakeup from hibernation. I
-> tried 3.0.9 3.1.1 3.1.2 and for hibernation i used tuxonice. It is not
-> only the acpi events that stop working, also the events that should be
-> delivered as input events. Reloading the module does not help. Having
-> the module not loaded for the hibernation also does not help. After
-> waking up the events will be gone.
->
-> Do the Arch kernels use tuxonice? Do you receive events before the
-> first hibernation?
->
-> Henning
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+------------------------------------------------------------------------------
+All the data continuously generated in your IT infrastructure 
+contains a definitive record of customers, application performance, 
+security threats, fraudulent activity, and more. Splunk takes this 
+data and makes sense of it. IT sense. And common sense.
+http://p.sf.net/sfu/splunk-novd2d
