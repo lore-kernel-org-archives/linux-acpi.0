@@ -1,51 +1,72 @@
-From: Keng-Yu Lin <kengyu@canonical.com>
-Subject: [PATCH] ACPI / PM: Do not save/restore NVS on Asus K54C/K54HR
-Date: Thu,  1 Dec 2011 16:12:32 +0800
-Message-ID: <1322727152-4084-1-git-send-email-kengyu@canonical.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Re: [Xen-devel] [PATCH 5/8] ACPI: add processor driver for Xen
+ virtual CPUs.
+Date: Thu, 01 Dec 2011 09:24:23 +0000
+Message-ID: <4ED755D70200007800064987@nat28.tlf.novell.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37227 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257Ab1LAIMx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2011 03:12:53 -0500
+Received: from nat28.tlf.novell.com ([130.57.49.28]:13146 "EHLO
+	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096Ab1LAJY3 convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:9:1>);
+	Thu, 1 Dec 2011 04:24:29 -0500
+In-Reply-To: <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keng-Yu Lin <kengyu@canonical.com>
+To: ke.yu@intel.com, kevin.tian@intel.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, jeremy@goop.org, konrad@kernel.org, lenb@kernel.org, xen-devel@lists.xensource.com, liang.tang@oracle.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The models do not resume correctly without acpi_sleep=nonvs.
+>>> On 30.11.11 at 18:21, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -66,6 +66,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  # processor has its own "processor." module_param namespace
+>  processor-y			:= processor_driver.o processor_throttling.o
+>  processor-y			+= processor_idle.o processor_thermal.o
+> +processor-y			+= processor_xen.o
 
-Signed-off-by: Keng-Yu Lin <kengyu@canonical.com>
----
- drivers/acpi/sleep.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+This should minimally be processor-$(CONFIG_XEN), with other things
+adjusted as necessary.
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 6d9a3ab..0a7ed69 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -476,6 +476,22 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
- 		},
- 	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54C",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54HR",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
--- 
-1.7.5.4
+>  processor-$(CONFIG_CPU_FREQ)	+= processor_perflib.o
+>  
+>  obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
+>...
+> --- a/drivers/xen/Kconfig
+> +++ b/drivers/xen/Kconfig
+> @@ -117,6 +117,11 @@ config XEN_SYS_HYPERVISOR
+>  	 virtual environment, /sys/hypervisor will still be present,
+>  	 but will have no xen contents.
+>  
+> +config ACPI_PROCESSOR_XEN
+> +	tristate
+> +	depends on XEN_DOM0 && ACPI_PROCESSOR && CPU_FREQ
+> +	default m
+
+default ACPI_PROCESSOR
+
+> +
+>  config XEN_XENBUS_FRONTEND
+>  	tristate
+>  
+> diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+> index 974fffd..f67450c 100644
+> --- a/drivers/xen/Makefile
+> +++ b/drivers/xen/Makefile
+> @@ -19,6 +19,9 @@ obj-$(CONFIG_XEN_TMEM)			+= tmem.o
+>  obj-$(CONFIG_SWIOTLB_XEN)		+= swiotlb-xen.o
+>  obj-$(CONFIG_XEN_DOM0)			+= pci.o
+>  obj-$(CONFIG_XEN_PCIDEV_BACKEND)	+= xen-pciback/
+> +ifdef CONFIG_ACPI_PROCESSOR_XEN
+> +obj-$(CONFIG_ACPI_PROCESSOR)		+= acpi_processor.o
+> +endif
+
+obj-$(CONFIG_ACPI_PPROCESSOR_XEN)
+
+Jan
 
