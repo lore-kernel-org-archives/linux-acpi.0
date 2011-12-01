@@ -1,43 +1,50 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 2/2] ACPICA: support Generic Address Structure
- bit_offset in acpi_read/write
-Date: Thu, 1 Dec 2011 09:35:28 -0800
-Message-ID: <0207C53569FE594381A4F2EB66570B2A018ED461AE@orsmsx508.amr.corp.intel.com>
-References: <20111111230347.20897.28797.stgit@bhelgaas.mtv.corp.google.com>
-	 <201111172127.40664.rjw@sisk.pl> <1321578279.13860.108.camel@yhuang-dev>
-	 <201111181025.58650.rjw@sisk.pl> <1321861880.13860.128.camel@yhuang-dev>
-	 <987664A83D2D224EAE907B061CE93D53027D89B5A9@orsmsx505.amr.corp.intel.com>
-	 <1322532903.4849.24.camel@yhuang-dev>
-	 <0207C53569FE594381A4F2EB66570B2A018ED45AA8@orsmsx508.amr.corp.intel.com>
-	 <1322700551.4849.66.camel@yhuang-dev>
-	 <0207C53569FE594381A4F2EB66570B2A018ED45DA7@orsmsx508.amr.corp.intel.com>
-	 <1322701065.4849.69.camel@yhuang-dev>
-	 <0207C53569FE594381A4F2EB66570B2A018ED45DCF@orsmsx508.amr.corp.intel.com>
- <1322701894.4849.72.camel@yhuang-dev>
+From: "Paul William" <laurents@orcon.net.nz>
+Subject: Contact Me Urgently
+Date: Fri, 2 Dec 2011 05:26:40 +1300 (NZDT)
+Message-ID: <64002.67.231.243.75.1322756800.squirrel@mail.orcon.net.nz>
+Reply-To: intermonerydepartment@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:43455 "EHLO mga14.intel.com"
+Received: from mx5.orcon.net.nz ([219.88.242.55]:59765 "EHLO mx5.orcon.net.nz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755632Ab1LARfb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:35:31 -0500
-In-Reply-To: <1322701894.4849.72.camel@yhuang-dev>
-Content-Language: en-US
+	id S1755709Ab1LASld (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Dec 2011 13:41:33 -0500
+Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.69)
+	(envelope-from <laurents@orcon.net.nz>)
+	id 1RW9TG-00055L-CX
+	for linux-acpi@vger.kernel.org; Fri, 02 Dec 2011 05:26:50 +1300
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Russell King <linux@arm.linux.org.uk>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bondd@us.ibm.com" <bondd@us.ibm.com>, Myron Stowe <myron.stowe@redhat.com>
 
-Pj4gVGhhdCBkb2Vzbid0IGRlYWwgd2l0aCBsb25nLWxpdmVkIG1hcHBpbmdzIGFuZCBjaGFuZ2Vz
-IHRoYXQgSSBqdXN0DQo+PiBtZW50aW9uZWQgaW4gbGFzdCBlLW1haWwgLSBidXQgaXQgZG9lcyBt
-ZWFuIHRoYXQgY2FsbGVycyBvZiBpb3JlbWFwKCkNCj4+IGRvbid0IG5lZWQgdG8gd29ycnkgLi4u
-IHRoZXkgY2FuIGNhbGwgImJsaW5kbHkiLg0KPg0KPiBJIHNlZS4gIFNvIHlvdSB0aGluayBpdCBp
-cyBiZXR0ZXIgdG8gZW5jbG9zZSBwYWdlX2lzX3JhbSgpIHdpdGggI2lmbmRlZg0KPiBDT05GSUdf
-SUE2NCBpbiB0aGUgcGF0Y2gsIHNvIHRoYXQgb25seSBpb3JlbWFwKCkgaXMgdXNlZD8NCg0KRnVu
-Y3Rpb25hbGx5IHllcyAtIHRob3VnaCB0aGUgYXZlcnNpb24gdG8gI2lmZGVmIGluIHRoZSBtaWRk
-bGUgb2YgY29kZQ0Kd291bGQgaW1wbHkgc29tZSBleHRyYSBob29wcy4gIFBlcmhhcHMNCg0KI2lm
-bmRlZiBDT05GSUdfSUE2NA0KI2RlZmluZSBjYW5fdXNlX2ttYXAocGZuKSBwYWdlX2lzX3JhbShw
-Zm4pDQojZWxzZQ0KI2RlZmluZSBjYW5fdXNlX2ttYXAocGZuKSAoMCkgLyogaW9yZW1hcCgpIHdp
-bGwgdGFrZSBjYXJlIG9mIGNhY2hlIGF0dHJpYnV0ZXMgKi8NCiNlbmRpZg0KDQoNCi4uLg0KDQoJ
-CWlmIChjYW5fdXNlX2ttYXAocGZuKSkgew0KDQoNCi1Ub255DQo=
+ATTENTION: Final Notice of Your Package
+
+In view of your inability to receive your package reg #: GB8100AF
+originally scheduled to be delivered to you by
+the agency Foreign payment service New york.
+
+This package in a golden metal box valued 5,316,000USD (Five Million,
+Three Hundred and Sixteen thousand United states dollars) arrived at John
+F. Kennedy International Airport New York, New York 11430, USA via British
+airways flight no. BA460.
+
+The agency Foreign payment service New york staff came and applied for the
+release of this package for delivery to your address but has since not
+shown up.
+I am writing to you to inform you that the days of grace has expired and
+we shall begin to charge the storage fee of $25usd daily.
+
+Please call Mr Brown Walters to release this package and deliver it to
+you. His email is intermonerydepartment@gmail.com . Please call me on
+telephone number: 1 (716)810 6832
+terminal 8 ext. 21 cargo unit.
+
+
+Note that this notice serves as our last recovery notice to you as our
+department will be compelled to list your
+package as an unclaimed and maybe forfeited.
+Best regards,
+Paul William
+Terminal 8. ext.12
+
