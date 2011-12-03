@@ -1,12 +1,16 @@
 From: Daniel Drake <dsd@laptop.org>
 Subject: [PATCH v2] x86, olpc-xo15-sci: enable lid close wakeup control through sysfs
 Date: Sat,  3 Dec 2011 17:14:01 +0000 (GMT)
-Message-ID: <20111203171402.1D0F69D401E@zog.reactivated.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20111203171402.1D0F69D401E__43052.0398695537$1322936724$gmane$org@zog.reactivated.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:26842 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753605Ab1LCSZO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Dec 2011 13:25:14 -0500
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: akpm@linux-foundation.org, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, x86@kernel.org
 Cc: dilinger@queued.net, linux-kernel@vger.kernel.org, mjg@redhat.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 Like most systems, OLPC's ACPI LID switch wakes up the system when the lid
 is opened, but not when it is closed.
@@ -135,3 +139,4 @@ index 2b235b7..8aef370 100644
  
 -- 
 1.7.7.3
+
