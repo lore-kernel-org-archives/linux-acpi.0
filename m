@@ -1,60 +1,162 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] intel idle: Make idle driver more robust
-Date: Sun,  4 Dec 2011 22:17:29 +0100
-Message-ID: <1323033449-44076-1-git-send-email-trenn@suse.de>
+From: joeyli <jlee@suse.com>
+Subject: Re: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen
+ stays off [3.2-rc4+]
+Date: Mon, 05 Dec 2011 11:00:41 +0800
+Message-ID: <1323054041.6046.79.camel@linux-s257.site>
+References: <20111204160728.GA27292@archminux>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42777 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751753Ab1LDVSZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Dec 2011 16:18:25 -0500
+Received: from victor.provo.novell.com ([137.65.250.26]:59666 "EHLO
+	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753622Ab1LEDEP (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Sun, 4 Dec 2011 22:04:15 -0500
+In-Reply-To: <20111204160728.GA27292@archminux>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Bruno Friedmann <bruno@ioda-net.ch>
+To: Baptiste Jonglez <baptiste@jonglez.org>
+Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 
-kvm -cpu host passes the original cpuid info to the guest.
+Add Cc. to platform-driver-x86 and linux-acpi
 
-Latest kvm version seem to return true for mwait_leaf cpuid
-function on recent Intel CPUs. But it does not return mwait
-C-states (mwait_substates), instead zero is returned.
+Hi Baptiste
 
-While real CPUs seem to always return non-zero values, the intel
-idle driver should not get active in kvm (mwait_substates == 0)
-case and bail out.
-Otherwise a Null pointer exception will happen later when the
-cpuidle subsystem tries to get active:
-[0.984807] BUG: unable to handle kernel NULL pointer dereference at (null)
-[0.984807] IP: [<(null)>] (null)
-...
-[0.984807][<ffffffff8143cf34>] ? cpuidle_idle_call+0xb4/0x340
-[0.984807][<ffffffff8159e7bc>] ? __atomic_notifier_call_chain+0x4c/0x70
-[0.984807][<ffffffff81001198>] ? cpu_idle+0x78/0xd0
+=E6=96=BC =E6=97=A5=EF=BC=8C2011-12-04 =E6=96=BC 17:07 +0100=EF=BC=8CBa=
+ptiste Jonglez =E6=8F=90=E5=88=B0=EF=BC=9A
+> Hi,
+>=20
+> I've got a lot of troubles with a dual-LVDS Acer laptop (it doesn't
+> have a keyboard, but two displays with touchscreens)
+>=20
+> The Intel GPU is integrated into the Core i5-480M CPU: it's a bit
+> older than Sandybridge, as it seems to be based on the Arrandale
+> micro-architecture.
+>=20
+> In the BIOS, both displays work fine; but as soon as the kernel boots
+> up, the second display (i.e. the one where you usually find a
+> keyboard) is turned off. The main display works as expected.
+>=20
+> xrandr reports two LVDS displays: LVDS1, which is connected, and
+> LVDS2, which is marked as "disconnected". No matter what I tried, I
+> can't bring that second display up.
+>=20
+> During the boot, just after the drm is set up, the following message
+> shows up:
+>=20
+>   [drm:intel_dsm_pci_probe] *ERROR* failed to get supported _DSM func=
+tions
+>=20
+> (attached is the relevant part of dmesg [1])
+>=20
+>=20
 
-Reference:
-https://bugzilla.novell.com/show_bug.cgi?id=726296
+Have no idea for this _DSM error, need help from drm and acpi experts.
+
+>=20
+> I then tried booting with "video=3DLVDS-2:e". The same message shows =
+up
+> while booting, with these two following:
+>=20
+>   [drm:drm_crtc_helper_set_config] *ERROR* failed to set mode on [CRT=
+C:4]
+>   fbcon_init: detected unhandled fb_set_par error, error code -22
+>=20
+> (attached is the relevant part of dmesg [2])
+>=20
+> With that kernel command line forcing LVDS2, the
+> "drm_crtc_helper_set_config" error shows up each time I switch tty;
+> additionally, X does not want to start anymore (spewing out the
+> aforementioned error multiple times before giving up)
+>=20
+>=20
+> I'm currently using the latest 3.2 kernel from linus' tree
+> (af968e29acd91ebeb4224e899202c46c93171ecd), but the behavior was
+> similar with a vanilla 3.1.2.
+>=20
+>=20
+> Other notes about this issue:
+>=20
+>  - with an Ubuntu 2.6.35 kernel, the second display is on but
+>    flickering (with the picture distorted like an old analog TV...).
+>    The main display is working fine, as always.
+>=20
+>  - with an Archlinux 2.6.37.5 kernel, the behavior is the same as wit=
+h
+>    3.2, the main display is ok and the second one is off.
+>=20
+>  - I did succeed, only once and out of pure luck, to get the second
+>    screen to work with the 3.1.2 kernel. I haven't been able to
+>    reproduce that... I had booted with "video=3DLVDS-2:e" and let the
+>    laptop running ; pressing a key a few hours later turned back
+>    *both* displays on (the main display had been turned off by DPMS,
+>    and the second, well, was off from the start, as always)
+>    While not very helpful, it shows that it's definitely possible.
+>=20
+
+What does Windows platform's behavior? Does there have any physical key
+that can turn on/off the second LVDS on Windows?
+
+>  - there are a some unhandled WMI events logged from the acer-wmi
+>    module [3] when closing the lid, opening it, and most importantly,
+>    when the (main) screen is turned on or off by DPMS.
+>=20
+
+I will look at your dsdt and log from acer-wmi then try to improve
+acer-wmi.
+
+>=20
+>=20
+> What do you think? I haven't really succeeded in nailing the source o=
+f
+> the issue down, but here are a few possibilities I'm thinking of:
+>=20
+>  - the driver is not aware it can drive two LVDS displays (not very
+>    likely, and it has worked once, see above)
+>=20
+>  - there is some kind of switch that is able to turn the second scree=
+n
+>    on or off (I'm thinking of something like rfkill). If so, it looks
+>    like something non-standard and undocumented. This would explain
+>    the WMI events (see the last note above)
+>=20
+
+What's the behavior of Windows?
+
+>  - buggy ACPI implementation. I tried to extract then recompile the
+>    DSDT [4], and iasl spews out 17 errors and 12 warnings. Also worth
+>    noticing is that line in dmesg:
+> "pci0000:00: ACPI _OSC request failed (AE_ERROR), returned control ma=
+sk: 0x1d"
+>=20
+>=20
+> The Archlinux userland is:
+>  - libdrm 2.4.27
+>  - xorg-server 1.11.2
+>  - intel-dri 7.11.1
+>  - xf86-video-intel 2.17.0
+>=20
+>=20
+> Please let me know if there are any other details I should provide.
+> Regards,
+> Baptiste
+>=20
+> Attachments:
+> [1] dmesg-DSM-functions.log - drm errors when booting normally
+> [2] dmesg-video-lvds2.log - drm errors when forcing LVDS2 on the cmdl=
+ine
+> [3] acer_wmi.log - WMI events that land in dmesg
+> [4] dsdt - /sys/firmware/acpi/tables/DSDT
+
+Please also attached on dmidecode log.
 
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: Bruno Friedmann <bruno@ioda-net.ch>
-CC: Len Brown <lenb@kernel.org>
----
- drivers/idle/intel_idle.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Thank's a lot!
+Joey Lee
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 5be9d59..8473d1f 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -347,7 +347,8 @@ static int intel_idle_probe(void)
- 	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &mwait_substates);
- 
- 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
--		!(ecx & CPUID5_ECX_INTERRUPT_BREAK))
-+	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK) ||
-+	    !mwait_substates)
- 			return -ENODEV;
- 
- 	pr_debug(PREFIX "MWAIT substates: 0x%x\n", mwait_substates);
--- 
-1.7.6.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
