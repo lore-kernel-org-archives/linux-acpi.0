@@ -1,40 +1,33 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [BUG] i915/intel-acpi.c: failed to get supported _DSM
- functions (was: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen
- stays off)
-Date: Tue, 6 Dec 2011 13:46:07 +0000
-Message-ID: <20111206134607.GA11462@srcf.ucam.org>
-References: <20111204160728.GA27292@archminux>
- <1323054041.6046.79.camel@linux-s257.site>
- <20111205205647.GA1757@archminux>
+From: Holger Macht <holger@homac.de>
+Subject: [PATCH 0/7] acpi/libata: Express dependencies for devices on dock
+ stations and bays
+Date: Tue, 6 Dec 2011 17:37:19 +0100
+Message-ID: <20111206163718.GA3629@homac.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20111205205647.GA1757@archminux>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: intel-gfx@lists.freedesktop.org, joeyli <jlee@suse.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 05, 2011 at 09:56:47PM +0100, Baptiste Jonglez wrote:
-> CC-ing intel-gfx@lists.freedesktop.org (see below)
-> On Mon, Dec 05, 2011 at 11:00:41AM +0800, joeyli wrote:
-> > >   [drm:intel_dsm_pci_probe] *ERROR* failed to get supported _DSM functions
-> > > 
-> > > (attached is the relevant part of dmesg [1])
-> > > 
-> > > 
-> > 
-> > Have no idea for this _DSM error, need help from drm and acpi experts.
-> 
-> It definitely looks like an ACPI issue.
-> That function is defined in `drivers/gpu/drm/i915/intel_acpi.c'.
-> The whole file was added more than a year ago by commit 723bfd707a97
-> (see the relevant thread on intel-gfx@ [1]) to "add _DSM support".
-> One of the first comment is about "Calpella", which is exactly the
-> platform of my laptop (as shown by lshw)
+Patches 1 through 5 are just a refresh of the patches from Matthew
+Garrett sent to this list in September 2010 [1]:
 
-Ignore that - it's entirely harmless.
+ [PATCH 1/7] scsi: Export scsi_bus_type
+ [PATCH 2/7] libata: Bind the Linux device tree to the ACPI device tree
+ [PATCH 3/7] libata: Migrate ACPI code over to new bindings
+ [PATCH 4/7] acpi: Add support for linking docks to the objects they contain
+ [PATCH 5/7] libata: Add links between removable devices and docks
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Patches 6 and 7 make the patches actually work on my test hardware
+(Thinkpad x60/Thingpad T60) by fixing some minor issues.
+
+ [PATCH 6/7] libata: Generate and pass correct acpi handles
+ [PATCH 7/7] acpi: Prevent duplicate hotplug device registration on dock stations
+
+Regards,
+ Holger
+
+[1] http://comments.gmane.org/gmane.linux.acpi.devel/47378
