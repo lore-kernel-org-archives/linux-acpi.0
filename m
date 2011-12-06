@@ -1,95 +1,62 @@
-From: Holger Macht <holger@homac.de>
-Subject: [PATCH 7/7] acpi: Prevent duplicate hotplug device registration on
- dock stations
-Date: Tue, 6 Dec 2011 17:38:10 +0100
-Message-ID: <20111206163810.GH3629@homac.suse.de>
+From: Tony Luck <tony.luck@intel.com>
+Subject: Re: [PATCH] acpi-apei-einj: add extensions to EINJ from rev 5.0 of
+ acpi spec
+Date: Tue, 6 Dec 2011 10:45:19 -0800
+Message-ID: <CA+8MBbKtJTunqid6fbv5pPX9BqCa0F-QGrqtTQqdz45yY39hGg@mail.gmail.com>
+References: <4ed5352d208477d14@agluck-desktop.sc.intel.com>
+	<4EDDD0B5.3010702@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-scsi-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46028 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751553Ab1LFSpU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2011 13:45:20 -0500
+In-Reply-To: <4EDDD0B5.3010702@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ying.huang@intel.com
 
-register_hotplug_dock_device() must only be called once per ACPI
-handle. However, ACPI glue infrastructure does not allow to prevent
-multiple find_device() invocations when a scsi bus or device appears or
-disappears. So export a function from the dock driver to check if a
-specific hotplug dock device is already registered and call this before
-registering.
+On Tue, Dec 6, 2011 at 12:22 AM, Chen Gong <gong.chen@linux.intel.com> wrote:
+> I don't think one knows how to set *vendor_flags* correctly if no any
+> instructions.
 
-Signed-off-by: Holger Macht <holger@homac.de>
----
- drivers/acpi/dock.c         |   20 ++++++++++++++++++++
- drivers/ata/libata-acpi.c   |    6 ++++--
- include/acpi/acpi_drivers.h |    1 +
- 3 files changed, 25 insertions(+), 2 deletions(-)
+Agreed - more documentation would help here - but I suspect that it
+needs to come
+from a vendor implementing an extension for specifics ... but for general
+how to use this - see more comments below.
 
-Index: linux/drivers/acpi/dock.c
-===================================================================
---- linux.orig/drivers/acpi/dock.c
-+++ linux/drivers/acpi/dock.c
-@@ -720,6 +720,26 @@ void unregister_hotplug_dock_device(acpi
- }
- EXPORT_SYMBOL_GPL(unregister_hotplug_dock_device);
- 
-+int is_registered_hotplug_dock_device(const struct acpi_dock_ops *ops)
-+{
-+	struct dock_dependent_device *dd;
-+	struct dock_station *ds;
-+
-+	list_for_each_entry(ds, &dock_stations, sibling) {
-+		mutex_lock(&ds->hp_lock);
-+		list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
-+			if (ops == dd->ops) {
-+				mutex_unlock(&ds->hp_lock);
-+				return 1;
-+			}
-+		}
-+		mutex_unlock(&ds->hp_lock);
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(is_registered_hotplug_dock_device);
-+
- /**
-  * handle_eject_request - handle an undock request checking for error conditions
-  *
-Index: linux/drivers/ata/libata-acpi.c
-===================================================================
---- linux.orig/drivers/ata/libata-acpi.c
-+++ linux/drivers/ata/libata-acpi.c
-@@ -1001,7 +1001,8 @@ static int ata_acpi_bind_host(struct dev
- 	if (!*handle)
- 		return -ENODEV;
- 
--	register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
-+	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
-+		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
- 
- 	return 0;
- }
-@@ -1024,7 +1025,8 @@ static int ata_acpi_bind_device(struct d
- 	if (!*handle)
- 		return -ENODEV;
- 
--	register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
-+	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
-+		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
- 
- 	return 0;
- }
-Index: linux/include/acpi/acpi_drivers.h
-===================================================================
---- linux.orig/include/acpi/acpi_drivers.h
-+++ linux/include/acpi/acpi_drivers.h
-@@ -131,6 +131,7 @@ extern int register_hotplug_dock_device(
- 					const struct acpi_dock_ops *ops,
- 					void *context);
- extern void unregister_hotplug_dock_device(acpi_handle handle);
-+extern int is_registered_hotplug_dock_device(const struct acpi_dock_ops *ops);
- extern struct device **dock_link_device(acpi_handle handle);
- extern struct device **dock_unlink_device(acpi_handle handle);
- #else
+> need explanation in the document how to set error type in ACPI 5.0.
+>
+> In the spec it doesn't say this bit field is filled by the user, from
+> the codes I have following conclusion: one can set error type as 0x2,
+> 0x4, 0x8 etc. or 0x80000002, 0x80000004, 0x80000008 etc, right?
+
+The spec is pretty vague here - I'm assuming that as soon as the 0x80000000
+bit is seen, the rest of the bits are fair game for the vendor to do
+anything they
+like.  So I provided a way to set the error_type because I don't think there is
+any association between bits and error type.  E.g. one vendor could use
+0x80000001 for some special memory operation - so expect a memory address
+and mask, while another vendor could use the same 0x80000001 for a PCIe
+operation, so want to see a segment/bus/device/function.  So I tried to be
+flexible.  I'd expect that an application trying to use this would look at the
+contents of the /sys/kernel/debug/apei/einj/vendor to know that they were
+on the right platform, with the device/rev_id to use whatever vendor extension
+they want.  But this needs more (some :-) ) Documentation
+
+Of course there is still some vendor defined memory at the very end of the
+structure that I have absolutely no idea what to do with.  I've
+ignored it for now,
+but if some vendor does do something with it, we will need another vendor_blob
+interface to allow arbitrary bytes to be written to (and read from?)
+that area (just
+checking the size).
+
+The whole vendor extension part is very speculative on my part as I don't have
+any solid examples to test.  I do have a platform that provides the
+structure. But
+I don't know whether it actually implements any extended operations.
+
+-Tony
