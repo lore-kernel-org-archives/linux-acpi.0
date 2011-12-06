@@ -1,62 +1,150 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: Re: [PATCH] acpi-apei-einj: add extensions to EINJ from rev 5.0 of
- acpi spec
-Date: Tue, 6 Dec 2011 10:45:19 -0800
-Message-ID: <CA+8MBbKtJTunqid6fbv5pPX9BqCa0F-QGrqtTQqdz45yY39hGg@mail.gmail.com>
-References: <4ed5352d208477d14@agluck-desktop.sc.intel.com>
-	<4EDDD0B5.3010702@linux.intel.com>
+From: Baptiste Jonglez <baptiste@jonglez.org>
+Subject: Re: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen stays
+ off [3.2-rc4+]
+Date: Tue, 6 Dec 2011 22:51:37 +0100
+Message-ID: <20111206215137.GA20907@archminux>
+References: <20111204160728.GA27292@archminux>
+ <1323054041.6046.79.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:46028 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553Ab1LFSpU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2011 13:45:20 -0500
-In-Reply-To: <4EDDD0B5.3010702@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="2fHTh5uZTiUOsy+g"
+Content-Transfer-Encoding: 8bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1323054041.6046.79.camel@linux-s257.site>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: Baptiste Jonglez <baptiste@jonglez.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@gmail.com>, Chris Wilson <chris@chris-wilson.co.uk>, intel-gfx@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ying.huang@intel.com
 
-On Tue, Dec 6, 2011 at 12:22 AM, Chen Gong <gong.chen@linux.intel.com> wrote:
-> I don't think one knows how to set *vendor_flags* correctly if no any
-> instructions.
 
-Agreed - more documentation would help here - but I suspect that it
-needs to come
-from a vendor implementing an extension for specifics ... but for general
-how to use this - see more comments below.
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-> need explanation in the document how to set error type in ACPI 5.0.
->
-> In the spec it doesn't say this bit field is filled by the user, from
-> the codes I have following conclusion: one can set error type as 0x2,
-> 0x4, 0x8 etc. or 0x80000002, 0x80000004, 0x80000008 etc, right?
+On Mon, Dec 05, 2011 at 11:00:41AM +0800, joeyli wrote:
+> Add Cc. to platform-driver-x86 and linux-acpi
+> 
+> Hi Baptiste
+> 
+> 於 日，2011-12-04 於 17:07 +0100，Baptiste Jonglez 提到：
+> > Hi,
+> > 
+> > I've got a lot of troubles with a dual-LVDS Acer laptop (it doesn't
+> > have a keyboard, but two displays with touchscreens)
+> > 
+> > The Intel GPU is integrated into the Core i5-480M CPU: it's a bit
+> > older than Sandybridge, as it seems to be based on the Arrandale
+> > micro-architecture.
+> > 
+> > In the BIOS, both displays work fine; but as soon as the kernel boots
+> > up, the second display (i.e. the one where you usually find a
+> > keyboard) is turned off. The main display works as expected.
+> > 
+> > xrandr reports two LVDS displays: LVDS1, which is connected, and
+> > LVDS2, which is marked as "disconnected". No matter what I tried, I
+> > can't bring that second display up.
+> > 
+> > During the boot, just after the drm is set up, the following message
+> > shows up:
+> > 
+> >   [drm:intel_dsm_pci_probe] *ERROR* failed to get supported _DSM functions
+> > 
+> > (attached is the relevant part of dmesg [1])
 
-The spec is pretty vague here - I'm assuming that as soon as the 0x80000000
-bit is seen, the rest of the bits are fair game for the vendor to do
-anything they
-like.  So I provided a way to set the error_type because I don't think there is
-any association between bits and error type.  E.g. one vendor could use
-0x80000001 for some special memory operation - so expect a memory address
-and mask, while another vendor could use the same 0x80000001 for a PCIe
-operation, so want to see a segment/bus/device/function.  So I tried to be
-flexible.  I'd expect that an application trying to use this would look at the
-contents of the /sys/kernel/debug/apei/einj/vendor to know that they were
-on the right platform, with the device/rev_id to use whatever vendor extension
-they want.  But this needs more (some :-) ) Documentation
+The second screen works fine with the attached patch. It actually is
+6 months old but seems to have been lost in the wild...
 
-Of course there is still some vendor defined memory at the very end of the
-structure that I have absolutely no idea what to do with.  I've
-ignored it for now,
-but if some vendor does do something with it, we will need another vendor_blob
-interface to allow arbitrary bytes to be written to (and read from?)
-that area (just
-checking the size).
+Thanks Benjamin!
 
-The whole vendor extension part is very speculative on my part as I don't have
-any solid examples to test.  I do have a platform that provides the
-structure. But
-I don't know whether it actually implements any extended operations.
+There is still the issue of unhandled acer-wmi events, but it's far
+less incapacitating. I wonder what's the best way to report events to
+userspace, though (e.g. for the "keyboard" button, userspace might
+want to know when it is pressed in order to display a virtual keyboard
+or any other fancy stuff)
 
--Tony
+Joey, if you need more logs for acer-wmi, I'll be happy to provide.
+
+
+Baptiste
+
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=iconia-patch-lvds-lkml
+
+Original patch by Chris Wilson [1], here slightly adapted for the latest tree.
+
+[1] https://bugs.freedesktop.org/attachment.cgi?id=49069
+
+
+We were checking whether the supplied edid matched the connector it was
+read from. We do this in case a DDC read returns an EDID for another
+device on a multifunction or otherwise interesting card. However, we
+failed to include LVDS as a digital device and so rejecting an otherwise
+valid EDID.
+
+Fixes the detection of the secondary SDVO LVDS panel on the Libretto
+W105.
+
+diff --git a/drivers/gpu/drm/i915/intel_sdvo.c b/drivers/gpu/drm/i915/intel_sdvo.c
+index 3003fb2..ac322fb 100644
+--- a/drivers/gpu/drm/i915/intel_sdvo.c
++++ b/drivers/gpu/drm/i915/intel_sdvo.c
+@@ -50,6 +50,7 @@
+ #define IS_TMDS(c)	(c->output_flag & SDVO_TMDS_MASK)
+ #define IS_LVDS(c)	(c->output_flag & SDVO_LVDS_MASK)
+ #define IS_TV_OR_LVDS(c) (c->output_flag & (SDVO_TV_MASK | SDVO_LVDS_MASK))
++#define IS_DIGITAL(c) (c->output_flag & (SDVO_TMDS_MASK | SDVO_LVDS_MASK))
+ 
+ 
+ static const char *tv_format_names[] = {
+@@ -1314,6 +1315,18 @@ intel_sdvo_tmds_sink_detect(struct drm_connector *connector)
+ 	return status;
+ }
+ 
++static bool
++intel_sdvo_connector_matches_edid(struct intel_sdvo_connector *sdvo,
++				struct edid *edid)
++{
++	bool monitor_is_digital = !!(edid->input & DRM_EDID_INPUT_DIGITAL);
++	bool connector_is_digital = !!IS_DIGITAL(sdvo);
++
++	DRM_DEBUG_KMS("connector_is_digital? %d, monitor_is_digital? %d\n",
++			connector_is_digital, monitor_is_digital);
++	return connector_is_digital == monitor_is_digital;
++}
++
+ static enum drm_connector_status
+ intel_sdvo_detect(struct drm_connector *connector, bool force)
+ {
+@@ -1358,10 +1371,11 @@ intel_sdvo_detect(struct drm_connector *connector, bool force)
+ 		if (edid == NULL)
+ 			edid = intel_sdvo_get_analog_edid(connector);
+ 		if (edid != NULL) {
+-			if (edid->input & DRM_EDID_INPUT_DIGITAL)
+-				ret = connector_status_disconnected;
+-			else
++			if (intel_sdvo_connector_matches_edid(intel_sdvo_connector,
++								edid))
+ 				ret = connector_status_connected;
++			else
++				ret = connector_status_disconnected;
+ 			connector->display_info.raw_edid = NULL;
+ 			kfree(edid);
+ 		} else
+@@ -1402,11 +1416,8 @@ static void intel_sdvo_get_ddc_modes(struct drm_connector *connector)
+ 		edid = intel_sdvo_get_analog_edid(connector);
+ 
+ 	if (edid != NULL) {
+-		struct intel_sdvo_connector *intel_sdvo_connector = to_intel_sdvo_connector(connector);
+-		bool monitor_is_digital = !!(edid->input & DRM_EDID_INPUT_DIGITAL);
+-		bool connector_is_digital = !!IS_TMDS(intel_sdvo_connector);
+-
+-		if (connector_is_digital == monitor_is_digital) {
++		if (intel_sdvo_connector_matches_edid(to_intel_sdvo_connector(connector),
++							edid)) {
+ 			drm_mode_connector_update_edid_property(connector, edid);
+ 			drm_add_edid_modes(connector, edid);
+ 		}
+
+--2fHTh5uZTiUOsy+g--
