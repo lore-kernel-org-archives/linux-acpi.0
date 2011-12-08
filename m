@@ -1,57 +1,36 @@
-From: Baptiste Jonglez <baptiste@jonglez.org>
-Subject: Re: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen stays
- off [3.2-rc4+]
-Date: Tue, 6 Dec 2011 23:31:09 +0100
-Message-ID: <20111206223109.GA1867@archminux>
-References: <20111204160728.GA27292@archminux>
- <1323054041.6046.79.camel@linux-s257.site>
- <20111206215137.GA20907@archminux>
- <CAN+gG=EaG1h=seuKQa_SF2O033WWn52USh=tjO9F9O55DgH17Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH 00/11] ACPI, APEI, Patches for 3.3
+Date: Thu,  8 Dec 2011 11:25:39 +0800
+Message-ID: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lvps80-90-199-152.vps.webfusion.co.uk ([80.90.199.152]:51545
-	"EHLO lvps80-90-199-152.vps.webfusion.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753481Ab1LFWbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2011 17:31:46 -0500
-Content-Disposition: inline
-In-Reply-To: <CAN+gG=EaG1h=seuKQa_SF2O033WWn52USh=tjO9F9O55DgH17Q@mail.gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:14032 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756877Ab1LHDZy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Dec 2011 22:25:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: joeyli <jlee@suse.com>, Baptiste Jonglez <baptiste@jonglez.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wilson <chris@chris-wilson.co.uk>, intel-gfx@lists.freedesktop.org, Mathieu Magnaudet <mathieu.magnaudet@enac.fr>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-On Tue, Dec 06, 2011 at 11:12:26PM +0100, Benjamin Tissoires wrote:
-> Hi Baptiste,
+Most patches has been sent for 3.2 before.  The changes is as follow:
 
-Hi,
+- Add [01/11]: Add 64bit read/write support to atomicio on i386
+- Change [07/11]: Do not use kmap on IA64
 
-> On Tue, Dec 6, 2011 at 22:51, Baptiste Jonglez <baptiste@jonglez.org> wrote:
-> > The second screen works fine with the attached patch. It actually is
-> > 6 months old but seems to have been lost in the wild...
-> 
-> You don't have the problem of the second backlight still off?
-> On our Iconia, we need to trigger a special DMI command to set it up
-> (SDSS, IIRC).
+For [10/11] and [11/11], there is some other idea to fix the issue,
+if some other method is preferred, please drop these two patches.
 
-No, with the patch, it worked out-of-the-box.
+[PATCH 01/11] ACPI, Add 64bit read/write support to atomicio on i386
+[PATCH 02/11] ACPI, APEI, GHES: Add PCIe AER recovery support
+[PATCH 03/11] ACPI, APEI, Print resource errors in conventional
+[PATCH 04/11] ACPI, APEI, Remove table not found message
+[PATCH 05/11] ACPI, APEI, GHES, Distinguish interleaved error report
+[PATCH 06/11] ACPI, APEI, Printk queued error record before panic
+[PATCH 07/11] ACPI, Add RAM mapping support to ACPI atomic IO
+[PATCH 08/11] ACPI, APEI, EINJ, Fix resource conflict on some
+[PATCH 09/11] ACPI, APEI, EINJ, Refine the fix of resource conflict
+[PATCH 10/11] ACPI, Record ACPI NVS regions
+[PATCH 11/11] ACPI, APEI, Resolve false conflict between ACPI NVS
 
-I can even control the brightness in
-`/sys/class/backlight/acpi_video0/brightness' (it affects both
-displays at the same time though). But even at 0, it's still perfectly
-readable.
-
-Maybe this a bug that got fixed recently? I've actually tried the 3.1
-kernel (and then the 3.2-rc4) because I noticed a lot of commits and
-improvements in the i915 driver recently.
-
-> > Thanks Benjamin!
-> 
-> All the credits are from Ajax and somebody else on IRC I don't recall,
-> really sorry. Thanks to them.
-> 
-> Cheers,
-> Benjamin.
-
-Regards,
-Baptiste
+Best Regards,
+Huang Ying
