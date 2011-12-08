@@ -1,70 +1,71 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: ACPI "_PDC" - acpi_processor_set_pdc()- execution regression -
- Linux-3.x
-Date: Thu, 08 Dec 2011 15:40:57 +0800
-Message-ID: <1323330057.27764.14.camel@minggr>
-References: <1323297487.4edfeacfc49ff@imp.free.fr>
-	 <CAErSpo7Dcxn7tsecDUXe6AQeRAchsU9tQjL7=-WPpPmDj2OUfw@mail.gmail.com>
+From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Subject: Re: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen stays
+ off [3.2-rc4+]
+Date: Thu, 8 Dec 2011 11:11:22 +0100
+Message-ID: <CAN+gG=FoxDg3O5VSVkZEPGn4cVE=SJ4MUfvCgnYiB8vJGTLKmQ@mail.gmail.com>
+References: <20111204160728.GA27292@archminux>
+	<1323054041.6046.79.camel@linux-s257.site>
+	<20111206215137.GA20907@archminux>
+	<CAN+gG=EaG1h=seuKQa_SF2O033WWn52USh=tjO9F9O55DgH17Q@mail.gmail.com>
+	<20111206223109.GA1867@archminux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47163 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab1LHHlK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Dec 2011 02:41:10 -0500
-In-Reply-To: <CAErSpo7Dcxn7tsecDUXe6AQeRAchsU9tQjL7=-WPpPmDj2OUfw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20111206223109.GA1867@archminux>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, joeyli <jlee@suse.com>, Baptiste Jonglez <baptiste@jonglez.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wilson <chris@chris-wilson.co.uk>, intel-gfx@lists.freedesktop.org, Mathieu Magnaudet <mathieu.magnaudet@enac.fr>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "wallak@free.fr" <wallak@free.fr>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2011-12-08 at 13:01 +0800, Bjorn Helgaas wrote:
-> [+cc linux-acpi and Lin Ming]
-> 
-> On Wed, Dec 7, 2011 at 3:38 PM,  <wallak@free.fr> wrote:
-> > We have a regression on the ACPI stack of the last linux kernel line 3.x (3.1.4,
-> > 3.2-rc4...). The ACPI "_PDC" chunk is not executed on some computers (e.g. Dell
-> > X300; the function acpi_processor_set_pdc() is not called). This issue yield to
-> > an uninitialized state of some ACPI variables.
-> >
-> > A patch is available below. This patch come back to the previous linux behavior,
-> > and works fine.
+Hi,
 
-Hi, Wallak
+On Tue, Dec 6, 2011 at 23:31, Baptiste Jonglez <baptiste@jonglez.org> wrote:
+> On Tue, Dec 06, 2011 at 11:12:26PM +0100, Benjamin Tissoires wrote:
+>> Hi Baptiste,
+>
+> Hi,
+>
+>> On Tue, Dec 6, 2011 at 22:51, Baptiste Jonglez <baptiste@jonglez.org> wrote:
+>> > The second screen works fine with the attached patch. It actually is
+>> > 6 months old but seems to have been lost in the wild...
+>>
+>> You don't have the problem of the second backlight still off?
+>> On our Iconia, we need to trigger a special DMI command to set it up
+>> (SDSS, IIRC).
+>
+> No, with the patch, it worked out-of-the-box.
 
-Please attach the acpidump output and kernel .config file.
-And also the output of "cat /proc/cpuinfo"
+mmm, this is weird. We must not have the same bios or device version.
+We need to explicitly set the LCD2 up.
 
-(You can send these files to me offline in case they are too big for
-mail list)
+>
+> I can even control the brightness in
+> `/sys/class/backlight/acpi_video0/brightness' (it affects both
+> displays at the same time though). But even at 0, it's still perfectly
+> readable.
 
-Thanks,
-Lin Ming
+Yes, the acpi can control both brightness. But WMI can control each
+brightness. However, we are not sure this is what people want. So we
+do not plan to introduce a second brightness control.
 
-> >
-> > Best Regards,
-> > Wallak.
-> >
-> > --- linux-3.1.4-mdf/drivers/acpi/processor_core.c.orig  2011-12-07
-> > 23:12:57.000000000 +0100
-> > +++ linux-3.1.4-mdf/drivers/acpi/processor_core.c       2011-12-07
-> > 23:13:39.000000000 +0100
-> > @@ -223,8 +223,8 @@
-> >        type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
-> >        cpuid = acpi_get_cpuid(handle, type, acpi_id);
-> >
-> > -       if (cpuid == -1)
-> > -               return false;
-> > +       if ((cpuid == -1) && (num_possible_cpus() > 1))
-> > +               return false;
-> >
-> >        return true;
-> >  }
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
+>
+> Maybe this a bug that got fixed recently? I've actually tried the 3.1
+> kernel (and then the 3.2-rc4) because I noticed a lot of commits and
+> improvements in the i915 driver recently.
 
+We doubled-checked on 3.2-rc4, and we still need our patch. This is
+definitively a bios/hardware configuration problem.
 
+Cheers,
+Benjamin
+
+>
+>> > Thanks Benjamin!
+>>
+>> All the credits are from Ajax and somebody else on IRC I don't recall,
+>> really sorry. Thanks to them.
+>>
+>> Cheers,
+>> Benjamin.
+>
+> Regards,
+> Baptiste
