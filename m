@@ -1,63 +1,92 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 02/11] ACPI, APEI, GHES: Add PCIe AER recovery support
-Date: Thu,  8 Dec 2011 11:25:41 +0800
-Message-ID: <1323314750-8185-3-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 01/11] ACPI, Add 64bit read/write support to atomicio on i386
+Date: Thu,  8 Dec 2011 11:25:40 +0800
+Message-ID: <1323314750-8185-2-git-send-email-ying.huang@intel.com>
 References: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:14032 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757598Ab1LHDZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Dec 2011 22:25:57 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-aer_recover_queue() is called when recoverable PCIe AER errors are
-notified by firmware to do the recovery work.
+There is no 64bit read/write support in ACPI atomicio because
+readq/writeq is used to implement 64bit read/write, but readq/writeq
+is not available on i386.  This patch implement 64bit read/write
+support in atomicio via two readl/writel.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/ghes.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/acpi/atomicio.c |   36 ++++++++++++++++++++++++++++++------
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -45,6 +45,8 @@
- #include <linux/irq_work.h>
- #include <linux/llist.h>
- #include <linux/genalloc.h>
-+#include <linux/pci.h>
-+#include <linux/aer.h>
- #include <acpi/apei.h>
- #include <acpi/atomicio.h>
- #include <acpi/hed.h>
-@@ -476,6 +478,27 @@ static void ghes_do_proc(const struct ac
- 			}
- #endif
- 		}
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-+				      CPER_SEC_PCIE)) {
-+			struct cper_sec_pcie *pcie_err;
-+			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-+			if (sev == GHES_SEV_RECOVERABLE &&
-+			    sec_sev == GHES_SEV_RECOVERABLE &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-+				unsigned int devfn;
-+				int aer_severity;
-+				devfn = PCI_DEVFN(pcie_err->device_id.device,
-+						  pcie_err->device_id.function);
-+				aer_severity = cper_severity_to_aer(sev);
-+				aer_recover_queue(pcie_err->device_id.segment,
-+						  pcie_err->device_id.bus,
-+						  devfn, aer_severity);
-+			}
-+
-+		}
+--- a/drivers/acpi/atomicio.c
++++ b/drivers/acpi/atomicio.c
+@@ -260,6 +260,21 @@ int acpi_post_unmap_gar(struct acpi_gene
+ }
+ EXPORT_SYMBOL_GPL(acpi_post_unmap_gar);
+ 
++#ifdef readq
++static inline u64 read64(const volatile void __iomem *addr)
++{
++	return readq(addr);
++}
++#else
++static inline u64 read64(const volatile void __iomem *addr)
++{
++	u64 l, h;
++	l = readl(addr);
++	h = readl(addr+4);
++	return l | (h << 32);
++}
 +#endif
++
+ /*
+  * Can be used in atomic (including NMI) or process context. RCU read
+  * lock can only be released after the IO memory area accessing.
+@@ -280,11 +295,9 @@ static int acpi_atomic_read_mem(u64 padd
+ 	case 32:
+ 		*val = readl(addr);
+ 		break;
+-#ifdef readq
+ 	case 64:
+-		*val = readq(addr);
++		*val = read64(addr);
+ 		break;
+-#endif
+ 	default:
+ 		return -EINVAL;
  	}
+@@ -293,6 +306,19 @@ static int acpi_atomic_read_mem(u64 padd
+ 	return 0;
  }
  
++#ifdef writeq
++static inline void write64(u64 val, volatile void __iomem *addr)
++{
++	writeq(val, addr);
++}
++#else
++static inline void write64(u64 val, volatile void __iomem *addr)
++{
++	writel(val, addr);
++	writel(val>>32, addr+4);
++}
++#endif
++
+ static int acpi_atomic_write_mem(u64 paddr, u64 val, u32 width)
+ {
+ 	void __iomem *addr;
+@@ -309,11 +335,9 @@ static int acpi_atomic_write_mem(u64 pad
+ 	case 32:
+ 		writel(val, addr);
+ 		break;
+-#ifdef writeq
+ 	case 64:
+-		writeq(val, addr);
++		write64(val, addr);
+ 		break;
+-#endif
+ 	default:
+ 		return -EINVAL;
+ 	}
