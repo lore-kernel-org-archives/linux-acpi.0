@@ -1,66 +1,63 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 05/11] ACPI, APEI, GHES, Distinguish interleaved error report in kernel log
-Date: Thu,  8 Dec 2011 11:25:44 +0800
-Message-ID: <1323314750-8185-6-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 02/11] ACPI, APEI, GHES: Add PCIe AER recovery support
+Date: Thu,  8 Dec 2011 11:25:41 +0800
+Message-ID: <1323314750-8185-3-git-send-email-ying.huang@intel.com>
 References: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:14032 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757598Ab1LHDZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Dec 2011 22:25:57 -0500
 In-Reply-To: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-In most cases, printk only guarantees messages from different printk
-calling will not be interleaved between each other.  But, one APEI
-GHES hardware error report will involve multiple printk calling,
-normally each for one line.  So it is possible that the hardware error
-report comes from different generic hardware error source will be
-interleaved.
-
-In this patch, a sequence number is prefixed to each line of error
-report.  So that, even if they are interleaved, they still can be
-distinguished by the prefixed sequence number.
+aer_recover_queue() is called when recoverable PCIe AER errors are
+notified by firmware to do the recovery work.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/ghes.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/acpi/apei/ghes.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -506,16 +506,22 @@ static void __ghes_print_estatus(const c
- 				 const struct acpi_hest_generic *generic,
- 				 const struct acpi_hest_generic_status *estatus)
- {
-+	static atomic_t seqno;
-+	unsigned int curr_seqno;
-+	char pfx_seq[64];
+@@ -45,6 +45,8 @@
+ #include <linux/irq_work.h>
+ #include <linux/llist.h>
+ #include <linux/genalloc.h>
++#include <linux/pci.h>
++#include <linux/aer.h>
+ #include <acpi/apei.h>
+ #include <acpi/atomicio.h>
+ #include <acpi/hed.h>
+@@ -476,6 +478,27 @@ static void ghes_do_proc(const struct ac
+ 			}
+ #endif
+ 		}
++#ifdef CONFIG_ACPI_APEI_PCIEAER
++		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
++				      CPER_SEC_PCIE)) {
++			struct cper_sec_pcie *pcie_err;
++			pcie_err = (struct cper_sec_pcie *)(gdata+1);
++			if (sev == GHES_SEV_RECOVERABLE &&
++			    sec_sev == GHES_SEV_RECOVERABLE &&
++			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
++			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
++				unsigned int devfn;
++				int aer_severity;
++				devfn = PCI_DEVFN(pcie_err->device_id.device,
++						  pcie_err->device_id.function);
++				aer_severity = cper_severity_to_aer(sev);
++				aer_recover_queue(pcie_err->device_id.segment,
++						  pcie_err->device_id.bus,
++						  devfn, aer_severity);
++			}
 +
- 	if (pfx == NULL) {
- 		if (ghes_severity(estatus->error_severity) <=
- 		    GHES_SEV_CORRECTED)
--			pfx = KERN_WARNING HW_ERR;
-+			pfx = KERN_WARNING;
- 		else
--			pfx = KERN_ERR HW_ERR;
-+			pfx = KERN_ERR;
++		}
++#endif
  	}
-+	curr_seqno = atomic_inc_return(&seqno);
-+	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%u}" HW_ERR, pfx, curr_seqno);
- 	printk("%s""Hardware error from APEI Generic Hardware Error Source: %d\n",
--	       pfx, generic->header.source_id);
--	apei_estatus_print(pfx, estatus);
-+	       pfx_seq, generic->header.source_id);
-+	apei_estatus_print(pfx_seq, estatus);
  }
  
- static int ghes_print_estatus(const char *pfx,
-@@ -798,7 +804,7 @@ static int ghes_notify_nmi(unsigned int
- 
- 	if (sev_global >= GHES_SEV_PANIC) {
- 		oops_begin();
--		__ghes_print_estatus(KERN_EMERG HW_ERR, ghes_global->generic,
-+		__ghes_print_estatus(KERN_EMERG, ghes_global->generic,
- 				     ghes_global->estatus);
- 		/* reboot to log the error! */
- 		if (panic_timeout == 0)
