@@ -1,7 +1,7 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 04/11] ACPI, APEI, Remove table not found message
-Date: Thu,  8 Dec 2011 11:25:43 +0800
-Message-ID: <1323314750-8185-5-git-send-email-ying.huang@intel.com>
+Subject: [PATCH 06/11] ACPI, APEI, Printk queued error record before panic
+Date: Thu,  8 Dec 2011 11:25:45 +0800
+Message-ID: <1323314750-8185-7-git-send-email-ying.huang@intel.com>
 References: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1323314750-8185-1-git-send-email-ying.huang@intel.com>
@@ -10,61 +10,104 @@ To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Because APEI tables are optional, these message may confuse users, for
-example,
+Because printk is not safe inside NMI handler, the recoverable error
+records received in NMI handler will be queued to be printked in a
+delayed IRQ context via irq_work.  If a fatal error occurs after the
+recoverable error and before the irq_work processed, we lost a error
+report.
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/599715
+To solve the issue, the queued error records are printked in NMI
+handler if system will go panic.
 
-Reported-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/einj.c |    5 ++---
- drivers/acpi/apei/erst.c |    5 ++---
- drivers/acpi/apei/hest.c |    5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/acpi/apei/ghes.c |   53 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 44 insertions(+), 9 deletions(-)
 
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -466,10 +466,9 @@ static int __init einj_init(void)
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -740,26 +740,34 @@ static int ghes_notify_sci(struct notifi
+ 	return ret;
+ }
  
- 	status = acpi_get_table(ACPI_SIG_EINJ, 0,
- 				(struct acpi_table_header **)&einj_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(EINJ_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		return -ENODEV;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(EINJ_PFX "Failed to get table, %s\n", msg);
- 		return -EINVAL;
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -1125,10 +1125,9 @@ static int __init erst_init(void)
++static struct llist_node *llist_nodes_reverse(struct llist_node *llnode)
++{
++	struct llist_node *next, *tail = NULL;
++
++	while (llnode) {
++		next = llnode->next;
++		llnode->next = tail;
++		tail = llnode;
++		llnode = next;
++	}
++
++	return tail;
++}
++
+ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ {
+-	struct llist_node *llnode, *next, *tail = NULL;
++	struct llist_node *llnode, *next;
+ 	struct ghes_estatus_node *estatus_node;
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
+ 	u32 len, node_len;
  
- 	status = acpi_get_table(ACPI_SIG_ERST, 0,
- 				(struct acpi_table_header **)&erst_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(ERST_PFX "Table is not found!\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(ERST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -221,10 +221,9 @@ void __init acpi_hest_init(void)
++	llnode = llist_del_all(&ghes_estatus_llist);
+ 	/*
+ 	 * Because the time order of estatus in list is reversed,
+ 	 * revert it back to proper order.
+ 	 */
+-	llnode = llist_del_all(&ghes_estatus_llist);
+-	while (llnode) {
+-		next = llnode->next;
+-		llnode->next = tail;
+-		tail = llnode;
+-		llnode = next;
+-	}
+-	llnode = tail;
++	llnode = llist_nodes_reverse(llnode);
+ 	while (llnode) {
+ 		next = llnode->next;
+ 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+@@ -779,6 +787,32 @@ static void ghes_proc_in_irq(struct irq_
+ 	}
+ }
  
- 	status = acpi_get_table(ACPI_SIG_HEST, 0,
- 				(struct acpi_table_header **)&hest_tab);
--	if (status == AE_NOT_FOUND) {
--		pr_info(HEST_PFX "Table not found.\n");
-+	if (status == AE_NOT_FOUND)
- 		goto err;
--	} else if (ACPI_FAILURE(status)) {
-+	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
++static void ghes_print_queued_estatus(void)
++{
++	struct llist_node *llnode;
++	struct ghes_estatus_node *estatus_node;
++	struct acpi_hest_generic *generic;
++	struct acpi_hest_generic_status *estatus;
++	u32 len, node_len;
++
++	llnode = llist_del_all(&ghes_estatus_llist);
++	/*
++	 * Because the time order of estatus in list is reversed,
++	 * revert it back to proper order.
++	 */
++	llnode = llist_nodes_reverse(llnode);
++	while (llnode) {
++		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
++					   llnode);
++		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
++		len = apei_estatus_len(estatus);
++		node_len = GHES_ESTATUS_NODE_LEN(len);
++		generic = estatus_node->generic;
++		ghes_print_estatus(NULL, generic, estatus);
++		llnode = llnode->next;
++	}
++}
++
+ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ {
+ 	struct ghes *ghes, *ghes_global = NULL;
+@@ -804,6 +838,7 @@ static int ghes_notify_nmi(unsigned int
+ 
+ 	if (sev_global >= GHES_SEV_PANIC) {
+ 		oops_begin();
++		ghes_print_queued_estatus();
+ 		__ghes_print_estatus(KERN_EMERG, ghes_global->generic,
+ 				     ghes_global->estatus);
+ 		/* reboot to log the error! */
