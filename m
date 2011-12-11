@@ -1,190 +1,217 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/18] ACPICA: Do not abort table load on invalid space ID
-Date: Sun, 11 Dec 2011 12:45:36 -0500
-Message-ID: <cb162cca1ff943aaf0b8dc5271d1ee92e97c7273.1323625426.git.len.brown@intel.com>
+Subject: [PATCH 17/18] ACPICA: Clean up Makefile
+Date: Sun, 11 Dec 2011 12:45:48 -0500
+Message-ID: <6c79beff936174c05dad128ac3c4ee19cab28c5b.1323625426.git.len.brown@intel.com>
 References: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:51888 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab1LKRqO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 12:46:14 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:36787 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab1LKS0i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 13:26:38 -0500
 Received: from localhost.localdomain ([unknown] [74.104.158.190])
- by vms173007.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LW10039RW0LPS60@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 11:46:04 -0600 (CST)
+ with ESMTPA id <0LW10020XXWDDIBB@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 12:26:38 -0600 (CST)
 In-reply-to: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 In-reply-to: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 References: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-Ignore an invalid space ID during a table load. Instead, detect it
-if a control method attempts access - then abort the method.
+Make the various files in alphabetical order to simplify
+addition of new files.
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=925
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acinterp.h |    2 ++
- drivers/acpi/acpica/excreate.c |   23 +++++++++++++----------
- drivers/acpi/acpica/exfldio.c  |   16 ++++++++++++++--
- drivers/acpi/acpica/exutils.c  |   25 +++++++++++++++++++++++++
- 4 files changed, 54 insertions(+), 12 deletions(-)
+ drivers/acpi/acpica/Makefile |  157 +++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 133 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
-index 3731e1c..4ee9058 100644
---- a/drivers/acpi/acpica/acinterp.h
-+++ b/drivers/acpi/acpica/acinterp.h
-@@ -468,6 +468,8 @@ void acpi_ex_eisa_id_to_string(char *dest, u64 compressed_id);
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index b0af3b8..5f7d0cd 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -8,41 +8,150 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ # use acpi.o to put all files here into acpi.o modparam namespace
+ obj-y	+= acpi.o
  
- void acpi_ex_integer_to_string(char *dest, u64 value);
+-acpi-y := dsfield.o   dsmthdat.o  dsopcode.o  dswexec.o  dswscope.o \
+-	 dsmethod.o  dsobject.o  dsutils.o   dswload.o  dswstate.o \
+-	 dsinit.o dsargs.o dscontrol.o dswload2.o
++acpi-y :=		\
++	dsargs.o	\
++	dscontrol.o	\
++	dsfield.o	\
++	dsinit.o	\
++	dsmethod.o	\
++	dsmthdat.o	\
++	dsobject.o	\
++	dsopcode.o	\
++	dsutils.o	\
++	dswexec.o	\
++	dswload.o	\
++	dswload2.o	\
++	dswscope.o	\
++	dswstate.o
  
-+u8 acpi_is_valid_space_id(u8 space_id);
-+
- /*
-  * exregion - default op_region handlers
-  */
-diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
-index 8a06dc5..c66562b 100644
---- a/drivers/acpi/acpica/excreate.c
-+++ b/drivers/acpi/acpica/excreate.c
-@@ -267,7 +267,7 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
-  *
-  * PARAMETERS:  aml_start           - Pointer to the region declaration AML
-  *              aml_length          - Max length of the declaration AML
-- *              region_space        - space_iD for the region
-+ *              space_id            - Address space ID for the region
-  *              walk_state          - Current state
-  *
-  * RETURN:      Status
-@@ -279,7 +279,7 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
- acpi_status
- acpi_ex_create_region(u8 * aml_start,
- 		      u32 aml_length,
--		      u8 region_space, struct acpi_walk_state *walk_state)
-+		      u8 space_id, struct acpi_walk_state *walk_state)
- {
- 	acpi_status status;
- 	union acpi_operand_object *obj_desc;
-@@ -304,16 +304,19 @@ acpi_ex_create_region(u8 * aml_start,
- 	 * Space ID must be one of the predefined IDs, or in the user-defined
- 	 * range
- 	 */
--	if ((region_space >= ACPI_NUM_PREDEFINED_REGIONS) &&
--	    (region_space < ACPI_USER_REGION_BEGIN) &&
--	    (region_space != ACPI_ADR_SPACE_DATA_TABLE)) {
--		ACPI_ERROR((AE_INFO, "Invalid AddressSpace type 0x%X",
--			    region_space));
--		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
-+	if (!acpi_is_valid_space_id(space_id)) {
-+		/*
-+		 * Print an error message, but continue. We don't want to abort
-+		 * a table load for this exception. Instead, if the region is
-+		 * actually used at runtime, abort the executing method.
-+		 */
-+		ACPI_ERROR((AE_INFO,
-+			    "Invalid/unknown Address Space ID: 0x%2.2X",
-+			    space_id));
- 	}
+-acpi-y += evevent.o  evregion.o  evsci.o    evxfevnt.o \
+-	 evmisc.o   evrgnini.o  evxface.o  evxfregn.o \
+-	 evgpe.o    evgpeblk.o evgpeinit.o  evgpeutil.o evxfgpe.o evglock.o
++acpi-y +=		\
++	evevent.o	\
++	evgpe.o		\
++	evgpeblk.o	\
++	evgpeinit.o	\
++	evgpeutil.o	\
++	evglock.o	\
++	evmisc.o	\
++	evregion.o	\
++	evrgnini.o	\
++	evsci.o		\
++	evxface.o	\
++	evxfevnt.o	\
++	evxfgpe.o	\
++	evxfregn.o
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "Region Type - %s (0x%X)\n",
--			  acpi_ut_get_region_name(region_space), region_space));
-+			  acpi_ut_get_region_name(space_id), space_id));
+-acpi-y += exconfig.o  exfield.o  exnames.o   exoparg6.o  exresolv.o  exstorob.o\
+-	 exconvrt.o  exfldio.o  exoparg1.o  exprep.o    exresop.o   exsystem.o\
+-	 excreate.o  exmisc.o   exoparg2.o  exregion.o  exstore.o   exutils.o \
+-	 exdump.o    exmutex.o  exoparg3.o  exresnte.o  exstoren.o  exdebug.o
++acpi-y +=		\
++	exconfig.o	\
++	exconvrt.o	\
++	excreate.o	\
++	exdebug.o	\
++	exdump.o	\
++	exfield.o	\
++	exfldio.o	\
++	exmutex.o	\
++	exnames.o	\
++	exoparg1.o	\
++	exoparg2.o	\
++	exoparg3.o	\
++	exoparg6.o	\
++	exprep.o	\
++	exmisc.o	\
++	exregion.o	\
++	exresnte.o	\
++	exresolv.o	\
++	exresop.o	\
++	exstore.o	\
++	exstoren.o	\
++	exstorob.o	\
++	exsystem.o	\
++	exutils.o
  
- 	/* Create the region descriptor */
+-acpi-y += hwacpi.o  hwgpe.o  hwregs.o  hwsleep.o hwxface.o hwvalid.o hwpci.o
++acpi-y +=		\
++	hwacpi.o	\
++	hwgpe.o		\
++	hwpci.o		\
++	hwregs.o	\
++	hwsleep.o	\
++	hwvalid.o	\
++	hwxface.o
  
-@@ -339,7 +342,7 @@ acpi_ex_create_region(u8 * aml_start,
+ acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
  
- 	/* Init the region from the operands */
+-acpi-y += nsaccess.o  nsload.o    nssearch.o  nsxfeval.o \
+-	 nsalloc.o   nseval.o    nsnames.o   nsutils.o   nsxfname.o \
+-	 nsdump.o    nsinit.o    nsobject.o  nswalk.o    nsxfobj.o  \
+-	 nsparse.o   nspredef.o  nsrepair.o  nsrepair2.o
++acpi-y +=		\
++	nsaccess.o	\
++	nsalloc.o	\
++	nsdump.o	\
++	nseval.o	\
++	nsinit.o	\
++	nsload.o	\
++	nsnames.o	\
++	nsobject.o	\
++	nsparse.o	\
++	nspredef.o	\
++	nsrepair.o	\
++	nsrepair2.o	\
++	nssearch.o	\
++	nsutils.o	\
++	nswalk.o	\
++	nsxfeval.o	\
++	nsxfname.o	\
++	nsxfobj.o
  
--	obj_desc->region.space_id = region_space;
-+	obj_desc->region.space_id = space_id;
- 	obj_desc->region.address = 0;
- 	obj_desc->region.length = 0;
- 	obj_desc->region.node = node;
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index 19df8ce..2a524fc 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -86,6 +86,7 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
- {
- 	acpi_status status = AE_OK;
- 	union acpi_operand_object *rgn_desc;
-+	u8 space_id;
+ acpi-$(ACPI_FUTURE_USAGE) += nsdumpdv.o
  
- 	ACPI_FUNCTION_TRACE_U32(ex_setup_region, field_datum_byte_offset);
+-acpi-y += psargs.o    psparse.o  psloop.o pstree.o   pswalk.o  \
+-	 psopcode.o  psscope.o  psutils.o  psxface.o
++acpi-y +=		\
++	psargs.o	\
++	psloop.o	\
++	psopcode.o	\
++	psparse.o	\
++	psscope.o	\
++	pstree.o	\
++	psutils.o	\
++	pswalk.o	\
++	psxface.o
  
-@@ -101,6 +102,17 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
- 		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
- 	}
+-acpi-y += rsaddr.o rscreate.o rsinfo.o rsio.o rslist.o rsmisc.o rsxface.o \
+-	 rscalc.o  rsirq.o  rsmemory.o  rsutils.o rsserial.o
++acpi-y +=		\
++	rsaddr.o	\
++	rscalc.o	\
++	rscreate.o	\
++	rsinfo.o	\
++	rsio.o		\
++	rsirq.o		\
++	rslist.o	\
++	rsmemory.o	\
++	rsmisc.o	\
++	rsserial.o	\
++	rsutils.o	\
++	rsxface.o
  
-+	space_id = rgn_desc->region.space_id;
-+
-+	/* Validate the Space ID */
-+
-+	if (!acpi_is_valid_space_id(space_id)) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Invalid/unknown Address Space ID: 0x%2.2X",
-+			    space_id));
-+		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
-+	}
-+
- 	/*
- 	 * If the Region Address and Length have not been previously evaluated,
- 	 * evaluate them now and save the results.
-@@ -122,8 +134,8 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
- 	 * Exit now for SMBus or IPMI address space, it has a non-linear
- 	 * address space and the request cannot be directly validated
- 	 */
--	if (rgn_desc->region.space_id == ACPI_ADR_SPACE_SMBUS ||
--	    rgn_desc->region.space_id == ACPI_ADR_SPACE_IPMI) {
-+	if (space_id == ACPI_ADR_SPACE_SMBUS ||
-+	    space_id == ACPI_ADR_SPACE_IPMI) {
+ acpi-$(ACPI_FUTURE_USAGE) += rsdump.o
  
- 		/* SMBus or IPMI has a non-linear address space */
+-acpi-y += tbxface.o tbinstal.o tbutils.o tbfind.o tbfadt.o tbxfroot.o
++acpi-y +=		\
++	tbfadt.o	\
++	tbfind.o	\
++	tbinstal.o	\
++	tbutils.o	\
++	tbxface.o	\
++	tbxfroot.o
  
-diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
-index 8ad9314..3993aa5 100644
---- a/drivers/acpi/acpica/exutils.c
-+++ b/drivers/acpi/acpica/exutils.c
-@@ -435,4 +435,29 @@ void acpi_ex_integer_to_string(char *out_string, u64 value)
- 	}
- }
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_is_valid_space_id
-+ *
-+ * PARAMETERS:  space_id            - ID to be validated
-+ *
-+ * RETURN:      TRUE if valid/supported ID.
-+ *
-+ * DESCRIPTION: Validate an operation region space_iD.
-+ *
-+ ******************************************************************************/
-+
-+u8 acpi_is_valid_space_id(u8 space_id)
-+{
-+
-+	if ((space_id >= ACPI_NUM_PREDEFINED_REGIONS) &&
-+	    (space_id < ACPI_USER_REGION_BEGIN) &&
-+	    (space_id != ACPI_ADR_SPACE_DATA_TABLE) &&
-+	    (space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)) {
-+		return (FALSE);
-+	}
-+
-+	return (TRUE);
-+}
-+
- #endif
+-acpi-y += utalloc.o utdebug.o uteval.o utinit.o utmisc.o utxface.o \
+-		utcopy.o utdelete.o utglobal.o utmath.o utobject.o \
+-		utstate.o utmutex.o utobject.o utresrc.o utlock.o utids.o \
+-		utosi.o utxferror.o utdecode.o utxfmutex.o
++acpi-y +=		\
++	utalloc.o	\
++	utcopy.o	\
++	utdebug.o	\
++	utdecode.o	\
++	utdelete.o	\
++	uteval.o	\
++	utglobal.o	\
++	utids.o		\
++	utinit.o	\
++	utlock.o	\
++	utmath.o	\
++	utmisc.o	\
++	utmutex.o	\
++	utobject.o	\
++	utosi.o		\
++	utresrc.o	\
++	utstate.o	\
++	utxface.o	\
++	utxferror.o	\
++	utxfmutex.o
 -- 
 1.7.7.rc0.72.g4b5ea
 
