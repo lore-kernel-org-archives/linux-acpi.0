@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/18] ACPI 5.0: Implement hardware-reduced option
-Date: Sun, 11 Dec 2011 12:45:38 -0500
-Message-ID: <5fd42d7bba7b2e13e918247195b434a0d4bf3141.1323625426.git.len.brown@intel.com>
+Subject: [PATCH 15/18] ACPI 5.0: Add new predefined names
+Date: Sun, 11 Dec 2011 12:45:46 -0500
+Message-ID: <2df3569dd6fff0b4170b09324632d6d89f292287.1323625426.git.len.brown@intel.com>
 References: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:36856 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886Ab1LKS0m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 13:26:42 -0500
+	with ESMTP id S1751886Ab1LKS0n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 13:26:43 -0500
 Received: from localhost.localdomain ([unknown] [74.104.158.190])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LW10020XXWDDIBB@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 12:26:40 -0600 (CST)
+ linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 12:26:43 -0600 (CST)
 In-reply-to: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 In-reply-to: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 References: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
@@ -24,179 +24,250 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-If HW-reduced flag is set in the FADT, do not attempt to access
-or initialize any ACPI hardware, including SCI and global lock.
-No FACS will be present.
-
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |   13 ++++++++++++-
- drivers/acpi/acpica/evevent.c  |   12 ++++++++++++
- drivers/acpi/acpica/evglock.c  |    6 ++++++
- drivers/acpi/acpica/tbfadt.c   |   22 ++++++++++++++++++++--
- drivers/acpi/acpica/tbutils.c  |    7 +++++++
- include/acpi/acpixf.h          |    1 +
- 6 files changed, 58 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/aclocal.h   |    3 ++-
+ drivers/acpi/acpica/acpredef.h  |   39 ++++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/acpica/nspredef.c  |   29 +++++++++++++++++++++++++++++
+ drivers/acpi/acpica/nsrepair.c  |    1 +
+ drivers/acpi/acpica/nsrepair2.c |    5 +++--
+ 5 files changed, 73 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 76dc02f..25912a9 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -140,8 +140,19 @@ u32 acpi_gbl_trace_flags;
- acpi_name acpi_gbl_trace_method_name;
- u8 acpi_gbl_system_awake_and_running;
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 60aee56..2ddd61d 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -319,7 +319,8 @@ struct acpi_name_info {
  
-+/*
-+ * ACPI 5.0 introduces the concept of a "reduced hardware platform", meaning
-+ * that the ACPI hardware is no longer required. A flag in the FADT indicates
-+ * a reduced HW machine, and that flag is duplicated here for convenience.
-+ */
-+u8 acpi_gbl_reduced_hardware;
-+
- #endif
- 
-+/* Do not disassemble buffers to resource descriptors */
-+
-+ACPI_EXTERN u8 ACPI_INIT_GLOBAL(acpi_gbl_no_resource_disassembly, FALSE);
-+
- /*****************************************************************************
+ /*
+  * Used for ACPI_PTYPE1_FIXED, ACPI_PTYPE1_VAR, ACPI_PTYPE2,
+- * ACPI_PTYPE2_MIN, ACPI_PTYPE2_PKG_COUNT, ACPI_PTYPE2_COUNT
++ * ACPI_PTYPE2_MIN, ACPI_PTYPE2_PKG_COUNT, ACPI_PTYPE2_COUNT,
++ * ACPI_PTYPE2_FIX_VAR
+  */
+ struct acpi_package_info {
+ 	u8 type;
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index c445cca..ecac9cf 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -94,6 +94,14 @@
+  * ACPI_PTYPE2_REV_FIXED: Revision at start, each subpackage is Fixed-length
+  *      (Used for _ART, _FPS)
   *
-  * Debug support
-@@ -207,7 +218,7 @@ ACPI_EXTERN struct acpi_rw_lock acpi_gbl_namespace_rw_lock;
++ * ACPI_PTYPE2_FIX_VAR: Each subpackage consists of some fixed-length elements
++ *      followed by an optional element
++ *      object type
++ *      count
++ *      object type
++ *      count = 0 (optional)
++ *      (Used for _DLM)
++ *
+  *****************************************************************************/
  
- /*****************************************************************************
-  *
-- * Mutual exlusion within ACPICA subsystem
-+ * Mutual exclusion within ACPICA subsystem
-  *
-  ****************************************************************************/
+ enum acpi_return_package_types {
+@@ -105,7 +113,8 @@ enum acpi_return_package_types {
+ 	ACPI_PTYPE2_PKG_COUNT = 6,
+ 	ACPI_PTYPE2_FIXED = 7,
+ 	ACPI_PTYPE2_MIN = 8,
+-	ACPI_PTYPE2_REV_FIXED = 9
++	ACPI_PTYPE2_REV_FIXED = 9,
++	ACPI_PTYPE2_FIX_VAR = 10
+ };
  
-diff --git a/drivers/acpi/acpica/evevent.c b/drivers/acpi/acpica/evevent.c
-index d458b04..1f43be4 100644
---- a/drivers/acpi/acpica/evevent.c
-+++ b/drivers/acpi/acpica/evevent.c
-@@ -71,6 +71,12 @@ acpi_status acpi_ev_initialize_events(void)
+ #ifdef ACPI_CREATE_PREDEFINED_TABLE
+@@ -154,6 +163,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_AC8", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_AC9", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_ADR", 0, ACPI_RTYPE_INTEGER}},
++	{{"_AEI", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_AL0", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Refs) */
+ 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0,0}, 0,0}},
  
- 	ACPI_FUNCTION_TRACE(ev_initialize_events);
+@@ -229,6 +239,13 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_CID", 0, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_PACKAGE}}, /* Variable-length (Ints/Strs) */
+ 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING, 0,0}, 0,0}},
  
-+	/* If Hardware Reduced flag is set, there are no fixed events */
++	{{"_CLS", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (3 Int) */
++	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0}, 0, 0}},
 +
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
++	{{"_CPC", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Ints/Bufs) */
++	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER, 0, 0}, 0,
++	  0}},
 +
- 	/*
- 	 * Initialize the Fixed and General Purpose Events. This is done prior to
- 	 * enabling SCIs to prevent interrupts from occurring before the handlers
-@@ -111,6 +117,12 @@ acpi_status acpi_ev_install_xrupt_handlers(void)
+ 	{{"_CRS", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_CRT", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_CSD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (1 Int(n), n-1 Int) */
+@@ -237,12 +254,21 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_CST", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (1 Int(n), n Pkg (1 Buf/3 Int) */
+ 			  {{{ACPI_PTYPE2_PKG_COUNT,ACPI_RTYPE_BUFFER, 1, ACPI_RTYPE_INTEGER}, 3,0}},
  
- 	ACPI_FUNCTION_TRACE(ev_install_xrupt_handlers);
- 
-+	/* If Hardware Reduced flag is set, there is no ACPI h/w */
++	{{"_CWS", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_DCK", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_DCS", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_DDC", 1, ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER}},
+ 	{{"_DDN", 0, ACPI_RTYPE_STRING}},
++	{{"_DEP", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
++	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
 +
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
+ 	{{"_DGS", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_DIS", 0, 0}},
 +
- 	/* Install the SCI handler */
- 
- 	status = acpi_ev_install_sci_handler();
-diff --git a/drivers/acpi/acpica/evglock.c b/drivers/acpi/acpica/evglock.c
-index 56a562a..af1e71a 100644
---- a/drivers/acpi/acpica/evglock.c
-+++ b/drivers/acpi/acpica/evglock.c
-@@ -70,6 +70,12 @@ acpi_status acpi_ev_init_global_lock_handler(void)
- 
- 	ACPI_FUNCTION_TRACE(ev_init_global_lock_handler);
- 
-+	/* If Hardware Reduced flag is set, there is no global lock */
++	{{"_DLM", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Pkgs) each (1 Ref, 0/1 Optional Buf/Ref) */
++	{{{ACPI_PTYPE2_FIX_VAR, ACPI_RTYPE_REFERENCE, 1,
++	   ACPI_RTYPE_REFERENCE | ACPI_RTYPE_BUFFER}, 0, 0}},
 +
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
+ 	{{"_DMA", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_DOD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Ints) */
+ 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER, 0,0}, 0,0}},
+@@ -262,6 +288,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_EJ3", 1, 0}},
+ 	{{"_EJ4", 1, 0}},
+ 	{{"_EJD", 0, ACPI_RTYPE_STRING}},
++	{{"_EVT", 1, 0}},
+ 	{{"_FDE", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_FDI", 0, ACPI_RTYPE_PACKAGE}}, /* Fixed-length (16 Int) */
+ 			  {{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 16,0}, 0,0}},
+@@ -281,14 +308,17 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0}, 0, 0}},
+ 
+ 	{{"_GAI", 0, ACPI_RTYPE_INTEGER}},
++	{{"_GCP", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_GHL", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_GLK", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_GPD", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_GPE", 0, ACPI_RTYPE_INTEGER}}, /* _GPE method, not _GPE scope */
++	{{"_GRT", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_GSB", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_GTF", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_GTM", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_GTS", 1, 0}},
++	{{"_GWS", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_HID", 0, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING}},
+ 	{{"_HOT", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_HPP", 0, ACPI_RTYPE_PACKAGE}}, /* Fixed-length (4 Int) */
+@@ -303,6 +333,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_HPX", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Pkgs) each (var Ints) */
+ 			  {{{ACPI_PTYPE2_MIN, ACPI_RTYPE_INTEGER, 5,0}, 0,0}},
+ 
++	{{"_HRV", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_IFT", 0, ACPI_RTYPE_INTEGER}}, /* See IPMI spec */
+ 	{{"_INI", 0, 0}},
+ 	{{"_IRC", 0, 0}},
+@@ -361,6 +392,9 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_PR3", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
+ 	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
+ 
++	{{"_PRE", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
++	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
 +
- 	/* Attempt installation of the global lock handler */
+ 	{{"_PRL", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
+ 	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
  
- 	status = acpi_install_fixed_event_handler(ACPI_EVENT_GLOBAL,
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 536fd2b..1e1a7de 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -253,8 +253,13 @@ void acpi_tb_parse_fadt(u32 table_index)
- 	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xdsdt,
- 			      ACPI_SIG_DSDT, ACPI_TABLE_INDEX_DSDT);
+@@ -391,6 +425,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_PSD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Pkgs) each (5 Int) with count */
+ 			  {{{ACPI_PTYPE2_COUNT, ACPI_RTYPE_INTEGER,0,0}, 0,0}},
  
--	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xfacs,
--			      ACPI_SIG_FACS, ACPI_TABLE_INDEX_FACS);
-+	/* If Hardware Reduced flag is set, there is no FACS */
++	{{"_PSE", 1, 0}},
+ 	{{"_PSL", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Refs) */
+ 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0,0}, 0,0}},
+ 
+@@ -457,6 +492,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_SLI", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_SPD", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_SRS", 1, 0}},
++	{{"_SRT", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_SRV", 0, ACPI_RTYPE_INTEGER}}, /* See IPMI spec */
+ 	{{"_SST", 1, 0}},
+ 	{{"_STA", 0, ACPI_RTYPE_INTEGER}},
+@@ -464,6 +500,7 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_STP", 2, ACPI_RTYPE_INTEGER}},
+ 	{{"_STR", 0, ACPI_RTYPE_BUFFER}},
+ 	{{"_STV", 2, ACPI_RTYPE_INTEGER}},
++	{{"_SUB", 0, ACPI_RTYPE_STRING}},
+ 	{{"_SUN", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_SWS", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_TC1", 0, ACPI_RTYPE_INTEGER}},
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index c845c80..db80366 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -620,6 +620,7 @@ acpi_ns_check_package(struct acpi_predefined_data *data,
+ 	case ACPI_PTYPE2_FIXED:
+ 	case ACPI_PTYPE2_MIN:
+ 	case ACPI_PTYPE2_COUNT:
++	case ACPI_PTYPE2_FIX_VAR:
+ 
+ 		/*
+ 		 * These types all return a single Package that consists of a
+@@ -759,6 +760,34 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
+ 			}
+ 			break;
+ 
++		case ACPI_PTYPE2_FIX_VAR:
++			/*
++			 * Each subpackage has a fixed number of elements and an
++			 * optional element
++			 */
++			expected_count =
++			    package->ret_info.count1 + package->ret_info.count2;
++			if (sub_package->package.count < expected_count) {
++				goto package_too_small;
++			}
 +
-+	if (!acpi_gbl_reduced_hardware) {
-+		acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.
-+				      Xfacs, ACPI_SIG_FACS,
-+				      ACPI_TABLE_INDEX_FACS);
-+	}
- }
- 
- /*******************************************************************************
-@@ -297,6 +302,13 @@ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
- 	ACPI_MEMCPY(&acpi_gbl_FADT, table,
- 		    ACPI_MIN(length, sizeof(struct acpi_table_fadt)));
- 
-+	/* Take a copy of the Hardware Reduced flag */
++			status =
++			    acpi_ns_check_package_elements(data, sub_elements,
++							   package->ret_info.
++							   object_type1,
++							   package->ret_info.
++							   count1,
++							   package->ret_info.
++							   object_type2,
++							   sub_package->package.
++							   count -
++							   package->ret_info.
++							   count1, 0);
++			if (ACPI_FAILURE(status)) {
++				return (status);
++			}
++			break;
 +
-+	acpi_gbl_reduced_hardware = FALSE;
-+	if (acpi_gbl_FADT.flags & ACPI_FADT_HW_REDUCED) {
-+		acpi_gbl_reduced_hardware = TRUE;
-+	}
-+
- 	/* Convert the local copy of the FADT to the common internal format */
+ 		case ACPI_PTYPE2_FIXED:
  
- 	acpi_tb_convert_fadt();
-@@ -502,6 +514,12 @@ static void acpi_tb_validate_fadt(void)
- 		acpi_gbl_FADT.Xdsdt = (u64) acpi_gbl_FADT.dsdt;
+ 			/* Each sub-package has a fixed length */
+diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
+index ac7b854..dd0a0bd 100644
+--- a/drivers/acpi/acpica/nsrepair.c
++++ b/drivers/acpi/acpica/nsrepair.c
+@@ -634,6 +634,7 @@ acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
+ 	case ACPI_PTYPE2_FIXED:
+ 	case ACPI_PTYPE2_MIN:
+ 	case ACPI_PTYPE2_REV_FIXED:
++	case ACPI_PTYPE2_FIX_VAR:
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 024c4f2..3ee2b22 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -467,11 +467,12 @@ acpi_ns_repair_HID(struct acpi_predefined_data *data,
  	}
  
-+	/* If Hardware Reduced flag is set, we are all done */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		return;
-+	}
-+
- 	/* Examine all of the 64-bit extended address fields (X fields) */
- 
- 	for (i = 0; i < ACPI_FADT_INFO_ENTRIES; i++) {
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 0f2d395..da56a19 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -135,6 +135,13 @@ acpi_status acpi_tb_initialize_facs(void)
- {
- 	acpi_status status;
- 
-+	/* If Hardware Reduced flag is set, there is no FACS */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		acpi_gbl_FACS = NULL;
-+		return (AE_OK);
-+	}
-+
- 	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
- 					 ACPI_CAST_INDIRECT_PTR(struct
- 								acpi_table_header,
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index f554a93..9ba2e3a 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -74,6 +74,7 @@ extern u8 acpi_gbl_disable_auto_repair;
- extern u32 acpi_current_gpe_count;
- extern struct acpi_table_fadt acpi_gbl_FADT;
- extern u8 acpi_gbl_system_awake_and_running;
-+extern u8 acpi_gbl_reduced_hardware;	/* ACPI 5.0 */
- 
- extern u32 acpi_rsdt_forced;
- /*
+ 	/*
+-	 * Copy and uppercase the string. From the ACPI specification:
++	 * Copy and uppercase the string. From the ACPI 5.0 specification:
+ 	 *
+ 	 * A valid PNP ID must be of the form "AAA####" where A is an uppercase
+ 	 * letter and # is a hex digit. A valid ACPI ID must be of the form
+-	 * "ACPI####" where # is a hex digit.
++	 * "NNNN####" where N is an uppercase letter or decimal digit, and
++	 * # is a hex digit.
+ 	 */
+ 	for (dest = new_string->string.pointer; *source; dest++, source++) {
+ 		*dest = (char)ACPI_TOUPPER(*source);
 -- 
 1.7.7.rc0.72.g4b5ea
 
