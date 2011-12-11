@@ -1,20 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/18] ACPICA: Add error msg for Index/Bank field registers
- out-of-range
-Date: Sun, 11 Dec 2011 12:45:35 -0500
-Message-ID: <7072c90857d690ce071d8846c3606d1fab3de86d.1323625426.git.len.brown@intel.com>
+Subject: [PATCH 05/18] ACPICA: Do not abort table load on invalid space ID
+Date: Sun, 11 Dec 2011 12:45:36 -0500
+Message-ID: <cb162cca1ff943aaf0b8dc5271d1ee92e97c7273.1323625426.git.len.brown@intel.com>
 References: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:63198 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab1LKRqS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 12:46:18 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:51888 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab1LKRqO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 12:46:14 -0500
 Received: from localhost.localdomain ([unknown] [74.104.158.190])
- by vms173003.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LW100K28W0LMVG0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 11:46:03 -0600 (CST)
+ with ESMTPA id <0LW10039RW0LPS60@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 11:46:04 -0600 (CST)
 In-reply-to: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 In-reply-to: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 References: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
@@ -25,41 +24,167 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Supplement the exception code with an actual message.
+Ignore an invalid space ID during a table load. Instead, detect it
+if a control method attempts access - then abort the method.
 
-Found during ACPICA debugging.
+http://www.acpica.org/bugzilla/show_bug.cgi?id=925
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/exfldio.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/acpi/acpica/acinterp.h |    2 ++
+ drivers/acpi/acpica/excreate.c |   23 +++++++++++++----------
+ drivers/acpi/acpica/exfldio.c  |   16 ++++++++++++++--
+ drivers/acpi/acpica/exutils.c  |   25 +++++++++++++++++++++++++
+ 4 files changed, 54 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index f915a7f..19df8ce 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -316,6 +316,7 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
- static u8
- acpi_ex_register_overflow(union acpi_operand_object *obj_desc, u64 value)
- {
-+	ACPI_FUNCTION_NAME(ex_register_overflow);
+diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
+index 3731e1c..4ee9058 100644
+--- a/drivers/acpi/acpica/acinterp.h
++++ b/drivers/acpi/acpica/acinterp.h
+@@ -468,6 +468,8 @@ void acpi_ex_eisa_id_to_string(char *dest, u64 compressed_id);
  
- 	if (obj_desc->common_field.bit_length >= ACPI_INTEGER_BIT_SIZE) {
- 		/*
-@@ -330,6 +331,11 @@ acpi_ex_register_overflow(union acpi_operand_object *obj_desc, u64 value)
- 		 * The Value is larger than the maximum value that can fit into
- 		 * the register.
- 		 */
-+		ACPI_ERROR((AE_INFO,
-+			    "Index value 0x%8.8X%8.8X overflows field width 0x%X",
-+			    ACPI_FORMAT_UINT64(value),
-+			    obj_desc->common_field.bit_length));
+ void acpi_ex_integer_to_string(char *dest, u64 value);
+ 
++u8 acpi_is_valid_space_id(u8 space_id);
 +
- 		return (TRUE);
+ /*
+  * exregion - default op_region handlers
+  */
+diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
+index 8a06dc5..c66562b 100644
+--- a/drivers/acpi/acpica/excreate.c
++++ b/drivers/acpi/acpica/excreate.c
+@@ -267,7 +267,7 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
+  *
+  * PARAMETERS:  aml_start           - Pointer to the region declaration AML
+  *              aml_length          - Max length of the declaration AML
+- *              region_space        - space_iD for the region
++ *              space_id            - Address space ID for the region
+  *              walk_state          - Current state
+  *
+  * RETURN:      Status
+@@ -279,7 +279,7 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
+ acpi_status
+ acpi_ex_create_region(u8 * aml_start,
+ 		      u32 aml_length,
+-		      u8 region_space, struct acpi_walk_state *walk_state)
++		      u8 space_id, struct acpi_walk_state *walk_state)
+ {
+ 	acpi_status status;
+ 	union acpi_operand_object *obj_desc;
+@@ -304,16 +304,19 @@ acpi_ex_create_region(u8 * aml_start,
+ 	 * Space ID must be one of the predefined IDs, or in the user-defined
+ 	 * range
+ 	 */
+-	if ((region_space >= ACPI_NUM_PREDEFINED_REGIONS) &&
+-	    (region_space < ACPI_USER_REGION_BEGIN) &&
+-	    (region_space != ACPI_ADR_SPACE_DATA_TABLE)) {
+-		ACPI_ERROR((AE_INFO, "Invalid AddressSpace type 0x%X",
+-			    region_space));
+-		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
++	if (!acpi_is_valid_space_id(space_id)) {
++		/*
++		 * Print an error message, but continue. We don't want to abort
++		 * a table load for this exception. Instead, if the region is
++		 * actually used at runtime, abort the executing method.
++		 */
++		ACPI_ERROR((AE_INFO,
++			    "Invalid/unknown Address Space ID: 0x%2.2X",
++			    space_id));
  	}
  
+ 	ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "Region Type - %s (0x%X)\n",
+-			  acpi_ut_get_region_name(region_space), region_space));
++			  acpi_ut_get_region_name(space_id), space_id));
+ 
+ 	/* Create the region descriptor */
+ 
+@@ -339,7 +342,7 @@ acpi_ex_create_region(u8 * aml_start,
+ 
+ 	/* Init the region from the operands */
+ 
+-	obj_desc->region.space_id = region_space;
++	obj_desc->region.space_id = space_id;
+ 	obj_desc->region.address = 0;
+ 	obj_desc->region.length = 0;
+ 	obj_desc->region.node = node;
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index 19df8ce..2a524fc 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -86,6 +86,7 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ {
+ 	acpi_status status = AE_OK;
+ 	union acpi_operand_object *rgn_desc;
++	u8 space_id;
+ 
+ 	ACPI_FUNCTION_TRACE_U32(ex_setup_region, field_datum_byte_offset);
+ 
+@@ -101,6 +102,17 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
+ 	}
+ 
++	space_id = rgn_desc->region.space_id;
++
++	/* Validate the Space ID */
++
++	if (!acpi_is_valid_space_id(space_id)) {
++		ACPI_ERROR((AE_INFO,
++			    "Invalid/unknown Address Space ID: 0x%2.2X",
++			    space_id));
++		return_ACPI_STATUS(AE_AML_INVALID_SPACE_ID);
++	}
++
+ 	/*
+ 	 * If the Region Address and Length have not been previously evaluated,
+ 	 * evaluate them now and save the results.
+@@ -122,8 +134,8 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 	 * Exit now for SMBus or IPMI address space, it has a non-linear
+ 	 * address space and the request cannot be directly validated
+ 	 */
+-	if (rgn_desc->region.space_id == ACPI_ADR_SPACE_SMBUS ||
+-	    rgn_desc->region.space_id == ACPI_ADR_SPACE_IPMI) {
++	if (space_id == ACPI_ADR_SPACE_SMBUS ||
++	    space_id == ACPI_ADR_SPACE_IPMI) {
+ 
+ 		/* SMBus or IPMI has a non-linear address space */
+ 
+diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
+index 8ad9314..3993aa5 100644
+--- a/drivers/acpi/acpica/exutils.c
++++ b/drivers/acpi/acpica/exutils.c
+@@ -435,4 +435,29 @@ void acpi_ex_integer_to_string(char *out_string, u64 value)
+ 	}
+ }
+ 
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_is_valid_space_id
++ *
++ * PARAMETERS:  space_id            - ID to be validated
++ *
++ * RETURN:      TRUE if valid/supported ID.
++ *
++ * DESCRIPTION: Validate an operation region space_iD.
++ *
++ ******************************************************************************/
++
++u8 acpi_is_valid_space_id(u8 space_id)
++{
++
++	if ((space_id >= ACPI_NUM_PREDEFINED_REGIONS) &&
++	    (space_id < ACPI_USER_REGION_BEGIN) &&
++	    (space_id != ACPI_ADR_SPACE_DATA_TABLE) &&
++	    (space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)) {
++		return (FALSE);
++	}
++
++	return (TRUE);
++}
++
+ #endif
 -- 
 1.7.7.rc0.72.g4b5ea
 
