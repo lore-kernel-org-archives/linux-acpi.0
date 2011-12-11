@@ -1,51 +1,69 @@
-From: Baptiste Jonglez <baptiste@jonglez.org>
-Subject: Re: [Dual-LVDS Acer Iconia laptop] i915/DRM issue: one screen stays
- off [3.2-rc4+]
-Date: Sun, 11 Dec 2011 17:30:37 +0100
-Message-ID: <20111211163037.GA11920@archminux>
-References: <20111204160728.GA27292@archminux>
- <1323054041.6046.79.camel@linux-s257.site>
- <20111206215137.GA20907@archminux>
- <CAN+gG=EaG1h=seuKQa_SF2O033WWn52USh=tjO9F9O55DgH17Q@mail.gmail.com>
- <20111206223109.GA1867@archminux>
- <CAN+gG=FoxDg3O5VSVkZEPGn4cVE=SJ4MUfvCgnYiB8vJGTLKmQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAN+gG=FoxDg3O5VSVkZEPGn4cVE=SJ4MUfvCgnYiB8vJGTLKmQ@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: joeyli <jlee@suse.com>, Baptiste Jonglez <baptiste@jonglez.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wilson <chris@chris-wilson.co.uk>, intel-gfx@lists.freedesktop.org, Mathieu Magnaudet <mathieu.magnaudet@enac.fr>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 01/18] ACPICA: Update for GCC 4
+Date: Sun, 11 Dec 2011 12:45:32 -0500
+Message-ID: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
+References: <1323625549-10775-1-git-send-email-lenb@kernel.org>
+Reply-To: Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:35412 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918Ab1LKRqF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 12:46:05 -0500
+Received: from localhost.localdomain ([unknown] [74.104.158.190])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LW100JOEW0KO3U5@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 11:46:02 -0600 (CST)
+In-reply-to: <1323625549-10775-1-git-send-email-lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-On Thu, Dec 08, 2011 at 11:11:22AM +0100, Benjamin Tissoires wrote:
-> Hi,
-> 
-> On Tue, Dec 6, 2011 at 23:31, Baptiste Jonglez <baptiste@jonglez.org> wrote:
-> > On Tue, Dec 06, 2011 at 11:12:26PM +0100, Benjamin Tissoires wrote:
-> >> Hi Baptiste,
-> >
-> > Hi,
-> >
-> >> On Tue, Dec 6, 2011 at 22:51, Baptiste Jonglez <baptiste@jonglez.org> wrote:
-> >> > The second screen works fine with the attached patch. It actually is
-> >> > 6 months old but seems to have been lost in the wild...
-> >>
-> >> You don't have the problem of the second backlight still off?
-> >> On our Iconia, we need to trigger a special DMI command to set it up
-> >> (SDSS, IIRC).
-> >
-> > No, with the patch, it worked out-of-the-box.
-> 
-> mmm, this is weird. We must not have the same bios or device version.
-> We need to explicitly set the LCD2 up.
+From: Bob Moore <robert.moore@intel.com>
 
-The version of our BIOS is 1.01, dated from 12/23/2010.
+Fixes several issues with GCC 4.6 related to the new checks for
+unused variables.
 
+http://www.acpica.org/bugzilla/show_bug.cgi?id=935
 
-Do you think there's any chance these patches will make it to the 3.2
-kernel? I guess you want to make sure your second patch works fine
-before...
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/acpica/utmutex.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-Baptiste
+diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
+index 7d797e2..302c74e 100644
+--- a/drivers/acpi/acpica/utmutex.c
++++ b/drivers/acpi/acpica/utmutex.c
+@@ -293,14 +293,10 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
+ 
+ acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
+ {
+-	acpi_thread_id this_thread_id;
+-
+ 	ACPI_FUNCTION_NAME(ut_release_mutex);
+ 
+-	this_thread_id = acpi_os_get_thread_id();
+-
+ 	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Thread %u releasing Mutex [%s]\n",
+-			  (u32)this_thread_id,
++			  (u32)acpi_os_get_thread_id(),
+ 			  acpi_ut_get_mutex_name(mutex_id)));
+ 
+ 	if (mutex_id > ACPI_MAX_MUTEX) {
+@@ -329,7 +325,8 @@ acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
+ 		 * the ACPI subsystem code.
+ 		 */
+ 		for (i = mutex_id; i < ACPI_NUM_MUTEX; i++) {
+-			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
++			if (acpi_gbl_mutex_info[i].thread_id ==
++			    acpi_os_get_thread_id()) {
+ 				if (i == mutex_id) {
+ 					continue;
+ 				}
+-- 
+1.7.7.rc0.72.g4b5ea
+
