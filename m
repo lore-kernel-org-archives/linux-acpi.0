@@ -1,273 +1,284 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 15/18] ACPI 5.0: Add new predefined names
-Date: Sun, 11 Dec 2011 12:45:46 -0500
-Message-ID: <2df3569dd6fff0b4170b09324632d6d89f292287.1323625426.git.len.brown@intel.com>
+Subject: [PATCH 09/18] ACPI 5.0: New interfaces to allow driver access to AML
+ mutex objects
+Date: Sun, 11 Dec 2011 12:45:40 -0500
+Message-ID: <5ffc2ed8d99a38e9908aeec9f35a31d556831636.1323625426.git.len.brown@intel.com>
 References: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:36856 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886Ab1LKS0n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 13:26:43 -0500
+	with ESMTP id S1751930Ab1LKS0m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2011 13:26:42 -0500
 Received: from localhost.localdomain ([unknown] [74.104.158.190])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0LW10020XXWDDIBB@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 12:26:43 -0600 (CST)
+ linux-acpi@vger.kernel.org; Sun, 11 Dec 2011 12:26:42 -0600 (CST)
 In-reply-to: <1323625549-10775-1-git-send-email-lenb@kernel.org>
 In-reply-to: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 References: <d40ba5ad56e98f9ff96c110a0fd4e8382b82229d.1323625426.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Adds acpi_acquire_mutex, acpi_release_mutex external interfaces.
+New file, utxfmutex.c.
+
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h   |    3 ++-
- drivers/acpi/acpica/acpredef.h  |   39 ++++++++++++++++++++++++++++++++++++++-
- drivers/acpi/acpica/nspredef.c  |   29 +++++++++++++++++++++++++++++
- drivers/acpi/acpica/nsrepair.c  |    1 +
- drivers/acpi/acpica/nsrepair2.c |    5 +++--
- 5 files changed, 73 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/Makefile    |    2 +-
+ drivers/acpi/acpica/utxfmutex.c |  187 +++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpixf.h           |   15 +++-
+ 3 files changed, 201 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/acpi/acpica/utxfmutex.c
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 60aee56..2ddd61d 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -319,7 +319,8 @@ struct acpi_name_info {
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index 301bd2d..1bd4661 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -45,4 +45,4 @@ acpi-y += tbxface.o tbinstal.o tbutils.o tbfind.o tbfadt.o tbxfroot.o
+ acpi-y += utalloc.o utdebug.o uteval.o utinit.o utmisc.o utxface.o \
+ 		utcopy.o utdelete.o utglobal.o utmath.o utobject.o \
+ 		utstate.o utmutex.o utobject.o utresrc.o utlock.o utids.o \
+-		utosi.o utxferror.o utdecode.o
++		utosi.o utxferror.o utdecode.o utxfmutex.o
+diff --git a/drivers/acpi/acpica/utxfmutex.c b/drivers/acpi/acpica/utxfmutex.c
+new file mode 100644
+index 0000000..1ea016b
+--- /dev/null
++++ b/drivers/acpi/acpica/utxfmutex.c
+@@ -0,0 +1,187 @@
++/*******************************************************************************
++ *
++ * Module Name: utxfmutex - external AML mutex access functions
++ *
++ ******************************************************************************/
++
++/*
++ * Copyright (C) 2000 - 2011, Intel Corp.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ */
++
++#include <acpi/acpi.h>
++#include "accommon.h"
++#include "acnamesp.h"
++
++#define _COMPONENT          ACPI_UTILITIES
++ACPI_MODULE_NAME("utxfmutex")
++
++/* Local prototypes */
++static acpi_status
++acpi_ut_get_mutex_object(acpi_handle handle,
++			 acpi_string pathname,
++			 union acpi_operand_object **ret_obj);
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_get_mutex_object
++ *
++ * PARAMETERS:  Handle              - Mutex or prefix handle (optional)
++ *              Pathname            - Mutex pathname (optional)
++ *              ret_obj             - Where the mutex object is returned
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Get an AML mutex object. The mutex node is pointed to by
++ *              Handle:Pathname. Either Handle or Pathname can be NULL, but
++ *              not both.
++ *
++ ******************************************************************************/
++
++static acpi_status
++acpi_ut_get_mutex_object(acpi_handle handle,
++			 acpi_string pathname,
++			 union acpi_operand_object **ret_obj)
++{
++	struct acpi_namespace_node *mutex_node;
++	union acpi_operand_object *mutex_obj;
++	acpi_status status;
++
++	/* Parameter validation */
++
++	if (!ret_obj || (!handle && !pathname)) {
++		return (AE_BAD_PARAMETER);
++	}
++
++	/* Get a the namespace node for the mutex */
++
++	mutex_node = handle;
++	if (pathname != NULL) {
++		status = acpi_get_handle(handle, pathname,
++					 ACPI_CAST_PTR(acpi_handle,
++						       &mutex_node));
++		if (ACPI_FAILURE(status)) {
++			return (status);
++		}
++	}
++
++	/* Ensure that we actually have a Mutex object */
++
++	if (!mutex_node || (mutex_node->type != ACPI_TYPE_MUTEX)) {
++		return (AE_TYPE);
++	}
++
++	/* Get the low-level mutex object */
++
++	mutex_obj = acpi_ns_get_attached_object(mutex_node);
++	if (!mutex_obj) {
++		return (AE_NULL_OBJECT);
++	}
++
++	*ret_obj = mutex_obj;
++	return (AE_OK);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_acquire_mutex
++ *
++ * PARAMETERS:  Handle              - Mutex or prefix handle (optional)
++ *              Pathname            - Mutex pathname (optional)
++ *              Timeout             - Max time to wait for the lock (millisec)
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Acquire an AML mutex. This is a device driver interface to
++ *              AML mutex objects, and allows for transaction locking between
++ *              drivers and AML code. The mutex node is pointed to by
++ *              Handle:Pathname. Either Handle or Pathname can be NULL, but
++ *              not both.
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_acquire_mutex(acpi_handle handle, acpi_string pathname, u16 timeout)
++{
++	acpi_status status;
++	union acpi_operand_object *mutex_obj;
++
++	/* Get the low-level mutex associated with Handle:Pathname */
++
++	status = acpi_ut_get_mutex_object(handle, pathname, &mutex_obj);
++	if (ACPI_FAILURE(status)) {
++		return (status);
++	}
++
++	/* Acquire the OS mutex */
++
++	status = acpi_os_acquire_mutex(mutex_obj->mutex.os_mutex, timeout);
++	return (status);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_release_mutex
++ *
++ * PARAMETERS:  Handle              - Mutex or prefix handle (optional)
++ *              Pathname            - Mutex pathname (optional)
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Release an AML mutex. This is a device driver interface to
++ *              AML mutex objects, and allows for transaction locking between
++ *              drivers and AML code. The mutex node is pointed to by
++ *              Handle:Pathname. Either Handle or Pathname can be NULL, but
++ *              not both.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_release_mutex(acpi_handle handle, acpi_string pathname)
++{
++	acpi_status status;
++	union acpi_operand_object *mutex_obj;
++
++	/* Get the low-level mutex associated with Handle:Pathname */
++
++	status = acpi_ut_get_mutex_object(handle, pathname, &mutex_obj);
++	if (ACPI_FAILURE(status)) {
++		return (status);
++	}
++
++	/* Release the OS mutex */
++
++	acpi_os_release_mutex(mutex_obj->mutex.os_mutex);
++	return (AE_OK);
++}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 9ba2e3a..dd86610 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -277,12 +277,23 @@ acpi_status acpi_install_exception_handler(acpi_exception_handler handler);
+ acpi_status acpi_install_interface_handler(acpi_interface_handler handler);
  
  /*
-  * Used for ACPI_PTYPE1_FIXED, ACPI_PTYPE1_VAR, ACPI_PTYPE2,
-- * ACPI_PTYPE2_MIN, ACPI_PTYPE2_PKG_COUNT, ACPI_PTYPE2_COUNT
-+ * ACPI_PTYPE2_MIN, ACPI_PTYPE2_PKG_COUNT, ACPI_PTYPE2_COUNT,
-+ * ACPI_PTYPE2_FIX_VAR
+- * Event interfaces
++ * Global Lock interfaces
   */
- struct acpi_package_info {
- 	u8 type;
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index c445cca..ecac9cf 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -94,6 +94,14 @@
-  * ACPI_PTYPE2_REV_FIXED: Revision at start, each subpackage is Fixed-length
-  *      (Used for _ART, _FPS)
-  *
-+ * ACPI_PTYPE2_FIX_VAR: Each subpackage consists of some fixed-length elements
-+ *      followed by an optional element
-+ *      object type
-+ *      count
-+ *      object type
-+ *      count = 0 (optional)
-+ *      (Used for _DLM)
-+ *
-  *****************************************************************************/
+ acpi_status acpi_acquire_global_lock(u16 timeout, u32 * handle);
  
- enum acpi_return_package_types {
-@@ -105,7 +113,8 @@ enum acpi_return_package_types {
- 	ACPI_PTYPE2_PKG_COUNT = 6,
- 	ACPI_PTYPE2_FIXED = 7,
- 	ACPI_PTYPE2_MIN = 8,
--	ACPI_PTYPE2_REV_FIXED = 9
-+	ACPI_PTYPE2_REV_FIXED = 9,
-+	ACPI_PTYPE2_FIX_VAR = 10
- };
+ acpi_status acpi_release_global_lock(u32 handle);
  
- #ifdef ACPI_CREATE_PREDEFINED_TABLE
-@@ -154,6 +163,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_AC8", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_AC9", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_ADR", 0, ACPI_RTYPE_INTEGER}},
-+	{{"_AEI", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_AL0", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Refs) */
- 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0,0}, 0,0}},
- 
-@@ -229,6 +239,13 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_CID", 0, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_PACKAGE}}, /* Variable-length (Ints/Strs) */
- 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING, 0,0}, 0,0}},
- 
-+	{{"_CLS", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (3 Int) */
-+	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0}, 0, 0}},
++/*
++ * Interfaces to AML mutex objects
++ */
++acpi_status
++acpi_acquire_mutex(acpi_handle handle, acpi_string pathname, u16 timeout);
 +
-+	{{"_CPC", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Ints/Bufs) */
-+	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER, 0, 0}, 0,
-+	  0}},
++acpi_status acpi_release_mutex(acpi_handle handle, acpi_string pathname);
 +
- 	{{"_CRS", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_CRT", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_CSD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (1 Int(n), n-1 Int) */
-@@ -237,12 +254,21 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_CST", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (1 Int(n), n Pkg (1 Buf/3 Int) */
- 			  {{{ACPI_PTYPE2_PKG_COUNT,ACPI_RTYPE_BUFFER, 1, ACPI_RTYPE_INTEGER}, 3,0}},
++/*
++ * Fixed Event interfaces
++ */
+ acpi_status acpi_enable_event(u32 event, u32 flags);
  
-+	{{"_CWS", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_DCK", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_DCS", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_DDC", 1, ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER}},
- 	{{"_DDN", 0, ACPI_RTYPE_STRING}},
-+	{{"_DEP", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
-+	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
-+
- 	{{"_DGS", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_DIS", 0, 0}},
-+
-+	{{"_DLM", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Pkgs) each (1 Ref, 0/1 Optional Buf/Ref) */
-+	{{{ACPI_PTYPE2_FIX_VAR, ACPI_RTYPE_REFERENCE, 1,
-+	   ACPI_RTYPE_REFERENCE | ACPI_RTYPE_BUFFER}, 0, 0}},
-+
- 	{{"_DMA", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_DOD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Ints) */
- 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER, 0,0}, 0,0}},
-@@ -262,6 +288,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_EJ3", 1, 0}},
- 	{{"_EJ4", 1, 0}},
- 	{{"_EJD", 0, ACPI_RTYPE_STRING}},
-+	{{"_EVT", 1, 0}},
- 	{{"_FDE", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_FDI", 0, ACPI_RTYPE_PACKAGE}}, /* Fixed-length (16 Int) */
- 			  {{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 16,0}, 0,0}},
-@@ -281,14 +308,17 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0}, 0, 0}},
+ acpi_status acpi_disable_event(u32 event, u32 flags);
+@@ -292,7 +303,7 @@ acpi_status acpi_clear_event(u32 event);
+ acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status);
  
- 	{{"_GAI", 0, ACPI_RTYPE_INTEGER}},
-+	{{"_GCP", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_GHL", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_GLK", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_GPD", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_GPE", 0, ACPI_RTYPE_INTEGER}}, /* _GPE method, not _GPE scope */
-+	{{"_GRT", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_GSB", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_GTF", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_GTM", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_GTS", 1, 0}},
-+	{{"_GWS", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_HID", 0, ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING}},
- 	{{"_HOT", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_HPP", 0, ACPI_RTYPE_PACKAGE}}, /* Fixed-length (4 Int) */
-@@ -303,6 +333,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_HPX", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Pkgs) each (var Ints) */
- 			  {{{ACPI_PTYPE2_MIN, ACPI_RTYPE_INTEGER, 5,0}, 0,0}},
+ /*
+- * GPE Interfaces
++ * General Purpose Event (GPE) Interfaces
+  */
+ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number);
  
-+	{{"_HRV", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_IFT", 0, ACPI_RTYPE_INTEGER}}, /* See IPMI spec */
- 	{{"_INI", 0, 0}},
- 	{{"_IRC", 0, 0}},
-@@ -361,6 +392,9 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_PR3", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
- 	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
- 
-+	{{"_PRE", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
-+	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
-+
- 	{{"_PRL", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Refs) */
- 	{{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0}, 0, 0}},
- 
-@@ -391,6 +425,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_PSD", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Pkgs) each (5 Int) with count */
- 			  {{{ACPI_PTYPE2_COUNT, ACPI_RTYPE_INTEGER,0,0}, 0,0}},
- 
-+	{{"_PSE", 1, 0}},
- 	{{"_PSL", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Refs) */
- 			  {{{ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0,0}, 0,0}},
- 
-@@ -457,6 +492,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_SLI", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_SPD", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_SRS", 1, 0}},
-+	{{"_SRT", 1, ACPI_RTYPE_INTEGER}},
- 	{{"_SRV", 0, ACPI_RTYPE_INTEGER}}, /* See IPMI spec */
- 	{{"_SST", 1, 0}},
- 	{{"_STA", 0, ACPI_RTYPE_INTEGER}},
-@@ -464,6 +500,7 @@ static const union acpi_predefined_info predefined_names[] =
- 	{{"_STP", 2, ACPI_RTYPE_INTEGER}},
- 	{{"_STR", 0, ACPI_RTYPE_BUFFER}},
- 	{{"_STV", 2, ACPI_RTYPE_INTEGER}},
-+	{{"_SUB", 0, ACPI_RTYPE_STRING}},
- 	{{"_SUN", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_SWS", 0, ACPI_RTYPE_INTEGER}},
- 	{{"_TC1", 0, ACPI_RTYPE_INTEGER}},
-diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
-index c845c80..db80366 100644
---- a/drivers/acpi/acpica/nspredef.c
-+++ b/drivers/acpi/acpica/nspredef.c
-@@ -620,6 +620,7 @@ acpi_ns_check_package(struct acpi_predefined_data *data,
- 	case ACPI_PTYPE2_FIXED:
- 	case ACPI_PTYPE2_MIN:
- 	case ACPI_PTYPE2_COUNT:
-+	case ACPI_PTYPE2_FIX_VAR:
- 
- 		/*
- 		 * These types all return a single Package that consists of a
-@@ -759,6 +760,34 @@ acpi_ns_check_package_list(struct acpi_predefined_data *data,
- 			}
- 			break;
- 
-+		case ACPI_PTYPE2_FIX_VAR:
-+			/*
-+			 * Each subpackage has a fixed number of elements and an
-+			 * optional element
-+			 */
-+			expected_count =
-+			    package->ret_info.count1 + package->ret_info.count2;
-+			if (sub_package->package.count < expected_count) {
-+				goto package_too_small;
-+			}
-+
-+			status =
-+			    acpi_ns_check_package_elements(data, sub_elements,
-+							   package->ret_info.
-+							   object_type1,
-+							   package->ret_info.
-+							   count1,
-+							   package->ret_info.
-+							   object_type2,
-+							   sub_package->package.
-+							   count -
-+							   package->ret_info.
-+							   count1, 0);
-+			if (ACPI_FAILURE(status)) {
-+				return (status);
-+			}
-+			break;
-+
- 		case ACPI_PTYPE2_FIXED:
- 
- 			/* Each sub-package has a fixed length */
-diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
-index ac7b854..dd0a0bd 100644
---- a/drivers/acpi/acpica/nsrepair.c
-+++ b/drivers/acpi/acpica/nsrepair.c
-@@ -634,6 +634,7 @@ acpi_ns_remove_null_elements(struct acpi_predefined_data *data,
- 	case ACPI_PTYPE2_FIXED:
- 	case ACPI_PTYPE2_MIN:
- 	case ACPI_PTYPE2_REV_FIXED:
-+	case ACPI_PTYPE2_FIX_VAR:
- 		break;
- 
- 	default:
-diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
-index 024c4f2..3ee2b22 100644
---- a/drivers/acpi/acpica/nsrepair2.c
-+++ b/drivers/acpi/acpica/nsrepair2.c
-@@ -467,11 +467,12 @@ acpi_ns_repair_HID(struct acpi_predefined_data *data,
- 	}
- 
- 	/*
--	 * Copy and uppercase the string. From the ACPI specification:
-+	 * Copy and uppercase the string. From the ACPI 5.0 specification:
- 	 *
- 	 * A valid PNP ID must be of the form "AAA####" where A is an uppercase
- 	 * letter and # is a hex digit. A valid ACPI ID must be of the form
--	 * "ACPI####" where # is a hex digit.
-+	 * "NNNN####" where N is an uppercase letter or decimal digit, and
-+	 * # is a hex digit.
- 	 */
- 	for (dest = new_string->string.pointer; *source; dest++, source++) {
- 		*dest = (char)ACPI_TOUPPER(*source);
 -- 
 1.7.7.rc0.72.g4b5ea
 
