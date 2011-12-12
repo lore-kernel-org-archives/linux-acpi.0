@@ -1,51 +1,148 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Mon, 12 Dec 2011 21:12:45 +0100
-Message-ID: <20111212211245.67baf2b1@endymion.delvare>
-References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
-	<1322531323.1467.10.camel@minggr>
-	<CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
-	<1323396109.27764.44.camel@minggr>
-	<20111212103726.56422cbb@endymion.delvare>
-	<CAF1ivSaN6V5tz6ttUL9_1htFjVX8qEVv-eCq04s=_nPAaDMH6g@mail.gmail.com>
+From: Wallak <wallak@free.fr>
+Subject: Re: ACPI "_PDC" - acpi_processor_set_pdc()- execution regression
+ - Linux-3.x
+Date: Mon, 12 Dec 2011 22:59:06 +0100
+Message-ID: <4EE6792A.8070901@free.fr>
+References: <1323297487.4edfeacfc49ff@imp.free.fr>  <CAF1ivSZX37HRyxJX_rdkZ4pVrxjCZeM39mAs4ZKcqWCYShxaxQ@mail.gmail.com> <1323657511.17515.11.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:31730 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab1LLUNB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 15:13:01 -0500
-In-Reply-To: <CAF1ivSaN6V5tz6ttUL9_1htFjVX8qEVv-eCq04s=_nPAaDMH6g@mail.gmail.com>
+Received: from tru75-7-88-161-131-83.fbx.proxad.net ([88.161.131.83]:56115
+	"EHLO next.fork.zz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754244Ab1LLWHj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 17:07:39 -0500
+In-Reply-To: <1323657511.17515.11.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lin Ming <ming.m.lin@intel.com>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, linux-acpi@vger.kernel.org, lenb <lenb@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, lenb <lenb@kernel.org>
 
-On Mon, 12 Dec 2011 20:42:50 +0800, Lin Ming wrote:
-> On Mon, Dec 12, 2011 at 5:37 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > I have no objection for an upstream patch, but the main problem we have
-> > at the moment is with already released kernels. Versions 2.6.39, 3.0
-> > and 3.1 currently have a regression as the ACPI resource conflict
-> > checks are inefficient, and this allows conflicting drivers to be
-> > loaded together. So you are free to reimplement things differently in
-> > version 3.2 and later, but for these 3 older versions we need the
-> > smallest possible patch, so that it is accepted in stable branches.
-> >
-> > In other words, I would like two patches, one just adding back the code
-> > that was accidentally dropped, and a second one moving things around if
-> > you think it makes sense (and I tend to agree.) That way we can easily
-> > backport only the first patch to kernel versions 2.6.39 to 3.1.
-> 
-> Sure.
-> 
-> I have send out the patch.
-> 
-> [PATCH] ACPICA: Put back the call to acpi_os_validate_address
-> http://marc.info/?l=linux-acpi&m=132257617527119&w=2
+Hi Lin Ming,
 
-Perfect, thank you!
+This last patch, modifying the behavior of acpi_get_cpuid(), works fine 
+on my non SMP enabled kernel. The test was done on a Dell X300, 
+acpi_processor_set_pdc() was properly called, without the changes done 
+by my previous patch.
 
--- 
-Jean Delvare
+Best Regards,
+Wallak.
+
+Lin Ming wrote:
+> On Mon, 2011-12-12 at 10:26 +0800, Lin Ming wrote:
+>> ---------- Forwarded message ----------
+>> From:<wallak@free.fr>
+>> Date: Thu, Dec 8, 2011 at 6:38 AM
+>> Subject: ACPI "_PDC" - acpi_processor_set_pdc()- execution regression
+>> - Linux-3.x
+>> To: linux-kernel@vger.kernel.org
+>>
+>>
+>> We have a regression on the ACPI stack of the last linux kernel line 3.x (3.1.4,
+>> 3.2-rc4...). The ACPI "_PDC" chunk is not executed on some computers (e.g. Dell
+>> X300; the function acpi_processor_set_pdc() is not called). This issue yield to
+>> an uninitialized state of some ACPI variables.
+>>
+>> A patch is available below. This patch come back to the previous linux behavior,
+>> and works fine.
+>>
+>> Best Regards,
+>> Wallak.
+>>
+>> --- linux-3.1.4-mdf/drivers/acpi/processor_core.c.orig  2011-12-07
+>> 23:12:57.000000000 +0100
+>> +++ linux-3.1.4-mdf/drivers/acpi/processor_core.c       2011-12-07
+>> 23:13:39.000000000 +0100
+>> @@ -223,8 +223,8 @@
+>>         type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+>>         cpuid = acpi_get_cpuid(handle, type, acpi_id);
+>>
+>> -       if (cpuid == -1)
+>> -               return false;
+>> +       if ((cpuid == -1)&&  (num_possible_cpus()>  1))
+> Hi Wallak,
+>
+> BIOS may define multiple CPU handles even for UP
+> processor(see below).
+>
+> processor_physically_present(acpi_handle handle) will be called for each
+> CPU handles.
+>
+> We should only return valid value for CPU0 on UP processor.
+> With your patch, processor_physically_present will return true for all
+> CPU handles(CPU0, CPU1, CPU2, CPU3). This is not we want.
+>
+> I think below is the correct fix.
+> Could you help to test it?
+>
+> Thanks.
+>
+> > From 5c6de7311ced7a1febf85fdcc08b6116bcfe8138 Mon Sep 17 00:00:00 2001
+> From: Lin Ming<ming.m.lin@intel.com>
+> Date: Mon, 12 Dec 2011 10:04:53 +0800
+> Subject: [PATCH] ACPI: processor: fix acpi_get_cpuid for UP processor
+>
+> For UP processor, it is likely that no _MAT method or MADT table defined.
+> So currently acpi_get_cpuid(...) always return -1 for UP processor.
+> This is wrong. It should return valid value for CPU0.
+>
+> In the other hand, BIOS may define multiple CPU handles even for UP
+> processor, for example
+>
+>          Scope (_PR)
+>          {
+>              Processor (CPU0, 0x00, 0x00000410, 0x06) {}
+>              Processor (CPU1, 0x01, 0x00000410, 0x06) {}
+>              Processor (CPU2, 0x02, 0x00000410, 0x06) {}
+>              Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+>          }
+>
+> We should only return valid value for CPU0's acpi handle.
+> And return invalid value for others.
+>
+> http://marc.info/?t=132329819900003&r=1&w=2
+>
+> Reported-by: wallak@free.fr
+> Signed-off-by: Lin Ming<ming.m.lin@intel.com>
+> ---
+>   drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++--
+>   1 files changed, 24 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 3a0428e..3372900 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -173,8 +173,30 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+>   	apic_id = map_mat_entry(handle, type, acpi_id);
+>   	if (apic_id == -1)
+>   		apic_id = map_madt_entry(type, acpi_id);
+> -	if (apic_id == -1)
+> -		return apic_id;
+> +	if (apic_id == -1) {
+> +		/*
+> +		 * On UP processor, there is no _MAT or MADT table.
+> +		 * So above apic_id is always set to -1.
+> +		 *
+> +		 * BIOS may define multiple CPU handles even for UP processor.
+> +		 * For example,
+> +		 *
+> +		 * Scope (_PR)
+> +                 * {
+> +		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+> +		 * }
+> +		 *
+> +		 * Ignores apic_id and always return 0 for CPU0's handle.
+> +		 * Return -1 for other CPU's handle.
+> +		 */
+> +		if (acpi_id == 0)
+> +			return acpi_id;
+> +		else
+> +			return apic_id;
+> +	}
+>
+>   #ifdef CONFIG_SMP
+>   	for_each_possible_cpu(i) {
+
