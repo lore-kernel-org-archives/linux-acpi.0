@@ -1,83 +1,51 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Xen-devel] [PATCH 5/8] ACPI: add processor driver for Xen
- virtual CPUs.
-Date: Mon, 12 Dec 2011 12:29:41 -0500
-Message-ID: <20111212172941.GA8619@phenom.dumpdata.com>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
- <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
- <4ED755D70200007800064987@nat28.tlf.novell.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
+Date: Mon, 12 Dec 2011 21:12:45 +0100
+Message-ID: <20111212211245.67baf2b1@endymion.delvare>
+References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
+	<1322531323.1467.10.camel@minggr>
+	<CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
+	<1323396109.27764.44.camel@minggr>
+	<20111212103726.56422cbb@endymion.delvare>
+	<CAF1ivSaN6V5tz6ttUL9_1htFjVX8qEVv-eCq04s=_nPAaDMH6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:49872 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753481Ab1LLRaz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 12:30:55 -0500
-Content-Disposition: inline
-In-Reply-To: <4ED755D70200007800064987@nat28.tlf.novell.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:31730 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998Ab1LLUNB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 15:13:01 -0500
+In-Reply-To: <CAF1ivSaN6V5tz6ttUL9_1htFjVX8qEVv-eCq04s=_nPAaDMH6g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>
-Cc: ke.yu@intel.com, kevin.tian@intel.com, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, jeremy@goop.org, konrad@kernel.org, lenb@kernel.org, xen-devel@lists.xensource.com, liang.tang@oracle.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, linux-acpi@vger.kernel.org, lenb <lenb@kernel.org>
 
-On Thu, Dec 01, 2011 at 09:24:23AM +0000, Jan Beulich wrote:
-> >>> On 30.11.11 at 18:21, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -66,6 +66,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
-> >  # processor has its own "processor." module_param namespace
-> >  processor-y			:= processor_driver.o processor_throttling.o
-> >  processor-y			+= processor_idle.o processor_thermal.o
-> > +processor-y			+= processor_xen.o
+On Mon, 12 Dec 2011 20:42:50 +0800, Lin Ming wrote:
+> On Mon, Dec 12, 2011 at 5:37 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> > I have no objection for an upstream patch, but the main problem we have
+> > at the moment is with already released kernels. Versions 2.6.39, 3.0
+> > and 3.1 currently have a regression as the ACPI resource conflict
+> > checks are inefficient, and this allows conflicting drivers to be
+> > loaded together. So you are free to reimplement things differently in
+> > version 3.2 and later, but for these 3 older versions we need the
+> > smallest possible patch, so that it is accepted in stable branches.
+> >
+> > In other words, I would like two patches, one just adding back the code
+> > that was accidentally dropped, and a second one moving things around if
+> > you think it makes sense (and I tend to agree.) That way we can easily
+> > backport only the first patch to kernel versions 2.6.39 to 3.1.
 > 
-> This should minimally be processor-$(CONFIG_XEN), with other things
-> adjusted as necessary.
+> Sure.
+> 
+> I have send out the patch.
+> 
+> [PATCH] ACPICA: Put back the call to acpi_os_validate_address
+> http://marc.info/?l=linux-acpi&m=132257617527119&w=2
 
-I was under the impression that this was required to get the processor_xen.ko
-to be a module. Otherwise it would only compile as built-in.
+Perfect, thank you!
 
-Liang, can you chime in please?
-
-> 
-> >  processor-$(CONFIG_CPU_FREQ)	+= processor_perflib.o
-> >  
-> >  obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
-> >...
-> > --- a/drivers/xen/Kconfig
-> > +++ b/drivers/xen/Kconfig
-> > @@ -117,6 +117,11 @@ config XEN_SYS_HYPERVISOR
-> >  	 virtual environment, /sys/hypervisor will still be present,
-> >  	 but will have no xen contents.
-> >  
-> > +config ACPI_PROCESSOR_XEN
-> > +	tristate
-> > +	depends on XEN_DOM0 && ACPI_PROCESSOR && CPU_FREQ
-> > +	default m
-> 
-> default ACPI_PROCESSOR
-> 
-> > +
-> >  config XEN_XENBUS_FRONTEND
-> >  	tristate
-> >  
-> > diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-> > index 974fffd..f67450c 100644
-> > --- a/drivers/xen/Makefile
-> > +++ b/drivers/xen/Makefile
-> > @@ -19,6 +19,9 @@ obj-$(CONFIG_XEN_TMEM)			+= tmem.o
-> >  obj-$(CONFIG_SWIOTLB_XEN)		+= swiotlb-xen.o
-> >  obj-$(CONFIG_XEN_DOM0)			+= pci.o
-> >  obj-$(CONFIG_XEN_PCIDEV_BACKEND)	+= xen-pciback/
-> > +ifdef CONFIG_ACPI_PROCESSOR_XEN
-> > +obj-$(CONFIG_ACPI_PROCESSOR)		+= acpi_processor.o
-> > +endif
-> 
-> obj-$(CONFIG_ACPI_PPROCESSOR_XEN)
-> 
-> Jan
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+-- 
+Jean Delvare
