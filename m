@@ -1,50 +1,32 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPICA: Put back the call to acpi_os_validate_address
-Date: Mon, 12 Dec 2011 14:12:40 +0100
-Message-ID: <201112121412.40963.trenn@suse.de>
-References: <1322576015.6856.10.camel@hp6530s>
+From: Joseph Evans <josephconsultancy1@gmail.com>
+Subject: Xmas Lening Aanbieding
+Date: Mon, 12 Dec 2011 05:11:54 -0800
+Message-ID: <CA+B1JgHAsBQcPs25J3R6CebckUYuaoWN000MHV7Mtt_13hgsnw__44736.6960034289$1323695597$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49068 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753255Ab1LLNMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Dec 2011 08:12:44 -0500
-In-Reply-To: <1322576015.6856.10.camel@hp6530s>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:43409 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753212Ab1LLNL5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 08:11:57 -0500
+Received: by mail-gx0-f174.google.com with SMTP id k6so1075933ggd.19
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Dec 2011 05:11:56 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kronos.it@gmail.com, "Moore, Robert" <robert.moore@intel.com>
 
-On Tuesday, November 29, 2011 03:13:35 PM Lin Ming wrote:
-> The call to acpi_os_validate_address in acpi_ds_get_region_arguments was
-> removed by mistake in commit 9ad19ac(ACPICA: Split large dsopcode and
-> dsload.c files).
-> 
-> Put it back.
-> 
-> Reported-and-bisected-by: Luca Tettamanti <kronos.it@gmail.com>
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Just for info:
-Adding here:
-CC: stable@vger.kernel.org
-(mail address changed since kernel.org was down)
-should effectively be the same as explicitly submitting the
-patch for stable inclusion.
-
-> ---
-> 
-> Len,
-> 
-> Could you apply this patch?
+Wir sind auf dem XAMS Kredit Angebot mit so viel Bonus, bitte
+kontaktieren Sie mich, wenn Sie tun m=FCssen, jede Form von Darlehen vo=
+n
+unserer Firma.
+Gr=FC=DFe
 
 
-> And it should be ported to stable kernel since v2.6.39.
-The CC: above and this hint in the changelog would be enough
-for Greg and he will pick it out automatically and merge it into
-stable kernels (if it applies to stable rules, like this one should),
-once the patch is submitted mainline by Len.
-
-   Thomas
+We are on our xams loan special offer with so much bonus, please do
+contact me if you do need any form of loan from our firm.
+Regards
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
