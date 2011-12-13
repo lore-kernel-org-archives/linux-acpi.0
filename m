@@ -1,48 +1,56 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Tue, 13 Dec 2011 10:01:22 +0800
-Message-ID: <1323741682.17515.20.camel@minggr>
-References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
-	 <1322531323.1467.10.camel@minggr>
-	 <CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
-	 <1323396109.27764.44.camel@minggr>
-	 <CAKPcRGokqQ=jRXkhFdXM7zSGowJ5oWjY7fv+mbz4QtscOX3Ukw@mail.gmail.com>
+From: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Subject: Re: Re-add ibft tree to linux-next please
+Date: Mon, 12 Dec 2011 21:15:37 -0500
+Message-ID: <20111213021536.GC2730@konrad-lan>
+References: <20111212145330.GA16278@andromeda.dapyr.net>
+ <4EE68D57.7030603@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48069 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753904Ab1LMCBp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Dec 2011 21:01:45 -0500
-In-Reply-To: <CAKPcRGokqQ=jRXkhFdXM7zSGowJ5oWjY7fv+mbz4QtscOX3Ukw@mail.gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48169 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab1LMCPm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2011 21:15:42 -0500
+Content-Disposition: inline
+In-Reply-To: <4EE68D57.7030603@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Jean Delvare <khali@linux-fr.org>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, lenb <lenb@kernel.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Konrad Rzeszutek Wilk <konrad@kernel.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, pjones@redhat.com
 
-On Mon, 2011-12-12 at 20:52 +0800, Luca Tettamanti wrote:
-> On Fri, Dec 9, 2011 at 3:01 AM, Lin Ming <ming.m.lin@intel.com> wrote:
-> > Hi Luca,
-> >
-> > We have investigated this issue more and think that it's better to move
-> > the resource validation code into ACPICA core.
-> >
-> > Here is the new patch.
-> >
-> > The major changes include:
-> > - Remove acpi_os_validate_address/acpi_os_invalidate_address from osl.c.
-> >  They are reimplemented in ACPICA core:
-> >  acpi_ut_add_address_range/acpi_ut_remove_address_range.
-> >
-> > - Add new interface for drivers to check resource conflict:
-> >  acpi_check_address_range
-> >
-> > Could you help to test it?
+On Mon, Dec 12, 2011 at 03:25:11PM -0800, H. Peter Anvin wrote:
+> On 12/12/2011 06:53 AM, Konrad Rzeszutek Wilk wrote:
+> > Hey Stephen,
+> > 
+> > I've one patch for the iBFT and since I am the co-maintainer of said tree,
+> > please add this tree to your awesome build system:
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/konrad/ibft.git
+> > 
+> > The branch is "linux-next"
+> > 
+> > Signed-off-by: Konrad Rzeszutek Wilk <konrad@kernel.org>
+> > CC: Peter Jones <pjones@redhat.com>
+> > Thanks!
+> > 
+> > P.S.
+> > After kernel.org went down, I choose not to resurface the iBFT tree b/c I
+> > figured that the driver was sooo stable that there would be no need for any
+> > patches. Well, not the case
 > 
-> Sure, works fine:
-> Tested-by: Luca Tettamanti <kronos.it@gmail.com>
+> iBFT is basically an ACPI table with nonstandard discovery.  Any way we
+> could get this merged into the ACPI core eventually?
 
-Thanks.
+Part of the driver has been exported to the SCSI tree already (the software and
+broadcam iSCSI one). The only two remainig pieces are the SysFS skeleton
+(which should probably still sit in drivers/firmware) and iBFT finder.
+
+The remaining piece that could be moved to drivers/acpi is the "finder" of
+the IBFT which can find it via ACPI, similar to how MADT tables are found
+(so perhaps arch/x86/acpi?).
+
+The trick is that we also have to retain the code functionality if
+"# CONFIG_ACPI is not set" to scan the memory for the iBFT. That part
+should definitly _not_ be moved to drivers/acpi. It could be moved to
+arch/x86/ .. but it could also stay in drivers/firmware. <shrugs>
 
