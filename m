@@ -1,69 +1,46 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: kernel-parameters.txt : Add intel_idle.max_cstate
-Date: Thu, 15 Dec 2011 17:47:28 +0100
-Message-ID: <201112151747.28366.trenn@suse.de>
-References: <1323879532-10490-1-git-send-email-standby24x7@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38538 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932640Ab1LOQra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Dec 2011 11:47:30 -0500
-In-Reply-To: <1323879532-10490-1-git-send-email-standby24x7@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: [PATCH 0/4] toshiba_acpi: Expanded hotkey support
+Date: Thu, 15 Dec 2011 12:06:07 -0600
+Message-ID: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, linux-kernel@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Masanari Iida <standby24x7@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, lenb@kernel.org
 
-On Wednesday, December 14, 2011 05:18:52 PM Masanari Iida wrote:
-> Add missing intel_idle.max_cstate in kernel-parameters.txt
-I wonder whether this one should get documented at all.
+Hi Matthew,
 
-Better would be to work towards a general cpuidle.max_state=
-param which deprecates processor.max_cstate= (acpi_idle driver) and
-intel_idle.max_cstate= and enables this functionality for all
-other cpuidle drivers out there as well.
+The following patches expand toshiba_acpi's hotkey support to include
+many additional models. Here's the high-level summary:
 
-Something to turn off intel_idle driver and favor the acpi_idle
-driver for debugging would still be needed then.
+ * Add support for reading scancodes using the INFO method when
+   avaialable and for generating hotkey notifications by filtering Fn
+   key presses from the keyboard
+ * Adds a new EC interface allowing toshiba_acpi to get a handle to the
+   EC, which is needed because the NTFY method used to generate the
+   hotkey notifications is in the EC namespace
+ * Support some additional hotkey scancodes
+ * Blacklist hotkey support for the Satellite C670-10V due to a buggy
+   implementation of the INFO method on this model
 
-   Thomas
+More details can be found in the individual patch descriptions.
 
-> 
-> Signed-off-by Masanari Iida <standby24x7@gmail.com>
-> cc:Len Brown <lenb@kernel.org>
-> cc:Randy Dunlap <rdunlap@xenotime.net>
-> ---
->  Documentation/kernel-parameters.txt |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-
-parameters.txt
-> index 81c287f..c6a56d8 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -1035,6 +1035,11 @@ bytes respectively. Such letter suffixes can also 
-be entirely omitted.
->  			By default, super page will be supported if Intel IOMMU
->  			has the capability. With this option, super page will
->  			not be supported.
-> +
-> +	intel_idle.max_cstate=	[KNL,HW,ACPI,X86]
-> +			0	disables intel_idle and fall back on acpi_idle.
-> +			1 to 6	specify maximum depth of C-state.
-> +
->  	intremap=	[X86-64, Intel-IOMMU]
->  			on	enable Interrupt Remapping (default)
->  			off	disable Interrupt Remapping
-> -- 
-> 1.7.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Cc-ing the ACPI folks on the full series to provide context regarding
+how toshiba_acpi will use the new EC interface.
 
+Thanks,
+Seth
+
+
+Azael Avalos (1):
+  toshiba_acpi: Support additional hotkey scancodes
+
+Seth Forshee (3):
+  ACPI: EC: Add ec_get_handle()
+  toshiba_acpi: Support alternate hotkey interfaces
+  toshiba_acpi: Add blacklist for devices with hotkey problems
+
+ drivers/acpi/ec.c                   |   10 ++
+ drivers/platform/x86/toshiba_acpi.c |  254 ++++++++++++++++++++++++++++++-----
+ include/linux/acpi.h                |    1 +
+ 3 files changed, 228 insertions(+), 37 deletions(-)
