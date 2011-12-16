@@ -1,87 +1,150 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Xen-devel] [PATCH 5/8] ACPI: add processor driver for Xen
- virtual CPUs.
-Date: Fri, 16 Dec 2011 17:21:41 -0500
-Message-ID: <20111216222140.GD9832@phenom.dumpdata.com>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
- <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
- <4ED755D70200007800064987@nat28.tlf.novell.com>
- <20111212172941.GA8619@phenom.dumpdata.com>
- <4EE710A00200007800067274@nat28.tlf.novell.com>
- <4EE71A62.9050700@oracle.com>
+Subject: [PATCH] ACPI cleanup's and enablement for Xen ACPI S3
+	[v4].
+Date: Fri, 16 Dec 2011 17:38:12 -0500
+Message-ID: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:59102 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756644Ab1LPWWx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2011 17:22:53 -0500
-Content-Disposition: inline
-In-Reply-To: <4EE71A62.9050700@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-kernel@vger.kernel.org, rjw@sisk.pl, x86@kernel.org, len.brown@intel.com, joseph.cihula@intel.com, linux-pm@lists.linux-foundation.org, tboot-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, liang.tang@oracle.com
+Cc: hpa@zytor.com
 List-Id: linux-acpi@vger.kernel.org
-To: liang tang <liang.tang@oracle.com>
-Cc: Jan Beulich <JBeulich@suse.com>, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, jeremy@goop.org, ke.yu@intel.com, kevin.tian@intel.com, konrad@kernel.org, lenb@kernel.org, xen-devel@lists.xensource.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 13, 2011 at 05:26:58PM +0800, liang tang wrote:
-> On 2011-12-13 15:45, Jan Beulich wrote:
-> >>>>On 12.12.11 at 18:29, Konrad Rzeszutek Wilk<konrad.wilk@oracle.com>  wrote:
-> >>On Thu, Dec 01, 2011 at 09:24:23AM +0000, Jan Beulich wrote:
-> >>>>>>On 30.11.11 at 18:21, Konrad Rzeszutek Wilk<konrad.wilk@oracle.com>  wrote:
-> >>>>--- a/drivers/acpi/Makefile
-> >>>>+++ b/drivers/acpi/Makefile
-> >>>>@@ -66,6 +66,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
-> >>>>  # processor has its own "processor." module_param namespace
-> >>>>  processor-y			:= processor_driver.o processor_throttling.o
-> >>>>  processor-y			+= processor_idle.o processor_thermal.o
-> >>>>+processor-y			+= processor_xen.o
-> >>>This should minimally be processor-$(CONFIG_XEN), with other things
-> >>>adjusted as necessary.
-> >>I was under the impression that this was required to get the
-> >>processor_xen.ko
-> >>to be a module. Otherwise it would only compile as built-in.
-> >processor_xen.ko? Why not have all the code go into processor.ko?
-> >(And the original construct didn't aim in that direction either.)
-> >
-> >Jan
-> >
-> the code about driver function which kernel
-> require(drivers/acpi/processor_xen.c )  build into processor.ko.
-> the code which have more relation with xen
-> (drivers/xen/acpi_processor.c)  did not build into processor.ko.
+Attached is an [v4] set of patches to enable S3 to work with the Xen hypervisor
+and also do some cleanups. Posting just before holidays so that when folks are
+tired of unwrapping presents, drinking eggnog, etc, they can read some
+exciting patches!
 
-I am not sure if I understand you. Are you saying that the bulk of
-'acpi_processor' (in the drivers/xen directory) should not be built in
-processor.o and that the config options will do that?
+Changes since v3: [http://lkml.org/lkml/2011/11/15/340]:
+ - Redid the acpi_os_prepare_sleep fnc per Rafael's suggestions.
+ - Fixed compile issues on other platforms, various config options.
+Changes since v2: [https://lkml.org/lkml/2011/9/29/408]
+ - Moved tboot_sleep out to the osl.c code.
+ - Dropped some patches.
+since the RFC posting [http://comments.gmane.org/gmane.linux.acpi.devel/50701]:
+ - Per review comments added: __unused__ attribute, support for PM1A/B if more than 16-bit,
+   copyright/license.
+ - Added support for PHYSDEVOP_restore_msi_ext call.
 
-But the config option is for the drivers/acpi directory..
+The first two patches can be considered independently as cleanup - they move
+the tboot_sleep out of the ACPI code and move it in the OS part. That is
+the only OSPM code changes done.
 
-So if I enable CONFIG_ACPI_PROCESSOR and CONFIG_ACPI_PROCESSOR_XEN
-then the build will stick processor_xen.o in to the processor.ko file.
+The more complex ones are in the ACPI x86 code. I was not sure how to
+post the patches so I grouped them in "functionality" parts.
 
-And if I select CONFIG_ACPI_PROCESSOR and unselect CONFIG_ACPI_PROCESSOR_XEN
-then I still get some of the processor_xen.o stuck in processor.ko file?
-(Granted, there is not much that gets stuck in b/c the majority of the code
-is guarded by a big #if defined(CONFIG_ACPI_PROCESSOR_XEN..) so the compiler
-might not stick anything in there)
+1). Use the acpi_os_prepare_sleep to register a variant of it. The reason
+    for the need for this is explained in more details below. The patches are:
 
+ [PATCH 1/7] x86, acpi, tboot: Have a ACPI os prepare sleep instead
+ [PATCH 2/7] tboot: Add return values for tboot_sleep
+ [PATCH 3/7] xen/acpi/sleep: Enable ACPI sleep via the
 
-Is there a way to make it so there are _two_ modules:
- - processor.ko
- - processor-xen.ko [which uses some code from processor.ko]
+2). Expand x86_msi_ops. Every time we resume, we end up calling write_msi_irq
+    to resume the MSI vectors. But when using Xen, we would write the MSI
+    vectors using the other x86_msi_ops - hence we expand the x86_msi_ops
+    indirection mechanism to take resume in account. The paches are:
 
-And they both can work together? Well, .. such that processor.ko
-does not really do anything since there are no cpuidle enabled, and
-the processor-xen.ko just deals with the parsing of ACPI Pxx states.
+ [PATCH 4/7] x86: Expand the x86_msi_ops to have a restore MSIs.
+ [PATCH 5/7] xen/pci: Utilize the restore_msi_irqs hook.
 
-And since cpuidle is disabled, there won't be any notify events sent anyhow
-so that could be removed (ah wait. the processor_xen.c does call
-processor_cntl_xen_notify(..PM_INIT) to pipe the data up.. so that is
-needed).
+3). Make acpi_suspend_lowlevel be a function pointer instead of a function.
+    Details of why we want to omit the lowlevel values is explained below.
+    Originally I was thinking that perhaps doing it via a registration
+    function would be better? But not sure what folks leanings are
+    in this case. The patches are:
 
-In which case the processor-xen.ko only does one thing - parses the 
-'struct acpi_processor' data and pipes it up the hypervisor.
+ [PATCH 6/7] x86/acpi/sleep: Provide registration for
+ [PATCH 7/7] xen/acpi/sleep: Register to the acpi_suspend_lowlevel a
 
-Would this be feasible?
+Details of what I said in the first postings:
 
-> liang
+The Xen ACPI S3 functionality requires help from the Linux kernel. The Linux
+kernel does the ACPI "stuff" and tells the hypervisor to do the low-level
+stuff (such as program the IOAPIC, setup vectors, etc). Naturally do it correctly
+the Xen hypervisor must be programmed with correct values that are extracted
+as part of parsing the ACPI.
+
+The ACPI code used during suspend is mostly all in hwsleep.c and there is one
+particular case where 'hwsleep.c' is calling in the tboot.c code. This is replaced
+by making the call go through the OS part of the ACPI code. The reason for
+doing this is two fold: 1) cleanup, 2) for Xen case, it needs to make a hypercall
+so that the hypervisor can write the PM1A/PM1B bits.
+
+The major difficulties we hit was with 'acpi_suspend_lowlevel' - which tweaks
+a lot of lowlevel values and some of them are not properly handled by Xen.
+Liang Tang has figured which ones of them we trip over (read below) - and he
+suggested that perhaps we can provide a registration mechanism to abstract
+this away. The reason for all of this is that Linux does not talk to the
+BIOS directly - instead it simply walks through the necessary ACPI methods
+and then issues hypercall to Xen which then further completes the remaining
+suspend steps.
+
+So the attached patches do exactly that - there are two entry points
+in the ACPI.
+
+ 1). For S3: acpi_suspend_lowlevel -> .. lots of code -> acpi_enter_sleep_state
+ 2). For S1/S4/S5: acpi_enter_sleep_state
+
+The first naive idea was of abstracting away in the 'acpi_enter_sleep_state'
+function the tboot_sleep code so that we can use it too. And low-behold - it
+worked splendidly for powering off (S5 I believe)
+
+For S3 that did not work - during suspend the hypervisor tripped over when
+saving cr8. During resume it tripped over at restoring the cr3, cr8, idt,
+and gdt values.
+
+When I posted the RFC, the feedback I got was to use a higher upper
+interface to make the call to the hypervisor. Instead of doing it at the
+lower pv-ops case for cr3, cr8, idt, gdt, etc. The code is much nicer
+this way, I've to say.
+
+Anyhow, please take a look!
+
+The patches are also located at
+
+git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git devel/acpi-s3.v7
+
+ arch/x86/include/asm/acpi.h     |    2 +-
+ arch/x86/include/asm/pci.h      |    9 +++++
+ arch/x86/include/asm/x86_init.h |    1 +
+ arch/x86/kernel/acpi/boot.c     |    7 ++++
+ arch/x86/kernel/acpi/sleep.c    |    4 +-
+ arch/x86/kernel/acpi/sleep.h    |    2 +
+ arch/x86/kernel/tboot.c         |    9 +++--
+ arch/x86/kernel/x86_init.c      |    1 +
+ arch/x86/pci/xen.c              |   27 ++++++++++++++
+ arch/x86/xen/enlighten.c        |    3 ++
+ drivers/acpi/acpica/hwsleep.c   |   10 ++++--
+ drivers/acpi/osl.c              |   24 +++++++++++++
+ drivers/acpi/sleep.c            |    2 +
+ drivers/pci/msi.c               |   29 ++++++++++++++-
+ drivers/xen/Makefile            |    2 +-
+ drivers/xen/acpi.c              |   62 +++++++++++++++++++++++++++++++++
+ include/acpi/acexcep.h          |    1 +
+ include/linux/acpi.h            |   10 +++++
+ include/linux/tboot.h           |    1 -
+ include/xen/acpi.h              |   72 +++++++++++++++++++++++++++++++++++++++
+ include/xen/interface/physdev.h |    7 ++++
+ 21 files changed, 272 insertions(+), 13 deletions(-)
+
+Konrad Rzeszutek Wilk (5):
+      tboot: Add return values for tboot_sleep
+      x86/acpi/sleep: Provide registration for acpi_suspend_lowlevel.
+      xen/acpi/sleep: Enable ACPI sleep via the __acpi_os_prepare_sleep
+      xen/acpi/sleep: Register to the acpi_suspend_lowlevel a callback.
+      x86: Expand the x86_msi_ops to have a restore MSIs.
+
+Tang Liang (2):
+      x86, acpi, tboot: Have a ACPI os prepare sleep instead of calling tboot_sleep.
+      xen: Utilize the restore_msi_irqs hook.
