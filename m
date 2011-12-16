@@ -1,84 +1,79 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 1/4] ACPI: EC: Add ec_get_handle()
-Date: Fri, 16 Dec 2011 01:22:35 +0100
-Message-ID: <201112160122.36100.trenn@suse.de>
-References: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com> <1323972371-13189-2-git-send-email-seth.forshee@canonical.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 1/2] ACPI: Implement acpi_get_device_handle copied from thinkpad_acpi.c
+Date: Fri, 16 Dec 2011 01:26:46 +0100
+Message-ID: <1323995207-54686-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43002 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:43349 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753971Ab1LPAWj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Dec 2011 19:22:39 -0500
-In-Reply-To: <1323972371-13189-2-git-send-email-seth.forshee@canonical.com>
+	id S1756409Ab1LPA1a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Dec 2011 19:27:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seth Forshee <seth.forshee@canonical.com>
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: lenb@kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, Azael Avalos <coproscefalo@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Thursday 15 December 2011 19:06:08 Seth Forshee wrote:
-> toshiba_acpi needs to execute an AML method within the EC namespace
-> to make hotkeys work on some platforms. Provide an interface to
-> allow it to easily get a handle to the EC namespace for this purpose.
-I first liked the idea of making the ec device more global for others
-to access.
-But thinkpad_acpi is doing the same already in another way.
+The toshiba_acpi driver needs it and others might as well.
+Removing the thinkpad_acpi.c implementation will follow in a separate
+patch.
 
-I think best is to move the thinkpad implementation of getting
-ACPI handles based on HIDs to osl.c and make it global.
-I'll send patches.
-Please review them carefully, they are only compile tested.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Matthew Garrett <mjg@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: seth.forshee@canonical.com
+CC: Azael Avalos <coproscefalo@gmail.com>
+CC: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/acpi/osl.c   |   25 +++++++++++++++++++++++++
+ include/linux/acpi.h |    2 ++
+ 2 files changed, 27 insertions(+), 0 deletions(-)
 
-      Thomas
-
-> 
-> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-> ---
->  drivers/acpi/ec.c    |   10 ++++++++++
->  include/linux/acpi.h |    1 +
->  2 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index b19a18d..e37615f 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -445,6 +445,16 @@ int ec_transaction(u8 command,
->  
->  EXPORT_SYMBOL(ec_transaction);
->  
-> +/* Get the handle to the EC device */
-> +acpi_handle ec_get_handle(void)
-> +{
-> +	if (!first_ec)
-> +		return NULL;
-> +	return first_ec->handle;
-> +}
-> +
-> +EXPORT_SYMBOL(ec_get_handle);
-> +
->  void acpi_ec_block_transactions(void)
->  {
->  	struct acpi_ec *ec = first_ec;
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 6001b4da..ecccbb7 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -151,6 +151,7 @@ extern int ec_write(u8 addr, u8 val);
->  extern int ec_transaction(u8 command,
->                            const u8 *wdata, unsigned wdata_len,
->                            u8 *rdata, unsigned rdata_len);
-> +extern acpi_handle ec_get_handle(void);
->  
->  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
->  
-> -- 
-> 1.7.5.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f31c5c5..4f9f7f5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1659,3 +1659,28 @@ acpi_status acpi_os_terminate(void)
+ 
+ 	return AE_OK;
+ }
++
++static acpi_status acpi_handle_locate_callback(acpi_handle handle,
++			       u32 level, void *context, void **return_value)
++{
++	*(acpi_handle *)return_value = handle;
++	return AE_CTRL_TERMINATE;
++}
++
++int acpi_handle_locate(const char *hid, acpi_handle *handle)
++{
++	acpi_status status;
++
++	if (!hid || !handle)
++		return -EINVAL;
++
++	memset(handle, 0, sizeof(acpi_handle));
++	status = acpi_get_devices(hid, acpi_handle_locate_callback, NULL,
++				  handle);
++
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return 0;		
++}
++EXPORT_SYMBOL_GPL(acpi_handle_locate);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6001b4da..d09aca3 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -146,6 +146,8 @@ struct acpi_pci_driver {
+ int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+ void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+ 
++extern int acpi_get_device_handle(const char *hid, acpi_handle *handle);
++
+ extern int ec_read(u8 addr, u8 *val);
+ extern int ec_write(u8 addr, u8 val);
+ extern int ec_transaction(u8 command,
+-- 
+1.7.6.1
 
