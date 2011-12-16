@@ -1,71 +1,46 @@
-From: LULEA UNIVERSITY OF TECHNOLOGY Webmail Upgrade
-	 Department <mcabrera@ec.gba.gov.ar>
-Subject: CUENTA Warnung
-Date: Fri, 16 Dec 2011 00:05:41 -0300
-Message-ID: <20111216000541.2056575e0zp6mw05@webmail.ec.gba.gov.ar>
-Reply-To: webmail@kimo.com
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: Re: [PATCH] ACPI: kernel-parameters.txt : Add intel_idle.max_cstate
+Date: Fri, 16 Dec 2011 13:21:28 +0900
+Message-ID: <CALLJCT3hwYhCzrqbfeXG-C4t+PTG8fu_uJP=+S3H=tt4yX+D9w@mail.gmail.com>
+References: <1323879532-10490-1-git-send-email-standby24x7@gmail.com>
+	<201112151747.28366.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay.arba.gov.ar ([170.155.16.100]:36037 "EHLO
-	axiom.infra.arba.gov.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756456Ab1LPDH1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Dec 2011 22:07:27 -0500
-Content-Disposition: inline
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:54397 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755974Ab1LPEV3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Dec 2011 23:21:29 -0500
+In-Reply-To: <201112151747.28366.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 1@info.net
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, lenb@kernel.org
 
+2011/12/16 Thomas Renninger <trenn@suse.de>:
+> On Wednesday, December 14, 2011 05:18:52 PM Masanari Iida wrote:
+>> Add missing intel_idle.max_cstate in kernel-parameters.txt
+> I wonder whether this one should get documented at all.
+>
+My opinion is, as long as the kernel parameter is available,
+we should document it.  And if developer want to guide the user to use
+cpuidle.max_cstate, we should document so.
 
-Estimado  Email Universitat  titular de la cuenta,
+> Better would be to work towards a general cpuidle.max_state=
+> param which deprecates processor.max_cstate= (acpi_idle driver) and
+> intel_idle.max_cstate= and enables this functionality for all
+> other cpuidle drivers out there as well.
+>
+cpuidle.max_state is also not in the kernel-parameters.txt,
+Separate patch need to be created.
 
-Este mensaje es por la Universitat ACTUALIZACI=D3N centro de mensajes p=
-ara todos
-los WEBMAIL Universitat
-propietarios de cuentas de correo electr=F3nico. En estos momentos esta=
-mos
-actualizando nuestra base de datos y la cuenta de correo electr=F3nico
-centro. Estamos eliminando todas las cuentas de correo electr=F3nico si=
-n
-clasificar y sin usar para crear espacio para
-nuevas cuentas. Para evitar que su cuenta sea desactivada, tendr=E1 que
-actualizarlo mediante el env=EDo de la informaci=F3n followning.
+> Something to turn off intel_idle driver and favor the acpi_idle
+> driver for debugging would still be needed then.
+>
+This patch explains how to disable intel_idle.
+Although processor.max_cstate=0 sets cstate to 0,
+but similar option intel_idle.max_cstate=0 didn't set cstate to 0.
+This is confusing for the users.
+This is the reason why I wanted to document it.
 
-
-CONFIRMAR SU CUENTA DE CORREO ELECTR=D3NICO
-Nombre de usuario E-mail: ...............
-Correo electr=F3nico Contrase=F1a: ..............
-=46echa de nacimiento: ..................
-Pa=EDs o territorio: .........
-
-Advertencia! Todos titular de la cuenta Universitat que se niega a =20
-actualizar su
-cuenta dentro de los siete d=EDas de haber recibido este correo electr=F3=
-nico a
-perder su
-cuenta de forma permanente.
-
-
-Gracias por usar Universitat Webmail!
-Universitat C=F3digo Advertencia: USV64MT1
-
-
-Gracias,
-Universitat ACTUALIZACI=D3N DE EQUIPO
-Universitat WEBMAIL EQUIPO Beta
-
-EDU WEBMAIL EQUIPO
-
-
-
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Masanari Iida
