@@ -1,34 +1,70 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Thomas Renninger <trenn@suse.de>
 Subject: Re: [PATCH 1/4] ACPI: EC: Add ec_get_handle()
-Date: Fri, 16 Dec 2011 00:33:33 +0000
-Message-ID: <20111216003333.GA18489@srcf.ucam.org>
-References: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com>
- <1323972371-13189-2-git-send-email-seth.forshee@canonical.com>
- <201112160122.36100.trenn@suse.de>
+Date: Fri, 16 Dec 2011 02:52:25 +0100
+Message-ID: <201112160252.26681.trenn@suse.de>
+References: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com> <201112160122.36100.trenn@suse.de> <20111216003333.GA18489@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44082 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756418Ab1LPAdj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Dec 2011 19:33:39 -0500
-Content-Disposition: inline
-In-Reply-To: <201112160122.36100.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20111216003333.GA18489@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 16, 2011 at 01:22:35AM +0100, Thomas Renninger wrote:
+On Friday 16 December 2011 01:33:33 Matthew Garrett wrote:
+> On Fri, Dec 16, 2011 at 01:22:35AM +0100, Thomas Renninger wrote:
+> 
+> > I think best is to move the thinkpad implementation of getting
+> > ACPI handles based on HIDs to osl.c and make it global.
+> > I'll send patches.
+> > Please review them carefully, they are only compile tested.
+> 
+> The ec driver is already finding the hardware on the basis of the HID - 
+> is there any reason to do this twice rather than just exporting the 
+> information the ec driver already has?
+Exporting the EC handle is static, you do not want to export all
+kind of ACPI devices as soon as other drivers need them.
 
-> I think best is to move the thinkpad implementation of getting
-> ACPI handles based on HIDs to osl.c and make it global.
-> I'll send patches.
-> Please review them carefully, they are only compile tested.
+The question is how long it takes to do:
+acpi_ns_walk_namespace(ACPI_TYPE_DEVICE, ...
+in worst case (not found).
 
-The ec driver is already finding the hardware on the basis of the HID - 
-is there any reason to do this twice rather than just exporting the 
-information the ec driver already has?
+Ok, the EC may be somewhat special because it's the most likely
+candidate to get shared (or say needed by other drivers)
+and its driver has to be compiled in.
+.
+thinkpad_acpi should at least also make use of Seth's approach and get the
+ec_handle quickly/directly.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+And my patches should still be added, because others could use
+them as well. Beside thinkpad_acpi grabbing the video handle, there
+is another re-implementation of my acpi_handle_locate (eeepc_wmi.c):
+static acpi_status eeepc_wmi_parse_device(acpi_handle handle, u32 level,
+                                                 void *context, void **retval)
+{
+        pr_warn("Found legacy ATKD device (%s)\n", EEEPC_ACPI_HID);
+        *(bool *)context = true;
+        return AE_CTRL_TERMINATE;
+}
+
+static int eeepc_wmi_check_atkd(void)
+{
+        acpi_status status;
+        bool found = false;
+
+        status = acpi_get_devices(EEEPC_ACPI_HID, eeepc_wmi_parse_device,
+                                  &found, NULL);
+
+        if (ACPI_FAILURE(status) || !found)
+                return 0;
+        return -1;                                                                                                                                                    
+}
+
+
+If you agree I can send something tomorrow.
+
+
+    Thomas
