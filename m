@@ -1,131 +1,159 @@
-From: Matthieu CASTET <castet.matthieu@free.fr>
-Subject: [PATCH 2/2] clean acpi wakeup code after merge
-Date: Fri, 16 Dec 2011 21:13:05 +0100
-Message-ID: <1324066385-8491-2-git-send-email-castet.matthieu@free.fr>
-References: <1324066385-8491-1-git-send-email-castet.matthieu@free.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1324066385-8491-1-git-send-email-castet.matthieu@free.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, hpa@zytor.com, linux-kernel@vger.kernel.org, rjw@sisk.pl
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 1/8] ACPI: processor: export necessary interfaces
+Date: Fri, 16 Dec 2011 16:33:45 -0500
+Message-ID: <20111216213345.GA9832@phenom.dumpdata.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-2-git-send-email-konrad.wilk@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:19165 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760653Ab1LPVe5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2011 16:34:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1322673664-14642-2-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ke.yu@intel.com, kevin.tian@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Cc: xen-devel@lists.xensource.com, jeremy@goop.org, konrad@kernel.org, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, liang.tang@oracle.com
 
-This remove unsued pmode_* entry in wakeup header and saved_*dt
-in wakeup_32.
+On Wed, Nov 30, 2011 at 12:20:57PM -0500, Konrad Rzeszutek Wilk wrote:
+> From: Kevin Tian <kevin.tian@intel.com>
+> 
+> This patch export some necessary functions which parse processor
+> power management information. The Xen ACPI processor driver uses them.
 
-Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/x86/kernel/acpi/realmode/wakeup.S |    8 --------
- arch/x86/kernel/acpi/realmode/wakeup.h |   11 +----------
- arch/x86/kernel/acpi/sleep.c           |    2 --
- arch/x86/kernel/acpi/wakeup_32.S       |   24 +-----------------------
- 4 files changed, 2 insertions(+), 43 deletions(-)
+I was wondering if it could be done by moving a bunch of these
+functions in the processor_perflib.c, but there is a lot of code
+that would have to be moved. Way too much.
 
-diff --git a/arch/x86/kernel/acpi/realmode/wakeup.S b/arch/x86/kernel/acpi/realmode/wakeup.S
-index 2a83da1..e15637d 100644
---- a/arch/x86/kernel/acpi/realmode/wakeup.S
-+++ b/arch/x86/kernel/acpi/realmode/wakeup.S
-@@ -20,14 +20,6 @@ _start:
- 		.globl	wakeup_header
- wakeup_header:
- video_mode:	.short	0	/* Video mode number */
--pmode_return:	.byte	0x66, 0xea	/* ljmpl */
--		.long	0	/* offset goes here */
--		.short	__KERNEL_CS
--pmode_cr0:	.long	0	/* Saved %cr0 */
--pmode_cr3:	.long	0	/* Saved %cr3 */
--pmode_cr4:	.long	0	/* Saved %cr4 */
--pmode_efer:	.quad	0	/* Saved EFER */
--pmode_gdt:	.quad	0
- pmode_misc_en:	.quad	0	/* Saved MISC_ENABLE MSR */
- pmode_behavior:	.long	0	/* Wakeup behavior flags */
- realmode_flags:	.long	0
-diff --git a/arch/x86/kernel/acpi/realmode/wakeup.h b/arch/x86/kernel/acpi/realmode/wakeup.h
-index 97a29e1..4df52e6 100644
---- a/arch/x86/kernel/acpi/realmode/wakeup.h
-+++ b/arch/x86/kernel/acpi/realmode/wakeup.h
-@@ -12,21 +12,12 @@
- /* This must match data at wakeup.S */
- struct wakeup_header {
- 	u16 video_mode;		/* Video mode number */
--	u16 _jmp1;		/* ljmpl opcode, 32-bit only */
--	u32 pmode_entry;	/* Protected mode resume point, 32-bit only */
--	u16 _jmp2;		/* CS value, 32-bit only */
--	u32 pmode_cr0;		/* Protected mode cr0 */
--	u32 pmode_cr3;		/* Protected mode cr3 */
--	u32 pmode_cr4;		/* Protected mode cr4 */
--	u32 pmode_efer_low;	/* Protected mode EFER */
--	u32 pmode_efer_high;
--	u64 pmode_gdt;
- 	u32 pmode_misc_en_low;	/* Protected mode MISC_ENABLE */
- 	u32 pmode_misc_en_high;
- 	u32 pmode_behavior;	/* Wakeup routine behavior flags */
- 	u32 realmode_flags;
- 	u32 real_magic;
--	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
-+	u16 trampoline_segment;	/* segment with trampoline code */
- 	u8  _pad1;
- 	u8  wakeup_jmp;
- 	u16 wakeup_jmp_off;
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 14b00f7..3af8504 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -67,8 +67,6 @@ int acpi_suspend_lowlevel(void)
- 	header->wakeup_gdt[2] =
- 		GDT_ENTRY(0x8093, acpi_wakeup_address, 0xfffff);
- 
--	header->pmode_cr0 = read_cr0();
--	header->pmode_cr4 = read_cr4_safe();
- 	header->pmode_behavior = 0;
- 	if (!rdmsr_safe(MSR_IA32_MISC_ENABLE,
- 			&header->pmode_misc_en_low,
-diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-index 13ab720..56f8de4 100644
---- a/arch/x86/kernel/acpi/wakeup_32.S
-+++ b/arch/x86/kernel/acpi/wakeup_32.S
-@@ -17,17 +17,7 @@ wakeup_pmode_return:
- 	movw	%ax, %fs
- 	movw	%ax, %gs
- 
--	# reload the gdt, as we need the full 32 bit address
--	lgdt	saved_gdt
--	lidt	saved_idt
--	lldt	saved_ldt
--	ljmp	$(__KERNEL_CS), $1f
--1:
--	movl	%cr3, %eax
--	movl	%eax, %cr3
--	wbinvd
--
--	# and restore the stack ... but you need gdt for this to work
-+	# and restore the stack ...
- 	movl	saved_context_esp, %esp
- 
- 	movl	%cs:saved_magic, %eax
-@@ -44,11 +34,6 @@ bogus_magic:
- 
- 
- save_registers:
--	sgdt	saved_gdt
--	sidt	saved_idt
--	sldt	saved_ldt
--	str	saved_tss
--
- 	leal	4(%esp), %eax
- 	movl	%eax, saved_context_esp
- 	movl	%ebx, saved_context_ebx
-@@ -91,10 +76,3 @@ ret_point:
- ALIGN
- ENTRY(saved_magic)	.long	0
- ENTRY(saved_eip)	.long	0
--
--# saved registers
--saved_gdt:	.long	0,0
--saved_idt:	.long	0,0
--saved_ldt:	.long	0
--saved_tss:	.long	0
--
--- 
-1.7.5.4
+Perhaps another, and a nicer way would be to:
+
+ 1). Create a processor_driver_lib.c which would have the "generic" code
+ 2). In the processor_driver just keep the essential notifications, and
+     the hotplug code
+ 3). The introduce the other user of the acpi_processor_[add|remove|notify]
+     calls as a seperate library?
+
+Thoughts?
+> 
+> Signed-off-by: Yu Ke <ke.yu@intel.com>
+> Signed-off-by: Tian Kevin <kevin.tian@intel.com>
+> Signed-off-by: Tang Liang <liang.tang@oracle.com>
+> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> ---
+>  drivers/acpi/processor_driver.c  |   11 +++--------
+>  drivers/acpi/processor_perflib.c |    4 ++--
+>  include/acpi/processor.h         |   10 +++++++++-
+>  3 files changed, 14 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index 9d7bc9f..211c078 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -79,9 +79,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+>  MODULE_DESCRIPTION("ACPI Processor Driver");
+>  MODULE_LICENSE("GPL");
+>  
+> -static int acpi_processor_add(struct acpi_device *device);
+> -static int acpi_processor_remove(struct acpi_device *device, int type);
+> -static void acpi_processor_notify(struct acpi_device *device, u32 event);
+>  static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+>  static int acpi_processor_handle_eject(struct acpi_processor *pr);
+>  
+> @@ -378,7 +375,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+>  
+>  static DEFINE_PER_CPU(void *, processor_device_array);
+>  
+> -static void acpi_processor_notify(struct acpi_device *device, u32 event)
+> +void acpi_processor_notify(struct acpi_device *device, u32 event)
+>  {
+>  	struct acpi_processor *pr = acpi_driver_data(device);
+>  	int saved;
+> @@ -442,7 +439,7 @@ static struct notifier_block acpi_cpu_notifier =
+>  	    .notifier_call = acpi_cpu_soft_notify,
+>  };
+>  
+> -static int __cpuinit acpi_processor_add(struct acpi_device *device)
+> +int __cpuinit acpi_processor_add(struct acpi_device *device)
+>  {
+>  	struct acpi_processor *pr = NULL;
+>  	int result = 0;
+> @@ -545,7 +542,7 @@ err_free_cpumask:
+>  	return result;
+>  }
+>  
+> -static int acpi_processor_remove(struct acpi_device *device, int type)
+> +int acpi_processor_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_processor *pr = NULL;
+>  
+> @@ -758,7 +755,6 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>  }
+>  #endif
+>  
+> -static
+>  void acpi_processor_install_hotplug_notify(void)
+>  {
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> @@ -771,7 +767,6 @@ void acpi_processor_install_hotplug_notify(void)
+>  	register_hotcpu_notifier(&acpi_cpu_notifier);
+>  }
+>  
+> -static
+>  void acpi_processor_uninstall_hotplug_notify(void)
+>  {
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index 85b3237..22c6195 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -386,7 +386,7 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+>  	return result;
+>  }
+>  
+> -static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+> +int acpi_processor_get_performance_info(struct acpi_processor *pr)
+>  {
+>  	int result = 0;
+>  	acpi_status status = AE_OK;
+> @@ -492,7 +492,7 @@ int acpi_processor_notify_smm(struct module *calling_module)
+>  
+>  EXPORT_SYMBOL(acpi_processor_notify_smm);
+>  
+> -static int acpi_processor_get_psd(struct acpi_processor	*pr)
+> +int acpi_processor_get_psd(struct acpi_processor	*pr)
+>  {
+>  	int result = 0;
+>  	acpi_status status = AE_OK;
+> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> index 610f6fb..12657bb 100644
+> --- a/include/acpi/processor.h
+> +++ b/include/acpi/processor.h
+> @@ -239,6 +239,12 @@ extern void acpi_processor_unregister_performance(struct
+>           if a _PPC object exists, rmmod is disallowed then */
+>  int acpi_processor_notify_smm(struct module *calling_module);
+>  
+> +void acpi_processor_install_hotplug_notify(void);
+> +void acpi_processor_uninstall_hotplug_notify(void);
+> +
+> +int acpi_processor_add(struct acpi_device *device);
+> +int acpi_processor_remove(struct acpi_device *device, int type);
+> +void acpi_processor_notify(struct acpi_device *device, u32 event);
+>  /* for communication between multiple parts of the processor kernel module */
+>  DECLARE_PER_CPU(struct acpi_processor *, processors);
+>  extern struct acpi_processor_errata errata;
+> @@ -278,7 +284,9 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
+>  void acpi_processor_ppc_init(void);
+>  void acpi_processor_ppc_exit(void);
+>  int acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag);
+> -extern int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
+> +int acpi_processor_get_performance_info(struct acpi_processor *pr);
+> +int acpi_processor_get_psd(struct acpi_processor *pr);
+> +int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
+>  #else
+>  static inline void acpi_processor_ppc_init(void)
+>  {
+> -- 
+> 1.7.7.3
