@@ -1,153 +1,88 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 6/7] x86: Expand the x86_msi_ops to have a
-	restore MSIs.
-Date: Fri, 16 Dec 2011 17:38:18 -0500
-Message-ID: <1324075099-11397-7-git-send-email-konrad.wilk@oracle.com>
-References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 2/4] toshiba_acpi: Support alternate hotkey interfaces
+Date: Sat, 17 Dec 2011 09:31:43 +0100
+Message-ID: <201112170931.44171.trenn@suse.de>
+References: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com> <1323972371-13189-3-git-send-email-seth.forshee@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-kernel@vger.kernel.org, rjw@sisk.pl, x86@kernel.org, len.brown@intel.com, joseph.cihula@intel.com, linux-pm@lists.linux-foundation.org, tboot-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, liang.tang@oracle.com
-Cc: linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, hpa@zytor.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:43670 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750806Ab1LQIbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Dec 2011 03:31:47 -0500
+In-Reply-To: <1323972371-13189-3-git-send-email-seth.forshee@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The MSI restore function will become a function pointer in an
-x86_msi_ops struct. It defaults to the implementation in the
-io_apic.c and msi.c. We piggyback on the indirection mechanism
-introduced by "x86: Introduce x86_msi_ops".
+On Thursday 15 December 2011 19:06:09 Seth Forshee wrote:
+...  
+> +static bool toshiba_acpi_i8042_filter(unsigned char data, unsigned char str,
+> +				      struct serio *port)
+> +{
+> +	if (str & 0x20)
+> +		return false;
+> +
+> +	if (unlikely(data == 0xe0))
+> +		return false;
+> +
+> +	if ((data & 0x7f) == TOS1900_FN_SCAN) {
+> +		schedule_work(&toshiba_acpi->hotkey_work);
+> +		return true;
+> +	}
+What have you tried to check whether some other kind of ACPI event
+is happening?
+Do any acpi/SCI interrupts happen?:
+watch -n1 "cat /proc/interrupts |grep acpi"
 
-Cc: x86@kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-pci@vger.kernel.org
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- arch/x86/include/asm/pci.h      |    9 +++++++++
- arch/x86/include/asm/x86_init.h |    1 +
- arch/x86/kernel/x86_init.c      |    1 +
- drivers/pci/msi.c               |   29 +++++++++++++++++++++++++++--
- 4 files changed, 38 insertions(+), 2 deletions(-)
+Could it by chance be an EC or other device GPE/SCI?
 
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index d498943..df75d07 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -112,19 +112,28 @@ static inline void x86_teardown_msi_irq(unsigned int irq)
- {
- 	x86_msi.teardown_msi_irq(irq);
- }
-+static inline void x86_restore_msi_irqs(struct pci_dev *dev, int irq)
-+{
-+	x86_msi.restore_msi_irqs(dev, irq);
-+}
- #define arch_setup_msi_irqs x86_setup_msi_irqs
- #define arch_teardown_msi_irqs x86_teardown_msi_irqs
- #define arch_teardown_msi_irq x86_teardown_msi_irq
-+#define arch_restore_msi_irqs x86_restore_msi_irqs
- /* implemented in arch/x86/kernel/apic/io_apic. */
- int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
- void native_teardown_msi_irq(unsigned int irq);
-+void native_restore_msi_irqs(struct pci_dev *dev, int irq);
- /* default to the implementation in drivers/lib/msi.c */
- #define HAVE_DEFAULT_MSI_TEARDOWN_IRQS
-+#define HAVE_DEFAULT_MSI_RESTORE_IRQS
- void default_teardown_msi_irqs(struct pci_dev *dev);
-+void default_restore_msi_irqs(struct pci_dev *dev, int irq);
- #else
- #define native_setup_msi_irqs		NULL
- #define native_teardown_msi_irq		NULL
- #define default_teardown_msi_irqs	NULL
-+#define default_restore_msi_irqs	NULL
- #endif
- 
- #define PCI_DMA_BUS_IS_PHYS (dma_ops->is_phys)
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index 1971e65..cd52084 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -177,6 +177,7 @@ struct x86_msi_ops {
- 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
- 	void (*teardown_msi_irq)(unsigned int irq);
- 	void (*teardown_msi_irqs)(struct pci_dev *dev);
-+	void (*restore_msi_irqs)(struct pci_dev *dev, int irq);
- };
- 
- extern struct x86_init_ops x86_init;
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index c1d6cd5..83b05ad 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -114,4 +114,5 @@ struct x86_msi_ops x86_msi = {
- 	.setup_msi_irqs = native_setup_msi_irqs,
- 	.teardown_msi_irq = native_teardown_msi_irq,
- 	.teardown_msi_irqs = default_teardown_msi_irqs,
-+	.restore_msi_irqs = default_restore_msi_irqs,
- };
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 0e6d04d..ba2ea4e 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -86,6 +86,31 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
- }
- #endif
- 
-+#ifndef arch_restore_msi_irqs
-+# define arch_restore_msi_irqs default_restore_msi_irqs
-+# define HAVE_DEFAULT_MSI_RESTORE_IRQS
-+#endif
-+
-+#ifdef HAVE_DEFAULT_MSI_RESTORE_IRQS
-+void default_restore_msi_irqs(struct pci_dev *dev, int irq)
-+{
-+	struct msi_desc *entry;
-+
-+	entry = NULL;
-+	if (dev->msix_enabled) {
-+		list_for_each_entry(entry, &dev->msi_list, list) {
-+			if (irq == entry->irq)
-+				break;
-+		}
-+	} else if (dev->msi_enabled)  {
-+		entry = irq_get_msi_desc(irq);
-+	}
-+
-+	if (entry)
-+		write_msi_msg(irq, &entry->msg);
-+}
-+#endif
-+
- static void msi_set_enable(struct pci_dev *dev, int pos, int enable)
- {
- 	u16 control;
-@@ -360,7 +385,7 @@ static void __pci_restore_msi_state(struct pci_dev *dev)
- 
- 	pci_intx_for_msi(dev, 0);
- 	msi_set_enable(dev, pos, 0);
--	write_msi_msg(dev->irq, &entry->msg);
-+	arch_restore_msi_irqs(dev, dev->irq);
- 
- 	pci_read_config_word(dev, pos + PCI_MSI_FLAGS, &control);
- 	msi_mask_irq(entry, msi_capable_mask(control), entry->masked);
-@@ -388,7 +413,7 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
- 	pci_write_config_word(dev, pos + PCI_MSIX_FLAGS, control);
- 
- 	list_for_each_entry(entry, &dev->msi_list, list) {
--		write_msi_msg(entry->irq, &entry->msg);
-+		arch_restore_msi_irqs(dev, entry->irq);
- 		msix_mask_irq(entry, entry->masked);
- 	}
- 
--- 
-1.7.7.4
+> +
+> +	return false;
+> +}
+> +
+> +static void toshiba_acpi_hotkey_work(struct work_struct *work)
+> +{
+> +	acpi_handle ec_handle = ec_get_handle();
+> +	acpi_status status;
+> +
+> +	if (!ec_handle)
+> +		return;
+> +
+> +	status = acpi_evaluate_object(ec_handle, "NTFY", NULL, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		pr_err("ACPI NTFY method execution failed\n");
+Why is calling NTFY needed?
+
+...
+
+> +static int toshiba_acpi_suspend(struct acpi_device *acpi_dev,
+> +				pm_message_t state)
+> +{
+> +	struct toshiba_acpi_dev *dev = acpi_driver_data(acpi_dev);
+> +	u32 result;
+> +
+> +	if (dev->hotkey_dev)
+> +		hci_write1(dev, HCI_HOTKEY_EVENT, HCI_HOTKEY_DISABLE, &result);
+> +
+> +	return 0;
+> +}
+> +
+> +static int toshiba_acpi_resume(struct acpi_device *acpi_dev)
+> +{
+> +	struct toshiba_acpi_dev *dev = acpi_driver_data(acpi_dev);
+> +	u32 result;
+> +
+> +	if (dev->hotkey_dev)
+> +		hci_write1(dev, HCI_HOTKEY_EVENT, HCI_HOTKEY_ENABLE, &result);
+> +
+> +	return 0;
+> +}
+What are the suspend/resume funcs for?
+What bad things happen without them?
+
+
+     Thomas
