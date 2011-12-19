@@ -1,42 +1,43 @@
-From: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Subject: Re: [Xen-devel] [PATCH 4/8] ACPI: processor: Don't setup cpu idle driver and handler when we do not want them.
-Date: Mon, 19 Dec 2011 10:26:45 -0400
-Message-ID: <20111219142645.GC27772@andromeda.dapyr.net>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-5-git-send-email-konrad.wilk@oracle.com> <20111216213618.GB9832@phenom.dumpdata.com> <4EEF12DD.2020308@oracle.com>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH 2/4] toshiba_acpi: Support alternate hotkey interfaces
+Date: Mon, 19 Dec 2011 12:24:28 -0600
+Message-ID: <20111219182428.GC2737@thinkpad-t410>
+References: <1323972371-13189-1-git-send-email-seth.forshee@canonical.com>
+ <CAGdLNWFeRD=K0YWwr=r2Rznr1N4B6HMPOUF4vWv1aOZbDy+rEQ@mail.gmail.com>
+ <20111217150742.GA6916@ubuntu-mba>
+ <201112181501.36299.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from andromeda.dapyr.net ([206.212.254.10]:39950 "EHLO
-	andromeda.dapyr.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab1LSO1G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2011 09:27:06 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:58938 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785Ab1LSSYg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2011 13:24:36 -0500
 Content-Disposition: inline
-In-Reply-To: <4EEF12DD.2020308@oracle.com>
+In-Reply-To: <201112181501.36299.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: liang tang <liang.tang@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, jeremy@goop.org, xen-devel@lists.xensource.com, Ian.Campbell@citrix.com, konrad@kernel.org, mike.mcclurg@citrix.com, stefan.bader@canonical.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Azael Avalos <coproscefalo@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 19, 2011 at 06:33:01PM +0800, liang tang wrote:
-> On 2011-12-17 5:36, Konrad Rzeszutek Wilk wrote:
-> >On Wed, Nov 30, 2011 at 12:21:00PM -0500, Konrad Rzeszutek Wilk wrote:
-> >>From: Kevin Tian<kevin.tian@intel.com>
-> >>
-> >>This patch inhibits processing of the CPU idle handler if it is not
-> >>set to the appropiate one. This is needed by the Xen processor driver
-> >>which, while still needing processor details, wants to use the 
-> >>default_idle
-> >>call (which makes a yield hypercall).
-> >Which I think is not required anymore with the 
-> >d91ee5863b71e8c90eaf6035bff3078a85e2e7b5
-> >(cpuidle: replace xen access to x86 pm_idle and default_idle) and
-> >62027aea23fcd14478abdddd3b74a4e0f5fb2984
-> >(cpuidle: create bootparam "cpuidle.off=1")
-> >
-> >Liang, can you double-check that please?
-> >
-> Hi,Konrad
-> I just read the code ,I think  don't need that code too. I will double 
-> check tomorrow.
+On Sun, Dec 18, 2011 at 03:01:35PM +0100, Thomas Renninger wrote:
+> > In the DSDTs I've inspected there is an EC query method that looks like
+> > it handles events for the hotkeys, but I've never been able to find
+> > anything that will cause the GPE to trigger when the hotkeys are
+> > pressed.
+> Be careful, those EC event notifications do not show up in:
+> /sys/firmware/acpi/interrupts/gpe*
+> If no acpi irqs are happening (you said you've tried already):
+> watch -n1 "cat /proc/interrupts |grep acpi"
+> filtering the key events sounds appropriate.
+> I see you dig quite a bit already:
 
-Great! Thanks!
+I just went back and tried this specifically again to verify my memory
+is correct. Without toshiba_acpi loaded, I see nothing. With it loaded
+(with this patch series applied, which turns out to be important) I do
+see the interrupt count increase. Further investigation leads me to
+conclude that this activity appears to be associated with execution of
+the INFO method -- reading and writing a variable in the EC address
+space.
+
+Seth
