@@ -1,178 +1,176 @@
 From: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Subject: Re: [Xen-devel] [PATCH 1/8] ACPI: processor: export necessary interfaces
-Date: Mon, 19 Dec 2011 10:17:21 -0400
-Message-ID: <20111219141721.GA27772@andromeda.dapyr.net>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-2-git-send-email-konrad.wilk@oracle.com> <20111216213345.GA9832@phenom.dumpdata.com> <625BA99ED14B2D499DC4E29D8138F1506E01AABC72@shsmsx502.ccr.corp.intel.com>
+Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add __acpi_processor_[un]register_driver helpers.
+Date: Mon, 19 Dec 2011 10:26:26 -0400
+Message-ID: <20111219142626.GB27772@andromeda.dapyr.net>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com> <20111216220342.GC9832@phenom.dumpdata.com> <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from andromeda.dapyr.net ([206.212.254.10]:39931 "EHLO
+	andromeda.dapyr.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229Ab1LSO0r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2011 09:26:47 -0500
 Content-Disposition: inline
-In-Reply-To: <625BA99ED14B2D499DC4E29D8138F1506E01AABC72@shsmsx502.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Tian, Kevin" <kevin.tian@intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "konrad@kernel.org" <konrad@kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>
-List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 19, 2011 at 01:43:01PM +0800, Tian, Kevin wrote:
+On Mon, Dec 19, 2011 at 01:48:01PM +0800, Tian, Kevin wrote:
 > > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> > Sent: Saturday, December 17, 2011 5:34 AM
+> > Sent: Saturday, December 17, 2011 6:04 AM
 > > 
-> > On Wed, Nov 30, 2011 at 12:20:57PM -0500, Konrad Rzeszutek Wilk wrote:
-> > > From: Kevin Tian <kevin.tian@intel.com>
+> > On Wed, Nov 30, 2011 at 12:20:59PM -0500, Konrad Rzeszutek Wilk wrote:
+> > > From: Tang Liang <liang.tang@oracle.com>
 > > >
-> > > This patch export some necessary functions which parse processor
-> > > power management information. The Xen ACPI processor driver uses them.
+> > > This patch implement __acpi_processor_[un]register_driver helper,
+> > > so we can registry override processor driver function. Specifically
+> > > the Xen processor driver.
 > > 
-> > I was wondering if it could be done by moving a bunch of these
-> > functions in the processor_perflib.c, but there is a lot of code
-> > that would have to be moved. Way too much.
+> > Liang,
 > > 
-> > Perhaps another, and a nicer way would be to:
+> > Is the reason we are doing this b/c we need to call acpi_bus_register_driver
+> > and inhibit the registration of 'acpi_processor_driver' ?
 > > 
-> >  1). Create a processor_driver_lib.c which would have the "generic" code
-> >  2). In the processor_driver just keep the essential notifications, andk
-> >      the hotplug code
-> >  3). The introduce the other user of the acpi_processor_[add|remove|notify]
-> >      calls as a seperate library?
-> > 
-> > Thoughts?
+> > And the reason we don't want 'acpi_processor_driver' to run is b/c of what?
+> > If the cpuidle is disabled what is the harm of running the
+> > 'acpi_processor_driver'
+> > driver?
 > 
-> that's a cleaner approach in the long term view IMO, though it incurs more changes
-> into current code base. 
+> IIRC, the reason why we want a Xen specific driver is because current driver
+> is integrated with OS logic too tightly, e.g. the various checks on VCPU related
+> structures. Long time ago the 1st version in Xen was to use same driver, by
+> adding various tweaking lines inside which makes it completely messed. Then
+> later it's found that it's clearer to create a Xen specific wrapping driver, by 
+> invoking some exported functions from existing one.
 
-Well, upstream kernels are focused on the long term view. So that sounds
-like agreement.
+What I am asking is does it matter "if the current driver is integrated
+with OS logic to tighly" - as it is not running anyhow (b/c cpuidle is
+disabled).
+
+And if Xen specific driver can run along-side the generic one - since
+the generic one is not doing any work (b/c cpuidle is disabled).
+
+That is what I am trying to figure out - since this patch purpose is to
+thwart the generic driver from running and allowing the xen one to run.
 > 
 > Thanks
 > Kevin
 > 
+> > 
 > > >
-> > > Signed-off-by: Yu Ke <ke.yu@intel.com>
-> > > Signed-off-by: Tian Kevin <kevin.tian@intel.com>
+> > > By default the values are set to the native one.
+> > >
 > > > Signed-off-by: Tang Liang <liang.tang@oracle.com>
 > > > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 > > > ---
-> > >  drivers/acpi/processor_driver.c  |   11 +++--------
-> > >  drivers/acpi/processor_perflib.c |    4 ++--
-> > >  include/acpi/processor.h         |   10 +++++++++-
-> > >  3 files changed, 14 insertions(+), 11 deletions(-)
+> > >  drivers/acpi/processor_driver.c |   35
+> > +++++++++++++++++++++++++++++------
+> > >  include/acpi/processor.h        |    6 +++++-
+> > >  2 files changed, 34 insertions(+), 7 deletions(-)
 > > >
 > > > diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> > > index 9d7bc9f..211c078 100644
+> > > index 211c078..55f0b89 100644
 > > > --- a/drivers/acpi/processor_driver.c
 > > > +++ b/drivers/acpi/processor_driver.c
-> > > @@ -79,9 +79,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
-> > >  MODULE_DESCRIPTION("ACPI Processor Driver");
-> > >  MODULE_LICENSE("GPL");
-> > >
-> > > -static int acpi_processor_add(struct acpi_device *device);
-> > > -static int acpi_processor_remove(struct acpi_device *device, int type);
-> > > -static void acpi_processor_notify(struct acpi_device *device, u32 event);
-> > >  static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int
-> > *p_cpu);
-> > >  static int acpi_processor_handle_eject(struct acpi_processor *pr);
-> > >
-> > > @@ -378,7 +375,7 @@ static int acpi_processor_get_info(struct acpi_device
-> > *device)
-> > >
-> > >  static DEFINE_PER_CPU(void *, processor_device_array);
-> > >
-> > > -static void acpi_processor_notify(struct acpi_device *device, u32 event)
-> > > +void acpi_processor_notify(struct acpi_device *device, u32 event)
-> > >  {
-> > >  	struct acpi_processor *pr = acpi_driver_data(device);
-> > >  	int saved;
-> > > @@ -442,7 +439,7 @@ static struct notifier_block acpi_cpu_notifier =
-> > >  	    .notifier_call = acpi_cpu_soft_notify,
+> > > @@ -90,6 +90,11 @@ static const struct acpi_device_id
+> > processor_device_ids[] = {
 > > >  };
+> > >  MODULE_DEVICE_TABLE(acpi, processor_device_ids);
 > > >
-> > > -static int __cpuinit acpi_processor_add(struct acpi_device *device)
-> > > +int __cpuinit acpi_processor_add(struct acpi_device *device)
-> > >  {
-> > >  	struct acpi_processor *pr = NULL;
-> > >  	int result = 0;
-> > > @@ -545,7 +542,7 @@ err_free_cpumask:
-> > >  	return result;
+> > > +int (*__acpi_processor_register_driver)(void) =
+> > acpi_processor_register_driver;
+> > > +void (*__acpi_processor_unregister_driver)(void) \
+> > > +	= acpi_processor_unregister_driver;
+> > > +
+> > > +
+> > >  static struct acpi_driver acpi_processor_driver = {
+> > >  	.name = "processor",
+> > >  	.class = ACPI_PROCESSOR_CLASS,
+> > > @@ -779,6 +784,22 @@ void acpi_processor_uninstall_hotplug_notify(void)
+> > >  	unregister_hotcpu_notifier(&acpi_cpu_notifier);
 > > >  }
 > > >
-> > > -static int acpi_processor_remove(struct acpi_device *device, int type)
-> > > +int acpi_processor_remove(struct acpi_device *device, int type)
-> > >  {
-> > >  	struct acpi_processor *pr = NULL;
+> > > +int acpi_processor_register_driver(void)
+> > > +{
+> > > +	int result = 0;
+> > > +
+> > > +	result = acpi_bus_register_driver(&acpi_processor_driver);
+> > > +	return result;
+> > > +}
+> > > +
+> > > +void acpi_processor_unregister_driver(void)
+> > > +{
+> > > +	acpi_bus_unregister_driver(&acpi_processor_driver);
+> > > +
+> > > +	cpuidle_unregister_driver(&acpi_idle_driver);
+> > > +
+> > > +	return;
+> > > +}
+> > >  /*
+> > >   * We keep the driver loaded even when ACPI is not running.
+> > >   * This is needed for the powernow-k8 driver, that works even without
+> > > @@ -794,9 +815,11 @@ static int __init acpi_processor_init(void)
 > > >
-> > > @@ -758,7 +755,6 @@ static int acpi_processor_handle_eject(struct
-> > acpi_processor *pr)
+> > >  	memset(&errata, 0, sizeof(errata));
+> > >
+> > > -	result = acpi_bus_register_driver(&acpi_processor_driver);
+> > > -	if (result < 0)
+> > > -		return result;
+> > > +	if (__acpi_processor_register_driver) {
+> > > +		result = __acpi_processor_register_driver();
+> > > +		if (result < 0)
+> > > +			return result;
+> > > +	}
+> > >
+> > >  	acpi_processor_install_hotplug_notify();
+> > >
+> > > @@ -809,6 +832,7 @@ static int __init acpi_processor_init(void)
+> > >  	return 0;
 > > >  }
-> > >  #endif
 > > >
-> > > -static
-> > >  void acpi_processor_install_hotplug_notify(void)
+> > > +
+> > >  static void __exit acpi_processor_exit(void)
 > > >  {
-> > >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
-> > > @@ -771,7 +767,6 @@ void acpi_processor_install_hotplug_notify(void)
-> > >  	register_hotcpu_notifier(&acpi_cpu_notifier);
+> > >  	if (acpi_disabled)
+> > > @@ -820,9 +844,8 @@ static void __exit acpi_processor_exit(void)
+> > >
+> > >  	acpi_processor_uninstall_hotplug_notify();
+> > >
+> > > -	acpi_bus_unregister_driver(&acpi_processor_driver);
+> > > -
+> > > -	cpuidle_unregister_driver(&acpi_idle_driver);
+> > > +	if (__acpi_processor_unregister_driver)
+> > > +		__acpi_processor_unregister_driver();
+> > >
+> > >  	return;
 > > >  }
-> > >
-> > > -static
-> > >  void acpi_processor_uninstall_hotplug_notify(void)
-> > >  {
-> > >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
-> > > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> > > index 85b3237..22c6195 100644
-> > > --- a/drivers/acpi/processor_perflib.c
-> > > +++ b/drivers/acpi/processor_perflib.c
-> > > @@ -386,7 +386,7 @@ static int
-> > acpi_processor_get_performance_states(struct acpi_processor *pr)
-> > >  	return result;
-> > >  }
-> > >
-> > > -static int acpi_processor_get_performance_info(struct acpi_processor *pr)
-> > > +int acpi_processor_get_performance_info(struct acpi_processor *pr)
-> > >  {
-> > >  	int result = 0;
-> > >  	acpi_status status = AE_OK;
-> > > @@ -492,7 +492,7 @@ int acpi_processor_notify_smm(struct module
-> > *calling_module)
-> > >
-> > >  EXPORT_SYMBOL(acpi_processor_notify_smm);
-> > >
-> > > -static int acpi_processor_get_psd(struct acpi_processor	*pr)
-> > > +int acpi_processor_get_psd(struct acpi_processor	*pr)
-> > >  {
-> > >  	int result = 0;
-> > >  	acpi_status status = AE_OK;
 > > > diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> > > index 610f6fb..12657bb 100644
+> > > index bd99fb6..969cbc9 100644
 > > > --- a/include/acpi/processor.h
 > > > +++ b/include/acpi/processor.h
-> > > @@ -239,6 +239,12 @@ extern void
-> > acpi_processor_unregister_performance(struct
-> > >           if a _PPC object exists, rmmod is disallowed then */
-> > >  int acpi_processor_notify_smm(struct module *calling_module);
+> > > @@ -225,6 +225,9 @@ struct acpi_processor_errata {
+> > >  	} piix4;
+> > >  };
 > > >
-> > > +void acpi_processor_install_hotplug_notify(void);
-> > > +void acpi_processor_uninstall_hotplug_notify(void);
+> > > +extern int (*__acpi_processor_register_driver)(void);
+> > > +extern void (*__acpi_processor_unregister_driver)(void);
 > > > +
-> > > +int acpi_processor_add(struct acpi_device *device);
-> > > +int acpi_processor_remove(struct acpi_device *device, int type);
-> > > +void acpi_processor_notify(struct acpi_device *device, u32 event);
-> > >  /* for communication between multiple parts of the processor kernel
-> > module */
-> > >  DECLARE_PER_CPU(struct acpi_processor *, processors);
-> > >  extern struct acpi_processor_errata errata;
-> > > @@ -278,7 +284,9 @@ static inline void
-> > acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
-> > >  void acpi_processor_ppc_init(void);
-> > >  void acpi_processor_ppc_exit(void);
-> > >  int acpi_processor_ppc_has_changed(struct acpi_processor *pr, int
-> > event_flag);
-> > > -extern int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
-> > > +int acpi_processor_get_performance_info(struct acpi_processor *pr);
-> > > +int acpi_processor_get_psd(struct acpi_processor *pr);
-> > > +int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
-> > >  #else
-> > >  static inline void acpi_processor_ppc_init(void)
-> > >  {
+> > >  extern int acpi_processor_preregister_performance(struct
+> > >  						  acpi_processor_performance
+> > >  						  __percpu *performance);
+> > > @@ -242,7 +245,8 @@ int acpi_processor_notify_smm(struct module
+> > *calling_module);
+> > >
+> > >  void acpi_processor_install_hotplug_notify(void);
+> > >  void acpi_processor_uninstall_hotplug_notify(void);
+> > > -
+> > > +int acpi_processor_register_driver(void);
+> > > +void acpi_processor_unregister_driver(void);
+> > >  int acpi_processor_add(struct acpi_device *device);
+> > >  int acpi_processor_remove(struct acpi_device *device, int type);
+> > >  void acpi_processor_notify(struct acpi_device *device, u32 event);
 > > > --
 > > > 1.7.7.3
 > 
