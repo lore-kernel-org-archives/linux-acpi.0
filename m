@@ -1,47 +1,184 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: RE: [RFC][PATCH]ACPI,APEI,ERST, back end driver for NVRAM
-Date: Mon, 19 Dec 2011 09:24:29 +0800
-Message-ID: <1324257869.4639.1.camel@yhuang-dev>
-References: <5C4C569E8A4B9B42A84A977CF070A35B2C57AC8046@USINDEVS01.corp.hds.com>
-	 <1321581563.13860.111.camel@yhuang-dev>
-	 <5C4C569E8A4B9B42A84A977CF070A35B2C57B4FA66@USINDEVS01.corp.hds.com>
-	 <1321836227.13860.121.camel@yhuang-dev>
-	 <5C4C569E8A4B9B42A84A977CF070A35B2C57F7ADB5@USINDEVS01.corp.hds.com>
+From: "Tian, Kevin" <kevin.tian@intel.com>
+Subject: Re: [PATCH 1/8] ACPI: processor: export necessary
+	interfaces
+Date: Mon, 19 Dec 2011 13:43:01 +0800
+Message-ID: <625BA99ED14B2D499DC4E29D8138F1506E01AABC72@shsmsx502.ccr.corp.intel.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+	<1322673664-14642-2-git-send-email-konrad.wilk@oracle.com>
+	<20111216213345.GA9832@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3594 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752053Ab1LSBYc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Dec 2011 20:24:32 -0500
-In-Reply-To: <5C4C569E8A4B9B42A84A977CF070A35B2C57F7ADB5@USINDEVS01.corp.hds.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <xen-devel-bounces@lists.xensource.com>
+In-Reply-To: <20111216213345.GA9832@phenom.dumpdata.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.xensource.com/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>
+Cc: "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "konrad@kernel.org" <konrad@kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Seiji Aguchi <seiji.aguchi@hds.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Chen, Gong" <gong.chen@intel.com>, Matthew Garrett <mjg@redhat.com>, "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-On Fri, 2011-12-16 at 00:03 +0800, Seiji Aguchi wrote:
-> Hi,
+> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> Sent: Saturday, December 17, 2011 5:34 AM
 > 
+> On Wed, Nov 30, 2011 at 12:20:57PM -0500, Konrad Rzeszutek Wilk wrote:
+> > From: Kevin Tian <kevin.tian@intel.com>
 > >
-> >No.  I have different understanding.
-> >
-> >Because error log address range resides in NVRAM, the contents will be
-> >reserved even after reboot.  So we do not need read/clear operations at
-> >all, and should place all records in error log address range.
+> > This patch export some necessary functions which parse processor
+> > power management information. The Xen ACPI processor driver uses them.
 > 
-> I have a quick question about your comment above.
-> Do you know whether this optimization of read/clear operations works 
-> on machines which APEI is enabled by WHEA _OSC call?
+> I was wondering if it could be done by moving a bunch of these
+> functions in the processor_perflib.c, but there is a lot of code
+> that would have to be moved. Way too much.
+> 
+> Perhaps another, and a nicer way would be to:
+> 
+>  1). Create a processor_driver_lib.c which would have the "generic" code
+>  2). In the processor_driver just keep the essential notifications, andk
+>      the hotplug code
+>  3). The introduce the other user of the acpi_processor_[add|remove|notify]
+>      calls as a seperate library?
+> 
+> Thoughts?
 
-I have no machine with
+that's a cleaner approach in the long term view IMO, though it incurs more changes
+into current code base. 
 
-!!(erst_erange.attr & ERST_RANGE_NVRAM) == 1
+Thanks
+Kevin
 
-Do you have?
-
-Best Regards,
-Huang Ying
-
-
+> >
+> > Signed-off-by: Yu Ke <ke.yu@intel.com>
+> > Signed-off-by: Tian Kevin <kevin.tian@intel.com>
+> > Signed-off-by: Tang Liang <liang.tang@oracle.com>
+> > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> > ---
+> >  drivers/acpi/processor_driver.c  |   11 +++--------
+> >  drivers/acpi/processor_perflib.c |    4 ++--
+> >  include/acpi/processor.h         |   10 +++++++++-
+> >  3 files changed, 14 insertions(+), 11 deletions(-)
+> >
+> > diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> > index 9d7bc9f..211c078 100644
+> > --- a/drivers/acpi/processor_driver.c
+> > +++ b/drivers/acpi/processor_driver.c
+> > @@ -79,9 +79,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+> >  MODULE_DESCRIPTION("ACPI Processor Driver");
+> >  MODULE_LICENSE("GPL");
+> >
+> > -static int acpi_processor_add(struct acpi_device *device);
+> > -static int acpi_processor_remove(struct acpi_device *device, int type);
+> > -static void acpi_processor_notify(struct acpi_device *device, u32 event);
+> >  static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int
+> *p_cpu);
+> >  static int acpi_processor_handle_eject(struct acpi_processor *pr);
+> >
+> > @@ -378,7 +375,7 @@ static int acpi_processor_get_info(struct acpi_device
+> *device)
+> >
+> >  static DEFINE_PER_CPU(void *, processor_device_array);
+> >
+> > -static void acpi_processor_notify(struct acpi_device *device, u32 event)
+> > +void acpi_processor_notify(struct acpi_device *device, u32 event)
+> >  {
+> >  	struct acpi_processor *pr = acpi_driver_data(device);
+> >  	int saved;
+> > @@ -442,7 +439,7 @@ static struct notifier_block acpi_cpu_notifier =
+> >  	    .notifier_call = acpi_cpu_soft_notify,
+> >  };
+> >
+> > -static int __cpuinit acpi_processor_add(struct acpi_device *device)
+> > +int __cpuinit acpi_processor_add(struct acpi_device *device)
+> >  {
+> >  	struct acpi_processor *pr = NULL;
+> >  	int result = 0;
+> > @@ -545,7 +542,7 @@ err_free_cpumask:
+> >  	return result;
+> >  }
+> >
+> > -static int acpi_processor_remove(struct acpi_device *device, int type)
+> > +int acpi_processor_remove(struct acpi_device *device, int type)
+> >  {
+> >  	struct acpi_processor *pr = NULL;
+> >
+> > @@ -758,7 +755,6 @@ static int acpi_processor_handle_eject(struct
+> acpi_processor *pr)
+> >  }
+> >  #endif
+> >
+> > -static
+> >  void acpi_processor_install_hotplug_notify(void)
+> >  {
+> >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> > @@ -771,7 +767,6 @@ void acpi_processor_install_hotplug_notify(void)
+> >  	register_hotcpu_notifier(&acpi_cpu_notifier);
+> >  }
+> >
+> > -static
+> >  void acpi_processor_uninstall_hotplug_notify(void)
+> >  {
+> >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> > diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> > index 85b3237..22c6195 100644
+> > --- a/drivers/acpi/processor_perflib.c
+> > +++ b/drivers/acpi/processor_perflib.c
+> > @@ -386,7 +386,7 @@ static int
+> acpi_processor_get_performance_states(struct acpi_processor *pr)
+> >  	return result;
+> >  }
+> >
+> > -static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+> > +int acpi_processor_get_performance_info(struct acpi_processor *pr)
+> >  {
+> >  	int result = 0;
+> >  	acpi_status status = AE_OK;
+> > @@ -492,7 +492,7 @@ int acpi_processor_notify_smm(struct module
+> *calling_module)
+> >
+> >  EXPORT_SYMBOL(acpi_processor_notify_smm);
+> >
+> > -static int acpi_processor_get_psd(struct acpi_processor	*pr)
+> > +int acpi_processor_get_psd(struct acpi_processor	*pr)
+> >  {
+> >  	int result = 0;
+> >  	acpi_status status = AE_OK;
+> > diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> > index 610f6fb..12657bb 100644
+> > --- a/include/acpi/processor.h
+> > +++ b/include/acpi/processor.h
+> > @@ -239,6 +239,12 @@ extern void
+> acpi_processor_unregister_performance(struct
+> >           if a _PPC object exists, rmmod is disallowed then */
+> >  int acpi_processor_notify_smm(struct module *calling_module);
+> >
+> > +void acpi_processor_install_hotplug_notify(void);
+> > +void acpi_processor_uninstall_hotplug_notify(void);
+> > +
+> > +int acpi_processor_add(struct acpi_device *device);
+> > +int acpi_processor_remove(struct acpi_device *device, int type);
+> > +void acpi_processor_notify(struct acpi_device *device, u32 event);
+> >  /* for communication between multiple parts of the processor kernel
+> module */
+> >  DECLARE_PER_CPU(struct acpi_processor *, processors);
+> >  extern struct acpi_processor_errata errata;
+> > @@ -278,7 +284,9 @@ static inline void
+> acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
+> >  void acpi_processor_ppc_init(void);
+> >  void acpi_processor_ppc_exit(void);
+> >  int acpi_processor_ppc_has_changed(struct acpi_processor *pr, int
+> event_flag);
+> > -extern int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
+> > +int acpi_processor_get_performance_info(struct acpi_processor *pr);
+> > +int acpi_processor_get_psd(struct acpi_processor *pr);
+> > +int acpi_processor_get_bios_limit(int cpu, unsigned int *limit);
+> >  #else
+> >  static inline void acpi_processor_ppc_init(void)
+> >  {
+> > --
+> > 1.7.7.3
