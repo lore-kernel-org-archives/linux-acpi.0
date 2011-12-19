@@ -1,168 +1,84 @@
-From: "Tian, Kevin" <kevin.tian@intel.com>
-Subject: RE: [PATCH 3/8] ACPI: processor: add
- __acpi_processor_[un]register_driver helpers.
-Date: Mon, 19 Dec 2011 13:48:01 +0800
-Message-ID: <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
- <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com>
- <20111216220342.GC9832@phenom.dumpdata.com>
+From: liang tang <liang.tang@oracle.com>
+Subject: Re: [PATCH 4/8] ACPI: processor: Don't setup cpu idle driver and
+ handler when we do not want them.
+Date: Mon, 19 Dec 2011 18:33:01 +0800
+Message-ID: <4EEF12DD.2020308@oracle.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-5-git-send-email-konrad.wilk@oracle.com> <20111216213618.GB9832@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7732 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751262Ab1LSFs7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2011 00:48:59 -0500
-In-Reply-To: <20111216220342.GC9832@phenom.dumpdata.com>
-Content-Language: en-US
+Received: from rcsinet15.oracle.com ([148.87.113.117]:47759 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408Ab1LSKd0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2011 05:33:26 -0500
+In-Reply-To: <20111216213618.GB9832@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "jeremy@goop.org" <jeremy@goop.org>, "konrad@kernel.org" <konrad@kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "liang.tang@oracle.com" <liang.tang@oracle.com>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl, xen-devel@lists.xensource.com, jeremy@goop.org, konrad@kernel.org, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com
 
-> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> Sent: Saturday, December 17, 2011 6:04 AM
-> 
-> On Wed, Nov 30, 2011 at 12:20:59PM -0500, Konrad Rzeszutek Wilk wrote:
-> > From: Tang Liang <liang.tang@oracle.com>
-> >
-> > This patch implement __acpi_processor_[un]register_driver helper,
-> > so we can registry override processor driver function. Specifically
-> > the Xen processor driver.
-> 
-> Liang,
-> 
-> Is the reason we are doing this b/c we need to call acpi_bus_register_driver
-> and inhibit the registration of 'acpi_processor_driver' ?
-> 
-> And the reason we don't want 'acpi_processor_driver' to run is b/c of what?
-> If the cpuidle is disabled what is the harm of running the
-> 'acpi_processor_driver'
-> driver?
+On 2011-12-17 5:36, Konrad Rzeszutek Wilk wrote:
+> On Wed, Nov 30, 2011 at 12:21:00PM -0500, Konrad Rzeszutek Wilk wrote:
+>> From: Kevin Tian<kevin.tian@intel.com>
+>>
+>> This patch inhibits processing of the CPU idle handler if it is not
+>> set to the appropiate one. This is needed by the Xen processor driver
+>> which, while still needing processor details, wants to use the default_idle
+>> call (which makes a yield hypercall).
+> Which I think is not required anymore with the d91ee5863b71e8c90eaf6035bff3078a85e2e7b5
+> (cpuidle: replace xen access to x86 pm_idle and default_idle) and
+> 62027aea23fcd14478abdddd3b74a4e0f5fb2984
+> (cpuidle: create bootparam "cpuidle.off=1")
+>
+> Liang, can you double-check that please?
+>
+Hi,Konrad
+I just read the code ,I think  don't need that code too. I will double 
+check tomorrow.
+thanks
+liang
 
-IIRC, the reason why we want a Xen specific driver is because current driver
-is integrated with OS logic too tightly, e.g. the various checks on VCPU related
-structures. Long time ago the 1st version in Xen was to use same driver, by
-adding various tweaking lines inside which makes it completely messed. Then
-later it's found that it's clearer to create a Xen specific wrapping driver, by 
-invoking some exported functions from existing one.
-
-Thanks
-Kevin
-
-> 
-> >
-> > By default the values are set to the native one.
-> >
-> > Signed-off-by: Tang Liang <liang.tang@oracle.com>
-> > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> > ---
-> >  drivers/acpi/processor_driver.c |   35
-> +++++++++++++++++++++++++++++------
-> >  include/acpi/processor.h        |    6 +++++-
-> >  2 files changed, 34 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> > index 211c078..55f0b89 100644
-> > --- a/drivers/acpi/processor_driver.c
-> > +++ b/drivers/acpi/processor_driver.c
-> > @@ -90,6 +90,11 @@ static const struct acpi_device_id
-> processor_device_ids[] = {
-> >  };
-> >  MODULE_DEVICE_TABLE(acpi, processor_device_ids);
-> >
-> > +int (*__acpi_processor_register_driver)(void) =
-> acpi_processor_register_driver;
-> > +void (*__acpi_processor_unregister_driver)(void) \
-> > +	= acpi_processor_unregister_driver;
-> > +
-> > +
-> >  static struct acpi_driver acpi_processor_driver = {
-> >  	.name = "processor",
-> >  	.class = ACPI_PROCESSOR_CLASS,
-> > @@ -779,6 +784,22 @@ void acpi_processor_uninstall_hotplug_notify(void)
-> >  	unregister_hotcpu_notifier(&acpi_cpu_notifier);
-> >  }
-> >
-> > +int acpi_processor_register_driver(void)
-> > +{
-> > +	int result = 0;
-> > +
-> > +	result = acpi_bus_register_driver(&acpi_processor_driver);
-> > +	return result;
-> > +}
-> > +
-> > +void acpi_processor_unregister_driver(void)
-> > +{
-> > +	acpi_bus_unregister_driver(&acpi_processor_driver);
-> > +
-> > +	cpuidle_unregister_driver(&acpi_idle_driver);
-> > +
-> > +	return;
-> > +}
-> >  /*
-> >   * We keep the driver loaded even when ACPI is not running.
-> >   * This is needed for the powernow-k8 driver, that works even without
-> > @@ -794,9 +815,11 @@ static int __init acpi_processor_init(void)
-> >
-> >  	memset(&errata, 0, sizeof(errata));
-> >
-> > -	result = acpi_bus_register_driver(&acpi_processor_driver);
-> > -	if (result < 0)
-> > -		return result;
-> > +	if (__acpi_processor_register_driver) {
-> > +		result = __acpi_processor_register_driver();
-> > +		if (result < 0)
-> > +			return result;
-> > +	}
-> >
-> >  	acpi_processor_install_hotplug_notify();
-> >
-> > @@ -809,6 +832,7 @@ static int __init acpi_processor_init(void)
-> >  	return 0;
-> >  }
-> >
-> > +
-> >  static void __exit acpi_processor_exit(void)
-> >  {
-> >  	if (acpi_disabled)
-> > @@ -820,9 +844,8 @@ static void __exit acpi_processor_exit(void)
-> >
-> >  	acpi_processor_uninstall_hotplug_notify();
-> >
-> > -	acpi_bus_unregister_driver(&acpi_processor_driver);
-> > -
-> > -	cpuidle_unregister_driver(&acpi_idle_driver);
-> > +	if (__acpi_processor_unregister_driver)
-> > +		__acpi_processor_unregister_driver();
-> >
-> >  	return;
-> >  }
-> > diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> > index bd99fb6..969cbc9 100644
-> > --- a/include/acpi/processor.h
-> > +++ b/include/acpi/processor.h
-> > @@ -225,6 +225,9 @@ struct acpi_processor_errata {
-> >  	} piix4;
-> >  };
-> >
-> > +extern int (*__acpi_processor_register_driver)(void);
-> > +extern void (*__acpi_processor_unregister_driver)(void);
-> > +
-> >  extern int acpi_processor_preregister_performance(struct
-> >  						  acpi_processor_performance
-> >  						  __percpu *performance);
-> > @@ -242,7 +245,8 @@ int acpi_processor_notify_smm(struct module
-> *calling_module);
-> >
-> >  void acpi_processor_install_hotplug_notify(void);
-> >  void acpi_processor_uninstall_hotplug_notify(void);
-> > -
-> > +int acpi_processor_register_driver(void);
-> > +void acpi_processor_unregister_driver(void);
-> >  int acpi_processor_add(struct acpi_device *device);
-> >  int acpi_processor_remove(struct acpi_device *device, int type);
-> >  void acpi_processor_notify(struct acpi_device *device, u32 event);
-> > --
-> > 1.7.7.3
+>> Signed-off-by: Yu Ke<ke.yu@intel.com>
+>> Signed-off-by: Tian Kevin<kevin.tian@intel.com>
+>> Signed-off-by: Tang Liang<liang.tang@oracle.com>
+>> Signed-off-by: Konrad Rzeszutek Wilk<konrad.wilk@oracle.com>
+>> ---
+>>   drivers/acpi/processor_idle.c |    8 +++++---
+>>   1 files changed, 5 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+>> index d88974a..0ad347f 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+>> @@ -1127,7 +1127,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
+>>   	cpuidle_pause_and_lock();
+>>   	cpuidle_disable_device(&pr->power.dev);
+>>   	acpi_processor_get_power_info(pr);
+>> -	if (pr->flags.power) {
+>> +	if (pr->flags.power&&  (cpuidle_get_driver() ==&acpi_idle_driver)) {
+>>   		acpi_processor_setup_cpuidle_cx(pr);
+>>   		ret = cpuidle_enable_device(&pr->power.dev);
+>>   	}
+>> @@ -1183,7 +1183,8 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+>>   			if (!_pr || !_pr->flags.power_setup_done)
+>>   				continue;
+>>   			acpi_processor_get_power_info(_pr);
+>> -			if (_pr->flags.power) {
+>> +			if (_pr->flags.power&&  (cpuidle_get_driver()
+>> +						==&acpi_idle_driver)) {
+>>   				acpi_processor_setup_cpuidle_cx(_pr);
+>>   				cpuidle_enable_device(&_pr->power.dev);
+>>   			}
+>> @@ -1237,7 +1238,8 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+>>   	 * Note that we use previously set idle handler will be used on
+>>   	 * platforms that only support C1.
+>>   	 */
+>> -	if (pr->flags.power) {
+>> +	if (pr->flags.power&&  (__acpi_processor_register_driver ==
+>> +				acpi_processor_register_driver)) {
+>>   		/* Register acpi_idle_driver if not already registered */
+>>   		if (!acpi_processor_registered) {
+>>   			acpi_processor_setup_cpuidle_states(pr);
+>> -- 
+>> 1.7.7.3
