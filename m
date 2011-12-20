@@ -1,104 +1,194 @@
-From: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add __acpi_processor_[un]register_driver helpers.
-Date: Tue, 20 Dec 2011 11:31:45 -0400
-Message-ID: <20111220153145.GB13253@andromeda.dapyr.net>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com> <20111216220342.GC9832@phenom.dumpdata.com> <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com> <20111219142626.GB27772@andromeda.dapyr.net> <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: 3.2-rc6+: Reported regressions from 3.0 and 3.1
+Date: Wed, 21 Dec 2011 00:39:13 +0100
+Message-ID: <201112210039.14100.linux-pm-bounces@lists.linux-foundation.org>
+References: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from andromeda.dapyr.net ([206.212.254.10]:32875 "EHLO
-	andromeda.dapyr.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751414Ab1LTPcO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Dec 2011 10:32:14 -0500
-Content-Disposition: inline
-In-Reply-To: <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Kernel Testers List <kernel-testers@vger.kernel.org>
+Cc: Linux SCSI List <linux-scsi@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Network Development <netdev@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Tian, Kevin" <kevin.tian@intel.com>
-Cc: "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Tue, Dec 20, 2011 at 10:29:12AM +0800, Tian, Kevin wrote:
-> > From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
-> > Sent: Monday, December 19, 2011 10:26 PM
-> > 
-> > On Mon, Dec 19, 2011 at 01:48:01PM +0800, Tian, Kevin wrote:
-> > > > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> > > > Sent: Saturday, December 17, 2011 6:04 AM
-> > > >
-> > > > On Wed, Nov 30, 2011 at 12:20:59PM -0500, Konrad Rzeszutek Wilk wrote:
-> > > > > From: Tang Liang <liang.tang@oracle.com>
-> > > > >
-> > > > > This patch implement __acpi_processor_[un]register_driver helper,
-> > > > > so we can registry override processor driver function. Specifically
-> > > > > the Xen processor driver.
-> > > >
-> > > > Liang,
-> > > >
-> > > > Is the reason we are doing this b/c we need to call acpi_bus_register_driver
-> > > > and inhibit the registration of 'acpi_processor_driver' ?
-> > > >
-> > > > And the reason we don't want 'acpi_processor_driver' to run is b/c of what?
-> > > > If the cpuidle is disabled what is the harm of running the
-> > > > 'acpi_processor_driver'
-> > > > driver?
-> > >
-> > > IIRC, the reason why we want a Xen specific driver is because current driver
-> > > is integrated with OS logic too tightly, e.g. the various checks on VCPU related
-> > > structures. Long time ago the 1st version in Xen was to use same driver, by
-> > > adding various tweaking lines inside which makes it completely messed. Then
-> > > later it's found that it's clearer to create a Xen specific wrapping driver, by
-> > > invoking some exported functions from existing one.
-> > 
-> > What I am asking is does it matter "if the current driver is integrated
-> > with OS logic to tighly" - as it is not running anyhow (b/c cpuidle is
-> > disabled).
-> > 
-> > And if Xen specific driver can run along-side the generic one - since
-> > the generic one is not doing any work (b/c cpuidle is disabled).
-> > 
-> > That is what I am trying to figure out - since this patch purpose is to
-> > thwart the generic driver from running and allowing the xen one to run.
-> 
-> It's a separate issue from cpuidle case. Here we're talking about acpi processor
-> driver, not the acpi cpuidle driver. ACPI processor driver is responsible for 
-> discovering ACPI processor projects, and then enumerate various methods 
-> such as _PPC, _CST, etc. under those objects. So far this driver depends on 
-> VCPU presence in various places, which causes trouble when dom0 is configured
-> with less VCPU number than physical present one.
-> 
-> One example you can see from acpi_processor_add:
-> 
->         result = acpi_processor_get_info(device); // call acpi_get_cpuid
->         if (result) {
->                 /* Processor is physically not present */
->                 return 0;
->         }
-> 
-> #ifdef CONFIG_SMP
->         if (pr->id >= setup_max_cpus && pr->id != 0)
->                 return 0;
-> #endif 
-> 
->         BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
-> 
-> The binding between ACPI processor objects and VCPU presence would only parse
-> partial objects to Xen. And there're various places within driver validating pr->id
-> making it messy to workaround for Xen within same driver.
-> 
-> That's the major reason for coming up a Xen specific driver, which always parses
-> all present objects regardless of VCPU presence. :-)
-
-OK. Lets put the # VCPU != PCPU aside. Say dom0 will boot with all
-CPUs and then later on the admin starts unplugging them.
-
-With that in mind, could we use a slim driver (like the one in: "ACPI:
- add processor driver for Xen virtual CPUs.") that would just
-take the _Pxx, Cxx data and shove them to the hypervisor (handwaving
-aside the checking for quirks and such). And lets assume that we use the
-unmodified acpi_processor_[add|remove|notify] code that is present in
-processor_driver.c.
-
-Oh, and the processor-driver.c did try to load (with the understanding
-that it would load, but won't do much since cpuidle is turned off).
-
-Would that still get the Pxx, Cxx data to the hypervisor?
+W0knbSBzb3JyeSBpZiB5b3UgcmVjZWl2ZSB0aGlzIG1lc3NhZ2UgdHdpY2UsIEkgc2VlbSB0byBo
+YXZlIHByb2JsZW1zIHdpdGgKc2VuZGluZyBpdC5dCgpUaGlzIG1lc3NhZ2UgY29udGFpbnMgYSBs
+aXN0IG9mIHNvbWUgcmVncmVzc2lvbnMgZnJvbSAzLjAgYW5kIDMuMQpmb3Igd2hpY2ggdGhlcmUg
+YXJlIG5vIGZpeGVzIGluIHRoZSBtYWlubGluZSBrbm93biB0byB0aGUgdHJhY2tpbmcgdGVhbS4K
+SWYgYW55IG9mIHRoZW0gaGF2ZSBiZWVuIGZpeGVkIGFscmVhZHksIHBsZWFzZSBsZXQgdXMga25v
+dy4KCklmIHlvdSBrbm93IG9mIGFueSBvdGhlciB1bnJlc29sdmVkIHJlZ3Jlc3Npb25zIGZyb20g
+My4wIGFuZCAzLjEsIHBsZWFzZSBsZXQgdXMKa25vdyBlaXRoZXIgYW5kIHdlJ2xsIGFkZCB0aGVt
+IHRvIHRoZSBsaXN0LiAgQWxzbywgcGxlYXNlIGxldCB1cyBrbm93IGlmIGFueSBvZgp0aGUgZW50
+cmllcyBiZWxvdyBhcmUgaW52YWxpZC4KClRoZSBlbnRyaWVzIGJlbG93IGFyZSBzaW1wbGlmaWVk
+IGFuZCB0aGUgc3RhdGlzdGljcyBhcmUgbm90IHByZXNlbnQgZHVlIHRvIHRoZQpjb250aW51aW5n
+IEJ1Z3ppbGxhIG91dGFnZS4KCgpTdWJqZWN0ICAgIDogaXdsYWduIGlzIGdldHRpbmcgdmVyeSBz
+aGFreQpTdWJtaXR0ZXIgIDogTm9yYmVydCBQcmVpbmluZyA8cHJlaW5pbmdAbG9naWMuYXQ+CkRh
+dGUgICAgICAgOiAyMDExLTEwLTE5IDY6MDEKTWVzc2FnZS1JRCA6IDIwMTExMDE5MDYwMTA4LkdB
+MTE1ODhAZ2FtbWEubG9naWMudHV3aWVuLmFjLmF0ClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5p
+bmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMTkxNDU1MzkyMDYxNCZ3PTIKClN1YmplY3QgICAgOiBS
+ZWdyZXNzaW9uOiAiaXJxcG9sbCIgaGFzbid0IGJlZW4gd29ya2luZyBmb3IgbWUgc2luY2UgTWFy
+Y2ggMTYgSVJRClN1Ym1pdHRlciAgOiBFZHdhcmQgRG9ub3ZhbiA8ZWR3YXJkLmRvbm92YW5AbnVt
+YmxlLm5ldD4KRGF0ZSAgICAgICA6IDIwMTEtMTAtMTkgMjI6MDkKTWVzc2FnZS1JRCA6IENBRGRi
+VytIWGRDUGZKdTJSVEY2enordWpDbWl1X2RtWndMMmlTY3VGNTNwPUFhWjFVd0BtYWlsLmdtYWls
+LmNvbQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzE5
+MTQ1NTQyMjA2Nzkmdz0yCgpTdWJqZWN0ICAgIDogMy4xKyBpd2x3aWZpIGxvY2t1cApTdWJtaXR0
+ZXIgIDogRGF2ZSBKb25lcyA8ZGF2ZWpAcmVkaGF0LmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTAt
+MzEgMTQ6MzQKTWVzc2FnZS1JRCA6IDIwMTExMDMxMTQzNDA4LkdBMTcxNTJAcmVkaGF0LmNvbQpS
+ZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIwMDcxNjk0
+MjAxNjAmdz0yCgpTdWJqZWN0ICAgIDogTGludXMgR0lUIC0gSU5GTzogcG9zc2libGUgY2lyY3Vs
+YXIgbG9ja2luZyBkZXBlbmRlbmN5IGRldGVjdGVkClN1Ym1pdHRlciAgOiBNaWxlcyBMYW5lIDxt
+aWxlcy5sYW5lQGdtYWlsLmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMDMgMTU6NTcKTWVzc2Fn
+ZS1JRCA6IENBSEZnUnk4UzB4TGZoWnhUVU9FSDVBMFBMX0ZiNzktMC1nbWJRPTloMkQteE1xdDFo
+QUBtYWlsLmdtYWlsLmNvbQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1r
+ZXJuZWwmbT0xMzIwMzM1ODc5MDg0MjYmdz0yCgpTdWJqZWN0ICAgIDogRE1BLUFQSSBjaGVja19z
+eW5jIGVycm9ycyB3aXRoIDMuMgpTdWJtaXR0ZXIgIDogSm9zaCBCb3llciA8andib3llckByZWRo
+YXQuY29tPgpEYXRlICAgICAgIDogMjAxMS0xMS0wOCAxNzozMQpNZXNzYWdlLUlEIDogMjAxMTEx
+MDgxNzMxNTMuR0UxNDIxNkB6b2QuYm9zLnJlZGhhdC5jb20KUmVmZXJlbmNlcyA6IGh0dHA6Ly9t
+YXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMDc3MzU3NjA4Nzk3Jnc9MgoKU3ViamVjdCAg
+ICA6IDMuMi1yYzEgZG9lc24ndCBib290IG9uIGR1YWwgc29ja2V0IG9wdGVyb24gd2l0aG91dCBz
+d2FwClN1Ym1pdHRlciAgOiBOaWtsYXMgU2NobmVsbGUgPG5pa2xhc0Brb21hbmkuZGU+CkRhdGUg
+ICAgICAgOiAyMDExLTExLTEwIDIwOjA5Ck1lc3NhZ2UtSUQgOiAxMzIwOTU1NzY5LjE3MTguOC5j
+YW1lbEBqdXBpdGVyClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5l
+bCZtPTEzMjA5NTU4MzUwMTc2NyZ3PTIKClN1YmplY3QgICAgOiBTcGFyYy0zMiBkb2Vzbid0IHdv
+cmsgaW4gMy4xLgpTdWJtaXR0ZXIgIDogUm9iIExhbmRsZXkgPHJvYkBsYW5kbGV5Lm5ldD4KRGF0
+ZSAgICAgICA6IDIwMTEtMTEtMTIgMTE6MjIKTWVzc2FnZS1JRCA6IDRFQkVBQjVBLjUwMjA4MDlA
+bGFuZGxleS5uZXQKUmVmZXJlbmNlcyA6IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva2Vy
+bmVsL21zZzEyNjAzODMuaHRtbAoKU3ViamVjdCAgICA6IFdBUk5JTkc6IGF0IGZzL3N5c2ZzL3N5
+c2ZzLmg6MTk1IChkdXJpbmcgYm9vdCkKU3VibWl0dGVyICA6IE1hcmt1cyBUcmlwcGVsc2RvcmYg
+PG1hcmt1c0B0cmlwcGVsc2RvcmYuZGU+CkRhdGUgICAgICAgOiAyMDExLTExLTEzIDE5OjI0Ck1l
+c3NhZ2UtSUQgOiAyMDExMTExMzE5MjQxNy5HQTE2NTlAeDQudHJpcHBlbHMuZGUKUmVmZXJlbmNl
+cyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMTIxMjMxOTIxOTMyJnc9
+MgoKU3ViamVjdCAgICA6IG1heCBQV00gaXMgemVybwpTdWJtaXR0ZXIgIDogTWFyY29zIFBhdWxv
+IGRlIFNvdXphIDxtYXJjb3MubWFnZUBnbWFpbC5jb20+CkRhdGUgICAgICAgOiAyMDExLTExLTE1
+IDE1OjE0Ck1lc3NhZ2UtSUQgOiBhbHBpbmUuTE5YLjIuMDAuMTExMTE1MTMwMTQxMC4yNjkzQGRh
+cmtzdGFyLmV4YW1wbGUubmV0ClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
+LWtlcm5lbCZtPTEzMjEzNzAxOTMzMDU0OCZ3PTIKClN1YmplY3QgICAgOiBPb3BzIG9uIHN1c3Bl
+bmQgd2l0aCBsaWJlcnRhcyBTRElPIChMaW51eCAzLjItcmMyKQpTdWJtaXR0ZXIgIDogU3ZlbiBO
+ZXVtYW5uIDxzLm5ldW1hbm5AcmF1bWZlbGQuY29tPgpEYXRlICAgICAgIDogMjAxMS0xMS0xNyAx
+NTozNgpNZXNzYWdlLUlEIDogMTMyMTU0NDIxMC4zMTA5MC42LmNhbWVsQHN2ZW4KUmVmZXJlbmNl
+cyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMTU0NTI3NzE1ODA3Jnc9
+MgoKU3ViamVjdCAgICA6IEltcG9zc2libGUgaGlnaCBjcHUtdGltZSB2YWx1ZXMgZm9yIG1pZ3Jh
+dGlvbiB0aHJlYWRzClN1Ym1pdHRlciAgOiBNYXJrdXMgVHJpcHBlbHNkb3JmIDxtYXJrdXNAdHJp
+cHBlbHNkb3JmLmRlPgpEYXRlICAgICAgIDogMjAxMS0xMS0xNyAyMjoxNwpNZXNzYWdlLUlEIDog
+MjAxMTExMTcyMjE3MzEuR0E5MjI5QHg0LnRyaXBwZWxzLmRlClJlZmVyZW5jZXMgOiBodHRwOi8v
+bWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjE1NjgzMjEyNDMxNCZ3PTIKClN1YmplY3Qg
+ICAgOiBXQVJOSU5HOiBhdCBtbS9zbHViLmM6MzM1Nywga2VybmVsIEJVRyBhdCBtbS9zbHViLmM6
+MzQxMwpTdWJtaXR0ZXIgIDogTWFya3VzIFRyaXBwZWxzZG9yZiA8bWFya3VzQHRyaXBwZWxzZG9y
+Zi5kZT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMTggNzoyNQpNZXNzYWdlLUlEIDogMjAxMTExMTgw
+NzI1MTkuR0ExNjE1QHg0LnRyaXBwZWxzLmRlClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZv
+Lz9sPWxpbnV4LWtlcm5lbCZtPTEzMjE2MDExOTAzMTc5NCZ3PTIKClN1YmplY3QgICAgOiBbUkVH
+UkVTU0lPTl0gcmVzdW1lIHRha2VzIDEwcyBsb25nZXIgZHVlIHRvIGUxYjZlYjMgKEJsdWV0b290
+aDogSW5jcmVhc2UgSENJIHJlc2V0IHRpbWVvdXQgLi4uKQpTdWJtaXR0ZXIgIDogVG9tw6HFoSBK
+YW5vdcWhZWsgPHRvbWlAbm9taS5jej4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMTggMTg6NDAKTWVz
+c2FnZS1JRCA6IDIwMTExMTE4MTg0MDE3LkdBNTA1MkBub21pLmN6ClJlZmVyZW5jZXMgOiBodHRw
+Oi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjE2NDE2OTUxMTQxNiZ3PTIKClN1Ympl
+Y3QgICAgOiBbUkVHUkVTU0lPTl0gc3VkZGVuIGNwdSBob2dnaW5nIGluIGtlcm5lbCAzLjIgcmMt
+c2VyaWVzClN1Ym1pdHRlciAgOiAiTmljb2xhcyBLYWxraG9mIiA8bmthbGtob2ZAd2ViLmRlPgpE
+YXRlICAgICAgIDogMjAxMS0xMS0xOCAyMDozMwpNZXNzYWdlLUlEIDogNTA2Nzg2Njg5LjgxMDA0
+NC4xMzIxNjQ4Mzk1MjY1LkphdmFNYWlsLmZtYWlsQG13bXdlYjAxMApSZWZlcmVuY2VzIDogaHR0
+cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIxNjQ5MDkzMTM1OTQmdz0yCgpTdWJq
+ZWN0ICAgIDogQmlzZWN0ZWQgcmVncmVzc2lvbjogaGFuZyBvbiBpOTE1IGJldHdlZW4gMy4xLjAt
+cmM5IGFuZCAzLjEuMApTdWJtaXR0ZXIgIDogTWVlbGlzIFJvb3MgPG1yb29zQGxpbnV4LmVlPgpE
+YXRlICAgICAgIDogMjAxMS0xMS0yMiAxMDoxNQpNZXNzYWdlLUlEIDogYWxwaW5lLlNPQy4xLjAw
+LjExMTEyMjEyMDcwOTAuNjQ5MEBtYXRoLnV0LmVlClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5p
+bmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjE5NTcwMDAyMzcwOSZ3PTIKClN1YmplY3QgICAgOiAz
+LjItcmMyIHJlZ3Jlc3Npb246IGZsb3BweSBkcml2ZXIgYnJlYWtzIGJvb3QKU3VibWl0dGVyICA6
+IFBhdmVsIE1hY2hlayA8cGF2ZWxAdWN3LmN6PgpEYXRlICAgICAgIDogMjAxMS0xMS0yMiAxMTox
+NApNZXNzYWdlLUlEIDogMjAxMTExMjIxMTE0MDUuR0EyODIxNUBlbGYudWN3LmN6ClJlZmVyZW5j
+ZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjE5NjA1MjEyNDgwMSZ3
+PTIKClN1YmplY3QgICAgOiBbcmVncmVzc2lvbiAzLjEuMCAtPiAzLjIwcmNdIFVTQiBPb3BzClN1
+Ym1pdHRlciAgOiBOb3JiZXJ0IFByZWluaW5nIDxwcmVpbmluZ0Bsb2dpYy5hdD4KRGF0ZSAgICAg
+ICA6IDIwMTEtMTEtMjIgMTI6NTIKTWVzc2FnZS1JRCA6IDIwMTExMTIyMTI1MjU2LkdCMzI0NDBA
+Z2FtbWEubG9naWMudHV3aWVuLmFjLmF0ClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9s
+PWxpbnV4LWtlcm5lbCZtPTEzMjE5NjY0NDcyNjkwMCZ3PTIKClN1YmplY3QgICAgOiBGcmVlemlu
+ZyBvZiB0YXNrcyBmYWlsZWQgYWZ0ZXIgMjAuMDEgc2Vjb25kcyBpbiBrZXJuZWwgMy4yLjAtcmMy
+ClN1Ym1pdHRlciAgOiBCZWxpc2tvIE1hcmVrIDxtYXJlay5iZWxpc2tvQGdtYWlsLmNvbT4KRGF0
+ZSAgICAgICA6IDIwMTEtMTEtMjIgMjE6MjAKTWVzc2FnZS1JRCA6IApDQUFmeXYzNm54WXExRUEy
+cGNIaTVXUjFCZFdZSHAyc1FUWTFtTUE0UTNKamNPRzVSRHdAbWFpbC5nbWFpbC5jb20KUmVmZXJl
+bmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMTk5NjkxNzA2MTAw
+Jnc9MgoKU3ViamVjdCAgICA6IDMuMi4wLXJjMitnaXQ6IHBvc3NpYmxlIHJlY3Vyc2l2ZSBsb2Nr
+aW5nIGRldGVjdGVkIGluIHByb2Nlc3MgCm1lbW9yeSBmcmVlaW5nClN1Ym1pdHRlciAgOiBNZWVs
+aXMgUm9vcyA8bXJvb3NAbGludXguZWU+CkRhdGUgICAgICAgOiAyMDExLTExLTIzIDEzOjEyCk1l
+c3NhZ2UtSUQgOiBhbHBpbmUuU09DLjEuMDAuMTExMTIzMTMxMTQ5MC4xNTkzOUBtYXRoLnV0LmVl
+ClJlZmVyZW5jZXMgOiBodHRwOi8vbGttbC5vcmcvbGttbC8yMDExLzExLzIzLzE1OQoKU3ViamVj
+dCAgICA6IGk5MTU6IDMuMiByYzEvMiBLTVMgcmVncmVzc2lvbgpTdWJtaXR0ZXIgIDogUGF0cmlr
+IEt1bGxtYW4gPHBhdHJpay5rdWxsbWFuQGdtYWlsLmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTEt
+MjMgMjM6NDMKTWVzc2FnZS1JRCA6IENBR1BOPTlUSE92LQpNNFRkNGhhRTk0dURjc0FqVzNlR01H
+N2lvTGV1K3A4eFVPQlBkN3dAbWFpbC5nbWFpbC5jb20KUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJj
+LmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMjA5MTg2NDAzMjg4Jnc9MgoKU3ViamVjdCAgICA6
+IDMuMi1yYzI6IHJlZ3Jlc3Npb24gYWZ0ZXIgaGliZXJuYXRlOiBsb3RzIG9mIHdhcm5pbmdzLCBi
+cm9rZW4gCnN5c3RlbQpTdWJtaXR0ZXIgIDogUGF2ZWwgTWFjaGVrIDxwYXZlbEB1Y3cuY3o+CkRh
+dGUgICAgICAgOiAyMDExLTExLTI0IDE1OjQwCk1lc3NhZ2UtSUQgOiAyMDExMTEyNDE1NDAxNC5H
+QTIxNTNAZWxmLnVjdy5jegpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1r
+ZXJuZWwmbT0xMzIyMTQ5Mjk4MTgwMTUmdz0yCgpTdWJqZWN0ICAgIDogW3JlZ3Jlc3Npb25dIFdB
+Uk5JTkc6IGF0IGRyaXZlcnMvYmxvY2svZmxvcHB5LmM6MjkyOSAKZG9fZmRfcmVxdWVzdCsweGI3
+LzB4YjkoKSBpbiAzLjIuMC1yYzIgYW5kIDMKU3VibWl0dGVyICA6IFJhbGYgSGlsZGVicmFuZHQg
+PFJhbGYuSGlsZGVicmFuZHRAY2hhcml0ZS5kZT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMjUgMTA6
+MzQKTWVzc2FnZS1JRCA6IDIwMTExMTI1MTAzNDIwLkdPNDU4MUBjaGFyaXRlLmRlClJlZmVyZW5j
+ZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjIyMTc5OTUwMTY4NSZ3
+PTIKClN1YmplY3QgICAgOiBbQlVHXSAzLjItcmNYIHJhZGVvbiBLTVMgc3lzdGVtIGZyZWV6ZQpT
+dWJtaXR0ZXIgIDogQm9iIFRyYWN5IDxyY3RAZ2hlcmtpbi5mcnVzLmNvbT4KRGF0ZSAgICAgICA6
+IDIwMTEtMTEtMjUgMjA6MzMKTWVzc2FnZS1JRCA6IDIwMTExMTI1MjAzMzUxLkdBMzY1MUBnaGVy
+a2luLmZydXMuY29tClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5l
+bCZtPTEzMjIyNTMzMTMxMjAxOSZ3PTIKClN1YmplY3QgICAgOiAzLjItcmMyIHJlZ3Jlc3Npb24g
+ZHVlIHRvIGNvbW1pdCAiVVNCOiBFSENJOiBmaXggSFVCIFRUIHNjaGVkdWxpbmcgCmlzc3VlIHdp
+dGggaXNvIHRyYW5zZmVyIiA4MTFjOTI2YzUzOGY3ZThkM2MwOGI2MzBkZDU4NDRlZmQ3ZTAwMGY2
+ClN1Ym1pdHRlciAgOiBTYW5kZXIgRWlrZWxlbmJvb20gPGxpbnV4QGVpa2VsZW5ib29tLml0PgpE
+YXRlICAgICAgIDogMjAxMS0xMS0yNiAxNTo0NwpNZXNzYWdlLUlEIDogMTAwMTIwOTAxOC4yMDEx
+MTEyNjE2NDcxMkBlaWtlbGVuYm9vbS5pdApSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/
+bD1saW51eC1rZXJuZWwmbT0xMzIyMzIyOTU0MjUzOTMmdz0yCgpTdWJqZWN0ICAgIDogMy4yLXJj
+Mys6IFtkcm06aTkxNV9oYW5nY2hlY2tfZWxhcHNlZF0gRVJST1IgSGFuZ2NoZWNrIHRpbWVyIApl
+bGFwc2VkLi4uIEdQVSBodW5nClN1Ym1pdHRlciAgOiBTZXJnZWkgVHJvZmltb3ZpY2ggPHNseWlj
+aEBnbWFpbC5jb20+CkRhdGUgICAgICAgOiAyMDExLTEyLTAyIDE3OjU2Ck1lc3NhZ2UtSUQgOiAy
+MDExMTIwMjIwNTYwMS4xMTU1MjJiMUBzZi5ob21lClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5p
+bmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjI4NDg0NTcwNTE1NiZ3PTIKClN1YmplY3QgICAgOiBb
+QlVHXSBkZWFkbG9jazogamZzICgzLjIuMC1yYzQtMDAxNTQtZzhlOGRhMDIpClN1Ym1pdHRlciAg
+OiBOaWNvIFNjaG90dGVsaXVzIDxuaWNvLWxpbnV4LTIwMTExMjAxQHNjaG90dGVsaXVzLm9yZz4K
+RGF0ZSAgICAgICA6IDIwMTEtMTItMDYgMTA6MDUKTWVzc2FnZS1JRCA6IDIwMTExMjA2MTAwNTMz
+LkdCNjE2MUBzY2hvdHRlbGl1cy5vcmcKUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9
+bGludXgta2VybmVsJm09MTMyMzE3OTE3ODI3ODI1Jnc9MgoKU3ViamVjdCAgICA6IFszLjItcmM0
+XSBwY25ldDMyOiBETUEtQVBJOiBkZXZpY2UgZHJpdmVyIHRyaWVzIHRvIHN5bmMgRE1BIAptZW1v
+cnkgaXQgaGFzIG5vdCBhbGxvY2F0ZWQKU3VibWl0dGVyICA6IFRldHN1byBIYW5kYSA8cGVuZ3Vp
+bi1rZXJuZWxAaS1sb3ZlLnNha3VyYS5uZS5qcD4KRGF0ZSAgICAgICA6IDIwMTEtMTItMDkgMzo0
+MApNZXNzYWdlLUlEIDogMjAxMTEyMDkwMzQwLnBCOTNlazlpMDg2ODU1QHd3dzI2Mi5zYWt1cmEu
+bmUuanAKUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMy
+MzQwMjE1NzA2MjE5Jnc9MgoKU3ViamVjdCAgICA6IEVuYWJsaW5nIEZDb0UgcG9pbnQtdG8tcG9p
+bnQgbW9kZSB0cmlnZ2VycyBhIGRlYWRsb2NrClN1Ym1pdHRlciAgOiBCYXJ0IFZhbiBBc3NjaGUg
+PGJ2YW5hc3NjaGVAYWNtLm9yZz4KRGF0ZSAgICAgICA6IDIwMTEtMTItMDkgMTQ6MzMKUmVmZXJl
+bmNlcyA6IGh0dHA6Ly9wZXJtYWxpbmsuZ21hbmUub3JnL2dtYW5lLmxpbnV4LnNjc2kub3Blbi1m
+Y29lLmRldmVsLzExNDUxCgpTdWJqZWN0ICAgIDogaXdsYWduIHVudXNhYmxlIGluIDMuMi4wcmM0
+ClN1Ym1pdHRlciAgOiBEYXZlIEpvbmVzIDxkYXZlakByZWRoYXQuY29tPgpEYXRlICAgICAgIDog
+MjAxMS0xMi0wOSAxOTo0MgpNZXNzYWdlLUlEIDogMjAxMTEyMDkxOTQyMDguR0ExNTIzNkByZWRo
+YXQuY29tClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEz
+MjM0NTk4NDcyNDQzMyZ3PTIKClN1YmplY3QgICAgOiBEUk0gbm91dmVhdSBjcmFzaCB3aXRoIDMu
+Mi4wLXJjNQpTdWJtaXR0ZXIgIDogIkJlcmNrIEUuIE5hc2giIDxmbHlib3lAZ21haWwuY29tPgpE
+YXRlICAgICAgIDogMjAxMS0xMi0xMCA1OjEwCk1lc3NhZ2UtSUQgOiA0RUUyRTlCQi44MDYwODAx
+QGdtYWlsLmNvbQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwm
+bT0xMzIzNDkzOTM3MDA0MTkmdz0yCgpTdWJqZWN0ICAgIDogUmVpc2VyZnMuYyBidWcgaW4gMy4y
+LXJjNQpTdWJtaXR0ZXIgIDogIkpvcmdlIEJhc3RvcyIgPG15c3FsLmpvcmdlQGRlY2ltYWwucHQ+
+CkRhdGUgICAgICAgOiAyMDExLTEyLTEwIDIzOjQ4Ck1lc3NhZ2UtSUQgOiA0MzU1Ni4yMTMuMjI4
+LjE0MC4xNTAuMTMyMzU2MDkyMC5zcXVpcnJlbEB3ZWJtYWlsLmRlY2ltYWwucHQKUmVmZXJlbmNl
+cyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMzU2MTU2OTE0Mjk2Jnc9
+MgoKU3ViamVjdCAgICA6IFtSRUdSRVNTSU9OXSAzLjIuMC1yYzMgQmx1ZXRvb3RoIEwyQ0FQIExp
+bnV4IHRvIExpbnV4IHJmY29tbSAKZmFpbHMKU3VibWl0dGVyICA6IERhdmlkIEZyaWVzIDxkYXZp
+ZEBmcmllcy5uZXQ+CkRhdGUgICAgICAgOiAyMDExLTEyLTExIDU6MTYKTWVzc2FnZS1JRCA6IDIw
+MTExMjExMDUxNjI0LkdBMTIwNTBAc3BhY2Vkb3V0LmZyaWVzLm5ldApSZWZlcmVuY2VzIDogaHR0
+cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIzNTgwNzE0MTcxOTgmdz0yCgpTdWJq
+ZWN0ICAgIDogcmVjZW50IHJlZ3Jlc3Npb246IGFmdGVyIHJlc3VtZSB0aGUgbW91c2UgYW5kIFgg
+aXMgZXh0cmVtZWx5IHNsb3cKU3VibWl0dGVyICA6IE5vcmJlcnQgUHJlaW5pbmcgPHByZWluaW5n
+QGxvZ2ljLmF0PgpEYXRlICAgICAgIDogMjAxMS0xMi0xMSAyMjoxMwpNZXNzYWdlLUlEIDogMjAx
+MTEyMTEyMjEzMDMuR0E4NzEwQGdhbW1hLmxvZ2ljLnR1d2llbi5hYy5hdApSZWZlcmVuY2VzIDog
+aHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIzNjQxNjk5Mjk3NDAmdz0yCgoK
+VGhhbmtzIQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
