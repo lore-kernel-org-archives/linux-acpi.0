@@ -1,136 +1,207 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Tue, 20 Dec 2011 16:13:39 +0800
-Message-ID: <1324368819.10394.335.camel@linux-s257.site>
-References: <3123346.jTQFjj4kVk@pali-elitebook>
-	 <1323442149.20114.93.camel@linux-s257.site>
-	 <3404497.1txogKB5v8@pali-elitebook>  <6900186.lBeFrD3GRB@pali-elitebook>
-	 <1324223229.10394.39.camel@linux-s257.site>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: [linux-pm] [RFC PATCH 1/2] thermal: Add a new trip type to use
+ cooling device instance number
+Date: Tue, 20 Dec 2011 13:37:22 +0100
+Message-ID: <CAKfTPtCVtWfdUpW=Up6eWTsceBCfER5NcvjF1KRTNcqys2YArQ@mail.gmail.com>
+References: <1323789196-4942-1-git-send-email-amit.kachhap@linaro.org>
+	<1323789196-4942-2-git-send-email-amit.kachhap@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1324223229.10394.39.camel@linux-s257.site>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:61342 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab1LTMhX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Dec 2011 07:37:23 -0500
+In-Reply-To: <1323789196-4942-2-git-send-email-amit.kachhap@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 23:47 +0800=EF=BC=8Cjo=
-eyli =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hi Pali,=20
->=20
-> =E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 11:59 +0100=EF=BC=8C=
-Pali Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
-> > On Friday 09 December 2011 16:46:29 Pali Roh=C3=A1r wrote:
-> > > On Friday 09 December 2011 22:49:09 joeyli wrote:
-> > > > Hi Pali,
-> > > >=20
-> > > > =E6=96=BC =E4=BA=94=EF=BC=8C2011-12-09 =E6=96=BC 22:36 +0800=EF=
-=BC=8CLi Joey =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > >=20
-> > > > > ---------- Forwarded message ----------
-> > > > > From: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > > > > Date: 2011/7/15
-> > > > > Subject: Brightness on HP EliteBook 8460p
-> > > > > To: linux-acpi@vger.kernel.org
-> > > > >=20
-> > > > >=20
-> > > > > Hello,
-> > > > >=20
-> > > > > on my HP EliteBook 8460p is not possible to set display brigh=
-tness
-> > > > > when ACPI
-> > > > > is enabled in kernel. Entries in sysfs is properly created wi=
-thout
-> > > > > errors. But
-> > > > > when I try write any value
-> > > > > to /sys/class/backlight/acpi_video0/brightness
-> > > > > nothing happened (and no error is in dmesg). When I press Fn =
-key for
-> > > > > chaining
-> > > > > display brightness kernel send correct key event (tested with=
- xev)
-> > > > > but
-> > > > > nothing
-> > > > > happened too.
-> > > > >=20
-> > > > > When I disabled ACPI (acpi=3Doff in kernel command line) all =
-=46n keys
-> > > > > are
-> > > > > broken
-> > > > > and not working (no events in xev). But brightness keys worki=
-ng (I
-> > > > > think on HW
-> > > > > level, because xev does not see it) - increase and decrease d=
-isplay
-> > > > > brightness.
-> > > > >=20
-> > > > > So what can I do with my notebook? I think that there is erro=
-r/bug
-> > > > > in
-> > > > > BIOS or
-> > > > > ACPI because with disabled ACPI brightness working. But with
-> > > > > disabled
-> > > > > ACPI is
-> > > > > notebook unuseable (no battery info, no Fn keys, no WIFI rfki=
-ll,
-> > > > > ...).
-> > > > > Can
-> > > > > somebody help me with this problem?
-> > > > >=20
-> > > > > --
-> > > > > Pali Roh=C3=A1r
-> > > > > pali.rohar@gmail.com
-> > > >=20
-> > > > You can try to put kernel parameter:
-> > > > 	acpi_osi=3D"!Windows 2009"
-> > > >=20
-> > > > to /boot/grub/menu.lst, then reboot look at maybe better.
-> > > >=20
-> > > > And,
-> > > > could you please kindly share DSDT and dmidecode to me?
-> > > >=20
-> > > > Plesae login by root then:
-> > > > 	% acpidump > acpidump.dat
-> > > > 	% dmidecode > dmidecode.log
-> > > >=20
-> > > > Thanks a lot!
-> > > > Joey Lee
-> > >=20
-> > > Hello,
-> > >=20
-> > > adding any acpi_osi values did not changed anything (also tried o=
-ther osi
-> > > strings from decompiled DSDT table). Brightness problem is in bot=
-h BIOS and
-> > > UEFI boot mode.
-> > >=20
-> > > I attached acpidump and dmidecode output from bios and uefi mode =
-too.
-> >=20
-> > Did you find way how to control display brightness?
-> >=20
-> > --=20
-> > Pali Roh=C3=A1r
-> > pali.rohar@gmail.com
->=20
-> I am really sorry for I am sticking on another tough issue.
-> I will look at your DSDT tomorrow.
->=20
->=20
-> Thanks
-> Joey Lee
->=20
+Hi Amit,
 
-I just look at the DSDT of HP EliteBook, this machine check _OS name
-string, it's essentially obsolete.
+I'm not sure that using the trip index for setting the state of a
+cooling device is a generic solution because you are adding a
+dependency between the trip index and the cooling device state that
+might be difficult to handle. This dependency implies that a cooling
+device like cpufreq_cooling_device must be registered in the 1st trips
+of a thermal_zone which is not possible when we want to register 2
+cpufreq_cooling_devices in the same thermal_zone.
+You should only rely on the current and last temperatures to detect if
+a trip_temp has been crossed and you should increase or decrease the
+current state of the cooling device accordingly.
 
-Please add the following kernel parameter to /boot/grub/menu.lst:
-	acpi_os_name=3D"Windows 2009"
+something like below should work with cpufreq_cooling_device and will
+not add any constraint on the trip index. The state of a cooling
+device is increased/decreased once for each trip
 
-Let's by-pass the _OS name check first, hope it fix this issue.
++		case THERMAL_TRIP_STATE_ACTIVE:
++			list_for_each_entry(instance, &tz->cooling_devices,
++					    node) {
++				if (instance->trip !=3D count)
++					continue;
++
++				cdev =3D instance->cdev;
++
++				if ((temp >=3D trip_temp)
++					&& (trip_temp > tz->last_temperature)) {
++					cdev->ops->get_max_state(cdev,
++							&max_state);
++					cdev->ops->get_cur_state(cdev,
++							&current_state);
++					if (++current_state <=3D max_state)
++						cdev->ops->set_cur_state(cdev,
++								current_state);
++				}
++				else if ((temp < trip_temp)
++					&& (trip_temp <=3D tz->last_temperature)) {
++					cdev->ops->get_cur_state(cdev,
++							&current_state);
++					if (current_state > 0)
++						cdev->ops->set_cur_state(cdev,
++								--current_state);
++			}
++			break;
 
+Regards,
+Vincent
 
-Thanks
-Joey Lee
+On 13 December 2011 16:13, Amit Daniel Kachhap <amit.kachhap@linaro.org=
+> wrote:
+> This patch adds a new trip type THERMAL_TRIP_STATE_ACTIVE. This
+> trip behaves same as THERMAL_TRIP_ACTIVE but also passes the cooling
+> device instance number. This helps the cooling device registered as
+> different instances to perform appropriate cooling action decision in
+> the set_cur_state call back function.
+>
+> Also since the trip temperature's are in ascending order so some logi=
+c
+> is put in place to skip the un-necessary checks.
+>
+> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> ---
+> =A0Documentation/thermal/sysfs-api.txt | =A0 =A04 ++--
+> =A0drivers/thermal/thermal_sys.c =A0 =A0 =A0 | =A0 27 +++++++++++++++=
++++++++++++-
+> =A0include/linux/thermal.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
+> =A03 files changed, 29 insertions(+), 3 deletions(-)
+>
+> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/ther=
+mal/sysfs-api.txt
+> index b61e46f..5c1d44e 100644
+> --- a/Documentation/thermal/sysfs-api.txt
+> +++ b/Documentation/thermal/sysfs-api.txt
+> @@ -184,8 +184,8 @@ trip_point_[0-*]_temp
+>
+> =A0trip_point_[0-*]_type
+> =A0 =A0 =A0 =A0Strings which indicate the type of the trip point.
+> - =A0 =A0 =A0 E.g. it can be one of critical, hot, passive, active[0-=
+*] for ACPI
+> - =A0 =A0 =A0 thermal zone.
+> + =A0 =A0 =A0 E.g. it can be one of critical, hot, passive, active[0-=
+1],
+> + =A0 =A0 =A0 state-active[0-*] for ACPI thermal zone.
+> =A0 =A0 =A0 =A0RO, Optional
+>
+> =A0cdev[0-*]
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
+sys.c
+> index dd9a574..72b1ab3 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -192,6 +192,8 @@ trip_point_type_show(struct device *dev, struct d=
+evice_attribute *attr,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return sprintf(buf, "passive\n");
+> =A0 =A0 =A0 =A0case THERMAL_TRIP_ACTIVE:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return sprintf(buf, "active\n");
+> + =A0 =A0 =A0 case THERMAL_TRIP_STATE_ACTIVE:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "state-active\n");
+> =A0 =A0 =A0 =A0default:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return sprintf(buf, "unknown\n");
+> =A0 =A0 =A0 =A0}
+> @@ -1035,7 +1037,7 @@ EXPORT_SYMBOL(thermal_cooling_device_unregister=
+);
+> =A0void thermal_zone_device_update(struct thermal_zone_device *tz)
+> =A0{
+> =A0 =A0 =A0 =A0int count, ret =3D 0;
+> - =A0 =A0 =A0 long temp, trip_temp;
+> + =A0 =A0 =A0 long temp, trip_temp, max_state, last_trip_change =3D 0=
+;
+> =A0 =A0 =A0 =A0enum thermal_trip_type trip_type;
+> =A0 =A0 =A0 =A0struct thermal_cooling_device_instance *instance;
+> =A0 =A0 =A0 =A0struct thermal_cooling_device *cdev;
+> @@ -1086,6 +1088,29 @@ void thermal_zone_device_update(struct thermal=
+_zone_device *tz)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0cdev->ops->set_cur_state(cdev, 0);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case THERMAL_TRIP_STATE_ACTIVE:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_entry(ins=
+tance, &tz->cooling_devices,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 node) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ins=
+tance->trip !=3D count)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 continue;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (tem=
+p <=3D last_trip_change)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 continue;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cdev =3D=
+ instance->cdev;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cdev->o=
+ps->get_max_state(cdev, &max_state);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((te=
+mp >=3D trip_temp) &&
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 ((count + 1) <=3D max_state))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 cdev->ops->set_cur_state(cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 count + 1);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if=
+ ((temp < trip_temp) &&
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (count <=3D max_state))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 cdev->ops->set_cur_state(cdev, count);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 last_tr=
+ip_change =3D trip_temp;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0case THERMAL_TRIP_PASSIVE:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (temp >=3D trip_tem=
+p || tz->passive)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0therma=
+l_zone_device_passive(tz, temp,
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 47b4a27..d7d0a27 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -42,6 +42,7 @@ enum thermal_trip_type {
+> =A0 =A0 =A0 =A0THERMAL_TRIP_PASSIVE,
+> =A0 =A0 =A0 =A0THERMAL_TRIP_HOT,
+> =A0 =A0 =A0 =A0THERMAL_TRIP_CRITICAL,
+> + =A0 =A0 =A0 THERMAL_TRIP_STATE_ACTIVE,
+> =A0};
+>
+> =A0struct thermal_zone_device_ops {
+> --
+> 1.7.1
+>
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linuxfoundation.org/mailman/listinfo/linux-pm
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
