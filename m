@@ -1,49 +1,136 @@
-From: liang tang <liang.tang@oracle.com>
-Subject: Re: [Xen-devel] [PATCH 4/8] ACPI: processor: Don't setup cpu idle
- driver and handler when we do not want them.
-Date: Tue, 20 Dec 2011 14:25:32 +0800
-Message-ID: <4EF02A5C.1030803@oracle.com>
-References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-5-git-send-email-konrad.wilk@oracle.com> <20111216213618.GB9832@phenom.dumpdata.com> <4EEF12DD.2020308@oracle.com> <20111219142645.GC27772@andromeda.dapyr.net>
+From: joeyli <jlee@suse.com>
+Subject: Re: Fwd: Brightness on HP EliteBook 8460p
+Date: Tue, 20 Dec 2011 16:13:39 +0800
+Message-ID: <1324368819.10394.335.camel@linux-s257.site>
+References: <3123346.jTQFjj4kVk@pali-elitebook>
+	 <1323442149.20114.93.camel@linux-s257.site>
+	 <3404497.1txogKB5v8@pali-elitebook>  <6900186.lBeFrD3GRB@pali-elitebook>
+	 <1324223229.10394.39.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:17296 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104Ab1LTG0s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Dec 2011 01:26:48 -0500
-In-Reply-To: <20111219142645.GC27772@andromeda.dapyr.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1324223229.10394.39.camel@linux-s257.site>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, jeremy@goop.org, xen-devel@lists.xensource.com, Ian.Campbell@citrix.com, konrad@kernel.org, mike.mcclurg@citrix.com, stefan.bader@canonical.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, lenb@kernel.org
+
+=E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 23:47 +0800=EF=BC=8Cjo=
+eyli =E6=8F=90=E5=88=B0=EF=BC=9A
+> Hi Pali,=20
+>=20
+> =E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 11:59 +0100=EF=BC=8C=
+Pali Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
+> > On Friday 09 December 2011 16:46:29 Pali Roh=C3=A1r wrote:
+> > > On Friday 09 December 2011 22:49:09 joeyli wrote:
+> > > > Hi Pali,
+> > > >=20
+> > > > =E6=96=BC =E4=BA=94=EF=BC=8C2011-12-09 =E6=96=BC 22:36 +0800=EF=
+=BC=8CLi Joey =E6=8F=90=E5=88=B0=EF=BC=9A
+> > > >=20
+> > > > > ---------- Forwarded message ----------
+> > > > > From: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > > Date: 2011/7/15
+> > > > > Subject: Brightness on HP EliteBook 8460p
+> > > > > To: linux-acpi@vger.kernel.org
+> > > > >=20
+> > > > >=20
+> > > > > Hello,
+> > > > >=20
+> > > > > on my HP EliteBook 8460p is not possible to set display brigh=
+tness
+> > > > > when ACPI
+> > > > > is enabled in kernel. Entries in sysfs is properly created wi=
+thout
+> > > > > errors. But
+> > > > > when I try write any value
+> > > > > to /sys/class/backlight/acpi_video0/brightness
+> > > > > nothing happened (and no error is in dmesg). When I press Fn =
+key for
+> > > > > chaining
+> > > > > display brightness kernel send correct key event (tested with=
+ xev)
+> > > > > but
+> > > > > nothing
+> > > > > happened too.
+> > > > >=20
+> > > > > When I disabled ACPI (acpi=3Doff in kernel command line) all =
+=46n keys
+> > > > > are
+> > > > > broken
+> > > > > and not working (no events in xev). But brightness keys worki=
+ng (I
+> > > > > think on HW
+> > > > > level, because xev does not see it) - increase and decrease d=
+isplay
+> > > > > brightness.
+> > > > >=20
+> > > > > So what can I do with my notebook? I think that there is erro=
+r/bug
+> > > > > in
+> > > > > BIOS or
+> > > > > ACPI because with disabled ACPI brightness working. But with
+> > > > > disabled
+> > > > > ACPI is
+> > > > > notebook unuseable (no battery info, no Fn keys, no WIFI rfki=
+ll,
+> > > > > ...).
+> > > > > Can
+> > > > > somebody help me with this problem?
+> > > > >=20
+> > > > > --
+> > > > > Pali Roh=C3=A1r
+> > > > > pali.rohar@gmail.com
+> > > >=20
+> > > > You can try to put kernel parameter:
+> > > > 	acpi_osi=3D"!Windows 2009"
+> > > >=20
+> > > > to /boot/grub/menu.lst, then reboot look at maybe better.
+> > > >=20
+> > > > And,
+> > > > could you please kindly share DSDT and dmidecode to me?
+> > > >=20
+> > > > Plesae login by root then:
+> > > > 	% acpidump > acpidump.dat
+> > > > 	% dmidecode > dmidecode.log
+> > > >=20
+> > > > Thanks a lot!
+> > > > Joey Lee
+> > >=20
+> > > Hello,
+> > >=20
+> > > adding any acpi_osi values did not changed anything (also tried o=
+ther osi
+> > > strings from decompiled DSDT table). Brightness problem is in bot=
+h BIOS and
+> > > UEFI boot mode.
+> > >=20
+> > > I attached acpidump and dmidecode output from bios and uefi mode =
+too.
+> >=20
+> > Did you find way how to control display brightness?
+> >=20
+> > --=20
+> > Pali Roh=C3=A1r
+> > pali.rohar@gmail.com
+>=20
+> I am really sorry for I am sticking on another tough issue.
+> I will look at your DSDT tomorrow.
+>=20
+>=20
+> Thanks
+> Joey Lee
+>=20
+
+I just look at the DSDT of HP EliteBook, this machine check _OS name
+string, it's essentially obsolete.
+
+Please add the following kernel parameter to /boot/grub/menu.lst:
+	acpi_os_name=3D"Windows 2009"
+
+Let's by-pass the _OS name check first, hope it fix this issue.
 
 
-
-On 2011-12-19 22:26, Konrad Rzeszutek Wilk wrote:
-> On Mon, Dec 19, 2011 at 06:33:01PM +0800, liang tang wrote:
->> On 2011-12-17 5:36, Konrad Rzeszutek Wilk wrote:
->>> On Wed, Nov 30, 2011 at 12:21:00PM -0500, Konrad Rzeszutek Wilk wrote:
->>>> From: Kevin Tian<kevin.tian@intel.com>
->>>>
->>>> This patch inhibits processing of the CPU idle handler if it is not
->>>> set to the appropiate one. This is needed by the Xen processor driver
->>>> which, while still needing processor details, wants to use the
->>>> default_idle
->>>> call (which makes a yield hypercall).
->>> Which I think is not required anymore with the
->>> d91ee5863b71e8c90eaf6035bff3078a85e2e7b5
->>> (cpuidle: replace xen access to x86 pm_idle and default_idle) and
->>> 62027aea23fcd14478abdddd3b74a4e0f5fb2984
->>> (cpuidle: create bootparam "cpuidle.off=1")
->>>
->>> Liang, can you double-check that please?
->>>
->> Hi,Konrad
->> I just read the code ,I think  don't need that code too. I will double
->> check tomorrow.
-> Great! Thanks!
-I have check the code, I think that will be not call. I think we can 
-remove this patch .
-liang
-thanks !
+Thanks
+Joey Lee
