@@ -1,161 +1,104 @@
-From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Tue, 20 Dec 2011 14:20:43 +0100
-Message-ID: <1700296.GfeBjppFVA@pali-elitebook>
-References: <3123346.jTQFjj4kVk@pali-elitebook> <1324223229.10394.39.camel@linux-s257.site> <1324368819.10394.335.camel@linux-s257.site>
+From: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add __acpi_processor_[un]register_driver helpers.
+Date: Tue, 20 Dec 2011 11:31:45 -0400
+Message-ID: <20111220153145.GB13253@andromeda.dapyr.net>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com> <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com> <20111216220342.GC9832@phenom.dumpdata.com> <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com> <20111219142626.GB27772@andromeda.dapyr.net> <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart3691464.Q1MRl1VPVL"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1324368819.10394.335.camel@linux-s257.site>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from andromeda.dapyr.net ([206.212.254.10]:32875 "EHLO
+	andromeda.dapyr.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414Ab1LTPcO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Dec 2011 10:32:14 -0500
+Content-Disposition: inline
+In-Reply-To: <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Tian, Kevin" <kevin.tian@intel.com>
+Cc: "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
+On Tue, Dec 20, 2011 at 10:29:12AM +0800, Tian, Kevin wrote:
+> > From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
+> > Sent: Monday, December 19, 2011 10:26 PM
+> > 
+> > On Mon, Dec 19, 2011 at 01:48:01PM +0800, Tian, Kevin wrote:
+> > > > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> > > > Sent: Saturday, December 17, 2011 6:04 AM
+> > > >
+> > > > On Wed, Nov 30, 2011 at 12:20:59PM -0500, Konrad Rzeszutek Wilk wrote:
+> > > > > From: Tang Liang <liang.tang@oracle.com>
+> > > > >
+> > > > > This patch implement __acpi_processor_[un]register_driver helper,
+> > > > > so we can registry override processor driver function. Specifically
+> > > > > the Xen processor driver.
+> > > >
+> > > > Liang,
+> > > >
+> > > > Is the reason we are doing this b/c we need to call acpi_bus_register_driver
+> > > > and inhibit the registration of 'acpi_processor_driver' ?
+> > > >
+> > > > And the reason we don't want 'acpi_processor_driver' to run is b/c of what?
+> > > > If the cpuidle is disabled what is the harm of running the
+> > > > 'acpi_processor_driver'
+> > > > driver?
+> > >
+> > > IIRC, the reason why we want a Xen specific driver is because current driver
+> > > is integrated with OS logic too tightly, e.g. the various checks on VCPU related
+> > > structures. Long time ago the 1st version in Xen was to use same driver, by
+> > > adding various tweaking lines inside which makes it completely messed. Then
+> > > later it's found that it's clearer to create a Xen specific wrapping driver, by
+> > > invoking some exported functions from existing one.
+> > 
+> > What I am asking is does it matter "if the current driver is integrated
+> > with OS logic to tighly" - as it is not running anyhow (b/c cpuidle is
+> > disabled).
+> > 
+> > And if Xen specific driver can run along-side the generic one - since
+> > the generic one is not doing any work (b/c cpuidle is disabled).
+> > 
+> > That is what I am trying to figure out - since this patch purpose is to
+> > thwart the generic driver from running and allowing the xen one to run.
+> 
+> It's a separate issue from cpuidle case. Here we're talking about acpi processor
+> driver, not the acpi cpuidle driver. ACPI processor driver is responsible for 
+> discovering ACPI processor projects, and then enumerate various methods 
+> such as _PPC, _CST, etc. under those objects. So far this driver depends on 
+> VCPU presence in various places, which causes trouble when dom0 is configured
+> with less VCPU number than physical present one.
+> 
+> One example you can see from acpi_processor_add:
+> 
+>         result = acpi_processor_get_info(device); // call acpi_get_cpuid
+>         if (result) {
+>                 /* Processor is physically not present */
+>                 return 0;
+>         }
+> 
+> #ifdef CONFIG_SMP
+>         if (pr->id >= setup_max_cpus && pr->id != 0)
+>                 return 0;
+> #endif 
+> 
+>         BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
+> 
+> The binding between ACPI processor objects and VCPU presence would only parse
+> partial objects to Xen. And there're various places within driver validating pr->id
+> making it messy to workaround for Xen within same driver.
+> 
+> That's the major reason for coming up a Xen specific driver, which always parses
+> all present objects regardless of VCPU presence. :-)
 
---nextPart3691464.Q1MRl1VPVL
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
+OK. Lets put the # VCPU != PCPU aside. Say dom0 will boot with all
+CPUs and then later on the admin starts unplugging them.
 
-On Tuesday 20 December 2011 16:13:39 joeyli wrote:
-> =E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 23:47 +0800=EF=BC=8C=
-joeyli =E6=8F=90=E5=88=B0=EF=BC=9A
->=20
-> > Hi Pali,
-> >=20
-> > =E6=96=BC =E6=97=A5=EF=BC=8C2011-12-18 =E6=96=BC 11:59 +0100=EF=BC=8C=
-Pali Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
-> >=20
-> > > On Friday 09 December 2011 16:46:29 Pali Roh=C3=A1r wrote:
-> > > > On Friday 09 December 2011 22:49:09 joeyli wrote:
-> > > > > Hi Pali,
-> > > > >=20
-> > > > > =E6=96=BC =E4=BA=94=EF=BC=8C2011-12-09 =E6=96=BC 22:36 +0800=EF=
-=BC=8CLi Joey =E6=8F=90=E5=88=B0=EF=BC=9A
-> > > > >=20
-> > > > > > ---------- Forwarded message ----------
-> > > > > > From: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > > > > > Date: 2011/7/15
-> > > > > > Subject: Brightness on HP EliteBook 8460p
-> > > > > > To: linux-acpi@vger.kernel.org
-> > > > > >=20
-> > > > > >=20
-> > > > > > Hello,
-> > > > > >=20
-> > > > > > on my HP EliteBook 8460p is not possible to set display
-> > > > > > brightness when ACPI
-> > > > > > is enabled in kernel. Entries in sysfs is properly
-> > > > > > created without errors. But
-> > > > > > when I try write any value
-> > > > > > to /sys/class/backlight/acpi_video0/brightness
-> > > > > > nothing happened (and no error is in dmesg). When I
-> > > > > > press Fn key for chaining
-> > > > > > display brightness kernel send correct key event (tested
-> > > > > > with xev) but
-> > > > > > nothing
-> > > > > > happened too.
-> > > > > >=20
-> > > > > > When I disabled ACPI (acpi=3Doff in kernel command line)
-> > > > > > all Fn keys are
-> > > > > > broken
-> > > > > > and not working (no events in xev). But brightness keys
-> > > > > > working (I think on HW
-> > > > > > level, because xev does not see it) - increase and
-> > > > > > decrease display brightness.
-> > > > > >=20
-> > > > > > So what can I do with my notebook? I think that there is
-> > > > > > error/bug in
-> > > > > > BIOS or
-> > > > > > ACPI because with disabled ACPI brightness working. But
-> > > > > > with
-> > > > > > disabled
-> > > > > > ACPI is
-> > > > > > notebook unuseable (no battery info, no Fn keys, no WIFI
-> > > > > > rfkill,
-> > > > > > ...).
-> > > > > > Can
-> > > > > > somebody help me with this problem?
-> > > > > >=20
-> > > > > > --
-> > > > > > Pali Roh=C3=A1r
-> > > > > > pali.rohar@gmail.com
-> > > > >=20
-> > > > > You can try to put kernel parameter:
-> > > > > =09acpi_osi=3D"!Windows 2009"
-> > > > >=20
-> > > > > to /boot/grub/menu.lst, then reboot look at maybe better.
-> > > > >=20
-> > > > > And,
-> > > > > could you please kindly share DSDT and dmidecode to me?
-> > > > >=20
-> > > > > Plesae login by root then:
-> > > > > =09% acpidump > acpidump.dat
-> > > > > =09% dmidecode > dmidecode.log
-> > > > >=20
-> > > > > Thanks a lot!
-> > > > > Joey Lee
-> > > >=20
-> > > > Hello,
-> > > >=20
-> > > > adding any acpi_osi values did not changed anything (also tried=
+With that in mind, could we use a slim driver (like the one in: "ACPI:
+ add processor driver for Xen virtual CPUs.") that would just
+take the _Pxx, Cxx data and shove them to the hypervisor (handwaving
+aside the checking for quirks and such). And lets assume that we use the
+unmodified acpi_processor_[add|remove|notify] code that is present in
+processor_driver.c.
 
-> > > > other osi strings from decompiled DSDT table). Brightness
-> > > > problem is in both BIOS and UEFI boot mode.
-> > > >=20
-> > > > I attached acpidump and dmidecode output from bios and uefi mod=
-e
-> > > > too.
-> > >=20
-> > > Did you find way how to control display brightness?
-> >=20
-> > I am really sorry for I am sticking on another tough issue.
-> > I will look at your DSDT tomorrow.
-> >=20
-> >=20
-> > Thanks
-> > Joey Lee
->=20
-> I just look at the DSDT of HP EliteBook, this machine check _OS name
-> string, it's essentially obsolete.
->=20
-> Please add the following kernel parameter to /boot/grub/menu.lst:
-> =09acpi_os_name=3D"Windows 2009"
->=20
-> Let's by-pass the _OS name check first, hope it fix this issue.
->=20
->=20
-> Thanks
-> Joey Lee
+Oh, and the processor-driver.c did try to load (with the understanding
+that it would load, but won't do much since cpuidle is turned off).
 
-Hello,
-
-I tried to add one of these acpi_os_name into grub kernel command line:=
-
-
-acpi_os_name=3D"Windows 2009"
-acpi_os_name=3D"Windows 2006"
-acpi_os_name=3D"Windows 2001"
-acpi_os_name=3D"Windows 2001 SP1"
-acpi_os_name=3D"Windows 2001 SP2"
-
-but brightness control (via /sys/class/backlight/acpi_video0/brightness=
-) did=20
-not worked.
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---nextPart3691464.Q1MRl1VPVL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAk7wi6sACgkQi/DJPQPkQ1L+1gCfSfFFswPA1V/5A5V+oQNAuu7a
-PwcAnip4NRIxoY/KCqJX9tALvzq9J4mr
-=x5uk
------END PGP SIGNATURE-----
-
---nextPart3691464.Q1MRl1VPVL--
+Would that still get the Pxx, Cxx data to the hypervisor?
