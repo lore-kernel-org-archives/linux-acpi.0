@@ -1,218 +1,37 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Subject: [RFC PATCH 3/3] ARM: exynos4: Add thermal sensor driver
-	platform device support
-Date: Wed, 21 Dec 2011 17:29:58 +0530
-Message-ID: <1324468798-20423-4-git-send-email-amit.kachhap@linaro.org>
-References: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
+From: Juliusz Chroboczek <jch@pps.jussieu.fr>
+Subject: Re: ACPI failures on Dell Latitude E6220
+Date: Wed, 21 Dec 2011 17:40:11 +0100
+Message-ID: <87vcp998us.fsf@pirx.pps.jussieu.fr>
+References: <87r50zzvf6.fsf@pirx.pps.jussieu.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
-Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:40807 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135Ab1LUQkT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Dec 2011 11:40:19 -0500
+Received: from pirx.pps.jussieu.fr (unknown [IPv6:2a01:e35:2ee4:9090:2677:3ff:fe1a:db64])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id D37A8940662
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2011 17:40:12 +0100 (CET)
+Received: from jch by pirx.pps.jussieu.fr with local (Exim 4.77)
+	(envelope-from <jch@pps.jussieu.fr>)
+	id 1RdPD9-000142-Di
+	for linux-acpi@vger.kernel.org; Wed, 21 Dec 2011 17:40:11 +0100
+In-Reply-To: <87r50zzvf6.fsf@pirx.pps.jussieu.fr> (Juliusz Chroboczek's
+	message of "Tue, 22 Nov 2011 02:29:48 +0100")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This patch adds necessary source definations needed for TMU driver and
-the platform device support.
+>> [  227.525937] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20110623/evregion-478)
+>> [  227.525946] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff880128e7a3d0), AE_TIME (20110623/psparse-536)
+>> [  227.525957] ACPI Error: Method parse/execution failed [\ECRB] (Node ffff880128e7a268), AE_TIME (20110623/psparse-536)
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
----
- arch/arm/mach-exynos/Kconfig              |   12 +++++
- arch/arm/mach-exynos/Makefile             |    1 +
- arch/arm/mach-exynos/clock.c              |    4 ++
- arch/arm/mach-exynos/dev-tmu.c            |   64 +++++++++++++++++++++++++++++
- arch/arm/mach-exynos/include/mach/irqs.h  |    2 +
- arch/arm/mach-exynos/include/mach/map.h   |    1 +
- arch/arm/mach-exynos/mach-origen.c        |    1 +
- arch/arm/plat-samsung/include/plat/devs.h |    1 +
- 8 files changed, 86 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-exynos/dev-tmu.c
+This appears to be fixed, or at least worked around, by Debian's kernel
+3.1.5-1.  My idle battery time doubled (yay!).  Turbostat indicates that
+the CPU is now entering the higher-numbered "PC" states, which it wasn't
+doing beforehand.
 
-diff --git a/arch/arm/mach-exynos/Kconfig b/arch/arm/mach-exynos/Kconfig
-index 724ec0f..cfc6119 100644
---- a/arch/arm/mach-exynos/Kconfig
-+++ b/arch/arm/mach-exynos/Kconfig
-@@ -82,6 +82,17 @@ config EXYNOS4_DEV_DWMCI
- 	help
- 	  Compile in platform device definitions for DWMCI
- 
-+config EXYNOS4_DEV_TMU
-+	bool "Exynos4 tmu device support"
-+	default n
-+	depends on ARCH_EXYNOS4
-+	---help---
-+	  Compile in platform device definitions for TMU. This macro also
-+	  enables compilation hwmon base TMU driver and also allows compilation
-+	  of the platform device files. The platform data in this case is trip
-+	  temperature and some tmu h/w configurations related parameter.
-+
-+
- config EXYNOS4_SETUP_I2C1
- 	bool
- 	help
-@@ -288,6 +299,7 @@ config MACH_ORIGEN
- 	select SAMSUNG_DEV_BACKLIGHT
- 	select SAMSUNG_DEV_PWM
- 	select EXYNOS4_DEV_PD
-+	select EXYNOS4_DEV_TMU
- 	select EXYNOS4_SETUP_FIMD0
- 	select EXYNOS4_SETUP_SDHCI
- 	select EXYNOS4_SETUP_USB_PHY
-diff --git a/arch/arm/mach-exynos/Makefile b/arch/arm/mach-exynos/Makefile
-index 59069a3..d2493e8 100644
---- a/arch/arm/mach-exynos/Makefile
-+++ b/arch/arm/mach-exynos/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_EXYNOS4_DEV_AHCI)		+= dev-ahci.o
- obj-$(CONFIG_EXYNOS4_DEV_PD)		+= dev-pd.o
- obj-$(CONFIG_EXYNOS4_DEV_SYSMMU)	+= dev-sysmmu.o
- obj-$(CONFIG_EXYNOS4_DEV_DWMCI)		+= dev-dwmci.o
-+obj-$(CONFIG_EXYNOS4_DEV_TMU)           += dev-tmu.o
- 
- obj-$(CONFIG_EXYNOS4_SETUP_FIMC)	+= setup-fimc.o
- obj-$(CONFIG_EXYNOS4_SETUP_FIMD0)	+= setup-fimd0.o
-diff --git a/arch/arm/mach-exynos/clock.c b/arch/arm/mach-exynos/clock.c
-index 2894f0a..edecc5e 100644
---- a/arch/arm/mach-exynos/clock.c
-+++ b/arch/arm/mach-exynos/clock.c
-@@ -567,6 +567,10 @@ static struct clk init_clocks_off[] = {
- 		.enable		= exynos4_clk_ip_peril_ctrl,
- 		.ctrlbit	= (1 << 15),
- 	}, {
-+		.name		= "tmu_apbif",
-+		.enable		= exynos4_clk_ip_perir_ctrl,
-+		.ctrlbit	= (1 << 17),
-+	}, {
- 		.name		= "keypad",
- 		.enable		= exynos4_clk_ip_perir_ctrl,
- 		.ctrlbit	= (1 << 16),
-diff --git a/arch/arm/mach-exynos/dev-tmu.c b/arch/arm/mach-exynos/dev-tmu.c
-new file mode 100644
-index 0000000..2e98912
---- /dev/null
-+++ b/arch/arm/mach-exynos/dev-tmu.c
-@@ -0,0 +1,64 @@
-+/* linux/arch/arm/mach-exynos4/dev-tmu.c
-+ *
-+ * Copyright 2011 by SAMSUNG
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/platform_data/exynos4_tmu.h>
-+#include <asm/irq.h>
-+
-+#include <mach/irqs.h>
-+#include <mach/map.h>
-+#include <plat/devs.h>
-+
-+static struct resource exynos4_tmu_resource[] = {
-+	[0] = {
-+		.start	= EXYNOS4_PA_TMU,
-+		.end	= EXYNOS4_PA_TMU + 0xFFFF - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= IRQ_TMU_TRIG0,
-+		.end	= IRQ_TMU_TRIG0,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct exynos4_tmu_platform_data default_tmu_data = {
-+	.threshold = 80,
-+	.trigger_levels[0] = 2,
-+	.trigger_levels[1] = 5,
-+	.trigger_levels[2] = 20,
-+	.trigger_levels[3] = 30,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 1,
-+	.gain = 15,
-+	.reference_voltage = 7,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.freq_tab[0] = {
-+		.freq_clip_pctg[0] = 30,
-+		},
-+	.freq_tab[1] = {
-+		.freq_clip_pctg[0] = 99,
-+		},
-+	.freq_tab_count = 2,
-+};
-+
-+struct platform_device exynos4_device_tmu = {
-+	.name		= "exynos4-tmu",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(exynos4_tmu_resource),
-+	.resource	= exynos4_tmu_resource,
-+	.dev	= {
-+		.platform_data	= &default_tmu_data,
-+	},
-+};
-diff --git a/arch/arm/mach-exynos/include/mach/irqs.h b/arch/arm/mach-exynos/include/mach/irqs.h
-index dfd4b7e..d66a24b 100644
---- a/arch/arm/mach-exynos/include/mach/irqs.h
-+++ b/arch/arm/mach-exynos/include/mach/irqs.h
-@@ -125,6 +125,8 @@
- #define COMBINER_GROUP(x)	((x) * MAX_IRQ_IN_COMBINER + IRQ_SPI(128))
- #define COMBINER_IRQ(x, y)	(COMBINER_GROUP(x) + y)
- 
-+#define IRQ_TMU_TRIG0		COMBINER_IRQ(2, 4)
-+#define IRQ_TMU_TRIG1		COMBINER_IRQ(3, 4)
- #define IRQ_SYSMMU_MDMA0_0	COMBINER_IRQ(4, 0)
- #define IRQ_SYSMMU_SSS_0	COMBINER_IRQ(4, 1)
- #define IRQ_SYSMMU_FIMC0_0	COMBINER_IRQ(4, 2)
-diff --git a/arch/arm/mach-exynos/include/mach/map.h b/arch/arm/mach-exynos/include/mach/map.h
-index 058541d..0d79b88 100644
---- a/arch/arm/mach-exynos/include/mach/map.h
-+++ b/arch/arm/mach-exynos/include/mach/map.h
-@@ -66,6 +66,7 @@
- #define EXYNOS4_PA_COREPERI		0x10500000
- #define EXYNOS4_PA_TWD			0x10500600
- #define EXYNOS4_PA_L2CC			0x10502000
-+#define EXYNOS4_PA_TMU			0x100C0000
- 
- #define EXYNOS4_PA_MDMA			0x10810000
- #define EXYNOS4_PA_PDMA0		0x12680000
-diff --git a/arch/arm/mach-exynos/mach-origen.c b/arch/arm/mach-exynos/mach-origen.c
-index f80b563..699140a 100644
---- a/arch/arm/mach-exynos/mach-origen.c
-+++ b/arch/arm/mach-exynos/mach-origen.c
-@@ -615,6 +615,7 @@ static struct platform_device *origen_devices[] __initdata = {
- 	&exynos4_device_pd[PD_MFC],
- 	&origen_device_gpiokeys,
- 	&origen_lcd_hv070wsa,
-+	&exynos4_device_tmu,
- };
- 
- /* LCD Backlight data */
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index ab633c9..74cbf0d 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -135,6 +135,7 @@ extern struct platform_device exynos4_device_pcm2;
- extern struct platform_device exynos4_device_pd[];
- extern struct platform_device exynos4_device_spdif;
- extern struct platform_device exynos4_device_sysmmu;
-+extern struct platform_device exynos4_device_tmu;
- 
- extern struct platform_device samsung_asoc_dma;
- extern struct platform_device samsung_asoc_idma;
--- 
-1.7.1
+Thanks a lot to whoever fixed this issue.
+
+-- Juliusz Chroboczek
