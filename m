@@ -1,118 +1,67 @@
 From: joeyli <jlee@suse.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Wed, 21 Dec 2011 12:05:44 +0800
-Message-ID: <1324440344.10394.444.camel@linux-s257.site>
-References: <3123346.jTQFjj4kVk@pali-elitebook>
-	 <1324223229.10394.39.camel@linux-s257.site>
-	 <1324368819.10394.335.camel@linux-s257.site>
-	 <1700296.GfeBjppFVA@pali-elitebook>
-	 <1324433810.10394.402.camel@linux-s257.site>
+Subject: Re: Fwd: [Bugreport] Screen backllight issues on FirePro M5950 (HP
+ EliteBook 8560w)
+Date: Wed, 21 Dec 2011 12:55:08 +0800
+Message-ID: <1324443308.10394.456.camel@linux-s257.site>
+References: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
+	 <CAGB3EUR750VpHdvrZ25mn9bcS-4ZT+BSJ_zD4-sRncyYNT=0Zg@mail.gmail.com>
+	 <1323442460.20114.95.camel@linux-s257.site>
+	 <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from victor.provo.novell.com ([137.65.250.26]:34361 "EHLO
-	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715Ab1LUEJG (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Tue, 20 Dec 2011 23:09:06 -0500
-In-Reply-To: <1324433810.10394.402.camel@linux-s257.site>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Artur Flinta <aflinta@gmail.com>
 Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=B8=89=EF=BC=8C2011-12-21 =E6=96=BC 10:16 +0800=EF=BC=8Cjo=
-eyli =E6=8F=90=E5=88=B0=EF=BC=9A
-> =E6=96=BC =E4=BA=8C=EF=BC=8C2011-12-20 =E6=96=BC 14:20 +0100=EF=BC=8C=
-Pali Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
-> > On Tuesday 20 December 2011 16:13:39 joeyli wrote:
-> > > > > >=20
-> > > > > > adding any acpi_osi values did not changed anything (also t=
-ried
-> > > > > > other osi strings from decompiled DSDT table). Brightness
-> > > > > > problem is in both BIOS and UEFI boot mode.
-> > > > > >=20
-> > > > > > I attached acpidump and dmidecode output from bios and uefi=
- mode
-> > > > > > too.
-> > > > >=20
-> > > > > Did you find way how to control display brightness?
-> > > >=20
-> > > > I am really sorry for I am sticking on another tough issue.
-> > > > I will look at your DSDT tomorrow.
-> > > >=20
-> > > >=20
-> > > > Thanks
-> > > > Joey Lee
-> > >=20
-> > > I just look at the DSDT of HP EliteBook, this machine check _OS n=
-ame
-> > > string, it's essentially obsolete.
-> > >=20
-> > > Please add the following kernel parameter to /boot/grub/menu.lst:
-> > > 	acpi_os_name=3D"Windows 2009"
-> > >=20
-> > > Let's by-pass the _OS name check first, hope it fix this issue.
-> > >=20
-> > >=20
-> > > Thanks
-> > > Joey Lee
-> >=20
-> > Hello,
-> >=20
-> > I tried to add one of these acpi_os_name into grub kernel command l=
-ine:
-> >=20
-> > acpi_os_name=3D"Windows 2009"
-> > acpi_os_name=3D"Windows 2006"
-> > acpi_os_name=3D"Windows 2001"
-> > acpi_os_name=3D"Windows 2001 SP1"
-> > acpi_os_name=3D"Windows 2001 SP2"
-> >=20
-> > but brightness control (via /sys/class/backlight/acpi_video0/bright=
-ness) did=20
-> > not worked.
-> >=20
-> > --=20
-> > Pali Roh=C3=A1r
-> > pali.rohar@gmail.com
+=E6=96=BC =E5=85=AD=EF=BC=8C2011-12-10 =E6=96=BC 11:54 +0100=EF=BC=8CAr=
+tur Flinta =E6=8F=90=E5=88=B0=EF=BC=9A
+> Hi Joey!
 >=20
-> In DSDT, check the following 3 OS name strings, just need feed a stri=
-ng
-> not in list could be by-pass _OS check:
+> On Fri, Dec 9, 2011 at 3:54 PM, joeyli <jlee@suse.com> wrote:
+> >
+> > You can try to put kernel parameter:
+> >
+> >        acpi_osi=3D"!Windows 2009"
+> >
+> > to /boot/grub/menu.lst, then reboot look at maybe better.
 >=20
->     Name (OSID, Package (0x03)
->     {
->         "Microsoft Windows",
->         "Microsoft WindowsME: Millennium Edition",
->         "Microsoft Windows NT"                  /* match with Linux k=
-ernel's _OS name default define */
->     })
+> No change for me :(
 >=20
-> Unfortunately, just by-pass _OS check cann't fix your problem. I need
-> spend time to dig more detail in your DSDT.
-> Could you please attached your whole dmesg log that cover system boot
-> and press brightness control key a couple of times?
+> > And,
+> > could you please kindly share DSDT and dmidecode to me?
+> > Plesae login by root then:
+> >        % acpidump > acpidump.dat
+> >        % dmidecode > dmidecode.log
+>=20
+> Sure, in attachment.
+>=20
+> Regards
+> Artur
 >=20
 >=20
-> Thanks a lot!
-> Joey Lee
 
-Sorry! forgot say! could you please also enable the acpi debug messages
-in kernel parameter?
-Just need add the following kernel parameter to /boot/grub/menu.lst:
+Just checked your DSDT, didn't see _BCM implementation on this machines=
+,
+and also didn't see useful _Q event function.
 
+Could you please help to enable acpi debug log?
 	acpi.debug_level=3D0x2 acpi.debug_layer=3D0xFFFFFFFF
 
-Please attached dmesg and messages log.
+Please attached dmesg and messages log that cover system boot and
+pressed brightness key a couple of times.
+
+And,=20
+Please also monitor does there have any value of gpe was increased when
+you press brightness keys:
+
+watch -n 1 cat /sys/firmware/acpi/interrupts/gpe[012][0123456789ABCDEF]
+
+Please tell me which gpe's value increased if you found.
 
 
 Thanks a lot!
 Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
