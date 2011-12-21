@@ -1,91 +1,62 @@
-From: Anssi Hannula <anssi.hannula@iki.fi>
-Subject: Re: ACPI _PPC issue with bios_limit
-Date: Wed, 21 Dec 2011 12:41:22 +0200
-Message-ID: <4EF1B7D2.7000206@iki.fi>
-References: <4EEB4F1E.3070908@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Subject: [RFC PATCH 0/3] thermal: exynos: Add kernel thermal support for exynos platform
+Date: Wed, 21 Dec 2011 17:29:55 +0530
+Message-ID: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tulikuusama.dnainternet.net ([83.102.40.132]:49961 "EHLO
-	tulikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752429Ab1LUKl0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Dec 2011 05:41:26 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tulikuusama.dnainternet.net (Postfix) with ESMTP id 783DF3FABF
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2011 12:41:24 +0200 (EET)
-Received: from tulikuusama.dnainternet.net ([83.102.40.132])
-	by localhost (tulikuusama.dnainternet.net [127.0.0.1]) (DNA Postiturva, port 10041)
-	with ESMTP id bvqXm9ktWDzC for <linux-acpi@vger.kernel.org>;
-	Wed, 21 Dec 2011 12:41:24 +0200 (EET)
-Received: from kirsikkapuu.dnainternet.net (kirsikkapuu.dnainternet.net [83.102.40.214])
-	by tulikuusama.dnainternet.net (Postfix) with ESMTP id 2B61B3F8B6
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2011 12:41:24 +0200 (EET)
-Received: from mail.onse.fi (host-109-204-132-101.tp-fne.tampereenpuhelin.net [109.204.132.101])
-	by kirsikkapuu.dnainternet.net (Postfix) with ESMTP id 1FAAA2BADF
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2011 12:41:23 +0200 (EET)
-Received: from sigma.onse.fi (sigma [10.0.0.8])
-	by mail.onse.fi (Postfix) with ESMTP id CB52840CB3
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Dec 2011 12:41:22 +0200 (EET)
-In-Reply-To: <4EEB4F1E.3070908@iki.fi>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:58812 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752225Ab1LUMAt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Dec 2011 07:00:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, amit.kachhap@linaro.org, patches@linaro.org
 
-On 16.12.2011 16:01, Anssi Hannula wrote:
-> Hi!
-> 
-> On my laptop, processor _PPC is evaluated as 1 and therefore the
-> processor never goes to the highest frequency (1333MHz vs 1666 MHz).
-> 
-> The system is HP Mini 5102 and processor Atom N450.
-> 
-> ACPI tables are at http://zarb.org/~anssi/hpmini5102/
-> 
-> This only started happening since 2.6.34 when 3b1da4c5d1 ("ACPI:
-> processor: remove early _PDC optin quirks") was applied and thus the
-> _PDC is now evaluated early.
-> 
-> This causes extra tables to be loaded dynamically on boot:
-[...]
-> Of these, the first two (SSDT4, SSDT5) seem more interesting, and SSDT4
-> contains "Name (_PPC, 0x00)".
-> 
-> However, I don't know how to debug this further, so I'm asking for
-> assistance.
-> 
-> Boot dmesg with current linus git tree is attached.
-> This issue doesn't happen on win7 included with the laptop.
+All the patchset based on Kernel version 3.2-rc6 and uses the cpufreq
+cooling registration api's implemented in earlier patchset 
+http://www.spinics.net/lists/linux-pm/msg26500.html
 
-Looking at DSDT, it looks like EC0 method RPPC is the one setting _PPC to 1.
+The code added in this patchset adds a thermal interface layer for samsung
+exynos platforms. This layer is registered from the hwmon based temperature
+sensor and recieves/monitor the temperature from the sensor and informs the
+generic thermal layer to take the necessary cooling action. Currently this
+layer can be used to create only one thermal zone and hence only one
+temperature sensor can register.
 
-RPPC seems to do
-  _PPC++ when OTSI flag is set and OTLL is 0x00
-  _PPC-- when OTSI flag is set and OTLL is 0x02
-and then it clears the OTSI flag.
+Some modifications are done in the temperature sensor driver to export the
+information needed for the thermal interface to register with the core linux
+thermal framework and with the cpu frequency based cooling devices.
 
-OTLL is initialized to 0x00 and OTSI is initialized to 0x01.
+A simple data/control flow diagrams to illustrate this,
 
-RPPC seems to be called from EC0's _REG->ECRI->PRIT and from _Q04 (and
-from _WAK->HWAK, though my guess is that that is not relevant).
+Core Linux thermal <------->  Exynos thermal  <-------- Temperature Sensor
+	  |                             |
+	 \|/                            |
+  Cpufreq cooling device <-----
 
-Since on EC0 registration time OTLL=0 and OTSI=1, this causes RPPC to
-bump _PPC to 1.
+Amit Daniel Kachhap (3):
+  thermal: exynos: Add thermal interface support for linux thermal
+    layer
+  thermal: exynos4: Register the tmu sensor with the thermal interface
+    layer
+  ARM: exynos4: Add thermal sensor driver platform device support
 
-_Q04, if triggered, would set OTSI=1 and OTLL to the value from OCPS
-(from EC's memory region).
+ arch/arm/mach-exynos/Kconfig              |   12 ++
+ arch/arm/mach-exynos/Makefile             |    1 +
+ arch/arm/mach-exynos/clock.c              |    4 +
+ arch/arm/mach-exynos/dev-tmu.c            |   64 +++++++
+ arch/arm/mach-exynos/include/mach/irqs.h  |    2 +
+ arch/arm/mach-exynos/include/mach/map.h   |    1 +
+ arch/arm/mach-exynos/mach-origen.c        |    1 +
+ arch/arm/plat-samsung/include/plat/devs.h |    1 +
+ drivers/hwmon/exynos4_tmu.c               |   34 ++++-
+ drivers/thermal/Kconfig                   |    8 +
+ drivers/thermal/Makefile                  |    1 +
+ drivers/thermal/exynos_thermal.c          |  255 +++++++++++++++++++++++++++++
+ include/linux/exynos_thermal.h            |   59 +++++++
+ include/linux/platform_data/exynos4_tmu.h |    7 +
+ 14 files changed, 447 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-exynos/dev-tmu.c
+ create mode 100644 drivers/thermal/exynos_thermal.c
+ create mode 100644 include/linux/exynos_thermal.h
 
-So it seems to me like either RPPC is somehow not supposed to set _PPC
-when EC0 region is registered, or the EC is supposed to send a '04'
-event with OCPS=2 which would cause RPPC to reset _PPC to 0.
-
-If it is the latter, I guess the EC is waiting for some action from the
-kernel which never happens. During normal system operation OCPS seems to
-have 0x01 (which means no _PPC change), so the issue is not simply a
-missing _Q04 call.
-
-Again, any hints or debugging suggestions welcome :)
-
--- 
-Anssi Hannula
