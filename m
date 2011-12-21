@@ -1,193 +1,149 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: 3.2-rc6+: Reported regressions from 3.0 and 3.1
-Date: Wed, 21 Dec 2011 00:11:55 +0100
-Message-ID: <201112210011.55865.linux-pm-bounces@lists.linux-foundation.org>
-References: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
+From: "Tian, Kevin" <kevin.tian@intel.com>
+Subject: RE: [Xen-devel] [PATCH 3/8] ACPI: processor: add
+ __acpi_processor_[un]register_driver helpers.
+Date: Wed, 21 Dec 2011 08:35:34 +0800
+Message-ID: <625BA99ED14B2D499DC4E29D8138F1506E01AAC469@shsmsx502.ccr.corp.intel.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com>
+ <20111216220342.GC9832@phenom.dumpdata.com>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
+ <20111219142626.GB27772@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+ <20111220153145.GB13253@andromeda.dapyr.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <lx6sezwGldO.A.IhF.UBpWOB@chimera>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux SCSI List <linux-scsi@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Maciej Rutecki <maciej.rutecki@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:54541 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752701Ab1LUAgA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Dec 2011 19:36:00 -0500
+In-Reply-To: <20111220153145.GB13253@andromeda.dapyr.net>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Cc: "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-VGhpcyBtZXNzYWdlIGNvbnRhaW5zIGEgbGlzdCBvZiBzb21lIHJlZ3Jlc3Npb25zIGZyb20gMy4w
-IGFuZCAzLjEKZm9yIHdoaWNoIHRoZXJlIGFyZSBubyBmaXhlcyBpbiB0aGUgbWFpbmxpbmUga25v
-d24gdG8gdGhlIHRyYWNraW5nIHRlYW0uCklmIGFueSBvZiB0aGVtIGhhdmUgYmVlbiBmaXhlZCBh
-bHJlYWR5LCBwbGVhc2UgbGV0IHVzIGtub3cuCgpJZiB5b3Uga25vdyBvZiBhbnkgb3RoZXIgdW5y
-ZXNvbHZlZCByZWdyZXNzaW9ucyBmcm9tIDMuMCBhbmQgMy4xLCBwbGVhc2UgbGV0IHVzCmtub3cg
-ZWl0aGVyIGFuZCB3ZSdsbCBhZGQgdGhlbSB0byB0aGUgbGlzdC4gIEFsc28sIHBsZWFzZSBsZXQg
-dXMga25vdyBpZiBhbnkgb2YKdGhlIGVudHJpZXMgYmVsb3cgYXJlIGludmFsaWQuCgpUaGUgZW50
-cmllcyBiZWxvdyBhcmUgc2ltcGxpZmllZCBhbmQgdGhlIHN0YXRpc3RpY3MgYXJlIG5vdCBwcmVz
-ZW50IGR1ZSB0byB0aGUKY29udGludWluZyBCdWd6aWxsYSBvdXRhZ2UuCgoKU3ViamVjdCAgICA6
-IGl3bGFnbiBpcyBnZXR0aW5nIHZlcnkgc2hha3kKU3VibWl0dGVyICA6IE5vcmJlcnQgUHJlaW5p
-bmcgPHByZWluaW5nQGxvZ2ljLmF0PgpEYXRlICAgICAgIDogMjAxMS0xMC0xOSA2OjAxCk1lc3Nh
-Z2UtSUQgOiAyMDExMTAxOTA2MDEwOC5HQTExNTg4QGdhbW1hLmxvZ2ljLnR1d2llbi5hYy5hdApS
-ZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzE5MTQ1NTM5
-MjA2MTQmdz0yCgpTdWJqZWN0ICAgIDogUmVncmVzc2lvbjogImlycXBvbGwiIGhhc24ndCBiZWVu
-IHdvcmtpbmcgZm9yIG1lIHNpbmNlIE1hcmNoIDE2IElSUQpTdWJtaXR0ZXIgIDogRWR3YXJkIERv
-bm92YW4gPGVkd2FyZC5kb25vdmFuQG51bWJsZS5uZXQ+CkRhdGUgICAgICAgOiAyMDExLTEwLTE5
-IDIyOjA5Ck1lc3NhZ2UtSUQgOiBDQURkYlcrSFhkQ1BmSnUyUlRGNnp6K3VqQ21pdV9kbVp3TDJp
-U2N1RjUzcD1BYVoxVXdAbWFpbC5nbWFpbC5jb20KUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmlu
-Zm8vP2w9bGludXgta2VybmVsJm09MTMxOTE0NTU0MjIwNjc5Jnc9MgoKU3ViamVjdCAgICA6IDMu
-MSsgaXdsd2lmaSBsb2NrdXAKU3VibWl0dGVyICA6IERhdmUgSm9uZXMgPGRhdmVqQHJlZGhhdC5j
-b20+CkRhdGUgICAgICAgOiAyMDExLTEwLTMxIDE0OjM0Ck1lc3NhZ2UtSUQgOiAyMDExMTAzMTE0
-MzQwOC5HQTE3MTUyQHJlZGhhdC5jb20KUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9
-bGludXgta2VybmVsJm09MTMyMDA3MTY5NDIwMTYwJnc9MgoKU3ViamVjdCAgICA6IExpbnVzIEdJ
-VCAtIElORk86IHBvc3NpYmxlIGNpcmN1bGFyIGxvY2tpbmcgZGVwZW5kZW5jeSBkZXRlY3RlZApT
-dWJtaXR0ZXIgIDogTWlsZXMgTGFuZSA8bWlsZXMubGFuZUBnbWFpbC5jb20+CkRhdGUgICAgICAg
-OiAyMDExLTExLTAzIDE1OjU3Ck1lc3NhZ2UtSUQgOiBDQUhGZ1J5OFMweExmaFp4VFVPRUg1QTBQ
-TF9GYjc5LTAtZ21iUT05aDJELXhNcXQxaEFAbWFpbC5nbWFpbC5jb20KUmVmZXJlbmNlcyA6IGh0
-dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMDMzNTg3OTA4NDI2Jnc9MgoKU3Vi
-amVjdCAgICA6IERNQS1BUEkgY2hlY2tfc3luYyBlcnJvcnMgd2l0aCAzLjIKU3VibWl0dGVyICA6
-IEpvc2ggQm95ZXIgPGp3Ym95ZXJAcmVkaGF0LmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMDgg
-MTc6MzEKTWVzc2FnZS1JRCA6IDIwMTExMTA4MTczMTUzLkdFMTQyMTZAem9kLmJvcy5yZWRoYXQu
-Y29tClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjA3
-NzM1NzYwODc5NyZ3PTIKClN1YmplY3QgICAgOiAzLjItcmMxIGRvZXNuJ3QgYm9vdCBvbiBkdWFs
-IHNvY2tldCBvcHRlcm9uIHdpdGhvdXQgc3dhcApTdWJtaXR0ZXIgIDogTmlrbGFzIFNjaG5lbGxl
-IDxuaWtsYXNAa29tYW5pLmRlPgpEYXRlICAgICAgIDogMjAxMS0xMS0xMCAyMDowOQpNZXNzYWdl
-LUlEIDogMTMyMDk1NTc2OS4xNzE4LjguY2FtZWxAanVwaXRlcgpSZWZlcmVuY2VzIDogaHR0cDov
-L21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIwOTU1ODM1MDE3Njcmdz0yCgpTdWJqZWN0
-ICAgIDogU3BhcmMtMzIgZG9lc24ndCB3b3JrIGluIDMuMS4KU3VibWl0dGVyICA6IFJvYiBMYW5k
-bGV5IDxyb2JAbGFuZGxleS5uZXQ+CkRhdGUgICAgICAgOiAyMDExLTExLTEyIDExOjIyCk1lc3Nh
-Z2UtSUQgOiA0RUJFQUI1QS41MDIwODA5QGxhbmRsZXkubmV0ClJlZmVyZW5jZXMgOiBodHRwOi8v
-d3d3LnNwaW5pY3MubmV0L2xpc3RzL2tlcm5lbC9tc2cxMjYwMzgzLmh0bWwKClN1YmplY3QgICAg
-OiBXQVJOSU5HOiBhdCBmcy9zeXNmcy9zeXNmcy5oOjE5NSAoZHVyaW5nIGJvb3QpClN1Ym1pdHRl
-ciAgOiBNYXJrdXMgVHJpcHBlbHNkb3JmIDxtYXJrdXNAdHJpcHBlbHNkb3JmLmRlPgpEYXRlICAg
-ICAgIDogMjAxMS0xMS0xMyAxOToyNApNZXNzYWdlLUlEIDogMjAxMTExMTMxOTI0MTcuR0ExNjU5
-QHg0LnRyaXBwZWxzLmRlClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtl
-cm5lbCZtPTEzMjEyMTIzMTkyMTkzMiZ3PTIKClN1YmplY3QgICAgOiBtYXggUFdNIGlzIHplcm8K
-U3VibWl0dGVyICA6IE1hcmNvcyBQYXVsbyBkZSBTb3V6YSA8bWFyY29zLm1hZ2VAZ21haWwuY29t
-PgpEYXRlICAgICAgIDogMjAxMS0xMS0xNSAxNToxNApNZXNzYWdlLUlEIDogYWxwaW5lLkxOWC4y
-LjAwLjExMTExNTEzMDE0MTAuMjY5M0BkYXJrc3Rhci5leGFtcGxlLm5ldApSZWZlcmVuY2VzIDog
-aHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIxMzcwMTkzMzA1NDgmdz0yCgpT
-dWJqZWN0ICAgIDogT29wcyBvbiBzdXNwZW5kIHdpdGggbGliZXJ0YXMgU0RJTyAoTGludXggMy4y
-LXJjMikKU3VibWl0dGVyICA6IFN2ZW4gTmV1bWFubiA8cy5uZXVtYW5uQHJhdW1mZWxkLmNvbT4K
-RGF0ZSAgICAgICA6IDIwMTEtMTEtMTcgMTU6MzYKTWVzc2FnZS1JRCA6IDEzMjE1NDQyMTAuMzEw
-OTAuNi5jYW1lbEBzdmVuClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtl
-cm5lbCZtPTEzMjE1NDUyNzcxNTgwNyZ3PTIKClN1YmplY3QgICAgOiBJbXBvc3NpYmxlIGhpZ2gg
-Y3B1LXRpbWUgdmFsdWVzIGZvciBtaWdyYXRpb24gdGhyZWFkcwpTdWJtaXR0ZXIgIDogTWFya3Vz
-IFRyaXBwZWxzZG9yZiA8bWFya3VzQHRyaXBwZWxzZG9yZi5kZT4KRGF0ZSAgICAgICA6IDIwMTEt
-MTEtMTcgMjI6MTcKTWVzc2FnZS1JRCA6IDIwMTExMTE3MjIxNzMxLkdBOTIyOUB4NC50cmlwcGVs
-cy5kZQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIx
-NTY4MzIxMjQzMTQmdz0yCgpTdWJqZWN0ICAgIDogV0FSTklORzogYXQgbW0vc2x1Yi5jOjMzNTcs
-IGtlcm5lbCBCVUcgYXQgbW0vc2x1Yi5jOjM0MTMKU3VibWl0dGVyICA6IE1hcmt1cyBUcmlwcGVs
-c2RvcmYgPG1hcmt1c0B0cmlwcGVsc2RvcmYuZGU+CkRhdGUgICAgICAgOiAyMDExLTExLTE4IDc6
-MjUKTWVzc2FnZS1JRCA6IDIwMTExMTE4MDcyNTE5LkdBMTYxNUB4NC50cmlwcGVscy5kZQpSZWZl
-cmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIxNjAxMTkwMzE3
-OTQmdz0yCgpTdWJqZWN0ICAgIDogW1JFR1JFU1NJT05dIHJlc3VtZSB0YWtlcyAxMHMgbG9uZ2Vy
-IGR1ZSB0byBlMWI2ZWIzIChCbHVldG9vdGg6IEluY3JlYXNlIEhDSSByZXNldCB0aW1lb3V0IC4u
-LikKU3VibWl0dGVyICA6IFRvbcOhxaEgSmFub3XFoWVrIDx0b21pQG5vbWkuY3o+CkRhdGUgICAg
-ICAgOiAyMDExLTExLTE4IDE4OjQwCk1lc3NhZ2UtSUQgOiAyMDExMTExODE4NDAxNy5HQTUwNTJA
-bm9taS5jegpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0x
-MzIxNjQxNjk1MTE0MTYmdz0yCgpTdWJqZWN0ICAgIDogW1JFR1JFU1NJT05dIHN1ZGRlbiBjcHUg
-aG9nZ2luZyBpbiBrZXJuZWwgMy4yIHJjLXNlcmllcwpTdWJtaXR0ZXIgIDogIk5pY29sYXMgS2Fs
-a2hvZiIgPG5rYWxraG9mQHdlYi5kZT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMTggMjA6MzMKTWVz
-c2FnZS1JRCA6IDUwNjc4NjY4OS44MTAwNDQuMTMyMTY0ODM5NTI2NS5KYXZhTWFpbC5mbWFpbEBt
-d213ZWIwMTAKUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09
-MTMyMTY0OTA5MzEzNTk0Jnc9MgoKU3ViamVjdCAgICA6IEJpc2VjdGVkIHJlZ3Jlc3Npb246IGhh
-bmcgb24gaTkxNSBiZXR3ZWVuIDMuMS4wLXJjOSBhbmQgMy4xLjAKU3VibWl0dGVyICA6IE1lZWxp
-cyBSb29zIDxtcm9vc0BsaW51eC5lZT4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMjIgMTA6MTUKTWVz
-c2FnZS1JRCA6IGFscGluZS5TT0MuMS4wMC4xMTExMjIxMjA3MDkwLjY0OTBAbWF0aC51dC5lZQpS
-ZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIxOTU3MDAw
-MjM3MDkmdz0yCgpTdWJqZWN0ICAgIDogMy4yLXJjMiByZWdyZXNzaW9uOiBmbG9wcHkgZHJpdmVy
-IGJyZWFrcyBib290ClN1Ym1pdHRlciAgOiBQYXZlbCBNYWNoZWsgPHBhdmVsQHVjdy5jej4KRGF0
-ZSAgICAgICA6IDIwMTEtMTEtMjIgMTE6MTQKTWVzc2FnZS1JRCA6IDIwMTExMTIyMTExNDA1LkdB
-MjgyMTVAZWxmLnVjdy5jegpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1r
-ZXJuZWwmbT0xMzIxOTYwNTIxMjQ4MDEmdz0yCgpTdWJqZWN0ICAgIDogW3JlZ3Jlc3Npb24gMy4x
-LjAgLT4gMy4yMHJjXSBVU0IgT29wcwpTdWJtaXR0ZXIgIDogTm9yYmVydCBQcmVpbmluZyA8cHJl
-aW5pbmdAbG9naWMuYXQ+CkRhdGUgICAgICAgOiAyMDExLTExLTIyIDEyOjUyCk1lc3NhZ2UtSUQg
-OiAyMDExMTEyMjEyNTI1Ni5HQjMyNDQwQGdhbW1hLmxvZ2ljLnR1d2llbi5hYy5hdApSZWZlcmVu
-Y2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIxOTY2NDQ3MjY5MDAm
-dz0yCgpTdWJqZWN0ICAgIDogRnJlZXppbmcgb2YgdGFza3MgZmFpbGVkIGFmdGVyIDIwLjAxIHNl
-Y29uZHMgaW4ga2VybmVsIDMuMi4wLXJjMgpTdWJtaXR0ZXIgIDogQmVsaXNrbyBNYXJlayA8bWFy
-ZWsuYmVsaXNrb0BnbWFpbC5jb20+CkRhdGUgICAgICAgOiAyMDExLTExLTIyIDIxOjIwCk1lc3Nh
-Z2UtSUQgOiAKQ0FBZnl2MzZueFlxMUVBMnBjSGk1V1IxQmRXWUhwMnNRVFkxbU1BNFEzSmpjT0c1
-UkR3QG1haWwuZ21haWwuY29tClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
-LWtlcm5lbCZtPTEzMjE5OTY5MTcwNjEwMCZ3PTIKClN1YmplY3QgICAgOiAzLjIuMC1yYzIrZ2l0
-OiBwb3NzaWJsZSByZWN1cnNpdmUgbG9ja2luZyBkZXRlY3RlZCBpbiBwcm9jZXNzIAptZW1vcnkg
-ZnJlZWluZwpTdWJtaXR0ZXIgIDogTWVlbGlzIFJvb3MgPG1yb29zQGxpbnV4LmVlPgpEYXRlICAg
-ICAgIDogMjAxMS0xMS0yMyAxMzoxMgpNZXNzYWdlLUlEIDogYWxwaW5lLlNPQy4xLjAwLjExMTEy
-MzEzMTE0OTAuMTU5MzlAbWF0aC51dC5lZQpSZWZlcmVuY2VzIDogaHR0cDovL2xrbWwub3JnL2xr
-bWwvMjAxMS8xMS8yMy8xNTkKClN1YmplY3QgICAgOiBpOTE1OiAzLjIgcmMxLzIgS01TIHJlZ3Jl
-c3Npb24KU3VibWl0dGVyICA6IFBhdHJpayBLdWxsbWFuIDxwYXRyaWsua3VsbG1hbkBnbWFpbC5j
-b20+CkRhdGUgICAgICAgOiAyMDExLTExLTIzIDIzOjQzCk1lc3NhZ2UtSUQgOiBDQUdQTj05VEhP
-di0KTTRUZDRoYUU5NHVEY3NBalczZUdNRzdpb0xldStwOHhVT0JQZDd3QG1haWwuZ21haWwuY29t
-ClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjIwOTE4
-NjQwMzI4OCZ3PTIKClN1YmplY3QgICAgOiAzLjItcmMyOiByZWdyZXNzaW9uIGFmdGVyIGhpYmVy
-bmF0ZTogbG90cyBvZiB3YXJuaW5ncywgYnJva2VuIApzeXN0ZW0KU3VibWl0dGVyICA6IFBhdmVs
-IE1hY2hlayA8cGF2ZWxAdWN3LmN6PgpEYXRlICAgICAgIDogMjAxMS0xMS0yNCAxNTo0MApNZXNz
-YWdlLUlEIDogMjAxMTExMjQxNTQwMTQuR0EyMTUzQGVsZi51Y3cuY3oKUmVmZXJlbmNlcyA6IGh0
-dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMjE0OTI5ODE4MDE1Jnc9MgoKU3Vi
-amVjdCAgICA6IFtyZWdyZXNzaW9uXSBXQVJOSU5HOiBhdCBkcml2ZXJzL2Jsb2NrL2Zsb3BweS5j
-OjI5MjkgCmRvX2ZkX3JlcXVlc3QrMHhiNy8weGI5KCkgaW4gMy4yLjAtcmMyIGFuZCAzClN1Ym1p
-dHRlciAgOiBSYWxmIEhpbGRlYnJhbmR0IDxSYWxmLkhpbGRlYnJhbmR0QGNoYXJpdGUuZGU+CkRh
-dGUgICAgICAgOiAyMDExLTExLTI1IDEwOjM0Ck1lc3NhZ2UtSUQgOiAyMDExMTEyNTEwMzQyMC5H
-TzQ1ODFAY2hhcml0ZS5kZQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1r
-ZXJuZWwmbT0xMzIyMjE3OTk1MDE2ODUmdz0yCgpTdWJqZWN0ICAgIDogW0JVR10gMy4yLXJjWCBy
-YWRlb24gS01TIHN5c3RlbSBmcmVlemUKU3VibWl0dGVyICA6IEJvYiBUcmFjeSA8cmN0QGdoZXJr
-aW4uZnJ1cy5jb20+CkRhdGUgICAgICAgOiAyMDExLTExLTI1IDIwOjMzCk1lc3NhZ2UtSUQgOiAy
-MDExMTEyNTIwMzM1MS5HQTM2NTFAZ2hlcmtpbi5mcnVzLmNvbQpSZWZlcmVuY2VzIDogaHR0cDov
-L21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIyMjUzMzEzMTIwMTkmdz0yCgpTdWJqZWN0
-ICAgIDogMy4yLXJjMiByZWdyZXNzaW9uIGR1ZSB0byBjb21taXQgIlVTQjogRUhDSTogZml4IEhV
-QiBUVCBzY2hlZHVsaW5nIAppc3N1ZSB3aXRoIGlzbyB0cmFuc2ZlciIgODExYzkyNmM1MzhmN2U4
-ZDNjMDhiNjMwZGQ1ODQ0ZWZkN2UwMDBmNgpTdWJtaXR0ZXIgIDogU2FuZGVyIEVpa2VsZW5ib29t
-IDxsaW51eEBlaWtlbGVuYm9vbS5pdD4KRGF0ZSAgICAgICA6IDIwMTEtMTEtMjYgMTU6NDcKTWVz
-c2FnZS1JRCA6IDEwMDEyMDkwMTguMjAxMTExMjYxNjQ3MTJAZWlrZWxlbmJvb20uaXQKUmVmZXJl
-bmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMjMyMjk1NDI1Mzkz
-Jnc9MgoKU3ViamVjdCAgICA6IDMuMi1yYzMrOiBbZHJtOmk5MTVfaGFuZ2NoZWNrX2VsYXBzZWRd
-IEVSUk9SIEhhbmdjaGVjayB0aW1lciAKZWxhcHNlZC4uLiBHUFUgaHVuZwpTdWJtaXR0ZXIgIDog
-U2VyZ2VpIFRyb2ZpbW92aWNoIDxzbHlpY2hAZ21haWwuY29tPgpEYXRlICAgICAgIDogMjAxMS0x
-Mi0wMiAxNzo1NgpNZXNzYWdlLUlEIDogMjAxMTEyMDIyMDU2MDEuMTE1NTIyYjFAc2YuaG9tZQpS
-ZWZlcmVuY2VzIDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIyODQ4NDU3
-MDUxNTYmdz0yCgpTdWJqZWN0ICAgIDogW0JVR10gZGVhZGxvY2s6IGpmcyAoMy4yLjAtcmM0LTAw
-MTU0LWc4ZThkYTAyKQpTdWJtaXR0ZXIgIDogTmljbyBTY2hvdHRlbGl1cyA8bmljby1saW51eC0y
-MDExMTIwMUBzY2hvdHRlbGl1cy5vcmc+CkRhdGUgICAgICAgOiAyMDExLTEyLTA2IDEwOjA1Ck1l
-c3NhZ2UtSUQgOiAyMDExMTIwNjEwMDUzMy5HQjYxNjFAc2Nob3R0ZWxpdXMub3JnClJlZmVyZW5j
-ZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjMxNzkxNzgyNzgyNSZ3
-PTIKClN1YmplY3QgICAgOiBbMy4yLXJjNF0gcGNuZXQzMjogRE1BLUFQSTogZGV2aWNlIGRyaXZl
-ciB0cmllcyB0byBzeW5jIERNQSAKbWVtb3J5IGl0IGhhcyBub3QgYWxsb2NhdGVkClN1Ym1pdHRl
-ciAgOiBUZXRzdW8gSGFuZGEgPHBlbmd1aW4ta2VybmVsQGktbG92ZS5zYWt1cmEubmUuanA+CkRh
-dGUgICAgICAgOiAyMDExLTEyLTA5IDM6NDAKTWVzc2FnZS1JRCA6IDIwMTExMjA5MDM0MC5wQjkz
-ZWs5aTA4Njg1NUB3d3cyNjIuc2FrdXJhLm5lLmpwClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5p
-bmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEzMjM0MDIxNTcwNjIxOSZ3PTIKClN1YmplY3QgICAgOiBF
-bmFibGluZyBGQ29FIHBvaW50LXRvLXBvaW50IG1vZGUgdHJpZ2dlcnMgYSBkZWFkbG9jawpTdWJt
-aXR0ZXIgIDogQmFydCBWYW4gQXNzY2hlIDxidmFuYXNzY2hlQGFjbS5vcmc+CkRhdGUgICAgICAg
-OiAyMDExLTEyLTA5IDE0OjMzClJlZmVyZW5jZXMgOiBodHRwOi8vcGVybWFsaW5rLmdtYW5lLm9y
-Zy9nbWFuZS5saW51eC5zY3NpLm9wZW4tZmNvZS5kZXZlbC8xMTQ1MQoKU3ViamVjdCAgICA6IGl3
-bGFnbiB1bnVzYWJsZSBpbiAzLjIuMHJjNApTdWJtaXR0ZXIgIDogRGF2ZSBKb25lcyA8ZGF2ZWpA
-cmVkaGF0LmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTItMDkgMTk6NDIKTWVzc2FnZS1JRCA6IDIw
-MTExMjA5MTk0MjA4LkdBMTUyMzZAcmVkaGF0LmNvbQpSZWZlcmVuY2VzIDogaHR0cDovL21hcmMu
-aW5mby8/bD1saW51eC1rZXJuZWwmbT0xMzIzNDU5ODQ3MjQ0MzMmdz0yCgpTdWJqZWN0ICAgIDog
-RFJNIG5vdXZlYXUgY3Jhc2ggd2l0aCAzLjIuMC1yYzUKU3VibWl0dGVyICA6ICJCZXJjayBFLiBO
-YXNoIiA8Zmx5Ym95QGdtYWlsLmNvbT4KRGF0ZSAgICAgICA6IDIwMTEtMTItMTAgNToxMApNZXNz
-YWdlLUlEIDogNEVFMkU5QkIuODA2MDgwMUBnbWFpbC5jb20KUmVmZXJlbmNlcyA6IGh0dHA6Ly9t
-YXJjLmluZm8vP2w9bGludXgta2VybmVsJm09MTMyMzQ5MzkzNzAwNDE5Jnc9MgoKU3ViamVjdCAg
-ICA6IFJlaXNlcmZzLmMgYnVnIGluIDMuMi1yYzUKU3VibWl0dGVyICA6ICJKb3JnZSBCYXN0b3Mi
-IDxteXNxbC5qb3JnZUBkZWNpbWFsLnB0PgpEYXRlICAgICAgIDogMjAxMS0xMi0xMCAyMzo0OApN
-ZXNzYWdlLUlEIDogNDM1NTYuMjEzLjIyOC4xNDAuMTUwLjEzMjM1NjA5MjAuc3F1aXJyZWxAd2Vi
-bWFpbC5kZWNpbWFsLnB0ClJlZmVyZW5jZXMgOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtl
-cm5lbCZtPTEzMjM1NjE1NjkxNDI5NiZ3PTIKClN1YmplY3QgICAgOiBbUkVHUkVTU0lPTl0gMy4y
-LjAtcmMzIEJsdWV0b290aCBMMkNBUCBMaW51eCB0byBMaW51eCByZmNvbW0gCmZhaWxzClN1Ym1p
-dHRlciAgOiBEYXZpZCBGcmllcyA8ZGF2aWRAZnJpZXMubmV0PgpEYXRlICAgICAgIDogMjAxMS0x
-Mi0xMSA1OjE2Ck1lc3NhZ2UtSUQgOiAyMDExMTIxMTA1MTYyNC5HQTEyMDUwQHNwYWNlZG91dC5m
-cmllcy5uZXQKUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVsJm09
-MTMyMzU4MDcxNDE3MTk4Jnc9MgoKU3ViamVjdCAgICA6IHJlY2VudCByZWdyZXNzaW9uOiBhZnRl
-ciByZXN1bWUgdGhlIG1vdXNlIGFuZCBYIGlzIGV4dHJlbWVseSBzbG93ClN1Ym1pdHRlciAgOiBO
-b3JiZXJ0IFByZWluaW5nIDxwcmVpbmluZ0Bsb2dpYy5hdD4KRGF0ZSAgICAgICA6IDIwMTEtMTIt
-MTEgMjI6MTMKTWVzc2FnZS1JRCA6IDIwMTExMjExMjIxMzAzLkdBODcxMEBnYW1tYS5sb2dpYy50
-dXdpZW4uYWMuYXQKUmVmZXJlbmNlcyA6IGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgta2VybmVs
-Jm09MTMyMzY0MTY5OTI5NzQwJnc9MgoKClRoYW5rcyEKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9kcmktZGV2ZWwK
+> From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
+> Sent: Tuesday, December 20, 2011 11:32 PM
+> 
+> On Tue, Dec 20, 2011 at 10:29:12AM +0800, Tian, Kevin wrote:
+> > > From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
+> > > Sent: Monday, December 19, 2011 10:26 PM
+> > >
+> > > On Mon, Dec 19, 2011 at 01:48:01PM +0800, Tian, Kevin wrote:
+> > > > > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> > > > > Sent: Saturday, December 17, 2011 6:04 AM
+> > > > >
+> > > > > On Wed, Nov 30, 2011 at 12:20:59PM -0500, Konrad Rzeszutek Wilk
+> wrote:
+> > > > > > From: Tang Liang <liang.tang@oracle.com>
+> > > > > >
+> > > > > > This patch implement __acpi_processor_[un]register_driver helper,
+> > > > > > so we can registry override processor driver function. Specifically
+> > > > > > the Xen processor driver.
+> > > > >
+> > > > > Liang,
+> > > > >
+> > > > > Is the reason we are doing this b/c we need to call
+> acpi_bus_register_driver
+> > > > > and inhibit the registration of 'acpi_processor_driver' ?
+> > > > >
+> > > > > And the reason we don't want 'acpi_processor_driver' to run is b/c of
+> what?
+> > > > > If the cpuidle is disabled what is the harm of running the
+> > > > > 'acpi_processor_driver'
+> > > > > driver?
+> > > >
+> > > > IIRC, the reason why we want a Xen specific driver is because current
+> driver
+> > > > is integrated with OS logic too tightly, e.g. the various checks on VCPU
+> related
+> > > > structures. Long time ago the 1st version in Xen was to use same driver,
+> by
+> > > > adding various tweaking lines inside which makes it completely messed.
+> Then
+> > > > later it's found that it's clearer to create a Xen specific wrapping driver, by
+> > > > invoking some exported functions from existing one.
+> > >
+> > > What I am asking is does it matter "if the current driver is integrated
+> > > with OS logic to tighly" - as it is not running anyhow (b/c cpuidle is
+> > > disabled).
+> > >
+> > > And if Xen specific driver can run along-side the generic one - since
+> > > the generic one is not doing any work (b/c cpuidle is disabled).
+> > >
+> > > That is what I am trying to figure out - since this patch purpose is to
+> > > thwart the generic driver from running and allowing the xen one to run.
+> >
+> > It's a separate issue from cpuidle case. Here we're talking about acpi
+> processor
+> > driver, not the acpi cpuidle driver. ACPI processor driver is responsible for
+> > discovering ACPI processor projects, and then enumerate various methods
+> > such as _PPC, _CST, etc. under those objects. So far this driver depends on
+> > VCPU presence in various places, which causes trouble when dom0 is
+> configured
+> > with less VCPU number than physical present one.
+> >
+> > One example you can see from acpi_processor_add:
+> >
+> >         result = acpi_processor_get_info(device); // call acpi_get_cpuid
+> >         if (result) {
+> >                 /* Processor is physically not present */
+> >                 return 0;
+> >         }
+> >
+> > #ifdef CONFIG_SMP
+> >         if (pr->id >= setup_max_cpus && pr->id != 0)
+> >                 return 0;
+> > #endif
+> >
+> >         BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
+> >
+> > The binding between ACPI processor objects and VCPU presence would only
+> parse
+> > partial objects to Xen. And there're various places within driver validating
+> pr->id
+> > making it messy to workaround for Xen within same driver.
+> >
+> > That's the major reason for coming up a Xen specific driver, which always
+> parses
+> > all present objects regardless of VCPU presence. :-)
+> 
+> OK. Lets put the # VCPU != PCPU aside. Say dom0 will boot with all
+> CPUs and then later on the admin starts unplugging them.
+
+This should be communicated to major Xen based distributions, so that it's
+an agreed approach since in majority case dom0 is configured as UP or
+a few VCPUs.
+
+> 
+> With that in mind, could we use a slim driver (like the one in: "ACPI:
+>  add processor driver for Xen virtual CPUs.") that would just
+> take the _Pxx, Cxx data and shove them to the hypervisor (handwaving
+> aside the checking for quirks and such). And lets assume that we use the
+> unmodified acpi_processor_[add|remove|notify] code that is present in
+> processor_driver.c.
+
+There may still have other condition checks which may fail, but yes it's possible
+to reuse the interfaces. From my memory #VCPU is the major blocker...
+
+> 
+> Oh, and the processor-driver.c did try to load (with the understanding
+> that it would load, but won't do much since cpuidle is turned off).
+
+you also need consider cpufreq. IIRC, Px related information may be only
+parsed from loaded acpi cpufreq driver, which is another reason why a Xen
+wrapper driver is created. But of course this could be relaxed from existing
+code if you want to go that way.
+
+> 
+> Would that still get the Pxx, Cxx data to the hypervisor?
+
+yes, it's possible under the assumption you put in the start. But you need
+verify more code paths to make sure some conditional checks for native
+Linux still hold true for dom0.
+
+Thanks
+Kevin
