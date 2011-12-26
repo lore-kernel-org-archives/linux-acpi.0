@@ -1,79 +1,74 @@
-From: =?ISO-8859-1?Q?Cristian_Rodr=EDguez?= <crrodriguez@opensuse.org>
-Subject: Re: ACPI problems, Dell XPS 15z laptop
-Date: Sun, 25 Dec 2011 21:20:12 -0300
-Message-ID: <4EF7BDBC.9000406@opensuse.org>
-References: <4EF79074.90605@opensuse.org>
+From: "Tian, Kevin" <kevin.tian@intel.com>
+Subject: RE: [Xen-devel] [PATCH 3/8] ACPI: processor: add
+ __acpi_processor_[un]register_driver helpers.
+Date: Mon, 26 Dec 2011 01:31:45 +0000
+Message-ID: <AADFC41AFE54684AB9EE6CBC0274A5D10145B9@SHSMSX102.ccr.corp.intel.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com>
+ <20111216220342.GC9832@phenom.dumpdata.com>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
+ <20111219142626.GB27772@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+ <20111220153145.GB13253@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC469@shsmsx502.ccr.corp.intel.com>
+ <20111223030103.GA7218@andromeda.dapyr.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:34102 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448Ab1LZAUR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Dec 2011 19:20:17 -0500
-Received: by yhr47 with SMTP id 47so7069646yhr.19
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Dec 2011 16:20:16 -0800 (PST)
-In-Reply-To: <4EF79074.90605@opensuse.org>
+Received: from mga03.intel.com ([143.182.124.21]:46934 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752601Ab1LZBbw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Dec 2011 20:31:52 -0500
+In-Reply-To: <20111223030103.GA7218@andromeda.dapyr.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, opensuse-kernel@opensuse.org, Thomas Renninger <trenn@suse.de>
+To: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Cc: "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On 25/12/11 18:07, Cristian Rodr=EDguez wrote:
-> (please CC me your replies, I am not subscribed)
->
-> Hi:
->
-> The laptop in $SUBJECT freezes at boot time, at random points sometim=
-es
-> after
->
-> [FIRMWARE BUG] ACPI(PEGP) defines _DOD but not _DOS
->
-> But in other ocassions, just after udev attempts to mount filesystems=
-=2E
->
-> Using the following boot options make the system boot and work somewh=
-at
-> stable.
->
-> (these are single options, not combined)
->
-> - acpi=3Dnoirq
->
-> - pci=3Dnoacpi --> with this option I get warnings telling me to try
-> "usepirqmask..."
->
-> - nox2apic
->
-> - intremap=3Doff
->
-> This is a very recent sandy bridge system, the only clues I get from =
-the
-> log is:
->
-> "Not all IO-APIC's listed under remapping hardware
-> x2apic not enabled, IRQ remapping init failed"
+> From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
+> Sent: Friday, December 23, 2011 11:01 AM
+> 
+> > > OK. Lets put the # VCPU != PCPU aside. Say dom0 will boot with all
+> > > CPUs and then later on the admin starts unplugging them.
+> >
+> > This should be communicated to major Xen based distributions, so that it's
+> > an agreed approach since in majority case dom0 is configured as UP or
+> > a few VCPUs.
+> 
+> I am not saying that is it the agreed approach. There has to be
+> flexibility in supporting both. But what I want to understand whether
+> the requirement for VCPU != PCPU can be put aside and put in the drivers
+> later on.
 
-Heh, today I tested a crazy theory I had about this problem, turned out=
-=20
-to be somewhat accurate.. it is not that the machine that hangs always,=
-=20
-but it deceivingly "appears" to hang as I cannot get past the cryptsetu=
-p=20
-password prompt.. it is the keyboard controller that becomes non=20
-responsive, that 's it either before the "prompt" (where it hangs) or=20
-right after showing it. (in that scenario the USB port works, as plugin=
-=20
-and removing a device shows the relevant events in the console)
+sure. VCPU!=PCPU requirement is orthogonal to the basic part for gearing
+ACPI information to Xen.
 
-It is random, let's say, the USB port works twice every three boots.
+> 
+> So that the first approach is not changing the generic drivers (much).
+> The reason I am asking about this is two-fold:
+>  1). For new distros (Ubuntu, Fedora), the default is all VCPUs.
 
+good to know that.
 
+>      Enterprising users might use dom0_max_vcpus to limit the VCPU count,
+>      but most won't.
+>      Which mean we can concentrate on bringing the _Pxx/_Cxx parsing
+>      up to the hypervisor. Which is really neccessary on any chipset
+>      which has the notion of TurboBoost (otherwise the Xen scheduler
+>      won't pick this up and won't engage this mode in certain
+>      workloads).
+>  2). The ACPI maintainers are busy with ACPI 5.0. I don't know how
+>      much work this is, but it probably means tons of stuff with
+>      embedded platforms and tons of regression testing. So if there
+>      is a patch that does not impact the generic code much (or any)
+>      it will make their life easier. Which also means we can built
+>      on top that for the VCPU != PCPU case.
+> 
+> That is what I am trying to understand.
 
+no problem. this incremental approach should work.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kevin
