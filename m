@@ -1,46 +1,40 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: [PATCH 1/4] ACPI: ec: Do request_region outside WARN()
-Date: Mon, 26 Dec 2011 22:34:44 -0800
-Message-ID: <1324967687-10559-2-git-send-email-andi@firstfloor.org>
-References: <1324967687-10559-1-git-send-email-andi@firstfloor.org>
+Subject: Fix passive zone thermal throttling
+Date: Mon, 26 Dec 2011 22:34:43 -0800
+Message-ID: <1324967687-10559-1-git-send-email-andi@firstfloor.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:41338 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:41336 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab1L0GfD (ORCPT
+	with ESMTP id S1750966Ab1L0GfD (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Dec 2011 01:35:03 -0500
-In-Reply-To: <1324967687-10559-1-git-send-email-andi@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Andi Kleen <ak@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-WARN() is not supposed to have side effects, so move the request_regions
-outside.
+I have a laptop with a broken fan and it would constantly shut down
+under load. In principle passive thermal zone throttling was supposed
+to prevent that by slowing down the CPU, but this didn't work.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
----
- drivers/acpi/ec.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+This patchkit makes it work on my system.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index b19a18d..3268dcf 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -812,10 +812,10 @@ static int acpi_ec_add(struct acpi_device *device)
- 		first_ec = ec;
- 	device->driver_data = ec;
- 
--	WARN(!request_region(ec->data_addr, 1, "EC data"),
--	     "Could not request EC data io port 0x%lx", ec->data_addr);
--	WARN(!request_region(ec->command_addr, 1, "EC cmd"),
--	     "Could not request EC cmd io port 0x%lx", ec->command_addr);
-+	ret = !!request_region(ec->data_addr, 1, "EC data");
-+	WARN(!ret, "Could not request EC data io port 0x%lx", ec->data_addr);
-+	ret = !!request_region(ec->command_addr, 1, "EC cmd");
-+	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
- 
- 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
- 			  ec->gpe, ec->command_addr, ec->data_addr);
--- 
-1.7.7
+It turned out to be a combination of problems: the EC driver 
+talking to the embedded controller on my system would frequently
+get out of step, which resulted in missing temperature events.
+While not completely cured it's much better now with some
+replies.
+
+The other more serious problem was that the throttling code
+never really worked on multi-core systems: it only lowers
+the frequency of a single CPU, that gets the event, but the
+other threads/cores still keep the frequency up. Also worse
+throttling would never be invoked before the lowest frequency
+is reached.
+
+The first patch is merely a cleanup, the other patches fix
+these problems.
+
+Now that the kernel is fixed I can send the laptop in for repair.
+
+-Andi
 
