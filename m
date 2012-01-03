@@ -1,55 +1,75 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: [PATCH v2 3/4] toshiba_acpi: Support additional hotkey scancodes
-Date: Tue,  3 Jan 2012 13:02:37 -0600
-Message-ID: <1325617358-8286-4-git-send-email-seth.forshee@canonical.com>
-References: <1325617358-8286-1-git-send-email-seth.forshee@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1325617358-8286-1-git-send-email-seth.forshee@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add
+ __acpi_processor_[un]register_driver helpers.
+Date: Tue, 3 Jan 2012 15:59:25 -0500
+Message-ID: <20120103205925.GI17472@phenom.dumpdata.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-4-git-send-email-konrad.wilk@oracle.com>
+ <20111216220342.GC9832@phenom.dumpdata.com>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AABC7A@shsmsx502.ccr.corp.intel.com>
+ <20111219142626.GB27772@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+ <20111220153145.GB13253@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC469@shsmsx502.ccr.corp.intel.com>
+ <20111223030103.GA7218@andromeda.dapyr.net>
+ <AADFC41AFE54684AB9EE6CBC0274A5D10145B9@SHSMSX102.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:59104 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752755Ab2ACVB7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jan 2012 16:01:59 -0500
+Content-Disposition: inline
+In-Reply-To: <AADFC41AFE54684AB9EE6CBC0274A5D10145B9@SHSMSX102.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Tian, Kevin" <kevin.tian@intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>, "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-From: Azael Avalos <coproscefalo@gmail.com>
+On Mon, Dec 26, 2011 at 01:31:45AM +0000, Tian, Kevin wrote:
+> > From: Konrad Rzeszutek Wilk [mailto:konrad@darnok.org]
+> > Sent: Friday, December 23, 2011 11:01 AM
+> > 
+> > > > OK. Lets put the # VCPU != PCPU aside. Say dom0 will boot with all
+> > > > CPUs and then later on the admin starts unplugging them.
+> > >
+> > > This should be communicated to major Xen based distributions, so that it's
+> > > an agreed approach since in majority case dom0 is configured as UP or
+> > > a few VCPUs.
+> > 
+> > I am not saying that is it the agreed approach. There has to be
+> > flexibility in supporting both. But what I want to understand whether
+> > the requirement for VCPU != PCPU can be put aside and put in the drivers
+> > later on.
+> 
+> sure. VCPU!=PCPU requirement is orthogonal to the basic part for gearing
+> ACPI information to Xen.
+> 
+> > 
+> > So that the first approach is not changing the generic drivers (much).
+> > The reason I am asking about this is two-fold:
+> >  1). For new distros (Ubuntu, Fedora), the default is all VCPUs.
+> 
+> good to know that.
+> 
+> >      Enterprising users might use dom0_max_vcpus to limit the VCPU count,
+> >      but most won't.
+> >      Which mean we can concentrate on bringing the _Pxx/_Cxx parsing
+> >      up to the hypervisor. Which is really neccessary on any chipset
+> >      which has the notion of TurboBoost (otherwise the Xen scheduler
+> >      won't pick this up and won't engage this mode in certain
+> >      workloads).
+> >  2). The ACPI maintainers are busy with ACPI 5.0. I don't know how
+> >      much work this is, but it probably means tons of stuff with
+> >      embedded platforms and tons of regression testing. So if there
+> >      is a patch that does not impact the generic code much (or any)
+> >      it will make their life easier. Which also means we can built
+> >      on top that for the VCPU != PCPU case.
+> > 
+> > That is what I am trying to understand.
+> 
+> no problem. this incremental approach should work.
 
-These scancodes are used by many of the models now supported with
-the addition of TOS1900 device support.
-
-Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
----
- drivers/platform/x86/toshiba_acpi.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-index 1d83884..6824bf7 100644
---- a/drivers/platform/x86/toshiba_acpi.c
-+++ b/drivers/platform/x86/toshiba_acpi.c
-@@ -150,6 +150,8 @@ static const struct key_entry toshiba_acpi_keymap[] __devinitconst = {
- 	{ KE_KEY, 0x101, { KEY_MUTE } },
- 	{ KE_KEY, 0x102, { KEY_ZOOMOUT } },
- 	{ KE_KEY, 0x103, { KEY_ZOOMIN } },
-+	{ KE_KEY, 0x12c, { KEY_KBDILLUMTOGGLE } },
-+	{ KE_KEY, 0x139, { KEY_ZOOMRESET } },
- 	{ KE_KEY, 0x13b, { KEY_COFFEE } },
- 	{ KE_KEY, 0x13c, { KEY_BATTERY } },
- 	{ KE_KEY, 0x13d, { KEY_SLEEP } },
-@@ -158,7 +160,7 @@ static const struct key_entry toshiba_acpi_keymap[] __devinitconst = {
- 	{ KE_KEY, 0x140, { KEY_BRIGHTNESSDOWN } },
- 	{ KE_KEY, 0x141, { KEY_BRIGHTNESSUP } },
- 	{ KE_KEY, 0x142, { KEY_WLAN } },
--	{ KE_KEY, 0x143, { KEY_PROG1 } },
-+	{ KE_KEY, 0x143, { KEY_TOUCHPAD_TOGGLE } },
- 	{ KE_KEY, 0x17f, { KEY_FN } },
- 	{ KE_KEY, 0xb05, { KEY_PROG2 } },
- 	{ KE_KEY, 0xb06, { KEY_WWW } },
-@@ -168,6 +170,7 @@ static const struct key_entry toshiba_acpi_keymap[] __devinitconst = {
- 	{ KE_KEY, 0xb32, { KEY_NEXTSONG } },
- 	{ KE_KEY, 0xb33, { KEY_PLAYPAUSE } },
- 	{ KE_KEY, 0xb5a, { KEY_MEDIA } },
-+	{ KE_IGNORE, 0x1430, { KEY_RESERVED } },
- 	{ KE_END, 0 },
- };
- 
--- 
-1.7.5.4
+Excellent. So now the big question  - is this something you would have the
+time to do?
