@@ -1,208 +1,49 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 1/7] x86, acpi,
- tboot: Have a ACPI os prepare sleep instead of calling tboot_sleep.
-Date: Tue, 3 Jan 2012 12:13:18 -0500
-Message-ID: <20120103171318.GA25341@phenom.dumpdata.com>
-References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
-	<1324075099-11397-2-git-send-email-konrad.wilk@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <1324075099-11397-2-git-send-email-konrad.wilk@oracle.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-kernel@vger.kernel.org, rjw@sisk.pl, x86@kernel.org, len.brown@intel.com, joseph.cihula@intel.com, linux-pm@lists.linux-foundation.org, tboot-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, liang.tang@oracle.com
-Cc: Shane Wang <shane.wang@intel.com>, Thomas Gleixner <tglx@linutronix.de>, xen-devel@lists.xensource.com, hpa@zytor.com
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: [PATCH v2 0/4] toshiba_acpi: Expanded hotkey support
+Date: Tue,  3 Jan 2012 13:02:34 -0600
+Message-ID: <1325617358-8286-1-git-send-email-seth.forshee@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:53642 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754666Ab2ACTC4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jan 2012 14:02:56 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>
 
-On Fri, Dec 16, 2011 at 05:38:13PM -0500, Konrad Rzeszutek Wilk wrote:
-> From: Tang Liang <liang.tang@oracle.com>
+This is an update to the patches I sent previously to enable hotkeys on
+many Toshiba models that aren't supported by the code currently in
+toshiba_acpi. Once agains, here's the high-level summary:
 
-Hey Joseph,
+ * Add support for reading scancodes using the INFO method when
+   avaialable and for generating hotkey notifications by filtering Fn
+   key presses from the keyboard
+ * Adds a new EC interface allowing toshiba_acpi to get a handle to the
+   EC, which is needed because the NTFY method used to generate the
+   hotkey notifications is in the EC namespace
+ * Support some additional hotkey scancodes
+ * Blacklist hotkey support for some Satellite models due to a buggy
+   implementation of the INFO method on this model
 
-I remember you acked the initial rfc patches I had posted.
-But I was wondering if these ones are to your liking (I think they are -
-they aren't that much different, but I didn't want to blindly sticking
-'Acked-by' as they did change a bit).
+The only change since v1 is to add additional machines to the hotkey
+blacklist. These machines were identified by scraping bug reports to
+identify machines with the same INFO method implementation in their
+DSDTs.
 
-Thanks!
-> 
-> The ACPI suspend path makes a call to tboot_sleep right before
-> it writes the PM1A, PM1B values. We replace the direct call to
-> tboot via an registration callback similar to __acpi_register_gsi.
-> 
-> CC: Thomas Gleixner <tglx@linutronix.de>
-> CC: "H. Peter Anvin" <hpa@zytor.com>
-> CC: x86@kernel.org
-> CC: Len Brown <len.brown@intel.com>
-> CC: Joseph Cihula <joseph.cihula@intel.com>
-> CC: Shane Wang <shane.wang@intel.com>
-> CC: xen-devel@lists.xensource.com
-> CC: linux-pm@lists.linux-foundation.org
-> CC: tboot-devel@lists.sourceforge.net
-> CC: linux-acpi@vger.kernel.org
-> [v1: Added __attribute__ ((unused))]
-> [v2: Introduced a wrapper instead of changing tboot_sleep return values]
-> [v3: Added return value AE_CTRL_SKIP for acpi_os_sleep_prepare]
-> Signed-off-by: Tang Liang <liang.tang@oracle.com>
-> [v1: Fix compile issues on IA64 and PPC64]
-> [v2: Fix where __acpi_os_prepare_sleep==NULL and did not go in sleep properly]
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  arch/x86/kernel/tboot.c       |    8 ++++++++
->  drivers/acpi/acpica/hwsleep.c |   10 +++++++---
->  drivers/acpi/osl.c            |   24 ++++++++++++++++++++++++
->  include/acpi/acexcep.h        |    1 +
->  include/linux/acpi.h          |   10 ++++++++++
->  include/linux/tboot.h         |    1 -
->  6 files changed, 50 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-> index e2410e2..1a4ab7d 100644
-> --- a/arch/x86/kernel/tboot.c
-> +++ b/arch/x86/kernel/tboot.c
-> @@ -297,6 +297,12 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  
->  	tboot_shutdown(acpi_shutdown_map[sleep_state]);
->  }
-> +static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
-> +			       u32 pm1b_control)
-> +{
-> +	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
-> +	return 0;
-> +}
->  
->  static atomic_t ap_wfs_count;
->  
-> @@ -345,6 +351,8 @@ static __init int tboot_late_init(void)
->  
->  	atomic_set(&ap_wfs_count, 0);
->  	register_hotcpu_notifier(&tboot_cpu_notifier);
-> +
-> +	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
->  	return 0;
->  }
->  
-> diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-> index d52da30..992359a 100644
-> --- a/drivers/acpi/acpica/hwsleep.c
-> +++ b/drivers/acpi/acpica/hwsleep.c
-> @@ -43,9 +43,9 @@
->   */
->  
->  #include <acpi/acpi.h>
-> +#include <linux/acpi.h>
->  #include "accommon.h"
->  #include "actables.h"
-> -#include <linux/tboot.h>
->  #include <linux/module.h>
->  
->  #define _COMPONENT          ACPI_HARDWARE
-> @@ -344,8 +344,12 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
->  
->  	ACPI_FLUSH_CPU_CACHE();
->  
-> -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
-> -
-> +	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
-> +				       pm1b_control);
-> +	if (ACPI_SKIP(status))
-> +		return_ACPI_STATUS(AE_OK);
-> +	if (ACPI_FAILURE(status))
-> +		return_ACPI_STATUS(status);
->  	/* Write #2: Write both SLP_TYP + SLP_EN */
->  
->  	status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control);
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index f31c5c5..f3aae4b 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -76,6 +76,9 @@ EXPORT_SYMBOL(acpi_in_debugger);
->  extern char line_buf[80];
->  #endif				/*ENABLE_DEBUGGER */
->  
-> +static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
-> +				      u32 pm1b_ctrl);
-> +
->  static acpi_osd_handler acpi_irq_handler;
->  static void *acpi_irq_context;
->  static struct workqueue_struct *kacpid_wq;
-> @@ -1659,3 +1662,24 @@ acpi_status acpi_os_terminate(void)
->  
->  	return AE_OK;
->  }
-> +
-> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
-> +				  u32 pm1b_control)
-> +{
-> +	int rc = 0;
-> +	if (__acpi_os_prepare_sleep)
-> +		rc = __acpi_os_prepare_sleep(sleep_state,
-> +					     pm1a_control, pm1b_control);
-> +	if (rc < 0)
-> +		return AE_ERROR;
-> +	else if (rc > 0)
-> +		return AE_CTRL_SKIP;
-> +
-> +	return AE_OK;
-> +}
-> +
-> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
-> +			       u32 pm1a_ctrl, u32 pm1b_ctrl))
-> +{
-> +	__acpi_os_prepare_sleep = func;
-> +}
-> diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
-> index 5b6c391..fa0d22c 100644
-> --- a/include/acpi/acexcep.h
-> +++ b/include/acpi/acexcep.h
-> @@ -57,6 +57,7 @@
->  #define ACPI_SUCCESS(a)                 (!(a))
->  #define ACPI_FAILURE(a)                 (a)
->  
-> +#define ACPI_SKIP(a)                    (a == AE_CTRL_SKIP)
->  #define AE_OK                           (acpi_status) 0x0000
->  
->  /*
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 6001b4da..fccd017 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -359,4 +359,14 @@ static inline int suspend_nvs_register(unsigned long a, unsigned long b)
->  }
->  #endif
->  
-> +#ifdef CONFIG_ACPI
-> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
-> +			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
-> +
-> +acpi_status acpi_os_prepare_sleep(u8 sleep_state,
-> +				  u32 pm1a_control, u32 pm1b_control);
-> +#else
-> +#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> diff --git a/include/linux/tboot.h b/include/linux/tboot.h
-> index 1dba6ee..c75128b 100644
-> --- a/include/linux/tboot.h
-> +++ b/include/linux/tboot.h
-> @@ -143,7 +143,6 @@ static inline int tboot_enabled(void)
->  
->  extern void tboot_probe(void);
->  extern void tboot_shutdown(u32 shutdown_type);
-> -extern void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control);
->  extern struct acpi_table_header *tboot_get_dmar_table(
->  				      struct acpi_table_header *dmar_tbl);
->  extern int tboot_force_iommu(void);
-> -- 
-> 1.7.7.4
+Thanks,
+Seth
+
+
+Azael Avalos (1):
+  toshiba_acpi: Support additional hotkey scancodes
+
+Seth Forshee (3):
+  ACPI: EC: Add ec_get_handle()
+  toshiba_acpi: Support alternate hotkey interfaces
+  toshiba_acpi: Add blacklist for models with hotkey problems
+
+ drivers/acpi/ec.c                   |   10 ++
+ drivers/platform/x86/toshiba_acpi.c |  275 ++++++++++++++++++++++++++++++-----
+ include/linux/acpi.h                |    1 +
+ 3 files changed, 249 insertions(+), 37 deletions(-)
