@@ -1,51 +1,41 @@
-From: "WEBMAIL CENTRO DE SEGURIDAD." <mnnghiaphuc.tk@nghean.edu.vn>
-Subject: Estimado usuario de la cuenta,
-Date: Thu, 5 Jan 2012 12:12:53 +0100
-Message-ID: <CAOw_EC8fnu=io=TAfhQSJZ8LTPt7pXh8AeNezx-6UeVSPML1=w@mail.gmail.com>
-Reply-To: accountmanagement101@hotmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Fabio Estevam <festevam@gmail.com>
+Subject: [PATCH] drivers: acpi: Fix dependency for ACPI_HOTPLUG_CPU
+Date: Thu,  5 Jan 2012 10:47:58 -0200
+Message-ID: <1325767678-12480-1-git-send-email-festevam@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45630 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755274Ab2AELNd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2012 06:13:33 -0500
-Received: by mail-ey0-f174.google.com with SMTP id d14so252756eaa.19
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Jan 2012 03:13:33 -0800 (PST)
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:47353 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab2AEMsM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2012 07:48:12 -0500
+Received: by yhnn56 with SMTP id n56so81714yhn.19
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Jan 2012 04:48:11 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, Fabio Estevam <festevam@gmail.com>, Fabio Estevam <fabio.estevam@freescale.com>
 
-Estimado usuario de la cuenta,
-Este es un mensaje de correo web el centro de mensajes para todos los
-propietarios de las cuentas de correo web.
+Fix the following build warning:
 
-En estos momentos estamos actualizando nuestra base de datos y e-mail
-centro cuenta. Estamos eliminando todas las cuenta de correo web
-utilizado para crear m=E1s espacio para las nuevas cuentas.
+warning: (ACPI_HOTPLUG_CPU) selects ACPI_CONTAINER which has unmet direct dependencies (ACPI && EXPERIMENTAL)
 
-Para evitar que sus cuentas de cierre que usted tendr=E1 que actualizar
-al proporcionar la informaci=F3n solicitada a continuaci=F3n:
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Confirmar detalles de su cuenta
-Webmail ID:
-contrase=F1a:
-=46echa de nacimiento:
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 7556913..2e4e2bd 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -208,7 +208,7 @@ config ACPI_IPMI
+ 
+ config ACPI_HOTPLUG_CPU
+ 	bool
+-	depends on ACPI_PROCESSOR && HOTPLUG_CPU
++	depends on EXPERIMENTAL && ACPI_PROCESSOR && HOTPLUG_CPU
+ 	select ACPI_CONTAINER
+ 	default y
+ 
+-- 
+1.7.1
 
-Se le enviar=E1 una confirmaci=F3n de la contrase=F1a alfanum=E9rica nu=
-evo de
-modo que s=F3lo tendr=E1 validez durante este per=EDodo y se puede camb=
-iar
-despu=E9s del proceso.
-
-Gracias por su comprensi=F3n.
-Webmail administrador.
-
-Advertencia! Propietario de la cuenta que se niega a actualizar su
-cuenta dentro de los siete d=EDas de haber recibido esta advertencia
-perder=E1 su cuenta permanentemente.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
