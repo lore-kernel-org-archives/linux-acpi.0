@@ -1,46 +1,51 @@
-From: Holger Macht <holger@homac.de>
-Subject: Re: [PATCH 0/7] acpi/libata: Express dependencies for devices on
- dock stations and bays
-Date: Thu, 5 Jan 2012 11:36:52 +0100
-Message-ID: <20120105103651.GB13066@homac.suse.de>
-References: <20111206163718.GA3629@homac.suse.de>
+From: "WEBMAIL CENTRO DE SEGURIDAD." <mnnghiaphuc.tk@nghean.edu.vn>
+Subject: Estimado usuario de la cuenta,
+Date: Thu, 5 Jan 2012 12:12:53 +0100
+Message-ID: <CAOw_EC8fnu=io=TAfhQSJZ8LTPt7pXh8AeNezx-6UeVSPML1=w@mail.gmail.com>
+Reply-To: accountmanagement101@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34614 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754534Ab2AEKgz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Jan 2012 05:36:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20111206163718.GA3629@homac.suse.de>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45630 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755274Ab2AELNd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2012 06:13:33 -0500
+Received: by mail-ey0-f174.google.com with SMTP id d14so252756eaa.19
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Jan 2012 03:13:33 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, Tejun Heo <tj@kernel.org>
 
-On Di 06. Dez - 17:37:19, Holger Macht wrote:
-> Patches 1 through 5 are just a refresh of the patches from Matthew
-> Garrett sent to this list in September 2010 [1]:
-> 
->  [PATCH 1/7] scsi: Export scsi_bus_type
->  [PATCH 2/7] libata: Bind the Linux device tree to the ACPI device tree
->  [PATCH 3/7] libata: Migrate ACPI code over to new bindings
->  [PATCH 4/7] acpi: Add support for linking docks to the objects they contain
->  [PATCH 5/7] libata: Add links between removable devices and docks
-> 
-> Patches 6 and 7 make the patches actually work on my test hardware
-> (Thinkpad x60/Thingpad T60) by fixing some minor issues.
-> 
->  [PATCH 6/7] libata: Generate and pass correct acpi handles
->  [PATCH 7/7] acpi: Prevent duplicate hotplug device registration on dock stations
+Estimado usuario de la cuenta,
+Este es un mensaje de correo web el centro de mensajes para todos los
+propietarios de las cuentas de correo web.
 
-So, due to the merge window for 3.3 being open, I like to give this
-patch set a heads up.
+En estos momentos estamos actualizando nuestra base de datos y e-mail
+centro cuenta. Estamos eliminando todas las cuenta de correo web
+utilizado para crear m=E1s espacio para las nuevas cuentas.
 
-Matthew, any word on this?
+Para evitar que sus cuentas de cierre que usted tendr=E1 que actualizar
+al proporcionar la informaci=F3n solicitada a continuaci=F3n:
 
-Len, I really would like to see this merged because it would really make
-the docking station stuff kind of feature complete, finally.
+Confirmar detalles de su cuenta
+Webmail ID:
+contrase=F1a:
+=46echa de nacimiento:
 
-Thanks,
- Holger
+Se le enviar=E1 una confirmaci=F3n de la contrase=F1a alfanum=E9rica nu=
+evo de
+modo que s=F3lo tendr=E1 validez durante este per=EDodo y se puede camb=
+iar
+despu=E9s del proceso.
+
+Gracias por su comprensi=F3n.
+Webmail administrador.
+
+Advertencia! Propietario de la cuenta que se niega a actualizar su
+cuenta dentro de los siete d=EDas de haber recibido esta advertencia
+perder=E1 su cuenta permanentemente.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
