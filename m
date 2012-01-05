@@ -1,41 +1,28 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: [PATCH] drivers: acpi: Fix dependency for ACPI_HOTPLUG_CPU
-Date: Thu,  5 Jan 2012 10:47:58 -0200
-Message-ID: <1325767678-12480-1-git-send-email-festevam@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:47353 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184Ab2AEMsM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2012 07:48:12 -0500
-Received: by yhnn56 with SMTP id n56so81714yhn.19
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Jan 2012 04:48:11 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2 1/4] ACPI: EC: Add ec_get_handle()
+Date: Thu, 5 Jan 2012 18:22:45 +0000
+Message-ID: <20120105182245.GC24242@srcf.ucam.org>
+References: <1325617358-8286-1-git-send-email-seth.forshee@canonical.com>
+ <1325617358-8286-2-git-send-email-seth.forshee@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1325617358-8286-2-git-send-email-seth.forshee@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, Fabio Estevam <festevam@gmail.com>, Fabio Estevam <fabio.estevam@freescale.com>
 
-Fix the following build warning:
+On Tue, Jan 03, 2012 at 01:02:35PM -0600, Seth Forshee wrote:
+> toshiba_acpi needs to execute an AML method within the EC namespace
+> to make hotkeys work on some platforms. Provide an interface to
+> allow it to easily get a handle to the EC namespace for this purpose.
+> 
+> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
 
-warning: (ACPI_HOTPLUG_CPU) selects ACPI_CONTAINER which has unmet direct dependencies (ACPI && EXPERIMENTAL)
+Looks good to me - Len, do you want to take this through your tree or 
+should I?
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/acpi/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 7556913..2e4e2bd 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -208,7 +208,7 @@ config ACPI_IPMI
- 
- config ACPI_HOTPLUG_CPU
- 	bool
--	depends on ACPI_PROCESSOR && HOTPLUG_CPU
-+	depends on EXPERIMENTAL && ACPI_PROCESSOR && HOTPLUG_CPU
- 	select ACPI_CONTAINER
- 	default y
- 
 -- 
-1.7.1
-
+Matthew Garrett | mjg59@srcf.ucam.org
