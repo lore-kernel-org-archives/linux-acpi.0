@@ -1,30 +1,37 @@
-From: Milton Miller <miltonm@bga.com>
-Subject: Re: [PATCH]Kconfig:acpi Fix typo in comment.
-Date: Sat, 07 Jan 2012 15:10:08 -0600
-Message-ID: <1325970608_1267@mail4.comsite.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Justin P. Mattock" <justinmattock@gmail.com>, linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2 1/4] ACPI: EC: Add ec_get_handle()
+Date: Sat, 7 Jan 2012 21:26:14 +0000
+Message-ID: <20120107212614.GA24097@srcf.ucam.org>
+References: <1325617358-8286-1-git-send-email-seth.forshee@canonical.com>
+ <1325617358-8286-2-git-send-email-seth.forshee@canonical.com>
+ <CAPbh3ruqMQ8UFSehm7vX5i8YWzRFwF5=TX_f4n4dVkvmQa9Njw@mail.gmail.com>
+ <20120105193436.GC25386@ubuntu-macmini>
+ <CAPbh3rv86E9zqUbF4vrA2G=FaXyNHqD7+NZXRkzrzYAsHL8a_Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:56291 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762Ab2AGV0W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2012 16:26:22 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPbh3rv86E9zqUbF4vrA2G=FaXyNHqD7+NZXRkzrzYAsHL8a_Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Tue, 3 Jan 2012 about 08:49:48 -0800, "Justin P. Mattock" wrote:
+On Sat, Jan 07, 2012 at 03:55:35PM -0500, Konrad Rzeszutek Wilk wrote:
 
-> The below fixes a typo I found in a comment.
+> My understanding (and this is from reading Greg KH's patches) is that
+> any new interface should use _GPL variant unless there is an absolute
+> need for it. Say, a binary driver that uses this function and there is
+> no other way around it.
 
-Except its not in a comment that only programmers read, but in the help
-text of a config entry, and so would be eligible for stable.
+A binary driver could implement the same functionality using exported 
+interfaces from the ACPI core, so I don't see any benefit in insisting 
+on _GPL here. _GPL is intended to be a hint that use of the interface is 
+definitely an indication that you're creating a derived work.
 
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -374,7 +374,7 @@ config ACPI_CUSTOM_METHOD
->  	depends on DEBUG_FS
->  	default n
->  	help
-> -	  This debug facility allows ACPI AML methods to me inserted and/or
-> +	  This debug facility allows ACPI AML methods to be inserted and/or
->  	  replaced without rebooting the system. For details refer to:
->  	  Documentation/acpi/method-customizing.txt.
->  
-
-milton
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
