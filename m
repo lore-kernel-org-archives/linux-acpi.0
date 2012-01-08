@@ -1,45 +1,85 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH]Kconfig:acpi Fix typo in comment.
-Date: Sat, 07 Jan 2012 19:51:17 -0800
-Message-ID: <4F0912B5.7000808@gmail.com>
-References: <1325970608_1267@mail4.comsite.net>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
+Date: Sun, 8 Jan 2012 11:46:30 +0100
+Message-ID: <20120108104630.GA4354@ubuntu-mba>
+References: <20120105150832.GA25386@ubuntu-macmini>
+ <1325945558-4661-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38499 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862Ab2AHDvV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jan 2012 22:51:21 -0500
-In-Reply-To: <1325970608_1267@mail4.comsite.net>
+Received: from youngberry.canonical.com ([91.189.89.112]:42546 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264Ab2AHKqe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jan 2012 05:46:34 -0500
+Content-Disposition: inline
+In-Reply-To: <1325945558-4661-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Milton Miller <miltonm@bga.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: platform-driver-x86@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, David Herrmann <dh.herrmann@googlemail.com>, Richard =?utf-8?Q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On 01/07/2012 01:10 PM, Milton Miller wrote:
-> On Tue, 3 Jan 2012 about 08:49:48 -0800, "Justin P. Mattock" wrote:
->
->> The below fixes a typo I found in a comment.
->
-> Except its not in a comment that only programmers read, but in the help
-> text of a config entry, and so would be eligible for stable.
+On Sat, Jan 07, 2012 at 03:12:38PM +0100, Corentin Chary wrote:
+> On these laptops, the ACPI video is not functional, and very unlikely
+> to be fixed by the vendor. Note that intel_backlight works for some
+> of these laptops, and the backlight from samsung-laptop always work.
+> 
+> The good news is that newer laptops have functional ACPI video device
+> and won't end up growing this list.
+> 
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+> 
+> Could the concerned people test this patch and check that it correctly
+> disable the acpi_video backlight ?
+> 
+>  drivers/acpi/video_detect.c |   40 ++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 45d8097..376bce2 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -132,6 +132,44 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+>  	return AE_OK;
+>  }
+>  
+> +/* Force to use vendor driver when the ACPI device is known to be
+> + * buggy */
+> +static int video_detect_force_vendor(const struct dmi_system_id *d)
+> +{
+> +	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+> +	return 0;
+> +}
+> +
+> +static struct dmi_system_id video_detect_dmi_table[] = {
+> +	{
+> +	 .callback = video_detect_force_vendor,
+> +	 .ident = "N150P",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "N150P"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "N150P"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_detect_force_vendor,
+> +	 .ident = "N145P/N250P/N260P",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "N145P/N250P/N260P"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "N145P/N250P/N260P"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_detect_force_vendor,
+> +	 .ident = "N150/N210/N220",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "N150/N210/N220"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "N150/N210/N220"),
+> +		},
+> +	},
+> +};
+> +
 
-should I resubmit with a change to the summary?
-
->
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -374,7 +374,7 @@ config ACPI_CUSTOM_METHOD
->>   	depends on DEBUG_FS
->>   	default n
->>   	help
->> -	  This debug facility allows ACPI AML methods to me inserted and/or
->> +	  This debug facility allows ACPI AML methods to be inserted and/or
->>   	  replaced without rebooting the system. For details refer to:
->>   	  Documentation/acpi/method-customizing.txt.
->>
->
-> milton
->
-
+I don't see NF110/NF210/NF310 in this list. Was that an oversight?
