@@ -1,39 +1,30 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: /sys/class/power_supply/BAT0/ charge_ vs energy_
-Date: Mon, 9 Jan 2012 13:37:22 +0000
-Message-ID: <20120109133722.GA9981@srcf.ucam.org>
-References: <CA+z-pWGrhtT3m=tOXcCDph3TC6AcbTVQJTF35V-o5MHeAB=HCg@mail.gmail.com>
- <CA+z-pWHyhVO16AGz-fxmDhTyO0xXGfOB-_pPQZjMqf4vBUZw_g@mail.gmail.com>
- <CA+z-pWHPj-_ZA0v+siLaVtwFtyd-tDFM5+71s3j6ng3=pWGu0Q@mail.gmail.com>
- <CA+z-pWGJ_sFh138kgZh-oX=rwv3t_LRDvgCvdGxuxnMDegxgaA@mail.gmail.com>
- <CA+z-pWEtiW9Rc9yjXNZSc7daFRwDieYb3Bnxt6=m+G+k_ELL8g@mail.gmail.com>
- <CA+z-pWGmiRvpYQWQwb-f9TjH18k1pvu1rbOPUuF1t9-m3HvHqA@mail.gmail.com>
- <CA+z-pWE9LmEiYDxVAbdR7GhO=C5fiDf1QozO2n4v0fQ4V6hrNQ@mail.gmail.com>
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ericsson.com>
+Subject: [RFC] Allow empty Trigger Error Action Table
+Date: Mon, 9 Jan 2012 16:49:43 +0100
+Message-ID: <1326124184-10084-1-git-send-email-niklas.soderlund@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:49276 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab2AINhZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2012 08:37:25 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+z-pWE9LmEiYDxVAbdR7GhO=C5fiDf1QozO2n4v0fQ4V6hrNQ@mail.gmail.com>
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:57019 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755734Ab2AIPtu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2012 10:49:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jamie Kitson <jamie@kitten-x.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org, ying.huang@intel.com, akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jan 09, 2012 at 12:10:00PM +0000, Jamie Kitson wrote:
+When troubleshooting some BIOS code I encounter strange errors about firmware bugs. On closer inspection I found that the Trigger table returned from the firmware was empty but the header looked OK:
 
-> If I boot with AC plugged in the /sys/class/power_supply/BAT0/
-> directory is populated with charge_*, but if I boot on battery the
-> directory is populated with energy_*.
-> 
-> Disconnecting/connecting the power after boot does not effect the file names.
-> 
-> Is this a bug or a feature? It makes scripts harder to write than necessary.
+header_size = 16
+table_size = 16
+entry_count = 0
 
-It's the way Lenovo's firmware works. It's not clear why.
+When looking at einj.c I found that this header would result in the error I was receiving. I took a quick look at the docs and from what I can tell this is a valid header, yes?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I don't know much about ACPI so I might be way off but the attached patch fix the error message for me (however I still can't detect the injected error but that might depend on my detection code or buggy firmware...)
+
+Thanks
+// Niklas
+
