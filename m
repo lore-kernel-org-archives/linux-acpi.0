@@ -1,39 +1,43 @@
-From: webmail Adminnistrator <info@mail.org>
-Subject: ACCOUNT WAARSCHUWING
-Date: Mon,  9 Jan 2012 12:17:47 -0300
-Message-ID: <20120109121747.11105qvf2mwfw5y8@cibic.com.ar>
+From: David Herrmann <dh.herrmann@googlemail.com>
+Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
+Date: Mon, 9 Jan 2012 17:39:43 +0100
+Message-ID: <CANq1E4QGahjrxm5B59HGnrfO3LP4kV6bc27BKQDvnJ4HBKAFMg@mail.gmail.com>
+References: <20120105150832.GA25386@ubuntu-macmini>
+	<1325945558-4661-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.cibic.com.ar ([190.210.70.180]:37060 "EHLO mx1.cibic.com.ar"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755706Ab2AIPxK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jan 2012 10:53:10 -0500
-Received: from localhost (localhost.localhost [127.0.0.1])
-	by mx1.cibic.com.ar (Postfix) with ESMTP id 38747995321
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Jan 2012 12:23:20 -0300 (ART)
-Received: from cibic.com.ar (cibicsa.cibicsa.com.ar [132.148.160.20])
-	by mx1.cibic.com.ar (Postfix) with SMTP id 44BD6995E64
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Jan 2012 12:17:54 -0300 (ART)
-Content-Disposition: inline
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50476 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932266Ab2AIQjp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2012 11:39:45 -0500
+In-Reply-To: <1325945558-4661-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: platform-driver-x86@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, =?ISO-8859-1?Q?Richard_Sch=FCtz?= <r.schtz@t-online.de>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Uw mailbox heeft overschreden Het opslag limiet ingesteld door de  
-beheerder, en u zult niet in staat zijn nieuwe mails ontvangen Until  
-You Re-valideren.
+Hi Corentin
 
-Klik hier om Re-valideren:  
-http://exchangeuser.ucoz.com/Microsoft_Outlook_Web_Access.htm
+On Sat, Jan 7, 2012 at 3:12 PM, Corentin Chary <corentincj@iksaif.net> wrote:
+> On these laptops, the ACPI video is not functional, and very unlikely
+> to be fixed by the vendor. Note that intel_backlight works for some
+> of these laptops, and the backlight from samsung-laptop always work.
+>
+> The good news is that newer laptops have functional ACPI video device
+> and won't end up growing this list.
+>
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+>
+> Could the concerned people test this patch and check that it correctly
+> disable the acpi_video backlight ?
 
-System Administrator
-webmail Admin
+Works like a charm on my N210 with linux-3.2. Feel free to add a:
+Tested-by: David Herrmann <dh.herrmann@googlemail.com>
 
+I will talk to the intel drm developers about the intel_backlight
+issues as they don't seem related to this driver.
 
-
-
-
+Thanks
+David
