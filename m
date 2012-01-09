@@ -1,43 +1,43 @@
-From: David Herrmann <dh.herrmann@googlemail.com>
-Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
-Date: Mon, 9 Jan 2012 17:39:43 +0100
-Message-ID: <CANq1E4QGahjrxm5B59HGnrfO3LP4kV6bc27BKQDvnJ4HBKAFMg@mail.gmail.com>
-References: <20120105150832.GA25386@ubuntu-macmini>
-	<1325945558-4661-1-git-send-email-corentincj@iksaif.net>
+From: Jamie Kitson <jamie@kitten-x.com>
+Subject: Re: /sys/class/power_supply/BAT0/ charge_ vs energy_
+Date: Mon, 9 Jan 2012 21:36:34 +0000
+Message-ID: <CA+z-pWEcv7ejAPbD+oLXdptf5h4xbZ4g4sxm0uuqxdGp7n7r4A@mail.gmail.com>
+References: <CA+z-pWGrhtT3m=tOXcCDph3TC6AcbTVQJTF35V-o5MHeAB=HCg@mail.gmail.com>
+ <CA+z-pWHyhVO16AGz-fxmDhTyO0xXGfOB-_pPQZjMqf4vBUZw_g@mail.gmail.com>
+ <CA+z-pWHPj-_ZA0v+siLaVtwFtyd-tDFM5+71s3j6ng3=pWGu0Q@mail.gmail.com>
+ <CA+z-pWGJ_sFh138kgZh-oX=rwv3t_LRDvgCvdGxuxnMDegxgaA@mail.gmail.com>
+ <CA+z-pWEtiW9Rc9yjXNZSc7daFRwDieYb3Bnxt6=m+G+k_ELL8g@mail.gmail.com>
+ <CA+z-pWGmiRvpYQWQwb-f9TjH18k1pvu1rbOPUuF1t9-m3HvHqA@mail.gmail.com>
+ <CA+z-pWE9LmEiYDxVAbdR7GhO=C5fiDf1QozO2n4v0fQ4V6hrNQ@mail.gmail.com> <20120109133722.GA9981@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:50476 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932266Ab2AIQjp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2012 11:39:45 -0500
-In-Reply-To: <1325945558-4661-1-git-send-email-corentincj@iksaif.net>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:51530 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755596Ab2AIVg4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2012 16:36:56 -0500
+Received: by wgbdr10 with SMTP id dr10so2296472wgb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Jan 2012 13:36:55 -0800 (PST)
+In-Reply-To: <20120109133722.GA9981@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: platform-driver-x86@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, =?ISO-8859-1?Q?Richard_Sch=FCtz?= <r.schtz@t-online.de>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Corentin
+Thanks for your reply. Is this something that is likely to be fixed?
 
-On Sat, Jan 7, 2012 at 3:12 PM, Corentin Chary <corentincj@iksaif.net> wrote:
-> On these laptops, the ACPI video is not functional, and very unlikely
-> to be fixed by the vendor. Note that intel_backlight works for some
-> of these laptops, and the backlight from samsung-laptop always work.
+On 9 January 2012 13:37, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Mon, Jan 09, 2012 at 12:10:00PM +0000, Jamie Kitson wrote:
 >
-> The good news is that newer laptops have functional ACPI video device
-> and won't end up growing this list.
+>> If I boot with AC plugged in the /sys/class/power_supply/BAT0/
+>> directory is populated with charge_*, but if I boot on battery the
+>> directory is populated with energy_*.
+>>
+>> Disconnecting/connecting the power after boot does not effect the file names.
+>>
+>> Is this a bug or a feature? It makes scripts harder to write than necessary.
 >
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> ---
+> It's the way Lenovo's firmware works. It's not clear why.
 >
-> Could the concerned people test this patch and check that it correctly
-> disable the acpi_video backlight ?
-
-Works like a charm on my N210 with linux-3.2. Feel free to add a:
-Tested-by: David Herrmann <dh.herrmann@googlemail.com>
-
-I will talk to the intel drm developers about the intel_backlight
-issues as they don't seem related to this driver.
-
-Thanks
-David
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
