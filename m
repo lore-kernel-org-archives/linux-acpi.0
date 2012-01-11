@@ -1,439 +1,572 @@
-From: Robert Lee <rob.lee@linaro.org>
-Subject: [RFC] ARM: imx: Add imx6q thermal
-Date: Wed, 11 Jan 2012 01:18:05 -0600
-Message-ID: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:44204 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752163Ab2AKHSI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jan 2012 02:18:08 -0500
-Received: by obbup16 with SMTP id up16so458440obb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Jan 2012 23:18:07 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rob Lee <rob.lee-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 2/2] thermal: Add generic cpu cooling implementation
+Date: Wed, 11 Jan 2012 02:02:20 -0600
+Message-ID: <CAMXH7KEBCTWDsSFn+ZUsbetvbWXO3N9ZMpLBvLm0n0r2RH1wuQ@mail.gmail.com>
+References: <1323789196-4942-1-git-send-email-amit.kachhap@linaro.org>
+	<1323789196-4942-3-git-send-email-amit.kachhap@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1323789196-4942-3-git-send-email-amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Amit Daniel Kachhap <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux@arm.linux.org.uk, s.hauer@pengutronix.de, shawn.guo@freescale.com
-Cc: amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Add thermal support for i.MX6Q.  Uses recently submitted common
-cpu_cooling functionality shown here:
+Hey Amit, I was able to use your code on an i.MX6Q thermal
+implementation and it seemed to work pretty well.  Thanks for adding
+this.  A couple of comments below.
 
-http://www.spinics.net/lists/linux-pm/msg26500.html
+On Tue, Dec 13, 2011 at 9:13 AM, Amit Daniel Kachhap
+<amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> This patch adds support for generic cpu thermal cooling low level
+> implementations using frequency scaling and cpuhotplugg currently.
+> Different cpu related cooling devices can be registered by the
+> user and the binding of these cooling devices to the corresponding
+> trip points can be easily done as the registration API's return the
+> cooling device pointer.
+>
+> Signed-off-by: Amit Daniel Kachhap <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+> =A0Documentation/thermal/cpu-cooling-api.txt | =A0 52 +++++
+> =A0drivers/thermal/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 11 +
+> =A0drivers/thermal/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01=
+ +
+> =A0drivers/thermal/cpu_cooling.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0302 +++++++=
+++++++++++++++++++++++
+> =A0include/linux/cpu_cooling.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 45 +++++
+> =A05 files changed, 411 insertions(+), 0 deletions(-)
+> =A0create mode 100644 Documentation/thermal/cpu-cooling-api.txt
+> =A0create mode 100644 drivers/thermal/cpu_cooling.c
+> =A0create mode 100644 include/linux/cpu_cooling.h
+>
+> diff --git a/Documentation/thermal/cpu-cooling-api.txt b/Documentation/th=
+ermal/cpu-cooling-api.txt
+> new file mode 100644
+> index 0000000..d30b4f2
+> --- /dev/null
+> +++ b/Documentation/thermal/cpu-cooling-api.txt
+> @@ -0,0 +1,52 @@
+> +CPU cooling api's How To
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +Written by Amit Daniel Kachhap <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> +
+> +Updated: 13 Dec 2011
+> +
+> +Copyright (c) =A02011 Samsung Electronics Co., Ltd(http://www.samsung.co=
+m)
+> +
+> +0. Introduction
+> +
+> +The generic cpu cooling(freq clipping, cpuhotplug) provides
+> +registration/unregistration api's to the user. The binding of the cooling
+> +devices to the trip types is left for the user. The registration api's r=
+eturns
+> +the cooling device pointer.
+> +
+> +1. cpufreq cooling api's
+> +
+> +1.1 cpufreq registration api's
+> +1.1.1 struct thermal_cooling_device *cpufreq_cooling_register(
+> + =A0 =A0 =A0 struct freq_pctg_table *tab_ptr, unsigned int tab_size,
+> + =A0 =A0 =A0 const struct cpumask *mask_val)
+> +
+> + =A0 =A0This interface function registers the cpufreq cooling device wit=
+h the name
+> + =A0 =A0 =A0 "thermal-cpufreq".
+> +
+> + =A0 =A0tab_ptr: The table containing the percentage of frequency to be =
+clipped for
+> + =A0 =A0each cooling state.
+> + =A0 =A0 =A0 .freq_clip_pctg[NR_CPUS]:Percentage of frequency to be clip=
+ped for each
+> + =A0 =A0 =A0 =A0cpu.
+> + =A0 =A0 =A0 .polling_interval: polling interval for this cooling state.
+> + =A0 =A0tab_size: the total number of cooling state.
+> + =A0 =A0mask_val: all the allowed cpu's where frequency clipping can hap=
+pen.
+> +
+> +1.1.2 void cpufreq_cooling_unregister(void)
+> +
+> + =A0 =A0This interface function unregisters the "thermal-cpufreq" coolin=
+g device.
+> +
+> +
+> +1.2 cpuhotplug registration api's
+> +
+> +1.2.1 struct thermal_cooling_device *cpuhotplug_cooling_register(
+> + =A0 =A0 =A0 const struct cpumask *mask_val)
+> +
+> + =A0 =A0This interface function registers the cpuhotplug cooling device =
+with the name
+> + =A0 =A0 =A0 "thermal-cpuhotplug".
+> +
+> + =A0 =A0mask_val: all the allowed cpu's which can be hotplugged out.
+> +
+> +1.1.2 void cpuhotplug_cooling_unregister(void)
+> +
+> + =A0 =A0This interface function unregisters the "thermal-cpuhotplug" coo=
+ling device.
+> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+> index f7f71b2..298c1cd 100644
+> --- a/drivers/thermal/Kconfig
+> +++ b/drivers/thermal/Kconfig
+> @@ -18,3 +18,14 @@ config THERMAL_HWMON
+> =A0 =A0 =A0 =A0depends on THERMAL
+> =A0 =A0 =A0 =A0depends on HWMON=3Dy || HWMON=3DTHERMAL
+> =A0 =A0 =A0 =A0default y
+> +
+> +config CPU_THERMAL
+> + =A0 =A0 =A0 bool "generic cpu cooling support"
+> + =A0 =A0 =A0 depends on THERMAL
+> + =A0 =A0 =A0 help
+> + =A0 =A0 =A0 =A0 This implements the generic cpu cooling mechanism throu=
+gh frequency
+> + =A0 =A0 =A0 =A0 reduction, cpu hotplug and any other ways of reducing t=
+emperature. An
+> + =A0 =A0 =A0 =A0 ACPI version of this already exists(drivers/acpi/proces=
+sor_thermal.c).
+> + =A0 =A0 =A0 =A0 This will be useful for platforms using the generic the=
+rmal interface
+> + =A0 =A0 =A0 =A0 and not the ACPI interface.
+> + =A0 =A0 =A0 =A0 If you want this support, you should say Y or M here.
+> diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+> index 31108a0..655cbc4 100644
+> --- a/drivers/thermal/Makefile
+> +++ b/drivers/thermal/Makefile
+> @@ -3,3 +3,4 @@
+> =A0#
+>
+> =A0obj-$(CONFIG_THERMAL) =A0 =A0 =A0 =A0 =A0+=3D thermal_sys.o
+> +obj-$(CONFIG_CPU_THERMAL) =A0 =A0 =A0+=3D cpu_cooling.o
+> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+> new file mode 100644
+> index 0000000..cdd148c
+> --- /dev/null
+> +++ b/drivers/thermal/cpu_cooling.c
+> @@ -0,0 +1,302 @@
+> +/*
+> + * =A0linux/drivers/thermal/cpu_cooling.c
+> + *
+> + * =A0Copyright (C) 2011 Samsung Electronics Co., Ltd(http://www.samsung=
+.com)
+> + * =A0Copyright (C) 2011 =A0Amit Daniel <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~
+> + * =A0This program is free software; you can redistribute it and/or modi=
+fy
+> + * =A0it under the terms of the GNU General Public License as published =
+by
+> + * =A0the Free Software Foundation; version 2 of the License.
+> + *
+> + * =A0This program is distributed in the hope that it will be useful, but
+> + * =A0WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * =A0MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU
+> + * =A0General Public License for more details.
+> + *
+> + * =A0You should have received a copy of the GNU General Public License =
+along
+> + * =A0with this program; if not, write to the Free Software Foundation, =
+Inc.,
+> + * =A059 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~
+> + */
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/thermal.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/cpufreq.h>
+> +#include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <linux/cpu.h>
+> +#include <linux/cpu_cooling.h>
+> +
+> +#ifdef CONFIG_CPU_FREQ
+> +struct cpufreq_cooling_device {
+> + =A0 =A0 =A0 struct thermal_cooling_device *cool_dev;
+> + =A0 =A0 =A0 struct freq_pctg_table *tab_ptr;
+> + =A0 =A0 =A0 unsigned int tab_size;
+> + =A0 =A0 =A0 unsigned int cpufreq_state;
+> + =A0 =A0 =A0 const struct cpumask *allowed_cpus;
+> +};
+> +
+> +static struct cpufreq_cooling_device *cpufreq_device;
+> +
+> +/*Below codes defines functions to be used for cpufreq as cooling device=
+*/
+> +static bool is_cpufreq_valid(int cpu)
+> +{
+> + =A0 =A0 =A0 struct cpufreq_policy policy;
+> + =A0 =A0 =A0 if (!cpufreq_get_policy(&policy, cpu))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return true;
+> + =A0 =A0 =A0 return false;
+> +}
+> +
+> +static int cpufreq_apply_cooling(int cooling_state)
+> +{
+> + =A0 =A0 =A0 int cpuid, this_cpu =3D smp_processor_id();
+> +
+> + =A0 =A0 =A0 if (!is_cpufreq_valid(this_cpu))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 if (cooling_state > cpufreq_device->tab_size)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> +
+> + =A0 =A0 =A0 /*Check if last cooling level is same as current cooling le=
+vel*/
+> + =A0 =A0 =A0 if (cpufreq_device->cpufreq_state =3D=3D cooling_state)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 cpufreq_device->cpufreq_state =3D cooling_state;
+> +
+> + =A0 =A0 =A0 for_each_cpu(cpuid, cpufreq_device->allowed_cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (is_cpufreq_valid(cpuid))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_update_policy(cpuid=
+);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +static int thermal_cpufreq_notifier(struct notifier_block *nb,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 unsigned long event, void *data)
+> +{
+> + =A0 =A0 =A0 struct cpufreq_policy *policy =3D data;
+> + =A0 =A0 =A0 struct freq_pctg_table *th_table;
+> + =A0 =A0 =A0 unsigned long max_freq =3D 0;
+> + =A0 =A0 =A0 unsigned int cpu =3D policy->cpu, th_pctg =3D 0, level;
+> +
+> + =A0 =A0 =A0 if (event !=3D CPUFREQ_ADJUST)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 level =3D cpufreq_device->cpufreq_state;
+> +
+> + =A0 =A0 =A0 if (level > 0) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 th_table =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(cpufreq_device->tab_ptr[l=
+evel - 1]);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 th_pctg =3D th_table->freq_clip_pctg[cpu];
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 max_freq =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (policy->cpuinfo.max_freq * (100 - th_pctg)=
+) / 100;
+> +
+> + =A0 =A0 =A0 cpufreq_verify_within_limits(policy, 0, max_freq);
+> +
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +/*
+> + * cpufreq cooling device callback functions
+> + */
+> +static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long *state)
+> +{
+> + =A0 =A0 =A0 *state =3D cpufreq_device->tab_size;
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long *state)
+> +{
+> + =A0 =A0 =A0 *state =3D cpufreq_device->cpufreq_state;
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +/*This cooling may be as PASSIVE/STATE_ACTIVE type*/
+> +static int cpufreq_set_cur_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long state)
+> +{
+> + =A0 =A0 =A0 cpufreq_apply_cooling(state);
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +/* bind cpufreq callbacks to cpufreq cooling device */
+> +static struct thermal_cooling_device_ops cpufreq_cooling_ops =3D {
+> + =A0 =A0 =A0 .get_max_state =3D cpufreq_get_max_state,
+> + =A0 =A0 =A0 .get_cur_state =3D cpufreq_get_cur_state,
+> + =A0 =A0 =A0 .set_cur_state =3D cpufreq_set_cur_state,
+> +};
+> +
+> +static struct notifier_block thermal_cpufreq_notifier_block =3D {
+> + =A0 =A0 =A0 .notifier_call =3D thermal_cpufreq_notifier,
+> +};
+> +
+> +struct thermal_cooling_device *cpufreq_cooling_register(
+> + =A0 =A0 =A0 struct freq_pctg_table *tab_ptr, unsigned int tab_size,
+> + =A0 =A0 =A0 const struct cpumask *mask_val)
+> +{
+> + =A0 =A0 =A0 struct thermal_cooling_device *cool_dev;
+> +
+> + =A0 =A0 =A0 if (tab_ptr =3D=3D NULL || tab_size =3D=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-EINVAL);
+> +
+> + =A0 =A0 =A0 cpufreq_device =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kzalloc(sizeof(struct cpufreq_cooling_devic=
+e), GFP_KERNEL);
+> +
+> + =A0 =A0 =A0 if (!cpufreq_device)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-ENOMEM);
+> +
+> + =A0 =A0 =A0 cool_dev =3D thermal_cooling_device_register("thermal-cpufr=
+eq", NULL,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 &cpufreq_cooling_ops);
+> + =A0 =A0 =A0 if (!cool_dev) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(cpufreq_device);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-EINVAL);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 cpufreq_device->tab_ptr =3D tab_ptr;
+> + =A0 =A0 =A0 cpufreq_device->tab_size =3D tab_size;
+> + =A0 =A0 =A0 cpufreq_device->cool_dev =3D cool_dev;
+> + =A0 =A0 =A0 cpufreq_device->allowed_cpus =3D mask_val;
+> +
+> + =A0 =A0 =A0 cpufreq_register_notifier(&thermal_cpufreq_notifier_block,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 CPUFREQ_POLICY_NOTIFIER);
+> + =A0 =A0 =A0 return cool_dev;
+> +}
+> +EXPORT_SYMBOL(cpufreq_cooling_register);
+> +
+> +void cpufreq_cooling_unregister(void)
+> +{
+> + =A0 =A0 =A0 cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 CPUFREQ_POLICY_NOTIFIER);
+> + =A0 =A0 =A0 thermal_cooling_device_unregister(cpufreq_device->cool_dev);
+> + =A0 =A0 =A0 kfree(cpufreq_device);
+> +}
+> +EXPORT_SYMBOL(cpufreq_cooling_unregister);
+> +#else /*!CONFIG_CPU_FREQ*/
+> +struct thermal_cooling_device *cpufreq_cooling_register(
+> + =A0 =A0 =A0 struct freq_pctg_table *tab_ptr, unsigned int tab_size)
 
-Have some todo items but basic implementation is done and I'd like to
-get any helpful feedback on it.
+Need to add the "const struct cpumask *mask_val" parameter
+to this function like it's used above and prototyped in the heard
+or else it causes a build error when building
+without CONFIG_CPU_FREQ defined.
 
-Todo:
-- Add sensor calibration.
-- Re-organize code/files if deemed necessary by community.
+> +{
+> + =A0 =A0 =A0 return NULL;
+> +}
+> +EXPORT_SYMBOL(cpufreq_cooling_register);
+> +void cpufreq_cooling_unregister(void)
+> +{
+> + =A0 =A0 =A0 return;
+> +}
+> +EXPORT_SYMBOL(cpufreq_cooling_unregister);
+> +#endif /*CONFIG_CPU_FREQ*/
+> +
+> +#ifdef CONFIG_HOTPLUG_CPU
+> +
+> +struct hotplug_cooling_device {
+> + =A0 =A0 =A0 struct thermal_cooling_device *cool_dev;
+> + =A0 =A0 =A0 unsigned int hotplug_state;
+> + =A0 =A0 =A0 const struct cpumask *allowed_cpus;
+> +};
+> +static struct hotplug_cooling_device *hotplug_device;
+> +
+> +/*
+> + * cpu hotplug cooling device callback functions
+> + */
+> +static int cpuhotplug_get_max_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long *state)
+> +{
+> + =A0 =A0 =A0 *state =3D 1;
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +static int cpuhotplug_get_cur_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long *state)
+> +{
+> + =A0 =A0 =A0 /*This cooling device may be of type ACTIVE, so state field
+> + =A0 =A0 =A0 can be 0 or 1*/
+> + =A0 =A0 =A0 *state =3D hotplug_device->hotplug_state;
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> +/*This cooling may be as PASSIVE/STATE_ACTIVE type*/
+> +static int cpuhotplug_set_cur_state(struct thermal_cooling_device *cdev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned=
+ long state)
+> +{
+> + =A0 =A0 =A0 int cpuid, this_cpu =3D smp_processor_id();
+> +
+> + =A0 =A0 =A0 if (hotplug_device->hotplug_state =3D=3D state)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 /*This cooling device may be of type ACTIVE, so state field
+> + =A0 =A0 =A0 can be 0 or 1*/
+> + =A0 =A0 =A0 if (state =3D=3D 1) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(cpuid, hotplug_device->allowed=
+_cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_online(cpuid) && (c=
+puid !=3D this_cpu))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_down(cp=
+uid);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 } else if (state =3D=3D 0) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(cpuid, hotplug_device->allowed=
+_cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!cpu_online(cpuid) && (=
+cpuid !=3D this_cpu))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_up(cpui=
+d);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 } else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> +
 
-Signed-off-by: Robert Lee <rob.lee@linaro.org>
----
- drivers/thermal/Kconfig         |    6 +
- drivers/thermal/Makefile        |    1 +
- drivers/thermal/imx6q_thermal.c |  370 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 377 insertions(+), 0 deletions(-)
- create mode 100644 drivers/thermal/imx6q_thermal.c
+I don't like how ACTIVE does not have available notification callbacks
+like HOT and CRITICAL do.  Perhaps I fail to grasp why they aren't there
+but besides just applying a cooling device, one might want to do something
+else as well upon hitting these trip points.  So that said, it might be nice
+to add a notification to STATE_ACTIVE as well.
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 298c1cd..dd8cede 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -29,3 +29,9 @@ config CPU_THERMAL
- 	  This will be useful for platforms using the generic thermal interface
- 	  and not the ACPI interface.
- 	  If you want this support, you should say Y or M here.
-+
-+config IMX6Q_THERMAL
-+	bool "IMX6Q Thermal interface support"
-+	depends on THERMAL && CPU_THERMAL
-+	help
-+	  Adds thermal management for IMX6Q.
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index 655cbc4..e2bcffe 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -4,3 +4,4 @@
- 
- obj-$(CONFIG_THERMAL)		+= thermal_sys.o
- obj-$(CONFIG_CPU_THERMAL)	+= cpu_cooling.o
-+obj-$(CONFIG_IMX6Q_THERMAL)	+= imx6q_thermal.o
-diff --git a/drivers/thermal/imx6q_thermal.c b/drivers/thermal/imx6q_thermal.c
-new file mode 100644
-index 0000000..161a1a9
---- /dev/null
-+++ b/drivers/thermal/imx6q_thermal.c
-@@ -0,0 +1,370 @@
-+/*
-+ * Copyright 2012 Freescale Semiconductor, Inc.
-+ * Copyright 2012 Linaro Ltd.
-+ *
-+ * The code contained herein is licensed under the GNU General Public
-+ * License. You may obtain a copy of the GNU General Public License
-+ * Version 2 or later at the following locations:
-+ *
-+ * http://www.opensource.org/licenses/gpl-license.html
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+
-+/* i.MX6Q Thermal Implementation */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/dmi.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/delay.h>
-+#include <linux/types.h>
-+#include <linux/thermal.h>
-+#include <linux/io.h>
-+#include <linux/syscalls.h>
-+#include <linux/cpufreq.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/smp.h>
-+#include <linux/cpu_cooling.h>
-+
-+/* register define of anatop */
-+#define HW_ANADIG_ANA_MISC0	(0x00000150)
-+#define HW_ANADIG_ANA_MISC0_SET	(0x00000154)
-+#define HW_ANADIG_ANA_MISC0_CLR	(0x00000158)
-+#define HW_ANADIG_ANA_MISC0_TOG	(0x0000015c)
-+
-+#define HW_ANADIG_TEMPSENSE0	(0x00000180)
-+#define HW_ANADIG_TEMPSENSE0_SET	(0x00000184)
-+#define HW_ANADIG_TEMPSENSE0_CLR	(0x00000188)
-+#define HW_ANADIG_TEMPSENSE0_TOG	(0x0000018c)
-+
-+#define HW_ANADIG_TEMPSENSE1	(0x00000190)
-+#define HW_ANADIG_TEMPSENSE1_SET	(0x00000194)
-+#define HW_ANADIG_TEMPSENSE1_CLR	(0x00000198)
-+
-+#define BM_ANADIG_ANA_MISC0_REFTOP_SELBIASOFF 0x00000008
-+
-+#define BP_ANADIG_TEMPSENSE0_TEMP_VALUE      8
-+#define BM_ANADIG_TEMPSENSE0_TEMP_VALUE 0x000FFF00
-+#define BF_ANADIG_TEMPSENSE0_TEMP_VALUE(v)  \
-+	(((v) << 8) & BM_ANADIG_TEMPSENSE0_TEMP_VALUE)
-+#define BM_ANADIG_TEMPSENSE0_FINISHED 0x00000004
-+#define BM_ANADIG_TEMPSENSE0_MEASURE_TEMP 0x00000002
-+#define BM_ANADIG_TEMPSENSE0_POWER_DOWN 0x00000001
-+
-+#define BP_ANADIG_TEMPSENSE1_MEASURE_FREQ      0
-+#define BM_ANADIG_TEMPSENSE1_MEASURE_FREQ 0x0000FFFF
-+#define BF_ANADIG_TEMPSENSE1_MEASURE_FREQ(v)  \
-+	(((v) << 0) & BM_ANADIG_TEMPSENSE1_MEASURE_FREQ)
-+
-+#define CONVER_CONST			14113  /* need to add calibration */
-+#define CONVER_DIV				17259
-+#define REG_VALUE_TO_CEL(val) (((CONVER_CONST - val * 10)\
-+			* 1000) / CONVER_DIV);
-+
-+#define IMX6Q_THERMAL_POLLING_FREQUENCY_MS 1000
-+#define IMX6Q_THERMAL_ACT_TRP_PTS 3
-+/* assumption: always one critical trip point */
-+#define IMX6Q_THERMAL_TOTAL_TRP_PTS (IMX6Q_THERMAL_ACT_TRP_PTS + 1)
-+#define IMX6Q_THERMAL_DEBUG 1
-+
-+struct trip_point {
-+	u8 temp; /* in celcius */
-+	u8 type;
-+};
-+
-+struct imx6q_thermal_data {
-+	struct trip_point trp_pts[IMX6Q_THERMAL_TOTAL_TRP_PTS];
-+	struct freq_pctg_table freq_tab[IMX6Q_THERMAL_ACT_TRP_PTS];
-+};
-+
-+struct thermal_sensor_conf {
-+	char	*name;
-+	int	(*read_temperature)(void *data);
-+};
-+
-+static int imx6q_get_temp(struct thermal_zone_device *thermal,
-+				  unsigned long *temp);
-+
-+static struct thermal_sensor_conf imx6q_sensor_conf = {
-+	.name			= "imx6q-temp_sens",
-+	.read_temperature	= (int (*)(void *))imx6q_get_temp,
-+
-+};
-+
-+/*
-+ * This data defines the various trip points that will trigger action
-+ * when crossed.
-+ */
-+static struct imx6q_thermal_data thermal_data = {
-+	.trp_pts[0] = {
-+		.temp	 = 85,
-+		.type	 = THERMAL_TRIP_STATE_ACTIVE,
-+	},
-+	.freq_tab[0] = {
-+		.freq_clip_pctg[0] = 25,
-+	},
-+	.trp_pts[1] = {
-+		.temp	 = 90,
-+		.type	 = THERMAL_TRIP_STATE_ACTIVE,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_pctg[0] = 65,
-+	},
-+	.trp_pts[2] = {
-+		.temp	 = 95,
-+		.type	 = THERMAL_TRIP_STATE_ACTIVE,
-+	},
-+	.freq_tab[2] = {
-+		.freq_clip_pctg[0] = 99,
-+	},
-+	.trp_pts[3] = {
-+		.temp	 = 100,
-+		.type	 = THERMAL_TRIP_CRITICAL,
-+	},
-+};
-+
-+struct imx6q_thermal_zone {
-+	struct thermal_zone_device *therm_dev;
-+	struct thermal_cooling_device *cool_dev;
-+	struct thermal_sensor_conf *sensor_conf;
-+	struct imx6q_thermal_data *thermal_data;
-+};
-+
-+static struct imx6q_thermal_zone *th_zone;
-+
-+static void __iomem *anatop_base;
-+
-+static int imx6q_get_mode(struct thermal_zone_device *thermal,
-+			    enum thermal_device_mode *mode)
-+{
-+	*mode = THERMAL_DEVICE_ENABLED;
-+	return 0;
-+}
-+
-+static int imx6q_get_trip_type(struct thermal_zone_device *thermal, int trip,
-+				 enum thermal_trip_type *type)
-+{
-+	if (trip >= IMX6Q_THERMAL_TOTAL_TRP_PTS)
-+		return -EINVAL;
-+
-+	*type = th_zone->thermal_data->trp_pts[trip].type;
-+
-+	return 0;
-+}
-+
-+static int imx6q_get_trip_temp(struct thermal_zone_device *thermal, int trip,
-+				 unsigned long *temp)
-+{
-+	if (trip >= IMX6Q_THERMAL_TOTAL_TRP_PTS)
-+		return -EINVAL;
-+
-+	*temp = th_zone->thermal_data->trp_pts[trip].temp;
-+
-+	/*convert the temperature into millicelsius*/
-+	*temp = *temp * 1000;
-+	return 0;
-+}
-+
-+static int imx6q_get_crit_temp(struct thermal_zone_device *thermal,
-+				 unsigned long *temp)
-+{
-+
-+	*temp = th_zone->thermal_data->trp_pts[
-+		IMX6Q_THERMAL_TOTAL_TRP_PTS - 1].temp;
-+	/*convert the temperature into millicelsius*/
-+	*temp = *temp * 1000;
-+	return 0;
-+}
-+
-+static int imx6q_bind(struct thermal_zone_device *thermal,
-+			struct thermal_cooling_device *cdev)
-+{
-+	/* if the cooling device is the one from imx6 bind it */
-+	if (cdev != th_zone->cool_dev)
-+		return 0;
-+
-+	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
-+		pr_err("error binding cooling dev\n");
-+		return -EINVAL;
-+	}
-+	if (thermal_zone_bind_cooling_device(thermal, 1, cdev)) {
-+		pr_err("error binding cooling dev\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int imx6q_unbind(struct thermal_zone_device *thermal,
-+			  struct thermal_cooling_device *cdev)
-+{
-+	if (cdev != th_zone->cool_dev)
-+		return 0;
-+	if (thermal_zone_unbind_cooling_device(thermal, 0, cdev)) {
-+		pr_err("error unbinding cooling dev\n");
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int imx6q_temp_sens_reg_dump(void)
-+{
-+	if (!anatop_base) {
-+		pr_info("anatop_base is not initialized!!!\n");
-+		return -EINVAL;
-+	}
-+	pr_info("HW_ANADIG_TEMPSENSE0 = 0x%x\n",
-+			readl_relaxed(anatop_base + HW_ANADIG_TEMPSENSE0));
-+	pr_info("HW_ANADIG_TEMPSENSE1 = 0x%x\n",
-+			readl_relaxed(anatop_base + HW_ANADIG_TEMPSENSE1));
-+	return 0;
-+}
-+
-+static int imx6q_get_temp(struct thermal_zone_device *thermal,
-+				  unsigned long *temp)
-+{
-+	unsigned int tmp;
-+	unsigned int reg;
-+
-+	/*
-+	 * For now we only using single measure.  Every time we measure
-+	 * the temperature, we will power on/down the anadig module
-+	 */
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_POWER_DOWN,
-+		anatop_base + HW_ANADIG_TEMPSENSE0_CLR);
-+
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_FINISHED,
-+		anatop_base + HW_ANADIG_TEMPSENSE0_CLR);
-+
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_MEASURE_TEMP,
-+		anatop_base + HW_ANADIG_TEMPSENSE0_SET);
-+	/*
-+	 * According to designers, may take up to ~17us for hardware to make
-+	 * a measurement.  But because we have a 'finished' status bit, so we
-+	 * check it just in case the designers are liars.
-+	 */
-+	do  {
-+		msleep(1);
-+	} while (!(readl_relaxed(anatop_base + HW_ANADIG_TEMPSENSE0)
-+		& BM_ANADIG_TEMPSENSE0_FINISHED));
-+
-+	reg = readl_relaxed(anatop_base + HW_ANADIG_TEMPSENSE0);
-+
-+	tmp = (reg & BM_ANADIG_TEMPSENSE0_TEMP_VALUE)
-+			>> BP_ANADIG_TEMPSENSE0_TEMP_VALUE;
-+
-+#if IMX6Q_THERMAL_DEBUG
-+	imx6q_temp_sens_reg_dump();
-+#endif
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_MEASURE_TEMP,
-+		anatop_base + HW_ANADIG_TEMPSENSE0_CLR);
-+
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_POWER_DOWN,
-+			anatop_base + HW_ANADIG_TEMPSENSE0_SET);
-+
-+	*temp = REG_VALUE_TO_CEL(tmp);
-+
-+#if IMX6Q_THERMAL_DEBUG
-+	pr_info("Temperature is %lu C\n", *temp);
-+#endif
-+	return 0;
-+}
-+
-+/* bind callback functions to thermalzone */
-+static struct thermal_zone_device_ops imx6q_dev_ops = {
-+	.bind = imx6q_bind,
-+	.unbind = imx6q_unbind,
-+	.get_temp = imx6q_get_temp,
-+	.get_mode = imx6q_get_mode,
-+	.get_trip_type = imx6q_get_trip_type,
-+	.get_trip_temp = imx6q_get_trip_temp,
-+	.get_crit_temp = imx6q_get_crit_temp,
-+};
-+
-+void imx6q_unregister_thermal(void)
-+{
-+	if (th_zone && th_zone->cool_dev)
-+		cpufreq_cooling_unregister();
-+
-+	if (th_zone && th_zone->therm_dev)
-+		thermal_zone_device_unregister(th_zone->therm_dev);
-+
-+	kfree(th_zone);
-+
-+	pr_info("i.MX6Q: Kernel Thermal management unregistered\n");
-+}
-+EXPORT_SYMBOL(imx6q_unregister_thermal);
-+
-+int __init imx6q_register_thermal(void)
-+{
-+	struct device_node *np;
-+	int ret;
-+
-+	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-anatop");
-+	anatop_base = of_iomap(np, 0);
-+
-+	if (!anatop_base) {
-+		pr_err("Could not retrieve anantop-base\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Make sure sensor is in known good state for measurements */
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_POWER_DOWN,
-+			anatop_base + HW_ANADIG_TEMPSENSE0_CLR);
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_MEASURE_TEMP,
-+		anatop_base + HW_ANADIG_TEMPSENSE0_CLR);
-+	writel_relaxed(BM_ANADIG_TEMPSENSE1_MEASURE_FREQ,
-+		anatop_base + HW_ANADIG_TEMPSENSE1_CLR);
-+	writel_relaxed(BM_ANADIG_ANA_MISC0_REFTOP_SELBIASOFF,
-+			anatop_base + HW_ANADIG_ANA_MISC0_SET);
-+	writel_relaxed(BM_ANADIG_TEMPSENSE0_POWER_DOWN,
-+			anatop_base + HW_ANADIG_TEMPSENSE0_SET);
-+
-+	th_zone = kzalloc(sizeof(struct imx6q_thermal_zone), GFP_KERNEL);
-+	if (!th_zone) {
-+		ret = -ENOMEM;
-+		goto err_unregister;
-+	}
-+
-+	th_zone->sensor_conf = &imx6q_sensor_conf;
-+
-+	th_zone->thermal_data = &thermal_data;
-+	if (!th_zone->thermal_data) {
-+		pr_err("Temperature sensor data not initialised\n");
-+		ret = -EINVAL;
-+		goto err_unregister;
-+	}
-+
-+	th_zone->cool_dev = cpufreq_cooling_register(
-+		(struct freq_pctg_table *)th_zone->thermal_data->freq_tab,
-+		IMX6Q_THERMAL_ACT_TRP_PTS, cpumask_of(0));
-+
-+	if (IS_ERR(th_zone->cool_dev)) {
-+		pr_err("Failed to register cpufreq cooling device\n");
-+		ret = -EINVAL;
-+		goto err_unregister;
-+	}
-+
-+	th_zone->therm_dev = thermal_zone_device_register(
-+		th_zone->sensor_conf->name, 3, NULL, &imx6q_dev_ops,
-+		0, 0, 0, IMX6Q_THERMAL_POLLING_FREQUENCY_MS);
-+
-+	if (IS_ERR(th_zone->therm_dev)) {
-+		pr_err("Failed to register thermal zone device\n");
-+		ret = -EINVAL;
-+		goto err_unregister;
-+	}
-+
-+	pr_info("i.MX6: Kernel Thermal management registered\n");
-+
-+	return 0;
-+
-+err_unregister:
-+	imx6q_unregister_thermal();
-+	return ret;
-+}
-+EXPORT_SYMBOL(imx6q_register_thermal);
-+
-+module_init(imx6q_register_thermal);
--- 
-1.7.1
-
+> + =A0 =A0 =A0 hotplug_device->hotplug_state =3D state;
+> +
+> + =A0 =A0 =A0 return 0;
+> +}
+> +/* bind hotplug callbacks to cpu hotplug cooling device */
+> +static struct thermal_cooling_device_ops cpuhotplug_cooling_ops =3D {
+> + =A0 =A0 =A0 .get_max_state =3D cpuhotplug_get_max_state,
+> + =A0 =A0 =A0 .get_cur_state =3D cpuhotplug_get_cur_state,
+> + =A0 =A0 =A0 .set_cur_state =3D cpuhotplug_set_cur_state,
+> +};
+> +
+> +struct thermal_cooling_device *cpuhotplug_cooling_register(
+> + =A0 =A0 =A0 const struct cpumask *mask_val)
+> +{
+> + =A0 =A0 =A0 struct thermal_cooling_device *cool_dev;
+> +
+> + =A0 =A0 =A0 hotplug_device =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kzalloc(sizeof(struct hotplug_cooling_devic=
+e), GFP_KERNEL);
+> +
+> + =A0 =A0 =A0 if (!hotplug_device)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-ENOMEM);
+> +
+> + =A0 =A0 =A0 cool_dev =3D thermal_cooling_device_register("thermal-cpuho=
+tplug", NULL,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 &cpuhotplug_cooling_ops);
+> + =A0 =A0 =A0 if (!cool_dev) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(hotplug_device);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-EINVAL);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 hotplug_device->cool_dev =3D cool_dev;
+> + =A0 =A0 =A0 hotplug_device->hotplug_state =3D 0;
+> + =A0 =A0 =A0 hotplug_device->allowed_cpus =3D mask_val;
+> +
+> + =A0 =A0 =A0 return cool_dev;
+> +}
+> +EXPORT_SYMBOL(cpuhotplug_cooling_register);
+> +
+> +void cpuhotplug_cooling_unregister(void)
+> +{
+> + =A0 =A0 =A0 thermal_cooling_device_unregister(hotplug_device->cool_dev);
+> + =A0 =A0 =A0 kfree(hotplug_device);
+> +}
+> +EXPORT_SYMBOL(cpuhotplug_cooling_unregister);
+> +#else /*!CONFIG_HOTPLUG_CPU*/
+> +struct thermal_cooling_device *cpuhotplug_cooling_register(
+> + =A0 =A0 =A0 const struct cpumask *mask_val)
+> +{
+> + =A0 =A0 =A0 return NULL;
+> +}
+> +EXPORT_SYMBOL(cpuhotplug_cooling_register);
+> +void cpuhotplug_cooling_unregister(void)
+> +{
+> + =A0 =A0 =A0 return;
+> +}
+> +EXPORT_SYMBOL(cpuhotplug_cooling_unregister);
+> +#endif /*CONFIG_HOTPLUG_CPU*/
+> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+> new file mode 100644
+> index 0000000..0c57375
+> --- /dev/null
+> +++ b/include/linux/cpu_cooling.h
+> @@ -0,0 +1,45 @@
+> +/*
+> + * =A0linux/include/linux/cpu_cooling.h
+> + *
+> + * =A0Copyright (C) 2011 Samsung Electronics Co., Ltd(http://www.samsung=
+.com)
+> + * =A0Copyright (C) 2011 =A0Amit Daniel <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~
+> + * =A0This program is free software; you can redistribute it and/or modi=
+fy
+> + * =A0it under the terms of the GNU General Public License as published =
+by
+> + * =A0the Free Software Foundation; version 2 of the License.
+> + *
+> + * =A0This program is distributed in the hope that it will be useful, but
+> + * =A0WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * =A0MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU
+> + * =A0General Public License for more details.
+> + *
+> + * =A0You should have received a copy of the GNU General Public License =
+along
+> + * =A0with this program; if not, write to the Free Software Foundation, =
+Inc.,
+> + * =A059 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~
+> + */
+> +
+> +#ifndef __CPU_COOLING_H__
+> +#define __CPU_COOLING_H__
+> +
+> +#include <linux/thermal.h>
+> +
+> +struct freq_pctg_table {
+> + =A0 =A0 =A0 unsigned int freq_clip_pctg[NR_CPUS];
+> + =A0 =A0 =A0 unsigned int polling_interval;
+> +};
+> +
+> +extern struct thermal_cooling_device *cpufreq_cooling_register(
+> + =A0 =A0 =A0 struct freq_pctg_table *tab_ptr, unsigned int tab_size,
+> + =A0 =A0 =A0 const struct cpumask *mask_val);
+> +
+> +extern void cpufreq_cooling_unregister(void);
+> +
+> +extern struct thermal_cooling_device *cpuhotplug_cooling_register(
+> + =A0 =A0 =A0 const struct cpumask *mask_val);
+> +
+> +extern void cpuhotplug_cooling_unregister(void);
+> +
+> +#endif /* __CPU_COOLING_H__ */
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
