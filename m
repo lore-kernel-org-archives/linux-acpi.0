@@ -1,57 +1,60 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [BUG] ACPI resource validation not working [Was: Re: ITE 8728F]
-Date: Wed, 11 Jan 2012 14:01:28 +0100
-Message-ID: <20120111140128.03fe1d7f@endymion.delvare>
-References: <CAKPcRGofYw_DcVL1QDorSp8Gr1ZL6-ur=oZnDs0w_e91ZuwKbQ@mail.gmail.com>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E316EE2575@ORSMSX101.amr.corp.intel.com>
-	<1322531323.1467.10.camel@minggr>
-	<CAKPcRGpXP=A-WHVLyvf_ZazY8br5d4-CxrDpnCbpJbcsnMVpiQ@mail.gmail.com>
-	<1323396109.27764.44.camel@minggr>
-	<20111212103726.56422cbb@endymion.delvare>
-	<CAF1ivSaN6V5tz6ttUL9_1htFjVX8qEVv-eCq04s=_nPAaDMH6g@mail.gmail.com>
-	<20111212211245.67baf2b1@endymion.delvare>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: [patch 3/3] drivers/idle/intel_idle.c: remove redundant local_irq_disable()
+ call
+Date: Wed, 11 Jan 2012 21:29:44 +0530
+Message-ID: <4F0DB1F0.1060408@linux.vnet.ibm.com>
+References: <20120110234821.E8BF5100270@wpzn3.hot.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:21879 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049Ab2AKNBw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jan 2012 08:01:52 -0500
-In-Reply-To: <20111212211245.67baf2b1@endymion.delvare>
+Received: from e28smtp06.in.ibm.com ([122.248.162.6]:57896 "EHLO
+	e28smtp06.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732Ab2AKP75 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jan 2012 10:59:57 -0500
+Received: from /spool/local
+	by e28smtp06.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
+	Wed, 11 Jan 2012 21:29:54 +0530
+Received: from d28av01.in.ibm.com (d28av01.in.ibm.com [9.184.220.63])
+	by d28relay03.in.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q0BFxoqb4386862
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Jan 2012 21:29:51 +0530
+Received: from d28av01.in.ibm.com (loopback [127.0.0.1])
+	by d28av01.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q0BFxnE6027813
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Jan 2012 21:29:50 +0530
+In-Reply-To: <20120110234821.E8BF5100270@wpzn3.hot.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Nikolay Mikov <nik.mikov@gmail.com>, Thomas <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, yanmin_zhang@linux.intel.com, mingmingx.zhang@intel.com, shaohua.li@intel.com
 
-On Mon, 12 Dec 2011 21:12:45 +0100, Jean Delvare wrote:
-> On Mon, 12 Dec 2011 20:42:50 +0800, Lin Ming wrote:
-> > On Mon, Dec 12, 2011 at 5:37 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > > I have no objection for an upstream patch, but the main problem we have
-> > > at the moment is with already released kernels. Versions 2.6.39, 3.0
-> > > and 3.1 currently have a regression as the ACPI resource conflict
-> > > checks are inefficient, and this allows conflicting drivers to be
-> > > loaded together. So you are free to reimplement things differently in
-> > > version 3.2 and later, but for these 3 older versions we need the
-> > > smallest possible patch, so that it is accepted in stable branches.
-> > >
-> > > In other words, I would like two patches, one just adding back the code
-> > > that was accidentally dropped, and a second one moving things around if
-> > > you think it makes sense (and I tend to agree.) That way we can easily
-> > > backport only the first patch to kernel versions 2.6.39 to 3.1.
-> > 
-> > Sure.
-> > 
-> > I have send out the patch.
-> > 
-> > [PATCH] ACPICA: Put back the call to acpi_os_validate_address
-> > http://marc.info/?l=linux-acpi&m=132257617527119&w=2
+On 01/11/2012 05:18 AM, akpm@linux-foundation.org wrote:
+
+> From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+> Subject: drivers/idle/intel_idle.c: remove redundant local_irq_disable() call
 > 
-> Perfect, thank you!
+> irq disabling happens earlier in process_32.c:cpu_idle.  Basically,
+> cpuidle_state->enter is called, cpu irq is disabled.  cpuidle_state->enter
+> would turn on irq when exiting.
+> 
+> intel_idle doesn't follow this assumption.  Although it doesn't cause real
+> issue, it misleads developers.  Remove the call to local_irq_disable() at
+> entry.
+> 
+> [akpm@linux-foundation.org: add comment]
+> Signed-off-by: mzha38X <mingmingx.zhang@intel.com>
 
-I still don't see this important fix upstream. Len, can you please get
-it there quickly, so that it can propagate to stable kernels from there?
+                 ^^^^^^^
+Are nicknames acceptable? AFAIK, real names are preferred...
 
-Thanks,
--- 
-Jean Delvare
+> Cc: "Li, Shaohua" <shaohua.li@intel.com>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+
+
+Regards,
+Srivatsa S. Bhat
+IBM Linux Technology Center
+
