@@ -1,84 +1,124 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 1/2] x86, amd: factor out MMCONFIG discovery
-Date: Thu, 12 Jan 2012 06:56:15 -0700
-Message-ID: <CAErSpo4C13Q_S6RiycmEf642Ogv0TCVZSw3XfrWE2E=zzT=8ig@mail.gmail.com>
-References: <20120105212719.3965.40406.stgit@bhelgaas.mtv.corp.google.com> <1326351173.2741.3.camel@edumazet-laptop>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
+Date: Thu, 12 Jan 2012 12:49:58 -0500
+Message-ID: <20120112174958.GA22515@phenom.dumpdata.com>
+References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
+	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
+	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:44924 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753548Ab2ALN4j convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jan 2012 08:56:39 -0500
-Received: by lago2 with SMTP id o2so894809lag.19
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2012 05:56:38 -0800 (PST)
-In-Reply-To: <1326351173.2741.3.camel@edumazet-laptop>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Cihula, Joseph" <joseph.cihula@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <borislav.petkov@amd.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Wed, Jan 11, 2012 at 11:52 PM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> Le jeudi 05 janvier 2012 =E0 14:27 -0700, Bjorn Helgaas a =E9crit :
->> This factors out the AMD native MMCONFIG discovery so we can use it
->> outside amd_bus.c.
->>
->> amd_bus.c reads AMD MSRs so it can remove the MMCONFIG area from the
->> PCI resources. =A0We may also need the MMCONFIG information to work
->> around BIOS defects in the ACPI MCFG table.
->>
->> Cc: Borislav Petkov <borislav.petkov@amd.com>
->> Cc: Yinghai Lu <yinghai@kernel.org>
->> Cc: stable@kernel.org =A0 =A0 =A0 # 2.6.34+
->> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->> ---
->> =A0arch/x86/include/asm/amd_nb.h | =A0 =A02 ++
->> =A0arch/x86/kernel/amd_nb.c =A0 =A0 =A0| =A0 31 ++++++++++++++++++++=
-++++++++++
->> =A0arch/x86/pci/amd_bus.c =A0 =A0 =A0 =A0| =A0 42 +++++++++++-------=
------------------------
->> =A03 files changed, 44 insertions(+), 31 deletions(-)
->
->> =A0/**
->> @@ -85,6 +57,9 @@ static int __init early_fill_mp_bus_info(void)
->> =A0 =A0 =A0 u64 val;
->> =A0 =A0 =A0 u32 address;
->> =A0 =A0 =A0 bool found;
->> + =A0 =A0 struct resource fam10h_mmconf_res, *fam10h_mmconf;
->> + =A0 =A0 u64 fam10h_mmconf_start;
->> + =A0 =A0 u64 fam10h_mmconf_end;
->>
->> =A0 =A0 =A0 if (!early_pci_allowed())
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -1;
->> @@ -211,12 +186,17 @@ static int __init early_fill_mp_bus_info(void)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 subtract_range(range, RANGE_NUM, 0, end)=
-;
->>
->> =A0 =A0 =A0 /* get mmconfig */
->> - =A0 =A0 get_pci_mmcfg_amd_fam10h_range();
->> + =A0 =A0 fam10h_mmconf =3D amd_get_mmconfig_range(&fam10h_mmconf_re=
-s);
->> =A0 =A0 =A0 /* need to take out mmconf range */
->
-> This adds following link error if "# CONFIG_CPU_SUP_AMD is not set"
->
-> =A0LD =A0 =A0 =A0.tmp_vmlinux1
-> arch/x86/pci/built-in.o: In function `early_fill_mp_bus_info':
-> /opt/src/linux/arch/x86/pci/amd_bus.c:189: undefined reference to
-> `amd_get_mmconfig_range'
-> make: *** [.tmp_vmlinux1] Error 1
+On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
+> ACK, but tboot_sleep() calls tboot_shutdown() and there are error conditions in that which you are not reflecting upward--i.e. you should make tboot_shutdown() return an 'int' and propagate its errors through tboot_sleep().
 
-I posted a fix for this, but looks like it hasn't been merged yet:
-http://marc.info/?l=3Dlinux-pci&m=3D132614917932150&w=3D2
+Hey Joe,
 
-I'll resend it.
+Thanks for looking at the patches.
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Right now [with this patch applied] the code looks as so:
+
+297 
+298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
+299         return 0;
+300 }
+
+
+If we do make tboot_shutdown() return an int, there will be a need to modify
+other callers: native_machine_emergency_restart, native_machine_halt, 
+native_machine_power_off, and native_play_dead as well.
+
+Perhaps that could be done in another patch and leave this one as is
+where the 'tboot_sleep' would just return 0 instead of
+'return tboot_shutdown(...)' ?
+
+Perhaps another way to do this is to extract the common code of tboot_sleep
+and tboot_shutdown?
+
+> 
+> Joe
+> 
+> > -----Original Message-----
+> > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> > Sent: Friday, December 16, 2011 2:38 PM
+> > To: linux-kernel@vger.kernel.org; rjw@sisk.pl; x86@kernel.org; Brown, Len; Cihula, Joseph; linux-
+> > pm@lists.linux-foundation.org; tboot-devel@lists.sourceforge.net; linux-acpi@vger.kernel.org;
+> > liang.tang@oracle.com
+> > Cc: hpa@zytor.com; Konrad Rzeszutek Wilk
+> > Subject: [PATCH 2/7] tboot: Add return values for tboot_sleep
+> > 
+> > . as appropiately. As tboot_sleep now returns values.
+> > remove tboot_sleep_wrapper.
+> > 
+> > Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+> > CC: Joseph Cihula <joseph.cihula@intel.com>
+> > [v1: Return -1/0/+1 instead of ACPI_xx values]
+> > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> > ---
+> >  arch/x86/kernel/tboot.c |   13 ++++---------
+> >  1 files changed, 4 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index 1a4ab7d..6410744 100644
+> > --- a/arch/x86/kernel/tboot.c
+> > +++ b/arch/x86/kernel/tboot.c
+> > @@ -272,7 +272,7 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+> >  		offsetof(struct acpi_table_facs, firmware_waking_vector);  }
+> > 
+> > -void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+> > +static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32
+> > +pm1b_control)
+> >  {
+> >  	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+> >  		/* S0,1,2: */ -1, -1, -1,
+> > @@ -281,7 +281,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+> >  		/* S5: */ TB_SHUTDOWN_S5 };
+> > 
+> >  	if (!tboot_enabled())
+> > -		return;
+> > +		return 0;
+> > 
+> >  	tboot_copy_fadt(&acpi_gbl_FADT);
+> >  	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control; @@ -292,15 +292,10 @@ void tboot_sleep(u8
+> > sleep_state, u32 pm1a_control, u32 pm1b_control)
+> >  	if (sleep_state >= ACPI_S_STATE_COUNT ||
+> >  	    acpi_shutdown_map[sleep_state] == -1) {
+> >  		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
+> > -		return;
+> > +		return -1;
+> >  	}
+> > 
+> >  	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+> > -}
+> > -static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
+> > -			       u32 pm1b_control)
+> > -{
+> > -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+> >  	return 0;
+> >  }
+> > 
+> > @@ -352,7 +347,7 @@ static __init int tboot_late_init(void)
+> >  	atomic_set(&ap_wfs_count, 0);
+> >  	register_hotcpu_notifier(&tboot_cpu_notifier);
+> > 
+> > -	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
+> > +	acpi_os_set_prepare_sleep(&tboot_sleep);
+> >  	return 0;
+> >  }
+> > 
+> > --
+> > 1.7.7.4
