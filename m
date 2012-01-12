@@ -1,157 +1,91 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
-Date: Thu, 12 Jan 2012 15:23:09 -0500
-Message-ID: <20120112202308.GA2030@phenom.dumpdata.com>
-References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
-	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
-	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
-	<20120112174958.GA22515@phenom.dumpdata.com>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: Re: [RFC] ARM: imx: Add imx6q thermal
+Date: Thu, 12 Jan 2012 14:47:27 -0600
+Message-ID: <CAMXH7KH=37bCvfytO0gpy4qFvMzwZmMfQ0ZOsao6Qf5w9qSHOw@mail.gmail.com>
+References: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
+	<4F0E887D.2090009@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20120112174958.GA22515@phenom.dumpdata.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Cihula, Joseph" <joseph.cihula@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:36103 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755378Ab2ALUr2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2012 15:47:28 -0500
+Received: by qcsg13 with SMTP id g13so1284711qcs.19
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2012 12:47:28 -0800 (PST)
+In-Reply-To: <4F0E887D.2090009@de.bosch.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dirk Behme <dirk.behme@de.bosch.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "patches@linaro.org" <patches@linaro.org>, Eric Miao <eric.miao@linaro.org>
 
-On Thu, Jan 12, 2012 at 09:49:58AM -0800, Konrad Rzeszutek Wilk wrote:
-> On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
-> > ACK, but tboot_sleep() calls tboot_shutdown() and there are error conditions in that which you are not reflecting upward--i.e. you should make tboot_shutdown() return an 'int' and propagate its errors through tboot_sleep().
-> 
-> Hey Joe,
-> 
-> Thanks for looking at the patches.
-> 
-> Right now [with this patch applied] the code looks as so:
-> 
-> 297 
-> 298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
-> 299         return 0;
-> 300 }
-> 
-> 
-> If we do make tboot_shutdown() return an int, there will be a need to modify
-> other callers: native_machine_emergency_restart, native_machine_halt, 
-> native_machine_power_off, and native_play_dead as well.
-> 
-> Perhaps that could be done in another patch and leave this one as is
-> where the 'tboot_sleep' would just return 0 instead of
-> 'return tboot_shutdown(...)' ?
-> 
-> Perhaps another way to do this is to extract the common code of tboot_sleep
-> and tboot_shutdown?
+Hello Dirk, thanks for the review.  Comments below.
 
-Like this (not yet tested):
+On Thu, Jan 12, 2012 at 1:15 AM, Dirk Behme <dirk.behme@de.bosch.com> w=
+rote:
+> Hi Rob,
+>
+>
+> On 11.01.2012 08:18, Robert Lee wrote:
+>>
+>> Add thermal support for i.MX6Q. =A0Uses recently submitted common
+>> cpu_cooling functionality shown here:
+>>
+>> http://www.spinics.net/lists/linux-pm/msg26500.html
+>>
+>> Have some todo items but basic implementation is done and I'd like t=
+o
+>> get any helpful feedback on it.
+>>
+>> Todo:
+>> - Add sensor calibration.
 
-diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-index 6410744..2f93a50 100644
---- a/arch/x86/kernel/tboot.c
-+++ b/arch/x86/kernel/tboot.c
-@@ -212,17 +212,16 @@ static int tboot_setup_sleep(void)
- {
- 	/* S3 shutdown requested, but S3 not supported by the kernel... */
- 	BUG();
--	return -1;
-+	return -ENOSYS;
- }
- 
- #endif
- 
--void tboot_shutdown(u32 shutdown_type)
--{
--	void (*shutdown)(void);
-+static int tboot_check(u32 shutdown_type) {
+I should have added: "(coming in version 2 of this patch)".  The
+reading of the fuse value and the calibration will be in the next
+version of this patch.
+
+>> - Re-organize code/files if deemed necessary by community.
+>
+>
+> Just fyi, I had a short discussion with Eric Miao about this. The con=
+clusion
+> was:
+>
+> The patch itself is OK. It's just lacking some features, but these ca=
+n be
+> added later. The driver supports thermal reading only, but not accura=
+te as
+> the thermal calibration data is burned into the FUSE, and differ from=
+ chip
+> to chip. At the moment only incorrect thermal information will be exp=
+osed to
+> user space. The patch is lacking connections to cpufreq and cpu hotpl=
+ug, but
+> those could be added later, too.
+>
+
+This patch connects to cpufreq using cpu_cooling functionality
+recently submitted in Amit Katchhap's patch linked above.  This
+registration is done here:
+
 +
- 
- 	if (!tboot_enabled())
--		return;
-+		return -ENODEV;
- 
- 	/*
- 	 * if we're being called before the 1:1 mapping is set up then just
-@@ -230,12 +229,21 @@ void tboot_shutdown(u32 shutdown_type)
- 	 * due to very early panic()
- 	 */
- 	if (!tboot_pg_dir)
--		return;
-+		return -EBUSY;
- 
- 	/* if this is S3 then set regions to MAC */
--	if (shutdown_type == TB_SHUTDOWN_S3)
--		if (tboot_setup_sleep())
--			return;
-+	if (shutdown_type == TB_SHUTDOWN_S3) {
-+		int err = tboot_setup_sleep();
-+		if (err)
-+			return err;
-+	}
++       th_zone->cool_dev =3D cpufreq_cooling_register(
++               (struct freq_pctg_table *)th_zone->thermal_data->freq_t=
+ab,
++               IMX6Q_THERMAL_ACT_TRP_PTS, cpumask_of(0));
 +
-+	return 0;
-+}
-+
-+static void __tboot_shutdown(u32 shutdown_type)
-+{
-+	void (*shutdown)(void);
- 
- 	tboot->shutdown_type = shutdown_type;
- 
-@@ -248,6 +256,13 @@ void tboot_shutdown(u32 shutdown_type)
- 	while (1)
- 		halt();
- }
-+void tboot_shutdown(u32 shutdown_type)
-+{
-+	if (!tboot_check(shutdown_type))
-+		return;
-+
-+	__tboot_shutdown(shutdown_type);
-+}
- 
- static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
- {
-@@ -279,9 +294,17 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 		/* S3: */ TB_SHUTDOWN_S3,
- 		/* S4: */ TB_SHUTDOWN_S4,
- 		/* S5: */ TB_SHUTDOWN_S5 };
-+	int err;
- 
--	if (!tboot_enabled())
--		return 0;
-+	if (sleep_state >= ACPI_S_STATE_COUNT ||
-+	    acpi_shutdown_map[sleep_state] == -1) {
-+		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
-+		return -ENOSYS;
-+	}
-+
-+	err = tboot_check(acpi_shutdown_map[sleep_state]);
-+	if (!err && err != EBUSY)
-+		return err;
- 
- 	tboot_copy_fadt(&acpi_gbl_FADT);
- 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
-@@ -289,13 +312,7 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 	/* we always use the 32b wakeup vector */
- 	tboot->acpi_sinfo.vector_width = 32;
- 
--	if (sleep_state >= ACPI_S_STATE_COUNT ||
--	    acpi_shutdown_map[sleep_state] == -1) {
--		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
--		return -1;
--	}
--
--	tboot_shutdown(acpi_shutdown_map[sleep_state]);
-+	__tboot_shutdown((acpi_shutdown_map[sleep_state]));
- 	return 0;
- }
- 
+
+I tested it successfully with CPUFREQ during development, but I did
+not re-test in this final patch and noticed a couple of bugs I
+introduced later that will prevent it from working properly.  v2 will
+resolve these issues.
+
+> Best regards
+>
+> Dirk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
