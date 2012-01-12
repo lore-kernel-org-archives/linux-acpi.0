@@ -1,61 +1,51 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 1/2] x86, amd: factor out MMCONFIG discovery
-Date: Thu, 12 Jan 2012 07:52:53 +0100
-Message-ID: <1326351173.2741.3.camel@edumazet-laptop>
-References: <20120105212719.3965.40406.stgit@bhelgaas.mtv.corp.google.com>
+From: Dirk Behme <dirk.behme@de.bosch.com>
+Subject: Re: [RFC] ARM: imx: Add imx6q thermal
+Date: Thu, 12 Jan 2012 08:15:09 +0100
+Message-ID: <4F0E887D.2090009@de.bosch.com>
+References: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120105212719.3965.40406.stgit@bhelgaas.mtv.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, stable@kernel.org#2.6.34+, Borislav Petkov <borislav.petkov@amd.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robert Lee <rob.lee@linaro.org>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Eric Miao <eric.miao@linaro.org>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Le jeudi 05 janvier 2012 =C3=A0 14:27 -0700, Bjorn Helgaas a =C3=A9crit=
- :
-> This factors out the AMD native MMCONFIG discovery so we can use it
-> outside amd_bus.c.
->=20
-> amd_bus.c reads AMD MSRs so it can remove the MMCONFIG area from the
-> PCI resources.  We may also need the MMCONFIG information to work
-> around BIOS defects in the ACPI MCFG table.
->=20
-> Cc: Borislav Petkov <borislav.petkov@amd.com>
-> Cc: Yinghai Lu <yinghai@kernel.org>
-> Cc: stable@kernel.org       # 2.6.34+
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  arch/x86/include/asm/amd_nb.h |    2 ++
->  arch/x86/kernel/amd_nb.c      |   31 ++++++++++++++++++++++++++++++
->  arch/x86/pci/amd_bus.c        |   42 +++++++++++--------------------=
-----------
->  3 files changed, 44 insertions(+), 31 deletions(-)
+Hi Rob,
 
->  /**
-> @@ -85,6 +57,9 @@ static int __init early_fill_mp_bus_info(void)
->  	u64 val;
->  	u32 address;
->  	bool found;
-> +	struct resource fam10h_mmconf_res, *fam10h_mmconf;
-> +	u64 fam10h_mmconf_start;
-> +	u64 fam10h_mmconf_end;
-> =20
->  	if (!early_pci_allowed())
->  		return -1;
-> @@ -211,12 +186,17 @@ static int __init early_fill_mp_bus_info(void)
->  		subtract_range(range, RANGE_NUM, 0, end);
-> =20
->  	/* get mmconfig */
-> -	get_pci_mmcfg_amd_fam10h_range();
-> +	fam10h_mmconf =3D amd_get_mmconfig_range(&fam10h_mmconf_res);
->  	/* need to take out mmconf range */
+On 11.01.2012 08:18, Robert Lee wrote:
+> Add thermal support for i.MX6Q.  Uses recently submitted common
+> cpu_cooling functionality shown here:
+> 
+> http://www.spinics.net/lists/linux-pm/msg26500.html
+> 
+> Have some todo items but basic implementation is done and I'd like to
+> get any helpful feedback on it.
+> 
+> Todo:
+> - Add sensor calibration.
+> - Re-organize code/files if deemed necessary by community.
 
-This adds following link error if "# CONFIG_CPU_SUP_AMD is not set"
+Just fyi, I had a short discussion with Eric Miao about this. The 
+conclusion was:
 
-  LD      .tmp_vmlinux1
-arch/x86/pci/built-in.o: In function `early_fill_mp_bus_info':
-/opt/src/linux/arch/x86/pci/amd_bus.c:189: undefined reference to
-`amd_get_mmconfig_range'
-make: *** [.tmp_vmlinux1] Error 1
+The patch itself is OK. It's just lacking some features, but these can 
+be added later. The driver supports thermal reading only, but not 
+accurate as the thermal calibration data is burned into the FUSE, and 
+differ from chip to chip. At the moment only incorrect thermal 
+information will be exposed to user space. The patch is lacking 
+connections to cpufreq and cpu hotplug, but those could be added later, too.
+
+Best regards
+
+Dirk
