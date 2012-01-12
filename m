@@ -1,55 +1,69 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [RFC] ARM: imx: Add imx6q thermal
-Date: Thu, 12 Jan 2012 10:36:18 +0100
-Message-ID: <20120112093618.GB5446@pengutronix.de>
-References: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33484 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715Ab2ALJgf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2012 04:36:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 9/15] drivers/acpi/apei/erst.c: add missing iounmap
+Date: Thu, 12 Jan 2012 10:55:11 +0100
+Message-ID: <1326362117-29371-9-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Lee <rob.lee@linaro.org>
-Cc: linux@arm.linux.org.uk, shawn.guo@freescale.com, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Wed, Jan 11, 2012 at 01:18:05AM -0600, Robert Lee wrote:
-> Add thermal support for i.MX6Q.  Uses recently submitted common
-> cpu_cooling functionality shown here:
-> 
-> http://www.spinics.net/lists/linux-pm/msg26500.html
-> 
-> Have some todo items but basic implementation is done and I'd like to
-> get any helpful feedback on it.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Generally shouldn't this be a regular driver?
+Add missing iounmap in error handling code, in a case where the function
+already preforms iounmap on some other execution path.
 
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-> +
-> +/* register define of anatop */
-> +#define HW_ANADIG_ANA_MISC0	(0x00000150)
-> +#define HW_ANADIG_ANA_MISC0_SET	(0x00000154)
-> +#define HW_ANADIG_ANA_MISC0_CLR	(0x00000158)
-> +#define HW_ANADIG_ANA_MISC0_TOG	(0x0000015c)
+// <smpl>
+@@
+expression e;
+statement S,S1;
+int ret;
+@@
+e = \(ioremap\|ioremap_nocache\)(...)
+... when != iounmap(e)
+if (<+...e...+>) S
+... when any
+    when != iounmap(e)
+*if (...)
+   { ... when != iounmap(e)
+     return ...; }
+... when any
+iounmap(e);
+// </smpl>
 
-unnecessary braces. Please remove.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-> +
-> +#if IMX6Q_THERMAL_DEBUG
-> +	pr_info("Temperature is %lu C\n", *temp);
-> +#endif
+---
+ drivers/acpi/apei/erst.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-Please don't add your own debug defines which then issue
-messages with pr_info. Use pr_debug in the first place.
-
-Sascha
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 6a9e3ba..cd260f7 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -284,15 +284,18 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
+ 	if (!src)
+ 		return -ENOMEM;
+ 	dst = ioremap(ctx->dst_base + offset, ctx->var2);
+-	if (!dst)
+-		return -ENOMEM;
++	if (!dst) {
++		rc = -ENOMEM;
++		goto out;
++	}
+ 
+ 	memmove(dst, src, ctx->var2);
+ 
+-	iounmap(src);
+ 	iounmap(dst);
++out:
++	iounmap(src);
+ 
+-	return 0;
++	return rc;
+ }
+ 
+ static struct apei_exec_ins_type erst_ins_type[] = {
