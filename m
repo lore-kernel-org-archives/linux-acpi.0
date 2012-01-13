@@ -1,34 +1,30 @@
 From: Rob Lee <rob.lee@linaro.org>
 Subject: Re: [RFC] ARM: imx: Add imx6q thermal
-Date: Thu, 12 Jan 2012 14:47:27 -0600
-Message-ID: <CAMXH7KH=37bCvfytO0gpy4qFvMzwZmMfQ0ZOsao6Qf5w9qSHOw@mail.gmail.com>
+Date: Thu, 12 Jan 2012 18:11:02 -0600
+Message-ID: <CAMXH7KGesA7yhKg3c9sazqen+OtX_vgrMjCwzAeHYsKcgp4xbQ@mail.gmail.com>
 References: <1326266285-11656-1-git-send-email-rob.lee@linaro.org>
-	<4F0E887D.2090009@de.bosch.com>
+	<20120112093618.GB5446@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:36103 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755378Ab2ALUr2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2012 15:47:28 -0500
-Received: by qcsg13 with SMTP id g13so1284711qcs.19
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2012 12:47:28 -0800 (PST)
-In-Reply-To: <4F0E887D.2090009@de.bosch.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:61960 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756173Ab2AMALE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jan 2012 19:11:04 -0500
+Received: by qadc26 with SMTP id c26so303861qad.19
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jan 2012 16:11:03 -0800 (PST)
+In-Reply-To: <20120112093618.GB5446@pengutronix.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dirk Behme <dirk.behme@de.bosch.com>
-Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "patches@linaro.org" <patches@linaro.org>, Eric Miao <eric.miao@linaro.org>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux@arm.linux.org.uk, shawn.guo@freescale.com, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hello Dirk, thanks for the review.  Comments below.
+Hello Sascha, comments below.  Thanks.
 
-On Thu, Jan 12, 2012 at 1:15 AM, Dirk Behme <dirk.behme@de.bosch.com> w=
-rote:
-> Hi Rob,
->
->
-> On 11.01.2012 08:18, Robert Lee wrote:
->>
+On Thu, Jan 12, 2012 at 3:36 AM, Sascha Hauer <s.hauer@pengutronix.de> =
+wrote:
+> On Wed, Jan 11, 2012 at 01:18:05AM -0600, Robert Lee wrote:
 >> Add thermal support for i.MX6Q. =A0Uses recently submitted common
 >> cpu_cooling functionality shown here:
 >>
@@ -37,53 +33,67 @@ rote:
 >> Have some todo items but basic implementation is done and I'd like t=
 o
 >> get any helpful feedback on it.
->>
->> Todo:
->> - Add sensor calibration.
-
-I should have added: "(coming in version 2 of this patch)".  The
-reading of the fuse value and the calibration will be in the next
-version of this patch.
-
->> - Re-organize code/files if deemed necessary by community.
 >
->
-> Just fyi, I had a short discussion with Eric Miao about this. The con=
-clusion
-> was:
->
-> The patch itself is OK. It's just lacking some features, but these ca=
-n be
-> added later. The driver supports thermal reading only, but not accura=
-te as
-> the thermal calibration data is burned into the FUSE, and differ from=
- chip
-> to chip. At the moment only incorrect thermal information will be exp=
-osed to
-> user space. The patch is lacking connections to cpufreq and cpu hotpl=
-ug, but
-> those could be added later, too.
+> Generally shouldn't this be a regular driver?
 >
 
-This patch connects to cpufreq using cpu_cooling functionality
-recently submitted in Amit Katchhap's patch linked above.  This
-registration is done here:
+After considering your comment, there is a small window of up to 17
+microsecond immediately following the msleep(1) call where if the
+system suspended completely in 17 microseconds, an internal oscillator
+needed by the sensor could get powered off in a very low power suspend
+mode, and I'd guess this could distort the temperature, although the
+designers say it won't cause any problem in the system.  While hitting
+that race condition that seems highly unlikely, it's still better not
+to have that race condition so creating and registering a
+platfrom_driver structure would give a suspend and resume hook to
+allow this to be handled correctly.  It seems wasteful to create this
+structure just for the suspend and resume callbacks but I'm not
+knowledgeable on a lightweight method to use instead.  The suspend
+notifier PM_POST_SUSPEND doesn't seem to guarantee it will get called
+before the work queue thread continues (at least on SMP systems).  If
+there was one default registered device that in turn had its own list
+of suspend and resume callbacks from those who registered to it, this
+might work.  But I'm sure there is some reason why that is a bad idea
+to set up such a mechanism.
 
-+
-+       th_zone->cool_dev =3D cpufreq_cooling_register(
-+               (struct freq_pctg_table *)th_zone->thermal_data->freq_t=
-ab,
-+               IMX6Q_THERMAL_ACT_TRP_PTS, cpumask_of(0));
-+
+Besides handling of suspend and resume, are there other reasons why
+this should be a driver?
 
-I tested it successfully with CPUFREQ during development, but I did
-not re-test in this final patch and noticed a couple of bugs I
-introduced later that will prevent it from working properly.  v2 will
-resolve these issues.
-
-> Best regards
 >
-> Dirk
+>> +
+>> +/* register define of anatop */
+>> +#define HW_ANADIG_ANA_MISC0 =A0(0x00000150)
+>> +#define HW_ANADIG_ANA_MISC0_SET =A0 =A0 =A0(0x00000154)
+>> +#define HW_ANADIG_ANA_MISC0_CLR =A0 =A0 =A0(0x00000158)
+>> +#define HW_ANADIG_ANA_MISC0_TOG =A0 =A0 =A0(0x0000015c)
+>
+> unnecessary braces. Please remove.
+
+Ok.
+
+>
+>> +
+>> +#if IMX6Q_THERMAL_DEBUG
+>> + =A0 =A0 pr_info("Temperature is %lu C\n", *temp);
+>> +#endif
+>
+> Please don't add your own debug defines which then issue
+> messages with pr_info. Use pr_debug in the first place.
+
+Ok.
+
+>
+> Sascha
+>
+> --
+> Pengutronix e.K. =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+| =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
+> Industrial Linux Solutions =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | http://w=
+ww.pengutronix.de/ =A0|
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0=
+ =A0 =A0|
+> Amtsgericht Hildesheim, HRA 2686 =A0 =A0 =A0 =A0 =A0 | Fax: =A0 +49-5=
+121-206917-5555 |
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
