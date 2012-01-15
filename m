@@ -1,132 +1,65 @@
-From: Kurt Garloff <kurt@garloff.de>
-Subject: [PATCH 1/3]: Store SRAT revision
-Date: Sun, 15 Jan 2012 22:34:07 +0100
-Message-ID: <20120115213407.GU12380@tpkurt2.garloff.de>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 1/3]: Store SRAT revision
+Date: Sun, 15 Jan 2012 13:52:37 -0800
+Message-ID: <20120115215237.GA10124@kroah.com>
 References: <20120115213005.GT12380@tpkurt2.garloff.de>
+ <20120115213407.GU12380@tpkurt2.garloff.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="07KgZKBWke2i7lgQ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cc-smtpout3.netcologne.de ([89.1.8.213]:40009 "EHLO
-	cc-smtpout3.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463Ab2AOVlm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Jan 2012 16:41:42 -0500
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:59257 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751295Ab2AOVyl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jan 2012 16:54:41 -0500
+Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 1C26F211D7
+	for <linux-acpi@vger.kernel.org>; Sun, 15 Jan 2012 16:54:41 -0500 (EST)
 Content-Disposition: inline
-In-Reply-To: <20120115213005.GT12380@tpkurt2.garloff.de>
+In-Reply-To: <20120115213407.GU12380@tpkurt2.garloff.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: stable@vger.kernel.org, lenb@kernel.org
+To: Kurt Garloff <kurt@garloff.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, lenb@kernel.org
+
+On Sun, Jan 15, 2012 at 10:34:07PM +0100, Kurt Garloff wrote:
+> Hi,
+> 
+> This patch stores the SRAT table revision for later consumption
+> by arch specific __init functions.
+> 
+> 
+> This is patch 1/3.
+> -- 
+> Kurt Garloff <kurt@garloff.de>  [Koeln/Greven]
+> 
+
+> From: Kurt Garloff <kurt@garloff.de>
+> Subject: Store SRAT table revision
+> References: bnc#503038
+> 
+> In SRAT v1, we had 8bit proximity domain (PXM) fields; SRAT v2 provides
+> 32bits for these. The new fields were reserved before.
+> According to the ACPI spec, the OS must disregrard reserved fields.
+> In order to know whether or not, we must know what version the SRAT
+> table has.
+> 
+> This patch stores the SRAT table revision for later consumption
+> by arch specific __init functions.
+> 
+> This is patch 1/3.
+> 
+> Signed-off-by: Kurt Garloff <kurt@garloff.de>
+> 
+> ---
+>  drivers/acpi/numa.c      |    3 +++
+>  include/acpi/acpi_numa.h |    1 +
+>  2 files changed, 4 insertions(+)
 
 
---07KgZKBWke2i7lgQ
-Content-Type: multipart/mixed; boundary="0tC/8VcTcTa+VwnR"
-Content-Disposition: inline
+<formletter>
 
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
+for how to do this properly.
 
---0tC/8VcTcTa+VwnR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-This patch stores the SRAT table revision for later consumption
-by arch specific __init functions.
-
-
-This is patch 1/3.
---=20
-Kurt Garloff <kurt@garloff.de>  [Koeln/Greven]
-
-
---0tC/8VcTcTa+VwnR
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: attachment; filename="acpi_srat-pxm-rev-store.patch"
-Content-Transfer-Encoding: quoted-printable
-
-=46rom: Kurt Garloff <kurt@garloff.de>
-Subject: Store SRAT table revision
-References: bnc#503038
-
-In SRAT v1, we had 8bit proximity domain (PXM) fields; SRAT v2 provides
-32bits for these. The new fields were reserved before.
-According to the ACPI spec, the OS must disregrard reserved fields.
-In order to know whether or not, we must know what version the SRAT
-table has.
-
-This patch stores the SRAT table revision for later consumption
-by arch specific __init functions.
-
-This is patch 1/3.
-
-Signed-off-by: Kurt Garloff <kurt@garloff.de>
-
----
- drivers/acpi/numa.c      |    3 +++
- include/acpi/acpi_numa.h |    1 +
- 2 files changed, 4 insertions(+)
-
-Index: linux-2.6.git/drivers/acpi/numa.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.git.orig/drivers/acpi/numa.c
-+++ linux-2.6.git/drivers/acpi/numa.c
-@@ -44,8 +44,10 @@ static int pxm_to_node_map[MAX_PXM_DOMAI
- 			=3D { [0 ... MAX_PXM_DOMAINS - 1] =3D NUMA_NO_NODE };
- static int node_to_pxm_map[MAX_NUMNODES]
- 			=3D { [0 ... MAX_NUMNODES - 1] =3D PXM_INVAL };
-=20
-+unsigned char acpi_srat_revision __initdata;
-+
- int pxm_to_node(int pxm)
- {
- 	if (pxm < 0)
- 		return NUMA_NO_NODE;
-@@ -254,11 +256,15 @@ acpi_parse_memory_affinity(struct acpi_s
- }
-=20
- static int __init acpi_parse_srat(struct acpi_table_header *table)
- {
-+	struct acpi_table_srat *srat;
- 	if (!table)
- 		return -EINVAL;
-=20
-+  	srat =3D (struct acpi_table_srat *)table;
-+	acpi_srat_revision =3D srat->header.revision;
-+
- 	/* Real work done in acpi_table_parse_srat below. */
-=20
- 	return 0;
- }
-Index: linux-2.6.git/include/acpi/acpi_numa.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.git.orig/include/acpi/acpi_numa.h
-+++ linux-2.6.git/include/acpi/acpi_numa.h
-@@ -14,7 +14,8 @@
- extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern void __acpi_map_pxm_to_node(int, int);
- extern int acpi_map_pxm_to_node(int);
-+extern unsigned char acpi_srat_revision;
-=20
- #endif				/* CONFIG_ACPI_NUMA */
- #endif				/* __ACP_NUMA_H */
-
---0tC/8VcTcTa+VwnR--
-
---07KgZKBWke2i7lgQ
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.15 (GNU/Linux)
-
-iD8DBQFPE0ZPxmLh6hyYd04RAq1kAKC6Hih/CLo/C39gE1Cgr54JlrmiPQCg0xEK
-XkmeTp4fCvlwo9e/sZnGLx0=
-=KMrF
------END PGP SIGNATURE-----
-
---07KgZKBWke2i7lgQ--
+</formletter>
