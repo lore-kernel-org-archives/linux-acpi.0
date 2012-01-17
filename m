@@ -1,58 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 2/3] intel_idle: disable auto_demotion for hotplugged
- CPUs
-Date: Tue, 17 Jan 2012 14:22:03 -0500
-Message-ID: <4F15CA5B.5050407@kernel.org>
-References: <20120110234820.B14B8100270@wpzn3.hot.corp.google.com> <201201171156.38490.trenn@suse.de>
+Subject: Re: [Resend] X86 cpuidle cleanups V2
+Date: Tue, 17 Jan 2012 14:30:29 -0500
+Message-ID: <4F15CC55.70004@kernel.org>
+References: <1326817895-81436-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:62351 "EHLO
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:50335 "EHLO
 	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755514Ab2AQTWG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 14:22:06 -0500
-Received: by vcbfo1 with SMTP id fo1so2085318vcb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 11:22:06 -0800 (PST)
-In-Reply-To: <201201171156.38490.trenn@suse.de>
+	with ESMTP id S1753118Ab2AQTac (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 14:30:32 -0500
+Received: by vcbfo1 with SMTP id fo1so2092810vcb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 11:30:31 -0800 (PST)
+In-Reply-To: <1326817895-81436-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, shaohua.li@intel.com
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, deepthi@linux.vnet.ibm.com, shaohua.li@intel.com
 
-Andrew,
-Per reasoning from Thomas below, please drop this one.
+On 01/17/2012 11:31 AM, Thomas Renninger wrote:
+
+> V2: Fix typo: &pr-id
+> 
+> This is a rebase of some recently posted intel_idle processor_idle
+> related patches which needed refreshing, due to recent commits.
+> 
+> The purpose is to work towards hotplug support for intel_idle.
+> It's still missing some logic to boot and online a CPU first
+> before intel_idle can initialize the core. But this is the
+> essential ground work that is needed first.
+> 
+> [PATCH 1/3] Revert "intel_idle: disable auto_demotion for hotplugged
+> -> because I think it's wrong/unneeded. I commented on the initial
+> posting.
+
+
+#1 done - thanks!
+
+> I tested these patches before I had to rebase them.
+> Compile tested only after adjusting, but adjusting the code wasn't that hard.
+
+
+please fix the checkpatch.pl issues in #2 and #3,
+and explain in the check-in comments _why_ the patches
+are a good idea.  (less of a need to describe _what_ the patches do,
+since the patches themselves are the authority on that:-)
 
 thanks,
--Len
-
-On 01/17/2012 05:56 AM, Thomas Renninger wrote:
-
-> On Wednesday, January 11, 2012 12:48:20 AM akpm@linux-foundation.org wrote:
->> From: Shaohua Li <shaohua.li@intel.com>
->> Subject: intel_idle: disable auto_demotion for hotplugged CPUs
-> 
-> This one should not be necessary anymore with my intel_idle
-> patch series I have to rebase and resend (will do that after lunch).
-> 
-> It provides a per cpu intel_idle init function which is called
-> from processor.ko in physical cpu hotplug case.
-> 
-> From what I can see this patch does not change anything/much, because:
->   - CPUs onlined at bootup are initialized correctly already
->   - Soft offlining/onlining shouldn't matter in auto_demotion_disable
->     case as it's a HW MSR write and the CPU should still be in the
->     same state after off- and onlined again.
->   - Physically hotplugged/added CPUs are not registered with cpuidle
->     at all (this is what my patch series fixes), because intel_idle
->     does not offer any per cpu init() entry function.
->     With this patch they might be set into auto_demotion_disable now,
->     but no idle driver gets active for them.
-> 
-> I'll pick up patch 1/3 and 3/3, base my patches on top and resend
-> everything, that should be easiest for everybody?
-> 
->    Thomas
-> 
-
-
+-Len Brown, Intel Open Source Technology Center
