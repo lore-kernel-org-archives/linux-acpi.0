@@ -1,58 +1,177 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH] cleanups in ACPI - removing tboot_ calls for
-	3.4 (v1)
-Date: Tue, 17 Jan 2012 15:50:06 -0500
-Message-ID: <1326833408-23685-1-git-send-email-konrad.wilk@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <tboot-devel-bounces@lists.sourceforge.net>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
-List-Post: <mailto:tboot-devel@lists.sourceforge.net>
-List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: tboot-devel-bounces@lists.sourceforge.net
+Subject: [PATCH 1/2] x86, acpi, tboot: Have a ACPI os prepare sleep instead of calling tboot_sleep.
+Date: Tue, 17 Jan 2012 15:50:07 -0500
+Message-ID: <1326833408-23685-2-git-send-email-konrad.wilk@oracle.com>
+References: <1326833408-23685-1-git-send-email-konrad.wilk@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1326833408-23685-1-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, x86@kernel.org, joseph.cihula@intel.com, linux-acpi@vger.kernel.org, tboot-devel@lists.sourceforge.net, len.brown@intel.com, rjw@sisk.pl, mingo@redhat.com
+Cc: Tang Liang <liang.tang@oracle.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
 
-I am not really sure if these patches should go through the ACPI or x86 tree.
-I think they are more x86-ish related and earlier patches for tboot went through
-tip.. Thoughts?
+From: Tang Liang <liang.tang@oracle.com>
 
-Theset two patches cleanup the ACPI code by removing the 'tboot_sleep'
-function call within the ACPI call and instead use a function call.
+The ACPI suspend path makes a call to tboot_sleep right before
+it writes the PM1A, PM1B values. We replace the direct call to
+tboot via an registration callback similar to __acpi_register_gsi.
 
-The function call is set if Intel TXT is detected, otherwise we just skip over
-and continue on in hwsleep.c.
-
-Tested on AMD, Intel w/TXT and w/o TXT. Also compile tested on IA64 which has
-some reference to tboot but does not use it.
-
-The diff-stat:
- arch/x86/kernel/tboot.c       |    9 ++++++---
+Suggested-by: Rafael J. Wysocki <rjw@sisk.pl>
+CC: Len Brown <len.brown@intel.com>
+Acked-by: Joseph Cihula <joseph.cihula@intel.com>
+[v1: Added __attribute__ ((unused))]
+[v2: Introduced a wrapper instead of changing tboot_sleep return values]
+[v3: Added return value AE_CTRL_SKIP for acpi_os_sleep_prepare]
+Signed-off-by: Tang Liang <liang.tang@oracle.com>
+[v1: Fix compile issues on IA64 and PPC64]
+[v2: Fix where __acpi_os_prepare_sleep==NULL and did not go in sleep properly]
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/kernel/tboot.c       |    8 ++++++++
  drivers/acpi/acpica/hwsleep.c |   10 +++++++---
  drivers/acpi/osl.c            |   24 ++++++++++++++++++++++++
  include/acpi/acexcep.h        |    1 +
  include/linux/acpi.h          |   10 ++++++++++
  include/linux/tboot.h         |    1 -
- 6 files changed, 48 insertions(+), 7 deletions(-)
+ 6 files changed, 50 insertions(+), 4 deletions(-)
 
-
-The purpose of this cleanup is two-fold:
- 1). Cleanup the call a bit - that 'tboot_sleep' in ACPICA, which is suppose to be
-     OS-agnostic code looks odd.
- 2). Piggy-back on the function call if running under Xen [https://lkml.org/lkml/2011/12/16/447].
-     Those patches are still going through review, but the cleanup patches
-     can be submitted as standalone.
-
-Thanks! 
-
-------------------------------------------------------------------------------
-Keep Your Developer Skills Current with LearnDevNow!
-The most comprehensive online learning library for Microsoft developers
-is just $99.99! Visual Studio, SharePoint, SQL - plus HTML5, CSS3, MVC3,
-Metro Style Apps, more. Free future releases when you subscribe now!
-http://p.sf.net/sfu/learndevnow-d2d
+diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
+index e2410e2..1a4ab7d 100644
+--- a/arch/x86/kernel/tboot.c
++++ b/arch/x86/kernel/tboot.c
+@@ -297,6 +297,12 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ 
+ 	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+ }
++static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
++			       u32 pm1b_control)
++{
++	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
++	return 0;
++}
+ 
+ static atomic_t ap_wfs_count;
+ 
+@@ -345,6 +351,8 @@ static __init int tboot_late_init(void)
+ 
+ 	atomic_set(&ap_wfs_count, 0);
+ 	register_hotcpu_notifier(&tboot_cpu_notifier);
++
++	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index d52da30..992359a 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -43,9 +43,9 @@
+  */
+ 
+ #include <acpi/acpi.h>
++#include <linux/acpi.h>
+ #include "accommon.h"
+ #include "actables.h"
+-#include <linux/tboot.h>
+ #include <linux/module.h>
+ 
+ #define _COMPONENT          ACPI_HARDWARE
+@@ -344,8 +344,12 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
+-	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+-
++	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
++				       pm1b_control);
++	if (ACPI_SKIP(status))
++		return_ACPI_STATUS(AE_OK);
++	if (ACPI_FAILURE(status))
++		return_ACPI_STATUS(status);
+ 	/* Write #2: Write both SLP_TYP + SLP_EN */
+ 
+ 	status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f31c5c5..f3aae4b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -76,6 +76,9 @@ EXPORT_SYMBOL(acpi_in_debugger);
+ extern char line_buf[80];
+ #endif				/*ENABLE_DEBUGGER */
+ 
++static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
++				      u32 pm1b_ctrl);
++
+ static acpi_osd_handler acpi_irq_handler;
+ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+@@ -1659,3 +1662,24 @@ acpi_status acpi_os_terminate(void)
+ 
+ 	return AE_OK;
+ }
++
++acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
++				  u32 pm1b_control)
++{
++	int rc = 0;
++	if (__acpi_os_prepare_sleep)
++		rc = __acpi_os_prepare_sleep(sleep_state,
++					     pm1a_control, pm1b_control);
++	if (rc < 0)
++		return AE_ERROR;
++	else if (rc > 0)
++		return AE_CTRL_SKIP;
++
++	return AE_OK;
++}
++
++void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
++			       u32 pm1a_ctrl, u32 pm1b_ctrl))
++{
++	__acpi_os_prepare_sleep = func;
++}
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 5b6c391..fa0d22c 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -57,6 +57,7 @@
+ #define ACPI_SUCCESS(a)                 (!(a))
+ #define ACPI_FAILURE(a)                 (a)
+ 
++#define ACPI_SKIP(a)                    (a == AE_CTRL_SKIP)
+ #define AE_OK                           (acpi_status) 0x0000
+ 
+ /*
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6001b4da..fccd017 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -359,4 +359,14 @@ static inline int suspend_nvs_register(unsigned long a, unsigned long b)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI
++void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
++			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
++
++acpi_status acpi_os_prepare_sleep(u8 sleep_state,
++				  u32 pm1a_control, u32 pm1b_control);
++#else
++#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
+diff --git a/include/linux/tboot.h b/include/linux/tboot.h
+index 1dba6ee..c75128b 100644
+--- a/include/linux/tboot.h
++++ b/include/linux/tboot.h
+@@ -143,7 +143,6 @@ static inline int tboot_enabled(void)
+ 
+ extern void tboot_probe(void);
+ extern void tboot_shutdown(u32 shutdown_type);
+-extern void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control);
+ extern struct acpi_table_header *tboot_get_dmar_table(
+ 				      struct acpi_table_header *dmar_tbl);
+ extern int tboot_force_iommu(void);
+-- 
+1.7.7.4
