@@ -1,37 +1,93 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [Resend] X86 cpuidle cleanups V2
-Date: Tue, 17 Jan 2012 17:31:32 +0100
-Message-ID: <1326817895-81436-1-git-send-email-trenn@suse.de>
+Subject: [PATCH 2/3] ACPI processor: Remove unneeded variable passed by acpi_processor_hotadd_init
+Date: Tue, 17 Jan 2012 17:31:34 +0100
+Message-ID: <1326817895-81436-3-git-send-email-trenn@suse.de>
+References: <1326817895-81436-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40498 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:40500 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754970Ab2AQQbi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 11:31:38 -0500
+	id S1754587Ab2AQQbj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 11:31:39 -0500
+In-Reply-To: <1326817895-81436-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: deepthi@linux.vnet.ibm.com, shaohua.li@intel.com
+Cc: deepthi@linux.vnet.ibm.com, shaohua.li@intel.com, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, "Jiang, Yunhong" <yunhong.jiang@intel.com>
 
-V2: Fix typo: &pr-id
+This is a very small part taken from patches which afaik
+are coming from Yunhong Jiang for Xen.
+Xen CPU hotplug things not existing in Linus kernel yet were
+removed.
 
-This is a rebase of some recently posted intel_idle processor_idle
-related patches which needed refreshing, due to recent commits.
+Cleanup only: no functional change.
 
-The purpose is to work towards hotplug support for intel_idle.
-It's still missing some logic to boot and online a CPU first
-before intel_idle can initialize the core. But this is the
-essential ground work that is needed first.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: Jiang, Yunhong <yunhong.jiang@intel.com>
+---
+ drivers/acpi/processor_driver.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-[PATCH 1/3] Revert "intel_idle: disable auto_demotion for hotplugged
--> because I think it's wrong/unneeded. I commented on the initial
-posting.
-
-I tested these patches before I had to rebase them.
-Compile tested only after adjusting, but adjusting the code wasn't that hard.
-
-Would be great if these could get picked up for 3.3 inclusion.
-
-Thanks,
-
-   Thomas
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 90719d1..2a211a9 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -82,7 +82,7 @@ MODULE_LICENSE("GPL");
+ static int acpi_processor_add(struct acpi_device *device);
+ static int acpi_processor_remove(struct acpi_device *device, int type);
+ static void acpi_processor_notify(struct acpi_device *device, u32 event);
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+ 
+ 
+@@ -324,10 +324,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	 *  they are physically not present.
+ 	 */
+ 	if (pr->id == -1) {
+-		if (ACPI_FAILURE
+-		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
++		if (ACPI_FAILURE (acpi_processor_hotadd_init(pr->handle)))
+ 			return -ENODEV;
+-		}
+ 	}
+ 	/*
+ 	 * On some boxes several processors use the same processor bus id.
+@@ -721,18 +719,19 @@ processor_walk_namespace_cb(acpi_handle handle,
+ 	return (AE_OK);
+ }
+ 
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
++	acpi_handle handle = pr->handle;
+ 
+ 	if (!is_processor_present(handle)) {
+ 		return AE_ERROR;
+ 	}
+ 
+-	if (acpi_map_lsapic(handle, p_cpu))
++	if (acpi_map_lsapic(handle, &pr->id))
+ 		return AE_ERROR;
+ 
+-	if (arch_register_cpu(*p_cpu)) {
+-		acpi_unmap_lsapic(*p_cpu);
++	if (arch_register_cpu(pr->id)) {
++		acpi_unmap_lsapic(pr->id);
+ 		return AE_ERROR;
+ 	}
+ 
+@@ -749,7 +748,7 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
+ 	return (0);
+ }
+ #else
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
+ 	return AE_ERROR;
+ }
+-- 
+1.7.6.1
 
