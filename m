@@ -1,98 +1,176 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/2] ACPI processor: Remove unneeded variable passed by acpi_processor_hotadd_init V2
-Date: Tue, 17 Jan 2012 22:40:07 +0100
-Message-ID: <1326836408-23177-2-git-send-email-trenn@suse.de>
+Subject: [PATCH 2/2] intel_idle: Split up and provide per CPU initialization func
+Date: Tue, 17 Jan 2012 22:40:08 +0100
+Message-ID: <1326836408-23177-3-git-send-email-trenn@suse.de>
 References: <1326836408-23177-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53860 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:53864 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755210Ab2AQVkP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755945Ab2AQVkP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 17 Jan 2012 16:40:15 -0500
 In-Reply-To: <1326836408-23177-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: shaohua.li@intel.com, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, "Jiang, Yunhong" <yunhong.jiang@intel.com>
+Cc: shaohua.li@intel.com, Thomas Renninger <trenn@suse.de>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
 
-V2: Fix typo: pr->handle -> pr, here: acpi_processor_hotadd_init(pr)
+Function split up, should have no functional change.
 
-This is a very small part taken from patches which afaik
-are coming from Yunhong Jiang (for a Xen not a Linus repo?).
-
-Cleanup only: no functional change.
-
-Advantage (beside cleanup) is that other data of the pr (acpi_processor) struct
-in the acpi_processor_hotadd_init() is needed later, for example a newly
-introduced flag:
-pr->flags.need_hotplug_init
+Provides entry point for physically hotplugged CPUs
+to initialize and activate cpuidle.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: Len Brown <lenb@kernel.org>
 CC: linux-acpi@vger.kernel.org
-CC: Bjorn Helgaas <bhelgaas@google.com>
-CC: Jiang, Yunhong <yunhong.jiang@intel.com>
+CC: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+CC: Shaohua Li <shaohua.li@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/acpi/processor_driver.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/idle/intel_idle.c |   82 +++++++++++++++++++++++----------------------
+ include/linux/cpuidle.h   |    7 ++++
+ 2 files changed, 49 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 90719d1..cf48090 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -82,7 +82,7 @@ MODULE_LICENSE("GPL");
- static int acpi_processor_add(struct acpi_device *device);
- static int acpi_processor_remove(struct acpi_device *device, int type);
- static void acpi_processor_notify(struct acpi_device *device, u32 event);
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 91aff18..20bce51 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -478,64 +478,60 @@ static int intel_idle_cpuidle_driver_init(void)
  
  
-@@ -324,10 +324,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	 *  they are physically not present.
- 	 */
- 	if (pr->id == -1) {
--		if (ACPI_FAILURE
--		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
-+		if (ACPI_FAILURE(acpi_processor_hotadd_init(pr)))
- 			return -ENODEV;
+ /*
+- * intel_idle_cpuidle_devices_init()
++ * intel_idle_cpu_init()
+  * allocate, initialize, register cpuidle_devices
++ * @cpu: cpu/core to initialize
+  */
+-static int intel_idle_cpuidle_devices_init(void)
++int intel_idle_cpu_init(int cpu)
+ {
+-	int i, cstate;
++	int cstate;
+ 	struct cpuidle_device *dev;
+ 
+-	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
+-	if (intel_idle_cpuidle_devices == NULL)
+-		return -ENOMEM;
+-
+-	for_each_online_cpu(i) {
+-		dev = per_cpu_ptr(intel_idle_cpuidle_devices, i);
++	dev = per_cpu_ptr(intel_idle_cpuidle_devices, cpu);
+ 
+-		dev->state_count = 1;
++	dev->state_count = 1;
+ 
+-		for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
+-			int num_substates;
++	for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
++		int num_substates;
+ 
+-			if (cstate > max_cstate) {
+-				printk(PREFIX "max_cstate %d reached\n",
+-					max_cstate);
+-				break;
+-			}
++		if (cstate > max_cstate) {
++			printk(PREFIX "max_cstate %d reached\n",
++			       max_cstate);
++			break;
++		}
+ 
+-			/* does the state exist in CPUID.MWAIT? */
+-			num_substates = (mwait_substates >> ((cstate) * 4))
+-						& MWAIT_SUBSTATE_MASK;
+-			if (num_substates == 0)
+-				continue;
+-			/* is the state not enabled? */
+-			if (cpuidle_state_table[cstate].enter == NULL) {
+-				continue;
+-			}
++		/* does the state exist in CPUID.MWAIT? */
++		num_substates = (mwait_substates >> ((cstate) * 4))
++			& MWAIT_SUBSTATE_MASK;
++		if (num_substates == 0)
++			continue;
++		/* is the state not enabled? */
++		if (cpuidle_state_table[cstate].enter == NULL)
++			continue;
+ 
+-			dev->states_usage[dev->state_count].driver_data =
+-				(void *)get_driver_data(cstate);
++		dev->states_usage[dev->state_count].driver_data =
++			(void *)get_driver_data(cstate);
+ 
+ 			dev->state_count += 1;
+ 		}
++	dev->cpu = cpu;
+ 
+-		dev->cpu = i;
+-		if (cpuidle_register_device(dev)) {
+-			pr_debug(PREFIX "cpuidle_register_device %d failed!\n",
+-				 i);
+-			intel_idle_cpuidle_devices_uninit();
+-			return -EIO;
 -		}
++	if (cpuidle_register_device(dev)) {
++		pr_debug(PREFIX "cpuidle_register_device %d failed!\n", cpu);
++		intel_idle_cpuidle_devices_uninit();
++		return -EIO;
  	}
- 	/*
- 	 * On some boxes several processors use the same processor bus id.
-@@ -721,18 +719,19 @@ processor_walk_namespace_cb(acpi_handle handle,
- 	return (AE_OK);
+ 
++	if (auto_demotion_disable_flags)
++		smp_call_function_single(cpu, auto_demotion_disable, NULL, 1);
++
+ 	return 0;
  }
  
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ 
+ static int __init intel_idle_init(void)
  {
-+	acpi_handle handle = pr->handle;
+-	int retval;
++	int retval, i;
  
- 	if (!is_processor_present(handle)) {
- 		return AE_ERROR;
+ 	/* Do not load intel_idle at all for now if idle= is passed */
+ 	if (boot_option_idle_override != IDLE_NO_OVERRIDE)
+@@ -553,10 +549,16 @@ static int __init intel_idle_init(void)
+ 		return retval;
  	}
  
--	if (acpi_map_lsapic(handle, p_cpu))
-+	if (acpi_map_lsapic(handle, &pr->id))
- 		return AE_ERROR;
- 
--	if (arch_register_cpu(*p_cpu)) {
--		acpi_unmap_lsapic(*p_cpu);
-+	if (arch_register_cpu(pr->id)) {
-+		acpi_unmap_lsapic(pr->id);
- 		return AE_ERROR;
+-	retval = intel_idle_cpuidle_devices_init();
+-	if (retval) {
+-		cpuidle_unregister_driver(&intel_idle_driver);
+-		return retval;
++	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
++	if (intel_idle_cpuidle_devices == NULL)
++		return -ENOMEM;
++
++	for_each_online_cpu(i) {
++		retval = intel_idle_cpu_init(i);
++		if (retval) {
++			cpuidle_unregister_driver(&intel_idle_driver);
++			return retval;
++		}
  	}
  
-@@ -749,7 +748,7 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
- 	return (0);
- }
+ 	return 0;
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 7408af8..93df66e 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -188,7 +188,14 @@ struct cpuidle_governor {
+ extern int cpuidle_register_governor(struct cpuidle_governor *gov);
+ extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
+ 
++#ifdef CONFIG_INTEL_IDLE
++extern int intel_idle_cpu_init(int cpu);
  #else
--static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
-+static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	return AE_ERROR;
- }
++static inline int intel_idle_cpu_init(int cpu) { return -1; }
++#endif
++
++#else
++static inline int intel_idle_cpu_init(int cpu) { return -1; }
+ 
+ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
+ {return 0;}
 -- 
 1.7.6.1
 
