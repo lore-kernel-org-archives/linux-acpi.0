@@ -1,177 +1,37 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 3/3] intel_idle: Split up and provide per CPU initialization func
-Date: Tue, 17 Jan 2012 17:31:35 +0100
-Message-ID: <1326817895-81436-4-git-send-email-trenn@suse.de>
-References: <1326817895-81436-1-git-send-email-trenn@suse.de>
+Subject: [Resend] X86 cpuidle cleanups V2
+Date: Tue, 17 Jan 2012 17:31:32 +0100
+Message-ID: <1326817895-81436-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40499 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:40498 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754841Ab2AQQbj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 11:31:39 -0500
-In-Reply-To: <1326817895-81436-1-git-send-email-trenn@suse.de>
+	id S1754970Ab2AQQbi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 11:31:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: deepthi@linux.vnet.ibm.com, shaohua.li@intel.com, Thomas Renninger <trenn@suse.de>, Andrew Morton <akpm@linux-foundation.org>
+Cc: deepthi@linux.vnet.ibm.com, shaohua.li@intel.com
 
-Function split up, should have no functional change.
+V2: Fix typo: &pr-id
 
-Provides entry point for physically hotplugged CPUs
-to initialize and activate cpuidle.
+This is a rebase of some recently posted intel_idle processor_idle
+related patches which needed refreshing, due to recent commits.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-acpi@vger.kernel.org
-CC: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-CC: Shaohua Li <shaohua.li@intel.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
----
- drivers/idle/intel_idle.c |   84 +++++++++++++++++++++++----------------------
- include/linux/cpuidle.h   |    7 ++++
- 2 files changed, 50 insertions(+), 41 deletions(-)
+The purpose is to work towards hotplug support for intel_idle.
+It's still missing some logic to boot and online a CPU first
+before intel_idle can initialize the core. But this is the
+essential ground work that is needed first.
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 91aff18..be96715 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -478,64 +478,60 @@ static int intel_idle_cpuidle_driver_init(void)
- 
- 
- /*
-- * intel_idle_cpuidle_devices_init()
-+ * intel_idle_cpu_init()
-  * allocate, initialize, register cpuidle_devices
-+ * @cpu: cpu/core to initialize
-  */
--static int intel_idle_cpuidle_devices_init(void)
-+int intel_idle_cpu_init(int cpu)
- {
--	int i, cstate;
-+	int cstate;
- 	struct cpuidle_device *dev;
- 
--	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
--	if (intel_idle_cpuidle_devices == NULL)
--		return -ENOMEM;
--
--	for_each_online_cpu(i) {
--		dev = per_cpu_ptr(intel_idle_cpuidle_devices, i);
--
--		dev->state_count = 1;
-+	dev = per_cpu_ptr(intel_idle_cpuidle_devices, cpu);
- 
--		for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
--			int num_substates;
-+	dev->state_count = 1;
- 
--			if (cstate > max_cstate) {
--				printk(PREFIX "max_cstate %d reached\n",
--					max_cstate);
--				break;
--			}
-+	for (cstate = 1; cstate < MWAIT_MAX_NUM_CSTATES; ++cstate) {
-+		int num_substates;
- 
--			/* does the state exist in CPUID.MWAIT? */
--			num_substates = (mwait_substates >> ((cstate) * 4))
--						& MWAIT_SUBSTATE_MASK;
--			if (num_substates == 0)
--				continue;
--			/* is the state not enabled? */
--			if (cpuidle_state_table[cstate].enter == NULL) {
--				continue;
--			}
-+		if (cstate > max_cstate) {
-+			printk(PREFIX "max_cstate %d reached\n",
-+			       max_cstate);
-+			break;
-+		}
- 
--			dev->states_usage[dev->state_count].driver_data =
--				(void *)get_driver_data(cstate);
-+		/* does the state exist in CPUID.MWAIT? */
-+		num_substates = (mwait_substates >> ((cstate) * 4))
-+			& MWAIT_SUBSTATE_MASK;
-+		if (num_substates == 0)
-+			continue;
-+		/* is the state not enabled? */
-+		if (cpuidle_state_table[cstate].enter == NULL) {
-+			continue;
-+		}
-+		dev->states_usage[dev->state_count].driver_data =
-+			(void *)get_driver_data(cstate);
- 
- 			dev->state_count += 1;
- 		}
-+	dev->cpu = cpu;
- 
--		dev->cpu = i;
--		if (cpuidle_register_device(dev)) {
--			pr_debug(PREFIX "cpuidle_register_device %d failed!\n",
--				 i);
--			intel_idle_cpuidle_devices_uninit();
--			return -EIO;
--		}
-+	if (cpuidle_register_device(dev)) {
-+		pr_debug(PREFIX "cpuidle_register_device %d failed!\n", cpu);
-+		intel_idle_cpuidle_devices_uninit();
-+		return -EIO;
- 	}
- 
-+ 	if (auto_demotion_disable_flags)
-+		smp_call_function_single(cpu, auto_demotion_disable, NULL, 1);
-+
- 	return 0;
- }
- 
- 
- static int __init intel_idle_init(void)
- {
--	int retval;
-+	int retval, i;
- 
- 	/* Do not load intel_idle at all for now if idle= is passed */
- 	if (boot_option_idle_override != IDLE_NO_OVERRIDE)
-@@ -553,10 +549,16 @@ static int __init intel_idle_init(void)
- 		return retval;
- 	}
- 
--	retval = intel_idle_cpuidle_devices_init();
--	if (retval) {
--		cpuidle_unregister_driver(&intel_idle_driver);
--		return retval;
-+	intel_idle_cpuidle_devices = alloc_percpu(struct cpuidle_device);
-+	if (intel_idle_cpuidle_devices == NULL)
-+		return -ENOMEM;
-+
-+	for_each_online_cpu(i) {
-+		retval = intel_idle_cpu_init(i);
-+		if (retval) {
-+			cpuidle_unregister_driver(&intel_idle_driver);
-+			return retval;
-+		}
- 	}
- 
- 	return 0;
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 7408af8..93df66e 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -188,7 +188,14 @@ struct cpuidle_governor {
- extern int cpuidle_register_governor(struct cpuidle_governor *gov);
- extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
- 
-+#ifdef CONFIG_INTEL_IDLE
-+extern int intel_idle_cpu_init(int cpu);
- #else
-+static inline int intel_idle_cpu_init(int cpu) { return -1; }
-+#endif
-+
-+#else
-+static inline int intel_idle_cpu_init(int cpu) { return -1; }
- 
- static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
- {return 0;}
--- 
-1.7.6.1
+[PATCH 1/3] Revert "intel_idle: disable auto_demotion for hotplugged
+-> because I think it's wrong/unneeded. I commented on the initial
+posting.
+
+I tested these patches before I had to rebase them.
+Compile tested only after adjusting, but adjusting the code wasn't that hard.
+
+Would be great if these could get picked up for 3.3 inclusion.
+
+Thanks,
+
+   Thomas
 
