@@ -1,98 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 6/9] ACPI, Add RAM mapping support to ACPI atomic IO support
-Date: Tue, 17 Jan 2012 04:51:42 -0500
-Message-ID: <4F1544AE.50206@kernel.org>
-References: <1320719974-3598-1-git-send-email-ying.huang@intel.com>	<1320719974-3598-7-git-send-email-ying.huang@intel.com> <CAL-B5D1z35ReG9dKVBLNkktrJ-c8OVspsCYTUAO16wCK1B_4dA@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 1/3] intel_idle: fix API misuse
+Date: Tue, 17 Jan 2012 11:37:58 +0100
+Message-ID: <201201171137.58857.trenn@suse.de>
+References: <20120110234819.7F484100270@wpzn3.hot.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:55052 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752615Ab2AQJvp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 04:51:45 -0500
-In-Reply-To: <CAL-B5D1z35ReG9dKVBLNkktrJ-c8OVspsCYTUAO16wCK1B_4dA@mail.gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:45902 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752960Ab2AQKiB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 05:38:01 -0500
+In-Reply-To: <20120110234819.7F484100270@wpzn3.hot.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, shaohua.li@intel.com
 
-On 11/08/2011 04:38 PM, Myron Stowe wrote:
+On Wednesday, January 11, 2012 12:48:19 AM akpm@linux-foundation.org wrote:
+> From: Shaohua Li <shaohua.li@intel.com>
+> Subject: intel_idle: fix API misuse
 
-> On Mon, Nov 7, 2011 at 7:39 PM, Huang Ying <ying.huang@intel.com> wrote:
->> On one of our testing machine, the following EINJ command lines:
->>
->>  # echo 0x10000000 > param1
->>  # echo 0xfffffffffffff000 > param2
->>  # echo 0x8 > error_type
->>  # echo 1 > error_inject
->>
->> Will get:
->>
->>  echo: write error: Input/output error
->>
->> The EIO comes from:
->>
->>    rc = apei_exec_pre_map_gars(&trigger_ctx);
->>
->> The root cause is as follow.  Normally, ACPI atomic IO support is used
->> to access IO memory.  But in EINJ of that machine, it is used to
->> access RAM to trigger the injected error.  And the ioremap() called by
->> apei_exec_pre_map_gars() can not map the RAM.
->>
->> This patch add RAM mapping support to ACPI atomic IO support to
->> satisfy EINJ requirement.
->>
->> Signed-off-by: Huang Ying <ying.huang@intel.com>
->> Tested-by: Tony Luck <tony.luck@intel.com>
->> ---
->>  drivers/acpi/atomicio.c |   34 ++++++++++++++++++++++++++++++----
->>  1 file changed, 30 insertions(+), 4 deletions(-)
->>
+This one looks worth adding:
+CC: stable@vger.kernel.org
+
+ 
+> smp_call_function() only lets all other CPUs execute a specific function,
+> while we expect all CPUs do in intel_idle.  Without the fix, we could have
+> one cpu which has auto_demotion enabled or has no boradcast timer setup. 
+> Usually we don't see impact because auto demotion just harms power and the
+> intel_idle init is called in CPU 0, where boradcast timer delivers
+> interrupt, but this still could be a problem.
 > 
-> Hi Huang:
-> 
-> This patch collides with my series to remove atomicio.[ch]:
->   https://mail.google.com/mail/?shva=1#label/linux-acpi+list/133805812264a542
-> and I don't want such functionality to get lost if/when the removal series
-> is accepted.  I'm interested in working with you, not against you, so would
-> you like me to do anything with respect to this patch within the osl.c based
-> mapping routines so this capability would not become lost?
-> 
-> The obvious choices would be for me to post a new patch, copying this
-> functionality into osl.c's mapping routines, that would apply on top of the
-> removal series.  Another tact could be for me to do basically the same
-> thing but within the removal series (by adding this into it, and reposting).
-> The latter tactic seems like it could be a constant problem if more changes
-> to atomicio occur during this interim period.  Of course you may have other
-> ideas here as how to progress.
-> 
-> This type of occurrence, among many others, is a good example of why we
-> need to get down to just one set of mapping routines as soon as possible.
-> During this interim period I'll try and monitor the linux-acpi-list
-> for future such
-> occurrences but if you could, please try and cc me on any future atomicio
-> modifications.
-> 
-> Thanks,
->  Myron
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+CC: stable@vger.kernel.org
 
-
-Hi Myron,
-I've included your 1-3 of "ACPI: Re-factor and remove ./drivers/acpi/atomicio.[ch]"
-on top of Ying's series "[PATCH 00/11] ACPI, APEI, Patches for 3.3"
-
-Can you re-fresh your #4 so it applies on top?
-Would be delightful to get rid of atomicio.
-
-You can pull my branch from
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git next
-
-thanks!
--Len
-
-
-
-thanks,
--Len
-
+   Thomas
