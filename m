@@ -1,105 +1,91 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
-Date: Tue, 17 Jan 2012 14:19:54 -0600
-Message-ID: <20120117201954.GC2257@ubuntu-macmini>
-References: <1326784098-3244-1-git-send-email-corentincj@iksaif.net>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH 2/2] tboot: Add return values for tboot_sleep
+Date: Tue, 17 Jan 2012 15:50:08 -0500
+Message-ID: <1326833408-23685-3-git-send-email-konrad.wilk@oracle.com>
+References: <1326833408-23685-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47544 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753224Ab2AQUT7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 15:19:59 -0500
-Content-Disposition: inline
-In-Reply-To: <1326784098-3244-1-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <tboot-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <1326833408-23685-1-git-send-email-konrad.wilk@oracle.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
+List-Post: <mailto:tboot-devel@lists.sourceforge.net>
+List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: tboot-devel-bounces@lists.sourceforge.net
+To: linux-kernel@vger.kernel.org, x86@kernel.org, joseph.cihula@intel.com, linux-acpi@vger.kernel.org, tboot-devel@lists.sourceforge.net, len.brown@intel.com, rjw@sisk.pl, mingo@redhat.com
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: platform-driver-x86@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, David Herrmann <dh.herrmann@googlemail.com>, Richard =?utf-8?Q?Sch=C3=BCtz?= <r.schtz@t-online.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, Jan 17, 2012 at 08:08:18AM +0100, Corentin Chary wrote:
-> On these laptops, the ACPI video is not functional, and very unlikely
-> to be fixed by the vendor. Note that intel_backlight works for some
-> of these laptops, and the backlight from samsung-laptop always work.
-> 
-> The good news is that newer laptops have functional ACPI video device
-> and won't end up growing this list.
-> 
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> ---
->  drivers/acpi/video_detect.c |   49 +++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 49 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 45d8097..66be45e 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -132,6 +132,53 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
->  	return AE_OK;
->  }
->  
-> +/* Force to use vendor driver when the ACPI device is known to be
-> + * buggy */
-> +static int video_detect_force_vendor(const struct dmi_system_id *d)
-> +{
-> +	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-> +	return 0;
-> +}
-> +
-> +static struct dmi_system_id video_detect_dmi_table[] = {
-> +	{
-> +	 .callback = video_detect_force_vendor,
-> +	 .ident = "N150P",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "N150P"),
-> +		DMI_MATCH(DMI_BOARD_NAME, "N150P"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_detect_force_vendor,
-> +	 .ident = "N145P/N250P/N260P",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "N145P/N250P/N260P"),
-> +		DMI_MATCH(DMI_BOARD_NAME, "N145P/N250P/N260P"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_detect_force_vendor,
-> +	 .ident = "N150/N210/N220",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "N150/N210/N220"),
-> +		DMI_MATCH(DMI_BOARD_NAME, "N150/N210/N220"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_detect_force_vendor,
-> +	 .ident = "NF110/NF210/NF310",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "NF110/NF210/NF310"),
-> +		DMI_MATCH(DMI_BOARD_NAME, "NF110/NF210/NF310"),
-> +		},
-> +	},
-> +};
-> +
->  /*
->   * Returns the video capabilities of a specific ACPI graphics device
->   *
-> @@ -164,6 +211,8 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
->  		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
->  		 *}
->  		 */
-> +
-> +		dmi_check_system(video_detect_dmi_table);
->  	} else {
->  		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
->  		if (ACPI_FAILURE(status)) {
-> -- 
-> 1.7.5.4
-> 
+. as appropiately. As tboot_sleep now returns values.
+remove tboot_sleep_wrapper.
 
-This is working great on the NF310. Thanks!
+Suggested-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Joseph Cihula <joseph.cihula@intel.com>
+[v1: Return -1/0/+1 instead of ACPI_xx values]
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/kernel/tboot.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
+diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
+index 1a4ab7d..6410744 100644
+--- a/arch/x86/kernel/tboot.c
++++ b/arch/x86/kernel/tboot.c
+@@ -272,7 +272,7 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+ 		offsetof(struct acpi_table_facs, firmware_waking_vector);
+ }
+ 
+-void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
++static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ {
+ 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+ 		/* S0,1,2: */ -1, -1, -1,
+@@ -281,7 +281,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ 		/* S5: */ TB_SHUTDOWN_S5 };
+ 
+ 	if (!tboot_enabled())
+-		return;
++		return 0;
+ 
+ 	tboot_copy_fadt(&acpi_gbl_FADT);
+ 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
+@@ -292,15 +292,10 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ 	if (sleep_state >= ACPI_S_STATE_COUNT ||
+ 	    acpi_shutdown_map[sleep_state] == -1) {
+ 		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
+-		return;
++		return -1;
+ 	}
+ 
+ 	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+-}
+-static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
+-			       u32 pm1b_control)
+-{
+-	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+ 	return 0;
+ }
+ 
+@@ -352,7 +347,7 @@ static __init int tboot_late_init(void)
+ 	atomic_set(&ap_wfs_count, 0);
+ 	register_hotcpu_notifier(&tboot_cpu_notifier);
+ 
+-	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
++	acpi_os_set_prepare_sleep(&tboot_sleep);
+ 	return 0;
+ }
+ 
+-- 
+1.7.7.4
+
+
+------------------------------------------------------------------------------
+Keep Your Developer Skills Current with LearnDevNow!
+The most comprehensive online learning library for Microsoft developers
+is just $99.99! Visual Studio, SharePoint, SQL - plus HTML5, CSS3, MVC3,
+Metro Style Apps, more. Free future releases when you subscribe now!
+http://p.sf.net/sfu/learndevnow-d2d
