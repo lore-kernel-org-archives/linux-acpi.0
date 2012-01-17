@@ -1,43 +1,47 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: Re-add ibft tree to linux-next please
-Date: Tue, 17 Jan 2012 09:37:46 -0800
-Message-ID: <4F15B1EA.4060405@zytor.com>
-References: <20111212145330.GA16278@andromeda.dapyr.net> <4EE68D57.7030603@zytor.com> <20111213021536.GC2730@konrad-lan> <4F1580DE.1060002@kernel.org> <20120117164920.GA5111@phenom.dumpdata.com>
+From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Subject: Re: Fwd: Brightness on HP EliteBook 8460p
+Date: Tue, 17 Jan 2012 19:10:55 +0100
+Message-ID: <2185391.v0fsgiUWSx@pali>
+References: <3123346.jTQFjj4kVk@pali-elitebook> <1324440344.10394.444.camel@linux-s257.site> <9136713.SR1vWBOW6T@pali-elitebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:58023 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748Ab2AQRil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 12:38:41 -0500
-In-Reply-To: <20120117164920.GA5111@phenom.dumpdata.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="nextPart3845021.OxilRKdmFm"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <9136713.SR1vWBOW6T@pali-elitebook>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad@darnok.org>, Konrad Rzeszutek Wilk <konrad@kernel.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, pjones@redhat.com
 
-On 01/17/2012 08:49 AM, Konrad Rzeszutek Wilk wrote:
->>
->> Are there really hardware/firmware configurations that support IBFT
->> and do not support ACPI?
-> 
-> gPXE can be used in legacy environments. And it (gPXE) does not update
-> the ACPI tables.
-> 
 
-That's irrelevant.  THe point is that iBFT *is* an ACPI table.
+--nextPart3845021.OxilRKdmFm
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-> I think that would work. And also if 'acpi_disabled=0' as you might
-> have an IBFT table in memory that is _not_ hooked up to the ACPI tables.
+On Wednesday 21 December 2011 12:45:07 Pali Roh=E1r wrote:
+> Hello,
+>=20
+> I tried to boot with all 3 strings in acpi_os_name, but nothing was c=
+hanged.
+> I'm attaching dmesg outputs, one from BIOS mode, one from UEFI mode. =
+Both
+> are with "Microsoft Windows NT".
 
-That is *always* the case, the "finder" is nonstandard (because the ACPI
-tables are largely non-extensible, says the one who has tried to
-actually extend ACPI tables in memory.)
+Did you looked at my logs?
 
-	-hpa
+--=20
+Pali Roh=E1r
+pali.rohar@gmail.com
+--nextPart3845021.OxilRKdmFm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
+iEYEABECAAYFAk8Vua8ACgkQi/DJPQPkQ1KIQgCguRrnhDzqBdgFHDHA4l6Q/DLQ
+ViMAoJuA6thCy6Mms/tqo3Ve3sItMl1w
+=n66p
+-----END PGP SIGNATURE-----
+
+--nextPart3845021.OxilRKdmFm--
