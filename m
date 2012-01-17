@@ -1,35 +1,35 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: X86 cpuidle cleanups V3
-Date: Tue, 17 Jan 2012 22:40:06 +0100
-Message-ID: <1326836408-23177-1-git-send-email-trenn@suse.de>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: ACPI & Power Management Patches for 3.3
+Date: Tue, 17 Jan 2012 23:17:09 +0100
+Message-ID: <20120117221709.GA10776@homac.suse.de>
+References: <1326802902-21583-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53861 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:55307 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755932Ab2AQVkP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 16:40:15 -0500
+	id S1755234Ab2AQWRM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 17:17:12 -0500
+Content-Disposition: inline
+In-Reply-To: <1326802902-21583-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: shaohua.li@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-V3: - Fix a critical typo in
-      [PATCH 1/2] ACPI processor: Remove unneeded variable passed by
-    - Make checkpatch clean
+On Di 17. Jan - 07:20:52, Len Brown wrote:
+> These patches are queued for 3.3 in
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git next
+> 
+> Let me know if you have troubles with any of them.
 
-This prepares physical CPU hotplug functionality for the intel_idle
-and acpi_processor (cpuidle/throttling) driver.
-This still needs:
-  - split up of processor_add function into
-    1) A minimum part just registering the core, not trying to init
-       anything, because cpu_data(cpu) is not initialized yet
-       (feature flags, model, family, all zero), MSRs cannot get
-       executed as the cpu is still offline at ACPI hotplug time
-    2) A part doing throttling/cpuidle intitialization when it's
-       safe to do so
-  - Only do minimum registration at ACPI CPU hotplug event time. Delay
-    and do full cpuidle/throttling init when the physically hotplugged
-    CPU is onlined via echo 1 >/sys/../cpuX/online the first time
+Any specific reason why the patches regarding the dock station/libata
+hotplug stuff (initially sent by Matthew Garrett, resent and extended by
+me on 2011-12-06 [1]) are not considered? I know, they're spanning two
+different subsystems, but one subsystem maintainer might need to take
+the first step.
 
-   Thomas
-       
+Thanks,
+ Holger
 
+[1] [Patch 0/7] acpi/libata: Express dependencies for devices on dock stations and bays
