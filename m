@@ -1,79 +1,43 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add
- __acpi_processor_[un]register_driver helpers.
-Date: Tue, 17 Jan 2012 12:13:14 -0500
-Message-ID: <20120117171314.GB5494@phenom.dumpdata.com>
-References: <20111219142626.GB27772@andromeda.dapyr.net>
- <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
- <20111220153145.GB13253@andromeda.dapyr.net>
- <625BA99ED14B2D499DC4E29D8138F1506E01AAC469@shsmsx502.ccr.corp.intel.com>
- <20111223030103.GA7218@andromeda.dapyr.net>
- <AADFC41AFE54684AB9EE6CBC0274A5D10145B9@SHSMSX102.ccr.corp.intel.com>
- <20120103205925.GI17472@phenom.dumpdata.com>
- <AADFC41AFE54684AB9EE6CBC0274A5D102D62B@SHSMSX102.ccr.corp.intel.com>
- <20120113222451.GA6922@phenom.dumpdata.com>
- <AADFC41AFE54684AB9EE6CBC0274A5D10FCD37A9@SHSMSX102.ccr.corp.intel.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: Re-add ibft tree to linux-next please
+Date: Tue, 17 Jan 2012 09:37:46 -0800
+Message-ID: <4F15B1EA.4060405@zytor.com>
+References: <20111212145330.GA16278@andromeda.dapyr.net> <4EE68D57.7030603@zytor.com> <20111213021536.GC2730@konrad-lan> <4F1580DE.1060002@kernel.org> <20120117164920.GA5111@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:38245 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755120Ab2AQRQ3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 12:16:29 -0500
-Content-Disposition: inline
-In-Reply-To: <AADFC41AFE54684AB9EE6CBC0274A5D10FCD37A9@SHSMSX102.ccr.corp.intel.com>
+Received: from terminus.zytor.com ([198.137.202.10]:58023 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750748Ab2AQRil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 12:38:41 -0500
+In-Reply-To: <20120117164920.GA5111@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Tian, Kevin" <kevin.tian@intel.com>
-Cc: liang tang <liang.tang@oracle.com>, Konrad Rzeszutek Wilk <konrad@darnok.org>, "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Nakajima, Jun" <jun.nakajima@intel.com>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad@darnok.org>, Konrad Rzeszutek Wilk <konrad@kernel.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, pjones@redhat.com
 
-> > I was trying to figure out how difficult it would be to just bring Pxx states to
-> > the Xen hypervisor using the existing ACPI interfaces. And while it did not pass
-> > all the _Pxx states (seems that all the _PCT, _PSS, _PSD, _PPC flags need to
-> > be enabled in the hypercall to make this work), it demonstrates what I had in
-> > mind. 
-
-.. snip..
-> > 	/* TODO: Under Xen, the C-states information is not present.
-> >  	 * Figure out why. */
+On 01/17/2012 08:49 AM, Konrad Rzeszutek Wilk wrote:
+>>
+>> Are there really hardware/firmware configurations that support IBFT
+>> and do not support ACPI?
 > 
-> it's possible related to this long thread:
+> gPXE can be used in legacy environments. And it (gPXE) does not update
+> the ACPI tables.
 > 
-> http://lists.xen.org/archives/html/xen-devel/2011-08/msg00511.html
-> 
-> IOW, Xen doesn't export mwait capability to dom0, which impacts _PDC setting.
-> Final solution is to have a para-virtualized PDC call for that.
 
-Aaah. Let me play with that a bit. Thanks for the pointer.
+That's irrelevant.  THe point is that iBFT *is* an ACPI table.
 
-.. snip..
-> the prerequisites for this module to work correctly, is that dom0 has the right
-> configurations to have all necessary Cx/Px information ready before this 
-> module is loaded. That may mean enabling full CONFIG_CPU_IDLE and CONFIG_CPUFREQ,
+> I think that would work. And also if 'acpi_disabled=0' as you might
+> have an IBFT table in memory that is _not_ hooked up to the ACPI tables.
 
-Right.
-> which in current form may add some negative impact, e.g. dom0 will try to control
-> Px/Cx to conflict with Xen. So some tweaks may be required in that part.
+That is *always* the case, the "finder" is nonstandard (because the ACPI
+tables are largely non-extensible, says the one who has tried to
+actually extend ACPI tables in memory.)
 
-Yup. Hadn't even looked at the cpufreq tries to do yet.
-> 
-> given our purpose now, is to come up a cleaner approach which tolerate some
-> assumptions (e.g. #VCPU of dom0 == #PCPU), there's another option following this
-> trend (perhaps compensate your idea). We can register a Xen-cpuidle and 
-> xen-cpufreq driver to current Linux cpuidle and cpufreq framework, which plays 
-> mainly two roles:
-> 	- a dummy driver to prevent dom0 touching actual Px/Cx
-> 	- parse ACPI Cx/Px information to Xen, in a similar way you did above
+	-hpa
 
-Yeah, I like where you are heading.
-> 
-> there may have some other trickiness, but the majority code will be self-contained.
+-- 
+H. Peter Anvin, Intel Open Source Technology Center
+I work for Intel.  I don't speak on their behalf.
 
-<nods>
-> 
-> Thanks
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
