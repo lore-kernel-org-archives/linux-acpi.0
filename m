@@ -1,60 +1,93 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/5] intel_idle: Split up and provide per CPU initialization func
-Date: Tue, 17 Jan 2012 17:10:44 +0100
-Message-ID: <201201171710.44271.trenn@suse.de>
-References: <1321569421-46220-1-git-send-email-trenn@suse.de> <4F15562B.1080406@kernel.org> <201201171426.40255.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 2/3] ACPI processor: Remove unneeded variable passed by acpi_processor_hotadd_init
+Date: Tue, 17 Jan 2012 17:20:29 +0100
+Message-ID: <1326817230-79711-3-git-send-email-trenn@suse.de>
+References: <1326817230-79711-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38582 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:39982 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755152Ab2AQQKq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 11:10:46 -0500
-In-Reply-To: <201201171426.40255.trenn@suse.de>
+	id S1755071Ab2AQQUy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 11:20:54 -0500
+In-Reply-To: <1326817230-79711-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, tj@kernel.org, bhelgaas@google.com
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: deepthi@linux.vnet.ibm.com, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, "Jiang, Yunhong" <yunhong.jiang@intel.com>
 
-On Tuesday, January 17, 2012 02:26:40 PM Thomas Renninger wrote:
-> On Tuesday, January 17, 2012 12:06:19 PM Len Brown wrote:
-> > On 11/17/2011 05:36 PM, Thomas Renninger wrote:
-> > 
-> > > Function split up, should have no functional change
-> > 
-> > benefit?
-> The idea was:
-> Provide a basic init func which can be called in ACPI CPU hotplug
-> context safely before the CPU is brought up the first time and:
-> struct cpuinfo_x86
-> (like CPU features) of the new CPU is not set up yet.
-> Do the idle/throttling/... init later when the physically hotplugged
-> CPU is onlined the first time (and therefore got fully booted
-> and initialized).
-> 
-> While I had this working, I now have a better idea which does
-> not need this split:
-Wait, this cannot work.
-A cpu core must/should be online to get cpuidle initialized correctly.
+This is a very small part taken from patches which afaik
+are coming from Yunhong Jiang for Xen.
+Xen CPU hotplug things not existing in Linus kernel yet were
+removed.
 
-> When the ACPI CPU hotplug event is caught, fill up cpu_data(new_cpu)
-> data as much and good as possilbe, do something like:
-> memcpy(&cpu_data(new_cpu), &boot_cpu_data, sizeof(struct cpuinfo_x86);
-> and adjust:
-> phys_proc_id
-> cpu_core_id
-> apicid
-> initial_apicid
-> ...
-> Then cpuidle (and throttling,...) can be initialized without the need
-> of booting up the CPU first.
-> 
-> Not sure whether the memcpy would succeed if the CPU is not (and never
-> was) online. From what I saw it should work, but I am not sure.
-> Tejun: Do you know that?
-Never mind. If I think it really could make sense, I better post an
-example code snippet what I'd like to achieve.
+Cleanup only: no functional change.
 
-   Thomas
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: Jiang, Yunhong <yunhong.jiang@intel.com>
+---
+ drivers/acpi/processor_driver.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 90719d1..2291aa4 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -82,7 +82,7 @@ MODULE_LICENSE("GPL");
+ static int acpi_processor_add(struct acpi_device *device);
+ static int acpi_processor_remove(struct acpi_device *device, int type);
+ static void acpi_processor_notify(struct acpi_device *device, u32 event);
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+ 
+ 
+@@ -324,10 +324,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	 *  they are physically not present.
+ 	 */
+ 	if (pr->id == -1) {
+-		if (ACPI_FAILURE
+-		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
++		if (ACPI_FAILURE (acpi_processor_hotadd_init(pr->handle)))
+ 			return -ENODEV;
+-		}
+ 	}
+ 	/*
+ 	 * On some boxes several processors use the same processor bus id.
+@@ -721,18 +719,19 @@ processor_walk_namespace_cb(acpi_handle handle,
+ 	return (AE_OK);
+ }
+ 
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
++	acpi_handle handle = pr->handle;
+ 
+ 	if (!is_processor_present(handle)) {
+ 		return AE_ERROR;
+ 	}
+ 
+-	if (acpi_map_lsapic(handle, p_cpu))
++	if (acpi_map_lsapic(handle, &pr-id))
+ 		return AE_ERROR;
+ 
+-	if (arch_register_cpu(*p_cpu)) {
+-		acpi_unmap_lsapic(*p_cpu);
++	if (arch_register_cpu(pr->id)) {
++		acpi_unmap_lsapic(pr->id);
+ 		return AE_ERROR;
+ 	}
+ 
+@@ -749,7 +748,7 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
+ 	return (0);
+ }
+ #else
+-static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu)
++static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
+ 	return AE_ERROR;
+ }
+-- 
+1.7.6.1
+
