@@ -1,148 +1,59 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 31/50] ACPI,
-	Add RAM mapping support to ACPI atomic IO support
-Date: Tue, 17 Jan 2012 07:21:23 -0500
-Message-ID: <76da3fb3575e39fb23b2c072997ccd1187a2ce9d.1326802230.git.len.brown@intel.com>
-References: <1326802902-21583-1-git-send-email-lenb@kernel.org>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 3/5] intel_idle: Split up and provide per CPU initialization func
+Date: Tue, 17 Jan 2012 14:26:40 +0100
+Message-ID: <201201171426.40255.trenn@suse.de>
+References: <1321569421-46220-1-git-send-email-trenn@suse.de> <1321569421-46220-4-git-send-email-trenn@suse.de> <4F15562B.1080406@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-reply-to: <1326802902-21583-1-git-send-email-lenb@kernel.org>
-In-reply-to: <553575f1ae048aa44682b46b3c51929a0b3ad337.1326802228.git.len.brown@intel.com>
-References: <553575f1ae048aa44682b46b3c51929a0b3ad337.1326802228.git.len.brown@intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>, Huang Ying <ying.huang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:55013 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754124Ab2AQN0m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 08:26:42 -0500
+In-Reply-To: <4F15562B.1080406@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, tj@kernel.org, bhelgaas@google.com
 
-From: Huang Ying <ying.huang@intel.com>
+On Tuesday, January 17, 2012 12:06:19 PM Len Brown wrote:
+> On 11/17/2011 05:36 PM, Thomas Renninger wrote:
+> 
+> > Function split up, should have no functional change
+> 
+> benefit?
+The idea was:
+Provide a basic init func which can be called in ACPI CPU hotplug
+context safely before the CPU is brought up the first time and:
+struct cpuinfo_x86
+(like CPU features) of the new CPU is not set up yet.
+Do the idle/throttling/... init later when the physically hotplugged
+CPU is onlined the first time (and therefore got fully booted
+and initialized).
 
-On one of our testing machine, the following EINJ command lines:
+While I had this working, I now have a better idea which does
+not need this split:
+When the ACPI CPU hotplug event is caught, fill up cpu_data(new_cpu)
+data as much and good as possilbe, do something like:
+memcpy(&cpu_data(new_cpu), &boot_cpu_data, sizeof(struct cpuinfo_x86);
+and adjust:
+phys_proc_id
+cpu_core_id
+apicid
+initial_apicid
+...
+Then cpuidle (and throttling,...) can be initialized without the need
+of booting up the CPU first.
 
-  # echo 0x10000000 > param1
-  # echo 0xfffffffffffff000 > param2
-  # echo 0x8 > error_type
-  # echo 1 > error_inject
+Not sure whether the memcpy would succeed if the CPU is not (and never
+was) online. From what I saw it should work, but I am not sure.
+Tejun: Do you know that?
 
-Will get:
+Another option would be what Bjorn Helgaas suggested:
+Immediately online the CPU, but this would heavily interfere with
+the current (generic code) approach, but after some thinking and
+looking at the code: this shouldn't bring much benefit.
 
-  echo: write error: Input/output error
-
-The EIO comes from:
-
-    rc = apei_exec_pre_map_gars(&trigger_ctx);
-
-The root cause is as follow.  Normally, ACPI atomic IO support is used
-to access IO memory.  But in EINJ of that machine, it is used to
-access RAM to trigger the injected error.  And the ioremap() called by
-apei_exec_pre_map_gars() can not map the RAM.
-
-This patch add RAM mapping support to ACPI atomic IO support to
-satisfy EINJ requirement.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Tested-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/atomicio.c |   41 +++++++++++++++++++++++++++++++++++++----
- 1 files changed, 37 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/atomicio.c b/drivers/acpi/atomicio.c
-index 1016f18..d4a5b3d 100644
---- a/drivers/acpi/atomicio.c
-+++ b/drivers/acpi/atomicio.c
-@@ -32,6 +32,8 @@
- #include <linux/rculist.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/highmem.h>
- #include <acpi/atomicio.h>
- 
- #define ACPI_PFX "ACPI: "
-@@ -97,6 +99,37 @@ static void __iomem *__acpi_try_ioremap(phys_addr_t paddr,
- 		return NULL;
- }
- 
-+#ifndef CONFIG_IA64
-+#define should_use_kmap(pfn)	page_is_ram(pfn)
-+#else
-+/* ioremap will take care of cache attributes */
-+#define should_use_kmap(pfn)	0
-+#endif
-+
-+static void __iomem *acpi_map(phys_addr_t pg_off, unsigned long pg_sz)
-+{
-+	unsigned long pfn;
-+
-+	pfn = pg_off >> PAGE_SHIFT;
-+	if (should_use_kmap(pfn)) {
-+		if (pg_sz > PAGE_SIZE)
-+			return NULL;
-+		return (void __iomem __force *)kmap(pfn_to_page(pfn));
-+	} else
-+		return ioremap(pg_off, pg_sz);
-+}
-+
-+static void acpi_unmap(phys_addr_t pg_off, void __iomem *vaddr)
-+{
-+	unsigned long pfn;
-+
-+	pfn = pg_off >> PAGE_SHIFT;
-+	if (page_is_ram(pfn))
-+		kunmap(pfn_to_page(pfn));
-+	else
-+		iounmap(vaddr);
-+}
-+
- /*
-  * Used to pre-map the specified IO memory area. First try to find
-  * whether the area is already pre-mapped, if it is, increase the
-@@ -119,7 +152,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
- 
- 	pg_off = paddr & PAGE_MASK;
- 	pg_sz = ((paddr + size + PAGE_SIZE - 1) & PAGE_MASK) - pg_off;
--	vaddr = ioremap(pg_off, pg_sz);
-+	vaddr = acpi_map(pg_off, pg_sz);
- 	if (!vaddr)
- 		return NULL;
- 	map = kmalloc(sizeof(*map), GFP_KERNEL);
-@@ -135,7 +168,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
- 	vaddr = __acpi_try_ioremap(paddr, size);
- 	if (vaddr) {
- 		spin_unlock_irqrestore(&acpi_iomaps_lock, flags);
--		iounmap(map->vaddr);
-+		acpi_unmap(pg_off, map->vaddr);
- 		kfree(map);
- 		return vaddr;
- 	}
-@@ -144,7 +177,7 @@ static void __iomem *acpi_pre_map(phys_addr_t paddr,
- 
- 	return map->vaddr + (paddr - map->paddr);
- err_unmap:
--	iounmap(vaddr);
-+	acpi_unmap(pg_off, vaddr);
- 	return NULL;
- }
- 
-@@ -177,7 +210,7 @@ static void acpi_post_unmap(phys_addr_t paddr, unsigned long size)
- 		return;
- 
- 	synchronize_rcu();
--	iounmap(map->vaddr);
-+	acpi_unmap(map->paddr, map->vaddr);
- 	kfree(map);
- }
- 
--- 
-1.7.9.rc1
+   Thomas
