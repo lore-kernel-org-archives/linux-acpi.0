@@ -1,45 +1,70 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch 2/3] intel_idle: disable auto_demotion for hotplugged CPUs
-Date: Tue, 17 Jan 2012 11:56:38 +0100
-Message-ID: <201201171156.38490.trenn@suse.de>
-References: <20120110234820.B14B8100270@wpzn3.hot.corp.google.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/5] ACPI processor: Avoid WARN message on processor driver
+ removal
+Date: Tue, 17 Jan 2012 06:02:39 -0500
+Message-ID: <4F15554F.8040900@kernel.org>
+References: <1321569421-46220-1-git-send-email-trenn@suse.de> <1321569421-46220-3-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46697 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab2AQK4l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 05:56:41 -0500
-In-Reply-To: <20120110234820.B14B8100270@wpzn3.hot.corp.google.com>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:60454 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258Ab2AQLCn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 06:02:43 -0500
+Received: by qadc16 with SMTP id c16so1802912qad.19
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 03:02:42 -0800 (PST)
+In-Reply-To: <1321569421-46220-3-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, shaohua.li@intel.com
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 
-On Wednesday, January 11, 2012 12:48:20 AM akpm@linux-foundation.org wrote:
-> From: Shaohua Li <shaohua.li@intel.com>
-> Subject: intel_idle: disable auto_demotion for hotplugged CPUs
+On 11/17/2011 05:36 PM, Thomas Renninger wrote:
 
-This one should not be necessary anymore with my intel_idle
-patch series I have to rebase and resend (will do that after lunch).
+> Only unregister acpi_idle driver if acpi_idle driver got
+> registered.
+> 
+> Also add a static acpi_idle_active variable for easy and nicer
+> checking whether acpi_idle_driver is active (as suggested by
+> Bjorn).
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: Len Brown <lenb@kernel.org>
+> CC: linux-acpi@vger.kernel.org
+> CC: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/acpi/processor_driver.c |   11 +++++++----
+>  1 files changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index 3a4fc0c..790623f 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -110,6 +110,7 @@ static struct cpuidle_driver acpi_idle_driver = {
+>  	.name =		"acpi_idle",
+>  	.owner =	THIS_MODULE,
+>  };
+> +static int acpi_idle_active;
+>  
+>  #define INSTALL_NOTIFY_HANDLER		1
+>  #define UNINSTALL_NOTIFY_HANDLER	2
+> @@ -508,8 +509,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+>  	acpi_processor_get_throttling_info(pr);
+>  	acpi_processor_get_limit_info(pr);
+>  
+> -
+> -	if (cpuidle_get_driver() == &acpi_idle_driver)
+> +	if (acpi_idle_active)
+>  		acpi_processor_power_init(pr, device);
 
-It provides a per cpu intel_idle init function which is called
-from processor.ko in physical cpu hotplug case.
 
->From what I can see this patch does not change anything/much, because:
-  - CPUs onlined at bootup are initialized correctly already
-  - Soft offlining/onlining shouldn't matter in auto_demotion_disable
-    case as it's a HW MSR write and the CPU should still be in the
-    same state after off- and onlined again.
-  - Physically hotplugged/added CPUs are not registered with cpuidle
-    at all (this is what my patch series fixes), because intel_idle
-    does not offer any per cpu init() entry function.
-    With this patch they might be set into auto_demotion_disable now,
-    but no idle driver gets active for them.
+I think the old cold reads better than the new code,
+since I don't have to guess what "acpi_idle_active" means...
 
-I'll pick up patch 1/3 and 3/3, base my patches on top and resend
-everything, that should be easiest for everybody?
+Perhaps you can use the existing mechanism where
+it is missing to guard the unregister and re-fresh?
 
-   Thomas
+thanks,
+-Len
 
