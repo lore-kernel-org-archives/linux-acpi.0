@@ -1,46 +1,79 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/3] ACPI processor: Remove unneeded variable passed by
- acpi_processor_hotadd_init
-Date: Tue, 17 Jan 2012 11:52:37 -0500
-Message-ID: <20120117165237.GB5111@phenom.dumpdata.com>
-References: <1326817230-79711-1-git-send-email-trenn@suse.de>
- <1326817230-79711-3-git-send-email-trenn@suse.de>
- <20120117162951.GB21545@phenom.dumpdata.com>
- <201201171747.53966.trenn@suse.de>
+Subject: Re: [Xen-devel] [PATCH 3/8] ACPI: processor: add
+ __acpi_processor_[un]register_driver helpers.
+Date: Tue, 17 Jan 2012 12:13:14 -0500
+Message-ID: <20120117171314.GB5494@phenom.dumpdata.com>
+References: <20111219142626.GB27772@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC03A@shsmsx502.ccr.corp.intel.com>
+ <20111220153145.GB13253@andromeda.dapyr.net>
+ <625BA99ED14B2D499DC4E29D8138F1506E01AAC469@shsmsx502.ccr.corp.intel.com>
+ <20111223030103.GA7218@andromeda.dapyr.net>
+ <AADFC41AFE54684AB9EE6CBC0274A5D10145B9@SHSMSX102.ccr.corp.intel.com>
+ <20120103205925.GI17472@phenom.dumpdata.com>
+ <AADFC41AFE54684AB9EE6CBC0274A5D102D62B@SHSMSX102.ccr.corp.intel.com>
+ <20120113222451.GA6922@phenom.dumpdata.com>
+ <AADFC41AFE54684AB9EE6CBC0274A5D10FCD37A9@SHSMSX102.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:52159 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754434Ab2AQQyw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 11:54:52 -0500
+Received: from rcsinet15.oracle.com ([148.87.113.117]:38245 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755120Ab2AQRQ3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 12:16:29 -0500
 Content-Disposition: inline
-In-Reply-To: <201201171747.53966.trenn@suse.de>
+In-Reply-To: <AADFC41AFE54684AB9EE6CBC0274A5D10FCD37A9@SHSMSX102.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, deepthi@linux.vnet.ibm.com, Bjorn Helgaas <bhelgaas@google.com>, "Jiang, Yunhong" <yunhong.jiang@intel.com>
+To: "Tian, Kevin" <kevin.tian@intel.com>
+Cc: liang tang <liang.tang@oracle.com>, Konrad Rzeszutek Wilk <konrad@darnok.org>, "jeremy@goop.org" <jeremy@goop.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "Ian.Campbell@citrix.com" <Ian.Campbell@citrix.com>, "mike.mcclurg@citrix.com" <mike.mcclurg@citrix.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stefan.bader@canonical.com" <stefan.bader@canonical.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Ke" <ke.yu@intel.com>, "konrad@kernel.org" <konrad@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Nakajima, Jun" <jun.nakajima@intel.com>
 
-On Tue, Jan 17, 2012 at 05:47:53PM +0100, Thomas Renninger wrote:
-> On Tuesday, January 17, 2012 05:29:51 PM Konrad Rzeszutek Wilk wrote:
-> > On Tue, Jan 17, 2012 at 05:20:29PM +0100, Thomas Renninger wrote:
-> > > This is a very small part taken from patches which afaik
-> > > are coming from Yunhong Jiang for Xen.
-> > > Xen CPU hotplug things not existing in Linus kernel yet were
-> > > removed.
-> > 
-> > Could you point out the git commit please?
-> > I did this:
-> >  git log --grep=Yunhong drivers/acpi/processor_driver.c
-> > 
-> > And could not find it?
-> Jiang may know in which Xen Linux kernel repo this went in.
-> I grepped the commit from our distri where Jiang was
-> mentioned as author.
+> > I was trying to figure out how difficult it would be to just bring Pxx states to
+> > the Xen hypervisor using the existing ACPI interfaces. And while it did not pass
+> > all the _Pxx states (seems that all the _PCT, _PSS, _PSD, _PPC flags need to
+> > be enabled in the hypercall to make this work), it demonstrates what I had in
+> > mind. 
+
+.. snip..
+> > 	/* TODO: Under Xen, the C-states information is not present.
+> >  	 * Figure out why. */
 > 
-> Anyway, it's an improvement (one param less)
-> and makes things easier when dealing with ACPI CPU hotplug.
+> it's possible related to this long thread:
+> 
+> http://lists.xen.org/archives/html/xen-devel/2011-08/msg00511.html
+> 
+> IOW, Xen doesn't export mwait capability to dom0, which impacts _PDC setting.
+> Final solution is to have a para-virtualized PDC call for that.
 
-Then please provide that description in the git commit.
+Aaah. Let me play with that a bit. Thanks for the pointer.
 
-How does it make it "easier" ?
+.. snip..
+> the prerequisites for this module to work correctly, is that dom0 has the right
+> configurations to have all necessary Cx/Px information ready before this 
+> module is loaded. That may mean enabling full CONFIG_CPU_IDLE and CONFIG_CPUFREQ,
+
+Right.
+> which in current form may add some negative impact, e.g. dom0 will try to control
+> Px/Cx to conflict with Xen. So some tweaks may be required in that part.
+
+Yup. Hadn't even looked at the cpufreq tries to do yet.
+> 
+> given our purpose now, is to come up a cleaner approach which tolerate some
+> assumptions (e.g. #VCPU of dom0 == #PCPU), there's another option following this
+> trend (perhaps compensate your idea). We can register a Xen-cpuidle and 
+> xen-cpufreq driver to current Linux cpuidle and cpufreq framework, which plays 
+> mainly two roles:
+> 	- a dummy driver to prevent dom0 touching actual Px/Cx
+> 	- parse ACPI Cx/Px information to Xen, in a similar way you did above
+
+Yeah, I like where you are heading.
+> 
+> there may have some other trickiness, but the majority code will be self-contained.
+
+<nods>
+> 
+> Thanks
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
