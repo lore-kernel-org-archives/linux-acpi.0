@@ -1,46 +1,51 @@
-From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Subject: Re: [patch 3/3] drivers/idle/intel_idle.c: remove redundant
- local_irq_disable() call
-Date: Wed, 18 Jan 2012 08:15:25 +0800
-Message-ID: <1326845725.1872.1.camel@ymzhang>
-References: <20120110234821.E8BF5100270@wpzn3.hot.corp.google.com>
-	 <4F0DB1F0.1060408@linux.vnet.ibm.com>  <201201171322.51602.trenn@suse.de>
-Reply-To: yanmin_zhang@linux.intel.com
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 1/3] intel_idle: fix API misuse
+Date: Tue, 17 Jan 2012 16:21:43 -0800
+Message-ID: <20120117162143.28192549.akpm@linux-foundation.org>
+References: <20120110234819.7F484100270@wpzn3.hot.corp.google.com>
+	<201201171137.58857.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52633 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751729Ab2ARAPk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 19:15:40 -0500
-In-Reply-To: <201201171322.51602.trenn@suse.de>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43882 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755789Ab2ARAVo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 19:21:44 -0500
+In-Reply-To: <201201171137.58857.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Renninger <trenn@suse.de>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, lenb@kernel.org, mingmingx.zhang@intel.com, shaohua.li@intel.com
+Cc: lenb@kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, shaohua.li@intel.com, stable@vger.kernel.org
 
-On Tue, 2012-01-17 at 13:22 +0100, Thomas Renninger wrote:
-> On Wednesday, January 11, 2012 04:59:44 PM Srivatsa S. Bhat wrote:
-> > On 01/11/2012 05:18 AM, akpm@linux-foundation.org wrote:
-> ...
-> > > [akpm@linux-foundation.org: add comment]
-> > > Signed-off-by: mzha38X <mingmingx.zhang@intel.com>
+(let's cc stable on this thread then!)
+
+On Tue, 17 Jan 2012 11:37:58 +0100
+Thomas Renninger <trenn@suse.de> wrote:
+
+> On Wednesday, January 11, 2012 12:48:19 AM akpm@linux-foundation.org wrote:
+> > From: Shaohua Li <shaohua.li@intel.com>
+> > Subject: intel_idle: fix API misuse
+> 
+> This one looks worth adding:
+> CC: stable@vger.kernel.org
+> 
+>  
+> > smp_call_function() only lets all other CPUs execute a specific function,
+> > while we expect all CPUs do in intel_idle.  Without the fix, we could have
+> > one cpu which has auto_demotion enabled or has no boradcast timer setup. 
+> > Usually we don't see impact because auto demotion just harms power and the
+> > intel_idle init is called in CPU 0, where boradcast timer delivers
+> > interrupt, but this still could be a problem.
 > > 
-> >                  ^^^^^^^
-> > Are nicknames acceptable? AFAIK, real names are preferred...
-> Not perfect, but as an Intel address is used, it
-> shouldn't matter.
-> Signed-off-by: mingmingx.zhang@intel.com
-> would work as well: it's not anonymous.
-> I'll use: Mingming Zhang <mingmingx.zhang@intel.com>
-> (most google hits) when reposting.
-Thomas,
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> CC: stable@vger.kernel.org
+> 
 
-Thanks for your kind reminder. Mingming just sent his first patch to
-LKML and he would pay more attention next time.
-
-Yanmin
-
-
+OK.  I think Len is processing these patches at present.  So
+stable@vger.kernel.org will see when I've dropped my copy of the patch,
+but the version which goes into mainline might be missing the stable
+tag.  Hopefully Greg is awake enough to sort out that cryptic messaging!
 
