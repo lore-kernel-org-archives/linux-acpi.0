@@ -1,23 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI, APEI, EINJ Allow empty Trigger Error Action Table
-Date: Wed, 18 Jan 2012 12:31:32 -0500
-Message-ID: <4F1701F4.9020106@kernel.org>
-References: <1326124184-10084-1-git-send-email-niklas.soderlund@ericsson.com>	 <1326124184-10084-2-git-send-email-niklas.soderlund@ericsson.com> <1326859736.8294.46.camel@yhuang-dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:45434 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200Ab2ARRbf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2012 12:31:35 -0500
-In-Reply-To: <1326859736.8294.46.camel@yhuang-dev>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: [PATCH v3 0/4] toshiba_acpi: Expanded hotkey support
+Date: Wed, 18 Jan 2012 13:44:07 -0600
+Message-ID: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, Seth Forshee <seth.forshee@canonical.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: =?UTF-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?= <niklas.soderlund@ericsson.com>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Applied.
+Here's another round of the patches for expanded hotkey support for
+Toshibas addressing the problems raised in the last round. Changes since
+v2:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+ * Use WMI GUID instead of DMI data to identify models with buggy INFO
+   implementations
+ * Add comment in makefile regarding link order requirement necessary
+   for the above
+
+Thanks,
+Seth
+
+
+Azael Avalos (1):
+  toshiba_acpi: Support additional hotkey scancodes
+
+Seth Forshee (3):
+  ACPI: EC: Add ec_get_handle()
+  toshiba_acpi: Support alternate hotkey interfaces
+  toshiba_acpi: Refuse to load on machines with buggy INFO
+    implementations
+
+ drivers/acpi/ec.c                   |   10 ++
+ drivers/platform/x86/Kconfig        |    1 +
+ drivers/platform/x86/Makefile       |    4 +
+ drivers/platform/x86/toshiba_acpi.c |  246 +++++++++++++++++++++++++++++-----
+ include/linux/acpi.h                |    1 +
+ 5 files changed, 225 insertions(+), 37 deletions(-)
