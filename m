@@ -1,64 +1,57 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [patch 1/3] intel_idle: fix API misuse
-Date: Tue, 17 Jan 2012 16:55:06 -0800
-Message-ID: <20120118005506.GB27737@kroah.com>
-References: <20120110234819.7F484100270@wpzn3.hot.corp.google.com>
- <201201171137.58857.trenn@suse.de>
- <20120117162143.28192549.akpm@linux-foundation.org>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: Re: [RFC PATCH v2] ARM: imx: Add basic imx6q thermal management
+Date: Tue, 17 Jan 2012 22:08:57 -0600
+Message-ID: <CAMXH7KFpCdLMdgBg9ES-rP+Wf=UaHmM5r09aL3RVv3akre0u7g@mail.gmail.com>
+References: <1326775136-32115-1-git-send-email-rob.lee@linaro.org>
+	<CAMXH7KEhv9LgvvJ-FnLfaFZNgvJu2gOhFDwpYHDzN9iCDXHjJw@mail.gmail.com>
+	<CAMXH7KFdBQmh9eQYXU4Hzg=M9cxyJWzDKouYsGUp+POw0FRXqQ@mail.gmail.com>
+	<20120117092324.GV5446@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:44164 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755026Ab2ARAzV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 19:55:21 -0500
-Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 8A29620B38
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 19:55:20 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <20120117162143.28192549.akpm@linux-foundation.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:63183 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756810Ab2AREI6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2012 23:08:58 -0500
+Received: by qadc10 with SMTP id c10so1267000qad.19
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 20:08:57 -0800 (PST)
+In-Reply-To: <20120117092324.GV5446@pengutronix.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, shaohua.li@intel.com, stable@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux@arm.linux.org.uk, shawn.guo@freescale.com, amit.kachhap@linaro.org, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tue, Jan 17, 2012 at 04:21:43PM -0800, Andrew Morton wrote:
-> (let's cc stable on this thread then!)
-> 
-> On Tue, 17 Jan 2012 11:37:58 +0100
-> Thomas Renninger <trenn@suse.de> wrote:
-> 
-> > On Wednesday, January 11, 2012 12:48:19 AM akpm@linux-foundation.org wrote:
-> > > From: Shaohua Li <shaohua.li@intel.com>
-> > > Subject: intel_idle: fix API misuse
-> > 
-> > This one looks worth adding:
-> > CC: stable@vger.kernel.org
-> > 
-> >  
-> > > smp_call_function() only lets all other CPUs execute a specific function,
-> > > while we expect all CPUs do in intel_idle.  Without the fix, we could have
-> > > one cpu which has auto_demotion enabled or has no boradcast timer setup. 
-> > > Usually we don't see impact because auto demotion just harms power and the
-> > > intel_idle init is called in CPU 0, where boradcast timer delivers
-> > > interrupt, but this still could be a problem.
-> > > 
-> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > > Cc: Len Brown <lenb@kernel.org>
-> > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > CC: stable@vger.kernel.org
-> > 
-> 
-> OK.  I think Len is processing these patches at present.  So
-> stable@vger.kernel.org will see when I've dropped my copy of the patch,
-> but the version which goes into mainline might be missing the stable
-> tag.  Hopefully Greg is awake enough to sort out that cryptic messaging!
+Sascha, one comment below.  Agree with the rest of your comments and a
+v3 patch with these fixes will be coming shortly.
 
-In case I'm not, can someone send me the git commit ids that you want
-added to the stable trees to stable@vger.kernel.org when they hit
-Linus's tree?
+>> +static int th_sys_get_temp(struct thermal_zone_device *thermal,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsign=
+ed long *temp)
+>> +{
+>> + =A0 =A0 int tmp =3D 0;
+>> +
+>> + =A0 =A0 imx6q_get_temp(&tmp);
+>> +
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* The thermal framework code stores temperature in unsi=
+gned long. Also,
+>> + =A0 =A0 =A0* it has references to "millicelcius" which limits the =
+lowest
+>> + =A0 =A0 =A0* temperature possible (compared to Kelvin).
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 if (likely(tmp > 0))
+>
+> Please no 'likely' in such slow pathes.
+>
 
-thanks,
-
-greg k-h
+Why limit 'likely' and 'unlikely' to fast paths?  There usage should
+also increase efficiency and thus power usage when used in
+periodically/repetitively called code such as this.  In this case, the
+increased efficiency will be extremely small but what is the downside
+to using it here?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
