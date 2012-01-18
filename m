@@ -1,53 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH v3] ARM: imx: Add basic imx6q thermal management
-Date: Wed, 18 Jan 2012 11:56:56 +0000
-Message-ID: <20120118115656.GE1068@n2100.arm.linux.org.uk>
-References: <1326862087-17816-1-git-send-email-rob.lee@linaro.org> <1326862087-17816-2-git-send-email-rob.lee@linaro.org> <CAMXH7KE3CUvoZgW2UQiPLc3-oAHO0gcH4GRHU46ScyK519nvfQ@mail.gmail.com>
+From: lucas.gary@gmail.com
+Subject: Re: APEI: Can not request iomem region for GARs
+Date: Wed, 18 Jan 2012 08:20:11 -0800 (PST)
+Message-ID: <3229730.1980.1326903611960.JavaMail.geo-discussion-forums@prog27>
+References: <fa.VBW83nzmCUJkL7i8PnQCE+XJLbw@ifi.uio.no> <fa.tJPpWxTvpszc3I1v45J3M2ECj9E@ifi.uio.no>
+ <fa.tL8DWu2lMG0ACwU85eZnSJgwW4c@ifi.uio.no> <fa.ND4Vxr1bDKbI4wO4Neh3v3LnNi8@ifi.uio.no>
+ <fa.ujRlmAar6Re/yHHbpRR2c1B+waM@ifi.uio.no> <fa.Wg29YXcB/Uo8sZJfJS4lt54jnMc@ifi.uio.no>
+Reply-To: fa.linux.kernel@googlegroups.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34717 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552Ab2ARL5g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2012 06:57:36 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMXH7KE3CUvoZgW2UQiPLc3-oAHO0gcH4GRHU46ScyK519nvfQ@mail.gmail.com>
+Received: from mail-pz0-f56.google.com ([209.85.210.56]:49802 "EHLO
+	mail-pz0-f56.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753397Ab2ARQ3N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2012 11:29:13 -0500
+Received: by dadp15 with SMTP id p15so3988675dad.1
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2012 08:29:12 -0800 (PST)
+In-Reply-To: <fa.Wg29YXcB/Uo8sZJfJS4lt54jnMc@ifi.uio.no>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Lee <rob.lee@linaro.org>
-Cc: s.hauer@pengutronix.de, shawn.guo@freescale.com, amit.kachhap@linaro.org, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: fa.linux.kernel@googlegroups.com
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Jan 18, 2012 at 05:40:02AM -0600, Rob Lee wrote:
-> > + =A0 =A0 =A0 /* In the rarest of cases, order matters here - resum=
-e goes first */
-> > + =A0 =A0 =A0 th_zone->therm_dev->device.class->resume =3D imx6q_th=
-ermal_resume;
-> > + =A0 =A0 =A0 th_zone->therm_dev->device.class->suspend =3D imx6q_t=
-hermal_suspend;
-> On second thought, I should have barrier between these two statements
-> to guarantee order.  I think mb() would be ok.
+Hi, I'm just googling this problem.
 
-Err, no.  This is a serious bug.
+I've just ran a preupgrade on my box (Supermicro 7046A) and I'm now getting this on boot:
 
-You're writing to this structure:
+Loading Linux 3.1.9-1.fc16.x86_64 ...
+Loading initial ramdisk ...
+[2.135273] APEI: Can not request iomem region region <00000000bf795eba-00000000bf795ebc> for GARS
 
-static struct class thermal_class =3D {
-        .name =3D "thermal",
-        .dev_release =3D thermal_release,
-};
+It always ran this message but now on reboot it's halting at the message.
 
-in thermal_sys.c, which would be shared with other thermal drivers.  Th=
-is
-is far from safe - it's insane.
+I realize this isn't a kernel support forum but it's the only place I've seen the message being discussed.
 
-The ordering or mb() is the least of your problems.
+Does anyone know of kernel arguments I could pass in to disable the request (based on what I understand this has never worked so presumably there's no impact to disabling the function).
 
-If there isn't suspend/resume support provided, please talk to the ther=
-mal
-people about how to do this.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or if there's some bios setting that would allow the function to succeed.
+
+I'm going to post this in the FC16 support forum as well as the supermicro support forum and if I find anything interesting I'll follow up from there if anyone is interested?
