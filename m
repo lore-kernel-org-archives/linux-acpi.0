@@ -1,42 +1,45 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI, EINJ Allow empty Trigger Error Action Table
-Date: Wed, 18 Jan 2012 12:08:56 +0800
-Message-ID: <1326859736.8294.46.camel@yhuang-dev>
-References: <1326124184-10084-1-git-send-email-niklas.soderlund@ericsson.com>
-	 <1326124184-10084-2-git-send-email-niklas.soderlund@ericsson.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Robert Lee <rob.lee@linaro.org>
+Subject: [RFC PATCH v3] ARM: imx: Add basic imx6q thermal management
+Date: Tue, 17 Jan 2012 22:48:06 -0600
+Message-ID: <1326862087-17816-1-git-send-email-rob.lee@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:48656 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756811Ab2AREI6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2012 23:08:58 -0500
-In-Reply-To: <1326124184-10084-2-git-send-email-niklas.soderlund@ericsson.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:42164 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756831Ab2AREsL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2012 23:48:11 -0500
+Received: by obcva7 with SMTP id va7so6705660obc.19
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2012 20:48:10 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?= <niklas.soderlund@ericsson.com>
-Cc: lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux@arm.linux.org.uk, s.hauer@pengutronix.de, shawn.guo@freescale.com
+Cc: amit.kachhap@linaro.org, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Mon, 2012-01-09 at 16:49 +0100, Niklas S=C3=B6derlund wrote:
-> According to the ACPI spec [1] section 18.6.4 the TRIGGER_ERROR actio=
-n
-> table can consists of zero elements.
->=20
-> [1] Advanced Configuration and Power Interface Specification
->     Revision 5.0, December 6, 2011
-> 	http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
->=20
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund@ericsson.com>
+Based on v3.2 plus recently submitted cpu_cooling functionality here:
 
-Acked-by: Huang Ying <ying.huang@intel.com>
+http://www.spinics.net/lists/linux-pm/msg26500.html
 
-Best Regards,
-Huang Ying
+link to v2 submission:
 
+http://www.spinics.net/lists/arm-kernel/msg155790.html
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes since v2:
+1. Fixed the various issues pointed out in v2
+2. Made other code cleanup and a bit of re-organizing
+3. Removed unecessary platform driver and device.
+
+Performed some basic testing to ensure proper cooling operating.  If
+you want to test this, full testing requires imx6q cpufreq
+implementation (not yet in v3.2) and requires an imx6q part that has
+temperature sensor calibration fuses correctly burned.
+
+Robert Lee (1):
+  ARM: imx: Add basic imx6q thermal management
+
+ arch/arm/boot/dts/imx6q.dtsi    |    1 +
+ drivers/thermal/Kconfig         |    6 +
+ drivers/thermal/Makefile        |    1 +
+ drivers/thermal/imx6q_thermal.c |  520 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 528 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/thermal/imx6q_thermal.c
+
