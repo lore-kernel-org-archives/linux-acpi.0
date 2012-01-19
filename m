@@ -1,57 +1,61 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: [PATCH v3 1/4] ACPI: EC: Add ec_get_handle()
-Date: Wed, 18 Jan 2012 13:44:08 -0600
-Message-ID: <1326915852-19896-2-git-send-email-seth.forshee@canonical.com>
-References: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>
-Cc: Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>, linux-kernel@vger.kernel.org
+From: Robert Lee <rob.lee@linaro.org>
+Subject: [RFC PATCH v4] ARM: imx: Add basic imx6q thermal management
+Date: Wed, 18 Jan 2012 20:27:30 -0600
+Message-ID: <1326940051-31016-1-git-send-email-rob.lee@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58961 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755660Ab2ASC1f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2012 21:27:35 -0500
+Received: by ghbg16 with SMTP id g16so3342866ghb.19
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2012 18:27:35 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux@arm.linux.org.uk, s.hauer@pengutronix.de, shawn.guo@freescale.com
+Cc: amit.kachhap@linaro.org, amit.kucheria@linaro.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-toshiba_acpi needs to execute an AML method within the EC namespace
-to make hotkeys work on some platforms. Provide an interface to
-allow it to easily get a handle to the EC namespace for this purpose.
+Based on v3.2 plus recently submitted cpu_cooling functionality here:
 
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
----
- drivers/acpi/ec.c    |   10 ++++++++++
- include/linux/acpi.h |    1 +
- 2 files changed, 11 insertions(+), 0 deletions(-)
+http://www.spinics.net/lists/linux-pm/msg26500.html
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index b19a18d..e37615f 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -445,6 +445,16 @@ int ec_transaction(u8 command,
- 
- EXPORT_SYMBOL(ec_transaction);
- 
-+/* Get the handle to the EC device */
-+acpi_handle ec_get_handle(void)
-+{
-+	if (!first_ec)
-+		return NULL;
-+	return first_ec->handle;
-+}
-+
-+EXPORT_SYMBOL(ec_get_handle);
-+
- void acpi_ec_block_transactions(void)
- {
- 	struct acpi_ec *ec = first_ec;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 6001b4da..ecccbb7 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -151,6 +151,7 @@ extern int ec_write(u8 addr, u8 val);
- extern int ec_transaction(u8 command,
-                           const u8 *wdata, unsigned wdata_len,
-                           u8 *rdata, unsigned rdata_len);
-+extern acpi_handle ec_get_handle(void);
- 
- #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
- 
--- 
-1.7.8.3
+link to previous submissions:
+v3: http://www.spinics.net/lists/arm-kernel/msg155955.html
+v2: http://www.spinics.net/lists/arm-kernel/msg155790.html
+v1: http://www.spinics.net/lists/arm-kernel/msg155111.html
+
+Changes in v4:
+1.  Removed bad suspend/resume assignment into thermal class.  After further
+examination and discussion with SoC designers, a sequence is now used 
+for making measurements that is is unaffected by system suspendresumes.  
+Temp Sensor automatically powers off in hardware during the low power mode
+caused by a system suspend.
+2.  Moved some structures from static to dynamic allocation.
+3.  Added some noise handling to temperatuer sensor readings.
+
+Changes in v3:
+1. Fixed the various issues pointed out in v2
+2. Made other code cleanup and a bit of re-organizing
+3. Removed unecessary platform driver and device.
+
+Changes in v2:
+1. Cleaned up some style issues pointed out in v1
+2. Made various other code cleanup and re-organizing
+3. Added temperature sensor calibration
+4. Created platform driver and device to hook into pm suspend.
+
+
+Performed some basic testing to ensure proper cooling operating.  If
+you want to test this, full testing requires imx6q cpufreq
+implementation (not yet in v3.2) and requires an imx6q part that has
+temperature sensor calibration fuses correctly burned.
+
+Robert Lee (1):
+  ARM: imx: Add basic imx6q thermal management
+
+ arch/arm/boot/dts/imx6q.dtsi    |    1 +
+ drivers/thermal/Kconfig         |    6 +
+ drivers/thermal/Makefile        |    1 +
+ drivers/thermal/imx6q_thermal.c |  540 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 548 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/thermal/imx6q_thermal.c
+
