@@ -1,71 +1,160 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [RFC PATCH 0/2] thermal: Add generic cpu cooling devices
- according to thermal framework
-Date: Thu, 19 Jan 2012 14:47:31 +0530
-Message-ID: <CAK44p22LmkGVo0W5eoT5Ms57pkP7PbWoxNS2c8bnx=1FhBvamA@mail.gmail.com>
-References: <1323789196-4942-1-git-send-email-amit.kachhap@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323789196-4942-1-git-send-email-amit.kachhap@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, linaro-dev@lists.linaro.org, amit.kachhap@linaro.org, patches@linaro.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/2] ACPI processor hotplug: Split up acpi_processor_add
+Date: Thu, 19 Jan 2012 18:18:42 +0100
+Message-ID: <1326993523-6492-2-git-send-email-trenn@suse.de>
+References: <1326993523-6492-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:49460 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756638Ab2ASRSr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jan 2012 12:18:47 -0500
+In-Reply-To: <1326993523-6492-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, shaohua.li@intel.com, Thomas Renninger <trenn@suse.de>
 
-On 13 December 2011 20:43, Amit Daniel Kachhap <amit.kachhap@linaro.org=
-> wrote:
-> PATCH 1) =A0[thermal: Add a new trip type to use cooling device insta=
-nce number]
-> This patch adds a new trip type THERMAL_TRIP_STATE_ACTIVE which passe=
-s
-> cooling device instance number and may be helpful for cpufreq cooling=
- devices
-> to take the correct cooling action.
->
-> PATCH 2) =A0[thermal: Add generic cpu cooling implementation]
-> This patch adds generic cpu cooling low level implementation through =
-frequency
-> clipping and cpu hotplug. In future, other cpu related cooling device=
-s may be
-> added here. An ACPI version of this already exists(drivers/acpi/proce=
-ssor_thermal.c).
-> But this will be useful for platforms like ARM using the generic ther=
-mal interface
-> along with the generic cpu cooling devices. The cooling device regist=
-ration API's
-> return cooling device pointers which can be easily binded with the th=
-ermal zone
-> trip points.
->
+No functional change.
 
-Any comments on these patches? I submitted them quite long back.
+This is needed because:
+When a CPU gets hotplugged, it's totally uninitialized
+and offline. cpuinfo_x86 struct (cpu_data(cpu)) is mostly
+zero (CPU feature flags, model, family,..).
 
-Regards,
-Amit D
+When a CPU gets hotplugged, struct processor is alloc'd,
+some sysfs files are set up but acpi_processor_add()
+must not try to access a MSR on this CPU or try to read
+out CPU feature,family, etc.
 
->
-> Amit Daniel Kachhap (2):
-> =A0thermal: Add a new trip type to use cooling device instance number
-> =A0thermal: Add generic cpu cooling implementation
->
-> =A0Documentation/thermal/cpu-cooling-api.txt | =A0 52 +++++
-> =A0Documentation/thermal/sysfs-api.txt =A0 =A0 =A0 | =A0 =A04 +-
-> =A0drivers/thermal/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =
-11 +
-> =A0drivers/thermal/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
-=A01 +
-> =A0drivers/thermal/cpu_cooling.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0302 +++=
-++++++++++++++++++++++++++
-> =A0drivers/thermal/thermal_sys.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 27 +++=
+This must be done in acpi_processor_start().
+The next patch will delay the call of acpi_processor_start()
+for physically hotpluggedcores, to the time when they are onlined
+the first time. There it is safe then to access cpu_data(cpu)
+cpuinfo_x86 struct or access MSRs which is needed to
+set up cpuidle, throttling and other features.
+
+Tested and
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/acpi/processor_driver.c |   94 +++++++++++++++++++++++----------------
+ 1 files changed, 55 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index b9cbd9b..5c19ff6 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -440,6 +440,58 @@ static struct notifier_block acpi_cpu_notifier =
+ 	    .notifier_call = acpi_cpu_soft_notify,
+ };
+ 
++static int __cpuinit acpi_processor_start(struct acpi_processor *pr)
++{
++	struct acpi_device *device = per_cpu(processor_device_array, pr->id);
++	int result = 0;
++
++#ifdef CONFIG_CPU_FREQ
++	acpi_processor_ppc_has_changed(pr, 0);
++#endif
++	acpi_processor_get_throttling_info(pr);
++	acpi_processor_get_limit_info(pr);
++
++	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
++		acpi_processor_power_init(pr, device);
++
++	pr->cdev = thermal_cooling_device_register("Processor", device,
++						   &processor_cooling_ops);
++	if (IS_ERR(pr->cdev)) {
++		result = PTR_ERR(pr->cdev);
++		goto err_power_exit;
++	}
++
++	dev_dbg(&device->dev, "registered as cooling_device%d\n",
++		pr->cdev->id);
++
++	result = sysfs_create_link(&device->dev.kobj,
++				   &pr->cdev->device.kobj,
++				   "thermal_cooling");
++	if (result) {
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		goto err_thermal_unregister;
++	}
++	result = sysfs_create_link(&pr->cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result) {
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		goto err_remove_sysfs_thermal;
++	}
++
++	return 0;
++
++err_remove_sysfs_thermal:
++	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++err_thermal_unregister:
++	thermal_cooling_device_unregister(pr->cdev);
++err_power_exit:
++	acpi_processor_power_exit(pr, device);
++
++	return result;
++}
++
++
+ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ {
+ 	struct acpi_processor *pr = NULL;
+@@ -494,49 +546,13 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		result = -EFAULT;
+ 		goto err_free_cpumask;
+ 	}
 -
-> =A0include/linux/cpu_cooling.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 45 +=
-++++
-> =A0include/linux/thermal.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =
-=A01 +
-> =A08 files changed, 440 insertions(+), 3 deletions(-)
-> =A0create mode 100644 Documentation/thermal/cpu-cooling-api.txt
-> =A0create mode 100644 drivers/thermal/cpu_cooling.c
-> =A0create mode 100644 include/linux/cpu_cooling.h
->
+-#ifdef CONFIG_CPU_FREQ
+-	acpi_processor_ppc_has_changed(pr, 0);
+-#endif
+-	acpi_processor_get_throttling_info(pr);
+-	acpi_processor_get_limit_info(pr);
+-
+-	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+-		acpi_processor_power_init(pr, device);
+-
+-	pr->cdev = thermal_cooling_device_register("Processor", device,
+-						&processor_cooling_ops);
+-	if (IS_ERR(pr->cdev)) {
+-		result = PTR_ERR(pr->cdev);
+-		goto err_power_exit;
+-	}
+-
+-	dev_dbg(&device->dev, "registered as cooling_device%d\n",
+-		 pr->cdev->id);
+-
+-	result = sysfs_create_link(&device->dev.kobj,
+-				   &pr->cdev->device.kobj,
+-				   "thermal_cooling");
+-	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		goto err_thermal_unregister;
+-	}
+-	result = sysfs_create_link(&pr->cdev->device.kobj,
+-				   &device->dev.kobj,
+-				   "device");
+-	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		goto err_remove_sysfs;
+-	}
++	result = acpi_processor_start(pr);
++	if (result)
++ 		goto err_remove_sysfs;
+ 
+ 	return 0;
+ 
+ err_remove_sysfs:
+-	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-err_thermal_unregister:
+-	thermal_cooling_device_unregister(pr->cdev);
+-err_power_exit:
+-	acpi_processor_power_exit(pr, device);
+ 	sysfs_remove_link(&device->dev.kobj, "sysdev");
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
+-- 
+1.7.6.1
+
