@@ -1,51 +1,62 @@
-From: Holger Macht <holger@homac.de>
-Subject: Re: [PATCHv2 0/7] acpi/libata: Express dependencies for devices on
- dock stations and bays
-Date: Fri, 20 Jan 2012 01:23:12 +0100
-Message-ID: <20120120002312.GJ27706@homac.suse.de>
-References: <20120120001817.GA27706@homac.suse.de>
+From: joeyli <jlee@suse.com>
+Subject: Re: Fwd: Brightness on HP EliteBook 8460p
+Date: Fri, 20 Jan 2012 11:12:18 +0800
+Message-ID: <1327029139.15960.80.camel@linux-s257.site>
+References: <3123346.jTQFjj4kVk@pali-elitebook>
+	 <1324440344.10394.444.camel@linux-s257.site>
+	 <9136713.SR1vWBOW6T@pali-elitebook>  <2185391.v0fsgiUWSx@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120120001817.GA27706@homac.suse.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: Matthew Garrett <mjg@redhat.com>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <2185391.v0fsgiUWSx@pali>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fr 20. Jan - 01:18:18, Holger Macht wrote:
-> Patches 2 through 5 are just a refresh of the patches from Matthew
-> Garrett sent to this list in September 2010 [1]:
+Hi Pali,=20
 
-I successfully faked the sender of the patches from Matthew (now it
-looks as they were sent by him) due to the use wrong use of git
-format-patch. Sorry for that, really wasn't intended. Hope this is not a
-problem.
+Sorry for I am late reply you.
 
-Regards,
- Holger
+=E6=96=BC =E4=BA=8C=EF=BC=8C2012-01-17 =E6=96=BC 19:10 +0100=EF=BC=8CPa=
+li Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Wednesday 21 December 2011 12:45:07 Pali Roh=C3=A1r wrote:
+> > Hello,
+> >=20
+> > I tried to boot with all 3 strings in acpi_os_name, but nothing was=
+ changed.
+> > I'm attaching dmesg outputs, one from BIOS mode, one from UEFI mode=
+=2E Both
+> > are with "Microsoft Windows NT".
+>=20
+> Did you looked at my logs?
+>=20
+> --=20
+> Pali Roh=C3=A1r
+> pali.rohar@gmail.com
 
-> 
-> Patch 1 is a new patch incorporating the corrections from James
-> Bottomley. Patch 6, 7 and 8 make the whole patch set actually work on my
-> test hardware (Thinkpad x60/Thinkpad T60) by fixing minor issues and
-> compensating changes after the first submission.
-> 
-> All patches now contain the correct Signed-off-by instead of Acked-by
-> tags.
-> 
->  [PATCH 1/8] scsi: Add wrapper to access and set scsi_bus_type in struct acpi_bus_type
->  [PATCH 2/8] libata: Bind the Linux device tree to the ACPI device tree
->  [PATCH 3/8] libata: Migrate ACPI code over to new bindings
->  [PATCH 4/8] acpi: Add support for linking docks to the objects they contain
->  [PATCH 5/8] libata: Add links between removable devices and docks
->  [PATCH 6/8] libata: Generate and pass correct acpi handles
->  [PATCH 7/8] acpi: Prevent duplicate hotplug device registration on dock stations
->  [PATCH 8/8] libata: Use correct PCI devices
-> 
-> Regards,
->  Holger
-> 
-> [1] http://comments.gmane.org/gmane.linux.acpi.devel/47378
-> 
+I checked your dmesg log, found the acpi_os_name kernel parameter is :
+
+[    0.000000] Command line: BOOT_IMAGE=3D/vmlinuz-3.2.0-4-generic
+root=3DUUID=3D4ec6272a-8551-40f3-a1b1-3e10984f3e69 ro pcie_aspm=3Dforce
+acpi.debug_level=3D0x2 acpi.debug_layer=3D0xFFFFFFFF "acpi_os_name=3DMi=
+crosoft
+Windows NT" splash vt.handoff=3D7
+
+We still need by-pass the os name check in DSDT when test function key,
+please help to feed:
+	acpi_os_name=3D"Windows 2009"
+
+And,
+looks like the acpi debug level not enough, please kindly change acpi
+debug parameter to:
+	acpi.debug_level=3D0xF acpi.debug_layer=3D0xFFFFFFFF log_buf_len=3D5M
+
+summary:
+	acpi.debug_level=3D0xF acpi.debug_layer=3D0xFFFFFFFF log_buf_len=3D5M =
+acpi_os_name=3D"Windows 2009"
+
+
+Thanks a lot!
+Joey Lee
