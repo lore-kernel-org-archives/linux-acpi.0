@@ -1,46 +1,135 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V2] ACPI / PM: Add Sony Vaio VPCCW29FX to nonvs blacklist.
-Date: Sat, 21 Jan 2012 22:22:23 +0800
-Message-ID: <1327155743-31964-1-git-send-email-tianyu.lan@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/3] ACPI, APEI: Add RAM mapping support to ACPI
+Date: Sat, 21 Jan 2012 08:04:39 -0700
+Message-ID: <CAErSpo5KDxkcMn3OrvujeSHhzF7PjG0hsYqMXe1HmpPJaLHvDg@mail.gmail.com>
+References: <20120121021318.14723.45698.stgit@amt.stowe> <20120121021330.14723.72537.stgit@amt.stowe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37545 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385Ab2AUOVh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jan 2012 09:21:37 -0500
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61121 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751516Ab2AUPFC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jan 2012 10:05:02 -0500
+Received: by lahc1 with SMTP id c1so851815lah.19
+        for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2012 07:05:00 -0800 (PST)
+In-Reply-To: <20120121021330.14723.72537.stgit@amt.stowe>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
+To: Myron Stowe <myron.stowe@redhat.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, ying.huang@intel.com, trenn@suse.de, linux-kernel@vger.kernel.org
 
-Sony Vaio VPCCW29FX does not resume correctly without
-acpi_sleep=nonvs, so add it to the ACPI sleep blacklist.
+On Fri, Jan 20, 2012 at 7:13 PM, Myron Stowe <myron.stowe@redhat.com> w=
+rote:
+> From: Myron Stowe <mstowe@redhat.com>
+>
+> This patch adds support for RAM to ACPI's mapping capabilities in ord=
+er
+> to support APEI error injection (EINJ) actions.
+>
+> This patch re-factors similar functionality introduced in commit
+> 76da3fb3575, bringing it into osl.c in preparation for removing
+> ./drivers/acpi/atomicio.[ch].
+>
+> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+> ---
+>
+> =A0drivers/acpi/osl.c | =A0 36 ++++++++++++++++++++++++++++++++++--
+> =A01 files changed, 34 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index f363a55..8ee64ea 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -31,6 +31,7 @@
+> =A0#include <linux/kernel.h>
+> =A0#include <linux/slab.h>
+> =A0#include <linux/mm.h>
+> +#include <linux/highmem.h>
+> =A0#include <linux/pci.h>
+> =A0#include <linux/interrupt.h>
+> =A0#include <linux/kmod.h>
+> @@ -321,6 +322,37 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_si=
+ze size)
+> =A0 =A0 =A0 =A0return NULL;
+> =A0}
+>
+> +#ifndef CONFIG_IA64
+> +#define should_use_kmap(pfn) =A0 page_is_ram(pfn)
+> +#else
+> +/* ioremap will take care of cache attributes */
+> +#define should_use_kmap(pfn) =A0 0
+> +#endif
+> +
+> +static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned=
+ long pg_sz)
+> +{
+> + =A0 =A0 =A0 unsigned long pfn;
+> +
+> + =A0 =A0 =A0 pfn =3D pg_off >> PAGE_SHIFT;
+> + =A0 =A0 =A0 if (should_use_kmap(pfn)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pg_sz > PAGE_SIZE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return (void __iomem __force *)kmap(pfn=
+_to_page(pfn));
+> + =A0 =A0 =A0 } else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return acpi_os_ioremap(pg_off, pg_sz);
 
-https://bugzilla.kernel.org/show_bug.cgi?id=34722
+This implies that ioremap() works differently on ia64 than on x86.
+Apparently one can ioremap() RAM on x86, but not on ia64.  Why is this
+different?  Shouldn't we instead fix ioremap() on ia64 so it works the
+same as on x86?
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/sleep.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+I looked at the ia64 ioremap(), and I can't see the reason it fails
+for RAM.  Huang, do you remember the details from 76da3fb3575?
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 0a7ed69..2703d61 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -436,6 +436,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
- 		},
- 	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCCW29FX",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
-+		},
-+	},
- 	{
- 	.callback = init_nvs_nosave,
- 	.ident = "Averatec AV1020-ED2",
--- 
-1.7.6.rc2.8.g28eb
+> +}
+> +
+> +static void acpi_unmap(acpi_physical_address pg_off, void __iomem *v=
+addr)
+> +{
+> + =A0 =A0 =A0 unsigned long pfn;
+> +
+> + =A0 =A0 =A0 pfn =3D pg_off >> PAGE_SHIFT;
+> + =A0 =A0 =A0 if (page_is_ram(pfn))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kunmap(pfn_to_page(pfn));
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(vaddr);
 
+I hope we can resolve the ioremap() question so we don't need this
+patch at all.  But if we do need this, I don't like the asymmetry here
+-- on x86 RAM, I think we use ioremap() and kunmap(), which seems
+wrong.  We should be able to use ioremap() and iounmap().
+
+> +}
+> +
+> =A0void __iomem *__init_refok
+> =A0acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+> =A0{
+> @@ -353,7 +385,7 @@ acpi_os_map_memory(acpi_physical_address phys, ac=
+pi_size size)
+>
+> =A0 =A0 =A0 =A0pg_off =3D round_down(phys, PAGE_SIZE);
+> =A0 =A0 =A0 =A0pg_sz =3D round_up(phys + size, PAGE_SIZE) - pg_off;
+> - =A0 =A0 =A0 virt =3D acpi_os_ioremap(pg_off, pg_sz);
+> + =A0 =A0 =A0 virt =3D acpi_map(pg_off, pg_sz);
+> =A0 =A0 =A0 =A0if (!virt) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mutex_unlock(&acpi_ioremap_lock);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(map);
+> @@ -384,7 +416,7 @@ static void acpi_os_map_cleanup(struct acpi_iorem=
+ap *map)
+> =A0{
+> =A0 =A0 =A0 =A0if (!map->refcount) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0synchronize_rcu();
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(map->virt);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 acpi_unmap(map->phys, map->virt);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(map);
+> =A0 =A0 =A0 =A0}
+> =A0}
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
