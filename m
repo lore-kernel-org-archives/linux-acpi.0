@@ -1,50 +1,46 @@
-From: Holger Macht <holger@homac.de>
-Subject: Re: [PATCHv2 0/7] acpi/libata: Express dependencies for devices on
- dock stations and bays
-Date: Sat, 21 Jan 2012 15:00:49 +0100
-Message-ID: <20120121140048.GA15111@homac.suse.de>
-References: <20120120001817.GA27706@homac.suse.de>
- <20120120002312.GJ27706@homac.suse.de>
- <1327154100.11421.5.camel@dabdike.int.hansenpartnership.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V2] ACPI / PM: Add Sony Vaio VPCCW29FX to nonvs blacklist.
+Date: Sat, 21 Jan 2012 22:22:23 +0800
+Message-ID: <1327155743-31964-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:45087 "EHLO mx2.suse.de"
+Received: from mga03.intel.com ([143.182.124.21]:37545 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751594Ab2AUOAw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jan 2012 09:00:52 -0500
-Content-Disposition: inline
-In-Reply-To: <1327154100.11421.5.camel@dabdike.int.hansenpartnership.com>
+	id S1751385Ab2AUOVh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jan 2012 09:21:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Jeff Garzik <jgarzik@redhat.com>
+To: lenb@kernel.org, rjw@sisk.pl
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
 
-On Sat 21. Jan - 07:55:00, James Bottomley wrote:
-> On Fri, 2012-01-20 at 01:23 +0100, Holger Macht wrote:
-> > On Fr 20. Jan - 01:18:18, Holger Macht wrote:
-> > > Patches 2 through 5 are just a refresh of the patches from Matthew
-> > > Garrett sent to this list in September 2010 [1]:
-> > 
-> > I successfully faked the sender of the patches from Matthew (now it
-> > looks as they were sent by him) due to the use wrong use of git
-> > format-patch. Sorry for that, really wasn't intended. Hope this is not a
-> > problem.
-> 
-> Actually, it is; the way you sent them the first time:  From: in the
-> body is the correct way.  If you go about faking the sender, you're
-> likely to get rejected as spam if people do SPF checking.   Plus it's a
-> bit confusing for maintainers because I'd really like to know who sent
-> the patch to verify the signoff chain.
+Sony Vaio VPCCW29FX does not resume correctly without
+acpi_sleep=nonvs, so add it to the ACPI sleep blacklist.
 
-Sure, I rather meant this like "hope it's not a problem this one
-time". It was by plain mistake because my mutt took the "From:" header
-as it should and I didn't notice. I also don't want people to send mails
-in my name, that's what the apology actually was for, directed to
-Matthew.
+https://bugzilla.kernel.org/show_bug.cgi?id=34722
 
-> 
-> Other than this, it looks fine to me.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/sleep.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Thanks,
- Holger
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 0a7ed69..2703d61 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -436,6 +436,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
+ 		},
+ 	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCCW29FX",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
++		},
++	},
+ 	{
+ 	.callback = init_nvs_nosave,
+ 	.ident = "Averatec AV1020-ED2",
+-- 
+1.7.6.rc2.8.g28eb
+
