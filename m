@@ -1,76 +1,168 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: Fwd: [Bugreport] Screen backllight issues on FirePro M5950 (HP
- EliteBook 8560w)
-Date: Tue, 24 Jan 2012 08:58:40 +0800
-Message-ID: <1327366720.7090.7.camel@linux-s257.site>
-References: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
-	 <CAGB3EUR750VpHdvrZ25mn9bcS-4ZT+BSJ_zD4-sRncyYNT=0Zg@mail.gmail.com>
-	 <1323442460.20114.95.camel@linux-s257.site>
-	 <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
-	 <1324443308.10394.456.camel@linux-s257.site>
-	 <CAEPe-GLzak+SG3-H4Sw8KsQmpsh-v0UJWfHQb7hXoycO0GoWTA@mail.gmail.com>
-	 <1327030553.15960.92.camel@linux-s257.site>
-	 <CAEPe-G+H6CDDzg9-fXZK4MJbKw_-MJFSMheCL9=yN4Gt=fmaTQ@mail.gmail.com>
-	 <1327196727.15960.118.camel@linux-s257.site>
-	 <CAEPe-GKff7y1g4qc5gSz4vuhz5P0XpGgPTO570YzkjO6AZNV4A@mail.gmail.com>
-	 <1327276502.15960.150.camel@linux-s257.site>
-	 <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 01/10] ACPI processor hotplug: Split up acpi_processor_add
+Date: Mon, 23 Jan 2012 20:30:00 -0500
+Message-ID: <54d5dcc45af7adbb907072d042bbece4c2b4de6e.1327368464.git.len.brown@intel.com>
+References: <1327368609-28409-1-git-send-email-lenb@kernel.org>
+Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from victor.provo.novell.com ([137.65.250.26]:47391 "EHLO
-	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753654Ab2AXBDA (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Mon, 23 Jan 2012 20:03:00 -0500
-In-Reply-To: <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:44677 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754834Ab2AXBaP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jan 2012 20:30:15 -0500
+Received: from localhost.localdomain ([unknown] [74.104.158.190])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LYA0049H46D8094@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 23 Jan 2012 19:30:14 -0600 (CST)
+In-reply-to: <1327368609-28409-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Artur Flinta <aflinta@gmail.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
 
-On Mon, 2012-01-23 at 15:45 +0100, Artur Flinta wrote:
-> Hi!
-> 
-> On Mon, Jan 23, 2012 at 12:55 AM, joeyli <jlee@suse.com> wrote:
-> > Yes! we still need fix the problem with backlight control. Please kindly
-> > give me the result after add the following debug parameter:
-> >        acpi.debug_level=0xF acpi.debug_layer=0xFFFFFFFF log_buf_len=5M
-> >
-> 
-> I did it and log is in attachment.
-> 
+From: Thomas Renninger <trenn@suse.de>
 
-Thanks, but looks like your kernel didn't enable 
-	CONFIG_ACPI_DEBUG=y
+No functional change.
 
-So, doesn't show up any acpi debug log in messages.
+This is needed because:
+When a CPU gets hotplugged, it's totally uninitialized
+and offline. cpuinfo_x86 struct (cpu_data(cpu)) is mostly
+zero (CPU feature flags, model, family,..).
 
-> > And,
-> > Did you try the following kernel parameter?
-> >        acpi_backlight=vendor
-> 
-> Sure, but after applying it, backlight control keys doesn't work
-> anymore, there is also no any message in the log.
-> 
+When a CPU gets hotplugged, struct processor is alloc'd,
+some sysfs files are set up but acpi_processor_add()
+must not try to access a MSR on this CPU or try to read
+out CPU feature,family, etc.
 
-Does it work set backlight level by sysfs?
-	echo 9 > /sys/class/backlight/acpi_video0/brightness
+This must be done in acpi_processor_start().
+The next patch will delay the call of acpi_processor_start()
+for physically hotpluggedcores, to the time when they are onlined
+the first time. There it is safe then to access cpu_data(cpu)
+cpuinfo_x86 struct or access MSRs which is needed to
+set up cpuidle, throttling and other features.
 
-> I've also checked command: watch -n 1 cat
-> /sys/firmware/acpi/interrupts/gpe[012][0123456789ABCDEF]
-> but nothing changed too.
-> 
-> Regards
-> Artur
+Tested and
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_driver.c |   92 +++++++++++++++++++++++----------------
+ 1 files changed, 54 insertions(+), 38 deletions(-)
 
-I think don't neet test gpe anymore, because we already know function
-key emit scancode.
-
-
-Thanks a lot!
-Joey Lee
-
-
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0034ede..bec5593 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -440,6 +440,58 @@ static struct notifier_block acpi_cpu_notifier =
+ 	    .notifier_call = acpi_cpu_soft_notify,
+ };
+ 
++static int __cpuinit acpi_processor_start(struct acpi_processor *pr)
++{
++	struct acpi_device *device = per_cpu(processor_device_array, pr->id);
++	int result = 0;
++
++#ifdef CONFIG_CPU_FREQ
++	acpi_processor_ppc_has_changed(pr, 0);
++#endif
++	acpi_processor_get_throttling_info(pr);
++	acpi_processor_get_limit_info(pr);
++
++	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
++		acpi_processor_power_init(pr, device);
++
++	pr->cdev = thermal_cooling_device_register("Processor", device,
++						   &processor_cooling_ops);
++	if (IS_ERR(pr->cdev)) {
++		result = PTR_ERR(pr->cdev);
++		goto err_power_exit;
++	}
++
++	dev_dbg(&device->dev, "registered as cooling_device%d\n",
++		pr->cdev->id);
++
++	result = sysfs_create_link(&device->dev.kobj,
++				   &pr->cdev->device.kobj,
++				   "thermal_cooling");
++	if (result) {
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		goto err_thermal_unregister;
++	}
++	result = sysfs_create_link(&pr->cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result) {
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		goto err_remove_sysfs_thermal;
++	}
++
++	return 0;
++
++err_remove_sysfs_thermal:
++	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++err_thermal_unregister:
++	thermal_cooling_device_unregister(pr->cdev);
++err_power_exit:
++	acpi_processor_power_exit(pr, device);
++
++	return result;
++}
++
++
+ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ {
+ 	struct acpi_processor *pr = NULL;
+@@ -494,49 +546,13 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		result = -EFAULT;
+ 		goto err_free_cpumask;
+ 	}
+-
+-#ifdef CONFIG_CPU_FREQ
+-	acpi_processor_ppc_has_changed(pr, 0);
+-#endif
+-	acpi_processor_get_throttling_info(pr);
+-	acpi_processor_get_limit_info(pr);
+-
+-	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+-		acpi_processor_power_init(pr, device);
+-
+-	pr->cdev = thermal_cooling_device_register("Processor", device,
+-						&processor_cooling_ops);
+-	if (IS_ERR(pr->cdev)) {
+-		result = PTR_ERR(pr->cdev);
+-		goto err_power_exit;
+-	}
+-
+-	dev_dbg(&device->dev, "registered as cooling_device%d\n",
+-		 pr->cdev->id);
+-
+-	result = sysfs_create_link(&device->dev.kobj,
+-				   &pr->cdev->device.kobj,
+-				   "thermal_cooling");
+-	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		goto err_thermal_unregister;
+-	}
+-	result = sysfs_create_link(&pr->cdev->device.kobj,
+-				   &device->dev.kobj,
+-				   "device");
+-	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
++	result = acpi_processor_start(pr);
++	if (result)
+ 		goto err_remove_sysfs;
+-	}
+ 
+ 	return 0;
+ 
+ err_remove_sysfs:
+-	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-err_thermal_unregister:
+-	thermal_cooling_device_unregister(pr->cdev);
+-err_power_exit:
+-	acpi_processor_power_exit(pr, device);
+ 	sysfs_remove_link(&device->dev.kobj, "sysdev");
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
+-- 
+1.7.9.rc2
 
