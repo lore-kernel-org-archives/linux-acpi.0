@@ -1,208 +1,76 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] Use acpi_os_map_memory() instead of ioremap() in einj driver
-Date: Mon, 23 Jan 2012 15:27:56 -0800
-Message-ID: <4f1decfc19324ca832@agluck-desktop.sc.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Myron Stowe <mstowe@redhat.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: Fwd: [Bugreport] Screen backllight issues on FirePro M5950 (HP
+ EliteBook 8560w)
+Date: Tue, 24 Jan 2012 08:58:40 +0800
+Message-ID: <1327366720.7090.7.camel@linux-s257.site>
+References: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
+	 <CAGB3EUR750VpHdvrZ25mn9bcS-4ZT+BSJ_zD4-sRncyYNT=0Zg@mail.gmail.com>
+	 <1323442460.20114.95.camel@linux-s257.site>
+	 <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
+	 <1324443308.10394.456.camel@linux-s257.site>
+	 <CAEPe-GLzak+SG3-H4Sw8KsQmpsh-v0UJWfHQb7hXoycO0GoWTA@mail.gmail.com>
+	 <1327030553.15960.92.camel@linux-s257.site>
+	 <CAEPe-G+H6CDDzg9-fXZK4MJbKw_-MJFSMheCL9=yN4Gt=fmaTQ@mail.gmail.com>
+	 <1327196727.15960.118.camel@linux-s257.site>
+	 <CAEPe-GKff7y1g4qc5gSz4vuhz5P0XpGgPTO570YzkjO6AZNV4A@mail.gmail.com>
+	 <1327276502.15960.150.camel@linux-s257.site>
+	 <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from victor.provo.novell.com ([137.65.250.26]:47391 "EHLO
+	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753654Ab2AXBDA (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Mon, 23 Jan 2012 20:03:00 -0500
+In-Reply-To: <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Artur Flinta <aflinta@gmail.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-ioremap() has become more picky and is now spitting out console messages like:
+On Mon, 2012-01-23 at 15:45 +0100, Artur Flinta wrote:
+> Hi!
+> 
+> On Mon, Jan 23, 2012 at 12:55 AM, joeyli <jlee@suse.com> wrote:
+> > Yes! we still need fix the problem with backlight control. Please kindly
+> > give me the result after add the following debug parameter:
+> >        acpi.debug_level=0xF acpi.debug_layer=0xFFFFFFFF log_buf_len=5M
+> >
+> 
+> I did it and log is in attachment.
+> 
 
- ioremap error for 0xbddbd000-0xbddbe000, requested 0x10, got 0x0
+Thanks, but looks like your kernel didn't enable 
+	CONFIG_ACPI_DEBUG=y
 
-when loading the einj driver.  What we are trying to so here is map
-a couple of data structures that the EINJ table points to. Perhaps
-acpi_os_map_memory() is a better tool for this?
-Most importantly it works, but as a side benefit it maps the structures
-into kernel virtual space so we can access them with normal C memory
-dereferences, so instead of using:
-	writel(param1, &v5param->apicid);
-we can use the more natural:
-	v5param->apicid = param1;
+So, doesn't show up any acpi debug log in messages.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+> > And,
+> > Did you try the following kernel parameter?
+> >        acpi_backlight=vendor
+> 
+> Sure, but after applying it, backlight control keys doesn't work
+> anymore, there is also no any message in the log.
+> 
 
----
- drivers/acpi/apei/einj.c |   82 +++++++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 44 deletions(-)
+Does it work set backlight level by sysfs?
+	echo 9 > /sys/class/backlight/acpi_video0/brightness
 
-The unmap paths are ugly - suggestions for improvement welcome.
+> I've also checked command: watch -n 1 cat
+> /sys/firmware/acpi/interrupts/gpe[012][0123456789ABCDEF]
+> but nothing changed too.
+> 
+> Regards
+> Artur
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index c89b0e5..dc3e63b 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -141,21 +141,6 @@ static DEFINE_MUTEX(einj_mutex);
- 
- static void *einj_param;
- 
--#ifndef readq
--static inline __u64 readq(volatile void __iomem *addr)
--{
--	return ((__u64)readl(addr+4) << 32) + readl(addr);
--}
--#endif
--
--#ifndef writeq
--static inline void writeq(__u64 val, volatile void __iomem *addr)
--{
--	writel(val, addr);
--	writel(val >> 32, addr+4);
--}
--#endif
--
- static void einj_exec_ctx_init(struct apei_exec_context *ctx)
- {
- 	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
-@@ -204,22 +189,21 @@ static int einj_timedout(u64 *t)
- static void check_vendor_extension(u64 paddr,
- 				   struct set_error_type_with_address *v5param)
- {
--	int	offset = readl(&v5param->vendor_extension);
-+	int	offset = v5param->vendor_extension;
- 	struct	vendor_error_type_extension *v;
- 	u32	sbdf;
- 
- 	if (!offset)
- 		return;
--	v = ioremap(paddr + offset, sizeof(*v));
-+	v = acpi_os_map_memory(paddr + offset, sizeof(*v));
- 	if (!v)
- 		return;
--	sbdf = readl(&v->pcie_sbdf);
-+	sbdf = v->pcie_sbdf;
- 	sprintf(vendor_dev, "%x:%x:%x.%x vendor_id=%x device_id=%x rev_id=%x\n",
- 		sbdf >> 24, (sbdf >> 16) & 0xff,
- 		(sbdf >> 11) & 0x1f, (sbdf >> 8) & 0x7,
--		 readw(&v->vendor_id), readw(&v->device_id),
--		readb(&v->rev_id));
--	iounmap(v);
-+		 v->vendor_id, v->device_id, v->rev_id);
-+	acpi_os_unmap_memory(v, sizeof(*v));
- }
- 
- static void *einj_get_parameter_address(void)
-@@ -247,7 +231,7 @@ static void *einj_get_parameter_address(void)
- 	if (paddrv5) {
- 		struct set_error_type_with_address *v5param;
- 
--		v5param = ioremap(paddrv5, sizeof(*v5param));
-+		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
- 		if (v5param) {
- 			acpi5 = 1;
- 			check_vendor_extension(paddrv5, v5param);
-@@ -257,11 +241,11 @@ static void *einj_get_parameter_address(void)
- 	if (paddrv4) {
- 		struct einj_parameter *v4param;
- 
--		v4param = ioremap(paddrv4, sizeof(*v4param));
-+		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
- 		if (!v4param)
- 			return NULL;
--		if (readq(&v4param->reserved1) || readq(&v4param->reserved2)) {
--			iounmap(v4param);
-+		if (v4param->reserved1 || v4param->reserved2) {
-+			acpi_os_unmap_memory(v4param, sizeof(*v4param));
- 			return NULL;
- 		}
- 		return v4param;
-@@ -440,41 +424,41 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 	if (acpi5) {
- 		struct set_error_type_with_address *v5param = einj_param;
- 
--		writel(type, &v5param->type);
-+		v5param->type = type;
- 		if (type & 0x80000000) {
- 			switch (vendor_flags) {
- 			case SETWA_FLAGS_APICID:
--				writel(param1, &v5param->apicid);
-+				v5param->apicid = param1;
- 				break;
- 			case SETWA_FLAGS_MEM:
--				writeq(param1, &v5param->memory_address);
--				writeq(param2, &v5param->memory_address_range);
-+				v5param->memory_address = param1;
-+				v5param->memory_address_range = param2;
- 				break;
- 			case SETWA_FLAGS_PCIE_SBDF:
--				writel(param1, &v5param->pcie_sbdf);
-+				v5param->pcie_sbdf = param1;
- 				break;
- 			}
--			writel(vendor_flags, &v5param->flags);
-+			v5param->flags = vendor_flags;
- 		} else {
- 			switch (type) {
- 			case ACPI_EINJ_PROCESSOR_CORRECTABLE:
- 			case ACPI_EINJ_PROCESSOR_UNCORRECTABLE:
- 			case ACPI_EINJ_PROCESSOR_FATAL:
--				writel(param1, &v5param->apicid);
--				writel(SETWA_FLAGS_APICID, &v5param->flags);
-+				v5param->apicid = param1;
-+				v5param->flags = SETWA_FLAGS_APICID;
- 				break;
- 			case ACPI_EINJ_MEMORY_CORRECTABLE:
- 			case ACPI_EINJ_MEMORY_UNCORRECTABLE:
- 			case ACPI_EINJ_MEMORY_FATAL:
--				writeq(param1, &v5param->memory_address);
--				writeq(param2, &v5param->memory_address_range);
--				writel(SETWA_FLAGS_MEM, &v5param->flags);
-+				v5param->memory_address = param1;
-+				v5param->memory_address_range = param2;
-+				v5param->flags = SETWA_FLAGS_MEM;
- 				break;
- 			case ACPI_EINJ_PCIX_CORRECTABLE:
- 			case ACPI_EINJ_PCIX_UNCORRECTABLE:
- 			case ACPI_EINJ_PCIX_FATAL:
--				writel(param1, &v5param->pcie_sbdf);
--				writel(SETWA_FLAGS_PCIE_SBDF, &v5param->flags);
-+				v5param->pcie_sbdf = param1;
-+				v5param->flags = SETWA_FLAGS_PCIE_SBDF;
- 				break;
- 			}
- 		}
-@@ -484,8 +468,8 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 			return rc;
- 		if (einj_param) {
- 			struct einj_parameter *v4param = einj_param;
--			writeq(param1, &v4param->param1);
--			writeq(param2, &v4param->param2);
-+			v4param->param1 = param1;
-+			v4param->param2 = param2;
- 		}
- 	}
- 	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
-@@ -736,8 +720,13 @@ static int __init einj_init(void)
- 	return 0;
- 
- err_unmap:
--	if (einj_param)
--		iounmap(einj_param);
-+	if (einj_param) {
-+		acpi_size size = (acpi5) ?
-+			sizeof (struct set_error_type_with_address) :
-+			sizeof (struct einj_parameter);
-+
-+		acpi_os_unmap_memory(einj_param, size);
-+	}
- 	apei_exec_post_unmap_gars(&ctx);
- err_release:
- 	apei_resources_release(&einj_resources);
-@@ -753,8 +742,13 @@ static void __exit einj_exit(void)
- {
- 	struct apei_exec_context ctx;
- 
--	if (einj_param)
--		iounmap(einj_param);
-+	if (einj_param) {
-+		acpi_size size = (acpi5) ?
-+			sizeof (struct set_error_type_with_address) :
-+			sizeof (struct einj_parameter);
-+
-+		acpi_os_unmap_memory(einj_param, size);
-+	}
- 	einj_exec_ctx_init(&ctx);
- 	apei_exec_post_unmap_gars(&ctx);
- 	apei_resources_release(&einj_resources);
+I think don't neet test gpe anymore, because we already know function
+key emit scancode.
+
+
+Thanks a lot!
+Joey Lee
+
+
+
