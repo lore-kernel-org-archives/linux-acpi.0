@@ -1,227 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/10] Use acpi_os_map_memory() instead of
- ioremap() in einj driver
-Date: Mon, 23 Jan 2012 20:30:09 -0500
-Message-ID: <459413db33d6c99fc13d60f88899fb72d2530ed3.1327368464.git.len.brown@intel.com>
-References: <1327368609-28409-1-git-send-email-lenb@kernel.org>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Guillaume Knispel <gknispel@proformatique.com>
+Subject: How to "register" a GSI for a non PCI non ISA device
+Date: Tue, 24 Jan 2012 18:42:03 +0100
+Message-ID: <20120124184203.1b0878c2@xilun>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-reply-to: <1327368609-28409-1-git-send-email-lenb@kernel.org>
-In-reply-to: <54d5dcc45af7adbb907072d042bbece4c2b4de6e.1327368464.git.len.brown@intel.com>
-References: <54d5dcc45af7adbb907072d042bbece4c2b4de6e.1327368464.git.len.brown@intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
-Cc: Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from paperboy.avencall.com ([91.194.178.22]:55784 "EHLO
+	mx1.corp.avencall.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755100Ab2AXRvN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jan 2012 12:51:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Guillaume Knispel <gknispel@avencall.com>, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9?= Rubinstein <nrubinstein@avencall.com>
 
-From: "Luck, Tony" <tony.luck@intel.com>
+Hi,
 
-ioremap() has become more picky and is now spitting out console messages like:
+I'm building a PC platform with additional non-PCI and non-ISA devices:
+they are basically simple telecom chipsets connected to an SPI and an
+old school parallel bus (Intel LEB bus) and GPIO pins that can be used
+as interrupts through the IO APIC which exposes 40 GSI. From the point
+of view of the software the SPI, LEB, and GPIO are provided by PCI
+devices (in reality they are embedded controllers in an Intel SoC
+80579). Anyway I'm not sure the additional GSI are described anywhere
+in whatever black magic ACPI / legacy BIOS table they could be
+(but I've complete control over the FW, so I can had whatever is
+ needed when I know it).
 
- ioremap error for 0xbddbd000-0xbddbe000, requested 0x10, got 0x0
+But as my devices are neither PCI nor ISA, I don't know how i can get
+access to the custom GSI interrupt from a LKM. acpi_register_gsi() used
+to be exported but is not anymore and I guess this is mandatory that
+this function is called to prepare internal structures (maybe irq_desc)
+and most importantly to configure to level triggering active low.
 
-when loading the einj driver.  What we are trying to so here is map
-a couple of data structures that the EINJ table points to. Perhaps
-acpi_os_map_memory() is a better tool for this?
-Most importantly it works, but as a side benefit it maps the structures
-into kernel virtual space so we can access them with normal C memory
-dereferences, so instead of using:
-	writel(param1, &v5param->apicid);
-we can use the more natural:
-	v5param->apicid = param1;
+So I'm thinking about writing black magic DSDT stuffs or whatever,
+which i might be able to sort of do after reading the fabulous ACPI
+specifications. Any feedback or pointer would be highly welcome.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/apei/einj.c |   82 +++++++++++++++++++++------------------------
- 1 files changed, 38 insertions(+), 44 deletions(-)
+BTW when Linux devs says that bios writers are writing shit, yeah, they
+do, and given the state of complexity of the PC platform, I'm at the
+risk to do it too because I'm not supposed to delay the production of
+our system by one additional year just to completely learn how the
+shitty PC "standards" are supposed to work. From a more personal
+point of view when I'm reading the ACPI or other related specs tainted
+by MS and their desire to put GUID everywhere and other terrible ideas,
+I would rather prefer being high to not endure that much pain.
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index c89b0e5..4ca087d 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -141,21 +141,6 @@ static DEFINE_MUTEX(einj_mutex);
- 
- static void *einj_param;
- 
--#ifndef readq
--static inline __u64 readq(volatile void __iomem *addr)
--{
--	return ((__u64)readl(addr+4) << 32) + readl(addr);
--}
--#endif
--
--#ifndef writeq
--static inline void writeq(__u64 val, volatile void __iomem *addr)
--{
--	writel(val, addr);
--	writel(val >> 32, addr+4);
--}
--#endif
--
- static void einj_exec_ctx_init(struct apei_exec_context *ctx)
- {
- 	apei_exec_ctx_init(ctx, einj_ins_type, ARRAY_SIZE(einj_ins_type),
-@@ -204,22 +189,21 @@ static int einj_timedout(u64 *t)
- static void check_vendor_extension(u64 paddr,
- 				   struct set_error_type_with_address *v5param)
- {
--	int	offset = readl(&v5param->vendor_extension);
-+	int	offset = v5param->vendor_extension;
- 	struct	vendor_error_type_extension *v;
- 	u32	sbdf;
- 
- 	if (!offset)
- 		return;
--	v = ioremap(paddr + offset, sizeof(*v));
-+	v = acpi_os_map_memory(paddr + offset, sizeof(*v));
- 	if (!v)
- 		return;
--	sbdf = readl(&v->pcie_sbdf);
-+	sbdf = v->pcie_sbdf;
- 	sprintf(vendor_dev, "%x:%x:%x.%x vendor_id=%x device_id=%x rev_id=%x\n",
- 		sbdf >> 24, (sbdf >> 16) & 0xff,
- 		(sbdf >> 11) & 0x1f, (sbdf >> 8) & 0x7,
--		 readw(&v->vendor_id), readw(&v->device_id),
--		readb(&v->rev_id));
--	iounmap(v);
-+		 v->vendor_id, v->device_id, v->rev_id);
-+	acpi_os_unmap_memory(v, sizeof(*v));
- }
- 
- static void *einj_get_parameter_address(void)
-@@ -247,7 +231,7 @@ static void *einj_get_parameter_address(void)
- 	if (paddrv5) {
- 		struct set_error_type_with_address *v5param;
- 
--		v5param = ioremap(paddrv5, sizeof(*v5param));
-+		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
- 		if (v5param) {
- 			acpi5 = 1;
- 			check_vendor_extension(paddrv5, v5param);
-@@ -257,11 +241,11 @@ static void *einj_get_parameter_address(void)
- 	if (paddrv4) {
- 		struct einj_parameter *v4param;
- 
--		v4param = ioremap(paddrv4, sizeof(*v4param));
-+		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
- 		if (!v4param)
- 			return NULL;
--		if (readq(&v4param->reserved1) || readq(&v4param->reserved2)) {
--			iounmap(v4param);
-+		if (v4param->reserved1 || v4param->reserved2) {
-+			acpi_os_unmap_memory(v4param, sizeof(*v4param));
- 			return NULL;
- 		}
- 		return v4param;
-@@ -440,41 +424,41 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 	if (acpi5) {
- 		struct set_error_type_with_address *v5param = einj_param;
- 
--		writel(type, &v5param->type);
-+		v5param->type = type;
- 		if (type & 0x80000000) {
- 			switch (vendor_flags) {
- 			case SETWA_FLAGS_APICID:
--				writel(param1, &v5param->apicid);
-+				v5param->apicid = param1;
- 				break;
- 			case SETWA_FLAGS_MEM:
--				writeq(param1, &v5param->memory_address);
--				writeq(param2, &v5param->memory_address_range);
-+				v5param->memory_address = param1;
-+				v5param->memory_address_range = param2;
- 				break;
- 			case SETWA_FLAGS_PCIE_SBDF:
--				writel(param1, &v5param->pcie_sbdf);
-+				v5param->pcie_sbdf = param1;
- 				break;
- 			}
--			writel(vendor_flags, &v5param->flags);
-+			v5param->flags = vendor_flags;
- 		} else {
- 			switch (type) {
- 			case ACPI_EINJ_PROCESSOR_CORRECTABLE:
- 			case ACPI_EINJ_PROCESSOR_UNCORRECTABLE:
- 			case ACPI_EINJ_PROCESSOR_FATAL:
--				writel(param1, &v5param->apicid);
--				writel(SETWA_FLAGS_APICID, &v5param->flags);
-+				v5param->apicid = param1;
-+				v5param->flags = SETWA_FLAGS_APICID;
- 				break;
- 			case ACPI_EINJ_MEMORY_CORRECTABLE:
- 			case ACPI_EINJ_MEMORY_UNCORRECTABLE:
- 			case ACPI_EINJ_MEMORY_FATAL:
--				writeq(param1, &v5param->memory_address);
--				writeq(param2, &v5param->memory_address_range);
--				writel(SETWA_FLAGS_MEM, &v5param->flags);
-+				v5param->memory_address = param1;
-+				v5param->memory_address_range = param2;
-+				v5param->flags = SETWA_FLAGS_MEM;
- 				break;
- 			case ACPI_EINJ_PCIX_CORRECTABLE:
- 			case ACPI_EINJ_PCIX_UNCORRECTABLE:
- 			case ACPI_EINJ_PCIX_FATAL:
--				writel(param1, &v5param->pcie_sbdf);
--				writel(SETWA_FLAGS_PCIE_SBDF, &v5param->flags);
-+				v5param->pcie_sbdf = param1;
-+				v5param->flags = SETWA_FLAGS_PCIE_SBDF;
- 				break;
- 			}
- 		}
-@@ -484,8 +468,8 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 			return rc;
- 		if (einj_param) {
- 			struct einj_parameter *v4param = einj_param;
--			writeq(param1, &v4param->param1);
--			writeq(param2, &v4param->param2);
-+			v4param->param1 = param1;
-+			v4param->param2 = param2;
- 		}
- 	}
- 	rc = apei_exec_run(&ctx, ACPI_EINJ_EXECUTE_OPERATION);
-@@ -736,8 +720,13 @@ static int __init einj_init(void)
- 	return 0;
- 
- err_unmap:
--	if (einj_param)
--		iounmap(einj_param);
-+	if (einj_param) {
-+		acpi_size size = (acpi5) ?
-+			sizeof(struct set_error_type_with_address) :
-+			sizeof(struct einj_parameter);
-+
-+		acpi_os_unmap_memory(einj_param, size);
-+	}
- 	apei_exec_post_unmap_gars(&ctx);
- err_release:
- 	apei_resources_release(&einj_resources);
-@@ -753,8 +742,13 @@ static void __exit einj_exit(void)
- {
- 	struct apei_exec_context ctx;
- 
--	if (einj_param)
--		iounmap(einj_param);
-+	if (einj_param) {
-+		acpi_size size = (acpi5) ?
-+			sizeof(struct set_error_type_with_address) :
-+			sizeof(struct einj_parameter);
-+
-+		acpi_os_unmap_memory(einj_param, size);
-+	}
- 	einj_exec_ctx_init(&ctx);
- 	apei_exec_post_unmap_gars(&ctx);
- 	apei_resources_release(&einj_resources);
+As more and more x86 systems are directly designed to run Linux and
+only tested with it, with some of those (like our own) being built
+by people having complete control on the board and firmware (Coreboot),
+maybe it is time to define a legacy-free variant of the x86 plateform
+(especially on the FW/OS interface) for the free software and free
+hardware design world, so that we aren't restricted and slowed down by
+retro-compatible technologies dedicated at running MS-DOS and created
+with the explicit goal to be hard to use for anything else than
+Windows NT.
+
+Cheers!
 -- 
-1.7.9.rc2
+Guillaume Knispel
+Avencall - 10 bis, rue Lucien Voilin - 92800 Puteaux
+
