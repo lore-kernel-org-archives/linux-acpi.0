@@ -1,70 +1,101 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: How to "register" a GSI for a non PCI non ISA device
-Date: Wed, 25 Jan 2012 00:56:53 -0500
-Message-ID: <4F1F99A5.1000206@kernel.org>
-References: <20120124184203.1b0878c2@xilun>
+Subject: [GIT PULL] ACPI & Power Management patches for Linux 3.3-rc1
+Date: Wed, 25 Jan 2012 01:04:20 -0500
+Message-ID: <4F1F9B64.7050601@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:55940 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408Ab2AYF44 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2012 00:56:56 -0500
-In-Reply-To: <20120124184203.1b0878c2@xilun>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:64626 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752406Ab2AYGEW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2012 01:04:22 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guillaume Knispel <gknispel@proformatique.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Guillaume Knispel <gknispel@avencall.com>, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9_Rubinst?= =?ISO-8859-1?Q?ein?= <nrubinstein@avencall.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On 01/24/2012 12:42 PM, Guillaume Knispel wrote:
+Hi Linus,
 
-> Hi,
-> 
-> I'm building a PC platform with additional non-PCI and non-ISA devices:
-> they are basically simple telecom chipsets connected to an SPI and an
-> old school parallel bus (Intel LEB bus) and GPIO pins that can be used
-> as interrupts through the IO APIC which exposes 40 GSI. From the point
-> of view of the software the SPI, LEB, and GPIO are provided by PCI
-> devices (in reality they are embedded controllers in an Intel SoC
-> 80579). Anyway I'm not sure the additional GSI are described anywhere
-> in whatever black magic ACPI / legacy BIOS table they could be
-> (but I've complete control over the FW, so I can had whatever is
->  needed when I know it).
+Please pull these ACPI & Power Management patches.
 
-What is the benefit of implementing ACPI on this custom system?
+This fixes a merge-window regression due to a conflict
+between error injection and preparation to remove atomicio.c
+Here we fix that regression and complete the removal
+of atomicio.c.
 
--Len
+This also re-orders some idle initialization code to
+complete the merge window series that allows cpuidle
+to cope with bringing processors on-line after boot.
 
-> But as my devices are neither PCI nor ISA, I don't know how i can get
-> access to the custom GSI interrupt from a LKM. acpi_register_gsi() used
-> to be exported but is not anymore and I guess this is mandatory that
-> this function is called to prepare internal structures (maybe irq_desc)
-> and most importantly to configure to level triggering active low.
-> 
-> So I'm thinking about writing black magic DSDT stuffs or whatever,
-> which i might be able to sort of do after reading the fabulous ACPI
-> specifications. Any feedback or pointer would be highly welcome.
-> 
-> BTW when Linux devs says that bios writers are writing shit, yeah, they
-> do, and given the state of complexity of the PC platform, I'm at the
-> risk to do it too because I'm not supposed to delay the production of
-> our system by one additional year just to completely learn how the
-> shitty PC "standards" are supposed to work. From a more personal
-> point of view when I'm reading the ACPI or other related specs tainted
-> by MS and their desire to put GUID everywhere and other terrible ideas,
-> I would rather prefer being high to not endure that much pain.
-> 
-> As more and more x86 systems are directly designed to run Linux and
-> only tested with it, with some of those (like our own) being built
-> by people having complete control on the board and firmware (Coreboot),
-> maybe it is time to define a legacy-free variant of the x86 plateform
-> (especially on the FW/OS interface) for the free software and free
-> hardware design world, so that we aren't restricted and slowed down by
-> retro-compatible technologies dedicated at running MS-DOS and created
-> with the explicit goal to be hard to use for anything else than
-> Windows NT.
-> 
-> Cheers!
+thanks!
+Len Brown, Intel Open Source Technology Center
+---
+The following changes since commit dcd6c92267155e70a94b3927bce681ce74b8=
+0d1f:
 
+  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
 
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
+
+for you to fetch changes up to eb7004e623637a6c2b32317c000d4b617b5cb053=
+:
+
+  Merge branches 'atomicio-apei', 'hotplug', 'sony-nvs-nosave' and 'the=
+rmal-netlink' into release (2012-01-23 19:47:06 -0500)
+
+----------------------------------------------------------------
+
+Dan Carpenter (1):
+      ACPI, APEI, EINJ, cleanup 0 vs NULL confusion
+
+Jean Delvare (1):
+      thermal: Rename generate_netlink_event
+
+Lan Tianyu (1):
+      ACPI / PM: Add Sony Vaio VPCCW29FX to nonvs blacklist.
+
+Len Brown (1):
+      Merge branches 'atomicio-apei', 'hotplug', 'sony-nvs-nosave' and =
+'thermal-netlink' into release
+
+Myron Stowe (3):
+      ACPI, APEI: Add 64-bit read/write support for APEI on i386
+      ACPI, APEI: Add RAM mapping support to ACPI
+      ACPI: Remove ./drivers/acpi/atomicio.[ch]
+
+Niklas S=F6derlund (1):
+      ACPI, APEI, EINJ Allow empty Trigger Error Action Table
+
+Thomas Renninger (2):
+      ACPI processor hotplug: Split up acpi_processor_add
+      ACPI processor hotplug: Delay acpi_processor_start() call for hot=
+plugged cores
+
+Tony Luck (1):
+      Use acpi_os_map_memory() instead of ioremap() in einj driver
+
+ Documentation/thermal/sysfs-api.txt |    2 +-
+ drivers/acpi/Makefile               |    1 -
+ drivers/acpi/apei/apei-base.c       |   35 +---
+ drivers/acpi/apei/einj.c            |   95 ++++----
+ drivers/acpi/atomicio.c             |  422 ---------------------------=
+--------
+ drivers/acpi/osl.c                  |  152 +++++++++++++-
+ drivers/acpi/processor_driver.c     |  154 ++++++++++----
+ drivers/acpi/sleep.c                |    8 +
+ drivers/idle/intel_idle.c           |    2 +-
+ drivers/thermal/thermal_sys.c       |    4 +-
+ include/acpi/acpiosxf.h             |    4 +
+ include/acpi/atomicio.h             |   10 -
+ include/acpi/processor.h            |    1 +
+ include/linux/thermal.h             |    4 +-
+ 14 files changed, 334 insertions(+), 560 deletions(-)
+ delete mode 100644 drivers/acpi/atomicio.c
+ delete mode 100644 include/acpi/atomicio.h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
