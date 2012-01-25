@@ -1,165 +1,83 @@
-From: "Cihula, Joseph" <joseph.cihula@intel.com>
-Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
-Date: Thu, 26 Jan 2012 00:16:39 +0000
-Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
-References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
-	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
-	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
-	<20120112174958.GA22515@phenom.dumpdata.com>
-	<20120112202308.GA2030@phenom.dumpdata.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: Fwd: [Bugreport] Screen backllight issues on FirePro M5950 (HP
+ EliteBook 8560w)
+Date: Wed, 25 Jan 2012 09:52:34 +0800
+Message-ID: <1327456354.15260.1.camel@linux-s257.site>
+References: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
+	 <CAGB3EUR750VpHdvrZ25mn9bcS-4ZT+BSJ_zD4-sRncyYNT=0Zg@mail.gmail.com>
+	 <1323442460.20114.95.camel@linux-s257.site>
+	 <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
+	 <1324443308.10394.456.camel@linux-s257.site>
+	 <CAEPe-GLzak+SG3-H4Sw8KsQmpsh-v0UJWfHQb7hXoycO0GoWTA@mail.gmail.com>
+	 <1327030553.15960.92.camel@linux-s257.site>
+	 <CAEPe-G+H6CDDzg9-fXZK4MJbKw_-MJFSMheCL9=yN4Gt=fmaTQ@mail.gmail.com>
+	 <1327196727.15960.118.camel@linux-s257.site>
+	 <CAEPe-GKff7y1g4qc5gSz4vuhz5P0XpGgPTO570YzkjO6AZNV4A@mail.gmail.com>
+	 <1327276502.15960.150.camel@linux-s257.site>
+	 <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
+	 <1327366720.7090.7.camel@linux-s257.site>
+	 <CAEPe-GLe9d7V9YLq+gGpb8N+a-9ELzeuvLbr=gKFbWU4JJxV-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120112202308.GA2030@phenom.dumpdata.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from victor.provo.novell.com ([137.65.250.26]:42268 "EHLO
+	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab2AZC03 (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Wed, 25 Jan 2012 21:26:29 -0500
+In-Reply-To: <CAEPe-GLe9d7V9YLq+gGpb8N+a-9ELzeuvLbr=gKFbWU4JJxV-Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Artur Flinta <aflinta@gmail.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-> From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> Sent: Thursday, January 12, 2012 12:23 PM
-eturn values for tboot_sleep
-> 
-> On Thu, Jan 12, 2012 at 09:49:58AM -0800, Konrad Rzeszutek Wilk wrote:
-> > On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
-> > > ACK, but tboot_sleep() calls tboot_shutdown() and there are error conditions in that which you
-> are not reflecting upward--i.e. you should make tboot_shutdown() return an 'int' and propagate its
-> errors through tboot_sleep().
+=E6=96=BC =E4=BA=8C=EF=BC=8C2012-01-24 =E6=96=BC 16:25 +0100=EF=BC=8CAr=
+tur Flinta =E6=8F=90=E5=88=B0=EF=BC=9A
+> Hi!
+>=20
+> > Thanks, but looks like your kernel didn't enable
+> >        CONFIG_ACPI_DEBUG=3Dy
 > >
-> > Hey Joe,
-> >
-> > Thanks for looking at the patches.
-> >
-> > Right now [with this patch applied] the code looks as so:
-> >
-> > 297
-> > 298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
-> > 299         return 0;
-> > 300 }
-> >
-> >
-> > If we do make tboot_shutdown() return an int, there will be a need to
-> > modify other callers: native_machine_emergency_restart,
-> > native_machine_halt, native_machine_power_off, and native_play_dead as well.
-> >
-> > Perhaps that could be done in another patch and leave this one as is
-> > where the 'tboot_sleep' would just return 0 instead of 'return
-> > tboot_shutdown(...)' ?
-> >
-> > Perhaps another way to do this is to extract the common code of
-> > tboot_sleep and tboot_shutdown?
+> > So, doesn't show up any acpi debug log in messages.
+>=20
+> Fixed, now using kernel-debug package ;) Quite huge in attachment.
+>=20
 
-I'd be happier to see the callers above changed to handle a tboot_shutdown() that returned an error than splitting this up and only checking the error in one path.
+I just found the _BCM in your SSDT3 table, I am tracing it:
 
-Joe
+            Method (_BCM, 1, Serialized)
+            {
+                Store (\_SB.BCM, Arg0)
+                Local0
+                If (Local0)
+                {
+                    Store (BRID, Local1)
+                    If (LEqual (SBRV (), 0x00))
+                    {
+                        \_SB.SSMI (0xEA74, 0x04, Local1, 0x00, 0x00)
+                    }
 
-> 
-> Like this (not yet tested):
-> 
-> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index 6410744..2f93a50 100644
-> --- a/arch/x86/kernel/tboot.c
-> +++ b/arch/x86/kernel/tboot.c
-> @@ -212,17 +212,16 @@ static int tboot_setup_sleep(void)  {
->  	/* S3 shutdown requested, but S3 not supported by the kernel... */
->  	BUG();
-> -	return -1;
-> +	return -ENOSYS;
->  }
-> 
->  #endif
-> 
-> -void tboot_shutdown(u32 shutdown_type)
-> -{
-> -	void (*shutdown)(void);
-> +static int tboot_check(u32 shutdown_type) {
-> +
-> 
->  	if (!tboot_enabled())
-> -		return;
-> +		return -ENODEV;
-> 
->  	/*
->  	 * if we're being called before the 1:1 mapping is set up then just @@ -230,12 +229,21 @@
-> void tboot_shutdown(u32 shutdown_type)
->  	 * due to very early panic()
->  	 */
->  	if (!tboot_pg_dir)
-> -		return;
-> +		return -EBUSY;
-> 
->  	/* if this is S3 then set regions to MAC */
-> -	if (shutdown_type == TB_SHUTDOWN_S3)
-> -		if (tboot_setup_sleep())
-> -			return;
-> +	if (shutdown_type == TB_SHUTDOWN_S3) {
-> +		int err = tboot_setup_sleep();
-> +		if (err)
-> +			return err;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void __tboot_shutdown(u32 shutdown_type) {
-> +	void (*shutdown)(void);
-> 
->  	tboot->shutdown_type = shutdown_type;
-> 
-> @@ -248,6 +256,13 @@ void tboot_shutdown(u32 shutdown_type)
->  	while (1)
->  		halt();
->  }
-> +void tboot_shutdown(u32 shutdown_type)
-> +{
-> +	if (!tboot_check(shutdown_type))
-> +		return;
-> +
-> +	__tboot_shutdown(shutdown_type);
-> +}
-> 
->  static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)  { @@ -279,9 +294,17 @@ static
-> int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  		/* S3: */ TB_SHUTDOWN_S3,
->  		/* S4: */ TB_SHUTDOWN_S4,
->  		/* S5: */ TB_SHUTDOWN_S5 };
-> +	int err;
-> 
-> -	if (!tboot_enabled())
-> -		return 0;
-> +	if (sleep_state >= ACPI_S_STATE_COUNT ||
-> +	    acpi_shutdown_map[sleep_state] == -1) {
-> +		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
-> +		return -ENOSYS;
-> +	}
-> +
-> +	err = tboot_check(acpi_shutdown_map[sleep_state]);
-> +	if (!err && err != EBUSY)
-> +		return err;
-> 
->  	tboot_copy_fadt(&acpi_gbl_FADT);
->  	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control; @@ -289,13 +312,7 @@ static int
-> tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  	/* we always use the 32b wakeup vector */
->  	tboot->acpi_sinfo.vector_width = 32;
-> 
-> -	if (sleep_state >= ACPI_S_STATE_COUNT ||
-> -	    acpi_shutdown_map[sleep_state] == -1) {
-> -		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
-> -		return -1;
-> -	}
-> -
-> -	tboot_shutdown(acpi_shutdown_map[sleep_state]);
-> +	__tboot_shutdown((acpi_shutdown_map[sleep_state]));
->  	return 0;
->  }
-> 
+                    Signal (\_SB.BEVT)
+                }
+            }
+
+> > Does it work set backlight level by sysfs?
+> >        echo 9 > /sys/class/backlight/acpi_video0/brightness
+>=20
+> if kernel is booted with acpi_backlight=3Dvendor parameter, then ther=
+e
+> are no entries in  /sys/class/backlight directory.
+>=20
+
+OH! you are right, sorry I forgot it.
+
+
+Thanks a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
