@@ -1,39 +1,70 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: Re: [PATCH] Use acpi_os_map_memory() instead of ioremap() in einj driver
-Date: Tue, 24 Jan 2012 18:07:17 -0800
-Message-ID: <CA+8MBb+gCrcs5=LdE0j-kh=xcVDLhRYWqeQSTRE7qfH-OsDVzQ@mail.gmail.com>
-References: <4f1decfc19324ca832@agluck-desktop.sc.intel.com>
-	<4F1F5FB4.1020004@linux.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: How to "register" a GSI for a non PCI non ISA device
+Date: Wed, 25 Jan 2012 00:56:53 -0500
+Message-ID: <4F1F99A5.1000206@kernel.org>
+References: <20120124184203.1b0878c2@xilun>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56847 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681Ab2AYCHS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jan 2012 21:07:18 -0500
-In-Reply-To: <4F1F5FB4.1020004@linux.intel.com>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:55940 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408Ab2AYF44 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2012 00:56:56 -0500
+In-Reply-To: <20120124184203.1b0878c2@xilun>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Myron Stowe <mstowe@redhat.com>
+To: Guillaume Knispel <gknispel@proformatique.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Guillaume Knispel <gknispel@avencall.com>, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9_Rubinst?= =?ISO-8859-1?Q?ein?= <nrubinstein@avencall.com>
 
-On Tue, Jan 24, 2012 at 5:49 PM, Chen Gong <gong.chen@linux.intel.com> wrote:
-> I can understand why here C memory access model can work because ACPI table
-> is in physical memory zone but not in device space, but I still have
-> two confusion: 1)why ioremap fail but acpi_os_map_memory can work? In
-> essential
-> acpi_os_map_memory is ioremap (or precisely, ioremap_cache), right?
+On 01/24/2012 12:42 PM, Guillaume Knispel wrote:
 
-Myron has been asking the same questions. Probably the difference is
-between cache and nocache. But it unclear what changed between 3.2-rc7
-(where these ioremap() calls worked) and 3.3-rc1 (where they fail).
+> Hi,
+> 
+> I'm building a PC platform with additional non-PCI and non-ISA devices:
+> they are basically simple telecom chipsets connected to an SPI and an
+> old school parallel bus (Intel LEB bus) and GPIO pins that can be used
+> as interrupts through the IO APIC which exposes 40 GSI. From the point
+> of view of the software the SPI, LEB, and GPIO are provided by PCI
+> devices (in reality they are embedded controllers in an Intel SoC
+> 80579). Anyway I'm not sure the additional GSI are described anywhere
+> in whatever black magic ACPI / legacy BIOS table they could be
+> (but I've complete control over the FW, so I can had whatever is
+>  needed when I know it).
 
-> 2)since acpi_os_map_memory is io mapping too (though it is a little bit
-> special), read/write should work besides *C memory access*. If so, why
-> removing
-> read/write here? Some ARCH compatibility or compilation issue?
+What is the benefit of implementing ACPI on this custom system?
 
-It's just prettier - avoids the need for the local copies of readq()/writeq()
-for 32-bit systems too.
+-Len
 
--Tony
+> But as my devices are neither PCI nor ISA, I don't know how i can get
+> access to the custom GSI interrupt from a LKM. acpi_register_gsi() used
+> to be exported but is not anymore and I guess this is mandatory that
+> this function is called to prepare internal structures (maybe irq_desc)
+> and most importantly to configure to level triggering active low.
+> 
+> So I'm thinking about writing black magic DSDT stuffs or whatever,
+> which i might be able to sort of do after reading the fabulous ACPI
+> specifications. Any feedback or pointer would be highly welcome.
+> 
+> BTW when Linux devs says that bios writers are writing shit, yeah, they
+> do, and given the state of complexity of the PC platform, I'm at the
+> risk to do it too because I'm not supposed to delay the production of
+> our system by one additional year just to completely learn how the
+> shitty PC "standards" are supposed to work. From a more personal
+> point of view when I'm reading the ACPI or other related specs tainted
+> by MS and their desire to put GUID everywhere and other terrible ideas,
+> I would rather prefer being high to not endure that much pain.
+> 
+> As more and more x86 systems are directly designed to run Linux and
+> only tested with it, with some of those (like our own) being built
+> by people having complete control on the board and firmware (Coreboot),
+> maybe it is time to define a legacy-free variant of the x86 plateform
+> (especially on the FW/OS interface) for the free software and free
+> hardware design world, so that we aren't restricted and slowed down by
+> retro-compatible technologies dedicated at running MS-DOS and created
+> with the explicit goal to be hard to use for anything else than
+> Windows NT.
+> 
+> Cheers!
+
+
