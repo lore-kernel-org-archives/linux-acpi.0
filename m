@@ -1,130 +1,35 @@
-From: Guillaume Knispel <gknispel@proformatique.com>
-Subject: Re: How to "register" a GSI for a non PCI non ISA device
-Date: Thu, 26 Jan 2012 17:22:48 +0100
-Message-ID: <20120126172248.72b0efa5@xilun>
-References: <20120124184203.1b0878c2@xilun>
-	<4F1F99A5.1000206@kernel.org>
-	<20120125182314.7834c75b@xilun>
-	<20120125190214.GC18606@phenom.dumpdata.com>
-	<20120126160719.3b9be3b3@xilun>
-	<20120126153239.GA14367@phenom.dumpdata.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2/2] ACPI-Thermal: Add a 'flag' argument in thermal.c
+Date: Thu, 26 Jan 2012 16:23:20 +0000
+Message-ID: <20120126162320.GA15099@srcf.ucam.org>
+References: <1327595749-17673-1-git-send-email-durgadoss.r@intel.com>
+ <1327595749-17673-2-git-send-email-durgadoss.r@intel.com>
+ <20120126134256.GA11017@srcf.ucam.org>
+ <4D68720C2E767A4AA6A8796D42C8EB5902F813@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120126153239.GA14367@phenom.dumpdata.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Guillaume Knispel <gknispel@proformatique.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9?= Rubinstein <nrubinstein@avencall.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:54434 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753034Ab2AZQXZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2012 11:23:25 -0500
+Content-Disposition: inline
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5902F813@BGSMSX101.gar.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Thu, 26 Jan 2012 10:32:39 -0500
-Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+On Thu, Jan 26, 2012 at 04:14:39PM +0000, R, Durgadoss wrote:
 
-> On Thu, Jan 26, 2012 at 04:07:19PM +0100, Guillaume Knispel wrote:
-> > On Wed, 25 Jan 2012 14:02:14 -0500
-> > Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-> > 
-> > > On Wed, Jan 25, 2012 at 06:23:14PM +0100, Guillaume Knispel wrote:
-> > >
-> > > > can't call it explicitly from my LKM, there should better be a way to
-> > > > make it be called when an ACPI thing is done, or maybe a legacy table
-> > > > parsed.
-> > > 
-> > > Can you do it the way xen does? Look in arch/x86/xen/pci.c
-> > 
-> > Did not found this file. Besides, isn't Xen a separate architecture
-> 
-> Duh! I meant arch/x86/pci/xen.c
-> 
-> > from mainline x86, compiled built-in? My goal is to only touch LKM and
-> 
-> Not anymore. It is dynamically on if the kernel detects its running under the
-> hypervisor.
-> 
-> I am still unclear what you are trying to do. Is it that
-> you have _PRT ACPI tables and your want to have your module be called
-> when those are parsed? If so, then __acpi_register_gsi is your guy - 
-> and you can over-write it to your platform. Granted at that point that
-> function parameter should be guarded by some form of locking. Perhaps
-> provide a acpi_register_gsi_fnc() that can be exported out. Would
-> that work for you (I can cook up a patch for that)?
+> I thought through this.. But there are few drivers in
+> drivers/platform/x86/, that use these calls. In that case,
+> how will we merge them ?
+>
+> Is it ok If I send 'one' patch which includes both ACPI and
+> Platform driver(s) changes ?
 
-Sorry if I was unclear, I'll try to make things more explicit.
-
-We build the platform which obviously differs a little from a PC (but
-just because of the presence of those additional non-ISA non-PCI
-devices), but as far as software is concerned we are trying to make the
-system run with a standard unmodified Linux kernel already built by
-Debian (because rebuilding our own would shift the maintenance of
-that kernel on us instead of Debian, and we would not be good at that)
-
-So what we can act on are the LKM and the system firmware, but not the
-bzImage.
-
-The problem I'm facing is that I don't know how to setup a GSI, what
-used to be done by directly calling acpi_register_gsi(), which was
-possible from an LKM when it was exported (for example in 2.6.18,
-which was the kernel used by Intel for their dev board).
-
-Because acpi_register_gsi() is not exported anymore, I'm trying to find
-a way to make it be called during system startup. My current best guess
-is that if I write the right magic spell somewhere in the DSDT or maybe
-a kind of legacy BIOS table, the acpi_register_gsi() will be called
-during the boot and will configure the GSI with the desired level
-triggering, so that the LKM will just have to request_irq() (but on
-which irq number? same as gsi number?) and everything will work fine.
-
-I don't think I've to replace acpi_register_gsi() by my own
-implementation; the GSI in question is a standard one on the only
-IO APIC in the system. So everything looks pretty simple. The only
-question is how to make use of that GSI from the software side,
-first how to configure it to level trigger active low, then how to
-request it from a LKM given that the LKM in question does not drive
-a PCI device that makes use of the interrupt we want.
-
-The simplified architecture is the following:
-
- Intel 80579 System on Chip                | External chip
-                                           |
-+----------+            +-----+            |  +---------+
-| CPU + NB |--- PCI ----| LEB |--- // bus ----| telecom |
-+----------+            +-----+            |  |  chip   |
-     |                                     |  +---------+
- +--------+                                |   |
- | IOAPIC |----------------- GSI 32 -----------+
- +--------+                                |
-
-The LKM will register as a driver for the PCI enumerable LEB then use
-it to drive the telecom chip. GSI 32 is unrelated to the LEB.
-
-> But this a bit complicated by the fact that ACPI parsing is done
-> early in the bootup processes - so your module should be compiled in
-> - otherwise you might miss the the 'request_irq' calls done by drivers
-> that are done _before_ your module is loaded.
-> 
-> Unless you want to re-trigger the ACPI _PRT parsing and call your
-> module once more for all interrupts? But that would imply unload
-> all existing modules, then reload them once more..
-> 
-> Or is it that you just want to set the APIC parameters differently?
-> Wouldn't then the be better of implementing an ' struct apic ' which
-> would have most, of them set to the existing (apic_physflat) and just
-> over-write the ones you really care about - like write and read?
-> 
-> > system firmware if necessary.
-> > 
-> > > > As we first target an unmodified (if possible) 2.6.32 kernel from
-> > > > Debian Squeeze, I can't just re-export acpi_register_gsi() and call it
-> > > > a day. (If I've no other choice I'll obviously do it, but this would be
-> > > > quite bad for future maintenance).
-> > > 
-> > > Oh wow. That is ancient. 3.2?
-> > 
-> > 3.2 when a Debian stable will feature 3.2 :)
-> 
-> Ah OK.
+Yes. Send one patch that updates the API and callers simultaneously.
 
 -- 
-Guillaume Knispel
-Avencall - 10 bis, rue Lucien Voilin - 92800 Puteaux
+Matthew Garrett | mjg59@srcf.ucam.org
