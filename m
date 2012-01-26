@@ -1,29 +1,63 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/2] ACPI-Thermal: Add a 'flag' argument in thermal.c
-Date: Thu, 26 Jan 2012 13:42:56 +0000
-Message-ID: <20120126134256.GA11017@srcf.ucam.org>
-References: <1327595749-17673-1-git-send-email-durgadoss.r@intel.com>
- <1327595749-17673-2-git-send-email-durgadoss.r@intel.com>
+From: Guillaume Knispel <gknispel@proformatique.com>
+Subject: Re: How to "register" a GSI for a non PCI non ISA device
+Date: Thu, 26 Jan 2012 16:07:19 +0100
+Message-ID: <20120126160719.3b9be3b3@xilun>
+References: <20120124184203.1b0878c2@xilun>
+	<4F1F99A5.1000206@kernel.org>
+	<20120125182314.7834c75b@xilun>
+	<20120125190214.GC18606@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:50147 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab2AZNnD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2012 08:43:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1327595749-17673-2-git-send-email-durgadoss.r@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120125190214.GC18606@phenom.dumpdata.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Guillaume Knispel <gknispel@proformatique.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9?= Rubinstein <nrubinstein@avencall.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com
 
-On Thu, Jan 26, 2012 at 10:05:49PM +0530, Durgadoss R wrote:
-> This patch adds a 'flag' argument to the thermal_zone_device_register
-> call in thermal.c.
+On Wed, 25 Jan 2012 14:02:14 -0500
+Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
 
-Functions and callers must be updated in the same patch - if someone 
-bisects to between these two then their build will be broken.
+> On Wed, Jan 25, 2012 at 06:23:14PM +0100, Guillaume Knispel wrote:
+> > On Wed, 25 Jan 2012 00:56:53 -0500
+> > Len Brown <lenb@kernel.org> wrote:
+> > 
+> > > What is the benefit of implementing ACPI on this custom system?
+> > 
+> > For our short term project it seems to be more a necessity than a
+> > benefit. ACPI is supported by the SoC, tables are already largely
+> > provided by Coreboot, the whole x86 ecosystem including Linux is more
+> > or less based around ACPI, and my whole interrogation comes from the
+> > fact that *acpi*_register_gsi() seems to be necessary to configure a
+> > GSI in the APIC but is not exported anymore, so my guess is that if I
+> 
+> Hm, isn't it __acpi_register_gsi?
+
+__acpi_register_gsi exists on recent kernels, it is the pointer to
+the underlying implementation of that function depending on the
+platform (x86 / xen-x86) and on the variant of the platform (pic/apic).
+acpi_register_gsi still exists and it calls __acpi_register_gsi.
+
+> > can't call it explicitly from my LKM, there should better be a way to
+> > make it be called when an ACPI thing is done, or maybe a legacy table
+> > parsed.
+> 
+> Can you do it the way xen does? Look in arch/x86/xen/pci.c
+
+Did not found this file. Besides, isn't Xen a separate architecture
+from mainline x86, compiled built-in? My goal is to only touch LKM and
+system firmware if necessary.
+
+> > As we first target an unmodified (if possible) 2.6.32 kernel from
+> > Debian Squeeze, I can't just re-export acpi_register_gsi() and call it
+> > a day. (If I've no other choice I'll obviously do it, but this would be
+> > quite bad for future maintenance).
+> 
+> Oh wow. That is ancient. 3.2?
+
+3.2 when a Debian stable will feature 3.2 :)
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Guillaume Knispel
+Avencall - 10 bis, rue Lucien Voilin - 92800 Puteaux
