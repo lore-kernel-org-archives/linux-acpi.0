@@ -1,58 +1,82 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: Fwd: [Bugreport] Screen backllight issues on FirePro M5950 (HP
- EliteBook 8560w)
-Date: Fri, 27 Jan 2012 00:40:33 +0800
-Message-ID: <1327596033.15260.67.camel@linux-s257.site>
-References: <CAEPe-G+b9U-vdDmU29=GjyABab=5-MzWm4U6pBj1upRgLjH1OQ@mail.gmail.com>
-	 <CAGB3EUR750VpHdvrZ25mn9bcS-4ZT+BSJ_zD4-sRncyYNT=0Zg@mail.gmail.com>
-	 <1323442460.20114.95.camel@linux-s257.site>
-	 <CAEPe-G+iooX_BOD=5m1nMgn+t63XGsLR+4JCfvHKOyTx98qydg@mail.gmail.com>
-	 <1324443308.10394.456.camel@linux-s257.site>
-	 <CAEPe-GLzak+SG3-H4Sw8KsQmpsh-v0UJWfHQb7hXoycO0GoWTA@mail.gmail.com>
-	 <1327030553.15960.92.camel@linux-s257.site>
-	 <CAEPe-G+H6CDDzg9-fXZK4MJbKw_-MJFSMheCL9=yN4Gt=fmaTQ@mail.gmail.com>
-	 <1327196727.15960.118.camel@linux-s257.site>
-	 <CAEPe-GKff7y1g4qc5gSz4vuhz5P0XpGgPTO570YzkjO6AZNV4A@mail.gmail.com>
-	 <1327276502.15960.150.camel@linux-s257.site>
-	 <CAEPe-G+jNsa5VScrk-Nii2e=0U5bVWtcCT5apOy0BAJrjKri4Q@mail.gmail.com>
-	 <1327366720.7090.7.camel@linux-s257.site>
-	 <CAEPe-GLe9d7V9YLq+gGpb8N+a-9ELzeuvLbr=gKFbWU4JJxV-Q@mail.gmail.com>
-	 <1327456354.15260.1.camel@linux-s257.site>
-	 <CAEPe-GKHvm+6vG=PJxLg1-cDD8HF-8rMnrmhg-eTEXaTfsQUmw@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: How to "register" a GSI for a non PCI non ISA device
+Date: Thu, 26 Jan 2012 10:24:31 -0700
+Message-ID: <CAErSpo5vCr4Y3Q6U1=yYLcSBH-85koMKDte4rzw4tyuKocYXYA@mail.gmail.com>
+References: <20120124184203.1b0878c2@xilun> <4F1F99A5.1000206@kernel.org>
+ <20120125182314.7834c75b@xilun> <20120125190214.GC18606@phenom.dumpdata.com>
+ <20120126160719.3b9be3b3@xilun> <20120126153239.GA14367@phenom.dumpdata.com> <20120126172248.72b0efa5@xilun>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from victor.provo.novell.com ([137.65.250.26]:56320 "EHLO
-	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180Ab2AZQpI (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Thu, 26 Jan 2012 11:45:08 -0500
-In-Reply-To: <CAEPe-GKHvm+6vG=PJxLg1-cDD8HF-8rMnrmhg-eTEXaTfsQUmw@mail.gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45659 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445Ab2AZRYw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2012 12:24:52 -0500
+Received: by werb13 with SMTP id b13so581019wer.19
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2012 09:24:51 -0800 (PST)
+In-Reply-To: <20120126172248.72b0efa5@xilun>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Artur Flinta <aflinta@gmail.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+To: Guillaume Knispel <gknispel@proformatique.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Xavier Carcelle <xcarcelle@avencall.com>, =?ISO-8859-1?Q?No=E9_Rubinstein?= <nrubinstein@avencall.com>
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2012-01-26 =E6=96=BC 07:43 +0100=EF=BC=8CAr=
-tur Flinta =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hi!
->=20
-> > I just found the _BCM in your SSDT3 table, I am tracing it:
->=20
-> How can I help now?
-> Or I have to just wait for patch? ;)
->=20
-> Regards
-> Artur
->=20
+On Thu, Jan 26, 2012 at 9:22 AM, Guillaume Knispel
+<gknispel@proformatique.com> wrote:
+> On Thu, 26 Jan 2012 10:32:39 -0500
+> Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+>
+>> On Thu, Jan 26, 2012 at 04:07:19PM +0100, Guillaume Knispel wrote:
+>> > On Wed, 25 Jan 2012 14:02:14 -0500
+>> > Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+>> >
+>> > > On Wed, Jan 25, 2012 at 06:23:14PM +0100, Guillaume Knispel wrote:
+>> > >
+>> > > > can't call it explicitly from my LKM, there should better be a way to
+>> > > > make it be called when an ACPI thing is done, or maybe a legacy table
+>> > > > parsed.
+>> > >
+>> > > Can you do it the way xen does? Look in arch/x86/xen/pci.c
+>> >
+>> > Did not found this file. Besides, isn't Xen a separate architecture
+>>
+>> Duh! I meant arch/x86/pci/xen.c
+>>
+>> > from mainline x86, compiled built-in? My goal is to only touch LKM and
+>>
+>> Not anymore. It is dynamically on if the kernel detects its running under the
+>> hypervisor.
+>>
+>> I am still unclear what you are trying to do. Is it that
+>> you have _PRT ACPI tables and your want to have your module be called
+>> when those are parsed? If so, then __acpi_register_gsi is your guy -
+>> and you can over-write it to your platform. Granted at that point that
+>> function parameter should be guarded by some form of locking. Perhaps
+>> provide a acpi_register_gsi_fnc() that can be exported out. Would
+>> that work for you (I can cook up a patch for that)?
+>
+> Sorry if I was unclear, I'll try to make things more explicit.
+>
+> We build the platform which obviously differs a little from a PC (but
+> just because of the presence of those additional non-ISA non-PCI
+> devices), but as far as software is concerned we are trying to make the
+> system run with a standard unmodified Linux kernel already built by
+> Debian (because rebuilding our own would shift the maintenance of
+> that kernel on us instead of Debian, and we would not be good at that)
+>
+> So what we can act on are the LKM and the system firmware, but not the
+> bzImage.
+>
+> The problem I'm facing is that I don't know how to setup a GSI, what
+> used to be done by directly calling acpi_register_gsi(), which was
+> possible from an LKM when it was exported (for example in 2.6.18,
+> which was the kernel used by Intel for their dev board).
 
-I hope so, will do my best! :-)
+A driver should never need to use acpi_register_gsi() directly.  It
+sounds like you have a non-PCI device that would be described as an
+ACPI device in the DSDT.  In the Device definition, you include a _CRS
+method that tells the kernel what GSI it is using.  The PNPACPI
+subsystem will parse _CRS and should do the acpi_register_gsi() for
+you.  Then your driver would use pnp_register_driver() and pnp_irq()
+to learn the IRQ.  drivers/tty/serial/8250_pnp.c is an example.
 
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
