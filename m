@@ -1,77 +1,92 @@
 From: Huang Ying <ying.huang@intel.com>
 Subject: Re: [PATCH 2/3] ACPI, APEI: Add RAM mapping support to ACPI
-Date: Sun, 29 Jan 2012 08:58:07 +0800
-Message-ID: <1327798687.7922.44.camel@yhuang-dev>
-References: <20120121021318.14723.45698.stgit@amt.stowe>
-	 <20120121021330.14723.72537.stgit@amt.stowe>
-	 <CAErSpo5KDxkcMn3OrvujeSHhzF7PjG0hsYqMXe1HmpPJaLHvDg@mail.gmail.com>
+Date: Sun, 29 Jan 2012 09:09:32 +0800
+Message-ID: <1327799372.7922.49.camel@yhuang-dev>
+References: <201201231651.23270.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:3435 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752024Ab2A2A6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Jan 2012 19:58:10 -0500
-In-Reply-To: <CAErSpo5KDxkcMn3OrvujeSHhzF7PjG0hsYqMXe1HmpPJaLHvDg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <201201231651.23270.trenn@suse.de>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, trenn@suse.de, linux-kernel@vger.kernel.org
 
-Hi, Bjorn,
+Hi, Thomas,
 
 Sorry for late.  Just return from Chinese new year holiday.
 
-On Sat, 2012-01-21 at 08:04 -0700, Bjorn Helgaas wrote:
-[snip]
-> > +
-> > +static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned long pg_sz)
-> > +{
-> > +       unsigned long pfn;
-> > +
-> > +       pfn = pg_off >> PAGE_SHIFT;
-> > +       if (should_use_kmap(pfn)) {
-> > +               if (pg_sz > PAGE_SIZE)
-> > +                       return NULL;
-> > +               return (void __iomem __force *)kmap(pfn_to_page(pfn));
-> > +       } else
-> > +               return acpi_os_ioremap(pg_off, pg_sz);
+On Mon, 2012-01-23 at 16:51 +0100, Thomas Renninger wrote:
+> Hi,
 > 
-> This implies that ioremap() works differently on ia64 than on x86.
-> Apparently one can ioremap() RAM on x86, but not on ia64.  Why is this
-> different?  Shouldn't we instead fix ioremap() on ia64 so it works the
-> same as on x86?
-
-If my understanding were correct, ioremap can not work for RAM on x86.
-So we need to use kmap for RAM.  And on IA64, ioremap works for RAM and
-will take care of cache attributes while kmap will not.  So ioremap is
-used on IA64, while kmap is used on x86.
-
-> I looked at the ia64 ioremap(), and I can't see the reason it fails
-> for RAM.  Huang, do you remember the details from 76da3fb3575?
+> Please ignore my previous mail, my mailer wrongly formatted
+> it with html tags and it got filtered out from the lists.
 > 
-> > +}
-> > +
-> > +static void acpi_unmap(acpi_physical_address pg_off, void __iomem *vaddr)
-> > +{
-> > +       unsigned long pfn;
-> > +
-> > +       pfn = pg_off >> PAGE_SHIFT;
-> > +       if (page_is_ram(pfn))
-> > +               kunmap(pfn_to_page(pfn));
-> > +       else
-> > +               iounmap(vaddr);
+> Firstly: This has to get in quickly if it shouldn't miss
+> 3.3 (again). Tiny adjustings (I don't see any, beside the
+> issue Bjorn brought up) can still be done later, but I
+> guess this rather big one gets rejected by Linus after
+> the merge window closed.
 > 
-> I hope we can resolve the ioremap() question so we don't need this
-> patch at all.  But if we do need this, I don't like the asymmetry here
-> -- on x86 RAM, I think we use ioremap() and kunmap(), which seems
-> wrong.  We should be able to use ioremap() and iounmap().
+> Here again:
+> 
+> On Saturday, January 21, 2012 09:38:27 PM Bjorn Helgaas wrote:
+> > +cc Tony, linux-ia64
+> > 
+> ...
+> > >>  {
+> > >> @@ -353,7 +385,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+> > >>
+> > >>        pg_off = round_down(phys, PAGE_SIZE);
+> > >>        pg_sz = round_up(phys + size, PAGE_SIZE) - pg_off;
+> > >> -       virt = acpi_os_ioremap(pg_off, pg_sz);
+> > >> +       virt = acpi_map(pg_off, pg_sz);
+> Ok, that worked before, also on IA64.
+> That means that typically/normally/always io mem is tried to be mapped.
+> 
+> It's due to the new APEI infrastructure/features that ram could
+> get mapped via acpi_os_map_memory.
+> 
+> Is there any Itanium out there implementing any APEI table?
+> Will there ever be one?
+> Even if, isn't it a BIOS bug if such stuff is declared in ram and not
+> in reserved memory (also on X86)?
+> Especially on an Enterprise Itanium platform,
+> I guess the vendor should or better has to fix it up.
 
-Yes.   The asymmetry here is not good.  We should use should_use_kmap()
-instead of page_is_ram directly here.
+The reason for this patch can be found in description of my original
+patch: 
+
+    ACPI, Add RAM mapping support to ACPI atomic IO support
+    
+    On one of our testing machine, the following EINJ command lines:
+    
+      # echo 0x10000000 > param1
+      # echo 0xfffffffffffff000 > param2
+      # echo 0x8 > error_type
+      # echo 1 > error_inject
+    
+    Will get:
+    
+      echo: write error: Input/output error
+    
+    The EIO comes from:
+    
+        rc = apei_exec_pre_map_gars(&trigger_ctx);
+    
+    The root cause is as follow.  Normally, ACPI atomic IO support is used
+    to access IO memory.  But in EINJ of that machine, it is used to
+    access RAM to trigger the injected error.  And the ioremap() called by
+    apei_exec_pre_map_gars() can not map the RAM.
+    
+    This patch add RAM mapping support to ACPI atomic IO support to
+    satisfy EINJ requirement.
+
+
+I think that is reasonable to access the injected address to trigger
+some memory error.  So it is hard to say this is a BIOS bug.
 
 Best Regards,
 Huang Ying
-
 
