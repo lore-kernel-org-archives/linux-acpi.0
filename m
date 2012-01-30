@@ -1,86 +1,132 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 2/3] ACPI, APEI: Add RAM mapping support to ACPI
-Date: Mon, 30 Jan 2012 08:35:38 +0800
-Message-ID: <1327883738.7922.64.camel@yhuang-dev>
-References: <20120121021318.14723.45698.stgit@amt.stowe>
-	 <20120121021330.14723.72537.stgit@amt.stowe>
-	 <CAErSpo5KDxkcMn3OrvujeSHhzF7PjG0hsYqMXe1HmpPJaLHvDg@mail.gmail.com>
-	 <1327798687.7922.44.camel@yhuang-dev>
-	 <CAErSpo5hrWz81SSS7Tg0HmTZ2seg76pa8kAe4iauAoqL6YAoOw@mail.gmail.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
+Date: Mon, 30 Jan 2012 09:26:45 +0100
+Message-ID: <CAHR064jyOYaRUjZp370ewLGQSKAhhB7gZ4PS7Feb_AzBLGi1tA@mail.gmail.com>
+References: <1326784098-3244-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:35215 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834Ab2A3Afk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jan 2012 19:35:40 -0500
-In-Reply-To: <CAErSpo5hrWz81SSS7Tg0HmTZ2seg76pa8kAe4iauAoqL6YAoOw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1326784098-3244-1-git-send-email-corentincj@iksaif.net>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, David Herrmann <dh.herrmann@googlemail.com>, =?UTF-8?Q?Richard_Sch=C3=BCtz?= <r.schtz@t-online.de>, Seth Forshee <seth.forshee@canonical.com>, linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@elte.hu>
-Cc: Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, trenn@suse.de, linux-kernel@vger.kernel.org
 
-On Sun, 2012-01-29 at 13:41 -0700, Bjorn Helgaas wrote:
-> On Sat, Jan 28, 2012 at 5:58 PM, Huang Ying <ying.huang@intel.com> wrote:
-> > Hi, Bjorn,
-> >
-> > Sorry for late.  Just return from Chinese new year holiday.
-> >
-> > On Sat, 2012-01-21 at 08:04 -0700, Bjorn Helgaas wrote:
-> > [snip]
-> >> > +
-> >> > +static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned long pg_sz)
-> >> > +{
-> >> > +       unsigned long pfn;
-> >> > +
-> >> > +       pfn = pg_off >> PAGE_SHIFT;
-> >> > +       if (should_use_kmap(pfn)) {
-> >> > +               if (pg_sz > PAGE_SIZE)
-> >> > +                       return NULL;
-> >> > +               return (void __iomem __force *)kmap(pfn_to_page(pfn));
-> >> > +       } else
-> >> > +               return acpi_os_ioremap(pg_off, pg_sz);
-> >>
-> >> This implies that ioremap() works differently on ia64 than on x86.
-> >> Apparently one can ioremap() RAM on x86, but not on ia64.  Why is this
-> >> different?  Shouldn't we instead fix ioremap() on ia64 so it works the
-> >> same as on x86?
-> >
-> > If my understanding were correct, ioremap can not work for RAM on x86.
-> > So we need to use kmap for RAM.  And on IA64, ioremap works for RAM and
-> > will take care of cache attributes while kmap will not.  So ioremap is
-> > used on IA64, while kmap is used on x86.
-> 
-> My point is that the *user* of ioremap() shouldn't need to care what
-> architecture we're on.  For example, maybe the ioremap()
-> implementation could be changed so that it uses kmap() internally when
-> necessary.
+On Tue, Jan 17, 2012 at 8:08 AM, Corentin Chary <corentincj@iksaif.net>=
+ wrote:
+> On these laptops, the ACPI video is not functional, and very unlikely
+> to be fixed by the vendor. Note that intel_backlight works for some
+> of these laptops, and the backlight from samsung-laptop always work.
+>
+> The good news is that newer laptops have functional ACPI video device
+> and won't end up growing this list.
+>
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+> =C2=A0drivers/acpi/video_detect.c | =C2=A0 49 +++++++++++++++++++++++=
+++++++++++++++++++++
+> =C2=A01 files changed, 49 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.=
+c
+> index 45d8097..66be45e 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -132,6 +132,53 @@ find_video(acpi_handle handle, u32 lvl, void *co=
+ntext, void **rv)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return AE_OK;
+> =C2=A0}
+>
+> +/* Force to use vendor driver when the ACPI device is known to be
+> + * buggy */
+> +static int video_detect_force_vendor(const struct dmi_system_id *d)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 acpi_video_support |=3D ACPI_VIDEO_BACKLIGHT_D=
+MI_VENDOR;
+> + =C2=A0 =C2=A0 =C2=A0 return 0;
+> +}
+> +
+> +static struct dmi_system_id video_detect_dmi_table[] =3D {
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vendor,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N150P",
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_SYS_=
+VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_PROD=
+UCT_NAME, "N150P"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_BOAR=
+D_NAME, "N150P"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vendor,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N145P/N250P/N260P",
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_SYS_=
+VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_PROD=
+UCT_NAME, "N145P/N250P/N260P"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_BOAR=
+D_NAME, "N145P/N250P/N260P"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vendor,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N150/N210/N220",
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_SYS_=
+VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_PROD=
+UCT_NAME, "N150/N210/N220"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_BOAR=
+D_NAME, "N150/N210/N220"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vendor,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "NF110/NF210/NF310",
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_SYS_=
+VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_PROD=
+UCT_NAME, "NF110/NF210/NF310"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_BOAR=
+D_NAME, "NF110/NF210/NF310"),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 },
+> +};
+> +
+> =C2=A0/*
+> =C2=A0* Returns the video capabilities of a specific ACPI graphics de=
+vice
+> =C2=A0*
+> @@ -164,6 +211,8 @@ long acpi_video_get_capabilities(acpi_handle grap=
+hics_handle)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 * =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 *}
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
+> +
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dmi_check_system(v=
+ideo_detect_dmi_table);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D acp=
+i_bus_get_device(graphics_handle, &tmp_dev);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ACPI_FAILU=
+RE(status)) {
+> --
+> 1.7.5.4
+>
 
-I think that is about the semantics of ioremap().
+Hi Len,
 
-Hi, Ingo,
+Maybe this patch should go through your tree and not platform-drivers-x=
+86 ?
 
-Can you describe why normal RAM is not allowed to be mapped by
-ioremap()?
+Thanks,
 
-> >> I looked at the ia64 ioremap(), and I can't see the reason it fails
-> >> for RAM.  Huang, do you remember the details from 76da3fb3575?
-> 
-> This question is still open.  Do you remember anything about it?
-
-Copy from Tony's mail,
-
-This (Ying: use kmap insted of ioremap to map RAM) might be a problem on
-ia64 - it is s/w responsibility to make sure that we don't map the same
-underlying physical address using different cache attributes - e.g. we
-must not map memory both cacheable and uncacheable at the same time.
-Accessing such a mis-attributed page will result in a machine check.
-
-So I'd worry that if the memory in question was being used as
-uncacheable, this code might result in a cached access, which would
-crash the machine.
-
-Best Regards,
-Huang Ying
-
+--=20
+Corentin Chary
+http://xf.iksaif.net
