@@ -1,30 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/2] ACPI: Add support for exposing BGRT data
-Date: Tue, 31 Jan 2012 17:55:25 +0000
-Message-ID: <20120131175525.GA9804@srcf.ucam.org>
-References: <1328027990-3437-1-git-send-email-mjg@redhat.com>
- <1328027990-3437-2-git-send-email-mjg@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E3335002A9@ORSMSX101.amr.corp.intel.com>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: cpuidle changes and drivers/acpi/processor_idle.c
+Date: Tue, 31 Jan 2012 12:55:16 -0600
+Message-ID: <CAMXH7KG2XXx2gOp_unpQv1KfO0DZWDWAOajRD-P82LmrkjYf2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45089 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478Ab2AaRzc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2012 12:55:32 -0500
-Content-Disposition: inline
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3335002A9@ORSMSX101.amr.corp.intel.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:62844 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753166Ab2AaSzR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2012 13:55:17 -0500
+Received: by iacb35 with SMTP id b35so322093iac.19
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Jan 2012 10:55:16 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Tue, Jan 31, 2012 at 05:30:11PM +0000, Moore, Robert wrote:
-> Matthew,
-> 
-> The signature for BGRT, and the definition of the table itself appear in the new ACPICA file "actbl3.h".
+In the various versions of acpi_idle_enter, I see the following code.
 
-Ah, I'll rebase. Thanks!
+...
+	cx->usage++;
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+	lapic_timer_state_broadcast(pr, cx, 0);
+	cx->time += idle_time;
+...
+
+But this usage and idle_time and accounted for by the core cpuidle
+driver, so is this a small bug and the usage and idle_time accounting
+code should be removed?
+
+Also, I see the following:
+
+	/* Tell the scheduler how much we idled: */
+	sched_clock_idle_wakeup_event(idle_time_ns);
+
+The sched_clock_idle_wakeup_event does nothing with the idle_time_ns
+parameter it is passed.  Perhaps it did at one time.  Is this call
+still necessary?
+
+Thanks,
+Rob
