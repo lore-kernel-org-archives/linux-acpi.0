@@ -1,184 +1,263 @@
 From: Robert Lee <rob.lee@linaro.org>
-Subject: [RFC PATCH v4 1/4] cpuidle: Add time keeping and irq enabling
-Date: Tue, 31 Jan 2012 21:00:11 -0600
-Message-ID: <1328065215-28108-2-git-send-email-rob.lee@linaro.org>
+Subject: [RFC PATCH v4 4/4] x86: Remove cpuidle timekeeping and irq enable/disable
+Date: Tue, 31 Jan 2012 21:00:14 -0600
+Message-ID: <1328065215-28108-5-git-send-email-rob.lee@linaro.org>
 References: <1328065215-28108-1-git-send-email-rob.lee@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:47791 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab2BADAY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2012 22:00:24 -0500
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:59797 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754429Ab2BADAc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2012 22:00:32 -0500
 In-Reply-To: <1328065215-28108-1-git-send-email-rob.lee@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com, khilman@ti.com
 Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, robherring2@gmail.com, Baohua.Song@csr.com, s.hauer@pengutronix.de, amit.kucheria@linaro.org, shawn.guo@freescale.com, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk
 
-Make necessary changes to add implement time keepign and irq enabling
-in the core cpuidle code.  This will allow the remove of these
-functionalities from the platform cpuidle implementations.
+Now that the core cpuidle driver keeps time and handles irq enabling,
+remove this functionality.  Also, remove irq disabling as all paths to
+cpuidle_idle_call already call local_irq_disable.  Also, restructure
+idle functions as needed by the cpuidle core driver changes.
 
 Signed-off-by: Robert Lee <rob.lee@linaro.org>
 ---
- drivers/cpuidle/cpuidle.c |   75 +++++++++++++++++++++++++++++++++++---------
- include/linux/cpuidle.h   |   26 ++++++++++-----
- 2 files changed, 76 insertions(+), 25 deletions(-)
+ drivers/idle/intel_idle.c |  110 ++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 79 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index 59f4261..8ea0fc3 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -57,14 +57,18 @@ static int __cpuidle_register_device(struct cpuidle_device *dev);
-  * cpuidle_idle_call - the main idle loop
-  *
-  * NOTE: no locks or semaphores should be used here
-+ * NOTE: Should only be called from a local irq disabled context
-  * return non-zero on failure
-+ *
-  */
- int cpuidle_idle_call(void)
- {
- 	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
- 	struct cpuidle_driver *drv = cpuidle_get_driver();
- 	struct cpuidle_state *target_state;
--	int next_state, entered_state;
-+	int idx, ret = 0;
-+	ktime_t	t1, t2;
-+	s64 diff;
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 20bce51..482deb6 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -82,8 +82,14 @@ static unsigned int mwait_substates;
+ static unsigned int lapic_timer_reliable_states = (1 << 1);	 /* Default to only C1 */
  
- 	if (off)
- 		return -ENODEV;
-@@ -86,37 +90,76 @@ int cpuidle_idle_call(void)
- #endif
+ static struct cpuidle_device __percpu *intel_idle_cpuidle_devices;
++
++static int intel_pre_idle(struct cpuidle_device *dev,
++			struct cpuidle_driver *drv, int index);
+ static int intel_idle(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv, int index);
++static int intel_post_idle(struct cpuidle_device *dev,
++			struct cpuidle_driver *drv, int index);
++
  
- 	/* ask the governor for the next state */
--	next_state = cpuidle_curr_governor->select(drv, dev);
-+	idx = cpuidle_curr_governor->select(drv, dev);
-+
-+	target_state = &drv->states[idx];
-+
-+	/*
-+	 * Check with the device to see if it can enter this state or if another
-+	 * state should be used.
-+	 */
-+	if (target_state->pre_enter) {
-+		idx = target_state->
-+			pre_enter(dev, drv, idx);
-+	}
-+
-+	if (idx < 0) {
-+		local_irq_enable();
-+		return idx;
-+	}
-+
- 	if (need_resched()) {
- 		local_irq_enable();
--		return 0;
-+		return -EBUSY;
- 	}
+ static struct cpuidle_state *cpuidle_state_table;
  
--	target_state = &drv->states[next_state];
-+	target_state = &drv->states[idx];
+@@ -114,21 +120,27 @@ static struct cpuidle_state nehalem_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.flags = CPUIDLE_FLAG_TIME_VALID,
+ 		.exit_latency = 3,
+ 		.target_residency = 6,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C2 */
+ 		.name = "C3-NHM",
+ 		.desc = "MWAIT 0x10",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 20,
+ 		.target_residency = 80,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C3 */
+ 		.name = "C6-NHM",
+ 		.desc = "MWAIT 0x20",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 200,
+ 		.target_residency = 800,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ };
  
--	trace_power_start(POWER_CSTATE, next_state, dev->cpu);
--	trace_cpu_idle(next_state, dev->cpu);
-+	if ((target_state->flags & CPUIDLE_FLAG_TIME_VALID))
-+		t1 = ktime_get();
+ static struct cpuidle_state snb_cstates[MWAIT_MAX_NUM_CSTATES] = {
+@@ -139,28 +151,36 @@ static struct cpuidle_state snb_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.flags = CPUIDLE_FLAG_TIME_VALID,
+ 		.exit_latency = 1,
+ 		.target_residency = 1,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C2 */
+ 		.name = "C3-SNB",
+ 		.desc = "MWAIT 0x10",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 80,
+ 		.target_residency = 211,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C3 */
+ 		.name = "C6-SNB",
+ 		.desc = "MWAIT 0x20",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 104,
+ 		.target_residency = 345,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C4 */
+ 		.name = "C7-SNB",
+ 		.desc = "MWAIT 0x30",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 109,
+ 		.target_residency = 345,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ };
  
--	entered_state = target_state->enter(dev, drv, next_state);
-+	trace_power_start(POWER_CSTATE, idx, dev->cpu);
-+	trace_cpu_idle(idx, dev->cpu);
-+
-+	idx = target_state->enter(dev, drv, idx);
+ static struct cpuidle_state atom_cstates[MWAIT_MAX_NUM_CSTATES] = {
+@@ -171,14 +191,18 @@ static struct cpuidle_state atom_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.flags = CPUIDLE_FLAG_TIME_VALID,
+ 		.exit_latency = 1,
+ 		.target_residency = 4,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C2 */
+ 		.name = "C2-ATM",
+ 		.desc = "MWAIT 0x10",
+ 		.flags = CPUIDLE_FLAG_TIME_VALID,
+ 		.exit_latency = 20,
+ 		.target_residency = 80,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C3 */ },
+ 	{ /* MWAIT C4 */
+ 		.name = "C4-ATM",
+@@ -186,7 +210,9 @@ static struct cpuidle_state atom_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 100,
+ 		.target_residency = 400,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ 	{ /* MWAIT C5 */ },
+ 	{ /* MWAIT C6 */
+ 		.name = "C6-ATM",
+@@ -194,7 +220,9 @@ static struct cpuidle_state atom_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
+ 		.exit_latency = 140,
+ 		.target_residency = 560,
+-		.enter = &intel_idle },
++		.pre_enter = &intel_pre_idle,
++		.enter = &intel_idle,
++		.post_enter = &intel_post_idle },
+ };
  
- 	trace_power_end(dev->cpu);
- 	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
- 
--	if (entered_state >= 0) {
--		/* Update cpuidle counters */
--		/* This can be moved to within driver enter routine
--		 * but that results in multiple copies of same code.
--		 */
--		dev->states_usage[entered_state].time +=
-+	if (idx < 0) {
-+		local_irq_enable();
-+		return idx;
-+	}
-+
-+	if (likely(target_state->flags & drv->states[idx].flags &
-+		CPUIDLE_FLAG_TIME_VALID))
-+		t2 = ktime_get();
-+
-+	local_irq_enable();
-+
-+	if (target_state->post_enter)
-+		target_state->post_enter(dev, drv, idx);
-+
-+	if (likely(target_state->flags & drv->states[idx].flags &
-+		CPUIDLE_FLAG_TIME_VALID)) {
-+
-+		diff = ktime_to_us(ktime_sub(t2, t1));
-+		if (diff > INT_MAX)
-+			diff = INT_MAX;
-+
-+		dev->last_residency = (int) diff;
-+
-+		dev->states_usage[idx].time +=
- 				(unsigned long long)dev->last_residency;
--		dev->states_usage[entered_state].usage++;
- 	}
- 
-+	dev->states_usage[idx].usage++;
-+
- 	/* give the governor an opportunity to reflect on the outcome */
- 	if (cpuidle_curr_governor->reflect)
--		cpuidle_curr_governor->reflect(dev, entered_state);
-+		cpuidle_curr_governor->reflect(dev, idx);
- 
--	return 0;
-+	return ret;
+ static long get_driver_data(int cstate)
+@@ -227,24 +255,20 @@ static long get_driver_data(int cstate)
  }
  
  /**
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 712abcc..8154f60 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -38,17 +38,25 @@ struct cpuidle_state_usage {
- };
+- * intel_idle
++ * intel_pre_idle
+  * @dev: cpuidle_device
+  * @drv: cpuidle driver
+  * @index: index of cpuidle state
+  *
+  * Must be called under local_irq_disable().
+  */
+-static int intel_idle(struct cpuidle_device *dev,
++static int intel_pre_idle(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
+ {
+-	unsigned long ecx = 1; /* break on interrupt flag */
+ 	struct cpuidle_state *state = &drv->states[index];
+-	struct cpuidle_state_usage *state_usage = &dev->states_usage[index];
+-	unsigned long eax = (unsigned long)cpuidle_get_statedata(state_usage);
++	const unsigned long eax =
++			(unsigned long)dev->states_usage[index].driver_data;
+ 	unsigned int cstate;
+-	ktime_t kt_before, kt_after;
+-	s64 usec_delta;
+-	int cpu = smp_processor_id();
  
- struct cpuidle_state {
--	char		name[CPUIDLE_NAME_LEN];
--	char		desc[CPUIDLE_DESC_LEN];
-+	char			name[CPUIDLE_NAME_LEN];
-+	char			desc[CPUIDLE_DESC_LEN];
+ 	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
+ 
+@@ -253,12 +277,27 @@ static int intel_idle(struct cpuidle_device *dev,
+ 	 * for flushing the user TLB's associated with the active mm.
+ 	 */
+ 	if (state->flags & CPUIDLE_FLAG_TLB_FLUSHED)
+-		leave_mm(cpu);
++		leave_mm(dev->cpu);
+ 
+ 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+ 
+-	kt_before = ktime_get_real();
++	return index;
++}
 +
-+	unsigned int		flags;
-+	unsigned int		exit_latency; /* in US */
-+	unsigned int		power_usage; /* in mW */
-+	unsigned int		target_residency; /* in US */
-+
-+	int (*pre_enter)	(struct cpuidle_device *dev,
-+				struct cpuidle_driver *drv,
-+				int index);
++/**
++ * intel_idle
++ * @dev: cpuidle_device
++ * @drv: cpuidle driver
++ * @index: index of cpuidle state
++ *
++ * Must be called under local_irq_disable().
++ */
++static int intel_idle(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	const unsigned long eax =
++			(unsigned long)dev->states_usage[index].driver_data;
  
--	unsigned int	flags;
--	unsigned int	exit_latency; /* in US */
--	unsigned int	power_usage; /* in mW */
--	unsigned int	target_residency; /* in US */
-+	int (*enter)		(struct cpuidle_device *dev,
-+				struct cpuidle_driver *drv,
-+				int index);
+ 	stop_critical_timings();
+ 	if (!need_resched()) {
+@@ -266,21 +305,30 @@ static int intel_idle(struct cpuidle_device *dev,
+ 		__monitor((void *)&current_thread_info()->flags, 0, 0);
+ 		smp_mb();
+ 		if (!need_resched())
+-			__mwait(eax, ecx);
++			__mwait(eax, 1);
+ 	}
+-
+ 	start_critical_timings();
  
--	int (*enter)	(struct cpuidle_device *dev,
--			struct cpuidle_driver *drv,
--			int index);
-+	int (*post_enter)	(struct cpuidle_device *dev,
-+				struct cpuidle_driver *drv,
-+				int index);
- };
+-	kt_after = ktime_get_real();
+-	usec_delta = ktime_to_us(ktime_sub(kt_after, kt_before));
++	return index;
++}
  
- /* Idle State Flags */
+-	local_irq_enable();
++/**
++ * intel_post_idle
++ * @dev: cpuidle_device
++ * @drv: cpuidle driver
++ * @index: index of cpuidle state
++ */
++static int intel_post_idle(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	const unsigned long eax =
++			(unsigned long)dev->states_usage[index].driver_data;
++	unsigned int cstate;
+ 
+-	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
+ 
+-	/* Update cpuidle counters */
+-	dev->last_residency = (int)usec_delta;
++	if (!(lapic_timer_reliable_states & (1 << (cstate))))
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+ 
+ 	return index;
+ }
 -- 
 1.7.1
 
