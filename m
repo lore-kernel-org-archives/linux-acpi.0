@@ -1,126 +1,250 @@
-From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Fri, 03 Feb 2012 16:24:41 +0100
-Message-ID: <2560725.o9gzJOnNC7@pali>
-References: <3123346.jTQFjj4kVk@pali-elitebook> <1327030139.15960.84.camel@linux-s257.site> <2085914.rvJjIXUC3h@pali>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
+Date: Fri, 3 Feb 2012 15:05:08 -0500
+Message-ID: <20120203200508.GA1556@phenom.dumpdata.com>
+References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
+	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
+	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
+	<20120112174958.GA22515@phenom.dumpdata.com>
+	<20120112202308.GA2030@phenom.dumpdata.com>
+	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1342636.kuLzqCoOp4"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <2085914.rvJjIXUC3h@pali>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Cihula, Joseph" <joseph.cihula@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Jan 26, 2012 at 12:16:39AM +0000, Cihula, Joseph wrote:
+> > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> > Sent: Thursday, January 12, 2012 12:23 PM
+> eturn values for tboot_sleep
+> > 
+> > On Thu, Jan 12, 2012 at 09:49:58AM -0800, Konrad Rzeszutek Wilk wrote:
+> > > On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
+> > > > ACK, but tboot_sleep() calls tboot_shutdown() and there are error conditions in that which you
+> > are not reflecting upward--i.e. you should make tboot_shutdown() return an 'int' and propagate its
+> > errors through tboot_sleep().
+> > >
+> > > Hey Joe,
+> > >
+> > > Thanks for looking at the patches.
+> > >
+> > > Right now [with this patch applied] the code looks as so:
+> > >
+> > > 297
+> > > 298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
+> > > 299         return 0;
+> > > 300 }
+> > >
+> > >
+> > > If we do make tboot_shutdown() return an int, there will be a need to
+> > > modify other callers: native_machine_emergency_restart,
+> > > native_machine_halt, native_machine_power_off, and native_play_dead as well.
+> > >
+> > > Perhaps that could be done in another patch and leave this one as is
+> > > where the 'tboot_sleep' would just return 0 instead of 'return
+> > > tboot_shutdown(...)' ?
+> > >
+> > > Perhaps another way to do this is to extract the common code of
+> > > tboot_sleep and tboot_shutdown?
+> 
+> I'd be happier to see the callers above changed to handle a tboot_shutdown() that returned an error than splitting this up and only checking the error in one path.
 
---nextPart1342636.kuLzqCoOp4
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
+OK, so something like this then:
 
-On Friday 20 January 2012 17:55:57 Pali Roh=C3=A1r wrote:
-> On Friday 20 January 2012 11:28:59 joeyli wrote:
-> > =E6=96=BC =E4=BA=94=EF=BC=8C2012-01-20 =E6=96=BC 11:12 +0800=EF=BC=8C=
-joeyli =E6=8F=90=E5=88=B0=EF=BC=9A
-> >=20
-> > > Hi Pali,
-> > >=20
-> > > Sorry for I am late reply you.
-> > >=20
-> > > =E6=96=BC =E4=BA=8C=EF=BC=8C2012-01-17 =E6=96=BC 19:10 +0100=EF=BC=
-=8CPali Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
-> > >=20
-> > > > On Wednesday 21 December 2011 12:45:07 Pali Roh=C3=A1r wrote:
-> > > > > Hello,
-> > > > >=20
-> > > > > I tried to boot with all 3 strings in acpi_os_name, but nothi=
-ng was
-> > > > > changed. I'm attaching dmesg outputs, one from BIOS mode, one=
- from
-> > > > > UEFI mode. Both are with "Microsoft Windows NT".
-> > > >=20
-> > > > Did you looked at my logs?
-> > >=20
-> > > I checked your dmesg log, found the acpi_os_name kernel parameter=
- is :
-> > >=20
-> > > [    0.000000] Command line: BOOT_IMAGE=3D/vmlinuz-3.2.0-4-generi=
-c
-> > > root=3DUUID=3D4ec6272a-8551-40f3-a1b1-3e10984f3e69 ro pcie_aspm=3D=
-force
-> > > acpi.debug_level=3D0x2 acpi.debug_layer=3D0xFFFFFFFF "acpi_os_nam=
-e=3DMicrosoft
-> > > Windows NT" splash vt.handoff=3D7
-> > >=20
-> > > We still need by-pass the os name check in DSDT when test functio=
-n key,
-> > >=20
-> > > please help to feed:
-> > > =09acpi_os_name=3D"Windows 2009"
-> > >=20
-> > > And,
-> > > looks like the acpi debug level not enough, please kindly change =
-acpi
-> > >=20
-> > > debug parameter to:
-> > > =09acpi.debug_level=3D0xF acpi.debug_layer=3D0xFFFFFFFF log_buf_l=
-en=3D5M
-> > >=20
-> > > summary:
-> > > =09acpi.debug_level=3D0xF acpi.debug_layer=3D0xFFFFFFFF log_buf_l=
-en=3D5M
-> > > =09acpi_os_name=3D"Windows 2009"
-> >=20
-> > Forgot remind,
-> > please remember press brightness function key a couple of times bef=
-ore
-> > you dump the dmesg and messages log.
-> >=20
-> >=20
-> > Thanks a lot!
-> > Joey Lee
->=20
-> Hello,
->=20
-> there was no acpi log, so I recompiled ubuntu kernel with
-> CONFIG_ACPI_DEBUG=3Dy and CONFIG_ACPI_DEBUG_FUNC_TRACE. Then I starte=
-d kernel
-> with your params.
->=20
-> Now I'm attaching very long debug output. I belive it will be now use=
-full.
->=20
-> Pressing brightness keys did not show anything in log.
->=20
-> After writing 0 to /sys/class/backlight/acpi_video0/brightness in log=
+>From da60a441fd62aee83763758455c08c281893ae93 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Thu, 8 Dec 2011 17:14:08 +0800
+Subject: [PATCH] tboot: Add return values for tboot_sleep and consequently
+ tboot_shutdown
 
-> appear: [   57.675070] [ACPI Debug]  Integer 0x000000000000000B
-> ...
->=20
-> And after writing 10:
-> [   99.865208] [ACPI Debug]  Integer 0x0000000000000048
-> [   99.865295]   evmisc-0120 [4294967289] ev_queue_notify_reques:
-> Dispatching Notify on [DGFX] Node ffff880136246c80 Value 0xD0 (**Devi=
-ce
-> Specific**) [   99.865350]    video-1474 [4294967289] video_bus_notif=
-y    =20
-> : Unsupported event [0xd0]
+.. as appropiately. As tboot_sleep now returns values.
+remove tboot_sleep_wrapper.
 
-Do you need more logs? Or is this enought?
+Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Joseph Cihula <joseph.cihula@intel.com>
+[v1: Return -1/0/+1 instead of ACPI_xx values]
+[v2: Also make tboot_shutdown return error code]
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/kernel/reboot.c  |    6 +++---
+ arch/x86/kernel/smpboot.c |    2 +-
+ arch/x86/kernel/tboot.c   |   33 +++++++++++++++------------------
+ include/linux/tboot.h     |    4 ++--
+ 4 files changed, 21 insertions(+), 24 deletions(-)
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---nextPart1342636.kuLzqCoOp4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAk8r/DkACgkQi/DJPQPkQ1KsbgCgnqhyuGTyxcRSELBEGemxRtCe
-/ygAn1voQ7b7sjq2YZB20btfwYdLOAbh
-=VrYp
------END PGP SIGNATURE-----
-
---nextPart1342636.kuLzqCoOp4--
+diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+index 37a458b..b29326a 100644
+--- a/arch/x86/kernel/reboot.c
++++ b/arch/x86/kernel/reboot.c
+@@ -549,7 +549,7 @@ static void native_machine_emergency_restart(void)
+ 	if (reboot_emergency)
+ 		emergency_vmx_disable_all();
+ 
+-	tboot_shutdown(TB_SHUTDOWN_REBOOT);
++	WARN_ON(tboot_shutdown(TB_SHUTDOWN_REBOOT));
+ 
+ 	/* Tell the BIOS if we want cold or warm reboot */
+ 	*((unsigned short *)__va(0x472)) = reboot_mode;
+@@ -684,7 +684,7 @@ static void native_machine_halt(void)
+ 	/* stop other cpus and apics */
+ 	machine_shutdown();
+ 
+-	tboot_shutdown(TB_SHUTDOWN_HALT);
++	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
+ 
+ 	/* stop this cpu */
+ 	stop_this_cpu(NULL);
+@@ -698,7 +698,7 @@ static void native_machine_power_off(void)
+ 		pm_power_off();
+ 	}
+ 	/* a fallback in case there is no PM info available */
+-	tboot_shutdown(TB_SHUTDOWN_HALT);
++	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
+ }
+ 
+ struct machine_ops machine_ops = {
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 66d250c..9aa903a 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -1419,7 +1419,7 @@ static inline void hlt_play_dead(void)
+ void native_play_dead(void)
+ {
+ 	play_dead_common();
+-	tboot_shutdown(TB_SHUTDOWN_WFS);
++	WARN_ON(tboot_shutdown(TB_SHUTDOWN_WFS));
+ 
+ 	mwait_play_dead();	/* Only returns on failure */
+ 	hlt_play_dead();
+diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
+index 1a4ab7d..9504a7a 100644
+--- a/arch/x86/kernel/tboot.c
++++ b/arch/x86/kernel/tboot.c
+@@ -217,12 +217,12 @@ static int tboot_setup_sleep(void)
+ 
+ #endif
+ 
+-void tboot_shutdown(u32 shutdown_type)
++int tboot_shutdown(u32 shutdown_type)
+ {
+ 	void (*shutdown)(void);
+ 
+ 	if (!tboot_enabled())
+-		return;
++		return 0;
+ 
+ 	/*
+ 	 * if we're being called before the 1:1 mapping is set up then just
+@@ -230,13 +230,14 @@ void tboot_shutdown(u32 shutdown_type)
+ 	 * due to very early panic()
+ 	 */
+ 	if (!tboot_pg_dir)
+-		return;
++		return 0;
+ 
+ 	/* if this is S3 then set regions to MAC */
+-	if (shutdown_type == TB_SHUTDOWN_S3)
+-		if (tboot_setup_sleep())
+-			return;
+-
++	if (shutdown_type == TB_SHUTDOWN_S3) {
++		int rc = tboot_setup_sleep();
++		if (rc)
++			return rc;
++	}
+ 	tboot->shutdown_type = shutdown_type;
+ 
+ 	switch_to_tboot_pt();
+@@ -247,6 +248,8 @@ void tboot_shutdown(u32 shutdown_type)
+ 	/* should not reach here */
+ 	while (1)
+ 		halt();
++
++	return 0;
+ }
+ 
+ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+@@ -272,7 +275,7 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+ 		offsetof(struct acpi_table_facs, firmware_waking_vector);
+ }
+ 
+-void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
++static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ {
+ 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+ 		/* S0,1,2: */ -1, -1, -1,
+@@ -281,7 +284,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ 		/* S5: */ TB_SHUTDOWN_S5 };
+ 
+ 	if (!tboot_enabled())
+-		return;
++		return 0;
+ 
+ 	tboot_copy_fadt(&acpi_gbl_FADT);
+ 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
+@@ -292,16 +295,10 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+ 	if (sleep_state >= ACPI_S_STATE_COUNT ||
+ 	    acpi_shutdown_map[sleep_state] == -1) {
+ 		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
+-		return;
++		return -1;
+ 	}
+ 
+-	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+-}
+-static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
+-			       u32 pm1b_control)
+-{
+-	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+-	return 0;
++	return tboot_shutdown(acpi_shutdown_map[sleep_state]);
+ }
+ 
+ static atomic_t ap_wfs_count;
+@@ -352,7 +349,7 @@ static __init int tboot_late_init(void)
+ 	atomic_set(&ap_wfs_count, 0);
+ 	register_hotcpu_notifier(&tboot_cpu_notifier);
+ 
+-	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
++	acpi_os_set_prepare_sleep(&tboot_sleep);
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/tboot.h b/include/linux/tboot.h
+index c75128b..8f14fe0 100644
+--- a/include/linux/tboot.h
++++ b/include/linux/tboot.h
+@@ -142,7 +142,7 @@ static inline int tboot_enabled(void)
+ }
+ 
+ extern void tboot_probe(void);
+-extern void tboot_shutdown(u32 shutdown_type);
++extern int tboot_shutdown(u32 shutdown_type);
+ extern struct acpi_table_header *tboot_get_dmar_table(
+ 				      struct acpi_table_header *dmar_tbl);
+ extern int tboot_force_iommu(void);
+@@ -151,7 +151,7 @@ extern int tboot_force_iommu(void);
+ 
+ #define tboot_enabled()			0
+ #define tboot_probe()			do { } while (0)
+-#define tboot_shutdown(shutdown_type)	do { } while (0)
++#define tboot_shutdown(shutdown_type)	0
+ #define tboot_sleep(sleep_state, pm1a_control, pm1b_control)	\
+ 					do { } while (0)
+ #define tboot_get_dmar_table(dmar_tbl)	(dmar_tbl)
+-- 
+1.7.7.5
