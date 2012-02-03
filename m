@@ -1,205 +1,103 @@
-From: Rob Lee <rob.lee@linaro.org>
-Subject: Re: [RFC PATCH v4 2/4] ARM: omap: Remove cpuidle timekeeping and irq enable/disable
-Date: Thu, 2 Feb 2012 11:35:54 -0600
-Message-ID: <CAMXH7KEURU-TETr21fU_xrdETxgiscYG4PaVcDbhevojzuQUeg@mail.gmail.com>
-References: <1328065215-28108-1-git-send-email-rob.lee@linaro.org>
-	<1328065215-28108-3-git-send-email-rob.lee@linaro.org>
-	<CAORVsuXLPjc7X+D1jVP1KyjgUWZhtUnA3F-iz-d-DqtHRmLShA@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC PATCH 0/2] thermal: Add generic cpu cooling devices
+ according to thermal framework
+Date: Fri, 03 Feb 2012 15:12:27 +0800
+Message-ID: <1328253147.20438.19.camel@rui.sh.intel.com>
+References: <1323789196-4942-1-git-send-email-amit.kachhap@linaro.org>
+	 <CAK44p22LmkGVo0W5eoT5Ms57pkP7PbWoxNS2c8bnx=1FhBvamA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:64633 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932740Ab2BBRfz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2012 12:35:55 -0500
-In-Reply-To: <CAORVsuXLPjc7X+D1jVP1KyjgUWZhtUnA3F-iz-d-DqtHRmLShA@mail.gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:16432 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753831Ab2BCHMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Feb 2012 02:12:34 -0500
+In-Reply-To: <CAK44p22LmkGVo0W5eoT5Ms57pkP7PbWoxNS2c8bnx=1FhBvamA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: len.brown@intel.com, khilman@ti.com, nicolas.pitre@linaro.org, linaro-dev@lists.linaro.org, linux@arm.linux.org.uk, kgene.kim@samsung.com, linux-pm@vger.kernel.org, magnus.damm@gmail.com, linux-acpi@vger.kernel.org, arnd.bergmann@linaro.org, patches@linaro.org, nsekhar@ti.com, s.hauer@pengutronix.de, Baohua.Song@csr.com, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com
+To: Amit Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Thu, Feb 2, 2012 at 10:21 AM, Jean Pihet <jean.pihet@newoldbits.com>=
- wrote:
-> Rob,
->
-> On Wed, Feb 1, 2012 at 4:00 AM, Robert Lee <rob.lee@linaro.org> wrote=
-:
->> Now that the core cpuidle driver keeps time and handles irq enabling=
-,
->> remove this functionality. =A0Also, remove irq disabling as all path=
-s to
->> cpuidle_idle_call already call local_irq_disable. =A0Also, restructu=
-re
->> idle functions as needed by the cpuidle core driver changes.
->>
->> Signed-off-by: Robert Lee <rob.lee@linaro.org>
->> ---
->> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 96 ++++++++++++++++------=
---------------
->> =A01 files changed, 43 insertions(+), 53 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2=
-/cpuidle34xx.c
->> index 464cffd..9ecded5 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> ...
->
->> @@ -100,23 +107,20 @@ static int omap3_enter_idle(struct cpuidle_dev=
-ice *dev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struc=
-t cpuidle_driver *drv,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int i=
-ndex)
->> =A0{
->> - =A0 =A0 =A0 struct omap3_idle_statedata *cx =3D
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpuidle_get_statedata(=
-&dev->states_usage[index]);
->> - =A0 =A0 =A0 struct timespec ts_preidle, ts_postidle, ts_idle;
->> - =A0 =A0 =A0 u32 mpu_state =3D cx->mpu_state, core_state =3D cx->co=
-re_state;
->> - =A0 =A0 =A0 int idle_time;
->> + =A0 =A0 =A0 struct omap3_idle_drvdata *dd =3D dev->states_usage[in=
-dex].driver_data
-> A build error is triggered by the missing ";".
+Hi, sorry for the late response.
 
-Argh, last minute change and I didn't build afterward.
+On =E5=9B=9B, 2012-01-19 at 14:47 +0530, Amit Kachhap wrote:
+> On 13 December 2011 20:43, Amit Daniel Kachhap <amit.kachhap@linaro.o=
+rg> wrote:
+> > PATCH 1)  [thermal: Add a new trip type to use cooling device insta=
+nce number]
+> > This patch adds a new trip type THERMAL_TRIP_STATE_ACTIVE which pas=
+ses
+> > cooling device instance number and may be helpful for cpufreq cooli=
+ng devices
+> > to take the correct cooling action.
+> >
+Sorry, I'm still not quite clear about how this will be used.
+Say, processor has P0~P3, then we need to register a thermal zone with
+three STATE_ACTIVE trip points, like the picture shown below?
 
->
-> ...
->
->> @@ -147,18 +151,12 @@ static int omap3_enter_idle(struct cpuidle_dev=
-ice *dev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_for_each_clkdm(core_pd, _cpuidl=
-e_allow_idle);
->> =A0 =A0 =A0 =A0}
->>
->> -return_sleep_time:
->> - =A0 =A0 =A0 getnstimeofday(&ts_postidle);
->> - =A0 =A0 =A0 ts_idle =3D timespec_sub(ts_postidle, ts_preidle);
->> -
->> - =A0 =A0 =A0 local_irq_enable();
->> +leave:
->> =A0 =A0 =A0 =A0local_fiq_enable();
->>
->> - =A0 =A0 =A0 idle_time =3D ts_idle.tv_nsec / NSEC_PER_USEC + ts_idl=
-e.tv_sec * \
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 USEC_PER_SEC;
->> -
->> - =A0 =A0 =A0 /* Update cpuidle counters */
->> - =A0 =A0 =A0 dev->last_residency =3D idle_time;
->> + =A0 =A0 =A0 /* Restore original PER state if it was modified */
->> + =A0 =A0 =A0 if (dd->per_next_state !=3D dd->per_saved_state)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_next_pwrst(per_pd, dd->per_s=
-aved_state);
-> This code is not necessarily balanced with the PER state change in
-> omap3_enter_idle_bm (cf. "/* Are we changing PER target state? */"
-> here below), since in the core cpuidle code there is no guarantee tha=
-t
-> the calls to pre_enter and enter callbacks are balanced.
-> In general I fear that splitting the code in two functions introduces
-> a risk of programming non-coherent settings in the PRCM.
+processor in full speed, i.e. P0
+----------------------------=20
+state active trip point 1
+----------------------------
+processor in P1
+----------------------------
+state active trip point 2
+----------------------------
+processor in P2
+----------------------------
+state active trip point 3
+----------------------------
+processor in P3
 
-Agree, in general it does introduce that new risk.  For the platform
-code changes, I tried to keep the code paths the same as before.  I
-see now where I created a problem though:
+> > PATCH 2)  [thermal: Add generic cpu cooling implementation]
+> > This patch adds generic cpu cooling low level implementation throug=
+h frequency
+> > clipping and cpu hotplug. In future, other cpu related cooling devi=
+ces may be
+> > added here. An ACPI version of this already exists(drivers/acpi/pro=
+cessor_thermal.c).
+> > But this will be useful for platforms like ARM using the generic th=
+ermal interface
+> > along with the generic cpu cooling devices. The cooling device regi=
+stration API's
+> > return cooling device pointers which can be easily binded with the =
+thermal zone
+> > trip points.
+> >
+It seems that we can convert the ACPI processor thermal driver to follo=
+w
+this generic cpu cooling implementation, right?
 
-=2E..
-	if (target_state->pre_enter) {
-		idx =3D target_state->
-			pre_enter(dev, drv, idx);
-	}
-
-	if (idx < 0) {
-		local_irq_enable();
-		return idx;
-	}
-
-	if (need_resched()) {
-		local_irq_enable();
-		return -EBUSY;
-	}
-
-=2E..
-
-The only way the core cpuidle pre_enter can get called without enter
-without enter is if the omap3 next_valid_state() returned a negative
-value.  If this ever happened in the existing omap3 code, it would
-cause it to break anyway.  But, this particular need_resched() call
-could cause an exit that results in difference behavior than before.
-One solution to that is just to move the need_resched check before the
-pre_enter call.
-
->
-> ...
->
->> @@ -255,8 +255,9 @@ static int omap3_enter_idle_bm(struct cpuidle_de=
-vice *dev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int inde=
-x)
->> =A0{
->> =A0 =A0 =A0 =A0int new_state_idx;
->> - =A0 =A0 =A0 u32 core_next_state, per_next_state =3D 0, per_saved_s=
-tate =3D 0, cam_state;
->> - =A0 =A0 =A0 struct omap3_idle_statedata *cx;
->> + =A0 =A0 =A0 u32 core_next_state, cam_state;
->> + =A0 =A0 =A0 struct omap3_idle_drvdata *dd =3D dev->states_usage[in=
-dex].driver_data;
->> + =A0 =A0 =A0 struct omap3_idle_statedata *cx =3D &dd->state_data[in=
-dex];
->> =A0 =A0 =A0 =A0int ret;
-> The build throws a few warnings about unused variables:
->
-> arch/arm/mach-omap2/cpuidle34xx.c: In function 'omap3_enter_idle_bm':
-> arch/arm/mach-omap2/cpuidle34xx.c:261: warning: unused variable 'ret'
-> arch/arm/mach-omap2/cpuidle34xx.c:257: warning: unused variable 'new_=
-state_idx'
->
-> ...
->
-
-Got it, not sure why I missed this.
-
->>
->> =A0DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
->> @@ -337,7 +329,8 @@ static inline void _fill_cstate(struct cpuidle_d=
-river *drv,
->> =A0 =A0 =A0 =A0state->exit_latency =A0 =A0 =3D cpuidle_params_table[=
-idx].exit_latency;
->> =A0 =A0 =A0 =A0state->target_residency =3D cpuidle_params_table[idx]=
-=2Etarget_residency;
->> =A0 =A0 =A0 =A0state->flags =A0 =A0 =A0 =A0 =A0 =A0=3D CPUIDLE_FLAG_=
-TIME_VALID;
->> - =A0 =A0 =A0 state->enter =A0 =A0 =A0 =A0 =A0 =A0=3D omap3_enter_id=
-le_bm;
->> + =A0 =A0 =A0 state->pre_enter =A0 =A0 =A0 =A0=3D omap3_enter_idle_b=
-m;
->> + =A0 =A0 =A0 state->enter =A0 =A0 =A0 =A0 =A0 =A0=3D omap3_enter_id=
-le;
->> =A0 =A0 =A0 =A0sprintf(state->name, "C%d", idx + 1);
->> =A0 =A0 =A0 =A0strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
->>
-> ...
->
-> Also the line at 373 is not needed anymore in omap3_idle_init, since
-> the enter callback is filled in in the _fill_cstate function:
-> =A0 =A0 =A0 =A0/* C1 . MPU WFI + Core active */
-> =A0 =A0 =A0 =A0_fill_cstate(drv, 0, "MPU ON + CORE ON");
-> =A0 =A0 =A0 =A0(&drv->states[0])->enter =3D omap3_enter_idle; =A0 =A0=
- =A0 =A0 =A0 =A0 <=3D=3D
-> not needed anymore
-> =A0 =A0 =A0 =A0drv->safe_state_index =3D 0;
->
-> More testing on OMAP3 is needed. Let me come back with the results as=
-ap.
->
-
-Understand and thanks for reviewing.
-
+thanks,
+rui
+>=20
+> Any comments on these patches? I submitted them quite long back.
+>=20
 > Regards,
-> Jean
+> Amit D
+>=20
+> >
+> > Amit Daniel Kachhap (2):
+> >  thermal: Add a new trip type to use cooling device instance number
+> >  thermal: Add generic cpu cooling implementation
+> >
+> >  Documentation/thermal/cpu-cooling-api.txt |   52 +++++
+> >  Documentation/thermal/sysfs-api.txt       |    4 +-
+> >  drivers/thermal/Kconfig                   |   11 +
+> >  drivers/thermal/Makefile                  |    1 +
+> >  drivers/thermal/cpu_cooling.c             |  302 +++++++++++++++++=
+++++++++++++
+> >  drivers/thermal/thermal_sys.c             |   27 +++-
+> >  include/linux/cpu_cooling.h               |   45 +++++
+> >  include/linux/thermal.h                   |    1 +
+> >  8 files changed, 440 insertions(+), 3 deletions(-)
+> >  create mode 100644 Documentation/thermal/cpu-cooling-api.txt
+> >  create mode 100644 drivers/thermal/cpu_cooling.c
+> >  create mode 100644 include/linux/cpu_cooling.h
+> >
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
