@@ -1,219 +1,94 @@
-From: Kamil Iskra <kamil.54002@iskra.name>
-Subject: Patch to correct battery capacity values on Thinkpads
-Date: Fri, 3 Feb 2012 23:59:55 -0600
-Message-ID: <20120204055955.GB5617@scooby.iskra.name>
+From: Colin Cross <ccross@google.com>
+Subject: Re: [RFC PATCH v4 1/4] cpuidle: Add time keeping and irq enabling
+Date: Sat, 4 Feb 2012 11:02:47 -0800
+Message-ID: <CAMbhsRQxgvRN0skteFxeDBqmUArTa3wu2uZPqowDnBTSWuqScg@mail.gmail.com>
+References: <1328065215-28108-1-git-send-email-rob.lee@linaro.org>
+	<1328065215-28108-2-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scooby.iskra.name ([184.171.245.232]:33819 "EHLO
-	mail.iskra.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab2BDG0z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2012 01:26:55 -0500
-Content-Disposition: inline
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58868 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224Ab2BDTCu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2012 14:02:50 -0500
+Received: by mail-iy0-f174.google.com with SMTP id b35so6384961iac.19
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Feb 2012 11:02:49 -0800 (PST)
+In-Reply-To: <1328065215-28108-2-git-send-email-rob.lee@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Robert Lee <rob.lee@linaro.org>
+Cc: len.brown@intel.com, khilman@ti.com, nicolas.pitre@linaro.org, daniel.lezcano@linaro.org, linaro-dev@lists.linaro.org, nicolas.ferre@atmel.com, linux@arm.linux.org.uk, kgene.kim@samsung.com, mturquette@linaro.org, linux-pm@vger.kernel.org, magnus.damm@gmail.com, linux-acpi@vger.kernel.org, shawn.guo@freescale.com, arnd.bergmann@linaro.org, patches@linaro.org, nsekhar@ti.com, s.hauer@pengutronix.de, Baohua.Song@csr.com, vincent.guittot@linaro.org, linux@maxim.org.za, linux-arm-kernel@lists.infradead.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, amit.kucheria@linaro.org, amit.kachhap@linaro.org
 
-[ Note: this is a follow-up on
-https://bugzilla.kernel.org/show_bug.cgi?id=41062 ]
+On Tue, Jan 31, 2012 at 7:00 PM, Robert Lee <rob.lee@linaro.org> wrote:
+> Make necessary changes to add implement time keepign and irq enabling
+keeping
+> in the core cpuidle code. =A0This will allow the remove of these
+> functionalities from the platform cpuidle implementations.
+>
+> Signed-off-by: Robert Lee <rob.lee@linaro.org>
+> ---
+> =A0drivers/cpuidle/cpuidle.c | =A0 75 +++++++++++++++++++++++++++++++=
+++++---------
+> =A0include/linux/cpuidle.h =A0 | =A0 26 ++++++++++-----
+> =A02 files changed, 76 insertions(+), 25 deletions(-)
+>
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index 59f4261..8ea0fc3 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -57,14 +57,18 @@ static int __cpuidle_register_device(struct cpuid=
+le_device *dev);
+> =A0* cpuidle_idle_call - the main idle loop
+> =A0*
+> =A0* NOTE: no locks or semaphores should be used here
+> + * NOTE: Should only be called from a local irq disabled context
+> =A0* return non-zero on failure
+> + *
+> =A0*/
+> =A0int cpuidle_idle_call(void)
+> =A0{
+> =A0 =A0 =A0 =A0struct cpuidle_device *dev =3D __this_cpu_read(cpuidle=
+_devices);
+> =A0 =A0 =A0 =A0struct cpuidle_driver *drv =3D cpuidle_get_driver();
+> =A0 =A0 =A0 =A0struct cpuidle_state *target_state;
+> - =A0 =A0 =A0 int next_state, entered_state;
+> + =A0 =A0 =A0 int idx, ret =3D 0;
+> + =A0 =A0 =A0 ktime_t t1, t2;
+> + =A0 =A0 =A0 s64 diff;
+>
+> =A0 =A0 =A0 =A0if (off)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+> @@ -86,37 +90,76 @@ int cpuidle_idle_call(void)
+> =A0#endif
+>
+> =A0 =A0 =A0 =A0/* ask the governor for the next state */
+> - =A0 =A0 =A0 next_state =3D cpuidle_curr_governor->select(drv, dev);
+> + =A0 =A0 =A0 idx =3D cpuidle_curr_governor->select(drv, dev);
+> +
+> + =A0 =A0 =A0 target_state =3D &drv->states[idx];
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Check with the device to see if it can enter this =
+state or if another
+> + =A0 =A0 =A0 =A0* state should be used.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (target_state->pre_enter) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 idx =3D target_state->
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pre_enter(dev, drv, idx=
+);
+Unnecessary line wrap and braces.
 
-Please find below a patch to drivers/acpi/battery.c that adds a quirk to
-correctly report battery capacity on recent Lenovo Thinkpad models.  The
-2010 and 2011 Thinkpad models that I tested (x201, t410, t410s, and x220)
-exhibit a problem where, when battery capacity reporting unit is mAh, the
-values being reported are wrong.
-
-For some reason, these Thinkpads switch the reporting unit between mAh and
-mWh; generally, mAh is used when a laptop is plugged in and mWh when it's
-unplugged, although a suspend/resume or rmmod/modprobe is needed for the
-switch to take an effect.
-
-Anyway, the values reported in mAh are *always* wrong.  I tested back to
-kernel 2.6.34, with multiple machines and BIOS versions.  Simply plugging a
-laptop into mains before turning it on is enough to reproduce the problem.
-Here's a sample /proc/acpi/battery/BAT0/info from Thinkpad x220 with a
-4-cell battery:
-
-present:                 yes
-design capacity:         2886 mAh
-last full capacity:      2909 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 145 mAh
-design capacity low:     13 mAh
-cycle count:              0
-capacity granularity 1:  1 mAh
-capacity granularity 2:  1 mAh
-model number:            42T4899
-serial number:           21064
-battery type:            LION
-OEM info:                SANYO
-
-Once the laptop switches the unit to mWh, the output changes to:
-
-present:                 yes
-design capacity:         28860 mWh
-last full capacity:      29090 mWh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 1454 mWh
-design capacity low:     200 mWh
-cycle count:              0
-capacity granularity 1:  1 mWh
-capacity granularity 2:  1 mWh
-model number:            42T4899
-serial number:           21064
-battery type:            LION
-OEM info:                SANYO
-
-Can you see how the values for "design capacity", etc., differ by a factor
-of 10 instead of 14.8 (the design voltage of this battery)?  On the battery
-itself it says: 14.8V, 1.95Ah, 29Wh, so clearly the values reported in mWh
-are correct and the ones in mAh are not.
-
-My guess is that this problem has been around ever since those machines
-have been released, but because the most common Thinkpad batteries are
-rated at 10.8V, the error (8%) is small enough that it simply hasn't been
-noticed or at least nobody could be bothered to look into it.
-
-Pre-2010 Thinkpads (tested with t42, t61, t500, x200, x300) appear to
-always report in mWh, so they should be fine.
-
-My patch works around the problem by adjusting the incorrectly reported mAh
-values by "10000 / design_voltage".  The patch also has code to figure out
-if it should be activated or not.  The patch only activates on Lenovo
-Thinkpads, and only when the battery capacity reported through ACPI does
-not match what is reported through DMI.  It should thus be safe on all
-machines, including future models.
-
-I've been using this patch for sever months on several systems without any
-problems.  I believe it is ready to be applied, although I lack kernel
-hacking experience to make that determination.  Obviously, a better
-solution would be to somehow force the machines to always report the
-battery capacity in mWh, which does not require correction and would thus
-make this patch unnecessary, but I have no idea how to do that or if it is
-even possible at all.
-
-Note that I'm not on the list so I would appreciate a Cc on any replies.  I
-will also try to monitor the list archives.
-
-Kamil Iskra
-
-
---- battery.c.orig	2011-08-08 21:47:15.812854942 -0500
-+++ battery.c	2011-09-03 23:16:02.203031764 -0500
-@@ -34,6 +34,7 @@
- #include <linux/dmi.h>
- #include <linux/slab.h>
- #include <linux/suspend.h>
-+#include <asm/unaligned.h>
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- #include <linux/proc_fs.h>
-@@ -95,6 +96,14 @@ enum {
- 	ACPI_BATTERY_ALARM_PRESENT,
- 	ACPI_BATTERY_XINFO_PRESENT,
- 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
-+	/* Starting with the 2010 Lenovo Thinkpad models, the power unit
-+	   switches between mWh and mAh depending on whether the system
-+	   is running on battery or not.  When mAh is the unit, most
-+	   reported values are incorrect and need to be adjusted by
-+	   10000/design_voltage.  Verified on x201, t410, t410s, and x220.
-+	   It appears that the pre-2010 Thinkpads always report in mWh and
-+	   are thus unaffected (tested with t42, t61, t500, x200, x300).  */
-+	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
- };
- 
- struct acpi_battery {
-@@ -429,6 +438,21 @@ static int acpi_battery_get_info(struct
- 	kfree(buffer.pointer);
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
- 		battery->full_charge_capacity = battery->design_capacity;
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-+	    battery->power_unit && battery->design_voltage) {
-+		battery->design_capacity = battery->design_capacity *
-+		    10000 / battery->design_voltage;
-+		battery->full_charge_capacity = battery->full_charge_capacity *
-+		    10000 / battery->design_voltage;
-+		battery->design_capacity_warning =
-+		    battery->design_capacity_warning *
-+		    10000 / battery->design_voltage;
-+		/* Curiously, design_capacity_low, unlike the rest of them,
-+		   is correct.  */
-+		/* capacity_granularity_* equal 1 on the systems tested, so
-+		   it's impossible to tell if they would need an adjustment
-+		   or not if their values were higher.  */
-+	}
- 	return result;
- }
- 
-@@ -477,6 +501,11 @@ static int acpi_battery_get_state(struct
- 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
- 		battery->capacity_now = (battery->capacity_now *
- 				battery->full_charge_capacity) / 100;
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-+	    battery->power_unit && battery->design_voltage) {
-+		battery->capacity_now = battery->capacity_now *
-+		    10000 / battery->design_voltage;
-+	}
- 	return result;
- }
- 
-@@ -586,6 +615,24 @@ static void sysfs_remove_battery(struct
- 	mutex_unlock(&battery->sysfs_lock);
- }
- 
-+static void find_battery(const struct dmi_header *dm, void *private)
-+{
-+	struct acpi_battery *battery = (struct acpi_battery *)private;
-+	/* Note: the hardcoded offsets below have been extracted from
-+	   the source code of dmidecode.  */
-+	if (dm->type == DMI_ENTRY_PORTABLE_BATTERY && dm->length >= 8) {
-+		const u8 *dmi_data = (const u8 *)(dm + 1);
-+		int dmi_capacity = get_unaligned((const u16 *)(dmi_data + 6));
-+		if (dm->length >= 18)
-+			dmi_capacity *= dmi_data[17];
-+		if (battery->design_capacity * battery->design_voltage / 1000
-+		    != dmi_capacity &&
-+		    battery->design_capacity * 10 == dmi_capacity)
-+			set_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-+				&battery->flags);
-+	}
-+}
-+
- /*
-  * According to the ACPI spec, some kinds of primary batteries can
-  * report percentage battery remaining capacity directly to OS.
-@@ -611,6 +658,32 @@ static void acpi_battery_quirks(struct a
- 		battery->capacity_now = (battery->capacity_now *
- 				battery->full_charge_capacity) / 100;
- 	}
-+
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
-+		return ;
-+
-+	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
-+		const char *s;
-+		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
-+		if (s && !strnicmp(s, "ThinkPad", 8)) {
-+			dmi_walk(find_battery, battery);
-+			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-+				     &battery->flags) &&
-+			    battery->design_voltage) {
-+				battery->design_capacity =
-+				    battery->design_capacity *
-+				    10000 / battery->design_voltage;
-+				battery->full_charge_capacity =
-+				    battery->full_charge_capacity *
-+				    10000 / battery->design_voltage;
-+				battery->design_capacity_warning =
-+				    battery->design_capacity_warning *
-+				    10000 / battery->design_voltage;
-+				battery->capacity_now = battery->capacity_now *
-+				    10000 / battery->design_voltage;
-+			}
-+		}
-+	}
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery)
+What's the point of the pre_enter call?  This seems very similar to
+the prepare call that was removed in 3.2.  Drivers can already demote
+the target state in their enter call.  The only thing you do between
+pre_enter and enter is trace and account for the time.  Is there some
+long call you don't want included in the idle time?  Some
+documentation would help, and you need to very clearly define the
+semantics of when post_enter gets called when pre_enter or enter
+return errors.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
