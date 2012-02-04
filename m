@@ -1,250 +1,219 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
-Date: Fri, 3 Feb 2012 15:05:08 -0500
-Message-ID: <20120203200508.GA1556@phenom.dumpdata.com>
-References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
-	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
-	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
-	<20120112174958.GA22515@phenom.dumpdata.com>
-	<20120112202308.GA2030@phenom.dumpdata.com>
-	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
+From: Kamil Iskra <kamil.54002@iskra.name>
+Subject: Patch to correct battery capacity values on Thinkpads
+Date: Fri, 3 Feb 2012 23:59:55 -0600
+Message-ID: <20120204055955.GB5617@scooby.iskra.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from scooby.iskra.name ([184.171.245.232]:33819 "EHLO
+	mail.iskra.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152Ab2BDG0z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2012 01:26:55 -0500
 Content-Disposition: inline
-In-Reply-To: <9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Cihula, Joseph" <joseph.cihula@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Thu, Jan 26, 2012 at 12:16:39AM +0000, Cihula, Joseph wrote:
-> > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> > Sent: Thursday, January 12, 2012 12:23 PM
-> eturn values for tboot_sleep
-> > 
-> > On Thu, Jan 12, 2012 at 09:49:58AM -0800, Konrad Rzeszutek Wilk wrote:
-> > > On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
-> > > > ACK, but tboot_sleep() calls tboot_shutdown() and there are error conditions in that which you
-> > are not reflecting upward--i.e. you should make tboot_shutdown() return an 'int' and propagate its
-> > errors through tboot_sleep().
-> > >
-> > > Hey Joe,
-> > >
-> > > Thanks for looking at the patches.
-> > >
-> > > Right now [with this patch applied] the code looks as so:
-> > >
-> > > 297
-> > > 298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
-> > > 299         return 0;
-> > > 300 }
-> > >
-> > >
-> > > If we do make tboot_shutdown() return an int, there will be a need to
-> > > modify other callers: native_machine_emergency_restart,
-> > > native_machine_halt, native_machine_power_off, and native_play_dead as well.
-> > >
-> > > Perhaps that could be done in another patch and leave this one as is
-> > > where the 'tboot_sleep' would just return 0 instead of 'return
-> > > tboot_shutdown(...)' ?
-> > >
-> > > Perhaps another way to do this is to extract the common code of
-> > > tboot_sleep and tboot_shutdown?
-> 
-> I'd be happier to see the callers above changed to handle a tboot_shutdown() that returned an error than splitting this up and only checking the error in one path.
+[ Note: this is a follow-up on
+https://bugzilla.kernel.org/show_bug.cgi?id=41062 ]
 
-OK, so something like this then:
+Please find below a patch to drivers/acpi/battery.c that adds a quirk to
+correctly report battery capacity on recent Lenovo Thinkpad models.  The
+2010 and 2011 Thinkpad models that I tested (x201, t410, t410s, and x220)
+exhibit a problem where, when battery capacity reporting unit is mAh, the
+values being reported are wrong.
 
->From da60a441fd62aee83763758455c08c281893ae93 Mon Sep 17 00:00:00 2001
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Date: Thu, 8 Dec 2011 17:14:08 +0800
-Subject: [PATCH] tboot: Add return values for tboot_sleep and consequently
- tboot_shutdown
+For some reason, these Thinkpads switch the reporting unit between mAh and
+mWh; generally, mAh is used when a laptop is plugged in and mWh when it's
+unplugged, although a suspend/resume or rmmod/modprobe is needed for the
+switch to take an effect.
 
-.. as appropiately. As tboot_sleep now returns values.
-remove tboot_sleep_wrapper.
+Anyway, the values reported in mAh are *always* wrong.  I tested back to
+kernel 2.6.34, with multiple machines and BIOS versions.  Simply plugging a
+laptop into mains before turning it on is enough to reproduce the problem.
+Here's a sample /proc/acpi/battery/BAT0/info from Thinkpad x220 with a
+4-cell battery:
 
-Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Acked-by: Joseph Cihula <joseph.cihula@intel.com>
-[v1: Return -1/0/+1 instead of ACPI_xx values]
-[v2: Also make tboot_shutdown return error code]
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- arch/x86/kernel/reboot.c  |    6 +++---
- arch/x86/kernel/smpboot.c |    2 +-
- arch/x86/kernel/tboot.c   |   33 +++++++++++++++------------------
- include/linux/tboot.h     |    4 ++--
- 4 files changed, 21 insertions(+), 24 deletions(-)
+present:                 yes
+design capacity:         2886 mAh
+last full capacity:      2909 mAh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 145 mAh
+design capacity low:     13 mAh
+cycle count:              0
+capacity granularity 1:  1 mAh
+capacity granularity 2:  1 mAh
+model number:            42T4899
+serial number:           21064
+battery type:            LION
+OEM info:                SANYO
 
-diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
-index 37a458b..b29326a 100644
---- a/arch/x86/kernel/reboot.c
-+++ b/arch/x86/kernel/reboot.c
-@@ -549,7 +549,7 @@ static void native_machine_emergency_restart(void)
- 	if (reboot_emergency)
- 		emergency_vmx_disable_all();
+Once the laptop switches the unit to mWh, the output changes to:
+
+present:                 yes
+design capacity:         28860 mWh
+last full capacity:      29090 mWh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 1454 mWh
+design capacity low:     200 mWh
+cycle count:              0
+capacity granularity 1:  1 mWh
+capacity granularity 2:  1 mWh
+model number:            42T4899
+serial number:           21064
+battery type:            LION
+OEM info:                SANYO
+
+Can you see how the values for "design capacity", etc., differ by a factor
+of 10 instead of 14.8 (the design voltage of this battery)?  On the battery
+itself it says: 14.8V, 1.95Ah, 29Wh, so clearly the values reported in mWh
+are correct and the ones in mAh are not.
+
+My guess is that this problem has been around ever since those machines
+have been released, but because the most common Thinkpad batteries are
+rated at 10.8V, the error (8%) is small enough that it simply hasn't been
+noticed or at least nobody could be bothered to look into it.
+
+Pre-2010 Thinkpads (tested with t42, t61, t500, x200, x300) appear to
+always report in mWh, so they should be fine.
+
+My patch works around the problem by adjusting the incorrectly reported mAh
+values by "10000 / design_voltage".  The patch also has code to figure out
+if it should be activated or not.  The patch only activates on Lenovo
+Thinkpads, and only when the battery capacity reported through ACPI does
+not match what is reported through DMI.  It should thus be safe on all
+machines, including future models.
+
+I've been using this patch for sever months on several systems without any
+problems.  I believe it is ready to be applied, although I lack kernel
+hacking experience to make that determination.  Obviously, a better
+solution would be to somehow force the machines to always report the
+battery capacity in mWh, which does not require correction and would thus
+make this patch unnecessary, but I have no idea how to do that or if it is
+even possible at all.
+
+Note that I'm not on the list so I would appreciate a Cc on any replies.  I
+will also try to monitor the list archives.
+
+Kamil Iskra
+
+
+--- battery.c.orig	2011-08-08 21:47:15.812854942 -0500
++++ battery.c	2011-09-03 23:16:02.203031764 -0500
+@@ -34,6 +34,7 @@
+ #include <linux/dmi.h>
+ #include <linux/slab.h>
+ #include <linux/suspend.h>
++#include <asm/unaligned.h>
  
--	tboot_shutdown(TB_SHUTDOWN_REBOOT);
-+	WARN_ON(tboot_shutdown(TB_SHUTDOWN_REBOOT));
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ #include <linux/proc_fs.h>
+@@ -95,6 +96,14 @@ enum {
+ 	ACPI_BATTERY_ALARM_PRESENT,
+ 	ACPI_BATTERY_XINFO_PRESENT,
+ 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
++	/* Starting with the 2010 Lenovo Thinkpad models, the power unit
++	   switches between mWh and mAh depending on whether the system
++	   is running on battery or not.  When mAh is the unit, most
++	   reported values are incorrect and need to be adjusted by
++	   10000/design_voltage.  Verified on x201, t410, t410s, and x220.
++	   It appears that the pre-2010 Thinkpads always report in mWh and
++	   are thus unaffected (tested with t42, t61, t500, x200, x300).  */
++	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
+ };
  
- 	/* Tell the BIOS if we want cold or warm reboot */
- 	*((unsigned short *)__va(0x472)) = reboot_mode;
-@@ -684,7 +684,7 @@ static void native_machine_halt(void)
- 	/* stop other cpus and apics */
- 	machine_shutdown();
- 
--	tboot_shutdown(TB_SHUTDOWN_HALT);
-+	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
- 
- 	/* stop this cpu */
- 	stop_this_cpu(NULL);
-@@ -698,7 +698,7 @@ static void native_machine_power_off(void)
- 		pm_power_off();
- 	}
- 	/* a fallback in case there is no PM info available */
--	tboot_shutdown(TB_SHUTDOWN_HALT);
-+	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
- }
- 
- struct machine_ops machine_ops = {
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index 66d250c..9aa903a 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -1419,7 +1419,7 @@ static inline void hlt_play_dead(void)
- void native_play_dead(void)
- {
- 	play_dead_common();
--	tboot_shutdown(TB_SHUTDOWN_WFS);
-+	WARN_ON(tboot_shutdown(TB_SHUTDOWN_WFS));
- 
- 	mwait_play_dead();	/* Only returns on failure */
- 	hlt_play_dead();
-diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-index 1a4ab7d..9504a7a 100644
---- a/arch/x86/kernel/tboot.c
-+++ b/arch/x86/kernel/tboot.c
-@@ -217,12 +217,12 @@ static int tboot_setup_sleep(void)
- 
- #endif
- 
--void tboot_shutdown(u32 shutdown_type)
-+int tboot_shutdown(u32 shutdown_type)
- {
- 	void (*shutdown)(void);
- 
- 	if (!tboot_enabled())
--		return;
-+		return 0;
- 
- 	/*
- 	 * if we're being called before the 1:1 mapping is set up then just
-@@ -230,13 +230,14 @@ void tboot_shutdown(u32 shutdown_type)
- 	 * due to very early panic()
- 	 */
- 	if (!tboot_pg_dir)
--		return;
-+		return 0;
- 
- 	/* if this is S3 then set regions to MAC */
--	if (shutdown_type == TB_SHUTDOWN_S3)
--		if (tboot_setup_sleep())
--			return;
--
-+	if (shutdown_type == TB_SHUTDOWN_S3) {
-+		int rc = tboot_setup_sleep();
-+		if (rc)
-+			return rc;
+ struct acpi_battery {
+@@ -429,6 +438,21 @@ static int acpi_battery_get_info(struct
+ 	kfree(buffer.pointer);
+ 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
+ 		battery->full_charge_capacity = battery->design_capacity;
++	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
++	    battery->power_unit && battery->design_voltage) {
++		battery->design_capacity = battery->design_capacity *
++		    10000 / battery->design_voltage;
++		battery->full_charge_capacity = battery->full_charge_capacity *
++		    10000 / battery->design_voltage;
++		battery->design_capacity_warning =
++		    battery->design_capacity_warning *
++		    10000 / battery->design_voltage;
++		/* Curiously, design_capacity_low, unlike the rest of them,
++		   is correct.  */
++		/* capacity_granularity_* equal 1 on the systems tested, so
++		   it's impossible to tell if they would need an adjustment
++		   or not if their values were higher.  */
 +	}
- 	tboot->shutdown_type = shutdown_type;
+ 	return result;
+ }
  
- 	switch_to_tboot_pt();
-@@ -247,6 +248,8 @@ void tboot_shutdown(u32 shutdown_type)
- 	/* should not reach here */
- 	while (1)
- 		halt();
+@@ -477,6 +501,11 @@ static int acpi_battery_get_state(struct
+ 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
+ 		battery->capacity_now = (battery->capacity_now *
+ 				battery->full_charge_capacity) / 100;
++	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
++	    battery->power_unit && battery->design_voltage) {
++		battery->capacity_now = battery->capacity_now *
++		    10000 / battery->design_voltage;
++	}
+ 	return result;
+ }
+ 
+@@ -586,6 +615,24 @@ static void sysfs_remove_battery(struct
+ 	mutex_unlock(&battery->sysfs_lock);
+ }
+ 
++static void find_battery(const struct dmi_header *dm, void *private)
++{
++	struct acpi_battery *battery = (struct acpi_battery *)private;
++	/* Note: the hardcoded offsets below have been extracted from
++	   the source code of dmidecode.  */
++	if (dm->type == DMI_ENTRY_PORTABLE_BATTERY && dm->length >= 8) {
++		const u8 *dmi_data = (const u8 *)(dm + 1);
++		int dmi_capacity = get_unaligned((const u16 *)(dmi_data + 6));
++		if (dm->length >= 18)
++			dmi_capacity *= dmi_data[17];
++		if (battery->design_capacity * battery->design_voltage / 1000
++		    != dmi_capacity &&
++		    battery->design_capacity * 10 == dmi_capacity)
++			set_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
++				&battery->flags);
++	}
++}
 +
-+	return 0;
- }
- 
- static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
-@@ -272,7 +275,7 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
- 		offsetof(struct acpi_table_facs, firmware_waking_vector);
- }
- 
--void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
-+static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- {
- 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
- 		/* S0,1,2: */ -1, -1, -1,
-@@ -281,7 +284,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 		/* S5: */ TB_SHUTDOWN_S5 };
- 
- 	if (!tboot_enabled())
--		return;
-+		return 0;
- 
- 	tboot_copy_fadt(&acpi_gbl_FADT);
- 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
-@@ -292,16 +295,10 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 	if (sleep_state >= ACPI_S_STATE_COUNT ||
- 	    acpi_shutdown_map[sleep_state] == -1) {
- 		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
--		return;
-+		return -1;
+ /*
+  * According to the ACPI spec, some kinds of primary batteries can
+  * report percentage battery remaining capacity directly to OS.
+@@ -611,6 +658,32 @@ static void acpi_battery_quirks(struct a
+ 		battery->capacity_now = (battery->capacity_now *
+ 				battery->full_charge_capacity) / 100;
  	}
- 
--	tboot_shutdown(acpi_shutdown_map[sleep_state]);
--}
--static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
--			       u32 pm1b_control)
--{
--	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
--	return 0;
-+	return tboot_shutdown(acpi_shutdown_map[sleep_state]);
++
++	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
++		return ;
++
++	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
++		const char *s;
++		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
++		if (s && !strnicmp(s, "ThinkPad", 8)) {
++			dmi_walk(find_battery, battery);
++			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
++				     &battery->flags) &&
++			    battery->design_voltage) {
++				battery->design_capacity =
++				    battery->design_capacity *
++				    10000 / battery->design_voltage;
++				battery->full_charge_capacity =
++				    battery->full_charge_capacity *
++				    10000 / battery->design_voltage;
++				battery->design_capacity_warning =
++				    battery->design_capacity_warning *
++				    10000 / battery->design_voltage;
++				battery->capacity_now = battery->capacity_now *
++				    10000 / battery->design_voltage;
++			}
++		}
++	}
  }
  
- static atomic_t ap_wfs_count;
-@@ -352,7 +349,7 @@ static __init int tboot_late_init(void)
- 	atomic_set(&ap_wfs_count, 0);
- 	register_hotcpu_notifier(&tboot_cpu_notifier);
- 
--	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
-+	acpi_os_set_prepare_sleep(&tboot_sleep);
- 	return 0;
- }
- 
-diff --git a/include/linux/tboot.h b/include/linux/tboot.h
-index c75128b..8f14fe0 100644
---- a/include/linux/tboot.h
-+++ b/include/linux/tboot.h
-@@ -142,7 +142,7 @@ static inline int tboot_enabled(void)
- }
- 
- extern void tboot_probe(void);
--extern void tboot_shutdown(u32 shutdown_type);
-+extern int tboot_shutdown(u32 shutdown_type);
- extern struct acpi_table_header *tboot_get_dmar_table(
- 				      struct acpi_table_header *dmar_tbl);
- extern int tboot_force_iommu(void);
-@@ -151,7 +151,7 @@ extern int tboot_force_iommu(void);
- 
- #define tboot_enabled()			0
- #define tboot_probe()			do { } while (0)
--#define tboot_shutdown(shutdown_type)	do { } while (0)
-+#define tboot_shutdown(shutdown_type)	0
- #define tboot_sleep(sleep_state, pm1a_control, pm1b_control)	\
- 					do { } while (0)
- #define tboot_get_dmar_table(dmar_tbl)	(dmar_tbl)
--- 
-1.7.7.5
+ static int acpi_battery_update(struct acpi_battery *battery)
