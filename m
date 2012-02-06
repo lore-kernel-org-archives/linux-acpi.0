@@ -1,37 +1,56 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 3/5] ACPI: EC: Add a limited number of repeats after false EC interrupts
-Date: Mon, 6 Feb 2012 19:01:04 +0100
-Message-ID: <20120206180104.GO11715@one.firstfloor.org>
-References: <1328545032-21373-1-git-send-email-andi@firstfloor.org> <1328545032-21373-4-git-send-email-andi@firstfloor.org> <20120206162740.GA32061@srcf.ucam.org>
+From: Amit Kachhap <amit.kachhap@linaro.org>
+Subject: Re: [linux-pm] [RFC PATCH] thermal: Add support to report cooling
+ statistics achieved by cooling devices
+Date: Mon, 6 Feb 2012 15:16:17 -0800
+Message-ID: <CAK44p22FWxiXyBA1zbiuO0cbDScTSMRSV9pFDDMxXsc43ebGpw@mail.gmail.com>
+References: <1326878467-17766-1-git-send-email-amit.kachhap@linaro.org>
+	<20120206165658.GA28687@atrey.karlin.mff.cuni.cz>
+	<20120206170348.GA19749@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:51170 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab2BFSBF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2012 13:01:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20120206162740.GA32061@srcf.ucam.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:44004 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753158Ab2BFXQT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2012 18:16:19 -0500
+In-Reply-To: <20120206170348.GA19749@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andi Kleen <andi@firstfloor.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+To: Greg KH <greg@kroah.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rob.lee@linaro.org
 
-> Our EC code is, at this point, a layer of hacks piled on top of other 
-> hacks. We have various patches that fix some machines and break others 
-> and a lack of a detailed description of what the driver actually does 
-> and where it deviates from the specification (and why).
+On 6 February 2012 09:03, Greg KH <greg@kroah.com> wrote:
+> On Mon, Feb 06, 2012 at 05:56:58PM +0100, Pavel Machek wrote:
+>> Hi!
+>>
+>> > Add a sysfs node code to report effective cooling of all cooling devices
+>> > attached to each trip points of a thermal zone. The cooling data reported
+>> > will be absolute if the higher temperature trip points are arranged first
+>> > otherwise the cooling stats is the cumulative effect of the earlier
+>> > invoked cooling handlers.
+>> >
+>> > The basic assumption is that cooling devices will bring down the temperature
+>> > in a symmetric manner and those statistics can be stored back and used for
+>> > further tuning of the system.
+>>
+>> /sys fs should be one-value-per-file, talk to gregkh.
+>
+> That's correct.
+>
+> Why not use debugfs for this instead?
+>
+> thanks,
+>
+> greg k-h
 
-The moving to an interrupt thread will enable a lot of cleanups
-in fact. A lot of the existing code could be simplified now that
-you can sleep. A lot of the nasty code was simply a workaround
-for that.
+Thanks Greg/Pavel for looking into the patch.
+Basically I checked the places where single sysfs entry is showing
+more then 1 output. And
+1) /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state
+2) /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table
+are the places where the output is more than 1 value.
 
-I don't have plans to work on this however, since my laptop
-works now (sorry). But I believe the patchkit is a good base
-for further cleanups.
+Anyway I can enclose this sysfs inside CONFIG_THERMAL_COOLING_STATS macro.
 
--Andi
-
--- 
-ak@linux.intel.com -- Speaking for myself only.
+Thanks,
+Amit Daniel
