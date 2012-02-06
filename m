@@ -1,75 +1,37 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 2/3] ACPI, APEI: Add RAM mapping support to ACPI
-Date: Mon, 06 Feb 2012 09:37:46 +0800
-Message-ID: <1328492266.9146.9.camel@yhuang-dev>
-References: <20120121021318.14723.45698.stgit@amt.stowe>
-	 <20120121021330.14723.72537.stgit@amt.stowe>
-	 <CAErSpo5KDxkcMn3OrvujeSHhzF7PjG0hsYqMXe1HmpPJaLHvDg@mail.gmail.com>
-	 <1327798687.7922.44.camel@yhuang-dev>
-	 <CAErSpo5hrWz81SSS7Tg0HmTZ2seg76pa8kAe4iauAoqL6YAoOw@mail.gmail.com>
+From: Daniel Toussaint <daniel@dmhome.net>
+Subject: Driver for handling SCI interrupt.
+Date: Mon, 6 Feb 2012 11:25:20 +0800
+Message-ID: <CADVYk4RTY3=Xiw5JsiDssN9i3yo+jQw1p_i42tKrMDVH5=_ykQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54938 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753436Ab2BFBhs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 5 Feb 2012 20:37:48 -0500
-In-Reply-To: <CAErSpo5hrWz81SSS7Tg0HmTZ2seg76pa8kAe4iauAoqL6YAoOw@mail.gmail.com>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:56145 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab2BFDZV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Feb 2012 22:25:21 -0500
+Received: by qafk1 with SMTP id k1so3415819qaf.19
+        for <linux-acpi@vger.kernel.org>; Sun, 05 Feb 2012 19:25:20 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@intel.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, trenn@suse.de, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+To: linux-acpi@vger.kernel.org
 
-Hi,
+Dear list,
 
-On Sun, 2012-01-29 at 13:41 -0700, Bjorn Helgaas wrote:
-> On Sat, Jan 28, 2012 at 5:58 PM, Huang Ying <ying.huang@intel.com> wrote:
-> > Hi, Bjorn,
-> >
-> > Sorry for late.  Just return from Chinese new year holiday.
-> >
-> > On Sat, 2012-01-21 at 08:04 -0700, Bjorn Helgaas wrote:
-> > [snip]
-> >> > +
-> >> > +static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned long pg_sz)
-> >> > +{
-> >> > +       unsigned long pfn;
-> >> > +
-> >> > +       pfn = pg_off >> PAGE_SHIFT;
-> >> > +       if (should_use_kmap(pfn)) {
-> >> > +               if (pg_sz > PAGE_SIZE)
-> >> > +                       return NULL;
-> >> > +               return (void __iomem __force *)kmap(pfn_to_page(pfn));
-> >> > +       } else
-> >> > +               return acpi_os_ioremap(pg_off, pg_sz);
-> >>
-> >> This implies that ioremap() works differently on ia64 than on x86.
-> >> Apparently one can ioremap() RAM on x86, but not on ia64.  Why is this
-> >> different?  Shouldn't we instead fix ioremap() on ia64 so it works the
-> >> same as on x86?
-> >
-> > If my understanding were correct, ioremap can not work for RAM on x86.
-> > So we need to use kmap for RAM.  And on IA64, ioremap works for RAM and
-> > will take care of cache attributes while kmap will not.  So ioremap is
-> > used on IA64, while kmap is used on x86.
-> 
-> My point is that the *user* of ioremap() shouldn't need to care what
-> architecture we're on.  For example, maybe the ioremap()
-> implementation could be changed so that it uses kmap() internally when
-> necessary.
-> 
-> >> I looked at the ia64 ioremap(), and I can't see the reason it fails
-> >> for RAM.  Huang, do you remember the details from 76da3fb3575?
-> 
-> This question is still open.  Do you remember anything about it?
+I am working on an Intel (ICH8) based system. A custom device on the system
+emits interrupts to a GPI on the ICH8 chip. Currently, as a test, I have
+from userspace configured the GPI we use to send a SCI. This seems to work,
+because I get a "IRQ9 , nobody cared" message from the kernel.
+My questions now are :
+How do I go about and create an ACPI based driver to catch this event ? Or am
+I searching in the wrong direction.
+If I am right, and the driver has to go through ACPI, are changes to the
+ACPI tables in BIOS required ?
 
-Another question about kmap on IA64.  If my understanding were correct,
-kmap() is just page_address() on IA64.  So it is just uses the identity
-map instead of creating a new map.  Will there be any problem with it
-compared with ioremap()?
+Greetings,
 
-Best Regards,
-Huang Ying
+Daniel
 
-
+--
+Gtalk: daniel.toussaint@gmail.com
+Skype: supertoussi
+Cell: +886-915-680-291
