@@ -1,26 +1,46 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v3 0/4] toshiba_acpi: Expanded hotkey support
-Date: Mon, 6 Feb 2012 15:15:48 +0000
-Message-ID: <20120206151548.GA30255@srcf.ucam.org>
-References: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com>
- <20120206150658.GE6414@ubuntu-macmini>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120206150658.GE6414@ubuntu-macmini>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
+From: Andi Kleen <andi@firstfloor.org>
+Subject: [PATCH 1/5] ACPI: ec: Do request_region outside WARN()
+Date: Mon,  6 Feb 2012 08:17:08 -0800
+Message-ID: <1328545032-21373-2-git-send-email-andi@firstfloor.org>
+References: <1328545032-21373-1-git-send-email-andi@firstfloor.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from one.firstfloor.org ([213.235.205.2]:50966 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135Ab2BFQRZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2012 11:17:25 -0500
+In-Reply-To: <1328545032-21373-1-git-send-email-andi@firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, Andi Kleen <andi@firstfloor.org>, Andi Kleen <ak@linux.intel.com>
 
-On Mon, Feb 06, 2012 at 09:06:58AM -0600, Seth Forshee wrote:
+WARN() is not supposed to have side effects, so move the request_regions
+outside.
 
-> Matthew: Just wondering if there are more issues that need to be
-> addressed with this round of patches, or if they're looking okay at this
-> point.
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+---
+ drivers/acpi/ec.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-I'm fine with them at this point, just waiting on Len to give feedback 
-on the ACPI patch.
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index b19a18d..3268dcf 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -812,10 +812,10 @@ static int acpi_ec_add(struct acpi_device *device)
+ 		first_ec = ec;
+ 	device->driver_data = ec;
+ 
+-	WARN(!request_region(ec->data_addr, 1, "EC data"),
+-	     "Could not request EC data io port 0x%lx", ec->data_addr);
+-	WARN(!request_region(ec->command_addr, 1, "EC cmd"),
+-	     "Could not request EC cmd io port 0x%lx", ec->command_addr);
++	ret = !!request_region(ec->data_addr, 1, "EC data");
++	WARN(!ret, "Could not request EC data io port 0x%lx", ec->data_addr);
++	ret = !!request_region(ec->command_addr, 1, "EC cmd");
++	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
+ 
+ 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.7.7
+
