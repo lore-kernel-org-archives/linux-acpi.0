@@ -1,64 +1,114 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 5/5] Disable MCP limit exceeded messages from Intel IPS
- driver
-Date: Tue, 7 Feb 2012 11:45:47 -0800
-Message-ID: <20120207114547.2a32fbfb@jbarnes-desktop>
-References: <1328545032-21373-1-git-send-email-andi@firstfloor.org>
-	<1328545032-21373-6-git-send-email-andi@firstfloor.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/EzMM+PpiXHXtM_4M2qmhbmL"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1328545032-21373-6-git-send-email-andi@firstfloor.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, Andi Kleen <ak@linux.intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH -v2 -for driver-core-next] ACPI: remove duplicated lines of merging problems with acpi_processor_start
+Date: Tue,  7 Feb 2012 11:45:57 -0800
+Message-ID: <1328643957-15677-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:26992 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756789Ab2BGTqX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2012 14:46:23 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>
 
---Sig_/EzMM+PpiXHXtM_4M2qmhbmL
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+When checking driver-core tree, found crazying warnings on my setups.
 
-On Mon,  6 Feb 2012 08:17:12 -0800
-Andi Kleen <andi@firstfloor.org> wrote:
+[  216.025849] calling  acpi_processor_init+0x0/0x81 @ 1
+[  216.045332] ACPI: Requesting acpi_cpufreq
+[  216.047454] Monitor-Mwait will be used to enter C-1 state
+[  216.047912] Monitor-Mwait will be used to enter C-3 state
+[  216.065270] ACPI: acpi_idle registered with cpuidle
+[  216.068241] kobject (ffff8870364a1940): tried to init an initialized object, something is seriously wrong.
+[  216.085287] Pid: 1, comm: swapper/0 Not tainted 3.3.0-rc2-tip-yh-02428-ge663840-dirty #247
+[  216.105041] Call Trace:
+[  216.105192]  [<ffffffff813a9c06>] kobject_init+0x33/0x83
+[  216.124880]  [<ffffffff813aa1f8>] kobject_init_and_add+0x23/0x57
+[  216.125158]  [<ffffffff819f3a08>] cpuidle_add_sysfs+0x49/0x62
+[  216.144850]  [<ffffffff819f2a28>] __cpuidle_register_device+0xe6/0x10e
+[  216.145182]  [<ffffffff819f2ea4>] cpuidle_register_device+0x25/0x4d
+[  216.164912]  [<ffffffff81cb5774>] acpi_processor_power_init+0x13e/0x16c
+[  216.165205]  [<ffffffff81427620>] ? acpi_processor_get_throttling_info+0x128/0x158
+[  216.185012]  [<ffffffff81c68ae5>] acpi_processor_start+0x62/0x11d
+[  216.204861]  [<ffffffff81cb55ff>] acpi_processor_add+0x1b0/0x1e7
+[  216.205144]  [<ffffffff81402a7e>] acpi_device_probe+0x4e/0x11c
+[  216.225063]  [<ffffffff8148f0e7>] really_probe+0x99/0x126
+[  216.225328]  [<ffffffff8148f2a3>] driver_probe_device+0x3b/0x56
+[  216.244846]  [<ffffffff8148f31d>] __driver_attach+0x5f/0x82
+[  216.245101]  [<ffffffff8148f2be>] ? driver_probe_device+0x56/0x56
+[  216.264668]  [<ffffffff8148db80>] bus_for_each_dev+0x5c/0x88
+[  216.264942]  [<ffffffff8148eea7>] driver_attach+0x1e/0x20
+[  216.284639]  [<ffffffff8148eaec>] bus_add_driver+0xca/0x21d
+[  216.284903]  [<ffffffff81095827>] ? local_clock+0xf/0x3c
+[  216.304580]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
+[  216.304849]  [<ffffffff8148f79b>] driver_register+0x91/0xfe
+[  216.324545]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
+[  216.324813]  [<ffffffff81403705>] acpi_bus_register_driver+0x43/0x45
+[  216.344563]  [<ffffffff828141a7>] acpi_processor_init+0x30/0x81
+[  216.344845]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
+[  216.364590]  [<ffffffff810001e7>] do_one_initcall+0x57/0x134
+[  216.364868]  [<ffffffff827e6f8c>] kernel_init+0x146/0x1c0
+[  216.384512]  [<ffffffff81d03aa4>] kernel_thread_helper+0x4/0x10
+[  216.384819]  [<ffffffff81cfbb5d>] ? retint_restore_args+0xe/0xe
+[  216.404578]  [<ffffffff827e6e46>] ? start_kernel+0x3ab/0x3ab
+[  216.424530]  [<ffffffff81d03aa0>] ? gs_change+0xb/0xb
+[  216.424793] ------------[ cut here ]------------
+[  216.425038] WARNING: at fs/sysfs/dir.c:502 sysfs_add_one+0x97/0xab()
+[  216.444480] Hardware name: Sun Fire X4800
+[  216.444668] sysfs: cannot create duplicate filename '/devices/system/cpu/cpu0/cpuidle'
+...
 
-> From: Andi Kleen <ak@linux.intel.com>
->=20
-> On a system on the thermal limit these are quite noisy and flood the logs.
-> Better would be a counter anyways. But given that we don't even have
-> anything for normal throttling this doesn't seem to be urgent either.
->=20
-> Cc: jbarnes@virtuousgeek.org
-> Signed-off-by: Andi Kleen <ak@linux.intel.com>
+It turns out acpi_processor_power_init() get called two time in acpi_processor_add and acpi_processor_start.
 
-Yeah looks fine.  I think I queued a message reduction patch awhile
-back too... not sure if mjg saw it or not.
+Found several lines are duplicated in those two functions even related commit move them.
 
-Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+The related patches are ok.  Not sure how it could happen, looks like git problem.
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
+-v2: add back acpi_processor_load_module(pr) to acpi_processor_load_start
 
---Sig_/EzMM+PpiXHXtM_4M2qmhbmL
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+---
+ drivers/acpi/processor_driver.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-iQIcBAEBAgAGBQJPMX9rAAoJEIEoDkX4Qk9h+JEP/1fQHfUTOiqhj6+jDTQE7+1M
-zUDvvOPAPiV+LLsHvDjl6IZ4zsFlxkWaimz1PvxR+mQeHCZca9ePP2wxlnBt6Lcq
-7tpUoHruCn3W5I+AeMU9gFQND9p2kqTxBlrwffmtT7Ei4BHm9k1YW+TvV3zSW2fq
-u/yBt1iFn1BqBDV7qcjtyViy6GFUMCnD+vy0ekmuQ+9uFrhCxVkLEozteUrHrgVs
-mGqMLrcTEcH5nO79MPONAk6nhuqbn4DryCuBQNK4nSt6XdX3eHOxr62GYOS6srZQ
-7LFx2b/o+c3EADrfnONGS2OekAIVe217I7Kh72A3yKZkzMHdCcpfzxN7DL90L+zW
-XocV1HWMk77Gp87tvzPtAPN/mHzzoNF48IJ4UA6G3QVLzWgQHjKWGBJeE3yroneq
-+d6S7c7Z+lMF29Yycqk/FyvwvVm1k9WpQtYLfR9w4FRCaazXsb5PmxeuarlUmQ2T
-f6dmEWwHzQLD/e5YgAwPgULE7b8mtqZrlfhxjotapV5nuEBZoVsn0fy/hvCG3gXo
-eb4KeLKJdfBo0v+A2I6w1CM7LhuHSL+e3P0vg7PDZUeeb1AKPJiuPhIBn8ldfGjQ
-o7Yn1jVDNw82y+lQWtXPaedkz+QWk5x9apb4m4duNEWJ9mYA5S1H49OoeA965lTo
-gYUpAIAYjJKgtgZJ52ZA
-=1/jC
------END PGP SIGNATURE-----
-
---Sig_/EzMM+PpiXHXtM_4M2qmhbmL--
+Index: linux-2.6/drivers/acpi/processor_driver.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_driver.c
++++ linux-2.6/drivers/acpi/processor_driver.c
+@@ -474,6 +474,7 @@ static __ref int acpi_processor_start(st
+ 
+ #ifdef CONFIG_CPU_FREQ
+ 	acpi_processor_ppc_has_changed(pr, 0);
++	acpi_processor_load_module(pr);
+ #endif
+ 	acpi_processor_get_throttling_info(pr);
+ 	acpi_processor_get_limit_info(pr);
+@@ -579,23 +580,6 @@ static int __cpuinit acpi_processor_add(
+ 		goto err_free_cpumask;
+ 	}
+ 
+-#ifdef CONFIG_CPU_FREQ
+-	acpi_processor_ppc_has_changed(pr, 0);
+-	acpi_processor_load_module(pr);
+-#endif
+-	acpi_processor_get_throttling_info(pr);
+-	acpi_processor_get_limit_info(pr);
+-
+-	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+-		acpi_processor_power_init(pr, device);
+-
+-	pr->cdev = thermal_cooling_device_register("Processor", device,
+-						&processor_cooling_ops);
+-	if (IS_ERR(pr->cdev)) {
+-		result = PTR_ERR(pr->cdev);
+-		goto err_remove_sysfs;
+-	}
+-
+ 	/*
+ 	 * Do not start hotplugged CPUs now, but when they
+ 	 * are onlined the first time
