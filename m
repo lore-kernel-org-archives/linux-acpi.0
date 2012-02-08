@@ -1,146 +1,35 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH -v2 -for driver-core-next] ACPI: remove duplicated lines of merging problems with acpi_processor_start
-Date: Wed, 8 Feb 2012 02:39:30 +0100
-Message-ID: <201202080239.31338.trenn@suse.de>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH -v2 -for driver-core-next] ACPI: remove duplicated lines
+ of merging problems with acpi_processor_start
+Date: Tue, 7 Feb 2012 19:29:14 -0800
+Message-ID: <20120208032914.GA12385@kroah.com>
 References: <1328643957-15677-1-git-send-email-yinghai@kernel.org>
+ <201202080239.31338.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:52272 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757296Ab2BHCje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Feb 2012 21:39:34 -0500
-In-Reply-To: <1328643957-15677-1-git-send-email-yinghai@kernel.org>
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:43403 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754808Ab2BHDcG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2012 22:32:06 -0500
+Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id C4AB220713
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Feb 2012 22:32:05 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <201202080239.31338.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, sfr@canb.auug.org.au
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Yinghai Lu <yinghai@kernel.org>, sfr@canb.auug.org.au, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
 
-Hi,
+On Wed, Feb 08, 2012 at 02:39:30AM +0100, Thomas Renninger wrote:
+> Hi,
+> 
+> this looks like the missing bits, Thanks!
+> I had a look at Stephan's mergers, but did not realize that (I expect
+> there) it slip in.
+> Greg, can you queue this one in your driver-core-next branch, please.
 
-this looks like the missing bits, Thanks!
-I had a look at Stephan's mergers, but did not realize that (I expect
-there) it slip in.
-Greg, can you queue this one in your driver-core-next branch, please.
+Ok, will do.
 
-Thanks,
-
-   Thomas
-
-> When checking driver-core tree, found crazying warnings on my setups.
-> 
-> [  216.025849] calling  acpi_processor_init+0x0/0x81 @ 1
-> [  216.045332] ACPI: Requesting acpi_cpufreq
-> [  216.047454] Monitor-Mwait will be used to enter C-1 state
-> [  216.047912] Monitor-Mwait will be used to enter C-3 state
-> [  216.065270] ACPI: acpi_idle registered with cpuidle
-> [  216.068241] kobject (ffff8870364a1940): tried to init an initialized object, something is seriously wrong.
-> [  216.085287] Pid: 1, comm: swapper/0 Not tainted 3.3.0-rc2-tip-yh-02428-ge663840-dirty #247
-> [  216.105041] Call Trace:
-> [  216.105192]  [<ffffffff813a9c06>] kobject_init+0x33/0x83
-> [  216.124880]  [<ffffffff813aa1f8>] kobject_init_and_add+0x23/0x57
-> [  216.125158]  [<ffffffff819f3a08>] cpuidle_add_sysfs+0x49/0x62
-> [  216.144850]  [<ffffffff819f2a28>] __cpuidle_register_device+0xe6/0x10e
-> [  216.145182]  [<ffffffff819f2ea4>] cpuidle_register_device+0x25/0x4d
-> [  216.164912]  [<ffffffff81cb5774>] acpi_processor_power_init+0x13e/0x16c
-> [  216.165205]  [<ffffffff81427620>] ? acpi_processor_get_throttling_info+0x128/0x158
-> [  216.185012]  [<ffffffff81c68ae5>] acpi_processor_start+0x62/0x11d
-> [  216.204861]  [<ffffffff81cb55ff>] acpi_processor_add+0x1b0/0x1e7
-> [  216.205144]  [<ffffffff81402a7e>] acpi_device_probe+0x4e/0x11c
-> [  216.225063]  [<ffffffff8148f0e7>] really_probe+0x99/0x126
-> [  216.225328]  [<ffffffff8148f2a3>] driver_probe_device+0x3b/0x56
-> [  216.244846]  [<ffffffff8148f31d>] __driver_attach+0x5f/0x82
-> [  216.245101]  [<ffffffff8148f2be>] ? driver_probe_device+0x56/0x56
-> [  216.264668]  [<ffffffff8148db80>] bus_for_each_dev+0x5c/0x88
-> [  216.264942]  [<ffffffff8148eea7>] driver_attach+0x1e/0x20
-> [  216.284639]  [<ffffffff8148eaec>] bus_add_driver+0xca/0x21d
-> [  216.284903]  [<ffffffff81095827>] ? local_clock+0xf/0x3c
-> [  216.304580]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
-> [  216.304849]  [<ffffffff8148f79b>] driver_register+0x91/0xfe
-> [  216.324545]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
-> [  216.324813]  [<ffffffff81403705>] acpi_bus_register_driver+0x43/0x45
-> [  216.344563]  [<ffffffff828141a7>] acpi_processor_init+0x30/0x81
-> [  216.344845]  [<ffffffff82814177>] ? acpi_fan_init+0x18/0x18
-> [  216.364590]  [<ffffffff810001e7>] do_one_initcall+0x57/0x134
-> [  216.364868]  [<ffffffff827e6f8c>] kernel_init+0x146/0x1c0
-> [  216.384512]  [<ffffffff81d03aa4>] kernel_thread_helper+0x4/0x10
-> [  216.384819]  [<ffffffff81cfbb5d>] ? retint_restore_args+0xe/0xe
-> [  216.404578]  [<ffffffff827e6e46>] ? start_kernel+0x3ab/0x3ab
-> [  216.424530]  [<ffffffff81d03aa0>] ? gs_change+0xb/0xb
-> [  216.424793] ------------[ cut here ]------------
-> [  216.425038] WARNING: at fs/sysfs/dir.c:502 sysfs_add_one+0x97/0xab()
-> [  216.444480] Hardware name: Sun Fire X4800
-> [  216.444668] sysfs: cannot create duplicate filename '/devices/system/cpu/cpu0/cpuidle'
-> ...
-> 
-> It turns out acpi_processor_power_init() get called two time in acpi_processor_add and acpi_processor_start.
-> 
-> Found several lines are duplicated in those two functions even related commit move them.
-> 
-> The related patches are ok.  Not sure how it could happen, looks like git problem.
-> 
-> -v2: add back acpi_processor_load_module(pr) to acpi_processor_load_start
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> It turns out acpi_processor_power_init() get called two time in acpi_processor_add and acpi_processor_start.
-> 
-> Found several lines are duplicated in those two functions even related commit move them.
-> 
-> The related patches are ok.  Not sure how it could happen, looks like git problem.
-> 
-> -v2: add back acpi_processor_load_module(pr) to acpi_processor_load_start
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> ---
->  drivers/acpi/processor_driver.c |   18 +-----------------
->  1 file changed, 1 insertion(+), 17 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/processor_driver.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_driver.c
-> +++ linux-2.6/drivers/acpi/processor_driver.c
-> @@ -474,6 +474,7 @@ static __ref int acpi_processor_start(st
->  
->  #ifdef CONFIG_CPU_FREQ
->  	acpi_processor_ppc_has_changed(pr, 0);
-> +	acpi_processor_load_module(pr);
->  #endif
->  	acpi_processor_get_throttling_info(pr);
->  	acpi_processor_get_limit_info(pr);
-> @@ -579,23 +580,6 @@ static int __cpuinit acpi_processor_add(
->  		goto err_free_cpumask;
->  	}
->  
-> -#ifdef CONFIG_CPU_FREQ
-> -	acpi_processor_ppc_has_changed(pr, 0);
-> -	acpi_processor_load_module(pr);
-> -#endif
-> -	acpi_processor_get_throttling_info(pr);
-> -	acpi_processor_get_limit_info(pr);
-> -
-> -	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
-> -		acpi_processor_power_init(pr, device);
-> -
-> -	pr->cdev = thermal_cooling_device_register("Processor", device,
-> -						&processor_cooling_ops);
-> -	if (IS_ERR(pr->cdev)) {
-> -		result = PTR_ERR(pr->cdev);
-> -		goto err_remove_sysfs;
-> -	}
-> -
->  	/*
->  	 * Do not start hotplugged CPUs now, but when they
->  	 * are onlined the first time
-> 
+greg k-h
