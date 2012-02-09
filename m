@@ -1,59 +1,108 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCHv2 0/7] acpi/libata: Express dependencies for devices on
- dock stations and bays
-Date: Thu, 09 Feb 2012 10:28:21 -0500
-Message-ID: <4F33E615.6070607@garzik.org>
-References: <20120120001817.GA27706@homac.suse.de> <CAF1ivSYhOTitPctsJOTKWN9HDt0VZpQe_-_a0LnLefVGxOJtXg@mail.gmail.com> <20120209073345.GA11121@homac.suse.de>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 1/5] EFI: Provide registration for efi_init.. etc efi
+ public  function
+Date: Thu, 9 Feb 2012 11:01:28 -0500
+Message-ID: <20120209160128.GA32058@phenom.dumpdata.com>
+References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
+ <1328758328-24156-1-git-send-email-liang.tang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:40555 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab2BIP20 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2012 10:28:26 -0500
-In-Reply-To: <20120209073345.GA11121@homac.suse.de>
+Received: from acsinet15.oracle.com ([141.146.126.227]:60425 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753285Ab2BIQEa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2012 11:04:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1328758328-24156-1-git-send-email-liang.tang@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Macht <holger@homac.de>
-Cc: Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@redhat.com>
+To: Tang Liang <liang.tang@oracle.com>
+Cc: mjg59@srcf.ucam.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 02/09/2012 02:33 AM, Holger Macht wrote:
-> On Do 09. Feb - 14:46:11, Lin Ming wrote:
->> On Fri, Jan 20, 2012 at 8:18 AM, Holger Macht<holger@homac.de>  wrote:
->>> Patches 2 through 5 are just a refresh of the patches from Matthew
->>> Garrett sent to this list in September 2010 [1]:
->>>
->>> Patch 1 is a new patch incorporating the corrections from James
->>> Bottomley. Patch 6, 7 and 8 make the whole patch set actually work on my
->>> test hardware (Thinkpad x60/Thinkpad T60) by fixing minor issues and
->>> compensating changes after the first submission.
->>>
->>> All patches now contain the correct Signed-off-by instead of Acked-by
->>> tags.
->>>
->>>   [PATCH 1/8] scsi: Add wrapper to access and set scsi_bus_type in struct acpi_bus_type
->>>   [PATCH 2/8] libata: Bind the Linux device tree to the ACPI device tree
->>>   [PATCH 3/8] libata: Migrate ACPI code over to new bindings
->>>   [PATCH 4/8] acpi: Add support for linking docks to the objects they contain
->>>   [PATCH 5/8] libata: Add links between removable devices and docks
->>>   [PATCH 6/8] libata: Generate and pass correct acpi handles
->>>   [PATCH 7/8] acpi: Prevent duplicate hotplug device registration on dock stations
->>>   [PATCH 8/8] libata: Use correct PCI devices
->>
->> Hi Holger,
->>
->> What's the status of these patches?
->
-> They've been ACKed by both ACPI (Len Brown) and libata (James Bottomley)
-> people, so I guess they are good to go and I'm waiting for someone (Jeff
-> Garzik?) to pick them up.
+On Thu, Feb 09, 2012 at 11:32:08AM +0800, Tang Liang wrote:
+> The efi public functions are changed to function pointer in efi_init_=
+funcs
+> struct.
+> They act as efi generic functions as default.
+> As a benefit from this change, we can register xen efi init func.
+>=20
+> Signed-off-by: Tang Liang <liang.tang@oracle.com>
+> ---
+>  arch/x86/platform/efi/efi.c |   65 +++++++++++++++++++++++++++++++++=
+++++++---
+>  include/linux/efi.h         |   12 +++++++-
+>  2 files changed, 71 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.=
+c
+> index 4cf9bd0..d567e29 100644
+> --- a/arch/x86/platform/efi/efi.c
+> +++ b/arch/x86/platform/efi/efi.c
+> @@ -50,6 +50,23 @@
+>  #define PFX 		"EFI: "
+> =20
+>  int efi_enabled;
+> +
+> +static void efi_init_generic(void);
+> +
+> +static void efi_enter_virtual_mode_generic(void);
+> +static u32 efi_mem_type_generic(unsigned long phys_addr);
+> +static u64 efi_mem_attributes_generic(unsigned long phys_addr);
+> +
+> +struct efi_init_funcs efi_generic_funcs =3D {
+> +	.__efi_init		     =3D efi_init_generic,
+> +	.__efi_reserve_boot_services =3D efi_reserve_boot_services_generic,
 
-I ACK'd for libata.  It's queued in libata-dev...  but looks like that 
-did not get pushed out.  Should show up in the next linux-next.
+Hmm, did you compile test this? I get:
 
-	Jeff
+/home/konrad/ssd/linux/arch/x86/platform/efi/efi.c:62: error: =E2=80=98=
+efi_reserve_boot_services_generic=E2=80=99 undeclared here (not in a fu=
+nction)
+
+The patch below fixes it:
 
 
+=46rom 6ecdc001b99f06f73fe55ea24663c9a3921c285e Mon Sep 17 00:00:00 200=
+1
+=46rom: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Thu, 9 Feb 2012 10:59:17 -0500
+Subject: [PATCH] efi: Fix compiler error introduced by moving of the co=
+de
+ decleration.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=3DUTF-8
+Content-Transfer-Encoding: 8bit
 
+The compiler error is :
 
+arch/x86/platform/efi/efi.c:62: error: =E2=80=98efi_reserve_boot_servic=
+es_generic=E2=80=99 undeclared here (not in a function
+
+And declearing it before the use fixes the issue.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/platform/efi/efi.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index d7b19ee..c21b325 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -56,6 +56,7 @@ static void efi_init_generic(void);
+ static void efi_enter_virtual_mode_generic(void);
+ static u32 efi_mem_type_generic(unsigned long phys_addr);
+ static u64 efi_mem_attributes_generic(unsigned long phys_addr);
++static void efi_reserve_boot_services_generic(void);
+=20
+ struct efi_init_funcs efi_generic_funcs =3D {
+ 	.__efi_init		     =3D efi_init_generic,
+--=20
+1.7.7.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
