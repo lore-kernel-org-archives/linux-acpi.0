@@ -1,7 +1,7 @@
 From: Tang Liang <liang.tang@oracle.com>
-Subject: [PATCH 4/5] Xen efi: Add xen efi enabled detect
-Date: Thu,  9 Feb 2012 11:33:36 +0800
-Message-ID: <1328758416-24305-1-git-send-email-liang.tang@oracle.com>
+Subject: [PATCH 5/5] Xen vga: add the xen efi video mode support
+Date: Thu,  9 Feb 2012 11:33:51 +0800
+Message-ID: <1328758431-24339-1-git-send-email-liang.tang@oracle.com>
 References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
@@ -10,36 +10,53 @@ To: mjg59@srcf.ucam.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel
 Cc: liang.tang@oracle.com
 List-Id: linux-acpi@vger.kernel.org
 
-We need to use hypercall to detect the xen efi enabled or not.
-If xen efi enable is set,replace the efi public function to xen efi public
-function and set efi_enabled to 1 in the function efi_probe;
+In order to add xen efi video support, it is required to add xen-efi's new
+video type(XEN_VGATYPE_EFI_LFB) case handler in the function xen_init_vga
+and set the video type to VIDEO_TYPE_EFI to enable efi video mode.
 
 Signed-off-by: Tang Liang <liang.tang@oracle.com>
 Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- arch/x86/xen/enlighten.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/x86/xen/vga.c          |    7 +++++++
+ include/xen/interface/xen.h |    1 +
+ 2 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-index 12eb07b..92982c1 100644
---- a/arch/x86/xen/enlighten.c
-+++ b/arch/x86/xen/enlighten.c
-@@ -31,6 +31,7 @@
- #include <linux/pci.h>
- #include <linux/gfp.h>
- #include <linux/memblock.h>
-+#include <linux/efi.h>
+diff --git a/arch/x86/xen/vga.c b/arch/x86/xen/vga.c
+index 1cd7f4d..6722e37 100644
+--- a/arch/x86/xen/vga.c
++++ b/arch/x86/xen/vga.c
+@@ -35,6 +35,7 @@ void __init xen_init_vga(const struct dom0_vga_console_info *info, size_t size)
+ 			info->u.text_mode_3.font_height;
+ 		break;
  
- #include <xen/xen.h>
- #include <xen/interface/xen.h>
-@@ -1282,6 +1283,8 @@ asmlinkage void __init xen_start_kernel(void)
++	case XEN_VGATYPE_EFI_LFB:
+ 	case XEN_VGATYPE_VESA_LFB:
+ 		if (size < offsetof(struct dom0_vga_console_info,
+ 				    u.vesa_lfb.gbl_caps))
+@@ -54,6 +55,12 @@ void __init xen_init_vga(const struct dom0_vga_console_info *info, size_t size)
+ 		screen_info->blue_pos = info->u.vesa_lfb.blue_pos;
+ 		screen_info->rsvd_size = info->u.vesa_lfb.rsvd_size;
+ 		screen_info->rsvd_pos = info->u.vesa_lfb.rsvd_pos;
++
++		if (info->video_type == XEN_VGATYPE_EFI_LFB) {
++			screen_info->orig_video_isVGA = VIDEO_TYPE_EFI;
++			break;
++		}
++
+ 		if (size >= offsetof(struct dom0_vga_console_info,
+ 				     u.vesa_lfb.gbl_caps)
+ 		    + sizeof(info->u.vesa_lfb.gbl_caps))
+diff --git a/include/xen/interface/xen.h b/include/xen/interface/xen.h
+index a890804..c84ba71 100644
+--- a/include/xen/interface/xen.h
++++ b/include/xen/interface/xen.h
+@@ -454,6 +454,7 @@ struct dom0_vga_console_info {
+ 	uint8_t video_type;
+ #define XEN_VGATYPE_TEXT_MODE_3 0x03
+ #define XEN_VGATYPE_VESA_LFB    0x23
++#define XEN_VGATYPE_EFI_LFB     0x70
  
- 	xen_setup_runstate_info(0);
- 
-+	if (xen_initial_domain())
-+		xen_efi_probe();
- 	/* Start the world */
- #ifdef CONFIG_X86_32
- 	i386_start_kernel();
+ 	union {
+ 		struct {
 -- 
 1.7.7.5
