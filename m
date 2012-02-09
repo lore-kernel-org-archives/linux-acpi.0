@@ -1,49 +1,27 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI: Fix logic for removing mappings in 'acpi_unmap'
-Date: Thu, 9 Feb 2012 08:42:59 -0800
-Message-ID: <CAErSpo47+kHmS6477Bne84rPiy+sHGjgtK3mpk6VJc+hM4hhbg@mail.gmail.com>
-References: <20120209163641.26858.59399.stgit@amt.stowe>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 3/5] EFI: add efi driver for Xen efi
+Date: Thu, 9 Feb 2012 19:47:23 +0000
+Message-ID: <20120209194723.GA8622@srcf.ucam.org>
+References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
+ <1328758401-24258-1-git-send-email-liang.tang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120209163641.26858.59399.stgit@amt.stowe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Myron Stowe <myron.stowe@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com, tony.luck@intel.com, trenn@suse.de, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:42737 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758515Ab2BITr2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2012 14:47:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1328758401-24258-1-git-send-email-liang.tang@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tang Liang <liang.tang@oracle.com>
+Cc: xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad.wilk@oracle.com
 
-On Thu, Feb 9, 2012 at 8:36 AM, Myron Stowe <myron.stowe@redhat.com> wr=
-ote:
-> From: Myron Stowe <mstowe@redhat.com>
->
-> Make sure the removal of mappings uses the same logic that put the
-> mappings in place.
->
-> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
-> ---
->
-> =A0drivers/acpi/osl.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 412a1e0..5aef087 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -347,7 +347,7 @@ static void acpi_unmap(acpi_physical_address pg_o=
-ff, void __iomem *vaddr)
-> =A0 =A0 =A0 =A0unsigned long pfn;
->
-> =A0 =A0 =A0 =A0pfn =3D pg_off >> PAGE_SHIFT;
-> - =A0 =A0 =A0 if (page_is_ram(pfn))
-> + =A0 =A0 =A0 if (should_use_kmap(pfn))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kunmap(pfn_to_page(pfn));
-> =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0iounmap(vaddr);
->
+Hm. Is there absolutely no way to do this by replacing efi_call_*? It'd 
+really be nice to avoid yet another set of duplicate functions here - 
+the ia64/x86 situation is already bad enough. Ideally this would be 
+sufficiently generic that arm can also plug into it.
 
-Whatever happened to the question of why we have arch-specific
-ioremap() behavior?  It's good to make map/unmap symmetric, but it'd
-be better to get rid of the ioremap/kmap hack.
-
-Bjorn
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
