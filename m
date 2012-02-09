@@ -1,35 +1,79 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH -v2 -for driver-core-next] ACPI: remove duplicated lines
- of merging problems with acpi_processor_start
-Date: Tue, 7 Feb 2012 19:29:14 -0800
-Message-ID: <20120208032914.GA12385@kroah.com>
-References: <1328643957-15677-1-git-send-email-yinghai@kernel.org>
- <201202080239.31338.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tang Liang <liang.tang@oracle.com>
+Subject: [PATCH 0/5] xen: patches for supporting efi
+Date: Thu,  9 Feb 2012 11:30:50 +0800
+Message-ID: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:43403 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754808Ab2BHDcG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2012 22:32:06 -0500
-Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id C4AB220713
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Feb 2012 22:32:05 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <201202080239.31338.trenn@suse.de>
+Received: from acsinet15.oracle.com ([141.146.126.227]:34585 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757671Ab2BIDa2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2012 22:30:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Yinghai Lu <yinghai@kernel.org>, sfr@canb.auug.org.au, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+To: mjg59@srcf.ucam.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad.wilk@oracle.com
+Cc: liang.tang@oracle.com
 
-On Wed, Feb 08, 2012 at 02:39:30AM +0100, Thomas Renninger wrote:
-> Hi,
-> 
-> this looks like the missing bits, Thanks!
-> I had a look at Stephan's mergers, but did not realize that (I expect
-> there) it slip in.
-> Greg, can you queue this one in your driver-core-next branch, please.
+Hi
 
-Ok, will do.
+The following patches introduce and implement efi support in dom0.
+The efi memory is owned by Xen and efi run-time service can not be called 
+directly in dom0, so a new efi driver is needed by Xen efi. 
+These patches are based on v3.3.0-rc2+. 
 
-greg k-h
+Descriptions for these patches:
+
+The efi public functions are changed to function pointers in efi_init_funcs 
+struct. They act as efi generic functions as default. 
+As a benefit from this change, we can register xen efi init func. 
+
+In order to add xen efi video support, it is required to add xen-efi's 
+new video type(XEN_VGATYPE_EFI_LFB) case handler in the function xen_init_vga 
+and set the video type to VIDEO_TYPE_EFI to enable efi video mode. 
+
+I have tested this patch on Dell Opti 790.
+
+Xen efi boot support is added by Jan Beulich, more detail information can be 
+gotten from the url: 
+http://wiki.xen.org/xenwiki/XenParavirtOps, search "efi" in the page.
+
+The example of config file for efi boot:
+kernel=vmlinuz-3.3.0-rc2+ root=xx ro console=tty0
+ramdisk=initramfs-3.3.0-rc2+.img
+video=gfx-x.0 
+
+The detailed test which i have done: 
+First, Check efifb driver work well or not and check the kernel messesge ro
+see the follow info:
+[    0.576705] efifb: probing for efifb
+[    0.577357] efifb: framebuffer at 0xd0000000, mapped to 0xffffc90005800000, using 3752k, total 65472k
+[    0.577360] efifb: mode is 800x600x32, linelength=3200, pages=1
+[    0.577362] efifb: scrolling: redraw
+[    0.577364] efifb: Truecolor: size=8:8:8:8, shift=24:16:8:0 
+
+Second, Check efi systab and variable is work well or not. 
+cat the information in /sys/firmware/efi to check the efi systab and variable 
+is right or not. 
+ 
+Third, Run Linux firmware testing tools which is downloaded from this Url.
+http://linuxfirmwarekit.org/download.php 
+
+Tang Liang (4):
+      EFI: Provide registration for efi_init.. etc efi public function
+      EFI:  add efi driver for Xen efi
+      Xen efi: Add xen efi enabled detect
+      Xen vga: add the xen efi video mode support
+
+
+ arch/x86/platform/efi/Makefile   |    2 +-
+ arch/x86/platform/efi/efi-xen.c  |  460 ++++++++++++++++++++++++++++++++++++++
+ arch/x86/platform/efi/efi.c      |   63 +++++-
+ arch/x86/xen/enlighten.c         |    3 +
+ arch/x86/xen/vga.c               |    7 +
+ include/linux/efi.h              |   14 +-
+ include/xen/interface/platform.h |  122 ++++++++++
+ include/xen/interface/xen.h      |    1 +
+ 8 files changed, 665 insertions(+), 7 deletions(-)
+
+Thanks
+Liang.
+-- 
+1.7.7.5
