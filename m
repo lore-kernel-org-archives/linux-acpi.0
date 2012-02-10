@@ -1,89 +1,30 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI: Fix logic for removing mappings in 'acpi_unmap'
-Date: Thu, 9 Feb 2012 18:19:03 -0800
-Message-ID: <CAErSpo6L54td2SVm7LR_aSfseiRL4kOnf0ObnuO0QquYzAj+iQ@mail.gmail.com>
-References: <20120209163641.26858.59399.stgit@amt.stowe> <CAErSpo47+kHmS6477Bne84rPiy+sHGjgtK3mpk6VJc+hM4hhbg@mail.gmail.com>
- <1328832518.2404.86.camel@zim.stowe>
+From: liang tang <liang.tang@oracle.com>
+Subject: Re: [PATCH 3/5] EFI: add efi driver for Xen efi
+Date: Fri, 10 Feb 2012 15:24:18 +0800
+Message-ID: <4F34C622.3060905@oracle.com>
+References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com> <1328758401-24258-1-git-send-email-liang.tang@oracle.com> <20120209194723.GA8622@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:34375 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754683Ab2BJCTZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2012 21:19:25 -0500
-Received: by wgbdt10 with SMTP id dt10so2305529wgb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Feb 2012 18:19:24 -0800 (PST)
-In-Reply-To: <1328832518.2404.86.camel@zim.stowe>
+Received: from acsinet15.oracle.com ([141.146.126.227]:51409 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105Ab2BJHY1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2012 02:24:27 -0500
+In-Reply-To: <20120209194723.GA8622@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <mstowe@redhat.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com, tony.luck@intel.com, trenn@suse.de, linux-kernel@vger.kernel.org, mingo@elte.hu
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad.wilk@oracle.com
 
-On Thu, Feb 9, 2012 at 4:08 PM, Myron Stowe <mstowe@redhat.com> wrote:
-> On Thu, 2012-02-09 at 08:42 -0800, Bjorn Helgaas wrote:
->> On Thu, Feb 9, 2012 at 8:36 AM, Myron Stowe <myron.stowe@redhat.com>=
- wrote:
->> > From: Myron Stowe <mstowe@redhat.com>
->> >
->> > Make sure the removal of mappings uses the same logic that put the
->> > mappings in place.
->> >
->> > Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
->> > ---
->> >
->> > =A0drivers/acpi/osl.c | =A0 =A02 +-
->> > =A01 files changed, 1 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> > index 412a1e0..5aef087 100644
->> > --- a/drivers/acpi/osl.c
->> > +++ b/drivers/acpi/osl.c
->> > @@ -347,7 +347,7 @@ static void acpi_unmap(acpi_physical_address p=
-g_off, void __iomem *vaddr)
->> > =A0 =A0 =A0 =A0unsigned long pfn;
->> >
->> > =A0 =A0 =A0 =A0pfn =3D pg_off >> PAGE_SHIFT;
->> > - =A0 =A0 =A0 if (page_is_ram(pfn))
->> > + =A0 =A0 =A0 if (should_use_kmap(pfn))
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kunmap(pfn_to_page(pfn));
->> > =A0 =A0 =A0 =A0else
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0iounmap(vaddr);
->> >
->>
->> Whatever happened to the question of why we have arch-specific
->> ioremap() behavior? =A0It's good to make map/unmap symmetric, but it=
-'d
->> be better to get rid of the ioremap/kmap hack.
->
-> +cc ingo
->
-> We never received any explanation for why ioremap() failed for Ying w=
-ith
-> RAM on x86. =A0Last I saw Ying asked Ingo for some input here but the=
-re
-> was never any reply -
-> http://marc.info/?l=3Dlinux-acpi&m=3D132788392604738&w=3D2
->
-> I like your idea of possibly changing ioremap's implementation so tha=
-t
-> it would handle requests related to RAM - by using kmap() internally
-> when necessary - so that a *user* wouldn't need to care what
-> architecture we're on. =A0I, however, feel like I don't have enough
-> experience with the memory management subsystem to know if such a tac=
-tic
-> would fly or not so was uncomfortable proceeding along those lines. =A0=
-As
-> a result, I just wanted to get this in for the meantime.
+Hi,Matthew
+the xen efi call need to use hypercall. that is different from the 
+generic efi code. do you any idea about that. thanks!
 
-I dunno if you're comfortable with it, but you can always propose a
-patch doing it how you think it should be done.  People are more apt
-to respond to a concrete patch than to an abstract question about why
-things are the way they are.
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 2012-2-10 3:47, Matthew Garrett wrote:
+> Hm. Is there absolutely no way to do this by replacing efi_call_*? It'd
+> really be nice to avoid yet another set of duplicate functions here -
+> the ia64/x86 situation is already bad enough. Ideally this would be
+> sufficiently generic that arm can also plug into it.
+>
