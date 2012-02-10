@@ -1,139 +1,74 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [Xen-devel] [PATCH 1/5] EFI: Provide registration for
- efi_init.. etc efi public function
-Date: Fri, 10 Feb 2012 16:58:29 +0000
-Message-ID: <4F355AC50200007800072701@nat28.tlf.novell.com>
-References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
- <1328758328-24156-1-git-send-email-liang.tang@oracle.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 5/8] ACPI: add processor driver for Xen virtual CPUs.
+Date: Fri, 10 Feb 2012 12:18:38 -0500
+Message-ID: <20120210171838.GB25046@phenom.dumpdata.com>
+References: <1322673664-14642-1-git-send-email-konrad.wilk@oracle.com>
+ <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:40548 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754076Ab2BJQ6b convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:4:1>);
-	Fri, 10 Feb 2012 11:58:31 -0500
-In-Reply-To: <1328758328-24156-1-git-send-email-liang.tang@oracle.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:39606 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757365Ab2BJRVx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2012 12:21:53 -0500
 Content-Disposition: inline
+In-Reply-To: <1322673664-14642-6-git-send-email-konrad.wilk@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: xen-devel@lists.xensource.com, konrad.wilk@oracle.com, liang.tang@oracle.com, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: ke.yu@intel.com, kevin.tian@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Cc: xen-devel@lists.xensource.com, jeremy@goop.org, konrad@kernel.org, stefan.bader@canonical.com, Ian.Campbell@citrix.com, mike.mcclurg@citrix.com, liang.tang@oracle.com
 
->>> On 09.02.12 at 04:32, Tang Liang <liang.tang@oracle.com> wrote:
-> --- a/arch/x86/platform/efi/efi.c
-> +++ b/arch/x86/platform/efi/efi.c
-> @@ -50,6 +50,23 @@
->  #define PFX 		"EFI: "
->  
->  int efi_enabled;
+> +	if (pr->id == -1) {
+> +		int device_declaration;
+> +		int apic_id = -1;
 > +
-> +static void efi_init_generic(void);
+> +		if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID))
+> +			device_declaration = 0;
+> +		else
+> +			device_declaration = 1;
 > +
-> +static void efi_enter_virtual_mode_generic(void);
-> +static u32 efi_mem_type_generic(unsigned long phys_addr);
-> +static u64 efi_mem_attributes_generic(unsigned long phys_addr);
+> +		apic_id = acpi_get_cpuid(pr->handle,
+> +			device_declaration, pr->acpi_id);
+> +		if (apic_id == -1) {
+> +			/* Processor is not present in MADT table */
+
+So I was struggling to find an easy way to make the cases below (where
+VCPU != physical CPU) work with using the driver that iterates over the
+'processor' and was mystified to why it would not work, even with this
+patchset. Found out that the acpi_get_cpuid does this:
+
+
+201 #ifdef CONFIG_SMP
+202         for_each_possible_cpu(i) {
+203                 if (cpu_physical_id(i) == apic_id)
+204                         return i;
+205         }
+
+and since not-online vCPUs (so dom0_max_vcpus) are not in the "possible"
+bitmask, we never get to check line 203 and end up returning -1 for
+offline/not-present/not-possible vCPUs.
+
+Which means that we end up here:
+> +			return 0;
+> +		}
 > +
-> +struct efi_init_funcs efi_generic_funcs = {
 
-static const.
+instead of going through the pr->id = 0.
 
-> +	.__efi_init		     = efi_init_generic,
-> +	.__efi_reserve_boot_services = efi_reserve_boot_services_generic,
-> +	.__efi_enter_virtual_mode    = efi_enter_virtual_mode_generic,
-> +	.__efi_mem_type		     = efi_mem_type_generic,
-> +	.__efi_mem_attributes	     = efi_mem_attributes_generic
-> +};
-> +
-> +struct efi_init_funcs *efi_override_funcs =  &efi_generic_funcs;
+By the end of this, the information that the hypervisor gets is
+actually limited to the amount of CPUs that we specified in dom0_max_vcpus=
 
-const struct ...
-
-> +
->  EXPORT_SYMBOL(efi_enabled);
->  
->  struct efi __read_mostly efi = {
-> @@ -781,3 +798,41 @@ u64 efi_mem_attributes(unsigned long phys_addr)
->  	}
->  	return 0;
->  }
-> +
-> +void efi_init_function_register(struct efi_init_funcs *funcs)
-
-... (const struct ...
-
-> +{
-> +	efi_override_funcs = funcs;
-> +}
-> +
-> +void __init efi_init(void)
-> +{
-> +	if (efi_override_funcs->__efi_init)
-> +		efi_override_funcs->__efi_init();
-> +}
-> +
-> +void __init efi_reserve_boot_services(void)
-> +{
-> +	if (efi_override_funcs->__efi_reserve_boot_services)
-> +		efi_override_funcs->__efi_reserve_boot_services();
-> +}
-> +
-> +void __init efi_enter_virtual_mode(void)
-> +{
-> +	if (efi_override_funcs->__efi_enter_virtual_mode)
-> +		efi_override_funcs->__efi_enter_virtual_mode();
-> +}
-> +
-> +
-> +u32 efi_mem_type(unsigned long phys_addr)
-> +{
-> +	if (efi_override_funcs->__efi_mem_type)
-> +		return efi_override_funcs->__efi_mem_type(phys_addr);
-> +	return EFI_INVALID_TYPE;
-> +}
-> +
-> +u64 efi_mem_attributes(unsigned long phys_addr)
-> +{
-> +	if (efi_override_funcs->__efi_mem_attributes)
-> +		return efi_override_funcs->__efi_mem_attributes(phys_addr);
-> +	return EFI_INVALID_ATTRIBUTE;
-> +}
-> --- a/include/linux/efi.h
-> +++ b/include/linux/efi.h
-> @@ -79,8 +79,9 @@ typedef	struct {
->  #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
->  #define EFI_PAL_CODE			13
->  #define EFI_MAX_MEMORY_TYPE		14
-> -
-
-I would suggest to retain the newline.
-
-> +#define EFI_INVALID_TYPE		0xffffffff
->  /* Attribute values: */
-> +#define EFI_INVALID_ATTRIBUTE	((u64)0x0000000000000000ULL)	/* invalid attribute*/
->  #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
->  #define EFI_MEMORY_WC		((u64)0x0000000000000002ULL)	/* write-coalescing */
->  #define EFI_MEMORY_WT		((u64)0x0000000000000004ULL)	/* write-through */
-> @@ -434,6 +435,14 @@ extern struct efi {
->  	efi_set_virtual_address_map_t *set_virtual_address_map;
->  } efi;
->  
-> +struct efi_init_funcs {
-> +	void (*__efi_init)(void);
-> +	void (*__efi_reserve_boot_services)(void);
-> +	void (*__efi_enter_virtual_mode)(void);
-> +	u32 (*__efi_mem_type)(unsigned long phys_addr);
-> +	u64 (*__efi_mem_attributes)(unsigned long phys_addr);
-
-What is the reason for having the __ (or even the whole __efi_) at
-their beginning?
-
-Jan
-
-> +};
-> +
->  static inline int
->  efi_guidcmp (efi_guid_t left, efi_guid_t right)
->  {
-
-
+> +		/*
+> +		 * It's possible to have pr->id as '-1' even when it's actually
+> +		 * present in MADT table, e.g. due to limiting dom0 max vcpus
+> +		 * less than physical present number. In such case we still want
+> +		 * to parse ACPI processor object information, so mimic the
+> +		 * pr->id to CPU-0. This should be safe because we only care
+> +		 * about raw ACPI information, which only relies on pr->acpi_id.
+> +		 * For other information relying on pr->id and gathered through
+> +		 * SMP function call, it's safe to let them run on CPU-0 since
+> +		 * underlying Xen will collect them. Only a valid pr->id can
+> +		 * make later invocations forward progress.
+> +		 */
+> +		pr->id = 0;
+> +	}
