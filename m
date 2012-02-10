@@ -1,27 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 3/5] EFI: add efi driver for Xen efi
-Date: Thu, 9 Feb 2012 19:47:23 +0000
-Message-ID: <20120209194723.GA8622@srcf.ucam.org>
-References: <1328758250-23989-1-git-send-email-liang.tang@oracle.com>
- <1328758401-24258-1-git-send-email-liang.tang@oracle.com>
+From: Myron Stowe <mstowe@redhat.com>
+Subject: Re: [PATCH] ACPI: Fix logic for removing mappings in 'acpi_unmap'
+Date: Thu, 09 Feb 2012 17:08:38 -0700
+Message-ID: <1328832518.2404.86.camel@zim.stowe>
+References: <20120209163641.26858.59399.stgit@amt.stowe>
+	 <CAErSpo47+kHmS6477Bne84rPiy+sHGjgtK3mpk6VJc+hM4hhbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42737 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758515Ab2BITr2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2012 14:47:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1328758401-24258-1-git-send-email-liang.tang@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo47+kHmS6477Bne84rPiy+sHGjgtK3mpk6VJc+hM4hhbg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Myron Stowe <myron.stowe@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com, tony.luck@intel.com, trenn@suse.de, linux-kernel@vger.kernel.org, mingo@elte.hu
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Liang <liang.tang@oracle.com>
-Cc: xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad.wilk@oracle.com
 
-Hm. Is there absolutely no way to do this by replacing efi_call_*? It'd 
-really be nice to avoid yet another set of duplicate functions here - 
-the ia64/x86 situation is already bad enough. Ideally this would be 
-sufficiently generic that arm can also plug into it.
+On Thu, 2012-02-09 at 08:42 -0800, Bjorn Helgaas wrote:
+> On Thu, Feb 9, 2012 at 8:36 AM, Myron Stowe <myron.stowe@redhat.com> wrote:
+> > From: Myron Stowe <mstowe@redhat.com>
+> >
+> > Make sure the removal of mappings uses the same logic that put the
+> > mappings in place.
+> >
+> > Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+> > ---
+> >
+> >  drivers/acpi/osl.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> > index 412a1e0..5aef087 100644
+> > --- a/drivers/acpi/osl.c
+> > +++ b/drivers/acpi/osl.c
+> > @@ -347,7 +347,7 @@ static void acpi_unmap(acpi_physical_address pg_off, void __iomem *vaddr)
+> >        unsigned long pfn;
+> >
+> >        pfn = pg_off >> PAGE_SHIFT;
+> > -       if (page_is_ram(pfn))
+> > +       if (should_use_kmap(pfn))
+> >                kunmap(pfn_to_page(pfn));
+> >        else
+> >                iounmap(vaddr);
+> >
+> 
+> Whatever happened to the question of why we have arch-specific
+> ioremap() behavior?  It's good to make map/unmap symmetric, but it'd
+> be better to get rid of the ioremap/kmap hack.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
++cc ingo
+
+We never received any explanation for why ioremap() failed for Ying with
+RAM on x86.  Last I saw Ying asked Ingo for some input here but there
+was never any reply -
+http://marc.info/?l=linux-acpi&m=132788392604738&w=2
+
+I like your idea of possibly changing ioremap's implementation so that
+it would handle requests related to RAM - by using kmap() internally
+when necessary - so that a *user* wouldn't need to care what
+architecture we're on.  I, however, feel like I don't have enough
+experience with the memory management subsystem to know if such a tactic
+would fly or not so was uncomfortable proceeding along those lines.  As
+a result, I just wanted to get this in for the meantime.
+
+Myron
+
+> 
+> Bjorn
