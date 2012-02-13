@@ -1,32 +1,49 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] acpi/apei/einj: Add extensions to EINJ from rev 5.0 of
- acpi spec
-Date: Mon, 13 Feb 2012 23:06:02 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F03B27C@ORSMSX104.amr.corp.intel.com>
-References: <1e89d444cd527f11ff9c24ccca741a25cfab3962.1326831060.git.tony.luck@intel.com>
- <4F37874F.4010107@gmail.com> <4F387460.8090506@linux.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 4/5] ACPI: Do cpufreq clamping for throttling per package
+ v2
+Date: Mon, 13 Feb 2012 18:30:33 -0500
+Message-ID: <4F399D19.9090904@kernel.org>
+References: <1328545032-21373-1-git-send-email-andi@firstfloor.org> <1328545032-21373-5-git-send-email-andi@firstfloor.org> <20120206163106.GB32061@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:4036 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753296Ab2BMXGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Feb 2012 18:06:19 -0500
-In-Reply-To: <4F387460.8090506@linux.intel.com>
-Content-Language: en-US
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:51864 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755925Ab2BMXag (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2012 18:30:36 -0500
+In-Reply-To: <20120206163106.GB32061@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>, Jiang Liu <liuj97@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-PiBJJ20gYSBsaXR0bGUgY29uZnVzZWQgYWJvdXQgdGhlIEFDUElfRUlOSl9TRVRfRVJST1JfVFlQ
-RV9XSVRIX0FERFJFU1MgY29tbWFuZCBpbiBBQ1BJNS4NCj4gVGhlIGFib3ZlIGNvZGUgc2VlbXMg
-bGlrZSBhIGhhcmQtY29kZWQgdmVyc2lvbiBvZg0KPiBhcGVpX2V4ZWNfcnVuKCZjdHgsIEFDUElf
-RUlOSl9TRVRfRVJST1JfVFlQRV9XSVRIX0FERFJFU1MpLg0KDQpJZiBJIG1hc2hlZCB0aGlzIGNv
-ZGUgaW50byB0aGUgd3JvbmcgcGxhY2UgLi4uIHRoZW4gaGVscCBtZSB1bmRlcnN0YW5kIGhvdyBp
-dA0Kc2hvdWxkIGZpdCBpbiBzdHlsaXN0aWNhbGx5IHdpdGggdGhlIGV4aXN0aW5nIGNvZGUuDQoN
-CkJhc2ljIHN1bW1hcnkgaXMgdGhhdCBBQ1BJIDUgYWRkZWQgdGhlIF9XSVRIX0FERFJFU1MgZnVu
-Y3Rpb25hbGl0eS4gSWYgaXQgaXMgcHJlc2VudCwNCnRoZW4gdGhlcmUgc2VlbXMgbm8gcG9pbnQg
-aW4gdXNpbmcgdGhlIG9sZCBTRVRfRVJST1JfVFlQRSBhY3Rpb24gZnJvbSBBQ1BJNC4NCg0KLVRv
-bnkNCg==
+On 02/06/2012 11:31 AM, Matthew Garrett wrote:
+
+> On Mon, Feb 06, 2012 at 08:17:11AM -0800, Andi Kleen wrote:
+>> +#define reduction_pctg(cpu) \
+>> +	per_cpu(cpufreq_thermal_reduction_pctg, phys_package_first_cpu(cpu))
+> 
+> I don't like using percentages here - we end up with the potential for 
+> several percentages to end up mapping to the same P state.
+
+
+Does it matter?
+
+> I've sent a
+
+> patch that replaces the percentage code with just stepping through P 
+> states instead. But otherwise, yes, this seems sensible. An open 
+> question is whether we should be doing the same on _PPC notifications. 
+> There's some vague evidence that Windows does.
+
+If you stepped by P-states, then you behave entirely differently
+on a machine with many P-states vs a machine with few P-states.
+
+There is code floating about that exposes every 100 MHz step on SNB
+and later as a P-state -- you can have quite a few...
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
+
+
