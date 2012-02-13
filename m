@@ -1,98 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 1/6] ACPI: Introduce ACPI D3_COLD state support
-Date: Mon, 13 Feb 2012 21:25:15 +0100
-Message-ID: <201202132125.15537.rjw@sisk.pl>
-References: <1329124271-29464-1-git-send-email-ming.m.lin@intel.com> <1329124271-29464-2-git-send-email-ming.m.lin@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [RESEND PATCH 1/2] Fix two minor bugs in cper.c.
+Date: Mon, 13 Feb 2012 13:50:56 -0800
+Message-ID: <CAErSpo4O8stRdBSsOKZbYVTbnY1Dkmtbn-xC6zV1F31-ony3-g@mail.gmail.com>
+References: <1329148335-30534-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50349 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757951Ab2BMUVX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Feb 2012 15:21:23 -0500
-In-Reply-To: <1329124271-29464-2-git-send-email-ming.m.lin@intel.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45382 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754236Ab2BMVvR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2012 16:51:17 -0500
+Received: by werb13 with SMTP id b13so3776850wer.19
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Feb 2012 13:51:16 -0800 (PST)
+In-Reply-To: <1329148335-30534-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org
 
-On Monday, February 13, 2012, Lin Ming wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> If a device has _PR3._ON, it means the device supports D3_HOT.
-> If a device has _PR3._OFF, it means the device supports D3_COLD.
-> Add the ability to validate and enter D3_COLD state in ACPI.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-
-This is supposed to be ACPI 5.0 support, right?
-
-So can anyone please tell me what part of the ACPI 5.0 spec is the
-basis of this patch, because I can't see that immediately?
-
-The only places where D3Cold is _mentioned_ are Section 7.2.12 (_PRE, which
-appears to be new in 5.0), Section 7.2.20 (_S0W), Section 7.2.21 (_S1W),
-Section 7.2.22 (_S2W), Section 7.2.23 (_S3W) and Section 7.2.24 (_S4W).
-None of them mentions those _PR3._ON and _PR3._OFF things above.
-
-Moreover, my understanding of the spec is that D3Cold means all of the
-power resources returned by _PR3 are "off" (whereas some of them will be
-"on" in D3hot).
-
+On Mon, Feb 13, 2012 at 7:52 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> The function apei_estatus_print() and apei_estatus_check() forget to =
+move ahead
+> the gdata pointer when dealing with multiple generic error data secti=
+ons.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 > ---
->  drivers/acpi/power.c |    4 ++--
->  drivers/acpi/scan.c  |   10 +++++++++-
->  2 files changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 9ac2a9f..0d681fb 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -500,14 +500,14 @@ int acpi_power_transition(struct acpi_device *device, int state)
->  {
->  	int result;
->  
-> -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
-> +	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
->  		return -EINVAL;
->  
->  	if (device->power.state == state)
->  		return 0;
->  
->  	if ((device->power.state < ACPI_STATE_D0)
-> -	    || (device->power.state > ACPI_STATE_D3))
-> +	    || (device->power.state > ACPI_STATE_D3_COLD))
->  		return -ENODEV;
->  
->  	/* TBD: Resources must be ordered. */
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 8ab80ba..a9d4391 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -881,8 +881,16 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  
->  			device->power.flags.power_resources = 1;
->  			ps->flags.valid = 1;
-> -			for (j = 0; j < ps->resources.count; j++)
-> +			for (j = 0; j < ps->resources.count; j++) {
->  				acpi_bus_add_power_resource(ps->resources.handles[j]);
-> +				/* Check for D3_COLD support. _PR3._OFF equals D3_COLD ? */
-> +				if (i == ACPI_STATE_D3) {
-> +					if (j == 0)
-> +						device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> +					status = acpi_get_handle(ps->resources.handles[j], "_OFF",  &handle);
-> +					device->power.states[ACPI_STATE_D3_COLD].flags.valid &= ACPI_SUCCESS(status);
-> +				}
-> +			}
+> =A0drivers/acpi/apei/cper.c | =A0 =A02 ++
+> =A01 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index 5d41894..e6defd8 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -362,6 +362,7 @@ void apei_estatus_print(const char *pfx,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gedata_len =3D gdata->error_data_lengt=
+h;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0apei_estatus_print_section(pfx, gdata,=
+ sec_no);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0data_len -=3D gedata_len + sizeof(*gda=
+ta);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gdata =3D (void *)(gdata + 1) + gedata_=
+len;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sec_no++;
+> =A0 =A0 =A0 =A0}
+> =A0}
+> @@ -396,6 +397,7 @@ int apei_estatus_check(const struct acpi_hest_gen=
+eric_status *estatus)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gedata_len > data_len - sizeof(*gd=
+ata))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0data_len -=3D gedata_len + sizeof(*gda=
+ta);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gdata =3D (void *)(gdata + 1) + gedata_=
+len;
+> =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0if (data_len)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> --
 
-Sorry, but this doesn't make sense to me.  Power resources always have
-the _OFF method, right?
+Thanks for splitting this into separate patches.  While you're at it,
+please make the subject lines specific and meaningful.  "Fix bug" is
+not useful to someone examining the changelogs looking for a specific
+issue or deciding whether the change needs to be backported into a
+distro.
 
->  		}
->  
->  		/* Evaluate "_PSx" to see if we can do explicit sets */
-> 
-
-Rafael
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
