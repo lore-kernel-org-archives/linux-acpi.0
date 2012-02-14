@@ -1,135 +1,109 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 1/6] ACPI: Introduce ACPI D3_COLD state support
-Date: Tue, 14 Feb 2012 15:07:08 +0800
-Message-ID: <1329203228.19384.35.camel@rui.sh.intel.com>
-References: <1329124271-29464-1-git-send-email-ming.m.lin@intel.com>
-	 <1329124271-29464-2-git-send-email-ming.m.lin@intel.com>
-	 <201202132125.15537.rjw@sisk.pl>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] acpi: check for allocation errors in dock_link_device()
+Date: Tue, 14 Feb 2012 12:29:31 +0300
+Message-ID: <20120214092931.GA18662@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32327 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752875Ab2BNHHV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Feb 2012 02:07:21 -0500
-In-Reply-To: <201202132125.15537.rjw@sisk.pl>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:35450 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330Ab2BNJ3s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Feb 2012 04:29:48 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lin Ming <ming.m.lin@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>, Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Hi, Rafael,
+This is error checking pedantry to keep the static checkers happy.  In
+the original code the kmalloc() wasn't checked for allocation failures.
 
-On =E4=B8=80, 2012-02-13 at 21:25 +0100, Rafael J. Wysocki wrote:
-> On Monday, February 13, 2012, Lin Ming wrote:
-> > From: Zhang Rui <rui.zhang@intel.com>
-> >=20
-> > If a device has _PR3._ON, it means the device supports D3_HOT.
-> > If a device has _PR3._OFF, it means the device supports D3_COLD.
-> > Add the ability to validate and enter D3_COLD state in ACPI.
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->=20
-> This is supposed to be ACPI 5.0 support, right?
->=20
-No, D3_HOT is introduced in ACPI spec 4.0.
-According to the spec, _PR3 is used for devices that support both
-D3(D3_COLD) and D3HOT.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-The confusion here is that Linux D3 equals ACPICA D3HOT and Linux
-D3_COLD equals ACPICA D3.
-=46or example, when enter Linux ACPI D3, the reference count of ACPI Po=
-wer
-Resources in _PR3 is increased by one.
-
-> So can anyone please tell me what part of the ACPI 5.0 spec is the
-> basis of this patch, because I can't see that immediately?
->=20
-> The only places where D3Cold is _mentioned_ are Section 7.2.12 (_PRE,=
- which
-> appears to be new in 5.0), Section 7.2.20 (_S0W), Section 7.2.21 (_S1=
-W),
-> Section 7.2.22 (_S2W), Section 7.2.23 (_S3W) and Section 7.2.24 (_S4W=
-).
-> None of them mentions those _PR3._ON and _PR3._OFF things above.
->=20
-> Moreover, my understanding of the spec is that D3Cold means all of th=
-e
-> power resources returned by _PR3 are "off" (whereas some of them will=
- be
-> "on" in D3hot).
->=20
-Agreed.
-
-> > ---
-> >  drivers/acpi/power.c |    4 ++--
-> >  drivers/acpi/scan.c  |   10 +++++++++-
-> >  2 files changed, 11 insertions(+), 3 deletions(-)
-> >=20
-> > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> > index 9ac2a9f..0d681fb 100644
-> > --- a/drivers/acpi/power.c
-> > +++ b/drivers/acpi/power.c
-> > @@ -500,14 +500,14 @@ int acpi_power_transition(struct acpi_device =
-*device, int state)
-> >  {
-> >  	int result;
-> > =20
-> > -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3)=
-)
-> > +	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_=
-COLD))
-> >  		return -EINVAL;
-> > =20
-> >  	if (device->power.state =3D=3D state)
-> >  		return 0;
-> > =20
-> >  	if ((device->power.state < ACPI_STATE_D0)
-> > -	    || (device->power.state > ACPI_STATE_D3))
-> > +	    || (device->power.state > ACPI_STATE_D3_COLD))
-> >  		return -ENODEV;
-> > =20
-> >  	/* TBD: Resources must be ordered. */
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 8ab80ba..a9d4391 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -881,8 +881,16 @@ static int acpi_bus_get_power_flags(struct acp=
-i_device *device)
-> > =20
-> >  			device->power.flags.power_resources =3D 1;
-> >  			ps->flags.valid =3D 1;
-> > -			for (j =3D 0; j < ps->resources.count; j++)
-> > +			for (j =3D 0; j < ps->resources.count; j++) {
-> >  				acpi_bus_add_power_resource(ps->resources.handles[j]);
-> > +				/* Check for D3_COLD support. _PR3._OFF equals D3_COLD ? */
-> > +				if (i =3D=3D ACPI_STATE_D3) {
-> > +					if (j =3D=3D 0)
-> > +						device->power.states[ACPI_STATE_D3_COLD].flags.valid =3D 1;
-> > +					status =3D acpi_get_handle(ps->resources.handles[j], "_OFF", =
- &handle);
-> > +					device->power.states[ACPI_STATE_D3_COLD].flags.valid &=3D ACP=
-I_SUCCESS(status);
-> > +				}
-> > +			}
->=20
-> Sorry, but this doesn't make sense to me.  Power resources always hav=
-e
-> the _OFF method, right?
->=20
-I'm not sure. I thought I had seen ACPI Power Resources without _OFF
-control method somewhere in bugzilla, but I can not find it out now.
-
-Hmm, how about set D3_COLD support if _PR3 exists, but leave a warning
-message if _OFF doesn't exist, for now?
-
-thanks,
-rui
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index b5e4142..38e8212 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -281,21 +281,22 @@ EXPORT_SYMBOL_GPL(is_dock_device);
+  */
+ struct device **dock_link_device(acpi_handle handle)
+ {
+-	struct device *dev = acpi_get_physical_device(handle);
++	struct device *dev;
+ 	struct dock_station *dock_station;
+ 	int ret, dock = 0;
+ 	struct device **devices;
+ 
+-	devices = kmalloc(dock_station_count * sizeof(struct device *),
+-			  GFP_KERNEL);
+-
++	dev = acpi_get_physical_device(handle);
+ 	if (!dev)
+ 		return NULL;
++	if (is_dock(handle))
++		goto out_put;
++
++	devices = kmalloc(dock_station_count * sizeof(struct device *),
++			  GFP_KERNEL);
++	if (!devices)
++		goto out_put;
+ 
+-	if (is_dock(handle)) {
+-		put_device(dev);
+-		return NULL;
+-	}
+ 
+ 	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		if (find_dock_dependent_device(dock_station, handle)) {
+@@ -311,6 +312,10 @@ struct device **dock_link_device(acpi_handle handle)
+ 
+ 	devices[dock] = NULL;
+ 	return devices;
++
++out_put:
++	put_device(dev);
++	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(dock_link_device);
+ 
+@@ -320,20 +325,21 @@ EXPORT_SYMBOL_GPL(dock_link_device);
+  */
+ struct device **dock_unlink_device(acpi_handle handle)
+ {
+-	struct device *dev = acpi_get_physical_device(handle);
++	struct device *dev;
+ 	struct dock_station *dock_station;
+ 	int dock = 0;
+-	struct device **devices =
+-		kmalloc(dock_station_count * sizeof(struct device *),
+-			GFP_KERNEL);
++	struct device **devices;
+ 
++	dev = acpi_get_physical_device(handle);
+ 	if (!dev)
+ 		return NULL;
++	if (is_dock(handle))
++		goto out_put;
+ 
+-	if (is_dock(handle)) {
+-		put_device(dev);
+-		return NULL;
+-	}
++	devices = kmalloc(dock_station_count * sizeof(struct device *),
++			GFP_KERNEL);
++	if (!devices)
++		goto out_put;
+ 
+ 	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		if (find_dock_dependent_device(dock_station, handle)) {
+@@ -350,6 +356,10 @@ struct device **dock_unlink_device(acpi_handle handle)
+ 	put_device(dev);
+ 	devices[dock] = NULL;
+ 	return devices;
++
++out_put:
++	put_device(dev);
++	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(dock_unlink_device);
+ 
