@@ -1,47 +1,72 @@
-From: Petr Vandrovec <petr@vmware.com>
-Subject: [PATCH 3.3.0-rc3] Fix use-after-free in acpi_map_lsapic
-Date: Wed, 15 Feb 2012 16:06:43 -0800
-Message-ID: <20120216000643.GA7508@petr-dev3.eng.vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akataria@vmware.com, dcovelli@vmware.com
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH] ACPI, APEI, EINJ, new parameter to control trigger action
+Date: Thu, 16 Feb 2012 10:50:24 +0800
+Message-ID: <1329360624-4336-1-git-send-email-gong.chen@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:16807 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756698Ab2BPCt1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Feb 2012 21:49:27 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tony.luck@intel.com, ying.huang@intel.com
+Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-From: Petr Vandrovec <petr@vmware.com>
+Some APEI firmware implementation will access injected address
+specified in param1 to trigger the error when injecting memory
+error, which means if one SRAR error is injected, the crash
+always happens because it is executed in kernel context. This
+new parameter can disable trigger action and control is taken
+over by the user. In this way, an SRAR error can happen in user
+context instead of crashing the system. This function is highly
+depended on BIOS implementation so please ensure you know the
+BIOS trigger procedure before you open this switch.
 
-When processor is being hot-added to the system, acpi_map_lsapic invokes
-ACPI _MAT method to find APIC ID and flags, verifies that returned structure
-is indeed ACPI's local APIC structure, and that flags contain MADT_ENABLED
-bit.  Then saves APIC ID, frees structure - and accesses structure when
-computing arguments for acpi_register_lapic call.  Which sometime leads
-to acpi_register_lapic call being made with second argument zero, failing
-to bring processor online with error 'Unable to map lapic to logical cpu
-number'.
+Tested-by: Tony Luck <tony.luck@lintel.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/einj.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-As lapic->lapic_flags & ACPI_MADT_ENABLED was already confirmed to be non-zero
-few lines above, we can just pass unconditional ACPI_MADT_ENABLED to the
-acpi_register_lapic.
-
-Thanks, Petr
-
-Signed-off-by: Petr Vandrovec <petr@vmware.com>
-Signed-off-by: Alok Kataria <akataria@vmware.com>
-
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index ce664f3..a4a0901 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -650,7 +650,7 @@ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
- 		goto free_tmp_map;
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 4ca087d..4a3ebb5 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -74,6 +74,8 @@ struct vendor_error_type_extension {
+ 	u8	reserved[3];
+ };
  
- 	cpumask_copy(tmp_map, cpu_present_mask);
--	acpi_register_lapic(physid, lapic->lapic_flags & ACPI_MADT_ENABLED);
-+	acpi_register_lapic(physid, ACPI_MADT_ENABLED);
++static u32 notrigger;
++
+ static u32 vendor_flags;
+ static struct debugfs_blob_wrapper vendor_blob;
+ static char vendor_dev[64];
+@@ -496,9 +498,11 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ 	if (rc)
+ 		return rc;
+ 	trigger_paddr = apei_exec_ctx_get_output(&ctx);
+-	rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
+-	if (rc)
+-		return rc;
++	if (notrigger == 0) {
++		rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
++		if (rc)
++			return rc;
++	}
+ 	rc = apei_exec_run_optional(&ctx, ACPI_EINJ_END_OPERATION);
  
- 	/*
- 	 * If mp_register_lapic successfully generates a new logical cpu
+ 	return rc;
+@@ -677,6 +681,10 @@ static int __init einj_init(void)
+ 				     einj_debug_dir, NULL, &error_inject_fops);
+ 	if (!fentry)
+ 		goto err_cleanup;
++	fentry = debugfs_create_x32("notrigger", S_IRUSR | S_IWUSR,
++				    einj_debug_dir, &notrigger);
++	if (!fentry)
++		goto err_cleanup;
+ 
+ 	apei_resources_init(&einj_resources);
+ 	einj_exec_ctx_init(&ctx);
+-- 
+1.7.8.2.302.g17b4e
+
