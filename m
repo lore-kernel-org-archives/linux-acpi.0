@@ -1,72 +1,178 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: [PATCH] ACPI, APEI, EINJ, new parameter to control trigger action
-Date: Thu, 16 Feb 2012 10:50:24 +0800
-Message-ID: <1329360624-4336-1-git-send-email-gong.chen@linux.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH] PCI: Move acpi_dev_run_wake to acpi core
+Date: Thu, 16 Feb 2012 11:24:37 +0800
+Message-ID: <1329362677.3413.12.camel@minggr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16807 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:55808 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756698Ab2BPCt1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Feb 2012 21:49:27 -0500
+	id S1756937Ab2BPDZH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Feb 2012 22:25:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, ying.huang@intel.com
-Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Some APEI firmware implementation will access injected address
-specified in param1 to trigger the error when injecting memory
-error, which means if one SRAR error is injected, the crash
-always happens because it is executed in kernel context. This
-new parameter can disable trigger action and control is taken
-over by the user. In this way, an SRAR error can happen in user
-context instead of crashing the system. This function is highly
-depended on BIOS implementation so please ensure you know the
-BIOS trigger procedure before you open this switch.
+acpi_dev_run_wake is a generic function which can be used by
+other subsystem too. Rename it to acpi_pm_device_run_wake, to be
+consistent with acpi_pm_device_sleep_wake.
 
-Tested-by: Tony Luck <tony.luck@lintel.com>
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+Then move it to acpi core.
+
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 ---
- drivers/acpi/apei/einj.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/acpi/sleep.c    |   35 +++++++++++++++++++++++++++++++++++
+ drivers/pci/pci-acpi.c  |   40 +++-------------------------------------
+ include/acpi/acpi_bus.h |    5 +++++
+ 3 files changed, 43 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 4ca087d..4a3ebb5 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -74,6 +74,8 @@ struct vendor_error_type_extension {
- 	u8	reserved[3];
- };
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index ca191ff..00fa664 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -17,6 +17,7 @@
+ #include <linux/suspend.h>
+ #include <linux/reboot.h>
+ #include <linux/acpi.h>
++#include <linux/pm_runtime.h>
  
-+static u32 notrigger;
+ #include <asm/io.h>
+ 
+@@ -730,6 +731,40 @@ int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
+ 
+ #ifdef CONFIG_PM_SLEEP
+ /**
++ * acpi_pm_device_run_wake - Enable/disable wake-up for given device.
++ * @phys_dev: Device to enable/disable the platform to wake-up the system for.
++ * @enable: Whether enable or disable the wake-up functionality.
++ *
++ * Find the ACPI device object corresponding to @pci_dev and try to
++ * enable/disable the GPE associated with it.
++ */
++int acpi_pm_device_run_wake(struct device *phys_dev, bool enable)
++{
++	struct acpi_device *dev;
++	acpi_handle handle;
 +
- static u32 vendor_flags;
- static struct debugfs_blob_wrapper vendor_blob;
- static char vendor_dev[64];
-@@ -496,9 +498,11 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 	if (rc)
- 		return rc;
- 	trigger_paddr = apei_exec_ctx_get_output(&ctx);
--	rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
--	if (rc)
--		return rc;
-+	if (notrigger == 0) {
-+		rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
-+		if (rc)
-+			return rc;
++	if (!device_run_wake(phys_dev))
++		return -EINVAL;
++
++	handle = DEVICE_ACPI_HANDLE(phys_dev);
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
++		dev_dbg(phys_dev, "ACPI handle has no context in %s!\n",
++			__func__);
++		return -ENODEV;
 +	}
- 	rc = apei_exec_run_optional(&ctx, ACPI_EINJ_END_OPERATION);
++
++	if (enable) {
++		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
++		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
++	} else {
++		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
++		acpi_disable_wakeup_device_power(dev);
++	}
++
++	return 0;
++}
++
++/**
+  *	acpi_pm_device_sleep_wake - enable or disable the system wake-up
+  *                                  capability of given device
+  *	@dev: device to handle
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 060fd22..0f150f2 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -277,40 +277,6 @@ static int acpi_pci_sleep_wake(struct pci_dev *dev, bool enable)
+ 	return 0;
+ }
  
- 	return rc;
-@@ -677,6 +681,10 @@ static int __init einj_init(void)
- 				     einj_debug_dir, NULL, &error_inject_fops);
- 	if (!fentry)
- 		goto err_cleanup;
-+	fentry = debugfs_create_x32("notrigger", S_IRUSR | S_IWUSR,
-+				    einj_debug_dir, &notrigger);
-+	if (!fentry)
-+		goto err_cleanup;
+-/**
+- * acpi_dev_run_wake - Enable/disable wake-up for given device.
+- * @phys_dev: Device to enable/disable the platform to wake-up the system for.
+- * @enable: Whether enable or disable the wake-up functionality.
+- *
+- * Find the ACPI device object corresponding to @pci_dev and try to
+- * enable/disable the GPE associated with it.
+- */
+-static int acpi_dev_run_wake(struct device *phys_dev, bool enable)
+-{
+-	struct acpi_device *dev;
+-	acpi_handle handle;
+-
+-	if (!device_run_wake(phys_dev))
+-		return -EINVAL;
+-
+-	handle = DEVICE_ACPI_HANDLE(phys_dev);
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
+-		dev_dbg(phys_dev, "ACPI handle has no context in %s!\n",
+-			__func__);
+-		return -ENODEV;
+-	}
+-
+-	if (enable) {
+-		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
+-		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
+-	} else {
+-		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
+-		acpi_disable_wakeup_device_power(dev);
+-	}
+-
+-	return 0;
+-}
+-
+ static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
+ {
+ 	while (bus->parent) {
+@@ -318,14 +284,14 @@ static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
  
- 	apei_resources_init(&einj_resources);
- 	einj_exec_ctx_init(&ctx);
+ 		if (bridge->pme_interrupt)
+ 			return;
+-		if (!acpi_dev_run_wake(&bridge->dev, enable))
++		if (!acpi_pm_device_run_wake(&bridge->dev, enable))
+ 			return;
+ 		bus = bus->parent;
+ 	}
+ 
+ 	/* We have reached the root bus. */
+ 	if (bus->bridge)
+-		acpi_dev_run_wake(bus->bridge, enable);
++		acpi_pm_device_run_wake(bus->bridge, enable);
+ }
+ 
+ static int acpi_pci_run_wake(struct pci_dev *dev, bool enable)
+@@ -333,7 +299,7 @@ static int acpi_pci_run_wake(struct pci_dev *dev, bool enable)
+ 	if (dev->pme_interrupt)
+ 		return 0;
+ 
+-	if (!acpi_dev_run_wake(&dev->dev, enable))
++	if (!acpi_pm_device_run_wake(&dev->dev, enable))
+ 		return 0;
+ 
+ 	acpi_pci_propagate_run_wake(dev->bus, enable);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 32fb899..2d556e3 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -394,8 +394,13 @@ static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
+ #endif
+ 
+ #ifdef CONFIG_PM_SLEEP
++int acpi_pm_device_run_wake(struct device *, bool);
+ int acpi_pm_device_sleep_wake(struct device *, bool);
+ #else
++static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
++{
++	return -ENODEV;
++}
+ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ {
+ 	return -ENODEV;
 -- 
-1.7.8.2.302.g17b4e
+1.7.2.5
+
+
 
