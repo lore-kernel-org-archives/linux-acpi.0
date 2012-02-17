@@ -1,48 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [Resend 2x] thermal: Prevent polling from happening during
- system suspend
-Date: Fri, 17 Feb 2012 20:29:14 +0100
-Message-ID: <20120217192914.GH2707@elf.ucw.cz>
-References: <201111061421.38580.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/3] ACPI: Provide config option to disable BIOS
+ brightness changes on power events
+Date: Fri, 17 Feb 2012 19:37:42 +0000
+Message-ID: <20120217193742.GA11132@srcf.ucam.org>
+References: <1328282293-16551-1-git-send-email-mjg@redhat.com>
+ <20120217192704.GB2707@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:49470 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754563Ab2BQThr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Feb 2012 14:37:47 -0500
 Content-Disposition: inline
-In-Reply-To: <201111061421.38580.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+In-Reply-To: <20120217192704.GB2707@elf.ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sun 2011-11-06 14:21:38, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Fri, Feb 17, 2012 at 08:27:04PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> The thermal driver should use a freezable workqueue to schedule
-> polling to prevent thermal_zone_device_update() from being run
-> during system suspend, when the devices it relies on may be inactive.
-> Make it use the system freezable workqueue for this purpose.
+> > The default ACPI behaviour is to instruct the BIOS to automatically change
+> > brightness on power events. This may be undesirable for distributions who
+> > manage brightness in userspace. Provide a config option that disables this
+> > behaviour and leaves brightness control up to the OS.
+> 
+> Should this be configured during runtime?
+> 
+> Like... when userspace power management starts, it disables this?
 
-Umm. hibernation can take long time and (with latest compression
-patches) can be CPU intensive.
-
-Is it good idea to disable thermal management?
-
-Should we kick fans to full speed before starting hibernation?
-								Pavel
-
-> @@ -678,10 +678,10 @@ static void thermal_zone_device_set_poll
->  		return;
->  
->  	if (delay > 1000)
-> -		schedule_delayed_work(&(tz->poll_queue),
-> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
->  				      round_jiffies(msecs_to_jiffies(delay)));
->  	else
-> -		schedule_delayed_work(&(tz->poll_queue),
-> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
->  				      msecs_to_jiffies(delay));
->  }
+This is ACPI-specific. It's not emulated by any of the other backlight 
+drivers. There's no terribly easy way to have generic userspace handle 
+it.
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
