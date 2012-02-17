@@ -1,29 +1,48 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/3] ACPI: Provide config option to disable BIOS
- brightness changes on power events
-Date: Fri, 17 Feb 2012 20:27:04 +0100
-Message-ID: <20120217192704.GB2707@elf.ucw.cz>
-References: <1328282293-16551-1-git-send-email-mjg@redhat.com>
+Subject: Re: [Resend 2x] thermal: Prevent polling from happening during
+ system suspend
+Date: Fri, 17 Feb 2012 20:29:14 +0100
+Message-ID: <20120217192914.GH2707@elf.ucw.cz>
+References: <201111061421.38580.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1328282293-16551-1-git-send-email-mjg@redhat.com>
+In-Reply-To: <201111061421.38580.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, "Len Brown (Intel)" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sun 2011-11-06 14:21:38, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> The thermal driver should use a freezable workqueue to schedule
+> polling to prevent thermal_zone_device_update() from being run
+> during system suspend, when the devices it relies on may be inactive.
+> Make it use the system freezable workqueue for this purpose.
 
-> The default ACPI behaviour is to instruct the BIOS to automatically change
-> brightness on power events. This may be undesirable for distributions who
-> manage brightness in userspace. Provide a config option that disables this
-> behaviour and leaves brightness control up to the OS.
+Umm. hibernation can take long time and (with latest compression
+patches) can be CPU intensive.
 
-Should this be configured during runtime?
+Is it good idea to disable thermal management?
 
-Like... when userspace power management starts, it disables this?
+Should we kick fans to full speed before starting hibernation?
+								Pavel
+
+> @@ -678,10 +678,10 @@ static void thermal_zone_device_set_poll
+>  		return;
+>  
+>  	if (delay > 1000)
+> -		schedule_delayed_work(&(tz->poll_queue),
+> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+>  				      round_jiffies(msecs_to_jiffies(delay)));
+>  	else
+> -		schedule_delayed_work(&(tz->poll_queue),
+> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+>  				      msecs_to_jiffies(delay));
+>  }
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
