@@ -1,172 +1,273 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 1/6] ACPI: Introduce ACPI D3_COLD state support
-Date: Fri, 17 Feb 2012 23:23:17 +0100
-Message-ID: <201202172323.18022.rjw@sisk.pl>
-References: <1329124271-29464-1-git-send-email-ming.m.lin@intel.com> <201202142329.16516.rjw@sisk.pl> <1329376106.28581.5.camel@rui.sh.intel.com>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [PATCH 3/3] Xen pad logic and notification
+Date: Sun, 19 Feb 2012 11:57:39 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC82923350A0869@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC829233509D87E@SHSMSX101.ccr.corp.intel.com>
+ <20120217143727.GC29110@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58702 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:13407 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752933Ab2BQWTc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Feb 2012 17:19:32 -0500
-In-Reply-To: <1329376106.28581.5.camel@rui.sh.intel.com>
+	id S1753441Ab2BSL5p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Feb 2012 06:57:45 -0500
+In-Reply-To: <20120217143727.GC29110@phenom.dumpdata.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, Jan Beulich <JBeulich@suse.com>, "keir.xen@gmail.com" <keir.xen@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thursday, February 16, 2012, Zhang Rui wrote:
-> On =E4=BA=8C, 2012-02-14 at 23:29 +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, February 14, 2012, Zhang Rui wrote:
-> > > Hi, Rafael,
-> > >=20
-> > > On =E4=B8=80, 2012-02-13 at 21:25 +0100, Rafael J. Wysocki wrote:
-> > > > On Monday, February 13, 2012, Lin Ming wrote:
-> > > > > From: Zhang Rui <rui.zhang@intel.com>
-> > > > >=20
-> > > > > If a device has _PR3._ON, it means the device supports D3_HOT=
-=2E
-> > > > > If a device has _PR3._OFF, it means the device supports D3_CO=
-LD.
-> > > > > Add the ability to validate and enter D3_COLD state in ACPI.
-> > > > >=20
-> > > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > >=20
-> > > > This is supposed to be ACPI 5.0 support, right?
-> > > >=20
-> > > No, D3_HOT is introduced in ACPI spec 4.0.
-> > > According to the spec, _PR3 is used for devices that support both
-> > > D3(D3_COLD) and D3HOT.
-> >=20
-> > Yes, it does.
-> >=20
-> > > The confusion here is that Linux D3 equals ACPICA D3HOT and Linux
-> > > D3_COLD equals ACPICA D3.
-> > > For example, when enter Linux ACPI D3, the reference count of ACP=
-I Power
-> > > Resources in _PR3 is increased by one.
-> >=20
-> > That's correct.
-> >=20
-> > > > So can anyone please tell me what part of the ACPI 5.0 spec is =
-the
-> > > > basis of this patch, because I can't see that immediately?
-> > > >=20
-> > > > The only places where D3Cold is _mentioned_ are Section 7.2.12 =
-(_PRE, which
-> > > > appears to be new in 5.0), Section 7.2.20 (_S0W), Section 7.2.2=
-1 (_S1W),
-> > > > Section 7.2.22 (_S2W), Section 7.2.23 (_S3W) and Section 7.2.24=
- (_S4W).
-> > > > None of them mentions those _PR3._ON and _PR3._OFF things above=
-=2E
-> > > >=20
-> > > > Moreover, my understanding of the spec is that D3Cold means all=
- of the
-> > > > power resources returned by _PR3 are "off" (whereas some of the=
-m will be
-> > > > "on" in D3hot).
-> > > >=20
-> > > Agreed.
-> > >=20
-> > > > > ---
-> > > > >  drivers/acpi/power.c |    4 ++--
-> > > > >  drivers/acpi/scan.c  |   10 +++++++++-
-> > > > >  2 files changed, 11 insertions(+), 3 deletions(-)
-> > > > >=20
-> > > > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> > > > > index 9ac2a9f..0d681fb 100644
-> > > > > --- a/drivers/acpi/power.c
-> > > > > +++ b/drivers/acpi/power.c
-> > > > > @@ -500,14 +500,14 @@ int acpi_power_transition(struct acpi_d=
-evice *device, int state)
-> > > > >  {
-> > > > >  	int result;
-> > > > > =20
-> > > > > -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STA=
-TE_D3))
-> > > > > +	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STA=
-TE_D3_COLD))
-> > > > >  		return -EINVAL;
-> > > > > =20
-> > > > >  	if (device->power.state =3D=3D state)
-> > > > >  		return 0;
-> > > > > =20
-> > > > >  	if ((device->power.state < ACPI_STATE_D0)
-> > > > > -	    || (device->power.state > ACPI_STATE_D3))
-> > > > > +	    || (device->power.state > ACPI_STATE_D3_COLD))
-> > > > >  		return -ENODEV;
-> > > > > =20
-> > > > >  	/* TBD: Resources must be ordered. */
-> > > > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > > > index 8ab80ba..a9d4391 100644
-> > > > > --- a/drivers/acpi/scan.c
-> > > > > +++ b/drivers/acpi/scan.c
-> > > > > @@ -881,8 +881,16 @@ static int acpi_bus_get_power_flags(stru=
-ct acpi_device *device)
-> > > > > =20
-> > > > >  			device->power.flags.power_resources =3D 1;
-> > > > >  			ps->flags.valid =3D 1;
-> > > > > -			for (j =3D 0; j < ps->resources.count; j++)
-> > > > > +			for (j =3D 0; j < ps->resources.count; j++) {
-> > > > >  				acpi_bus_add_power_resource(ps->resources.handles[j]);
-> > > > > +				/* Check for D3_COLD support. _PR3._OFF equals D3_COLD ?=
- */
-> > > > > +				if (i =3D=3D ACPI_STATE_D3) {
-> > > > > +					if (j =3D=3D 0)
-> > > > > +						device->power.states[ACPI_STATE_D3_COLD].flags.valid =3D=
- 1;
-> > > > > +					status =3D acpi_get_handle(ps->resources.handles[j], "_=
-OFF",  &handle);
-> > > > > +					device->power.states[ACPI_STATE_D3_COLD].flags.valid &=3D=
- ACPI_SUCCESS(status);
-> > > > > +				}
-> > > > > +			}
-> > > >=20
-> > > > Sorry, but this doesn't make sense to me.  Power resources alwa=
-ys have
-> > > > the _OFF method, right?
-> > > >=20
-> > > I'm not sure.
-> >=20
-> > That would be explicitly against the spec that says that power reso=
-urces
-> > are *required* to have _ON, _OFF and _STA.
-> >=20
-> > > I thought I had seen ACPI Power Resources without _OFF
-> > > control method somewhere in bugzilla, but I can not find it out n=
-ow.
-> >=20
-> > That, clearly, is a firmware bug.
-> >=20
-> Okay, agreed.
-> so how about this? _PR3 equals D3_HOT support.
+Konrad Rzeszutek Wilk wrote:
+> On Fri, Feb 17, 2012 at 08:58:38AM +0000, Liu, Jinsong wrote:
+>>> From fee39804d2634dfba7b369dc82dac19b57400f84 Mon Sep 17 00:00:00
+>>> 2001 
+>> From: Liu, Jinsong <jinsong.liu@intel.com>
+>> Date: Sat, 18 Feb 2012 00:46:29 +0800
+>> Subject: [PATCH 3/3] Xen pad logic and notification
+>> 
+>> This patch implement Xen pad logic, and when getting pad device
+>> notification, it hypercalls to Xen hypervisor for core parking.
+> 
+> CC-ing linux-acpi@vger.kernel.org and Len Brown.
+> 
+>> 
+>> Signed-off-by: Liu, Jinsong <jinsong.liu@intel.com> ---
+>>  drivers/xen/xen_acpi_pad.c       |  189
+>>  ++++++++++++++++++++++++++++++++++++++
+>>  include/xen/interface/platform.h |   14 +++ 2 files changed, 203
+>> insertions(+), 0 deletions(-) 
+>> 
+>> diff --git a/drivers/xen/xen_acpi_pad.c b/drivers/xen/xen_acpi_pad.c
+>> index 63ab2fb..ba66d51 100644
+>> --- a/drivers/xen/xen_acpi_pad.c
+>> +++ b/drivers/xen/xen_acpi_pad.c
+>> @@ -1,8 +1,197 @@
+>> +/*
+>> + * xen_acpi_pad.c - Xen pad interface
+>> + *
+>> + * Copyright (c) 2012, Intel Corporation.
+>> + *    Author: Liu, Jinsong <jinsong.liu@intel.com> + *
+>> + * This program is free software; you can redistribute it and/or
+>> modify it + * under the terms and conditions of the GNU General
+>> Public License, + * version 2, as published by the Free Software
+>> Foundation. + * + * This program is distributed in the hope it will
+>> be useful, but WITHOUT + * ANY WARRANTY; without even the implied
+>> warranty of MERCHANTABILITY or + * FITNESS FOR A PARTICULAR PURPOSE.
+>> See the GNU General Public License for + * more details. + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/types.h>
+>> +#include <acpi/acpi_bus.h>
+>> +#include <acpi/acpi_drivers.h>
+>> +
+>> +#include <asm/xen/hypercall.h>
+>> +
+>> +#define ACPI_PROCESSOR_AGGREGATOR_CLASS "xen_acpi_pad"
+>> +#define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Xen Processor
+>> Aggregator" +#define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
+>> +static DEFINE_MUTEX(xen_cpu_lock);
+>> +
+>> +static int xen_acpi_pad_idle_cpus(int *num_cpus)
+>> +{
+>> +	int ret;
+>> +
+>> +	struct xen_platform_op op = {
+>> +		.cmd = XENPF_core_parking,
+>> +		.interface_version = XENPF_INTERFACE_VERSION,
+>> +	};
+>> +
+>> +	/* set cpu nums expected to be idled */
+>> +	op.u.core_parking.type = XEN_CORE_PARKING_SET;
+>> +	op.u.core_parking.idle_nums = (uint32_t)*num_cpus;
+>> +	ret = HYPERVISOR_dom0_op(&op);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	/*
+>> +	 * get cpu nums actually be idled
+>> +	 * cannot get it by using hypercall once (shared with _SET)
+>> +	 * because of the characteristic of Xen continue_hypercall_on_cpu
+>> +	 */ +	op.u.core_parking.type = XEN_CORE_PARKING_GET;
+>> +	ret = HYPERVISOR_dom0_op(&op);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	*num_cpus = op.u.core_parking.idle_nums;
+>> +	return 0;
+>> +}
+>> +
+>> +/*
+>> + * Query firmware how many CPUs should be idle
+>> + * return -1 on failure
+>> + */
+>> +static int xen_acpi_pad_pur(acpi_handle handle)
+>> +{
+>> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL}; +	union
+>> acpi_object *package; +	int num = -1;
+>> +
+>> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_PUR", NULL,
+>> &buffer))) +		return num; +
+>> +	if (!buffer.length || !buffer.pointer)
+>> +		return num;
+>> +
+>> +	package = buffer.pointer;
+>> +
+>> +	if (package->type == ACPI_TYPE_PACKAGE &&
+>> +		package->package.count == 2 &&
+>> +		package->package.elements[0].integer.value == 1) /* rev 1 */ +
+>> +		num = package->package.elements[1].integer.value; +
+>> +	kfree(buffer.pointer);
+>> +	return num;
+>> +}
+>> +
+>> +/* Notify firmware how many CPUs are idle */
+>> +static void xen_acpi_pad_ost(acpi_handle handle, int stat,
+>> +	uint32_t idle_cpus) +{
+>> +	union acpi_object params[3] = {
+>> +		{.type = ACPI_TYPE_INTEGER,},
+>> +		{.type = ACPI_TYPE_INTEGER,},
+>> +		{.type = ACPI_TYPE_BUFFER,},
+>> +	};
+>> +	struct acpi_object_list arg_list = {3, params};
+>> +
+>> +	params[0].integer.value = ACPI_PROCESSOR_AGGREGATOR_NOTIFY;
+>> +	params[1].integer.value =  stat;
+>> +	params[2].buffer.length = 4;
+>> +	params[2].buffer.pointer = (void *)&idle_cpus;
+>> +	acpi_evaluate_object(handle, "_OST", &arg_list, NULL); +}
+>> +
+>> +static void xen_acpi_pad_handle_notify(acpi_handle handle) +{
+>> +	int ret, num_cpus;
+>> +
+>> +	mutex_lock(&xen_cpu_lock);
+>> +	num_cpus = xen_acpi_pad_pur(handle);
+>> +	if (num_cpus < 0) {
+>> +		mutex_unlock(&xen_cpu_lock);
+>> +		return;
+>> +	}
+>> +
+>> +	ret = xen_acpi_pad_idle_cpus(&num_cpus);
+>> +	if (ret) {
+>> +		mutex_unlock(&xen_cpu_lock);
+>> +		return;
+>> +	}
+>> +
+>> +	xen_acpi_pad_ost(handle, 0, num_cpus);
+>> +	mutex_unlock(&xen_cpu_lock);
+>> +}
+>> +
+>> +static void xen_acpi_pad_notify(acpi_handle handle, u32 event,
+>> +	void *data) +{
+>> +	switch (event) {
+>> +	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
+>> +		xen_acpi_pad_handle_notify(handle);
+>> +		break;
+>> +	default:
+>> +		printk(KERN_WARNING "Unsupported event [0x%x]\n", event);
+>> +		break; +	}
+>> +}
+>> +
+>> +static int xen_acpi_pad_add(struct acpi_device *device) +{
+>> +	acpi_status status;
+>> +
+>> +	strcpy(acpi_device_name(device),
+>> ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
+>> +	strcpy(acpi_device_class(device),
+>> ACPI_PROCESSOR_AGGREGATOR_CLASS); + +	status =
+>> acpi_install_notify_handler(device->handle, +		 ACPI_DEVICE_NOTIFY,
+>> xen_acpi_pad_notify, device); +	if (ACPI_FAILURE(status)) +		return
+>> -ENODEV; + +	return 0;
+>> +}
+>> +
+>> +static int xen_acpi_pad_remove(struct acpi_device *device, +	int
+>> type) +{
+>> +	int num_cpus = 0;
+>> +
+>> +	mutex_lock(&xen_cpu_lock);
+>> +	xen_acpi_pad_idle_cpus(&num_cpus);
+>> +	mutex_unlock(&xen_cpu_lock);
+>> +
+>> +	acpi_remove_notify_handler(device->handle,
+>> +		ACPI_DEVICE_NOTIFY, xen_acpi_pad_notify);
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct acpi_device_id xen_pad_device_ids[] = {
+>> +	{"ACPI000C", 0}, +	{"", 0},
+>> +};
+>> +
+>> +static struct acpi_driver xen_acpi_pad_driver = {
+>> +	.name = "xen_processor_aggregator",
+>> +	.class = ACPI_PROCESSOR_AGGREGATOR_CLASS,
+>> +	.ids = xen_pad_device_ids,
+>> +	.ops = {
+>> +		.add = xen_acpi_pad_add,
+>> +		.remove = xen_acpi_pad_remove,
+>> +	},
+>> +};
+>> +
+>>  int xen_acpi_pad_init(void)
+>>  {
+>> +#ifdef CONFIG_ACPI_PROCESSOR_AGGREGATOR
+> 
+> How does that work when the the driver is booted under baremetal?
+> Won't it kick out the native ACPI_PROCESSOR_AGGREGATOR_CLASS
+> (acpi_pad.c) ? 
+> 
+> What about if the other ACPI_PROCESSOR_AGGREGATOR_CLASS gets called
+> first? Won't this fail?
+> 
+> Or is the acpi_bus_register_driver smart enough to process more than
+> one ACPI bus device?
 
-Yes, I can agree with that. :-)
-
-> > > Hmm, how about set D3_COLD support if _PR3 exists, but leave a wa=
-rning
-> > > message if _OFF doesn't exist, for now?
-> >=20
-> > I don't think we need to set D3_COLD support at all.  In fact, it i=
-s always
-> > supported (as I said, if all power resources used by a device are o=
-ff, the
-> > device is in D3_COLD pretty much by definition).
-> >=20
-> Yeah, but it seems that Linux uses ACPI_D3 for both ACPICA D3_HOT and=
- D3
-> (off). I'm generating a patch to remove ACPI_D3_COLD and introduce
-> D3_HOT support in Linux kernel.
-
-That's a good idea in my opinion.
+When driver booted under baremetal, xen_acpi_pad.c would be disabled and native acpi_pad.c logic would work.
 
 Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jinsong
+
+> 
+>> +	return acpi_bus_register_driver(&xen_acpi_pad_driver); +#else
+>>  	return 0;
+>> +#endif
+>>  }
+>> 
+>>  void xen_acpi_pad_exit(void)
+>>  {
+>> +#ifdef CONFIG_ACPI_PROCESSOR_AGGREGATOR
+>> +	acpi_bus_unregister_driver(&xen_acpi_pad_driver); +#endif
+>>  }
+>> diff --git a/include/xen/interface/platform.h
+>> b/include/xen/interface/platform.h index c168468..56ec72a 100644 ---
+>> a/include/xen/interface/platform.h +++
+>> b/include/xen/interface/platform.h @@ -297,6 +297,19 @@ struct
+>>  xenpf_set_processor_pminfo {  };
+>> DEFINE_GUEST_HANDLE_STRUCT(xenpf_set_processor_pminfo); 
+>> 
+>> +#define XENPF_core_parking      60
+>> +
+>> +#define XEN_CORE_PARKING_SET    1
+>> +#define XEN_CORE_PARKING_GET    2
+>> +struct xenpf_core_parking {
+>> +	/* IN variables */
+>> +	uint32_t type;
+>> +	/* IN variables:  set cpu nums expected to be idled */
+>> +	/* OUT variables: get cpu nums actually be idled */ +	uint32_t
+>> idle_nums; +};
+>> +DEFINE_GUEST_HANDLE_STRUCT(xenpf_core_parking);
+>> +
+>>  struct xen_platform_op {
+>>  	uint32_t cmd;
+>>  	uint32_t interface_version; /* XENPF_INTERFACE_VERSION */
+>> @@ -312,6 +325,7 @@ struct xen_platform_op {
+>>  		struct xenpf_change_freq       change_freq;
+>>  		struct xenpf_getidletime       getidletime;
+>>  		struct xenpf_set_processor_pminfo set_pminfo;
+>> +		struct xenpf_core_parking      core_parking;
+>>  		uint8_t                        pad[128];
+>>  	} u;
+>>  };
+>> --
+>> 1.7.1
+
