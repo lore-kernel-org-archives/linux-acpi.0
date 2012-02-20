@@ -1,176 +1,149 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] ACPI / Video: blacklist some samsung laptops
-Date: Mon, 20 Feb 2012 15:27:00 +0100
-Message-ID: <CAHR064jHMk0WM69xK7_qD5VoGeU6vi88yRkGwGiY1f2R6AQ+Xg@mail.gmail.com>
-References: <1326784098-3244-1-git-send-email-corentincj@iksaif.net>
-	<CAHR064jyOYaRUjZp370ewLGQSKAhhB7gZ4PS7Feb_AzBLGi1tA@mail.gmail.com>
-	<CAHR064iXr5Z1WNdD=rjn_ACDEX8EaRgrCg0hj1U=c=Lz9rN__A@mail.gmail.com>
-	<CANq1E4TQ0qUrOTNQOmC2K+3zC2_7Om3TcRH=w78VReHat=36+w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CANq1E4TQ0qUrOTNQOmC2K+3zC2_7Om3TcRH=w78VReHat=36+w@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: David Herrmann <dh.herrmann@googlemail.com>
-Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, Andrzej Prochyra <andrzej@prochyra.name>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?Q?Richard_Sch=C3=BCtz?= <r.schtz@t-online.de>, Seth Forshee <seth.forshee@canonical.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] Correct irq in ACPI PCI routing table for IBM 3850 M2 and x3950 M2
+Date: Mon, 20 Feb 2012 17:45:04 +0100
+Message-ID: <1329756304-52877-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:48326 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751291Ab2BTQp3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2012 11:45:29 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Mon, Feb 20, 2012 at 12:06 PM, David Herrmann
-<dh.herrmann@googlemail.com> wrote:
-> Hi Len
->
-> On Sun, Feb 19, 2012 at 8:56 PM, Corentin Chary
-> <corentin.chary@gmail.com> wrote:
->> On Mon, Jan 30, 2012 at 9:26 AM, Corentin Chary
->> <corentin.chary@gmail.com> wrote:
->>> On Tue, Jan 17, 2012 at 8:08 AM, Corentin Chary <corentincj@iksaif.=
-net> wrote:
->>>> On these laptops, the ACPI video is not functional, and very unlik=
-ely
->>>> to be fixed by the vendor. Note that intel_backlight works for som=
-e
->>>> of these laptops, and the backlight from samsung-laptop always wor=
-k.
->>>>
->>>> The good news is that newer laptops have functional ACPI video dev=
-ice
->>>> and won't end up growing this list.
->>>>
->>>> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
->>>> ---
->>>> =C2=A0drivers/acpi/video_detect.c | =C2=A0 49 ++++++++++++++++++++=
-+++++++++++++++++++++++
->>>> =C2=A01 files changed, 49 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_dete=
-ct.c
->>>> index 45d8097..66be45e 100644
->>>> --- a/drivers/acpi/video_detect.c
->>>> +++ b/drivers/acpi/video_detect.c
->>>> @@ -132,6 +132,53 @@ find_video(acpi_handle handle, u32 lvl, void =
-*context, void **rv)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0return AE_OK;
->>>> =C2=A0}
->>>>
->>>> +/* Force to use vendor driver when the ACPI device is known to be
->>>> + * buggy */
->>>> +static int video_detect_force_vendor(const struct dmi_system_id *=
-d)
->>>> +{
->>>> + =C2=A0 =C2=A0 =C2=A0 acpi_video_support |=3D ACPI_VIDEO_BACKLIGH=
-T_DMI_VENDOR;
->>>> + =C2=A0 =C2=A0 =C2=A0 return 0;
->>>> +}
->>>> +
->>>> +static struct dmi_system_id video_detect_dmi_table[] =3D {
->>>> + =C2=A0 =C2=A0 =C2=A0 {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vend=
-or,
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N150P",
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_S=
-YS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_P=
-RODUCT_NAME, "N150P"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_B=
-OARD_NAME, "N150P"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vend=
-or,
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N145P/N250P/N260P",
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_S=
-YS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_P=
-RODUCT_NAME, "N145P/N250P/N260P"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_B=
-OARD_NAME, "N145P/N250P/N260P"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vend=
-or,
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "N150/N210/N220",
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_S=
-YS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_P=
-RODUCT_NAME, "N150/N210/N220"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_B=
-OARD_NAME, "N150/N210/N220"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.callback =3D video_detect_force_vend=
-or,
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.ident =3D "NF110/NF210/NF310",
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0.matches =3D {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_S=
-YS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_P=
-RODUCT_NAME, "NF110/NF210/NF310"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DMI_MATCH(DMI_B=
-OARD_NAME, "NF110/NF210/NF310"),
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
->>>> + =C2=A0 =C2=A0 =C2=A0 },
->>>> +};
->>>> +
->>>> =C2=A0/*
->>>> =C2=A0* Returns the video capabilities of a specific ACPI graphics=
- device
->>>> =C2=A0*
->>>> @@ -164,6 +211,8 @@ long acpi_video_get_capabilities(acpi_handle g=
-raphics_handle)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 * =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 *}
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
->>>> +
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dmi_check_syste=
-m(video_detect_dmi_table);
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D =
-acpi_bus_get_device(graphics_handle, &tmp_dev);
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ACPI_FA=
-ILURE(status)) {
->>>> --
->>>> 1.7.5.4
->>>>
->>>
->>> Hi Len,
->>>
->>> Maybe this patch should go through your tree and not platform-drive=
-rs-x86 ?
->>
->> Ping ?
->
-> This is actually a regression on Samsung notebooks as the backlight i=
-s
-> no longer working with linux-3.2. It would be really nice to see this
-> in the stable branch or at least in linux-3.3.
->
-> The samsung driver disables its own backlight driver if ACPI core
-> handles the backlight since linux-3.2. If you don't want to pickup
-> this patch it would be nice to see the samsung driver fixing this
-> issue.
->
-> Regards
-> David
+This is a quirk for a broken BIOS.
 
-David, please note that non of my changes are merged in 3.2 or 3.3,
-they are still in the platform-x86 tree.
-But you are right, if they are merged in 3.4 (and I really hope so)
-then we will need this patch or there will be a regression.
-Anyway, this patch can, and should, be merged as soon as possible
-because DE or even xrandr may want to use the non functionnal acpi
-backlight instead of others.
+Without this patch and with KMS enabled, the radeon driver will grab irq 16,
+which is wrongly defined in the ACPI PRT of the BIOS.
+The interrupts for the graphics card happen on irq 18.
+This will result in a disabled interupt #18 served by the USB driver:
 
-Thanks,
+irq 18: nobody cared (try booting with the "irqpoll" option)
+Call Trace:
+  [<ffffffff81004402>] dump_trace+0x72/0x300
+  ...
+handlers:
+[<ffffffffa00addf0>] usb_hcd_irq
+Disabling IRQ #18
 
+By IBM:
+Everything looks good with the patch, in both the broken BIOS case and the
+'fixed' BIOS case. I saw no issues simulating a fixed BIOS (custom DSDT).
+I tested the patch in 1N and 4N configurations with and without the ATI
+IRQ routing fixed.
 
---=20
-Corentin Chary
-http://xf.iksaif.net
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Tested-by: lcm@us.ibm.com
+---
+ drivers/acpi/pci_irq.c |   63 ++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 51 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 0eefa12..5f3591d 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -124,6 +124,28 @@ static const struct dmi_system_id hp_t5710[] = {
+ 	{ }
+ };
+ 
++static const struct dmi_system_id ibm_3850_M2[] = {
++	{
++		.ident = "IBM 3850 M2 / x3950 M2",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "IBM"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "IBM 3850 M2 / x3950 M2"),
++		},
++	},
++	{ }
++};
++
++/*
++ * There are two ways that _PRT can be used
++ * (6.2.11 in ACPI spec)
++ * Either you want to fix the source field, then
++ * provide 2 valid namepath values (broken and fixed)
++ * or
++ * you want to fix a hardwired defined irq in the
++ * source index field then define the broken (BIOS)
++ * and fixed irq values in the index fields.
++ * The {actual_}source fields must be set to NULL then.
++*/
+ struct prt_quirk {
+ 	const struct dmi_system_id *system;
+ 	unsigned int		segment;
+@@ -132,6 +154,8 @@ struct prt_quirk {
+ 	unsigned char		pin;
+ 	const char		*source;	/* according to BIOS */
+ 	const char		*actual_source;
++	unsigned int            index;		/* hardwired irq */
++	unsigned int            actual_index;
+ };
+ 
+ #define PCI_INTX_PIN(c)		(c - 'A' + 1)
+@@ -151,6 +175,9 @@ static const struct prt_quirk prt_quirks[] = {
+ 	{ hp_t5710, 0, 0, 1, PCI_INTX_PIN('A'),
+ 		"\\_SB_.PCI0.LNK1",
+ 		"\\_SB_.PCI0.LNK3"},
++	{ ibm_3850_M2, 0, 0, 0x1e, PCI_INTX_PIN('A'),
++		NULL, NULL,
++		16, 18},
+ };
+ 
+ static void do_prt_fixups(struct acpi_prt_entry *entry,
+@@ -170,16 +197,29 @@ static void do_prt_fixups(struct acpi_prt_entry *entry,
+ 		    entry->id.segment == quirk->segment &&
+ 		    entry->id.bus == quirk->bus &&
+ 		    entry->id.device == quirk->device &&
+-		    entry->pin == quirk->pin &&
+-		    !strcmp(prt->source, quirk->source) &&
+-		    strlen(prt->source) >= strlen(quirk->actual_source)) {
+-			printk(KERN_WARNING PREFIX "firmware reports "
+-				"%04x:%02x:%02x PCI INT %c connected to %s; "
+-				"changing to %s\n",
+-				entry->id.segment, entry->id.bus,
+-				entry->id.device, pin_name(entry->pin),
+-				prt->source, quirk->actual_source);
+-			strcpy(prt->source, quirk->actual_source);
++		    entry->pin == quirk->pin) {
++			if (quirk->source && quirk->actual_source) {
++				if (!strcmp(prt->source, quirk->source) &&
++				    strlen(prt->source) >= strlen(quirk->actual_source)) {
++					pr_warn(FW_WARN PREFIX "firmware reports "
++						"%04x:%02x:%02x PCI INT %c connected to %s; "
++						"changing to %s\n",
++						entry->id.segment, entry->id.bus,
++						entry->id.device, pin_name(entry->pin),
++						prt->source, quirk->actual_source);
++					strcpy(prt->source, quirk->actual_source);
++				}
++			} else {
++				if (entry->index == quirk->index) {
++					pr_warn(FW_BUG PREFIX "firmware reports "
++						"%04x:%02x:%02x PCI has INT %u, "
++						"changing it to %u\n",
++						entry->id.segment, entry->id.bus,
++						entry->id.device, entry->index,
++						quirk->actual_index);
++					entry->index = quirk->actual_index;
++				}
++			}
+ 		}
+ 	}
+ }
+@@ -202,11 +242,10 @@ static int acpi_pci_irq_add_entry(acpi_handle handle, struct pci_bus *bus,
+ 	entry->id.bus = bus->number;
+ 	entry->id.device = (prt->address >> 16) & 0xFFFF;
+ 	entry->pin = prt->pin + 1;
++	entry->index = prt->source_index;
+ 
+ 	do_prt_fixups(entry, prt);
+ 
+-	entry->index = prt->source_index;
+-
+ 	/*
+ 	 * Type 1: Dynamic
+ 	 * ---------------
+-- 
+1.7.6.1
+
