@@ -1,37 +1,31 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Correct irq in ACPI PCI routing table for IBM 3850 M2 and x3950 M2
-Date: Mon, 20 Feb 2012 17:52:11 +0100
-Message-ID: <201202201752.11597.trenn@suse.de>
-References: <1329756304-52877-1-git-send-email-trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [RFC] follow-on patches to acpi processor and cpufreq harvester^H^H^Hpassthru (v4).
+Date: Mon, 20 Feb 2012 19:07:45 -0500
+Message-ID: <1329782868-1696-1-git-send-email-konrad.wilk@oracle.com>
+References: <20120214183006.GJ12984@reaktio.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48843 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753119Ab2BTQwN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2012 11:52:13 -0500
-In-Reply-To: <1329756304-52877-1-git-send-email-trenn@suse.de>
+Received: from acsinet15.oracle.com ([141.146.126.227]:22353 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754055Ab2BUALb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Feb 2012 19:11:31 -0500
+In-Reply-To: <20120214183006.GJ12984@reaktio.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: pasik@iki.fi
+Cc: xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, JBeulich@novell.com, kevin.tian@intel.com, ke.yu@intel.com
 
-On Monday, February 20, 2012 05:45:04 PM Thomas Renninger wrote:
-> This is a quirk for a broken BIOS.
+I decided that passthru sounded much better so:
+ [PATCH 1/3] xen/processor-passthru: Change the name to passthru
 
-Afaik IBM will release a BIOS update for this.
-I still send this patch out for documentation.
+does the move to the new name, and then the next one implements the dom0_max_vcpu
+support:
+ [PATCH 2/3] xen/processor-passthru: Support vCPU != pCPU - aka
 
-This one might still be worth applying because:
-  - Users with an old BIOS will not run into regressions with
-    latest kernels using radeon modesetting (by default).
-  - There existed a quirk interface already for one _PRT variant.
-    This patch extends this interface to also be able to override
-    bad BIOS irqs when the other method, hard wired IRQs, compare with
-    ACPI spec: 6.2.11 _PRT (PCI Routing Table):
-    In the second model, the PCI interrupts are hardwired to
-    specific interrupt inputs...
+by enumerating the ACPI processor values directly and re-using the 'struct acpi_processor'
+for the rest (the ones not enumerated by ACPI layer). I chatted with the Intel folks and
+they said that it is safe to assume that the _PXX and _CXX values are the same across
+all the CPUs. Not entirely sure about AMD so I need to chat with them.
 
-   Thomas
+The last one is just an fixup to make it easier to read:
+ [PATCH 3/3] xen/processor-passthru: Remove the print_hex_dump - as
+
