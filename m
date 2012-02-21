@@ -1,76 +1,46 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Xen-devel] [PATCH 1/3] PAD helper for native and paravirt
- platform
-Date: Tue, 21 Feb 2012 09:27:24 -0500
-Message-ID: <20120221142724.GB5652@phenom.dumpdata.com>
-References: <DE8DF0795D48FD4CA783C40EC829233509D853@SHSMSX101.ccr.corp.intel.com>
- <20120217142909.GA29110@phenom.dumpdata.com>
- <20120217144742.GA29454@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350A097D@SHSMSX101.ccr.corp.intel.com>
- <20120219182339.GA11882@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [v2 PATCH 1/2] ACPI, APEI, EINJ, new parameter to control
+ trigger action
+Date: Tue, 21 Feb 2012 17:56:05 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F03D5C0@ORSMSX104.amr.corp.intel.com>
+References: <1329462665-4040-1-git-send-email-gong.chen@linux.intel.com>
+ <4F41217A.7040909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:24245 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab2BUOay (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2012 09:30:54 -0500
-Content-Disposition: inline
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
+Received: from mga14.intel.com ([143.182.124.37]:32197 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753465Ab2BUR4H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2012 12:56:07 -0500
+In-Reply-To: <4F41217A.7040909@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Liu, Jinsong" <jinsong.liu@intel.com>, len.brown@intel.com
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: Jiang Liu <liuj97@gmail.com>, Chen Gong <gong.chen@linux.intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 21, 2012 at 05:49:58AM +0000, Liu, Jinsong wrote:
-> Konrad Rzeszutek Wilk wrote:
-> >>>>> +struct pv_pad_ops {
-> >>>>> +	int (*acpi_pad_init)(void);
-> >>>>> +	void (*acpi_pad_exit)(void);
-> >>>>> +};
-> >>>>> +
-> >>> 
-> >>> Looking at this a bit closer I am not sure why you choose the
-> >>> paravirt interface for this? There is another one - the x86 that
-> >>> could have been choosen. Or introduce a new one that is specific to
-> >>> ACPI. 
-> >>> 
-> >>> I am curious - what was the reason for using the paravirt interface?
-> >>> I understand it does get the job done, but it seems a bit overkill
-> >>> when something simple could have been used?
-> >>> 
-> >> 
-> >> It uses paravirt interface to avoid some code like 'xen_...' in
-> >> native code path (acpi_pad.c). 
-> >> I'm not quite sure what does 'x86' here mean? Adding 2 fields
-> >> (acpi_pad_init/exit) in arch/x86/xen/enlighten.c --> xen_cpu_ops?
-> >> seems it's much simpler.  
-> > 
-> > arch/x86/include/asm/x86_init.h
-> > 
-> > But before you go that way let me ask you another question - can ACPI
-> > PAD 
-> > be used on ARM or IA64? If so, wouldn't this fail compilation as this
-> > pvops structure is not defined on IA64?
-> 
-> Ideally ACPI PAD is not bound to some arch, so IMO it could be used at least on IA64 (through currently no real PAD on IA64 platform as far as I know).
-> However, in native acpi_pad implementation, it indeed depends on X86 for reason like mwait.
-> So for xen acpi_pad, I think it's OK to choose x86, defining an acpi_pad_ops at x86_init.c which would be overwritten when xen init.
+> Suggest to reset the notrigger flag to default value (zero) after the injection
+> operation, so the test script doesn't need to explicitly set the notrigger flag
+> for each injection operation and it's backward compatible with existing scripts.
+> It would be better to reset the param2 too for the same reason.
 
-OK, or in osl.c. We need Len to chime in here as I can see this expanding in the future.
-> 
-> Another choice is to define config ACPI_PROCESSOR_AGGREGATOR as 'bool', which would disable native acpi_pad module.
+That might cause more confusion. We haven't documented the behavior of the
+other files here after an error is injected ... but their actual behavior has
+always been that values written are sticky. I.e. you can write a script to
+inject three errors to the same page like this:
 
-Ewww. No.
-> 
-> Your opinion?
-> 
-> Thanks,
-> Jinsong
-> 
-> > 
-> > The other thing I am not comfortable about is that the pvops structure
-> > are used for low-level code. Not for higher up, like ACPI. For that
-> > another structure seems more prudent. Perhaps something like the x86
-> > one, but specific to ACPI?
+echo 0x8 > error_type
+echo 0x12340000 > param1
+echo 0xfffffffffffff000 > param2
+
+echo 1 > error_inject
+sleep 1
+echo 1 > error_inject
+sleep 1
+echo 1 > error_inject
+
+so I think that it might be surprising if "notrigger" was not sticky
+like everything else.
+
+-Tony
