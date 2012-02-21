@@ -1,102 +1,76 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: hp-wmi is not notified to run hotkey query...
-Date: Tue, 21 Feb 2012 17:30:50 +0800
-Message-ID: <1329816650.5525.176.camel@linux-s257.site>
-References: <CAHJdJgOwx0MdgZdUhQ3NzK99iW9bwWUFdswhJD+G9KSm_d3+xw@mail.gmail.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [Xen-devel] [PATCH 1/3] PAD helper for native and paravirt
+ platform
+Date: Tue, 21 Feb 2012 09:27:24 -0500
+Message-ID: <20120221142724.GB5652@phenom.dumpdata.com>
+References: <DE8DF0795D48FD4CA783C40EC829233509D853@SHSMSX101.ccr.corp.intel.com>
+ <20120217142909.GA29110@phenom.dumpdata.com>
+ <20120217144742.GA29454@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350A097D@SHSMSX101.ccr.corp.intel.com>
+ <20120219182339.GA11882@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from victor.provo.novell.com ([137.65.250.26]:42818 "EHLO
-	victor.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753442Ab2BUJbp (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Tue, 21 Feb 2012 04:31:45 -0500
-In-Reply-To: <CAHJdJgOwx0MdgZdUhQ3NzK99iW9bwWUFdswhJD+G9KSm_d3+xw@mail.gmail.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:24245 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950Ab2BUOay (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2012 09:30:54 -0500
+Content-Disposition: inline
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kyle Evans <kevans@android-x86.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Liu, Jinsong" <jinsong.liu@intel.com>, len.brown@intel.com
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
 
-Hi Kayle,=20
+On Tue, Feb 21, 2012 at 05:49:58AM +0000, Liu, Jinsong wrote:
+> Konrad Rzeszutek Wilk wrote:
+> >>>>> +struct pv_pad_ops {
+> >>>>> +	int (*acpi_pad_init)(void);
+> >>>>> +	void (*acpi_pad_exit)(void);
+> >>>>> +};
+> >>>>> +
+> >>> 
+> >>> Looking at this a bit closer I am not sure why you choose the
+> >>> paravirt interface for this? There is another one - the x86 that
+> >>> could have been choosen. Or introduce a new one that is specific to
+> >>> ACPI. 
+> >>> 
+> >>> I am curious - what was the reason for using the paravirt interface?
+> >>> I understand it does get the job done, but it seems a bit overkill
+> >>> when something simple could have been used?
+> >>> 
+> >> 
+> >> It uses paravirt interface to avoid some code like 'xen_...' in
+> >> native code path (acpi_pad.c). 
+> >> I'm not quite sure what does 'x86' here mean? Adding 2 fields
+> >> (acpi_pad_init/exit) in arch/x86/xen/enlighten.c --> xen_cpu_ops?
+> >> seems it's much simpler.  
+> > 
+> > arch/x86/include/asm/x86_init.h
+> > 
+> > But before you go that way let me ask you another question - can ACPI
+> > PAD 
+> > be used on ARM or IA64? If so, wouldn't this fail compilation as this
+> > pvops structure is not defined on IA64?
+> 
+> Ideally ACPI PAD is not bound to some arch, so IMO it could be used at least on IA64 (through currently no real PAD on IA64 platform as far as I know).
+> However, in native acpi_pad implementation, it indeed depends on X86 for reason like mwait.
+> So for xen acpi_pad, I think it's OK to choose x86, defining an acpi_pad_ops at x86_init.c which would be overwritten when xen init.
 
-=E6=96=BC =E4=BA=8C=EF=BC=8C2012-02-14 =E6=96=BC 11:47 -0500=EF=BC=8CKy=
-le Evans =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hello, I have an HP tx2500 with some bezel buttons that are not
-> working. HP tabletPC's are notorious for this. I have discovered why
-> they are not working (hp-wmi is not getting the notification to query
-> them) and I have managed to insert some code into the DSDT that will
-> cause hp-wmi to successfully read these keys when the lid is closed. =
-I
-> have inserted this same code into every _Q?? method from 01-8F,
-> including those previously undefined, but no dice. I have also
-> extracted the DSDT from Windows Vista, decompiled it, compared it to
-> the one I extracted from Linux (several small differences), recompile=
-d
-> it and ran it. That didn't get it done either.
->=20
+OK, or in osl.c. We need Len to chime in here as I can see this expanding in the future.
+> 
+> Another choice is to define config ACPI_PROCESSOR_AGGREGATOR as 'bool', which would disable native acpi_pad module.
 
-You might need check those buttons emit Q event or WMI event.
-
-watch -n 1 cat /sys/firmware/acpi/interrupts/gpe_all
-watch -n 1 cat /sys/firmware/acpi/interrupts/gpe[0123][0123456789ABCDEF=
-]
-
-The value should increased when you press hotkey.
-Then reference Corentin's article: http://lwn.net/Articles/391230/
-
-Use wmidump to parse out wmi, find out the wmi event we might want to
-listen, the flags should has ACPI_WMI_EVENT.
-
-Then, the hard thing is we need try to poke and try to reverse engineer
-to GUESS the input/output format from event.
-
-Sorry for I didn't have good experience on reverse engineer.
-
-
-If the EC emit Q event when press hotkey, you can enable acpi debug log=
-:
-acpi.debug_level=3D0x0000000F acpi.debug_layer=3D0xffffffff log_buf_len=
-=3D5M
-
-To monitor which method does it run when you press hotkey.
-
-
-And, it's also possibility for EC direct emit scancode, you can use:
-showkey command to grub it or look at dmesg should has some messages.
-
-> So basically, this is a BIOS problem that Windows works around. I do
-> not know enough about the hardware/BIOS to determine whether or not
-> this is something that can still be fixed in the DSDT, or something
-> that would have to be fixed in the kernel. For a BIOS fix, I suspect
-> the Embedded Controller needs to be programmed in some way, along wit=
-h
-> a modified dsdt. For a kernel fix, I suspect Windows either polls the
-> WMI query, programs the EC every boot, or gets the signal some other
-> way (e.g. PNP0C09).
->=20
-> A brief description of how these hotkeys operate:
-> The EmbeddedController, PNP0C09, houses the internal button register,
-> QBBB, that stores the internal key code. When hp-wmi, PNP0C14,
-> performs the query, QBBB is tested for the button pressed and the
-> appropriate scancode is wrote to the memory location that is
-> subsequently read.
->=20
-> I have what I believe to be an accurate MB schematic, which indicates
-> that the embedded controller is from ENE, chip KB3926, and I have
-> found data sheets for similar EC's. This is something that I work on
-> in my spare time, so I would be grateful if someone could share some
-> knowledge on the subject, or kindly point me to someone who might be
-> able to help.
->=20
+Ewww. No.
+> 
+> Your opinion?
+> 
 > Thanks,
-> Kyle
-
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Jinsong
+> 
+> > 
+> > The other thing I am not comfortable about is that the pvops structure
+> > are used for low-level code. Not for higher up, like ACPI. For that
+> > another structure seems more prudent. Perhaps something like the x86
+> > one, but specific to ACPI?
