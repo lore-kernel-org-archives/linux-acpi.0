@@ -1,72 +1,54 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [Xen-devel] [PATCH 1/3] PAD helper for native and paravirt
- platform
-Date: Tue, 21 Feb 2012 05:49:58 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC829233509D853@SHSMSX101.ccr.corp.intel.com>
- <20120217142909.GA29110@phenom.dumpdata.com>
- <20120217144742.GA29454@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350A097D@SHSMSX101.ccr.corp.intel.com>
- <20120219182339.GA11882@phenom.dumpdata.com>
+From: <alex.he@amd.com>
+Subject: [PATCH] ACPI: Clean redundant codes in scan.c
+Date: Tue, 21 Feb 2012 16:58:10 +0800
+Message-ID: <1329814690-9313-1-git-send-email-alex.he@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:45053 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750733Ab2BUFvk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2012 00:51:40 -0500
-In-Reply-To: <20120219182339.GA11882@phenom.dumpdata.com>
-Content-Language: en-US
+Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:42432 "EHLO
+	TX2EHSOBE007.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752174Ab2BUI6Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Feb 2012 03:58:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Alex He <alex.he@amd.com>
 
-Konrad Rzeszutek Wilk wrote:
->>>>> +struct pv_pad_ops {
->>>>> +	int (*acpi_pad_init)(void);
->>>>> +	void (*acpi_pad_exit)(void);
->>>>> +};
->>>>> +
->>> 
->>> Looking at this a bit closer I am not sure why you choose the
->>> paravirt interface for this? There is another one - the x86 that
->>> could have been choosen. Or introduce a new one that is specific to
->>> ACPI. 
->>> 
->>> I am curious - what was the reason for using the paravirt interface?
->>> I understand it does get the job done, but it seems a bit overkill
->>> when something simple could have been used?
->>> 
->> 
->> It uses paravirt interface to avoid some code like 'xen_...' in
->> native code path (acpi_pad.c). 
->> I'm not quite sure what does 'x86' here mean? Adding 2 fields
->> (acpi_pad_init/exit) in arch/x86/xen/enlighten.c --> xen_cpu_ops?
->> seems it's much simpler.  
-> 
-> arch/x86/include/asm/x86_init.h
-> 
-> But before you go that way let me ask you another question - can ACPI
-> PAD 
-> be used on ARM or IA64? If so, wouldn't this fail compilation as this
-> pvops structure is not defined on IA64?
+From: Alex He <alex.he@amd.com>
 
-Ideally ACPI PAD is not bound to some arch, so IMO it could be used at least on IA64 (through currently no real PAD on IA64 platform as far as I know).
-However, in native acpi_pad implementation, it indeed depends on X86 for reason like mwait.
-So for xen acpi_pad, I think it's OK to choose x86, defining an acpi_pad_ops at x86_init.c which would be overwritten when xen init.
+Clean the redundant codes of apci_bus_get_power_flags().
 
-Another choice is to define config ACPI_PROCESSOR_AGGREGATOR as 'bool', which would disable native acpi_pad module.
+Signed-off-by: Alex He <alex.he@amd.com>
+---
+ drivers/acpi/scan.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-Your opinion?
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 8ab80ba..5d24a17 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -880,7 +880,6 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+ 			int j;
+ 
+ 			device->power.flags.power_resources = 1;
+-			ps->flags.valid = 1;
+ 			for (j = 0; j < ps->resources.count; j++)
+ 				acpi_bus_add_power_resource(ps->resources.handles[j]);
+ 		}
+@@ -888,10 +887,8 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+ 		/* Evaluate "_PSx" to see if we can do explicit sets */
+ 		object_name[2] = 'S';
+ 		status = acpi_get_handle(device->handle, object_name, &handle);
+-		if (ACPI_SUCCESS(status)) {
++		if (ACPI_SUCCESS(status))
+ 			ps->flags.explicit_set = 1;
+-			ps->flags.valid = 1;
+-		}
+ 
+ 		/* State is valid if we have some power control */
+ 		if (ps->resources.count || ps->flags.explicit_set)
+-- 
+1.7.1
 
-Thanks,
-Jinsong
-
-> 
-> The other thing I am not comfortable about is that the pvops structure
-> are used for low-level code. Not for higher up, like ACPI. For that
-> another structure seems more prudent. Perhaps something like the x86
-> one, but specific to ACPI?
 
