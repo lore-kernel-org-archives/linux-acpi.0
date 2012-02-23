@@ -1,51 +1,99 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: [PATCH RFC] acpi: Fix unprotected smp_processor_id() in
- acpi_processor_cst_has_changed()
-Date: Thu, 23 Feb 2012 12:58:05 -0800
-Message-ID: <20120223205805.GA31838@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Fix regression in FADT revision checks
+Date: Thu, 23 Feb 2012 21:55:22 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E337571CC3@ORSMSX102.amr.corp.intel.com>
+References: <1330029643-1777-1-git-send-email-ja@ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:54868 "EHLO e9.ny.us.ibm.com"
+Received: from mga09.intel.com ([134.134.136.24]:42942 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757015Ab2BWU6Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Feb 2012 15:58:16 -0500
-Received: from /spool/local
-	by e9.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Thu, 23 Feb 2012 15:58:15 -0500
-Content-Disposition: inline
+	id S1754405Ab2BWV4Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 16:56:24 -0500
+In-Reply-To: <1330029643-1777-1-git-send-email-ja@ssi.bg>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: deepthi@linux.vnet.ibm.com
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-The acpi_processor_cst_has_changed() function is invoked from a
-CPU_ONLINE or CPU_DEAD function, which might well execute on CPU 0
-even though the CPU being hotplugged is some other CPU.  In addition,
-acpi_processor_cst_has_changed() invokes smp_processor_id() without
-protection, resulting in splats when onlining CPUs.
+Julian,
 
-This commit therefore changes the smp_processor_id() to pr->id, as is
-used elsewhere in the code, for example, in acpi_processor_add().
+We will make this change in ACPICA.
 
-This works for me, but I don't claim to understand ACPI.
+Bob
 
-Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 0e8e2de..9e57b06 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1159,8 +1159,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	 * to make the code that updates C-States be called once.
- 	 */
- 
--	if (smp_processor_id() == 0 &&
--			cpuidle_get_driver() == &acpi_idle_driver) {
-+	if (pr->id == 0 && cpuidle_get_driver() == &acpi_idle_driver) {
- 
- 		cpuidle_pause_and_lock();
- 		/* Protect against cpu-hotplug */
-
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Julian Anastasov
+> Sent: Thursday, February 23, 2012 12:41 PM
+> To: Len Brown
+> Cc: linux-acpi@vger.kernel.org
+> Subject: [PATCH] ACPICA: Fix regression in FADT revision checks
+> 
+> 	commit 64b3db22c04586997ab4be46dd5a5b99f8a2d390 (2.6.39),
+> "Remove use of unreliable FADT revision field" causes regression
+> for old P4 systems because now cst_control and other fields are
+> not reset to 0.
+> 
+> 	The effect is that acpi_processor_power_init will notice
+> cst_control != 0 and a write to CST_CNT register is performed
+> that should not happen. As result, the system oopses after the
+> "No _CST, giving up" message, sometimes in acpi_ns_internalize_name,
+> sometimes in acpi_ns_get_type, usually at random places. May be
+> during migration to CPU 1 in acpi_processor_get_throttling.
+> 
+> 	Every one of these settings help to avoid this problem:
+>  - acpi=off
+>  - processor.nocst=1
+>  - maxcpus=1
+> 
+> 	The fix is to update acpi_gbl_FADT.header.length after
+> the original value is used to check for old revisions.
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> ---
+>  drivers/acpi/acpica/tbfadt.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/tbfadt.c
+> b/drivers/acpi/acpica/tbfadt.c
+> index c5d8704..4c9c760 100644
+> --- a/drivers/acpi/acpica/tbfadt.c
+> +++ b/drivers/acpi/acpica/tbfadt.c
+> @@ -363,10 +363,6 @@ static void acpi_tb_convert_fadt(void)
+>  	u32 address32;
+>  	u32 i;
+> 
+> -	/* Update the local FADT table header length */
+> -
+> -	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
+> -
+>  	/*
+>  	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as
+> necessary.
+>  	 * Later code will always use the X 64-bit field. Also, check for
+> an
+> @@ -408,6 +404,10 @@ static void acpi_tb_convert_fadt(void)
+>  		acpi_gbl_FADT.boot_flags = 0;
+>  	}
+> 
+> +	/* Update the local FADT table header length */
+> +
+> +	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
+> +
+>  	/*
+>  	 * Expand the ACPI 1.0 32-bit addresses to the ACPI 2.0 64-bit
+> "X"
+>  	 * generic address structures as necessary. Later code will
+> always use
+> --
+> 1.7.3.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
