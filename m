@@ -1,218 +1,93 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [PATCH 1/4] thermal: Add a new trip type to use
- cooling device instance number
-Date: Thu, 23 Feb 2012 16:50:14 +0530
-Message-ID: <CAK44p233Gsh3WavAEJPRcyAHERYttnJFDXsOAmAGK7tv6jhNGQ@mail.gmail.com>
-References: <1329905650-30161-1-git-send-email-amit.kachhap@linaro.org>
-	<1329905650-30161-2-git-send-email-amit.kachhap@linaro.org>
-	<4D68720C2E767A4AA6A8796D42C8EB59043B20@BGSMSX101.gar.corp.intel.com>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [Xen-devel] [PATCH 1/3] PAD helper for native and paravirt
+ platform
+Date: Thu, 23 Feb 2012 13:26:53 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC82923350AD052@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC829233509D853@SHSMSX101.ccr.corp.intel.com>
+ <20120217142909.GA29110@phenom.dumpdata.com>
+ <20120217144742.GA29454@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350A097D@SHSMSX101.ccr.corp.intel.com>
+ <20120219182339.GA11882@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350A3E7C@SHSMSX101.ccr.corp.intel.com>
+ <20120221142724.GB5652@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350AA0BE@SHSMSX101.ccr.corp.intel.com>
+ <20120222182312.GE3132@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB59043B20@BGSMSX101.gar.corp.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "rob.lee@linaro.org" <rob.lee@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:35073 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753281Ab2BWN2Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 08:28:16 -0500
+In-Reply-To: <20120222182312.GE3132@phenom.dumpdata.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On 23 February 2012 12:16, R, Durgadoss <durgadoss.r@intel.com> wrote:
-> Hi Amit,
->
->> -----Original Message-----
->> From: amit kachhap [mailto:amitdanielk@gmail.com] On Behalf Of Amit Dani=
-el
->> Kachhap
->> Sent: Wednesday, February 22, 2012 3:44 PM
->> To: linux-pm@lists.linux-foundation.org
->> Cc: linux-kernel@vger.kernel.org; mjg59@srcf.ucam.org; linux-
->> acpi@vger.kernel.org; lenb@kernel.org; linaro-dev@lists.linaro.org;
->> amit.kachhap@linaro.org; R, Durgadoss; rob.lee@linaro.org; patches@linar=
-o.org
->> Subject: [PATCH 1/4] thermal: Add a new trip type to use cooling device
->> instance number
->>
->> This patch adds a new trip type THERMAL_TRIP_STATE_ACTIVE. This
->> trip behaves same as THERMAL_TRIP_ACTIVE but also passes the cooling
->> device instance number. This helps the cooling device registered as
->> different instances to perform appropriate cooling action decision in
->> the set_cur_state call back function.
->>
->> Also since the trip temperature's are in ascending order so some logic
->> is put in place to skip the un-necessary checks.
->>
->> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
->> ---
->> =A0Documentation/thermal/sysfs-api.txt | =A0 =A04 +-
->> =A0drivers/thermal/thermal_sys.c =A0 =A0 =A0 | =A0 45 ++++++++++++++++++=
-++++++++++++++--
->> =A0include/linux/thermal.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
->> =A03 files changed, 45 insertions(+), 5 deletions(-)
->>
->> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal=
-/sysfs-
->> api.txt
->> index 1733ab9..7a0c080 100644
->> --- a/Documentation/thermal/sysfs-api.txt
->> +++ b/Documentation/thermal/sysfs-api.txt
->> @@ -184,8 +184,8 @@ trip_point_[0-*]_temp
->>
->> =A0trip_point_[0-*]_type
->> =A0 =A0 =A0 Strings which indicate the type of the trip point.
->> - =A0 =A0 E.g. it can be one of critical, hot, passive, active[0-*] for =
-ACPI
->> - =A0 =A0 thermal zone.
->> + =A0 =A0 E.g. it can be one of critical, hot, passive, active[0-1],
->> + =A0 =A0 state-active[0-*] for ACPI thermal zone.
->> =A0 =A0 =A0 RO, Optional
->>
->> =A0cdev[0-*]
->> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys=
-.c
->> index 220ce7e..d4c9b20 100644
->> --- a/drivers/thermal/thermal_sys.c
->> +++ b/drivers/thermal/thermal_sys.c
->> @@ -192,6 +192,8 @@ trip_point_type_show(struct device *dev, struct
->> device_attribute *attr,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "passive\n");
->> =A0 =A0 =A0 case THERMAL_TRIP_ACTIVE:
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "active\n");
->> + =A0 =A0 case THERMAL_TRIP_STATE_ACTIVE:
->> + =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "state-active\n");
->> =A0 =A0 =A0 default:
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "unknown\n");
->> =A0 =A0 =A0 }
->> @@ -1034,10 +1036,10 @@ EXPORT_SYMBOL(thermal_cooling_device_unregister);
->>
->> =A0void thermal_zone_device_update(struct thermal_zone_device *tz)
->> =A0{
->> - =A0 =A0 int count, ret =3D 0;
->> - =A0 =A0 long temp, trip_temp;
->> + =A0 =A0 int count, ret =3D 0, inst_id;
->> + =A0 =A0 long temp, trip_temp, max_state, last_trip_change =3D 0;
->> =A0 =A0 =A0 enum thermal_trip_type trip_type;
->> - =A0 =A0 struct thermal_cooling_device_instance *instance;
->> + =A0 =A0 struct thermal_cooling_device_instance *instance, *state_insta=
-nce;
->> =A0 =A0 =A0 struct thermal_cooling_device *cdev;
->>
->> =A0 =A0 =A0 mutex_lock(&tz->lock);
->> @@ -1086,6 +1088,43 @@ void thermal_zone_device_update(struct
->> thermal_zone_device *tz)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 cdev->ops->set_cur_state(cdev, 0);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 =A0 =A0 =A0 =A0 case THERMAL_TRIP_STATE_ACTIVE:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_entry(instance, =
-&tz->cooling_devices,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 node) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (instance->=
-trip !=3D count)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 continue;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (temp <=3D =
-last_trip_change)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 continue;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 inst_id =3D 0;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *For this inst=
-ance how many instance of same
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *cooling devic=
-e occured before
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_=
-entry(state_instance,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 &tz->cooling_devices, node) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 if (instance->cdev =3D=3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 state_instance->cdev)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 inst_id++;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 if (state_instance->trip =3D=3D count)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->
-> Can you explain a bit more on this loop and the set_cur_state below ?
-> Sorry, I don't get the logic behind this..
+Konrad Rzeszutek Wilk wrote:
+> On Wed, Feb 22, 2012 at 05:02:59PM +0000, Liu, Jinsong wrote:
+>> Konrad Rzeszutek Wilk wrote:
+>>> On Tue, Feb 21, 2012 at 05:49:58AM +0000, Liu, Jinsong wrote:
+>>>> Konrad Rzeszutek Wilk wrote:
+>>>>>>>>> +struct pv_pad_ops {
+>>>>>>>>> +	int (*acpi_pad_init)(void);
+>>>>>>>>> +	void (*acpi_pad_exit)(void);
+>>>>>>>>> +};
+>>>>>>>>> +
+>>>>>>> 
+>>>>>>> Looking at this a bit closer I am not sure why you choose the
+>>>>>>> paravirt interface for this? There is another one - the x86 that
+>>>>>>> could have been choosen. Or introduce a new one that is
+>>>>>>> specific to ACPI. 
+>>>>>>> 
+>>>>>>> I am curious - what was the reason for using the paravirt
+>>>>>>> interface? I understand it does get the job done, but it seems a
+>>>>>>> bit overkill when something simple could have been used?
+>>>>>>> 
+>>>>>> 
+>>>>>> It uses paravirt interface to avoid some code like 'xen_...' in
+>>>>>> native code path (acpi_pad.c).
+>>>>>> I'm not quite sure what does 'x86' here mean? Adding 2 fields
+>>>>>> (acpi_pad_init/exit) in arch/x86/xen/enlighten.c --> xen_cpu_ops?
+>>>>>> seems it's much simpler.
+>>>>> 
+>>>>> arch/x86/include/asm/x86_init.h
+>>>>> 
+>>>>> But before you go that way let me ask you another question - can
+>>>>> ACPI PAD be used on ARM or IA64? If so, wouldn't this fail
+>>>>> compilation as this pvops structure is not defined on IA64?
+>>>> 
+>>>> Ideally ACPI PAD is not bound to some arch, so IMO it could be used
+>>>> at least on IA64 (through currently no real PAD on IA64 platform as
+>>>> far as I know). However, in native acpi_pad implementation, it
+>>>> indeed depends on X86 for reason like mwait.
+>>>> So for xen acpi_pad, I think it's OK to choose x86, defining an
+>>>> acpi_pad_ops at x86_init.c which would be overwritten when xen
+>>>> init. 
+>>> 
+>>> OK, or in osl.c. We need Len to chime in here as I can see this
+>>> expanding in the future.
+>>>> 
+>>>> Another choice is to define config ACPI_PROCESSOR_AGGREGATOR as
+>>>> 'bool', which would disable native acpi_pad module.
+>>> 
+>>> Ewww. No.
+>> 
+>> I'm OK with x86_init approach, but advantage of 'config
+>> ACPI_PROCESSOR_AGGREGATOR as bool' would get rid of X86/IA64/...
+>> arch issue for xen (at least from coding view), through it need
+>> disable native acpi_pad module (IMO acpi_pad module has not strong
+>> reason to must be so). Have a re-consider of this approach? :-)   
+> 
+> But it is a compile option right? We wantone kernel that can do both
+> baremetal and Xen.
 
-This loop is basically finding the instance id of the same cooling device.
-Say we have done like this,
-thermal_zone_bind_cooling_device(thermal, 2, cdev);
-thermal_zone_bind_cooling_device(thermal, 3, cdev);
-thermal_zone_bind_cooling_device(thermal, 4, cdev);
+Sorry, I didn't speak clear my approach.
+The approach can enable kernel run both baremetal and Xen platform, and not bind acpi pad logic to x86.
+Send 2 patches as RFC.
 
-In above same cooling device cdev is binded to trip no 2,3 and 4 with
-inst_id generated as 1,2,3 respectively. so set_cur_state for those
-trip reached will be called as,
-set_cur_state(cdev, 1);
-set_cur_state(cdev, 2);
-set_cur_state(cdev, 3);
-
-Thanks,
-Amit D
-
->
-> Thanks,
-> Durga
->
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cdev =3D insta=
-nce->cdev;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cdev->ops->get=
-_max_state(cdev, &max_state);
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((temp >=3D=
- trip_temp) &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 (inst_id <=3D max_state))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 cdev->ops->set_cur_state(cdev, inst_id);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if ((temp=
- < trip_temp) &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 (--inst_id <=3D max_state))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 cdev->ops->set_cur_state(cdev, inst_id);
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 last_trip_chan=
-ge =3D trip_temp;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 case THERMAL_TRIP_PASSIVE:
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (temp >=3D trip_temp || t=
-z->passive)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 thermal_zone=
-_device_passive(tz, temp,
->> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
->> index 796f1ff..8df901f 100644
->> --- a/include/linux/thermal.h
->> +++ b/include/linux/thermal.h
->> @@ -42,6 +42,7 @@ enum thermal_trip_type {
->> =A0 =A0 =A0 THERMAL_TRIP_PASSIVE,
->> =A0 =A0 =A0 THERMAL_TRIP_HOT,
->> =A0 =A0 =A0 THERMAL_TRIP_CRITICAL,
->> + =A0 =A0 THERMAL_TRIP_STATE_ACTIVE,
->> =A0};
->>
->> =A0struct thermal_zone_device_ops {
->> --
->> 1.7.1
->
+Thanks
+Jinsong
