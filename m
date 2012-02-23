@@ -1,56 +1,77 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [PATCH 1/2] RFC: Prepare PAD for native and xen platform
-Date: Thu, 23 Feb 2012 16:58:34 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
- <4F46530B020000780007F751@nat28.tlf.novell.com>
+From: Kyle Evans <kevans@android-x86.org>
+Subject: Re: hp-wmi is not notified to run hotkey query...
+Date: Thu, 23 Feb 2012 12:03:47 -0500
+Message-ID: <CAHJdJgNq8taDN0ERJaxGF43NnMmeOYY_bVcWTzzfSMTYhHfKww@mail.gmail.com>
+References: <CAHJdJgOwx0MdgZdUhQ3NzK99iW9bwWUFdswhJD+G9KSm_d3+xw@mail.gmail.com>
+	<1329816650.5525.176.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27059 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752339Ab2BWQ6l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 11:58:41 -0500
-In-Reply-To: <4F46530B020000780007F751@nat28.tlf.novell.com>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:36308 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891Ab2BWRDr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 12:03:47 -0500
+Received: by pbcun15 with SMTP id un15so1617366pbc.19
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Feb 2012 09:03:47 -0800 (PST)
+In-Reply-To: <1329816650.5525.176.camel@linux-s257.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <jbeulich@suse.com>, "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>
-Cc: "keir.xen@gmail.com" <keir.xen@gmail.com>, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: joeyli <jlee@suse.com>
+Cc: linux-acpi@vger.kernel.org
 
-Jan Beulich wrote:
->>>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -213,10 +213,11 @@ config ACPI_HOTPLUG_CPU
->>    default y
->  >
->> config ACPI_PROCESSOR_AGGREGATOR
->> -    tristate "Processor Aggregator"
->> +    bool "Processor Aggregator"
-> 
-> There must be ways to address whatever strange problem you see without
-> making this piece of code non-modular.
-> 
+Thank you Joey for sharing these debug methods.
 
-Yes, another approach is x86_init approach, defining acpi_pad_ops at x86_init.c and overwritten when xen_start_kernel.
-This patch is just a RFC patch, to evaluate which approch is more reasonable :-)
+> You might need check those buttons emit Q event or WMI event.
+>
+> watch -n 1 cat /sys/firmware/acpi/interrupts/gpe_all
+> watch -n 1 cat /sys/firmware/acpi/interrupts/gpe[0123][0123456789ABCDEF]
+>
+> The value should increased when you press hotkey.
+> Then reference Corentin's article: http://lwn.net/Articles/391230/
+>
+I found that nothing happens in gpe_all when I push a hotkey button. I
+also found that GPE03 calls _Q15. _Q15 is the wireless switch method,
+which I have reprogrammed to notify hp-wmi of a keypress. Where is it
+defined that GPE03 runs method _Q15?
 
->>    depends on ACPI_PROCESSOR
->>    depends on EXPERIMENTAL
->>    depends on X86
->> +    default n
-> 
-> This is pointless.
+> Use wmidump to parse out wmi, find out the wmi event we might want to
+> listen, the flags should has ACPI_WMI_EVENT.
+>
+> Then, the hard thing is we need try to poke and try to reverse engineer
+> to GUESS the input/output format from event.
+I did not run wmidump because first, it was not installed, and second,
+because I have determined that the wmi component works.
 
-Elaborate more? just a little curious why Kconfig has so many default n.
+> If the EC emit Q event when press hotkey, you can enable acpi debug log:
+> acpi.debug_level=0x0000000F acpi.debug_layer=0xffffffff log_buf_len=5M
+>
+> To monitor which method does it run when you press hotkey.
+The EC not emitting a Q event is indeed my problem. It should run
+method _Q16, which is defined to notify wmi of a keypress.
 
-> 
->>    help
->>      ACPI 4.0 defines processor Aggregator, which enables OS to
->>      perform specific processor configuration and control that
->> applies to all 
-> 
-> Jan
+> And, it's also possibility for EC direct emit scancode, you can use:
+> showkey command to grub it or look at dmesg should has some messages.
+The way the DSDT is written, this is not the case. However, this may
+be something to look at since the EC is the one that reads the button
+via SMBus. I can read the internal code via ec_read(0xA2,tmp), a.k.a
+QBBB.
 
+
+Here is my current thinking, something in the EC should trigger method
+_Q16. Ideally, SMBus should do it when it receives the button code.
+Unfortunately, that function looks like it started with ACPIspec-2
+section 5.6.2.2.2. Although the manufacturer's website indicates the
+EC, ENE KB3926 supports ACPI v2, my dsdt.dsl only indicates ACPI v1.
+Another possibility, although probably not, is that the buttons also
+trigger a GPIO when one is pressed and that the correct GPIO pin needs
+to be programmed correctly. My final thought is to do polling in the
+EC instead of in the kernel by programming one of the GP Timers to
+check for a button press and emit a wmi event in such a case.
+
+The problem I face now is that the GPIO pin configuration is at
+0xFCxx, and the GPT configuration is at 0xFExx, neither of which can
+be accessed with ec_read/write, as it is confined to 0xFFxx. Maybe
+there is another function that I do not find?
+
+Thanks,
+Kyle
