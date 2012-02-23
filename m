@@ -1,77 +1,58 @@
-From: Kyle Evans <kevans@android-x86.org>
-Subject: Re: hp-wmi is not notified to run hotkey query...
-Date: Thu, 23 Feb 2012 12:03:47 -0500
-Message-ID: <CAHJdJgNq8taDN0ERJaxGF43NnMmeOYY_bVcWTzzfSMTYhHfKww@mail.gmail.com>
-References: <CAHJdJgOwx0MdgZdUhQ3NzK99iW9bwWUFdswhJD+G9KSm_d3+xw@mail.gmail.com>
-	<1329816650.5525.176.camel@linux-s257.site>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] PCI: Move acpi_dev_run_wake to acpi core
+Date: Thu, 23 Feb 2012 12:34:53 -0800
+Message-ID: <20120223123453.00645ec3@jbarnes-desktop>
+References: <1329362677.3413.12.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:36308 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891Ab2BWRDr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 12:03:47 -0500
-Received: by pbcun15 with SMTP id un15so1617366pbc.19
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Feb 2012 09:03:47 -0800 (PST)
-In-Reply-To: <1329816650.5525.176.camel@linux-s257.site>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/97.6BOE_.X693g.G.9ObLg2"; protocol="application/pgp-signature"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1329362677.3413.12.camel@minggr>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org
 
-Thank you Joey for sharing these debug methods.
+--Sig_/97.6BOE_.X693g.G.9ObLg2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> You might need check those buttons emit Q event or WMI event.
->
-> watch -n 1 cat /sys/firmware/acpi/interrupts/gpe_all
-> watch -n 1 cat /sys/firmware/acpi/interrupts/gpe[0123][0123456789ABCDEF]
->
-> The value should increased when you press hotkey.
-> Then reference Corentin's article: http://lwn.net/Articles/391230/
->
-I found that nothing happens in gpe_all when I push a hotkey button. I
-also found that GPE03 calls _Q15. _Q15 is the wireless switch method,
-which I have reprogrammed to notify hp-wmi of a keypress. Where is it
-defined that GPE03 runs method _Q15?
+On Thu, 16 Feb 2012 11:24:37 +0800
+Lin Ming <ming.m.lin@intel.com> wrote:
 
-> Use wmidump to parse out wmi, find out the wmi event we might want to
-> listen, the flags should has ACPI_WMI_EVENT.
->
-> Then, the hard thing is we need try to poke and try to reverse engineer
-> to GUESS the input/output format from event.
-I did not run wmidump because first, it was not installed, and second,
-because I have determined that the wmi component works.
+> acpi_dev_run_wake is a generic function which can be used by
+> other subsystem too. Rename it to acpi_pm_device_run_wake, to be
+> consistent with acpi_pm_device_sleep_wake.
+>=20
+> Then move it to acpi core.
+>=20
 
-> If the EC emit Q event when press hotkey, you can enable acpi debug log:
-> acpi.debug_level=0x0000000F acpi.debug_layer=0xffffffff log_buf_len=5M
->
-> To monitor which method does it run when you press hotkey.
-The EC not emitting a Q event is indeed my problem. It should run
-method _Q16, which is defined to notify wmi of a keypress.
+Assuming Len hasn't already picked this up, I think it can go through
+the ACPI tree.
 
-> And, it's also possibility for EC direct emit scancode, you can use:
-> showkey command to grub it or look at dmesg should has some messages.
-The way the DSDT is written, this is not the case. However, this may
-be something to look at since the EC is the one that reads the button
-via SMBus. I can read the internal code via ec_read(0xA2,tmp), a.k.a
-QBBB.
+--=20
+Jesse Barnes, Intel Open Source Technology Center
 
+--Sig_/97.6BOE_.X693g.G.9ObLg2
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-Here is my current thinking, something in the EC should trigger method
-_Q16. Ideally, SMBus should do it when it receives the button code.
-Unfortunately, that function looks like it started with ACPIspec-2
-section 5.6.2.2.2. Although the manufacturer's website indicates the
-EC, ENE KB3926 supports ACPI v2, my dsdt.dsl only indicates ACPI v1.
-Another possibility, although probably not, is that the buttons also
-trigger a GPIO when one is pressed and that the correct GPIO pin needs
-to be programmed correctly. My final thought is to do polling in the
-EC instead of in the kernel by programming one of the GP Timers to
-check for a button press and emit a wmi event in such a case.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-The problem I face now is that the GPIO pin configuration is at
-0xFCxx, and the GPT configuration is at 0xFExx, neither of which can
-be accessed with ec_read/write, as it is confined to 0xFFxx. Maybe
-there is another function that I do not find?
+iQIcBAEBAgAGBQJPRqLtAAoJEIEoDkX4Qk9h9ZMQALDyarP84otxFwhcfvImeQI8
+kR+80sKLha6gJre8V1YwnN4SdZ+Q/+KSiThNZWe+eKaxmUsi/mS5NoYRaUYVZSM6
+FJ0BZf5YsPmIRZZdtXGk1rHUg1J2rwh1ymVZeeOl8sYD7Lh/IcsiOzq3NSkOvnMc
+xV29dnOsKoMGF+0lPwV9qZtTXBBqaMsy0zs0FkFVhBMKfW9GGfISQdDntmjAxZt7
+vtYxqLDZ8oQfZVskYkaaRuPhBOYpLe8tTaCP2vxlI76yVnmNgQihwSsTyvxcyfd8
+liUCBkaRiTwSCHqzaEO0SKTiWJ/jkZPVGP6UDhsDn0oIOjicCc65VeGnMZwXTXKL
+LRqIW/FAgNmzQmZWTbO3IqDsle3hqkloXViiVnfg2Bjbc3i/Yo8mzfGrlgrzbL2a
+aEvjO4iIQ0/qEmfVCHQxb3bBIeZRuu/9+1afwpFTL+6ydxm4SPR9qGkriWQa/yQs
+peX5MGwHOInS8wDJoNHuezUejfn6uNNAb9gaTPKil/dLfxTNA8xFvAtJxnGvVLMq
+dyzfhNvH/DqBYncsfA8Axn3C62dp/JeM3USItBSvaJho3MIgXKtZW/COS/RDzbm8
+ViR4DgD3KGUBtfyJQCGlAOgX8JT3lj372UefrBH6y0sGMG0lxJyVRTnpO3JSjFxE
+OBs7D4jhZQZUobFE/Fjy
+=Kr9O
+-----END PGP SIGNATURE-----
 
-Thanks,
-Kyle
+--Sig_/97.6BOE_.X693g.G.9ObLg2--
