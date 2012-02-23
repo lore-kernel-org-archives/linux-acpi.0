@@ -1,58 +1,68 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCI: Move acpi_dev_run_wake to acpi core
-Date: Thu, 23 Feb 2012 12:34:53 -0800
-Message-ID: <20120223123453.00645ec3@jbarnes-desktop>
-References: <1329362677.3413.12.camel@minggr>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/97.6BOE_.X693g.G.9ObLg2"; protocol="application/pgp-signature"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1329362677.3413.12.camel@minggr>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH] ACPICA: Fix regression in FADT revision checks
+Date: Thu, 23 Feb 2012 22:40:43 +0200
+Message-ID: <1330029643-1777-1-git-send-email-ja@ssi.bg>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ja.ssi.bg ([178.16.129.10]:34755 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756347Ab2BWUmE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Feb 2012 15:42:04 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
---Sig_/97.6BOE_.X693g.G.9ObLg2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+	commit 64b3db22c04586997ab4be46dd5a5b99f8a2d390 (2.6.39),
+"Remove use of unreliable FADT revision field" causes regression
+for old P4 systems because now cst_control and other fields are
+not reset to 0.
 
-On Thu, 16 Feb 2012 11:24:37 +0800
-Lin Ming <ming.m.lin@intel.com> wrote:
+	The effect is that acpi_processor_power_init will notice
+cst_control != 0 and a write to CST_CNT register is performed
+that should not happen. As result, the system oopses after the
+"No _CST, giving up" message, sometimes in acpi_ns_internalize_name,
+sometimes in acpi_ns_get_type, usually at random places. May be
+during migration to CPU 1 in acpi_processor_get_throttling.
 
-> acpi_dev_run_wake is a generic function which can be used by
-> other subsystem too. Rename it to acpi_pm_device_run_wake, to be
-> consistent with acpi_pm_device_sleep_wake.
->=20
-> Then move it to acpi core.
->=20
+	Every one of these settings help to avoid this problem:
+ - acpi=off
+ - processor.nocst=1
+ - maxcpus=1
 
-Assuming Len hasn't already picked this up, I think it can go through
-the ACPI tree.
+	The fix is to update acpi_gbl_FADT.header.length after
+the original value is used to check for old revisions.
 
---=20
-Jesse Barnes, Intel Open Source Technology Center
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ drivers/acpi/acpica/tbfadt.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
---Sig_/97.6BOE_.X693g.G.9ObLg2
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index c5d8704..4c9c760 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -363,10 +363,6 @@ static void acpi_tb_convert_fadt(void)
+ 	u32 address32;
+ 	u32 i;
+ 
+-	/* Update the local FADT table header length */
+-
+-	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
+-
+ 	/*
+ 	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as necessary.
+ 	 * Later code will always use the X 64-bit field. Also, check for an
+@@ -408,6 +404,10 @@ static void acpi_tb_convert_fadt(void)
+ 		acpi_gbl_FADT.boot_flags = 0;
+ 	}
+ 
++	/* Update the local FADT table header length */
++
++	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
++
+ 	/*
+ 	 * Expand the ACPI 1.0 32-bit addresses to the ACPI 2.0 64-bit "X"
+ 	 * generic address structures as necessary. Later code will always use
+-- 
+1.7.3.4
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPRqLtAAoJEIEoDkX4Qk9h9ZMQALDyarP84otxFwhcfvImeQI8
-kR+80sKLha6gJre8V1YwnN4SdZ+Q/+KSiThNZWe+eKaxmUsi/mS5NoYRaUYVZSM6
-FJ0BZf5YsPmIRZZdtXGk1rHUg1J2rwh1ymVZeeOl8sYD7Lh/IcsiOzq3NSkOvnMc
-xV29dnOsKoMGF+0lPwV9qZtTXBBqaMsy0zs0FkFVhBMKfW9GGfISQdDntmjAxZt7
-vtYxqLDZ8oQfZVskYkaaRuPhBOYpLe8tTaCP2vxlI76yVnmNgQihwSsTyvxcyfd8
-liUCBkaRiTwSCHqzaEO0SKTiWJ/jkZPVGP6UDhsDn0oIOjicCc65VeGnMZwXTXKL
-LRqIW/FAgNmzQmZWTbO3IqDsle3hqkloXViiVnfg2Bjbc3i/Yo8mzfGrlgrzbL2a
-aEvjO4iIQ0/qEmfVCHQxb3bBIeZRuu/9+1afwpFTL+6ydxm4SPR9qGkriWQa/yQs
-peX5MGwHOInS8wDJoNHuezUejfn6uNNAb9gaTPKil/dLfxTNA8xFvAtJxnGvVLMq
-dyzfhNvH/DqBYncsfA8Axn3C62dp/JeM3USItBSvaJho3MIgXKtZW/COS/RDzbm8
-ViR4DgD3KGUBtfyJQCGlAOgX8JT3lj372UefrBH6y0sGMG0lxJyVRTnpO3JSjFxE
-OBs7D4jhZQZUobFE/Fjy
-=Kr9O
------END PGP SIGNATURE-----
-
---Sig_/97.6BOE_.X693g.G.9ObLg2--
