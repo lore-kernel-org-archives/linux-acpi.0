@@ -1,47 +1,70 @@
-From: "Jan Beulich" <jbeulich@suse.com>
-Subject: Re: [PATCH 1/2] RFC: Prepare PAD for native and xen platform
-Date: Thu, 23 Feb 2012 14:54:03 +0000
-Message-ID: <4F46530B020000780007F751@nat28.tlf.novell.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: shpc with acpi=off?
+Date: Thu, 23 Feb 2012 08:48:13 -0800
+Message-ID: <20120223084813.39908d81@jbarnes-desktop>
+References: <20120216150421.GA26167@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/eR5zNMI19XUPhk2mZEmMiX."; protocol="application/pgp-signature"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:35461 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755896Ab2BWOyI convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:6:1>);
-	Thu, 23 Feb 2012 09:54:08 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
-Content-Disposition: inline
+Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:52341 "HELO
+	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753162Ab2BWQsU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Feb 2012 11:48:20 -0500
+In-Reply-To: <20120216150421.GA26167@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jinsong.liu@intel.com, konrad.wilk@oracle.com
-Cc: keir.xen@gmail.com, len.brown@intel.com, shaohua.li@intel.com, lenb@kernel.org, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
->>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
->--- a/drivers/acpi/Kconfig
->+++ b/drivers/acpi/Kconfig
->@@ -213,10 +213,11 @@ config ACPI_HOTPLUG_CPU
->    default y
- >
->config ACPI_PROCESSOR_AGGREGATOR
->-    tristate "Processor Aggregator"
->+    bool "Processor Aggregator"
+--Sig_/eR5zNMI19XUPhk2mZEmMiX.
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-There must be ways to address whatever strange problem you see without
-making this piece of code non-modular.
+On Thu, 16 Feb 2012 17:04:22 +0200
+"Michael S. Tsirkin" <mst@redhat.com> wrote:
 
->    depends on ACPI_PROCESSOR
->    depends on EXPERIMENTAL
->    depends on X86
->+    default n
+> I have a box where shpc works fine with acpi,
+> as well as when acpi is not built into kernel,
+> but fails with acpi=3Doff
+> Some debugging seems to indicate that
+> acpi_get_hp_hw_control_from_firmware
+> fails with acpi=3Doff.
+>=20
+> Is this a bug or is there a reason to prevent shpc
+> from working in this setup?
+> Do we even care about acpi=3Doff?
+> Assuming we want to make acpi_get_hp_hw_control_from_firmware
+> succeed with acpi=3Doff, what is the best way to do this?
+> Check acpi_pci_disabled?
 
-This is pointless.
+Yeah not sure it's important to have SHPC work with acpi=3Doff.
+Disabling ACPI prevents us from getting all sorts of important info
+these days...
 
->    help
->      ACPI 4.0 defines processor Aggregator, which enables OS to perform
->      specific processor configuration and control that applies to all
+--=20
+Jesse Barnes, Intel Open Source Technology Center
 
-Jan
+--Sig_/eR5zNMI19XUPhk2mZEmMiX.
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPRm3NAAoJEIEoDkX4Qk9hVjoQAKLz+XnHv42HdmYLE6qtrgwe
+XYGjpicKKBQfkG3rTvXQLQnPP9n6xJl7Vbi0bwvsHYr0skA49UbzATWqMi0blbUZ
+WgL5CUDpFpXeC8iXTZwlbH4v7FHKd21ukB9RPX45Db11qKhQLN48cWnwJ+1Wki5D
+VpWBJ8orhGTSoLBP7dlKAqE0+BMbFTraa0gnzL/UIjgGSWH1t9MhY427cagrIJhn
+4DUxdqjqDzj245bybIdnCAzAxv3A5++yev89s25V6W4HqYZThf9oUZKGrkVyvQ6B
+MWTOeCMVS1XHogaOtQC4Vq1q5oo0Jr7Okm82xuZduk9/Usuhwt5xpwtoYo/14+ZA
+V7KIz5m1hQCNHTUL3PIr1gIBArXhRyFrKNkA8mA9DMPVa2KcrCT8GEWcbdfHRTFB
+GdE4FdeRpiRpxIdxSWVaiAbG6/RX0VQmcSNyCTilzeabPf4wodPNltchtGgaeQB+
+FoJ1gKHN00lA3+hltMnkpzZmA+N3qPHfgo2QG/Nc47LjghnwQumXwk7XZsfSDk13
+k9eZ1vc2YquoS5sPzRSoyNGJ91+Q6BfZnZ9n+oc4WxaIYmIqXYfsifTxcaMg1N4s
+B6F183bz++mO1DMIZ7QW4LMdX32cz1S/zZb4uXZVAsbTpVHGgZFmJHKpXUV1Jwhe
+cL+B4aHhnurz944FmDct
+=eyjL
+-----END PGP SIGNATURE-----
+
+--Sig_/eR5zNMI19XUPhk2mZEmMiX.--
