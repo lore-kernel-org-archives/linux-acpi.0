@@ -1,41 +1,60 @@
 From: "Jan Beulich" <JBeulich@suse.com>
-Subject: RE: [PATCH 1/2] RFC: Prepare PAD for native and xen platform
-Date: Fri, 24 Feb 2012 08:37:52 +0000
-Message-ID: <4F475A7002000078000748C7@nat28.tlf.novell.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
- <4F46530B020000780007F751@nat28.tlf.novell.com>
- <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH] processor passthru - upload _Cx and _Pxx data to
+ hypervisor (v5).
+Date: Fri, 24 Feb 2012 10:23:42 +0000
+Message-ID: <4F47733E020000780007497D@nat28.tlf.novell.com>
+References: <1330036270-20015-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:53467 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143Ab2BXIh4 convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:6:1>);
-	Fri, 24 Feb 2012 03:37:56 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1330036270-20015-1-git-send-email-konrad.wilk@oracle.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: ke.yu@intel.com, kevin.tian@intel.com, lenb@kernel.org, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jinsong Liu <jinsong.liu@intel.com>
-Cc: "keir.xen@gmail.com" <keir.xen@gmail.com>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
->>> On 23.02.12 at 17:58, "Liu, Jinsong" <jinsong.liu@intel.com> wrote:
-> Jan Beulich wrote:
->>>>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
->>>    depends on ACPI_PROCESSOR
->>>    depends on EXPERIMENTAL
->>>    depends on X86
->>> +    default n
->> 
->> This is pointless.
+>>> On 23.02.12 at 23:31, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+> This module (processor-passthru)  collects the information that the cpufreq
+> drivers and the ACPI processor code save in the 'struct acpi_processor' and
+> then uploads it to the hypervisor.
+
+Thus looks conceptually wrong to me - there shouldn't be a need for a
+CPUFreq driver to be loaded in Dom0 (or your module should masquerade
+as the one and only suitable one).
+
+> On the hypervisor side, it requires this patch on AMD:
+> # HG changeset patch
+> # Parent aea8cfac8cf1afe397f2e1d422a852008d8a83fe
+> traps: AMD PM RDMSRs (MSR_K8_PSTATE_CTRL, etc)
 > 
-> Elaborate more? just a little curious why Kconfig has so many default n.
+> The restriction to read and write the AMD power management MSRs is gated if 
+> the
+> domain 0 is the PM domain (so FREQCTL_dom0_kernel is set). But we can
+> relax this restriction and allow the privileged domain to read the MSRs
+> (but not write). This allows the priviliged domain to harvest the power
+> management information (ACPI _PSS states) and send it to the hypervisor.
 
-Which are all pointless afaict (and I did already get a couple of
-patches merged to remove some of them) - the tool defaults
-them to 'n' anyway.
+Why would accessing these MSRs be necessary here, when it isn't
+for non-pvops? Perhaps only because you want a CPUFreq driver
+loaded?
 
 Jan
 
+> This patch works fine with older classic dom0 (2.6.32) and with
+> AMD K7 and K8 boxes.
+> 
+> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> diff -r aea8cfac8cf1 xen/arch/x86/traps.c
+> --- a/xen/arch/x86/traps.c	Thu Feb 23 13:23:02 2012 -0500
+> +++ b/xen/arch/x86/traps.c	Thu Feb 23 13:29:00 2012 -0500
+> @@ -2484,7 +2484,7 @@ static int emulate_privileged_op(struct 
+>          case MSR_K8_PSTATE7:
+>              if ( boot_cpu_data.x86_vendor != X86_VENDOR_AMD )
+>                  goto fail;
+> -            if ( !is_cpufreq_controller(v->domain) )
+> +            if ( !is_cpufreq_controller(v->domain) && !IS_PRIV(v->domain) )
+>              {
+>                  regs->eax = regs->edx = 0;
+>                  break;
